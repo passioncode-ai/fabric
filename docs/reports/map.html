@@ -185,6 +185,7 @@
 
 <!-- ─────────────────────────── CHANGELOG ─────────────────────────── -->
 <h2 id="changelog"><span class="n">00</span>Что изменилось — журнал итераций</h2>
+<div class="lane" id="iteration-2026-10-01-open-source" data-iteration="2026-10-01-open-source"><h3>1 октября · Fabric открыт</h3><p>Fabric, Fabric Inbox, Fabric VR и Fabric Agent Contract теперь открыты под AGPL-3.0, коммерческая лицензия доступна. Перед открытием из текущих файлов убрали все личные данные. Каждый репозиторий создан заново с одной чистой историей: старые коммиты через страницы PR больше не видны. Публикатор вики понимает, что опубликованного коммита больше нет, и считает это изменением Fabric, а не ошибкой. Добавлен SECURITY.md. Код приложения не менялся.</p><p><a href="../../SECURITY.md">Security</a> · <a href="#iteration-2026-10-01-merge-gitleaks-fixtures">Предыдущий шаг</a>.</p></div>
 <div class="lane" id="iteration-2026-10-01-merge-gitleaks-fixtures" data-iteration="2026-10-01-merge-gitleaks-fixtures"><h3>1 октября · список фикстур gitleaks в main</h3><p>Ветка влита в main через agent-sync, слияние записано в журнале слияний. Код приложения не менялся.</p><p><a href="../MERGES.md">Журнал слияний</a> · <a href="#iteration-2026-10-01-gitleaks-fixtures">Предыдущий шаг</a>.</p></div>
 <div class="lane" id="iteration-2026-10-01-gitleaks-fixtures" data-iteration="2026-10-01-gitleaks-fixtures"><h3>1 октября · тестовые «ключи» записаны как известные фикстуры</h3><p>Пять синтетических ключей и JWT в тестах редактора секретов — это не секреты, а входные данные тестов. Теперь они явно перечислены в .gitleaksignore, и gitleaks проходит на публикуемом дереве без исключений в скриптах. Код приложения не менялся.</p><p><a href="#iteration-2026-09-30-merge-public-redaction">Предыдущий шаг</a>.</p></div>
 <div class="lane" id="iteration-2026-09-30-merge-public-redaction" data-iteration="2026-09-30-merge-public-redaction"><h3>30 September · the redacted tree in main</h3><p>The branch that removed the operator's private data was merged into main through agent-sync, and the merge is recorded in the merge log. App code did not change in this step.</p><p><a href="../MERGES.md">Merge log</a> · <a href="#iteration-2026-09-30-public-redaction">Previous step</a>.</p></div>
@@ -2509,6 +2510,6 @@ function markCurrentSection(){
 addEventListener('hashchange',revealMapTarget);
 addEventListener('DOMContentLoaded',()=>{new ResizeObserver(measureMapNav).observe(document.querySelector('nav'));revealMapTarget();markCurrentSection();});
 </script>
-<script id="map-source-stamp" type="application/json">{"schema":1,"iteration":"2026-10-01-merge-gitleaks-fixtures","fingerprint":"2cfac63405e93b1e7dddb7361a3d658f5cdcc3258c1e8f00f4e98dbd11522f5d","source_files":1821}</script>
+<script id="map-source-stamp" type="application/json">{"schema":1,"iteration":"2026-10-01-open-source","fingerprint":"54438e1cf6b219ee262f1abf1834f76bf2bf1aa6e507a4f3555752c749470101","source_files":1822}</script>
 </body>
 </html>

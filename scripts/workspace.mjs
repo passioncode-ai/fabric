@@ -4,7 +4,7 @@ import {readFileSync,writeFileSync,existsSync} from 'node:fs'
 import path from 'node:path'
 import {snapshot,writeSnapshot,checkReceipt,git,receiptPath,publicationOnly,verifyCommittedSnapshot,receiptFor} from './workspace-snapshot.mjs'
 import {resolveSources,pinnedSources,localSourceDirs,sourcesMatch,sourcePins,fetchTip,lagReport,syncReasons} from './workspace-sources.mjs'
-import {completedPublication,verifyDeployment,publicationSource,publicationHazards} from './workspace-release.mjs'
+import {completedPublication,verifyDeployment,publicationSource,publicationHazards,sourceChangedSince} from './workspace-release.mjs'
 const root=path.resolve(import.meta.dirname,'..'),child=path.join(root,'workspace')
 const config=()=>JSON.parse(readFileSync(path.join(root,'workspace.config.json'),'utf8'))
 const run=(bin,args,cwd=root)=>execFileSync(bin,args,{cwd,stdio:'inherit'})
@@ -86,7 +86,7 @@ if(cmd==='status'){
  run('git',['checkout','-q','--detach','origin/main'])
  run('git',['submodule','update','--init','-q','workspace'])
  const receipt=JSON.parse(readFileSync(path.join(root,receiptPath),'utf8'))
- const sourceChanged=git(root,'diff','--name-only',receipt.source_commit,'HEAD').toString().split('\n').filter(p=>p&&!publicationOnly(p)).length>0
+ const sourceChanged=sourceChangedSince(root,receipt.source_commit)
  run('git',['fetch','-q','origin','main'],child)
  run('git',['checkout','-q','-B','main','origin/main'],child)
  const hostAhead=Number(git(child,'rev-list','--count',receipt.workspace_commit+'..origin/main').toString().trim())

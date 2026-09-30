@@ -35,12 +35,18 @@ export function publicationHazards(porcelain,{resume=false,receipt=receiptPath}=
   return true
  }).map(row=>row.slice(3))
 }
+/** Has Fabric changed since `commit`, counting only non-publication paths? A commit that is not an
+ * ancestor of HEAD — absent from this history, or on another line — counts as changed. */
+export function sourceChangedSince(root,commit){
+ try{git(root,'merge-base','--is-ancestor',commit,'HEAD')}catch{return true}
+ return git(root,'diff','--name-only',commit,'HEAD').toString().split('\n').some(p=>p&&!publicationOnly(p))
+}
 export function publicationSource(root,child,{pinned=pinnedSources}={}){
  const manifest=JSON.parse(readFileSync(path.join(child,'content/manifest.json'),'utf8'))
  if(!/^[a-f0-9]{40}$/.test(manifest.source?.commit||''))throw Error('Child source must be an immutable commit')
- git(root,'merge-base','--is-ancestor',manifest.source.commit,'HEAD')
- const changes=git(root,'diff','--name-only',manifest.source.commit,'HEAD').toString().split('\n').filter(p=>p&&!publicationOnly(p))
- if(changes.length)return git(root,'rev-parse','HEAD').toString().trim()
+ // A source this history does not contain (the repository was re-created with one clean history
+ // on 2026-09-30) is not an error: it means Fabric changed, so HEAD is the new source.
+ if(sourceChangedSince(root,manifest.source.commit))return git(root,'rev-parse','HEAD').toString().trim()
  if(JSON.stringify(manifest)!==JSON.stringify(snapshot(root,manifest.source.commit,{sources:pinned(manifest)}).manifest))throw Error('Host-only publication refuses modified snapshot provenance')
  return manifest.source.commit
 }
