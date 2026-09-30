@@ -185,6 +185,7 @@
 
 <!-- ─────────────────────────── CHANGELOG ─────────────────────────── -->
 <h2 id="changelog"><span class="n">00</span>Что изменилось — журнал итераций</h2>
+<div class="lane" id="iteration-2026-10-01-merge-open-source" data-iteration="2026-10-01-merge-open-source"><h3>1 октября · открытие Fabric в main</h3><p>Ветка с SECURITY.md и исправлением публикатора влита в main через agent-sync, слияние записано в журнале слияний. Код приложения не менялся.</p><p><a href="../MERGES.md">Журнал слияний</a> · <a href="#iteration-2026-10-01-open-source">Предыдущий шаг</a>.</p></div>
 <div class="lane" id="iteration-2026-10-01-open-source" data-iteration="2026-10-01-open-source"><h3>1 октября · Fabric открыт</h3><p>Fabric, Fabric Inbox, Fabric VR и Fabric Agent Contract теперь открыты под AGPL-3.0, коммерческая лицензия доступна. Перед открытием из текущих файлов убрали все личные данные. Каждый репозиторий создан заново с одной чистой историей: старые коммиты через страницы PR больше не видны. Публикатор вики понимает, что опубликованного коммита больше нет, и считает это изменением Fabric, а не ошибкой. Добавлен SECURITY.md. Код приложения не менялся.</p><p><a href="../../SECURITY.md">Security</a> · <a href="#iteration-2026-10-01-merge-gitleaks-fixtures">Предыдущий шаг</a>.</p></div>
 <div class="lane" id="iteration-2026-10-01-merge-gitleaks-fixtures" data-iteration="2026-10-01-merge-gitleaks-fixtures"><h3>1 октября · список фикстур gitleaks в main</h3><p>Ветка влита в main через agent-sync, слияние записано в журнале слияний. Код приложения не менялся.</p><p><a href="../MERGES.md">Журнал слияний</a> · <a href="#iteration-2026-10-01-gitleaks-fixtures">Предыдущий шаг</a>.</p></div>
 <div class="lane" id="iteration-2026-10-01-gitleaks-fixtures" data-iteration="2026-10-01-gitleaks-fixtures"><h3>1 октября · тестовые «ключи» записаны как известные фикстуры</h3><p>Пять синтетических ключей и JWT в тестах редактора секретов — это не секреты, а входные данные тестов. Теперь они явно перечислены в .gitleaksignore, и gitleaks проходит на публикуемом дереве без исключений в скриптах. Код приложения не менялся.</p><p><a href="#iteration-2026-09-30-merge-public-redaction">Предыдущий шаг</a>.</p></div>
@@ -2510,6 +2511,6 @@ function markCurrentSection(){
 addEventListener('hashchange',revealMapTarget);
 addEventListener('DOMContentLoaded',()=>{new ResizeObserver(measureMapNav).observe(document.querySelector('nav'));revealMapTarget();markCurrentSection();});
 </script>
-<script id="map-source-stamp" type="application/json">{"schema":1,"iteration":"2026-10-01-open-source","fingerprint":"54438e1cf6b219ee262f1abf1834f76bf2bf1aa6e507a4f3555752c749470101","source_files":1822}</script>
+<script id="map-source-stamp" type="application/json">{"schema":1,"iteration":"2026-10-01-merge-open-source","fingerprint":"64c583e174b9d4de882d2ece34680aa57f236ae030b87f1c0a77af76fbd79995","source_files":1822}</script>
 </body>
 </html>
