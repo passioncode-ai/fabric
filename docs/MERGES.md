@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-09-30T22:29:05Z · `open-source-20261001` · agent/public-followup → main · `5dfcc580`
+- run: r-5bf1fe8a5
+- files: 5 (5 files changed, 38 insertions(+), 6 deletions(-))
+- conflicts: none
+- summary: SECURITY.md; the publisher survives the re-created history
+
 ### 2026-09-30T22:03:45Z · `gitleaks-fixtures-20261001` · agent/gitleaks-fixtures → main · `ddff48b4`
 - run: r-5bf1fe8a5
 - files: 2 (2 files changed, 8 insertions(+), 1 deletion(-))
