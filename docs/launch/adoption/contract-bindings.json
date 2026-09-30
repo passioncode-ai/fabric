@@ -1575,5 +1575,10 @@
       "No database/native/provider acceptance from source bindings",
       "AD01 source receipt is a separate committed artifact; matrix validation does not issue it"
     ]
+  },
+  "sourceHistory": {
+    "state": "stale-pre-publication",
+    "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+    "reason": "shared[0] source hash drift apps/desktop/src/shared/scope.ts"
   }
 }

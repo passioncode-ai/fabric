@@ -111,27 +111,52 @@
         {
           "path": "docs/ux/screens.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "0d986caa12b2e6551dc16a53883d9fc1a1aada31baa0a7c612c58e85780fba38"
+          "sha256": "0d986caa12b2e6551dc16a53883d9fc1a1aada31baa0a7c612c58e85780fba38",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/ux/scenarios.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "341f6a2ea9d97677b194aeec403120e854679d9f7c686a788f4fc22fcae21a67"
+          "sha256": "341f6a2ea9d97677b194aeec403120e854679d9f7c686a788f4fc22fcae21a67",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/ux/flows.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "51d4e2af5bf75fe49594f4417ac3069f4e9a7fb136627d33d6ec8def2c3e510a"
+          "sha256": "51d4e2af5bf75fe49594f4417ac3069f4e9a7fb136627d33d6ec8def2c3e510a",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/sync-product-ux.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "d670b22773337f880848e4c5e48ea57e1782d75468e3a67b6ec1857354e2b501"
+          "sha256": "d670b22773337f880848e4c5e48ea57e1782d75468e3a67b6ec1857354e2b501",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/test/product-model.test.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "d3946a85ae1803523cb180059848c707521c904a51494a714935ae1d07802b3f"
+          "sha256": "d3946a85ae1803523cb180059848c707521c904a51494a714935ae1d07802b3f",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -189,22 +214,42 @@
         {
           "path": "CONTEXT.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "918cc64fa6a65e023698ace23080f1463f5a3f3fc023b6b2f56ac5861109209d"
+          "sha256": "918cc64fa6a65e023698ace23080f1463f5a3f3fc023b6b2f56ac5861109209d",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/ux/plans/2026-09-15-r0-operator.md",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "7176ff513e1d8677283a42b9e5cec1e591c465aeb8935fa4502144b77ae43d36"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "7176ff513e1d8677283a42b9e5cec1e591c465aeb8935fa4502144b77ae43d36",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "7176ff513e1d8677283a42b9e5cec1e591c465aeb8935fa4502144b77ae43d36",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "docs/architecture/external-contracts.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "eaa2c39719d2e7d2ceb735453d345f49be0089da7c9cc203d7152f8f42717985"
+          "sha256": "eaa2c39719d2e7d2ceb735453d345f49be0089da7c9cc203d7152f8f42717985",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/architecture/operator-interaction.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -250,23 +295,43 @@
       "baseline_sources": [
         {
           "path": "apps/desktop/src/shared/onboardingDraft.ts",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "apps/desktop/src/main/onboardingDrafts.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "2b8a5ebd9b73dfadeaf79bdb7e3772fb5a3bf2a8d8813e7162b19402b5bb6427"
+          "sha256": "2b8a5ebd9b73dfadeaf79bdb7e3772fb5a3bf2a8d8813e7162b19402b5bb6427",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/App.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340"
+          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "30c0b4bd0934e6f08bcb4043551731e432f1292c8401bd24d6f7153373cbe245"
+          "sha256": "30c0b4bd0934e6f08bcb4043551731e432f1292c8401bd24d6f7153373cbe245",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -338,42 +403,82 @@
         {
           "path": "docs/ux/scenarios.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "341f6a2ea9d97677b194aeec403120e854679d9f7c686a788f4fc22fcae21a67"
+          "sha256": "341f6a2ea9d97677b194aeec403120e854679d9f7c686a788f4fc22fcae21a67",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/ux/flows.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "51d4e2af5bf75fe49594f4417ac3069f4e9a7fb136627d33d6ec8def2c3e510a"
+          "sha256": "51d4e2af5bf75fe49594f4417ac3069f4e9a7fb136627d33d6ec8def2c3e510a",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/ux/screens.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "0d986caa12b2e6551dc16a53883d9fc1a1aada31baa0a7c612c58e85780fba38"
+          "sha256": "0d986caa12b2e6551dc16a53883d9fc1a1aada31baa0a7c612c58e85780fba38",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/pulse.mjs",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "537f37d00032a38342811822f9899b60ebcf822ab8f25cb0a61b742d25414a57"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "537f37d00032a38342811822f9899b60ebcf822ab8f25cb0a61b742d25414a57",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "537f37d00032a38342811822f9899b60ebcf822ab8f25cb0a61b742d25414a57",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "scripts/product/guided.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458"
+          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/controller.js",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f"
+          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/workbench.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "8337eeb5280381b840999e0b414314114aed7eb80dc3d3720f72081d94142b39"
+          "sha256": "8337eeb5280381b840999e0b414314114aed7eb80dc3d3720f72081d94142b39",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/new-project.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f94b4f8504d0ba84ec7034bcfac7fd1324ff449b2740878f7e2ec141652b3856"
+          "sha256": "f94b4f8504d0ba84ec7034bcfac7fd1324ff449b2740878f7e2ec141652b3856",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -448,22 +553,42 @@
         {
           "path": "apps/desktop/src/main/onboardingDrafts.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "2b8a5ebd9b73dfadeaf79bdb7e3772fb5a3bf2a8d8813e7162b19402b5bb6427"
+          "sha256": "2b8a5ebd9b73dfadeaf79bdb7e3772fb5a3bf2a8d8813e7162b19402b5bb6427",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/main/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/Onboarding.tsx",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "apps/desktop/src/shared/onboardingDraft.ts",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "acceptance": [
@@ -522,23 +647,43 @@
       "baseline_sources": [
         {
           "path": "apps/desktop/src/shared/onboardingDraft.ts",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "scripts/product/guided.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458"
+          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/Onboarding.tsx",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "apps/desktop/src/main/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -616,17 +761,32 @@
         {
           "path": "docs/ux/vision.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "6b0623dd44f58b6d3472531ab0ac7cc7382beca92b3aadae57d4fdc8306353bd"
+          "sha256": "6b0623dd44f58b6d3472531ab0ac7cc7382beca92b3aadae57d4fdc8306353bd",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/architecture/operator-interaction.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -691,37 +851,72 @@
         {
           "path": "scripts/product/operations.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "d79623c0838ee753b4bf2abdb60f77f5af412cea0c096f5a9c83d90a16efa40b"
+          "sha256": "d79623c0838ee753b4bf2abdb60f77f5af412cea0c096f5a9c83d90a16efa40b",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/launch.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1"
+          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/architecture/operator-interaction.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/main/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/preload/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/shared/types.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/shared/feedMarks.ts",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "7225e595d8aecffcaa01f818fac8f99eff985db957bebe2e8d145f9083705144"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "7225e595d8aecffcaa01f818fac8f99eff985db957bebe2e8d145f9083705144",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "7225e595d8aecffcaa01f818fac8f99eff985db957bebe2e8d145f9083705144",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "acceptance": [
@@ -792,33 +987,63 @@
       "baseline_sources": [
         {
           "path": "scripts/product/assistant.mjs",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "scripts/product/concierge.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "9065497101a3cf9ecd18c879b9508f6e0f74b8c04329bfb33a72505a12e37703"
+          "sha256": "9065497101a3cf9ecd18c879b9508f6e0f74b8c04329bfb33a72505a12e37703",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/architecture/operator-interaction.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/main/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/preload/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/shared/types.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -888,32 +1113,62 @@
         {
           "path": "scripts/product/operations.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "d79623c0838ee753b4bf2abdb60f77f5af412cea0c096f5a9c83d90a16efa40b"
+          "sha256": "d79623c0838ee753b4bf2abdb60f77f5af412cea0c096f5a9c83d90a16efa40b",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/ux/scenarios.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "341f6a2ea9d97677b194aeec403120e854679d9f7c686a788f4fc22fcae21a67"
+          "sha256": "341f6a2ea9d97677b194aeec403120e854679d9f7c686a788f4fc22fcae21a67",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/launch.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1"
+          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/concierge.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "9065497101a3cf9ecd18c879b9508f6e0f74b8c04329bfb33a72505a12e37703"
+          "sha256": "9065497101a3cf9ecd18c879b9508f6e0f74b8c04329bfb33a72505a12e37703",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/EstateHome.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "48220644696f4def89cffb45bf13e59882cf9a83b2c2f802e347fcbd334a2187"
+          "sha256": "48220644696f4def89cffb45bf13e59882cf9a83b2c2f802e347fcbd334a2187",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -978,48 +1233,93 @@
       "baseline_sources": [
         {
           "path": "scripts/product/context-items.mjs",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "58a732df1a981a9fa56d20e6f410593fac683fa1584848aba696432a4c7d8495"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "58a732df1a981a9fa56d20e6f410593fac683fa1584848aba696432a4c7d8495",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "58a732df1a981a9fa56d20e6f410593fac683fa1584848aba696432a4c7d8495",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "docs/launch/calm-ui.md",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "d9c6ec01366b66bc678f55fa836c07954ec7262df52cfd76f51031cf52a74353"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "d9c6ec01366b66bc678f55fa836c07954ec7262df52cfd76f51031cf52a74353",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "d9c6ec01366b66bc678f55fa836c07954ec7262df52cfd76f51031cf52a74353",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "scripts/product/assistant.mjs",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "scripts/product/controller.js",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f"
+          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/guided.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458"
+          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/AttentionPanel.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "ac82a68a26945e235ff33d036114eae2c287da963088134772500e00f3fcb39b"
+          "sha256": "ac82a68a26945e235ff33d036114eae2c287da963088134772500e00f3fcb39b",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "file-gone"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/App.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340"
+          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/preload/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/shared/types.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -1093,47 +1393,92 @@
         {
           "path": "docs/architecture/operator-interaction.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/controller.js",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f"
+          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/assistant.mjs",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "scripts/product/launch.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1"
+          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/operations.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "d79623c0838ee753b4bf2abdb60f77f5af412cea0c096f5a9c83d90a16efa40b"
+          "sha256": "d79623c0838ee753b4bf2abdb60f77f5af412cea0c096f5a9c83d90a16efa40b",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/AttentionPanel.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "ac82a68a26945e235ff33d036114eae2c287da963088134772500e00f3fcb39b"
+          "sha256": "ac82a68a26945e235ff33d036114eae2c287da963088134772500e00f3fcb39b",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "file-gone"
+          }
         },
         {
           "path": "apps/desktop/src/main/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/preload/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/shared/types.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -1200,18 +1545,33 @@
       "baseline_sources": [
         {
           "path": "docs/ux/plans/2026-09-15-r0-operator.md",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "7176ff513e1d8677283a42b9e5cec1e591c465aeb8935fa4502144b77ae43d36"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "7176ff513e1d8677283a42b9e5cec1e591c465aeb8935fa4502144b77ae43d36",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "7176ff513e1d8677283a42b9e5cec1e591c465aeb8935fa4502144b77ae43d36",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "apps/desktop/package.json",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "a6213248fc7bfd8de1831acb0c885abdacc1f97d848965e6175ad1d5234eab07"
+          "sha256": "a6213248fc7bfd8de1831acb0c885abdacc1f97d848965e6175ad1d5234eab07",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/architecture/operator-interaction.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -1280,38 +1640,73 @@
       "baseline_sources": [
         {
           "path": "scripts/product/assistant.mjs",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "docs/architecture/operator-interaction.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/main/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/AttentionPanel.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "ac82a68a26945e235ff33d036114eae2c287da963088134772500e00f3fcb39b"
+          "sha256": "ac82a68a26945e235ff33d036114eae2c287da963088134772500e00f3fcb39b",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "file-gone"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/App.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340"
+          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/preload/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/shared/types.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -1384,37 +1779,72 @@
         {
           "path": "docs/architecture/operator-interaction.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/launch.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1"
+          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/obligations.mjs",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "46c6f09a4ac3940643fb5cc46ba6af1fd9805af7919af4b835b22d1662d7d573"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "46c6f09a4ac3940643fb5cc46ba6af1fd9805af7919af4b835b22d1662d7d573",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "46c6f09a4ac3940643fb5cc46ba6af1fd9805af7919af4b835b22d1662d7d573",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/BoardPanel.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "7e87e7c8bb746ab1691cd86a5ebd3ed97ca45a43fe96832c6daa3685d7c8acb9"
+          "sha256": "7e87e7c8bb746ab1691cd86a5ebd3ed97ca45a43fe96832c6daa3685d7c8acb9",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/main/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/preload/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/shared/types.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -1491,27 +1921,52 @@
         {
           "path": "apps/desktop/src/shared/providerCapabilityMatrix.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f6b6e3046f53de7a8e15bcd3354096bccf8758a6691d9b155825e9d39897095c"
+          "sha256": "f6b6e3046f53de7a8e15bcd3354096bccf8758a6691d9b155825e9d39897095c",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/integrations.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "31d88429235f4f57574bc48a25bbd47382f38b67553e67ef6c93b9cf4b4de2fa"
+          "sha256": "31d88429235f4f57574bc48a25bbd47382f38b67553e67ef6c93b9cf4b4de2fa",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/HarnessSection.tsx",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "55a0952963bc9e57ced27c9cfd6fa95859483989581696a679ffe6765daac4fb"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "55a0952963bc9e57ced27c9cfd6fa95859483989581696a679ffe6765daac4fb",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "55a0952963bc9e57ced27c9cfd6fa95859483989581696a679ffe6765daac4fb",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "apps/desktop/src/main/agentSurface.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "d377a0b6762f4090d7eea213fcd3987caa1952c0b813a4809703b82a90943760"
+          "sha256": "d377a0b6762f4090d7eea213fcd3987caa1952c0b813a4809703b82a90943760",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -1584,47 +2039,92 @@
         {
           "path": "apps/desktop/test/run-lifecycle.test.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "946eb346078b2d0d09734641ed258b913771232dae3fd5927585008f2edf7530"
+          "sha256": "946eb346078b2d0d09734641ed258b913771232dae3fd5927585008f2edf7530",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/architecture/operator-interaction.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/operations.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "d79623c0838ee753b4bf2abdb60f77f5af412cea0c096f5a9c83d90a16efa40b"
+          "sha256": "d79623c0838ee753b4bf2abdb60f77f5af412cea0c096f5a9c83d90a16efa40b",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/main/agentSurface.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "d377a0b6762f4090d7eea213fcd3987caa1952c0b813a4809703b82a90943760"
+          "sha256": "d377a0b6762f4090d7eea213fcd3987caa1952c0b813a4809703b82a90943760",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/TaskPage.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "2828108e5c526d7754497ef87ac90b920887250d1daf898fb9788f05ce042b84"
+          "sha256": "2828108e5c526d7754497ef87ac90b920887250d1daf898fb9788f05ce042b84",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/main/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/preload/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/shared/types.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -1696,48 +2196,93 @@
       "baseline_sources": [
         {
           "path": "apps/desktop/src/shared/cyclePort.ts",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "167baaa9d0312780ca1ea70c35a3022fa40eb31f7eee575120b49cc9a56e5b48"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "167baaa9d0312780ca1ea70c35a3022fa40eb31f7eee575120b49cc9a56e5b48",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "167baaa9d0312780ca1ea70c35a3022fa40eb31f7eee575120b49cc9a56e5b48",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "apps/desktop/src/shared/cycleView.ts",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "4914156adfec645533b5bd5b70abce43fdead7d61408a1d2f308d37daa6a5d4c"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "4914156adfec645533b5bd5b70abce43fdead7d61408a1d2f308d37daa6a5d4c",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "4914156adfec645533b5bd5b70abce43fdead7d61408a1d2f308d37daa6a5d4c",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "scripts/product/routines.mjs",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "27108f193c14675649e7341fd86704f95349cd72463c4bcfe43745407bbce9ba"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "27108f193c14675649e7341fd86704f95349cd72463c4bcfe43745407bbce9ba",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "27108f193c14675649e7341fd86704f95349cd72463c4bcfe43745407bbce9ba",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "apps/desktop/src/main/routineTick.ts",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "754c7b3fe37abd37a191c6cc9c641b76624e66e4397344de7e0f0f6e0efd4f6f"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "754c7b3fe37abd37a191c6cc9c641b76624e66e4397344de7e0f0f6e0efd4f6f",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "754c7b3fe37abd37a191c6cc9c641b76624e66e4397344de7e0f0f6e0efd4f6f",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "apps/desktop/src/shared/routine.ts",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "af344c503e42d9658aa7a1a357cb6f96fd46ac5cb17b6bb8d6179e56316d48dc"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "af344c503e42d9658aa7a1a357cb6f96fd46ac5cb17b6bb8d6179e56316d48dc",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "af344c503e42d9658aa7a1a357cb6f96fd46ac5cb17b6bb8d6179e56316d48dc",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/main/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/preload/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/shared/types.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -1815,28 +2360,53 @@
       "baseline_sources": [
         {
           "path": "docs/launch/ceo-onboarding.md",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "e55f3b4e9be8277f12c2967016d3145cac3dccbb4aacbf3db551f1752183ad11"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "e55f3b4e9be8277f12c2967016d3145cac3dccbb4aacbf3db551f1752183ad11",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "e55f3b4e9be8277f12c2967016d3145cac3dccbb4aacbf3db551f1752183ad11",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "scripts/product/guided.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458"
+          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/main/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/preload/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/shared/types.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -1924,37 +2494,72 @@
         {
           "path": "docs/ux/product-model.json",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "a7d765f4ffedc573902942f3f70860b3700ec0df99289a218254b317a15d215a"
+          "sha256": "a7d765f4ffedc573902942f3f70860b3700ec0df99289a218254b317a15d215a",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/guided.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458"
+          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/controller.js",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f"
+          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/calm.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "0a8735fe125a04e0cb0894d6e71863bcd04c0e9596fa1d55dd64083c49cbbcac"
+          "sha256": "0a8735fe125a04e0cb0894d6e71863bcd04c0e9596fa1d55dd64083c49cbbcac",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/Onboarding.tsx",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/App.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340"
+          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -2026,48 +2631,93 @@
       "baseline_sources": [
         {
           "path": "docs/launch/calm-ui.md",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "d9c6ec01366b66bc678f55fa836c07954ec7262df52cfd76f51031cf52a74353"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "d9c6ec01366b66bc678f55fa836c07954ec7262df52cfd76f51031cf52a74353",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "d9c6ec01366b66bc678f55fa836c07954ec7262df52cfd76f51031cf52a74353",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "scripts/product/report-template.html",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "cdad56dce9211ed3f4f94b69c3debf46e0e5595c9e8c81c12bb6a60cc9b10e8a"
+          "sha256": "cdad56dce9211ed3f4f94b69c3debf46e0e5595c9e8c81c12bb6a60cc9b10e8a",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/calm.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "0a8735fe125a04e0cb0894d6e71863bcd04c0e9596fa1d55dd64083c49cbbcac"
+          "sha256": "0a8735fe125a04e0cb0894d6e71863bcd04c0e9596fa1d55dd64083c49cbbcac",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/launch.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1"
+          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "scripts/product/pulse.mjs",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "537f37d00032a38342811822f9899b60ebcf822ab8f25cb0a61b742d25414a57"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "537f37d00032a38342811822f9899b60ebcf822ab8f25cb0a61b742d25414a57",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "537f37d00032a38342811822f9899b60ebcf822ab8f25cb0a61b742d25414a57",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "scripts/product/controller.js",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f"
+          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/App.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340"
+          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/EstateHome.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "48220644696f4def89cffb45bf13e59882cf9a83b2c2f802e347fcbd334a2187"
+          "sha256": "48220644696f4def89cffb45bf13e59882cf9a83b2c2f802e347fcbd334a2187",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -2141,48 +2791,93 @@
       "baseline_sources": [
         {
           "path": "apps/desktop/src/shared/membership.ts",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "6fdfccd0df3320cd409a91b3642fea38771b95efe5db70aca7befdc7feb35ea6"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "6fdfccd0df3320cd409a91b3642fea38771b95efe5db70aca7befdc7feb35ea6",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "6fdfccd0df3320cd409a91b3642fea38771b95efe5db70aca7befdc7feb35ea6",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "docs/ux/scenarios.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "341f6a2ea9d97677b194aeec403120e854679d9f7c686a788f4fc22fcae21a67"
+          "sha256": "341f6a2ea9d97677b194aeec403120e854679d9f7c686a788f4fc22fcae21a67",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/ux/flows.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "51d4e2af5bf75fe49594f4417ac3069f4e9a7fb136627d33d6ec8def2c3e510a"
+          "sha256": "51d4e2af5bf75fe49594f4417ac3069f4e9a7fb136627d33d6ec8def2c3e510a",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/ux/screens.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "0d986caa12b2e6551dc16a53883d9fc1a1aada31baa0a7c612c58e85780fba38"
+          "sha256": "0d986caa12b2e6551dc16a53883d9fc1a1aada31baa0a7c612c58e85780fba38",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/ux/product-model.json",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "a7d765f4ffedc573902942f3f70860b3700ec0df99289a218254b317a15d215a"
+          "sha256": "a7d765f4ffedc573902942f3f70860b3700ec0df99289a218254b317a15d215a",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/App.tsx",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340"
+          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/main/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/preload/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/shared/types.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -2242,23 +2937,43 @@
       "baseline_sources": [
         {
           "path": "apps/desktop/src/shared/onboardingDraft.ts",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "scripts/product/guided.mjs",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458"
+          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "apps/desktop/src/renderer/src/Onboarding.tsx",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "apps/desktop/src/main/index.ts",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
@@ -2358,8 +3073,13 @@
       "baseline_sources": [
         {
           "path": "docs/ux/plans/2026-09-15-r0-operator.md",
-          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "7176ff513e1d8677283a42b9e5cec1e591c465aeb8935fa4502144b77ae43d36"
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "sha256": "7176ff513e1d8677283a42b9e5cec1e591c465aeb8935fa4502144b77ae43d36",
+          "repinned_from": {
+            "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+            "file_sha256": "7176ff513e1d8677283a42b9e5cec1e591c465aeb8935fa4502144b77ae43d36",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "acceptance": [
@@ -2419,12 +3139,22 @@
         {
           "path": "docs/ux/vision.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "6b0623dd44f58b6d3472531ab0ac7cc7382beca92b3aadae57d4fdc8306353bd"
+          "sha256": "6b0623dd44f58b6d3472531ab0ac7cc7382beca92b3aadae57d4fdc8306353bd",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         },
         {
           "path": "docs/brand/facts.md",
           "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
-          "sha256": "4d35fe15490e0a02b73e58feba400bd937e1f2ab346ceae4018958ddfd5d8f7d"
+          "sha256": "4d35fe15490e0a02b73e58feba400bd937e1f2ab346ceae4018958ddfd5d8f7d",
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "bytes-changed"
+          }
         }
       ],
       "acceptance": [
