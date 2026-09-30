@@ -3,6 +3,7 @@ import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {STALE,history} from './lib/public-history.mjs';
 
 const need=(value,message)=>{if(!value)throw Error(message)};
 const text=(value,label)=>need(typeof value==='string'&&value.trim().length>0,label+' must be nonempty text');
@@ -19,10 +20,22 @@ const capabilityNames=['project-creation','source-observation','context-return',
 const canonical={Scope:'apps/desktop/src/shared/scope.ts',EntityRef:'apps/desktop/src/shared/entityRef.ts'};
 
 /** Source evidence only. readBlob(commit, path) returns committed text or null for absent paths.
- * Never reads a working tree as proof; never produces a packet or runtime admission receipt. */
-export function validateBindings(doc,{readBlob}){
- need(typeof readBlob==='function','committed source reader required');
- exact(doc,['schemaVersion','status','sourceCommit','sourceStatus','date','proofTier','receiptProduced','upstream','sharedExistingBindings','proposedScopedReference','capabilities','proposedDecisions','irreducibleAmbiguities','validation'],'bindings');
+ * Never reads a working tree as proof; never produces a packet or runtime admission receipt.
+ * sources:'unavailable' is the ONE way to validate without a reader, and only for a document
+ * whose sourceHistory says it is stale (scripts/lib/public-history.mjs): its commit belongs to
+ * the pre-publication history, so its structure is checked and its sources verify nothing. */
+export function validateBindings(doc,{readBlob,sources='committed'}){
+ exact(doc,['schemaVersion','status','sourceCommit','sourceStatus','date','proofTier','receiptProduced','upstream','sharedExistingBindings','proposedScopedReference','capabilities','proposedDecisions','irreducibleAmbiguities','validation'],'bindings',['sourceHistory']);
+ const h=doc.sourceHistory;
+ if(h!==undefined){
+  need(h&&typeof h==='object'&&!Array.isArray(h),'sourceHistory must be an object');
+  if(h.state===STALE){exact(h,['state','since','reason'],'sourceHistory');need(/^[a-f0-9]{40}$/.test(h.since)&&h.since!==doc.sourceCommit,'stale sourceHistory needs the commit it was re-validated at');text(h.reason,'stale reason');}
+  else{exact(h,['state','from','rule'],'sourceHistory');need(h.state==='repinned'&&h.rule==='bindings-revalidated'&&/^[a-f0-9]{40}$/.test(h.from)&&h.from!==doc.sourceCommit,'unsupported sourceHistory');}
+ }
+ const unavailable=sources==='unavailable';
+ need(sources==='committed'||unavailable,'unknown source mode');
+ need(!unavailable||h?.state===STALE,'only stale bindings validate without committed sources');
+ need(unavailable||typeof readBlob==='function','committed source reader required');
  const candidate=doc.schemaVersion==='fabric.adoption.producer-bindings.candidate@1';
  need(candidate||doc.schemaVersion==='fabric.adoption.producer-bindings@1','unsupported schema');
  need(doc.status===(candidate?'candidate-preparation-only':'source-bound'),'schema/status mismatch');
@@ -32,16 +45,18 @@ export function validateBindings(doc,{readBlob}){
  need(doc.proofTier==='source','source evidence cannot claim native or runtime proof');
  need(doc.receiptProduced===false,'binding validation cannot produce acceptance receipt');
  const cache=new Map(),anchors=new Set();
- const blob=file=>{safeFile(file);if(!cache.has(file))cache.set(file,readBlob(doc.sourceCommit,file));const got=cache.get(file);need(got===null||typeof got==='string','reader must return committed text or null');return got;};
+ const blob=file=>{safeFile(file);if(unavailable)return undefined;if(!cache.has(file))cache.set(file,readBlob(doc.sourceCommit,file));const got=cache.get(file);need(got===null||typeof got==='string','reader must return committed text or null');return got;};
  function binding(b,label){
   exact(b,['file','symbol','kind','line','sha256'],label);text(b.symbol,label+' symbol');
   need(['export','handler','closure','comment'].includes(b.kind),label+' unsupported binding kind');
   need(Number.isInteger(b.line)&&b.line>0,label+' invalid line');need(/^[a-f0-9]{64}$/.test(b.sha256),label+' invalid sha256');
-  const bytes=blob(b.file);need(bytes!==null,label+' missing committed producer '+b.file);need(hash(bytes)===b.sha256,label+' source hash drift '+b.file);
+  const bytes=blob(b.file);
+  if(Object.hasOwn(canonical,b.symbol))need(b.file===canonical[b.symbol]&&b.kind==='export','duplicate authority '+b.symbol);
+  if(bytes===undefined){anchors.add(b.file+':'+b.line+':'+b.symbol);return;}
+  need(bytes!==null,label+' missing committed producer '+b.file);need(hash(bytes)===b.sha256,label+' source hash drift '+b.file);
   const line=bytes.split('\n')[b.line-1];need(typeof line==='string',label+' moved/missing symbol line '+b.file);
   if(b.kind==='export')need(new RegExp('^\\s*export\\s+(?:(?:declare|async)\\s+)*(?:type|interface|class|function|const|let|var|enum)\\s+'+escapeRegex(b.symbol)+'(?=\\W|$)').test(line),label+' moved/missing export '+b.symbol);
   else {need(line.includes(b.symbol),label+' moved/missing anchor '+b.symbol);if(b.kind==='handler'){const context=bytes.split('\n').slice(Math.max(0,b.line-2),b.line).join('\n');need(!/^\s*(?:\/\/|\/\*|\*)/.test(line)&&/\bhandle\s*\(/.test(context),label+' not a handler');}if(b.kind==='closure')need(/\b(?:const|let|function)\b/.test(line),label+' not a closure');if(b.kind==='comment')need(/^\s*(?:\/\/|\/\*|\*)/.test(line),label+' not a comment');}
-  if(Object.hasOwn(canonical,b.symbol))need(b.file===canonical[b.symbol]&&b.kind==='export','duplicate authority '+b.symbol);
   anchors.add(b.file+':'+b.line+':'+b.symbol);
  }
  need(Array.isArray(doc.sharedExistingBindings)&&doc.sharedExistingBindings.length>0,'shared bindings required');
@@ -76,7 +91,7 @@ export function validateBindings(doc,{readBlob}){
    need(Array.isArray(owners)&&owners.length>0,label+' '+layer+' owners missing');const seen=new Set();
    for(const owner of owners){exact(owner,['file','status','authority'],label+' owner');need(!seen.has(owner.file),label+' duplicate owner');seen.add(owner.file);text(owner.authority,label+' owner authority');
     need(['existing-extension','proposed-new-module'].includes(owner.status),label+' owner must be explicitly existing/new');
-    need((blob(owner.file)!==null)===(owner.status==='existing-extension'),label+' future owner existence mismatch '+owner.file);
+    const present=blob(owner.file);if(present!==undefined)need((present!==null)===(owner.status==='existing-extension'),label+' future owner existence mismatch '+owner.file);
    }
   }
   strings(c.downstreamPackets,label+' packets');for(const id of c.downstreamPackets)need(/^AD(?:0\d|1\d|2[0-4])$/.test(id),label+' unknown packet '+id);
@@ -86,7 +101,7 @@ export function validateBindings(doc,{readBlob}){
  need(Array.isArray(doc.irreducibleAmbiguities),'ambiguities must be an array');const ambiguityIds=new Set();
  for(const a of doc.irreducibleAmbiguities){exact(a,['id','subject','requiredOwner','detail'],'ambiguity');Object.values(a).forEach(v=>text(v,'ambiguity'));need(!ambiguityIds.has(a.id),'duplicate ambiguity');ambiguityIds.add(a.id);}
  exact(doc.validation,['commands','notRun'],'validation');strings(doc.validation.commands,'commands');strings(doc.validation.notRun,'notRun');
- return {proofTier:'source',acceptance:false,capabilities:doc.capabilities.length,anchors:anchors.size,committedFiles:[...cache.values()].filter(v=>v!==null).length,readiness};
+ return {proofTier:'source',acceptance:false,capabilities:doc.capabilities.length,anchors:anchors.size,committedFiles:[...cache.values()].filter(v=>v!==null).length,readiness,sources:unavailable?'stale; not verified':'committed'};
 }
 
 export function committedReader(root,commit){
@@ -99,5 +114,20 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
  const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
  const file=process.argv[2]??'docs/launch/adoption/contract-bindings.json';
  const doc=JSON.parse(readFileSync(path.resolve(root,file),'utf8'));
- console.log('PASS committed source bindings '+JSON.stringify(validateBindings(doc,{readBlob:committedReader(root,doc.sourceCommit)}))+'. Not native/provider admission or AD01 acceptance.');
+ const hist=history(root);
+ if(hist.inHistory(doc.sourceCommit)){
+  if(doc.sourceHistory?.state==='repinned')need(!hist.inHistory(doc.sourceHistory.from),'repinned from a commit that is in this history');
+  need(doc.sourceHistory?.state!==STALE,'bindings marked stale while their commit is in this history; verify them instead');
+  console.log('PASS committed source bindings '+JSON.stringify(validateBindings(doc,{readBlob:committedReader(root,doc.sourceCommit)}))+'. Not native/provider admission or AD01 acceptance.');
+ }else{
+  // The commit is from the pre-publication history. Staleness is re-proved, not asserted: the
+  // same document, re-validated at `since`, must fail with exactly the recorded reason.
+  const h=doc.sourceHistory;need(h?.state===STALE,'sourceCommit '+doc.sourceCommit+' is not in this history and the bindings carry no stale sourceHistory');
+  need(hist.inHistory(h.since),'stale sourceHistory.since is not in this history');
+  const {sourceHistory,...bare}=doc;let failure=null;
+  try{validateBindings({...bare,sourceCommit:h.since},{readBlob:committedReader(root,h.since)});}catch(error){failure=error.message;}
+  need(failure!==null,'bindings marked stale still validate at '+h.since+'; repin them');
+  need(failure===h.reason,'stale reason drifted: re-validation at '+h.since.slice(0,12)+' now fails with "'+failure+'"');
+  console.log('PASS structural source bindings (STALE since the public re-creation of the history: '+h.reason+') '+JSON.stringify(validateBindings(doc,{sources:'unavailable'}))+'. Sources verify nothing; not native/provider admission or AD01 acceptance.');
+ }
 }

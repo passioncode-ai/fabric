@@ -83,6 +83,16 @@ root = pathlib.Path(sys.argv[1])
 files = list(root.glob("*.md")) + list((root / "docs").rglob("*.md"))
 bad = []
 pattern = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
+# A link into a submodule that is not checked out cannot be resolved HERE: `workspace` is
+# private and a public clone cannot initialise it (scripts/lib/submodules.mjs says why). Such
+# links are counted and named, not passed; where the submodule is checked out they are checked.
+gitmodules = root / ".gitmodules"
+unchecked = [
+    (root / m).resolve()
+    for m in (re.findall(r"^\s*path\s*=\s*(.+?)\s*$", gitmodules.read_text(encoding="utf-8"), re.M) if gitmodules.exists() else [])
+    if not (root / m / ".git").exists()
+]
+not_checked = {}
 for source in files:
     text = source.read_text(encoding="utf-8")
     in_fence = False
@@ -97,13 +107,22 @@ for source in files:
             if not target or target.startswith(("#", "http://", "https://", "mailto:")):
                 continue
             path = urllib.parse.unquote(target.split("#", 1)[0])
-            if path and not (source.parent / path).resolve().exists():
+            if not path:
+                continue
+            resolved = (source.parent / path).resolve()
+            sub = next((u for u in unchecked if resolved == u or u in resolved.parents), None)
+            if sub is not None:
+                name = sub.relative_to(root.resolve()).as_posix()
+                not_checked[name] = not_checked.get(name, 0) + 1
+            elif not resolved.exists():
                 bad.append(f"{source.relative_to(root)}:{line_no}: {target}")
 if bad:
     print("broken relative Markdown links:")
     for item in bad:
         print(f"  {item}")
     raise SystemExit(1)
+for name, count in not_checked.items():
+    print(f"NOT CHECKED: {count} relative link(s) into the submodule '{name}', which is not checked out here (private; a public clone cannot initialise it)")
 print(f"relative Markdown links resolve ({len(files)} files inspected)")
 PY
 then

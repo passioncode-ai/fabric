@@ -3,6 +3,7 @@ import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import {STALE,STALE_REASONS,history,repinProblem,staleProblem} from './lib/public-history.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 export function validate({inventory,review,plan,journey,viewIds}){
  const need=(ok,msg)=>{if(!ok)throw Error(msg)};
@@ -20,7 +21,13 @@ export function validate({inventory,review,plan,journey,viewIds}){
   need(p.inputs.length===p.depends_on.length,'missing dependency binding '+p.id);need(p.test_write_candidates?.length,'missing test owner '+p.id);for(const i of p.inputs){need(i.minimum_proof_tier===byId[i.packet]?.required_output_tier&&i.required_status==='passed','invalid edge proof '+p.id);need(i.predicate===(i.packet==='AD12'?'selected-and-accepted-STT-port':'acceptance-complete-and-contract-bound'),'invalid edge predicate '+p.id);}for(const dep of p.depends_on)need(packetIds.indexOf(dep)<packetIds.indexOf(p.id),'non-topological order');
   for(const d of p.depends_on)need(p.inputs.some(i=>i.packet===d&&i.receipt===byId[d].output),'wrong upstream output '+p.id);
   need(p.baseline_sources.length>0,'missing source pins '+p.id);
-  for(const s of p.baseline_sources)need(s.commit===plan.baseline&&/^[a-f0-9]{64}$/.test(s.sha256),'invalid source pin');
+  // A pin addresses the plan's baseline, or was moved off it by the public re-creation of the
+  // history (scripts/lib/public-history.mjs): repinned when the file is byte-identical, stale
+  // when it is not. A stale pin stays on the baseline as a record and verifies nothing.
+  for(const s of p.baseline_sources){need(/^[a-f0-9]{64}$/.test(s.sha256),'invalid source pin');
+   if(s.verification===STALE)need(s.commit===plan.baseline&&!s.repinned_from&&['file-gone','bytes-changed'].includes(s.stale?.reason)&&STALE_REASONS.includes(s.stale.reason),'invalid stale source pin');
+   else if(s.repinned_from)need(s.repinned_from.commit===plan.baseline&&s.repinned_from.rule==='identical-bytes'&&s.repinned_from.file_sha256===s.sha256&&s.commit!==plan.baseline,'invalid repinned source pin');
+   else need(s.commit===plan.baseline&&s.verification===undefined,'invalid source pin');}
   need(p.status!=='ready-for-bounded-work'||p.id==='AD00'||p.id==='AD02','unbound ready packet');
  }
  for(const f of review.findings){need(f.decisions.length,'orphan finding '+f.id);for(const id of f.decisions)need(review.decisions.some(d=>d.id===id&&d.findings.includes(f.id)),'broken finding/decision relation');}
@@ -31,14 +38,17 @@ export function validate({inventory,review,plan,journey,viewIds}){
 }
 export function load(){const j=p=>JSON.parse(readFileSync(path.join(root,p),'utf8'));return {inventory:j('docs/launch/adoption/inventory.json'),review:j('docs/launch/adoption/findings.json'),plan:j('docs/launch/adoption/plan.json'),journey:j('docs/launch/adoption/journey.json'),viewIds:j('docs/ux/product-model.json').views.map(v=>v.id)}};
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
- const data=load(),count=validate(data);const checked=new Set();
+ const data=load(),count=validate(data);const checked=new Set(),stale=new Set(),hist=history(root);
  for(const p of data.plan.packets){
   if(!existsSync(path.join(root,'docs/launch/adoption/packets/'+p.id+'.md')))throw Error('Missing packet file '+p.id);
   for(const f of [...p.read_paths,...p.write_candidates,...p.test_write_candidates])if(!existsSync(path.join(root,f)))throw Error('Unresolved owned path '+f);
-  for(const s of p.baseline_sources){if(checked.has(s.path))continue;checked.add(s.path);const bytes=execFileSync('git',['show',s.commit+':'+s.path],{cwd:root,maxBuffer:16*1024*1024});if(createHash('sha256').update(bytes).digest('hex')!==s.sha256)throw Error('Source hash mismatch '+s.path);}
+  for(const s of p.baseline_sources){
+   if(s.verification===STALE){if(stale.has(s.path))continue;stale.add(s.path);const problem=staleProblem({commit:s.commit,file:s.path,sha:s.sha256,stale:s.stale},hist);if(problem)throw Error('Stale source pin '+s.path+': '+problem);continue}
+   if(s.repinned_from){const problem=repinProblem(s,{sha:s.sha256,inHistory:hist.inHistory});if(problem)throw Error('Repinned source pin '+s.path+': '+problem)}
+   if(checked.has(s.path))continue;checked.add(s.path);const bytes=execFileSync('git',['show',s.commit+':'+s.path],{cwd:root,maxBuffer:16*1024*1024});if(createHash('sha256').update(bytes).digest('hex')!==s.sha256)throw Error('Source hash mismatch '+s.path);}
  }
  const html=readFileSync(path.join(root,'docs/reports/adoption.html'),'utf8'),ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(x=>x[1]);
  if(new Set(ids).size!==ids.length)throw Error('Duplicate report anchors');
  for(const [,target] of html.matchAll(/href="#([^"]+)"/g))if(!ids.includes(target))throw Error('Missing report anchor '+target);
- console.log('PASS structural adoption plan '+JSON.stringify(count)+', '+checked.size+' immutable source pins. Not semantic/runtime/UX acceptance.');
+ console.log('PASS structural adoption plan '+JSON.stringify(count)+', '+checked.size+' immutable source pins verified, '+stale.size+' stale since the public re-creation of the history (verify nothing). Not semantic/runtime/UX acceptance.');
 }

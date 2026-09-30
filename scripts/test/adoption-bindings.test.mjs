@@ -48,3 +48,16 @@ rejects('proposed reference must import canonical EntityRef',f=>f.doc.proposedSc
 rejects('unsafe binding path is rejected',f=>f.doc.capabilities[0].existingBindings[0].file='../secrets',/unsafe file/);
 test('multiline handler anchor binds the call argument',()=>{const f=fixture();const bytes='handle(\n  IPC.questionAnswer,\n  async () => {}\n)\n';f.files.set('src/handler.ts',bytes);f.doc.capabilities[0].existingBindings=[{file:'src/handler.ts',symbol:'IPC.questionAnswer',kind:'handler',line:2,sha256:sha(bytes)}];validateBindings(f.doc,{readBlob:f.readBlob});});
 rejects('historical commented handler cannot serve as live producer',f=>{const bytes='  * Previously handle(IPC.attentionList, readAttention)\n';f.files.set('src/handler.ts',bytes);f.doc.capabilities[0].existingBindings=[{file:'src/handler.ts',symbol:'IPC.attentionList',kind:'handler',line:1,sha256:sha(bytes)}];},/not a handler/);
+
+// The public re-creation of the history (scripts/lib/public-history.mjs). A document whose commit is
+// not in this history is STALE: its structure is still checked, its sources verify nothing, and the
+// reader-less mode is refused to anything that does not say so.
+const staleHistory={state:'stale-pre-publication',since:'b'.repeat(40),reason:'shared[0] source hash drift apps/desktop/src/shared/scope.ts'};
+test('stale bindings keep their structure checked and verify no source',()=>{const f=fixture();f.doc.sourceHistory={...staleHistory};const r=validateBindings(f.doc,{sources:'unavailable'});assert.equal(r.sources,'stale; not verified');assert.equal(r.committedFiles,0);assert.equal(r.acceptance,false);});
+test('stale bindings are still refused a ready capability',()=>{const f=fixture();f.doc.sourceHistory={...staleHistory};f.doc.capabilities[3].currentReadiness='ready';assert.throws(()=>validateBindings(f.doc,{sources:'unavailable'}),/ready requires independent runtime/);});
+rejects('bindings cannot skip their sources without saying they are stale',f=>{f.readBlob=undefined;},/committed source reader required/);
+test('reader-less validation is refused to bindings that are not stale',()=>{const f=fixture();assert.throws(()=>validateBindings(f.doc,{sources:'unavailable'}),/only stale bindings/);});
+rejects('stale history must name the commit it was re-validated at',f=>{f.doc.sourceHistory={...staleHistory,since:f.doc.sourceCommit};},/needs the commit it was re-validated at/);
+rejects('stale history must carry its reason',f=>{f.doc.sourceHistory={...staleHistory,reason:' '};},/stale reason must be nonempty/);
+rejects('unknown source history field fails closed',f=>{f.doc.sourceHistory={...staleHistory,verified:true};},/unknown field verified/);
+rejects('a repin must name where it came from',f=>{f.doc.sourceHistory={state:'repinned',from:f.doc.sourceCommit,rule:'bindings-revalidated'};},/unsupported sourceHistory/);

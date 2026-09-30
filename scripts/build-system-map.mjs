@@ -2,6 +2,7 @@ import {readFileSync,writeFileSync} from 'node:fs'
 import {createHash} from 'node:crypto'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
+import {STALE} from './lib/public-history.mjs'
 export const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..')
 export const inputPaths=['docs/architecture/system-model.json','docs/architecture/engineering-specs.json','docs/architecture/system-contract.md','scripts/templates/system-map.html','docs/evidence/plans/2026-09-07-engineering-contracts/signature.md','docs/evidence/plans/2026-09-09-provider-accounts-backlog/catalog-extension.json']
 const read=p=>readFileSync(path.join(root,p),'utf8')
@@ -14,7 +15,10 @@ export function renderValue(v){
  if(v===null||v===undefined)return '<span class="muted">Не задано</span>'
  if(typeof v!=='object')return `<span>${esc(v)}</span>`
  if(Array.isArray(v))return v.length?`<ul>${v.map(x=>`<li>${renderValue(x)}</li>`).join('')}</ul>`:'<span class="muted">Нет элементов</span>'
- if(v.url&&v.path)return `<a href="${esc(v.url)}" target="_blank" rel="noreferrer">${esc(v.repository||'fabric')} · ${esc(v.path)}:${esc(v.line||'')}</a>${v.symbol?' · '+esc(v.symbol):''}${v.receipt?'<p>'+esc(v.receipt)+'</p>':''}${v.claim?'<p>'+esc(v.claim)+'</p>':''}${v.verification?'<small>Источник: '+esc(v.verification)+' · '+esc(v.commit||'current design')+'</small>':''}${v.excerpt?'<code>'+esc(v.excerpt)+'</code>':''}`
+ // A stale receipt addresses a commit the public history does not have: it is shown as the
+ // record it is, never as a link that would open nothing (scripts/lib/public-history.mjs).
+ if(v.url&&v.path){const where=`${esc(v.repository||'fabric')} · ${esc(v.path)}:${esc(v.line||'')}`,stale=v.verification===STALE
+  return `${stale?`<span class="muted">${where}</span>`:`<a href="${esc(v.url)}" target="_blank" rel="noreferrer">${where}</a>`}${v.symbol?' · '+esc(v.symbol):''}${v.receipt?'<p>'+esc(v.receipt)+'</p>':''}${v.claim?'<p>'+esc(v.claim)+'</p>':''}${v.verification?'<small>Источник: '+esc(v.verification)+' · '+esc(v.commit||'current design')+(stale?' · коммит истории до публикации; на '+esc(v.stale?.since?.slice(0,7))+' цитата не подтверждается ('+esc(v.stale?.reason)+')':'')+(v.repinned_from?' · перенесено с '+esc(v.repinned_from.commit.slice(0,7))+' ('+esc(v.repinned_from.rule)+')':'')+'</small>':''}${v.excerpt?'<code>'+esc(v.excerpt)+'</code>':''}`}
  return Object.entries(v).map(([k,x])=>`<div class="kv"><span class="field-label">${esc(label(k))}</span>: ${renderValue(x)}</div>`).join('')
 }
 const skip=new Set(['id','title','depth','modules','depends_on','batch','researcher','parts','design_status','implementation_in_this_change','canonical_dependencies','current_dependencies','dependencies','dependency_note','research','evidence','status','source_confidence'])
