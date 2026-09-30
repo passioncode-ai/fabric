@@ -1,0 +1,11 @@
+  ok   palette: no raw colour outside the token layer
+  ok   type + space: every size comes from the token ladders
+  ok   strings: 190 keys in the primary registry
+  ok   strings: every key used by a component exists
+  ok   component set: every class in the stylesheets is declared by an owner
+  ok   strings: no literal interface text in components
+
+PASS: interface tokens and strings
+PASS: 15 brand icon SVGs match the master
+PASS: 27 raster brand assets match the manifest
+$ node scripts/check-design.mjs && node scripts/build-brand-icons.mjs --check && node scripts/build-brand-pack.mjs --check

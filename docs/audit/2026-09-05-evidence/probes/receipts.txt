@@ -1,0 +1,50 @@
+=== 01-module-boundaries.mjs ===
+command: node /tmp/fabric-audit-20260905/probes/01-module-boundaries.mjs
+original exit: 0
+source_ref preserved forged heading: true
+budget= 400 actual chars= 50459
+DB error pack: {"chars":249,"omittedFacts":0,"omittedTranscripts":0,"namesUnnamed":true}
+decodePty CR truncates residual: {"input":"abcdef\rX\n","terminalExpected":"Xbcdef\n","actual":"X\n"}
+decodePty backspace: {"input":"a\bb\n","terminalExpected":"b\n","actual":"ab\n"}
+git status failure: {"path":"/tmp","branch":"main","ahead":null,"behind":null,"changed":0,"untracked":0,"lastCommit":null,"readAt":"2026-09-04T22:49:51.799Z","error":null}
+
+
+=== 02-schema-acl.mjs ===
+command: node /tmp/fabric-audit-20260905/probes/02-schema-acl.mjs
+original exit: 0
+[
+  { role: 'anon', journal_truncate: false, event_type_insert: false },
+  { role: 'authenticated', journal_truncate: true, event_type_insert: false },
+  { role: 'service_role', journal_truncate: true, event_type_insert: false }
+]
+
+
+=== 03-schema-authority-rebuild.mjs ===
+command: node /tmp/fabric-audit-20260905/probes/03-schema-authority-rebuild.mjs
+original exit: 0
+rebuild config_revision= [ 2, 3, 4 ]
+schema accepted mismatched estate/class, expired, consumed grant with nonexistent receipts twice= 2
+project name after B event targeting A existing UUID= { still_a: true, name: 'Cross-estate overwrite' }
+accepted estate A memory for project in B= { estate_a: true, project_b: true }
+future fact included by production current filter= 1
+abandon repair= { status: 'abandoned', abandoned_reason: 'restarted' }
+ROLLBACK complete
+
+
+=== 04-policy-mcp-errors.mjs ===
+command: node /tmp/fabric-audit-20260905/probes/04-policy-mcp-errors.mjs
+original exit: 0
+same one-shot concurrent decisions: [ 'allow', 'allow' ]
+receipts after consumed_at update failed: { inserts: 2, updates: 2, consumedEvents: 2 }
+MCP database outage result: {"result":{"content":[{"type":"text","text":"{\n  \"facts\": [],\n  \"note\": \"Nothing recorded here matches. That means nobody wrote it down, not that it is untrue.\"\n}"}]},"jsonrpc":"2.0","id":2}
+MCP logged hits for outage: 0
+
+
+=== 05-schema-replay-history.mjs ===
+command: node /tmp/fabric-audit-20260905/probes/05-schema-replay-history.mjs
+original exit: 0
+reattach rebuild error: 23505 project_repos_unique_path
+corrupted abandoned task status after rebuild: { status: 'finished' }
+corrupted memory valid_to after rebuild: { valid_to: 2099-01-01T00:00:00.000Z }
+ROLLBACK complete
+

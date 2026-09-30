@@ -1,0 +1,6 @@
+{
+  "actions": "windows.openSession \"session-a\"\ntask.start {\"projectId\":\"project-b\",\"instruction\":\"AUDIT: this draft belongs only to Project A\",\"optionId\":\"claude-code\",\"presetEdited\":false}\n",
+  "heading": "Project B — a separate operating context",
+  "nestedButtons": 0,
+  "pageTitle": "Audit fixture — current PassionCode renderer"
+}

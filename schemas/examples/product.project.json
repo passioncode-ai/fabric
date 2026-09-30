@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "0.1.0",
+  "project": {
+    "id": "urn:fabric:project:passioncode",
+    "revision": 3,
+    "predecessorRef": "urn:fabric:project-config:passioncode:2",
+    "name": "PassionCode.ai",
+    "purpose": "Build, operate and grow PassionCode.ai and its connected customer surfaces.",
+    "templateRef": "urn:fabric:project-template:software-product:1",
+    "createdAt": "2026-08-27T08:15:00Z",
+    "createdBy": "urn:fabric:operator:example"
+  },
+  "manager": {"agentBindingId": "urn:fabric:project-agent:passioncode:pm"},
+  "targetScope": {"mode": "owned-assets", "projectRefs": [], "assetRefs": ["urn:fabric:asset:domain:passioncode.ai", "urn:fabric:asset:domain:www.passioncode.ai", "urn:fabric:asset:repository:passioncode-ai.github.io"]},
+  "agentBindings": [
+    {"id": "urn:fabric:project-agent:passioncode:pm", "role": "product-manager", "providerBindingRef": "urn:fabric:binding:pm:1", "required": true, "status": "enabled", "capabilities": ["urn:fabric:capability:project-management"], "grantRefs": []},
+    {"id": "urn:fabric:project-agent:passioncode:developer-1", "role": "developer", "providerBindingRef": "urn:fabric:binding:codex-local:4", "required": false, "status": "enabled", "capabilities": ["urn:fabric:capability:repository-change"], "grantRefs": ["urn:fabric:grant:passioncode:repository-draft"]},
+    {"id": "urn:fabric:project-agent:passioncode:developer-2", "role": "developer", "providerBindingRef": "urn:fabric:binding:claude-code-local:2", "required": false, "status": "enabled", "capabilities": ["urn:fabric:capability:repository-change"], "grantRefs": ["urn:fabric:grant:passioncode:repository-draft"]},
+    {"id": "urn:fabric:project-agent:passioncode:qa", "role": "qa", "providerBindingRef": "urn:fabric:binding:qa-agent:1", "required": false, "status": "enabled", "capabilities": ["urn:fabric:capability:quality-report"], "grantRefs": []},
+    {"id": "urn:fabric:project-agent:passioncode:analytics", "role": "analytics-agent", "providerBindingRef": "urn:fabric:binding:analytics-agent:1", "required": false, "status": "enabled", "capabilities": ["urn:fabric:capability:analyse-metrics"], "grantRefs": []},
+    {"id": "urn:fabric:project-agent:passioncode:support", "role": "support-agent", "providerBindingRef": "urn:fabric:binding:support-agent:1", "required": false, "status": "enabled", "capabilities": ["urn:fabric:capability:triage-support"], "grantRefs": []},
+    {"id": "urn:fabric:project-agent:passioncode:seo", "role": "seo-agent", "providerBindingRef": "urn:fabric:binding:seo-agent:1", "required": false, "status": "enabled", "capabilities": ["urn:fabric:capability:analyse-search"], "grantRefs": []},
+    {"id": "urn:fabric:project-agent:passioncode:content", "role": "content-agent", "providerBindingRef": "urn:fabric:binding:content-agent:1", "required": false, "status": "enabled", "capabilities": ["urn:fabric:capability:draft-content", "urn:fabric:capability:draft-social-post"], "grantRefs": []}
+  ],
+  "connectionBindings": [
+    {"id": "urn:fabric:project-connection:passioncode:cloudflare", "connectionRef": "urn:fabric:connection:cloudflare:personal", "revision": 2, "accessCeiling": "read", "resourceSelectors": [{"kind": "cloudflare.zone", "resourceRefs": ["urn:cloudflare:zone:passioncode.ai", "urn:cloudflare:zone:www.passioncode.ai"]}], "allowedAgentBindingIds": ["urn:fabric:project-agent:passioncode:analytics"]},
+    {"id": "urn:fabric:project-connection:passioncode:google", "connectionRef": "urn:fabric:connection:google:personal", "revision": 1, "accessCeiling": "read", "resourceSelectors": [{"kind": "google.search-console-site", "resourceRefs": ["urn:google:search-console-site:sc-domain:passioncode.ai"]}, {"kind": "google.ga4-property", "resourceRefs": ["urn:google:ga4-property:passioncode"]}], "allowedAgentBindingIds": ["urn:fabric:project-agent:passioncode:analytics", "urn:fabric:project-agent:passioncode:seo"]},
+    {"id": "urn:fabric:project-connection:passioncode:support", "connectionRef": "urn:fabric:connection:mailbox:passioncode-support", "revision": 1, "accessCeiling": "draft", "resourceSelectors": [{"kind": "mailbox.folder", "resourceRefs": ["urn:mailbox:passioncode-support:inbox"]}], "allowedAgentBindingIds": ["urn:fabric:project-agent:passioncode:support"]}
+  ],
+  "routines": [
+    {"id": "urn:fabric:routine:passioncode:daily-analytics", "revision": 2, "name": "Daily product metrics", "enabled": true, "trigger": {"kind": "schedule", "cron": "0 8 * * *", "timezone": "Europe/Warsaw"}, "capabilityRef": "urn:fabric:capability:analyse-metrics", "preferredAgentBindingId": "urn:fabric:project-agent:passioncode:analytics", "targetScope": {"mode": "owned-assets", "projectRefs": [], "assetRefs": ["urn:fabric:asset:domain:passioncode.ai", "urn:fabric:asset:domain:www.passioncode.ai"]}, "concurrency": "skip", "catchUp": "latest-only", "checkerPolicyRef": "urn:fabric:checker-policy:metrics-evidence:1"},
+    {"id": "urn:fabric:routine:passioncode:support-triage", "revision": 1, "name": "Support inbox triage", "enabled": true, "trigger": {"kind": "event", "eventType": "mailbox.message.received"}, "capabilityRef": "urn:fabric:capability:triage-support", "preferredAgentBindingId": "urn:fabric:project-agent:passioncode:support", "targetScope": {"mode": "owned-assets", "projectRefs": [], "assetRefs": []}, "concurrency": "queue-one", "catchUp": "all", "checkerPolicyRef": "urn:fabric:checker-policy:support-draft:1"}
+  ],
+  "crossProjectPolicy": {"defaultDelivery": "proposal-to-target-pm", "directEffectGrantRefs": []},
+  "memoryPolicy": {"projectIsolation": "strict", "estatePromotion": "reviewed-evidence-only", "targetProjectTransfer": "accepted-proposal-only"}
+}
+

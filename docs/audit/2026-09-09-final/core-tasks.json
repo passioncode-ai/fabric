@@ -1,0 +1,408 @@
+[
+  {
+    "id": "FA-01",
+    "title": "Воспроизводимая сборка из чистого checkout",
+    "priority": "P1",
+    "owners": [
+      "S07"
+    ],
+    "domain": "delivery",
+    "evidence": [
+      "scripts/build-manifest.mjs:124",
+      "scripts/ci.sh:64",
+      ".github/workflows/ci.yml:60"
+    ],
+    "observed": "Свежий checkout и удалённый CI d28c321 падают ENOENT до сборки: resources не существует. Локальный прогретый checkout проходит fast.",
+    "solution": "Сделать manifest producer самодостаточным; генерировать окончательный manifest после сборки и включать его в packaged artifact. Проверить порядок, digest содержимого и точную contract revision; не считать число файлов хешем их содержимого.",
+    "steps": [
+      "Воспроизвести cold clone без resources/out/build, сохранить exit 1 и CI run URL.",
+      "Создать output directory внутри producer; определить единый порядок build → final manifest → package и убрать чтение предыдущего out.",
+      "Проверить packaged app без Git: manifest существует, идентифицирует текущие bytes, несовместимая schema не открывает writers.",
+      "Прогнать Linux fast/full и macOS fresh+upgrade; подпись и notarization — отдельный внешний gate S07."
+    ],
+    "acceptance": [
+      "Чистый clone с frozen lockfile проходит fast без ручного mkdir.",
+      "Изменение одного bundle byte меняет digest; старый manifest или неподдерживаемая schema явно отклоняются.",
+      "Сборка запускается без исходного checkout; manifest находится внутри артефакта."
+    ],
+    "dependencies": [],
+    "do_not": [
+      "Не отключать release gate и не коммитить generated resources.",
+      "Не обещать notarization без runner и credentials."
+    ],
+    "consequence": "observed-test-and-ci",
+    "acceptance_negative": [
+      "Missing output directories must not fail a cold build; stale bundle, modified byte and unsupported schema must never receive a compatible manifest."
+    ]
+  },
+  {
+    "id": "FA-02",
+    "title": "Запуск цепочек: одна существующая задача, полный join, общий admission",
+    "priority": "P0",
+    "owners": [
+      "S04",
+      "M188",
+      "M103"
+    ],
+    "domain": "execution",
+    "evidence": [
+      "apps/desktop/src/main/chainAdvance.ts:130",
+      "apps/desktop/src/main/index.ts:1075",
+      "apps/desktop/src/main/index.ts:1363",
+      "apps/desktop/test/chain.test.mjs:34"
+    ],
+    "observed": "Два тика реального createChainAdvance с fake store вызывают два новых запуска без taskId. Проход по каждому follows вместо группировки даёт частичный join. startExisting не подключён к этому пути.",
+    "solution": "Один общий admitExistingTask command для UI, chain, answer и routine; routine создаёт task один раз на cycle window, chain использует follower.id. TaskRun/session identity фиксируется до spawn либо связывается атомарной распиской; не обновлять только leases.",
+    "steps": [
+      "Добавить регрессионные проверки двух тиков и A+B→C, включая незавершённого/failed родителя и конфликт имён payload.",
+      "Группировать incoming follows, закреплять все predecessor result refs; получать один admission idempotency key для follower invocation.",
+      "Вынести общий admission/dispatch из IPC handler; передавать реальный taskRun/session binding через PTY, delivery, tool trace и terminal close.",
+      "Сохранять launch outbox и попытку; после crash/timeout сверять реальный процесс, uncertain не respawn автоматически.",
+      "Подключить Run existing в TaskPage/Board и continuation; проверить отсутствие нового task.created при запуске follower."
+    ],
+    "acceptance": [
+      "N повторов одного окна и два конкурентных host дают максимум один active TaskRun и один spawn.",
+      "Все обязательные родители/outputs нужны одновременно; недоступное чтение не разрешает запуск.",
+      "Два blockers: первый answer не запускает; последний answer продолжает ровно исходную задачу.",
+      "Spawn failure/exit/cancel завершают правильный TaskRun; lease и deliveries относятся к тому же session."
+    ],
+    "dependencies": [
+      "FA-03",
+      "FA-04"
+    ],
+    "do_not": [
+      "Не заводить второй task_runs и не объявлять task done по exit 0.",
+      "Не переписывать существующие admission/blocker/reservation SQL с нуля."
+    ],
+    "consequence": "observed-isolated-reproduction",
+    "acceptance_negative": [
+      "Repeated/concurrent ticks, missing parent output, failed spawn and crash before acknowledgement must not create an additional task or active run.",
+      "Upgrade from original migration 44, through migration 49, must produce the same admission behavior as a fresh DB; add a corrective migration instead of editing deployed migrations."
+    ]
+  },
+  {
+    "id": "FA-03",
+    "title": "Fail-closed квота на каждом unattended admission",
+    "priority": "P0",
+    "owners": [
+      "S04",
+      "M94",
+      "CO-063"
+    ],
+    "domain": "authority",
+    "evidence": [
+      "apps/desktop/src/shared/quotaGate.ts:73",
+      "apps/desktop/src/main/quota.ts:190",
+      "apps/desktop/src/main/routineTick.ts:124",
+      "apps/desktop/src/main/chainAdvance.ts:130"
+    ],
+    "observed": "mayStart разрешает missing windows и NaN; HTTP 200 {} формирует problem:null. Chains не вызывают quota gate. Производственный финансовый ущерб не измерен.",
+    "solution": "Валидированный QuotaSnapshot с provider/account, finite values, observedAt/expiresAt и полнотой; общий admission требует свежий допустимый снимок и атомарную внутреннюю бюджетную резервацию. Manual override только advisory quota, не authority floor.",
+    "steps": [
+      "Ввести негативные fixtures HTTP200 {}, missing windows, NaN, Infinity, negative, expired, wrong account.",
+      "Проверять snapshot на producer и в едином admission для routine/chain/manager failover.",
+      "Разделить vendor observation и Fabric spend reservation, хранить unknown usage; вернуть reason+remedy в UI/cycle receipt.",
+      "Проверить конкурентные admission, invalid snapshot после первого тика и освобождение reservations только по доказанному исходу."
+    ],
+    "acceptance": [
+      "Неполный/устаревший/чужой snapshot запускает 0 unattended sessions.",
+      "Два admission не расходуют один остаток дважды.",
+      "Operator override не расширяет grant/project scope и записывается отдельно."
+    ],
+    "dependencies": [],
+    "do_not": [
+      "Не трактовать null как unlimited.",
+      "Не читать/расширять личные provider credentials из renderer."
+    ],
+    "consequence": "observed-pure-reproduction; production-impact-blind",
+    "acceptance_negative": [
+      "HTTP 200 empty body, missing windows, NaN/Infinity, expired or wrong-account quota must admit zero unattended runs."
+    ]
+  },
+  {
+    "id": "FA-04",
+    "title": "Атомарный DAG command вместо check-then-append",
+    "priority": "P0",
+    "owners": [
+      "S04",
+      "M146",
+      "M190"
+    ],
+    "domain": "data",
+    "evidence": [
+      "apps/desktop/src/main/agentSurface.ts:1382",
+      "apps/desktop/src/main/agentSurface.ts:1391"
+    ],
+    "observed": "fabric_task_link читает только data RPC и допускает append при error/null. Проверка и запись раздельны. Конкурентный ущерб в production не наблюдался.",
+    "solution": "Транзакционный linkTasks с одним lock для проверки scope, cycle topology и append; error/unknown отказывает. Развести dependency edges и provenance edges по принятому контракту.",
+    "steps": [
+      "Проверить прямой и MCP пути записи task.linked и существующие DB constraints.",
+      "Создать RPC command с idempotency, scope/revision и проверкой DAG под одним lock.",
+      "Перевести всех writers на command; возвращать типизированные cycle/unavailable/conflict причины.",
+      "Прогнать A→B одновременно B→A, чужой estate, повтор key и отказ хранилища."
+    ],
+    "acceptance": [
+      "RPC error создаёт 0 событий.",
+      "Из двух противоположных рёбер коммитится не более одного.",
+      "Replay сохраняет тот же graph и не падает на событии, разрешённом live command."
+    ],
+    "dependencies": [],
+    "do_not": [
+      "Не делать graph UI условием для исправления writer.",
+      "Не валидировать только в renderer."
+    ],
+    "consequence": "latent-static; concurrency-not-executed",
+    "acceptance_negative": [
+      "RPC error, cross-estate edge, opposite concurrent links and replayed idempotency key must not append an invalid or duplicate graph event."
+    ]
+  },
+  {
+    "id": "FA-05",
+    "title": "Одна проверяемая очередь без alias-блокировок и ложного done",
+    "priority": "P1",
+    "owners": [
+      "S10",
+      "M96",
+      "CO-108"
+    ],
+    "domain": "documentation",
+    "evidence": [
+      "docs/reports/2026-09-09-queue-progress-report.html:221",
+      "docs/evidence/backlog.md:90",
+      "scripts/check-registers.mjs:1",
+      "scripts/check-registers.mjs:321"
+    ],
+    "observed": "Последний отчёт называет scratchpad-ошибку m152.commit/m152-commit. В Git нет этого executable scheduler. 44 shipped строки содержат явные недоделки, а подробный каталог остаётся target-spec. Независимый parse escaped pipes даёт 81 open CO вместо 79: cell() теряет CO-050/CO-060.",
+    "solution": "Сделать canonical id и явный alias mapping машинно проверяемыми. Разделить foundation_delivered, consumer_integrated, runtime_verified и external_activation. Сохранить milestones, а остатки вести child IDs с owner и payload dependency.",
+    "steps": [
+      "Зафиксировать regression graph с dotted ids, missing node, cycle, duplicate alias и частично delivered prerequisite.",
+      "Реализовать один queue parser над canonical execution_nodes; named phase это preference, не hard edge.",
+      "Сопоставлять ссылку на контракт с конкретным capability receipt и consumer; предусмотреть ready-contract vs ready-activation.",
+      "Синхронизировать backlog/engineering model/retro и внедрить integrity gate; не затирать старые датированные отчёты.",
+      "Один Markdown cell parser для column validation и counters: CO-050/CO-060, bold status, escaped pipes; независимый baseline 81 open."
+    ],
+    "acceptance": [
+      "M153/M158/M183.local правильно определяются ready по исходной очереди.",
+      "Потерянная/неоднозначная зависимость даёт exit nonzero, не blocked-by-fiction.",
+      "У каждого нового shipped capability есть caller и receipt сквозного пути либо явный partial.",
+      "Counter на d28c321 даёт 111 rows / 81 open; два разных способа счёта совпадают."
+    ],
+    "dependencies": [],
+    "do_not": [
+      "Не заменять canonical IDs отображаемыми названиями.",
+      "Не считать весь F5 prerequisite для независимого CI/auth design."
+    ],
+    "consequence": "observed-report; scratchpad-implementation-not-retained",
+    "acceptance_negative": [
+      "Unknown IDs, ambiguous aliases, cycles and escaped Markdown pipes must cause an explicit integrity failure or correct count, never a silently blocked or omitted task."
+    ]
+  },
+  {
+    "id": "FA-06",
+    "title": "Сохранность: mirror, backup, restore и runtime generations",
+    "priority": "P1",
+    "owners": [
+      "S12",
+      "M198",
+      "S14"
+    ],
+    "domain": "data",
+    "evidence": [
+      "apps/desktop/src/main/workspace.ts:1",
+      "apps/desktop/src/main/localState.ts:1",
+      "docs/architecture/system-contract.md:1",
+      "docs/reports/2026-09-09-queue-progress-report.html:208"
+    ],
+    "observed": "Atomic declared mirror/import и local-state recovery существуют; полного backup/archive и fenced restore нет. Это известный остаток, не повод переписывать исправленный replay.",
+    "solution": "Отдельный verified backup manifest по каждой категории данных; archive вне рабочего journal, digest, restore generation и read-only проверка до разрешения writers. Не переносить machine-local secrets как часть mirror.",
+    "steps": [
+      "Инвентаризировать journal/projections/authority/transcripts/context/local preferences и указать owner, retention, recovery source.",
+      "Спроектировать snapshot consistency watermark и проверяемый архив, включая данные, которые не являются rebuildable projections.",
+      "Импортировать в новый fenced namespace/estate generation; перепроверить schema, hashes, references и replay.",
+      "Старые credentials/leases/processes не могут писать после restore; восстановленный просмотр доступен до активации effects.",
+      "Провести fresh+upgrade+restore и crash-at-each-stage на одноразовой базе."
+    ],
+    "acceptance": [
+      "Corrupt/truncated archive не меняет рабочие данные.",
+      "Restore+replay дважды даёт одинаковые identities/revisions.",
+      "Old writer generation и old grant не исполняют эффект после restore.",
+      "Категории, не входящие в backup, явно перечислены рядом с Restore."
+    ],
+    "dependencies": [
+      "FA-02"
+    ],
+    "do_not": [
+      "Не называть YAML mirror полным backup.",
+      "Не reset действующую базу для теста."
+    ],
+    "consequence": "known-open-contract; restore-unverified",
+    "acceptance_negative": [
+      "Corrupt archive, interrupted restore and stale writer generation must leave the active state intact and allow no effects."
+    ]
+  },
+  {
+    "id": "FA-07",
+    "title": "Настоящая identity и членство перед командным доступом",
+    "priority": "P1",
+    "owners": [
+      "S09",
+      "M38",
+      "CO-069"
+    ],
+    "domain": "authority",
+    "evidence": [
+      "apps/desktop/src/main/index.ts:203",
+      "apps/desktop/src/main/env.ts:104",
+      "supabase/migrations/20260909000052_membership_authority.sql:1"
+    ],
+    "observed": "OPERATOR_ACTOR литерал; runtime использует service-role. Последний owner защищён триггером; login/invite transport и authenticated RLS через приложение отсутствуют.",
+    "solution": "IdentityPort получает проверенный auth subject в доверенном процессе; membership revision проверяется на каждом command/read. Supabase Auth — предлагаемое минимальное решение, выбор провайдера остаётся design gate. Service-role не раздаётся клиентам; privileged backend actions имеют отдельную границу.",
+    "steps": [
+      "Закрепить identity/session/revocation contract и миграцию literal operator к person.auth_user без смены авторства истории.",
+      "Реализовать login return с сохранением invite и revalidation expiry/revocation; transport invite выбрать отдельно.",
+      "Проверить read/command/MCP/file capabilities после revoke, logout и смены estate.",
+      "Прогнать owner/member/outsider роли на disposable stack включая прямой SQL/RPC и последний owner race.",
+      "Сохранить estate-wide visibility v1; project ACL не имитировать renderer filter."
+    ],
+    "acceptance": [
+      "Actor нельзя передать с клиента; outsider не читает и не пишет чужой estate.",
+      "Отзыв membership инвалидирует уже загруженные данные и grants на следующей операции.",
+      "После login человек возвращается к тому же приглашению; revoked/expired не принимается."
+    ],
+    "dependencies": [],
+    "do_not": [
+      "Не открывать командный production rollout до role probes.",
+      "Не вводить per-project ACL как обязательный v1 scope без ADR."
+    ],
+    "consequence": "confirmed-code-absence; external-team-impact-not-observed",
+    "acceptance_negative": [
+      "Forged actor, outsider, revoked membership, expired invite and concurrent last-owner removals must fail at the trusted boundary."
+    ]
+  },
+  {
+    "id": "FA-08",
+    "title": "PTY и обновление readers: ограниченная стоимость работы",
+    "priority": "P2",
+    "owners": [
+      "M105",
+      "M102",
+      "M98"
+    ],
+    "domain": "performance",
+    "evidence": [
+      "apps/desktop/src/main/pty.ts:30",
+      "apps/desktop/src/main/pty.ts:351",
+      "apps/desktop/src/renderer/src/ProjectHome.tsx:1"
+    ],
+    "observed": "Scrollback хранится строкой с cap; предыдущий отчёт фиксирует full-buffer work на output. Общий feed tick запускает независимые readers. Реальные latency/heap budgets в этом аудите не измерялись.",
+    "solution": "Chunk/ring buffer и bounded tail analysis, batch renderer delivery; причины invalidation по источнику и scope. Извлекать только затронутый модуль; длина index.ts сама по себе не приоритет.",
+    "steps": [
+      "Снять baseline main event-loop lag, heap и render commits на replay fixture 1/10/50 sessions; записать оборудование и workload.",
+      "Вынести bounded scrollback/tail операции, сохранив unicode/ANSI/reconnect/transcript semantics.",
+      "Ввести source-specific invalidation и coalescing, не подавляя distinct entity changes.",
+      "Сравнить p50/p95 и memory plateau с baseline; вынести gates после согласования budget."
+    ],
+    "acceptance": [
+      "Память ограничена cap×sessions и не растёт после закрытия sessions.",
+      "Повторное подключение даёт правильный terminal output без потери байтов.",
+      "Нерелевантное событие не запускает все loaders; relevant event обновляет нужный reader."
+    ],
+    "dependencies": [],
+    "do_not": [
+      "Не переписывать весь main ради размера файла.",
+      "Не выдавать proposed latency budget за измеренный."
+    ],
+    "consequence": "known-mechanism; performance-impact-blind",
+    "acceptance_negative": [
+      "Output storm, split Unicode/ANSI sequence and repeated session close must cause neither unbounded heap growth nor output loss; record measured latency instead of inventing a budget."
+    ]
+  },
+  {
+    "id": "FA-09",
+    "title": "Подтверждённые внешние эффекты и runner admission",
+    "priority": "P1",
+    "owners": [
+      "S03.effects",
+      "M140",
+      "S08",
+      "M176"
+    ],
+    "domain": "agents",
+    "evidence": [
+      "apps/desktop/src/main/agentSurface.ts:1543",
+      "apps/desktop/src/main/agentSurface.ts:1602",
+      "apps/desktop/src/main/sessionBundle.ts:1",
+      "docs/reports/2026-09-09-queue-progress-report.html:203"
+    ],
+    "observed": "Effect lifecycle и honest unknown есть; добровольный fabric_effect_request не ограничивает все native tools. Диспетчер под ноль провайдеров обоснованно не реализован; два реальных runner pilots не выполнены.",
+    "solution": "Сначала один выбранный provider с ограниченным test target, idempotency и read-back; adapter permission interception для каждого declared runner. Conformance verdict отдельно от owner admission и budget authorization.",
+    "steps": [
+      "Зафиксировать provider capability/policy-equivalent runner profile и версию contract, используя отдельные owner repos.",
+      "Проверить обход native tool без fabric_effect_request и запретить unsupported profile для autonomous floored effects.",
+      "Реализовать один bounded effect adapter: reserve→dispatch→observed/unknown; retry сохраняет identity.",
+      "Сравнить два реальных runner на одном независимом operating-loop fixture с failure controls и scoped credentials.",
+      "Добавлять fleet/router только после измерений и общей retry/usage reservation."
+    ],
+    "acceptance": [
+      "Попытка обойти floor перехватывается либо profile явно не допускается к этому действию.",
+      "Timeout после dispatch не даёт executed и не разрешает blind повтор.",
+      "Agent done не заменяет независимую проверку сервиса; reviewer отличается от producer."
+    ],
+    "dependencies": [
+      "FA-02",
+      "FA-03",
+      "FA-07"
+    ],
+    "do_not": [
+      "Не разрабатывать абстрактный dispatcher без конкретного consumer.",
+      "Не запускать paid/live trials без названного test target и budget."
+    ],
+    "consequence": "known-open-boundary; native-bypass-not-executed-this-run",
+    "acceptance_negative": [
+      "Native-tool bypass, dispatch timeout and repeated retry must neither bypass a floor nor report execution without an observation."
+    ]
+  },
+  {
+    "id": "FA-10",
+    "title": "Долговечность доказательств, документации и handoff",
+    "priority": "P1",
+    "owners": [
+      "S10",
+      "S07",
+      "M96",
+      "CO-074"
+    ],
+    "domain": "documentation",
+    "evidence": [
+      "docs/workspace-receipt.json:3",
+      "docs/evidence/backlog.md:526",
+      "docs/AGENT_SYNC.md:11",
+      ".github/workflows/workspace.yml:16"
+    ],
+    "observed": "Workspace source отстаёт от d28c321; 61/846 verification rows never watched; reconcile указывает исторические отсутствующие as-built записи. Generic scanner ложно сравнивает private fabric с чужим npm package и test redaction literals с ключами.",
+    "solution": "Публиковать source→child→verified runtime→parent pin по существующему publisher. Каждую historical claim переоценивать по своему receipt; невозможные проверки помечать inconclusive. Удалить ложные находки из активного плана с сохранением rationale, не чинить чужой npm package.",
+    "steps": [
+      "Сверить все old finding IDs и queue nodes с current source, выделить actual delta.",
+      "У каждого task packet зафиксировать baseline, allowed files, producer/consumer, failure behavior и gate; сверить DAG/coverage механически.",
+      "Backfill coordination только ссылками на существующие commits, без выдуманных historical runs.",
+      "Для 61 never-watched rows назначить владельца по production seam; спроектировать adversarial test, не переписывать historical receipt.",
+      "Опубликовать report через workspace script; fresh checkout проверяет root handoff и child pin."
+    ],
+    "acceptance": [
+      "Все old IDs имеют disposition; каждый текущий gap имеет owner/task и check.",
+      "Report не содержит credentials/raw user records, числа вычислены и independently counted.",
+      "Workspace receipt и фактический release совпадают; source-only commit не объявляется опубликованным."
+    ],
+    "dependencies": [
+      "FA-05"
+    ],
+    "do_not": [
+      "Не присваивать зеленый результат непрошедшим проверкам.",
+      "Не переписывать старый аудит под текущие строки."
+    ],
+    "consequence": "observed-ci-and-registers",
+    "acceptance_negative": [
+      "Absent receipts, mismatched runtime identity, false scanner positives and historical claims without evidence must never be reported as a verified delivery."
+    ]
+  }
+]

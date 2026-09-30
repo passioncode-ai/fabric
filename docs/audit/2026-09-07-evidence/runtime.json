@@ -1,0 +1,732 @@
+{
+  "audit": "Fabric runtime / scenario batch",
+  "date": "2026-09-07",
+  "git_sha": "153b4f029e626230d465d5d21d02fb8c9de5fadf",
+  "scope": "SCN-001..012, SCN-020..024; schema/main/shared/preload; current implemented ports plus future architecture boundaries",
+  "method": "project-audit + ux-audit; read-only source and 7 executable synthetic probes; no repo edits, no DB mutations, no downstream effects",
+  "verdict": "REFINE: retain modular monolith and journal spine; repair authority/dispatch/read-truth seams before more unattended loops",
+  "limits": [
+    "No production datastore reads in this subagent. Parent resolves datastore/liveness and owns all measured adoption/incident frequency.",
+    "No live Electron UI replay in this batch; browser/a11y and other scenarios covered by sibling/parent.",
+    "No full suite duplication; parent runs pnpm and schema fixtures. Synthetic probes use in-memory data, except real loopback MCP HTTP transport.",
+    "Planned unmet scenarios FAIL against their future spec, never counted as shipped regressions. No product outcome PASS claimed.",
+    "Sibling adapter/contract source not needed to establish concrete runtime findings; parent contract/research batch owns external conformance."
+  ],
+  "scenario_totals": {
+    "PASS": 0,
+    "PARTIAL": 9,
+    "FAIL": 8,
+    "BLOCKED": 0
+  },
+  "scenarios": [
+    {
+      "id": "SCN-001",
+      "verdict": "PARTIAL",
+      "delivery": "basic-project-shipped; starter/planned",
+      "details": "Onboarding сохраняет проект и выбранные repo с caller-chosen id; нет starter/revision review/seeded PM. Unique partial index ограничивает максимум одного PM, но создание не создает ни одного. Это не регрессия: scenario Coverage уже отмечает отсутствие starter, M35 unscheduled.",
+      "evidence": [
+        "docs/ux/scenarios.md:80",
+        "docs/ux/foundation.md:218",
+        "apps/desktop/src/renderer/src/Onboarding.tsx:57",
+        "apps/desktop/src/main/index.ts:712",
+        "supabase/migrations/20260831000001_migration_one.sql:73"
+      ],
+      "traces": [
+        "ST-001",
+        "FLW-01"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-002",
+      "verdict": "FAIL",
+      "delivery": "planned",
+      "details": "Portfolio observer starter, dynamic project scope and read-only resource binding отсутствуют; M20 предложен, slice 4. Нормальный project без repo есть; это не portfolio observer.",
+      "evidence": [
+        "docs/ux/scenarios.md:102",
+        "docs/ux/scenarios.md:113",
+        "apps/desktop/src/renderer/src/Onboarding.tsx:113",
+        "docs/architecture/iteration-1-modules.md:265"
+      ],
+      "traces": [
+        "ST-001",
+        "FLW-01"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-003",
+      "verdict": "PARTIAL",
+      "delivery": "prompt-agents-shipped; admission/replacement-planned",
+      "details": "Создание именованной runner configuration и серверный ceiling реализованы; нет capability admission selector, immutable binding revision, Replace, diff и atomic PM succession.",
+      "evidence": [
+        "apps/desktop/src/main/index.ts:1245",
+        "apps/desktop/src/main/index.ts:1270",
+        "apps/desktop/src/shared/agents.ts:87",
+        "docs/ux/scenarios.md:125",
+        "docs/evidence/backlog.md:234"
+      ],
+      "traces": [
+        "ST-002",
+        "ST-006",
+        "FLW-02"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-004",
+      "verdict": "PARTIAL",
+      "delivery": "local-runtime-refusals-shipped; admission-planned",
+      "details": "Неизвестный surface adapter отказывает, недоступные binaries disabled. Registry discovery и gate table не реализованы; shell/Codex explicitly nonconnecting, поэтому их отсутствие MCP не скрытая несовместимость.",
+      "evidence": [
+        "apps/desktop/src/main/sessionBundle.ts:176",
+        "apps/desktop/src/main/sessionBundle.ts:185",
+        "apps/desktop/src/shared/agents.ts:114",
+        "docs/evidence/backlog.md:236"
+      ],
+      "traces": [
+        "ST-002",
+        "FLW-02"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-005",
+      "verdict": "FAIL",
+      "delivery": "planned",
+      "details": "Project MCP server grant — не OAuth account binding. Нет account subject verification, selectors ресурсов и per-agent read/draft/effect resource ceilings. Slice 4 сознательно только boundary.",
+      "evidence": [
+        "docs/ux/scenarios.md:166",
+        "docs/architecture/iteration-1-modules.md:265",
+        "apps/desktop/src/main/sessionBundle.ts:80"
+      ],
+      "traces": [
+        "ST-003",
+        "FLW-03"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-006",
+      "verdict": "PARTIAL",
+      "delivery": "basic-cards-shipped; full-health-planned",
+      "details": "Карточка показывает название, purpose, repo path, live sessions и attention. Нет projection freshness, last/next run, PM, connection/production health по независимым dimensions. RT-07 ухудшает даже текущую attention honesty.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/EstateHome.tsx:69",
+        "apps/desktop/src/renderer/src/EstateHome.tsx:60",
+        "docs/ux/foundation.md:245",
+        "docs/ux/scenarios.md:197"
+      ],
+      "traces": [
+        "ST-004",
+        "FLW-04"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-007",
+      "verdict": "PARTIAL",
+      "delivery": "attention-task-navigation-shipped; evidence-run-planned",
+      "details": "Review/lease attention открывает task через callback; grantable ведет к project без exact run. Источник evidence/пин revisions/typed NodeResult SCR-09 отсутствуют; notification только foreground app.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/AttentionPanel.tsx:22",
+        "apps/desktop/src/renderer/src/AttentionPanel.tsx:123",
+        "apps/desktop/src/main/index.ts:1738",
+        "apps/desktop/src/renderer/src/SessionWindow.tsx:50"
+      ],
+      "traces": [
+        "ST-004",
+        "ST-005",
+        "FLW-04"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-008",
+      "verdict": "PARTIAL",
+      "delivery": "sessions-and-tasks-shipped; durable-run-planned",
+      "details": "Task и session detail/PTY end существуют; история не имеет pinned project/provider/routine revisions, structured envelope/checker verdict и resume checkpoint. ADR-0042 и M188 уже выбрали session+task как run; durable engine сознательно отложен CO-083.",
+      "evidence": [
+        "apps/desktop/src/main/index.ts:839",
+        "apps/desktop/src/shared/types.ts:166",
+        "apps/desktop/src/renderer/src/SessionWindow.tsx:50",
+        "docs/adr/0042-a-run-is-the-unit-of-progress-and-every-graph-is-a-query.md:19",
+        "docs/architecture/iteration-1-modules.md:454"
+      ],
+      "traces": [
+        "ST-005",
+        "FLW-04"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-009",
+      "verdict": "FAIL",
+      "delivery": "planned",
+      "details": "routines имеют option_id и last_task_id; immutable provider revision, Replace, future binding resolution отсутствуют. Не объявлять schedule replacement проверенным только потому, что routine table отделена от agent_bindings.",
+      "evidence": [
+        "supabase/migrations/20260905000022_routines.sql:15",
+        "apps/desktop/src/main/routineTick.ts:73",
+        "apps/desktop/src/main/index.ts:879",
+        "docs/ux/foundation.md:263"
+      ],
+      "traces": [
+        "ST-006",
+        "FLW-02",
+        "FLW-04"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-010",
+      "verdict": "FAIL",
+      "delivery": "planned-cross-project",
+      "details": "Текущая proposals projection — loop-bound escalation внутри одного project (M68), не ADR-0029 cross-project observed finding. Нет source/target ownership, evidence freshness, target PM routing/idempotency.",
+      "evidence": [
+        "docs/adr/0029-a-proposal-terminates-at-the-target-product-manager.md:18",
+        "supabase/migrations/20260905000023_loop_bound.sql:36",
+        "apps/desktop/src/main/agentSurface.ts:851",
+        "docs/architecture/iteration-1-modules.md:270"
+      ],
+      "traces": [
+        "ST-007",
+        "FLW-05"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-011",
+      "verdict": "FAIL",
+      "delivery": "planned-cross-project",
+      "details": "Accept/Decline текущего loop proposal — иной сценарий. Target PM accept/refuse/supersede с immutable evidence и exactly-once target work не реализован.",
+      "evidence": [
+        "docs/ux/scenarios.md:300",
+        "supabase/migrations/20260905000023_loop_bound.sql:58",
+        "apps/desktop/src/renderer/src/AttentionPanel.tsx:101",
+        "docs/adr/0029-a-proposal-terminates-at-the-target-product-manager.md:18"
+      ],
+      "traces": [
+        "ST-007",
+        "FLW-05"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-012",
+      "verdict": "FAIL",
+      "delivery": "planned-estate-transfer",
+      "details": "task note→memory текущего project реализовано, но estate knowledge / accepted cross-project transfer отсутствуют. Не путать с SCN-045 note promotion. Это явная diet row, не незамеченный пропуск.",
+      "evidence": [
+        "apps/desktop/src/main/index.ts:1561",
+        "docs/architecture/iteration-1-modules.md:261",
+        "docs/architecture/iteration-1-modules.md:456",
+        "docs/ux/scenarios.md:322"
+      ],
+      "traces": [
+        "ST-007",
+        "FLW-05"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-020",
+      "verdict": "FAIL",
+      "delivery": "planned-end-to-end-loop",
+      "details": "Нет producer production observation→owning PM→independent QA→release adapter→recovery observation. Current task/chain/policy foundations не выполняют full job. Сначала RT-01..06 + measured observer slice, затем проверять этот strategic scenario.",
+      "evidence": [
+        "docs/ux/scenarios.md:485",
+        "docs/ux/foundation.md:335",
+        "docs/architecture/iteration-1-modules.md:265",
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:97"
+      ],
+      "traces": [
+        "ST-014",
+        "FLW-10"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-021",
+      "verdict": "FAIL",
+      "delivery": "planned-end-to-end-loop",
+      "details": "Исследование можно запустить вручную как task; весь content pipeline с независимыми проверками, publication receipts, GSC/analytics feedback не создан. M21/M128, S5; реализация зависит от truthful effects и chain delivery.",
+      "evidence": [
+        "docs/ux/scenarios.md:507",
+        "apps/desktop/src/main/index.ts:1422",
+        "docs/evidence/backlog.md:214",
+        "docs/evidence/backlog.md:583"
+      ],
+      "traces": [
+        "ST-015",
+        "FLW-11"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-022",
+      "verdict": "PARTIAL",
+      "delivery": "local-southbound-shipped; northbound-planned",
+      "details": "Per-session loopback secret, one initialize, scoped context bundle работают. Owner UI create access, explicit project sets/operation scopes/expiry/rotation/audit lineage отсутствуют; M15 явно не завершен northbound.",
+      "evidence": [
+        "apps/desktop/src/main/agentSurface.ts:168",
+        "apps/desktop/src/main/sessionBundle.ts:97",
+        "docs/evidence/backlog.md:179",
+        "docs/ux/scenarios.md:529"
+      ],
+      "traces": [
+        "ST-016",
+        "FLW-12"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-023",
+      "verdict": "PARTIAL",
+      "delivery": "local-participation-shipped; external-commands-planned",
+      "details": "Local scoped tools читают/пишут project memory/tasks через journal. Нет external resource catalog, idempotency keys, fabric_run_start/durable handle, checker lifecycle, command receipt envelope. Возвращаемые created ids достаточны для local tool, не для обещания всего external control contract.",
+      "evidence": [
+        "apps/desktop/src/main/agentSurface.ts:787",
+        "apps/desktop/src/main/agentSurface.ts:805",
+        "apps/desktop/src/main/agentSurface.ts:760",
+        "docs/evidence/backlog.md:179",
+        "docs/ux/scenarios.md:554"
+      ],
+      "traces": [
+        "ST-016",
+        "FLW-12"
+      ],
+      "product": "unobserved"
+    },
+    {
+      "id": "SCN-024",
+      "verdict": "PARTIAL",
+      "delivery": "session-revocation-shipped; owner-access-lifecycle-planned",
+      "details": "Unknown/revoked bearer и неверный session header отклоняются; discard revokes before unlink. Expiring owner bindings/current-effect policy revocation/explicit cancel UI пока нет. CO-090 same-uid race документирован; это не вновь найденный обход и не решается chmod. RT-05 текущий grant scope выделен отдельно.",
+      "evidence": [
+        "apps/desktop/src/main/agentSurface.ts:189",
+        "apps/desktop/src/main/agentSurface.ts:219",
+        "apps/desktop/src/main/agentSurface.ts:329",
+        "apps/desktop/src/main/sessionBundle.ts:195",
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:101"
+      ],
+      "traces": [
+        "ST-016",
+        "FLW-12"
+      ],
+      "product": "unobserved"
+    }
+  ],
+  "findings": [
+    {
+      "id": "RT-01",
+      "title": "Фоновые запуски и зеркало читают чужие estate",
+      "severity": "S1",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M38",
+        "M118",
+        "M13",
+        "M94"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/routineTick.ts:56",
+        "apps/desktop/src/main/chainAdvance.ts:43",
+        "apps/desktop/src/main/index.ts:658",
+        "apps/desktop/src/main/index.ts:640",
+        "apps/desktop/src/main/workspace.ts:26",
+        "supabase/migrations/20260905000022_routines.sql:59"
+      ],
+      "mechanism": "routineTick ищет enabled без estate_id; chainAdvance ищет follows без estate_id; readProject принимает любой id; startTask пишет ORG1 независимо от project. readEstate экспортирует все projects/agents, refreshFileRoots берет все project_repos. Service role обходит RLS. SQL apply_routines обновляет по id без estate проверки.",
+      "consequence": "Воспроизведение: routine чужого estate вызвала startTask для foreign-project, receipt записывался в owner-estate. Реальный ущерб не наблюдался; родитель установил, что локальная БД содержит отдельный fixture estate с включенными routines. Это достижимо уже до multi-tenant релиза.",
+      "remedy": "Ввести estate-scoped repository/command context и использовать его в каждом scheduler, mirror, filesystem allowlist. Проверять estate/project parentage на write boundary. Сделать тест двух estates обязательным для всех новых query/command ports; не ограничиваться проверкой RLS под authenticated.",
+      "acceptance_test": "Fake fixture: owner + foreign, запускаются только owner. Local disposable DB: wrong-estate project/task/routine/mirror/write_roots не читаются и не мутируют; второй estate остается byte-identical."
+    },
+    {
+      "id": "RT-02",
+      "title": "Chain advance не запускает существующий follower и повторяет работу",
+      "severity": "S1",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M68",
+        "M13",
+        "M188"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/chainAdvance.ts:68",
+        "apps/desktop/src/main/chainAdvance.ts:127",
+        "apps/desktop/src/main/index.ts:851",
+        "apps/desktop/src/main/index.ts:1350",
+        "apps/desktop/test/chain.test.mjs:30",
+        "apps/desktop/src/main/agentSurface.ts:1099"
+      ],
+      "mechanism": "startTask всегда создает randomUUID; advance не передает follower id, не меняет его backlog, не пишет запуск/родителя. По одному follows ребру принимается решение, общий AND всех predecessors отсутствует. Отказ «said once» не дедуплицируется. Tool fabric_task_link не принимает needs — только прямые SQL fixtures могут объявить именованные входы.",
+      "consequence": "Воспроизведено: два ticks дают два новых running task, исходный B остается backlog, spawned links=0; B запускается при еще running C; повторный отказ дает два events. Самоповтор может расходовать квоту каждую минуту и обрывать прослеживаемость. Пользовательский инцидент не наблюдался.",
+      "remedy": "Один dispatchExistingTask(taskId, commandKey, expectedVersion): под транзакционным claim проверяет все prerequisites и named payloads, записывает переход B и происхождение attempt/run. Сделать needs доступным через настоящий MCP contract; обычный createTask отделить от dispatch. Ограничение и quota вызываются в общей точке unattended dispatch.",
+      "acceptance_test": "Реальный advancer + реальный task writer: A→B→C проходит один раз; два tick и restart не создают дополнительных tasks; два prerequisites ждут обоих; cancel не запускает; отсутствующий input блокирует; B сохраняет id; все inputs можно задать через MCP без raw journal."
+    },
+    {
+      "id": "RT-03",
+      "title": "Квота разрешает unattended work при неизвестном формате, chains обходят gate",
+      "severity": "S1",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M94",
+        "M68",
+        "CO-096"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/quota.ts:181",
+        "apps/desktop/src/main/quota.ts:193",
+        "apps/desktop/src/shared/quotaGate.ts:61",
+        "apps/desktop/src/main/chainAdvance.ts:24",
+        "apps/desktop/src/main/chainAdvance.ts:127",
+        "apps/desktop/src/main/routineTick.ts:88"
+      ],
+      "mechanism": "HTTP 200 с пустым body object становится quota с problem:null и двумя null windows; mayStart пропускает null windows и разрешает. ChainDeps вообще не содержит quota, поэтому chains проходят мимо M94.",
+      "consequence": "Воспроизведено 200 {} → allowed:true при обоих отсутствующих окнах. Смена недокументированного usage endpoint открывает разрешение именно когда ограничение неизвестно. Реальная потеря квоты не наблюдалась.",
+      "remedy": "Валидировать quota response, фиксировать unavailable/unsupported отдельно от zero; при отсутствии нужного окна unknown блокирует unattended. Общий DispatchGate обслуживает routines, chains, notifiers, manager, а ручной запуск сохраняет отдельную пользовательскую политику.",
+      "acceptance_test": "200 {}, неизвестные поля, null/NaN/отрицательная utilization, недоступное окно и >90% запрещают unattended; нормальная измеренная квота разрешает; chain не может стартовать без того же gate."
+    },
+    {
+      "id": "RT-04",
+      "title": "Разрешение агенту записывается как уже совершенный внешний эффект",
+      "severity": "S1",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M137",
+        "M139",
+        "M140",
+        "ADR-0028"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/agentSurface.ts:1163",
+        "apps/desktop/src/main/agentSurface.ts:1209",
+        "apps/desktop/src/main/policy.ts:228",
+        "apps/desktop/src/main/policy.ts:234",
+        "supabase/migrations/20260903000015_authority_plane.sql:26"
+      ],
+      "mechanism": "fabric_effect_request говорит Ask BEFORE doing one, затем немедленно вызывает recordEffect; тот пишет effect.executed@1 и тратит grant, хотя публикация/платеж/удаление еще не выполнены и внешний receipt отсутствует.",
+      "consequence": "Журнал утверждает, что внешний эффект состоялся, после одного получения разрешения. Если агент завершится, публикации не будет, но effect.executed останется. Это противоречит продукту, где наблюдение сильнее утверждения агента. Успешных реальных эффектов в этом аудите не наблюдали.",
+      "remedy": "Разделить authorization decision/reservation, execution request, observed external receipt, reconciliation/unknown outcome. External effect adapter исполняет и подтверждает; cooperative agent acknowledgement маркировать claim, не observed effect. Receipt должен содержать проверяемый внешний handle.",
+      "acceptance_test": "Вызов effect_request без внешнего действия не увеличивает executed count; падение после grant показывает authorized/unknown, не executed; эффект записывается только после адаптерного receipt; retry после сетевого timeout выполняет reconcile прежде повтора."
+    },
+    {
+      "id": "RT-05",
+      "title": "One-shot grant проверяется и расходуется неатомарно и без project/action scope",
+      "severity": "S1",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M3",
+        "M137",
+        "M140",
+        "ADR-0028"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/policy.ts:77",
+        "apps/desktop/src/main/policy.ts:130",
+        "apps/desktop/src/main/policy.ts:195",
+        "apps/desktop/src/main/policy.ts:248",
+        "apps/desktop/src/main/policy.ts:257",
+        "supabase/migrations/20260831000001_migration_one.sql:80",
+        "supabase/migrations/20260831000001_migration_one.sql:104",
+        "docs/adr/0028-one-effects-algebra-and-the-floor-lives-in-the-schema.md:30"
+      ],
+      "mechanism": "Grant row имеет estate/floor/target, но не project/actionClass. evaluate проверяет read unspent и позже recordEffect делает insert/update отдельно; consumed_at update error игнорируется. CHECK floor_class IS NULL OR grant_id IS NOT NULL проверяет только наличие ссылки: живой/matching/expiry/estate не гарантированы схемой. Grant issued event не содержит grant id, поэтому issuance и direct row невозможно полноценно восстановить как projection.",
+      "consequence": "In-memory repro: две конкурентные заявки (включая другую project/actionClass) получают allow и создают два receipts по одному grant. Возможны cross-project reuse, ложный consumed receipt при failed update и journal/authority drift после сбоя. Последствия латентны.",
+      "remedy": "Сделать atomically reserve/consume exact grant через command RPC с estate/project/action/resource/expiry/revision, uniqueness per execution command; journal+grant state обновлять в одной транзакции. Невалидный grant отвергается write boundary. Исключение non-projection grants должно либо быть документированным с backup/restore, либо закрыться проекцией.",
+      "acceptance_test": "Два параллельных потребителя одного grant: ровно один reservation; ошибочный project/action/estate/expired/spent grant не принимается через raw RPC; ошибка persistence не выдает executed success; rebuild/restore сохраняет state и lineage grant."
+    },
+    {
+      "id": "RT-06",
+      "title": "M195 redaction обходится через policy dependency",
+      "severity": "S1",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M195",
+        "M140"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/agentSurface.ts:380",
+        "apps/desktop/src/main/agentSurface.ts:1190",
+        "apps/desktop/src/main/policy.ts:163",
+        "apps/desktop/src/main/policy.ts:175"
+      ],
+      "mechanism": "Agent-supplied why/target/actionClass проходят прямо в Policy.decide и его journal.append, минуя appendRedacted. Механическая проверка raw appends внутри одного файла не видит downstream writer.",
+      "consequence": "Real loopback MCP + in-memory journal: synthetic ghp token распознается redact(), но сохраняется сырым в policy.decided. Значение синтетического токена в отчет не включено. Реальное попадание секрета не проверялось.",
+      "remedy": "Redaction на общем boundary agent-originated events (включая policy и будущие delegates), с provenance/field policy, а не только на direct this.journal.append call sites. Inventory по dataflow всех text sinks и негативный regression test.",
+      "acceptance_test": "Секрет-сентинел в каждом пользовательском текстовом поле каждого MCP tool не присутствует в journal/projections/log output; dependency-generated policy events тоже проверяются; ordinary identifiers не повреждаются."
+    },
+    {
+      "id": "RT-07",
+      "title": "Attention queue может показывать решенное как ожидающее и скрывать неизвестное",
+      "severity": "S2",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M140",
+        "M146",
+        "M147",
+        "M185",
+        "M186"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/index.ts:1636",
+        "apps/desktop/src/main/index.ts:1652",
+        "apps/desktop/src/main/index.ts:1684",
+        "apps/desktop/src/shared/attention.ts:11",
+        "apps/desktop/src/renderer/src/AttentionPanel.tsx:101",
+        "apps/desktop/src/renderer/src/AttentionPanel.tsx:126",
+        "apps/desktop/src/renderer/src/EstateHome.tsx:60"
+      ],
+      "mechanism": "readAttention берет последние 50 policy.decided, затем filters refuse; не связывает отказ с grant/resolution/new allow. Ошибки Supabase игнорируются и data??[] выглядит пустотой. EstateHome catch→setWaiting({}) убирает attention. Grant button не имеет pending/idempotency и item не обновляется до poll.",
+      "consequence": "Решенный отказ остается пока не вытеснится 50 другими decisions, нерешенный может исчезнуть из-за лимита; повторные клики выдают несколько grants. При outage карточки выглядят без ожиданий. Выведено из полного read/call chain, пользовательский инцидент не измерялся.",
+      "remedy": "Строить obligation projection/query по request id и terminal resolution, дедуплицировать retries, не обрезать unresolved по общему журналу. ReadResult stale/error/fresh обязан дойти до cards/panel. Grant command idempotent по request и pending UI.",
+      "acceptance_test": "Refuse→grant→allow удаляет ровно этот item; >50 нерешенных все остаются доступны; 50 новых unrelated decisions не скрывают старый unresolved; backend error показывает stale/unknown; double click не создает второй grant."
+    },
+    {
+      "id": "RT-08",
+      "title": "Project config_revision меняется при rebuild — уже учтенная работа M198",
+      "severity": "S2",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-documented",
+      "existing_ids": [
+        "M198",
+        "M97"
+      ],
+      "evidence": [
+        "supabase/migrations/20260906000030_dissolve_legacy_projector.sql:61",
+        "supabase/migrations/20260906000030_dissolve_legacy_projector.sql:67",
+        "packages/schema/test/planted.test.mjs:1020",
+        "docs/evidence/backlog.md:682"
+      ],
+      "mechanism": "Replay поверх существующих rows снова инкрементирует config_revision; P24 исключает колонку явным documented exception.",
+      "consequence": "Ревизия, которую будущий run/provider binding должен pin, не является детерминированной. Новую карточку не создавать: это точное повторное подтверждение M198. Parent full suite owns DB checks.",
+      "remedy": "Исполнить M198: revision из event sequence/count или полного projection rebuild baseline, убрать exclusion P24 после исправления. Связать c prerequisite любых pinned-run revisions.",
+      "acceptance_test": "Два последовательных rebuild и rebuild после restart сохраняют полные hashes включая config_revision; planted incremental projector обязательно ломает gate."
+    },
+    {
+      "id": "RT-09",
+      "title": "Документированная архитектура и реальные текущие контракты разошлись",
+      "severity": "S2",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M97",
+        "M98",
+        "M145",
+        "M188",
+        "M194",
+        "CO-074"
+      ],
+      "evidence": [
+        "docs/architecture/iteration-1-modules.md:14",
+        "docs/architecture/iteration-1-modules.md:70",
+        "docs/architecture/iteration-1-modules.md:153",
+        "docs/architecture/iteration-1-modules.md:417",
+        "docs/architecture/agent-system-map.md:38",
+        "docs/architecture/agent-system-map.md:103",
+        "apps/desktop/src/main/agentSurface.ts:551",
+        "apps/desktop/src/main/agentSurface.ts:1218",
+        "docs/adr/0042-a-run-is-the-unit-of-progress-and-every-graph-is-a-query.md:19",
+        "docs/evidence/backlog.md:631"
+      ],
+      "mechanism": "Module design declares packages/policy/work/runner/memory, SDK NodeResult path and run/node event registry; actual ports reside under main, a task/startTask is PTY-based and canonical current ADR-0042 defines run as session+task. Map claims every tool call journalled, but read-only agents/leases do not journal generic invocation; M145 already states missing per-tool counters. Old design/deferred/same-change claims coexist.",
+      "consequence": "Следующий агент рискует строить второй run store, оценивать полноту по устаревшему registry или считать готовым trajectory dataset, которого нет. Это документальный дефект, не основание создавать все прежние packages или менять принятый v1 topology.",
+      "remedy": "Один generated as-built contract/module inventory, ссылки canonical/current/proposed/superseded в каждом architecture doc; executable drift checks на exports/event schemas/tool manifests/run definition. Не переписывать ADR history; явное supersession mapping и decision propagation matrix.",
+      "acceptance_test": "Для каждой current claim резолвится symbol/handler/schema/test; run vocabulary agrees ADR-0042; generic tool traces marked absent until implemented; inventories generated from actual code, no hand-maintained counts."
+    },
+    {
+      "id": "RT-10",
+      "title": "Проверка task-link cycle fail-open при ошибке и не сериализована с append",
+      "severity": "S2",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M146",
+        "M188",
+        "M190"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/agentSurface.ts:1112",
+        "apps/desktop/src/main/agentSurface.ts:1116",
+        "apps/desktop/src/main/agentSurface.ts:1121",
+        "supabase/migrations/20260831000007_write_boundary.sql:103"
+      ],
+      "mechanism": "would_close_cycle RPC result destructures data only; if error/null then closes!==true, append proceeds. Precheck and journal append are separate transactions; opposite edges can both pass precheck before either append.",
+      "consequence": "DAG может стать циклом, несмотря на обещание refusal at draw time. Следующий шаг исполняется на некорректном плане или никогда не стартует. Static mechanism, production consequence unobserved.",
+      "remedy": "Cycle check на command acceptance под тем же lock/transaction, который append использует; неизвестный result от query отказывает явно. Projector replay остается total, command validator несет отказ.",
+      "acceptance_test": "Injected RPC failure refuses/no event; parallel A→B and B→A accepts exactly one; diamond DAG remains valid; wrong-estate target refused before graph traversal."
+    }
+  ],
+  "modules": [
+    {
+      "module": "schema / migration chain",
+      "state": "implemented; partial invariant coverage",
+      "evidence": [
+        "supabase/migrations/20260831000007_write_boundary.sql:73",
+        "supabase/migrations/20260906000030_dissolve_legacy_projector.sql:261",
+        "packages/schema/test/planted.test.mjs:1004"
+      ],
+      "findings": [
+        "RT-01",
+        "RT-05",
+        "RT-08",
+        "RT-10"
+      ]
+    },
+    {
+      "module": "journal",
+      "state": "implemented; one RPC writer + bounded retry",
+      "evidence": [
+        "packages/journal/src/index.ts:69",
+        "supabase/migrations/20260831000007_write_boundary.sql:103"
+      ],
+      "findings": [
+        "RT-05",
+        "RT-09"
+      ]
+    },
+    {
+      "module": "policy / authority",
+      "state": "implemented narrow floor; gaps before unattended effects",
+      "evidence": [
+        "apps/desktop/src/main/policy.ts:58",
+        "apps/desktop/src/main/agentSurface.ts:1158"
+      ],
+      "findings": [
+        "RT-04",
+        "RT-05",
+        "RT-06",
+        "RT-07"
+      ]
+    },
+    {
+      "module": "runner / session bundle / gateway",
+      "state": "Claude Code integrated; other descriptors honestly degraded; same-uid accepted debt",
+      "evidence": [
+        "apps/desktop/src/shared/agents.ts:87",
+        "apps/desktop/src/main/sessionBundle.ts:80",
+        "apps/desktop/src/main/agentSurface.ts:168"
+      ],
+      "findings": [
+        "RT-09"
+      ]
+    },
+    {
+      "module": "work / routines / chains",
+      "state": "implemented partial; chain orchestration defects",
+      "evidence": [
+        "apps/desktop/src/main/routineTick.ts:50",
+        "apps/desktop/src/main/chainAdvance.ts:36",
+        "apps/desktop/src/main/index.ts:839"
+      ],
+      "findings": [
+        "RT-01",
+        "RT-02",
+        "RT-03",
+        "RT-10"
+      ]
+    },
+    {
+      "module": "quota",
+      "state": "implemented vendor-specific snapshot; malformed-success fail-open",
+      "evidence": [
+        "apps/desktop/src/main/quota.ts:128",
+        "apps/desktop/src/shared/quotaGate.ts:45"
+      ],
+      "findings": [
+        "RT-03"
+      ]
+    },
+    {
+      "module": "memory / transcripts / context pack",
+      "state": "local project memory implemented; cross-project promotion planned; dedicated parent batch owns depth",
+      "evidence": [
+        "apps/desktop/src/main/agentSurface.ts:739",
+        "apps/desktop/src/main/index.ts:1561",
+        "docs/architecture/iteration-1-modules.md:261"
+      ],
+      "findings": [
+        "RT-06",
+        "RT-09"
+      ]
+    },
+    {
+      "module": "proposals",
+      "state": "loop-bound proposals implemented; cross-project contract planned",
+      "evidence": [
+        "supabase/migrations/20260905000023_loop_bound.sql:36",
+        "docs/architecture/iteration-1-modules.md:265"
+      ],
+      "findings": []
+    },
+    {
+      "module": "connectors / external accounts",
+      "state": "not yet implemented; scheduled slice 4 boundary",
+      "evidence": [
+        "docs/architecture/iteration-1-modules.md:265"
+      ],
+      "findings": []
+    },
+    {
+      "module": "MCP surface / preload",
+      "state": "local session tool surface implemented; external M15 planned",
+      "evidence": [
+        "apps/desktop/src/main/agentSurface.ts:214",
+        "apps/desktop/src/preload/index.ts:1",
+        "docs/evidence/backlog.md:179"
+      ],
+      "findings": [
+        "RT-05",
+        "RT-06",
+        "RT-09",
+        "RT-10"
+      ]
+    },
+    {
+      "module": "workspace mirror / filesystem scope",
+      "state": "implemented; estate scoping gap",
+      "evidence": [
+        "apps/desktop/src/main/workspace.ts:26",
+        "apps/desktop/src/main/index.ts:639"
+      ],
+      "findings": [
+        "RT-01"
+      ]
+    },
+    {
+      "module": "estate/project/attention UI",
+      "state": "implemented basic monitoring; full multidimensional health planned",
+      "evidence": [
+        "apps/desktop/src/renderer/src/EstateHome.tsx:69",
+        "apps/desktop/src/renderer/src/AttentionPanel.tsx:42"
+      ],
+      "findings": [
+        "RT-07"
+      ]
+    }
+  ],
+  "probe_source": "/tmp/fabric-runtime-probes.mjs",
+  "probe_output": "/tmp/fabric-runtime-probes-output.txt",
+  "skills_used": {
+    "project-audit": "seam/production/decision/consequence discipline",
+    "ux-audit": "17 scenarios traced against foundation/flows and real entry/caller paths"
+  },
+  "cross_batch": "Parent must merge RT-07 with UI batch; RT-06 with security/memory batch; RT-09 with vision/plan batch. RT-10 may overlap graph/task audit. No duplicated board ids reserved."
+}

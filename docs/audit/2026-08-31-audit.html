@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audit — fabric</title>
+<style>
+:root{--bg:#fbfaf8;--surface:#fff;--surface-2:#f4f2ee;--ink:#1a1917;
+--ink-soft:#5e5b55;--ink-faint:#8b8780;--line:#e2ded6;--line-2:#c9c4b8;
+--ok:#0f7a4a;--ok-bg:#e8f5ee;--warn:#8a5a00;--warn-bg:#fdf3e0;
+--bad:#a32a24;--bad-bg:#fdeceb;--info:#1f5c8f;--info-bg:#e9f1f8;--accent:#2a4d8f;
+--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+--bg:#16171a;--surface:#1d1f23;--surface-2:#23262b;--ink:#eceae6;
+--ink-soft:#a8a49c;--ink-faint:#7c7871;--line:#2e3238;--line-2:#40454d;
+--ok:#6fd39b;--ok-bg:#17332a;--warn:#e0a94a;--warn-bg:#33290f;
+--bad:#f08a84;--bad-bg:#3a1c1a;--info:#8ec2ee;--info-bg:#15293a;--accent:#8fb4ee}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.62 var(--sans);
+padding:0 0 5rem}
+.wrap{max-width:58rem;margin:0 auto;padding:0 1.5rem}
+header.top{border-bottom:1px solid var(--line);background:var(--surface);
+padding:2.4rem 0 1.8rem;margin-bottom:2.2rem}
+.kicker{font:600 .72rem/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+color:var(--ink-faint);margin:0 0 .8rem}
+h1{font-size:1.95rem;line-height:1.18;margin:0 0 .6rem;letter-spacing:-.02em;font-weight:640}
+.lede{font-size:1.03rem;color:var(--ink-soft);margin:0;max-width:44rem}
+h2{font-size:1.28rem;margin:2.8rem 0 .5rem;font-weight:640;padding-bottom:.4rem;
+border-bottom:2px solid var(--line-2)}
+h3{font-size:1rem;margin:1.6rem 0 .35rem;font-weight:650}
+p{margin:.6rem 0}
+code{font:.85em/1.45 var(--mono);background:var(--surface-2);padding:.1em .34em;
+border-radius:4px;border:1px solid var(--line)}
+pre{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;
+padding:.8rem 1rem;overflow-x:auto;font:.79rem/1.55 var(--mono);margin:.6rem 0}
+pre code{background:none;border:none;padding:0}
+.tw{overflow-x:auto;margin:.9rem 0;border:1px solid var(--line);border-radius:8px;
+background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{padding:.48rem .7rem;text-align:left;border-bottom:1px solid var(--line);
+vertical-align:top}
+th{background:var(--surface-2);font-weight:650;font-size:.76rem;letter-spacing:.02em;
+text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-family:var(--mono);font-size:.81rem;white-space:nowrap}
+td.mono{font-family:var(--mono);font-size:.79rem}
+.pill{display:inline-block;font:600 .7rem/1.35 var(--mono);padding:.12rem .45rem;
+border-radius:4px;white-space:nowrap}
+.p-ok{background:var(--ok-bg);color:var(--ok)}
+.p-warn{background:var(--warn-bg);color:var(--warn)}
+.p-bad{background:var(--bad-bg);color:var(--bad)}
+.p-info{background:var(--info-bg);color:var(--info)}
+.p-neutral{background:var(--surface-2);color:var(--ink-faint)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(8rem,1fr));
+gap:.7rem;margin:1.3rem 0}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:8px;
+padding:.7rem .85rem}
+.stat .v{font:650 1.35rem/1.1 var(--sans);letter-spacing:-.02em;display:block}
+.stat .k{font:.69rem/1.3 var(--mono);color:var(--ink-faint);text-transform:uppercase;
+letter-spacing:.05em}
+.card{border:1px solid var(--line);border-left:3px solid var(--line-2);
+background:var(--surface);border-radius:6px;padding:.9rem 1.1rem;margin:1rem 0}
+.card.bad{border-left-color:var(--bad)}.card.warn{border-left-color:var(--warn)}
+.card.info{border-left-color:var(--info)}.card.ok{border-left-color:var(--ok)}
+.card h3{margin-top:0}
+.meta{font:.73rem/1.4 var(--mono);color:var(--ink-faint);margin:.3rem 0 .5rem}
+.note{font-size:.86rem;color:var(--ink-soft);border-left:2px solid var(--line-2);
+padding-left:.8rem;margin:.8rem 0}
+footer{margin-top:3.5rem;padding-top:1.3rem;border-top:1px solid var(--line);
+font-size:.81rem;color:var(--ink-faint)}
+@media (max-width:640px){h1{font-size:1.5rem}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+<p class="kicker">project-audit · 2026-08-31T22:45:07Z · read-only</p>
+<h1>fabric</h1>
+<p class="lede">Every number below was produced by a command this run executed. What could not be measured is listed as such, never omitted and never counted as clean.</p>
+</div></header>
+<div class="wrap">
+<div class="stats">
+<div class="stat"><span class="v">11</span><span class="k">findings</span></div>
+<div class="stat"><span class="v">22</span><span class="k">probes run</span></div>
+<div class="stat"><span class="v">3</span><span class="k">blind</span></div>
+<div class="stat"><span class="v">0</span><span class="k">closed since last</span></div>
+<div class="stat"><span class="v">0</span><span class="k">new</span></div>
+<div class="stat"><span class="v">0</span><span class="k">open 3+ runs</span></div>
+</div>
+<p class="note"><strong>First run.</strong> There is no earlier sidecar in this directory, so nothing is reported as closed or new — a diff against a run that never happened would be a claim about nothing. The next audit will have both columns.</p>
+<h2>What this project is</h2>
+<div class="tw"><table><tbody>
+<tr><th>version</th><td>0.1.0</td></tr>
+<tr><th>languages</th><td>javascript</td></tr>
+<tr><th>package managers</th><td>npm, pnpm</td></tr>
+<tr><th>monorepo</th><td>yes</td></tr>
+<tr><th>submodules</th><td>0</td></tr>
+<tr><th>CI</th><td>none configured</td></tr>
+<tr><th>deploy targets</th><td>none declared</td></tr>
+<tr><th>error telemetry</th><td>none found in manifests</td></tr>
+<tr><th>tracked files</th><td>172</td></tr>
+</tbody></table></div>
+<h2>Findings</h2>
+<div class="card bad">
+<h3><span class="pill p-bad">high</span> The docs gate fails on main, and the failure names the wrong cause</h3>
+<p class="meta">scripts/check-narrative.sh:29,32 · P=4.0 · first seen 2026-09-01</p>
+<p>Fourteen ERR lines claim positioning and slogan drift across 7 files. Re-derived with `grep -Fc`: every one of the 7 files contains both strings exactly once. The gate is red because `rg` does not resolve inside a bash sub-shell, not because a document drifted. A reader following the message would edit correct documents.</p>
+<pre><code>pnpm gates:docs -&gt; exit 1; &#x27;rg: command not found&#x27; x14; grep -Fc over all 7 required surfaces -&gt; positioning=1 slogan=1 on each</code></pre>
+<p><strong>Remedy.</strong> make the gate detect its own tool: fail with &#x27;ripgrep not installed&#x27; when `command -v rg` is empty, or replace `rg -F -q` with `grep -F -q`, which is present everywhere the gate runs</p>
+</div>
+<div class="card bad">
+<h3><span class="pill p-bad">high</span> Two gate assertions print ok when the tool that would check them never ran</h3>
+<p class="meta">scripts/check-narrative.sh:44,52 · P=4.0 · first seen 2026-09-01</p>
+<p>The two content checks are written as `if rg &lt;pattern&gt; &lt;files&gt;; then narrative_err; else narrative_ok; fi`. With `rg` absent the command exits 127, the else branch runs, and the gate prints &#x27;ok: public surfaces contain no internal product-economics language&#x27; and &#x27;ok: public product spelling is consistent&#x27;. Nothing was read. This is the project&#x27;s own doctrine inverted: a zero-output failure rendered as a pass.</p>
+<pre><code>scripts/check-narrative.sh:44 and :52; observed output carries both ok: lines directly under &#x27;rg: command not found&#x27;</code></pre>
+<p><strong>Remedy.</strong> guard the script on `command -v rg` before the first use and exit non-zero if it is absent; an `if &lt;cmd&gt;; then err; else ok; fi` shape must never be reachable with the command missing</p>
+</div>
+<div class="card bad">
+<h3><span class="pill p-bad">high</span> The README describes a project that stopped existing two months ago</h3>
+<p class="meta">README.md:34-41,79 · P=4.0 · first seen 2026-09-01</p>
+<p>README:34 reads &#x27;Status: architecture foundation&#x27; and :41 &#x27;the database, collectors, dashboard and agent runtime are not implemented yet&#x27;. Measured: 13 SQL migrations, an Electron app of 24 TypeScript source files, an MCP agent surface serving 7 tools, and 11 test suites that stand up a live Supabase and pass. README:79 says verification.md is &#x27;Currently empty, and says so&#x27;; it holds 156 REQ rows across 22 families.</p>
+<pre><code>git ls-files supabase/migrations | wc -l -&gt; 13; grep -c &#x27;^| [A-Z]&#x27; docs/evidence/verification.md -&gt; 156; pnpm -r test -&gt; exit 0</code></pre>
+<p><strong>Remedy.</strong> rewrite the status paragraph against the tree, and replace the verification.md row; the file is the first thing any reader or agent loads</p>
+</div>
+<div class="card warn">
+<h3><span class="pill p-warn">medium</span> The schema gate cannot run, and five verification rows name it as their verifier</h3>
+<p class="meta">scripts/check-project-schemas.py · P=3.0 · first seen 2026-09-01</p>
+<p>The script exits 2 with &#x27;ERROR: install jsonschema&gt;=4.18&#x27;. Because gates:docs chains with &amp;&amp; and check-docs.sh fails first, the composite never reaches it, so the breakage is invisible from the gate command. Five rows in the verification ledger cite this script as the check that was watched failing against a planted defect; that evidence cannot currently be reproduced.</p>
+<pre><code>python3 scripts/check-project-schemas.py -&gt; exit 2; python3 -c &#x27;import jsonschema&#x27; -&gt; ModuleNotFoundError; grep -c check-project-schemas docs/evidence/verification.md -&gt; 5</code></pre>
+<p><strong>Remedy.</strong> pin the dependency where the gate can find it — a requirements file the gate installs from, or a uv/venv shim — and make the gate say which of &#x27;no jsonschema&#x27; and &#x27;schemas invalid&#x27; it hit</p>
+</div>
+<div class="card warn">
+<h3><span class="pill p-warn">medium</span> The half of the app a person actually touches has no tests</h3>
+<p class="meta">apps/desktop/src/renderer/src/ · P=3.0 · first seen 2026-09-01</p>
+<p>2,173 lines of React across 12 components. No test file imports the renderer, and the package declares no vitest, jsdom, testing-library or playwright. ProjectHome.tsx is 783 lines and the largest file in the app. What does cover it: tsc, and check-design.mjs on tokens and string keys — neither runs a component.</p>
+<pre><code>cat apps/desktop/src/renderer/src/*.tsx | wc -l -&gt; 2173; grep -rn renderer apps/desktop/test/ -&gt; no match; grep -cE &#x27;vitest|jsdom|testing-library|playwright&#x27; apps/desktop/package.json -&gt; 0</code></pre>
+<p><strong>Remedy.</strong> decide the renderer&#x27;s verification story explicitly — a component harness, or a documented decision that the design gate plus typecheck is the whole contract; either is defensible, the current silence is not</p>
+</div>
+<div class="card warn">
+<h3><span class="pill p-warn">medium</span> The check that closed the sharpest carry-over is not in the suite that runs</h3>
+<p class="meta">apps/desktop/package.json:test · P=3.0 · first seen 2026-09-01</p>
+<p>CO-093 — &#x27;the bundle path has never been exercised by a real Claude Code session&#x27; — was resolved by handshake-e2e.test.mjs over a real PTY. That file is absent from the `test` script and self-skips unless FABRIC_E2E is set. A regression in the shipped CLI&#x27;s mcp-session-id behaviour would reproduce CO-093 with nothing to catch it.</p>
+<pre><code>node -e on package.json: scripts.test.includes(&#x27;handshake-e2e&#x27;) -&gt; false; handshake-e2e.test.mjs:39 `if (!process.env.FABRIC_E2E)` -&gt; skip</code></pre>
+<p><strong>Remedy.</strong> run it in the default suite where the environment allows, or state in the carry-over row that CO-093 rests on a check nothing re-runs</p>
+</div>
+<div class="card warn">
+<h3><span class="pill p-warn">medium</span> Sixty-five open carry-overs, and the ledger has no drain</h3>
+<p class="meta">docs/evidence/specs/2026-08-16-software-fabric-carryover.md · P=3.0 · first seen 2026-09-01</p>
+<p>93 rows, 65 reading `open`, 15 resolved. Three of the open ones are structural and named as such — CO-090 (same-uid isolation floor), CO-091 (the IPC bridge has no per-window authorisation, and all three BrowserWindows run sandbox:false), CO-092 (ORG1 hardcoded, runner assumed local). Those are filed risks, which is the right state; the finding is the ratio, not any single row.</p>
+<pre><code>awk over the status column -&gt; 65 open / 15 resolved / 93 total; apps/desktop/src/main/index.ts:726,745,759 -&gt; sandbox: false</code></pre>
+<p><strong>Remedy.</strong> age the rows: anything open across three runs is either scheduled, downgraded or closed as accepted risk. The audit&#x27;s own ratchet counts survivals; the carry-over ledger does not</p>
+</div>
+<div class="card info">
+<h3><span class="pill p-info">low</span> The brand gate is green by being advisory over four fifths of the interface</h3>
+<p class="meta">docs/brand/strings.md · P=2.0 · first seen 2026-09-01</p>
+<p>docs/brand/lint.py reports 0 errors and 130 B022 warnings, all of the form &#x27;X is in the code with no registry row&#x27;. The app declares 166 keys. strings.md holds 11 table rows and states it covers &#x27;the ones where the wording is a product decision rather than a label&#x27; — so the ratio may be intended; what is not stated is which side of that line the 130 fall on.</p>
+<pre><code>python3 docs/brand/lint.py -&gt; &#x27;0 error(s), 131 warning(s)&#x27;, 130 of them B022; grep -c &quot;^  &#x27;&quot; i18n/en.ts -&gt; 166; grep -cE &#x27;^\|&#x27; docs/brand/strings.md -&gt; 11</code></pre>
+<p><strong>Remedy.</strong> either agree the rows or narrow the contract to the strings that make a claim, and say which in strings.md — a 130-warning gate trains its reader to skip the output</p>
+</div>
+<div class="card info">
+<h3><span class="pill p-info">low</span> One 8 MB renderer chunk, mostly language grammars nothing opens</h3>
+<p class="meta">apps/desktop/out/renderer/assets/ · P=2.0 · first seen 2026-09-01</p>
+<p>electron-vite emits index-*.js at 8,086.07 kB alongside separate chunks for abap, freemarker2, solidity, powerquery and two dozen other grammars. The app is an editor, so Monaco is deliberate; the full grammar set for a project workbench probably is not.</p>
+<pre><code>pnpm --filter @fabric/desktop build -&gt; &#x27;out/renderer/assets/index-DEEozScy.js 8,086.07 kB&#x27;</code></pre>
+<p><strong>Remedy.</strong> measure before changing anything: if cold start is acceptable on the target machine this is a non-issue; if not, Monaco&#x27;s language set is the first place to look</p>
+</div>
+<div class="card warn">
+<h3><span class="pill p-warn">medium</span> Nothing runs the checks except a person remembering to</h3>
+<p class="meta">repository root · P=1.0 · first seen 2026-09-01</p>
+<pre><code>no .github/workflows, .gitlab-ci.yml, Jenkinsfile or .circleci/config.yml in the tracked tree</code></pre>
+<p><strong>Remedy.</strong> add a workflow that runs the project&#x27;s own test command on push</p>
+</div>
+<div class="card info">
+<h3><span class="pill p-info">low</span> The audit&#x27;s own output is untracked and ungitignored</h3>
+<p class="meta">docs/audit/ · P=1.0 · first seen 2026-09-01</p>
+<p>docs/audit/ is the only entry in `git status --short`. .gitignore does not name it, so the next `git add -A` commits an audit report as if it were project documentation, and the run after that shows a diff nobody wrote.</p>
+<pre><code>git status --short -&gt; &#x27;?? docs/audit/&#x27;; grep -c audit .gitignore -&gt; 0</code></pre>
+<p><strong>Remedy.</strong> decide whether the report is committed evidence or local scratch, and record that in .gitignore either way</p>
+</div>
+<h2>What was not looked at</h2>
+<p>A probe that could not run returns <code>blind</code>, never <code>clean</code>. An empty section here would mean every probe answered — not that nothing is wrong.</p>
+<div class="tw"><table><thead><tr><th>Probe</th><th>Phase</th><th>Why not</th></tr></thead><tbody>
+<tr><td class="mono">channel-divergence</td><td>prod</td><td>HEAD says 0.1.0 and no tag v0.1.0 exists — the channels make no common claim yet</td></tr>
+<tr><td class="mono">published-version</td><td>prod</td><td>the manifest is private:true and was never published; `fabric` on npm is fabricjs/fabric.js 7.4.0, a different project. No two channels of THIS package exist to compare</td></tr>
+<tr><td class="mono">telemetry-desktop</td><td>prod</td><td>the mechanical probe read &#x27;no deploy target&#x27; as library-shaped, but electron-builder.yml packages a macOS app that runs on an operator&#x27;s machine. Whether crash/error reporting is wanted there is an undecided design question, not a measured absence</td></tr>
+</tbody></table></div>
+<h2>Probes</h2>
+<div class="tw"><table><thead><tr><th>Probe</th><th>Phase</th><th>Verdict</th><th>Note</th></tr></thead><tbody>
+<tr><td class="mono">secrets-tree</td><td>probe</td><td><span class="pill p-ok">clean</span></td><td>no credential pattern in the tracked tree</td></tr>
+<tr><td class="mono">secrets-history</td><td>probe</td><td><span class="pill p-ok">clean</span></td><td>no credential pattern in the last 400 commits</td></tr>
+<tr><td class="mono">worktree</td><td>probe</td><td><span class="pill p-ok">clean</span></td><td>working tree clean</td></tr>
+<tr><td class="mono">telemetry</td><td>prod</td><td><span class="pill p-ok">clean</span></td><td>no deploy target declared — a library or tool, for which absent telemetry is a design, not a gap</td></tr>
+<tr><td class="mono">ci-present</td><td>prod</td><td><span class="pill p-bad">finding</span></td><td>no CI configuration</td></tr>
+<tr><td class="mono">docs-present</td><td>seams</td><td><span class="pill p-ok">clean</span></td><td>5 documentation marker(s): README.md, docs, AGENTS.md, docs/adr, docs/evidence</td></tr>
+<tr><td class="mono">gitignore-secrets</td><td>probe</td><td><span class="pill p-ok">clean</span></td><td>no credential-shaped file is tracked</td></tr>
+<tr><td class="mono">channel-divergence</td><td>prod</td><td><span class="pill p-neutral">blind</span></td><td>HEAD says 0.1.0 and no tag v0.1.0 exists — the channels make no common claim yet</td></tr>
+<tr><td class="mono">published-version</td><td>prod</td><td><span class="pill p-neutral">blind</span></td><td>the manifest is private:true and was never published; `fabric` on npm is fabricjs/fabric.js 7.4.0, a different project. No two channels of THIS package exist to compare</td></tr>
+<tr><td class="mono">gate-tests</td><td>seams</td><td><span class="pill p-ok">clean</span></td><td>`pnpm -r test` exit 0 — 11 suites over a live Supabase stack, all green</td></tr>
+<tr><td class="mono">gate-typecheck</td><td>seams</td><td><span class="pill p-ok">clean</span></td><td>`pnpm -r typecheck` exit 0 across 3 of 4 workspace projects</td></tr>
+<tr><td class="mono">gate-build</td><td>prod</td><td><span class="pill p-ok">clean</span></td><td>`pnpm --filter @fabric/desktop build` exit 0 in 1.45s</td></tr>
+<tr><td class="mono">gate-design</td><td>seams</td><td><span class="pill p-ok">clean</span></td><td>`node scripts/check-design.mjs` PASS — palette, type/space ladders, 167 string keys</td></tr>
+<tr><td class="mono">rls-coverage</td><td>seams</td><td><span class="pill p-ok">clean</span></td><td>17 of 17 tables carry `enable row level security` and exactly one read policy; writes reach service_role only; anon revoked. Re-derived by counting `create policy` rows independently of the `alter table` rows</td></tr>
+<tr><td class="mono">gate-docs</td><td>seams</td><td><span class="pill p-bad">finding</span></td><td>`pnpm gates:docs` exit 1 on a clean main</td></tr>
+<tr><td class="mono">narrative-tooling</td><td>seams</td><td><span class="pill p-bad">finding</span></td><td>`rg` is a shell function injected into interactive Claude Code shells, not a binary; absent inside `bash scripts/check-narrative.sh`</td></tr>
+<tr><td class="mono">schema-gate-tooling</td><td>seams</td><td><span class="pill p-bad">finding</span></td><td>`python3 scripts/check-project-schemas.py` exit 2 — `import jsonschema` fails</td></tr>
+<tr><td class="mono">renderer-tests</td><td>seams</td><td><span class="pill p-bad">finding</span></td><td>2,173 lines of React across 12 components; no test imports the renderer and no renderer test tooling is declared</td></tr>
+<tr><td class="mono">e2e-coverage</td><td>seams</td><td><span class="pill p-bad">finding</span></td><td>`handshake-e2e.test.mjs` is not in the default `test` script and self-skips without FABRIC_E2E</td></tr>
+<tr><td class="mono">readme-truth</td><td>seams</td><td><span class="pill p-bad">finding</span></td><td>README&#x27;s status paragraph and its verification.md row are both contradicted by the tree</td></tr>
+<tr><td class="mono">brand-string-coverage</td><td>seams</td><td><span class="pill p-bad">finding</span></td><td>130 of 166 interface keys carry no brand-registry row; the gate reports them as warnings</td></tr>
+<tr><td class="mono">carryover-load</td><td>seams</td><td><span class="pill p-bad">finding</span></td><td>65 of 93 carry-over rows read `open`</td></tr>
+<tr><td class="mono">ci-history</td><td>prod</td><td><span class="pill p-bad">finding</span></td><td>`gh run list` and `gh release list` both return nothing — no run and no release has ever existed</td></tr>
+<tr><td class="mono">telemetry-desktop</td><td>prod</td><td><span class="pill p-neutral">blind</span></td><td>the mechanical probe read &#x27;no deploy target&#x27; as library-shaped, but electron-builder.yml packages a macOS app that runs on an operator&#x27;s machine. Whether crash/error reporting is wanted there is an undecided design question, not a measured absence</td></tr>
+<tr><td class="mono">bundle-weight</td><td>prod</td><td><span class="pill p-bad">finding</span></td><td>the renderer emits a single 8,086 kB chunk</td></tr>
+</tbody></table></div>
+<footer><p>Generated by <code>project-audit</code> at 2026-08-31T22:45:07Z against <code>.</code>. Read-only: this run changed nothing but the two files it wrote. Sidecar: <code>docs/audit/2026-08-31-audit.json</code>.</p></footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,327 @@
+{
+  "fetched_at": "2026-09-04T23:02:04.803425+00:00",
+  "client": "Python urllib default user agent",
+  "files": [
+    {
+      "path": "index.html",
+      "url": "https://passioncode.ai/",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "bytes": 17,
+      "sha256": "2938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "error code: 1010\n"
+    },
+    {
+      "path": "styles.css",
+      "url": "https://passioncode.ai/styles.css",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "bytes": 17,
+      "sha256": "2938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "error code: 1010\n"
+    },
+    {
+      "path": "robots.txt",
+      "url": "https://passioncode.ai/robots.txt",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "bytes": 1836,
+      "sha256": "842b34303164ead41bccb7c05d1707422e98d108753b397b6dcc19683eb02101",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "# As a condition of accessing this website, you agree to abide by the following\n# content signals:\n\n# (a)  If a Content-Signal = yes, you may collect content for the corresponding\n#      use.\n# (b)  If a Content-Signal = no, you may not collect content for the\n#      corresponding use.\n# (c)  If the website operator does not include a Content-Signal for a\n#      corresponding use, the website operator neither grants nor restricts\n#      permission via Content-Signal with respect to the corresponding use.\n\n# The content signals and their meanings are:\n\n# search:   building a search index and providing search results (e.g., returning\n#           hyperlinks and short excerpts from your website's contents). Search does not\n#           include providing AI-generated search summaries.\n# ai-input: inputting content into one or more AI models (e.g., retrieval\n#           augmented generation, grounding, or other real-time taking of content for\n#           generative AI search answers).\n# ai-train: training or fine-tuning AI models.\n# use:      how AI systems may consume the content (immediate, reference, or full).\n\n# ANY RESTRICTIONS EXPRESSED VIA CONTENT SIGNALS ARE EXPRESS RESERVATIONS OF\n# RIGHTS UNDER ARTICLE 4 OF THE EUROPEAN UNION DIRECTIVE 2019/790 ON COPYRIGHT\n# AND RELATED RIGHTS IN THE DIGITAL SINGLE MARKET.\n\n# BEGIN Cloudflare Managed content\n\nUser-agent: *\nContent-Signal: search=yes,ai-train=no,use=reference\nAllow: /\n\nUser-agent: Amazonbot\nDisallow: /\n\nUser-agent: Applebot-Extended\nDisallow: /\n\nUser-agent: Bytespider\nDisallow: /\n\nUser-agent: CCBot\nDisallow: /\n\nUser-agent: ClaudeBot\nDisallow: /\n\nUser-agent: CloudflareBrowserRenderingCrawler\nDisallow: /\n\nUser-agent: Google-Extended\nDisallow: /\n\nUser-agent: GPTBot\nDisallow: /\n\nUser-agent: meta-externalagent\nDisallow: /\n\n# END Cloudflare Managed Content\n\n"
+    },
+    {
+      "path": "sitemap.xml",
+      "url": "https://passioncode.ai/sitemap.xml",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "bytes": 17,
+      "sha256": "2938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "error code: 1010\n"
+    },
+    {
+      "path": "assets/passioncode-mark.svg",
+      "url": "https://passioncode.ai/assets/passioncode-mark.svg",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "bytes": 17,
+      "sha256": "2938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "error code: 1010\n"
+    },
+    {
+      "path": "assets/favicon-64.png",
+      "url": "https://passioncode.ai/assets/favicon-64.png",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "bytes": 17,
+      "sha256": "2938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "error code: 1010\n"
+    },
+    {
+      "path": "assets/icon-256.png",
+      "url": "https://passioncode.ai/assets/icon-256.png",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "bytes": 17,
+      "sha256": "2938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "error code: 1010\n"
+    },
+    {
+      "path": "assets/icon-1024.png",
+      "url": "https://passioncode.ai/assets/icon-1024.png",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "bytes": 17,
+      "sha256": "2938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "error code: 1010\n"
+    },
+    {
+      "path": "assets/passioncode-social-card.svg",
+      "url": "https://passioncode.ai/assets/passioncode-social-card.svg",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "bytes": 17,
+      "sha256": "2938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "error code: 1010\n"
+    },
+    {
+      "path": "assets/passioncode-social-card.png",
+      "url": "https://passioncode.ai/assets/passioncode-social-card.png",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "bytes": 17,
+      "sha256": "2938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "error code: 1010\n"
+    },
+    {
+      "path": "assets/passioncode-social-card.jpg",
+      "url": "https://passioncode.ai/assets/passioncode-social-card.jpg",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "bytes": 17,
+      "sha256": "2938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "error code: 1010\n"
+    },
+    {
+      "path": "assets/README.md",
+      "url": "https://passioncode.ai/assets/README.md",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "bytes": 17,
+      "sha256": "2938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "error code: 1010\n"
+    },
+    {
+      "path": "brand/LOCK.json",
+      "url": "https://passioncode.ai/brand/LOCK.json",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "bytes": 17,
+      "sha256": "2938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "error code: 1010\n"
+    },
+    {
+      "path": "package.json",
+      "url": "https://passioncode.ai/package.json",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "bytes": 17,
+      "sha256": "2938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "error code: 1010\n"
+    },
+    {
+      "path": "docs/DEPLOYMENT.md",
+      "url": "https://passioncode.ai/docs/DEPLOYMENT.md",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "bytes": 17,
+      "sha256": "2938e9f1284180959e33ab1718d0793a72ff6e4cdb8108c34dcd14e69446de5c",
+      "matches_local": false,
+      "server": "cloudflare",
+      "cf_mitigated": null,
+      "text_excerpt": "error code: 1010\n"
+    }
+  ],
+  "curl_fetched_at": "2026-09-04T23:02:41.940973+00:00",
+  "curl_files": [
+    {
+      "path": "index.html",
+      "url": "https://passioncode.ai/",
+      "status": 200,
+      "content_type": "text/html",
+      "bytes": 13236,
+      "sha256": "08ea7f00f530f53b532f2a43a5f38126c18b1b90254751b1b4114414d5cb80b7",
+      "matches_local": true
+    },
+    {
+      "path": "styles.css",
+      "url": "https://passioncode.ai/styles.css",
+      "status": 200,
+      "content_type": "text/css",
+      "bytes": 15164,
+      "sha256": "bb457d19f786df6c16a695ff465d603387688169a1ec69579f366f31d3fc9cc9",
+      "matches_local": true
+    },
+    {
+      "path": "robots.txt",
+      "url": "https://passioncode.ai/robots.txt",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "bytes": 1904,
+      "sha256": "21e0857c032e00b7e28dc5a4a86f89b278326433b58f542bb5adc380771c25f8",
+      "matches_local": false,
+      "local_bytes": 68,
+      "contains_local_verbatim": true,
+      "managed_prefix": "# As a condition of accessing this website, you agree to abide by the following\n# content signals:\n\n# (a)  If a Content-Signal = yes, you may collect content for the corresponding\n#      use.\n# (b)  If a Content-Signal = no, you may not collect content for the\n#      corresponding use.\n# (c)  If the website operator does not include a Content-Signal for a\n#      corresponding use, the website operator neither grants nor restricts\n#      permission via Content-Signal with respect to the corresponding use.\n\n# The content signals and their meanings are:\n\n# search:   building a search index and providing search results (e.g., returning\n#           hyperlinks and short excerpts from your website's contents). Search does not\n#           include providing AI-generated search summaries.\n# ai-input: inputting content into one or more AI models (e.g., retrieval\n#           augmented generation, grounding, or other real-time taking of content for\n#           generative AI search answers).\n# ai-train: training or fine-tuning AI models.\n# use:      how AI systems may consume the content (immediate, reference, or full).\n\n# ANY RESTRICTIONS EXPRESSED VIA CONTENT SIGNALS ARE EXPRESS RESERVATIONS OF\n# RIGHTS UNDER ARTICLE 4 OF THE EUROPEAN UNION DIRECTIVE 2019/790 ON COPYRIGHT\n# AND RELATED RIGHTS IN THE DIGITAL SINGLE MARKET.\n\n# BEGIN Cloudflare Managed content\n\nUser-agent: *\nContent-Signal: search=yes,ai-train=no,use=reference\nAllow: /\n\nUser-agent: Amazonbot\nDisallow: /\n\nUser-agent: Applebot-Extended\nDisallow: /\n\nUser-agent: Bytespider\nDisallow: /\n\nUser-agent: CCBot\nDisallow: /\n\nUser-agent: ClaudeBot\nDisallow: /\n\nUser-agent: CloudflareBrowserRenderingCrawler\nDisallow: /\n\nUser-agent: Google-Extended\nDisallow: /\n\nUser-agent: GPTBot\nDisallow: /\n\nUser-agent: meta-externalagent\nDisallow: /\n\n"
+    },
+    {
+      "path": "sitemap.xml",
+      "url": "https://passioncode.ai/sitemap.xml",
+      "status": 200,
+      "content_type": "application/xml",
+      "bytes": 265,
+      "sha256": "6a83c1a2da7c8b91eb861f726aad8ad609e7047168f407c722752b6f7489f087",
+      "matches_local": true
+    },
+    {
+      "path": "assets/passioncode-mark.svg",
+      "url": "https://passioncode.ai/assets/passioncode-mark.svg",
+      "status": 200,
+      "content_type": "image/svg+xml",
+      "bytes": 2975,
+      "sha256": "8b49637faa386ce9658029a142d48e8a8c3ee4ed2d44ccb611cd03051046e1aa",
+      "matches_local": true
+    },
+    {
+      "path": "assets/favicon-64.png",
+      "url": "https://passioncode.ai/assets/favicon-64.png",
+      "status": 200,
+      "content_type": "image/png",
+      "bytes": 5013,
+      "sha256": "34fb5047708a4381e660da439f06d405af8575b3de5a86cc2e315da95c294ea2",
+      "matches_local": true
+    },
+    {
+      "path": "assets/icon-256.png",
+      "url": "https://passioncode.ai/assets/icon-256.png",
+      "status": 200,
+      "content_type": "image/png",
+      "bytes": 40679,
+      "sha256": "a8c1265dcd1340109d329ad988ebb7b5aad2d0d5b5bc38f95ad67208899055f6",
+      "matches_local": true
+    },
+    {
+      "path": "assets/icon-1024.png",
+      "url": "https://passioncode.ai/assets/icon-1024.png",
+      "status": 200,
+      "content_type": "image/png",
+      "bytes": 437457,
+      "sha256": "6e753b92ed5b28f5883f1e784350e2bf9b377cd7be1538129a12982ef0df2dfc",
+      "matches_local": true
+    },
+    {
+      "path": "assets/passioncode-social-card.svg",
+      "url": "https://passioncode.ai/assets/passioncode-social-card.svg",
+      "status": 200,
+      "content_type": "image/svg+xml",
+      "bytes": 4781,
+      "sha256": "4e7bb0872785368025b347c897de60a0c3a75287df3d4f05c40de711ee96bdf2",
+      "matches_local": true
+    },
+    {
+      "path": "assets/passioncode-social-card.png",
+      "url": "https://passioncode.ai/assets/passioncode-social-card.png",
+      "status": 200,
+      "content_type": "image/png",
+      "bytes": 529680,
+      "sha256": "66f540fdcdaf38d0bf624af39e926a4cccdf5b1977932ca4d3a0c52919a2f00e",
+      "matches_local": true
+    },
+    {
+      "path": "assets/passioncode-social-card.jpg",
+      "url": "https://passioncode.ai/assets/passioncode-social-card.jpg",
+      "status": 200,
+      "content_type": "image/jpeg",
+      "bytes": 123778,
+      "sha256": "49357798a821b5b60c26bbe41ac00fd93ab671548398f33c098de9b28c993d23",
+      "matches_local": true
+    },
+    {
+      "path": "assets/README.md",
+      "url": "https://passioncode.ai/assets/README.md",
+      "status": 404,
+      "content_type": null,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches_local": false
+    },
+    {
+      "path": "brand/LOCK.json",
+      "url": "https://passioncode.ai/brand/LOCK.json",
+      "status": 404,
+      "content_type": null,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches_local": false
+    },
+    {
+      "path": "package.json",
+      "url": "https://passioncode.ai/package.json",
+      "status": 404,
+      "content_type": null,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches_local": false
+    },
+    {
+      "path": "docs/DEPLOYMENT.md",
+      "url": "https://passioncode.ai/docs/DEPLOYMENT.md",
+      "status": 404,
+      "content_type": null,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches_local": false
+    }
+  ]
+}

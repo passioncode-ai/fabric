@@ -1,0 +1,55 @@
+ERR: positioning drift: README.md
+ERR: slogan drift: README.md
+ERR: positioning drift: docs/vision.md
+ERR: slogan drift: docs/vision.md
+ERR: positioning drift: docs/architecture/passioncode-platform.md
+ERR: slogan drift: docs/architecture/passioncode-platform.md
+ERR: positioning drift: docs/brand/facts.md
+ERR: slogan drift: docs/brand/facts.md
+ERR: positioning drift: docs/public/organization-profile.md
+ERR: slogan drift: docs/public/organization-profile.md
+ERR: positioning drift: docs/guides/passioncode-overview.md
+ERR: slogan drift: docs/guides/passioncode-overview.md
+ERR: positioning drift: docs/guides/passioncode-overview.ru.md
+ERR: slogan drift: docs/guides/passioncode-overview.ru.md
+ERR: category drift: README.md
+ERR: category drift: docs/vision.md
+ERR: category drift: docs/architecture/passioncode-platform.md
+ERR: category drift: docs/brand/facts.md
+ERR: category drift: docs/public/organization-profile.md
+ERR: category drift: docs/guides/passioncode-overview.md
+ERR: localized category drift: docs/guides/passioncode-overview.ru.md
+ERR: operating reframe drift: README.md
+ERR: operating reframe drift: docs/vision.md
+ERR: operating reframe drift: docs/brand/facts.md
+ERR: operating reframe drift: docs/public/organization-profile.md
+ok: public surfaces contain no internal product-economics language
+ok: public product spelling is consistent
+FAIL: PassionCode.ai public narrative
+scripts/check-narrative.sh: line 31: rg: command not found
+scripts/check-narrative.sh: line 34: rg: command not found
+scripts/check-narrative.sh: line 31: rg: command not found
+scripts/check-narrative.sh: line 34: rg: command not found
+scripts/check-narrative.sh: line 31: rg: command not found
+scripts/check-narrative.sh: line 34: rg: command not found
+scripts/check-narrative.sh: line 31: rg: command not found
+scripts/check-narrative.sh: line 34: rg: command not found
+scripts/check-narrative.sh: line 31: rg: command not found
+scripts/check-narrative.sh: line 34: rg: command not found
+scripts/check-narrative.sh: line 31: rg: command not found
+scripts/check-narrative.sh: line 34: rg: command not found
+scripts/check-narrative.sh: line 31: rg: command not found
+scripts/check-narrative.sh: line 34: rg: command not found
+scripts/check-narrative.sh: line 49: rg: command not found
+scripts/check-narrative.sh: line 49: rg: command not found
+scripts/check-narrative.sh: line 49: rg: command not found
+scripts/check-narrative.sh: line 49: rg: command not found
+scripts/check-narrative.sh: line 49: rg: command not found
+scripts/check-narrative.sh: line 49: rg: command not found
+scripts/check-narrative.sh: line 54: rg: command not found
+scripts/check-narrative.sh: line 66: rg: command not found
+scripts/check-narrative.sh: line 66: rg: command not found
+scripts/check-narrative.sh: line 66: rg: command not found
+scripts/check-narrative.sh: line 66: rg: command not found
+scripts/check-narrative.sh: line 78: rg: command not found
+scripts/check-narrative.sh: line 86: rg: command not found

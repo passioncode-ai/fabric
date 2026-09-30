@@ -1,0 +1,88 @@
+{
+  "result": "PASS",
+  "content": "provided snapshot",
+  "observations": [
+    {
+      "width": 1280,
+      "theme": "dark",
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "path": "/library?q=zzzz",
+      "overflow": false
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "path": "/docs/ux/scenarios.md",
+      "overflow": false
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "path": "/library?q=zzzz",
+      "overflow": false
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "path": "/docs/ux/scenarios.md",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "path": "/library?q=zzzz",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "theme": "dark",
+      "path": "/docs/ux/scenarios.md",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "path": "/",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "path": "/library?q=zzzz",
+      "overflow": false
+    },
+    {
+      "width": 375,
+      "theme": "light",
+      "path": "/docs/ux/scenarios.md",
+      "overflow": false
+    }
+  ],
+  "keyboardSkip": true,
+  "primaryAboveFold": true,
+  "themeSwitch": true,
+  "search": true,
+  "legacyDeepLink": true,
+  "markdownNoJS": true,
+  "directoryNoJS": true,
+  "reportScript": false,
+  "pageErrors": [],
+  "cspViolations": []
+}

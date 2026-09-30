@@ -1,0 +1,28 @@
+{
+  "scope": "Mechanical auditor positive and planted-negative controls",
+  "results": [
+    {
+      "case": "valid relocated bundle",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "case": "invalid skill name is rejected",
+      "exit_code": 1,
+      "gap_checks": [
+        "NAME_CHARSET",
+        "NAME_DIR"
+      ],
+      "status": "PASS"
+    },
+    {
+      "case": "missing linked publication contract is rejected",
+      "exit_code": 1,
+      "gap_checks": [
+        "LINK_BROKEN",
+        "LINK_BROKEN"
+      ],
+      "status": "PASS"
+    }
+  ]
+}

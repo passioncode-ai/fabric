@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fabric — архитектура интейка и план работ</title>
+<style>
+:root{color-scheme:dark;
+ --bg:#0a0a0a;--surface:#171717;--quiet:#262626;--ink:#fafafa;--muted:#a1a1a1;
+ --line:#ffffff1a;--line2:#ffffff26;--good:#34d06f;--warn:#fbbf24;--danger:#fb2c36;
+ --info:#60a5fa;--idle:#9a958a;--accent:#fafafa;--accent-ink:#0a0a0a;
+ --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+ --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif}
+@media (prefers-color-scheme:light){:root{color-scheme:light;
+ --bg:#fff;--surface:#fff;--quiet:#f5f5f5;--ink:#141413;--muted:#5c5c5a;
+ --line:#0000001f;--line2:#00000033;--good:#22c55e;--warn:#f59e0b;--danger:#dc2626;
+ --info:#2563eb;--idle:#a8aeb2;--accent:#141413;--accent-ink:#fff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.62}
+.wrap{max-width:1180px;margin:0 auto;padding:48px 24px 96px}
+h1{font-size:2rem;margin:0 0 8px;letter-spacing:-.02em;line-height:1.15}
+h2{font-size:1.4rem;margin:64px 0 8px;letter-spacing:-.01em}
+h3{font-size:1.06rem;margin:32px 0 8px}
+h4{font-size:.95rem;margin:22px 0 6px}
+p{margin:0 0 12px}
+.sub{color:var(--muted);margin:0 0 26px}
+.label{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+code,.mono{font-family:var(--mono);font-size:.85em}
+.rule{height:1px;background:var(--line);margin:40px 0}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}
+.meta span{font-family:var(--mono);font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.88rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400}
+.scroll{overflow-x:auto}
+pre{background:var(--quiet);border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto;
+ font-family:var(--mono);font-size:.78rem;line-height:1.5;margin:14px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:0 0 14px}
+.grid{display:grid;gap:14px}.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.stat b{display:block;font-family:var(--mono);font-size:1.5rem;letter-spacing:-.02em;margin-bottom:2px}
+.stat small{display:block;color:var(--muted);font-size:.76rem}
+.tag{font-family:var(--mono);font-size:.63rem;letter-spacing:.08em;text-transform:uppercase;
+ padding:2px 7px;border-radius:999px;border:1px solid var(--line2);color:var(--muted);white-space:nowrap}
+.t-have{border-color:var(--good);color:var(--good)}
+.t-design{border-color:var(--info);color:var(--info)}
+.t-new{border-color:var(--warn);color:var(--warn)}
+.t-gap{border-color:var(--danger);color:var(--danger)}
+.note{border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:8px;padding:14px 16px;margin:16px 0;font-size:.92rem}
+.note.bad{border-left-color:var(--danger)}
+.note.ok{border-left-color:var(--good)}
+ul.can{margin:10px 0;padding:0;list-style:none}
+ul.can li{padding:4px 0 4px 20px;position:relative}
+ul.can li::before{content:"→";position:absolute;left:0;color:var(--muted);font-family:var(--mono)}
+ol.steps{margin:12px 0;padding-left:22px}
+ol.steps li{margin:0 0 10px}
+svg{max-width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0 0;font-size:.78rem;color:var(--muted)}
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.82rem}
+</style>
+</head>
+<body><div class="wrap">
+
+<p class="label">Fabric · ядро PassionCode.ai · отчёт на подтверждение</p>
+<h1>Как это устроено архитектурно и что делаем дальше</h1>
+<p class="sub">Интейк оператора от 2026-09-03 (M116–M135), положенный на то, что в репозитории уже решено и построено. 2026-09-03, ветка <code>feat/brand-icon-and-intake</code>, коммит <code>55b790b</code>.</p>
+
+<div class="meta">
+  <span>спина: iteration-1-modules.md · ADR-0027…0032</span>
+  <span>UX уже есть: 26 экранов, 20 флоу, 947 строк сценариев</span>
+  <span>таблиц в базе: 17</span>
+  <span>отгружено: 14 из 135</span>
+  <span>это предложение, не решение</span>
+</div>
+
+<div class="note ok"><b>Главный вывод, до подробностей.</b> Интейк почти целиком садится на швы, которые <b>уже спроектированы</b>, а не выдуманы под него. Режим разрешений агента — это поле <code>permission.mode</code> в <code>NodeSpec</code>, оно записано в контракте. Доступ агента к MCP — это <code>mcp: {servers, strict:true}</code> там же. Репозиторий воркспейса — это отложенный «declared-layer git mirror», у которого триггер возврата назначен на slice 3. Ежедневный агент — это <code>routine</code> с триггером. Из двадцати строк интейка по-настоящему нового каркаса требуют четыре: доска задач, CEO как интерфейс, маскот с профилем и поверхность памяти.</div>
+
+<h2>1. Что уже правда</h2>
+<div class="grid g4">
+  <div class="card stat"><b>17</b><small>таблиц: журнал + проекции</small></div>
+  <div class="card stat"><b>14</b><small>типов событий в реестре slice 1–2</small></div>
+  <div class="card stat"><b>7</b><small>инструментов агентной MCP-поверхности</small></div>
+  <div class="card stat"><b>0</b><small>упоминаний CEO в UX-слое</small></div>
+</div>
+
+<p>Работает и проверено: журнал как хребет с проекциями (ADR-0014), хостед-PTY, переживающий закрытие окна (ADR-0031), агентная MCP-поверхность с креденшелом на одну сессию, память проекта (факты + FTS + би-темпоральность), транскрипты, контекст-паки с локфайлом, состояние репозиториев, квота. Компонентный слой и харнесс рендерера — с сегодняшнего дня.</p>
+
+<h2>2. Слои — и куда садится интейк</h2>
+
+<svg viewBox="0 0 1120 470" role="img" aria-label="Слои Fabric и точки подключения интейка">
+  <defs>
+    <marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="currentColor"/>
+    </marker>
+    <style>
+      .box{fill:var(--surface);stroke:var(--line2)}
+      .box2{fill:var(--quiet);stroke:var(--line2)}
+      .t{fill:var(--ink);font:600 13px var(--sans)}
+      .s{fill:var(--muted);font:11px var(--mono)}
+      .n{fill:var(--warn);font:600 11px var(--mono)}
+      .e{stroke:var(--muted);fill:none;color:var(--muted)}
+    </style>
+  </defs>
+
+  <text class="s" x="8" y="16">ЧЕЛОВЕК</text>
+  <rect class="box" x="8" y="26" width="1104" height="76" rx="10"/>
+  <text class="t" x="26" y="52">Десктоп-приложение — Electron, окна: дом эстейта · проект · сессия · редактор</text>
+  <text class="s" x="26" y="72">React + компонентный набор (M117) · токены брендпака · строковый реестр</text>
+  <text class="n" x="26" y="90">новое здесь: доска задач M122 · CEO-чат и маскот M126/M131 · фейворитс M120 · поверхность памяти M135</text>
+
+  <path class="e" d="M560,102 L560,132" marker-end="url(#a)"/>
+  <text class="s" x="570" y="122">типизированный IPC</text>
+
+  <text class="s" x="8" y="150">ГЛАВНЫЙ ПРОЦЕСС</text>
+  <rect class="box" x="8" y="158" width="1104" height="96" rx="10"/>
+  <rect class="box2" x="24" y="174" width="200" height="62" rx="8"/>
+  <text class="t" x="36" y="196">journal + проекции</text><text class="s" x="36" y="214">ADR-0014 · 17 таблиц</text>
+  <rect class="box2" x="238" y="174" width="200" height="62" rx="8"/>
+  <text class="t" x="250" y="196">runner (PTY)</text><text class="s" x="250" y="214">NodeSpec · permission.mode</text>
+  <rect class="box2" x="452" y="174" width="212" height="62" rx="8"/>
+  <text class="t" x="464" y="196">agent surface (MCP)</text><text class="s" x="464" y="214">7 инструментов · кред/сессия</text>
+  <rect class="box2" x="678" y="174" width="196" height="62" rx="8"/>
+  <text class="t" x="690" y="196">memory</text><text class="s" x="690" y="214">факты · транскрипты · паки</text>
+  <rect class="box2" x="888" y="174" width="208" height="62" rx="8"/>
+  <text class="t" x="900" y="196">work — slice 3</text><text class="s" x="900" y="214">runs · routines · chains</text>
+
+  <path class="e" d="M340,254 L340,286" marker-end="url(#a)"/>
+  <text class="s" x="350" y="276">spawn + бандл сессии</text>
+  <path class="e" d="M558,286 L558,256" marker-end="url(#a)"/>
+  <text class="s" x="568" y="304">агент говорит обратно</text>
+
+  <text class="s" x="8" y="308">АГЕНТЫ</text>
+  <rect class="box" x="8" y="316" width="1104" height="72" rx="10"/>
+  <text class="t" x="26" y="342">Claude Code и другие CLI · каждый со своим дескриптором запуска (M116) и режимом разрешений</text>
+  <text class="n" x="26" y="362">обязательный системный скил управления тасками M123 — единственный канал, которым агент пишет в доску</text>
+  <text class="s" x="26" y="380">CEO M119/M126/M133 · dev M132 · тренды M128 · продовые сигналы M129 — это биндинги, не классы</text>
+
+  <path class="e" d="M900,388 L900,416" marker-end="url(#a)"/>
+  <text class="s" x="8" y="410">ВНЕШНЕЕ</text>
+  <rect class="box" x="8" y="420" width="1104" height="44" rx="10"/>
+  <text class="t" x="26" y="447">MCP-серверы (исследование, Sentry, база прода) · git · каналы публикации — через <tspan class="s">mcp:{servers, strict:true}</tspan> и гранты</text>
+</svg>
+
+<div class="legend"><span style="color:var(--warn)">жёлтым — то, что добавляет интейк</span><span>остальное существует или спроектировано</span></div>
+
+<h2>3. Карта подключения — строка интейка → шов</h2>
+<p>Каждая строка отвечает на «где это подключается». <span class="tag t-have">есть</span> — код в репозитории; <span class="tag t-design">спроектировано</span> — контракт записан, кода нет; <span class="tag t-new">новое</span> — каркас надо строить.</p>
+
+<div class="scroll"><table>
+<tr><th>id</th><th>Что</th><th>Куда садится</th><th>Состояние</th></tr>
+<tr><td class="mono">M116</td><td>Реестр агентов и режим разрешений</td><td><code>pty.ts:launchOptions()</code> → дескриптор; режим — это <code>NodeSpec.permission.mode</code>, поле уже в контракте (<code>iteration-1-modules.md</code> §11). Пишется в <code>terminal.opened@1</code></td><td><span class="tag t-design">спроектировано</span></td></tr>
+<tr><td class="mono">M117</td><td>Компонентный слой</td><td><code>renderer/src/components/</code> + <code>registry.ts</code>, гейт читает реестр</td><td><span class="tag t-have">есть, в работе</span></td></tr>
+<tr><td class="mono">M118</td><td>Воркспейс как репозиторий</td><td>отложенный «declared-layer git mirror as a projection», триггер возврата — slice 3 (§12 диеты). ADR-0002 решает <b>что</b> туда едет: декларированное — да, наблюдаемое — нет</td><td><span class="tag t-design">спроектировано</span></td></tr>
+<tr><td class="mono">M119</td><td>CEO предлагает проекты</td><td>роль CEO уже в ADR-0012 (одна на эстейт). Механика — <code>run</code> с узлом, результат в конверте <code>NodeResult</code>, предложения через ADR-0029</td><td><span class="tag t-design">спроектировано</span></td></tr>
+<tr><td class="mono">M120</td><td>Фейворитс, до пяти</td><td>поле на <code>projects</code> + сортировка дома. Ноль упоминаний в UX-слое</td><td><span class="tag t-new">новое</span></td></tr>
+<tr><td class="mono">M121</td><td>Шорткаты на проекте</td><td><code>TaskPreset</code> существует — это строки в реестре, не код</td><td><span class="tag t-have">есть</span></td></tr>
+<tr><td class="mono">M122</td><td>Канбан-доска</td><td><code>project_tasks</code> уже проекция; доска — её представление плюс состояния M79. Слово «kanban» в UX-слое не встречается ни разу</td><td><span class="tag t-new">новое</span></td></tr>
+<tr><td class="mono">M123</td><td>Системный скил тасок</td><td>дверь есть — агентная MCP-поверхность. Нужны инструменты <code>fabric_task_*</code> рядом с семью существующими, плюс установка скила в каждый допущенный раннер</td><td><span class="tag t-new">новое</span></td></tr>
+<tr><td class="mono">M124</td><td>Доска ↔ документация</td><td>ссылка на источник в задаче; та же дисциплина, что <code>source_ref</code> у факта памяти</td><td><span class="tag t-new">новое</span></td></tr>
+<tr><td class="mono">M125</td><td>Агент из промпта</td><td><code>bindings.hire</code> (§7) + селектор допущенных провайдеров M17</td><td><span class="tag t-design">спроектировано</span></td></tr>
+<tr><td class="mono">M126</td><td>CEO как плавающий чат</td><td>интерфейса нет нигде: <b>ноль</b> упоминаний CEO в экранах, флоу и сценариях, при живой роли в модели</td><td><span class="tag t-gap">разрыв</span></td></tr>
+<tr><td class="mono">M127</td><td>Доступ к MCP</td><td><code>NodeSpec.mcp {servers, strict:true}</code> — уже в контракте; вопрос только в том, кто выдаёт грант</td><td><span class="tag t-design">спроектировано</span></td></tr>
+<tr><td class="mono">M128</td><td>Трендовый агент</td><td><code>routine</code> с крон-триггером → <code>run</code> → артефакт → публикация под одноразовым грантом (slice 5)</td><td><span class="tag t-design">спроектировано</span></td></tr>
+<tr><td class="mono">M129</td><td>Агент продовых сигналов</td><td>то же плюс коннекторы slice 4; Sentry и база — внешние MCP</td><td><span class="tag t-design">спроектировано</span></td></tr>
+<tr><td class="mono">M130</td><td>Провенанс назначения</td><td>поля на задаче; <code>actor {kind,id}</code> в конверте события уже несёт «кто»</td><td><span class="tag t-new">новое</span></td></tr>
+<tr><td class="mono">M131</td><td>Маскот и профиль</td><td>рендерер + проекция статистики. Ноль упоминаний</td><td><span class="tag t-gap">разрыв</span></td></tr>
+<tr><td class="mono">M132</td><td>Dev-агент раз в сутки</td><td><code>routine</code> + квотный гейт M94 + граница петель M68</td><td><span class="tag t-design">спроектировано</span></td></tr>
+<tr><td class="mono">M133</td><td>«Где мы остановились»</td><td>материал весь есть — журнал, транскрипты, факты. Это чтение и сводка, не новое хранилище</td><td><span class="tag t-new">новое</span></td></tr>
+<tr><td class="mono">M134</td><td>Идеи в бэклог</td><td>состояние <code>backlog</code> из M79, используемое человеком</td><td><span class="tag t-design">спроектировано</span></td></tr>
+<tr><td class="mono">M135</td><td>Видимость памяти</td><td>четыре хранилища уже существуют таблицами: <code>memory_facts</code>, <code>session_transcripts</code>, <code>session_context_packs</code>, <code>memory_retrievals</code>. Не хватает одного экрана над ними</td><td><span class="tag t-new">новое</span></td></tr>
+</table></div>
+
+<h2>4. Данные — что добавляется к хребту</h2>
+<p>Правило не меняется: <b>событие пишется в журнал, таблица — его проекция</b> (ADR-0014). Ни одна новая способность не получает собственной записи мимо журнала.</p>
+
+<pre>СУЩЕСТВУЮТ           journal · estates · projects · project_repos · project_tasks
+                     agent_bindings · agent_stages · grants · effect_intents · goals
+                     memory_facts · memory_retrievals · session_transcripts
+                     session_context_packs · persons · memberships · event_types
+
+ДОБАВЛЯЮТСЯ          task_cards          проекция доски: статус, колонка, порядок,
+                     (M122/M130/M124)    assigned_by / assigned_to, source_ref
+
+                     project_favourites  до пяти на эстейт (M120)
+
+                     ceo_digests         сводка решений на проект (M133) — проекция,
+                                         пересчитываемая из журнала, не второй источник
+
+                     mascot_profile      счётчики: строки, релизы, агенты, проекты (M131)
+                                         каждый — измерение или его нет
+
+НОВЫЕ СОБЫТИЯ        task.created@1 · task.assigned@1 · task.moved@1 · task.linked@1
+                     workspace.initialised@1 · workspace.mirrored@1
+                     project.favourited@1 · project.unfavourited@1
+                     ceo.digest.compiled@1 · agent.created@1</pre>
+
+<div class="note"><b>Одно решение, которое надо принять до кода:</b> доска — это проекция журнала или таблица со своими записями? Рекомендую <b>проекцию</b>: агент двигает карточку событием, и тогда «кто передвинул и почему» восстанавливается без отдельного аудита. Цена — доска не может изменяться быстрее, чем пишется журнал, и это правильная цена.</div>
+
+<h2>5. Флоу</h2>
+
+<h3>A. Инициализация воркспейса и предложение проектов</h3>
+<pre>оператор: «новый воркспейс»
+   │
+   ├─ гит предложен ──да──→ init/clone репозитория воркспейса
+   │                        [workspace.initialised@1] {repo, mode: created|imported}
+   │                        настройки, записи проектов, связи ──→ мирроринг в репу
+   │                        (ADR-0002: декларированное — да; наблюдаемое — нет)
+   │
+   └─ гит отклонён ───────→ локальный воркспейс, и продукт ГОВОРИТ прямо:
+                            нет бэкапа и нет истории версий
+   │
+   ▼
+CEO читает то, что есть: папки, репозитории, README, историю коммитов
+   │
+   ▼  run → NodeResult {done, proof, scope, notVerified}
+предложение: [имя · папка/репа · саммари · описание] × N        ← ПРЕДЛОЖЕНИЕ
+   │
+   ├─ оператор принимает/правит/отклоняет каждое        никогда не импорт
+   ▼
+[project.created@1] × принятые
+   │
+   └─ проектов > 6 ──→ выбор до пяти фейворитс [project.favourited@1]
+       проектов ≤ 6 ──→ шаг пропускается</pre>
+
+<h3>B. Задача: от инструкции до карточки</h3>
+<pre>оператор в проекте: пишет задачу ИЛИ жмёт шорткат («аудит», «известные баги»,
+                    «ошибки на проде», «продолжить бэклог»)
+   │
+   ▼
+[task.created@1] {instruction, assigned_by: person, assigned_to: binding}
+   │
+   ▼  бандл сессии: mcp.json + context.md + системный скил тасок (M123)
+runner.spawn(NodeSpec {permission.mode, mcp:{servers,strict}, contextPackPath})
+   │
+   ├─→ агент работает, и по ходу зовёт fabric_task_update
+   │        [task.moved@1] → карточка едет по доске САМА
+   │
+   ├─→ агент находит смежную работу → fabric_task_create
+   │        [task.created@1] {assigned_by: agent, assigned_to: dev|CEO}
+   │        разработка → dev-агент; про проект → CEO
+   │
+   └─→ агент упирается в решение → canUseTool → очередь одобрений
+            неоднозначная маршрутизация → CEO поднимает к человеку,
+            а не выбирает молча</pre>
+
+<h3>C. Создание агента через CEO</h3>
+<pre>клик по маскоту ──→ чат, который уже знает контекст
+                    (в проекте / на доме эстейта — предложения разные)
+   │
+оператор: «нужен агент: раз в день трендовые темы через research-MCP, отчёт, потом пост»
+   │
+   ▼
+CEO собирает спецификацию и ПОКАЗЫВАЕТ её до создания:
+   ┌──────────────────────────────────────────────┐
+   │ роль          developer / researcher          │
+   │ провайдер     Claude Code                     │
+   │ MCP           research  ← грант нужен         │
+   │ триггер       cron 09:00 ежедневно            │
+   │ производит    {topics[], report}   ← M92      │
+   │ разрешения    plan-only                       │
+   │ бюджет        maxUsd, maxTurns                │
+   └──────────────────────────────────────────────┘
+   │
+   ├─ оператор правит и подтверждает
+   ▼
+[binding.hired@1] + [routine.defined@1] + [agent.created@1]
+   │
+   └─ грант на MCP выдаётся отдельным действием и виден в «доступах»</pre>
+
+<h3>D. Возвращение в проект — «где мы остановились»</h3>
+<pre>открытие проекта
+   │
+   ▼
+ceo_digests: проекция, пересчитанная из журнала + транскриптов + фактов памяти
+   │
+   ▼
+   ┌──────────────────────────────────────────────────────────┐
+   │ Последнее решение — 2 дня назад                          │
+   │ Отказались от импорта кук до редакции транскриптов,      │
+   │ потому что секрет попадал бы в межагентное хранилище.    │
+   │                                            → M95, журнал │
+   ├──────────────────────────────────────────────────────────┤
+   │ До этого — 4 дня назад                                   │
+   │ Доска задач стала проекцией, а не таблицей.   → ADR-00NN │
+   └──────────────────────────────────────────────────────────┘
+   меньше технических деталей, больше решений и фич —
+   и каждая строка со ссылкой на то, чем она подтверждена</pre>
+
+<h2>6. Экраны</h2>
+<p>Мокапы текстовые: Figma MCP не подключён, и это записано как решение, а не обнаружено на ходу. Из 26 существующих экранов интейк задевает <code>SCR-01</code>, <code>SCR-03</code>, <code>SCR-04</code>, <code>SCR-05</code>, <code>SCR-08</code>, <code>SCR-21/22</code>, <code>SCR-24</code>, <code>SCR-26</code>; ниже — только новое.</p>
+
+<h4>Дом эстейта — маскот, фейворитс, квота</h4>
+<pre>┌────────────────────────────────────────────────────────────────────────────┐
+│  PassionCode                                              квота 34% · 5ч   │
+├────────────────────────────────────────────────────────────────────────────┤
+│  ИЗБРАННОЕ                                                                 │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐       │
+│  │ fabric       │ │ passioncode  │ │ lazyweb      │ │ + добавить   │       │
+│  │ ядро         │ │ агент трафика│ │ …            │ │              │       │
+│  │ ● 2 живых    │ │ ○ тихо       │ │ ● 1 живой    │ │              │       │
+│  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘       │
+│                                                                            │
+│  ВСЕ ПРОЕКТЫ (12)                                          показать ▾      │
+│                                                                            │
+│  ЖУРНАЛ                                                                    │
+│  #4821  task.moved@1        fabric      13:40                              │
+│  #4820  memory.recorded@1   passioncode 13:38                              │
+└────────────────────────────────────────────────────────────────────────────┘
+                                                          ╭─────────╮
+   маскот всегда здесь, на каждом экране ─────────────────│  CEO ☻  │
+   клик → чат, знающий текущий контекст                   ╰─────────╯</pre>
+
+<h4>Проект — «где мы остановились» и доска</h4>
+<pre>┌────────────────────────────────────────────────────────────────────────────┐
+│  fabric                                    ветка codex/… · 3 изменения     │
+├────────────────────────────────────────────────────────────────────────────┤
+│  ГДЕ МЫ ОСТАНОВИЛИСЬ                                        собрал CEO ⟳   │
+│  • Компонентный набор извлечён, харнесс рендерера появился      вчера      │
+│  • Импорт кук отложен до редакции транскриптов                  2 дня      │
+│  • Доска решена как проекция журнала                            4 дня      │
+├────────────────────────────────────────────────────────────────────────────┤
+│  ДОСКА              backlog        running        review        done       │
+│                   ┌──────────┐  ┌──────────┐   ┌──────────┐  ┌─────────┐   │
+│                   │ M118 репа│  │ M117 набр│   │ M116 икон│  │ M82 ui  │   │
+│                   │ ✎ человек│  │ ⚙ dev    │   │ ⚙ dev    │  │ ⚙ dev   │   │
+│                   └──────────┘  └──────────┘   └──────────┘  └─────────┘   │
+│                   ┌──────────┐                                             │
+│                   │ идея: …  │   ⚙ поставил агент   ✎ поставил человек     │
+│                   │ ⚙ CEO    │   каждая карточка знает, откуда пришла      │
+│                   └──────────┘                                             │
+├────────────────────────────────────────────────────────────────────────────┤
+│  ЗАПУСТИТЬ   [ Claude Code ▾ ]  [ разрешения: план ▾ ]                     │
+│  или шорткат: аудит · известные баги · ошибки прода · продолжить бэклог    │
+└────────────────────────────────────────────────────────────────────────────┘</pre>
+
+<h4>Память — одна поверхность над четырьмя хранилищами</h4>
+<pre>┌────────────────────────────────────────────────────────────────────────────┐
+│  ПАМЯТЬ ПРОЕКТА                                                            │
+│                                                                            │
+│  хранилище        держит              записал        последний раз читали   │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  факты            48 (3 исправлены)   агент 41 · вы 7   14 мин назад        │
+│  транскрипты      22 сессии, 3.1 МБ   Fabric           2 ч назад            │
+│  контекст-паки    компилируются на    Fabric           при каждом старте    │
+│                   каждую сессию                                            │
+│  обращения        312, из них 47 —    Fabric           ← промахи видны      │
+│                   пустых                                 отдельно           │
+│                                                                            │
+│  промах — это «никто не записал», а не «неправда»                          │
+└────────────────────────────────────────────────────────────────────────────┘</pre>
+
+<h2>7. Четыре вопроса, которые дамп не решает</h2>
+<div class="scroll"><table>
+<tr><th>Вопрос</th><th>Почему это развилка</th><th>Рекомендация</th></tr>
+<tr><td>Репозиторий воркспейса и репозитории проектов — одно или два?</td><td>меняет ADR-0002: что именно зеркалится и где живут секреты</td><td><b>Два.</b> Воркспейс держит декларированное — проекты, связи, настройки. Репозитории проектов остаются чужой территорией, куда Fabric не пишет</td></tr>
+<tr><td>Доска — проекция или таблица со своими записями?</td><td>решает, восстанавливается ли «кто передвинул карточку» без отдельного аудита</td><td><b>Проекция.</b> Цена — доска не быстрее журнала, и это правильная цена</td></tr>
+<tr><td>CEO — один на эстейт или один на проект?</td><td>ADR-0012 говорит: один CEO на эстейт, ровно один продакт-менеджер на проект</td><td><b>Один на эстейт</b>, как записано. На проекте с ним говорит PM — и маскот на экране проекта это тот же CEO в контексте проекта, а не второй агент</td></tr>
+<tr><td>Из чего считается «уровень» маскота?</td><td>любое число на профиле должно быть измерением, иначе это украшение, которое врёт</td><td>Только то, что журнал уже знает: завершённые раны, принятые предложения, задачи, доведённые до done, проекты под управлением. <b>Строки кода не считать</b> — их Fabric не измеряет</td></tr>
+</table></div>
+
+<h2>8. План работ по шагам</h2>
+
+<div class="card">
+<p class="label">шаг 0 · сейчас · не закрыт</p>
+<h4>Доделать M117 — набор и перенос экранов</h4>
+<p>Набор из девяти компонентов и харнесс рендерера уже в ветке (21 тест, четыре наблюдались падающими). Осталось: девять экранов, снятие мёртвого CSS, расширение дизайн-гейта до «класс вне реестра = падение», <code>docs/brand/components.md</code>, строки верификации, обход лестницы REQ и ретро.</p>
+<p class="mono" style="color:var(--muted)">выход: гейт красный на выдуманном классе · сюита зелёная · экраны не изменились визуально</p>
+</div>
+
+<div class="card">
+<p class="label">шаг 1 · после подтверждения этого отчёта</p>
+<h4>Сценарии и флоу для нового — через <code>/ux</code></h4>
+<p>Канбан, CEO-чат, маскот, фейворитс и поверхность памяти <b>не существуют</b> в <code>docs/ux/</code> ни строкой. Пока их там нет, любой код по ним — догадка. Здесь же решаются четыре вопроса выше, и то, что решается, уезжает в ADR, а не в переписку.</p>
+<p class="mono" style="color:var(--muted)">выход: SCR-27…31, FLW-21…25, сценарии обновлены в том же изменении</p>
+</div>
+
+<div class="card">
+<p class="label">шаг 2</p>
+<h4>M116 целиком — реестр агентов и режим разрешений</h4>
+<p>Иконка отгружена; осталась вторая половина: дескрипторы вместо двух захардкоженных строк, адаптер сюрфейса на агента (сейчас <code>--mcp-config</code> Claude-специфичен), <code>env</code> в спавне, режим разрешений на проект в <code>terminal.opened@1</code>. Это <b>предпосылка</b> шага 4: без реестра нечем выбирать провайдера.</p>
+</div>
+
+<div class="card">
+<p class="label">шаг 3</p>
+<h4>M122 + M123 + M130 одним куском — доска, скил, провенанс</h4>
+<p>Втроём, потому что порознь они бессмысленны: доска без скила заполняется руками, скил без провенанса создаёт задачи без ответственного. Событийная модель, <code>fabric_task_*</code> рядом с семью существующими инструментами, установка скила в каждый допущенный раннер, доска как представление.</p>
+<p class="mono" style="color:var(--muted)">выход: агент в сессии двигает карточку, и это видно на экране без перезагрузки</p>
+</div>
+
+<div class="card">
+<p class="label">шаг 4</p>
+<h4>M118 + M119 + M120 — воркспейс, предложение проектов, избранное</h4>
+<p>Репозиторий воркспейса на возвращённом git-миррор-шве, CEO предлагает проекты из доказательств, до пяти избранных. Первый раз, когда CEO делает работу, а не существует в модели.</p>
+</div>
+
+<div class="card">
+<p class="label">шаг 5</p>
+<h4>M126 + M131 + M133 — CEO как интерфейс</h4>
+<p>Плавающий маскот, контекстный чат, профиль на измерениях, сводка решений. Идёт после шага 4 намеренно: CEO, у которого есть чат и нет работы, — это скрепка из Office.</p>
+</div>
+
+<div class="card">
+<p class="label">шаг 6</p>
+<h4>M125 + M127 + M132 — агент из промпта, доступ к MCP, ежедневный проход</h4>
+<p>Требует <code>work</code> из slice 3: раны, рутины, очередь одобрений. Здесь же квотный гейт M94 и граница петель M68 — без них ежедневный неприсмотренный агент это форма, которая жжёт аккаунт ночью.</p>
+</div>
+
+<div class="card">
+<p class="label">шаг 7</p>
+<h4>M128 + M129 + M134 + M135 — тренды, продовые сигналы, идеи, видимость памяти</h4>
+<p>Первые агенты, чей результат уходит наружу и приходит снаружи. Коннекторы slice 4, одноразовый грант на пост из slice 5.</p>
+</div>
+
+<div class="note bad"><b>Порядок, который нельзя переставить.</b> M95 (редакция транскриптов) стоит раньше всего, что тянет чужие креды: сейчас транскрипты пишутся дословно и отдаются каждому агенту в проекте. M110 (CI и тесты) — раньше шага 6, потому что дальше всё работает без человека за экраном. M103 (доставка инструкции) — раньше автоматизаций: рутина, печатающая в недорисованный TUI по таймеру, при человеке заметна, без человека нет.</div>
+
+<h2>9. Что в этом отчёте чьё</h2>
+<div class="scroll"><table>
+<tr><th>Часть</th><th>Статус</th><th>Источник</th></tr>
+<tr><td>Слои, конверт события, NodeSpec/NodeResult, флоу A–C архитектуры</td><td style="color:var(--good)">решено</td><td><code>iteration-1-modules.md</code> §§7, 11, 13; ADR-0027…0032</td></tr>
+<tr><td>Роли: один CEO на эстейт, один PM на проект</td><td style="color:var(--good)">решено</td><td>ADR-0012</td></tr>
+<tr><td>Что едет в git-миррор</td><td style="color:var(--good)">решено</td><td>ADR-0002</td></tr>
+<tr><td>17 таблиц, 26 экранов, 20 флоу, нулевое покрытие CEO/канбана/маскота</td><td style="color:var(--good)">измерено</td><td><code>supabase/migrations</code>, <code>docs/ux/*</code>, grep</td></tr>
+<tr><td>Новые таблицы, новые события, мокапы, план шагов 1–7</td><td style="color:var(--warn)">предложение</td><td>этот отчёт</td></tr>
+<tr><td>Ответы на четыре вопроса</td><td style="color:var(--warn)">рекомендация</td><td>этот отчёт — каждая ждёт твоего «да»</td></tr>
+</table></div>
+
+<footer>
+Fabric — ядро PassionCode.ai. Собрано 2026-09-03 на коммите <code>55b790b</code> из
+<code>docs/architecture/iteration-1-modules.md</code>, <code>docs/adr/</code>, <code>docs/ux/</code>,
+<code>supabase/migrations/</code> и <code>docs/evidence/backlog.md</code>.
+Числа измерены командами, не восстановлены по памяти. Файл не закоммичен.
+</footer>
+
+</div></body></html>

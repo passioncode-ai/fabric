@@ -1,0 +1,33 @@
+{
+  "status": "pass",
+  "scope": "standalone patched workbench preview; root integration pending",
+  "groups": [
+    "Question-source failure hides only its rows and marks incomplete total; proposal rows and underlying open question survive recovery",
+    "Event-source failure retains operator watermark, disables unread actions, and leaves independent obligations available",
+    "Project scope constrains source receipts and obligations without mutating other project records",
+    "Configured manager and observed host expose separate scoped sources; either can fail while the other remains unchanged"
+  ],
+  "layouts": [
+    {
+      "view": "estate",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "view": "estate",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "view": "inbox",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "view": "inbox",
+      "width": 390,
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@fabric/schema",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "echo 'schema: SQL only, nothing to typecheck'",
+    "test": "node test/planted.test.mjs && node test/link-concurrency.test.mjs && node test/restore-disposable.test.mjs && node test/membership-roles.test.mjs"
+  },
+  "devDependencies": {
+    "pg": "^8.13.0"
+  }
+}

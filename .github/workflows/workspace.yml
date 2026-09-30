@@ -1,0 +1,25 @@
+name: workspace publication
+on:
+  push:
+    branches: ['**']
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  source-and-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Verify source age, digest and parent pin
+        run: node scripts/workspace.mjs check
+      - name: Verify immutable export protocol
+        run: node --test scripts/test/workspace-snapshot.test.mjs
+      - name: Verify the other tool repositories' export, receipt and lag
+        run: node --test scripts/test/workspace-sources.test.mjs
+      - name: Verify what an uncommitted parent change can reach
+        run: node --test scripts/test/workspace-publication-guard.test.mjs

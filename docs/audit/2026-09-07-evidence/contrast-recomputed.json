@@ -1,0 +1,14 @@
+[
+  {
+    "foreground": "#737373",
+    "background": "#f5f5f5",
+    "ratio": 4.349231685564261,
+    "method": "WCAG relative luminance of declared opaque color pair; not browser composite or native UI certification"
+  },
+  {
+    "foreground": "#0a0a0a",
+    "background": "#1f1d1a",
+    "ratio": 1.1774461173698685,
+    "method": "WCAG relative luminance of declared opaque color pair; not browser composite or native UI certification"
+  }
+]

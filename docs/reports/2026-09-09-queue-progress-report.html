@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fabric — отчёт по очереди фундаментов · 2026-09-09</title>
+<style>
+  :root{
+    --bg:#f7f6f3; --panel:#ffffff; --ink:#1c1b19; --muted:#6d675e;
+    --line:#e4e0d8; --accent:#0f6b54; --warn:#9a5b00; --bad:#a33a2a;
+    --chip:#eef2ee; --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  main{max-width:72rem;margin:0 auto;padding:2.5rem 1.5rem 5rem}
+  h1{font-size:1.7rem;margin:.2rem 0 .4rem}
+  h2{font-size:1.25rem;margin:2.6rem 0 .8rem;padding-top:1.2rem;border-top:2px solid var(--line)}
+  h3{font-size:1.02rem;margin:1.4rem 0 .5rem}
+  p{margin:.5rem 0}
+  .stamp{color:var(--muted);font-size:.9rem}
+  .stamp code{font-family:var(--mono)}
+  code{font-family:var(--mono);font-size:.86em;background:var(--chip);
+    border-radius:4px;padding:.08em .35em}
+  table{border-collapse:collapse;width:100%;margin:.8rem 0;background:var(--panel);
+    font-size:.93rem}
+  .scroll{overflow-x:auto}
+  th,td{border:1px solid var(--line);padding:.45rem .65rem;text-align:left;vertical-align:top}
+  th{background:#f0ede7;font-weight:600}
+  .ok{color:var(--accent);font-weight:600}
+  .warn{color:var(--warn);font-weight:600}
+  .bad{color:var(--bad);font-weight:600}
+  .muted{color:var(--muted)}
+  .lede{font-size:1.05rem;color:var(--muted);max-width:60rem}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:1rem 1.2rem;margin:.9rem 0}
+  .card.warned{border-left:4px solid var(--warn)}
+  .card.failed{border-left:4px solid var(--bad)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:.8rem;margin:1rem 0}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding: .8rem 1rem}
+  .kpi b{display:block;font-size:1.5rem;line-height:1.2}
+  .kpi span{color:var(--muted);font-size:.85rem}
+  ul,ol{margin:.4rem 0 .8rem;padding-left:1.4rem}
+  li{margin:.3rem 0}
+  .tag{display:inline-block;font-size:.75rem;font-weight:600;border-radius:99px;
+    padding:.05em .6em;border:1px solid var(--line);background:var(--chip);white-space:nowrap}
+  .tag.done{background:#e5f2ec;color:var(--accent);border-color:#cbe4d8}
+  .tag.part{background:#fbf0dd;color:var(--warn);border-color:#eeddba}
+  .tag.zero{background:#f7e4df;color:var(--bad);border-color:#ecccc4}
+  footer{margin-top:3rem;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);padding-top:1rem}
+</style>
+</head>
+<body>
+<main>
+
+<h1>Fabric — отчёт по очереди фундаментов</h1>
+<p class="stamp">Снимок на 2026-09-09 · ветка <code>codex/foundation-priorities-design-map</code> ·
+HEAD <code>32bfe67</code> (запушен) · циклы остановлены (динамический /loop завершён, cron и Monitor не создавались)</p>
+<p class="lede">Датированный документ: запись момента, не живая карта. Живая карта —
+<code>docs/reports/map.html</code>, реестры — <code>docs/evidence/backlog.md</code> и
+<code>docs/evidence/verification.md</code>. Каждое число ниже пересчитано командой
+(<code>node scripts/check-registers.mjs</code>, счётчик очереди), а не пересказано.</p>
+
+<h2>1 · Итог в числах</h2>
+<div class="grid">
+  <div class="kpi"><b>44 / 61</b><span>узлов очереди отгружено (72%), 17 открыто</span></div>
+  <div class="kpi"><b>47</b><span>коммитов за прогон очереди (с 08.09), все запушены</span></div>
+  <div class="kpi"><b>846</b><span>строк верификации; 61 «never watched» (7,2%)</span></div>
+  <div class="kpi"><b>907</b><span>тестов vitest, зелёные; ci full зелёный на свежей базе</span></div>
+  <div class="kpi"><b>111 / 79</b><span>carry-over строк / из них открыто</span></div>
+  <div class="kpi"><b>33</b><span>подсадочных проб схемы (P1–P32), наблюдались падающими</span></div>
+  <div class="kpi"><b>7</b><span>новых механических заборов за сессию</span></div>
+  <div class="kpi"><b>15</b><span>миграций схемы за сессию (№38–52, всего 52)</span></div>
+</div>
+<p>Новые заборы: <code>check-route</code>, <code>check-eval</code>, <code>check-release</code>,
+<code>check-actor</code>, <code>check-checker</code>, <code>check-references</code>,
+<code>check-obligations</code>, плюс блок в <code>check-registers</code>. Новый ADR:
+<strong>ADR-0050</strong> — «эффект имеет жизненный цикл; наблюдение — не заявление».</p>
+
+<h2>2 · Как шли по роадмапу (F0 → F7)</h2>
+<div class="scroll"><table>
+<tr><th>Пакет</th><th>Что закрывал</th><th>Узлы</th><th>Состояние</th></tr>
+<tr><td><b>F0</b> — граница эстейта</td><td>скоупленный стор, ACL, композитная идентичность, пол полномочий, жизненный цикл эффектов</td>
+  <td>S02.store, S02.roots, S02.acl, S02, S03.boundary, S03.effects, S03, S01</td><td><span class="tag done">8/8</span></td></tr>
+<tr><td><b>F1</b> — чтение и сохранность</td><td>идемпотентная перестройка, ReadEnvelope, честное зеркало, IPC-контракт</td>
+  <td>M198, S14, S12, M109</td><td><span class="tag done">4/4</span></td></tr>
+<tr><td><b>F2</b> — исполнение</td><td>допуск, блокирующее множество, трасса инструментов, расписка цикла, доставка, словарь Run</td>
+  <td>S04, S06, S05, S15, M103, S10</td><td><span class="tag done">6/6</span></td></tr>
+<tr><td><b>F3</b> — наблюдаемость агентов</td><td>heartbeat, наблюдатель, таксономия отказов, capabilities, обязательства, task_runs, вопрос агента, Board, ответ и продолжение, checker</td>
+  <td>M177, M178, M179, M180, M181, M155, M188, M149, M151, M152.commit, M152.continue, M152, M168</td><td><span class="tag done">13/13</span></td></tr>
+<tr><td><b>F4</b> — первые представления</td><td>предпросмотр пака, liveness, знаменатель плана, DAG решений, Inbox-модель, колонки циклов, единый словарь ref'ов и маршрут</td>
+  <td>M191, M189, M190, M173, M185, M186, S13</td><td><span class="tag done">7/7</span></td></tr>
+<tr><td><b>F5</b> — ретро и менеджер</td><td>категория инсайта, читатель ретро, trajectory-eval; <b>хвост пакета пропущен</b> — см. §5.1</td>
+  <td>готово: M182, M154, M176 · открыто: M153, M158, M157, M184, M183.local, M183.upstream, M166, M167, M169, M171, M194, M175</td>
+  <td><span class="tag part">3/12</span></td></tr>
+<tr><td><b>F6</b> — поставка и команда</td><td>опознание сборки, полный рабочий цикл, пол membership</td>
+  <td>S07, S08, S09</td><td><span class="tag done">3/3</span></td></tr>
+<tr><td><b>F7</b> — качество платформы</td><td>извлечение модулей, независимые reader'ы, PTY hot path, плотность, переименование</td>
+  <td>M98, M102, M105, M187, S11</td><td><span class="tag zero">0/5</span></td></tr>
+<tr><td>DONE (вне очереди)</td><td>сделаны до формирования очереди, отдельная полоса реестра</td>
+  <td>M97, M195, M196, M197</td><td><span class="tag">полоса DONE</span></td></tr>
+</table></div>
+
+<h2>3 · Готовые задачи — все 44</h2>
+
+<h3>F0 — граница эстейта</h3>
+<ul>
+<li><b>S02.store</b> — скоупленный стор: каждый запрос main-процесса несёт предикат эстейта (было 87 запросов без него).</li>
+<li><b>S02.roots</b> — грант папки принадлежит окну, которое его выдало.</li>
+<li><b>S02.acl</b> — у anon отозваны лишние SELECT-гранты.</li>
+<li><b>S02</b> — композитная идентичность: 9 составных FK <code>(estate_id, id)</code>; забор <code>check-references</code>.</li>
+<li><b>S03.boundary</b> — пол полномочий: четыре ранее проходивших атаки закрыты и проверяются пробами.</li>
+<li><b>S03.effects</b> — разрешение ≠ исполнение: у эффекта жизненный цикл, <code>outcome_unknown</code> — третий ответ (ADR-0050).</li>
+<li><b>S03</b> — безопасный сток на входе полномочий; release резервации требует доказательства.</li>
+<li><b>S01</b> — хуки над ранними return; дверь борта.</li>
+</ul>
+
+<h3>F1 — чтение и сохранность</h3>
+<ul>
+<li><b>M198</b> — ревизия = seq события, которое её установило; перестройка проекций идемпотентна (P24).</li>
+<li><b>S14</b> — <code>ReadEnvelope</code>: чтение с расписками источников, <code>partial</code> не превращается в уверенный ноль.</li>
+<li><b>S12</b> — зеркало объявляет, чего не держит; импорт — одна транзакция с замком эстейта.</li>
+<li><b>M109</b> — каждый из 81 IPC-хендлера сверяется с ответом, который объявляет его канал.</li>
+</ul>
+
+<h3>F2 — исполнение</h3>
+<ul>
+<li><b>S04</b> — допуск задачи — отдельный акт под замком; отказ до допуска не рождает прогона.</li>
+<li><b>S06</b> — блокирующее множество: неотвеченный вопрос не пускает задачу в работу.</li>
+<li><b>S05</b> — трасса каждого вызова инструмента на транспорте: девять выходов, один вход (<code>beginAttempt</code>).</li>
+<li><b>S15</b> — цикл оставляет расписку <code>cycle.ran@1</code>; «приложение было закрыто» отличимо от «нечего делать».</li>
+<li><b>M103</b> — байты записаны ≠ инструкция принята: таблица deliveries, ack по дайджесту.</li>
+<li><b>S10</b> — словарь ADR-0045: WorkflowRun / TaskRun / Iteration вместо одного «Run».</li>
+</ul>
+
+<h3>F3 — наблюдаемость агентов</h3>
+<ul>
+<li><b>M177</b> — протокол агента выводится из одного источника, не дублируется прозой.</li>
+<li><b>M178</b> — heartbeat — позитивный сигнал; монотонный <code>beat_seq</code>; тишина перестала быть одним состоянием.</li>
+<li><b>M179</b> — runtime-наблюдатель: одна находка на переход состояния, не на тик.</li>
+<li><b>M180</b> — «failed» — не одно состояние: 8 видов отказа ADR-0040, certainty observed/suspected.</li>
+<li><b>M181</b> — capability: декларация — <code>supported_unverified</code>; повышает только наблюдение.</li>
+<li><b>M155</b> — обязательства протокола: REFUSED / OBSERVED / ADVICE, каждое REFUSED называет точку принуждения.</li>
+<li><b>M188</b> — <code>task_runs</code>: run_id впервые несёт значение (0 из 2260 событий раньше); окончательность — триггером.</li>
+<li><b>M149</b> — вопрос агента оператору: приоритет не задаётся клиентом, очередь не прыгается.</li>
+<li><b>M151</b> — одна доска: authored-вопросы и derived-обязательства в одном ранге, без «прочитано».</li>
+<li><b>M152.commit</b> — ответ оператора коммитится CAS-ом по ревизии вопроса.</li>
+<li><b>M152.continue</b> — ответ доезжает до работы, которая ждала; <code>recommitAnswer: false</code> всегда.</li>
+<li><b>M152</b> — агрегат вопроса не сжимается в один enum; Banner не расширялся ради одного вызова.</li>
+<li><b>M168</b> — один checker перед каждой записью proposal; события — только из <code>commands/</code>.</li>
+</ul>
+
+<h3>F4 — первые представления</h3>
+<ul>
+<li><b>M191</b> — предпросмотр context-pack без запуска агента; тот же компилятор, что у запуска.</li>
+<li><b>M189</b> — liveness виден человеку: заявление агента и наблюдение Fabric — разные строки.</li>
+<li><b>M190</b> — обрезка списка говорит о себе; у цели — знаменатель, а не счётчик открытых.</li>
+<li><b>M173</b> — DAG решений: обратный индекс — списки, BFS с visited; вся линия предков сохранена.</li>
+<li><b>M185</b> — Inbox-модель: у обязательства нет поля «прочитано» по типу; лента и Board — две полосы.</li>
+<li><b>M186</b> — «запущено» ≠ «получилось»: конфигурация / наблюдение / исход — три независимые колонки.</li>
+<li><b>S13</b> — один словарь ref'ов (<code>entityRef.ts</code>): доска двоила префиксы (<code>review:review:t1</code>), lease открывала несуществующую задачу; маршрут — одно значение <code>AppRoute</code>, забор <code>check-route</code>.</li>
+</ul>
+
+<h3>F5 — ретро и менеджер (частично)</h3>
+<ul>
+<li><b>M182</b> — закрытая категория инсайта (project/agents/harness/fabric/process); исход коррекции пишется там, где случается отказ — инструмент больше не возвращает запрос как результат; случай (occurrence) ≠ упоминание; проба нашла три моих же дефекта (неидемпотентная ветка, неперестраиваемый эстейт, уроненный арм retrieved).</li>
+<li><b>M154</b> — читатель ретро: находки и ловушки впервые читаются по роду; «никто не проверял источник» ≠ «источник удалён»; счётчик повторов unknown, а не «однажды»; курсор привязан к вопросу.</li>
+<li><b>M176</b> — trajectory-eval до настройки manager-профиля: жёсткое нарушение не компенсируется; неполный захват — inconclusive; ожидаемые unknown совпадают точно; вердикт — не разрешение; корпус из 9 реальных дефектов этого репозитория, забор <code>check-eval</code> резолвит каждое имя против реестра.</li>
+</ul>
+
+<h3>F6 — поставка и команда</h3>
+<ul>
+<li><b>S07</b> — сборка опознаёт себя из артефакта (<code>BuildManifest@1</code>), никогда из git на рантайме; грязная сборка не равна самой себе; окно схемы — отказ (read_only / incompatible / unknown раздельно); <code>schema_version()</code> из базы; забор <code>check-release</code>.</li>
+<li><b>S08</b> — один полный цикл против живого HTTP-сервиса с посаженным дефектом: исполнитель не единственный проверяющий; объём судится до результата; телеметрия исключается, не обнуляется; негативный контроль на самого судью.</li>
+<li><b>S09</b> — эстейт сохраняет владельца: пол — триггер (держится против прямого SQL от service-role), ревизия membership, CAS-команда, идемпотентная по command_id; забор <code>check-actor</code> — ни один хендлер не берёт личность у вызывающего.</li>
+</ul>
+
+<h3>Полоса DONE (сделаны до очереди)</h3>
+<ul>
+<li><b>M195</b> — redaction на границе агента · <b>M196</b>, <b>M197</b> — двуязычный храповик строк и брендовый контракт · <b>M97</b> — тонкий диспетчер проекторов.</li>
+</ul>
+
+<h2>4 · Отложено внутри отгруженного — названо в реестре, не обещано</h2>
+<div class="card">
+<h3>Прогонная инфраструктура</h3>
+<ul>
+<li>launch outbox и join по рёбрам follows (S04); квота проверяется только в тике рутин</li>
+<li>фехтование по эпохе аренды и привязка к <code>task_run_id</code> (M178, M103)</li>
+<li><code>PlanRevision</code> / <code>StepClaim</code> / параллельные шаги / обход графа WorkflowRun (M188)</li>
+<li>отдельный worker-цикл и <code>host_observations</code> — сэмплер живёт в тике (M179)</li>
+<li>справедливость по давности долга — рутина позади длинной очереди ждёт несколько проходов (S15)</li>
+</ul>
+<h3>Экраны (модель готова, поверхности нет)</h3>
+<ul>
+<li>Inbox route (M185) · экран циклов (M186) · pack/lineage/sync (M191) · семейство графов SCR-40 (M190)</li>
+<li>стат «исправленные» ненажимаем: обе цели прокручивали к экрану, не показывающему это число (S13)</li>
+</ul>
+<h3>Внешний мир</h3>
+<ul>
+<li>адаптерный диспетчер эффектов: <b>ноль провайдеров</b>, каркас был бы спекуляцией (S03.effects)</li>
+<li>архив бэкапа + поколение полномочий восстановления (S12)</li>
+<li>macOS-упаковка, нотаризация, матрица upgrade/restore, <code>toolchain.lock.json</code> — нужны раннер и учётки (S07)</li>
+<li>второй реальный раннер — нужны бюджет и одобренный тестовый ресурс (S08)</li>
+<li><b>аутентификации нет</b>: логина нет, <code>OPERATOR_ACTOR</code> — литерал, продукт на service-role (S09)</li>
+<li>транспорт приглашений (S09)</li>
+</ul>
+<h3>Прочее</h3>
+<ul>
+<li><code>runtimeScope.ts</code> (S02) · посегментная гонка подмены пути (S02.roots) · <code>MemoryRevisionDTO</code> (M182) · резолвер доступности источника (M154)</li>
+</ul>
+</div>
+
+<h2>5 · Проблемы</h2>
+
+<div class="card failed">
+<h3>5.1 · Найдено при подготовке отчёта: дефект скрипта очереди</h3>
+<p>Сессионный счётчик готовности ключевал строки по <b>отображаемому имени</b>
+(<code>m152.commit</code>), а зависимости ссылаются на <b>якорь</b>
+(<code>m152-commit</code>) — каждый узел с точкой в имени резолвился как «не отгружен»,
+и его иждивенцы читались заблокированными.</p>
+<p><b>Следствие:</b> M153, M158, M183.local были готовы, но значились blocked — и прогон
+ушёл в F6/F7 раньше, чем добрал F5. Объявленный порядок пакетов нарушен: S07–S09
+отгружены раньше хвоста F5. Сами узлы корректны; вред — порядок и простой цепочки
+M157 → M184 → M166 → … → M175.</p>
+<p><b>Состояние:</b> скрипт починен, но живёт в скратчпаде сессии и умрёт с ней.
+Правило «дотягивается ли утверждение до цели» не было применено к инструменту самой
+очереди. Кандидаты на действие: перенести счётчик в <code>scripts/</code> репозитория
+как гейт и записать находку в ретро следующим прогоном (вопросы №16–17 в §7).</p>
+</div>
+
+<div class="card warned">
+<h3>5.2 · Системные</h3>
+<ul>
+<li><b>claude-mem не пишет память</b> — квота OpenRouter исчерпана (403, monthly limit); авто-захвата знаний сессии нет. Смягчено: ретро, реестры и карта полны и в git.</li>
+<li><b>Продукт работает на service-role</b> — все RLS-политики никогда не проходились приложением; полы поэтому — триггеры. Аутентификация — крупнейший незакрытый слой.</li>
+<li><b>61 строка верификации «never watched failing»</b> (7,2%) — хвост стабилен, не растёт и не убывает.</li>
+<li><b>79 открытых carry-over строк</b> — отдельный бэклог долгов, не пересекается с очередью.</li>
+<li><b>Сборка невоспроизводима</b> — <code>toolchainDigest: null</code>, честно объявлено в строке сборки, но не решено.</li>
+<li><b>Русская локаль</b> — 146/557 ключей; храповик держит долг от роста, покрытие низкое.</li>
+<li><b>Manager/CEO-слой не тронут</b> (M166–M175, M194) — самая большая цельная область впереди.</li>
+</ul>
+</div>
+
+<h2>6 · Оставшийся бэклог — 17 узлов</h2>
+
+<h3>Готовы сейчас (8)</h3>
+<div class="scroll"><table>
+<tr><th>Узел</th><th>Пакет</th><th>Суть</th></tr>
+<tr><td><b>M153</b></td><td>F5</td><td>Гигиена CEO без потери вопросов — возраст вопроса повод для внимания, не основание забыть</td></tr>
+<tr><td><b>M158</b></td><td>F5</td><td>Criticality до включения автоматического settlement</td></tr>
+<tr><td><b>M183.local</b></td><td>F5</td><td>Общий контур улучшений с проверяемой приватностью — локальная половина</td></tr>
+<tr><td><b>M98</b></td><td>F7</td><td>Извлечение по бизнес-границам: монолиты смешивают policy, state, queries, UI lifecycle</td></tr>
+<tr><td><b>M102</b></td><td>F7</td><td>У каждого reader свои причины обновления — один feed-tick перезапускает шесть загрузчиков</td></tr>
+<tr><td><b>M105</b></td><td>F7</td><td>Убрать стоимость полного scrollback на байт — PTY hot path блокирует main</td></tr>
+<tr><td><b>M187</b></td><td>F7</td><td>Плотность и единый disclosure на главном экране</td></tr>
+<tr><td><b>S11</b></td><td>F7</td><td>Переименование PassionCode.ai → Fabric; пересмотр роли из ADR-0018</td></tr>
+</table></div>
+
+<h3>Заблокированы (9) — цепочка F5</h3>
+<div class="scroll"><table>
+<tr><th>Узел</th><th>Ждёт</th><th>Суть</th></tr>
+<tr><td><b>M157</b></td><td>M158</td><td>Settlement только по действующему основанию</td></tr>
+<tr><td><b>M184</b></td><td>M153</td><td>Ретро как повторяемая работа CEO — опыт в проверенное улучшение</td></tr>
+<tr><td><b>M183.upstream</b></td><td>M183.local</td><td>Общий контур улучшений — верхняя половина</td></tr>
+<tr><td><b>M166</b></td><td>M153, M158</td><td>Детерминированное ядро CEO — сортировка не зависит от настроения модели</td></tr>
+<tr><td><b>M167</b></td><td>M166</td><td>ModelPort может отсутствовать — loop не скрывает отсутствие провайдера</td></tr>
+<tr><td><b>M169</b></td><td>M167</td><td>Provider router с общим бюджетом попыток — failover не умножает оплаченные вызовы</td></tr>
+<tr><td><b>M171</b></td><td>M167</td><td>Учёт model usage — цену wake не показать без наблюдаемого usage</td></tr>
+<tr><td><b>M194</b></td><td>M166</td><td>Manager/CEO: выбираемый binding и полный lifecycle</td></tr>
+<tr><td><b>M175</b></td><td>M169, M171, M194</td><td>Встроенный loop как один вариант manager</td></tr>
+</table></div>
+
+<p><b>Рекомендуемый порядок:</b> M153 → M158 → M157 → M184 → M183.local → M183.upstream →
+M166 → M167 → M169 + M171 → M194 → M175 → F7 (M98, M102, M105, M187, S11).</p>
+
+<h2>7 · Вопросы для детальной проработки</h2>
+
+<h3>Команда и доступ</h3>
+<ol>
+<li>Какой auth-провайдер (Supabase Auth?) и когда включаем реальный login? Сейчас продукт на service-role, пол построен «до личности».</li>
+<li>Транспорт приглашений: email / ссылка / вручную?</li>
+<li>Нужна ли per-project видимость раньше v2? В v1 честно estate-wide.</li>
+</ol>
+<h3>Поставка</h3>
+<ol start="4">
+<li>Есть ли macOS-раннер и учётки подписи/нотаризации? Без них остаток S07 не двигается.</li>
+<li>Когда фиксируем <code>toolchain.lock.json</code> — после первой fresh+upgrade матрицы?</li>
+</ol>
+<h3>Раннеры и manager-слой</h3>
+<ol start="6">
+<li>Какой второй раннер пилотируем и какой бюджет на платные прогоны? Нужен одобренный тестовый ресурс (условие S08).</li>
+<li>Кто владелец решения о допуске manager-профиля, раз вердикт eval — не разрешение (M176)?</li>
+<li>ModelPort (M167): какой провайдер первый и где живёт ключ — через машинный gateway?</li>
+<li>Лимиты бюджета попыток на failover (M169)?</li>
+</ol>
+<h3>Память и ретро</h3>
+<ol start="10">
+<li>Порог M184 «повторилось N раз»: какое N и считаем только verified-случаи (как заложено в M182)?</li>
+<li>Достаточно ли <code>superseded_by</code>-рёбер или нужен <code>MemoryRevisionDTO</code>?</li>
+</ol>
+<h3>Продукт</h3>
+<ol start="12">
+<li>S11: подтвердить объём переименования — пересматривается ли ADR-0018 (hard-to-reverse, нужен ADR-гейт).</li>
+<li>Порядок подъёма отложенных экранов: Inbox, циклы, графы SCR-40, pack/lineage/sync?</li>
+<li>Эффекты: какой внешний провайдер будет первым исполнителем? Диспетчер намеренно не построен под ноль провайдеров.</li>
+<li>Бэкап (S12): где живёт архив и когда появляется мультисреда для фехтования старых писателей?</li>
+</ol>
+<h3>Процесс</h3>
+<ol start="16">
+<li>Перенести починенный счётчик очереди из скратчпада в <code>scripts/</code> репозитория как гейт (§5.1)?</li>
+<li>Записать находку §5.1 в ретро следующим прогоном (нужна lease на <code>docs/evidence/retro.md</code>).</li>
+</ol>
+
+<h2>8 · Дисциплина, которая работала</h2>
+<ul>
+<li>Постоянные инструкции ретро R-001…R-005 применялись каждый прогон; каждый прогон штампован.</li>
+<li>Чек-лист шага 0 вырос до 12 правил; правило <b>«кто это показывает»</b> нашло 6 корректных производных без единого читателя за одну сессию — по цене одного grep.</li>
+<li>Каждая итерация: перемер карточки против HEAD → TDD → подсадки наблюдаются падающими → ci full → запись в живую карту → пересчёт реестров → коммит и пуш.</li>
+<li>Новые правила, оплаченные дефектами этой сессии: фикстуру должен уметь выдать производитель; заменяя проектор — перенести каждый арм и спросить, переживёт ли он собственный реплей; утверждать то, что оператор увидит; структурный гейт читает код, а не комментарии; негативный контроль ставится и на судью; упавшая проба сообщает меньше, чем провалившаяся.</li>
+</ul>
+
+<footer>
+Сгенерировано 2026-09-09 по состоянию HEAD <code>32bfe67</code>. Источники:
+<code>docs/evidence/backlog.md</code>, <code>docs/evidence/verification.md</code>,
+<code>docs/evidence/retro.md</code>, <code>docs/architecture/engineering-specs.json</code>,
+git-лог ветки. Числа пересчитаны <code>scripts/check-registers.mjs</code> на момент снимка.
+</footer>
+</main>
+</body>
+</html>

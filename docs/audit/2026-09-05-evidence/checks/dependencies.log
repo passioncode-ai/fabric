@@ -1,0 +1,105 @@
+{
+  "advisories": {
+    "1124022": {
+      "findings": [
+        {
+          "version": "3.4.8",
+          "paths": [
+            "apps__desktop>monaco-editor>dompurify"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1124022,
+      "title": "DOMPurify: `CUSTOM_ELEMENT_HANDLING` bypasses `afterSanitizeElements` for allowed custom elements.",
+      "module_name": "dompurify",
+      "vulnerable_versions": "<=3.4.11",
+      "patched_versions": ">=3.4.12",
+      "severity": "low",
+      "cwe": "CWE-79, CWE-184, CWE-693",
+      "github_advisory_id": "GHSA-c2j3-45gr-mqc4",
+      "url": "https://github.com/advisories/GHSA-c2j3-45gr-mqc4"
+    },
+    "1124233": {
+      "findings": [
+        {
+          "version": "3.4.8",
+          "paths": [
+            "apps__desktop>monaco-editor>dompurify"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1124233,
+      "title": "DOMPurify: Permanent `ALLOWED_ATTR` pollution via `setConfig()` bypassing the hook clone-guard (incomplete fix of the 3.4.7 hook-pollution patch)",
+      "module_name": "dompurify",
+      "vulnerable_versions": "<=3.4.10",
+      "patched_versions": ">=3.4.11",
+      "severity": "moderate",
+      "cwe": "CWE-79, CWE-471, CWE-665",
+      "github_advisory_id": "GHSA-cmwh-pvxp-8882",
+      "url": "https://github.com/advisories/GHSA-cmwh-pvxp-8882"
+    },
+    "1124234": {
+      "findings": [
+        {
+          "version": "3.4.8",
+          "paths": [
+            "apps__desktop>monaco-editor>dompurify"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1124234,
+      "title": "DOMPurify: Trusted Types policy survives `clearConfig()` and can poison later `RETURN_TRUSTED_TYPE` output",
+      "module_name": "dompurify",
+      "vulnerable_versions": "<3.4.9",
+      "patched_versions": ">=3.4.9",
+      "severity": "low",
+      "cwe": "CWE-693",
+      "github_advisory_id": "GHSA-vxr8-fq34-vvx9",
+      "url": "https://github.com/advisories/GHSA-vxr8-fq34-vvx9"
+    },
+    "1138538": {
+      "findings": [
+        {
+          "version": "3.4.8",
+          "paths": [
+            "apps__desktop>monaco-editor>dompurify"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1138538,
+      "title": "DOMPurify: IN_PLACE hook removal leaves a detached subtree executable, causing XSS",
+      "module_name": "dompurify",
+      "vulnerable_versions": "<=3.4.12",
+      "patched_versions": ">=3.4.13",
+      "severity": "moderate",
+      "cwe": "CWE-79",
+      "github_advisory_id": "GHSA-55q2-fjhq-7xh7",
+      "url": "https://github.com/advisories/GHSA-55q2-fjhq-7xh7"
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 2,
+      "moderate": 2,
+      "high": 0,
+      "critical": 0
+    },
+    "dependencies": 111,
+    "devDependencies": 438,
+    "optionalDependencies": 77,
+    "totalDependencies": 550
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "heading": "Project A — Fabric",
+  "nestedButtons": 1,
+  "scrollWidth": 640,
+  "theme": "light",
+  "unlabelledSelects": [
+    "<select><option value=\"claude-code\">Claude Code</option><option value=\"shell\">Terminal</option></select>",
+    "<select><option value=\"claude-code\">Claude Code</option><option value=\"shell\">Terminal</option></select>"
+  ],
+  "width": 640
+}

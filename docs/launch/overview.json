@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-launch-overview/v1",
+  "title": "Fabric: вернуться и продолжить",
+  "summary": "Fabric снимает нагрузку: вернуться в контекст, разобрать важное, поручить текстом или голосом и сохранить историю решений.",
+  "focus": "Цельный R0: контекст, минимум шума, CEO, голос и журнал",
+  "current": "R0 · реализация harness и полной карты модулей",
+  "next": "HAR-R0-03 → 04 · единый запуск и наблюдаемый Stop",
+  "next_href": "/docs/launch/harness-r0/development.md",
+  "spec_href": "/docs/launch/harness-r0/README.md",
+  "prototype_href": "/docs/reports/product.html#view-r0-home",
+  "map_href": "/docs/reports/product.html#view-r0-map",
+  "scope": "R0: контекст, доска, проекты, агенты, циклы, текст/голос CEO и журнал с атрибуцией. R1: произвольный граф и расширенные возможности manager.",
+  "status": "Реализация начата: карта всех R0-модулей и исправления lifecycle. Native CEO, голос, память, adapters и release acceptance остаются отдельными обязательными срезами.",
+  "screens": [
+    {
+      "view": "r0-home",
+      "name": "Fabric",
+      "detail": "Профиль, прогресс, доска, проекты, активность",
+      "screen": "SCR-30"
+    },
+    {
+      "view": "r0-board",
+      "name": "Доска",
+      "detail": "Разбор, источники, итог, следующий раз",
+      "screen": "SCR-41"
+    },
+    {
+      "view": "r0-project",
+      "name": "Проект",
+      "detail": "Цель, решения, команда, циклы",
+      "screen": "SCR-31"
+    },
+    {
+      "view": "r0-work",
+      "name": "Агент / IDE",
+      "detail": "Бриф, контекст, запуски и дальнейший план",
+      "screen": "SCR-32"
+    },
+    {
+      "view": "r0-plan",
+      "name": "Планирование",
+      "detail": "Уровни, зависимости, блокеры и история",
+      "screen": "SCR-40"
+    },
+    {
+      "view": "r0-settings",
+      "name": "Ваш Fabric",
+      "detail": "Характер, цветные варианты и сохранение облика",
+      "screen": "SCR-52"
+    },
+    {
+      "view": "launch-pulse",
+      "name": "Пульс",
+      "detail": "Активность по дням, свежесть наблюдений и следующий обзор",
+      "screen": "SCR-42"
+    },
+    {
+      "view": "launch-releases",
+      "name": "Релизы",
+      "detail": "Состав, среда, публикация и независимая проверка",
+      "screen": "SCR-42"
+    },
+    {
+      "view": "r0-memory",
+      "name": "Память",
+      "detail": "Сессии, решения, источники и контекст для продолжения",
+      "screen": "SCR-34"
+    }
+  ]
+}

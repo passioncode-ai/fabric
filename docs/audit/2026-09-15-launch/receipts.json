@@ -1,0 +1,388 @@
+{
+  "source_commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+  "sources": [
+    {
+      "path": "docs/ux/vision.md",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "6b0623dd44f58b6d3472531ab0ac7cc7382beca92b3aadae57d4fdc8306353bd",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 30,
+          "excerpt": "## 5. Principles",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/ux/vision.md#L30"
+        },
+        {
+          "line": 43,
+          "excerpt": "## 6. Anti-vision",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/ux/vision.md#L43"
+        }
+      ]
+    },
+    {
+      "path": "docs/DOCMAP.md",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "6b0d642fa975fdeba5fe1ffc74ba230f3738adbdfa4d0e43cf5a04907bbeade8",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 19,
+          "excerpt": "## Single sources of truth",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/DOCMAP.md#L19"
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/system-contract.md",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "c478a4c16940daf98aeff5b036da2d64c44e5d0753b45bb242dd378e5420e1e4",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 37,
+          "excerpt": "## 2. Границы модулей",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/architecture/system-contract.md#L37"
+        },
+        {
+          "line": 61,
+          "excerpt": "## 3. Идентичности и время",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/architecture/system-contract.md#L61"
+        },
+        {
+          "line": 232,
+          "excerpt": "## 7. Циклы, manager и усиление агентами",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/architecture/system-contract.md#L232"
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/iterations.md",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "41808e5dde8e9e5668466f1210c3124a40cb21a9ab1f711aec9e7a760de53c96",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 29,
+          "excerpt": "## Iteration 1 — the operator's working version",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/architecture/iterations.md#L29"
+        },
+        {
+          "line": 50,
+          "excerpt": "### The slice ladder",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/architecture/iterations.md#L50"
+        }
+      ]
+    },
+    {
+      "path": "docs/architecture/agent-system-map.md",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "099fa03fdfd29d7cf00a662691bb5d4a423aa6abd4e2ca94ee98f4629eff764a",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 164,
+          "excerpt": "## 4. The decision graph — how the project reached here, and who decided",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/architecture/agent-system-map.md#L164"
+        },
+        {
+          "line": 224,
+          "excerpt": "## 5. The CEO — an agent after all, and where the line moves",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/architecture/agent-system-map.md#L224"
+        }
+      ]
+    },
+    {
+      "path": "docs/evidence/backlog.md",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "0cdb03c6762e0ba987236e6a87304bd48c3a7f7d226646d8c0da13a4e021a2ae",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 69,
+          "excerpt": "| **F3 — Наблюдаемые прогоны и Board** | [M177](#work-m177), [M178](#work-m178), [M179](#work-m179), [M180](#work-m180), [M181](#work-m181), [M155](#work-m155), [M188](#work-m188), [M149](#work-m149), [M151](#work-m151), [M152.commit](#work-m152-commit), [M152.continue](#work-m152-continue), [M152](#work-m152), [M168](#work-m168) | Версии планов, прогоны, шаги и checkpoints; claim отделён от observation. Ответ и адресное продолжение реализуются отдельно от полного M188. | M149/M151 и M152.commit не ждут M188. M152.continue ждёт launch+ack; M153 читает commit. M168 — foundation checker, а не настройка CEO. |",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/evidence/backlog.md#L69"
+        },
+        {
+          "line": 69,
+          "excerpt": "| **F3 — Наблюдаемые прогоны и Board** | [M177](#work-m177), [M178](#work-m178), [M179](#work-m179), [M180](#work-m180), [M181](#work-m181), [M155](#work-m155), [M188](#work-m188), [M149](#work-m149), [M151](#work-m151), [M152.commit](#work-m152-commit), [M152.continue](#work-m152-continue), [M152](#work-m152), [M168](#work-m168) | Версии планов, прогоны, шаги и checkpoints; claim отделён от observation. Ответ и адресное продолжение реализуются отдельно от полного M188. | M149/M151 и M152.commit не ждут M188. M152.continue ждёт launch+ack; M153 читает commit. M168 — foundation checker, а не настройка CEO. |",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/evidence/backlog.md#L69"
+        },
+        {
+          "line": 70,
+          "excerpt": "| **F4 — Первые полезные представления** | [M191](#work-m191), [M189](#work-m189), [M190](#work-m190), [M173](#work-m173), [M185](#work-m185), [M186](#work-m186), [S13](#work-s13) | Память и состояние чтения видны; четыре графа различимы; нужное участие не теряется среди прочитанных событий. | Read-only M191 после S14; M186 после собственных cycle receipts и DTO, с unknown для ещё не подключённых detectors. Все графы ждут их конкретных producers. |",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/evidence/backlog.md#L70"
+        },
+        {
+          "line": 68,
+          "excerpt": "| **F2 — Исполнение, блокировки и цикл** | [S04](#work-s04), [S06](#work-s06), [S05](#work-s05), [S15](#work-s15), [M103](#work-m103), [S10](#work-s10) | Запуск существующей задачи имеет lease и idempotency; все blockers учитываются; answer доставлен, а не только записан; безопасная трасса содержит причинность. | S10 выполняется до зависимых schema/API: общий словарь и Run-кардинальности, без ожидания полного ребрендинга. |",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/evidence/backlog.md#L68"
+        },
+        {
+          "line": 857,
+          "excerpt": "| V1-M3 | «Дальше»: рутины и циклы | C3+C4: next-due на дашборде; SCR-43 read-only (решение оператора 2026-09-12: циклы в V1) | SCN-056 из none-yet; app-off ≠ stall соблюдено | open |",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/evidence/backlog.md#L857"
+        }
+      ]
+    },
+    {
+      "path": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "03b1879d60a636711b1fd8742b57ac21e11ab770ebfb9c1aba7a4d4e666e359f",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 133,
+          "excerpt": "| CO-122 | fa-02-chain-admission-2026-09-10 | **A crashed dispatch waits for the lease to expire and is then re-admitted without anyone checking the real process.** FA-02 replaces the invented `dispatching` status with the launch lease `admit_task_launch` takes, so a crash leaves a live lease and the next tick stands down on `lease_held` rather than re-driving a spawn. That is the safe half. What is NOT built is the packet's fourth step: after the lease expires the follower is admitted again with no reconciliation against the process the previous attempt may still be running. The old mechanism claimed to re-drive stuck rows and could never have, because the status it looked for is not one the database allows | measured 2026-09-10: `admit_task_launch` writes a lease with `now() + interval '10 minutes'`; nothing in the tree inspects a live process before a second admission | before an unattended chain runs long enough to outlive a lease, or on any host where a crash is routine | S04, M188; the process-verification half needs a runtime the tree does not have | open |",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/evidence/specs/2026-08-16-software-fabric-carryover.md#L133"
+        },
+        {
+          "line": 137,
+          "excerpt": "| CO-126 | ax-01-run-lifecycle-2026-09-10 | **An acknowledgement names a delivery, a session and a digest — and not the RUN or its generation.** `fabric_task_accept` reads `deliveries` by `delivery_id` and checks `session_id` and `input_digest`, which closes the \"wrong session, wrong digest\" half of AX-01's negative acceptance. The epoch half is not built: a delivery carries no run id and no generation, so a second attempt of the same task cannot be told from the first by anything the ack quotes. AX-01 adds the generation guard one level up — `bind_task_run` refuses to move a live run onto a second session — but a delivery written for run 1 and acknowledged during run 2 would still match | measured 2026-09-10: `deliveries` has `delivery_id, task_id, session_id, input_digest, state`; no run or epoch column, and `run.bound@1` is the only generation marker in the tree | before a task is retried while a previous attempt's delivery could still be acknowledged | M103 owns the transport; AX-01 owns the run's identity | open |",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/evidence/specs/2026-08-16-software-fabric-carryover.md#L137"
+        },
+        {
+          "line": 161,
+          "excerpt": "| CO-150 | ux28-06-2026-09-10 | **An operator editing an agent's brief replaces it, and the original is gone.** `brief_author` records WHO drafted the section and the store keeps one value per field, so the card's \"expose original agent brief under later operator version\" has nothing to expose from: the agent's words are overwritten by the operator's. The task page shows `task.draftBy` naming the author of what is currently there, which is true and is not the same thing. Keeping both needs brief revisions in the store — a schema decision about whether a brief is a value or a history | measured 2026-09-10: `TaskRow` carries `brief_what`, `brief_why`, `brief_expected`, `brief_author`, `brief_draft` — one value each; `saveBrief` writes over them | before an operator can see what an agent proposed and what they changed | UX28-06 rendered the note authorship that WAS on the row; the brief's history is not on it | open |",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/evidence/specs/2026-08-16-software-fabric-carryover.md#L161"
+        },
+        {
+          "line": 165,
+          "excerpt": "| CO-154 | ux28-07-2026-09-10 | **A compiled pack cannot be told from a previewed one.** M191's preview is correct and probed — it calls the same compiler as the launch, appends no event and spawns no process, and `context-pack.test.mjs` watches that against the live stack. What it does not do is SAY which it is: the preview returns markdown, a sha and a compiler revision in the same shape a delivered pack has, so an operator reading one cannot tell whether an agent was actually given it. The card asks for the label, and the distinction matters most in the case the preview exists for — tuning a budget and then wondering whether the session that ran used the number now on screen | measured 2026-09-10: `IPC.memoryPreview` returns `{ markdown, sha256, compilerRevision, budget, chars, includedFacts, includedTranscripts, omittedFacts, omittedTranscripts, read }` with no field distinguishing it from `session_context_packs`; the handler's own comment states the no-write invariant | before a pack on screen can be read as evidence of what an agent was told | UX28-07 delivered the counts' honesty; labelling a pack needs the delivered ones to be readable beside it, which is the drill-in of CO-153 | open |",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/evidence/specs/2026-08-16-software-fabric-carryover.md#L165"
+        },
+        {
+          "line": 167,
+          "excerpt": "| CO-156 | ux28-08-2026-09-10 | **The three graph routes are unbuilt, and the card forbids building them yet.** SCR-40 declares `/graphs/agent-history`, `/graphs/project-history` and `/graphs/target-plan` as SEPARATE destinations rather than one toggle, each with an as-of or plan revision in the address, and its own spec says `Coverage: none yet`, `Status: designed`, and \"Future implementation: GraphExplorerPage.tsx; not current Coverage\". UX28-08 asks for the routes and its own exclusions forbid the way there: \"no generic graph-engine build before concrete producer contracts\", and \"never treat product.html mockup GraphSnapshot as runtime data\". The producers named as dependencies (ADR-0042/0045, M188, M152) do not exist, and SCR-40's purpose line adds that S10 must reconcile ADR-0042's screen wording BEFORE implementation. So what remains is a design decision and three producers, not a rendering task. What UX28-08 could deliver, and did, is the honesty of the legacy goal preview it is told to keep | measured 2026-09-10: `screens.md#SCR-40` carries all three statements; `grep -rn GraphExplorerPage apps/desktop/src` finds nothing; `PlanSection.tsx` renders goals, their progress and the unattached list, and its header says why there is no diagram | before a plan can be addressed at a revision, or a history distinguished from an intention by its address | UX28-08 fixed the fraction the legacy preview reported and left the routes to their own producers | open |",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/evidence/specs/2026-08-16-software-fabric-carryover.md#L167"
+        }
+      ]
+    },
+    {
+      "path": "docs/adr/0045-workflow-runs-task-runs-and-explicit-iterations.md",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "0ea0234abfc9a027b1c1df600a8b55d82dad97838bbf8548b6d6abcd21797830",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 1,
+          "excerpt": "# ADR-0045 — WorkflowRun, TaskRun and explicit iterations have different identities",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/adr/0045-workflow-runs-task-runs-and-explicit-iterations.md#L1"
+        }
+      ]
+    },
+    {
+      "path": "docs/adr/0044-foundation-first-delivery-and-the-living-design-map.md",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "55c0e5545594a523c931092bfffb3bc3dbde41dad811b6f47ede6534c7bab6c6",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 1,
+          "excerpt": "# ADR-0044 — Foundations determine delivery order; the living map closes each iteration",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/adr/0044-foundation-first-delivery-and-the-living-design-map.md#L1"
+        }
+      ]
+    },
+    {
+      "path": "docs/adr/0053-a-link-is-one-act-and-provenance-is-not-dependency.md",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "cc3ab544e19f967b04770e40de3f946b4272f3e839b407da3277b0bc2a01467e",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 1,
+          "excerpt": "# ADR-0053 — A link is one act, and provenance is not a dependency",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/adr/0053-a-link-is-one-act-and-provenance-is-not-dependency.md#L1"
+        }
+      ]
+    },
+    {
+      "path": "docs/adr/0057-the-ceo-agent-is-named-fabric.md",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "1457fc7b2114f740e828bbf45b89b296576a29de84856d0f2c1dd29aff3ae3f7",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 1,
+          "excerpt": "# The CEO agent is named Fabric",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/adr/0057-the-ceo-agent-is-named-fabric.md#L1"
+        }
+      ]
+    },
+    {
+      "path": "docs/ux/plans/2026-09-12-v1-context-reentry.md",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "ab30cf790ad034b9b07e943c9800d44b1115c2df4370f30f7e0795e10e2b554d",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 39,
+          "excerpt": "## 2. Инвариант «раскладушки»: три уровня × пять полос",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/ux/plans/2026-09-12-v1-context-reentry.md#L39"
+        }
+      ]
+    },
+    {
+      "path": "docs/ux/plans/2026-09-12-v1-execution-plan.md",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "5c2d40c3c634e484aec7a8bf8042e04485caac94e3231875f65180069f7b53a1",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 1,
+          "excerpt": "# Execution plan — V1 «Возврат в контекст» — пакеты T-01…T-19 — 2026-09-12",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/ux/plans/2026-09-12-v1-execution-plan.md#L1"
+        }
+      ]
+    },
+    {
+      "path": "docs/audit/2026-09-09-final/execution-receipt.md",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "0c375cf459f914505eeec21271352e33f10886e9b3146d13baac500476a2bec4",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 27,
+          "excerpt": "## Cards closed",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/audit/2026-09-09-final/execution-receipt.md#L27"
+        },
+        {
+          "line": 39,
+          "excerpt": "## What was left, by kind",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/audit/2026-09-09-final/execution-receipt.md#L39"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/runLifecycle.ts",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "4a136be253963997a8106e2a3c4dcf287eba126f4ce3f7fcead9e2755742315b",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 34,
+          "excerpt": "export interface RunLifecycleDeps {",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/apps/desktop/src/main/runLifecycle.ts#L34"
+        },
+        {
+          "line": 78,
+          "excerpt": "export function createRunLifecycle(deps: RunLifecycleDeps): RunLifecycle {",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/apps/desktop/src/main/runLifecycle.ts#L78"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/shared/cyclePort.ts",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "167baaa9d0312780ca1ea70c35a3022fa40eb31f7eee575120b49cc9a56e5b48",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 23,
+          "excerpt": "export const WINDOW_STATES = [",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/apps/desktop/src/shared/cyclePort.ts#L23"
+        },
+        {
+          "line": 55,
+          "excerpt": "export const MAX_STARTS_PER_POLL = 3",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/apps/desktop/src/shared/cyclePort.ts#L55"
+        },
+        {
+          "line": 99,
+          "excerpt": "export function worstOf(states: readonly WindowState[]): WindowState {",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/apps/desktop/src/shared/cyclePort.ts#L99"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/contextPack.ts",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "26a7daf8b948175e2c93b9c1a0188f065c2a6c09e5338d77f5162f02a7225be0",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 38,
+          "excerpt": "export const COMPILER_REVISION = 1",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/apps/desktop/src/main/contextPack.ts#L38"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/digestRead.ts",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "0990932f5394527921eb817a0393e7c1ce8ff9d319afee2d361a132c12437a10",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 33,
+          "excerpt": "export type DigestStore = ScopedStore",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/apps/desktop/src/main/digestRead.ts#L33"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/shared/favourites.ts",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "bd9ff347bba07ccc5f6d30c9a3f3d330231a557e5c378913d6fbab4264356637",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 23,
+          "excerpt": "export const FAVOURITE_LIMIT = 5",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/apps/desktop/src/shared/favourites.ts#L23"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/EstateHome.tsx",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "48220644696f4def89cffb45bf13e59882cf9a83b2c2f802e347fcbd334a2187",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 140,
+          "excerpt": "    void window.fabric.favourites.list().then(setPins)",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/apps/desktop/src/renderer/src/EstateHome.tsx#L140"
+        }
+      ]
+    },
+    {
+      "path": "supabase/migrations/20260909000049_task_runs.sql",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "fa70e1adb42d28d2dc7d5c827c8626a485c523fc041a75fffac43e4fcb30cf0e",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 19,
+          "excerpt": "create table if not exists task_runs (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/supabase/migrations/20260909000049_task_runs.sql#L19"
+        }
+      ]
+    },
+    {
+      "path": "docs/workspace-receipt.json",
+      "commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+      "sha256": "731bc67b6e9dd85be47e2e5160363632ad8ed5da6dda53584ece65dcbae53d3f",
+      "review": "read and compared for launch architecture; no new runtime execution",
+      "evidence": [
+        {
+          "line": 3,
+          "excerpt": "  \"source_commit\": \"29950b90477ba7ab2ceeca085349642e7a80c7ec\",",
+          "url": "https://github.com/passioncode-ai/fabric/blob/d0260d430797f16dfaad1fde53a72afbed503893/docs/workspace-receipt.json#L3"
+        }
+      ]
+    },
+    {
+      "path": "workspace/lib/navigation.mjs",
+      "commit": "40e6d0fe5fee717f0728a59aac25f9b8c3313a6e",
+      "sha256": "567b40e90e9f1f3709fdf284e4b1b4724d4caab1f4b7279d7e02e919a94e718c",
+      "review": "local host navigation read; remote deployed bytes not reverified"
+    }
+  ],
+  "limitations": [
+    "Inventory is complete for parent tracked docs and parsed table rows; semantic review depth varies and is explicit.",
+    "Historical states remain preserved, not promoted to current implementation coverage.",
+    "Protected remote wiki and runtime value not reverified in this planning iteration.",
+    "Agent-sync mirror drift and missing historical records remain existing findings; no retrospective fabrication."
+  ]
+}

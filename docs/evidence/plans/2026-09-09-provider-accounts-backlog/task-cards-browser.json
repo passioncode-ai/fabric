@@ -1,0 +1,18 @@
+{
+  "status": "pass",
+  "scope": "Generated current-backlog task cards only",
+  "cards": [
+    "M199.probe",
+    "M199.accounts",
+    "M199.auth",
+    "M199.binding",
+    "M199.resume",
+    "M199.usage",
+    "M199.auto",
+    "M199.ui",
+    "M199.acceptance"
+  ],
+  "deep_links_open": true,
+  "purpose_and_acceptance_visible": true,
+  "page_errors": []
+}

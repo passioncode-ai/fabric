@@ -1,0 +1,43 @@
+node_modules/
+dist/
+build/
+.next/
+*.tsbuildinfo
+
+# secrets — never committed
+.env
+.env.*
+!.env.example
+secrets/
+
+# supabase local stack
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+
+# code graph output
+graphify-out/
+
+.DS_Store
+
+# agent-sync
+.env.agent-sync
+
+.agent-sync/
+
+# local task-pipeline run state
+.task-pipeline/
+
+# electron-vite output
+apps/desktop/out/
+
+# S07 — generated at build time from the checkout. Committing it would put a
+# timestamp and 191 file digests into every diff, and the copy in git would be a
+# claim about a build nobody made.
+apps/desktop/resources/build-manifest.json
+
+# Python bytecode from the documentation gates (docs/ux/lint.py, docs/brand/lint.py).
+# Untracked and unignored, it entered the design-map fingerprint and made the stamp
+# depend on whether a gate had been run locally.
+__pycache__/
+*.pyc

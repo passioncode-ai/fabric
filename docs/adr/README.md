@@ -1,0 +1,99 @@
+# docs/adr/ — the decision home
+
+Every settled choice about this project lives here, one file per record, append-only:
+a decision that is reversed gets a **new** record saying so, never an edit to the old
+one. That is the `Decision` term in [`../../CONTEXT.md`](../../CONTEXT.md), and this
+directory is where it is kept.
+
+This file is also the **id register**. Two agents that both read "the next number is
+0011" both write `ADR-0011`, and neither finds out until the merge — so the number is
+reserved through `agent-sync` before it reaches git:
+
+```bash
+python3 "$SKILL_DIR/scripts/agent_sync.py" reserve ADR   # → ADR-0011
+```
+
+A new record adds its row to the table below **in the same change** as the file itself.
+An index that lags is an index that lies about what has been decided.
+
+## The records
+
+| # | Decision | Status | Source |
+|---|---|---|---|
+| [ADR-0001](0001-the-fabric-owns-the-portfolio-layer-and-writes-to-nothing-else.md) | The fabric owns the portfolio layer and writes to nothing else | Accepted | stage-0 grill, Q1 |
+| [ADR-0002](0002-declared-data-is-mirrored-to-git-observed-data-is-not.md) | Declared data is mirrored to git, observed data is not | Accepted | stage-0 grill, Q3 |
+| [ADR-0003](0003-an-asset-is-not-a-project.md) | An asset is not a project | Accepted | stage-0 grill, Q4 |
+| [ADR-0004](0004-autonomy-is-a-goal-field-standing-on-a-floor-in-the-schema.md) | Autonomy is a goal field standing on a floor in the schema | Accepted | stage-0 grill, Q1 and Q7 |
+| [ADR-0005](0005-a-rebuilt-graph-is-a-new-version-not-a-mutation.md) | A rebuilt graph is a new version, not a mutation | Accepted | stage-0 grill, Q2 |
+| [ADR-0006](0006-the-fabric-collects-google-data-itself.md) | The fabric collects Google data itself | Accepted | stage-0 grill, Q6 |
+| [ADR-0007](0007-the-fabric-answers-by-default-and-escalation-is-the-exception.md) | The fabric answers by default, and escalation is the exception | Accepted | operator, 2026-08-19 — resolves CO-021 |
+| [ADR-0008](0008-the-fabric-is-standalone-and-the-terminal-runs-inside-it.md) | The fabric is standalone, and the terminal runs inside it | Accepted | operator, 2026-08-19 — after the competitive measurement |
+| [ADR-0009](0009-the-development-pipeline-is-data-the-operator-can-edit.md) | The development pipeline is data the operator can edit, not code | Accepted | operator, 2026-08-19 |
+| [ADR-0010](0010-the-unit-of-organisation-is-the-project-not-the-department.md) | The unit of organisation is the project, not the department | Accepted | operator, 2026-08-25 |
+| [ADR-0011](0011-the-fabric-is-an-estate-tool-and-the-product-branch-is-a-named-seam.md) | The fabric is an estate tool, and the product branch is a named seam | Accepted | operator, 2026-08-26 — resolves CO-028 |
+| [ADR-0012](0012-agent-compatibility-is-an-external-versioned-contract.md) | Agent compatibility is an external versioned contract | Accepted | operator, 2026-08-26 — resolves CO-041 and CO-042 |
+| [ADR-0013](0013-project-is-a-persistent-agent-workspace.md) | A project is a persistent agent workspace | Accepted | operator, 2026-08-27 |
+| [ADR-0014](0014-the-event-journal-is-the-spine-and-every-register-is-a-projection.md) | The event journal is the spine, and every register is a projection | Accepted | operator, 2026-08-27 — accepts review finding FND-01; partially supersedes ADR-0002's gate |
+| [ADR-0015](0015-agent-production-is-a-pipeline-over-an-ordinary-project.md) | Agent production is a pipeline over an ordinary project | Accepted | operator, 2026-08-27 — accepts review Part II |
+| [ADR-0016](0016-the-fabric-is-a-platform-of-estates.md) | The fabric is a platform of estates | Accepted | operator, 2026-08-28 — supersedes ADR-0011 by its own reversal condition; closes CO-058 |
+| [ADR-0017](0017-the-federation-seam-slots-delegation-and-the-artifact-aperture.md) | The federation seam: slots, delegation, and the artifact aperture | Accepted | operator, 2026-08-28 |
+| [ADR-0018](0018-passioncode-is-the-product-fabric-is-the-kernel.md) | PassionCode.ai is the product; Fabric is its technical kernel | Accepted | operator, 2026-08-29 |
+| [ADR-0019](0019-agent-onboarding-is-a-bootstrap-and-admission-lifecycle.md) | Agent onboarding is a bootstrap-and-admission lifecycle | Accepted | operator, 2026-08-29 |
+| [ADR-0020](0020-provider-views-are-sandboxed-extensions-and-layout-is-host-owned.md) | Provider views are sandboxed extensions; workspace layout is host-owned | Accepted | operator, 2026-08-29 |
+| [ADR-0021](0021-execution-placement-is-declared-per-provider-binding.md) | Execution placement is declared per provider binding | Accepted | operator, 2026-08-29 — resolves CO-068 |
+| [ADR-0022](0022-durable-execution-is-an-adapter-over-the-event-journal.md) | Durable execution is an adapter over the Event Journal | Accepted | operator, 2026-08-29 — resolves CO-077 |
+| [ADR-0023](0023-policy-is-an-embedded-decision-port-that-never-grants-on-uncertainty.md) | Policy is an embedded decision port that never grants on uncertainty | Accepted | operator, 2026-08-29 — resolves CO-079 |
+| [ADR-0024](0024-v1-workspaces-use-a-constrained-responsive-grid.md) | V1 workspaces use a constrained responsive grid | Accepted | operator, 2026-08-29 — resolves CO-076 |
+| [ADR-0025](0025-the-commercial-unit-is-an-estate-subscription-with-managed-continuity-and-agent-credits.md) | The commercial unit is an Estate subscription with managed continuity and agent credits | Accepted (internal) | operator, 2026-08-29 — resolves CO-075 |
+| [ADR-0026](0026-fabric-exposes-a-project-scoped-policy-enforced-mcp-control-surface.md) | Fabric exposes a project-scoped, policy-enforced MCP control surface | Accepted | operator, 2026-08-30 — settles M15 |
+| [ADR-0027](0027-the-event-journal-orders-per-estate-and-replays-from-the-table.md) | The Event Journal orders per estate, replays from the table, and projects in the append transaction | Accepted | run 2026-08-31-iteration-ladder — accepts audit finding A1; extends ADR-0014 |
+| [ADR-0028](0028-one-effects-algebra-and-the-floor-lives-in-the-schema.md) | One effects algebra: ceilings compose by minimum, and the floor lives in the schema | Accepted | run 2026-08-31-iteration-ladder — accepts audit finding A2; narrows CO-059 |
+| [ADR-0029](0029-a-proposal-terminates-at-the-target-product-manager.md) | A proposal terminates at the target Product Manager; the CEO is the residual route | Accepted | run 2026-08-31-iteration-ladder — accepts audit finding A7 |
+| [ADR-0030](0030-a-run-is-one-execution-of-one-graph.md) | A Run is one execution of one graph | Accepted | run 2026-08-31-iteration-ladder — accepts audit finding A8; fires R-001 |
+| [ADR-0031](0031-the-v1-surface-is-a-macos-desktop-app-with-the-terminal-inside.md) | The v1 surface is a macOS desktop application with the terminal inside | Accepted | operator at the iteration-ladder grill, 2026-08-31 |
+| [ADR-0032](0032-project-memory-is-verbatim-first-and-built-not-adopted.md) | Project memory is verbatim-first, and it is built rather than adopted | Accepted | run 2026-08-31-memory-adr-sec-wave1 — extends ADR-0014/0027; amends `federation.md` §5 |
+| [ADR-0033](0033-the-public-category-is-the-shift-from-vibe-coding-to-passion-coding.md) | The public category is the shift from vibe coding to passion coding | Accepted | operator, 2026-09-03 — extends ADR-0010/0018 |
+| [ADR-0034](0034-an-agent-reaches-another-mcp-server-through-the-machine-gateway.md) | An agent reaches another MCP server through the machine gateway | accepted | M127 |
+| [ADR-0035](0035-the-board-is-a-query-and-the-ceo-is-a-mechanism-before-it-is-an-agent.md) | The Board is a query, the CEO is a mechanism before it is an agent, and an answer is a decision | accepted | design |
+| [ADR-0036](0036-the-ceo-settles-what-it-can-cite-and-trust-is-autonomy-on-a-different-subject.md) | The CEO settles what it can cite, trust is autonomy on a different subject, and a project's priority is declared | accepted | design |
+| [ADR-0037](0037-the-telegram-bot-answers-by-reply-and-fabric-has-no-always-on-process.md) | The Telegram bot answers by reply, reads nothing it was not given, and Fabric has no always-on process | accepted | design |
+| [ADR-0038](0038-the-ceo-is-not-an-agent-loop.md) | The CEO is not an agent loop: arithmetic, four typed model calls, and the runner that already exists | **superseded in part by ADR-0039** | design |
+| [ADR-0039](0039-the-ceo-is-an-agent-after-all-and-the-line-moves-to-the-tools.md) | The CEO is an agent after all, and auditability moves from the shape of the run to the tools it holds | accepted | design |
+| [ADR-0040](0040-a-heartbeat-is-a-positive-signal-and-silence-is-ambiguous.md) | A heartbeat is a positive signal, silence is ambiguous, and a failure is journalled with its kind | accepted | design |
+| [ADR-0041](0041-insights-carry-a-category-and-only-service-categories-ever-leave.md) | Insights carry a closed category, and only service categories ever leave the project | accepted | design |
+| [ADR-0042](0042-a-run-is-the-unit-of-progress-and-every-graph-is-a-query.md) | A run is the unit of progress, a step status is a claim, and every graph is a query | accepted | design |
+| [ADR-0043](0043-the-manager-seat-is-a-binding.md) | The manager seat is a binding: the loop is selectable, the tools and the floor are not | accepted | design |
+| [ADR-0044](0044-foundation-first-delivery-and-the-living-design-map.md) | Foundations determine delivery order; the living map closes each iteration | accepted | documentation and delivery policy |
+| [ADR-0045](0045-workflow-runs-task-runs-and-explicit-iterations.md) | Развести WorkflowRun, TaskRun и итерацию | **accepted** | proposed 2026-09-07, accepted by run `2026-09-08-s10-vocabulary`. **Supersedes only the conflicting grain clauses of ADR-0042** — a run is no longer *a session bound to a task* — and **clarifies the name in ADR-0030**, whose subject is now called WorkflowRun. Neither ADR is edited; both stand as the record of their own moment. Vocabulary propagated to `CONTEXT.md` in the accepting run (R-001); `task_run_id` itself is M188 |
+| [ADR-0046](0046-manager-role-slots-epochs-and-provider-compatibility.md) | Manager: scope, canonical role и epoch | proposed | engineering contract review, 2026-09-07; not product implementation |
+| [ADR-0047](0047-service-feedback-minimization-and-durable-suppression.md) | Ретро: локальная ценность и контролируемая отправка | proposed | engineering contract review, 2026-09-07; not product implementation |
+| [ADR-0048](0048-fabric-workspace-is-a-versioned-private-publication.md) | Private versioned Fabric documentation workspace and publication protocol | accepted | operator request, 2026-09-07 |
+| [ADR-0051](0051-provider-accounts-and-conversation-continuity.md) | Optional provider accounts and verified conversation continuity | proposed | operator design request, 2026-09-09 |
+| [ADR-0052](0052-provider-account-automatic-switching.md) | Optional automatic account switching is in scope | scope accepted; policy proposed | operator correction, 2026-09-09; supersedes ADR-0051 auto exclusion |
+| [ADR-0053](0053-a-link-is-one-act-and-provenance-is-not-dependency.md) | A link is one act under one lock; `spawned` is provenance and never forms a dependency cycle | accepted | FA-04, 2026-09-10; measured fail-open check, two-round-trip race and a journal/board divergence |
+| [ADR-0054](0054-a-reading-authorises-one-unattended-start.md) | A quota reading authorises one unattended start; an empty answer authorises none | accepted | FA-03, 2026-09-10; measured an HTTP 200 empty body passing the gate, NaN passing it, and chains never asking |
+| [ADR-0055](0055-the-workspace-host-owns-the-first-line-of-every-report.md) | The workspace host injects one bar into every snapshot report, and authorized bodies revalidate instead of re-transferring | accepted | operator report, 2026-09-10; measured a lost site chrome on three destinations, 3.9 MB per section switch and a dead back/forward cache |
+| [ADR-0057](0057-the-ceo-agent-is-named-fabric.md) | The CEO agent is named Fabric; the product is named after its protagonist | accepted | operator decision, 2026-09-12, in the V1 context re-entry brief |
+| [ADR-0059](0059-personal-fabric-and-evidence-backed-pulse.md) | Personal Fabric appearance and a sourced activity/heartbeat/release pulse | proposed | operator scope, 2026-09-15; target architecture and mockups, runtime remains open |
+| [ADR-0061](0061-project-setup-precedes-managed-activation.md) | A Project can persist in setup before managed activation | accepted as architecture | approved progressive-adoption implementation; native enforcement remains packet-gated |
+| [ADR-0063](0063-ceo-first-discovery-and-explicit-continuation.md) | CEO-first discovery and explicit execution continuation | Accepted target | operator, 2026-09-25 |
+| [ADR-0065](0065-conversation-led-work-and-context-bundles.md) | Conversation-led work and primary/related context sources | Accepted target | operator, 2026-09-26 |
+| [ADR-0067](0067-conversation-context-and-typed-chat-widgets.md) | Stable conversation, selectable knowledge and typed widgets | Accepted target | operator, 2026-09-26 |
+| [ADR-0069](0069-project-memory-is-source-addressed-and-authority-bounded.md) | Project memory is source-addressed and authority-bounded | Accepted (target) | operator, 2026-09-26 |
+| [ADR-0070](0070-passioncode-toolkit-and-product-design-system.md) | PassionCode.ai toolkit, Fabric CEO and shared product design system | Accepted direction | operator, 2026-09-26; separate product readiness and source provenance |
+| [ADR-0073](0073-recovered-transcripts-do-not-prove-process-ending.md) | Recovered capture preserves unknown ending and separate receipt time | accepted architecture | R0 harness, 2026-09-27; pre-release migration and reader barrier |
+| [ADR-0075](0075-private-ceo-content-and-opaque-journal-receipts.md) | Private CEO content uses protected primary storage and opaque journal receipts | accepted architecture | R0 implementation, 2026-09-27; audience, backup and dispatch boundaries |
+| [ADR-0077](0077-restored-history-does-not-grant-membership.md) | Restored history cannot create membership on restore or replay | accepted architecture; A0 pending | R0 restore boundary, 2026-09-27 |
+| [ADR-0079](0079-private-conversation-archives-preserve-history-not-authority.md) | Private conversation archives preserve history with independently authorized destination ownership | accepted architecture | R0 implementation; atomic control-Estate owner wrapper and portable private history |
+| [ADR-0081](0081-codex-execution-uses-an-owned-authenticated-loopback-backend.md) | Codex execution uses an owned, authenticated loopback backend; the native TUI is a view | accepted architecture; implementation pending | R0 first slice, 2026-09-27; operator choice between the two topology candidates |
+| [ADR-0083](0083-local-agent-services-follow-fabric-service-and-dashboards-hosts-them.md) | Local agent services follow `fabric-service/0.1`; Fabric Dashboards is their host | accepted architecture across repositories | operator, 2026-09-28; Fabric Dashboards design approval |
+| [ADR-0084](0084-a-release-is-a-record-with-its-basis.md) | A release is a record with its basis, rolled back by another record | accepted architecture | launch UI L8, 2026-09-29; the launch design's Releases screen |
+| [ADR-0086](0086-positioning-names-teams-and-the-public-tools-are-source-available.md) | Positioning names teams; the public tools are source-available | accepted narrative decision; amends ADR-0070 | operator, 2026-09-29; PassionCode.ai final-state run |
+| [ADR-0088](0088-fabric-reaches-the-operator-on-three-surfaces-through-one-relay.md) | Fabric reaches the operator on three surfaces — the Mac, the Quest and the phone — through one relay and the northbound MCP | accepted direction across repositories; nothing built; four choices open | operator, 2026-09-29; accepts the `fabric-vr` remote proposal at `161d621` |
+| [ADR-0090](0090-names-passioncode-is-the-organization-fabric-is-the-ceo-and-its-tools-carry-its-name.md) | Names: PassionCode.ai is the organization; Fabric is the product and CEO agent; Fabric's tools carry its name | accepted narrative decision; complements ADR-0086; supersedes the product claim of ADR-0018 and ADR-0057 | operator, 2026-09-29; agent-registry run (brief OS-12, Q8) |
+| [ADR-0092](0092-every-repository-is-agpl-3-0-or-commercial.md) | Every PassionCode.ai repository is AGPL-3.0 or commercial | accepted licensing decision; supersedes decision 3 of ADR-0086 | operator, 2026-09-30 |
+| [ADR-0093](0093-fabric-workspace-is-the-knowledge-base-agents-read-first-and-update-last.md) | Fabric Workspace is the knowledge base agents read first and update last | accepted architecture decision; supersedes ADR-0048 in part; resolves CO-AR-09 | operator, 2026-09-30 |
+| [ADR-0094](0094-every-product-is-driven-over-mcp.md) | Every product is driven over MCP | accepted product principle | operator, 2026-09-30 |
+| [ADR-0096](0096-dated-records-are-redacted-for-publication.md) | Dated records are redacted for publication | accepted records decision; amends the never-rewrite rule for dated records, once, for privacy | operator, 2026-09-30 |
+
+**Next free ID:** `ADR-0098`. ADR-0097 is the current unexecuted [pipeline reservation](../evidence/plans/task-pipeline-persistence-contract.md), key `pipeline-reservation-after-public-redaction-20260930`. ADR-0096 was returned by agent-sync for key `public-release-redaction-20260930`. ADR-0095 (key `pipeline-reservation-after-knowledge-base-20260930`) is superseded. ADR-0092, ADR-0093 and ADR-0094 were returned by agent-sync for keys `license-agpl-commercial-20260930`, `workspace-knowledge-base-20260930` and `mcp-first-20260930`. ADR-0091 (key `pipeline-reservation-after-names-20260929`) is superseded. ADR-0090 was returned by agent-sync for key `agent-registry-naming-20260929`. ADR-0089 (key `pipeline-reservation-after-fabric-surfaces-20260929`) is superseded. ADR-0088 was returned by agent-sync for key `fabric-surfaces-relay-20260929`. ADR-0087 (key `pipeline-reservation-after-brand-teams-20260929`) is superseded. ADR-0086 was returned by agent-sync for key `brand-teams-positioning-20260929`. ADR-0085 (key `pipeline-reservation-after-releases-20260929`) is superseded. ADR-0084 was returned by agent-sync for key `releases-with-basis-20260929`; ADR-0083 was returned by agent-sync for key `fabric-service-protocol-20260928`. ADR-0081 was returned by agent-sync for key `codex-loopback-topology-20260927`, run `r-7746d4d1c`. ADR-0070 is integrated here; ADR-0071 remains a superseded pipeline reservation. ADR-0072 is superseded; ADR-0074 is superseded; ADR-0076 is superseded; ADR-0078 is superseded; ADR-0080 is superseded; ADR-0082 (key `pipeline-reservation-after-codex-topology-20260927`) is superseded. Prior reservations and their authority receipts remain in that contract; no applied ADR is renumbered.

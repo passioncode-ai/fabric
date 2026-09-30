@@ -1,0 +1,20 @@
+// The component set (M117). A screen imports from here; it does not reach into
+// the individual files, so the set has one door and `check-design.mjs` has one
+// place to look.
+export { Panel } from './Panel'
+export { StateChip, type ChipTone } from './StateChip'
+export { EmptyState } from './EmptyState'
+export { Row } from './Row'
+export { Toolbar } from './Toolbar'
+export { Stat, StatStrip } from './Stat'
+export { Button, type ButtonTone } from './Button'
+export { Field, FieldGroup, FieldRow, FieldGrid } from './Field'
+export { Banner } from './Banner'
+export { Caret } from './Caret'
+export { Claim, Tail } from './Claim'
+export { FileTree } from './FileTree'
+export { TabStrip, type TabStripItem } from './TabStrip'
+export { StatusBar, StatusCell, Tick, StatusDot } from './StatusBar'
+export { Board, BoardColumn } from './Board'
+export { TaskCard } from './TaskCard'
+export { COMPONENTS, LAYOUT, declaredClasses, type ComponentEntry } from './registry'

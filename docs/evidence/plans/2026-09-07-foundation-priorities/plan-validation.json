@@ -1,0 +1,17 @@
+{
+  "audit_source_head": "153b4f029e626230d465d5d21d02fb8c9de5fadf",
+  "execution_nodes": 62,
+  "edges": 119,
+  "acyclic": true,
+  "all_57_original_cards_preserved": true,
+  "requirements_preserved": 31,
+  "attachment_milestones_preserved": 32,
+  "milestone_rows": 196,
+  "focus_milestones": 42,
+  "remaining_milestones": 154,
+  "canonical_owners_resolve": true,
+  "queue_and_json_dependencies_equal": true,
+  "map_work_anchors_resolve": true,
+  "report_card_fragments_resolve": true,
+  "product_implementation_claimed": false
+}

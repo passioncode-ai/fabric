@@ -1,0 +1,692 @@
+{
+  "scope": "SCN-028..049",
+  "date": "2026-09-09",
+  "source_commit": "d28c321ccca8c4ef0e803ebea5b7ba056e88bc5d",
+  "verdict": "REFINE",
+  "limits": [
+    "Source trace plus two renderer fault-reproduction probes; no real PTY/browser/native screen-reader run in this slice.",
+    "External public site not inspected.",
+    "Parent runs full repository suite and owns register/publication edits.",
+    "No repository edits or git writes by this subagent; all artifacts in /tmp."
+  ],
+  "checks": [
+    {
+      "command": "python3 docs/ux/lint.py",
+      "result": "exit 0; 0 errors, 38 warnings; includes external-site coverage and 13 index-row warnings"
+    },
+    {
+      "command": "apps/desktop/node_modules/.bin/vitest run --config /private/tmp/fabric-audit-20260909/vitest.config.mjs",
+      "result": "2/2 reproduction probes pass (they prove presence of defects, NOT desired product correctness). Initial /tmp alias invocation failed import; corrected canonical /private/tmp config ran."
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "SCN-028",
+      "verdict": "PARTIAL",
+      "title": "Project tabs and settings",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/App.tsx:464",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:953",
+        "docs/ux/scenarios.md:700"
+      ],
+      "gap": "Settings saves name/purpose and agent/server settings in two independent writes; later failure can leave partial saved configuration while form suggests one failed save. The scenario still promises manually editable repo_path although SCN-033 makes primary path derived.",
+      "task_packets": "UX28-11 UX28-15"
+    },
+    {
+      "id": "SCN-029",
+      "verdict": "BLOCKED",
+      "title": "Launch and detached session",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:1060",
+        "apps/desktop/src/renderer/src/SessionWindow.tsx:16"
+      ],
+      "gap": "Launch selector/window/tile source paths exist. No native PTY spawn, duplicate-window focus, close-keeps-running or exit-code replay performed in this audit slice. Poll/exit handler Promise rejections lack local recovery (SessionWindow 25/28).",
+      "task_packets": "UX28-14"
+    },
+    {
+      "id": "SCN-030",
+      "verdict": "PARTIAL",
+      "title": "Workspace canvas",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/Workspace.tsx:20",
+        "apps/desktop/src/renderer/src/Workspace.tsx:66"
+      ],
+      "gap": "Three tier-0 widgets and fixed revision exist; props carry null/data only, so a stale failed projection cannot declare age/failure inside its widget. Results are explicitly a placeholder.",
+      "task_packets": "UX28-02"
+    },
+    {
+      "id": "SCN-031",
+      "verdict": "BLOCKED",
+      "title": "Project onboarding",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/Onboarding.tsx:43",
+        "apps/desktop/src/renderer/src/Onboarding.tsx:57",
+        "apps/desktop/src/renderer/src/App.tsx:35"
+      ],
+      "gap": "Draft-id, independent drafts, fields and disabled options traced. System folder picker, create + attach journal atomicity and cancellation not replayed live; no end-to-end PASS claimed.",
+      "task_packets": "UX28-14"
+    },
+    {
+      "id": "SCN-032",
+      "verdict": "PARTIAL",
+      "title": "Work request and presets",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/Tasks.tsx:110",
+        "apps/desktop/src/renderer/src/Tasks.tsx:130",
+        "apps/desktop/src/renderer/src/Tasks.tsx:155"
+      ],
+      "gap": "Preset sources and created-agent list read only on project.id, so newly raised/finished tasks or agents while staying in project leave stale availability/count/instruction. Launch/delivery backend correctness delegated to parent harness audit.",
+      "task_packets": "UX28-02"
+    },
+    {
+      "id": "SCN-033",
+      "verdict": "PARTIAL",
+      "title": "Repositories attach/detach and refresh",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:234",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:856",
+        "apps/desktop/src/renderer/src/EstateAgents.tsx:72"
+      ],
+      "gap": "Picker/primary promotion UI and live watcher exist. Refresh readers lack request-generation fencing; rejected EstateAgents repo refresh is swallowed and can retain prior value without stale warning. Main-process atomic promotion/path boundary not replayed here.",
+      "task_packets": "UX28-02"
+    },
+    {
+      "id": "SCN-034",
+      "verdict": "BLOCKED",
+      "title": "Editor conflict safety",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/EditorWindow.tsx:129",
+        "apps/desktop/src/renderer/src/EditorWindow.tsx:185"
+      ],
+      "gap": "Hash conflict/diff/overwrite grant/dirty-close paths traced; native Monaco and file conflict flow not executed. Cannot verify typing during save, permission denial or symlink/root revocation from this slice.",
+      "task_packets": "UX28-14"
+    },
+    {
+      "id": "SCN-035",
+      "verdict": "BLOCKED",
+      "title": "Agent claim versus observation",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:1636",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:1650"
+      ],
+      "gap": "Tile labels claim, age and stale-vs-lastActivity; plain no-claim branch traced. Context pack start receipt and real connected reporting session not replayed.",
+      "task_packets": "UX28-14"
+    },
+    {
+      "id": "SCN-036",
+      "verdict": "PARTIAL",
+      "title": "Recorded session reading",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:1164",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:1203"
+      ],
+      "gap": "Transcript open uses one shared body and loading flag without generation/session guard. Slow A response after clicking B is rendered beneath B. Read disappearance becomes empty string through full?.body ?? empty rather than unresolved receipt.",
+      "task_packets": "UX28-02"
+    },
+    {
+      "id": "SCN-037",
+      "verdict": "PARTIAL",
+      "title": "Memory attribution and corrections",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:1742",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:1882",
+        "docs/ux/scenarios.md:957"
+      ],
+      "gap": "Attribution and superseded markers exist. Request guard keys only q: category/superseded filters with same q race and old answer can win; external writes do not refresh facts. Scenario step 5 still names removed statistics strip, contradicted by its amendment.",
+      "task_packets": "UX28-02 UX28-15"
+    },
+    {
+      "id": "SCN-038",
+      "verdict": "BLOCKED",
+      "title": "Public positioning site",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "docs/ux/scenarios.md:974",
+        "docs/ux/scenarios.md:994"
+      ],
+      "gap": "Owning external passioncode-ai.github.io repository and deployed page not inspected. A prior rendered date is historical evidence; no current public-site PASS. Resolve owner and S11 decision before dropping/renaming scenario.",
+      "task_packets": "UX28-15"
+    },
+    {
+      "id": "SCN-039",
+      "verdict": "PARTIAL",
+      "title": "Memory overview",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/MemoryOverviewSection.tsx:73",
+        "apps/desktop/src/renderer/src/MemoryOverviewSection.tsx:102",
+        "apps/desktop/src/shared/memoryOverview.ts:18"
+      ],
+      "gap": "Per-source failures/retry exist, but StoreCount has count/problem only: no last-read/source age/writer metadata. Retrieval and pack drill-ins absent; refresh resets good counts to loading and loses last good snapshot on failure.",
+      "task_packets": "UX28-07 UX28-02"
+    },
+    {
+      "id": "SCN-040",
+      "verdict": "PARTIAL",
+      "title": "Rejoin from decisions",
+      "evidence_level": "renderer-probe",
+      "evidence": [
+        "apps/desktop/src/renderer/src/DigestSection.tsx:35",
+        "apps/desktop/src/renderer/src/DigestSection.tsx:45",
+        "apps/desktop/src/renderer/src/DigestSection.tsx:65",
+        "apps/desktop/src/renderer/src/DecisionsSection.tsx:90"
+      ],
+      "gap": "PROVEN: every feedMark change calls digest.seen before read, including failed reads. Rows/citations are plain text, no exact link or recompile; no compiledAt. Digest is below Tasks. Composed journal digest is deliberate; do not invent model summarization solely to meet old scenario wording.",
+      "task_packets": "UX28-03 UX28-06 UX28-15"
+    },
+    {
+      "id": "SCN-041",
+      "verdict": "PARTIAL",
+      "title": "Agent-maintained board",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:443",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:465"
+      ],
+      "gap": "Keyboard-select alternative and journal-derived board exist. Optimistic state rolled back for resolved refusal only; IPC Promise rejection leaves moved card until later state transition. Need authoritative transport-failure recovery.",
+      "task_packets": "UX28-04"
+    },
+    {
+      "id": "SCN-042",
+      "verdict": "FAIL",
+      "title": "Manager request to artifact",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/App.tsx:517",
+        "apps/desktop/src/renderer/src/AttentionPanel.tsx:8"
+      ],
+      "gap": "Reachable CEO control opens attention queue; conversation, editable specification, confirm-create lifecycle not implemented. This is missing planned capability, not regression in shipped attention handling.",
+      "task_packets": "UX28-12"
+    },
+    {
+      "id": "SCN-043",
+      "verdict": "PARTIAL",
+      "title": "Project favourites",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/EstateHome.tsx:97",
+        "apps/desktop/src/shared/favourites.ts:50"
+      ],
+      "gap": "Pin control always shown and toggle appends without cap; no <=6 suppression or sixth-pin replacement choice. Stale favourite removed from displayed partition silently. Underlying local preference model is deliberate.",
+      "task_packets": "UX28-10"
+    },
+    {
+      "id": "SCN-044",
+      "verdict": "PARTIAL",
+      "title": "Estate profile measurements",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/ProfileSection.tsx:23",
+        "apps/desktop/src/renderer/src/ProfileSection.tsx:59"
+      ],
+      "gap": "Reads once, labels figures but no per-figure source register/reason/age. Five aggregates intentionally non-clickable pending destinations. Mascot/name deliberately absent CO-109; retain explicit scope rather than fake portrait.",
+      "task_packets": "UX28-06 UX28-02"
+    },
+    {
+      "id": "SCN-045",
+      "verdict": "PARTIAL",
+      "title": "Task own page",
+      "evidence_level": "renderer-probe",
+      "evidence": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:274",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:52",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:191",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:217",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:279"
+      ],
+      "gap": "PROVEN: switching A→B preserves A textarea then blur writes it to B. Async reads also unfenced. Notes omit timestamp/identity (only kind), promoted fact is badge not link, relation rows non-clickable, original agent draft not rendered.",
+      "task_packets": "UX28-01 UX28-06"
+    },
+    {
+      "id": "SCN-046",
+      "verdict": "PARTIAL",
+      "title": "Plan and history graphs",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/PlanSection.tsx:114",
+        "apps/desktop/src/renderer/src/PlanSection.tsx:124",
+        "docs/evidence/backlog.md:123"
+      ],
+      "gap": "Goal preview, denominator coverage, orphan assignment exist. SCR-40 addressable revision/graph/history absent; listed tasks non-clickable; no back selection restore. M190 explicitly ships numeric fix only.",
+      "task_packets": "UX28-08"
+    },
+    {
+      "id": "SCN-047",
+      "verdict": "PARTIAL",
+      "title": "Harness contract and authority",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/main/index.ts:2915",
+        "apps/desktop/src/renderer/src/HarnessSection.tsx:51",
+        "apps/desktop/src/renderer/src/HarnessSection.tsx:102"
+      ],
+      "gap": "harnessRead ignores projectId, returns machine launch options, one Fabric endpoint, and estate grants; null/error counts coalesce to zero. No per-server grant/required-skill/bound-agent matrix. Do not derive start authorization from this display.",
+      "task_packets": "UX28-05"
+    },
+    {
+      "id": "SCN-048",
+      "verdict": "PARTIAL",
+      "title": "Estate search",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/shared/search.ts:20",
+        "apps/desktop/src/renderer/src/SearchPanel.tsx:35",
+        "apps/desktop/src/shared/entityRef.ts:119"
+      ],
+      "gap": "Only facts/transcripts/tasks are searched, not projects/decisions; all groups rendered including empty, no per-store show-all. New query retains prior hits while pending/failing. Exact task navigation works; fact/transcript open project with honest fallback, not clicked entity.",
+      "task_packets": "UX28-02 UX28-06 UX28-09"
+    },
+    {
+      "id": "SCN-049",
+      "verdict": "PARTIAL",
+      "title": "Estate agents workspace",
+      "evidence_level": "source-trace",
+      "evidence": [
+        "apps/desktop/src/renderer/src/EstateAgents.tsx:39",
+        "apps/desktop/src/renderer/src/EstateAgents.tsx:102",
+        "apps/desktop/src/renderer/src/EstateAgents.tsx:137",
+        "apps/desktop/src/renderer/src/styles.css:146"
+      ],
+      "gap": "Three children use a two-column grid. Centre is explicitly read-only tail, no live input/task link/end action; no waiting-first sort. Session history read once, old session history/repo retained on selection/failure. Target SCN49 materially exceeds current reader.",
+      "task_packets": "UX28-02 UX28-13"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "UX28-01",
+      "owner": "S01 / M143 / M146 corrective continuation",
+      "priority": "P1",
+      "title": "Bind task detail, brief drafts and writes to the task identity",
+      "context_files": [
+        "apps/desktop/src/renderer/src/TaskPage.tsx:42",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:89",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:274"
+      ],
+      "solution_steps": [
+        "Reproduce with provided temporary test before any edit.",
+        "Represent displayed task detail with target id and request generation; clear or explicitly mark previous detail on navigation.",
+        "Use controlled task-keyed brief drafts; submitted payload carries immutable task id/field/body/base revision.",
+        "Keep draft until successful save for that task; ignore stale load completion; show local failed/loading states with Back still reachable.",
+        "Preserve original agent draft and append-only revision history; do not silently switch author on blur."
+      ],
+      "positive_acceptance": [
+        "A edits/saves to A; B fields load B; failed save preserves text; note drafts remain separate."
+      ],
+      "negative_acceptance": [
+        "A→B quick switch with A response late must never display/save A under B; use probe expecting current buggy call absent; double blur must not duplicate append."
+      ],
+      "dependencies": "S01 command CAS contract; independent of manager/model",
+      "exclusions": "No generic monolith extraction required. No new auto-save semantics without scenario amendment."
+    },
+    {
+      "id": "UX28-02",
+      "owner": "M102 + S14 / CO-111 corrective readers",
+      "priority": "P1",
+      "title": "Make renderer reads keyed, current, independently failed and visibly stale",
+      "context_files": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:144",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:1164",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:1742",
+        "apps/desktop/src/renderer/src/EstateAgents.tsx:39",
+        "apps/desktop/src/renderer/src/SearchPanel.tsx:35",
+        "apps/desktop/src/renderer/src/MemoryOverviewSection.tsx:41",
+        "apps/desktop/src/renderer/src/EstateHome.tsx:68"
+      ],
+      "solution_steps": [
+        "Inventory consumers with query identity: project/session/task/store/query/category/superseded and refresh reason.",
+        "Fence latest generation and bind each payload to its identity; independently settle history/repositories and overview/misses.",
+        "Preserve last good payload only with explicit age/stale/failure; new subject never inherits old subject payload.",
+        "Pass monotonic feedMark to EstateHome Board/attention rather than capped feed.length; subscribe event classes for presets/created agents/facts.",
+        "Return honest transport errors and local retry; remove swallowing failures into empty/declined.",
+        "Do not blindly introduce minimumCursor until each reader can record actually displayed payload."
+      ],
+      "positive_acceptance": [
+        "Refresh after 501st event updates estate Board; selected B shows only B; category changes return matching facts; current preset count changes on task events."
+      ],
+      "negative_acceptance": [
+        "Resolve A late after B; same query different category; reject one source while other resolves; failed initial read never reads empty; failed refresh must not show old value as current."
+      ],
+      "dependencies": "Read envelope S14 already available; restore cursor integration CO-111 remains separate",
+      "exclusions": "Do not count fixture tests as live process proof; no production queries or mutations needed for regression tests."
+    },
+    {
+      "id": "UX28-03",
+      "owner": "M133 + M102 + S14 / CO-111",
+      "priority": "P1",
+      "title": "Stop marking unshown digest entries seen",
+      "context_files": [
+        "apps/desktop/src/renderer/src/DigestSection.tsx:35"
+      ],
+      "solution_steps": [
+        "Reproduce feedMark-only seen call with supplied test.",
+        "Separate fetch lifecycle from visit/display acknowledgement.",
+        "Record only highest successfully displayed digest boundary; failed read does not advance.",
+        "Use immutable displayed cursor/mark rather than now at cleanup; define whether closing task preview counts as leaving with existing journey.",
+        "Keep old digest visible with failed-refresh age and retry."
+      ],
+      "positive_acceptance": [
+        "Refreshing feed updates digest while unread items remain available; successful visited boundary becomes seen exactly once."
+      ],
+      "negative_acceptance": [
+        "Failed load/unmount and feedMark change cannot mark unseen new events seen; late cleanup cannot advance beyond shown payload."
+      ],
+      "dependencies": "CO-111 full cursor extension needed only if implementing durable feed cursors",
+      "exclusions": "Do not add a model summarizer or new digest store."
+    },
+    {
+      "id": "UX28-04",
+      "owner": "M146 / S01 correction",
+      "priority": "P1",
+      "title": "Recover optimistic board state on transport failure",
+      "context_files": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:443"
+      ],
+      "solution_steps": [
+        "Wrap move/close command and refetch in explicit result/error states.",
+        "Rollback optimistic destination on command rejection; retain authoritative previous card and show failure.",
+        "For success followed by refresh failure show confirmed-but-stale state and retry reconciliation rather than claiming command failed.",
+        "Disable conflicting same-task moves while command unresolved or carry command id/revision for ordered completion."
+      ],
+      "positive_acceptance": [
+        "Successful transition reconciles; rejected command returns original column and accessible local reason."
+      ],
+      "negative_acceptance": [
+        "Promise.reject from tasks.move/close cannot leave a false column or unhandled rejection; double click/out-of-order completion cannot revert newer authoritative state."
+      ],
+      "dependencies": "Existing task command CAS/ladder",
+      "exclusions": "Preserve keyboard move alternative; do not replace with drag-only interaction."
+    },
+    {
+      "id": "UX28-05",
+      "owner": "M145 + S14 + S02 authority display",
+      "priority": "P1",
+      "title": "Scope harness to project and expose unknown grant reads",
+      "context_files": [
+        "apps/desktop/src/main/index.ts:2915",
+        "apps/desktop/src/renderer/src/HarnessSection.tsx:30"
+      ],
+      "solution_steps": [
+        "Define project harness DTO separating machine available providers from bound project agents, installed mandatory skill, configured servers and per-server grant availability.",
+        "Filter grants by authoritative project/scope or explicitly label estate-only counts; use errors/unknown instead of null-to-zero.",
+        "Render per-source loading/failure/age and required grant reason; inspect registered tool contract from same runtime source.",
+        "Keep declarative configuration, observed capability and actual authorization distinct."
+      ],
+      "positive_acceptance": [
+        "Two projects with different bindings/grants render different scoped snapshots; tool list matches live registry."
+      ],
+      "negative_acceptance": [
+        "Grant query failure displays unavailable, never 0; absent skill/grant cannot appear launch-ready; cross-estate/project rows never leak into project snapshot."
+      ],
+      "dependencies": "S02 scope/auth schema; M155/M181 existing capability semantics",
+      "exclusions": "No per-tool usage counters until real call-log producer; no fabricated zero telemetry."
+    },
+    {
+      "id": "UX28-06",
+      "owner": "S13 + M143/M133/M135/M141/M142",
+      "priority": "P2",
+      "title": "Complete exact evidence destinations and task history reading",
+      "context_files": [
+        "apps/desktop/src/shared/entityRef.ts:119",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:217",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:279",
+        "apps/desktop/src/renderer/src/DecisionsSection.tsx:90",
+        "apps/desktop/src/renderer/src/ProfileSection.tsx:59"
+      ],
+      "solution_steps": [
+        "Extend one AppRoute/EntityRef contract for fact, transcript, decision/journal/resource destinations; source ownership checked by resolver.",
+        "Pass exact id from search, digest, task relations, promoted notes, counts; restore prior route and selection on Back.",
+        "Display note author identity and time; expose original agent brief under later operator version.",
+        "Render unresolved target in place with original ref and reason; no silent deletion or unrelated project jump.",
+        "Add source-register/age/reason to profile count DTO and row; keep unmeasured metrics absent."
+      ],
+      "positive_acceptance": [
+        "Every cited item opens exact id; task sibling/back, promoted fact/back, transcript hit/back preserve context."
+      ],
+      "negative_acceptance": [
+        "Missing/forbidden/cross-project target says unavailable without routing to another entity; 20+ items pagination cannot imply completeness."
+      ],
+      "dependencies": "S13 existing resolver; M191 store detail for pack destinations",
+      "exclusions": "Do not duplicate resource document bodies on task page; do not fake linked aggregate destinations."
+    },
+    {
+      "id": "UX28-07",
+      "owner": "M191 + M135 + S14",
+      "priority": "P2",
+      "title": "Finish inspectable memory stores beyond counts",
+      "context_files": [
+        "apps/desktop/src/renderer/src/MemoryOverviewSection.tsx:102",
+        "apps/desktop/src/shared/memoryOverview.ts:18"
+      ],
+      "solution_steps": [
+        "Model each store read with holds/writer/source/last read/coverage/last successful refresh.",
+        "Add retrieval list including hits and misses; pack detail/lineage/sync pages through canonical routes.",
+        "Use same compiler for preview and actual launch; label preview versus delivered compiled pack; retain dry-run no-write invariant.",
+        "Render corrected facts destination with toggle/filter carried in route."
+      ],
+      "positive_acceptance": [
+        "Four stores have drill-in; never-read differs from empty; correction opens exact historical row."
+      ],
+      "negative_acceptance": [
+        "Failed one-store read keeps others; preview creates no journal/retrieval rows or process; stale source cannot present current count."
+      ],
+      "dependencies": "S14 + UX28-06; pack producer M191 shipped",
+      "exclusions": "Do not duplicate compilation selection logic; do not reopen shipped compiler changes absent failing evidence."
+    },
+    {
+      "id": "UX28-08",
+      "owner": "M190 / SCR-40",
+      "priority": "P2",
+      "title": "Implement target plan and distinct project history routes",
+      "context_files": [
+        "apps/desktop/src/renderer/src/PlanSection.tsx:114",
+        "docs/ux/scenarios.md:1154"
+      ],
+      "solution_steps": [
+        "Keep legacy goal preview; implement GraphSnapshot revision/coverage/source contracts and graph/list equivalent.",
+        "Carry target-plan vs project-history in URL/AppRoute and selected revision.",
+        "Open task from goal/edge and preserve revision/selection on Back.",
+        "Represent orphan work and undecomposed goals; validate normative dependency cycles at command boundary."
+      ],
+      "positive_acceptance": [
+        "Same-snapshot total includes completed membership; intended graph/history are separate; keyboard list has same nodes/actions."
+      ],
+      "negative_acceptance": [
+        "Partial/capped source never hides nodes or creates false completion; history cycles must not be rejected as normative plan errors."
+      ],
+      "dependencies": "Actual producers per ADR-0042/0045, M188/M152/S14; UX28-06",
+      "exclusions": "Never treat product.html mockup GraphSnapshot as runtime data; no generic graph-engine build before concrete producer contracts."
+    },
+    {
+      "id": "UX28-09",
+      "owner": "M141 correction",
+      "priority": "P2",
+      "title": "Make search promises match searched stores",
+      "context_files": [
+        "apps/desktop/src/shared/search.ts:20",
+        "apps/desktop/src/renderer/src/SearchPanel.tsx:109"
+      ],
+      "solution_steps": [
+        "Add project/decision search producers, method labels and per-store independent envelopes.",
+        "Hide successful empty groups while retaining searched-stores summary and failed groups.",
+        "Per group expose count, coverage and bounded load-more/show-all, with stable query/cursor.",
+        "Tie visible results to current query and exact destination through UX28-06."
+      ],
+      "positive_acceptance": [
+        "Queries find project titles and decision claims; zero results names all searched stores; partial failure leaves other hits."
+      ],
+      "negative_acceptance": [
+        "Old query result may not look current; failed store excluded from complete-empty claim; cap=20 must show coverage and continuation."
+      ],
+      "dependencies": "UX28-02, UX28-06; S14 search envelope",
+      "exclusions": "Preserve grouped-by-nature semantics; no fictional cross-store ranking."
+    },
+    {
+      "id": "UX28-10",
+      "owner": "M120 correction",
+      "priority": "P2",
+      "title": "Implement declared favourites threshold and replacement choice",
+      "context_files": [
+        "apps/desktop/src/renderer/src/EstateHome.tsx:97",
+        "apps/desktop/src/shared/favourites.ts:50"
+      ],
+      "solution_steps": [
+        "Confirm SCN043 threshold remains intended; if retained show pin controls only above 6 projects.",
+        "Cap preferred set at 5 and ask which to release when pinning sixth, preserve atomic local preference write.",
+        "Show removed/archived favourite reason and available recovery instead of silent disappearance."
+      ],
+      "positive_acceptance": [
+        "7 projects allow up to 5 favourites in operator order; sixth chosen atomically replaces explicit selection."
+      ],
+      "negative_acceptance": [
+        "<=6 offers no unnecessary ranking; failed write leaves old set; unavailable project data cannot delete saved preference."
+      ],
+      "dependencies": "SCN043; S14 local-state result",
+      "exclusions": "Do not migrate preference to journal; per-person persistence waits for real authentication M38."
+    },
+    {
+      "id": "UX28-11",
+      "owner": "M17/M127 + S01 command integrity",
+      "priority": "P2",
+      "title": "Make project settings save an honest single result",
+      "context_files": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:938",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:953"
+      ],
+      "solution_steps": [
+        "Capture settings draft against config_revision.",
+        "Submit one validated CAS command for all edited fields or explicitly return field-level partial receipt and preserve unsaved remainder.",
+        "Do not reset dirty draft when background config_revision changes; show conflict choices.",
+        "Reconcile repo_path scenario with primary-repository invariant instead of reintroducing free typed cwd."
+      ],
+      "positive_acceptance": [
+        "Name/purpose/agent/server edits either commit one revision or show precisely which portion committed."
+      ],
+      "negative_acceptance": [
+        "Second-write failure cannot look like nothing saved; concurrent agent update cannot erase operator draft; stale base revision refused."
+      ],
+      "dependencies": "Existing project config commands and S01; UX28-15 clarification",
+      "exclusions": "No arbitrary direct repository-path setting that bypasses opened-root boundary."
+    },
+    {
+      "id": "UX28-12",
+      "owner": "M166–M175 / M194 + M153/M158",
+      "priority": "P2",
+      "title": "Manager interaction to confirmed artifact (existing future delivery)",
+      "context_files": [
+        "docs/evidence/backlog.md:136",
+        "apps/desktop/src/renderer/src/AttentionPanel.tsx:8"
+      ],
+      "solution_steps": [
+        "Reuse existing manager work packets; deterministic core and optional ModelPort precede conversational executor.",
+        "Use selected project/estate binding and authority context; present editable spec then explicit confirm command.",
+        "On no provider or missing grant show unavailable/refused and retain spec; cross-project request becomes proposal.",
+        "Creation receipt is result; closing unconfirmed spec writes nothing."
+      ],
+      "positive_acceptance": [
+        "Confirmed supported spec yields canonical binding/routine/task ref; refusal preserves editable draft."
+      ],
+      "negative_acceptance": [
+        "Advice cannot be shown as committed artifact; model verdict cannot grant authority; no-provider path makes no hidden paid call."
+      ],
+      "dependencies": "M153,M158,M166,M167,M169,M171,M194,M175 in existing dependency order",
+      "exclusions": "No parallel competing CEO implementation. Keep shipped attention board and planned conversation separate."
+    },
+    {
+      "id": "UX28-13",
+      "owner": "M71 / SCR-39 + M187",
+      "priority": "P2",
+      "title": "Complete estate agents control surface",
+      "context_files": [
+        "apps/desktop/src/renderer/src/EstateAgents.tsx:97",
+        "apps/desktop/src/renderer/src/EstateAgents.tsx:137"
+      ],
+      "solution_steps": [
+        "Use existing TerminalView for selected session with one attach lifecycle; selected agent remains stable during reorder.",
+        "Sort actionable waiting sessions first using observed obligation state; show ended sessions/exit code.",
+        "Render task link, detach, end action, live journal effects/history and scoped repo state.",
+        "Use explicit three-column desktop layout and narrow list/detail alternative; plan keyboard focus and reduced motion."
+      ],
+      "positive_acceptance": [
+        "Typing reaches selected live session without detach; selected agent and task route stable; events update history."
+      ],
+      "negative_acceptance": [
+        "Switch A→B cannot show A repo/history; attach failure isolated; repeated attach does not duplicate PTY listener; closing view does not terminate session."
+      ],
+      "dependencies": "UX28-02, M105 bounded PTY path, UX28-06",
+      "exclusions": "Do not create second decoder or infer performed actions from terminal text; no stale console labelled live."
+    },
+    {
+      "id": "UX28-14",
+      "owner": "M187 + M110/M117 + relevant scenario owners",
+      "priority": "P2",
+      "title": "Verify real runtime accessibility, resizing and native integration",
+      "context_files": [
+        "apps/desktop/src/renderer/src/styles.css:146",
+        "apps/desktop/src/renderer/src/styles.css:278",
+        "apps/desktop/src/renderer/src/components/TabStrip.tsx:55",
+        "apps/desktop/src/renderer/src/tokens.app.css:84"
+      ],
+      "solution_steps": [
+        "Launch known isolated fixture estate using native runtime; record exact build/database/fixtures.",
+        "Walk top flows via keyboard, then screen reader: onboarding, task page/save, board transition, search, agent selection, editor conflict.",
+        "Test 1280/640/375 CSS widths and 200% zoom; sidebar 40vw cap, four-column board and estate three-child/two-column grid are required inspection targets.",
+        "Verify focus on open/close/back, accessible control names, no dead-end/loading-only failure, contrast light/dark and motion reduced.",
+        "Attach screenshots/DOM/replay receipts; do not convert old screenshots or scanner results into current accessibility PASS."
+      ],
+      "positive_acceptance": [
+        "Each scoped scenario has observed result or precise blocked reason; keyboard and pointer reach equivalent actions."
+      ],
+      "negative_acceptance": [
+        "Injected missing IPC/query rejection/path denial maintains usable recovery and unsaved text; screen reader announces relevant errors."
+      ],
+      "dependencies": "Use actual native test setup after read-side fixes; existing source token system preserved",
+      "exclusions": "No accessibility PASS from static CSS, jsdom, axe alone. No product mockup evidence substituted for runtime."
+    },
+    {
+      "id": "UX28-15",
+      "owner": "evidence-docs + existing M/S ownership",
+      "priority": "P2",
+      "title": "Reconcile scenario wording and shipped claims with evidence",
+      "context_files": [
+        "docs/ux/scenarios.md:700",
+        "docs/ux/scenarios.md:957",
+        "docs/evidence/backlog.md:643",
+        "docs/evidence/backlog.md:682"
+      ],
+      "solution_steps": [
+        "For each scenario separate normative expected behavior, legacy implementation, current test evidence and future target.",
+        "Correct SCN028 free repo path and SCN037 removed strip; retain SCN046 target graph as future with M190 scope explicit.",
+        "Return M141/M135/M133/M143/M145 broad shipped claims to precise partial scope with named continuation, not wholesale deletion.",
+        "SCN038 inspect owning external repo or explicitly block; S11 rebranding choice owns changes.",
+        "Use same-change scenarios/flows/screens/model/map and existing IDs; never duplicate work from queue/carryover."
+      ],
+      "positive_acceptance": [
+        "Every delivered assertion cites exact runtime source or run receipt; missing capabilities have one owner and packet; lint warning causes listed."
+      ],
+      "negative_acceptance": [
+        "Generated mockup/source-only test cannot mark native scenario validated; deleted requirements require explicit recorded decision, not inferred from missing code."
+      ],
+      "dependencies": "Full parent audit reconciliation; source git baseline d28c321ccca8c4ef0e803ebea5b7ba056e88bc5d",
+      "exclusions": "Do not add model summarizer, arbitrary graphs or mascot only to fit stale prose; preserve archived reports."
+    }
+  ],
+  "counts": {
+    "PARTIAL": 16,
+    "BLOCKED": 5,
+    "FAIL": 1
+  },
+  "skills_used": {
+    "ux-audit": "scenario trace, verdict evidence discipline, task conversion"
+  },
+  "cross_batch": "Parent must deduplicate UX28-02 with any S14/M102 reader findings; harness missing grant-scoping merges M145/S02; manager SCN042 is future capability owned M166–M175, not fresh regression."
+}

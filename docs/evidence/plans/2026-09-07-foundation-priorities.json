@@ -1,0 +1,953 @@
+{
+  "schema": "fabric.priority-review.v1",
+  "date": "2026-09-07",
+  "audit_source_head": "153b4f029e626230d465d5d21d02fb8c9de5fadf",
+  "source_snapshot": "docs/audit/2026-09-07-merged-execution-plan.json",
+  "source_snapshot_sha256": "8f3536cf1ea0e3cf4037353b5c5746a275ebb2c6eb393e7299fc5a63bfa4dd61",
+  "current_queue_home": "docs/evidence/backlog.md#build-order-by-layer",
+  "state": "scheduled_proposal_not_product_implementation",
+  "batches": [
+    [
+      "F0",
+      "Границы и сохранность",
+      [
+        "S02",
+        "S03.boundary",
+        "S03.effects",
+        "S03",
+        "S01"
+      ],
+      "Чужой estate/project и выход из file roots отвергнуты; эффект не объявлен выполненным до исполнения; ввод не теряется.",
+      "S03.boundary открывает безопасные launch/answer. S03.effects не задерживает эти исправления; он обязателен до автономных внешних эффектов."
+    ],
+    [
+      "F1",
+      "Детерминированные данные",
+      [
+        "M198",
+        "S14",
+        "S12",
+        "M109"
+      ],
+      "Повторный rebuild даёт ту же revision; частичный отказ чтения не выглядит пустой памятью; настройки и восстановление переживают сбой.",
+      "M191 может начать безопасный preview после S14; полный backup не нужен для первого read-only preview."
+    ],
+    [
+      "F2",
+      "Исполнение, блокировки и цикл",
+      [
+        "S04",
+        "S06",
+        "S05",
+        "S15",
+        "M103",
+        "S10"
+      ],
+      "Запуск существующей задачи имеет lease и idempotency; все blockers учитываются; answer доставлен, а не только записан; безопасная трасса содержит причинность.",
+      "S10 выполняется до зависимых schema/API: общий словарь и Run-кардинальности, без ожидания полного ребрендинга."
+    ],
+    [
+      "F3",
+      "Наблюдаемые прогоны и Board",
+      [
+        "M177",
+        "M178",
+        "M179",
+        "M180",
+        "M181",
+        "M155",
+        "M188",
+        "M149",
+        "M151",
+        "M152.commit",
+        "M152.continue",
+        "M152",
+        "M168"
+      ],
+      "Версии планов, прогоны, шаги и checkpoints; claim отделён от observation. Ответ и адресное продолжение реализуются отдельно от полного M188.",
+      "M149/M151 и M152.commit не ждут M188. M152.continue ждёт launch+ack; M153 читает commit. M168 — foundation checker, а не настройка CEO."
+    ],
+    [
+      "F4",
+      "Первые полезные представления",
+      [
+        "M191",
+        "M189",
+        "M190",
+        "M173",
+        "M185",
+        "M186",
+        "S13"
+      ],
+      "Память и состояние чтения видны; четыре графа различимы; нужное участие не теряется среди прочитанных событий.",
+      "Read-only M191 после S14; M186 после собственных cycle receipts и DTO, с unknown для ещё не подключённых detectors. Все графы ждут их конкретных producers."
+    ],
+    [
+      "F5",
+      "Ретро и безопасная помощь менеджера",
+      [
+        "M182",
+        "M154",
+        "M153",
+        "M158",
+        "M157",
+        "M184",
+        "M183.local",
+        "M183.upstream",
+        "M166",
+        "M167",
+        "M176",
+        "M169",
+        "M171",
+        "M194",
+        "M175"
+      ],
+      "Категории и устойчивые occurrence ids; criticality/checker до auto-settlement; manager binding сменяем без потери истории и права.",
+      "M176 до активации manager. M183.upstream имеет отдельный внешний privacy/endpoint gate; локальная ретро работает без него."
+    ],
+    [
+      "F6",
+      "Проверенная поставка и командный пилот",
+      [
+        "S07",
+        "S08",
+        "S09"
+      ],
+      "Чистый checkout → проверенный артефакт; один полный observe-to-verify loop с двумя исполнителями; человек/роль/проект не смешиваются.",
+      "Подготовка provenance/CI начинается рано; финальный допуск выпуска ждёт F0 и безопасное исполнение, пилот — целый цикл."
+    ],
+    [
+      "F7",
+      "Поддерживающие улучшения",
+      [
+        "M98",
+        "M102",
+        "M105",
+        "M187",
+        "S11"
+      ],
+      "Извлечение по границам ответственности; обновление readers по причине; ограниченный scrollback; понятная плотность и PassionCode.ai → Fabric.",
+      "M98 не становится общим стопором из-за длины файла. Локальное исправление нужного шва входит в его foundation-пакет. RU/EN действует в каждой итерации."
+    ],
+    [
+      "DONE",
+      "Уже поставленные основания",
+      [
+        "M97",
+        "M196",
+        "M197",
+        "M195"
+      ],
+      "Сохранить доставленные изменения. M195 требует конкретного follow-up по S03, а не повторной разработки всей redaction.",
+      "Это receipts и ограничения новых изменений, не очередь повторной реализации."
+    ]
+  ],
+  "execution_nodes": [
+    {
+      "id": "S01",
+      "parent_milestone": "S01",
+      "depends_on": []
+    },
+    {
+      "id": "S02",
+      "parent_milestone": "S02",
+      "depends_on": []
+    },
+    {
+      "id": "S03",
+      "parent_milestone": "S03",
+      "depends_on": [
+        "S03.boundary",
+        "S03.effects"
+      ]
+    },
+    {
+      "id": "S04",
+      "parent_milestone": "S04",
+      "depends_on": [
+        "S02",
+        "S03.boundary"
+      ]
+    },
+    {
+      "id": "S05",
+      "parent_milestone": "S05",
+      "depends_on": [
+        "S02"
+      ]
+    },
+    {
+      "id": "S06",
+      "parent_milestone": "S06",
+      "depends_on": [
+        "S02",
+        "S03.boundary"
+      ]
+    },
+    {
+      "id": "S07",
+      "parent_milestone": "S07",
+      "depends_on": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "M198",
+        "S14",
+        "S12"
+      ]
+    },
+    {
+      "id": "S08",
+      "parent_milestone": "S08",
+      "depends_on": [
+        "S04",
+        "S05",
+        "M152",
+        "M188",
+        "M176"
+      ]
+    },
+    {
+      "id": "S09",
+      "parent_milestone": "S09",
+      "depends_on": [
+        "S07",
+        "S08",
+        "M185"
+      ]
+    },
+    {
+      "id": "S10",
+      "parent_milestone": "S10",
+      "depends_on": []
+    },
+    {
+      "id": "S11",
+      "parent_milestone": "S11",
+      "depends_on": []
+    },
+    {
+      "id": "S12",
+      "parent_milestone": "S12",
+      "depends_on": [
+        "S02",
+        "M198",
+        "S14"
+      ]
+    },
+    {
+      "id": "S13",
+      "parent_milestone": "S13",
+      "depends_on": [
+        "S01",
+        "S14"
+      ]
+    },
+    {
+      "id": "M103",
+      "parent_milestone": "M103",
+      "depends_on": [
+        "S04",
+        "S14"
+      ]
+    },
+    {
+      "id": "M195",
+      "parent_milestone": "M195",
+      "depends_on": []
+    },
+    {
+      "id": "M196",
+      "parent_milestone": "M196",
+      "depends_on": []
+    },
+    {
+      "id": "M197",
+      "parent_milestone": "M197",
+      "depends_on": []
+    },
+    {
+      "id": "M97",
+      "parent_milestone": "M97",
+      "depends_on": []
+    },
+    {
+      "id": "M198",
+      "parent_milestone": "M198",
+      "depends_on": [
+        "M97"
+      ]
+    },
+    {
+      "id": "M109",
+      "parent_milestone": "M109",
+      "depends_on": []
+    },
+    {
+      "id": "M98",
+      "parent_milestone": "M98",
+      "depends_on": [
+        "M109",
+        "S02"
+      ]
+    },
+    {
+      "id": "M102",
+      "parent_milestone": "M102",
+      "depends_on": [
+        "S14"
+      ]
+    },
+    {
+      "id": "M105",
+      "parent_milestone": "M105",
+      "depends_on": []
+    },
+    {
+      "id": "M177",
+      "parent_milestone": "M177",
+      "depends_on": [
+        "S02",
+        "S10",
+        "S14"
+      ]
+    },
+    {
+      "id": "M155",
+      "parent_milestone": "M155",
+      "depends_on": [
+        "M177",
+        "S03"
+      ]
+    },
+    {
+      "id": "M178",
+      "parent_milestone": "M178",
+      "depends_on": [
+        "M177"
+      ]
+    },
+    {
+      "id": "M179",
+      "parent_milestone": "M179",
+      "depends_on": [
+        "M178",
+        "S04"
+      ]
+    },
+    {
+      "id": "M180",
+      "parent_milestone": "M180",
+      "depends_on": [
+        "M179"
+      ]
+    },
+    {
+      "id": "M181",
+      "parent_milestone": "M181",
+      "depends_on": [
+        "M180"
+      ]
+    },
+    {
+      "id": "M188",
+      "parent_milestone": "M188",
+      "depends_on": [
+        "M198",
+        "M177",
+        "S04",
+        "S10"
+      ]
+    },
+    {
+      "id": "M149",
+      "parent_milestone": "M149",
+      "depends_on": [
+        "S06",
+        "M177"
+      ]
+    },
+    {
+      "id": "M151",
+      "parent_milestone": "M151",
+      "depends_on": [
+        "M149"
+      ]
+    },
+    {
+      "id": "M152",
+      "parent_milestone": "M152",
+      "depends_on": [
+        "M152.commit",
+        "M152.continue"
+      ]
+    },
+    {
+      "id": "M153",
+      "parent_milestone": "M153",
+      "depends_on": [
+        "M152.commit"
+      ]
+    },
+    {
+      "id": "M154",
+      "parent_milestone": "M154",
+      "depends_on": [
+        "M182"
+      ]
+    },
+    {
+      "id": "M182",
+      "parent_milestone": "M182",
+      "depends_on": [
+        "S10"
+      ]
+    },
+    {
+      "id": "M183.local",
+      "depends_on": [
+        "M182",
+        "S02",
+        "S14"
+      ],
+      "scope": "Локальный default-on intake без сети",
+      "parent_milestone": "M183"
+    },
+    {
+      "id": "M183.upstream",
+      "depends_on": [
+        "M183.local",
+        "S03",
+        "S10"
+      ],
+      "scope": "Внешний transport только после privacy/endpoint gate",
+      "external_gates": [
+        "configured real endpoint",
+        "reviewed payload and metadata/retention contract",
+        "preview digest and deletion/optout tests"
+      ],
+      "parent_milestone": "M183"
+    },
+    {
+      "id": "M184",
+      "parent_milestone": "M184",
+      "depends_on": [
+        "M182",
+        "M154",
+        "M153",
+        "M151",
+        "S15"
+      ]
+    },
+    {
+      "id": "M173",
+      "parent_milestone": "M173",
+      "depends_on": [
+        "M152",
+        "S14"
+      ]
+    },
+    {
+      "id": "M157",
+      "parent_milestone": "M157",
+      "depends_on": [
+        "M152",
+        "M158",
+        "M168"
+      ]
+    },
+    {
+      "id": "M158",
+      "parent_milestone": "M158",
+      "depends_on": [
+        "M152"
+      ]
+    },
+    {
+      "id": "M185",
+      "parent_milestone": "M185",
+      "depends_on": [
+        "M151",
+        "S14"
+      ]
+    },
+    {
+      "id": "M186",
+      "parent_milestone": "M186",
+      "depends_on": [
+        "S15",
+        "S14"
+      ]
+    },
+    {
+      "id": "M187",
+      "parent_milestone": "M187",
+      "depends_on": []
+    },
+    {
+      "id": "M189",
+      "parent_milestone": "M189",
+      "depends_on": [
+        "M188",
+        "M178",
+        "S14"
+      ]
+    },
+    {
+      "id": "M190",
+      "parent_milestone": "M190",
+      "depends_on": [
+        "M188",
+        "M152",
+        "S14"
+      ]
+    },
+    {
+      "id": "M191",
+      "parent_milestone": "M191",
+      "depends_on": [
+        "S14"
+      ]
+    },
+    {
+      "id": "S14",
+      "parent_milestone": "S14",
+      "depends_on": [
+        "S02"
+      ]
+    },
+    {
+      "id": "S15",
+      "parent_milestone": "S15",
+      "depends_on": [
+        "S04",
+        "S14"
+      ]
+    },
+    {
+      "id": "M166",
+      "parent_milestone": "M166",
+      "depends_on": [
+        "M153",
+        "M158"
+      ]
+    },
+    {
+      "id": "M167",
+      "parent_milestone": "M167",
+      "depends_on": [
+        "M166"
+      ]
+    },
+    {
+      "id": "M168",
+      "parent_milestone": "M168",
+      "depends_on": [
+        "S06"
+      ]
+    },
+    {
+      "id": "M169",
+      "parent_milestone": "M169",
+      "depends_on": [
+        "M167",
+        "S04"
+      ]
+    },
+    {
+      "id": "M171",
+      "parent_milestone": "M171",
+      "depends_on": [
+        "M167",
+        "S05"
+      ]
+    },
+    {
+      "id": "M176",
+      "parent_milestone": "M176",
+      "depends_on": [
+        "S05",
+        "M155",
+        "M168"
+      ]
+    },
+    {
+      "id": "M175",
+      "parent_milestone": "M175",
+      "depends_on": [
+        "M169",
+        "M171",
+        "M176",
+        "M194"
+      ]
+    },
+    {
+      "id": "M194",
+      "parent_milestone": "M194",
+      "depends_on": [
+        "M166",
+        "M168",
+        "M176",
+        "M155",
+        "M181",
+        "M152",
+        "M188",
+        "M103",
+        "S03",
+        "S04",
+        "S15"
+      ]
+    },
+    {
+      "id": "S03.boundary",
+      "parent_milestone": "S03",
+      "depends_on": [
+        "S02"
+      ],
+      "scope": "Scope, floor, revision and atomic grant reservation; denial before side effect; per-command authority. Shared prerequisite for launch and answer."
+    },
+    {
+      "id": "S03.effects",
+      "parent_milestone": "S03",
+      "depends_on": [
+        "S03.boundary"
+      ],
+      "scope": "Dispatch, durable attempt/outcome receipts, reconcile unknown, sink redaction. Required before claims of completed external effects."
+    },
+    {
+      "id": "M152.commit",
+      "parent_milestone": "M152",
+      "depends_on": [
+        "M151",
+        "S06"
+      ],
+      "scope": "Atomic answer-to-decision and blocker-set update with current task ids; no full plan-step schema required."
+    },
+    {
+      "id": "M152.continue",
+      "parent_milestone": "M152",
+      "depends_on": [
+        "M152.commit",
+        "S04",
+        "M103"
+      ],
+      "scope": "Addressed continuation of the existing task/session with ack and retry. Attach richer Run/step lineage when M188 exists."
+    }
+  ],
+  "mapping": [
+    {
+      "s_id": "S01",
+      "canonical_milestones": [
+        "M143",
+        "M111",
+        "M110"
+      ],
+      "existing_carryovers": [
+        "CO-089",
+        "CO-107"
+      ],
+      "filing_disposition": "Текущие регрессии: hooks, editor inflight-save, task-bound draft, empty board и pending create. M143 — task page; M111 — сохранение рабочего контекста; CO-089 — уже собранные UX-дефекты. Не переобъявлять весь M111/M143 неотгруженным."
+    },
+    {
+      "s_id": "S02",
+      "canonical_milestones": [
+        "M1",
+        "M109",
+        "M13"
+      ],
+      "existing_carryovers": [
+        "CO-071",
+        "CO-091",
+        "CO-092",
+        "CO-107"
+      ],
+      "filing_disposition": "Scope writer/query/filesystem и scheduler. CO-071 владеет identity invariants, CO-091 — per-window API, CO-092 — ORG1/local assumptions. Закрыть только проверенный локальный scope slice; это не завершение всей auth/multi-machine работы."
+    },
+    {
+      "s_id": "S03",
+      "canonical_milestones": [
+        "M3",
+        "M137",
+        "M138",
+        "M139",
+        "M140",
+        "M195"
+      ],
+      "existing_carryovers": [
+        "CO-059",
+        "CO-061",
+        "CO-107"
+      ],
+      "filing_disposition": "Коррекция существующих floor/grant/effect receipts и всех redaction sinks. CO-059/061 ограничить этим scope, не переоткрывать выбор policy engine CO-079, уже решённый ADR0023. M195 shipped с отдельной коррекцией, не новое выполнение S1."
+    },
+    {
+      "s_id": "S04",
+      "canonical_milestones": [
+        "M13",
+        "M94",
+        "M132",
+        "M146",
+        "M90",
+        "M92"
+      ],
+      "existing_carryovers": [
+        "CO-043",
+        "CO-061",
+        "CO-063",
+        "CO-107"
+      ],
+      "filing_disposition": "Admission/start-existing-task, all-predecessor join, quota unknown, launch identity. Использовать уже принятый durable execution contract; CO-077 не принимать заново. M90/M92 — related dependency/needs requirements, не новая сущность графа."
+    },
+    {
+      "s_id": "S05",
+      "canonical_milestones": [
+        "M81",
+        "M176"
+      ],
+      "existing_carryovers": [
+        "CO-078",
+        "CO-060"
+      ],
+      "filing_disposition": "M81 — существующий диагностический log milestone, M176 — потребитель trajectory. Добавить attempt/outcome trace как подзадачу, не новый CO о том же отсутствии observability. CO078 внутренний envelope частично уже закрыт ADR0027; external mapping остаётся отдельным долгом."
+    },
+    {
+      "s_id": "S06",
+      "canonical_milestones": [
+        "M148",
+        "M152",
+        "M143"
+      ],
+      "existing_carryovers": [
+        "CO-107"
+      ],
+      "filing_disposition": "Исправление blockers-set и атомарная answer/promote command. Новая дельта CO108 ссылается на M148 regression и M152 acceptance. CO051 про внешний work-producing-agent store лишь смежный, не владелец данного SQL-дефекта."
+    },
+    {
+      "s_id": "S07",
+      "canonical_milestones": [
+        "M110",
+        "M100",
+        "M196"
+      ],
+      "existing_carryovers": [
+        "CO-082",
+        "CO-088",
+        "CO-107"
+      ],
+      "filing_disposition": "CI, artifact identity, packaged smoke и recovery — продолжение M110/CO107 REL01/02; install path принадлежит CO088. Подготовку manifest/CI делать рано, activation release после нужных safety/replay gates."
+    },
+    {
+      "s_id": "S08",
+      "canonical_milestones": [
+        "M176",
+        "M129"
+      ],
+      "existing_carryovers": [
+        "CO-074",
+        "CO-060",
+        "CO-082"
+      ],
+      "filing_disposition": "Основной owner — CO074 runner conformance и M176 eval. M129 может дать выбранный production-signal pilot, но не является условием всех controlled loop fixtures. Не создавать новый CO «any agent недоказан»."
+    },
+    {
+      "s_id": "S09",
+      "canonical_milestones": [
+        "M38",
+        "M39"
+      ],
+      "existing_carryovers": [
+        "CO-071",
+        "CO-073",
+        "CO-088",
+        "CO-092"
+      ],
+      "filing_disposition": "Уже принятые identity/member milestones. Scope/authorization — первая независимая часть, live team launch ждёт нужных release/privacy gates. Не дублировать M38 новым S-milestone в каноническом реестре."
+    },
+    {
+      "s_id": "S10",
+      "canonical_milestones": [
+        "M96",
+        "M112",
+        "M114",
+        "M115"
+      ],
+      "existing_carryovers": [
+        "CO-107"
+      ],
+      "filing_disposition": "Living map, точные anchors и implemented/verified/installed/observed — delta filing. ADR0044 (зарезервирован parent) только foundation delivery order и требования living map/retro. Не принимать через него новые Run/privacy/manager решения."
+    },
+    {
+      "s_id": "S11",
+      "canonical_milestones": [
+        "M82",
+        "M116",
+        "M117"
+      ],
+      "existing_carryovers": [],
+      "filing_disposition": "Новая брендовая иерархия подтверждена владельцем; source-of-truth propagation в brand/docs/assets. CO028 resolved касается product family, не равен решению новой роли Fabric; не переоткрывать его автоматически. Изменение ADR0018 оформлять отдельным superseding brand ADR, не ADR0044 о порядке."
+    },
+    {
+      "s_id": "S12",
+      "canonical_milestones": [
+        "M1",
+        "M118",
+        "M198"
+      ],
+      "existing_carryovers": [
+        "CO-081",
+        "CO-082",
+        "CO-107"
+      ],
+      "filing_disposition": "Import/mirror declared coverage и recovery. M198 сохраняется самостоятельным existing milestone; не создавать CO108 подпункт с новым id «rebuild revision» как независимую дублирующую работу."
+    },
+    {
+      "s_id": "S13",
+      "canonical_milestones": [
+        "M117",
+        "M120",
+        "M121",
+        "M141",
+        "M142",
+        "M144",
+        "M145"
+      ],
+      "existing_carryovers": [
+        "CO-089",
+        "CO-107"
+      ],
+      "filing_disposition": "Исправления уже shipped readers/components; сохранять находки PLAN04–08/UV по отдельным acceptance, M187 density не подменяет их. Для поиска owner M141, для scope harness M145, для cap M120."
+    },
+    {
+      "s_id": "S14",
+      "canonical_milestones": [
+        "M49",
+        "M102",
+        "M106",
+        "M108",
+        "M109",
+        "M111",
+        "M120",
+        "M133",
+        "M135"
+      ],
+      "existing_carryovers": [
+        "CO-089",
+        "CO-107"
+      ],
+      "filing_disposition": "Единый read/error contract и локальная durability. M49/135 — pack/overview; M111/120/133 — local state. Не ждать full trace S05 и не создавать отдельный domain store preferences."
+    },
+    {
+      "s_id": "S15",
+      "canonical_milestones": [
+        "M13",
+        "M153",
+        "M184",
+        "M186",
+        "M194"
+      ],
+      "existing_carryovers": [
+        "CO-020",
+        "CO-043",
+        "CO-097"
+      ],
+      "filing_disposition": "Общий cycle foundation — часть уже записанных scheduler/catch-up/manager wake требований. Parent record CO108 связывает producers и reader M186. Не новая самостоятельная orchestrator truth или повторный выбор engine CO077."
+    }
+  ],
+  "reviewed_order_issues": [
+    {
+      "id": "ORDER-01",
+      "kind": "not_a_priority_order",
+      "target": [
+        "verification.topological_order"
+      ],
+      "claim": "Алфавитный topological sort начинает с M105/M109/M187 и уже shipped M195/M196/M197/M97. Это доказательство DAG, не порядок вложения рабочего времени.",
+      "suggestion": "Не публиковать topological_order как ranked queue. Отделить shipped prerequisites и сортировать доступные пакеты после evidence; приоритет foundation задан владельцем, а не названием низкого слоя."
+    },
+    {
+      "id": "ORDER-02",
+      "kind": "overbroad_dependency",
+      "target": [
+        "M177",
+        "S05"
+      ],
+      "claim": "M177 cheap time/vocabulary/trust/protocol fixes ждут весь diagnostic attempt/outcome trace S05; транзитивно это задерживает heartbeat и вопросный путь.",
+      "suggestion": "Для M177 оставить только необходимые schema/protocol/read sources; S05 сохранить обязательным для M176 trajectory eval и полноты call history."
+    },
+    {
+      "id": "ORDER-03",
+      "kind": "overbroad_dependency",
+      "target": [
+        "M152",
+        "M188",
+        "M153"
+      ],
+      "claim": "Первый атомарный ответ на Board вопрос и гигиена вопросов ждут полного M188 с plan revisions/steps/checkpoints, хотя task_id/session_id уже существуют.",
+      "suggestion": "Разделить M152.commit (S06 + Board) и addressed continuation по существующей паре task/session; M188 подключить как последующее представление/дополнение. M153 withdraw/dedup не ждать всех graph/progress producers."
+    },
+    {
+      "id": "ORDER-04",
+      "kind": "overbroad_dependency",
+      "target": [
+        "S06",
+        "S03",
+        "S09",
+        "S08"
+      ],
+      "claim": "Correction blockers/answer не требует завершить весь external effect dispatch. Аналогично разработка owner/member auth не требует второго runner pilot.",
+      "suggestion": "Сохранить shared scope/revision/floor validation gates и отделить independent implementation от activation. Full S03 обязателен для разрешающих внешние эффекты операций; full S08 обязателен для обещания agent portability, не для написания identity fixture."
+    },
+    {
+      "id": "ORDER-05",
+      "kind": "delivery_preparation_vs_activation",
+      "target": [
+        "S07",
+        "M198",
+        "S14",
+        "S12"
+      ],
+      "claim": "S07 отнесён к H и может активироваться по JSON после S01–04 без M198/S14, хотя обещает upgrade/recovery. Создание CI и build manifest, наоборот, не требует закончить все safety fixes.",
+      "suggestion": "Scaffold CI/manifest вести рано. Release gate должен включать исправления известных затронутых pack/read/replay invariants и restore acceptance для соответствующей сборки; не заявлять upgrade parity с исключённой config_revision."
+    },
+    {
+      "id": "ORDER-06",
+      "kind": "overbroad_dependency",
+      "target": [
+        "M186",
+        "M180"
+      ],
+      "claim": "Чтение собственных cycle receipts ждёт полной taxonomy agent failures M180.",
+      "suggestion": "Зависеть от S15 и общей enum/DTO taxonomy, а не от готовности всех detectors M179/180. Обогащение источниками может поступить позднее с unknown для отсутствующей telemetry."
+    },
+    {
+      "id": "ORDER-07",
+      "kind": "canonical_status_overlap",
+      "target": [
+        "M103",
+        "M195",
+        "M97",
+        "M196"
+      ],
+      "claim": "Canonical M103 shipped, merged M103 proposed: текущая карточка является correction acknowledgement boundary, а не реализацией с нуля. M195 уже правильно назван shipped_with_followup; M97/M196 повторять нельзя.",
+      "suggestion": "M103 тоже показать shipped_with_followup/reopened acceptance с точным scope и источником новой пробы. Не закрывать/переоткрывать resolved CO на основании общего совпадения слов."
+    },
+    {
+      "id": "ORDER-08",
+      "kind": "priority_doctrine_drift",
+      "target": [
+        "docs/evidence/backlog.md:4",
+        "docs/evidence/backlog.md:46"
+      ],
+      "claim": "Backlog одновременно содержит impact×evidence÷cost, линейный order и owner foundation-first; prioritisation.md использует I затем C×E. Читатель получает несколько разных методов.",
+      "suggestion": "ADR0044 фиксирует owner-chosen foundation delivery order и relation к finding priority, не пересчитывает историю. Scoring если нужен отдельно I/C/E после research; ненаблюдаемые conversion/retention gains не объявлять I4."
+    }
+  ],
+  "review_note": "Original 58-node snapshot remains immutable. This retained review splits S03 and M152, narrows overbroad dependencies, and strengthens the release gate. No new domain contract is accepted by this split.",
+  "checks": {
+    "nodes": 62,
+    "edges": 119,
+    "acyclic": true,
+    "all_references_resolve": true,
+    "s_subitems": 15
+  }
+}

@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fabric — схема продукта, архитектуры и процессов</title>
+<style>
+  :root{
+    --bg:#fbfbfa; --panel:#fff; --ink:#1c1b19; --dim:#6b6862; --line:#e0ddd6;
+    --accent:#2f6f4e; --accent-soft:#e8f1ec;
+    --warn:#8a6516; --warn-soft:#fdf4e3;
+    --absent:#8d8a84; --absent-soft:#f2f1ee;
+    --danger:#9b2f2f; --danger-soft:#fbecec;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#16150f; --panel:#1e1d18; --ink:#eae7df; --dim:#9d998f; --line:#33312a;
+      --accent:#7fc0a0; --accent-soft:#1c2c24; --warn:#d7b477; --warn-soft:#2c2618;
+      --absent:#7c786f; --absent-soft:#242219; --danger:#e08a8a; --danger-soft:#2e1c1c; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.65 ui-serif,Georgia,"Iowan Old Style",serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:56px 24px 96px}
+  h1{font-size:2.1rem;line-height:1.2;margin:0 0 .4em;letter-spacing:-.02em}
+  h2{font-size:1.35rem;margin:3.2em 0 .2em;letter-spacing:-.01em}
+  h2 .n{color:var(--dim);font-variant-numeric:tabular-nums;margin-right:.5em;font-weight:400}
+  h3{font-size:1.02rem;margin:2em 0 .3em}
+  p{margin:.7em 0}
+  .lede{font-size:1.08rem;color:var(--dim);max-width:64ch}
+  .sub{color:var(--dim);font-size:.92rem;margin:.2em 0 1.4em;max-width:74ch}
+  code,.m{font-family:var(--mono);font-size:.86em;background:var(--absent-soft);
+    padding:.1em .35em;border-radius:3px}
+  a{color:var(--accent)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:22px 24px;margin:1.2em 0}
+  .scroll{overflow-x:auto}
+  svg{display:block;max-width:100%;height:auto}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;
+    font:13px/1.4 var(--mono);color:var(--dim);margin:1.4em 0 0}
+  .chip{display:inline-flex;align-items:center;gap:7px}
+  .sw{width:26px;height:13px;border-radius:3px;display:inline-block}
+  .sw.dec{background:var(--accent-soft);border:1.5px solid var(--accent)}
+  .sw.pro{background:var(--warn-soft);border:1.5px dashed var(--warn)}
+  .sw.abs{background:var(--absent-soft);border:1.5px dotted var(--absent)}
+  table{border-collapse:collapse;width:100%;font-size:.93rem;margin:.8em 0}
+  th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+  th{font:600 .8rem/1.3 var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--dim)}
+  .grid{display:grid;gap:14px}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+  .card{border:1px solid var(--line);border-radius:9px;padding:15px 17px;background:var(--panel)}
+  .card h4{margin:0 0 .35em;font-size:.95rem}
+  .card p{margin:.3em 0;font-size:.9rem;color:var(--dim)}
+  .tag{display:inline-block;font:600 10.5px/1 var(--mono);letter-spacing:.06em;
+    padding:4px 7px;border-radius:4px;text-transform:uppercase;vertical-align:2px}
+  .t-dec{background:var(--accent-soft);color:var(--accent)}
+  .t-pro{background:var(--warn-soft);color:var(--warn)}
+  .t-abs{background:var(--absent-soft);color:var(--absent)}
+  .t-risk{background:var(--danger-soft);color:var(--danger)}
+  .bar{display:flex;height:34px;border-radius:6px;overflow:hidden;border:1px solid var(--line);margin:.6em 0}
+  .bar span{display:flex;align-items:center;justify-content:center;
+    font:600 12px/1 var(--mono);color:#fff}
+  .note{border-left:3px solid var(--accent);background:var(--accent-soft);
+    padding:12px 16px;border-radius:0 8px 8px 0;margin:1em 0;font-size:.94rem}
+  .note.w{border-color:var(--warn);background:var(--warn-soft)}
+  .note.r{border-color:var(--danger);background:var(--danger-soft)}
+  .foot{margin-top:4em;padding-top:1.4em;border-top:1px solid var(--line);
+    color:var(--dim);font-size:.86rem}
+  .kv{font:13px/1.7 var(--mono);color:var(--dim)}
+  .kv b{color:var(--ink);font-weight:600}
+</style>
+</head>
+<body><div class="wrap">
+
+<h1>Fabric — как я вижу продукт, архитектуру и процессы</h1>
+<p class="lede">Производный документ, собранный 26 августа 2026 из того, что записано в репозитории:
+одиннадцати ADR, реестра, леджера и трёх архитектурных документов. Где файлы расходятся с этой
+страницей — правы файлы.</p>
+
+<div class="note w"><b>Поправка 27 августа 2026.</b> Онтология ниже сохранена как снимок
+предыдущей модели. ADR-0013 заменил иерархию: теперь <b>Project — постоянный workspace</b>,
+внутри которого живут PM, агенты, цели, routines, runs, connections и память; расписанием
+владеет Routine. Актуальные схемы: <a href="architecture/project-workspaces.md">project-workspaces.md</a>
+и <a href="../schemas/project-blueprint.schema.json">project-blueprint.schema.json</a>.</div>
+
+<div class="legend">
+  <span class="chip"><i class="sw dec"></i> решено — есть ADR</span>
+  <span class="chip"><i class="sw pro"></i> предложено — документ есть, строка леджера открыта</span>
+  <span class="chip"><i class="sw abs"></i> не существует — ни схемы, ни кода</span>
+</div>
+
+<h2><span class="n">1</span>Зачем это вообще</h2>
+<p class="sub">Первым актом проекта было не проектирование, а измерение. 16 августа, 40 доменов:</p>
+<div class="bar">
+  <span style="flex:15;background:#2f6f4e">15 живых</span>
+  <span style="flex:8;background:#8d8a84">8 пустых зон</span>
+  <span style="flex:7;background:#9b2f2f">7 битых</span>
+  <span style="flex:5;background:#6b6862">5 без зоны</span>
+  <span style="flex:4;background:#8a6516">4 mail</span>
+  <span style="flex:1;background:#4a4740">1</span>
+</div>
+<p>Семь доменов отвечают ошибкой на <b>16 075 зафиксированных визитов</b>. Самое посещаемое
+свойство эстейта отдаёт <span class="m">Application Error</span> от Heroku. Ни одно из этих
+состояний никто не выбирал — <b>не хватало не функции, а наблюдателя</b>. Это и есть продукт.</p>
+
+<h2><span class="n">2</span>Онтология — то, из чего всё собрано</h2>
+<p class="sub">Термины из <code>CONTEXT.md</code>. Самое нагруженное различие — <b>ассет ≠ проект</b>:
+слипшись, они делают «закрыто» двусмысленным между «продукт выключен» и «работа закончена».</p>
+<div class="panel scroll">
+<svg viewBox="0 0 1000 430" role="img" aria-label="Схема объектной модели">
+  <defs>
+    <marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="currentColor"/></marker>
+  </defs>
+  <g font-family="ui-monospace,monospace" font-size="12.5" color="currentColor">
+    <!-- decided boxes -->
+    <g fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5">
+      <rect x="20"  y="30"  width="150" height="52" rx="7"/>
+      <rect x="20"  y="130" width="150" height="52" rx="7"/>
+      <rect x="240" y="30"  width="150" height="52" rx="7"/>
+      <rect x="240" y="130" width="150" height="52" rx="7"/>
+      <rect x="460" y="130" width="150" height="52" rx="7"/>
+      <rect x="460" y="30"  width="150" height="52" rx="7"/>
+      <rect x="240" y="240" width="150" height="52" rx="7"/>
+      <rect x="20"  y="240" width="150" height="52" rx="7"/>
+      <rect x="460" y="240" width="150" height="52" rx="7"/>
+      <rect x="680" y="30"  width="150" height="52" rx="7"/>
+      <rect x="680" y="130" width="150" height="52" rx="7"/>
+    </g>
+    <!-- proposed -->
+    <g fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.5" stroke-dasharray="5 3">
+      <rect x="680" y="240" width="150" height="52" rx="7"/>
+      <rect x="680" y="340" width="150" height="52" rx="7"/>
+    </g>
+    <!-- absent -->
+    <g fill="var(--absent-soft)" stroke="var(--absent)" stroke-width="1.5" stroke-dasharray="2 3">
+      <rect x="460" y="340" width="150" height="52" rx="7"/>
+      <rect x="240" y="340" width="150" height="52" rx="7"/>
+    </g>
+    <g fill="var(--ink)" text-anchor="middle">
+      <text x="95"  y="52">asset</text>   <text x="95"  y="69" fill="var(--dim)" font-size="10.5">домен, репо, аккаунт</text>
+      <text x="95"  y="152">project</text><text x="95"  y="169" fill="var(--dim)" font-size="10.5">владелец, срок, бюджет</text>
+      <text x="315" y="52">goal</text>    <text x="315" y="69" fill="var(--dim)" font-size="10.5">+ autonomy_level</text>
+      <text x="315" y="152">manager</text><text x="315" y="169" fill="var(--dim)" font-size="10.5">ровно один на проект</text>
+      <text x="535" y="152">node</text>   <text x="535" y="169" fill="var(--dim)" font-size="10.5">вход · результат · агент</text>
+      <text x="535" y="52">CEO</text>     <text x="535" y="69" fill="var(--dim)" font-size="10.5">один на эстейт, без узлов</text>
+      <text x="315" y="262">pipeline</text><text x="315" y="279" fill="var(--dim)" font-size="10.5">версионируемая запись</text>
+      <text x="95"  y="262">department</text><text x="95" y="279" fill="var(--dim)" font-size="10.5">инструкции + скилы</text>
+      <text x="535" y="262">agent</text>  <text x="535" y="279" fill="var(--dim)" font-size="10.5">роль · терминал · узел</text>
+      <text x="755" y="52">observation</text><text x="755" y="69" fill="var(--dim)" font-size="10.5">факт · источник · время</text>
+      <text x="755" y="152">decision</text><text x="755" y="169" fill="var(--dim)" font-size="10.5">append-only</text>
+      <text x="755" y="262">proposal</text><text x="755" y="279" fill="var(--warn)" font-size="10.5">CO-052 — нет в схеме</text>
+      <text x="755" y="362">capability</text><text x="755" y="379" fill="var(--warn)" font-size="10.5">+ provider · binding · bundle</text>
+      <text x="535" y="362">grant</text> <text x="535" y="379" fill="var(--absent)" font-size="10.5">именованный, истекающий</text>
+      <text x="315" y="362">stage</text> <text x="315" y="379" fill="var(--absent)" font-size="10.5">шаблон узла</text>
+    </g>
+    <g stroke="currentColor" stroke-width="1.3" fill="none" marker-end="url(#a)" opacity=".55">
+      <path d="M95,130 L95,86"/>
+      <path d="M170,156 L240,156"/>
+      <path d="M390,56 L460,56"/>
+      <path d="M315,130 L315,86"/>
+      <path d="M390,156 L460,156"/>
+      <path d="M535,240 L535,186"/>
+      <path d="M170,266 L240,266"/>
+      <path d="M390,266 L460,266"/>
+      <path d="M610,266 L680,266"/>
+      <path d="M680,156 L610,66" />
+    </g>
+    <g fill="var(--dim)" font-size="10.5" text-anchor="middle">
+      <text x="205" y="150">владеет</text>
+      <text x="425" y="50">декомпозирует</text>
+      <text x="425" y="150">строит граф</text>
+      <text x="645" y="260">подаёт</text>
+    </g>
+  </g>
+</svg>
+</div>
+<p><b>Что здесь важно и не очевидно.</b> <span class="m">autonomy_level</span> висит на <b>цели</b>,
+а не на агенте и не на узле — поэтому узел без цели над ним оставляет полу нечего читать. Отсюда же
+ответ на CO-035 в разделе 5. И <b>CEO не держит узлов</b>: он читает эстейт, предлагает цели и нанимает
+менеджера, по одному на проект.</p>
+
+<h2><span class="n">3</span>Три плоскости — и правило между ними</h2>
+<p class="sub">Одно предложение, из которого следует остальное: <b>git — плоскость записи, облако —
+плоскость координации.</b> Факт, который должен пережить, пишется в git и оттуда цитируется.
+Факт о том, кто что делает прямо сейчас, живёт в облаке и истекает.</p>
+<div class="grid g3">
+  <div class="card"><h4>git <span class="tag t-dec">работает</span></h4>
+    <p>Решения, спеки, контракты, декларированный слой. Append-only. <span class="m">registry/*.yaml</span>
+    зеркалит объявленное, чтобы портфельное решение приезжало диффом.</p></div>
+  <div class="card"><h4>Notion <span class="tag t-dec">включено вчера</span></h4>
+    <p>Кто что держит сейчас, доска, cross-repo сигналы. Лиза при этом решается <b>не</b> им, а
+    push'ем git-ref: отказ remote'а по non-fast-forward — настоящий compare-and-swap.</p></div>
+  <div class="card"><h4>Supabase <span class="tag t-abs">нет</span></h4>
+    <p>Postgres + pgvector: реестр, цели, граф, прогоны, наблюдения, эмбеддинги. Наблюдённое
+    живёт только здесь и руками не правится. Схемы пока нет — это M1.</p></div>
+</div>
+<div class="note"><b>Правило, которое держит всё это честным:</b> ни один облачный объект не является
+единственным домом долговечного факта. Всё, что облако о нём знает, — ссылка на git.</div>
+
+<h2><span class="n">4</span>Как рождается агент</h2>
+<p class="sub">Одно решение, из которого следует вся композиция:
+<b>цепочка привязывается к способности, а не к агенту.</b></p>
+<div class="panel scroll">
+<svg viewBox="0 0 1010 260" role="img" aria-label="Компилятор бандла">
+  <defs><marker id="b" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+    <path d="M0,0 L9,4.5 L0,9 z" fill="currentColor"/></marker></defs>
+  <g font-family="ui-monospace,monospace" font-size="12" color="currentColor">
+    <g fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.5" stroke-dasharray="5 3">
+      <rect x="20" y="20" width="180" height="44" rx="7"/>
+      <rect x="20" y="82" width="180" height="44" rx="7"/>
+      <rect x="20" y="144" width="180" height="44" rx="7"/>
+      <rect x="20" y="206" width="180" height="44" rx="7"/>
+      <rect x="360" y="90" width="200" height="80" rx="9"/>
+    </g>
+    <g fill="var(--ink)" text-anchor="middle">
+      <text x="110" y="47">stage — департамент, скилы, гейт</text>
+      <text x="110" y="109">включённые провайдеры</text>
+      <text x="110" y="171">словарь способностей</text>
+      <text x="110" y="233">уровень доверия</text>
+      <text x="460" y="125" font-size="14" font-weight="600">КОМПИЛЯТОР</text>
+      <text x="460" y="145">БАНДЛА</text>
+    </g>
+    <g stroke="currentColor" stroke-width="1.3" fill="none" marker-end="url(#b)" opacity=".55">
+      <path d="M200,42 C290,42 290,110 355,120"/>
+      <path d="M200,104 C290,104 300,120 355,127"/>
+      <path d="M200,166 C290,166 300,140 355,134"/>
+      <path d="M200,228 C300,228 300,150 355,141"/>
+      <path d="M560,130 L640,130"/>
+    </g>
+    <g fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5">
+      <rect x="650" y="18" width="330" height="224" rx="9"/>
+    </g>
+    <g fill="var(--ink)">
+      <text x="668" y="44" font-weight="600">&lt;worktree&gt;/.fabric/bundle/</text>
+      <text x="668" y="72">skills/     <tspan fill="var(--dim)">с неймспейсом провайдера</tspan></text>
+      <text x="668" y="98">mcp.json    <tspan fill="var(--dim)">только привязанные серверы</tspan></text>
+      <text x="668" y="124">prompt.md   <tspan fill="var(--dim)">секция на живую способность</tspan></text>
+      <text x="668" y="150">creds.env   <tspan fill="var(--dim)">по хопу, не целиком</tspan></text>
+      <text x="668" y="176">bundle.lock <tspan fill="var(--dim)">хэши всего этого</tspan></text>
+      <text x="668" y="214" fill="var(--dim)" font-size="11">После этого раннер не читает с машины</text>
+      <text x="668" y="230" fill="var(--dim)" font-size="11">ничего — та же защита, что и от чужого репо</text>
+    </g>
+  </g>
+</svg>
+</div>
+<p>Список инструментов и промпт строятся <b>в один проход из одних флагов</b>, поэтому не могут
+разойтись: промпт, описывающий инструмент, которого агенту не дали, — это способ потратить ход на
+вызов несуществующего. Добавить агента — запись в реестр. Заменить на дешёвого — смена политики,
+и ни одна цепочка не тронута.</p>
+
+<h2><span class="n">5</span>Как они разговаривают</h2>
+<table>
+  <tr><th>транспорт</th><th>когда</th><th>авторизация</th></tr>
+  <tr><td class="m">inproc</td><td>это наш собственный департамент</td><td>нет — один процесс</td></tr>
+  <tr><td class="m">mcp</td><td>способность, форму которой мы контролируем</td><td>через гейтвей, ключ роли на узел</td></tr>
+  <tr><td class="m">cli</td><td>агент, умеющий только argv/stdin/stdout — Cursor, OpenClaw, Codex</td><td>окружение процесса</td></tr>
+  <tr><td class="m">http</td><td>сервис с ключом и формой запрос/ответ</td><td>заголовок из секрет-стора</td></tr>
+  <tr><td class="m">a2a</td><td><b>равный</b>, чьи внутренности мы намеренно не видим</td><td>карточка агента, авторизация по хопу</td></tr>
+</table>
+<div class="note"><b>Правило в одну строку.</b> MCP соединяет модель со <i>способностью</i>; A2A соединяет
+тебя с <i>равным</i>. Признак того, что выбрал неверно: поверх <span class="m">tools/call</span>
+начинает изобретаться жизненный цикл задачи, канал прогресса и возобновляемый хэндл — значит нужен был A2A.</div>
+
+<h2><span class="n">6</span>Процесс первый — цикл наблюдателя</h2>
+<p class="sub">Это то, ради чего проект существует. Наблюдение никогда не суждение:
+«сайт вернул 503 в 14:22 UTC» — наблюдение, «сайт сломан» — вывод, и он обязан его цитировать.</p>
+<div class="panel scroll">
+<svg viewBox="0 0 1000 200" role="img" aria-label="Цикл наблюдателя">
+  <defs><marker id="c" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+    <path d="M0,0 L9,4.5 L0,9 z" fill="currentColor"/></marker></defs>
+  <g font-family="ui-monospace,monospace" font-size="12" color="currentColor" text-anchor="middle">
+    <g stroke-width="1.5">
+      <rect x="15"  y="55" width="150" height="56" rx="7" fill="var(--absent-soft)" stroke="var(--absent)" stroke-dasharray="2 3"/>
+      <rect x="215" y="55" width="150" height="56" rx="7" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <rect x="415" y="55" width="150" height="56" rx="7" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <rect x="615" y="55" width="150" height="56" rx="7" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <rect x="815" y="55" width="170" height="56" rx="7" fill="var(--accent-soft)" stroke="var(--accent)"/>
+    </g>
+    <g fill="var(--ink)">
+      <text x="90"  y="80">коллекторы</text><text x="90" y="98" font-size="10.5" fill="var(--absent)">M4 — не написаны</text>
+      <text x="290" y="80">observations</text><text x="290" y="98" font-size="10.5" fill="var(--dim)">измерено, с источником</text>
+      <text x="490" y="80">CEO читает</text><text x="490" y="98" font-size="10.5" fill="var(--dim)">эстейт целиком</text>
+      <text x="690" y="80">goal</text><text x="690" y="98" font-size="10.5" fill="var(--dim)">+ уровень автономии</text>
+      <text x="900" y="80">project → граф</text><text x="900" y="98" font-size="10.5" fill="var(--dim)">менеджер, узлы</text>
+    </g>
+    <g stroke="currentColor" stroke-width="1.3" fill="none" marker-end="url(#c)" opacity=".55">
+      <path d="M165,83 L212,83"/><path d="M365,83 L412,83"/>
+      <path d="M565,83 L612,83"/><path d="M765,83 L812,83"/>
+      <path d="M900,111 C900,165 500,175 90,150 L90,116" stroke-dasharray="4 4"/>
+    </g>
+    <text x="500" y="190" fill="var(--dim)" font-size="11">работа меняет эстейт → следующее измерение это видит</text>
+  </g>
+</svg>
+</div>
+
+<h2><span class="n">7</span>Процесс второй — агент, который производит РАБОТУ</h2>
+<p class="sub">Первый такой агент существует и он дальше, чем говорит реестр ролей:
+<span class="m">example-agent</span> (агент другого проекта), 656 коммитов. Ответ на CO-035 — <span class="tag t-pro">предложено</span>.</p>
+<div class="panel scroll">
+<svg viewBox="0 0 1000 310" role="img" aria-label="Цикл агента, производящего работу">
+  <defs><marker id="d" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+    <path d="M0,0 L9,4.5 L0,9 z" fill="currentColor"/></marker></defs>
+  <g font-family="ui-monospace,monospace" font-size="12" color="currentColor" text-anchor="middle">
+    <rect x="15" y="30" width="230" height="120" rx="9" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+    <g fill="var(--ink)">
+      <text x="130" y="56" font-weight="600">seo-advisor</text>
+      <text x="130" y="76" font-size="10.5" fill="var(--dim)">= example-agent</text>
+      <text x="130" y="98" font-size="10.5" fill="var(--dim)">свой воркер, своё расписание,</text>
+      <text x="130" y="114" font-size="10.5" fill="var(--dim)">свой бюджет, свой чекер</text>
+      <text x="130" y="136" font-size="10.5" fill="var(--accent)">и СВОЙ операторский цикл</text>
+    </g>
+    <g stroke-width="1.5">
+      <rect x="330" y="20" width="170" height="52" rx="7" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <rect x="330" y="108" width="170" height="52" rx="7" fill="var(--warn-soft)" stroke="var(--warn)" stroke-dasharray="5 3"/>
+      <rect x="580" y="64" width="160" height="52" rx="7" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <rect x="820" y="64" width="160" height="52" rx="7" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <rect x="330" y="212" width="410" height="62" rx="7" fill="var(--danger-soft)" stroke="var(--danger)" stroke-width="1.5"/>
+    </g>
+    <g fill="var(--ink)">
+      <text x="415" y="42">observations</text><text x="415" y="60" font-size="10.5" fill="var(--dim)">всегда, с измерением</text>
+      <text x="415" y="130">proposal</text><text x="415" y="148" font-size="10.5" fill="var(--warn)">CO-052 — объекта нет</text>
+      <text x="660" y="86">CEO</text><text x="660" y="104" font-size="10.5" fill="var(--dim)">принять · слить · отказать</text>
+      <text x="900" y="86">goal → узлы</text><text x="900" y="104" font-size="10.5" fill="var(--dim)">менеджер проекта</text>
+      <text x="535" y="238" fill="var(--danger)" font-weight="600">CO-051 — две поверхности, один work item</text>
+      <text x="535" y="256" font-size="10.5" fill="var(--danger)">резолюция в одной невидима другой</text><text x="535" y="270" font-size="10.5" fill="var(--danger)">store резолюций должен быть один, и он уже есть — агентский</text>
+    </g>
+    <g stroke="currentColor" stroke-width="1.3" fill="none" marker-end="url(#d)" opacity=".55">
+      <path d="M245,70 C290,70 300,46 327,46"/>
+      <path d="M245,110 C290,110 300,134 327,134"/>
+      <path d="M500,46 C540,46 550,80 577,86"/>
+      <path d="M500,134 C540,134 550,98 577,92"/>
+      <path d="M740,90 L817,90"/>
+    </g>
+    <g stroke="var(--danger)" stroke-width="1.2" fill="none" stroke-dasharray="4 4" opacity=".8">
+      <path d="M130,150 L130,212 L330,240"/><path d="M900,116 C900,180 760,200 740,225"/>
+    </g>
+  </g>
+</svg>
+</div>
+<div class="note w"><b>Почему не узлы и не цели.</b> Узлы отказываются схемой: автономия висит на цели,
+и у узла без цели над ним полу нечего читать. Цели отказываются полномочием: решать, чего компания
+добивается, — работа CEO, а второй авторитет под её именем это не один авторитет. Остаются
+<b>наблюдения плюс предложение</b>, которое их цитирует.</div>
+
+<h2><span class="n">8</span>Пол, уровень автономии и грант</h2>
+<div class="grid g2">
+  <div class="card"><h4>Уровень автономии — поле на цели <span class="tag t-dec">ADR-0004</span></h4>
+    <p><span class="m">safe</span> — агент готовит, оператор выполняет всё, что покидает репозиторий.<br>
+    <span class="m">guarded</span> — свободно, кроме высокого риска.<br>
+    <span class="m">maximum</span> — свободно; останавливает только пол.</p></div>
+  <div class="card"><h4>Пол — в схеме, а не в инструкции <span class="tag t-dec">ADR-0004</span></h4>
+    <p>Тратить деньги, удалять, публиковать наружу под именем оператора. Инструкцию можно обойти
+    рассуждением, ограничение в базе — нет.</p></div>
+  <div class="card"><h4>Вопрос и эскалация <span class="tag t-dec">ADR-0007</span></h4>
+    <p>Фабрика отвечает <b>по умолчанию</b>, эскалация — исключение. Иначе тридцатисекундная операция
+    стоит час, а уровень автономии не решает ничего.</p></div>
+  <div class="card"><h4>Грант — именованное исключение <span class="tag t-abs">нет в схеме</span></h4>
+    <p>«Задеплоить в staging один раз, если линт и весь набор зелёные» — грант. «Просто делай всё» —
+    не грант и не авторизует ничего.</p></div>
+</div>
+
+<h2><span class="n">9</span>Где проект на самом деле</h2>
+<div class="grid g3">
+  <div class="card"><h4>Пройдено</h4><p class="kv"><b>11</b> ADR · <b>40</b> ассетов измерено ·
+    внешние контракты с источниками · координация на Notion, лиза межмашинная</p></div>
+  <div class="card"><h4>Спроектировано, не построено</h4><p class="kv">композиция агентов ·
+    компилятор бандла · транспорты · агенты, производящие работу</p></div>
+  <div class="card"><h4>Не существует</h4><p class="kv">схема БД · коллекторы · CEO · менеджер ·
+    терминалы · <b>37</b> вех M0–M36</p></div>
+</div>
+<p style="margin-top:1.2em"><b>53</b> строки carry-over леджера, <b>39</b> открытых. Две из них — решения,
+которые может принять только человек: <span class="m">CO-002</span> (команда и файл в Figma) и
+<span class="m">CO-038</span> (говорят ли исходящие агенты от лица оператора или от лица продуктов,
+и то, что ни один аккаунт не зарегистрирован как ассет).</p>
+<div class="note r"><b>Ближайшее по цене ошибки, не по громкости:</b> у схемы нет объекта
+<span class="m">proposal</span> и нет автономии по умолчанию на департамент (CO-052). Без первого
+отказ CEO нигде не записан и одна и та же находка приходит вечно; без второго очередь к оператору
+становится продуктом. Оба падают из ответа на CO-035 и нужны <b>до закрытия M1</b>.</div>
+
+<div class="foot">
+Источники: <code>CONTEXT.md</code>, <code>docs/vision.md</code>, <code>docs/adr/0001…0011</code>,
+<code>docs/architecture/{agent-composition,agent-family,work-producing-agents,external-contracts}.md</code>,
+<code>registry/domains.yaml</code>, <code>docs/evidence/{backlog,verification,specs/…carryover}.md</code>.
+Числа посчитаны 2026-08-26, не вспомнены. Страница производная: где она расходится с файлами — правы файлы.
+</div>
+
+</div></body></html>

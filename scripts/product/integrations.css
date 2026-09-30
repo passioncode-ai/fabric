@@ -1,0 +1,35 @@
+/* Standalone integration mockups: Paperclip/app tokens, no new theme values. */
+.ig-module { color: var(--app-ink); font: var(--app-fs-body)/var(--app-lh-body) var(--font-body); min-width: 0; }
+.ig-module *, .ig-module *::before, .ig-module *::after { box-sizing: border-box; }
+.ig-heading { padding-bottom: var(--space-5); display: grid; gap: var(--space-2); }
+.ig-heading p, .ig-heading span { color: var(--app-muted); font-size: var(--app-fs-caption); margin: 0; }
+.ig-heading h2 { font: 600 var(--app-fs-title)/var(--lh-lede) var(--font-display); margin: 0; }
+.ig-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-4); }
+.ig-panel { border: 1px solid var(--app-line); border-radius: var(--app-radius-panel); padding: var(--space-5); background: var(--app-panel); margin-bottom: var(--space-4); min-width: 0; }
+.ig-panel h3 { font-size: var(--fs-card-title); margin: 0 0 var(--space-4); }
+.ig-panel p { margin: var(--space-3) 0; overflow-wrap: anywhere; }
+.ig-panel dl { display: grid; grid-template-columns: minmax(8rem,1fr) minmax(0,2fr); margin: 0 0 var(--space-4); gap: var(--space-2) var(--space-4); font-size: var(--app-fs-caption); }
+.ig-panel dt { color: var(--app-muted); }
+.ig-panel dd { margin: 0; overflow-wrap: anywhere; }
+.ig-module button, .ig-module a[data-integrations-view] { display: inline-flex; align-items: center; justify-content: center; min-height: 2.5rem; padding: var(--space-2) var(--space-3); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-control); background: var(--app-panel); color: var(--app-ink); font: inherit; font-size: var(--app-fs-caption); cursor: pointer; text-decoration: none; margin: var(--space-1); text-align: left; overflow-wrap: anywhere; }
+.ig-module button[type="submit"] { background: var(--app-accent); color: var(--app-accent-ink); border-color: var(--app-accent); }
+.ig-module button:disabled { opacity: .5; cursor: not-allowed; }
+.ig-module button:hover:not(:disabled), .ig-module a[data-integrations-view]:hover { background: var(--app-panel-quiet); color: var(--app-ink); border-color: var(--app-ink); }
+.ig-module :is(button,a,input,textarea,select,summary):focus-visible { outline: 2px solid var(--app-focus); outline-offset: 3px; }
+.ig-module form { display: grid; gap: var(--space-4); max-width: 48rem; margin: var(--space-4) 0; }
+.ig-field { display: grid; gap: var(--space-2); font-size: var(--app-fs-caption); min-width: 0; }
+.ig-field input, .ig-field select, .ig-field textarea { width: 100%; min-height: 2.5rem; font: inherit; color: var(--app-ink); background: var(--app-bg); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-control); padding: var(--space-2) var(--space-3); }
+.ig-field textarea { min-height: 7rem; resize: vertical; }
+.ig-module fieldset { border: 1px solid var(--app-line); border-radius: var(--app-radius-control); display: flex; flex-wrap: wrap; gap: var(--space-3); padding: var(--space-3); min-width: 0; }
+.ig-module legend { font-size: var(--app-fs-caption); padding-inline: var(--space-2); }
+.ig-check { display: flex; gap: var(--space-2); align-items: center; min-height: 2.5rem; font-size: var(--app-fs-caption); }
+.ig-check input { accent-color: var(--app-ink); }
+.ig-module pre { padding: var(--space-4); border: 1px solid var(--app-line); background: var(--app-bg); border-radius: var(--app-radius-control); overflow: auto; max-height: 30rem; white-space: pre-wrap; overflow-wrap: anywhere; font: var(--fs-mono)/var(--lh-body) var(--font-mono); }
+.ig-module details { border-top: 1px solid var(--app-line); padding-top: var(--space-3); margin-top: var(--space-4); }
+.ig-module summary { min-height: 2.5rem; cursor: pointer; }
+.ig-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block: var(--space-4); }
+.ig-error, .ig-notice { padding: var(--space-4); border: 1px solid var(--app-line-strong); border-left: var(--space-1) solid var(--app-ink); border-radius: var(--app-radius-control); background: var(--app-panel-quiet); margin: 0 0 var(--space-4); }
+.ig-error { border-left-color: var(--state-danger); }
+.ig-tool-list { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+@media (max-width: 760px) { .ig-grid { grid-template-columns: minmax(0,1fr); } .ig-panel { padding: var(--space-4); } .ig-panel dl { grid-template-columns: minmax(0,1fr); } .ig-panel dd { margin-bottom: var(--space-2); } .ig-module button,.ig-module a[data-integrations-view] { max-width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .ig-module * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

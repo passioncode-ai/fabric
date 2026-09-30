@@ -1,0 +1,12 @@
+{
+  "command": "/bin/bash scripts/check-narrative.sh",
+  "exit": 1,
+  "warnings": {},
+  "false_ok_when_rg_absent": [
+    "ok: public surfaces contain no internal product-economics language",
+    "ok: public product spelling is consistent"
+  ],
+  "last": [
+    "scripts/check-narrative.sh: line 86: rg: command not found"
+  ]
+}

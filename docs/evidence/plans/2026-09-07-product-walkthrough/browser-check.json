@@ -1,0 +1,170 @@
+{
+  "status": "pass",
+  "scope": "isolated fixture report only; no native app or production checks",
+  "source_commit": "91337391aa8d24966bf0c57db381e6fe63b48bce",
+  "checks": [
+    {
+      "kind": "render_matrix",
+      "views": 53,
+      "states": 7,
+      "renders": 371
+    },
+    {
+      "kind": "journey_steps",
+      "journeys": 22,
+      "steps": 109
+    },
+    {
+      "kind": "coverage_deeplink",
+      "pass": true
+    },
+    {
+      "kind": "screen_deeplink",
+      "pass": true
+    },
+    {
+      "kind": "draft_survives_error",
+      "pass": true
+    },
+    {
+      "kind": "create_project_fixture",
+      "pass": true
+    },
+    {
+      "kind": "custom_project_has_no_atlas_history",
+      "pass": true
+    },
+    {
+      "kind": "task_intent_fields_preserved",
+      "pass": true
+    },
+    {
+      "kind": "no_context_no_run",
+      "pass": true
+    },
+    {
+      "kind": "unknown_launch_single_reconciliation",
+      "pass": true
+    },
+    {
+      "kind": "refusal_delivery_distinct_from_effect",
+      "pass": true
+    },
+    {
+      "kind": "iteration_identity",
+      "pass": true
+    },
+    {
+      "kind": "four_distinct_graphs_and_lists",
+      "pass": true
+    },
+    {
+      "kind": "project_scope",
+      "pass": true
+    },
+    {
+      "kind": "manager_validate_before_switch",
+      "pass": true
+    },
+    {
+      "kind": "presentation_and_escape",
+      "pass": true
+    },
+    {
+      "kind": "admission_not_reused_across_providers",
+      "pass": true
+    },
+    {
+      "kind": "file_conflict_preserves_buffer",
+      "pass": true
+    },
+    {
+      "kind": "screen_filter",
+      "pass": true
+    },
+    {
+      "kind": "responsive_theme",
+      "width": 1280,
+      "theme": "dark",
+      "views": 8,
+      "pass": true
+    },
+    {
+      "kind": "responsive_theme",
+      "width": 1280,
+      "theme": "light",
+      "views": 8,
+      "pass": true
+    },
+    {
+      "kind": "responsive_theme",
+      "width": 375,
+      "theme": "dark",
+      "views": 8,
+      "pass": true
+    },
+    {
+      "kind": "responsive_theme",
+      "width": 375,
+      "theme": "light",
+      "views": 8,
+      "pass": true
+    },
+    {
+      "kind": "sample_text_contrast",
+      "theme": "dark",
+      "contrast": [
+        {
+          "selector": ".terminal-window pre",
+          "ratio": 16.81
+        },
+        {
+          "selector": "#product-screen .meta",
+          "ratio": 7.66
+        },
+        {
+          "selector": ".button.primary",
+          "ratio": 18.97
+        }
+      ],
+      "scope": "sampled opaque text surfaces; not complete WCAG audit"
+    },
+    {
+      "kind": "sample_text_contrast",
+      "theme": "light",
+      "contrast": [
+        {
+          "selector": ".terminal-window pre",
+          "ratio": 16.81
+        },
+        {
+          "selector": "#product-screen .meta",
+          "ratio": 4.74
+        },
+        {
+          "selector": ".button.primary",
+          "ratio": 19.8
+        }
+      ],
+      "scope": "sampled opaque text surfaces; not complete WCAG audit"
+    },
+    {
+      "kind": "keyboard_entry",
+      "pass": true
+    },
+    {
+      "kind": "text_zoom200_form_present",
+      "pass": true
+    },
+    {
+      "kind": "local_review_export",
+      "pass": true
+    },
+    {
+      "kind": "no_js_fallback",
+      "screens": 53
+    }
+  ],
+  "errors": [],
+  "unexpected_network": []
+}

@@ -1,0 +1,59 @@
+{
+  "scope": "Task handoff generation only, not runtime acceptance",
+  "results": [
+    {
+      "id": "M199.probe",
+      "exit": 0,
+      "title": "Проверить изоляцию входа и возможности native resume",
+      "has_input_and_shared_contracts": true
+    },
+    {
+      "id": "M199.accounts",
+      "exit": 0,
+      "title": "Локальный реестр аккаунтов и официальный вход",
+      "has_input_and_shared_contracts": true
+    },
+    {
+      "id": "M199.auth",
+      "exit": 0,
+      "title": "Изолированный auth context и координация refresh",
+      "has_input_and_shared_contracts": true
+    },
+    {
+      "id": "M199.binding",
+      "exit": 0,
+      "title": "Закрепить аккаунт и native conversation при запуске",
+      "has_input_and_shared_contracts": true
+    },
+    {
+      "id": "M199.resume",
+      "exit": 0,
+      "title": "Транзакция смены аккаунта с checkpoint и восстановлением",
+      "has_input_and_shared_contracts": true
+    },
+    {
+      "id": "M199.usage",
+      "exit": 0,
+      "title": "Квота того же аккаунта, который запускает работу",
+      "has_input_and_shared_contracts": true
+    },
+    {
+      "id": "M199.auto",
+      "exit": 0,
+      "title": "Автосмена по квотам: политика, выбор, polling и защита от циклов",
+      "has_input_and_shared_contracts": true
+    },
+    {
+      "id": "M199.ui",
+      "exit": 0,
+      "title": "Экран аккаунтов и управление автопереключением",
+      "has_input_and_shared_contracts": true
+    },
+    {
+      "id": "M199.acceptance",
+      "exit": 0,
+      "title": "Проверить manual и automatic A→B→A на реальных CLI",
+      "has_input_and_shared_contracts": true
+    }
+  ]
+}

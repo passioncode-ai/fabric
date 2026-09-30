@@ -1,0 +1,182 @@
+{
+  "source": "scripts/check-design-map.mjs",
+  "sha256": "fb0001b284566b6e4985251f127e7c93cad284d4819feb66e1875e9f7a127210",
+  "fixture_root": "/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd",
+  "generated_at": "2026-09-07T00:20:02.500Z",
+  "requested_pass": true,
+  "requested_count": 16,
+  "requested_pass_count": 16,
+  "results": [
+    {
+      "name": "committed baseline checks successfully",
+      "group": "requested",
+      "expected_exit": 0,
+      "pass": true,
+      "exit": 0,
+      "stdout": "PASS: map source stamp (5 files), 4 unique anchors and 1 link targets. Prose accuracy, completeness, external URLs and Markdown fragments are not verified.",
+      "stderr": ""
+    },
+    {
+      "name": "ADR-only source mutation refuses unchanged map",
+      "group": "requested",
+      "expected_exit": "nonzero",
+      "pass": true,
+      "exit": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:61\n  if ((sourceChanged || contentChanged) && attrs(previousTree, 'data-iteration').includes(iteration)) throw new Error('Changed iteration reuses the committed top entry: add a NEW top changelog entry. Repeated refresh within an uncommitted iteration is allowed.')\n                                                                                                            ^\n\nError: Changed iteration reuses the committed top entry: add a NEW top changelog entry. Repeated refresh within an uncommitted iteration is allowed.\n    at file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:61:109\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v26.8.1"
+    },
+    {
+      "name": "execution-brief-only mutation refuses unchanged map",
+      "group": "requested",
+      "expected_exit": "nonzero",
+      "pass": true,
+      "exit": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:61\n  if ((sourceChanged || contentChanged) && attrs(previousTree, 'data-iteration').includes(iteration)) throw new Error('Changed iteration reuses the committed top entry: add a NEW top changelog entry. Repeated refresh within an uncommitted iteration is allowed.')\n                                                                                                            ^\n\nError: Changed iteration reuses the committed top entry: add a NEW top changelog entry. Repeated refresh within an uncommitted iteration is allowed.\n    at file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:61:109\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v26.8.1"
+    },
+    {
+      "name": "previous public anchor removal refuses",
+      "group": "requested",
+      "expected_exit": "nonzero",
+      "pass": true,
+      "exit": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:57\n  for (const id of attrs(previousTree, 'id')) if (id !== 'map-source-stamp' && !ids.includes(id)) throw new Error(`Previously committed map anchor removed: ${id}`)\n                                                                                                        ^\n\nError: Previously committed map anchor removed: old\n    at file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:57:105\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v26.8.1"
+    },
+    {
+      "name": "broken internal link with double attribute refuses",
+      "group": "requested",
+      "expected_exit": "nonzero",
+      "pass": true,
+      "exit": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:36\n  if (!p && anchor && !ids.includes(anchor)) throw new Error(`Broken map anchor: ${href}`)\n                                                   ^\n\nError: Broken map anchor: #missing\n    at file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:36:52\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v26.8.1"
+    },
+    {
+      "name": "broken internal link with single attribute refuses",
+      "group": "requested",
+      "expected_exit": "nonzero",
+      "pass": true,
+      "exit": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:36\n  if (!p && anchor && !ids.includes(anchor)) throw new Error(`Broken map anchor: ${href}`)\n                                                   ^\n\nError: Broken map anchor: #missing\n    at file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:36:52\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v26.8.1"
+    },
+    {
+      "name": "broken internal link with unquoted attribute refuses",
+      "group": "requested",
+      "expected_exit": "nonzero",
+      "pass": true,
+      "exit": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:36\n  if (!p && anchor && !ids.includes(anchor)) throw new Error(`Broken map anchor: ${href}`)\n                                                   ^\n\nError: Broken map anchor: #missing\n    at file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:36:52\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v26.8.1"
+    },
+    {
+      "name": "duplicate id with single attribute refuses",
+      "group": "requested",
+      "expected_exit": "nonzero",
+      "pass": true,
+      "exit": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:30\nif (new Set(ids).size !== ids.length) throw new Error('Duplicate map anchors')\n                                            ^\n\nError: Duplicate map anchors\n    at file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:30:45\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v26.8.1"
+    },
+    {
+      "name": "duplicate id with unquoted attribute refuses",
+      "group": "requested",
+      "expected_exit": "nonzero",
+      "pass": true,
+      "exit": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:30\nif (new Set(ids).size !== ids.length) throw new Error('Duplicate map anchors')\n                                            ^\n\nError: Duplicate map anchors\n    at file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:30:45\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v26.8.1"
+    },
+    {
+      "name": "source mutation plus refresh with committed iteration refuses",
+      "group": "requested",
+      "expected_exit": "nonzero",
+      "pass": true,
+      "exit": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:61\n  if ((sourceChanged || contentChanged) && attrs(previousTree, 'data-iteration').includes(iteration)) throw new Error('Changed iteration reuses the committed top entry: add a NEW top changelog entry. Repeated refresh within an uncommitted iteration is allowed.')\n                                                                                                            ^\n\nError: Changed iteration reuses the committed top entry: add a NEW top changelog entry. Repeated refresh within an uncommitted iteration is allowed.\n    at file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:61:109\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v26.8.1"
+    },
+    {
+      "name": "new uncommitted iteration refresh",
+      "group": "requested",
+      "expected_exit": 0,
+      "pass": true,
+      "exit": 0,
+      "stdout": "Stamped reviewed source bytes. This command does not review or update map content.\nPASS: map source stamp (5 files), 4 unique anchors and 2 link targets. Prose accuracy, completeness, external URLs and Markdown fragments are not verified.",
+      "stderr": ""
+    },
+    {
+      "name": "new iteration check",
+      "group": "requested",
+      "expected_exit": 0,
+      "pass": true,
+      "exit": 0,
+      "stdout": "PASS: map source stamp (5 files), 4 unique anchors and 2 link targets. Prose accuracy, completeness, external URLs and Markdown fragments are not verified.",
+      "stderr": ""
+    },
+    {
+      "name": "repeat refresh of same uncommitted iteration",
+      "group": "requested",
+      "expected_exit": 0,
+      "pass": true,
+      "exit": 0,
+      "stdout": "Stamped reviewed source bytes. This command does not review or update map content.\nPASS: map source stamp (5 files), 4 unique anchors and 2 link targets. Prose accuracy, completeness, external URLs and Markdown fragments are not verified.",
+      "stderr": ""
+    },
+    {
+      "name": "repeat refresh check",
+      "group": "requested",
+      "expected_exit": 0,
+      "pass": true,
+      "exit": 0,
+      "stdout": "PASS: map source stamp (5 files), 4 unique anchors and 2 link targets. Prose accuracy, completeness, external URLs and Markdown fragments are not verified.",
+      "stderr": ""
+    },
+    {
+      "name": "same uncommitted iteration refinement refresh",
+      "group": "requested",
+      "expected_exit": 0,
+      "pass": true,
+      "exit": 0,
+      "stdout": "Stamped reviewed source bytes. This command does not review or update map content.\nPASS: map source stamp (5 files), 4 unique anchors and 2 link targets. Prose accuracy, completeness, external URLs and Markdown fragments are not verified.",
+      "stderr": ""
+    },
+    {
+      "name": "same iteration refined source check",
+      "group": "requested",
+      "expected_exit": 0,
+      "pass": true,
+      "exit": 0,
+      "stdout": "PASS: map source stamp (5 files), 4 unique anchors and 2 link targets. Prose accuracy, completeness, external URLs and Markdown fragments are not verified.",
+      "stderr": ""
+    },
+    {
+      "name": "valid uppercase HREF to nonexistent anchor refuses",
+      "group": "parser-regression",
+      "expected_exit": "nonzero",
+      "pass": true,
+      "exit": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:36\n  if (!p && anchor && !ids.includes(anchor)) throw new Error(`Broken map anchor: ${href}`)\n                                                   ^\n\nError: Broken map anchor: #missing\n    at file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:36:52\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v26.8.1"
+    },
+    {
+      "name": "quoted greater-than before broken href refuses",
+      "group": "parser-regression",
+      "expected_exit": "nonzero",
+      "pass": true,
+      "exit": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:36\n  if (!p && anchor && !ids.includes(anchor)) throw new Error(`Broken map anchor: ${href}`)\n                                                   ^\n\nError: Broken map anchor: #missing\n    at file:///private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd/scripts/check-design-map.mjs:36:52\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v26.8.1"
+    },
+    {
+      "name": "valid single-quoted special changelog attributes refresh successfully",
+      "group": "parser-regression",
+      "expected_exit": 0,
+      "pass": true,
+      "exit": 0,
+      "stdout": "Stamped reviewed source bytes. This command does not review or update map content.\nPASS: map source stamp (5 files), 4 unique anchors and 2 link targets. Prose accuracy, completeness, external URLs and Markdown fragments are not verified.",
+      "stderr": ""
+    }
+  ]
+}

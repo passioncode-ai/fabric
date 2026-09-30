@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "0.1.0",
+  "proposal": {
+    "id": "urn:fabric:proposal:portfolio-observer:passioncode:search-decay:2026-08-27",
+    "sourceProjectRef": "urn:fabric:project:portfolio-observer",
+    "targetProjectRef": "urn:fabric:project:passioncode",
+    "sourceArtifactRef": "urn:fabric:finding:portfolio-observer:passioncode:search-decay:2026-08-27",
+    "requestedOutcome": "Investigate and recover the 31% week-over-week decline in non-brand search clicks.",
+    "createdAt": "2026-08-27T09:00:00Z",
+    "idempotencyKey": "portfolio-observer/passioncode/search-decay/2026-W35",
+    "status": "pending",
+    "evidence": [
+      {
+        "observationRef": "urn:fabric:observation:gsc:passioncode.ai:2026-W35",
+        "sourceRef": "urn:google:search-console-site:sc-domain:passioncode.ai",
+        "observedAt": "2026-08-27T08:15:00Z",
+        "claim": "Non-brand search clicks are 31% lower than the preceding comparable seven-day window.",
+        "confidence": 0.96,
+        "expiresAt": "2026-09-03T08:15:00Z"
+      }
+    ]
+  }
+}

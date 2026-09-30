@@ -1,0 +1,102 @@
+{
+  "schema": "fabric.audit.priority-mapping.v1",
+  "created_at": "2026-09-07T00:02:41.533988+00:00",
+  "source_head": "153b4f029e626230d465d5d21d02fb8c9de5fadf",
+  "order_issues": [
+    {
+      "id": "ORDER-01",
+      "kind": "not_a_priority_order",
+      "target": [
+        "verification.topological_order"
+      ],
+      "claim": "Алфавитный topological sort начинает с M105/M109/M187 и уже shipped M195/M196/M197/M97. Это доказательство DAG, не порядок вложения рабочего времени.",
+      "suggestion": "Не публиковать topological_order как ranked queue. Отделить shipped prerequisites и сортировать доступные пакеты после evidence; приоритет foundation задан владельцем, а не названием низкого слоя."
+    },
+    {
+      "id": "ORDER-02",
+      "kind": "overbroad_dependency",
+      "target": [
+        "M177",
+        "S05"
+      ],
+      "claim": "M177 cheap time/vocabulary/trust/protocol fixes ждут весь diagnostic attempt/outcome trace S05; транзитивно это задерживает heartbeat и вопросный путь.",
+      "suggestion": "Для M177 оставить только необходимые schema/protocol/read sources; S05 сохранить обязательным для M176 trajectory eval и полноты call history."
+    },
+    {
+      "id": "ORDER-03",
+      "kind": "overbroad_dependency",
+      "target": [
+        "M152",
+        "M188",
+        "M153"
+      ],
+      "claim": "Первый атомарный ответ на Board вопрос и гигиена вопросов ждут полного M188 с plan revisions/steps/checkpoints, хотя task_id/session_id уже существуют.",
+      "suggestion": "Разделить M152.commit (S06 + Board) и addressed continuation по существующей паре task/session; M188 подключить как последующее представление/дополнение. M153 withdraw/dedup не ждать всех graph/progress producers."
+    },
+    {
+      "id": "ORDER-04",
+      "kind": "overbroad_dependency",
+      "target": [
+        "S06",
+        "S03",
+        "S09",
+        "S08"
+      ],
+      "claim": "Correction blockers/answer не требует завершить весь external effect dispatch. Аналогично разработка owner/member auth не требует второго runner pilot.",
+      "suggestion": "Сохранить shared scope/revision/floor validation gates и отделить independent implementation от activation. Full S03 обязателен для разрешающих внешние эффекты операций; full S08 обязателен для обещания agent portability, не для написания identity fixture."
+    },
+    {
+      "id": "ORDER-05",
+      "kind": "delivery_preparation_vs_activation",
+      "target": [
+        "S07",
+        "M198",
+        "S14",
+        "S12"
+      ],
+      "claim": "S07 отнесён к H и может активироваться по JSON после S01–04 без M198/S14, хотя обещает upgrade/recovery. Создание CI и build manifest, наоборот, не требует закончить все safety fixes.",
+      "suggestion": "Scaffold CI/manifest вести рано. Release gate должен включать исправления известных затронутых pack/read/replay invariants и restore acceptance для соответствующей сборки; не заявлять upgrade parity с исключённой config_revision."
+    },
+    {
+      "id": "ORDER-06",
+      "kind": "overbroad_dependency",
+      "target": [
+        "M186",
+        "M180"
+      ],
+      "claim": "Чтение собственных cycle receipts ждёт полной taxonomy agent failures M180.",
+      "suggestion": "Зависеть от S15 и общей enum/DTO taxonomy, а не от готовности всех detectors M179/180. Обогащение источниками может поступить позднее с unknown для отсутствующей telemetry."
+    },
+    {
+      "id": "ORDER-07",
+      "kind": "canonical_status_overlap",
+      "target": [
+        "M103",
+        "M195",
+        "M97",
+        "M196"
+      ],
+      "claim": "Canonical M103 shipped, merged M103 proposed: текущая карточка является correction acknowledgement boundary, а не реализацией с нуля. M195 уже правильно назван shipped_with_followup; M97/M196 повторять нельзя.",
+      "suggestion": "M103 тоже показать shipped_with_followup/reopened acceptance с точным scope и источником новой пробы. Не закрывать/переоткрывать resolved CO на основании общего совпадения слов."
+    },
+    {
+      "id": "ORDER-08",
+      "kind": "priority_doctrine_drift",
+      "target": [
+        "docs/evidence/backlog.md:4",
+        "docs/evidence/backlog.md:46"
+      ],
+      "claim": "Backlog одновременно содержит impact×evidence÷cost, линейный order и owner foundation-first; prioritisation.md использует I затем C×E. Читатель получает несколько разных методов.",
+      "suggestion": "ADR0044 фиксирует owner-chosen foundation delivery order и relation к finding priority, не пересчитывает историю. Scoring если нужен отдельно I/C/E после research; ненаблюдаемые conversion/retention gains не объявлять I4."
+    }
+  ],
+  "do_not_close_from_this_audit": [
+    "CO-107",
+    "CO-089",
+    "CO-071",
+    "CO-074",
+    "CO-081",
+    "CO-082",
+    "any shipped milestone correction before new acceptance passes"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "source": {
+    "docs/reports/product.html": "4611842090140bb154e3a7fd0bd092f2fe80939aa6eb1131d4ee16e60db8c1fd",
+    "docs/ux/product-model.json": "8262e8101d2f4ba3398999fc28334774e82da8dfe7a3556f78fa807c62c61e26"
+  },
+  "capturedAt": "2026-09-26T16:41:51.121348+00:00",
+  "method": "CUA browser screenshots; preview JPEG conversion with sips",
+  "gallery": {
+    "views": 98,
+    "viewport": {
+      "width": 1240,
+      "height": 820
+    },
+    "theme": "dark",
+    "estate": "memory-gallery-final",
+    "route": "product.html#view-<id>?project=atlas&state=ready&run=2&cohort=existing&scope=project&estate=memory-gallery-final"
+  },
+  "focused": [
+    {
+      "file": "memory-desktop.png",
+      "viewport": [
+        1240,
+        820
+      ],
+      "state": "selected Codex source, all Projects"
+    },
+    {
+      "file": "memory-chat.png",
+      "viewport": [
+        1240,
+        820
+      ],
+      "state": "same source attached to floating CEO chat"
+    },
+    {
+      "file": "memory-mobile.png",
+      "viewport": [
+        390,
+        844
+      ],
+      "state": "responsive one-column source"
+    }
+  ],
+  "focusedRoute": "product.html#view-r0-memory?estate=memory-delivery&project=r0-project-1",
+  "limits": "Fixture UI, not native capture/continuation or WCAG acceptance"
+}

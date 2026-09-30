@@ -1,0 +1,61 @@
+2026-09-15 · Wiki launch iteration
+Command: bash scripts/ci.sh fast
+Observed exit: 0
+Selected output (not a full log):
+PASS: interface tokens and strings
+PASS: 15 brand icon SVGs match the master
+PASS: 27 raster brand assets match the manifest
+PASS product model: {"screens":63,"views":78,"scenarios":94,"flows":54,"journeys":37,"findings":32,"active_tasks":58,"task_contexts":108,"pinned_receipts":159,"verified_git_blobs":33,"source_io_checked":true}
+PASS UX projections match canonical registries
+PASS product.html matches its canonical inputs
+PASS mockup coverage projection: 105 rows, 0 remaining; semantic verdicts require review
+PASS: 17 planted contract/report defects refused
+PASS: {"tasks":58,"deep":50,"recipes":4,"preserve":4,"requirements":33,"modules":8,"entities":61,"relations":95,"cycles":12,"execution_nodes":75,"dependency_edges":141,"citation_occurrences":503,"receipts":280,"verified_git_files":103,"html_anchors":337}
+PASS: system.html exactly matches model, catalog, contract and template
+PASS requested: committed baseline checks successfully; exit=0
+PASS requested: ADR-only source mutation refuses unchanged map; exit=1
+PASS requested: execution-brief-only mutation refuses unchanged map; exit=1
+PASS requested: previous public anchor removal refuses; exit=1
+PASS requested: broken internal link with double attribute refuses; exit=1
+PASS requested: broken internal link with single attribute refuses; exit=1
+PASS requested: broken internal link with unquoted attribute refuses; exit=1
+PASS requested: duplicate id with single attribute refuses; exit=1
+PASS requested: duplicate id with unquoted attribute refuses; exit=1
+PASS requested: source mutation plus refresh with committed iteration refuses; exit=1
+PASS requested: new uncommitted iteration refresh; exit=0
+PASS requested: new iteration check; exit=0
+PASS requested: repeat refresh of same uncommitted iteration; exit=0
+PASS requested: repeat refresh check; exit=0
+PASS requested: same uncommitted iteration refinement refresh; exit=0
+PASS requested: same iteration refined source check; exit=0
+PASS parser-regression: valid uppercase HREF to nonexistent anchor refuses; exit=1
+PASS parser-regression: quoted greater-than before broken href refuses; exit=1
+PASS parser-regression: valid single-quoted special changelog attributes refresh successfully; exit=0
+PASS publication-boundary: directory submodule projection and skill link refresh; exit=0
+PASS publication-boundary: initialized projection checks; exit=0
+PASS publication-boundary: publication-only output does not stale its own source map; exit=0
+PASS publication-boundary: uninitialized submodule keeps symlink fingerprint stable; exit=0
+PASS: map source stamp (1534 files), 264 unique anchors and 870 link targets. Prose accuracy, completeness, external URLs and Markdown fragments are not verified.
+PASS: PassionCode.ai public narrative
+PASS: Fabric documentation structure
+PASS: PassionCode.ai public narrative
+PASS: registers parse, citations resolve, asserted counts recompute
+ Test Files  121 passed (121)
+      Tests  1358 passed (1358)
+  ok   POSTGRES_PASSWORD does not reach a session
+  ok   PGPASSWORD does not reach a session
+PASS mockup previews: 78 views pinned to the current prototype
+PASS plan projection: 8 milestones, 10 batches
+── provider capability: what the installed CLIs actually support, per build
+provider capability: 32 rows over 2 pinned builds — 7 supported, 5 unsupported, 20 unverified, each naming what was observed
+PASS: session environment preserves the selected Claude profile
+fast tier green. The stack-backed probes did not run — use `scripts/ci.sh full`.
+
+Other observed checks:
+node --test scripts/test/launch-design.test.mjs: 4 PASS / 0 FAIL
+node --test scripts/test/product-empty-state.test.mjs: 6 PASS / 0 FAIL
+npm --prefix workspace test: 38 PASS / 0 FAIL
+node docs/audit/2026-09-15-launch/check.mjs: PASS 656 documents / 527 rows / 94 local links
+node scripts/build-mockup-previews.mjs --check: PASS 78 views
+Full database tier: NOT RUN.
+Published identity: see ../workspace-receipt.json after publication.

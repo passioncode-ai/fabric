@@ -1,0 +1,59 @@
+{
+  "engine": "isolated headless Chromium; not native Electron",
+  "checks": [
+    {
+      "anchor": "iteration-2026-09-07-foundations",
+      "width": 1280,
+      "documentWidth": 1280,
+      "targetTop": 95.34375,
+      "navBottom": 79,
+      "detailsOpen": true,
+      "errors": []
+    },
+    {
+      "anchor": "graphs",
+      "width": 1280,
+      "documentWidth": 1280,
+      "targetTop": 95.46875,
+      "navBottom": 79,
+      "detailsOpen": true,
+      "errors": []
+    },
+    {
+      "anchor": "work-s03-boundary",
+      "width": 1280,
+      "documentWidth": 1280,
+      "targetTop": 95.46875,
+      "navBottom": 79,
+      "detailsOpen": true,
+      "errors": []
+    },
+    {
+      "anchor": "iteration-2026-09-07-foundations",
+      "width": 390,
+      "documentWidth": 390,
+      "targetTop": 181.671875,
+      "navBottom": 166,
+      "detailsOpen": true,
+      "errors": []
+    },
+    {
+      "anchor": "graphs",
+      "width": 390,
+      "documentWidth": 390,
+      "targetTop": 182.453125,
+      "navBottom": 166,
+      "detailsOpen": true,
+      "errors": []
+    },
+    {
+      "anchor": "work-s03-boundary",
+      "width": 390,
+      "documentWidth": 390,
+      "targetTop": 182.453125,
+      "navBottom": 166,
+      "detailsOpen": true,
+      "errors": []
+    }
+  ]
+}

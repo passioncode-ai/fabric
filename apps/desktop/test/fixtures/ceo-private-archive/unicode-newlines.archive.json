@@ -1,0 +1,117 @@
+{
+  "schema": "CeoPrivateArchive@1",
+  "archive_id": "00000000-0000-4000-8000-000000008000",
+  "source_schema_version": 66,
+  "owner_person_id": "00000000-0000-4000-8000-000000009100",
+  "estate_archive": {
+    "schema": "FabricArchive@1",
+    "sourceEstateId": "00000000-0000-4000-8000-000000009001",
+    "takenAtUtc": "2026-09-28T09:00:00.000Z",
+    "watermarkSeq": 20,
+    "eventCount": 20,
+    "digest": "46d71168d14a462d569af05b0e0c1b979d20912c98e83c01de0d73ec33212396"
+  },
+  "retention": "no-deletion-v1",
+  "conversations": [
+    {
+      "id": "00000000-0000-4000-8000-000000002004",
+      "subject_kind": "global",
+      "subject_id": "00000000-0000-4000-8000-000000002004",
+      "owner_project_id": null,
+      "created_seq": 8,
+      "revision": 2
+    }
+  ],
+  "messages": [
+    {
+      "id": "00000000-0000-4000-8000-000000003004",
+      "conversation_id": "00000000-0000-4000-8000-000000002004",
+      "ordinal": 1,
+      "content_id": "00000000-0000-4000-8000-000000005004",
+      "request_id": "00000000-0000-4000-8000-000000006004",
+      "accepted_seq": 9,
+      "envelope": {
+        "schema": "CeoSend@1",
+        "operation_id": "00000000-0000-4000-8000-000000004004",
+        "conversation_id": "00000000-0000-4000-8000-000000002004",
+        "message_id": "00000000-0000-4000-8000-000000003004",
+        "expected_revision": 0,
+        "subject_revision": 1,
+        "input_channel": "text",
+        "text": "Привет, 雪 и 😀\nвторая строка",
+        "preparation_version": "har06-ceo-v1",
+        "context": {
+          "schema": "CeoContext@1",
+          "mode": "none",
+          "selection_revision": 0,
+          "project_id": null,
+          "project_revision": null,
+          "estate_seq": 0
+        }
+      },
+      "source_digest": "3bbf1a28209c21d0e9c4183a38a3c0ecff62b03fda0766cdce35d3d99883dbb2",
+      "origin": {
+        "estate_id": "00000000-0000-4000-8000-000000009001",
+        "canonical_digest": "3bbf1a28209c21d0e9c4183a38a3c0ecff62b03fda0766cdce35d3d99883dbb2"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000003005",
+      "conversation_id": "00000000-0000-4000-8000-000000002004",
+      "ordinal": 2,
+      "content_id": "00000000-0000-4000-8000-000000005005",
+      "request_id": "00000000-0000-4000-8000-000000006005",
+      "accepted_seq": 10,
+      "envelope": {
+        "schema": "CeoSend@1",
+        "operation_id": "00000000-0000-4000-8000-000000004005",
+        "conversation_id": "00000000-0000-4000-8000-000000002004",
+        "message_id": "00000000-0000-4000-8000-000000003005",
+        "expected_revision": 1,
+        "subject_revision": 1,
+        "input_channel": "text",
+        "text": "разделитель строк и\r\nCRLF",
+        "preparation_version": "har06-ceo-v1",
+        "context": {
+          "schema": "CeoContext@1",
+          "mode": "none",
+          "selection_revision": 0,
+          "project_id": null,
+          "project_revision": null,
+          "estate_seq": 0
+        }
+      },
+      "source_digest": "1361c1401c741cdae22a40de9c2698fa8edd75706b47061014a5a4113f57b816",
+      "origin": {
+        "estate_id": "00000000-0000-4000-8000-000000009001",
+        "canonical_digest": "1361c1401c741cdae22a40de9c2698fa8edd75706b47061014a5a4113f57b816"
+      }
+    }
+  ],
+  "operations": [
+    {
+      "operation_id": "00000000-0000-4000-8000-000000004004",
+      "kind": "send",
+      "message_id": "00000000-0000-4000-8000-000000003004"
+    },
+    {
+      "operation_id": "00000000-0000-4000-8000-000000004005",
+      "kind": "send",
+      "message_id": "00000000-0000-4000-8000-000000003005"
+    },
+    {
+      "operation_id": "00000000-0000-4000-8000-000000072004",
+      "kind": "open",
+      "requested_conversation_id": "00000000-0000-4000-8000-000000002004",
+      "subject_kind": "global",
+      "subject_id": "00000000-0000-4000-8000-000000002004",
+      "receipt": {
+        "conversation_id": "00000000-0000-4000-8000-000000002004",
+        "revision": 0,
+        "receipt_seq": 8
+      }
+    }
+  ],
+  "tombstones": [],
+  "archive_digest": "7d120bf0f9fd03021272dbbf3f4d99a25989ca0cd18c7ab6b5673a4a3399629c"
+}

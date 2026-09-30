@@ -1,0 +1,40 @@
+appId: ai.passioncode.desktop
+productName: Fabric
+directories:
+  output: dist
+files:
+  - out/**
+  - package.json
+asarUnpack:
+  - "**/node_modules/node-pty/**"
+# M116 — the mark ships with the bundle. `build/icon.png` is STAGED from the
+# generated brand pack by scripts/stage-app-icon.mjs and is not committed:
+# committing it would create a second copy of an asset the manifest already
+# owns by checksum, and the two would drift.
+extraResources:
+  - from: build/icon.png
+    to: icon.png
+  # FA-01 — the identity SHIPS. The runtime reads
+  # `process.resourcesPath/build-manifest.json` and two fallbacks; before this
+  # line none of the three existed inside a packaged app, so the product that
+  # exists precisely to say which build it is could not, and the honest `null`
+  # it returned was indistinguishable from a build that was never stamped.
+  # Generated, never committed: `pnpm package` writes it between the bundle and
+  # the packager, so it describes the bundle beside it.
+  - from: resources/build-manifest.json
+    to: build-manifest.json
+  # The local stack's project ships with the app, so it starts on a Mac that has no checkout
+  # (src/main/bundledStack.ts). Only what `supabase start` reads; never local state.
+  - from: ../../supabase
+    to: stack/supabase
+    filter:
+      - config.toml
+      - seed.sql
+      - migrations/*.sql
+npmRebuild: false
+mac:
+  target:
+    - dir
+  identity: null
+  icon: build/icon.png
+  category: public.app-category.developer-tools

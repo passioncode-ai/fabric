@@ -1,0 +1,850 @@
+{
+  "schema": "fabric-audit-work-plan/1",
+  "status": "historical_proposal_superseded_by_merged_plan",
+  "source_head": "153b4f029e626230d465d5d21d02fb8c9de5fadf",
+  "blocks": [
+    {
+      "id": "W01",
+      "work": "Исправить порядок Hooks в Shell; вынести выбор типа окна из состояния домашней страницы; добавить root ErrorBoundary с понятным восстановлением",
+      "dependency_text": "нет",
+      "acceptance": "Actual App mount: успешный `meta.info` показывает home; отказ показывает причину; editor/session routes открываются; ни одного hook-order error"
+    },
+    {
+      "id": "W02",
+      "work": "Сохранить живую Monaco-модель при ответе Save; отдельный saved baseline",
+      "dependency_text": "нет",
+      "acceptance": "Ввод `a→ab`, Save, ввод `abc`, ответ Save: экран хранит `abc`, диск `ab`, dirty=true; повторный Save сохраняет `abc`"
+    },
+    {
+      "id": "W03",
+      "work": "Изолировать TaskPage по taskId, контролировать draft и отменять устаревшие загрузки",
+      "dependency_text": "нет",
+      "acceptance": "Переход A→B не переносит brief A в B; поздний ответ A не меняет B; onBlur пишет только нужную задачу"
+    },
+    {
+      "id": "W04",
+      "work": "Исправить раннее подтверждение прочитанного в Digest",
+      "dependency_text": "нет",
+      "acceptance": "Новое событие/refresh/error не двигает watermark; отметка только до реально показанного seq и после явного просмотра/подтверждения"
+    },
+    {
+      "id": "W05",
+      "work": "Исправить пустую доску и навигацию после Estate Agents; защитить pending onboarding от закрытия/устаревшего ответа",
+      "dependency_text": "W01 для проверки общего пути",
+      "acceptance": "Новый проект получает первую задачу с экрана; Home/project/search/new draft открывают правильную страницу; завершение Create после закрытия не создаёт потерянное активное состояние"
+    },
+    {
+      "id": "W06",
+      "work": "Estate/project scope на routineTick, chainAdvance, файловых корнях и всех store-запросах, доступных main с service role",
+      "dependency_text": "нет",
+      "acceptance": "Два estate и тестовый ff: тики owner не запускают foreign routine, не получают foreign project/path; составные проверки владения отвергают смешанный event"
+    },
+    {
+      "id": "W07",
+      "work": "Замкнуть redaction на policy writer и всём persistence boundary, а не только локальном методе AgentSurface",
+      "dependency_text": "нет; продолжение M195",
+      "acceptance": "Синтетические секреты в why/target/note/handoff/error не попадают в journal, memory, packs или diagnostic trace; значения тестов не выводятся в CI"
+    },
+    {
+      "id": "W08",
+      "work": "Разделить authorise / reserve / execute / observe / reconcile; привязать grant к действию и проекту; атомарно резервировать одно использование",
+      "dependency_text": "W06",
+      "acceptance": "Запрос разрешения создаёт policy receipt, но не execution receipt. Два конкурирующих запроса одного grant: максимум одна резервация. Чужой project/action/expired/revoked grant отвергнут. Timeout внешнего действия оставляет unknown и требует reconcile"
+    },
+    {
+      "id": "W09",
+      "work": "Починить цепочки: запуск существующего follower, all-predecessors join, `needs` в MCP schema, quota/lease/idempotency и однократная запись блокировки; cycle-check в одной транзакции с приёмом команды",
+      "dependency_text": "W06, W10; целевой start-existing-task port",
+      "acceptance": "Два тика + рестарт создают один запуск follower; diamond ждёт обе ветки; отсутствие payload блокирует; quota-unknown блокирует unattended; параллельные A→B и B→A принимают только одно ребро; ошибка проверки явно отказывает"
+    },
+    {
+      "id": "W10",
+      "work": "Валидировать quota response; unknown/unsupported отдельно от нулевого расхода; учитывать runner, который действительно запускается",
+      "dependency_text": "нет; уточнение M94",
+      "acceptance": "HTTP 200 с `{}`, NaN, отсутствующими окнами и истёкшей свежестью не разрешает автозапуск; Codex не получает допуск на основании окна Claude"
+    },
+    {
+      "id": "W11",
+      "work": "Проверяемый capability contract для runner enforcement",
+      "dependency_text": "W08",
+      "acceptance": "Для каждого runner видны: reachable, connected, oriented, permission-enforced, resumable. Runner с добровольным `fabric_effect_request` не называется перехватывающим все внешние действия. Hook/sandbox tests доказывают реальный отказ внешнего эффекта"
+    },
+    {
+      "id": "W12",
+      "work": "Интеграционный PR из текущего состояния, проверка свежего клона и CI на проверяемом SHA",
+      "dependency_text": "W01–W11 до выпуска с unattended внешними эффектами",
+      "acceptance": "SHA доступен в удалённом репозитории; remote CI реально выполнен; clean clone строится; миграции проверены from-empty и upgrade на изолированной БД; никакого reset пользовательской БД"
+    },
+    {
+      "id": "W13",
+      "work": "Build manifest: git SHA, build time, schema range, runner/contract versions, артефактный checksum; About/diagnostics; package smoke",
+      "dependency_text": "W01, W12",
+      "acceptance": "Исходники, тестируемая сборка и установленная `.app` однозначно сопоставимы; sandbox/preload проверяются в поставляемом пакете; откат сохраняет совместимые данные"
+    },
+    {
+      "id": "W14",
+      "work": "Сверить README, slice ladder, M-статусы, verification и screens; производные статусы генерировать",
+      "dependency_text": "нет; финальная синхронизация после W12",
+      "acceptance": "Команда отчёта выдаёт installed/build/implemented/verified/observed отдельно; README больше не отрицает существующую БД; SCN/SCR/события/команды/поля разрешаются механически"
+    },
+    {
+      "id": "W15",
+      "work": "M98: вынести work/scheduler, authority, memory, projects/files, agent-surface application services; main остаётся assembly/IPC",
+      "dependency_text": "регрессионные проверки W01–W10",
+      "acceptance": "Boundary tests вызывают production services; код обработчика не обходит ScopedStore/Policy/Journal; extraction не меняет journal replay и пользовательские сценарии"
+    },
+    {
+      "id": "W16",
+      "work": "M109 remainder: вывести IPC типы из FabricApi + runtime validation недоверенных payloads + явные error unions",
+      "dependency_text": "W15 по каждому извлечённому модулю, не обязательно весь W15 целиком",
+      "acceptance": "Невалидный id/enum/payload даёт typed refusal; compile-time несовместимые returns не собираются; renderer не может расширить scope"
+    },
+    {
+      "id": "W17",
+      "work": "M102/M105: разделить feed invalidation, snapshot/delta sessions, bounded scrollback processing; lazy Monaco; единый ReadResult со scope/generation/readAt/error",
+      "dependency_text": "W15 только в затронутых швах",
+      "acceptance": "Размер IPC зависит от изменившегося хвоста, а не всей истории; live feed не перезагружает независимые stores; поздний A после выбора B игнорируется; события по actor.id и session correlation входят в историю; timeout сохраняет stale snapshot с датой; замер latency до/после на одинаковом fixture"
+    },
+    {
+      "id": "W18",
+      "work": "Сначала M198: детерминированный config_revision. Затем M188 строго по ADR-0042: Run — проекция пары task + session, без нового независимого id/store; план и step claims привязаны к этой паре; execution snapshot восстанавливается из событий",
+      "dependency_text": "W09, W16; M198 перед использованием pinned revision",
+      "acceptance": "Два rebuild сохраняют config_revision; новая session для той же task даёт новый Run; повторная доставка attachment не создаёт второй Run; snapshot фиксирует provider/model, scope/policy, input/context и ревизию декларации плана; reconnect к той же session не выдаётся за новый Run"
+    },
+    {
+      "id": "W19",
+      "work": "M178–M181: heartbeat, supervisor, taxonomy, recovery UI",
+      "dependency_text": "идентичность Run из W18; часть контракта можно проектировать одновременно",
+      "acceptance": "Kill-before/after-spawn, DB gap, sleep/wake, stale lease, lost worker дают различимые состояния; повторный тик не запускает дубликат; причина и допустимые варианты recovery видны человеку"
+    },
+    {
+      "id": "W20",
+      "work": "M177 + invocation trace, затем M176 trajectory eval",
+      "dependency_text": "W07, scoped trace contract; может идти параллельно W18",
+      "acceptance": "Все Fabric tool attempts, включая отказ, throw, retry и чтение, имеют tool/schema/protocol version, request id, task/session correlation, outcome/duration/scope и безопасный receipt; synthetic corpus выявляет failure classes; трасса не выдаётся за внутреннюю историю чужого CLI"
+    },
+    {
+      "id": "W21",
+      "work": "Исправить M148: множество blocking questions, scope blocks, идемпотентное разрешение; допроектировать отсутствующие события и subject links",
+      "dependency_text": "W06, W16",
+      "acceptance": "Два вопроса блокируют одну задачу: ответ на один не снимает второй. Повторный ответ не создаёт вторую запись; чужая задача не может попасть в blocks"
+    },
+    {
+      "id": "W22",
+      "work": "M149/M151/M152: ask/check → actionable queue → answer → decision → safe continuation; атомарная идемпотентная команда answer/promote вместо двух несвязанных append",
+      "dependency_text": "W21, W18 для восстановления; W08 для permission questions",
+      "acceptance": "Реальный агент задаёт вопрос, человек видит объект/варианты/последствия, отвечает, правильный Run получает ответ один раз; crash между fact и answer, затем retry, не оставляет дубликатов или противоречивых current facts"
+    },
+    {
+      "id": "W23",
+      "work": "M157/M158: rule/citation settlement и контролируемый уровень доверия; schema floor, criticality и checker включаются до или вместе с автоматическим settlement",
+      "dependency_text": "W22; contract дополнения question.settled, decision subject/revision",
+      "acceptance": "Ссылка на устаревшее/чужое решение не разрешает новое действие; basis-less settlement отклоняется на write boundary; изменение operator decision — новая версия; отмена доверия меняет будущие решения, floor остаётся"
+    },
+    {
+      "id": "W24",
+      "work": "M153/M154/M173/M184: hygiene, retro и decision graph по реальным связям",
+      "dependency_text": "W20, W22; для M184 обязательны process kind и категории M182 в schema/producers",
+      "acceptance": "Ретро опирается на неудачу и исправление; граф открывает точный источник; повторные опросы не создают фиктивные улучшения; каждый emitted kind зарегистрирован и воспроизводится replay"
+    },
+    {
+      "id": "W25",
+      "work": "Один observer → finding → task → агент → независимая проверка → результат → следующий check",
+      "dependency_text": "W11, W18–W22; минимум M4/M20/CO-060",
+      "acceptance": "Контролируемая поломка сервиса обнаружена без ручного поиска; задача получает источники; исправление проверено независимым probe; внимание закрывается после проверки, не после self-report"
+    },
+    {
+      "id": "W26",
+      "work": "Навигация Overview / Work / Runs / Decisions & Memory / Team & Access; exact deep links; search coverage; исправления visual/accessibility primitives и project-specific Harness",
+      "dependency_text": "новая структура: W05, W18, W22; локальные исправления компонентов можно делать сразу после W01",
+      "acceptance": "Из attention/search открывается конкретный объект; Codex подписан верно; Harness различается у двух проектов; cap pins=5, goal показывает done/total; reuse достижим; нет nested buttons; light/dark, keyboard, VoiceOver, узкое окно и 200% zoom проверены"
+    },
+    {
+      "id": "W27",
+      "work": "Короткий первый запуск и возврат в проект",
+      "dependency_text": "W13, W25, W26",
+      "acceptance": "Человек подключает repo, проверяет agent readiness, создаёт первую задачу и получает проверяемый результат без настройки полной организации; повторное открытие объясняет, что изменилось и что требуется от человека"
+    },
+    {
+      "id": "W28",
+      "work": "M38 в узком составе: второй человек, owner/member, адресованная очередь, revoke, audit",
+      "dependency_text": "W06, W08, W22; дизайн можно проверить до появления живого второго пользователя",
+      "acceptance": "Две тестовые личности: member видит разрешённый проект и решает разрешённый вопрос, не получает owner credentials; revoke действует на следующем запросе; затем реальная совместная сессия"
+    },
+    {
+      "id": "W29",
+      "work": "Второй runner end-to-end и conformance matrix; затем M194 manager role binding",
+      "dependency_text": "второй runner: W11, W18, W20; manager: также W19, W23, deterministic core/checker и trajectory eval из W20",
+      "acceptance": "Один сценарий проходит на двух runtimes; замена сохраняет задачу, решения и память; несовместимые capabilities объявлены; перенос vendor session не притворяется универсальным resume; внешний manager проходит тот же floor, checker и проверку, что встроенный"
+    },
+    {
+      "id": "W30",
+      "work": "Поведенческие evals и canary на обновление model/provider/harness",
+      "dependency_text": "W20, W25, W29a; полный manager W29b не обязателен для сравнения исполнителей",
+      "acceptance": "Baseline и кандидат проходят одинаковый корпус и ресурсы; quality/cost/latency/intervention сравниваются; rollback меняет будущие bindings, не переписывает историю"
+    },
+    {
+      "id": "W31",
+      "work": "Parent-brand/product propagation",
+      "dependency_text": "final spelling and current capability claims",
+      "acceptance": "new ADR; RU/EN, About, website, narrative gate agree"
+    }
+  ],
+  "execution_nodes": [
+    {
+      "id": "W01",
+      "parent_block": "W01",
+      "output": "stable root navigation/render",
+      "additional_inputs": []
+    },
+    {
+      "id": "W02",
+      "parent_block": "W02",
+      "output": "preserved editor live buffer",
+      "additional_inputs": []
+    },
+    {
+      "id": "W03",
+      "parent_block": "W03",
+      "output": "task identity and draft isolation",
+      "additional_inputs": []
+    },
+    {
+      "id": "W04",
+      "parent_block": "W04",
+      "output": "display-bounded digest acknowledgment",
+      "additional_inputs": []
+    },
+    {
+      "id": "W05",
+      "parent_block": "W05",
+      "output": "working empty/pending/navigation paths",
+      "additional_inputs": []
+    },
+    {
+      "id": "W06",
+      "parent_block": "W06",
+      "output": "scoped store and command ownership",
+      "additional_inputs": []
+    },
+    {
+      "id": "W07",
+      "parent_block": "W07",
+      "output": "safe persistence redaction boundary",
+      "additional_inputs": []
+    },
+    {
+      "id": "W08",
+      "parent_block": "W08",
+      "output": "scoped authority reservation and observed receipts",
+      "additional_inputs": []
+    },
+    {
+      "id": "W09",
+      "parent_block": "W09",
+      "output": "idempotent existing-task dispatch and DAG join",
+      "additional_inputs": []
+    },
+    {
+      "id": "W10",
+      "parent_block": "W10",
+      "output": "validated runner-specific quota state",
+      "additional_inputs": []
+    },
+    {
+      "id": "W11",
+      "parent_block": "W11",
+      "output": "demonstrated runner enforcement capability",
+      "additional_inputs": []
+    },
+    {
+      "id": "W12",
+      "parent_block": "W12",
+      "output": "remote verified SHA and isolated migration checks",
+      "additional_inputs": []
+    },
+    {
+      "id": "W13",
+      "parent_block": "W13",
+      "output": "package provenance and smoke",
+      "additional_inputs": []
+    },
+    {
+      "id": "W14",
+      "parent_block": "W14",
+      "output": "normalized current/proposed/superseded claims",
+      "additional_inputs": []
+    },
+    {
+      "id": "W15",
+      "parent_block": "W15",
+      "output": "tested application service seam",
+      "additional_inputs": []
+    },
+    {
+      "id": "W16",
+      "parent_block": "W16",
+      "output": "typed IPC runtime validation",
+      "additional_inputs": []
+    },
+    {
+      "id": "W17",
+      "parent_block": "W17",
+      "output": "bounded delta/read freshness contract",
+      "additional_inputs": []
+    },
+    {
+      "id": "W18",
+      "parent_block": "W18",
+      "output": "task/session Run projection and reproducible revision",
+      "additional_inputs": [
+        "M198 full config_revision replay parity before pinning"
+      ]
+    },
+    {
+      "id": "W19",
+      "parent_block": "W19",
+      "output": "heartbeat/watch/recovery evidence",
+      "additional_inputs": []
+    },
+    {
+      "id": "W20",
+      "parent_block": "W20",
+      "output": "versioned scoped invocation traces and trajectory corpus",
+      "additional_inputs": []
+    },
+    {
+      "id": "W21",
+      "parent_block": "W21",
+      "output": "correct scoped multiple blockers",
+      "additional_inputs": []
+    },
+    {
+      "id": "W22",
+      "parent_block": "W22",
+      "output": "atomic question/decision/continuation cycle",
+      "additional_inputs": []
+    },
+    {
+      "id": "W23",
+      "parent_block": "W23",
+      "output": "citation/floor/criticality/trust enforcement",
+      "additional_inputs": []
+    },
+    {
+      "id": "W24",
+      "parent_block": "W24",
+      "output": "local retro with process taxonomy",
+      "additional_inputs": [
+        "M182 schema/producer process kind for M184"
+      ]
+    },
+    {
+      "id": "W25",
+      "parent_block": "W25",
+      "output": "observer-to-independent-verification loop",
+      "additional_inputs": []
+    },
+    {
+      "id": "W26",
+      "parent_block": "W26",
+      "output": "exact-object navigation and accessible component states",
+      "additional_inputs": []
+    },
+    {
+      "id": "W27",
+      "parent_block": "W27",
+      "output": "verified first useful project path",
+      "additional_inputs": []
+    },
+    {
+      "id": "W28",
+      "parent_block": "W28",
+      "output": "second-person scoped access and revoke",
+      "additional_inputs": []
+    },
+    {
+      "id": "W29a",
+      "parent_block": "W29",
+      "output": "second runner conformance",
+      "additional_inputs": []
+    },
+    {
+      "id": "W29b",
+      "parent_block": "W29",
+      "output": "manager binding over shared core/checker",
+      "additional_inputs": [
+        "minimum M166/M168 deterministic core/checker",
+        "manager pack with lockfile"
+      ]
+    },
+    {
+      "id": "W30",
+      "parent_block": "W30",
+      "output": "model/harness canary and rollback",
+      "additional_inputs": []
+    },
+    {
+      "id": "W31",
+      "parent_block": "W31",
+      "output": "consistent endorsed parent/product brand",
+      "additional_inputs": [
+        "final brand spelling before publication"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "W01",
+      "to": "W05",
+      "type": "hard",
+      "consumed_artifact": "stable root navigation/render"
+    },
+    {
+      "from": "W06",
+      "to": "W08",
+      "type": "hard",
+      "consumed_artifact": "scoped store and command ownership"
+    },
+    {
+      "from": "W06",
+      "to": "W09",
+      "type": "hard",
+      "consumed_artifact": "scoped store and command ownership"
+    },
+    {
+      "from": "W10",
+      "to": "W09",
+      "type": "hard",
+      "consumed_artifact": "validated runner-specific quota state"
+    },
+    {
+      "from": "W08",
+      "to": "W11",
+      "type": "hard",
+      "consumed_artifact": "scoped authority reservation and observed receipts"
+    },
+    {
+      "from": "W01",
+      "to": "W12",
+      "type": "release_gate",
+      "consumed_artifact": "stable root navigation/render"
+    },
+    {
+      "from": "W02",
+      "to": "W12",
+      "type": "release_gate",
+      "consumed_artifact": "preserved editor live buffer"
+    },
+    {
+      "from": "W03",
+      "to": "W12",
+      "type": "release_gate",
+      "consumed_artifact": "task identity and draft isolation"
+    },
+    {
+      "from": "W04",
+      "to": "W12",
+      "type": "release_gate",
+      "consumed_artifact": "display-bounded digest acknowledgment"
+    },
+    {
+      "from": "W05",
+      "to": "W12",
+      "type": "release_gate",
+      "consumed_artifact": "working empty/pending/navigation paths"
+    },
+    {
+      "from": "W06",
+      "to": "W12",
+      "type": "release_gate",
+      "consumed_artifact": "scoped store and command ownership"
+    },
+    {
+      "from": "W07",
+      "to": "W12",
+      "type": "release_gate",
+      "consumed_artifact": "safe persistence redaction boundary"
+    },
+    {
+      "from": "W08",
+      "to": "W12",
+      "type": "release_gate",
+      "consumed_artifact": "scoped authority reservation and observed receipts"
+    },
+    {
+      "from": "W09",
+      "to": "W12",
+      "type": "release_gate",
+      "consumed_artifact": "idempotent existing-task dispatch and DAG join"
+    },
+    {
+      "from": "W10",
+      "to": "W12",
+      "type": "release_gate",
+      "consumed_artifact": "validated runner-specific quota state"
+    },
+    {
+      "from": "W11",
+      "to": "W12",
+      "type": "release_gate",
+      "consumed_artifact": "demonstrated runner enforcement capability"
+    },
+    {
+      "from": "W01",
+      "to": "W13",
+      "type": "hard",
+      "consumed_artifact": "stable root navigation/render"
+    },
+    {
+      "from": "W12",
+      "to": "W13",
+      "type": "hard",
+      "consumed_artifact": "remote verified SHA and isolated migration checks"
+    },
+    {
+      "from": "W01",
+      "to": "W15",
+      "type": "verification_order",
+      "consumed_artifact": "stable root navigation/render"
+    },
+    {
+      "from": "W02",
+      "to": "W15",
+      "type": "verification_order",
+      "consumed_artifact": "preserved editor live buffer"
+    },
+    {
+      "from": "W03",
+      "to": "W15",
+      "type": "verification_order",
+      "consumed_artifact": "task identity and draft isolation"
+    },
+    {
+      "from": "W04",
+      "to": "W15",
+      "type": "verification_order",
+      "consumed_artifact": "display-bounded digest acknowledgment"
+    },
+    {
+      "from": "W05",
+      "to": "W15",
+      "type": "verification_order",
+      "consumed_artifact": "working empty/pending/navigation paths"
+    },
+    {
+      "from": "W06",
+      "to": "W15",
+      "type": "verification_order",
+      "consumed_artifact": "scoped store and command ownership"
+    },
+    {
+      "from": "W07",
+      "to": "W15",
+      "type": "verification_order",
+      "consumed_artifact": "safe persistence redaction boundary"
+    },
+    {
+      "from": "W08",
+      "to": "W15",
+      "type": "verification_order",
+      "consumed_artifact": "scoped authority reservation and observed receipts"
+    },
+    {
+      "from": "W09",
+      "to": "W15",
+      "type": "verification_order",
+      "consumed_artifact": "idempotent existing-task dispatch and DAG join"
+    },
+    {
+      "from": "W10",
+      "to": "W15",
+      "type": "verification_order",
+      "consumed_artifact": "validated runner-specific quota state"
+    },
+    {
+      "from": "W15",
+      "to": "W16",
+      "type": "hard",
+      "consumed_artifact": "tested application service seam"
+    },
+    {
+      "from": "W15",
+      "to": "W17",
+      "type": "hard",
+      "consumed_artifact": "tested application service seam"
+    },
+    {
+      "from": "W09",
+      "to": "W18",
+      "type": "hard",
+      "consumed_artifact": "idempotent existing-task dispatch and DAG join"
+    },
+    {
+      "from": "W16",
+      "to": "W18",
+      "type": "hard",
+      "consumed_artifact": "typed IPC runtime validation"
+    },
+    {
+      "from": "W18",
+      "to": "W19",
+      "type": "hard",
+      "consumed_artifact": "task/session Run projection and reproducible revision"
+    },
+    {
+      "from": "W07",
+      "to": "W20",
+      "type": "hard",
+      "consumed_artifact": "safe persistence redaction boundary"
+    },
+    {
+      "from": "W06",
+      "to": "W21",
+      "type": "hard",
+      "consumed_artifact": "scoped store and command ownership"
+    },
+    {
+      "from": "W16",
+      "to": "W21",
+      "type": "hard",
+      "consumed_artifact": "typed IPC runtime validation"
+    },
+    {
+      "from": "W21",
+      "to": "W22",
+      "type": "hard",
+      "consumed_artifact": "correct scoped multiple blockers"
+    },
+    {
+      "from": "W18",
+      "to": "W22",
+      "type": "hard",
+      "consumed_artifact": "task/session Run projection and reproducible revision"
+    },
+    {
+      "from": "W08",
+      "to": "W22",
+      "type": "hard",
+      "consumed_artifact": "scoped authority reservation and observed receipts"
+    },
+    {
+      "from": "W22",
+      "to": "W23",
+      "type": "hard",
+      "consumed_artifact": "atomic question/decision/continuation cycle"
+    },
+    {
+      "from": "W20",
+      "to": "W24",
+      "type": "hard",
+      "consumed_artifact": "versioned scoped invocation traces and trajectory corpus"
+    },
+    {
+      "from": "W22",
+      "to": "W24",
+      "type": "hard",
+      "consumed_artifact": "atomic question/decision/continuation cycle"
+    },
+    {
+      "from": "W11",
+      "to": "W25",
+      "type": "hard",
+      "consumed_artifact": "demonstrated runner enforcement capability"
+    },
+    {
+      "from": "W18",
+      "to": "W25",
+      "type": "hard",
+      "consumed_artifact": "task/session Run projection and reproducible revision"
+    },
+    {
+      "from": "W19",
+      "to": "W25",
+      "type": "hard",
+      "consumed_artifact": "heartbeat/watch/recovery evidence"
+    },
+    {
+      "from": "W20",
+      "to": "W25",
+      "type": "hard",
+      "consumed_artifact": "versioned scoped invocation traces and trajectory corpus"
+    },
+    {
+      "from": "W21",
+      "to": "W25",
+      "type": "hard",
+      "consumed_artifact": "correct scoped multiple blockers"
+    },
+    {
+      "from": "W22",
+      "to": "W25",
+      "type": "hard",
+      "consumed_artifact": "atomic question/decision/continuation cycle"
+    },
+    {
+      "from": "W05",
+      "to": "W26",
+      "type": "hard",
+      "consumed_artifact": "working empty/pending/navigation paths"
+    },
+    {
+      "from": "W18",
+      "to": "W26",
+      "type": "hard",
+      "consumed_artifact": "task/session Run projection and reproducible revision"
+    },
+    {
+      "from": "W22",
+      "to": "W26",
+      "type": "hard",
+      "consumed_artifact": "atomic question/decision/continuation cycle"
+    },
+    {
+      "from": "W13",
+      "to": "W27",
+      "type": "hard",
+      "consumed_artifact": "package provenance and smoke"
+    },
+    {
+      "from": "W25",
+      "to": "W27",
+      "type": "hard",
+      "consumed_artifact": "observer-to-independent-verification loop"
+    },
+    {
+      "from": "W26",
+      "to": "W27",
+      "type": "hard",
+      "consumed_artifact": "exact-object navigation and accessible component states"
+    },
+    {
+      "from": "W06",
+      "to": "W28",
+      "type": "hard",
+      "consumed_artifact": "scoped store and command ownership"
+    },
+    {
+      "from": "W08",
+      "to": "W28",
+      "type": "hard",
+      "consumed_artifact": "scoped authority reservation and observed receipts"
+    },
+    {
+      "from": "W22",
+      "to": "W28",
+      "type": "hard",
+      "consumed_artifact": "atomic question/decision/continuation cycle"
+    },
+    {
+      "from": "W11",
+      "to": "W29a",
+      "type": "hard",
+      "consumed_artifact": "demonstrated runner enforcement capability"
+    },
+    {
+      "from": "W18",
+      "to": "W29a",
+      "type": "hard",
+      "consumed_artifact": "task/session Run projection and reproducible revision"
+    },
+    {
+      "from": "W20",
+      "to": "W29a",
+      "type": "hard",
+      "consumed_artifact": "versioned scoped invocation traces and trajectory corpus"
+    },
+    {
+      "from": "W29a",
+      "to": "W29b",
+      "type": "hard",
+      "consumed_artifact": "second runner conformance"
+    },
+    {
+      "from": "W19",
+      "to": "W29b",
+      "type": "hard",
+      "consumed_artifact": "heartbeat/watch/recovery evidence"
+    },
+    {
+      "from": "W23",
+      "to": "W29b",
+      "type": "hard",
+      "consumed_artifact": "citation/floor/criticality/trust enforcement"
+    },
+    {
+      "from": "W20",
+      "to": "W29b",
+      "type": "hard",
+      "consumed_artifact": "versioned scoped invocation traces and trajectory corpus"
+    },
+    {
+      "from": "W20",
+      "to": "W30",
+      "type": "hard",
+      "consumed_artifact": "versioned scoped invocation traces and trajectory corpus"
+    },
+    {
+      "from": "W25",
+      "to": "W30",
+      "type": "hard",
+      "consumed_artifact": "observer-to-independent-verification loop"
+    },
+    {
+      "from": "W29a",
+      "to": "W30",
+      "type": "hard",
+      "consumed_artifact": "second runner conformance"
+    }
+  ],
+  "verification": {
+    "unique_blocks": 31,
+    "execution_nodes": 32,
+    "edges": 67,
+    "acyclic": true,
+    "all_edge_endpoints_resolve": true,
+    "all_edges_name_consumed_artifact": true,
+    "topological_order": [
+      "W01",
+      "W02",
+      "W03",
+      "W04",
+      "W05",
+      "W06",
+      "W07",
+      "W08",
+      "W10",
+      "W09",
+      "W11",
+      "W12",
+      "W13",
+      "W14",
+      "W15",
+      "W16",
+      "W17",
+      "W18",
+      "W19",
+      "W20",
+      "W21",
+      "W22",
+      "W23",
+      "W24",
+      "W25",
+      "W26",
+      "W27",
+      "W28",
+      "W29a",
+      "W29b",
+      "W30",
+      "W31"
+    ]
+  },
+  "qualifications": [
+    "W26 component fixes can start after W01; new navigation needs W18/W22.",
+    "W29a second runner is independent of full manager W29b.",
+    "W12 release gate applies to unattended external effects; PR and CI preparation can start sooner.",
+    "M198, M182 and minimum M166/M168 are inputs included in the named blocks, not already-completed claims.",
+    "Every acceptance check remains future until its implementation passes on integrated SHA."
+  ],
+  "superseded_by": "docs/audit/2026-09-07-merged-execution-plan.json"
+}

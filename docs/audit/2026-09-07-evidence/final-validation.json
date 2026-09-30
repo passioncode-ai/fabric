@@ -1,0 +1,34 @@
+{
+  "runtime_saved_copy": {
+    "exit_code": 0,
+    "reproduced_all_seven": true
+  },
+  "ui_saved_copy": {
+    "exit_code": 0,
+    "summary": [
+      "AUDIT PROJECT PROOF: {\"emptyBoardIdeaInput\":false,\"choices\":[{\"value\":\"claude-code\",\"text\":\"Claude Code\"},{\"value\":\"codex\",\"text\":\"Terminal\"},{\"value\":\"shell\",\"text\":\"Terminal\"}],\"nestedButtons\":1}",
+      "AUDIT EDITOR PROOF: typed while saving=abc; editor recreated with= ab ; number of instances= 2",
+      "AUDIT PROOF: Rendered more hooks than during the previous render.",
+      "Test Files  3 passed (3)",
+      "Tests  3 passed (3)"
+    ],
+    "reproduction_harness": "temporary directory + desktop dependency link, cwd=stage; no --root",
+    "initial_portability_issue": "pnpm import resolution and explicit-root path handling; corrected runner verified"
+  },
+  "report_visual": {
+    "method": "CUA screenshots/DOM",
+    "viewport_widths": [
+      1280,
+      390
+    ],
+    "document_widths": [
+      1280,
+      390
+    ],
+    "plan_navigation": "verified",
+    "viewport_restored": true
+  },
+  "links_and_refs": "report relative links and runtime/plan file:line bounds checked, zero broken",
+  "source_changes": "",
+  "head": "153b4f029e626230d465d5d21d02fb8c9de5fadf"
+}

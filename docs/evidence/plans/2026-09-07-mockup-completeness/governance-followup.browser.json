@@ -1,0 +1,18 @@
+{
+  "status": "pass",
+  "method": "Standalone source in Chromium with exact Paperclip/app tokens. Target fixture states, no production or external actions.",
+  "checks": [
+    "unknown skill and qualified-unprovisioned hold exact gate; provisioning permits v5; existing v3 unchanged",
+    "pre-save diff no mutation; competing current revision preserved; explicit rebase only intended patch; successor rollback",
+    "exact proposal source/PM; preview separate; stale expected revision refuses; accept creates one actual task; replay same result",
+    "Reports source+item creates correct target artifact; merge links exact existing task; unknown source refuses substitution",
+    "supersede creates distinct linked proposal with retained source and predecessor",
+    "changed source after preview refuses old proof; refreshed refusal retains artifact and creates no task",
+    "goal priority saved to shared fixture and callback",
+    "binding code expires/reissues; independently saved agent/kind rules; DM reply resolves exact question once",
+    "notifier emits scheduler callback; frozen outbox retry still gated",
+    "data location scope; source/level log filter; retention prunes only diagnostics while Estate events retained"
+  ],
+  "layoutCases": 28,
+  "errors": []
+}

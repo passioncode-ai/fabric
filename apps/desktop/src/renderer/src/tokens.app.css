@@ -1,0 +1,114 @@
+/* The app's semantic layer. Since CO-169 (2026-09-28) every colour, focus, state,
+   radius, font and motion role resolves to the shared PassionCode design system
+   (tokens.passioncode.css, vendored byte-for-byte; see its manifest). The
+   Paperclip pack below it still supplies the type ramp and terminal tokens that
+   PassionCode does not define.
+
+   Earlier note, kept: the app's semantic layer over the Paperclip pack.
+   Rule: components consume ONLY var(--…). Nothing below invents a value —
+   every declaration here either aliases a pack token or derives one from it by
+   a stated ratio. `scripts/check-design.mjs` fails the build on a raw colour,
+   a raw font-size/letter-spacing, or a px value outside this ladder.
+
+   Pack: paperclip (SHELEG style pack) — chosen because its Register names this
+   product: "agent teams and orchestrators, scheduler and cron surfaces, job
+   runners". Dials: DESIGN_VARIANCE 5 / MOTION_INTENSITY 2 / VISUAL_DENSITY 7. */
+
+:root {
+  /* ── Fabric's persona face (SCR-36, FabricAvatar.tsx): identity art, the same in both themes ── */
+  --avatar-orbit-0: #E8DFFF; --avatar-orbit-1: #7260DB; --avatar-orbit-2: #A8EFDC; --avatar-orbit-3: #332753;
+  --avatar-spark-0: #FFE4D2; --avatar-spark-1: #EE8868; --avatar-spark-2: #FFE283; --avatar-spark-3: #603B39;
+  --avatar-wave-0: #D8EDEB; --avatar-wave-1: #438EA3; --avatar-wave-2: #BCD78C; --avatar-wave-3: #204451;
+
+  /* ── space ────────────────────────────────────────────────────────────────
+     VISUAL_DENSITY 7 asks for a tighter rhythm than the pack's landing-page
+     ladder, so the app's steps are DERIVED from it rather than invented beside
+     it: a pack upgrade moves this screen. --space-xs is 0.5rem, --space-sm 1rem,
+     --space-md 1.5rem. */
+  --space-1: var(--pc-space-1); /* 4px */
+  --space-2: var(--pc-space-2); /* 8px */
+  --space-3: var(--pc-space-3); /* 12px */
+  --space-4: var(--pc-space-4); /* 16px */
+  --space-5: var(--pc-space-5); /* 24px */
+  --space-6: var(--pc-space-6); /* 32px */
+
+  /* ── type ─────────────────────────────────────────────────────────────────
+     Every size the app spends maps onto the pack's ramp, which is rem-based,
+     so OS text scaling works (it did not when these were px literals). */
+  --app-fs-body: var(--fs-body-sm); /* 0.9rem — the interface's reading size */
+  --app-lh-body: var(--lh-body-sm);
+  --app-fs-caption: var(--fs-mono-sm); /* 0.75rem — muted lines, meta */
+  --app-fs-label: var(--fs-mono-sm); /* uppercase section headings */
+  --app-track-label: var(--track-label);
+  --app-fs-badge: var(--fs-mono-xs); /* 0.65rem — state badges */
+  --app-track-badge: var(--track-badge);
+  --app-fs-mono: var(--fs-mono-sm);
+  --app-fs-title: var(--fs-h4); /* project name, window titles */
+  --app-track-title: var(--track-h4);
+  --app-fs-stat: var(--fs-card-title); /* the statistics numbers */
+
+  /* ── platform ─────────────────────────────────────────────────────────────
+     Not a rhythm decision and deliberately NOT on the --space-* ladder: this is
+     the physical width the macOS traffic lights occupy under `hiddenInset`,
+     plus their inset. Every window's own top strip starts clear of it (M63).
+     It lives here because a component may not hold a raw pixel — and because
+     when Apple moves them, one line moves. */
+  --chrome-lights: 84px;
+
+  /* ── colour roles ─────────────────────────────────────────────────────────*/
+  --app-bg: var(--pc-bg);
+  --app-panel: var(--pc-panel);
+  --app-panel-quiet: var(--pc-panel-raised);
+  --app-ink: var(--pc-text);
+  --app-muted: var(--pc-text-muted);
+  --app-line: var(--pc-border);
+  --app-line-strong: var(--pc-border-strong);
+  /* Gold is action, selection and focus — never a state (ui.md). Dark text on
+     gold for the one primary action of a task region. */
+  --app-accent: var(--pc-accent);
+  --app-accent-hover: var(--pc-accent-hover);
+  --app-accent-ink: var(--pc-on-accent);
+  --app-focus: var(--pc-focus);
+  --app-link: var(--pc-link);
+
+  /* ── shape, type family, elevation ──────────────────────────────────────── */
+  --app-radius-control: var(--pc-radius-control); /* inputs, buttons, tags */
+  --app-radius-panel: var(--pc-radius-panel); /* resting panels and widgets */
+  --app-radius-pill: var(--pc-radius-pill); /* state chips */
+  --font-body: var(--pc-font);
+  --font-display: var(--pc-font);
+  --font-mono: var(--pc-font-data);
+  --shadow-modal: var(--pc-shadow-overlay); /* only for what floats */
+  /* Behind a modal: the page canvas at 70%, so the scrim is the same hue in both themes. */
+  --app-scrim: color-mix(in srgb, var(--pc-bg) 70%, transparent);
+
+  /* State roles. The pack's rule is that the word carries the state and the
+     hue supports it; these are spent on borders and dots, never on the text,
+     because in the light twin --warn and --idle sit below the 3:1 non-text
+     floor on paper and would be unreadable as labels. */
+  --state-running: var(--pc-info);
+  /* The state that requires a PERSON. It had no role at all, which is why an
+     agent that cannot proceed looked exactly like one that is thinking. */
+  --state-blocked: var(--pc-negative);
+  --state-idle: var(--pc-warning);
+  /* Absence, not a state: the muted ink, never a hue. */
+  --state-ended: var(--pc-text-muted);
+  --state-good: var(--pc-positive);
+  --state-danger: var(--pc-negative);
+  /* Text that must be readable in both themes stays on the ink ramp. */
+  --state-ink: var(--app-ink);
+  --state-ink-quiet: var(--app-muted);
+
+  /* ── motion budget, in full ───────────────────────────────────────────────
+     One CSS transition (hover opacity) and one JS scroll, and the scroll checks
+     prefers-reduced-motion itself because a media query cannot reach it. */
+  --dur-quick: var(--pc-duration-hover);
+  --ease-enter: var(--pc-ease);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+/* Reduced motion: tokens.passioncode.css sets its durations to 0ms, and
+   --dur-quick follows it. */

@@ -1,0 +1,15 @@
+Intent (git) vs as-built (coordination plane)
+
+  ! ADR written after the baseline with no as-built record
+      ADR-0015, ADR-0017, ADR-0027, ADR-0028, ADR-0029, ADR-0030, ADR-0031, ADR-0032 (+10 more)
+      → decided since adoption; nothing reports it was built
+  ! CO written after the baseline with no as-built record
+      CO-051, CO-052, CO-053, CO-054, CO-055, CO-056, CO-057, CO-058 (+49 more)
+      → decided since adoption; nothing reports it was built
+  · ADR: 10 pre-baseline ids unevaluated (backlog)
+  · CO: 50 pre-baseline ids unevaluated (backlog)
+
+This compares ids, commits and presence. It does NOT judge whether the
+built thing matches what the document describes — read both and decide.
+Before starting: resolve divergence or record why it stands.
+After finishing: update BOTH sides, then run this again.

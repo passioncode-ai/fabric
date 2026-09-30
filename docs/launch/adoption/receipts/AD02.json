@@ -1,0 +1,81 @@
+{
+  "sourceCommit": "c1fb56125c28f14de88191e7ffb162b7eb0eed72",
+  "baseCommit": "ac9e286cb312e9d895e76758ecb046aedb1a62a4",
+  "inputReceipts": [],
+  "decisionIds": [],
+  "packet": "AD02",
+  "status": "blocked",
+  "schemaVersion": "fabric.adoption.receipt@1",
+  "proofTier": "pure",
+  "predicate": "native-acceptance-pending",
+  "contractBindings": [
+    {
+      "name": "PersistentDrafts",
+      "ownerFile": "apps/desktop/src/main/onboardingDrafts.ts",
+      "export": "createDrafts",
+      "revision": "c1fb56125c28f14de88191e7ffb162b7eb0eed72"
+    }
+  ],
+  "exactWriteSet": [
+    "apps/desktop/src/main/localState.ts",
+    "apps/desktop/src/main/onboardingDrafts.ts",
+    "apps/desktop/src/renderer/src/App.tsx",
+    "apps/desktop/src/renderer/src/components/TabStrip.tsx",
+    "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
+    "apps/desktop/test/adoption-native-harness.mjs",
+    "apps/desktop/test/local-state.test.mjs"
+  ],
+  "checks": [
+    {
+      "command": "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/onboardingDraft.persist.test.tsx",
+      "exitCode": 0,
+      "proofTier": "pure",
+      "result": "9/9 actual renderer + actual disk via controlled IPC facade",
+      "receipt": "docs/launch/adoption/execution/2026-09-17-foundation.md"
+    },
+    {
+      "command": "pnpm --filter @fabric/desktop build",
+      "exitCode": 0,
+      "proofTier": "source",
+      "receipt": "docs/launch/adoption/execution/2026-09-17-foundation.md"
+    }
+  ],
+  "negativeChecks": [
+    {
+      "case": "Restored draft identity collision",
+      "failedBefore": true,
+      "passesAfter": true,
+      "receipt": "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx"
+    },
+    {
+      "case": "Late hydration erases typed input",
+      "failedBefore": true,
+      "passesAfter": true,
+      "receipt": "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx"
+    },
+    {
+      "case": "First installation cannot save",
+      "failedBefore": true,
+      "passesAfter": true,
+      "receipt": "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx"
+    },
+    {
+      "case": "Corruption becomes empty on reread",
+      "failedBefore": true,
+      "passesAfter": true,
+      "receipt": "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx"
+    }
+  ],
+  "notRun": [
+    {
+      "check": "Native UI with actual preload/IPC and Electron restart",
+      "reason": "CUA reports macOS Accessibility and Screen Recording permissions pending on two attempts; test-owned harness stopped",
+      "requiredBefore": "AD02 passed and AD04 dispatch"
+    }
+  ],
+  "migrationAndRollback": "Existing draft-1/2 stay readable; UUID keys require no schema migration; never delete user draft files.",
+  "remaining": [
+    "Complete isolated native fixture acceptance using apps/desktop/test/adoption-native-harness.mjs. Production-main wiring remains separate evidence."
+  ],
+  "nextTask": "Grant Computer Use permissions, launch fresh prepared fixtures and verify four tabs after real restart, early typing, first save and unreadable recovery."
+}

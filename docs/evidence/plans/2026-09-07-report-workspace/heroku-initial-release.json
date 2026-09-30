@@ -1,0 +1,18 @@
+{
+  "release": 5,
+  "version": {
+    "schema": 1,
+    "source": {
+      "repository": "https://github.com/passioncode-ai/fabric",
+      "commit": "fce89652754c21ce4538fbdea11d6556ac351469"
+    },
+    "content_digest": "d53252b9ec6bdcd1a7078ed967754b7e4935cf740ba3d262971974f7d3a214bd",
+    "exported_at": "2026-09-07T17:19:32+02:00",
+    "file_count": 336,
+    "expected_source_commit": null,
+    "deployment": {
+      "workspace_commit": "9bcc811936e7dd831a9731439e3e8027b7f0d5d1",
+      "release": "v5"
+    }
+  }
+}

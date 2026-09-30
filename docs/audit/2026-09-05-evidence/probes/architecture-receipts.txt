@@ -1,0 +1,52 @@
+PROVENANCE
+Date: 2026-09-05
+Repository snapshot: 844c7a3c787d3f1bc87703a548e6099fc546a880
+Working directory: .
+The two source files were NOT present as files when the probes ran.
+Their contents above were copied verbatim from the executed tool-call heredoc
+sources after the run. No reconstructed or modified probe is being represented
+as executed. No probe was rerun while saving these artifacts.
+
+ORIGINAL EXECUTION 1
+Invocation: python3 - <<'PY' ... PY
+Source: architecture-contract-blueprint.py (verbatim heredoc body)
+exec_command exit_code: 0
+Output (stdout, excluding the RefResolver deprecation warning on stderr):
+NODE_RESULT_AT_PIN 489737051828fafec92463df04b6a6fd3280c7b7 violations=9
+  : 'id' is a required property
+  : 'contractVersion' is a required property
+  : 'outcome' is a required property
+  : 'createdAt' is a required property
+  : 'producer' is a required property
+  done: 'implemented' is not of type 'array'
+  scope: 'one project' is not of type 'object'
+  notVerified: 'none' is not of type 'array'
+  : Additional properties are not allowed ('costUsdEstimate' was unexpected)
+BLUEPRINT_TWO_PMS gate_exit=0 OK: 3 schemas and 4 examples are valid; 4 invalid boundary probes were rejected
+BLUEPRINT_RETIRED_PM gate_exit=0 OK: 3 schemas and 4 examples are valid; 4 invalid boundary probes were rejected
+BLUEPRINT_UNBOUND_CAPABILITY gate_exit=0 OK: 3 schemas and 4 examples are valid; 4 invalid boundary probes were rejected
+Temporary probe directory=/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-arch-probe-50qr1yt3
+
+Reproduction command (saved for a future run, NOT run during artifact saving):
+python3 /tmp/fabric-audit-20260905/probes/architecture-contract-blueprint.py
+
+ORIGINAL EXECUTION 2
+Invocation: node --input-type=module - <<'JS' ... JS
+Source: architecture-decoder.js (verbatim heredoc body)
+The same exec_command first printed the already-cited P5 test source lines;
+only the decoder output is retained below.
+exec_command exit_code: 0
+Output:
+{"raw":"abc\rXY","decoded":"XY"}
+{"raw":"abc\bX","decoded":"abcX"}
+{"raw":"abc\u001b[2DX","decoded":"abcX"}
+
+Reproduction command, run from .
+(saved for a future run, NOT run during artifact saving):
+node --input-type=module - < /tmp/fabric-audit-20260905/probes/architecture-decoder.js
+
+AGGREGATE
+Exact host contract pin: 9 schema violations in the documented NodeResult shape.
+Blueprint semantic probes: 3 independently invalid examples accepted, each exit 0.
+Decoder probes: 3 actual production decodePty outputs recorded above.
+These are observations, not new pass/fail assertions invented during saving.

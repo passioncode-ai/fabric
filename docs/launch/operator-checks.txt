@@ -1,0 +1,30 @@
+R0 operator audit/planning — actual checks, 2026-09-15.
+No product runtime acceptance.
+dependency cycle: REFUSED; Error: Dependency cycle
+unserved voice requirement: REFUSED; Error: Unserved requirements: OF-07
+empty dependency payload: REFUSED; Error: Untyped or empty dependency
+unresolved evidence source: REFUSED; fatal: path 'scripts/product/missing-operator.mjs' does not exist in '192cdcc29a9145d930bc696a9658f95987bceeb7'
+inflated published count: REFUSED; Error: Published totals differ from rows
+restored plan: {"result":"PASS","scope":"planning references, trace and DAG; not UX/runtime acceptance","requirements":12,"capabilities":30,"findings":10,"packets":12,"edges":18,"sourceReferences":50,"totals":{"PASS":0,"PARTIAL":20,"FAIL":4,"BLOCKED":6},"layers":[["OX-01"],["OX-02"],["OX-03","OX-05"],["OX-04","OX-06"],["OX-07","OX-08","OX-09","OX-10","OX-11"],["OX-12"]]}
+
+Conservation:
+{"result":"PASS","scope":"conservation, references, requirement trace, DAG; no runtime coverage","documents":656,"preservedRows":527,"packets":15,"requirements":10,"edges":31,"layers":[["D01"],["D02","D04","L11"],["D03","L01","L10"],["L02","L03","L04","L05"],["L06","L07"],["L08"],["L09"]],"localLinks":94}
+
+UX/docs: bash scripts/check-docs.sh exit 0; relative links resolve (362 Markdown files); UX 0 errors, 1 advisory warning.
+node scripts/sync-product-ux.mjs --check: PASS
+node scripts/build-product-report.mjs --check: PASS
+node scripts/build-system-map.mjs --check: PASS
+
+Browser B01–B05 and helper H01: see versioned audit.
+S01: no capture API/control matches in apps/desktop/src and scripts/product.
+Independent convergence review: corrections recorded in audit; no product code changed.
+
+Final source checks:
+node scripts/check-registers.mjs: PASS (166 carry-over rows; 197 milestones; 1549 verification rows; 136 carry-over rows with remaining work).
+node scripts/build-plan-projection.mjs --check: PASS (8 existing milestones; 10 existing batches; separate from OX plan).
+node scripts/build-mockup-coverage.mjs --check: PASS (105 legacy rows; not R0 runtime coverage).
+node scripts/check-design-map.mjs: PASS (1557 files; 266 anchors; 884 targets).
+bash scripts/ci.sh fast: exit 0, fast tier green. Full stack/DB tier NOT RUN.
+git diff --check: PASS.
+
+The source gate required re-reviewing unchanged M131 receipt after the backlog append, updating carry-over arithmetic and rebuilding the existing plan projection. No gate was disabled. The cited M131 line was compared byte-for-byte before each digest refresh.

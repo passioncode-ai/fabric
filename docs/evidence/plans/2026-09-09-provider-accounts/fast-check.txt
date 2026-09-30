@@ -1,0 +1,18 @@
+Command: bash scripts/ci.sh fast
+Date: 2026-09-09
+Exit: 0
+Selected stdout/stderr lines; warnings retained below. Full stack and live CLI tests not run.
+
+PASS product model: {"screens":63,"views":72,"scenarios":87,"flows":52,"journeys":36,"findings":32,"active_tasks":57,"task_contexts":108,"pinned_receipts":159,"verified_git_blobs":33,"source_io_checked":true}
+PASS UX projections match canonical registries
+PASS product.html matches its canonical inputs
+PASS mockup coverage projection: 105 rows, 0 remaining; semantic verdicts require review
+PASS: 13 planted contract/report defects refused
+0 error(s), 497 warning(s)
+relative Markdown links resolve (177 files inspected)
+0 error(s), 38 warning(s)
+0 error(s), 497 warning(s)
+registers: 112 carry-over rows, 197 milestones, 846 verification rows
+ Test Files  86 passed (86)
+      Tests  907 passed (907)
+fast tier green. The stack-backed probes did not run — use `scripts/ci.sh full`.

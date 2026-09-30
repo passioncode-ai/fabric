@@ -1,0 +1,4270 @@
+{
+  "schema": "fabric-deep-audit/1",
+  "date": "2026-09-07",
+  "timezone": "Europe/Warsaw",
+  "root": ".",
+  "head": "153b4f029e626230d465d5d21d02fb8c9de5fadf",
+  "source_changed": false,
+  "report_status": "proposal; no registry edits or new accepted ADR",
+  "inventory": {
+    "head": "153b4f029e626230d465d5d21d02fb8c9de5fadf",
+    "tracked_files": 681,
+    "groups": {
+      "other": {
+        "files": 197,
+        "lines": 103612
+      },
+      "apps/desktop/src/main": {
+        "files": 27,
+        "lines": 7616
+      },
+      "apps/desktop/src/preload": {
+        "files": 1,
+        "lines": 166
+      },
+      "apps/desktop/src/renderer": {
+        "files": 61,
+        "lines": 9644
+      },
+      "apps/desktop/src/shared": {
+        "files": 79,
+        "lines": 7090
+      },
+      "apps/desktop/test": {
+        "files": 26,
+        "lines": 4888
+      },
+      "docs/architecture": {
+        "files": 20,
+        "lines": 5846
+      },
+      "docs/brand": {
+        "files": 10,
+        "lines": 535
+      },
+      "docs/evidence": {
+        "files": 20,
+        "lines": 5784
+      },
+      "docs/ux": {
+        "files": 7,
+        "lines": 4042
+      },
+      "packages/journal": {
+        "files": 4,
+        "lines": 270
+      },
+      "packages/schema": {
+        "files": 2,
+        "lines": 1125
+      },
+      "supabase/migrations": {
+        "files": 30,
+        "lines": 4201
+      }
+    },
+    "source_files": [
+      {
+        "file": "apps/desktop/src/main/agentSurface.ts",
+        "lines": 1325,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/appIcon.ts",
+        "lines": 78,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/chainAdvance.ts",
+        "lines": 140,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/codeStats.ts",
+        "lines": 150,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/contextPack.ts",
+        "lines": 266,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/digestMark.ts",
+        "lines": 36,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/env.ts",
+        "lines": 105,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/favourites.ts",
+        "lines": 23,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/files.ts",
+        "lines": 167,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/gateway.ts",
+        "lines": 33,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/gitRun.ts",
+        "lines": 52,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/index.ts",
+        "lines": 2692,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/localStore.ts",
+        "lines": 46,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/menu.ts",
+        "lines": 18,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/menuTemplate.ts",
+        "lines": 60,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/policy.ts",
+        "lines": 271,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/power.ts",
+        "lines": 119,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/pty.ts",
+        "lines": 496,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/quota.ts",
+        "lines": 209,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/repoRoot.ts",
+        "lines": 50,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/repoState.ts",
+        "lines": 189,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/routineTick.ts",
+        "lines": 174,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/sessionBundle.ts",
+        "lines": 206,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/sessionEnv.ts",
+        "lines": 49,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/settings.ts",
+        "lines": 75,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/transcripts.ts",
+        "lines": 372,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/main/workspace.ts",
+        "lines": 215,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/App.tsx",
+        "lines": 564,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/AttentionPanel.tsx",
+        "lines": 158,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/DecisionsSection.tsx",
+        "lines": 86,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/DigestSection.tsx",
+        "lines": 80,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/EditorWindow.tsx",
+        "lines": 303,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/EstateAgents.test.tsx",
+        "lines": 154,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/EstateAgents.tsx",
+        "lines": 187,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/EstateHome.tsx",
+        "lines": 269,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/Feed.test.tsx",
+        "lines": 47,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/Feed.tsx",
+        "lines": 40,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/HarnessSection.tsx",
+        "lines": 115,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/MemoryOverviewSection.tsx",
+        "lines": 138,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+        "lines": 97,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/Onboarding.tsx",
+        "lines": 213,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/OperatorError.test.tsx",
+        "lines": 83,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/OperatorError.tsx",
+        "lines": 73,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/PlanSection.tsx",
+        "lines": 153,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/ProfileSection.tsx",
+        "lines": 89,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+        "lines": 1786,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/SearchPanel.tsx",
+        "lines": 124,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/SessionWindow.tsx",
+        "lines": 64,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/TaskPage.test.tsx",
+        "lines": 127,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/TaskPage.tsx",
+        "lines": 287,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/Tasks.test.tsx",
+        "lines": 63,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/Tasks.tsx",
+        "lines": 293,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/TerminalView.tsx",
+        "lines": 66,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/Workspace.tsx",
+        "lines": 115,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components.css",
+        "lines": 369,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/Banner.tsx",
+        "lines": 25,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/Board.tsx",
+        "lines": 56,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/Button.tsx",
+        "lines": 43,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/Caret.tsx",
+        "lines": 18,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/Claim.tsx",
+        "lines": 49,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/EmptyState.tsx",
+        "lines": 39,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/Field.tsx",
+        "lines": 75,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/FileTree.tsx",
+        "lines": 81,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/Panel.tsx",
+        "lines": 68,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/Row.tsx",
+        "lines": 46,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/Stat.tsx",
+        "lines": 52,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/StateChip.tsx",
+        "lines": 36,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/StatusBar.tsx",
+        "lines": 62,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/TabStrip.tsx",
+        "lines": 96,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/TaskCard.tsx",
+        "lines": 96,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/Toolbar.tsx",
+        "lines": 15,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/components.test.tsx",
+        "lines": 468,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/index.ts",
+        "lines": 20,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/components/registry.ts",
+        "lines": 209,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/duration.ts",
+        "lines": 11,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/evidence.test.ts",
+        "lines": 57,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/evidence.ts",
+        "lines": 72,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/global.d.ts",
+        "lines": 9,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/halfShipped.test.tsx",
+        "lines": 170,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/i18n/en.ts",
+        "lines": 688,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/i18n/index.tsx",
+        "lines": 73,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/i18n/ru.ts",
+        "lines": 125,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/main.tsx",
+        "lines": 29,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/sessionTone.ts",
+        "lines": 26,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/styles.css",
+        "lines": 301,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/tokens.app.css",
+        "lines": 88,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/tokens.paperclip.css",
+        "lines": 294,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/renderer/src/vite-env.d.ts",
+        "lines": 4,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/agentSpec.test.ts",
+        "lines": 73,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/agentSpec.ts",
+        "lines": 93,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/agents.test.ts",
+        "lines": 75,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/agents.ts",
+        "lines": 167,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/attention.test.ts",
+        "lines": 116,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/attention.ts",
+        "lines": 179,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/automations.test.ts",
+        "lines": 85,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/automations.ts",
+        "lines": 86,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/backlogBrief.test.ts",
+        "lines": 72,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/backlogBrief.ts",
+        "lines": 71,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/boardRank.test.ts",
+        "lines": 100,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/boardRank.ts",
+        "lines": 107,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/chain.test.ts",
+        "lines": 67,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/chain.ts",
+        "lines": 90,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/decisions.test.ts",
+        "lines": 67,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/decisions.ts",
+        "lines": 79,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/delivery.test.ts",
+        "lines": 33,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/delivery.ts",
+        "lines": 46,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/digest.test.ts",
+        "lines": 80,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/digest.ts",
+        "lines": 86,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/editorBuffer.test.ts",
+        "lines": 43,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/editorBuffer.ts",
+        "lines": 46,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/errorText.test.ts",
+        "lines": 66,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/errorText.ts",
+        "lines": 86,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/favourites.test.ts",
+        "lines": 63,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/favourites.ts",
+        "lines": 56,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/idea.test.ts",
+        "lines": 71,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/idea.ts",
+        "lines": 80,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/ladder.test.ts",
+        "lines": 68,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/ladder.ts",
+        "lines": 56,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/loopBound.test.ts",
+        "lines": 66,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/loopBound.ts",
+        "lines": 89,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/memoryChoice.test.ts",
+        "lines": 46,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/memoryChoice.ts",
+        "lines": 53,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/memoryOverview.test.ts",
+        "lines": 58,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/memoryOverview.ts",
+        "lines": 57,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/mirror.test.ts",
+        "lines": 111,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/mirror.ts",
+        "lines": 248,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/mirrorRead.test.ts",
+        "lines": 102,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/notify.test.ts",
+        "lines": 57,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/notify.ts",
+        "lines": 72,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/origin.test.ts",
+        "lines": 52,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/origin.ts",
+        "lines": 59,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/plan.test.ts",
+        "lines": 62,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/plan.ts",
+        "lines": 62,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/preamble.test.ts",
+        "lines": 27,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/preamble.ts",
+        "lines": 30,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/presets.test.ts",
+        "lines": 52,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/presets.ts",
+        "lines": 77,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/projectWeight.test.ts",
+        "lines": 87,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/projectWeight.ts",
+        "lines": 97,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/provenance.test.ts",
+        "lines": 44,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/provenance.ts",
+        "lines": 54,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/pty-decode.ts",
+        "lines": 31,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/quotaGate.test.ts",
+        "lines": 75,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/quotaGate.ts",
+        "lines": 80,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/redact.test.ts",
+        "lines": 66,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/redact.ts",
+        "lines": 150,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/redactPayload.test.ts",
+        "lines": 56,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/repoWatch.test.ts",
+        "lines": 41,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/repoWatch.ts",
+        "lines": 55,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/routine.test.ts",
+        "lines": 73,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/routine.ts",
+        "lines": 88,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/search.test.ts",
+        "lines": 88,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/search.ts",
+        "lines": 54,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/servers.test.ts",
+        "lines": 171,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/servers.ts",
+        "lines": 199,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/splashProgress.test.ts",
+        "lines": 46,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/splashProgress.ts",
+        "lines": 48,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/startupFailure.test.ts",
+        "lines": 163,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/startupFailure.ts",
+        "lines": 200,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/surfaceTools.ts",
+        "lines": 48,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/tabs.test.ts",
+        "lines": 65,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/tabs.ts",
+        "lines": 65,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/taskDraft.test.ts",
+        "lines": 112,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/taskDraft.ts",
+        "lines": 83,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/tenure.test.ts",
+        "lines": 37,
+        "test": true
+      },
+      {
+        "file": "apps/desktop/src/shared/tenure.ts",
+        "lines": 31,
+        "test": false
+      },
+      {
+        "file": "apps/desktop/src/shared/types.ts",
+        "lines": 896,
+        "test": false
+      },
+      {
+        "file": "packages/journal/package.json",
+        "lines": 18,
+        "test": false
+      },
+      {
+        "file": "packages/journal/src/index.ts",
+        "lines": 126,
+        "test": false
+      },
+      {
+        "file": "packages/journal/test/retry.test.mjs",
+        "lines": 122,
+        "test": true
+      },
+      {
+        "file": "packages/journal/tsconfig.json",
+        "lines": 4,
+        "test": false
+      },
+      {
+        "file": "packages/schema/package.json",
+        "lines": 13,
+        "test": false
+      },
+      {
+        "file": "packages/schema/test/planted.test.mjs",
+        "lines": 1112,
+        "test": true
+      }
+    ],
+    "migration_count": 30,
+    "adr_count": 43
+  },
+  "checks": [
+    {
+      "id": "fast",
+      "verdict": "clean",
+      "scope": "configured local fast gates",
+      "command": "bash scripts/ci.sh fast",
+      "exit_code": 0,
+      "log_pointer": "/tmp/fabric-audit-fast.log"
+    },
+    {
+      "id": "suite",
+      "verdict": "clean",
+      "scope": "configured tests, not full Electron E2E",
+      "command": "pnpm -r test",
+      "exit_code": 0,
+      "vitest_files": 48,
+      "vitest_tests": 415,
+      "memory_fixture": {
+        "with_memory": "6/6",
+        "without_memory": "0/6",
+        "rebuilt": "6/6"
+      },
+      "log_pointer": "/tmp/fabric-audit-full-tests.log"
+    },
+    {
+      "id": "additional-probes",
+      "verdict": "finding",
+      "scope": "controlled mechanisms, not production frequency",
+      "runtime_probe_count": 7,
+      "pointers": [
+        "/tmp/fabric-runtime-probes-output.txt",
+        "/tmp/fabric-ux-probe/shell.log",
+        "/tmp/fabric-ux-probe/editor.log",
+        "/tmp/fabric-ux-probe/project.log"
+      ]
+    },
+    {
+      "id": "contract",
+      "verdict": "clean",
+      "scope": "sibling shape/fixtures/docs, not host admission",
+      "command": "pnpm run check",
+      "exit_code": 0,
+      "tests": 34,
+      "root": "<home>/DATA/fabric-agent-contract"
+    },
+    {
+      "id": "adapter",
+      "verdict": "clean",
+      "scope": "sibling validator/unit tests, not package channel audit",
+      "command": "pnpm test",
+      "exit_code": 0,
+      "tests": 8,
+      "root": "<home>/DATA/fabric-agent-adapter"
+    },
+    {
+      "id": "remote-ci",
+      "verdict": "blind",
+      "reason": "zero recorded workflow runs, current HEAD not available remotely; cannot derive release failure rate"
+    },
+    {
+      "id": "installed-artifact",
+      "verdict": "finding",
+      "reason": "same 0.1.0 label, different main/preload tree and sandbox configuration"
+    },
+    {
+      "id": "desktop-e2e",
+      "verdict": "blind",
+      "reason": "native app not launched against enabled foreign fixture routines; isolated component tests used"
+    },
+    {
+      "id": "usage-impact",
+      "verdict": "blind",
+      "reason": "attached owner estate has no task/effect activity; no real incident or demand frequency measured"
+    },
+    {
+      "id": "accessibility-native",
+      "verdict": "blind",
+      "reason": "no native VoiceOver/keyboard/zoom session"
+    },
+    {
+      "id": "model-comparison",
+      "verdict": "blind",
+      "reason": "no live agent behavior eval or provider canary executed"
+    },
+    {
+      "id": "migration-fresh-upgrade",
+      "verdict": "blind",
+      "reason": "existing applied local database tested; no reset/from-empty/upgrade run"
+    }
+  ],
+  "public_surface": {
+    "url": "https://passioncode.ai/",
+    "method": "CUA live DOM and screenshots",
+    "read_local_date": "2026-09-07",
+    "viewports": [
+      {
+        "width": 1280,
+        "height": 720,
+        "hero_cta_y": 719.3984375,
+        "hero_cta_bottom": 769.3984375,
+        "top_github_visible": true
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "body_width": 390,
+        "hero_cta_y": 772.6171875,
+        "hero_cta_bottom": 822.6171875
+      }
+    ],
+    "scope": "landing presentation and actual links; no conversion study"
+  },
+  "mechanical_scanner": {
+    "counts": {
+      "findings": 11,
+      "probes_blind": 1,
+      "probes_run": 8
+    },
+    "probes": [
+      {
+        "id": "secrets-tree",
+        "needs": [
+          "git"
+        ],
+        "phase": "probe",
+        "reason": "8 credential pattern(s)",
+        "verdict": "finding"
+      },
+      {
+        "id": "secrets-history",
+        "needs": [
+          "git"
+        ],
+        "phase": "probe",
+        "reason": "2 in history",
+        "verdict": "finding"
+      },
+      {
+        "id": "worktree",
+        "needs": [
+          "git"
+        ],
+        "phase": "probe",
+        "reason": "working tree clean",
+        "verdict": "clean"
+      },
+      {
+        "id": "telemetry",
+        "needs": [],
+        "phase": "prod",
+        "reason": "no deploy target declared — a library or tool, for which absent telemetry is a design, not a gap",
+        "verdict": "clean"
+      },
+      {
+        "id": "ci-present",
+        "needs": [],
+        "phase": "prod",
+        "reason": "CI configured: github-actions",
+        "verdict": "clean"
+      },
+      {
+        "id": "docs-present",
+        "needs": [],
+        "phase": "seams",
+        "reason": "6 documentation marker(s): README.md, docs, CLAUDE.md, AGENTS.md, docs/adr, docs/evidence",
+        "verdict": "clean"
+      },
+      {
+        "id": "gitignore-secrets",
+        "needs": [
+          "git"
+        ],
+        "phase": "probe",
+        "reason": "no credential-shaped file is tracked",
+        "verdict": "clean"
+      },
+      {
+        "id": "channel-divergence",
+        "needs": [
+          "git"
+        ],
+        "phase": "prod",
+        "reason": "HEAD says 0.1.0 and no tag v0.1.0 exists — the channels make no common claim yet",
+        "verdict": "blind"
+      },
+      {
+        "id": "published-version",
+        "needs": [
+          "npm",
+          "network"
+        ],
+        "phase": "prod",
+        "reason": "registry 7.4.0 vs manifest 0.1.0",
+        "verdict": "finding"
+      }
+    ],
+    "adjudication": {
+      "credential_patterns_tree": {
+        "count": 8,
+        "verdict": "clean",
+        "reason": "synthetic test fixtures, not verified live credentials"
+      },
+      "credential_patterns_history": {
+        "count": 2,
+        "verdict": "clean",
+        "reason": "same synthetic fixture introduction commits"
+      },
+      "published_version": {
+        "count": 1,
+        "verdict": "clean",
+        "reason": "unrelated public npm Fabric.js package; private desktop is not that channel"
+      },
+      "channel_divergence": {
+        "verdict": "blind",
+        "reason": "no common release tag; installed app examined separately"
+      },
+      "profile_override": "TypeScript Electron pnpm desktop monorepo; scanner generic library/JS profile is incomplete",
+      "telemetry_override": "product incident/adoption visibility blind; library-default clean is not evidence of desktop reliability"
+    }
+  },
+  "findings": [
+    {
+      "id": "RT-01",
+      "title": "Фоновые запуски и зеркало читают чужие estate",
+      "severity": "S1",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M38",
+        "M118",
+        "M13",
+        "M94"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/routineTick.ts:56",
+        "apps/desktop/src/main/chainAdvance.ts:43",
+        "apps/desktop/src/main/index.ts:658",
+        "apps/desktop/src/main/index.ts:640",
+        "apps/desktop/src/main/workspace.ts:26",
+        "supabase/migrations/20260905000022_routines.sql:59"
+      ],
+      "mechanism": "routineTick ищет enabled без estate_id; chainAdvance ищет follows без estate_id; readProject принимает любой id; startTask пишет ORG1 независимо от project. readEstate экспортирует все projects/agents, refreshFileRoots берет все project_repos. Service role обходит RLS. SQL apply_routines обновляет по id без estate проверки.",
+      "consequence": "Воспроизведение: routine чужого estate вызвала startTask для foreign-project, receipt записывался в owner-estate. Реальный ущерб не наблюдался; родитель установил, что локальная БД содержит отдельный fixture estate с включенными routines. Это достижимо уже до multi-tenant релиза.",
+      "remedy": "Ввести estate-scoped repository/command context и использовать его в каждом scheduler, mirror, filesystem allowlist. Проверять estate/project parentage на write boundary. Сделать тест двух estates обязательным для всех новых query/command ports; не ограничиваться проверкой RLS под authenticated.",
+      "acceptance_test": "Fake fixture: owner + foreign, запускаются только owner. Local disposable DB: wrong-estate project/task/routine/mirror/write_roots не читаются и не мутируют; второй estate остается byte-identical.",
+      "source_batch": "runtime",
+      "stable_key": "9d9aaea41a0c9ab8",
+      "proposed_work": "W06",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "RT-02",
+      "title": "Chain advance не запускает существующий follower и повторяет работу",
+      "severity": "S1",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M68",
+        "M13",
+        "M188"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/chainAdvance.ts:68",
+        "apps/desktop/src/main/chainAdvance.ts:127",
+        "apps/desktop/src/main/index.ts:851",
+        "apps/desktop/src/main/index.ts:1350",
+        "apps/desktop/test/chain.test.mjs:30",
+        "apps/desktop/src/main/agentSurface.ts:1099"
+      ],
+      "mechanism": "startTask всегда создает randomUUID; advance не передает follower id, не меняет его backlog, не пишет запуск/родителя. По одному follows ребру принимается решение, общий AND всех predecessors отсутствует. Отказ «said once» не дедуплицируется. Tool fabric_task_link не принимает needs — только прямые SQL fixtures могут объявить именованные входы.",
+      "consequence": "Воспроизведено: два ticks дают два новых running task, исходный B остается backlog, spawned links=0; B запускается при еще running C; повторный отказ дает два events. Самоповтор может расходовать квоту каждую минуту и обрывать прослеживаемость. Пользовательский инцидент не наблюдался.",
+      "remedy": "Один dispatchExistingTask(taskId, commandKey, expectedVersion): под транзакционным claim проверяет все prerequisites и named payloads, записывает переход B и происхождение attempt/run. Сделать needs доступным через настоящий MCP contract; обычный createTask отделить от dispatch. Ограничение и quota вызываются в общей точке unattended dispatch.",
+      "acceptance_test": "Реальный advancer + реальный task writer: A→B→C проходит один раз; два tick и restart не создают дополнительных tasks; два prerequisites ждут обоих; cancel не запускает; отсутствующий input блокирует; B сохраняет id; все inputs можно задать через MCP без raw journal.",
+      "source_batch": "runtime",
+      "stable_key": "494344aec45e78b5",
+      "proposed_work": "W09",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "RT-03",
+      "title": "Квота разрешает unattended work при неизвестном формате, chains обходят gate",
+      "severity": "S1",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M94",
+        "M68",
+        "CO-096"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/quota.ts:181",
+        "apps/desktop/src/main/quota.ts:193",
+        "apps/desktop/src/shared/quotaGate.ts:61",
+        "apps/desktop/src/main/chainAdvance.ts:24",
+        "apps/desktop/src/main/chainAdvance.ts:127",
+        "apps/desktop/src/main/routineTick.ts:88"
+      ],
+      "mechanism": "HTTP 200 с пустым body object становится quota с problem:null и двумя null windows; mayStart пропускает null windows и разрешает. ChainDeps вообще не содержит quota, поэтому chains проходят мимо M94.",
+      "consequence": "Воспроизведено 200 {} → allowed:true при обоих отсутствующих окнах. Смена недокументированного usage endpoint открывает разрешение именно когда ограничение неизвестно. Реальная потеря квоты не наблюдалась.",
+      "remedy": "Валидировать quota response, фиксировать unavailable/unsupported отдельно от zero; при отсутствии нужного окна unknown блокирует unattended. Общий DispatchGate обслуживает routines, chains, notifiers, manager, а ручной запуск сохраняет отдельную пользовательскую политику.",
+      "acceptance_test": "200 {}, неизвестные поля, null/NaN/отрицательная utilization, недоступное окно и >90% запрещают unattended; нормальная измеренная квота разрешает; chain не может стартовать без того же gate.",
+      "source_batch": "runtime",
+      "stable_key": "43b33a444879bbc0",
+      "proposed_work": "W10",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "RT-04",
+      "title": "Разрешение агенту записывается как уже совершенный внешний эффект",
+      "severity": "S1",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M137",
+        "M139",
+        "M140",
+        "ADR-0028"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/agentSurface.ts:1163",
+        "apps/desktop/src/main/agentSurface.ts:1209",
+        "apps/desktop/src/main/policy.ts:228",
+        "apps/desktop/src/main/policy.ts:234",
+        "supabase/migrations/20260903000015_authority_plane.sql:26"
+      ],
+      "mechanism": "fabric_effect_request говорит Ask BEFORE doing one, затем немедленно вызывает recordEffect; тот пишет effect.executed@1 и тратит grant, хотя публикация/платеж/удаление еще не выполнены и внешний receipt отсутствует.",
+      "consequence": "Журнал утверждает, что внешний эффект состоялся, после одного получения разрешения. Если агент завершится, публикации не будет, но effect.executed останется. Это противоречит продукту, где наблюдение сильнее утверждения агента. Успешных реальных эффектов в этом аудите не наблюдали.",
+      "remedy": "Разделить authorization decision/reservation, execution request, observed external receipt, reconciliation/unknown outcome. External effect adapter исполняет и подтверждает; cooperative agent acknowledgement маркировать claim, не observed effect. Receipt должен содержать проверяемый внешний handle.",
+      "acceptance_test": "Вызов effect_request без внешнего действия не увеличивает executed count; падение после grant показывает authorized/unknown, не executed; эффект записывается только после адаптерного receipt; retry после сетевого timeout выполняет reconcile прежде повтора.",
+      "source_batch": "runtime",
+      "stable_key": "44c0ea28d8636379",
+      "proposed_work": "W08",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "RT-05",
+      "title": "One-shot grant проверяется и расходуется неатомарно и без project/action scope",
+      "severity": "S1",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M3",
+        "M137",
+        "M140",
+        "ADR-0028"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/policy.ts:77",
+        "apps/desktop/src/main/policy.ts:130",
+        "apps/desktop/src/main/policy.ts:195",
+        "apps/desktop/src/main/policy.ts:248",
+        "apps/desktop/src/main/policy.ts:257",
+        "supabase/migrations/20260831000001_migration_one.sql:80",
+        "supabase/migrations/20260831000001_migration_one.sql:104",
+        "docs/adr/0028-one-effects-algebra-and-the-floor-lives-in-the-schema.md:30"
+      ],
+      "mechanism": "Grant row имеет estate/floor/target, но не project/actionClass. evaluate проверяет read unspent и позже recordEffect делает insert/update отдельно; consumed_at update error игнорируется. CHECK floor_class IS NULL OR grant_id IS NOT NULL проверяет только наличие ссылки: живой/matching/expiry/estate не гарантированы схемой. Grant issued event не содержит grant id, поэтому issuance и direct row невозможно полноценно восстановить как projection.",
+      "consequence": "In-memory repro: две конкурентные заявки (включая другую project/actionClass) получают allow и создают два receipts по одному grant. Возможны cross-project reuse, ложный consumed receipt при failed update и journal/authority drift после сбоя. Последствия латентны.",
+      "remedy": "Сделать atomically reserve/consume exact grant через command RPC с estate/project/action/resource/expiry/revision, uniqueness per execution command; journal+grant state обновлять в одной транзакции. Невалидный grant отвергается write boundary. Исключение non-projection grants должно либо быть документированным с backup/restore, либо закрыться проекцией.",
+      "acceptance_test": "Два параллельных потребителя одного grant: ровно один reservation; ошибочный project/action/estate/expired/spent grant не принимается через raw RPC; ошибка persistence не выдает executed success; rebuild/restore сохраняет state и lineage grant.",
+      "source_batch": "runtime",
+      "stable_key": "b133645db6c7f394",
+      "proposed_work": "W08",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "RT-06",
+      "title": "M195 redaction обходится через policy dependency",
+      "severity": "S1",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M195",
+        "M140"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/agentSurface.ts:380",
+        "apps/desktop/src/main/agentSurface.ts:1190",
+        "apps/desktop/src/main/policy.ts:163",
+        "apps/desktop/src/main/policy.ts:175"
+      ],
+      "mechanism": "Agent-supplied why/target/actionClass проходят прямо в Policy.decide и его journal.append, минуя appendRedacted. Механическая проверка raw appends внутри одного файла не видит downstream writer.",
+      "consequence": "Real loopback MCP + in-memory journal: synthetic ghp token распознается redact(), но сохраняется сырым в policy.decided. Значение синтетического токена в отчет не включено. Реальное попадание секрета не проверялось.",
+      "remedy": "Redaction на общем boundary agent-originated events (включая policy и будущие delegates), с provenance/field policy, а не только на direct this.journal.append call sites. Inventory по dataflow всех text sinks и негативный regression test.",
+      "acceptance_test": "Секрет-сентинел в каждом пользовательском текстовом поле каждого MCP tool не присутствует в journal/projections/log output; dependency-generated policy events тоже проверяются; ordinary identifiers не повреждаются.",
+      "source_batch": "runtime",
+      "stable_key": "302c9397b1e3f0db",
+      "proposed_work": "W07",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "RT-07",
+      "title": "Attention queue может показывать решенное как ожидающее и скрывать неизвестное",
+      "severity": "S2",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M140",
+        "M146",
+        "M147",
+        "M185",
+        "M186"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/index.ts:1636",
+        "apps/desktop/src/main/index.ts:1652",
+        "apps/desktop/src/main/index.ts:1684",
+        "apps/desktop/src/shared/attention.ts:11",
+        "apps/desktop/src/renderer/src/AttentionPanel.tsx:101",
+        "apps/desktop/src/renderer/src/AttentionPanel.tsx:126",
+        "apps/desktop/src/renderer/src/EstateHome.tsx:60"
+      ],
+      "mechanism": "readAttention берет последние 50 policy.decided, затем filters refuse; не связывает отказ с grant/resolution/new allow. Ошибки Supabase игнорируются и data??[] выглядит пустотой. EstateHome catch→setWaiting({}) убирает attention. Grant button не имеет pending/idempotency и item не обновляется до poll.",
+      "consequence": "Решенный отказ остается пока не вытеснится 50 другими decisions, нерешенный может исчезнуть из-за лимита; повторные клики выдают несколько grants. При outage карточки выглядят без ожиданий. Выведено из полного read/call chain, пользовательский инцидент не измерялся.",
+      "remedy": "Строить obligation projection/query по request id и terminal resolution, дедуплицировать retries, не обрезать unresolved по общему журналу. ReadResult stale/error/fresh обязан дойти до cards/panel. Grant command idempotent по request и pending UI.",
+      "acceptance_test": "Refuse→grant→allow удаляет ровно этот item; >50 нерешенных все остаются доступны; 50 новых unrelated decisions не скрывают старый unresolved; backend error показывает stale/unknown; double click не создает второй grant.",
+      "source_batch": "runtime",
+      "stable_key": "3dd3da1512f5006d",
+      "proposed_work": "W22",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "RT-08",
+      "title": "Project config_revision меняется при rebuild — уже учтенная работа M198",
+      "severity": "S2",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-documented",
+      "existing_ids": [
+        "M198",
+        "M97"
+      ],
+      "evidence": [
+        "supabase/migrations/20260906000030_dissolve_legacy_projector.sql:61",
+        "supabase/migrations/20260906000030_dissolve_legacy_projector.sql:67",
+        "packages/schema/test/planted.test.mjs:1020",
+        "docs/evidence/backlog.md:682"
+      ],
+      "mechanism": "Replay поверх существующих rows снова инкрементирует config_revision; P24 исключает колонку явным documented exception.",
+      "consequence": "Ревизия, которую будущий run/provider binding должен pin, не является детерминированной. Новую карточку не создавать: это точное повторное подтверждение M198. Parent full suite owns DB checks.",
+      "remedy": "Исполнить M198: revision из event sequence/count или полного projection rebuild baseline, убрать exclusion P24 после исправления. Связать c prerequisite любых pinned-run revisions.",
+      "acceptance_test": "Два последовательных rebuild и rebuild после restart сохраняют полные hashes включая config_revision; planted incremental projector обязательно ломает gate.",
+      "source_batch": "runtime",
+      "stable_key": "932a3f0778fa92c0",
+      "proposed_work": "W18",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "RT-09",
+      "title": "Документированная архитектура и реальные текущие контракты разошлись",
+      "severity": "S2",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M97",
+        "M98",
+        "M145",
+        "M188",
+        "M194",
+        "CO-074"
+      ],
+      "evidence": [
+        "docs/architecture/iteration-1-modules.md:14",
+        "docs/architecture/iteration-1-modules.md:70",
+        "docs/architecture/iteration-1-modules.md:153",
+        "docs/architecture/iteration-1-modules.md:417",
+        "docs/architecture/agent-system-map.md:38",
+        "docs/architecture/agent-system-map.md:103",
+        "apps/desktop/src/main/agentSurface.ts:551",
+        "apps/desktop/src/main/agentSurface.ts:1218",
+        "docs/adr/0042-a-run-is-the-unit-of-progress-and-every-graph-is-a-query.md:19",
+        "docs/evidence/backlog.md:631"
+      ],
+      "mechanism": "Module design declares packages/policy/work/runner/memory, SDK NodeResult path and run/node event registry; actual ports reside under main, a task/startTask is PTY-based and canonical current ADR-0042 defines run as session+task. Map claims every tool call journalled, but read-only agents/leases do not journal generic invocation; M145 already states missing per-tool counters. Old design/deferred/same-change claims coexist.",
+      "consequence": "Следующий агент рискует строить второй run store, оценивать полноту по устаревшему registry или считать готовым trajectory dataset, которого нет. Это документальный дефект, не основание создавать все прежние packages или менять принятый v1 topology.",
+      "remedy": "Один generated as-built contract/module inventory, ссылки canonical/current/proposed/superseded в каждом architecture doc; executable drift checks на exports/event schemas/tool manifests/run definition. Не переписывать ADR history; явное supersession mapping и decision propagation matrix.",
+      "acceptance_test": "Для каждой current claim резолвится symbol/handler/schema/test; run vocabulary agrees ADR-0042; generic tool traces marked absent until implemented; inventories generated from actual code, no hand-maintained counts.",
+      "source_batch": "runtime",
+      "stable_key": "0e8cdafa0c7e2015",
+      "proposed_work": "W14",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "RT-10",
+      "title": "Проверка task-link cycle fail-open при ошибке и не сериализована с append",
+      "severity": "S2",
+      "verdict": "finding",
+      "consequence_state": "latent",
+      "decision_status": "decided-unpropagated",
+      "existing_ids": [
+        "M146",
+        "M188",
+        "M190"
+      ],
+      "evidence": [
+        "apps/desktop/src/main/agentSurface.ts:1112",
+        "apps/desktop/src/main/agentSurface.ts:1116",
+        "apps/desktop/src/main/agentSurface.ts:1121",
+        "supabase/migrations/20260831000007_write_boundary.sql:103"
+      ],
+      "mechanism": "would_close_cycle RPC result destructures data only; if error/null then closes!==true, append proceeds. Precheck and journal append are separate transactions; opposite edges can both pass precheck before either append.",
+      "consequence": "DAG может стать циклом, несмотря на обещание refusal at draw time. Следующий шаг исполняется на некорректном плане или никогда не стартует. Static mechanism, production consequence unobserved.",
+      "remedy": "Cycle check на command acceptance под тем же lock/transaction, который append использует; неизвестный result от query отказывает явно. Projector replay остается total, command validator несет отказ.",
+      "acceptance_test": "Injected RPC failure refuses/no event; parallel A→B and B→A accepts exactly one; diamond DAG remains valid; wrong-estate target refused before graph traversal.",
+      "source_batch": "runtime",
+      "stable_key": "b6e4bf055b3ce1e6",
+      "proposed_work": "W09",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-01",
+      "priority": "P0",
+      "title": "Main window crashes after the metadata read succeeds",
+      "detail": "`Shell` starts with `sessionWindowId=undefined` and returns before all hooks. Once metadata resolves to the main-window value null, it reaches three additional hooks. React throws “Rendered more hooks than during the previous render.” There is no production error boundary around App.\n\nEvidence: `apps/desktop/src/renderer/src/App.tsx:97`, `:171`, `:247`, `:292`, `:304`, `:308`; `main.tsx:26`. Actual isolated repro: `/tmp/fabric-ux-probe/shell.test.tsx`, `/tmp/fabric-ux-probe/shell.log` (React hook 31 undefined→useEffect, stack at App.tsx:292). Fake IPC is deliberately successful; no backend error is needed. This invalidates current-source main-window runtime availability, separate from local scenario conformance below. It is one root cause, not thirteen separate scenario bugs.\n\nRemedy: route window kind in a small parent and render an estate-shell child, or move every hook above conditional returns; add rules-of-hooks lint and successful root mount smoke. Acceptance: main/editor/session routing all mount under StrictMode, metadata failure renders retry, no console hook errors.",
+      "classification": "current_defect",
+      "method": "current_component_jsdom_reproduction",
+      "source_batch": "ux",
+      "stable_key": "eec34f930e8af4d5",
+      "proposed_work": "W01",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-02",
+      "priority": "P1",
+      "title": "Newer editor keystrokes are still lost while Save is in flight (existing UX-04)",
+      "detail": "The added `afterSave` helper correctly notices a newer buffer, but `setFile({content: submitted})` changes the effect dependency. Monaco is disposed and recreated from the old submitted content. The dirty flag says there is unsaved work while the work itself has disappeared. Ordinary successful saves also discard the editor instance/undo history/selection.\n\nEvidence: `EditorWindow.tsx:74`, `:78`, `:94`, `:99`, `:151`, `:160`; `shared/editorBuffer.test.ts:9` tests only the helper. Repro `/tmp/fabric-ux-probe/editor.log`: typed a→ab, Save pending, typed abc, completed Save: second editor value ab. `/tmp/fabric-ux-probe/editor.test.tsx` renders actual EditorWindow with a controlled Monaco model.\n\nRemedy: keep the Monaco model alive for the file identity; track persisted baseline/hash separately. Save snapshots must not replace the current model. Apply the same rule to conflict modified models. Acceptance: typing during ordinary/forced save and during conflict arrival preserves every newer edit, undo stack and caret; saving responses out of order cannot regress the baseline. Existing UX-05 dirty-close guard and external-open error handling are improvements, not proof that UX-04 closed.",
+      "classification": "current_defect",
+      "method": "current_component_jsdom_reproduction",
+      "source_batch": "ux",
+      "stable_key": "7e01904021f9bb98",
+      "proposed_work": "W02",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-03",
+      "priority": "P1",
+      "title": "A completely empty Board has no way to file the first idea",
+      "detail": "When tasks=[], BoardSection renders EmptyState and bypasses Board entirely. Its only idea form lives inside the backlog column, which therefore does not exist for a new project. M134 is marked shipped but its first-use path is missing.\n\nEvidence: `ProjectHome.tsx:497`, `:527`, `:539`; `docs/evidence/backlog.md:589`. Actual component probe `/tmp/fabric-ux-probe/project.log`: `emptyBoardIdeaInput:false` after the empty task read resolves.\n\nRemedy: render the idea entry independently of populated columns, including the zero-task state. Acceptance: new empty project → file idea → one backlog task → research it, all from UI, with failure preserving the text.",
+      "classification": "current_defect",
+      "method": "current_component_jsdom_reproduction",
+      "source_batch": "ux",
+      "stable_key": "6b8813f1ed547400",
+      "proposed_work": "W05",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-04",
+      "priority": "P1",
+      "title": "Codex is shown as “Terminal” in runner selectors and session headers",
+      "detail": "The runner descriptor now contains Codex, but most surfaces still have the two-value Claude/else-Terminal ternary. The dropdown contains two identically labeled Terminal options. A Codex session looks like a plain shell. Its descriptor explicitly says it does not connect to Fabric, but that capability limitation is not exposed by these selectors.\n\nEvidence: `shared/agents.ts:114`–131; `Onboarding.tsx:194`; `Tasks.tsx:204`; `ProjectHome.tsx:969`, `:1069`, `:1557`; `SessionWindow.tsx:54`; `Workspace.tsx:55`. Actual `/tmp/fabric-ux-probe/project.log`: options `{claude-code:Claude Code,codex:Terminal,shell:Terminal}`.\n\nRemedy: expose descriptor label, runner identity, Fabric connectivity, permission/adapter capabilities and unavailability reason in one shared presentation contract. Acceptance: adding a fourth runner only adds its descriptor; every selector/tile/header shows the proper label; a non-integrated runner is visibly distinct from an admitted agent.",
+      "classification": "current_defect",
+      "method": "current_component_jsdom_reproduction",
+      "source_batch": "ux",
+      "stable_key": "ac11c850f8c5f642",
+      "proposed_work": "W26",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-05",
+      "priority": "P1",
+      "title": "Ending a session also activates its enclosing session card (existing UX-02)",
+      "detail": "Panel renders a real button whenever onClick is provided. AgentTile places End, Cancel and Dismiss buttons inside it. This remains present despite a known audit finding and comments elsewhere describing the trap. Keyboard and click bubbling can focus/open the session while trying to end it.\n\nEvidence: `components/Panel.tsx:59`; `ProjectHome.tsx:1552`, `:1597`, `:1615`, `:1620`. Actual current-component probe `/tmp/fabric-ux-probe/project.log`: one nested button, plus React invalid button-descendant warning.\n\nRemedy: a noninteractive card wrapper with sibling Open session and End controls; distinguish card link/action composition in the component API. Acceptance: zero nested interactive controls, End does not invoke openSession, keyboard can activate both independently.",
+      "classification": "current_defect",
+      "method": "current_component_jsdom_reproduction",
+      "source_batch": "ux",
+      "stable_key": "d819c07f8afda654",
+      "proposed_work": "W26",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-06",
+      "priority": "P1",
+      "prior_mapping": "new",
+      "detail": "Global Agents mode overrides content. Home, project tab, New project, Search and Attention navigation update active but never clear showAgents. `App.tsx:252`, `:261`, `:319`, `:339`, `:386`.",
+      "remedy_acceptance": "One discriminated route state, or consistently exit global mode on navigation. Test Agents→each destination and back; visible selected tab must describe displayed content.",
+      "classification": "current_defect",
+      "method": "static_code_trace",
+      "title": "Навигация не закрывает режим Estate Agents",
+      "source_batch": "ux",
+      "stable_key": "5479a54e7d05b3fa",
+      "proposed_work": "W05",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-07",
+      "priority": "P1",
+      "prior_mapping": "UX-06 partial",
+      "detail": "Create now reuses a caller ID, but appends project then attaches repos sequentially; Cancel/tab close remain possible while create is pending. A late success can activate a project after its draft tab was removed. `main/index.ts:712`, `:723`, `:729`, `:743`; `Onboarding.tsx:57`, `:69`, `:206`; `App.tsx:268`, `:282`.",
+      "remedy_acceptance": "Pending create is an owned operation. Prevent destructive dismissal or reconcile late success honestly. Either transactionally create config+repos or show recoverable partially configured state; retry same ID. Test append/attach/readback failures and closing/switching tabs during save.",
+      "classification": "current_defect",
+      "method": "static_code_trace",
+      "title": "Создание проекта не восстанавливается атомарно после частичного сбоя",
+      "source_batch": "ux",
+      "stable_key": "41a280f7f1c8359f",
+      "proposed_work": "W05",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-08",
+      "priority": "P1",
+      "prior_mapping": "UX-07 / M108 remains",
+      "detail": "null becomes zero: ProjectHome passes `sessions ?? []` to AgentsSection and computes running from [] (`ProjectHome.tsx:244`, `:297`), so unread session state appears idle. App feed returns immediately when replay yields [] and never setsFeed([]) (`App.tsx:189`), leaving an empty estate's journal indefinitely “reading”. Initial project/session fetches also have no catch (`App.tsx:215`, `:227`). Local resource errors are global banners; stale values remain unmarked.",
+      "remedy_acceptance": "Shared resource state: unread/loading/fresh/empty/stale/error, with observedAt and request generation. Preserve last success but mark stale. Test initial empty, initial failure, refresh failure, retry and out-of-order response. Do not treat error as empty or forever loading.",
+      "classification": "current_defect",
+      "method": "static_code_trace",
+      "title": "Непрочитанное и ошибочное состояние выглядит пустым",
+      "source_batch": "ux",
+      "stable_key": "510204778ba50c94",
+      "proposed_work": "W17",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-09",
+      "priority": "P1",
+      "prior_mapping": "UX-08 / M142",
+      "detail": "Feed rows still have no link/handler, filters or unread marker (`Feed.tsx:26`); Workspace activity prints raw event types (`Workspace.tsx:76`). `reveal()` only scrolls: it neither opens collapsed Files/Transcripts nor focuses the destination (`evidence.ts:52`; `ProjectHome.tsx:784`). Memory “superseded facts” goes to decisions (`MemoryOverviewSection.tsx:83`) even though superseded notes are not decisions.",
+      "remedy_acceptance": "One typed evidence-target resolver: project/task/session/event/file/fact. Open the exact record, expand necessary section and move focus; surface missing/unavailable record. Test each statistic/feed item against the actual source type, not merely an existing DOM id.",
+      "classification": "current_defect",
+      "method": "static_code_trace",
+      "title": "Evidence не открывает точный источник",
+      "source_batch": "ux",
+      "stable_key": "f7d7b4b7807e8505",
+      "proposed_work": "W26",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-10",
+      "priority": "P1",
+      "prior_mapping": "UX-01 / UX-12 residual",
+      "detail": "Transcript selection has one openId and one body. A slow A response can overwrite B's body after selecting B. Global project remount fixes cross-project leakage, not same-project race (`ProjectHome.tsx:1123`–1140). Main invisibly caps history to 30 (`main/index.ts:813`–819).",
+      "remedy_acceptance": "Key requests/cache by session ID with generation cancellation; display per-record read failure. Cursor pagination with total/hasMore. Acceptance: open A then B and resolve A last; B still shows B. Session31 reachable without DB/MCP.",
+      "classification": "current_defect",
+      "method": "static_code_trace",
+      "title": "Поздний transcript A подменяет выбранный B",
+      "source_batch": "ux",
+      "stable_key": "9739f2c63560c1a1",
+      "proposed_work": "W17",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-11",
+      "priority": "P1",
+      "prior_mapping": "UX-15 partial / M103",
+      "detail": "Quiet output is treated as readiness and 15-second deadline sends anyway; warning goes to console, no visible delivered/acknowledged state (`pty.ts:198`–246). SCN-032 still says no task recorded if spawn fails, while implementation records failed attempts.",
+      "remedy_acceptance": "Preserve bracketed single-paste fix, then runner-specific readiness/acknowledgment and an explicit undelivered/unknown status. Require visible delivery receipt before calling the task running in the user's sense. Test delayed first-run login, trust prompt, spinner, early exit, multiline payload. Scope no claim of per-runner hook enforcement.",
+      "classification": "current_defect",
+      "method": "static_code_trace",
+      "title": "Доставка задачи основана на эвристике готовности PTY",
+      "source_batch": "ux",
+      "stable_key": "af6fe78fe9f7bc5c",
+      "proposed_work": "W11",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-12",
+      "priority": "P1",
+      "prior_mapping": "SCN-032 / ST-024",
+      "detail": "Use again was removed with task history. BoardSection accepts onReuse but never calls it; TaskPage has no reuse control. The old promise survives in SCN-032, helper plumbing and strings. `ProjectHome.tsx:362`, `:428`, `:559`; `Tasks.tsx:89`; `TaskPage.tsx:194`–287; `foundation.md:427`; `scenarios.md:803`.",
+      "remedy_acceptance": "Add explicit rerun/reuse on task detail into a project-owned draft, preserve edited drafts, reset borrowed preset provenance, keep a source-task link. Test complete visible click path, not just loadInto.",
+      "classification": "current_defect",
+      "method": "static_code_trace",
+      "title": "Повторное использование задачи недоступно из интерфейса",
+      "source_batch": "ux",
+      "stable_key": "db0946ae524c6b2f",
+      "proposed_work": "W26",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-13",
+      "priority": "P1",
+      "prior_mapping": "new live consistency",
+      "detail": "New created agents are absent from the Run picker until ProjectHome remount: CreatedAgents reloads only its own made list; Tasks loads made and preset data only on project.id (`ProjectHome.tsx:1241`; `Tasks.tsx:110`–126). Backlog presets likewise don't update with the board. Memory facts only reload on search/toggle/project, while overview follows feedMark (`ProjectHome.tsx:1669`; `MemoryOverviewSection.tsx:41`). Automations read once (`ProjectHome.tsx:1358`, `:1418`).",
+      "remedy_acceptance": "Invalidate by affected project/object version through one query cache; share read models instead of sibling private copies. Acceptance: create agent, file idea, record/correct fact via another writer, routine starts/completes; all visible siblings agree without tab hopping.",
+      "classification": "current_defect",
+      "method": "static_code_trace",
+      "title": "Соседние экраны держат несогласованные снимки данных",
+      "source_batch": "ux",
+      "stable_key": "de0dee80bf78193d",
+      "proposed_work": "W17",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-14",
+      "priority": "P1",
+      "prior_mapping": "light visual state",
+      "detail": "Light theme keeps terminal background #1f1d1a but EditorWindow uses light --ink #0a0a0a and Monaco vs syntax palette (`tokens.paperclip.css:248`–255; `EditorWindow.tsx:37`–49, `:76`; `styles.css:191`, `:217`). Session/editor header inherits the light foreground on a dark background. Old committed screenshot `docs/audit/2026-09-05-evidence/screenshots/editor-light-1280.png` visibly demonstrates black-on-dark code and header; current sources preserve cause.",
+      "remedy_acceptance": "Give terminal/editor a coherent scoped dark theme in either app theme, or provide a true light terminal palette. Test syntax tokens, selection, diff, header, controls, caret, placeholder in both themes. Never assume token use proves contrast.",
+      "classification": "current_defect",
+      "method": "static_code_trace",
+      "title": "Светлая тема нарушает контраст editor и terminal",
+      "source_batch": "ux",
+      "stable_key": "ed6e58a721cfbcf2",
+      "proposed_work": "W26",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-15",
+      "priority": "P2",
+      "prior_mapping": "UX-13",
+      "detail": "Tasks and Agents runner selects have no accessible names; file folder buttons omit expanded state; close-tab controls all say only Close tab; Field hints are not described-by their controls. `Tasks.tsx:201`; `ProjectHome.tsx:1066`; `FileTree.tsx:51`; `TabStrip.tsx:80`; `Field.tsx:23`.",
+      "remedy_acceptance": "Add programmatic names/state and contextual close labels; hints/errors tied by IDs. Complete keyboard + VoiceOver top-flow pass; scanner alone cannot certify accessibility.",
+      "classification": "current_defect",
+      "method": "static_code_trace",
+      "title": "Controls не имеют полных доступных имён и состояний",
+      "source_batch": "ux",
+      "stable_key": "e7a10da7eca2b63f",
+      "proposed_work": "W26",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-16",
+      "priority": "P2",
+      "prior_mapping": "visual",
+      "detail": "Stale Claim label/age uses --state-idle→--warn in light theme, contrary to tokens.app comment that warning hue is never text (`components.css:245`; `tokens.app.css:58`, `:66`; `tokens.paperclip.css:271`). Small muted text on #f5f5f5 remains #737373, recorded ratio4.349 (`light-contrast.json:3`).",
+      "remedy_acceptance": "Separate state-ink from status-dot roles with light/dark contrast tests on actual composited backgrounds. Minimum 4.5:1 ordinary text; don't repair by removing state labels.",
+      "classification": "current_defect",
+      "method": "static_code_trace",
+      "title": "Семантика цвета warning и muted text не соответствует роли",
+      "source_batch": "ux",
+      "stable_key": "24b5f0ca1722a4a8",
+      "proposed_work": "W26",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-17",
+      "priority": "P2",
+      "prior_mapping": "visual/contract",
+      "detail": "Workspace gives result Panel class span-2, but CSS span rule only matches `.widget.span-2`; Panel uses panel, never widget. Current result slot doesn't span both columns. `Workspace.tsx:115`; `Panel.tsx:46`; `styles.css:179`. Board remains four columns at all widths (`components.css:249`); settings/push panels lack compact mode.",
+      "remedy_acceptance": "Correct span selector; add content-aware board/list breakpoint and side-panel behavior at 200% zoom. Acceptance at1280×800,1024,768,640 and200% zoom: named task/move readable, primary action reachable, no unintended horizontal page scroll; preserve intentional workspace reading order.",
+      "classification": "current_defect",
+      "method": "static_code_trace",
+      "title": "Grid span selector и узкая Board не соответствуют layout",
+      "source_batch": "ux",
+      "stable_key": "a92ffcaaeb1858be",
+      "proposed_work": "W26",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-18",
+      "priority": "P2",
+      "prior_mapping": "docs UX-10/11",
+      "detail": "Screen registry index/body conflicts remain: SCR-30 Estate home maps AttentionPanel, SCR-17 Workspace editor maps text EditorWindow, superseded SCR-23 marked built; source/components/assets “none yet”. `screens.md:29`, `:35`, `:42`, `:58`, `:421`. FLW-13 remains active and SCN-025 traces it; FLW-15 promises header repository-path editor, while repos are picker-driven; FLW-21 duplicates attention edge to two destinations. `flows.md:437`, `:511`, `:708`, `:714`.",
+      "remedy_acceptance": "Version current baseline separately from target flows; canonical screen identity with aliases, implementer receipts and state coverage. Mark superseded records retired. Linter should validate semantic implementing role rather than first filename presence. Fix all chain layers in same change.",
+      "classification": "contract_drift",
+      "method": "static_code_trace",
+      "title": "Реестры screens и flows расходятся с реализованными экранами",
+      "source_batch": "ux",
+      "stable_key": "8eb03e9703981e44",
+      "proposed_work": "W14",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "UV-19",
+      "priority": "P2",
+      "prior_mapping": "public UX-16",
+      "detail": "Local public landing still targets #project from second CTA, while SCN-038 says repository map; one-column Project frame starts620px vs registry720px. `passioncode-ai.github.io/index.html:73`; `styles.css:410`, `:429`; `scenarios.md:968`; `screens.md:533`.",
+      "remedy_acceptance": "Set accepted actual navigation/breakpoint in the chain or implement original intent. This is contract drift, not proof of a broken link. New parent-brand/product hierarchy must be an explicit coordinated content revision.",
+      "classification": "contract_drift",
+      "method": "static_code_trace",
+      "title": "Публичный сценарий и фактическая навигация расходятся",
+      "source_batch": "ux",
+      "stable_key": "96d1425c98ac3dde",
+      "proposed_work": "W31",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "PLAN-01",
+      "severity": "P1",
+      "title": "Two questions block one task; answering first clears the task block while second remains open",
+      "consequence": "latent; exact SQL mechanism traced, production occurrence not measured",
+      "decision": "decided-unpropagated",
+      "evidence": [
+        "supabase/migrations/20260906000028_questions.sql:98",
+        "supabase/migrations/20260906000028_questions.sql:124"
+      ],
+      "remedy": "Recompute earliest remaining open blocker and blocked_since from question_blocks after answer/withdraw; validate project/estate scope of every link before append.",
+      "acceptance": "Probe inverse cardinalities: Q1+Q2 block T; answer each order and withdraw; T stays blocked until no open question. Rebuild matches; foreign/nonexistent task refused.",
+      "mapping": "M148 correction before M149/M152",
+      "source_batch": "operating-plan",
+      "stable_key": "6ac358a2d232a9fd",
+      "proposed_work": "W21",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "PLAN-02",
+      "severity": "P1",
+      "title": "Digest advances read mark on refresh and on failed reads",
+      "consequence": "latent data-loss-in-catchup path; no production incidence query",
+      "decision": "decided-unpropagated",
+      "evidence": [
+        "apps/desktop/src/renderer/src/DigestSection.tsx:45",
+        "apps/desktop/src/renderer/src/DigestSection.tsx:53",
+        "apps/desktop/src/main/index.ts:1925"
+      ],
+      "remedy": "Separate subscription effect from leave/explicit-ack effect; advance only to successfully displayed digest high-water, never current unseen journal tail.",
+      "acceptance": "Rerender feedMark while request pending/failed; seen must not advance. Late event between rendering and leaving survives next visit; exact source click resolves.",
+      "mapping": "M133 + M102",
+      "source_batch": "operating-plan",
+      "stable_key": "a60883dc7c41f47a",
+      "proposed_work": "W04",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "PLAN-03",
+      "severity": "P1",
+      "title": "Sibling navigation can save old task brief into the new task",
+      "consequence": "latent unintended overwrite; source path complete, live browser delegated to parent",
+      "decision": "decided-unpropagated",
+      "evidence": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:249",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:46",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:183"
+      ],
+      "remedy": "Key/reset TaskPage by taskId, cancel stale loads, control draft per task and section, retain server revision/conflict checks before save.",
+      "acceptance": "A→B with distinct briefs: B never displays/saves A text. A slow response arriving after B ignored. Dirty draft explicit save/recovery.",
+      "mapping": "M143 correction",
+      "source_batch": "operating-plan",
+      "stable_key": "02f778af9ba2038f",
+      "proposed_work": "W03",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "PLAN-04",
+      "severity": "P2",
+      "title": "Five-favourite ceiling does not exist despite shipped claim",
+      "consequence": "observed: node function probe this run produced 7 after 7 pins",
+      "decision": "decided-unpropagated",
+      "evidence": [
+        "apps/desktop/src/shared/favourites.ts:52",
+        "apps/desktop/src/main/favourites.ts:19",
+        "apps/desktop/src/renderer/src/EstateHome.tsx:93",
+        "docs/evidence/backlog.md:575"
+      ],
+      "remedy": "Implement cap at write, return typed at-cap result and replacement prompt; hide favourites action for <=6 projects; surface persistence errors.",
+      "acceptance": "Seven synthetic projects: sixth pin asks release, stored count <=5; <=6 no pin step; failed write leaves partition unchanged.",
+      "mapping": "M120",
+      "source_batch": "operating-plan",
+      "stable_key": "9ccc684b72827838",
+      "proposed_work": "W26",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "PLAN-05",
+      "severity": "P2",
+      "title": "Search ships three groups and project navigation, while contract promises five groups and exact subjects",
+      "consequence": "observed static contract disagreement; real lost-search frequency blind",
+      "decision": "decided-unpropagated",
+      "evidence": [
+        "apps/desktop/src/shared/search.ts:17",
+        "apps/desktop/src/main/index.ts:1816",
+        "apps/desktop/src/renderer/src/SearchPanel.tsx:112",
+        "docs/evidence/backlog.md:627"
+      ],
+      "remedy": "Typed target {kind,id,projectId}; projects and decision group; shared openEvidence resolver; named searched stores, per-group count/hasMore and loading generation. Escape PostgREST substring syntax for arbitrary text.",
+      "acceptance": "Search unique project name, decision and task. Open lands exact subject; >20 results can be retrieved; one failure preserves successes; text containing comma/parentheses searchable without filter parse errors.",
+      "mapping": "M141 + M74 + M142",
+      "source_batch": "operating-plan",
+      "stable_key": "74272e0a35f98340",
+      "proposed_work": "W26",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "PLAN-06",
+      "severity": "P2",
+      "title": "Task evidence trail is stored but not fully readable/navigable",
+      "consequence": "observed code omissions; user impact frequency blind",
+      "decision": "decided-unpropagated",
+      "evidence": [
+        "apps/desktop/src/renderer/src/TaskPage.tsx:156",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:209",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:267",
+        "apps/desktop/src/main/index.ts:1465",
+        "supabase/migrations/20260905000016_operating_surfaces.sql:283"
+      ],
+      "remedy": "Per-section author and draft history, newest notes with identity/time, clickable origin/relations/promoted facts; typed per-store read state instead of empty arrays/free lease on error.",
+      "acceptance": "Every SCN045 step completed cold; error in notes/lease/links does not turn into no notes/free/no links; all three original agent brief fields remain readable after human edit.",
+      "mapping": "M143 + M124 + M74",
+      "source_batch": "operating-plan",
+      "stable_key": "e83c23c6e4c275b9",
+      "proposed_work": "W26",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "PLAN-07",
+      "severity": "P2",
+      "title": "Harness screen describes global runner availability as project harness and hides grant errors as zero",
+      "consequence": "observed ignored parameter and null fallback; production incidence blind",
+      "decision": "decided-unpropagated",
+      "evidence": [
+        "apps/desktop/src/main/index.ts:2002",
+        "apps/desktop/src/renderer/src/HarnessSection.tsx:75",
+        "apps/desktop/src/shared/agentSpec.ts:78"
+      ],
+      "remedy": "Build project harness DTO from created agents, requested effective server scope, grant outcomes, tool schemas; distinguish runner/agent/binding. Preserve documented absence of usage counts until trace exists.",
+      "acceptance": "Two projects with different granted servers/specs render different harnesses; failed grant query unavailable with reason; missing required server prevents launch and identifies dependency.",
+      "mapping": "M145 correction + M61 + M127",
+      "source_batch": "operating-plan",
+      "stable_key": "ed16ff5a65b965d2",
+      "proposed_work": "W26",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "PLAN-08",
+      "severity": "P2",
+      "title": "Goal with completed work appears undecomposed",
+      "consequence": "observed filter/renderer mechanism; production frequency blind",
+      "decision": "decided-unpropagated",
+      "evidence": [
+        "apps/desktop/src/renderer/src/PlanSection.tsx:78",
+        "apps/desktop/src/renderer/src/PlanSection.tsx:93"
+      ],
+      "remedy": "Group full task population and calculate done/total separately from displayed open list; keep graph a deferred view, make list nodes navigable and state/holder visible.",
+      "acceptance": "Goal with three done tasks reads 3/3, empty goal undecomposed, mixed goal accurate; every task occurs once in structural result.",
+      "mapping": "M144 + M173",
+      "source_batch": "operating-plan",
+      "stable_key": "de143730805f94e7",
+      "proposed_work": "W26",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "PLAN-09",
+      "severity": "P2",
+      "title": "Memory/agent views can retain outdated or wrong-subject readings while errors are displayed elsewhere",
+      "consequence": "latent async/source coverage defect",
+      "decision": "decided-unpropagated",
+      "evidence": [
+        "apps/desktop/src/renderer/src/MemoryOverviewSection.tsx:45",
+        "apps/desktop/src/renderer/src/EstateAgents.tsx:39",
+        "apps/desktop/src/renderer/src/EstateAgents.tsx:72",
+        "apps/desktop/src/main/index.ts:2398"
+      ],
+      "remedy": "Independent per-store result envelopes with readAt/source generation; clear selected subject while loading; observe journal on actor.id OR payload correlation; include pagination.",
+      "acceptance": "A→B switch with one failed read never shows A history/branch as B. Agent memory remember/task note appears in history; >200 event history is explicitly partial/navigable.",
+      "mapping": "M70/M71 + M135 + M191 + M102",
+      "source_batch": "operating-plan",
+      "stable_key": "bf4090c057a361ec",
+      "proposed_work": "W17",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "PLAN-10",
+      "severity": "P1",
+      "title": "Execution briefs contain non-existent event/field names and missing producer changes",
+      "consequence": "observed plan-to-schema drift before implementation",
+      "decision": "decided-unpropagated",
+      "evidence": [
+        "docs/evidence/plans/2026-09-06-execution-briefs.md:370",
+        "docs/evidence/plans/2026-09-06-execution-briefs.md:388",
+        "docs/evidence/plans/2026-09-06-execution-briefs.md:410",
+        "apps/desktop/src/main/agentSurface.ts:447",
+        "apps/desktop/src/main/agentSurface.ts:762",
+        "supabase/migrations/20260906000028_questions.sql:27",
+        "supabase/migrations/20260906000028_questions.sql:189"
+      ],
+      "remedy": "M152 must use memory.project.recorded@1; explicitly add indexed fact.about + producer contract. Define and register question.settled@1/projector or reuse answered consistently. M179 observes session.oriented@1, not context.read. Add process kind before M184 emits it.",
+      "acceptance": "Mechanical contract table resolves every planned event/enum/column to existing or explicit migration; fixture emits every new event and rebuilds correctly.",
+      "mapping": "M149/M152/M157/M179/M182/M184",
+      "source_batch": "operating-plan",
+      "stable_key": "c2cba71f45d0eee5",
+      "proposed_work": "W14",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "PLAN-11",
+      "severity": "P1",
+      "title": "Fact-first dual append is not an exactly-once domain command",
+      "consequence": "latent concurrency/crash defect in promotion; repeated in M152 plan",
+      "decision": "decided-unpropagated",
+      "evidence": [
+        "apps/desktop/src/main/index.ts:1561",
+        "supabase/migrations/20260905000016_operating_surfaces.sql:274",
+        "docs/evidence/plans/2026-09-06-execution-briefs.md:369",
+        "supabase/migrations/20260906000028_questions.sql:120"
+      ],
+      "remedy": "Atomic idempotent command with request identity: create/reuse fact and transition question/note together, or durable prepared-command/reconcile with canonical fact ID. First append ordering alone is insufficient.",
+      "acceptance": "Concurrent promote/answer creates one effective decision/fact; crash after first append then retry does not put duplicate/conflicting current facts into pack; duplicate answer returns existing outcome.",
+      "mapping": "M143 promotion + M152",
+      "source_batch": "operating-plan",
+      "stable_key": "e634c8f3b9040916",
+      "proposed_work": "W22",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "PLAN-12",
+      "severity": "P1",
+      "title": "Trajectory eval is planned over a trace that does not exist",
+      "consequence": "observed contradictory docs; future eval blind unless call capture added",
+      "decision": "decided-unpropagated",
+      "evidence": [
+        "docs/evidence/backlog.md:662",
+        "docs/architecture/agent-system-map.md:103",
+        "apps/desktop/src/shared/surfaceTools.ts:11",
+        "apps/desktop/src/shared/surfaceTools.ts:30"
+      ],
+      "remedy": "Add scoped invocation trace contract (tool/version,input digest,response class/refusal,latency,cost,session/run/request IDs) as separate diagnostic/evidence stream; include read calls and refusals. Then build independent trajectory eval.",
+      "acceptance": "Success/read/refusal/throw/retry produce complete correlated trace; no secret/raw irrelevant payload; eval detects planted skipped-question/missing-basis/cross-project/false-completion trajectories.",
+      "mapping": "M81 + M155 + prerequisite M176",
+      "source_batch": "operating-plan",
+      "stable_key": "ce2fae916af30b8d",
+      "proposed_work": "W20",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "PLAN-13",
+      "severity": "P2",
+      "title": "Dependency arrows mix hard dependencies with sequencing preference, and omit actual prerequisites",
+      "consequence": "observed planning incompleteness, not a runtime failure",
+      "decision": "decided-unpropagated",
+      "evidence": [
+        "docs/evidence/plans/2026-09-06-execution-briefs.md:23",
+        "docs/evidence/plans/2026-09-06-execution-briefs.md:384",
+        "docs/evidence/plans/2026-09-06-execution-briefs.md:515",
+        "docs/adr/0043-the-manager-seat-is-a-binding.md:19"
+      ],
+      "remedy": "Store dependency reason/artifact and type hard|review-order|policy-order|optional. Decouple M153 hygiene from M183 feedback export. M194 needs core/checker/floor/protocol/trace/eval + heartbeat/watch, not M152 alone. M157 floor enforcement/criticality must co-ship before activation, not follow via M158.",
+      "acceptance": "Executable acyclic DAG with every edge naming consumed artifact; no task claiming ready with missing input. Independent M191 not accidentally serialized after graph.",
+      "mapping": "M98/M109/M153/M183/M157/M158/M194 + execution briefs",
+      "source_batch": "operating-plan",
+      "stable_key": "31bc5c310c93e6b0",
+      "proposed_work": "W14",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    },
+    {
+      "id": "PLAN-14",
+      "severity": "P2",
+      "title": "Backlog and canonical iteration story retain contradictory current/delivered states",
+      "consequence": "observed docs drift across overlapping IDs",
+      "decision": "decided-unpropagated",
+      "evidence": [
+        "docs/evidence/backlog.md:15",
+        "docs/evidence/backlog.md:38",
+        "docs/evidence/backlog.md:577",
+        "docs/evidence/backlog.md:632",
+        "docs/architecture/iterations.md:64",
+        "docs/adr/0042-a-run-is-the-unit-of-progress-and-every-graph-is-a-query.md:18"
+      ],
+      "remedy": "One normalized milestone register with absorbed_by/superseded_by, evidence SHA and acceptance state; render backlog/slices/status map from it. Explicitly reconcile stale S2 transcripts/context-pack remains and S3 open; older module work Run definition vs ADR0042.",
+      "acceptance": "All 196 rows resolve unique IDs and parent absorption, current leaf claims checked; no original M53/M54/M79 appears new after M122 absorbed it; no semantic copy of old Run definition remains marked current.",
+      "mapping": "M114/M96/documentation normalization",
+      "source_batch": "operating-plan",
+      "stable_key": "82d4bbd1d8b063af",
+      "proposed_work": "W14",
+      "production_incidence": "unmeasured; attached owner estate has no tasks or effect executions",
+      "canonical_registry_changed": false
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "SCN-001",
+      "verdict": "PARTIAL",
+      "delivery": "basic-project-shipped; starter/planned",
+      "details": "Onboarding сохраняет проект и выбранные repo с caller-chosen id; нет starter/revision review/seeded PM. Unique partial index ограничивает максимум одного PM, но создание не создает ни одного. Это не регрессия: scenario Coverage уже отмечает отсутствие starter, M35 unscheduled.",
+      "evidence": [
+        "docs/ux/scenarios.md:80",
+        "docs/ux/foundation.md:218",
+        "apps/desktop/src/renderer/src/Onboarding.tsx:57",
+        "apps/desktop/src/main/index.ts:712",
+        "supabase/migrations/20260831000001_migration_one.sql:73"
+      ],
+      "traces": [
+        "ST-001",
+        "FLW-01"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-002",
+      "verdict": "FAIL",
+      "delivery": "planned",
+      "details": "Portfolio observer starter, dynamic project scope and read-only resource binding отсутствуют; M20 предложен, slice 4. Нормальный project без repo есть; это не portfolio observer.",
+      "evidence": [
+        "docs/ux/scenarios.md:102",
+        "docs/ux/scenarios.md:113",
+        "apps/desktop/src/renderer/src/Onboarding.tsx:113",
+        "docs/architecture/iteration-1-modules.md:265"
+      ],
+      "traces": [
+        "ST-001",
+        "FLW-01"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-003",
+      "verdict": "PARTIAL",
+      "delivery": "prompt-agents-shipped; admission/replacement-planned",
+      "details": "Создание именованной runner configuration и серверный ceiling реализованы; нет capability admission selector, immutable binding revision, Replace, diff и atomic PM succession.",
+      "evidence": [
+        "apps/desktop/src/main/index.ts:1245",
+        "apps/desktop/src/main/index.ts:1270",
+        "apps/desktop/src/shared/agents.ts:87",
+        "docs/ux/scenarios.md:125",
+        "docs/evidence/backlog.md:234"
+      ],
+      "traces": [
+        "ST-002",
+        "ST-006",
+        "FLW-02"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-004",
+      "verdict": "PARTIAL",
+      "delivery": "local-runtime-refusals-shipped; admission-planned",
+      "details": "Неизвестный surface adapter отказывает, недоступные binaries disabled. Registry discovery и gate table не реализованы; shell/Codex explicitly nonconnecting, поэтому их отсутствие MCP не скрытая несовместимость.",
+      "evidence": [
+        "apps/desktop/src/main/sessionBundle.ts:176",
+        "apps/desktop/src/main/sessionBundle.ts:185",
+        "apps/desktop/src/shared/agents.ts:114",
+        "docs/evidence/backlog.md:236"
+      ],
+      "traces": [
+        "ST-002",
+        "FLW-02"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-005",
+      "verdict": "FAIL",
+      "delivery": "planned",
+      "details": "Project MCP server grant — не OAuth account binding. Нет account subject verification, selectors ресурсов и per-agent read/draft/effect resource ceilings. Slice 4 сознательно только boundary.",
+      "evidence": [
+        "docs/ux/scenarios.md:166",
+        "docs/architecture/iteration-1-modules.md:265",
+        "apps/desktop/src/main/sessionBundle.ts:80"
+      ],
+      "traces": [
+        "ST-003",
+        "FLW-03"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-006",
+      "verdict": "PARTIAL",
+      "delivery": "basic-cards-shipped; full-health-planned",
+      "details": "Карточка показывает название, purpose, repo path, live sessions и attention. Нет projection freshness, last/next run, PM, connection/production health по независимым dimensions. RT-07 ухудшает даже текущую attention honesty.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/EstateHome.tsx:69",
+        "apps/desktop/src/renderer/src/EstateHome.tsx:60",
+        "docs/ux/foundation.md:245",
+        "docs/ux/scenarios.md:197"
+      ],
+      "traces": [
+        "ST-004",
+        "FLW-04"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-007",
+      "verdict": "PARTIAL",
+      "delivery": "attention-task-navigation-shipped; evidence-run-planned",
+      "details": "Review/lease attention открывает task через callback; grantable ведет к project без exact run. Источник evidence/пин revisions/typed NodeResult SCR-09 отсутствуют; notification только foreground app.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/AttentionPanel.tsx:22",
+        "apps/desktop/src/renderer/src/AttentionPanel.tsx:123",
+        "apps/desktop/src/main/index.ts:1738",
+        "apps/desktop/src/renderer/src/SessionWindow.tsx:50"
+      ],
+      "traces": [
+        "ST-004",
+        "ST-005",
+        "FLW-04"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-008",
+      "verdict": "PARTIAL",
+      "delivery": "sessions-and-tasks-shipped; durable-run-planned",
+      "details": "Task и session detail/PTY end существуют; история не имеет pinned project/provider/routine revisions, structured envelope/checker verdict и resume checkpoint. ADR-0042 и M188 уже выбрали session+task как run; durable engine сознательно отложен CO-083.",
+      "evidence": [
+        "apps/desktop/src/main/index.ts:839",
+        "apps/desktop/src/shared/types.ts:166",
+        "apps/desktop/src/renderer/src/SessionWindow.tsx:50",
+        "docs/adr/0042-a-run-is-the-unit-of-progress-and-every-graph-is-a-query.md:19",
+        "docs/architecture/iteration-1-modules.md:454"
+      ],
+      "traces": [
+        "ST-005",
+        "FLW-04"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-009",
+      "verdict": "FAIL",
+      "delivery": "planned",
+      "details": "routines имеют option_id и last_task_id; immutable provider revision, Replace, future binding resolution отсутствуют. Не объявлять schedule replacement проверенным только потому, что routine table отделена от agent_bindings.",
+      "evidence": [
+        "supabase/migrations/20260905000022_routines.sql:15",
+        "apps/desktop/src/main/routineTick.ts:73",
+        "apps/desktop/src/main/index.ts:879",
+        "docs/ux/foundation.md:263"
+      ],
+      "traces": [
+        "ST-006",
+        "FLW-02",
+        "FLW-04"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-010",
+      "verdict": "FAIL",
+      "delivery": "planned-cross-project",
+      "details": "Текущая proposals projection — loop-bound escalation внутри одного project (M68), не ADR-0029 cross-project observed finding. Нет source/target ownership, evidence freshness, target PM routing/idempotency.",
+      "evidence": [
+        "docs/adr/0029-a-proposal-terminates-at-the-target-product-manager.md:18",
+        "supabase/migrations/20260905000023_loop_bound.sql:36",
+        "apps/desktop/src/main/agentSurface.ts:851",
+        "docs/architecture/iteration-1-modules.md:270"
+      ],
+      "traces": [
+        "ST-007",
+        "FLW-05"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-011",
+      "verdict": "FAIL",
+      "delivery": "planned-cross-project",
+      "details": "Accept/Decline текущего loop proposal — иной сценарий. Target PM accept/refuse/supersede с immutable evidence и exactly-once target work не реализован.",
+      "evidence": [
+        "docs/ux/scenarios.md:300",
+        "supabase/migrations/20260905000023_loop_bound.sql:58",
+        "apps/desktop/src/renderer/src/AttentionPanel.tsx:101",
+        "docs/adr/0029-a-proposal-terminates-at-the-target-product-manager.md:18"
+      ],
+      "traces": [
+        "ST-007",
+        "FLW-05"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-012",
+      "verdict": "FAIL",
+      "delivery": "planned-estate-transfer",
+      "details": "task note→memory текущего project реализовано, но estate knowledge / accepted cross-project transfer отсутствуют. Не путать с SCN-045 note promotion. Это явная diet row, не незамеченный пропуск.",
+      "evidence": [
+        "apps/desktop/src/main/index.ts:1561",
+        "docs/architecture/iteration-1-modules.md:261",
+        "docs/architecture/iteration-1-modules.md:456",
+        "docs/ux/scenarios.md:322"
+      ],
+      "traces": [
+        "ST-007",
+        "FLW-05"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-013",
+      "verdict": "FAIL",
+      "classification": "known planned absence; decided-documented",
+      "summary": "Invitation, reviewed scope, membership accept/decline and revocation UI absent; M38/M39 deliberately deferred.",
+      "evidence": [
+        "docs/ux/scenarios.md:331",
+        "docs/architecture/iterations.md:110",
+        "docs/evidence/backlog.md:703"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-014",
+      "verdict": "FAIL",
+      "classification": "known planned absence; decided-documented",
+      "summary": "Role queue with typed resolution, SLA and delegated effect absent; CO-071/072/073 + M39 remain open.",
+      "evidence": [
+        "docs/ux/scenarios.md:351",
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:82",
+        "docs/evidence/backlog.md:704"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-015",
+      "verdict": "FAIL",
+      "classification": "known planned absence; decided-documented",
+      "summary": "Provider adaptation/recipe/conformance journey absent; runtime creation of an agent spec is a different implemented capability.",
+      "evidence": [
+        "docs/ux/scenarios.md:374",
+        "docs/architecture/iterations.md:111",
+        "apps/desktop/src/shared/agentSpec.ts:8"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-016",
+      "verdict": "FAIL",
+      "classification": "known planned absence; decided-documented",
+      "summary": "Independent exact-revision provider admission and separate canary binding not implemented; BYA is iteration 3.",
+      "evidence": [
+        "docs/ux/scenarios.md:396",
+        "docs/architecture/iterations.md:111"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-017",
+      "verdict": "FAIL",
+      "classification": "known planned absence; decided-documented",
+      "summary": "No bootstrap/conformance UI, therefore recovery/rollback flow cannot run; planned absence, not a regression.",
+      "evidence": [
+        "docs/ux/scenarios.md:418",
+        "docs/architecture/iterations.md:111"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-018",
+      "verdict": "FAIL",
+      "classification": "known planned absence; decided-documented",
+      "summary": "Sandboxed provider layout editor/role view publication absent; constrained grid is a decided future capability.",
+      "evidence": [
+        "docs/ux/scenarios.md:440",
+        "docs/adr/0024-v1-workspaces-use-a-constrained-responsive-grid.md:1",
+        "docs/architecture/iterations.md:111"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-019",
+      "verdict": "FAIL",
+      "classification": "known planned absence; decided-documented",
+      "summary": "End-to-end support intake, knowledge/checker, owner fallback and delivery receipt absent; S6 and channels CO-085 remain deliberate future work.",
+      "evidence": [
+        "docs/ux/scenarios.md:463",
+        "docs/architecture/iterations.md:51",
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:96"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-020",
+      "verdict": "FAIL",
+      "delivery": "planned-end-to-end-loop",
+      "details": "Нет producer production observation→owning PM→independent QA→release adapter→recovery observation. Current task/chain/policy foundations не выполняют full job. Сначала RT-01..06 + measured observer slice, затем проверять этот strategic scenario.",
+      "evidence": [
+        "docs/ux/scenarios.md:485",
+        "docs/ux/foundation.md:335",
+        "docs/architecture/iteration-1-modules.md:265",
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:97"
+      ],
+      "traces": [
+        "ST-014",
+        "FLW-10"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-021",
+      "verdict": "FAIL",
+      "delivery": "planned-end-to-end-loop",
+      "details": "Исследование можно запустить вручную как task; весь content pipeline с независимыми проверками, publication receipts, GSC/analytics feedback не создан. M21/M128, S5; реализация зависит от truthful effects и chain delivery.",
+      "evidence": [
+        "docs/ux/scenarios.md:507",
+        "apps/desktop/src/main/index.ts:1422",
+        "docs/evidence/backlog.md:214",
+        "docs/evidence/backlog.md:583"
+      ],
+      "traces": [
+        "ST-015",
+        "FLW-11"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-022",
+      "verdict": "PARTIAL",
+      "delivery": "local-southbound-shipped; northbound-planned",
+      "details": "Per-session loopback secret, one initialize, scoped context bundle работают. Owner UI create access, explicit project sets/operation scopes/expiry/rotation/audit lineage отсутствуют; M15 явно не завершен northbound.",
+      "evidence": [
+        "apps/desktop/src/main/agentSurface.ts:168",
+        "apps/desktop/src/main/sessionBundle.ts:97",
+        "docs/evidence/backlog.md:179",
+        "docs/ux/scenarios.md:529"
+      ],
+      "traces": [
+        "ST-016",
+        "FLW-12"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-023",
+      "verdict": "PARTIAL",
+      "delivery": "local-participation-shipped; external-commands-planned",
+      "details": "Local scoped tools читают/пишут project memory/tasks через journal. Нет external resource catalog, idempotency keys, fabric_run_start/durable handle, checker lifecycle, command receipt envelope. Возвращаемые created ids достаточны для local tool, не для обещания всего external control contract.",
+      "evidence": [
+        "apps/desktop/src/main/agentSurface.ts:787",
+        "apps/desktop/src/main/agentSurface.ts:805",
+        "apps/desktop/src/main/agentSurface.ts:760",
+        "docs/evidence/backlog.md:179",
+        "docs/ux/scenarios.md:554"
+      ],
+      "traces": [
+        "ST-016",
+        "FLW-12"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-024",
+      "verdict": "PARTIAL",
+      "delivery": "session-revocation-shipped; owner-access-lifecycle-planned",
+      "details": "Unknown/revoked bearer и неверный session header отклоняются; discard revokes before unlink. Expiring owner bindings/current-effect policy revocation/explicit cancel UI пока нет. CO-090 same-uid race документирован; это не вновь найденный обход и не решается chmod. RT-05 текущий grant scope выделен отдельно.",
+      "evidence": [
+        "apps/desktop/src/main/agentSurface.ts:189",
+        "apps/desktop/src/main/agentSurface.ts:219",
+        "apps/desktop/src/main/agentSurface.ts:329",
+        "apps/desktop/src/main/sessionBundle.ts:195",
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:101"
+      ],
+      "traces": [
+        "ST-016",
+        "FLW-12"
+      ],
+      "product": "unobserved",
+      "source_batch": "runtime",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-025",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "PTY start/replay/reattach/end exists (`pty.ts:259`, `:366`, `:387`; `TerminalView.tsx:13`; `SessionWindow.tsx:16`). UV-04/05/08 and stale FLW-13 prevent full launcher/lifecycle conformance. Tests `test/pty.test.mjs` verify process behavior, not actual launch UX.",
+      "shared_runtime_blocker": "UV-01",
+      "source_batch": "ux",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-026",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Human sentences and durable replay exist (`Feed.tsx:34`; `App.tsx:189`; `main/index.ts:2290`). UV-08/09: empty read never resolves, no receipt navigation/filter/unread; realtime is polling by explicit App.tsx:18 design. `Feed.test.tsx` tests copy fallback, not ordering/reconnect.",
+      "shared_runtime_blocker": "UV-01",
+      "source_batch": "ux",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-027",
+      "verdict": "FAIL",
+      "qualification": "FAIL, planned gap",
+      "evidence": "Refusal/one-shot grant UI exists (`AttentionPanel.tsx:121`; `main/policy.ts`). Scenario demands canUseTool interception, checkpoint resume, refusal reason and expiry. M140 explicitly remains partial (`backlog.md:614`; `iterations.md:79`). Do not call agent-initiated effect request universal enforcement.",
+      "shared_runtime_blocker": "UV-01",
+      "source_batch": "ux",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-028",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Project-keyed mount/draft patches now isolate instructions (`App.tsx:417`, `:430`). Header save exists (`ProjectHome.tsx:912`; `main/index.ts:2257`). UV-06/07/08, only instruction draft persisted, and old header-path contract remain.",
+      "shared_runtime_blocker": "UV-01",
+      "source_batch": "ux",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-029",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Detached window and live card lifecycle exist (`ProjectHome.tsx:1047`; `main/index.ts:2366`; `SessionWindow.tsx:50`). UV-04/05/08 and missing concrete unavailability reason.",
+      "shared_runtime_blocker": "UV-01",
+      "source_batch": "ux",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-030",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Real tier0 grid and explicit empty results slot (`Workspace.tsx:30`–115). UV-09/17: no stale resource branch/receipt navigation, raw event identifiers, wrong span selector. Tier1/2 provider widgets are planned, not missing shipped work.",
+      "shared_runtime_blocker": "UV-01",
+      "source_batch": "ux",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-031",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Independent draft data and picker/default memory inputs (`App.tsx:261`; `Onboarding.tsx:48`, `:57`, `:163`). Stable ID retry is an improvement. UV-04/06/07 prevent reliable full first-run. Onboarding tests focus memory choice, not create/cancel race.",
+      "shared_runtime_blocker": "UV-01",
+      "source_batch": "ux",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-032",
+      "verdict": "FAIL",
+      "qualification": "FAIL",
+      "evidence": "Instruction and preset protection exist (`Tasks.tsx:151`, `:184`, `:265`). Current final expected result fails UV-11/12/13; shared launch label defect UV-04. Test Tasks.test.tsx only verifies preset content/availability, not run history/end/reuse cycle.",
+      "shared_runtime_blocker": "UV-01",
+      "source_batch": "ux",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-033",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Picker attach/detach, primary confirmation, watcher+10s refresh are implemented (`ProjectHome.tsx:208`, `:825`, `:859`; `main/index.ts:2217`). Unreadable branch exists, yet “clean” is still computed unguarded when primary.error set (`ProjectHome.tsx:674`, `:685`); the tree can fail opening a file without showing a reason (`FileTree.tsx:70`).",
+      "shared_runtime_blocker": "UV-01",
+      "source_batch": "ux",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-034",
+      "verdict": "FAIL",
+      "qualification": "FAIL",
+      "evidence": "Hash conflict, grant and path boundary exist (`EditorWindow.tsx:144`; `main/files.ts`; `test/file-roots.test.mjs`). UV-02 reproduces loss violating no-surprise outcome; UV-14 corrupts light readability. Guarded close exists, but its pure helper test does not verify native Electron quit sequencing.",
+      "shared_runtime_blocker": "UV-01",
+      "source_batch": "ux",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-035",
+      "verdict": "PASS",
+      "qualification": "PASS, static behavior only",
+      "evidence": "Claim author/age/stale comparison remains separate from observed state (`ProjectHome.tsx:1192`, `:1564`; `components/Claim.tsx:33`; `main/sessionBundle.ts`; `main/contextPack.ts`). Marked as local semantic PASS; current display accessibility and source-capability limitations UV-04/16 are separate. No live agent run claimed.",
+      "shared_runtime_blocker": "UV-01",
+      "source_batch": "ux",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-036",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Automatic capture, excerpt/truncation and lazy full-body read exist (`main/transcripts.ts`; `main/index.ts:813`, `:824`; `ProjectHome.tsx:1153`). UV-10 row31 inaccessible and selection race. Transcript main tests do not cover two fast row selections.",
+      "shared_runtime_blocker": "UV-01",
+      "source_batch": "ux",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-037",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Actor marker/correction history/retrieval bookkeeping are real (`ProjectHome.tsx:1649`, `:1744`; `main/index.ts:2306`, `:2331`). M112 correctly amends removed status-strip counts. UV-09/13: stale fact list versus overview, correction count opens wrong store; same-query/toggle race generation not guarded.",
+      "shared_runtime_blocker": "UV-01",
+      "source_batch": "ux",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-038",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL, minor contract drift",
+      "evidence": "Static semantic local landing includes category, role/provider distinction, human authority, availability, organization link, no JS dependence (`passioncode-ai.github.io/index.html:44`, `:63`, `:170`, `:187`). UV-19 remains. Live domain availability belongs to parent's pass; new brand hierarchy is proposal, not existing scenario defect.",
+      "shared_runtime_blocker": "UV-01",
+      "source_batch": "ux",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-039",
+      "verdict": "PARTIAL",
+      "classification": "implemented gaps plus documented deferred readers",
+      "summary": "Counts/miss list exist and individual overview-query errors are represented; no author/last-read per store, no packs/retrieval drill-in. Promise.all with misses means one rejected misses request prevents publishing all new overview data; stale values have no read age. Superseded-all-facts count links to decisions-only view.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/MemoryOverviewSection.tsx:45",
+        "apps/desktop/src/renderer/src/MemoryOverviewSection.tsx:83",
+        "apps/desktop/src/main/index.ts:2035",
+        "docs/evidence/backlog.md:628"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-040",
+      "verdict": "PARTIAL",
+      "classification": "regression and incomplete delivery",
+      "summary": "Digest exists, but cleanup acknowledges on feedMark changes and even read failure; line sources not clickable, no compiled-at/recompile control. Separate decisions view has source_ref plain text. Model-less composition is decided and valid.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/DigestSection.tsx:35",
+        "apps/desktop/src/main/index.ts:1925",
+        "apps/desktop/src/renderer/src/DecisionsSection.tsx:71"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-041",
+      "verdict": "PARTIAL",
+      "classification": "implemented board, incomplete provenance navigation",
+      "summary": "Board, agent task tools, person movement, failure banner and assigned-by/to exist. Origin is only kind on card and a string on detail, source not navigable. Empty board hides the only file-idea form behind rows.length>0.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:497",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:527",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:565",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:156",
+        "apps/desktop/src/main/agentSurface.ts:777"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-042",
+      "verdict": "FAIL",
+      "classification": "known planned absence; decided-documented",
+      "summary": "No conversational manager creates reviewed editable specification/artifact. Existing attention panel is useful deterministic half; M119/M126/M194 and CEO loop remain planned.",
+      "evidence": [
+        "docs/ux/scenarios.md:1050",
+        "docs/evidence/backlog.md:574",
+        "docs/evidence/backlog.md:581",
+        "docs/architecture/operating-surfaces.md:289"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-043",
+      "verdict": "PARTIAL",
+      "classification": "observed function defect; decided-unpropagated",
+      "summary": "Partition/pin order works. Seven togglePin calls yield seven pins, contradicting five cap. Pin appears even for <=6 projects. No replacement prompt at limit; persistence rejection not caught.",
+      "evidence": [
+        "apps/desktop/src/shared/favourites.ts:52",
+        "apps/desktop/src/main/favourites.ts:19",
+        "apps/desktop/src/renderer/src/EstateHome.tsx:93",
+        "docs/evidence/backlog.md:575"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-044",
+      "verdict": "PARTIAL",
+      "classification": "implemented metrics, error/source gaps",
+      "summary": "Profile recomputes row counts; missing metrics omitted and failed counts null. Reasons lost, root call swallows error, UI can remain loading; source register names/links incomplete (M142 knowingly partial). Cancelled tasks counted with done as tasksClosed: acceptable label only if translated label continues to say closed.",
+      "evidence": [
+        "apps/desktop/src/main/index.ts:1971",
+        "apps/desktop/src/renderer/src/ProfileSection.tsx:38",
+        "apps/desktop/src/renderer/src/EstateHome.tsx:177",
+        "docs/evidence/backlog.md:628"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-045",
+      "verdict": "PARTIAL",
+      "classification": "latent cross-task write corruption; incomplete task trail",
+      "summary": "Task detail/note/promotion/receipts implemented. Sibling navigation reuses uncontrolled textareas, async loads unguarded; old text can be saved into new task. No agent draft rendering, notes oldest-first with no author identity/time; resource/related/promoted fact references not clickable; subread errors become empty/free.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/TaskPage.tsx:46",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:183",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:249",
+        "apps/desktop/src/main/index.ts:1465",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:209"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-046",
+      "verdict": "PARTIAL",
+      "classification": "documented graph deferral plus actual goal-state gap",
+      "summary": "Goal creation/orphan attachment works. Graph intentionally replaced by list; do not relitigate as defect. List filters done/cancelled before grouping, so fulfilled goal reads like undecomposed goal, no done/total progress; task entries not navigable/no status or holder.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/PlanSection.tsx:78",
+        "apps/desktop/src/renderer/src/PlanSection.tsx:91",
+        "apps/desktop/src/renderer/src/PlanSection.tsx:13",
+        "docs/evidence/backlog.md:630"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-047",
+      "verdict": "PARTIAL",
+      "classification": "project-level contract claimed, global data delivered",
+      "summary": "Harness shows global runner descriptors, one Fabric endpoint and estate grant totals; projectId unused. No project-created agent roster/skills/per-server grant state or tool argument/return detail. Grant read failure shown as zero. Actual resolveServers enforces requested subset at launch; per-tool counts deliberately absent and not itself a defect.",
+      "evidence": [
+        "apps/desktop/src/main/index.ts:2002",
+        "apps/desktop/src/renderer/src/HarnessSection.tsx:75",
+        "apps/desktop/src/shared/agentSpec.ts:78",
+        "apps/desktop/src/shared/surfaceTools.ts:11"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-048",
+      "verdict": "PARTIAL",
+      "classification": "decided-unpropagated; shipped claim overstated",
+      "summary": "Only facts/transcripts/tasks groups, not projects + separate decisions. Every hit opens project, not subject. 20-row query caps no hasMore/count, no loading/new-query stale label; all zero groups render. Failures of individual stores honest when API returns them.",
+      "evidence": [
+        "apps/desktop/src/shared/search.ts:17",
+        "apps/desktop/src/main/index.ts:1816",
+        "apps/desktop/src/renderer/src/SearchPanel.tsx:31",
+        "apps/desktop/src/renderer/src/SearchPanel.tsx:112",
+        "docs/evidence/backlog.md:627"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    },
+    {
+      "id": "SCN-049",
+      "verdict": "PARTIAL",
+      "classification": "documented console deferral plus incomplete observed history",
+      "summary": "Estate screen lists sessions and output excerpt; interactive console purposely opens existing session window (valid recorded choice, scenario stale). History read once per selection; queries only payload.session_id/owner, so actor-only tool events omitted; no refresh of history, no task-header link, no priority sorting in component.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/EstateAgents.tsx:7",
+        "apps/desktop/src/renderer/src/EstateAgents.tsx:39",
+        "apps/desktop/src/renderer/src/EstateAgents.tsx:102",
+        "apps/desktop/src/main/index.ts:2398"
+      ],
+      "verification": "static source and caller trace; no live browser in this delegated scope",
+      "source_batch": "operating-plan",
+      "integration_qualification": "Current-source desktop root is blocked by UV-01; local contract conformance shown separately; future planned absence is not regression."
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M0",
+      "title": "Vision, ontology, decisions, the measured registry",
+      "status": "**in review**",
+      "line": 15,
+      "normalized_claim": "in_review"
+    },
+    {
+      "id": "M1",
+      "title": "Schema and the declared-layer mirror",
+      "status": "open",
+      "line": 16,
+      "normalized_claim": "open"
+    },
+    {
+      "id": "M2",
+      "title": "The graph: depth, payload edges, versioned rebuilds",
+      "status": "open",
+      "line": 17,
+      "normalized_claim": "open"
+    },
+    {
+      "id": "M3",
+      "title": "The floor and grants",
+      "status": "open",
+      "line": 18,
+      "normalized_claim": "open"
+    },
+    {
+      "id": "M4",
+      "title": "Collectors: Cloudflare, HTTP probe, GitHub",
+      "status": "open",
+      "line": 19,
+      "normalized_claim": "open"
+    },
+    {
+      "id": "M5",
+      "title": "The dashboard: asset map and approval queue",
+      "status": "open — the CO-002 gate note was stale; CO-002 is resolved",
+      "line": 20,
+      "normalized_claim": "open"
+    },
+    {
+      "id": "M6",
+      "title": "Departments, hiring, the terminal runner",
+      "status": "open",
+      "line": 21,
+      "normalized_claim": "open"
+    },
+    {
+      "id": "M7",
+      "title": "The CEO: decompose, assign, escalate",
+      "status": "open",
+      "line": 22,
+      "normalized_claim": "open"
+    },
+    {
+      "id": "M8",
+      "title": "Notifications across four transports",
+      "status": "**partly shipped** — the first transport, and the one that needs no provider, key or configuration: the operating system’s own notification, fired only when the window is not in front, once per waiting thing, and collapsed to one message for a burst. **The other three are named rather than built**: mail, a chat channel and a phone each need a credential, a budget and somewhere to put a failure, and none of that is scheduled",
+      "line": 23,
+      "normalized_claim": "partial_claim"
+    },
+    {
+      "id": "M9",
+      "title": "Google: OAuth, Search Console, Analytics",
+      "status": "open (gated on CO-004)",
+      "line": 24,
+      "normalized_claim": "open"
+    },
+    {
+      "id": "M10",
+      "title": "Service terminals on the board",
+      "status": "open",
+      "line": 25,
+      "normalized_claim": "open"
+    },
+    {
+      "id": "M11",
+      "title": "**Connectors as plugins**",
+      "status": "proposed",
+      "line": 175,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M12",
+      "title": "**Source cadence and processing**",
+      "status": "proposed",
+      "line": 176,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M13",
+      "title": "**Checkups on a timer**",
+      "status": "**partly shipped** — routines exist per project with the three rules a scheduler gets quietly wrong: a missed window is not made up, nothing starts over its own last run, and a routine that was due and did not start records why. The quota gate stands in front of every unattended start. **Not built:** per-kind checkups writing observations, which is what the row is finally about",
+      "line": 177,
+      "normalized_claim": "partial_claim"
+    },
+    {
+      "id": "M14",
+      "title": "**The fabric as the agent's counterpart**",
+      "status": "proposed",
+      "line": 178,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M15",
+      "title": "**Bidirectional MCP control surface** — *southbound half shipped 2026-08-31*: the agent surface serves sessions Fabric starts, over the same Streamable HTTP server, credential-scoped, journal-backed. What remains is the northbound half: external clients, Estate-owned access bindings, the policy port and idempotent control commands (ADR-0026 §3–5)",
+      "status": "**decided, unscheduled**",
+      "line": 179,
+      "normalized_claim": "decided_unscheduled"
+    },
+    {
+      "id": "M16",
+      "title": "**The terminal layer**",
+      "status": "**scheduled — slice 1** (ADR-0031)",
+      "line": 180,
+      "normalized_claim": "scheduled"
+    },
+    {
+      "id": "M17",
+      "title": "**Agent picker and launch**",
+      "status": "**shipped** — `b50ac83`: a third agent is one descriptor row, and the surface adapter it declares is dispatched rather than assumed — an unimplemented adapter now refuses instead of borrowing Claude Code’s flags",
+      "line": 181,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M18",
+      "title": "**Pipeline editor**",
+      "status": "**decided, unscheduled**",
+      "line": 182,
+      "normalized_claim": "decided_unscheduled"
+    },
+    {
+      "id": "M19",
+      "title": "**The growth loop as a pipeline**",
+      "status": "proposed",
+      "line": 212,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M20",
+      "title": "**Producers other than the CEO**",
+      "status": "proposed",
+      "line": 213,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M21",
+      "title": "**The content chain**",
+      "status": "proposed",
+      "line": 214,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M22",
+      "title": "**`copywriter` as a service department**",
+      "status": "proposed",
+      "line": 215,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M23",
+      "title": "**Attribution**",
+      "status": "proposed",
+      "line": 216,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M24",
+      "title": "**`performance-marketing`**",
+      "status": "proposed",
+      "line": 217,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M25",
+      "title": "**`ops-watch`**",
+      "status": "proposed",
+      "line": 218,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M26",
+      "title": "**`domain-scout`**",
+      "status": "proposed",
+      "line": 219,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M27",
+      "title": "**`support-manager`**",
+      "status": "proposed",
+      "line": 220,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M28",
+      "title": "**PBN operation**",
+      "status": "proposed",
+      "line": 221,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M29",
+      "title": "**The account registry**",
+      "status": "proposed",
+      "line": 222,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M30",
+      "title": "**Outbound engagement**",
+      "status": "proposed",
+      "line": 223,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M31",
+      "title": "**`emailer`**",
+      "status": "proposed",
+      "line": 224,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M32",
+      "title": "**Capability registry and bindings**",
+      "status": "proposed",
+      "line": 234,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M33",
+      "title": "**The bundle compiler**",
+      "status": "proposed",
+      "line": 235,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M34",
+      "title": "**Transport adapters and the provider probe**",
+      "status": "proposed",
+      "line": 236,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M35",
+      "title": "**Project-scoped organisation**",
+      "status": "**decided, unscheduled**",
+      "line": 237,
+      "normalized_claim": "decided_unscheduled"
+    },
+    {
+      "id": "M36",
+      "title": "**Agent marketplace**",
+      "status": "proposed",
+      "line": 238,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M37",
+      "title": "**Agent production pipeline**",
+      "status": "**decided, unscheduled**",
+      "line": 239,
+      "normalized_claim": "decided_unscheduled"
+    },
+    {
+      "id": "M42",
+      "title": "**Wave 2 — the interface stops asserting what it cannot see**",
+      "status": "**shipped 2026-08-31**",
+      "line": 250,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M43",
+      "title": "**Wave 2 — startup reconciliation**",
+      "status": "**shipped 2026-09-01**",
+      "line": 251,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M44",
+      "title": "**Wave 2 — provenance in `memory_facts`**",
+      "status": "**shipped 2026-09-01**",
+      "line": 252,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M45",
+      "title": "**Transcript capture — `transcript.captured@1`**",
+      "status": "**shipped 2026-08-31**",
+      "line": 253,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M46",
+      "title": "**Retrieval decisions are logged, including the negative ones**",
+      "status": "**shipped 2026-09-01**",
+      "line": 254,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M47",
+      "title": "**The memory eval fixture**",
+      "status": "**shipped 2026-08-31**",
+      "line": 255,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M48",
+      "title": "**Bi-temporal validity, and the tiered read for FACTS**",
+      "status": "**shipped 2026-09-01**",
+      "line": 256,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M49",
+      "title": "**The context pack with a lockfile**",
+      "status": "**shipped 2026-09-01**",
+      "line": 257,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M50",
+      "title": "**The manager pre-fills a project from its repository**",
+      "status": "proposed",
+      "line": 273,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M51",
+      "title": "**Agents mark the task they are working on**",
+      "status": "proposed",
+      "line": 274,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M52",
+      "title": "**An instruction typed at an agent becomes a task**",
+      "status": "proposed",
+      "line": 275,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M61",
+      "title": "**An agent proves it has the access it needs**",
+      "status": "proposed",
+      "line": 276,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M56",
+      "title": "**Repository state**",
+      "status": "**shipped 2026-09-01; the last commit reached a screen only 2026-09-05 (M113)** — measured, cached and unit-tested from the first day, rendered by nobody until now",
+      "line": 282,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M57",
+      "title": "**Statistics that measure the project, not Fabric**",
+      "status": "**partly shipped; corrected 2026-09-05 (M113)** — commits and lines moved over a window now ship and are on the strip. **“Lines of code” is NOT shipped under that name**: the honest measure is tracked lines, and on this repository its two largest entries are an icon JSON and a font licence. **Tokens and cost are not shippable** — CO-096 measured the endpoint returning utilisation with every dollar field null and nothing per-project. The row claimed five numbers and shipped none; it now claims what exists",
+      "line": 283,
+      "normalized_claim": "partial_claim"
+    },
+    {
+      "id": "M58",
+      "title": "**Project analytics as its own screen**",
+      "status": "proposed",
+      "line": 284,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M59",
+      "title": "**An agent tile that reports time honestly**",
+      "status": "proposed",
+      "line": 285,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M54",
+      "title": "**A task opens into a detail**",
+      "status": "proposed",
+      "line": 286,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M62",
+      "title": "**The project page is re-composed**",
+      "status": "proposed",
+      "line": 292,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M53",
+      "title": "**Tasks as a list, running first**",
+      "status": "proposed",
+      "line": 293,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M55",
+      "title": "**Add a task by hand**",
+      "status": "proposed",
+      "line": 294,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M63",
+      "title": "**Window chrome**",
+      "status": "**shipped 2026-09-01**",
+      "line": 295,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M64",
+      "title": "**The design pass**",
+      "status": "proposed",
+      "line": 301,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M60",
+      "title": "**Adding an agent, and where an agent's logic lives**",
+      "status": "proposed",
+      "line": 302,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M65",
+      "title": "**Automations as one surface**",
+      "status": "**shipped** — one surface: what is running now (and whether a person or a schedule started it), what is scheduled, and what happened before INCLUDING the runs that did not happen. A run of pauses is stated as a sentence rather than left as rows to count. The `Workflows` panel’s claim that routines \"arrive with the agent runtime\" was retired, not left collapsed: a false claim is worse than an empty panel",
+      "line": 319,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M66",
+      "title": "**An automation is an agent, a task and a trigger**",
+      "status": "proposed",
+      "line": 320,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M67",
+      "title": "**An automation's result becomes a task for another agent**",
+      "status": "proposed",
+      "line": 321,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M68",
+      "title": "**A declared bound on agent-to-agent loops**",
+      "status": "**shipped** — the bound is on the CHAIN from one originating task, counted along `spawned` links only (`blocks` and `follows` order work rather than produce it). At the bound the next result becomes a proposal in the attention queue with two acts, and accepting creates the task WITHOUT reattaching it to the chain, because a person deciding is what makes it a new beginning rather than round five",
+      "line": 322,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M69",
+      "title": "**An agent can be hired more than once, and the panel says so**",
+      "status": "proposed",
+      "line": 328,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M70",
+      "title": "**The sessions view**",
+      "status": "proposed",
+      "line": 329,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M71",
+      "title": "**The sessions surface across all projects**",
+      "status": "proposed",
+      "line": 330,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M72",
+      "title": "**A settings screen**",
+      "status": "proposed",
+      "line": 336,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M73",
+      "title": "**Keep the computer awake**",
+      "status": "**shipped 2026-09-01**",
+      "line": 337,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M74",
+      "title": "**One law for a citation**",
+      "status": "proposed",
+      "line": 349,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M75",
+      "title": "**The embedded browser, and its isolation contract**",
+      "status": "proposed",
+      "line": 350,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M76",
+      "title": "**Preview for what the editor cannot open**",
+      "status": "proposed",
+      "line": 351,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M78",
+      "title": "**The estate home is re-composed**",
+      "status": "proposed",
+      "line": 362,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M77",
+      "title": "**Delete a project, with confirmation**",
+      "status": "proposed",
+      "line": 363,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M79",
+      "title": "**A backlog state, before `running`**",
+      "status": "proposed",
+      "line": 369,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M81",
+      "title": "**A diagnostic log across the whole product**",
+      "status": "proposed",
+      "line": 375,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M82",
+      "title": "**`docs/brand/ui.md`**",
+      "status": "**done 2026-09-02** — visual identity, product/brand colour boundary, component/state rules and the generated favicon contract are recorded; `gates:design` checks the icon matrix",
+      "line": 381,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M83",
+      "title": "**Quota on the home, with its reset**",
+      "status": "**shipped 2026-09-01 on the PROJECT page; on the home, with its per-model breakdown, 2026-09-05 (M113)** — the milestone says “on the home”, and the home showed none",
+      "line": 405,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M84",
+      "title": "**The manager, on the home**",
+      "status": "proposed",
+      "line": 406,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M85",
+      "title": "**Sessions without a project**",
+      "status": "proposed",
+      "line": 407,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M86",
+      "title": "**One session list, not three**",
+      "status": "proposed",
+      "line": 408,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M87",
+      "title": "**The canvas opens as a tab, and switches if already open**",
+      "status": "proposed",
+      "line": 431,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M88",
+      "title": "**A canvas card is ONE object with three faces**",
+      "status": "proposed",
+      "line": 432,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M89",
+      "title": "**Runs are events; the standing result is their projection**",
+      "status": "proposed",
+      "line": 433,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M90",
+      "title": "**An edge declares its payload AND its staleness policy**",
+      "status": "proposed",
+      "line": 434,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M91",
+      "title": "**The canvas graph is a DAG, enforced when the edge is drawn**",
+      "status": "proposed",
+      "line": 435,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M92",
+      "title": "**An agent declares what it needs and what it produces**",
+      "status": "proposed",
+      "line": 436,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M93",
+      "title": "**The catalogue of ready-made agents**",
+      "status": "proposed",
+      "line": 437,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M94",
+      "title": "**Automations are gated by quota**",
+      "status": "**shipped** — and built BEFORE the thing it guards, because M132’s own row says a daily unattended agent without it is the shape that burns an account overnight. It gates work nobody is watching and never the operator’s own hands; an unknown quota blocks; and a refusal names the window and its reset, so waiting an hour and waiting for the weekly turnover are different answers",
+      "line": 438,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M95",
+      "title": "**Transcripts redact secrets**",
+      "status": "**shipped** — `d2a215f`: an ordered rule set redacts before the record is written, and `describeRedactions` says what was removed rather than removing it silently",
+      "line": 457,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M96",
+      "title": "**A gate that catches citation rot**",
+      "status": "**shipped** — and the check that existed **could not catch the example this row reproduces**: it failed a citation only when the file was too short or the line blank, and a line holding a statistics loader is neither. It also read 4 of 97 documents. Now: every LIVING document is read, a bare `file:line` in one is refused because no gate can check what a line SAYS, symbol citations are verified against the file, and the 307 citations in 24 dated snapshots are excluded **out loud** — an audit report records a moment, and rewriting its receipts falsifies it. All six living line citations were converted first, so the rule starts from zero",
+      "line": 458,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M97",
+      "title": "**One projector, not ten copies**",
+      "status": "**shipped** — dissolved into `apply_estate_and_projects` (7 arms), `apply_task_lifecycle_base` (7), `apply_memory_facts` (2), and the legacy function DROPPED rather than emptied. **Two extraction errors, both caught by probes within a minute**: the last legacy body is in `…0014`, not 0012 — taking 0012 dropped the rule that an agent may not supersede a PERSON’s fact (P18 red) — and it carries SIXTEEN arms, not fifteen, because 0013 added `context.compiled@1`. Fifteen migrations redefine the projector; “the latest” is measured, never assumed. **P24 proves behaviour did not move**: every projection snapshotted, both estates rebuilt through the new dispatcher, hashes equal",
+      "line": 459,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M98",
+      "title": "**Split the two files that hold everything**",
+      "status": "proposed",
+      "line": 460,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M99",
+      "title": "**Finish or remove the inert surface**",
+      "status": "**shipped — and half of it was already done.** The **Workflows panel was deleted by `a97a1e4` (M65)** at 18:37 on 2026-09-05, two and a half hours before this row was worked; line 132 of `ProjectHome.tsx`, the line it cites, now holds a statistics loader. The memory half is real but was described too harshly: not a dead button but a DISABLED radio carrying its own reason. The defect is that a radiogroup with one selectable option **asks** a question with one answer, in the form where the operator is deciding what their project is. Unavailable backends were removed from that form — and **the operator overturned that on 2026-09-05**: the roadmap a disabled option states out loud is worth more to them than the cost of a radio nobody can press, so it is shown again with its reason. **The half that survives is the more useful one**: a single DECLARED backend is a statement rather than a radiogroup of one, and a shown option is not a selectable one. A latent lie the row did not name is fixed with it: the label and hint were chosen by ternary, so a second available backend would have been labelled “Cloud” and described as living on this machine",
+      "line": 461,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M100",
+      "title": "**A failed start must be visible**",
+      "status": "**shipped** — the catch now classifies, writes a log the operator can find, and shows a dialog naming the precondition with what to do about it. **The row said three causes; measuring found seven**, and two pairs that a careless matcher conflates: a missing binary and a start that timed out are both `spawnSync supabase <CODE>`, and a missing WORKING DIRECTORY is `ENOENT` exactly like a missing binary — so a wrong `FABRIC_REPO` would have told the operator to install software they already have. That ambiguity is removed in `main/repoRoot.ts`, where the knowledge to resolve it exists. Retry is offered only before `surface.start()`, a boundary OBSERVED rather than inferred. Driven for real three times against a rebuilt bundle",
+      "line": 481,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M101",
+      "title": "**Starting the stack blocks the main thread**",
+      "status": "**shipped** — and the UNVERIFIED half is settled first, which changes the answer: **the splash did not paint**. Measured from inside the renderer, whose own clock puts its script at +6387 ms against a block ending at +6328 ms; a main-process timestamp could not have shown it, because an event fired during a block is merely delivered late. The abandoned probe was abandoned for the right reason and the bounded version took one run. `startStack`, `stackStatusEnv` and `resolveSupabaseEnv` are now asynchronous, the same probe shows the page running 44 ms into the wait, and the splash carries elapsed time and the stack’s own last line. Moving the call also changed what a timeout LOOKS like, which would have silently downgraded M100’s diagnosis — caught and covered",
+      "line": 482,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M102",
+      "title": "**Six loaders fire on every feed tick**",
+      "status": "proposed",
+      "line": 483,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M113",
+      "title": "**Three milestones say shipped and mean half-shipped**",
+      "status": "**shipped** — all three claims MEASURED TRUE first, unlike M106’s: `EstateHome` had no quota and `byModel` rendered in zero files; `lastCommit` appeared only in `types.ts` and `main/`; `ProjectStats` held only storage facts. Two are now on screen. M57 ships what is measurable — commits and the lines they moved, over a window carried WITH them — and its row is corrected for what is not: “lines of code” is not shipped under that name because the honest count is a third data files, and tokens and cost are not shippable at all per CO-096",
+      "line": 484,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M114",
+      "title": "**Two register id spaces leak**",
+      "status": "**shipped** — the M-space half closed when the commit-scope gate found `M146`, an id ten commits used and no row held. The CO half is closed here: eight four-digit references corrected to the form the register uses, and a gate that fails on the form. The M80 hole stays a hole — an id nobody used is not a defect, and renumbering to close it would move every reference to every row after it",
+      "line": 485,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M115",
+      "title": "**\"suite now N probes\" is a number with no referent**",
+      "status": "**shipped** — the counter’s blind spot was widened to a six-letter prefix when writing `FEED-REQ` made the total refuse to move, and the suite’s size is now a number `check-registers.mjs` produces. The seven historical tallies stay and are LABELLED as historical: each was true at its own merge. No assertion count is published, because the source has 95 call sites and a green run prints 65 lines and a number nobody can define is the thing this row is about",
+      "line": 486,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M103",
+      "title": "**Instruction delivery is guesswork twice over**",
+      "status": "**shipped** — `cf0e704`: the instruction reaches a listening agent, whole and once",
+      "line": 515,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M104",
+      "title": "**A throw inside the MCP handler hangs the agent**",
+      "status": "**shipped** — the handler catches and ANSWERS (an agent that hangs is worse than one that fails: it looks like work in progress), the body has a cap that refuses rather than truncates, the handshake clears its transport and says so on failure, and the session id is minted by us so the state is set before the client can know it. **The last of those is by construction: the race was not reproduced**, and the verification row says so rather than claiming a watched failure",
+      "line": 521,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M105",
+      "title": "**Every byte an agent prints costs a full-buffer regex and a blocking write**",
+      "status": "proposed",
+      "line": 527,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M106",
+      "title": "**Three failures the operator cannot see**",
+      "status": "**shipped, and one third of the row was WRONG.** (a) real and fixed: a window that cannot read what it is for now says so, where before the diagnosis sat in state one branch above the banner. (b) **measured FALSE** — driving a real `task.abandoned@1` against the live database showed both `abandoned_reason` and `closed_reason` receiving the reason, and `ProjectHome.tsx#BoardSection` rendering it; migration `…0016` had fixed the projector the same day. What was actually wrong was the TEXT, which is (c). (c) real, and **48 sites, not “roughly fourteen”** — all of them the same `setError`, so it is fixed at the ONE display they funnel into rather than at 48 call sites, and the forty-ninth is right the day it is written",
+      "line": 533,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M107",
+      "title": "**The git watcher broadcasts to nobody**",
+      "status": "**shipped** — the channel has a listener, and a separate name: it used to broadcast on `projects:repo-states`, the channel `ipcMain.handle` answers on. Two things measuring corrected in the row itself: the watch was NOT wholly inert (it dropped the cache, so the next read was fresh — only the notification was dead), and `.git` is watched non-recursively, so **a file edited in the working tree fires nothing at all**. A listener alone therefore could not deliver this row’s own sentence about twelve rewritten files; the panel also reads on its own 10 s clock, and stops while hidden. Repository state comes OFF `feedMark` in the same change — one of M102’s six loaders, and the only one this row owns",
+      "line": 534,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M108",
+      "title": "**Four surfaces render \"nothing here yet\" before reading**",
+      "status": "**shipped** — and the durable half is a TYPE, not a gate: `read` is required, so a caller who forgets it no longer claims to have looked. The compiler named all fifteen sites that were taking the old default; nine were genuinely read and six now carry the `null` sentinel repos and transcripts already used. A filtered list keeps its unread-ness: null in, null out",
+      "line": 540,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M112",
+      "title": "**A scenario the code made false, and five dead keys**",
+      "status": "**shipped** — the reverse check exists: every registry key must be reachable from a component, with the dynamic prefixes DERIVED from the code rather than listed by hand. It found twenty-eight dead rows, five of them the ones this row names and one shipped an hour before the check was written. SCN-037’s two promised strip cells are amended: they were removed by M57 and the scenario had described a screen nobody could see",
+      "line": 541,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M109",
+      "title": "**The IPC contract is type-checked on one side only, and has drifted**",
+      "status": "**partly shipped** — all three named drifts are fixed: a failed `openExternally` is reported and shown, a failed git read is no longer rendered as a branch, and the feed channel narrows to the shape it declares. The MECHANISM exists too — `Returns<FabricApi[…]>` derives a handler’s return type from the one declaration, so `tsc` compares them. **It is applied to three handlers and about forty are unannotated**, which is a mechanical sweep this change does not make",
+      "line": 547,
+      "normalized_claim": "partial_claim"
+    },
+    {
+      "id": "M110",
+      "title": "**No renderer tests, no CI, and six suites go green having run nothing**",
+      "status": "**partly shipped** — the renderer has tests and CI runs as a script (`scripts/ci.sh`), and the ROUTINE TICK — the one path that launches an agent with nobody watching — was extracted from `index.ts` so a probe can drive it. The rest of `index.ts` is still reachable only by launching Electron, and \"the file is unimportable\" is recorded as a fact about the file rather than a reason",
+      "line": 548,
+      "normalized_claim": "partial_claim"
+    },
+    {
+      "id": "M111",
+      "title": "**Cmd+W destroys every tab, and tabs are never persisted**",
+      "status": "**shipped** — Cmd+W closes the tab and Cmd+Shift+W the window, through a menu built from Electron’s ROLES so copy, paste and quit survive being replaced. The working set is written on every change and restored once the projects are known; a tab whose project is gone is dropped and said, and a draft is never restored because the tab without its content claims work that is not there",
+      "line": 549,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M116",
+      "title": "**The mark reaches the application**",
+      "status": "**shipped 2026-09-03**",
+      "line": 571,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M117",
+      "title": "**The interface is designed IN the pack, not merely near it**",
+      "status": "**shipped 2026-09-05**",
+      "line": 572,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M118",
+      "title": "**The workspace is a repository, offered at initialisation**",
+      "status": "**shipped** — ADR-0002’s mirror, and now the question that offers it: choose a folder, adopt an existing workspace, or decline. No dismiss, because declining IS later and is reversible. An import preserves IDS — that is what makes it the same estate carried to another machine rather than a copy — refuses an estate that already holds projects, and refuses a file it cannot read whole. Fabric writes and initialises the repository; committing stays the operator’s",
+      "line": 573,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M119",
+      "title": "**The CEO proposes the projects from the evidence**",
+      "status": "proposed",
+      "line": 574,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M120",
+      "title": "**Favourites — at most five**",
+      "status": "**shipped** — `242ebce`: favourites are a partition of the project list, and the five-cap is enforced where the write happens. **Returns at M38**, where a favourite becomes a `(person_id, project_id)` row rather than operator-local state",
+      "line": 575,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M121",
+      "title": "**Shortcuts instead of a blank prompt**",
+      "status": "**shipped** — two constant presets and two that READ the project, offered only when their source has something in it and carrying the items so the session does not open by rediscovering them. A truncated list keeps the true count and says what it left out. **\"Errors in production\" is deliberately absent**: nothing observes production yet (M129), and a shortcut for a signal we do not collect is a promise the product cannot keep",
+      "line": 576,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M122",
+      "title": "**A kanban board per project, written by agents**",
+      "status": "**shipped** with M146 — the board is per project, agents write to it through the task tools, and M53’s list, M79’s backlog state and M54’s detail are its views rather than three screens",
+      "line": 577,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M123",
+      "title": "**Task management is a system skill in every agent's routing**",
+      "status": "**shipped** — the contract (seven `fabric_task_*` tools) and now the DELIVERY: a preamble that names `fabric_whoami` and no rule, carried by the adapter that can carry it, and `session.oriented@1` journalled so a session that never read its rules is visible rather than assumed",
+      "line": 578,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M124",
+      "title": "**The board is bound to the project's documentation**",
+      "status": "**shipped** — the edge is navigable both ways (a ref’s location is separated from its document, and a task shows what else that document produced), and a status now carries the hand that set it: `moved_by_kind` is projected, and the board says what the mover makes the column MEAN. It speaks in two situations only — `review`, where an agent’s claim and a person’s decision look identical, and a terminal state an agent reached, which the ladder forbids and the surface therefore shows rather than normalises",
+      "line": 579,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M125",
+      "title": "**An agent is created from a prompt**",
+      "status": "**shipped** — a RUNNER is a program on this machine and stays code; an AGENT is a named configuration of one and is a row, which is exactly the return trigger `agents.ts` wrote for itself. Created from a name, a brief and the servers it asks for, offered in the picker apart from the runners, and launched with its own brief plus Fabric’s preamble last. The project’s grant is a ceiling checked at creation AND at launch",
+      "line": 580,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M126",
+      "title": "**The CEO is always reachable, and knows where you are**",
+      "status": "proposed",
+      "line": 581,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M127",
+      "title": "**A created agent gets the MCP servers it needs**",
+      "status": "**shipped** — [ADR-0034](../adr/0034-an-agent-reaches-another-mcp-server-through-the-machine-gateway.md). Through the machine gateway, with direct access refused BY DESIGN (an upstream key in a session directory is the superset the credential rule forbids) and a Fabric proxy declared-and-unbuilt. One refusal blocks the launch, the route is read from the gateway rather than composed, and the role key comes from the environment and is stored nowhere",
+      "line": 582,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M128",
+      "title": "**The trend agent, end to end**",
+      "status": "proposed",
+      "line": 583,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M129",
+      "title": "**The production-signal agent**",
+      "status": "proposed",
+      "line": 584,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M130",
+      "title": "**Every task says who assigned it and to whom**",
+      "status": "**shipped** with M146 — `assigned_by`/`assigned_to` are projected from the journal, the card shows `{by} → {to}` and **the task page names both sides in a sentence, guarded so a half-known handoff says nothing rather than naming an absence**",
+      "line": 585,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M131",
+      "title": "**The mascot on the home, and the profile behind it**",
+      "status": "**shipped** — `33c0815`: three of the four things asked for were already in the record; the fourth (event-driven variants) is the part that was built",
+      "line": 586,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M132",
+      "title": "**The dev agent works the backlog daily**",
+      "status": "**shipped** — not a new mechanism but a KIND of routine: its instruction is composed at fire time from the backlog in the operator’s priority order, unplaced tasks last. An empty backlog does not start a session and is journalled as a pause, so the automations surface says why. Its three named dependencies (M65, M94, M68) were built first, in that order",
+      "line": 587,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M133",
+      "title": "**Entering a project answers \"where were we\"**",
+      "status": "**shipped** — `105044a`: composed from the decision store, never generated — the digest quotes rows and refuses to summarise what it has not read",
+      "line": 588,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M134",
+      "title": "**Ideas enter the backlog, and can be researched**",
+      "status": "**shipped** — `task.created@1` had exactly one writer (the agent surface) and the operator’s only door started a session, so the backlog was a place a person could not write to. An idea is filed with the person as its origin, its first line the title and the rest a note, and looking into it SPAWNS a linked task rather than running the idea itself",
+      "line": 589,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M135",
+      "title": "**Where memory lives is visible to the operator**",
+      "status": "**shipped** — `3941714`: the four memory stores get one surface, and a retrieval miss is shown as absent rather than as zero",
+      "line": 590,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M136",
+      "title": "**org #1 stops being empty**",
+      "status": "**shipped 2026-09-03**",
+      "line": 610,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M137",
+      "title": "**The decision port, and the first thing that can refuse**",
+      "status": "**shipped 2026-09-03**",
+      "line": 611,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M138",
+      "title": "**The four authority event types are registered**",
+      "status": "**shipped 2026-09-03**",
+      "line": 612,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M139",
+      "title": "**A floored action in the product**",
+      "status": "**shipped 2026-09-03**",
+      "line": 613,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M140",
+      "title": "**The agent asks, the operator grants**",
+      "status": "**partly shipped** — `c5bf512`: `fabric_effect_request` presents nothing and the surface finds the grant, so the agent never holds the permission it is asking for. **The row named `canUseTool` and this is not that, which matters:** the hook would intercept EVERY tool call, and the tool intercepts only what the agent chooses to ask about. An agent that does not ask is not stopped. Closing that needs the runner’s own permission hook, which is per-runner and not scheduled",
+      "line": 614,
+      "normalized_claim": "partial_claim"
+    },
+    {
+      "id": "M141",
+      "title": "**Search, and a screen for its results**",
+      "status": "**shipped** — `585f65b`: one field over projects, tasks, facts, transcripts and decisions, grouped rather than merged",
+      "line": 627,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M142",
+      "title": "**Every figure opens the register it was counted from**",
+      "status": "**partly shipped** — six of thirteen figures now open their register, through one implementation that REPORTS a missing section instead of swallowing it, with the anchor list held equal to the rendered ids by the design gate. **Seven do not, and deliberately promise nothing**: `retrievals` and `packs` have no surface, and five estate-wide sums (sessions, closed tasks, facts, decisions, grants) have rows that live per project with no cross-project view. The return trigger is that view existing — a figure naming a screen that does not exist is this milestone’s own defect relocated",
+      "line": 628,
+      "normalized_claim": "partial_claim"
+    },
+    {
+      "id": "M143",
+      "title": "**The task page**",
+      "status": "**shipped** with M146 — brief with authorship, working notes, promote-to-memory, links and receipts. The receipts are rendered by `Feed`, not by a second renderer free to disagree about what an event means",
+      "line": 629,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M144",
+      "title": "**The plan and the decision graph**",
+      "status": "**shipped 2026-09-05**",
+      "line": 630,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M145",
+      "title": "**The harness screen and its tool pages**",
+      "status": "**shipped 2026-09-05**",
+      "line": 631,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M146",
+      "title": "**The operating-surfaces layer**",
+      "status": "**shipped** — `37727c2`…`adb505d`. Advances M122 (board), M130 (assignment provenance) and M143 (task page) to shipped; delivers M123’s tool CONTRACT and not its skill installation; leaves M124 (task bound to its document) untouched",
+      "line": 632,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M147",
+      "title": "**The estate card counts what is waiting**",
+      "status": "**shipped 2026-09-05**",
+      "line": 633,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M148",
+      "title": "**A question is a record, and blocking is not a status**",
+      "status": "**shipped** — `questions` + `question_blocks`, `apply_questions` as a per-concern projector called from the dispatcher (M97 pattern), and `blocked_by`/`blocked_since` as COLUMNS on the task. P22 drives the whole path against the live database — a question blocks two tasks, carries its `about` key, is prioritised, answered once (a second answer cannot overwrite: the guard is `status=open`), unblocks both, and is invisible across the tenant boundary with a positive control. Three projector defects planted and each caught. Grants + RLS in migration 4’s shape, the P21 lesson",
+      "line": 634,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M149",
+      "title": "**An agent can ask the owner a question rather than guessing**",
+      "status": "proposed",
+      "line": 635,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M150",
+      "title": "**The rank is arithmetic, and every item says why it is where it is**",
+      "status": "**shipped** — `questionPriority` = `blocking + breadth + age + kind_weight + goal + project_weight`, a tested pure module reading the M156 weight. **Every component travels on the item** so the order is explained, not trusted. Derived obligations enter the SAME scale (`refused` 40+access, `proposal` 35, `review` 25, `abandoned` 20, each plus project weight), so the Board is one list. `rankBoard` breaks ties deterministically — age then id — and the tiebreak test feeds the same pair in BOTH orders, because a `return 0` slipped through the one-directional version (V8’s sort is stable): the same class that bit M107. Four defects planted, each caught",
+      "line": 636,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M151",
+      "title": "**The Board — top 5 on the home, top 10 in a project, all of it on its own screen**",
+      "status": "proposed",
+      "line": 637,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M152",
+      "title": "**Answering closes the loop, and the answer is a decision**",
+      "status": "proposed",
+      "line": 638,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M153",
+      "title": "**The CEO routine — withdraw the stale, de-duplicate, escalate**",
+      "status": "proposed",
+      "line": 639,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M154",
+      "title": "**Findings and traps get a reader, so writing one stops being shouting into a drawer**",
+      "status": "proposed",
+      "line": 640,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M155",
+      "title": "**The protocol is observed where it cannot be refused**",
+      "status": "proposed",
+      "line": 641,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M156",
+      "title": "**A project's priority is declared, and pressure is measured beside it**",
+      "status": "**shipped** — `projectWeight` as a tested pure module: **tier + capped pressure**, where the cap is forced to (15,30) so a maxed `steady` project outranks an idle `active` one and never a bare `critical` one — a flat cap outside that window cannot satisfy both, which a test found before the code did. `ceoTrustFor` inherits the estate and clamps an override DOWN (ADR-0004 shape); an unknown level fails closed to `ask`. Storage: `priority_tier`/`priority_because`/`ceo_trust` on the project (tier NEVER mutated by the system — ADR-0002), one `estate_settings` row, `apply_priority` projector. P23 round-trips a declaration touching nothing else, a bad tier refused by the check, an override cleared, and the settings upsert. Four defects planted and caught",
+      "line": 642,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M157",
+      "title": "**The CEO settles what it can CITE, and every settlement is visible and reversible**",
+      "status": "proposed",
+      "line": 643,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M158",
+      "title": "**A decision that changes is scored, and the operator's own word is held**",
+      "status": "proposed",
+      "line": 644,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M159",
+      "title": "**The Telegram connection: one token, one consumer, and every update claimed**",
+      "status": "proposed",
+      "line": 645,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M160",
+      "title": "**Authority requires a binding, and binding starts in the app**",
+      "status": "proposed",
+      "line": 646,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M161",
+      "title": "**The outbox: a row before a send, `retry_after` honoured exactly**",
+      "status": "proposed",
+      "line": 647,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M162",
+      "title": "**Reply-to-answer — the operator's day moves to Telegram**",
+      "status": "proposed",
+      "line": 648,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M163",
+      "title": "**The evening letter, labelled with the window it covers**",
+      "status": "proposed",
+      "line": 649,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M164",
+      "title": "**Notifiers are composed, not built**",
+      "status": "proposed",
+      "line": 650,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M165",
+      "title": "**Capture, retention, and the consent that a work chat requires**",
+      "status": "proposed",
+      "line": 651,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M166",
+      "title": "**The CEO's core, and it is the whole CEO without a provider**",
+      "status": "proposed",
+      "line": 652,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M167",
+      "title": "**A model port that may be ABSENT, and absence is a state rather than a crash**",
+      "status": "proposed",
+      "line": 653,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M168",
+      "title": "**The core is the checker, and a checker that never refuses is a finding**",
+      "status": "proposed",
+      "line": 654,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M169",
+      "title": "**The provider router — and the three traps that are each a real bill**",
+      "status": "proposed",
+      "line": 655,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M170",
+      "title": "**The four typed calls, one at a time, each behind its validator**",
+      "status": "proposed",
+      "line": 656,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M171",
+      "title": "**`model.called@1`, and the cost surface**",
+      "status": "proposed",
+      "line": 657,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M172",
+      "title": "`pi` as a third runner descriptor",
+      "status": "proposed",
+      "line": 658,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M173",
+      "title": "**The decision graph shows movement, and who decided**",
+      "status": "proposed",
+      "line": 659,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M174",
+      "title": "**The script-vs-agent line, drawn across the product**",
+      "status": "proposed",
+      "line": 660,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M175",
+      "title": "**The CEO is an agent — a small tool-calling loop, ours**",
+      "status": "proposed",
+      "line": 661,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M176",
+      "title": "**A CEO trajectory eval, before its prompt is tuned**",
+      "status": "proposed",
+      "line": 662,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M177",
+      "title": "**Close the cheap harness gaps found by the map**",
+      "status": "proposed",
+      "line": 663,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M178",
+      "title": "**A heartbeat, because silence is ambiguous**",
+      "status": "proposed",
+      "line": 664,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M179",
+      "title": "**The agent is watched from outside, because the reporter is what breaks**",
+      "status": "proposed",
+      "line": 665,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M180",
+      "title": "**A failure is journalled with its KIND — “failed” is not one thing**",
+      "status": "proposed",
+      "line": 666,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M181",
+      "title": "**Degradation is stated, never silent**",
+      "status": "proposed",
+      "line": 667,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M182",
+      "title": "**An insight says what it is ABOUT — a closed category**",
+      "status": "proposed",
+      "line": 668,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M183",
+      "title": "**The anonymised product loop — service insights feed Fabric's backlog**",
+      "status": "proposed",
+      "line": 669,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M184",
+      "title": "**The retrospective is a cycle the CEO runs**",
+      "status": "proposed",
+      "line": 670,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M185",
+      "title": "**One inbox on the dashboard — a view, not a store**",
+      "status": "proposed",
+      "line": 671,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M186",
+      "title": "**The cycles view — everything that ticks, estate-wide**",
+      "status": "proposed",
+      "line": 672,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M187",
+      "title": "**The density review — primary visible, the rest behind ONE disclosure primitive**",
+      "status": "proposed",
+      "line": 673,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M188",
+      "title": "**Runs and plan steps — the unit of progress**",
+      "status": "proposed",
+      "line": 674,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M189",
+      "title": "**The current-task widget — realtime progress, claims labelled as claims**",
+      "status": "proposed",
+      "line": 675,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M190",
+      "title": "**SCR-40 — the graphs screen: agent DID, project DID, plan SHOULD**",
+      "status": "proposed",
+      "line": 676,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M191",
+      "title": "**The memory module made visible: pack preview, lineage, mirror drift**",
+      "status": "proposed",
+      "line": 677,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M194",
+      "title": "**The manager seat is a binding — built-in or an external agent**",
+      "status": "proposed",
+      "line": 678,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M195",
+      "title": "**Redaction at the agent surface — S1, HIGH**",
+      "status": "**shipped** — and step 0 corrected the brief FOURFOLD: it named three fields in three tools; measuring found **thirteen across eight**, the most dangerous being `task.handoff@1`’s 8 000-char `value` — precisely the channel one agent uses to pass the next what it obtained. So the fix is ONE DOOR, not thirteen call sites (M106’s lesson one layer along): `appendRedacted` wraps every agent-written event, and all 15 raw appends in the surface now route through it. `redactPayload` walks the whole payload recursively — **no skip-list**, measured safe: nine ordinary values (ids, enums, `about` keys, formatted strings) came back byte-identical while the secret was caught. The count rides on the event, the transcript idiom. Token entropy verified at 192 bits (S5). Three defects planted, three caught",
+      "line": 679,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M196",
+      "title": "**Sandbox on the windows — S2**",
+      "status": "**shipped** — and the brief’s guess (“sandbox: true is likely compatible”) was wrong TWICE, both found by driving a real window. First: an ESM preload dies in a sandbox with `SyntaxError: Cannot use import statement outside a module` and `window.fabric` is **ABSENT** — the renderer loses all 27 namespaces silently, so the sandbox was off for a REASON nobody had recorded. Rebuilt as CJS, it failed a second way: in CJS format the resolver picks the **electron npm wrapper** — the one that `spawnSync`s the binary — dragging `child_process` into a context that has none. `external: ['electron']` is what makes the sandbox possible at all. Both halves are now held by a probe reading the SHIPPED bundle (CJS, no forbidden builtin, bridge still exposed, all 3 windows sandboxed); three regressions planted, three caught",
+      "line": 680,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M197",
+      "title": "**Двуязычие как храповик — RU/EN заложены, переводы докидываются**",
+      "status": "**shipped**",
+      "line": 681,
+      "normalized_claim": "shipped_claim"
+    },
+    {
+      "id": "M198",
+      "title": "**A rebuild is not idempotent for `config_revision`**",
+      "status": "proposed",
+      "line": 682,
+      "normalized_claim": "proposed"
+    },
+    {
+      "id": "M38",
+      "title": "**Identity plane and memberships**",
+      "status": "**decided, unscheduled**",
+      "line": 703,
+      "normalized_claim": "decided_unscheduled"
+    },
+    {
+      "id": "M39",
+      "title": "**The member surface**",
+      "status": "**decided, unscheduled**",
+      "line": 704,
+      "normalized_claim": "decided_unscheduled"
+    },
+    {
+      "id": "M40",
+      "title": "**Personal estates and delegation**",
+      "status": "**decided, unscheduled**",
+      "line": 705,
+      "normalized_claim": "decided_unscheduled"
+    },
+    {
+      "id": "M41",
+      "title": "**Federation catalog and invitations**",
+      "status": "**decided, unscheduled**",
+      "line": 706,
+      "normalized_claim": "decided_unscheduled"
+    }
+  ],
+  "counts": {
+    "scenarios": 49,
+    "scenario_local_verdicts": {
+      "PARTIAL": 29,
+      "FAIL": 19,
+      "PASS": 1
+    },
+    "milestones": 196,
+    "milestone_document_claims": {
+      "in_review": 1,
+      "open": 9,
+      "partial_claim": 7,
+      "proposed": 105,
+      "decided_unscheduled": 8,
+      "scheduled": 1,
+      "shipped_claim": 65
+    },
+    "raw_local_findings_with_overlap": 43
+  },
+  "blind_spots": [
+    {
+      "id": "remote-ci",
+      "verdict": "blind",
+      "reason": "zero recorded workflow runs, current HEAD not available remotely; cannot derive release failure rate"
+    },
+    {
+      "id": "desktop-e2e",
+      "verdict": "blind",
+      "reason": "native app not launched against enabled foreign fixture routines; isolated component tests used"
+    },
+    {
+      "id": "usage-impact",
+      "verdict": "blind",
+      "reason": "attached owner estate has no task/effect activity; no real incident or demand frequency measured"
+    },
+    {
+      "id": "accessibility-native",
+      "verdict": "blind",
+      "reason": "no native VoiceOver/keyboard/zoom session"
+    },
+    {
+      "id": "model-comparison",
+      "verdict": "blind",
+      "reason": "no live agent behavior eval or provider canary executed"
+    },
+    {
+      "id": "migration-fresh-upgrade",
+      "verdict": "blind",
+      "reason": "existing applied local database tested; no reset/from-empty/upgrade run"
+    }
+  ],
+  "recommendation": "retain vision/modular monolith; repair availability, data preservation, scope and authority; close observer-to-verified-result loop before broad expansion",
+  "skills_used": [
+    "project-audit",
+    "ux-audit",
+    "agent-orchestrator",
+    "agent-harness",
+    "sheleg-design",
+    "brand-voice",
+    "copywriting"
+  ],
+  "plan_review": "Independent challenge applied: ADR0042 Run identity, M198, M194 core dependencies, W11 release gate, atomic answer/promote and trace contract.",
+  "final_validation": "2026-09-07-evidence/final-validation.json",
+  "work_plan_graph": "2026-09-07-work-plan.json",
+  "merged_execution_plan": {
+    "path": "docs/audit/2026-09-07-merged-execution-plan.md",
+    "json": "docs/audit/2026-09-07-merged-execution-plan.json",
+    "html": "docs/audit/2026-09-07-merged-execution-plan.html",
+    "verification": {
+      "all_attachment_milestones_present": true,
+      "all_previous_blocks_mapped": true,
+      "requirements_with_work": 31,
+      "work_cards": 57,
+      "execution_nodes": 58,
+      "dependency_edges": 108,
+      "dag_acyclic": true,
+      "topological_order": [
+        "M105",
+        "M109",
+        "M187",
+        "M195",
+        "M196",
+        "M197",
+        "M97",
+        "S01",
+        "S02",
+        "S10",
+        "S11",
+        "M198",
+        "S03",
+        "S05",
+        "M98",
+        "S14",
+        "M182",
+        "S04",
+        "S06",
+        "M177",
+        "S12",
+        "S13",
+        "M102",
+        "M191",
+        "M154",
+        "M183.local",
+        "S07",
+        "M103",
+        "S15",
+        "M168",
+        "M155",
+        "M178",
+        "M188",
+        "M149",
+        "M183.upstream",
+        "M176",
+        "M179",
+        "M189",
+        "M151",
+        "M180",
+        "M152",
+        "M185",
+        "M181",
+        "M186",
+        "S08",
+        "M153",
+        "M173",
+        "M158",
+        "M190",
+        "S09",
+        "M184",
+        "M157",
+        "M166",
+        "M167",
+        "M194",
+        "M169",
+        "M171",
+        "M175"
+      ]
+    }
+  },
+  "brand_confirmation": {
+    "parent": "PassionCode.ai",
+    "product": "Fabric",
+    "source": "user 2026-09-07"
+  }
+}

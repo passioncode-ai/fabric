@@ -1,0 +1,80 @@
+{
+  "schema": "CeoPrivateArchive@1",
+  "archive_id": "00000000-0000-4000-8000-000000008000",
+  "source_schema_version": 66,
+  "owner_person_id": "00000000-0000-4000-8000-000000009100",
+  "estate_archive": {
+    "schema": "FabricArchive@1",
+    "sourceEstateId": "00000000-0000-4000-8000-000000009001",
+    "takenAtUtc": "2026-09-28T09:00:00.000Z",
+    "watermarkSeq": 20,
+    "eventCount": 20,
+    "digest": "46d71168d14a462d569af05b0e0c1b979d20912c98e83c01de0d73ec33212396"
+  },
+  "retention": "no-deletion-v1",
+  "conversations": [
+    {
+      "id": "00000000-0000-4000-8000-000000002006",
+      "subject_kind": "project",
+      "subject_id": "00000000-0000-4000-8000-000000009200",
+      "owner_project_id": "00000000-0000-4000-8000-000000009200",
+      "created_seq": 2,
+      "revision": 1
+    }
+  ],
+  "messages": [
+    {
+      "id": "00000000-0000-4000-8000-000000003007",
+      "conversation_id": "00000000-0000-4000-8000-000000002006",
+      "ordinal": 1,
+      "content_id": "00000000-0000-4000-8000-000000005007",
+      "request_id": "00000000-0000-4000-8000-000000006007",
+      "accepted_seq": 3,
+      "envelope": {
+        "schema": "CeoSend@1",
+        "operation_id": "00000000-0000-4000-8000-000000004007",
+        "conversation_id": "00000000-0000-4000-8000-000000002006",
+        "message_id": "00000000-0000-4000-8000-000000003007",
+        "expected_revision": 0,
+        "subject_revision": 1,
+        "input_channel": "text",
+        "text": "Что изменилось в Atlas за неделю?",
+        "preparation_version": "har06-ceo-v1",
+        "context": {
+          "schema": "CeoContext@1",
+          "mode": "none",
+          "selection_revision": 0,
+          "project_id": null,
+          "project_revision": null,
+          "estate_seq": 0
+        }
+      },
+      "source_digest": "b87c46e019fc332ce914e47e6f065dec2695e4b90a4ad25312dcc134d6c305dc",
+      "origin": {
+        "estate_id": "00000000-0000-4000-8000-000000009001",
+        "canonical_digest": "b87c46e019fc332ce914e47e6f065dec2695e4b90a4ad25312dcc134d6c305dc"
+      }
+    }
+  ],
+  "operations": [
+    {
+      "operation_id": "00000000-0000-4000-8000-000000004007",
+      "kind": "send",
+      "message_id": "00000000-0000-4000-8000-000000003007"
+    },
+    {
+      "operation_id": "00000000-0000-4000-8000-000000072006",
+      "kind": "open",
+      "requested_conversation_id": "00000000-0000-4000-8000-000000002006",
+      "subject_kind": "project",
+      "subject_id": "00000000-0000-4000-8000-000000009200",
+      "receipt": {
+        "conversation_id": "00000000-0000-4000-8000-000000002006",
+        "revision": 0,
+        "receipt_seq": 2
+      }
+    }
+  ],
+  "tombstones": [],
+  "archive_digest": "d32a8f6b75a2a4558a74f993772165b4f203c4ee8dc6c95c2540056e5878a799"
+}

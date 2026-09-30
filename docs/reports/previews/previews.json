@@ -1,0 +1,425 @@
+{
+  "schema": 1,
+  "source": {
+    "docs/reports/product.html": "1e3c304976354be52d0b2f69bb03e8bbdba3c9db5d575bc75d41faa0829b170e",
+    "docs/ux/product-model.json": "b8365345925423b0fdfb643a88f2d0d2d4bce205099b6232378c2d91290cb4ae"
+  },
+  "views": [
+    {
+      "id": "estate",
+      "file": "estate.jpg"
+    },
+    {
+      "id": "onboarding",
+      "file": "onboarding.jpg"
+    },
+    {
+      "id": "project",
+      "file": "project.jpg"
+    },
+    {
+      "id": "task-new",
+      "file": "task-new.jpg"
+    },
+    {
+      "id": "launch",
+      "file": "launch.jpg"
+    },
+    {
+      "id": "task",
+      "file": "task.jpg"
+    },
+    {
+      "id": "run",
+      "file": "run.jpg"
+    },
+    {
+      "id": "board",
+      "file": "board.jpg"
+    },
+    {
+      "id": "question",
+      "file": "question.jpg"
+    },
+    {
+      "id": "authority",
+      "file": "authority.jpg"
+    },
+    {
+      "id": "inbox",
+      "file": "inbox.jpg"
+    },
+    {
+      "id": "agents",
+      "file": "agents.jpg"
+    },
+    {
+      "id": "estate-agents",
+      "file": "estate-agents.jpg"
+    },
+    {
+      "id": "agent-detail",
+      "file": "agent-detail.jpg"
+    },
+    {
+      "id": "agent-history",
+      "file": "agent-history.jpg"
+    },
+    {
+      "id": "project-history",
+      "file": "project-history.jpg"
+    },
+    {
+      "id": "project-plan",
+      "file": "project-plan.jpg"
+    },
+    {
+      "id": "decisions",
+      "file": "decisions.jpg"
+    },
+    {
+      "id": "memory",
+      "file": "memory.jpg"
+    },
+    {
+      "id": "context-pack",
+      "file": "context-pack.jpg"
+    },
+    {
+      "id": "memory-lineage",
+      "file": "memory-lineage.jpg"
+    },
+    {
+      "id": "retro",
+      "file": "retro.jpg"
+    },
+    {
+      "id": "feedback",
+      "file": "feedback.jpg"
+    },
+    {
+      "id": "sync",
+      "file": "sync.jpg"
+    },
+    {
+      "id": "restore",
+      "file": "restore.jpg"
+    },
+    {
+      "id": "providers",
+      "file": "providers.jpg"
+    },
+    {
+      "id": "manager",
+      "file": "manager.jpg"
+    },
+    {
+      "id": "profile",
+      "file": "profile.jpg"
+    },
+    {
+      "id": "admission",
+      "file": "admission.jpg"
+    },
+    {
+      "id": "bootstrap",
+      "file": "bootstrap.jpg"
+    },
+    {
+      "id": "connections",
+      "file": "connections.jpg"
+    },
+    {
+      "id": "connect-account",
+      "file": "connect-account.jpg"
+    },
+    {
+      "id": "access",
+      "file": "access.jpg"
+    },
+    {
+      "id": "access-detail",
+      "file": "access-detail.jpg"
+    },
+    {
+      "id": "cycles",
+      "file": "cycles.jpg"
+    },
+    {
+      "id": "schedule",
+      "file": "schedule.jpg"
+    },
+    {
+      "id": "reports",
+      "file": "reports.jpg"
+    },
+    {
+      "id": "proposal",
+      "file": "proposal.jpg"
+    },
+    {
+      "id": "project-settings",
+      "file": "project-settings.jpg"
+    },
+    {
+      "id": "role-workspace",
+      "file": "role-workspace.jpg"
+    },
+    {
+      "id": "membership",
+      "file": "membership.jpg"
+    },
+    {
+      "id": "invite",
+      "file": "invite.jpg"
+    },
+    {
+      "id": "workspace-editor",
+      "file": "workspace-editor.jpg"
+    },
+    {
+      "id": "workspace",
+      "file": "workspace.jpg"
+    },
+    {
+      "id": "editor",
+      "file": "editor.jpg"
+    },
+    {
+      "id": "session",
+      "file": "session.jpg"
+    },
+    {
+      "id": "harness",
+      "file": "harness.jpg"
+    },
+    {
+      "id": "harness-tool",
+      "file": "harness-tool.jpg"
+    },
+    {
+      "id": "search",
+      "file": "search.jpg"
+    },
+    {
+      "id": "support",
+      "file": "support.jpg"
+    },
+    {
+      "id": "release",
+      "file": "release.jpg"
+    },
+    {
+      "id": "content",
+      "file": "content.jpg"
+    },
+    {
+      "id": "landing",
+      "file": "landing.jpg"
+    },
+    {
+      "id": "pipeline",
+      "file": "pipeline.jpg"
+    },
+    {
+      "id": "goals",
+      "file": "goals.jpg"
+    },
+    {
+      "id": "usage",
+      "file": "usage.jpg"
+    },
+    {
+      "id": "estate-settings",
+      "file": "estate-settings.jpg"
+    },
+    {
+      "id": "notifications",
+      "file": "notifications.jpg"
+    },
+    {
+      "id": "cross-project-proposal",
+      "file": "cross-project-proposal.jpg"
+    },
+    {
+      "id": "goal",
+      "file": "goal.jpg"
+    },
+    {
+      "id": "settings",
+      "file": "settings.jpg"
+    },
+    {
+      "id": "diagnostics",
+      "file": "diagnostics.jpg"
+    },
+    {
+      "id": "archive",
+      "file": "archive.jpg"
+    },
+    {
+      "id": "routine-editor",
+      "file": "routine-editor.jpg"
+    },
+    {
+      "id": "service-terminal",
+      "file": "service-terminal.jpg"
+    },
+    {
+      "id": "internal-browser",
+      "file": "internal-browser.jpg"
+    },
+    {
+      "id": "media-preview",
+      "file": "media-preview.jpg"
+    },
+    {
+      "id": "file-diff",
+      "file": "file-diff.jpg"
+    },
+    {
+      "id": "document",
+      "file": "document.jpg"
+    },
+    {
+      "id": "task-archive",
+      "file": "task-archive.jpg"
+    },
+    {
+      "id": "provider-accounts",
+      "file": "provider-accounts.jpg"
+    },
+    {
+      "id": "account-switch",
+      "file": "account-switch.jpg"
+    },
+    {
+      "id": "launch-home",
+      "file": "launch-home.jpg"
+    },
+    {
+      "id": "launch-board",
+      "file": "launch-board.jpg"
+    },
+    {
+      "id": "launch-project",
+      "file": "launch-project.jpg"
+    },
+    {
+      "id": "launch-agent",
+      "file": "launch-agent.jpg"
+    },
+    {
+      "id": "launch-plan",
+      "file": "launch-plan.jpg"
+    },
+    {
+      "id": "launch-map",
+      "file": "launch-map.jpg"
+    },
+    {
+      "id": "launch-persona",
+      "file": "launch-persona.jpg"
+    },
+    {
+      "id": "launch-pulse",
+      "file": "launch-pulse.jpg"
+    },
+    {
+      "id": "launch-releases",
+      "file": "launch-releases.jpg"
+    },
+    {
+      "id": "launch-start",
+      "file": "launch-start.jpg"
+    },
+    {
+      "id": "launch-guide",
+      "file": "launch-guide.jpg"
+    },
+    {
+      "id": "launch-help",
+      "file": "launch-help.jpg"
+    },
+    {
+      "id": "launch-design",
+      "file": "launch-design.jpg"
+    },
+    {
+      "id": "r0-setup",
+      "file": "r0-setup.jpg"
+    },
+    {
+      "id": "r0-provider",
+      "file": "r0-provider.jpg"
+    },
+    {
+      "id": "r0-source",
+      "file": "r0-source.jpg"
+    },
+    {
+      "id": "r0-discovery",
+      "file": "r0-discovery.jpg"
+    },
+    {
+      "id": "r0-home",
+      "file": "r0-home.jpg"
+    },
+    {
+      "id": "r0-project",
+      "file": "r0-project.jpg"
+    },
+    {
+      "id": "r0-work",
+      "file": "r0-work.jpg"
+    },
+    {
+      "id": "r0-board",
+      "file": "r0-board.jpg"
+    },
+    {
+      "id": "r0-plan",
+      "file": "r0-plan.jpg"
+    },
+    {
+      "id": "r0-settings",
+      "file": "r0-settings.jpg"
+    },
+    {
+      "id": "r0-map",
+      "file": "r0-map.jpg"
+    },
+    {
+      "id": "r0-guide",
+      "file": "r0-guide.jpg"
+    },
+    {
+      "id": "r0-memory",
+      "file": "r0-memory.jpg"
+    },
+    {
+      "id": "ceo-conversation",
+      "file": "ceo-conversation.jpg"
+    },
+    {
+      "id": "private-history",
+      "file": "private-history.jpg"
+    },
+    {
+      "id": "mcp-servers",
+      "file": "mcp-servers.jpg"
+    },
+    {
+      "id": "run-trace",
+      "file": "run-trace.jpg"
+    },
+    {
+      "id": "fabric-tools",
+      "file": "fabric-tools.jpg"
+    },
+    {
+      "id": "optimizer",
+      "file": "optimizer.jpg"
+    }
+  ]
+}

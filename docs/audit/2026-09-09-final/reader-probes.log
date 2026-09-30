@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /private/tmp/fabric-audit-20260909
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  16:49:50
+   Duration  4.49s (transform 990ms, setup 107ms, import 1.36s, tests 361ms, environment 2.41s)
+

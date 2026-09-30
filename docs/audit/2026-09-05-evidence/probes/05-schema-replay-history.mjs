@@ -1,0 +1,11 @@
+// Captured from the audit invocation; saved afterwards without rerunning.
+// Temporary random fixtures inside one transaction; always rolled back.
+import pg from 'packages/schema/node_modules/pg/lib/index.js';import {randomUUID} from 'node:crypto';
+const c=new pg.Client({connectionString:'postgresql://postgres:postgres@127.0.0.1:54322/postgres'});await c.connect();await c.query('BEGIN');
+try{const A=randomUUID(),p=randomUUID(),r1=randomUUID(),r2=randomUUID();const app=async(type,payload)=>(await c.query(`select append_event($1,$2,'{"kind":"system","id":"audit"}'::jsonb,$3::jsonb,'1',$4)`,[A,type,JSON.stringify(payload),p]));
+await app('project.created@1',{id:p,name:'Replay audit'});await app('project.repo.attached@1',{id:r1,path:'/tmp/replay-unique'});await app('project.repo.detached@1',{id:r1});await app('project.repo.attached@1',{id:r2,path:'/tmp/replay-unique'});
+await c.query('SAVEPOINT probe');try{await c.query('select rebuild_estate_projections($1)',[A]);console.log('reattach replay accepted')}catch(e){console.log('reattach rebuild error:',e.code,e.constraint);await c.query('ROLLBACK TO SAVEPOINT probe')}
+const task=randomUUID();await app('task.started@1',{id:task,instruction:'probe',option_id:'shell'});await app('task.abandoned@1',{id:task,reason:'restarted'});await c.query("update project_tasks set status='finished' where id=$1",[task]);
+await c.query('delete from project_repos where project_id=$1',[p]);await c.query('select rebuild_estate_projections($1)',[A]);console.log('corrupted abandoned task status after rebuild:',(await c.query('select status from project_tasks where id=$1',[task])).rows[0]);
+const f1=randomUUID(),f2=randomUUID();await app('memory.project.recorded@1',{id:f1,claim:'first'});await app('memory.project.recorded@1',{id:f2,claim:'second',supersedes:f1});await c.query("update memory_facts set valid_to='2099-01-01' where id=$1",[f1]);await c.query('delete from project_repos where project_id=$1',[p]);await c.query('select rebuild_estate_projections($1)',[A]);console.log('corrupted memory valid_to after rebuild:',(await c.query('select valid_to from memory_facts where id=$1',[f1])).rows[0]);
+}finally{await c.query('ROLLBACK');await c.end();console.log('ROLLBACK complete')}

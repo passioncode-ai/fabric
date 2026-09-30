@@ -1,0 +1,2457 @@
+{
+  "schema": 1,
+  "baseline": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+  "status": "reviewable-design-not-runtime",
+  "carryover": "CO-167",
+  "parent_initiative": "CO-166 / OX-01…12 / D01",
+  "modules": [
+    {
+      "id": "traceability",
+      "requirements": [
+        "REQ-01"
+      ]
+    },
+    {
+      "id": "contracts",
+      "requirements": [
+        "REQ-02"
+      ]
+    },
+    {
+      "id": "project",
+      "requirements": [
+        "REQ-03"
+      ]
+    },
+    {
+      "id": "sources",
+      "requirements": [
+        "REQ-04"
+      ]
+    },
+    {
+      "id": "context",
+      "requirements": [
+        "REQ-05"
+      ]
+    },
+    {
+      "id": "conversation",
+      "requirements": [
+        "REQ-06"
+      ]
+    },
+    {
+      "id": "voice",
+      "requirements": [
+        "REQ-07"
+      ]
+    },
+    {
+      "id": "attention",
+      "requirements": [
+        "REQ-08"
+      ]
+    },
+    {
+      "id": "execution",
+      "requirements": [
+        "REQ-09"
+      ]
+    },
+    {
+      "id": "cycles",
+      "requirements": [
+        "REQ-10"
+      ]
+    },
+    {
+      "id": "adoption",
+      "requirements": [
+        "REQ-11"
+      ]
+    },
+    {
+      "id": "shell",
+      "requirements": [
+        "REQ-12"
+      ]
+    },
+    {
+      "id": "depth",
+      "requirements": [
+        "REQ-13"
+      ]
+    },
+    {
+      "id": "acceptance",
+      "requirements": [
+        "REQ-14"
+      ]
+    }
+  ],
+  "packets": [
+    {
+      "id": "AD00",
+      "title": "Исправить границы UX-проекции",
+      "module": "traceability",
+      "status": "ready-for-bounded-work",
+      "depends_on": [],
+      "inputs": [],
+      "write_candidates": [
+        "scripts/sync-product-ux.mjs",
+        "scripts/test/product-model.test.mjs"
+      ],
+      "read_paths": [
+        "docs/ux/screens.md",
+        "docs/ux/scenarios.md",
+        "docs/ux/flows.md"
+      ],
+      "baseline_sources": [
+        {
+          "path": "docs/ux/screens.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "0d986caa12b2e6551dc16a53883d9fc1a1aada31baa0a7c612c58e85780fba38"
+        },
+        {
+          "path": "docs/ux/scenarios.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "341f6a2ea9d97677b194aeec403120e854679d9f7c686a788f4fc22fcae21a67"
+        },
+        {
+          "path": "docs/ux/flows.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "51d4e2af5bf75fe49594f4417ac3069f4e9a7fb136627d33d6ec8def2c3e510a"
+        },
+        {
+          "path": "scripts/sync-product-ux.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "d670b22773337f880848e4c5e48ea57e1782d75468e3a67b6ec1857354e2b501"
+        },
+        {
+          "path": "scripts/test/product-model.test.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "d3946a85ae1803523cb180059848c707521c904a51494a714935ae1d07802b3f"
+        }
+      ],
+      "acceptance": [
+        "Раздел завершается равным/старшим заголовком; явные Scenarios и обратные связи не смешаны с общим приложением.",
+        "Точное правило keyed refinements сохраняет легитимные SCN090–094 связи; все 85 view IDs сохранены."
+      ],
+      "negative_checks": [
+        "RED: приложение после SCR63 с SCN031 не приклеивается к SCR63.",
+        "Последний SCN/FLW, отсутствие следующего heading, корректная inverse reference, duplicate ID."
+      ],
+      "output": "BoundedRegistryProjection",
+      "existing_check": "node --test scripts/test/product-model.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD00.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test"
+      ],
+      "required_output_tier": "pure"
+    },
+    {
+      "id": "AD01",
+      "title": "Сверить фактические producers и закрепить контракты",
+      "module": "contracts",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD00"
+      ],
+      "inputs": [
+        {
+          "packet": "AD00",
+          "receipt": "BoundedRegistryProjection",
+          "minimum_proof_tier": "pure",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "docs/architecture/operator-interaction.md",
+        "docs/launch/adoption/contracts.md"
+      ],
+      "read_paths": [
+        "CONTEXT.md",
+        "docs/ux/plans/2026-09-15-r0-operator.md",
+        "docs/architecture/external-contracts.md"
+      ],
+      "baseline_sources": [
+        {
+          "path": "CONTEXT.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "918cc64fa6a65e023698ace23080f1463f5a3f3fc023b6b2f56ac5861109209d"
+        },
+        {
+          "path": "docs/ux/plans/2026-09-15-r0-operator.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "7176ff513e1d8677283a42b9e5cec1e591c465aeb8935fa4502144b77ae43d36"
+        },
+        {
+          "path": "docs/architecture/external-contracts.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "eaa2c39719d2e7d2ceb735453d345f49be0089da7c9cc203d7152f8f42717985"
+        },
+        {
+          "path": "docs/architecture/operator-interaction.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+        }
+      ],
+      "acceptance": [
+        "Для каждого порта назвать существующий producer, owner, entity/revision, authority, ошибку, receipt, runtime gap; проверить типы в owning package.",
+        "Не вводить второй task/agent store. Разобрать именно ST001 PM vs optional provider; pending роль не runnable."
+      ],
+      "negative_checks": [
+        "Необнаруженный producer записан missing, не придуман.",
+        "Неподдержанный provider и неизвестное поле не нормализованы в success."
+      ],
+      "output": "ProducerContractMatrix",
+      "existing_check": "node scripts/check-registers.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD01.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test"
+      ],
+      "required_output_tier": "source"
+    },
+    {
+      "id": "AD02",
+      "title": "Сохранить native черновики при новом старте",
+      "module": "project",
+      "status": "ready-for-bounded-work",
+      "depends_on": [],
+      "inputs": [],
+      "write_candidates": [
+        "apps/desktop/src/renderer/src/App.tsx",
+        "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx"
+      ],
+      "read_paths": [
+        "apps/desktop/src/shared/onboardingDraft.ts",
+        "apps/desktop/src/main/onboardingDrafts.ts"
+      ],
+      "baseline_sources": [
+        {
+          "path": "apps/desktop/src/shared/onboardingDraft.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5"
+        },
+        {
+          "path": "apps/desktop/src/main/onboardingDrafts.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "2b8a5ebd9b73dfadeaf79bdb7e3772fb5a3bf2a8d8813e7162b19402b5bb6427"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/App.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "30c0b4bd0934e6f08bcb4043551731e432f1292c8401bd24d6f7153373cbe245"
+        }
+      ],
+      "acceptance": [
+        "UUID/allocator не может перезаписать восстановленный draft; hydration отделена от новых записей.",
+        "Проектные identity сохранены; dirty-close поведение прежнее."
+      ],
+      "negative_checks": [
+        "Actual shell: restore draft-1/draft-2→создать два новых→перезапуск, все четыре различны.",
+        "Новый ввод до завершения hydration и повреждённый файл не стирают disk state."
+      ],
+      "output": "DraftIdentityReceipt",
+      "existing_check": "node --test apps/desktop/test/onboarding-drafts.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD02.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Использовать существующие onboardingDraft/App producers; AD01 не prerequisite. При изменении их semantics вне collision fix остановиться и выделить новый scope.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD03",
+      "title": "Единый target-сценарий создания",
+      "module": "project",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD00",
+        "AD01"
+      ],
+      "inputs": [
+        {
+          "packet": "AD00",
+          "receipt": "BoundedRegistryProjection",
+          "minimum_proof_tier": "pure",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD01",
+          "receipt": "ProducerContractMatrix",
+          "minimum_proof_tier": "source",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "scripts/product/guided.mjs",
+        "scripts/product/controller.js",
+        "scripts/product/workbench.mjs",
+        "scripts/product/new-project.mjs"
+      ],
+      "read_paths": [
+        "docs/ux/scenarios.md",
+        "docs/ux/flows.md",
+        "docs/ux/screens.md",
+        "scripts/product/pulse.mjs"
+      ],
+      "baseline_sources": [
+        {
+          "path": "docs/ux/scenarios.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "341f6a2ea9d97677b194aeec403120e854679d9f7c686a788f4fc22fcae21a67"
+        },
+        {
+          "path": "docs/ux/flows.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "51d4e2af5bf75fe49594f4417ac3069f4e9a7fb136627d33d6ec8def2c3e510a"
+        },
+        {
+          "path": "docs/ux/screens.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "0d986caa12b2e6551dc16a53883d9fc1a1aada31baa0a7c612c58e85780fba38"
+        },
+        {
+          "path": "scripts/product/pulse.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "537f37d00032a38342811822f9899b60ebcf822ab8f25cb0a61b742d25414a57"
+        },
+        {
+          "path": "scripts/product/guided.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458"
+        },
+        {
+          "path": "scripts/product/controller.js",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f"
+        },
+        {
+          "path": "scripts/product/workbench.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "8337eeb5280381b840999e0b414314114aed7eb80dc3d3720f72081d94142b39"
+        },
+        {
+          "path": "scripts/product/new-project.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f94b4f8504d0ba84ec7034bcfac7fd1324ff449b2740878f7e2ec141652b3856"
+        }
+      ],
+      "acceptance": [
+        "Все create entry используют одну draft identity, review и конечный Project; legacy links alias сохранены.",
+        "Idea effectiveSource none перед duplicate/review/create; optional fields под раскрытием."
+      ],
+      "negative_checks": [
+        "Каждый +Проект, persona skip, empty Estate, Help resume.",
+        "single→idea с archived repo не блокирует; двойной submit не дублирует."
+      ],
+      "output": "UnifiedCreationJourney",
+      "existing_check": "node --test scripts/test/ceo-onboarding.test.mjs scripts/test/calm-flows.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD03.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test"
+      ],
+      "required_output_tier": "prototype"
+    },
+    {
+      "id": "AD04",
+      "title": "Один durable create и восстановление неизвестного исхода",
+      "module": "project",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD01",
+        "AD02",
+        "AD03"
+      ],
+      "inputs": [
+        {
+          "packet": "AD01",
+          "receipt": "ProducerContractMatrix",
+          "minimum_proof_tier": "source",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD02",
+          "receipt": "DraftIdentityReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD03",
+          "receipt": "UnifiedCreationJourney",
+          "minimum_proof_tier": "prototype",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/renderer/src/Onboarding.tsx",
+        "apps/desktop/src/shared/onboardingDraft.ts"
+      ],
+      "read_paths": [
+        "packages/journal",
+        "packages/schema",
+        "apps/desktop/src/main/onboardingDrafts.ts"
+      ],
+      "baseline_sources": [
+        {
+          "path": "apps/desktop/src/main/onboardingDrafts.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "2b8a5ebd9b73dfadeaf79bdb7e3772fb5a3bf2a8d8813e7162b19402b5bb6427"
+        },
+        {
+          "path": "apps/desktop/src/main/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/Onboarding.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6"
+        },
+        {
+          "path": "apps/desktop/src/shared/onboardingDraft.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5"
+        }
+      ],
+      "acceptance": [
+        "Stable request ID + immutable payload fingerprint, journal before effects, atomic result/reconciliation semantics pinned.",
+        "Partial repository attach возвращает конкретный остаток; edited retry требует новой update команды после reconcile."
+      ],
+      "negative_checks": [
+        "Crash after commit before response; unchanged retry one Project.",
+        "Changed name/repos under old key refused; foreign/archived/denied; late response не переключает чужой tab."
+      ],
+      "output": "ProjectCreateReceipt",
+      "existing_check": "node --test apps/desktop/test/onboarding-drafts.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD04.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD05",
+      "title": "Минимальный порт источника и честное отсутствие данных",
+      "module": "sources",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD04"
+      ],
+      "inputs": [
+        {
+          "packet": "AD04",
+          "receipt": "ProjectCreateReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "apps/desktop/src/renderer/src/Onboarding.tsx",
+        "apps/desktop/src/main/index.ts"
+      ],
+      "read_paths": [
+        "apps/desktop/src/shared/onboardingDraft.ts",
+        "scripts/product/guided.mjs"
+      ],
+      "baseline_sources": [
+        {
+          "path": "apps/desktop/src/shared/onboardingDraft.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5"
+        },
+        {
+          "path": "scripts/product/guided.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/Onboarding.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6"
+        },
+        {
+          "path": "apps/desktop/src/main/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        }
+      ],
+      "acceptance": [
+        "Один SourceObservationPort для none/unread/denied/partial/available, scope/revision/freshness; none поддерживается без picker/provider.",
+        "Один явно выбранный источник читается через разрешённый adapter. Folder enumeration отдельно AD24; отсутствие истории не блокирует сохранение собственной цели."
+      ],
+      "negative_checks": [
+        "None/unread не превращаются в fabricated history; выбранный ref не означает read.",
+        "Denied/cancel/offline/stale single source; canonical identity проверяет adapter, не строковое предположение UI.",
+        "Новый Project без repository получает usable no-source receipt без вызова файлового scan."
+      ],
+      "output": "SourceObservationReceipt",
+      "existing_check": "node --test scripts/test/ceo-onboarding.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD05.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD06",
+      "title": "Первый полезный checkpoint на своём проекте",
+      "module": "context",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD01",
+        "AD04",
+        "AD05"
+      ],
+      "inputs": [
+        {
+          "packet": "AD01",
+          "receipt": "ProducerContractMatrix",
+          "minimum_proof_tier": "source",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD04",
+          "receipt": "ProjectCreateReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD05",
+          "receipt": "SourceObservationReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx",
+        "packages/schema",
+        "packages/journal"
+      ],
+      "read_paths": [
+        "docs/ux/vision.md",
+        "docs/architecture/operator-interaction.md"
+      ],
+      "baseline_sources": [
+        {
+          "path": "docs/ux/vision.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "6b0623dd44f58b6d3472531ab0ac7cc7382beca92b3aadae57d4fdc8306353bd"
+        },
+        {
+          "path": "docs/architecture/operator-interaction.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+        }
+      ],
+      "acceptance": [
+        "Existing cohort: goal/state/next decision со ссылками и freshness; idea: user intent/next action/unknown, без импортированной истории.",
+        "Сохранить осознанный checkpoint с exact continuation; optional Task только если нужна работа. Один project restart path — walking skeleton."
+      ],
+      "negative_checks": [
+        "Ни одного source→явно unknown, не 0 изменений.",
+        "Crash→saved checkpoint восстановлен; revoked source скрыт; correction не переписывает original observation."
+      ],
+      "output": "ContextCheckpoint",
+      "existing_check": "node --test scripts/test/calm-context.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD06.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD07",
+      "title": "Возврат: общий снимок и прочитанная граница",
+      "module": "context",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD06"
+      ],
+      "inputs": [
+        {
+          "packet": "AD06",
+          "receipt": "ContextCheckpoint",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "packages/schema",
+        "packages/journal",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/preload/index.ts",
+        "apps/desktop/src/shared/types.ts",
+        "apps/desktop/src/shared/feedMarks.ts"
+      ],
+      "read_paths": [
+        "scripts/product/operations.mjs",
+        "scripts/product/launch.mjs",
+        "docs/architecture/operator-interaction.md"
+      ],
+      "baseline_sources": [
+        {
+          "path": "scripts/product/operations.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "d79623c0838ee753b4bf2abdb60f77f5af412cea0c096f5a9c83d90a16efa40b"
+        },
+        {
+          "path": "scripts/product/launch.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1"
+        },
+        {
+          "path": "docs/architecture/operator-interaction.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+        },
+        {
+          "path": "apps/desktop/src/main/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        },
+        {
+          "path": "apps/desktop/src/preload/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+        },
+        {
+          "path": "apps/desktop/src/shared/types.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+        },
+        {
+          "path": "apps/desktop/src/shared/feedMarks.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "7225e595d8aecffcaa01f818fac8f99eff985db957bebe2e8d145f9083705144"
+        }
+      ],
+      "acceptance": [
+        "ReturnSnapshot принадлежит read model и ссылается на business journal; page cursor per actor+Estate+Project.",
+        "Rendered receipt и ack монотонны; continuation Task/Run/Decision разрешается типизированно, не последним открытым Project."
+      ],
+      "negative_checks": [
+        "Late append между render и leave остаётся unread; backfill/order изменение не count based.",
+        "Missing/denied/stale/partial, A→B→A, archived exact target не подменён."
+      ],
+      "output": "ReturnSnapshot",
+      "existing_check": "node --test scripts/test/calm-work.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD07.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD09",
+      "title": "Durable текстовый разговор и общий command path",
+      "module": "conversation",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD01",
+        "AD04"
+      ],
+      "inputs": [
+        {
+          "packet": "AD01",
+          "receipt": "ProducerContractMatrix",
+          "minimum_proof_tier": "source",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD04",
+          "receipt": "ProjectCreateReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "packages/schema",
+        "packages/journal",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/preload/index.ts",
+        "apps/desktop/src/shared/types.ts"
+      ],
+      "read_paths": [
+        "scripts/product/assistant.mjs",
+        "scripts/product/concierge.mjs",
+        "docs/architecture/operator-interaction.md"
+      ],
+      "baseline_sources": [
+        {
+          "path": "scripts/product/assistant.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48"
+        },
+        {
+          "path": "scripts/product/concierge.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "9065497101a3cf9ecd18c879b9508f6e0f74b8c04329bfb33a72505a12e37703"
+        },
+        {
+          "path": "docs/architecture/operator-interaction.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+        },
+        {
+          "path": "apps/desktop/src/main/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        },
+        {
+          "path": "apps/desktop/src/preload/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+        },
+        {
+          "path": "apps/desktop/src/shared/types.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+        }
+      ],
+      "acceptance": [
+        "MessageEnvelope сохраняется до command; scope/actor/input revision/request refs неизменяемы, outbox имеет reconciliation.",
+        "Forms и CEO используют одну typed command boundary; unsupported intention уточняет, не превращает автоматически всё в Task."
+      ],
+      "negative_checks": [
+        "Offline/restart/duplicate send/unknown commit; one artifact, same origin.",
+        "Cross-project attachment не расширяет write scope; archived/ACL/policy revision checked at execution."
+      ],
+      "output": "ConversationCommandReceipt",
+      "existing_check": "node --test scripts/test/calm-context.test.mjs scripts/test/ceo-onboarding.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD09.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD08",
+      "title": "Одинаковый возврат в Home, Project и Fabric",
+      "module": "context",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD07",
+        "AD09"
+      ],
+      "inputs": [
+        {
+          "packet": "AD07",
+          "receipt": "ReturnSnapshot",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD09",
+          "receipt": "ConversationCommandReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "scripts/product/launch.mjs",
+        "scripts/product/concierge.mjs",
+        "apps/desktop/src/renderer/src/EstateHome.tsx",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx"
+      ],
+      "read_paths": [
+        "scripts/product/operations.mjs",
+        "docs/ux/scenarios.md"
+      ],
+      "baseline_sources": [
+        {
+          "path": "scripts/product/operations.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "d79623c0838ee753b4bf2abdb60f77f5af412cea0c096f5a9c83d90a16efa40b"
+        },
+        {
+          "path": "docs/ux/scenarios.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "341f6a2ea9d97677b194aeec403120e854679d9f7c686a788f4fc22fcae21a67"
+        },
+        {
+          "path": "scripts/product/launch.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1"
+        },
+        {
+          "path": "scripts/product/concierge.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "9065497101a3cf9ecd18c879b9508f6e0f74b8c04329bfb33a72505a12e37703"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/EstateHome.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "48220644696f4def89cffb45bf13e59882cf9a83b2c2f802e347fcbd334a2187"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+        }
+      ],
+      "acceptance": [
+        "Компактная карточка: изменение/ожидающее решение/точный следующий шаг; источники и история под раскрытием.",
+        "CEO отвечает тем же snapshot; first visit/no changes честны; чтение чужой панели не ack.",
+        "Этот packet намеренно интегрирует все три consumers после AD09: согласованность общей семантики важнее независимой поставки CEO. AD07 read port отдельно пригоден для Home/Project опытов, но AD08 закрывается только целиком."
+      ],
+      "negative_checks": [
+        "Direct Task/Run entry→exact resume; новое событие после snapshot.",
+        "Background tab, hidden panel, unavailable source, stale refresh не обновляет age."
+      ],
+      "output": "ReturnSurfaceReceipt",
+      "existing_check": "node --test scripts/test/calm-work.test.mjs scripts/test/calm-context.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD08.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD10",
+      "title": "Composer: понятный scope, shortcuts и сохранность ввода",
+      "module": "conversation",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD09"
+      ],
+      "inputs": [
+        {
+          "packet": "AD09",
+          "receipt": "ConversationCommandReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "scripts/product/assistant.mjs",
+        "scripts/product/controller.js",
+        "scripts/product/guided.mjs",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx",
+        "apps/desktop/src/renderer/src/App.tsx",
+        "apps/desktop/src/preload/index.ts",
+        "apps/desktop/src/shared/types.ts"
+      ],
+      "read_paths": [
+        "scripts/product/context-items.mjs",
+        "docs/launch/calm-ui.md"
+      ],
+      "baseline_sources": [
+        {
+          "path": "scripts/product/context-items.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "58a732df1a981a9fa56d20e6f410593fac683fa1584848aba696432a4c7d8495"
+        },
+        {
+          "path": "docs/launch/calm-ui.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "d9c6ec01366b66bc678f55fa836c07954ec7262df52cfd76f51031cf52a74353"
+        },
+        {
+          "path": "scripts/product/assistant.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48"
+        },
+        {
+          "path": "scripts/product/controller.js",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f"
+        },
+        {
+          "path": "scripts/product/guided.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/AttentionPanel.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "ac82a68a26945e235ff33d036114eae2c287da963088134772500e00f3fcb39b"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/App.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340"
+        },
+        {
+          "path": "apps/desktop/src/preload/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+        },
+        {
+          "path": "apps/desktop/src/shared/types.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+        }
+      ],
+      "acceptance": [
+        "Один resolver для displayed scope и draft mutation; context select над composer; page navigation и conversation scope различаются.",
+        "Shortcut в непустом draft предлагает append/replace+Undo; voice attachments и revision сохраняются."
+      ],
+      "negative_checks": [
+        "Guide A→manual composer B→shortcut→draft и destination совпадают; отмена не шлёт.",
+        "Repeat shortcut, A→B→A, stale revision, lost focus, keyboard Esc возвращает фокус."
+      ],
+      "output": "ComposerScopeReceipt",
+      "existing_check": "node --test scripts/test/calm-context.test.mjs scripts/test/calm-flows.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD10.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD11",
+      "title": "Исправление атрибуции и точные ссылки на разговор",
+      "module": "conversation",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD09",
+        "AD10"
+      ],
+      "inputs": [
+        {
+          "packet": "AD09",
+          "receipt": "ConversationCommandReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD10",
+          "receipt": "ComposerScopeReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "scripts/product/controller.js",
+        "scripts/product/assistant.mjs",
+        "scripts/product/launch.mjs",
+        "scripts/product/operations.mjs",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/preload/index.ts",
+        "apps/desktop/src/shared/types.ts",
+        "packages/journal"
+      ],
+      "read_paths": [
+        "docs/architecture/operator-interaction.md"
+      ],
+      "baseline_sources": [
+        {
+          "path": "docs/architecture/operator-interaction.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+        },
+        {
+          "path": "scripts/product/controller.js",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f"
+        },
+        {
+          "path": "scripts/product/assistant.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48"
+        },
+        {
+          "path": "scripts/product/launch.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1"
+        },
+        {
+          "path": "scripts/product/operations.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "d79623c0838ee753b4bf2abdb60f77f5af412cea0c096f5a9c83d90a16efa40b"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/AttentionPanel.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "ac82a68a26945e235ff33d036114eae2c287da963088134772500e00f3fcb39b"
+        },
+        {
+          "path": "apps/desktop/src/main/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        },
+        {
+          "path": "apps/desktop/src/preload/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+        },
+        {
+          "path": "apps/desktop/src/shared/types.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+        }
+      ],
+      "acceptance": [
+        "Typed Task/Board attribution command + append-only receipt; исходное сообщение не меняет origin.",
+        "Missing conversation/message route даёт exact error and separate recovery action. До runtime handler control disabled с причиной."
+      ],
+      "negative_checks": [
+        "UI create Task→Уточнить связь→receipt+timeline; replay key one result.",
+        "Wrong Estate/archive/no access/missing message после restart; no silent current-thread substitution."
+      ],
+      "output": "AttributionReceipt",
+      "existing_check": "node --test scripts/test/ceo-onboarding.test.mjs scripts/test/calm-context.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD11.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD12",
+      "title": "Выбрать и проверить STT-порт для R0",
+      "module": "voice",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD01",
+        "AD09"
+      ],
+      "inputs": [
+        {
+          "packet": "AD01",
+          "receipt": "ProducerContractMatrix",
+          "minimum_proof_tier": "source",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD09",
+          "receipt": "ConversationCommandReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "docs/architecture/operator-interaction.md",
+        "docs/launch/adoption/contracts.md"
+      ],
+      "read_paths": [
+        "docs/ux/plans/2026-09-15-r0-operator.md",
+        "apps/desktop/package.json"
+      ],
+      "baseline_sources": [
+        {
+          "path": "docs/ux/plans/2026-09-15-r0-operator.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "7176ff513e1d8677283a42b9e5cec1e591c465aeb8935fa4502144b77ae43d36"
+        },
+        {
+          "path": "apps/desktop/package.json",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "a6213248fc7bfd8de1831acb0c885abdacc1f97d848965e6175ad1d5234eab07"
+        },
+        {
+          "path": "docs/architecture/operator-interaction.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+        }
+      ],
+      "acceptance": [
+        "Сравнить доступные local/network RU/EN STT на одинаковых согласованных коротких samples: latency/error/cost/privacy/offline/packaging.",
+        "Выход passed допустим только с выбранным и принятым STT-портом, измерениями и consent/retention contract. Нерешённый выбор возвращает blocked и НЕ разблокирует AD13."
+      ],
+      "negative_checks": [
+        "Permission denied, offline, silence, cancel, late transcript, unsupported locale.",
+        "Не применять cloud upload без конкретного разрешения; text fallback не даёт voice PASS."
+      ],
+      "output": "STTPortDecision",
+      "existing_check": "node scripts/check-registers.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD12.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD13",
+      "title": "Реальный voice capture → правка → отправка",
+      "module": "voice",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD12",
+        "AD10"
+      ],
+      "inputs": [
+        {
+          "packet": "AD12",
+          "receipt": "STTPortDecision",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "selected-and-accepted-STT-port"
+        },
+        {
+          "packet": "AD10",
+          "receipt": "ComposerScopeReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "apps/desktop/src/main/index.ts",
+        "packages/schema",
+        "packages/journal",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx",
+        "apps/desktop/src/renderer/src/App.tsx",
+        "apps/desktop/src/preload/index.ts",
+        "apps/desktop/src/shared/types.ts"
+      ],
+      "read_paths": [
+        "scripts/product/assistant.mjs",
+        "docs/architecture/operator-interaction.md"
+      ],
+      "baseline_sources": [
+        {
+          "path": "scripts/product/assistant.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "261e996f503f8f528a82ec493c2407bfb0a6a2f15b63576860812a970d926a48"
+        },
+        {
+          "path": "docs/architecture/operator-interaction.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+        },
+        {
+          "path": "apps/desktop/src/main/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/AttentionPanel.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "ac82a68a26945e235ff33d036114eae2c287da963088134772500e00f3fcb39b"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/App.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340"
+        },
+        {
+          "path": "apps/desktop/src/preload/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+        },
+        {
+          "path": "apps/desktop/src/shared/types.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+        }
+      ],
+      "acceptance": [
+        "Capture ID/durable local receipt до STT; review/edit сохраняют original; запись до send не Task.",
+        "Scope pinned во время capture; закрытие/переключение отменяет безопасно; compound intent имеет честные per-action outcomes."
+      ],
+      "negative_checks": [
+        "Отказ mic/нет устройства/тишина/error/abort/restart/late reply не пишет в новый thread.",
+        "Реальная RU/EN запись+исправление→Task/timeline same source; no auto-send transcript."
+      ],
+      "output": "VoiceInputReceipt",
+      "existing_check": "node --test scripts/test/calm-context.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD13.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD14",
+      "title": "Доска: решение и возврат отложенного",
+      "module": "attention",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD07",
+        "AD09"
+      ],
+      "inputs": [
+        {
+          "packet": "AD07",
+          "receipt": "ReturnSnapshot",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD09",
+          "receipt": "ConversationCommandReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "scripts/product/launch.mjs",
+        "scripts/product/obligations.mjs",
+        "apps/desktop/src/renderer/src/BoardPanel.tsx",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/preload/index.ts",
+        "apps/desktop/src/shared/types.ts"
+      ],
+      "read_paths": [
+        "packages/schema",
+        "packages/journal",
+        "docs/architecture/operator-interaction.md"
+      ],
+      "baseline_sources": [
+        {
+          "path": "docs/architecture/operator-interaction.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+        },
+        {
+          "path": "scripts/product/launch.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1"
+        },
+        {
+          "path": "scripts/product/obligations.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "46c6f09a4ac3940643fb5cc46ba6af1fd9805af7919af4b835b22d1662d7d573"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/BoardPanel.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "7e87e7c8bb746ab1691cd86a5ebd3ed97ca45a43fe96832c6daa3685d7c8acb9"
+        },
+        {
+          "path": "apps/desktop/src/main/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        },
+        {
+          "path": "apps/desktop/src/preload/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+        },
+        {
+          "path": "apps/desktop/src/shared/types.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+        }
+      ],
+      "acceptance": [
+        "Question→options/consequences→answer receipt→awaiting effect/confirmed are separate.",
+        "Later = next review/date/no reminder explicit; source obligation сохраняет canonical owner; tutorial excluded."
+      ],
+      "negative_checks": [
+        "Double answer/stale revision/blank result/refused effect keeps attention.",
+        "Resurface once on chosen trigger, app closed/late arrival, archived Project, timezone, no notification without opt-in."
+      ],
+      "output": "AttentionReviewReceipt",
+      "existing_check": "node --test scripts/test/calm-flows.test.mjs scripts/test/product-empty-state.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD14.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD15",
+      "title": "Минимальная настройка допущенного исполнителя",
+      "module": "execution",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD01",
+        "AD04",
+        "AD09"
+      ],
+      "inputs": [
+        {
+          "packet": "AD01",
+          "receipt": "ProducerContractMatrix",
+          "minimum_proof_tier": "source",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD04",
+          "receipt": "ProjectCreateReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD09",
+          "receipt": "ConversationCommandReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx",
+        "apps/desktop/src/renderer/src/HarnessSection.tsx",
+        "apps/desktop/src/main/agentSurface.ts"
+      ],
+      "read_paths": [
+        "apps/desktop/src/shared/providerCapabilityMatrix.ts",
+        "scripts/product/integrations.mjs"
+      ],
+      "baseline_sources": [
+        {
+          "path": "apps/desktop/src/shared/providerCapabilityMatrix.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f6b6e3046f53de7a8e15bcd3354096bccf8758a6691d9b155825e9d39897095c"
+        },
+        {
+          "path": "scripts/product/integrations.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "31d88429235f4f57574bc48a25bbd47382f38b67553e67ef6c93b9cf4b4de2fa"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/HarnessSection.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "55a0952963bc9e57ced27c9cfd6fa95859483989581696a679ffe6765daac4fb"
+        },
+        {
+          "path": "apps/desktop/src/main/agentSurface.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "d377a0b6762f4090d7eea213fcd3987caa1952c0b813a4809703b82a90943760"
+        }
+      ],
+      "acceptance": [
+        "Preset role→provider candidate→capability/readiness→grant limits→saved config; nothing started until Task admission.",
+        "Unfilled role is honest; current system login usable if certified; managed multi-account is optional."
+      ],
+      "negative_checks": [
+        "Unavailable binary/version/capability, no grant, changed policy after preview, revoked account, expired auth.",
+        "Skipped setup creates no Provider later or runnable session; explicit next setup entry from Task."
+      ],
+      "output": "AgentReadyReceipt",
+      "existing_check": "node --test scripts/test/product-integrations.test.mjs scripts/test/calm-config.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD15.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD16",
+      "title": "Один Run без ручной имитации механики",
+      "module": "execution",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD15",
+        "AD06"
+      ],
+      "inputs": [
+        {
+          "packet": "AD15",
+          "receipt": "AgentReadyReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD06",
+          "receipt": "ContextCheckpoint",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "scripts/product/operations.mjs",
+        "apps/desktop/src/main/agentSurface.ts",
+        "apps/desktop/src/renderer/src/TaskPage.tsx",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/preload/index.ts",
+        "apps/desktop/src/shared/types.ts"
+      ],
+      "read_paths": [
+        "apps/desktop/test/run-lifecycle.test.mjs",
+        "docs/architecture/operator-interaction.md"
+      ],
+      "baseline_sources": [
+        {
+          "path": "apps/desktop/test/run-lifecycle.test.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "946eb346078b2d0d09734641ed258b913771232dae3fd5927585008f2edf7530"
+        },
+        {
+          "path": "docs/architecture/operator-interaction.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f099397f08159bb5ebfcf2fc10ad7ea9d403fa41e224fbcdbd88f5577a93c0cd"
+        },
+        {
+          "path": "scripts/product/operations.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "d79623c0838ee753b4bf2abdb60f77f5af412cea0c096f5a9c83d90a16efa40b"
+        },
+        {
+          "path": "apps/desktop/src/main/agentSurface.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "d377a0b6762f4090d7eea213fcd3987caa1952c0b813a4809703b82a90943760"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/TaskPage.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "2828108e5c526d7754497ef87ac90b920887250d1daf898fb9788f05ce042b84"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+        },
+        {
+          "path": "apps/desktop/src/main/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        },
+        {
+          "path": "apps/desktop/src/preload/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+        },
+        {
+          "path": "apps/desktop/src/shared/types.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+        }
+      ],
+      "acceptance": [
+        "User defines result/criteria and grants bounded action. Backend progresses observed spawn/delivery/check stages; Run drawer explains state.",
+        "Independent checker/result can reject; operator never mints checker acknowledgement; stop request != stopped."
+      ],
+      "negative_checks": [
+        "Real adapter smoke permitted bounded fixture; duplicate admission, lost ACK, failed spawn, retry budget, stop timeout.",
+        "Malicious/invalid result cannot become done via button; unknown remains reconcile."
+      ],
+      "output": "RunResultReceipt",
+      "existing_check": "node --test apps/desktop/test/run-lifecycle.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD16.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD17",
+      "title": "Один понятный повторяемый цикл",
+      "module": "cycles",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD14",
+        "AD16"
+      ],
+      "inputs": [
+        {
+          "packet": "AD14",
+          "receipt": "AttentionReviewReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD16",
+          "receipt": "RunResultReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "scripts/product/routines.mjs",
+        "apps/desktop/src/main/routineTick.ts",
+        "apps/desktop/src/shared/routine.ts",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/preload/index.ts",
+        "apps/desktop/src/shared/types.ts"
+      ],
+      "read_paths": [
+        "apps/desktop/src/shared/cyclePort.ts",
+        "apps/desktop/src/shared/cycleView.ts"
+      ],
+      "baseline_sources": [
+        {
+          "path": "apps/desktop/src/shared/cyclePort.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "167baaa9d0312780ca1ea70c35a3022fa40eb31f7eee575120b49cc9a56e5b48"
+        },
+        {
+          "path": "apps/desktop/src/shared/cycleView.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "4914156adfec645533b5bd5b70abce43fdead7d61408a1d2f308d37daa6a5d4c"
+        },
+        {
+          "path": "scripts/product/routines.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "27108f193c14675649e7341fd86704f95349cd72463c4bcfe43745407bbce9ba"
+        },
+        {
+          "path": "apps/desktop/src/main/routineTick.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "754c7b3fe37abd37a191c6cc9c641b76624e66e4397344de7e0f0f6e0efd4f6f"
+        },
+        {
+          "path": "apps/desktop/src/shared/routine.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "af344c503e42d9658aa7a1a357cb6f96fd46ac5cb17b6bb8d6179e56316d48dc"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+        },
+        {
+          "path": "apps/desktop/src/main/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        },
+        {
+          "path": "apps/desktop/src/preload/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+        },
+        {
+          "path": "apps/desktop/src/shared/types.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+        }
+      ],
+      "acceptance": [
+        "Useful manual review→preset→timezone/window/budget/host preview→save paused→enable separately.",
+        "Empty Project has zero active cycles; next due/last receipt/catch-up/pause and current run stop distinct."
+      ],
+      "negative_checks": [
+        "Closed app no run; reopen bounded catchup; DST/timezone/missed window/duplicate tick/definition edit.",
+        "Pause feed does not pause scheduler; pause scheduler not false stop; tutorial samples do not count."
+      ],
+      "output": "CycleWindowReceipt",
+      "existing_check": "node --test apps/desktop/test/routine-tick.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD17.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD18",
+      "title": "Durable прогресс знакомства из результата",
+      "module": "adoption",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD06",
+        "AD07",
+        "AD14"
+      ],
+      "inputs": [
+        {
+          "packet": "AD06",
+          "receipt": "ContextCheckpoint",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD07",
+          "receipt": "ReturnSnapshot",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD14",
+          "receipt": "AttentionReviewReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "packages/schema",
+        "packages/journal",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/preload/index.ts",
+        "apps/desktop/src/shared/types.ts"
+      ],
+      "read_paths": [
+        "docs/launch/ceo-onboarding.md",
+        "scripts/product/guided.mjs"
+      ],
+      "baseline_sources": [
+        {
+          "path": "docs/launch/ceo-onboarding.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "e55f3b4e9be8277f12c2967016d3145cac3dccbb4aacbf3db551f1752183ad11"
+        },
+        {
+          "path": "scripts/product/guided.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458"
+        },
+        {
+          "path": "apps/desktop/src/main/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        },
+        {
+          "path": "apps/desktop/src/preload/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+        },
+        {
+          "path": "apps/desktop/src/shared/types.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+        }
+      ],
+      "acceptance": [
+        "GuideRecord actor+Estate+Project+version projects receipts: eligible/offered/dismissed/experienced/retired. Setup/value/return/learning separate.",
+        "Version migration и debounce/snooze не меняют business objects; completed outside guide counts through actual receipt."
+      ],
+      "negative_checks": [
+        "Skip != experienced; created topic != applied Board; task deletion preserves historical outcome but disables continuation.",
+        "Multiple devices/projects/users, access loss/archive/replay; no prompts after dismissal without new eligible trigger."
+      ],
+      "output": "AdoptionProjection",
+      "existing_check": "node --test scripts/test/ceo-onboarding.test.mjs scripts/test/calm-flows.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD18.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD19",
+      "title": "Плавное знакомство в точке потребности",
+      "module": "adoption",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD18",
+        "AD08",
+        "AD10",
+        "AD14"
+      ],
+      "inputs": [
+        {
+          "packet": "AD18",
+          "receipt": "AdoptionProjection",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD08",
+          "receipt": "ReturnSurfaceReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD10",
+          "receipt": "ComposerScopeReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD14",
+          "receipt": "AttentionReviewReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "scripts/product/guided.mjs",
+        "scripts/product/controller.js",
+        "scripts/product/calm.mjs",
+        "apps/desktop/src/renderer/src/Onboarding.tsx",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx",
+        "apps/desktop/src/renderer/src/App.tsx"
+      ],
+      "read_paths": [
+        "docs/launch/adoption/design.md",
+        "docs/ux/product-model.json"
+      ],
+      "baseline_sources": [
+        {
+          "path": "docs/ux/product-model.json",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "a7d765f4ffedc573902942f3f70860b3700ec0df99289a218254b317a15d215a"
+        },
+        {
+          "path": "scripts/product/guided.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458"
+        },
+        {
+          "path": "scripts/product/controller.js",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f"
+        },
+        {
+          "path": "scripts/product/calm.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "0a8735fe125a04e0cb0894d6e71863bcd04c0e9596fa1d55dd64083c49cbbcac"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/Onboarding.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/App.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340"
+        }
+      ],
+      "acceptance": [
+        "Phases S0–S6 tied to trigger, not days; one main CTA; help exact resume, expert direct access always.",
+        "Tutorial optional, separate sample namespace; steps visible only if capability ready; unavailable has actionable reason."
+      ],
+      "negative_checks": [
+        "Every phase primary/skip/back/reopen; no provider idea cohort; imported no evidence; interrupted setup.",
+        "New user not shown 85 concepts; can reach any available function via search/help without unlocking."
+      ],
+      "output": "AdoptionJourneyReceipt",
+      "existing_check": "node --test scripts/test/ceo-onboarding.test.mjs scripts/test/calm-flows.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD19.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD20",
+      "title": "Спокойная оболочка и честная пустота",
+      "module": "shell",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD08",
+        "AD19"
+      ],
+      "inputs": [
+        {
+          "packet": "AD08",
+          "receipt": "ReturnSurfaceReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD19",
+          "receipt": "AdoptionJourneyReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "scripts/product/calm.mjs",
+        "scripts/product/launch.mjs",
+        "scripts/product/pulse.mjs",
+        "scripts/product/controller.js",
+        "apps/desktop/src/renderer/src/App.tsx",
+        "apps/desktop/src/renderer/src/EstateHome.tsx",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx"
+      ],
+      "read_paths": [
+        "docs/launch/calm-ui.md",
+        "scripts/product/report-template.html"
+      ],
+      "baseline_sources": [
+        {
+          "path": "docs/launch/calm-ui.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "d9c6ec01366b66bc678f55fa836c07954ec7262df52cfd76f51031cf52a74353"
+        },
+        {
+          "path": "scripts/product/report-template.html",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "cdad56dce9211ed3f4f94b69c3debf46e0e5595c9e8c81c12bb6a60cc9b10e8a"
+        },
+        {
+          "path": "scripts/product/calm.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "0a8735fe125a04e0cb0894d6e71863bcd04c0e9596fa1d55dd64083c49cbbcac"
+        },
+        {
+          "path": "scripts/product/launch.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "465394feea484ca34e0b7fa014f6fe4135dc7eb705cbb42e9e4a34e86fe8cec1"
+        },
+        {
+          "path": "scripts/product/pulse.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "537f37d00032a38342811822f9899b60ebcf822ab8f25cb0a61b742d25414a57"
+        },
+        {
+          "path": "scripts/product/controller.js",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "f8e0fb56b4d480eb8cab603b6de890d0d542925f6b2594f1bba72adcb311cd1f"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/App.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/EstateHome.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "48220644696f4def89cffb45bf13e59882cf9a83b2c2f802e347fcbd334a2187"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+        }
+      ],
+      "acceptance": [
+        "Profile+compact pulse top; Board/projects centre; resume then Live right, no fake gaps/activity.",
+        "Review catalogue outside product shell; sample dataset explicit, pinned/current scope and accessible keyboard paths."
+      ],
+      "negative_checks": [
+        "Personal-empty, first owned Project, new Estate, archive-last; no Atlas names/IDs/links/counts from other Estate.",
+        "1280/1440 desktop, 390 web collapse, 200% text, keyboard dialogs, stale Live not green running."
+      ],
+      "output": "ShellIsolationReceipt",
+      "existing_check": "node --test scripts/test/product-empty-state.test.mjs scripts/test/calm-work.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD20.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD21",
+      "title": "Потребностные входы к глубине и приглашению",
+      "module": "depth",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD01",
+        "AD19"
+      ],
+      "inputs": [
+        {
+          "packet": "AD01",
+          "receipt": "ProducerContractMatrix",
+          "minimum_proof_tier": "source",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD19",
+          "receipt": "AdoptionJourneyReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "docs/ux/scenarios.md",
+        "docs/ux/flows.md",
+        "docs/ux/screens.md",
+        "docs/ux/product-model.json",
+        "apps/desktop/src/renderer/src/App.tsx",
+        "apps/desktop/src/shared/membership.ts",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/preload/index.ts",
+        "apps/desktop/src/shared/types.ts"
+      ],
+      "read_paths": [
+        "apps/desktop/src/shared/membership.ts",
+        "docs/launch/adoption/inventory.json"
+      ],
+      "baseline_sources": [
+        {
+          "path": "apps/desktop/src/shared/membership.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "6fdfccd0df3320cd409a91b3642fea38771b95efe5db70aca7befdc7feb35ea6"
+        },
+        {
+          "path": "docs/ux/scenarios.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "341f6a2ea9d97677b194aeec403120e854679d9f7c686a788f4fc22fcae21a67"
+        },
+        {
+          "path": "docs/ux/flows.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "51d4e2af5bf75fe49594f4417ac3069f4e9a7fb136627d33d6ec8def2c3e510a"
+        },
+        {
+          "path": "docs/ux/screens.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "0d986caa12b2e6551dc16a53883d9fc1a1aada31baa0a7c612c58e85780fba38"
+        },
+        {
+          "path": "docs/ux/product-model.json",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "a7d765f4ffedc573902942f3f70860b3700ec0df99289a218254b317a15d215a"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/App.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "71f09b05be560d946593ccab38194c6a485321c0d9e5dedc1599589855178340"
+        },
+        {
+          "path": "apps/desktop/src/main/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        },
+        {
+          "path": "apps/desktop/src/preload/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "613e2d211a1dc72f2b1e86e662e329d7654a7b7942b1d79799bb8ba23db5e854"
+        },
+        {
+          "path": "apps/desktop/src/shared/types.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+        }
+      ],
+      "acceptance": [
+        "Each of 20 families has trigger, entry, result, failure/recovery and return to origin; advanced tools kept discoverable.",
+        "Invited path restores assigned work with Estate visibility/role; unsupported production capabilities clearly unavailable, no fake tool launch.",
+        "Native scope ограничен invitation/entry/return для уже доступных R0 capabilities. Не реализовывать все later specialist editors: их точки входа документируются с truthful unavailable; evidence inventory не означает новый feature scope."
+      ],
+      "negative_checks": [
+        "Expired/wrong-account/revoked invite; no compulsory create or project-private promise.",
+        "Plan no graph data→list; historical context absent≠current; account continuity unsupported; external tool return cursor."
+      ],
+      "output": "CapabilityEntryMap",
+      "existing_check": "python3 docs/ux/lint.py",
+      "receipt_path": "docs/launch/adoption/receipts/AD21.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD24",
+      "title": "Найти проекты в выбранной папке",
+      "module": "sources",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD05"
+      ],
+      "inputs": [
+        {
+          "packet": "AD05",
+          "receipt": "SourceObservationReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "apps/desktop/src/renderer/src/Onboarding.tsx",
+        "apps/desktop/src/main/index.ts"
+      ],
+      "read_paths": [
+        "apps/desktop/src/shared/onboardingDraft.ts",
+        "scripts/product/guided.mjs"
+      ],
+      "baseline_sources": [
+        {
+          "path": "apps/desktop/src/shared/onboardingDraft.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5"
+        },
+        {
+          "path": "scripts/product/guided.mjs",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/Onboarding.tsx",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "721ec3c88b40e57eb6c966545a41782b13a53d97aab3642ec8b39138924b20a6"
+        },
+        {
+          "path": "apps/desktop/src/main/index.ts",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        }
+      ],
+      "acceptance": [
+        "Read-only bounded scan выбранной папки: candidates, canonical identity, duplicate/archive/partial/denied; пользователь выбирает первый проект.",
+        "Остальные кандидаты остаются для будущего выбора; никакого автоматического Project/Task/Run/cycle. Cancel и partial сохраняют результат в разрешённой области."
+      ],
+      "negative_checks": [
+        "Denied/empty/partial/cancel/large tree/symlink/duplicate/archive; источник не прочитан только потому, что найден.",
+        "Batch scan не блокирует idea/no-source onboarding; повтор create использует тот же coordinator, no sibling."
+      ],
+      "output": "FolderDiscoveryReceipt",
+      "existing_check": "node --test scripts/test/ceo-onboarding.test.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD24.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD22",
+      "title": "Интеграционная приёмка всех обязательных R0 путей",
+      "module": "acceptance",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD11",
+        "AD13",
+        "AD17",
+        "AD20",
+        "AD21",
+        "AD24"
+      ],
+      "inputs": [
+        {
+          "packet": "AD11",
+          "receipt": "AttributionReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD13",
+          "receipt": "VoiceInputReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD17",
+          "receipt": "CycleWindowReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD20",
+          "receipt": "ShellIsolationReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD21",
+          "receipt": "CapabilityEntryMap",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        },
+        {
+          "packet": "AD24",
+          "receipt": "FolderDiscoveryReceipt",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "docs/launch/adoption/checks.md",
+        "docs/ux/audits"
+      ],
+      "read_paths": [
+        "docs/launch/adoption/plan.json",
+        "docs/launch/adoption/contracts.md",
+        "docs/ux/plans/2026-09-15-r0-operator.md"
+      ],
+      "baseline_sources": [
+        {
+          "path": "docs/ux/plans/2026-09-15-r0-operator.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "7176ff513e1d8677283a42b9e5cec1e591c465aeb8935fa4502144b77ae43d36"
+        }
+      ],
+      "acceptance": [
+        "Fill cohort×phase×capability×state receipt ledger on actual native runtime; negative forbidden operations exercised.",
+        "Prototype and runtime verdicts separate; source/UI/command/receipt consistency; reopen app and exact continuity."
+      ],
+      "negative_checks": [
+        "Fresh idea, repo, folder partial, invited, interrupted, two projects; offline/conflict/ACL/archive and malformed deep link.",
+        "Missing voice, unobserved check, lost draft, wrong scope, duplicate effect or unread-boundary leak blocks relevant capability acceptance."
+      ],
+      "output": "R0AcceptanceLedger",
+      "existing_check": "bash scripts/ci.sh fast",
+      "receipt_path": "docs/launch/adoption/receipts/AD22.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test",
+        "apps/desktop/test",
+        "apps/desktop/src/renderer/src",
+        "apps/desktop/src/shared"
+      ],
+      "required_output_tier": "native"
+    },
+    {
+      "id": "AD23",
+      "title": "Пилот ценности и следующее решение по данным",
+      "module": "acceptance",
+      "status": "blocked-on-receipts",
+      "depends_on": [
+        "AD22"
+      ],
+      "inputs": [
+        {
+          "packet": "AD22",
+          "receipt": "R0AcceptanceLedger",
+          "minimum_proof_tier": "native",
+          "required_status": "passed",
+          "predicate": "acceptance-complete-and-contract-bound"
+        }
+      ],
+      "write_candidates": [
+        "docs/launch/adoption/checks.md",
+        "docs/launch/adoption/design.md"
+      ],
+      "read_paths": [
+        "docs/ux/vision.md",
+        "docs/brand/facts.md"
+      ],
+      "baseline_sources": [
+        {
+          "path": "docs/ux/vision.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "6b0623dd44f58b6d3472531ab0ac7cc7382beca92b3aadae57d4fdc8306353bd"
+        },
+        {
+          "path": "docs/brand/facts.md",
+          "commit": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+          "sha256": "4d35fe15490e0a02b73e58feba400bd937e1f2ab346ceae4018958ddfd5d8f7d"
+        }
+      ],
+      "acceptance": [
+        "Moderated first-use and return tasks without prompting; record correct goal/current state/next action and time with denominators.",
+        "Choose continuation by failure reasons; proposed hook remains hypothesis until observed return, no invented conversion uplift."
+      ],
+      "negative_checks": [
+        "Exclude samples/tutorial/heartbeat, mixed cohorts, clock pause/offline from active TTV; report abandons not only completers.",
+        "Consent/data minimisation; no raw voice/content in analytics; measures never gate product access."
+      ],
+      "output": "AdoptionPilotReceipt",
+      "existing_check": "node scripts/check-adoption-plan.mjs",
+      "receipt_path": "docs/launch/adoption/receipts/AD23.json",
+      "planned_checks": "Добавить actual path regression для перечисленных acceptance/negative. Existing check ниже — стартовый regression, не достаточная приёмка нового поведения. Test directories grant only creation/edit of the regression files explicitly bound in the dispatch receipt; they are not permission to edit all source in those directories.",
+      "integration": "Generated canonical UX/model/report outputs writes only by integration owner under lease; use sync-product-ux + build-product-report if behaviour changed.",
+      "stop_conditions": [
+        "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+        "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+        "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+        "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча."
+      ],
+      "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check.",
+      "test_write_candidates": [
+        "scripts/test"
+      ],
+      "required_output_tier": "user"
+    }
+  ],
+  "execution_policy": "AD00 and AD02 are bounded starting work. Other packets await exact predecessor receipts; no statement that a planned contract already exists. Shared files serialize; independent worktrees never bypass integration review."
+}

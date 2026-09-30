@@ -1,0 +1,43 @@
+{
+  "pages": 16,
+  "hrefs": 4952,
+  "brokenBefore": [
+    {
+      "path": "docs/architecture-map.html",
+      "href": "../schemas/project-blueprint.schema.json",
+      "repaired": "https://github.com/passioncode-ai/fabric/blob/fce89652754c21ce4538fbdea11d6556ac351469/schemas/project-blueprint.schema.json"
+    },
+    {
+      "path": "docs/audit/2026-09-07-merged-execution-plan.html",
+      "href": "docs/audit/2026-09-07-evidence/index.md",
+      "repaired": "/docs/audit/2026-09-07-evidence/index.md"
+    },
+    {
+      "path": "docs/audit/2026-09-07-merged-execution-plan.html",
+      "href": "docs/audit/2026-09-07-merged-execution-plan.md",
+      "repaired": "/docs/audit/2026-09-07-merged-execution-plan.md"
+    },
+    {
+      "path": "docs/reports/2026-09-05-status.html",
+      "href": "../adr/",
+      "repaired": "/library?folder=docs%2Fadr"
+    },
+    {
+      "path": "docs/reports/2026-09-05-status.html",
+      "href": "../ux/",
+      "repaired": "/library?folder=docs%2Fux"
+    },
+    {
+      "path": "docs/reports/2026-09-06-map.html",
+      "href": "../adr/",
+      "repaired": "/library?folder=docs%2Fadr"
+    },
+    {
+      "path": "docs/reports/map.html",
+      "href": "../adr/",
+      "repaired": "/library?folder=docs%2Fadr"
+    }
+  ],
+  "brokenAfter": [],
+  "cspUnchanged": true
+}

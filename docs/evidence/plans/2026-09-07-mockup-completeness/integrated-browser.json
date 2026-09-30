@@ -1,0 +1,90 @@
+{
+  "status": "pass",
+  "scope": "Integrated target mockup only; fixtures reset by full reload for each group; no OS/network effects",
+  "report": "docs/reports/product.html",
+  "reportSha256": "be81dafeddc98116b58926206c59a5655f6f25f7e7e31ff762912718c1ccfb44",
+  "at": "2026-09-07T19:33:23.859Z",
+  "checks": [
+    {
+      "name": "all canonical route renders are error-free",
+      "status": "pass"
+    },
+    {
+      "name": "operations view identity reaches handlers",
+      "status": "pass"
+    },
+    {
+      "name": "manager estate and project states isolated",
+      "status": "pass"
+    },
+    {
+      "name": "cycle double manual wake creates one tick",
+      "status": "pass"
+    },
+    {
+      "name": "Orbit graph preserves own identities",
+      "status": "pass"
+    },
+    {
+      "name": "settings save changes exact Orbit project only",
+      "status": "pass"
+    },
+    {
+      "name": "project archive respects work and consumers then stays absent on estate",
+      "status": "pass"
+    },
+    {
+      "name": "new project uses shared task/run model and independent task readiness",
+      "status": "pass"
+    },
+    {
+      "name": "read-only module commands cannot mutate state",
+      "status": "pass"
+    },
+    {
+      "name": "new source tabs and service route rendered",
+      "status": "pass"
+    },
+    {
+      "name": "task and launch read the same current obligation union",
+      "status": "pass"
+    },
+    {
+      "name": "project repositories synchronize both directions with settings",
+      "status": "pass"
+    },
+    {
+      "name": "PM acceptance persists its actual task and stages target memory",
+      "status": "pass"
+    },
+    {
+      "name": "module Authority and selected item use one grant identity",
+      "status": "pass"
+    },
+    {
+      "name": "module defect proposal survives compose navigation and addresses target PM",
+      "status": "pass"
+    },
+    {
+      "name": "unknown task creation retains frozen input and commits once",
+      "status": "pass"
+    },
+    {
+      "name": "recorded competing answer stays in Board history with exact resolver",
+      "status": "pass"
+    },
+    {
+      "name": "Reviewer binding action preserves exact role across module boundary",
+      "status": "pass"
+    },
+    {
+      "name": "personal Estate profile counts only new own project records",
+      "status": "pass"
+    },
+    {
+      "name": "saved goal title propagates to its own plan graph only",
+      "status": "pass"
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,38 @@
+{
+  "root": ".",
+  "scope": "Command file existence, not execution success; live publish not run by skill author",
+  "paths": [
+    {
+      "path": "scripts/build-product-report.mjs",
+      "exists": true
+    },
+    {
+      "path": "scripts/build-system-map.mjs",
+      "exists": true
+    },
+    {
+      "path": "scripts/check-design-map.mjs",
+      "exists": true
+    },
+    {
+      "path": "scripts/ci.sh",
+      "exists": true
+    },
+    {
+      "path": "scripts/product-spec.mjs",
+      "exists": true
+    },
+    {
+      "path": "scripts/sync-product-ux.mjs",
+      "exists": true
+    },
+    {
+      "path": "scripts/task-spec.mjs",
+      "exists": true
+    },
+    {
+      "path": "scripts/workspace.mjs",
+      "exists": true
+    }
+  ]
+}

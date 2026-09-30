@@ -1,0 +1,12 @@
+{
+  "command": "python3 docs/brand/lint.py",
+  "exit": 0,
+  "warnings": {
+    "B005": 1,
+    "B022": 147
+  },
+  "false_ok_when_rg_absent": [],
+  "last": [
+    "0 error(s), 148 warning(s)"
+  ]
+}

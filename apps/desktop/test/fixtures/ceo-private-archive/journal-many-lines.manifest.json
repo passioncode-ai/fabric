@@ -1,0 +1,8 @@
+{
+  "schema": "FabricArchive@1",
+  "sourceEstateId": "00000000-0000-4000-8000-000000009001",
+  "takenAtUtc": "2026-09-28T09:00:00.000Z",
+  "watermarkSeq": 3,
+  "eventCount": 3,
+  "digest": "0f418bb61eff3b7de1f6175b0ea7b8cf3ddfb22184a64fd84587559803423180"
+}

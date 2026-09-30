@@ -1,0 +1,25 @@
+{
+  "height": 800,
+  "pairs": [
+    {
+      "background": "rgb(245, 245, 245)",
+      "class": "live-count",
+      "fontSize": "10.4px",
+      "foreground": "rgb(115, 115, 115)",
+      "ratio": 4.349,
+      "tag": "SPAN",
+      "text": "1 live"
+    },
+    {
+      "background": "rgb(245, 245, 245)",
+      "class": "",
+      "fontSize": "14.4px",
+      "foreground": "rgb(115, 115, 115)",
+      "ratio": 4.349,
+      "tag": "SPAN",
+      "text": "×"
+    }
+  ],
+  "scrollWidth": 1280,
+  "width": 1280
+}

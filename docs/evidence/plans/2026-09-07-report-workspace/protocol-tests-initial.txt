@@ -1,0 +1,34 @@
+warning: adding embedded git repository: workspace
+hint: You've added another git repository inside your current repository.
+hint: Clones of the outer repository will not contain the contents of
+hint: the embedded repository and will not know how to obtain it.
+hint: If you meant to add a submodule, use:
+hint:
+hint: 	git submodule add <url> workspace
+hint:
+hint: If you added this path by mistake, you can remove it from the
+hint: index with:
+hint:
+hint: 	git rm --cached workspace
+hint:
+hint: See "git help submodule" for more information.
+hint: Disable this message with "git config set advice.addEmbeddedRepo false"
+✔ healthy old source/build/release and pending releases cannot certify publication (0.520834ms)
+To /var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-child-remote-AFlXrL
+ * [new branch]      main -> main
+✔ actual publisher resumes a failed parent push without creating a second snapshot or commit (2954.075209ms)
+✔ immutable source snapshot excludes runtime/secrets and ignores dirty working bytes (112.9725ms)
+✔ symlinks and sensitive paths inside allowed sources fail closed (169.142625ms)
+✔ export reproduces source, removes obsolete generated entries and detects tampering (116.438125ms)
+✔ export never overwrites an unmanaged content directory (116.055417ms)
+✔ publication-only pin has no content cycle; later code-only edit invalidates publication (478.910958ms)
+✔ wrong gitlink and false digest cannot pass the receipt check (257.868375ms)
+✔ mutable source refs and incomplete deployment receipts fail before source comparison (76.484084ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3008.211208

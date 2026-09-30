@@ -1,0 +1,16 @@
+warn:  [U057] flows.md: FLW-02 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-03 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-06 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-07 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-08 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-09 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-10 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-11 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-12 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-13 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-14 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-20 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U055] screens.md: SCR-29 claims Coverage 'external repository passioncode-ai.github.io (`index.html` and `styles.css`), rendered locally at wide and narrow viewports' and names no file
+warn:  [U064] scenarios.md: SCN-038 claims Coverage 'external repository passioncode-ai.github.io; rendered locally at wide and narrow viewports on 2026-09-03' and names no file
+
+0 error(s), 14 warning(s)

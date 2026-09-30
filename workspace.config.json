@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "path": "workspace",
+  "repository": "https://github.com/passioncode-ai/fabric-workspace",
+  "heroku_app": "passioncode-fabric-workspace",
+  "public_origin": "https://wiki.passioncode.ai",
+  "sources": [
+    {
+      "id": "org-index",
+      "repository": "https://github.com/passioncode-ai/org-index"
+    },
+    {
+      "id": "fabric-agent-contract",
+      "repository": "https://github.com/passioncode-ai/fabric-agent-contract"
+    },
+    {
+      "id": "fabric-agent-adapter",
+      "repository": "https://github.com/passioncode-ai/fabric-agent-adapter"
+    },
+    {
+      "id": "fabric-inbox",
+      "repository": "https://github.com/passioncode-ai/fabric-inbox"
+    },
+    {
+      "id": "fabric-switchboard",
+      "repository": "https://github.com/passioncode-ai/fabric-switchboard"
+    },
+    {
+      "id": "fabric-vr",
+      "repository": "https://github.com/passioncode-ai/fabric-vr"
+    },
+    {
+      "id": "fabric-dashboards",
+      "repository": "https://github.com/passioncode-ai/fabric-dashboards"
+    },
+    {
+      "id": "project-observatory-dashboard",
+      "repository": "https://github.com/passioncode-ai/project-observatory-dashboard"
+    },
+    {
+      "id": "project-observatory-contract",
+      "repository": "https://github.com/passioncode-ai/project-observatory-contract"
+    },
+    {
+      "id": "passioncode",
+      "repository": "https://github.com/passioncode-ai/passioncode"
+    },
+    {
+      "id": "passioncode-ai.github.io",
+      "repository": "https://github.com/passioncode-ai/passioncode-ai.github.io"
+    },
+    {
+      "id": "okolos",
+      "repository": "https://github.com/passioncode-ai/okolos"
+    },
+    {
+      "id": "org-github",
+      "repository": "https://github.com/passioncode-ai/.github"
+    }
+  ]
+}

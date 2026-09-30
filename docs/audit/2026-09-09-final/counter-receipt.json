@@ -1,0 +1,10 @@
+{
+  "baseline": "d28c321",
+  "command": "Python regex escaped-pipe cell parser compared with scripts/check-registers.mjs split parser",
+  "gate_open_count": 79,
+  "escaped_pipe_open_count": 81,
+  "missed_rows": [
+    "CO-050",
+    "CO-060"
+  ]
+}

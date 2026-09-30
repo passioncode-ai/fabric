@@ -1,0 +1,16 @@
+[
+  {
+    "theme": "dark",
+    "terminal": "rgb(31, 29, 26)",
+    "pre": "rgb(255, 255, 255)",
+    "caption": "rgb(255, 255, 255)",
+    "chip": "rgb(255, 255, 255)"
+  },
+  {
+    "theme": "light",
+    "terminal": "rgb(31, 29, 26)",
+    "pre": "rgb(255, 255, 255)",
+    "caption": "rgb(255, 255, 255)",
+    "chip": "rgb(255, 255, 255)"
+  }
+]

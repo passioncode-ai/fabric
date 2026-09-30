@@ -1,0 +1,217 @@
+{
+  "scope": "isolated documentation browser, not native Fabric or live DB",
+  "checks": [
+    {
+      "anchor": "system",
+      "width": 1440,
+      "documentWidth": 1440,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "system",
+      "duplicates": [],
+      "taskOpen": null,
+      "cycleSelection": "observe-verify",
+      "errors": []
+    },
+    {
+      "anchor": "entity-task_run",
+      "width": 1440,
+      "documentWidth": 1440,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "data",
+      "duplicates": [],
+      "taskOpen": null,
+      "cycleSelection": "observe-verify",
+      "errors": []
+    },
+    {
+      "anchor": "cycle-launch",
+      "width": 1440,
+      "documentWidth": 1440,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "cycles",
+      "duplicates": [],
+      "taskOpen": null,
+      "cycleSelection": "launch",
+      "errors": []
+    },
+    {
+      "anchor": "cycle-step-answer-commit",
+      "width": 1440,
+      "documentWidth": 1440,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "cycles",
+      "duplicates": [],
+      "taskOpen": null,
+      "cycleSelection": "answer",
+      "errors": []
+    },
+    {
+      "anchor": "task-M188",
+      "width": 1440,
+      "documentWidth": 1440,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "tasks",
+      "duplicates": [],
+      "taskOpen": true,
+      "cycleSelection": "answer",
+      "errors": []
+    },
+    {
+      "anchor": "task-M152-continue",
+      "width": 1440,
+      "documentWidth": 1440,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "tasks",
+      "duplicates": [],
+      "taskOpen": true,
+      "cycleSelection": "answer",
+      "errors": []
+    },
+    {
+      "anchor": "order-task-M173",
+      "width": 1440,
+      "documentWidth": 1440,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "order",
+      "duplicates": [],
+      "taskOpen": null,
+      "cycleSelection": "answer",
+      "errors": []
+    },
+    {
+      "anchor": "ADR-0047",
+      "width": 1440,
+      "documentWidth": 1440,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "decisions",
+      "duplicates": [],
+      "taskOpen": null,
+      "cycleSelection": "answer",
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "filter_reset": true
+    },
+    {
+      "width": 1440,
+      "entity_selection": true
+    },
+    {
+      "anchor": "system",
+      "width": 390,
+      "documentWidth": 390,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "system",
+      "duplicates": [],
+      "taskOpen": null,
+      "cycleSelection": "observe-verify",
+      "errors": []
+    },
+    {
+      "anchor": "entity-task_run",
+      "width": 390,
+      "documentWidth": 390,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "data",
+      "duplicates": [],
+      "taskOpen": null,
+      "cycleSelection": "observe-verify",
+      "errors": []
+    },
+    {
+      "anchor": "cycle-launch",
+      "width": 390,
+      "documentWidth": 390,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "cycles",
+      "duplicates": [],
+      "taskOpen": null,
+      "cycleSelection": "launch",
+      "errors": []
+    },
+    {
+      "anchor": "cycle-step-answer-commit",
+      "width": 390,
+      "documentWidth": 390,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "cycles",
+      "duplicates": [],
+      "taskOpen": null,
+      "cycleSelection": "answer",
+      "errors": []
+    },
+    {
+      "anchor": "task-M188",
+      "width": 390,
+      "documentWidth": 390,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "tasks",
+      "duplicates": [],
+      "taskOpen": true,
+      "cycleSelection": "answer",
+      "errors": []
+    },
+    {
+      "anchor": "task-M152-continue",
+      "width": 390,
+      "documentWidth": 390,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "tasks",
+      "duplicates": [],
+      "taskOpen": true,
+      "cycleSelection": "answer",
+      "errors": []
+    },
+    {
+      "anchor": "order-task-M173",
+      "width": 390,
+      "documentWidth": 390,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "order",
+      "duplicates": [],
+      "taskOpen": null,
+      "cycleSelection": "answer",
+      "errors": []
+    },
+    {
+      "anchor": "ADR-0047",
+      "width": 390,
+      "documentWidth": 390,
+      "targetExists": true,
+      "targetVisible": true,
+      "view": "decisions",
+      "duplicates": [],
+      "taskOpen": null,
+      "cycleSelection": "answer",
+      "errors": []
+    },
+    {
+      "width": 390,
+      "filter_reset": true
+    },
+    {
+      "width": 390,
+      "entity_selection": true
+    },
+    {
+      "no_js_sections": 6
+    }
+  ],
+  "result": "pass"
+}

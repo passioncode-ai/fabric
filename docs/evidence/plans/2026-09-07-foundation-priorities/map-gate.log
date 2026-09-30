@@ -1,0 +1,20 @@
+{"source":"scripts/check-design-map.mjs","sha256":"fb0001b284566b6e4985251f127e7c93cad284d4819feb66e1875e9f7a127210","fixture_root":"/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-iQTGBd","requested_pass":true,"requested_pass_count":16,"requested_count":16,"total_count":19,"all_pass":true}
+PASS requested: committed baseline checks successfully; exit=0
+PASS requested: ADR-only source mutation refuses unchanged map; exit=1
+PASS requested: execution-brief-only mutation refuses unchanged map; exit=1
+PASS requested: previous public anchor removal refuses; exit=1
+PASS requested: broken internal link with double attribute refuses; exit=1
+PASS requested: broken internal link with single attribute refuses; exit=1
+PASS requested: broken internal link with unquoted attribute refuses; exit=1
+PASS requested: duplicate id with single attribute refuses; exit=1
+PASS requested: duplicate id with unquoted attribute refuses; exit=1
+PASS requested: source mutation plus refresh with committed iteration refuses; exit=1
+PASS requested: new uncommitted iteration refresh; exit=0
+PASS requested: new iteration check; exit=0
+PASS requested: repeat refresh of same uncommitted iteration; exit=0
+PASS requested: repeat refresh check; exit=0
+PASS requested: same uncommitted iteration refinement refresh; exit=0
+PASS requested: same iteration refined source check; exit=0
+PASS parser-regression: valid uppercase HREF to nonexistent anchor refuses; exit=1
+PASS parser-regression: quoted greater-than before broken href refuses; exit=1
+PASS parser-regression: valid single-quoted special changelog attributes refresh successfully; exit=0

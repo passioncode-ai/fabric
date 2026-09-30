@@ -1,0 +1,2818 @@
+{
+  "schema": "fabric.audit.merged-plan.v1",
+  "date": "2026-09-07",
+  "source_head": "153b4f029e626230d465d5d21d02fb8c9de5fadf",
+  "status": "proposed_not_implemented",
+  "brand": {
+    "parent": "PassionCode.ai",
+    "product": "Fabric",
+    "confirmed_by": "user 2026-09-07"
+  },
+  "attachment": {
+    "path": "<home>/.codex/attachments/233cf83d-c790-4899-85b4-6cba514df6f0/pasted-text.txt",
+    "sha256": "6bc559f6ae1ab80bb336cf6aea4261228b2353de7b08cf34f100dc33a988a69e",
+    "milestone_ids": [
+      "M195",
+      "M196",
+      "M197",
+      "M97",
+      "M109",
+      "M98",
+      "M102",
+      "M105",
+      "M177",
+      "M178",
+      "M179",
+      "M180",
+      "M181",
+      "M155",
+      "M182",
+      "M183",
+      "M188",
+      "M149",
+      "M151",
+      "M152",
+      "M153",
+      "M154",
+      "M184",
+      "M173",
+      "M157",
+      "M158",
+      "M185",
+      "M186",
+      "M189",
+      "M190",
+      "M191",
+      "M194"
+    ]
+  },
+  "requirements": [
+    {
+      "id": "R01",
+      "requirement": "PassionCode.ai — главный бренд, Fabric — продукт",
+      "work": [
+        "S11"
+      ],
+      "qualification": "Брендовый документ исправлен сейчас; канонический перенос отдельной поставкой."
+    },
+    {
+      "id": "R02",
+      "requirement": "Смержить предоставленный layered plan, сохранить каждый M",
+      "work": [
+        "S10"
+      ],
+      "qualification": "Все 32 M из attachment сохранены отдельными карточками."
+    },
+    {
+      "id": "R03",
+      "requirement": "Технический, архитектурный и security аудит всего harness",
+      "work": [
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "M98",
+        "M109",
+        "M155",
+        "M177"
+      ],
+      "qualification": "Исходные findings сохраняются, новые противоречия вынесены отдельно."
+    },
+    {
+      "id": "R04",
+      "requirement": "Manager/CEO свой или внешний, включая Claude Code",
+      "work": [
+        "M194",
+        "M175"
+      ],
+      "qualification": "Один role contract, сменяемый judgement loop."
+    },
+    {
+      "id": "R05",
+      "requirement": "Lifecycle, проверка, wake/recovery внешних агентов",
+      "work": [
+        "M178",
+        "M179",
+        "M180",
+        "M181",
+        "M194"
+      ],
+      "qualification": "App-off, unknown, stale lease, budget и повторная доставка описаны."
+    },
+    {
+      "id": "R06",
+      "requirement": "Передача данных между агентами",
+      "work": [
+        "M152",
+        "M188",
+        "M194",
+        "S04"
+      ],
+      "qualification": "Адресованные command/evidence envelopes; provider-native context не универсальный перенос."
+    },
+    {
+      "id": "R07",
+      "requirement": "Хранилища и синхронизация: как устроены",
+      "work": [
+        "M191",
+        "M198",
+        "S05",
+        "S12"
+      ],
+      "qualification": "Карта authority, projections, mirrors, local files, receipts и будущего cloud."
+    },
+    {
+      "id": "R08",
+      "requirement": "Что пользователь видит и как работает с памятью",
+      "work": [
+        "M191",
+        "M154"
+      ],
+      "qualification": "Actual historical pack отдельно от dry next pack; lineage и omissions."
+    },
+    {
+      "id": "R09",
+      "requirement": "История работы каждого агента в проекте",
+      "work": [
+        "M190",
+        "M188"
+      ],
+      "qualification": "Actor/project scope и историческое участие, не только текущий assignee."
+    },
+    {
+      "id": "R10",
+      "requirement": "Граф действий и решений агента",
+      "work": [
+        "M190",
+        "M173"
+      ],
+      "qualification": "Действия+записанные решения+rationale/evidence; скрытое рассуждение не реконструируется."
+    },
+    {
+      "id": "R11",
+      "requirement": "Какие задачи агент создал, кому/куда добавил",
+      "work": [
+        "M190",
+        "M149"
+      ],
+      "qualification": "Created-from, board destination, assignment history и вопрос как отдельные отношения."
+    },
+    {
+      "id": "R12",
+      "requirement": "Текущая задача: план, декомпозиция, checkpoints",
+      "work": [
+        "M188",
+        "M189"
+      ],
+      "qualification": "Версия плана, вложенные шаги, typed blockers и evidence."
+    },
+    {
+      "id": "R13",
+      "requirement": "Каждая итерация цикла — целый отдельный прогон",
+      "work": [
+        "M188",
+        "S10"
+      ],
+      "qualification": "Fresh Fabric task execution; vendor inner turns не подменяют границу."
+    },
+    {
+      "id": "R14",
+      "requirement": "Все шаги каждого прогона и статусы в realtime",
+      "work": [
+        "M188",
+        "M189",
+        "S05"
+      ],
+      "qualification": "planned/active/done/blocked/skipped/failed, claim отдельно от observed verification."
+    },
+    {
+      "id": "R15",
+      "requirement": "На проекте общий граф задач всех агентов",
+      "work": [
+        "M190"
+      ],
+      "qualification": "История создания/исполнения/переназначений с текущим местом задачи."
+    },
+    {
+      "id": "R16",
+      "requirement": "На проекте граф решений",
+      "work": [
+        "M173"
+      ],
+      "qualification": "Самостоятельный маршрут и карточки доказательств, не растворён в task graph."
+    },
+    {
+      "id": "R17",
+      "requirement": "Проектный план списком, декомпозицией и графом",
+      "work": [
+        "M190",
+        "M188"
+      ],
+      "qualification": "Один plan revision/read model, список и DAG согласованы."
+    },
+    {
+      "id": "R18",
+      "requirement": "DID история и SHOULD цель — разные смыслы",
+      "work": [
+        "M190",
+        "S10"
+      ],
+      "qualification": "Отдельные адресуемые views и явная семантика; status overlay не выдаёт plan за history."
+    },
+    {
+      "id": "R19",
+      "requirement": "На project/agent previews, полный graph отдельно",
+      "work": [
+        "M189",
+        "M190",
+        "M173",
+        "M187"
+      ],
+      "qualification": "Preview→full view→exact node→source→назад с сохранением выбора."
+    },
+    {
+      "id": "R20",
+      "requirement": "Категории ретро: проект, агенты, harness, Fabric, процесс",
+      "work": [
+        "M182"
+      ],
+      "qualification": "Closed enum; kind orthogonal; project default."
+    },
+    {
+      "id": "R21",
+      "requirement": "Общая база service insights через все проекты",
+      "work": [
+        "M183",
+        "M182"
+      ],
+      "qualification": "Scoped local intake, отдельный приватный delivery control и внешний обезличенный payload."
+    },
+    {
+      "id": "R22",
+      "requirement": "Default-on выключаемая отправка и отсутствие привязок",
+      "work": [
+        "M183"
+      ],
+      "qualification": "Предпочтение default-on сохранено как цель безопасного structured режима; обещание нулевого риска отвергнуто доказательно."
+    },
+    {
+      "id": "R23",
+      "requirement": "Ретро формирует backlog улучшения Fabric",
+      "work": [
+        "M183",
+        "M184"
+      ],
+      "qualification": "Недоверенные предложения с проверкой и dedup; не автоматическое принятие задач в product roadmap."
+    },
+    {
+      "id": "R24",
+      "requirement": "CEO разбирает, закрывает, обновляет, обсуждает ретро циклично",
+      "work": [
+        "M184",
+        "M153",
+        "M194"
+      ],
+      "qualification": "Состояния рассмотрения и verification; история supersession, повторная проверка."
+    },
+    {
+      "id": "R25",
+      "requirement": "Уведомления всех модулей в dashboard, раскрытие события",
+      "work": [
+        "M185",
+        "S05"
+      ],
+      "qualification": "Needs-you vs happened, safe detail и точная ссылка, отсутствие false read."
+    },
+    {
+      "id": "R26",
+      "requirement": "Информационная плотность: основное видно, остальное раскрывается",
+      "work": [
+        "M187",
+        "M189"
+      ],
+      "qualification": "Sweep сейчас; настройки/advanced hidden, важный blocker/permission visible."
+    },
+    {
+      "id": "R27",
+      "requirement": "Будущие настраиваемые раскрытия в project settings",
+      "work": [
+        "M187"
+      ],
+      "qualification": "Явная заметка и return trigger после density review; не добавлять конструктор сейчас."
+    },
+    {
+      "id": "R28",
+      "requirement": "Отдельный view всех циклов",
+      "work": [
+        "M186"
+      ],
+      "qualification": "Cadence/last/next/health/outcome/placement, включая отсутствие наблюдателя."
+    },
+    {
+      "id": "R29",
+      "requirement": "Воронки и смысловые цепочки экранов",
+      "work": [
+        "S01",
+        "M151",
+        "M152",
+        "M185",
+        "S08",
+        "S09"
+      ],
+      "qualification": "First value, daily return, handoff, retro, manager replacement и memory inspection."
+    },
+    {
+      "id": "R30",
+      "requirement": "Чем лучше агенты, тем лучше фабрика",
+      "work": [
+        "M194",
+        "M176",
+        "S08",
+        "S09"
+      ],
+      "qualification": "Durable project/evidence/roles и заменяемые execution adapters; полезность проверять на результатах."
+    },
+    {
+      "id": "R31",
+      "requirement": "Видна ли работа другого агента и не потеряны ли требования",
+      "work": [
+        "S10"
+      ],
+      "qualification": "Сохранённые ADR/architecture/backlog прочитаны; agent-sync активных leases не увидел, mirror drift 60 страниц. Живую чужую сессию не заявляем."
+    }
+  ],
+  "phases": {
+    "A": "Немедленные исправления и подтверждение уже сделанного",
+    "B": "Контракты, источники состояния и управляемое извлечение модулей",
+    "C": "Наблюдаемое исполнение и полные прогоны",
+    "D": "Замкнуть Board → ответ → решение → продолжение",
+    "E": "Ретро, Inbox, циклы и безопасный feedback",
+    "F": "Четыре графа, live widget, память и плотность интерфейса",
+    "G": "Выбираемый manager/CEO и сравнение провайдеров",
+    "H": "Подтверждённый выпуск и командный пилот"
+  },
+  "items": [
+    {
+      "id": "S01",
+      "phase": "A",
+      "title": "Сохранность пользовательской работы",
+      "why": "Новый интерфейс бессмысленен, пока базовые переходы теряют состояние.",
+      "work": "Исправить Hooks в App, гонку Monaco Save, TaskPage draft/taskId и поздние ответы; пустую доску, переход после Agents, создание проекта с повтором и закрытием pending-формы. Использовать реальные компоненты и scoped request generation.",
+      "visible": "Первая задача доступна в пустом проекте; ввод сохраняется; поздний ответ старого экрана не меняет текущий; ошибка оставляет форму и действие восстановления.",
+      "acceptance": "Пробы UV-01/02/03 и PLAN-03 из предыдущего аудита сначала воспроизводят дефект, затем проходят. A→B и Save→новый ввод проверяются через компонент, а не копию логики.",
+      "depends_on": [],
+      "previous_blocks": [
+        "W01",
+        "W02",
+        "W03",
+        "W05"
+      ],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "S02",
+      "phase": "A",
+      "title": "Граница estate/project и файловых корней",
+      "why": "Service role обходит RLS; scheduler сейчас может читать чужую работу.",
+      "work": "Ввести server-derived scope во все команды/queries и filesystem ports; scoped store в routineTick/chainAdvance; проверить принадлежность связанных task/project/session/repo и разрешённые реальные пути, включая symlink escape. Тестовый estate никогда не попадает в production eligibility.",
+      "visible": "Человек видит только своё; refusal не раскрывает чужие названия и пути.",
+      "acceptance": "Два estate, общий процесс и чужая routine: ноль чужих чтений/стартов. Смешанные project/task/agent ids и выход через symlink отвергнуты.",
+      "depends_on": [],
+      "previous_blocks": [
+        "W06"
+      ],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "S03",
+      "phase": "A",
+      "title": "Полномочие, исполнение и доказательство — разные состояния",
+      "why": "Сейчас effect_request пишет executed до реального действия; grant допускает конкурентное расходование.",
+      "work": "Атомарно reserve grant на project/action/target/expiry/revocation с command id; затем dispatch и отдельный observed receipt. Для timeout оставить unknown и reconcile. Cooperative MCP request не считать sandbox или перехватом внешних действий CLI. Redaction во всех sinks, включая policy writer.",
+      "visible": "Разрешено / выполняется / результат неизвестен / подтверждено различаются. Видны точное действие и граница полномочия; повтор ответа не расходует grant дважды.",
+      "acceptance": "Один grant + два конкурентных запроса → максимум одна резервация. Permission receipt без запуска не даёт executed. Обрыв после внешнего эффекта не вызывает слепой повтор. Секрет в why/target не сохраняется.",
+      "depends_on": [
+        "S02"
+      ],
+      "previous_blocks": [
+        "W07",
+        "W08",
+        "W11"
+      ],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "S04",
+      "phase": "A",
+      "title": "Надёжный запуск существующей задачи",
+      "why": "Повторный tick порождает новые задачи; join ждёт не все ветви; unknown quota принимается за доступность.",
+      "work": "Start-existing-task port; durable launch key + lease/fencing; all-predecessors join и needs; DAG admission в транзакции; валидировать quota по действительному runner и свежести; неизвестный лимит блокирует unattended admission с объяснением. Разделить manual и unattended policy явно.",
+      "visible": "Следующая задача ждёт конкретную зависимость; заблокирована по неизвестному лимиту, а не якобы простаивает; повтор не создаёт копию работы.",
+      "acceptance": "Два тика, рестарт, diamond join, два противоположных ребра, RPC error, quota HTTP200 {}: один разрешённый запуск нужного task либо явный отказ.",
+      "depends_on": [
+        "S02",
+        "S03"
+      ],
+      "previous_blocks": [
+        "W09",
+        "W10"
+      ],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "S05",
+      "phase": "B",
+      "title": "Безопасная полная трасса вызовов",
+      "why": "Доменный журнал содержит не каждый tool call; без attempt/outcome trace M176 нечего оценивать.",
+      "work": "Безопасный diagnostic trace для read/write/refusal/throw/retry/cancel с request/command/correlation ids, schema/protocol/tool version, duration и outcome. Redaction до persistence. Domain receipts остаются отдельно. Read envelope и UI consistency вынесены в S14.",
+      "visible": "Видно, какой вызов зарегистрирован и с каким результатом; trace не выдаётся за внутреннюю историю неподключённого CLI.",
+      "acceptance": "Каждый Fabric tool attempt получает один trace identity и наблюдаемые outcomes; failed trace delivery имеет gap, не заявляет полноту; synthetic secrets не сохраняются.",
+      "depends_on": [
+        "S02"
+      ],
+      "previous_blocks": [
+        "W17",
+        "W20"
+      ],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "S06",
+      "phase": "D",
+      "title": "Множество блокировок и атомарный ответ",
+      "why": "Ответ на один из двух вопросов сейчас снимает блокировку; promote может записаться наполовину.",
+      "work": "Question→blocked task relations как множество; atomic idempotent answer+decision+resolution command; rev/subject/scope validation. Доставка ответа ждёт committed receipt и адресована нужному task/execution, а не последнему открытому терминалу.",
+      "visible": "Оставшаяся блокировка видна; ошибка ответа не показывает успех; повтор безопасен.",
+      "acceptance": "Два вопроса на task: один ответ не разблокирует task. Crash/retry между fact и resolution → один согласованный результат; stale answer требует перечитать вопрос.",
+      "depends_on": [
+        "S02",
+        "S03"
+      ],
+      "previous_blocks": [
+        "W21",
+        "W22"
+      ],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "S07",
+      "phase": "H",
+      "title": "Поставка, которой можно доверять",
+      "why": "Установленная 0.1.0 отличается от HEAD; предыдущая проверка не обнаружила remote CI/release.",
+      "work": "Build manifest: SHA/build time/schema compatibility/contract versions/checksum; integration PR, clean-clone CI, from-empty и upgrade в изолированной DB; packaged Electron sandbox/preload smoke; rollback с совместимыми данными. Публикация/установка выполняются отдельным delivery шагом.",
+      "visible": "About и diagnostics называют точную сборку; требования к локальному stack и режим app-off объяснены.",
+      "acceptance": "Проверяемый remote SHA, реально выполненный CI, package manifest соответствует файлам, upgrade сохраняет данные. Перезапуск smoke не запускает чужие fixtures.",
+      "depends_on": [
+        "S01",
+        "S02",
+        "S03",
+        "S04"
+      ],
+      "previous_blocks": [
+        "W12",
+        "W13"
+      ],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "S08",
+      "phase": "H",
+      "title": "Один полный рабочий цикл и второй исполнитель",
+      "why": "Тесты хранения не доказывают продуктовый результат и переносимость агента.",
+      "work": "Observer→finding→task→исполнитель→независимая проверка→decision/memory→следующий check. Повторить на втором runner с capability matrix, одинаковым corpus и pinned context; сравнить качество/стоимость/время/вмешательства. Rollback меняет будущие bindings.",
+      "visible": "Пользователь получает проверенный результат и продолжает проект с другим совместимым агентом без переноса чужого внутреннего формата сессии.",
+      "acceptance": "Контролируемая поломка обнаружена и закрыта независимым probe; свежая модель не ухудшает объявленные safety/quality gates. При отсутствии живого pilot результат остаётся unobserved.",
+      "depends_on": [
+        "S04",
+        "S05",
+        "M152",
+        "M188",
+        "M176"
+      ],
+      "previous_blocks": [
+        "W25",
+        "W29",
+        "W30"
+      ],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "S09",
+      "phase": "H",
+      "title": "Командный доступ и первый полезный результат",
+      "why": "Видение командное, но доказательств двух живых пользователей пока нет.",
+      "work": "Узкий M38: owner/member, адресованная очередь, server-side authorization/revoke. Onboarding: repo→готовность агента→первая задача→результат; возврат через изменения/ожидания. Никакой обязательной полной оргструктуры до первой задачи.",
+      "visible": "Каждый видит свою роль, ожидаемое от него действие и результат; разрешения не прячутся в декоративном профиле.",
+      "acceptance": "Две тестовые личности проходят allow/deny/revoke, затем живая совместная сессия; measured funnel и ошибки по шагам, без выдуманной конверсии.",
+      "depends_on": [
+        "S07",
+        "S08",
+        "M185"
+      ],
+      "previous_blocks": [
+        "W27",
+        "W28"
+      ],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "S10",
+      "phase": "B",
+      "title": "Термины и доказательства с одним источником",
+      "why": "Словарь, новые ADR, M-статусы и execution briefs расходятся.",
+      "work": "Свести Run/session/cycle invocation, current fact/decision, role scope, graph semantics и верные event names. Новое решение — новая ADR; old ADR не переписывать. Генерировать проверки ссылок, event/field enums, implemented/verified/installed/observed отдельно; обновить актуальный execution brief под lease.",
+      "visible": "Один и тот же статус означает одно действие на board, task, agent и graph.",
+      "acceptance": "Все ссылки/команды/поля разрешаются; M97/M196 больше не в очереди на повторную реализацию; сценарии не объявляют будущие экраны построенными.",
+      "depends_on": [],
+      "previous_blocks": [
+        "W14"
+      ],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "S11",
+      "phase": "B",
+      "title": "PassionCode.ai → Fabric",
+      "why": "Пользователь подтвердил главное имя и имя продукта; текущая ADR0018 задаёт другую роль Fabric.",
+      "work": "Новая ADR о брендовой иерархии; затем CONTEXT/vision/brand pack/narrative gate/README/About/i18n/site в одной согласованной поставке. Fabric Core — техническое ядро; IDE/workspace/command center — части Fabric. Сохранять данные, appId и старые ссылки без бессмысленного механического переименования.",
+      "visible": "PassionCode.ai — главный бренд; Fabric — продукт. В приложении Fabric; на первом знакомстве Fabric by PassionCode.ai. Другие продукты возможны позднее.",
+      "acceptance": "Название и статус возможностей согласованы в RU/EN, About и public surfaces; новый читатель различает бренд/продукт/режим. Это критерий будущей проверки понимания.",
+      "depends_on": [],
+      "previous_blocks": [
+        "W31"
+      ],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "S12",
+      "phase": "B",
+      "title": "Восстановление данных и честный sync contract",
+      "why": "M191 не закрывает частично неудачный import и неполное покрытие declared mirror.",
+      "work": "В инвентаре объявить, что mirror покрывает сейчас, и расширять только по явному контракту. Import validate→staging/transaction→commit либо durable resumable import id; сохранить status и ссылки, повтор после сбоя безопасен. Отделить backup/restore journal+blobs от generated mirror. Scoped rebuild, progress receipt, compatibility/backup/rollback; missing mirror cursor нельзя вычислять из любого journal seq. Context pack query errors передавать как incomplete и не ориентировать агента якобы полным пакетом. Manifest declared coverage отдельно перечисляет goals, человеческие decisions и relations: либо roundtrip каждого, либо явно согласованное сужение ADR0002. Pack read errors и local preference errors закрывает ранний S14, не ожидая всего restore.",
+      "visible": "Storage показывает источник/покрытие/свежесть и восстанавливаемость; import preview называет omitted entities, конфликт и результат. Pack preview видит частичный отказ источника.",
+      "acceptance": "Экспорт→импорт fixture со status/relationships; failure после первого append и retry без дублей/потери; rebuild parity; восстановление backup; отключение одного pack source даёт incomplete, не пустой успешный pack.",
+      "depends_on": [
+        "S02",
+        "M198",
+        "S14"
+      ],
+      "previous_blocks": [
+        "W14",
+        "W17"
+      ],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "S13",
+      "phase": "F",
+      "title": "Достижимые действия и согласованные рабочие экраны",
+      "why": "Новые графы не исправят уже найденные поисковые, навигационные и семантические дефекты.",
+      "work": "Довести search до заявленных stores и exact match links с completeness/pagination; actor registry names вместо Codex→Terminal; pins cap5; completed goal остаётся в done/total; reuse task достижим и не затирает draft; project Harness читает project permissions, не глобальную смесь. Убрать nested buttons, неверный grid selector и contrast/theme пары, сохранить proper focus/accessible names.",
+      "visible": "Из поиска и attention открывается точный объект; задача имеет понятное продолжение; прогресс не исчезает после completion; безопасность показана для выбранного проекта.",
+      "acceptance": "PLAN04–08, UV04/05/09/12/14–17 из базового аудита закрыты отдельными acceptance cases; старый transcript A не подменяет B; cap результатов имеет кнопку продолжения.",
+      "depends_on": [
+        "S01",
+        "S14"
+      ],
+      "previous_blocks": [
+        "W26"
+      ],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "M103",
+      "phase": "C",
+      "title": "Доставка задания без ложного подтверждения",
+      "why": "Таймер готовности PTY не доказывает, что нужный агент принял запрос.",
+      "work": "Развести process started, bytes written, agent accepted task и task attached; предпочесть structured readiness/ack capability. У legacy terminal показать delivery-unconfirmed и действие проверки; не повторять prompt автоматически после неопределённого результата.",
+      "visible": "Запуск, доставка и принятие различаются; можно открыть нужную сессию и безопасно продолжить.",
+      "acceptance": "Медленный startup, prompt-after-timeout, early exit, malformed ack и duplicate ack не создают ложное task-running или двойное поручение.",
+      "depends_on": [
+        "S04",
+        "S14"
+      ],
+      "previous_blocks": [
+        "W11"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 515,
+        "title": "**Instruction delivery is guesswork twice over**",
+        "description": "`index.ts` writes `` `${instruction}\\r` `` into the PTY, and the field is a `textarea rows={3}` where Enter inserts a newline **by design**. **Every embedded newline is a separate Enter**, so the first two-paragraph brief runs as several commands. Beside it, the write is scheduled by a bare `setTimeout(…, 1200)` — an unguarded, uncancellable guess that the agent's TUI is accepting input. On a cold start it types into a half-drawn screen while the task row already says \"running\". **This is the product's primary action.** Send one bracketed-paste block, and wait for a readiness marker rather than a clock",
+        "status_claim": "**shipped** — `cf0e704`: the instruction reaches a listening agent, whole and once"
+      }
+    },
+    {
+      "id": "M195",
+      "phase": "A",
+      "title": "Redaction: сохранить сделанное и закрыть обход",
+      "why": "Шлюз AgentSurface уже очищает текст, но policy writer остаётся отдельным путём.",
+      "work": "Не переоткрывать отгруженный milestone: добавить коррекцию S03 с проверкой всех persistence/trace/pack sinks. Протестировать технические ключи и свободный текст, не портя валидные идентификаторы.",
+      "visible": "Секрет не размножается в памяти, вопросах и последующих контекстах.",
+      "acceptance": "Имеющиеся redaction probes проходят; дополнительный why/target обход закрыт и воспроизводится негативным тестом.",
+      "depends_on": [],
+      "previous_blocks": [
+        "W07"
+      ],
+      "status": "shipped_with_followup",
+      "source": {
+        "line": 679,
+        "title": "**Redaction at the agent surface — S1, HIGH**",
+        "description": "`redact()` is applied to transcripts and NOT to what agents write through tools: a secret written into `memory_facts` becomes current, enters EVERY next context pack, and multiplies through transcripts; a question with a secret reaches the Board and (R3) Telegram. Fix at the surface boundary for every agent-written text field (memory claim, note, brief, question text/options), plus a probe planting a token in each field and watching the scrub, plus the mint-entropy check (S5)",
+        "status_claim": "**shipped** — and step 0 corrected the brief FOURFOLD: it named three fields in three tools; measuring found **thirteen across eight**, the most dangerous being `task.handoff@1`’s 8 000-char `value` — precisely the channel one agent uses to pass the next what it obtained. So the fix is ONE DOOR, not thirteen call sites (M106’s lesson one layer along): `appendRedacted` wraps every agent-written event, and all 15 raw appends in the surface now route through it. `redactPayload` walks the whole payload recursively — **no skip-list**, measured safe: nine ordinary values (ids, enums, `about` keys, formatted strings) came back byte-identical while the secret was caught. The count rides on the event, the transcript idiom. Token entropy verified at 192 bits (S5). Three defects planted, three caught"
+      }
+    },
+    {
+      "id": "M196",
+      "phase": "A",
+      "title": "Sandbox уже включён в HEAD",
+      "why": "Приложенный план устарел: CJS preload и sandbox исправлены.",
+      "work": "Сохранить CJS external electron bundle probe; проверять именно устанавливаемый артефакт в S07. Не путать sandbox renderer с sandbox spawned CLI.",
+      "visible": "Installed build показывает версию и действительные гарантии.",
+      "acceptance": "Три окна sandboxed, bridge доступен в packaged build; в preload нет запрещённых зависимостей.",
+      "depends_on": [],
+      "previous_blocks": [
+        "W13"
+      ],
+      "status": "shipped",
+      "source": {
+        "line": 680,
+        "title": "**Sandbox on the windows — S2**",
+        "description": "All three BrowserWindows run `sandbox: false`; the preload uses only `contextBridge`, so sandbox compatibility is likely. Enable it, or record in the window comment exactly why it cannot be — an undocumented `sandbox: false` reads as an oversight forever",
+        "status_claim": "**shipped** — and the brief’s guess (“sandbox: true is likely compatible”) was wrong TWICE, both found by driving a real window. First: an ESM preload dies in a sandbox with `SyntaxError: Cannot use import statement outside a module` and `window.fabric` is **ABSENT** — the renderer loses all 27 namespaces silently, so the sandbox was off for a REASON nobody had recorded. Rebuilt as CJS, it failed a second way: in CJS format the resolver picks the **electron npm wrapper** — the one that `spawnSync`s the binary — dragging `child_process` into a context that has none. `external: ['electron']` is what makes the sandbox possible at all. Both halves are now held by a probe reading the SHIPPED bundle (CJS, no forbidden builtin, bridge still exposed, all 3 windows sandboxed); three regressions planted, three caught"
+      }
+    },
+    {
+      "id": "M197",
+      "phase": "A",
+      "title": "RU/EN ratchet уже есть",
+      "why": "Локализация нужна всем новым поверхностям; shipped system не равна полному переводу.",
+      "work": "Каждая новая строка в обеих локалях; legacy debt только уменьшается. Добавить Run/graph/memory/manager/retro states через текущий механизм.",
+      "visible": "Нет raw keys; понятны локальные даты, единицы, статусы и причины.",
+      "acceptance": "Ratchet + оба языка на узком экране и 200% zoom; новые ключи не уходят в baseline.",
+      "depends_on": [],
+      "previous_blocks": [],
+      "status": "shipped",
+      "source": {
+        "line": 681,
+        "title": "**Двуязычие как храповик — RU/EN заложены, переводы докидываются**",
+        "description": "The operator's decision 2026-09-06 (overturning the earlier EN-only): lay localisation NOW, top up translations later. The SYSTEM is the deliverable: `ru.ts` seeded with 93 hot-path keys per `docs/brand/locales/ru.md` («вы», length ×1.15, Fabric/PassionCode never translated, endonyms in the picker), and **the ratchet gate** — a new key lands in BOTH registries in the same change or the build fails; the 411-key legacy debt lives in `ru-baseline.txt`, which may only SHRINK (a translated key must be struck, a ghost row fails). Fallback to en is visible in the gate's count, never a raw key on screen. Four ratchet violations planted, four caught",
+        "status_claim": "**shipped**"
+      }
+    },
+    {
+      "id": "M97",
+      "phase": "A",
+      "title": "Projector dissolve завершён",
+      "why": "Повторная декомпозиция уже удалённой legacy функции — потеря времени.",
+      "work": "Сохранить parity probes и отсутствие legacy; обнаруженный config_revision вынесен в M198.",
+      "visible": "Косвенно: состояние не меняется из-за rebuild.",
+      "acceptance": "Диспетчер и вынесенные проекторы проходят parity; M198 отдельно не скрыт исключением.",
+      "depends_on": [],
+      "previous_blocks": [
+        "W14"
+      ],
+      "status": "shipped",
+      "source": {
+        "line": 459,
+        "title": "**One projector, not ten copies**",
+        "description": "`apply_projections` is rewritten WHOLE in 10 migrations; the current copy is 193 lines and 16 branches. The next projector change must be made inside a 193-line copy, and any divergence between a branch and its predecessor is silent — nothing compares them. Either generate the function from a registry of event types, or split it into one function per event type that a thin dispatcher calls",
+        "status_claim": "**shipped** — dissolved into `apply_estate_and_projects` (7 arms), `apply_task_lifecycle_base` (7), `apply_memory_facts` (2), and the legacy function DROPPED rather than emptied. **Two extraction errors, both caught by probes within a minute**: the last legacy body is in `…0014`, not 0012 — taking 0012 dropped the rule that an agent may not supersede a PERSON’s fact (P18 red) — and it carries SIXTEEN arms, not fifteen, because 0013 added `context.compiled@1`. Fifteen migrations redefine the projector; “the latest” is measured, never assumed. **P24 proves behaviour did not move**: every projection snapshotted, both estates rebuilt through the new dispatcher, hashes equal"
+      }
+    },
+    {
+      "id": "M198",
+      "phase": "B",
+      "title": "Детерминированная config_revision",
+      "why": "При replay счётчик ревизии растёт и меняет pinned execution identity.",
+      "work": "Вывести ревизию из событий/устойчивой версии вместо повторного increment; вернуть исключённую колонку в parity. Миграционная стратегия сохраняет корректные исторические ссылки.",
+      "visible": "Повторная сборка не изображает новое изменение настроек проекта.",
+      "acceptance": "Два rebuild подряд дают одинаковые config_revision и текущие настройки; upgrade старой базы проверен.",
+      "depends_on": [
+        "M97"
+      ],
+      "previous_blocks": [
+        "W18"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 682,
+        "title": "**A rebuild is not idempotent for `config_revision`**",
+        "description": "Found by M97’s parity probe. The projector does `config_revision = config_revision + 1` on `project.updated@1` and `project.settings.updated@1`, so REPLAYING those events increments again — a rebuilt estate reports a different revision than the one it had. It arrived verbatim from migration 3 through every legacy copy, so it predates the refactor that found it, and the refactor journalled it rather than fixing it inside a diff that must contain no behaviour change. **P24 excludes the column and says why**, so the exclusion is a recorded finding rather than a convenience. Fix: derive the revision from the event count, or stop incrementing on replay",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M109",
+      "phase": "B",
+      "title": "Завершить IPC Returns sweep",
+      "why": "Часть механизма есть; все handlers всё ещё не связаны с декларацией.",
+      "work": "Аннотировать оставшиеся handlers перед/во время извлечения M98; отдельно runtime validation недоверенных inputs и explicit error union. Не ждать полного M98, чтобы получить типовую страховку.",
+      "visible": "Ошибки чтения/открытия/сохранения имеют честную ветку восстановления.",
+      "acceptance": "Несовместимый return ломает сборку; неверный id/enum/payload даёт typed refusal. Инвентарь считает проверенные handlers автоматически.",
+      "depends_on": [],
+      "previous_blocks": [
+        "W16"
+      ],
+      "status": "partly_shipped",
+      "source": {
+        "line": 547,
+        "title": "**The IPC contract is type-checked on one side only, and has drifted**",
+        "description": "`preload` types the calls; nothing connects a handler to its declared return, so `tsc` compares nothing. Three live drifts found: `files.openExternally` is declared `Promise<void>` and `shell.openPath` resolves to **an error string** that the caller discards, so a failure is indistinguishable from success; `feed.replay` is declared `FeedEvent[]` and returns wider rows; `RepoState.error` is produced and rendered by nothing, so a repo whose git call failed shows its stale branch with full confidence",
+        "status_claim": "**partly shipped** — all three named drifts are fixed: a failed `openExternally` is reported and shown, a failed git read is no longer rendered as a branch, and the feed channel narrows to the shape it declares. The MECHANISM exists too — `Returns<FabricApi[…]>` derives a handler’s return type from the one declaration, so `tsc` compares them. **It is applied to three handlers and about forty are unannotated**, which is a mechanical sweep this change does not make"
+      }
+    },
+    {
+      "id": "M98",
+      "phase": "B",
+      "title": "Извлечение по бизнес-границам",
+      "why": "Монолиты смешивают policy, state, queries и UI lifecycle.",
+      "work": "Сначала Work/Execution/Authority ports, затем Knowledge и Projects/files; main остаётся wiring+IPC, agent surface — tools adapter, renderer — typed readers. Извлекать по одному шву под regression tests, без big-bang rewrite и новых микросервисов.",
+      "visible": "Текущее поведение сохраняется, а следующий graph/manager не копирует обходы scope.",
+      "acceptance": "Handlers не имеют обходного raw store; production services проходят S01–S06 cases; replay не меняется.",
+      "depends_on": [
+        "M109",
+        "S02"
+      ],
+      "previous_blocks": [
+        "W15"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 460,
+        "title": "**Split the two files that hold everything**",
+        "description": "`main/index.ts` is 894 lines and `renderer/src/ProjectHome.tsx` is 863. Both grew by accretion and both now hold several unrelated responsibilities. Split along seams that already exist, not into arbitrary halves",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M102",
+      "phase": "B",
+      "title": "У каждого reader свои причины обновления",
+      "why": "Один feed tick перезапускает шесть загрузчиков.",
+      "work": "Repo/config по revision; transcripts по session outcome; memory по её событиям; quota по собственной свежести; snapshot/delta streams с catch-up. Scoped generation + stale сохранение. Эти небольшие исправления можно делать до полного M98.",
+      "visible": "Live обновляется нужная часть; loading не стирает полезный stale snapshot; ошибка объяснена.",
+      "acceptance": "Счётчики IPC на одинаковом fixture до/после; feed burst не вызывает повторный запрос всех stores; reconnect не теряет события.",
+      "depends_on": [
+        "S14"
+      ],
+      "previous_blocks": [
+        "W17"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 483,
+        "title": "**Six loaders fire on every feed tick**",
+        "description": "`ProjectHome.tsx` hangs `loadRepos`, `loadStats`, `loadClaims`, `loadTranscripts`, `loadRepoStates` and `loadQuota` off one effect whose deps include `feedMark`. The feed polls every 2 s, so while any session is producing events **all six go over IPC every two seconds** — including a transcript query returning up to 30 rows with excerpts. **M42 caused this**: replacing `feed.length` with a monotonic mark cured the freeze at the 500-event cap and, in the same edit, turned it into a stampede. The fix is to split the effect by what each loader actually depends on — repositories on `config_revision`, claims and statistics on events, transcripts only when a session ends, quota on its own 120 s clock",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M105",
+      "phase": "B",
+      "title": "Убрать стоимость полного scrollback на байт",
+      "why": "PTY hot path блокирует main, от которого зависит heartbeat и MCP.",
+      "work": "Инкрементальный tail/ANSI parser, ограниченный буфер, async batched persistence с flush на exit; легковесный sessions summary и отдельный transcript range.",
+      "visible": "Статус и ввод не тормозят из-за длинной истории другого агента.",
+      "acceptance": "Chunk boundaries ANSI, обычные [скобки], burst+exit сохраняются корректно; замер event-loop delay/IPC bytes на том же fixture, без выдуманного ускорения.",
+      "depends_on": [],
+      "previous_blocks": [
+        "W17"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 527,
+        "title": "**Every byte an agent prints costs a full-buffer regex and a blocking write**",
+        "description": "`pty.onData` does a synchronous `writeSync`, then a regex + split + map + filter over the whole 400 000-char scrollback — to compute one 120-character `tail`. The same shape ships that scrollback over IPC on every 3 s poll for **all** sessions, so three undismissed sessions serialise ~1.2 MB out of the main process every three seconds so a tab can say \"2 live\". The main process is also the MCP server, the journal writer and the IPC broker for four windows. And the tail's regex is missing the `ESC`, so it leaves `\\x1b` in and eats ordinary text (`[link]` → `ink]`) while the correct pattern sits two files away in `transcripts.ts`",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M177",
+      "phase": "C",
+      "title": "Агент знает время, правила и происхождение",
+      "why": "Недостаточный context увеличивает ложную уверенность и обход протокола.",
+      "work": "Дата/timezone/freshness, перечисленные статусы, actor_kind из authenticated actor в trust/settlement, protocol version/hash и evidence повторного reassert после resume/compaction. Разделение person/agent facts уже есть (contextPack:202–211); whoami уже повторно вызывается — не строить эти части заново. session.oriented — фактическое имя события, не несуществующий context.read.",
+      "visible": "В диагностике видно, какие правила доставлены и подтверждены, когда и для какой сессии.",
+      "acceptance": "Новый и resumed agent получают текущий protocol; spoof person автором-агентом отвергнут; отсутствие подтверждения не считается доказанным чтением.",
+      "depends_on": [
+        "S05",
+        "S10"
+      ],
+      "previous_blocks": [
+        "W20"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 663,
+        "title": "**Close the cheap harness gaps found by the map**",
+        "description": "Four things the audit surfaced, none waiting on a provider: inject **today's date** into the context pack (a model with a cutoff answers staleness from memory), **enumerate the status vocabulary** in the protocol so the agent stops learning the allowed set by rejection, **use `actor_kind` in trust** so an agent-authored fact is not read as a person-authored one (the column exists, unused), and make the protocol **re-assertable after a CLI compaction** that drops it",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M155",
+      "phase": "C",
+      "title": "REFUSED / OBSERVED / ADVICE как контракт",
+      "why": "Наблюдаемое нарушение не обязательно технически блокируемо.",
+      "work": "Для каждого protocol obligation указать enforcement point и evidence: отказ self-close/grant/scope, наблюдение orientation/review brief/lease end, совет по качеству. Matrix по runner capability; пределы не маскировать инструкцией.",
+      "visible": "Пользователь видит enforced, observed, unsupported, unknown отдельно; нет зелёной гарантии из одного prompt.",
+      "acceptance": "Нарушение каждого правила либо реально отклонено, либо оставляет finding с источником; voluntary client не получает enforced label.",
+      "depends_on": [
+        "M177",
+        "S03"
+      ],
+      "previous_blocks": [
+        "W11",
+        "W20"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 641,
+        "title": "**The protocol is observed where it cannot be refused**",
+        "description": "Three tiers, and naming them is the point: REFUSED (closing your own task, writing without a grant, handing off with no named thing, the loop bound), OBSERVED (rules never read, a review with no brief, a lease left held at session end), and ADVICE (the quality of a question or an insight, which nothing here can judge). Blocking on the unenforceable third is how a protocol becomes a workaround factory",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M178",
+      "phase": "C",
+      "title": "Heartbeat с ожидаемым объектом",
+      "why": "Молчание не различает thinking, waiting и сломанный процесс.",
+      "work": "Версионированное heartbeat event с phase/waiting_on и server-bound execution; серверное время receipt. Cadence configurable с capability default, без универсальной цифры для всех моделей.",
+      "visible": "Жив, ждёт Q, нет подтверждения — три разных сообщения; текст heartbeat помечен сообщением агента.",
+      "acceptance": "Late/duplicate/out-of-order heartbeat не оживляет старую execution; waiting_on в чужом scope отвергается.",
+      "depends_on": [
+        "M177"
+      ],
+      "previous_blocks": [
+        "W19"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 664,
+        "title": "**A heartbeat, because silence is ambiguous**",
+        "description": "`fabric_heartbeat({ phase, note?, waiting_on? })` — a positive signal, journalled as `agent.heartbeat@1`. Liveness today is `idle` after 60s of silence, and silence hides three cases with different answers: an agent THINKING, an agent WEDGED, and an agent WAITING on a Board question — all silent. `phase` is enumerated (an agent invents its own vocabulary otherwise) and `waiting_on` names what a blocked agent waits on, turning silence into a fact. Five liveness states replace three, and only `stalled` claims a fault (ADR-0040)",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M179",
+      "phase": "C",
+      "title": "Наблюдатель вне агента",
+      "why": "Сломанный репортёр не сообщит, что сломан.",
+      "work": "Process exit, heartbeat gap, orientation receipt и scheduler host lifecycle; вычислять подозрение на stall, не обвинение. Независимый watch не должен зависеть от той же заблокированной очереди PTY.",
+      "visible": "Виден источник диагноза и последняя наблюдаемая точка; app-off — отсутствие наблюдения.",
+      "acceptance": "Kill/process hung/DB outage/host sleep/fresh silent thinking различаются; после открытия app нет ложного run-completed.",
+      "depends_on": [
+        "M178",
+        "S04"
+      ],
+      "previous_blocks": [
+        "W19"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 665,
+        "title": "**The agent is watched from outside, because the reporter is what breaks**",
+        "description": "A heartbeat is the agent's own account; the thing most likely broken is the reporter. Fabric watches the process (`onExit`), the heartbeat gap (a subtraction against a threshold), and **the absence of `context.read`** — every session is told to call `fabric_whoami` first and that call is journalled, so a session producing output that never read its rules is running WITHOUT the harness: a `harness.break@1` finding with the reason it can infer. Nothing surfaces this today",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M180",
+      "phase": "C",
+      "title": "Типы отказов и причинная связь",
+      "why": "Один failed теряет способ восстановления и честный отрицательный результат задачи.",
+      "work": "Нормализованные failure_kind + origin + evidence + retryability + remediation; неизвестная причина остаётся unknown; failure task result отделён от runtime crash.",
+      "visible": "Доступно конкретное восстановление: установить runner, перечитать, ответить, повторить попытку или проверить неизвестный эффект.",
+      "acceptance": "Synthetic corpus по каждому detector; неприменимый recovery отсутствует; новый запуск не стирает историю старого.",
+      "depends_on": [
+        "M179"
+      ],
+      "previous_blocks": [
+        "W19"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 666,
+        "title": "**A failure is journalled with its KIND — “failed” is not one thing**",
+        "description": "Runner-missing, skill-failed-to-load, harness-unreachable, agent-crashed, agent-wedged, task-failed-HONESTLY, advisory-model-failed, notifier-source-down — each a distinct detector and remedy, and an undeterminable kind is `unknown` and says so. M100's startup lesson generalised: name the precondition, or admit we do not know. A task that failed honestly is `review` with the answer “no”, NOT a crash — conflating them discards a real result",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M181",
+      "phase": "C",
+      "title": "Честная деградация",
+      "why": "Недоступная функция сегодня может выглядеть пустой или завершённой.",
+      "work": "Capability/outcome degradation в execution receipt; notifier partial source, model absent deterministic mode, missing skill, unsupported trace; Board obligation для действительного action-required.",
+      "visible": "Видны выполненная часть, отсутствующая проверка и безопасный следующий шаг.",
+      "acceptance": "Отказ одной зависимости не превращается в green completion; восстановление не дублирует обязательство.",
+      "depends_on": [
+        "M180"
+      ],
+      "previous_blocks": [
+        "W19"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 667,
+        "title": "**Degradation is stated, never silent**",
+        "description": "A skill that breaks mid-run: the outcome carries “ran without skill X”. The model absent: the CEO runs its deterministic tools and names the advisory capabilities as unavailable. A notifier that cannot gather: it sends what it has with a partial note, or nothing with a recorded reason. A degradation the operator cannot see is a lie by omission — every path here states it. A `stalled` or `harness-break` agent enters the same Board queue as everything else (ADR-0040)",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M188",
+      "phase": "C",
+      "title": "Прогон, версия плана, шаги и чекпоинты",
+      "why": "Нужен отдельный полный прогон каждой итерации, а не накопительный checklist всей жизни task.",
+      "work": "Task Run по ADR0042 = task+Fabric execution session; каждая оркестрируемая итерация — новая пара, vendor session ref отдельно. Immutable plan revision, stable step_id/parent_step_id/needs/checkpoint/evidence refs; replan supersedes, не переписывает прошлое. Claim status и verified evidence независимы.",
+      "visible": "Прогон N, предыдущие попытки, текущая декомпозиция; unknown total без фиктивного «из N». Видно, что агент добавил/убрал и почему.",
+      "acceptance": "Re-run сбрасывает steps; replay не создаёт дубликат; parallel siblings, replan, late old-run event, crash/resume и skipped проверяются. Native hidden loop не выдаётся за наблюдаемую Fabric iteration.",
+      "depends_on": [
+        "M198",
+        "M177",
+        "S04",
+        "S10"
+      ],
+      "previous_blocks": [
+        "W18"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 674,
+        "title": "**Runs and plan steps — the unit of progress**",
+        "description": "A run IS a session bound to a task (`task.session.attached@1` already journals the pair), so **every loop iteration is a whole run** — the operator's rule (paraphrased); a re-run starts fresh step statuses and history keeps every run. `fabric_plan_declare` + `fabric_plan_step` with ENUMERATED statuses (`planned·active·done·blocked·skipped·failed`), keyed to (task, run), journalled first, projection rebuildable. **A step status is a CLAIM and is rendered as one**; what Fabric observes (heartbeat, subtasks, blocks) is drawn as fact, never averaged (ADR-0042)",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M149",
+      "phase": "D",
+      "title": "Агент задаёт и проверяет вопрос",
+      "why": "Сейчас storage вопроса есть, но полноценного входа через tool нет.",
+      "work": "fabric_question_ask/check через общий command boundary; subject/about, options, consequence, blocks и адресат; attachment task/run; idempotency и safe payload; вопрос без блокировки допустим, не каждый ask останавливает всё.",
+      "visible": "Вопрос появляется на нужной доске и у нужного человека с контекстом.",
+      "acceptance": "Два одинаковых delivery одного command → один вопрос; чужой recipient/scope отказ; pending/rejected различимы.",
+      "depends_on": [
+        "S06",
+        "M177"
+      ],
+      "previous_blocks": [
+        "W22"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 635,
+        "title": "**An agent can ask the owner a question rather than guessing**",
+        "description": "`fabric_question_ask` — the ONE verb the protocol is missing; nine of its eleven obligations already have theirs. Plus `fabric_question_check`, and the `protocol` block returned by `fabric_whoami`, which is where the mandatory management protocol lives: `preamble.ts` names one tool and no rule on purpose, and a protocol in a system prompt is frozen at the moment each session started",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M151",
+      "phase": "D",
+      "title": "Одна Board query, три масштаба",
+      "why": "Топы и counters должны считать один набор открытых обязательств.",
+      "work": "Ranked union questions+derived obligations; top5 home/top10 project/full Board; deterministic pagination, project role filters и current unresolved state. Last50 events не заменяют unresolved query.",
+      "visible": "На preview видно сколько ещё; полный список открывается с тем же scope, выделяет исходную карточку.",
+      "acceptance": "11 проектных и 6 estate items не исчезают; resolved исключён; failure не даёт нулевой badge; доступность keyboard проверена.",
+      "depends_on": [
+        "M149"
+      ],
+      "previous_blocks": [
+        "W22"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 637,
+        "title": "**The Board — top 5 on the home, top 10 in a project, all of it on its own screen**",
+        "description": "One query over the ranked union of derived obligations and open questions, at three scopes. The project cards count from the SAME query (M147's rule). It is a QUERY and not a table: a stored board is a second copy of the truth, and the copy that drifts is the one the operator is reading",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M152",
+      "phase": "D",
+      "title": "Ответ становится решением и доходит до работы",
+      "why": "Memory в следующем старте не доставляет ответ уже ждующему агенту.",
+      "work": "S06 atomic command + decision fact/version/provenance; durable response envelope, addressed continuation, ack/timeout/retry with same command. При умершей session — новая execution с pack, без повторного grant.",
+      "visible": "Отвечено / доставляется / получено / ждёт перезапуска видны; закрывается ровно решённый blocker.",
+      "acceptance": "Живой, умерший и сменившийся runner получают корректное решение; stale epoch не пишет; два pending questions не схлопываются.",
+      "depends_on": [
+        "M151",
+        "M188",
+        "S06"
+      ],
+      "previous_blocks": [
+        "W22"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 638,
+        "title": "**Answering closes the loop, and the answer is a decision**",
+        "description": "The operator answers; the question closes, its blocked tasks unblock, and **the answer is written to project memory as a `decision` fact**. That one choice needs no delivery code: the context pack already carries current facts into every session, `decisions.ts` already models supersession, and `digest.ts` already reads decisions. This is the step at which the product does what the whole design is for",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M153",
+      "phase": "E",
+      "title": "Гигиена CEO без потери вопросов",
+      "why": "Возраст вопроса — повод для внимания, не основание забыть его.",
+      "work": "Deterministic withdraw with reason для отменённой blocked work, exact command/semantic-identity dedup и escalation. Не ждать anonymous feedback M183; semantic merge — только proposed через checker.",
+      "visible": "Почему снят, что осталось и что обострилось видно в истории.",
+      "acceptance": "Повторный sweep не создаёт дублей; старый актуальный вопрос остаётся; ложное совпадение не объединяет разные решения.",
+      "depends_on": [
+        "M152"
+      ],
+      "previous_blocks": [
+        "W24"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 639,
+        "title": "**The CEO routine — withdraw the stale, de-duplicate, escalate**",
+        "description": "Runs on the routine tick and holds no work node. A question whose blocked work was cancelled is withdrawn WITH ITS REASON rather than deleted or left open; age never expires a question, it only raises it. Exact de-duplication only — semantic merging is named as waiting for a model rather than half-built",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M154",
+      "phase": "E",
+      "title": "Ретро получает рабочий reader",
+      "why": "Finding/trap уже пишутся, но полезный review ещё не замкнут.",
+      "work": "Список по category/kind/project/task/run со source/evidence/current/superseded; фильтры, correction/supersession и связь с Board task; не отдельное хранилище.",
+      "visible": "Что произошло, что извлечено, повторялось ли, что уже проверено; прямое открытие исходного run.",
+      "acceptance": "Current и history не перемешаны; ошибка не пустое ретро; пропущенный source назван; keyboard и scope проверены.",
+      "depends_on": [
+        "M182"
+      ],
+      "previous_blocks": [
+        "W24"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 640,
+        "title": "**Findings and traps get a reader, so writing one stops being shouting into a drawer**",
+        "description": "`memory_facts.kind` already carries `finding` and `trap` and `fabric_memory_remember` already writes them. No new store: two readers instead — the context pack, which already carries them to the next session, and a retro surface grouping them by the task that produced them, where a wrong one can be superseded",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M182",
+      "phase": "E",
+      "title": "Закрытая категория инсайта",
+      "why": "Kind=trap не говорит, проблема проекта это или продукта Fabric.",
+      "work": "Schema/project default + closed category project/agents/harness/fabric/process; orthogonal kind; migration/backfill defaults; tool+pack+query+UI support same enum. Авторитет категории — серверная проверка, текст агента остаётся недоверенным. Stable about, source/evidence refs и occurrence identity проходят schema→tool→projector→read model; исторические записи без ключей не получают выдуманный occurrence.",
+      "visible": "Категория в карточке; изменить можно с историей; service filters объединяют проекты в пределах полномочий.",
+      "acceptance": "Старая память получает project; неизвестная category отвергается; нет auto-export project/process; rebuild сохраняет классификацию. Категория без стабильной связи не считается готовым входом recurrence; повтор одного source command сохраняет identity.",
+      "depends_on": [
+        "S10"
+      ],
+      "previous_blocks": [
+        "W24"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 668,
+        "title": "**An insight says what it is ABOUT — a closed category**",
+        "description": "`category` on `memory_facts`: `project` (default) · `agents` · `harness` · `fabric` · `process`, closed with a CHECK because an open field grows four spellings of “fabric” in a week. Orthogonal to `kind`: a trap about the harness is `kind=trap, category=harness`. The three service categories are the raw material of Fabric's own product backlog, and today they drown in project memory where nobody sweeps across projects (ADR-0041)",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M183",
+      "phase": "E",
+      "title": "Общий контур улучшений с проверяемой приватностью",
+      "why": "Удаление ids не обезличивает свободный текст и транспортные метаданные.",
+      "work": "Разделить local service intake и external delivery. Default ON сохранить для локального intake; outbound default-on только для отдельного доказанного безопасного structured allowlist режима после privacy review. Project/process запрещены; свободный claim карантин/preview/явное включение. Private outbox/suppression tombstone/optout epoch и bounded retention; endpoint пока отсутствует. Внешние данные — untrusted product suggestions, не автокоманды. Два самостоятельных результата: M183.local (локальный intake) и M183.upstream (transport activation после endpoint/privacy contract). Принятый payload digest фиксируется перед dispatch; изменения privacy schema не снимают suppression; re-enable не backfill всю историю.",
+      "visible": "Очередь показывает точный payload, куда/что/когда уйдёт, что не отправлено, что уже отправлено; выключение останавливает будущую и queued отправку с честной границей inflight.",
+      "acceptance": "Synthetic company/domain/code/basename/rare incident остаются local; rebuild не воскрешает suppressed; optout race не маркирует unsent sent; project never exported. Нет обещания нулевого риска. Нет endpoint/контракта → outbound calls=0. Preview digest совпадает с отправленными байтами. Lost ACK после реального send → unknown, а не «не отправлено/отозвано»; remote deletion показывается только после server confirmation. У договора есть retention/IP/access-log/deletion условия.",
+      "depends_on": [
+        "M182",
+        "S02",
+        "S14"
+      ],
+      "previous_blocks": [],
+      "status": "proposed_privacy_contract_required",
+      "source": {
+        "line": 669,
+        "title": "**The anonymised product loop — service insights feed Fabric's backlog**",
+        "description": "`fabric_feedback`: only `agents`/`harness`/`fabric` are EVER eligible — a `project` insight is **refused in the schema**, because its essence IS project data and no redaction makes it safe. A row carries the claim after M95 redaction + identifier stripping, the version, a WEEK-coarse date, and **no estate/project/actor/session — the columns do not exist**: anonymity by absence, not policy. Default ON, one journalled switch, and the pending queue VISIBLE on the harness screen. Upstream transport waits on an endpoint and is named as waiting",
+        "status_claim": "proposed"
+      },
+      "execution_slices": [
+        {
+          "id": "M183.local",
+          "depends_on": [
+            "M182",
+            "S02",
+            "S14"
+          ],
+          "scope": "Локальный default-on intake без сети"
+        },
+        {
+          "id": "M183.upstream",
+          "depends_on": [
+            "M183.local",
+            "S03",
+            "S10"
+          ],
+          "scope": "Внешний transport только после privacy/endpoint gate",
+          "external_gates": [
+            "configured real endpoint",
+            "reviewed payload and metadata/retention contract",
+            "preview digest and deletion/optout tests"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "M184",
+      "phase": "E",
+      "title": "Ретро как повторяемая работа CEO",
+      "why": "Нужно превращать опыт в проверенное улучшение, а не плодить записи при каждом sweep.",
+      "work": "Weekly cycle: gather→classify→dedup occurrences→propose resolution/update/task/discussion→verify→supersede. N≥3 считать distinct occurrences, не refresh и не одного about. Process question enum и Board route; missing local file не доказательство удаления источника. Run — корреляция, не единица recurrence: несколько прогонов могут описывать один инцидент. Общий S15 обеспечивает lease/window/cursor/checkpoint и failure receipt.",
+      "visible": "Когда рассмотрено, почему отложено, кто решает, какая задача исправляет, когда повторно проверить.",
+      "acceptance": "Три разных occurrence создают одно process obligation; три replay одного не создают. Исправление закрывается после evidence; повтор regression возвращает review с новым основанием. Concurrent sweep и restart после commit сохраняют один outcome и не увеличивают recurrence.",
+      "depends_on": [
+        "M182",
+        "M154",
+        "M153",
+        "M151",
+        "S15"
+      ],
+      "previous_blocks": [
+        "W24"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 670,
+        "title": "**The retrospective is a cycle the CEO runs**",
+        "description": "Weekly tick, scripts: merge exact duplicates (category+about), mirror service categories, count recurrences, detect dangling references. Judgement is PROPOSED, never exercised — a retired insight that was still true is worse than a stale one. **A recurring trap (N≥3, same about) becomes a Board question of kind `process`** — retro reaches the operator through the same ranked top-5, not a separate ceremony. Retirement is supersession; nothing silently deleted",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M173",
+      "phase": "F",
+      "title": "Граф решений — отдельная семантика",
+      "why": "Пользователь должен понимать, как изменились решения и кто отвечал.",
+      "work": "Decision lineage/supersedes/subject/project + actor person/agent/system + rationale/evidence; session correlation к конкретному context lockfile, retrieve после старта — отдельные receipts. Никакой реконструкции скрытого хода мыслей и утверждения «знал только pack».",
+      "visible": "Project preview current changes → отдельный decision graph SCR33 → решение → основание/контекст/связанные задачи. Не прячется в M190.",
+      "acceptance": "Human decision не заменяется тихо агентом; missing historical pack не подставляется ближайшим; source link точный; legacy evidence помечено неполным.",
+      "depends_on": [
+        "M152",
+        "S14"
+      ],
+      "previous_blocks": [
+        "W24"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 659,
+        "title": "**The decision graph shows movement, and who decided**",
+        "description": "M144 shipped it as a list because there were no edges yet. The operator's ask — how the project reached here, human vs agent, and WHY an agent decided — needs no new storage: the decision fact carries `actor_kind` (person/agent/system), `superseded_by` carries the lineage, and the context lockfile (M49) carries `sha256` + `fact_ids` + `transcript_ids`, so “what did the agent know when it decided” is a JOIN, not a record. Human decisions are the spine, agent decisions branch off the work; clicking one opens the exact facts and transcript it was handed — evidence, because it could not have known more than the lockfile lists. Derived by query — a **script**, not an agent",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M157",
+      "phase": "D",
+      "title": "Settlement только по действующему основанию",
+      "why": "Ссылка сама по себе не даёт полномочия менять человеческое решение.",
+      "work": "Stable about+scope+revision/current fact; schema no-basis refusal; journalled settlement+override by supersession. Implementation может стартовать раньше M158, но автоматическое исполнение выключено до общего gate.",
+      "visible": "Кто решил, что процитировал, почему применимо, как оспорить — в одной карточке.",
+      "acceptance": "Чужая/устаревшая/подменённая citation и basis-less settlement отклонены; override не стирает исходное.",
+      "depends_on": [
+        "M152",
+        "M158",
+        "M168"
+      ],
+      "previous_blocks": [
+        "W23"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 643,
+        "title": "**The CEO settles what it can CITE, and every settlement is visible and reversible**",
+        "description": "A question carries `about` — a stable key naming its subject — and a decision fact with the same key answers it mechanically. That is the whole mechanism by which a CEO with no model answers anything. **A settlement with no basis is refused at every trust level**: an answer the CEO cannot cite is an answer it invented. Safety is citation, a standing “settled by the CEO” list, and one-press override — never a daily confirmation, which is a tax that trains the operator not to read",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M158",
+      "phase": "D",
+      "title": "Criticality до включения автоматического settlement",
+      "why": "Порядок «сначала автоматика, потом защита» оставляет окно небезопасного поведения.",
+      "work": "Сохранить принятую scoring модель и estate/project trust clamp; server checks не только UI score. M157+M158+checker/floor составляют один activation gate; human decision revision всегда с нужным approval.",
+      "visible": "Вопрос показывает original/replacement/impact и причину запроса; score раскрывается как дополнительная деталь.",
+      "acceptance": "Тесты border values, human/agent provenance, revoked trust, changed dependents; неподтверждённая замена не попадает в current memory.",
+      "depends_on": [
+        "M152"
+      ],
+      "previous_blocks": [
+        "W23"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 644,
+        "title": "**A decision that changes is scored, and the operator's own word is held**",
+        "description": "`criticality = 40×(replaces a PERSON's decision) + 30×(needs a grant) + 20×(already released) + min(5×dependents,20) + project weight`. Above the threshold it becomes an `approval` question carrying the original, the replacement and the components. The first term puts any change to the operator's own decision beyond the CEO at any trust level — a decision the estate can overwrite is not a decision. A decision the CEO made carries no such term: the estate may revise its own reasoning freely",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M185",
+      "phase": "E",
+      "title": "Единый Inbox: нужно участие / произошло",
+      "why": "Нужен общий обзор всех модулей без копии бизнес-состояния.",
+      "work": "Needs-you читает Board; happened читает safe notable-event DTO. Per-operator read cursor/preferences — отдельное локальное состояние, не новый notification truth store. Dedup по obligation/source command; expand payload только очищенный; deep link сохраняет scope и возврат.",
+      "visible": "Нерешённое нельзя убрать «прочитано»; разрешённое уходит из needs-you; happened можно отметить прочитанным. Hidden details не скрывают severity/owner/action.",
+      "acceptance": "Каждый producer из module matrix имеет маршрут, source и recovery. Новое событие/error не двигает read watermark; два клиента не отмечают чужое прочитанным.",
+      "depends_on": [
+        "M151",
+        "S14"
+      ],
+      "previous_blocks": [
+        "W04",
+        "W26"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 671,
+        "title": "**One inbox on the dashboard — a view, not a store**",
+        "description": "Two lanes over what already exists, split by one question: does this need you? “Needs you” = the Board's slice, can never be marked read; “happened” = notable events, expandable to payload/actor/project/deep-link, owing nothing. Every module's signals are already journal events or derived obligations; a notification store would be a second copy of the truth that drifts",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M186",
+      "phase": "E",
+      "title": "Экран циклов с настоящими источниками состояния",
+      "why": "Не все тики journalled; reader-only обещание здесь неверно.",
+      "work": "Cycle identity/cadence/placement/config enabled + tick start/finish/skip/failure receipts; read model last/next/missed. Separate cycle config, liveness, last outcome. DST/timezone, app-off, coalescing/catch-up policy для каждого cycle; manual wake через тот же guard.",
+      "visible": "Все routines/chains/CEO hygiene/retro/letter/review в одном виде; ещё не реализованный цикл помечен planned; отсутствующая телеметрия unknown.",
+      "acceptance": "Sleep/wake, DST, app closed, DB down, overlap tick, disabled/inflight проверены; last-success не рисуется по одному expected cron time.",
+      "depends_on": [
+        "S15",
+        "M180"
+      ],
+      "previous_blocks": [],
+      "status": "proposed",
+      "source": {
+        "line": 672,
+        "title": "**The cycles view — everything that ticks, estate-wide**",
+        "description": "Routine tick, chain advance, CEO hygiene, retro cycle, evening letter, board review: cadence, last run, next due, health — in ADR-0040's five-state vocabulary, because a cycle that silently stopped is a stalled agent one level up. M65's automations surface generalised from one project's routines to the estate's pulse",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M187",
+      "phase": "F",
+      "title": "Плотность и единый disclosure",
+      "why": "Информативность теряется, когда каждый модуль добавляет все свои поля на главный экран.",
+      "work": "Пройти каждый SCR: цель/status/freshness/main text/owner/next action видимы; filters/raw params/trace/advanced controls за общим disclosure. Keyboard/focus/contrast/reduced-motion/i18n. Будущая персонализация disclosure — заметка после проверки спроса, без layout builder сейчас.",
+      "visible": "Project и agent previews компактны; blocker не спрятан; раскрытие не сбрасывается на каждый live tick. Полный graph/list/trace по понятной ссылке.",
+      "acceptance": "По каждому экрану inventory primary/secondary/exception; light/dark, narrow/200% zoom, keyboard, naming, no nested buttons. Действие и его причина доступны без цепочки скрытых меню.",
+      "depends_on": [],
+      "previous_blocks": [
+        "W26"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 673,
+        "title": "**The density review — primary visible, the rest behind ONE disclosure primitive**",
+        "description": "The operator's standing principle, applied as a sweep across every SCR: main data, main text, main meta, main controls visible; every additional control folds into a disclosure; the component set gains ONE disclosure primitive so screens fold the same way. Customisable disclosures (per-operator settings) deliberately AFTER the review proves where they are needed. Noted 2026-09-06, built as its own iteration",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M189",
+      "phase": "F",
+      "title": "Live виджет текущей задачи",
+      "why": "Нужен быстрый ответ, как идёт конкретный прогон.",
+      "work": "Один reader/component для agent/project-task/task page; run N, plan revision, done/total declared steps, active path, blocker, heartbeat age, independent check. Обновление delta без прыжков фокуса. History открывается отдельно.",
+      "visible": "Основная доля и текущий шаг; всё дерево и checkpoints по раскрытию. Для неизвестного числа итераций только «Прогон 3», не «3 из 3».",
+      "acceptance": "Все step statuses, no plan, unknown, reconnect, replanning, parallel active steps, collapsed state, slow reader. Done claim не становится verified badge.",
+      "depends_on": [
+        "M188",
+        "M178",
+        "S14"
+      ],
+      "previous_blocks": [
+        "W18",
+        "W26"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 675,
+        "title": "**The current-task widget — realtime progress, claims labelled as claims**",
+        "description": "Preview on the agent tile and task page: run counter, plan steps with statuses, live heartbeat line, blocked-on named. Density principle: the main fraction plus a strip, everything else behind the open. Full run history is SCR-40's, not the widget's",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M190",
+      "phase": "F",
+      "title": "История агента, задачи проекта и целевой план",
+      "why": "У трёх графов разные вопросы и разные отношения.",
+      "work": "Общий renderer infrastructure, отдельные адресуемые views: agent DID, project DID, project SHOULD. DID event-time ordered; dependency plan DAG + revision/status overlay. Parent/created-from/assigned/blocks/handoff/needs/goal refs typed и с источником. История допускает возвраты во времени через новые events, а не запрещает их DAG guard. Нужные отсутствующие producers добавить до UI.",
+      "visible": "Preview→конкретный graph→task/run/question/decision→назад с selection/filter/as-of. List/outline равноправная альтернатива; project plan list и graph читают один snapshot. SCR40 route family, без одного переключателя меняющего смысл графа.",
+      "acceptance": "Агент создал задачу для другого, переадресовал, спросил, blocked/resumed/retried: вся цепочка видна. Planned step не выглядит совершённым. Partial data/large graph/read errors не скрыты.",
+      "depends_on": [
+        "M188",
+        "M152",
+        "S14"
+      ],
+      "previous_blocks": [
+        "W26"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 676,
+        "title": "**SCR-40 — the graphs screen: agent DID, project DID, plan SHOULD**",
+        "description": "Three tabs, every graph a QUERY over existing edges (`task_links.rel`+`needs`, `origin_ref`, `question_blocks`, `assigned_by/to`, handoffs). DID graphs time-ordered from the journal — they cannot be wrong about the past; the SHOULD graph is the dependency DAG from goals and chains with progress overlay. **Two kinds, two renderings, never one with a toggle** — overlaying invites reading a plan as history. Previews on project/agent pages open here (ADR-0042)",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M191",
+      "phase": "F",
+      "title": "Память, pack preview, lineage и sync",
+      "why": "Следующий агент должен получать объяснимый набор данных.",
+      "work": "Разделить pure compile и persistence lockfile; dry preview тем же selector без session/append. Показать source/revision/tokenizer budget/omissions, actual past pack separately. Lineage exact task/session refs; declared-mirror drift по собственному exported cursor/covered events, не общему feed. Cloud mode недоступен пока не работает. Точный past pack требует immutable artifact либо всех inputs с версиями (project/repos/task brief/facts/transcripts), compiler и budget revision; legacy incomplete. Текущий budget в символах, token count — отдельное явно помеченное измерение, не переименование единицы.",
+      "visible": "Память проекта → «Контекст следующего запуска» → почему выбрано/исключено → источник/линия изменений. Source cloud/local, freshness/error и синхронизация понятны.",
+      "acceptance": "Dry ничего не пишет и не запускает; одинаковый snapshot/budget даёт тот же content hash; source failures дают incomplete; нет context claim без source session. Полное исправление import/restore — S12, не скрыто внутри preview. Rename проекта, изменение brief и compiler upgrade не меняют сохранённый historical hash; при отсутствующих legacy inputs интерфейс не обещает byte-exact reconstruction.",
+      "depends_on": [
+        "S14"
+      ],
+      "previous_blocks": [
+        "W17",
+        "W26"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 677,
+        "title": "**The memory module made visible: pack preview, lineage, mirror drift**",
+        "description": "The cheapest and most explanatory view: “what will the next agent be handed” compiles the pack DRY through the same code path and shows the facts chosen, the transcripts included, what the budget OMITTED and how close it is. Plus fact lineage on click (superseded chain, source session) and the declared-mirror drift state (“behind by N events”, ADR-0002). Zero new stores — readers only",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "S14",
+      "phase": "B",
+      "title": "Read envelope и сохранение пользовательских настроек",
+      "why": "Ранние readers не должны ждать полной agent trajectory, а ошибки нельзя превращать в пустые данные.",
+      "work": "Scope/generation/readAt/cursor/completeness/error contract и catch-up. Независимые overview/misses loaders: ошибка одного не скрывает другой. Context compile передаёт error каждого источника как complete/partial/failed; launch не принимает молчаливый неполный pack. Atomic local JSON temp+rename, last-good recovery и surfaced save failure; preferences остаются локальными.",
+      "visible": "Старые данные имеют возраст; частичный pack перечисляет недоступное; настройка с ошибкой записи помечена несохранённой.",
+      "acceptance": "Late A→B, failed memory query, successful overview+failed misses, interrupted local save и write denied: данные/черновик сохранены, no false success. Cursor не перескакивает непрочитанное.",
+      "depends_on": [
+        "S02"
+      ],
+      "previous_blocks": [
+        "W04",
+        "W17",
+        "W26"
+      ],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "S15",
+      "phase": "C",
+      "title": "Общий контракт повторяемого цикла",
+      "why": "Ретро и manager не могут ждать UI циклов, чтобы стать идемпотентными.",
+      "work": "Cycle/window identity, configured placement/cadence, trigger causation, durable lease/epoch, input watermark и checkpoint только после commit, start/skip/finish/failure receipts. Coalesce/backoff/catch-up policy и total time/attempt budget, ручной wake через тот же entry.",
+      "visible": "Даже до M186 доступны правильные receipts: цикл пропущен без изменений, завершился, частично выполнен или ждёт восстановления.",
+      "acceptance": "Concurrent ticks, restart before/after commit, missed windows, DST и самопорождаемые события не дают дублей/wake storm; unknown не становится success.",
+      "depends_on": [
+        "S04",
+        "S14"
+      ],
+      "previous_blocks": [],
+      "status": "proposed",
+      "source": null
+    },
+    {
+      "id": "M166",
+      "phase": "G",
+      "title": "Детерминированное ядро CEO",
+      "why": "Сортировка и проверки не должны зависеть от настроения модели.",
+      "work": "Rank/hygiene/criticality/digest как pure tools over scoped readers; no-provider mode полезен; не объявлять продукт полностью готовым только из-за core.",
+      "visible": "Без модели доступны реальные действия ядра, advisory обозначено недоступным.",
+      "acceptance": "Повторный одинаковый input → тот же результат; errors не fake advisory; scopes не пересекаются.",
+      "depends_on": [
+        "M153",
+        "M158"
+      ],
+      "previous_blocks": [
+        "W29"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 652,
+        "title": "**The CEO's core, and it is the whole CEO without a provider**",
+        "description": "Hygiene, settlement by citation, criticality scoring and the digest arithmetic as pure modules in `shared/`, driven by the existing routine tick. **No loop, no framework, no key** — ADR-0038 decomposed the CEO and found four judgements among a dozen jobs, each of them a single typed transform rather than a goal pursued with tools. The product is complete at this step; everything after it is additive",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M167",
+      "phase": "G",
+      "title": "ModelPort может отсутствовать",
+      "why": "Встроенный loop не должен скрывать отсутствие провайдера.",
+      "work": "Typed provider capability/result/error port + fake, usage/timeout/abort contracts; отсутствие и отказ различаются.",
+      "visible": "Выбор manager объясняет доступные функции и способ оплаты/лимит, unknown cost не zero.",
+      "acceptance": "Absent/provider down/quota unknown отображаются и не меняют Board через заглушки.",
+      "depends_on": [
+        "M166"
+      ],
+      "previous_blocks": [
+        "W29"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 653,
+        "title": "**A model port that may be ABSENT, and absence is a state rather than a crash**",
+        "description": "A contract in `shared/` with a fake, so the core is tested against both a present and an absent provider. With none: the core runs unchanged, advisory calls are **skipped rather than stubbed** — a stub returns something, and something is what a person acts on — and the interface names which capabilities are unavailable instead of degrading quietly",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M168",
+      "phase": "D",
+      "title": "Checker перед любой записью предложения",
+      "why": "Общий manager interface без verifier не сохраняет гарантии.",
+      "work": "Проверять references/current versions/scope/permission/merge eligibility; journal rejection safe evidence. Этот минимальный checker независим от полного model port и может идти с M158.",
+      "visible": "Предложение отклонено с причиной, состояние проекта не изменено.",
+      "acceptance": "Несуществующие, чужие, устаревшие основания отвергнуты; два разных вопроса не сливаются из-за похожего текста.",
+      "depends_on": [
+        "S06"
+      ],
+      "previous_blocks": [
+        "W23",
+        "W29"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 654,
+        "title": "**The core is the checker, and a checker that never refuses is a finding**",
+        "description": "Every advisory output is validated against facts before it reaches the Board: a proposed merge names two questions that exist and share a project, a drafted answer cites a fact that is current, a re-order moves within a stated band. **A refusal is journalled with its reason** — the stored verdict the orchestrator checklist asks for, and the evidence that lowers the CEO's trust level when a provider misbehaves",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M169",
+      "phase": "G",
+      "title": "Provider router с общим бюджетом попыток",
+      "why": "Failover не должен умножать число оплаченных вызовов.",
+      "work": "Cap attempts across providers, cooldown/health probe, failover на границе turn; config версия моделей/цен, no invented cost; cancellation и per-request budget.",
+      "visible": "Пользователь видит причину смены, фактический usage и отсутствующие измерения.",
+      "acceptance": "Три провайдера не получают каждый новый retry budget; отмена завершает dispatch; incompatible session state не передаётся другому vendor.",
+      "depends_on": [
+        "M167",
+        "S04"
+      ],
+      "previous_blocks": [
+        "W29"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 655,
+        "title": "**The provider router — and the three traps that are each a real bill**",
+        "description": "Attempts capped **in total** rather than per provider, because three providers with three retries is nine calls for one prompt. An unhealthy provider probed **on a schedule**, because a check that only runs on failure never recovers and the chain runs one short with every request still succeeding. Failover **between turns only**, because reasoning carries a vendor credential and stripping it to move mid-turn is what produces the 400. Model, window and price at one boundary from configuration, never a table of vendor ids in source",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M171",
+      "phase": "G",
+      "title": "Учет model usage",
+      "why": "Показать цену wake невозможно без наблюдаемого usage.",
+      "work": "model.called/usage result с provider/model/revision и measured vs estimated cost; не считать unknown quota free.",
+      "visible": "Стоимость конкретной management iteration и суммарный бюджет доступны по раскрытию.",
+      "acceptance": "Отказ/partial response/retry учитываются один раз; цена не вычисляется по неактуальной зашитой таблице.",
+      "depends_on": [
+        "M167",
+        "S05"
+      ],
+      "previous_blocks": [
+        "W29",
+        "W30"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 657,
+        "title": "**`model.called@1`, and the cost surface**",
+        "description": "Provider, model, tokens and cost, journalled. The observable feed is then a view over a durable trace rather than the record itself — a stream nobody stored is a run that cannot be evaluated later. `quotaGate.ts` and `routine.ts` already prevent a CEO burning budget re-ranking a board nobody opened, so no new metering machinery is built",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M176",
+      "phase": "G",
+      "title": "Trajectory eval до настройки manager prompt",
+      "why": "Утверждение «все tool calls уже journalled» не подтверждено.",
+      "work": "Сначала S05 capture, затем корпус expected constraints и hostile/stale/absent/partial cases; checker outcome, unnecessary wake, intervention, evidence quality, cost. Synthetic conformance сначала, реальные пилотные traces позднее с scope/redaction.",
+      "visible": "В diagnostics версия policy/model/harness и какие проверки прошли; eval score не authority.",
+      "acceptance": "Корпус ловит seeded violations до подключения нового manager; baseline/candidate одинаковые задачи и ресурсы.",
+      "depends_on": [
+        "S05",
+        "M155",
+        "M168"
+      ],
+      "previous_blocks": [
+        "W20",
+        "W30"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 662,
+        "title": "**A CEO trajectory eval, before its prompt is tuned**",
+        "description": "The finding that orders the rest (`agent-harness`): with no evals every claim about an agent's behaviour is unfalsifiable, so the eval is the FIRST build step, ahead of the prompt. The corpus and the trace already exist — every tool call the agent makes is journalled — so this reads real trajectories rather than inventing a fixture",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M175",
+      "phase": "G",
+      "title": "Встроенный loop как один вариант manager",
+      "why": "Внешний provider не должен заставлять строить второй control plane.",
+      "work": "Небольшой tool loop над тем же manager service, общий total-attempt/time/budget guard и safe wrap-up. Recoverable retry ограничен отдельным total cap даже при iteration refund. Loop prompts после eval contract.",
+      "visible": "Одинаковые Board/decision/retro результаты и guard объяснения для built-in/external.",
+      "acceptance": "Пустой tool result/error/retry storm/trim/stop проверены; dormant no-provider не притворяется running.",
+      "depends_on": [
+        "M169",
+        "M171",
+        "M176",
+        "M194"
+      ],
+      "previous_blocks": [
+        "W29"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 661,
+        "title": "**The CEO is an agent — a small tool-calling loop, ours**",
+        "description": "The operator chose flexibility and tools (ADR-0039, superseding ADR-0038 §1/§6). ~150 lines of `agent-orchestrator` §2 over the `ModelPort` router, with the four guards: in-loop trimming, wrap-up injection, a max-iteration guard, an iteration refund on recoverable errors. **Auditability moves from the shape of the run to the tools**: `settle_by_citation` refuses a basis-less settlement in the schema, and every tool call is journalled so the trajectory IS the audit trail. Dormant with no provider — the deterministic tools are the whole core",
+        "status_claim": "proposed"
+      }
+    },
+    {
+      "id": "M194",
+      "phase": "G",
+      "title": "Manager/CEO: выбираемый binding и полный lifecycle",
+      "why": "Сейчас project-only binding не моделирует estate CEO; wake не всегда task-bound Run.",
+      "work": "RoleSlot scope estate(manager)/project(PM), binding revision+epoch+single-active lease. One manager tools/floor/checker. Management invocation без task отделить от task Run; external native session optional. Wake coalesce cursor/cadence/budget; durable addressed mailbox; session context/evidence; revoke stops future writes. Provider adapter with explicit capabilities, no promise all CLI tools intercepted.",
+      "visible": "Выбрать built-in/Claude Code/другой доступный → readiness/permissions/cost → bind. Текущий manager, scope, last wake, reason, phase, next due, last result. Замена сохраняет проект и историю, старое полномочие отозвано.",
+      "acceptance": "Два managers race→один active epoch; stale response отвергнут; crash/restart drains pending once; self-events не создают wake storm; два runner conformance и capability gaps честны.",
+      "depends_on": [
+        "M166",
+        "M168",
+        "M176",
+        "M155",
+        "M181",
+        "M152",
+        "M188",
+        "M103",
+        "S03",
+        "S04",
+        "S15"
+      ],
+      "previous_blocks": [
+        "W29"
+      ],
+      "status": "proposed",
+      "source": {
+        "line": 678,
+        "title": "**The manager seat is a binding — built-in or an external agent**",
+        "description": "`role=manager`, `provider_ref` = built-in / claude-code / … (ADR-0010/0021/0043). Fixed: the deterministic core, the checker, the schema floor, the trust ceiling, ONE manager tool surface. Selectable: only the judgement loop above the tools — every settlement by any seat passes the same floor into the same journal. Lifecycle by existing machinery: wake on tick/Board delta, verify by heartbeat + outside watch + trajectory eval, data in via the MANAGER PACK (lockfile journalled), data out ONLY through tools. The seat picker shows the cost difference",
+        "status_claim": "proposed"
+      }
+    }
+  ],
+  "execution_nodes": [
+    {
+      "id": "S01",
+      "parent_milestone": "S01",
+      "depends_on": []
+    },
+    {
+      "id": "S02",
+      "parent_milestone": "S02",
+      "depends_on": []
+    },
+    {
+      "id": "S03",
+      "parent_milestone": "S03",
+      "depends_on": [
+        "S02"
+      ]
+    },
+    {
+      "id": "S04",
+      "parent_milestone": "S04",
+      "depends_on": [
+        "S02",
+        "S03"
+      ]
+    },
+    {
+      "id": "S05",
+      "parent_milestone": "S05",
+      "depends_on": [
+        "S02"
+      ]
+    },
+    {
+      "id": "S06",
+      "parent_milestone": "S06",
+      "depends_on": [
+        "S02",
+        "S03"
+      ]
+    },
+    {
+      "id": "S07",
+      "parent_milestone": "S07",
+      "depends_on": [
+        "S01",
+        "S02",
+        "S03",
+        "S04"
+      ]
+    },
+    {
+      "id": "S08",
+      "parent_milestone": "S08",
+      "depends_on": [
+        "S04",
+        "S05",
+        "M152",
+        "M188",
+        "M176"
+      ]
+    },
+    {
+      "id": "S09",
+      "parent_milestone": "S09",
+      "depends_on": [
+        "S07",
+        "S08",
+        "M185"
+      ]
+    },
+    {
+      "id": "S10",
+      "parent_milestone": "S10",
+      "depends_on": []
+    },
+    {
+      "id": "S11",
+      "parent_milestone": "S11",
+      "depends_on": []
+    },
+    {
+      "id": "S12",
+      "parent_milestone": "S12",
+      "depends_on": [
+        "S02",
+        "M198",
+        "S14"
+      ]
+    },
+    {
+      "id": "S13",
+      "parent_milestone": "S13",
+      "depends_on": [
+        "S01",
+        "S14"
+      ]
+    },
+    {
+      "id": "M103",
+      "parent_milestone": "M103",
+      "depends_on": [
+        "S04",
+        "S14"
+      ]
+    },
+    {
+      "id": "M195",
+      "parent_milestone": "M195",
+      "depends_on": []
+    },
+    {
+      "id": "M196",
+      "parent_milestone": "M196",
+      "depends_on": []
+    },
+    {
+      "id": "M197",
+      "parent_milestone": "M197",
+      "depends_on": []
+    },
+    {
+      "id": "M97",
+      "parent_milestone": "M97",
+      "depends_on": []
+    },
+    {
+      "id": "M198",
+      "parent_milestone": "M198",
+      "depends_on": [
+        "M97"
+      ]
+    },
+    {
+      "id": "M109",
+      "parent_milestone": "M109",
+      "depends_on": []
+    },
+    {
+      "id": "M98",
+      "parent_milestone": "M98",
+      "depends_on": [
+        "M109",
+        "S02"
+      ]
+    },
+    {
+      "id": "M102",
+      "parent_milestone": "M102",
+      "depends_on": [
+        "S14"
+      ]
+    },
+    {
+      "id": "M105",
+      "parent_milestone": "M105",
+      "depends_on": []
+    },
+    {
+      "id": "M177",
+      "parent_milestone": "M177",
+      "depends_on": [
+        "S05",
+        "S10"
+      ]
+    },
+    {
+      "id": "M155",
+      "parent_milestone": "M155",
+      "depends_on": [
+        "M177",
+        "S03"
+      ]
+    },
+    {
+      "id": "M178",
+      "parent_milestone": "M178",
+      "depends_on": [
+        "M177"
+      ]
+    },
+    {
+      "id": "M179",
+      "parent_milestone": "M179",
+      "depends_on": [
+        "M178",
+        "S04"
+      ]
+    },
+    {
+      "id": "M180",
+      "parent_milestone": "M180",
+      "depends_on": [
+        "M179"
+      ]
+    },
+    {
+      "id": "M181",
+      "parent_milestone": "M181",
+      "depends_on": [
+        "M180"
+      ]
+    },
+    {
+      "id": "M188",
+      "parent_milestone": "M188",
+      "depends_on": [
+        "M198",
+        "M177",
+        "S04",
+        "S10"
+      ]
+    },
+    {
+      "id": "M149",
+      "parent_milestone": "M149",
+      "depends_on": [
+        "S06",
+        "M177"
+      ]
+    },
+    {
+      "id": "M151",
+      "parent_milestone": "M151",
+      "depends_on": [
+        "M149"
+      ]
+    },
+    {
+      "id": "M152",
+      "parent_milestone": "M152",
+      "depends_on": [
+        "M151",
+        "M188",
+        "S06"
+      ]
+    },
+    {
+      "id": "M153",
+      "parent_milestone": "M153",
+      "depends_on": [
+        "M152"
+      ]
+    },
+    {
+      "id": "M154",
+      "parent_milestone": "M154",
+      "depends_on": [
+        "M182"
+      ]
+    },
+    {
+      "id": "M182",
+      "parent_milestone": "M182",
+      "depends_on": [
+        "S10"
+      ]
+    },
+    {
+      "id": "M183.local",
+      "depends_on": [
+        "M182",
+        "S02",
+        "S14"
+      ],
+      "scope": "Локальный default-on intake без сети",
+      "parent_milestone": "M183"
+    },
+    {
+      "id": "M183.upstream",
+      "depends_on": [
+        "M183.local",
+        "S03",
+        "S10"
+      ],
+      "scope": "Внешний transport только после privacy/endpoint gate",
+      "external_gates": [
+        "configured real endpoint",
+        "reviewed payload and metadata/retention contract",
+        "preview digest and deletion/optout tests"
+      ],
+      "parent_milestone": "M183"
+    },
+    {
+      "id": "M184",
+      "parent_milestone": "M184",
+      "depends_on": [
+        "M182",
+        "M154",
+        "M153",
+        "M151",
+        "S15"
+      ]
+    },
+    {
+      "id": "M173",
+      "parent_milestone": "M173",
+      "depends_on": [
+        "M152",
+        "S14"
+      ]
+    },
+    {
+      "id": "M157",
+      "parent_milestone": "M157",
+      "depends_on": [
+        "M152",
+        "M158",
+        "M168"
+      ]
+    },
+    {
+      "id": "M158",
+      "parent_milestone": "M158",
+      "depends_on": [
+        "M152"
+      ]
+    },
+    {
+      "id": "M185",
+      "parent_milestone": "M185",
+      "depends_on": [
+        "M151",
+        "S14"
+      ]
+    },
+    {
+      "id": "M186",
+      "parent_milestone": "M186",
+      "depends_on": [
+        "S15",
+        "M180"
+      ]
+    },
+    {
+      "id": "M187",
+      "parent_milestone": "M187",
+      "depends_on": []
+    },
+    {
+      "id": "M189",
+      "parent_milestone": "M189",
+      "depends_on": [
+        "M188",
+        "M178",
+        "S14"
+      ]
+    },
+    {
+      "id": "M190",
+      "parent_milestone": "M190",
+      "depends_on": [
+        "M188",
+        "M152",
+        "S14"
+      ]
+    },
+    {
+      "id": "M191",
+      "parent_milestone": "M191",
+      "depends_on": [
+        "S14"
+      ]
+    },
+    {
+      "id": "S14",
+      "parent_milestone": "S14",
+      "depends_on": [
+        "S02"
+      ]
+    },
+    {
+      "id": "S15",
+      "parent_milestone": "S15",
+      "depends_on": [
+        "S04",
+        "S14"
+      ]
+    },
+    {
+      "id": "M166",
+      "parent_milestone": "M166",
+      "depends_on": [
+        "M153",
+        "M158"
+      ]
+    },
+    {
+      "id": "M167",
+      "parent_milestone": "M167",
+      "depends_on": [
+        "M166"
+      ]
+    },
+    {
+      "id": "M168",
+      "parent_milestone": "M168",
+      "depends_on": [
+        "S06"
+      ]
+    },
+    {
+      "id": "M169",
+      "parent_milestone": "M169",
+      "depends_on": [
+        "M167",
+        "S04"
+      ]
+    },
+    {
+      "id": "M171",
+      "parent_milestone": "M171",
+      "depends_on": [
+        "M167",
+        "S05"
+      ]
+    },
+    {
+      "id": "M176",
+      "parent_milestone": "M176",
+      "depends_on": [
+        "S05",
+        "M155",
+        "M168"
+      ]
+    },
+    {
+      "id": "M175",
+      "parent_milestone": "M175",
+      "depends_on": [
+        "M169",
+        "M171",
+        "M176",
+        "M194"
+      ]
+    },
+    {
+      "id": "M194",
+      "parent_milestone": "M194",
+      "depends_on": [
+        "M166",
+        "M168",
+        "M176",
+        "M155",
+        "M181",
+        "M152",
+        "M188",
+        "M103",
+        "S03",
+        "S04",
+        "S15"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "S02",
+      "to": "S03",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S02",
+      "to": "S04",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S03",
+      "to": "S04",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S02",
+      "to": "S05",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S02",
+      "to": "S06",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S03",
+      "to": "S06",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S01",
+      "to": "S07",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S02",
+      "to": "S07",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S03",
+      "to": "S07",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S04",
+      "to": "S07",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S04",
+      "to": "S08",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S05",
+      "to": "S08",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M152",
+      "to": "S08",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M188",
+      "to": "S08",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M176",
+      "to": "S08",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S07",
+      "to": "S09",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S08",
+      "to": "S09",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M185",
+      "to": "S09",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S02",
+      "to": "S12",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M198",
+      "to": "S12",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S14",
+      "to": "S12",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S01",
+      "to": "S13",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S14",
+      "to": "S13",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S04",
+      "to": "M103",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S14",
+      "to": "M103",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M97",
+      "to": "M198",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M109",
+      "to": "M98",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S02",
+      "to": "M98",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S14",
+      "to": "M102",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S05",
+      "to": "M177",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S10",
+      "to": "M177",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M177",
+      "to": "M155",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S03",
+      "to": "M155",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M177",
+      "to": "M178",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M178",
+      "to": "M179",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S04",
+      "to": "M179",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M179",
+      "to": "M180",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M180",
+      "to": "M181",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M198",
+      "to": "M188",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M177",
+      "to": "M188",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S04",
+      "to": "M188",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S10",
+      "to": "M188",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S06",
+      "to": "M149",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M177",
+      "to": "M149",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M149",
+      "to": "M151",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M151",
+      "to": "M152",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M188",
+      "to": "M152",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S06",
+      "to": "M152",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M152",
+      "to": "M153",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M182",
+      "to": "M154",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S10",
+      "to": "M182",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M182",
+      "to": "M183.local",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S02",
+      "to": "M183.local",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S14",
+      "to": "M183.local",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M183.local",
+      "to": "M183.upstream",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S03",
+      "to": "M183.upstream",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S10",
+      "to": "M183.upstream",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M182",
+      "to": "M184",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M154",
+      "to": "M184",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M153",
+      "to": "M184",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M151",
+      "to": "M184",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S15",
+      "to": "M184",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M152",
+      "to": "M173",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S14",
+      "to": "M173",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M152",
+      "to": "M157",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M158",
+      "to": "M157",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M168",
+      "to": "M157",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M152",
+      "to": "M158",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M151",
+      "to": "M185",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S14",
+      "to": "M185",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S15",
+      "to": "M186",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M180",
+      "to": "M186",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M188",
+      "to": "M189",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M178",
+      "to": "M189",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S14",
+      "to": "M189",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M188",
+      "to": "M190",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M152",
+      "to": "M190",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S14",
+      "to": "M190",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S14",
+      "to": "M191",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S02",
+      "to": "S14",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S04",
+      "to": "S15",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S14",
+      "to": "S15",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M153",
+      "to": "M166",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M158",
+      "to": "M166",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M166",
+      "to": "M167",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S06",
+      "to": "M168",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M167",
+      "to": "M169",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S04",
+      "to": "M169",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M167",
+      "to": "M171",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S05",
+      "to": "M171",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S05",
+      "to": "M176",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M155",
+      "to": "M176",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M168",
+      "to": "M176",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M169",
+      "to": "M175",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M171",
+      "to": "M175",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M176",
+      "to": "M175",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M194",
+      "to": "M175",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M166",
+      "to": "M194",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M168",
+      "to": "M194",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M176",
+      "to": "M194",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M155",
+      "to": "M194",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M181",
+      "to": "M194",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M152",
+      "to": "M194",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M188",
+      "to": "M194",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "M103",
+      "to": "M194",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S03",
+      "to": "M194",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S04",
+      "to": "M194",
+      "kind": "required_before_activation"
+    },
+    {
+      "from": "S15",
+      "to": "M194",
+      "kind": "required_before_activation"
+    }
+  ],
+  "previous_plan_map": {
+    "W01": [
+      "S01"
+    ],
+    "W02": [
+      "S01"
+    ],
+    "W03": [
+      "S01"
+    ],
+    "W04": [
+      "M185",
+      "S14"
+    ],
+    "W05": [
+      "S01"
+    ],
+    "W06": [
+      "S02"
+    ],
+    "W07": [
+      "S03",
+      "M195"
+    ],
+    "W08": [
+      "S03"
+    ],
+    "W09": [
+      "S04"
+    ],
+    "W10": [
+      "S04"
+    ],
+    "W11": [
+      "S03",
+      "M103",
+      "M155"
+    ],
+    "W12": [
+      "S07"
+    ],
+    "W13": [
+      "S07",
+      "M196"
+    ],
+    "W14": [
+      "S10",
+      "S12",
+      "M97"
+    ],
+    "W15": [
+      "M98"
+    ],
+    "W16": [
+      "M109"
+    ],
+    "W17": [
+      "S05",
+      "S12",
+      "M102",
+      "M105",
+      "M191",
+      "S14"
+    ],
+    "W18": [
+      "M198",
+      "M188",
+      "M189"
+    ],
+    "W19": [
+      "M178",
+      "M179",
+      "M180",
+      "M181"
+    ],
+    "W20": [
+      "S05",
+      "M177",
+      "M155",
+      "M176"
+    ],
+    "W21": [
+      "S06"
+    ],
+    "W22": [
+      "S06",
+      "M149",
+      "M151",
+      "M152"
+    ],
+    "W23": [
+      "M157",
+      "M158",
+      "M168"
+    ],
+    "W24": [
+      "M153",
+      "M154",
+      "M182",
+      "M184",
+      "M173"
+    ],
+    "W25": [
+      "S08"
+    ],
+    "W26": [
+      "S13",
+      "M185",
+      "M187",
+      "M189",
+      "M190",
+      "M191",
+      "S14"
+    ],
+    "W27": [
+      "S09"
+    ],
+    "W28": [
+      "S09"
+    ],
+    "W29": [
+      "S08",
+      "M166",
+      "M167",
+      "M168",
+      "M169",
+      "M171",
+      "M175",
+      "M194"
+    ],
+    "W30": [
+      "S08",
+      "M171",
+      "M176"
+    ],
+    "W31": [
+      "S11"
+    ]
+  },
+  "verification": {
+    "all_attachment_milestones_present": true,
+    "all_previous_blocks_mapped": true,
+    "requirements_with_work": 31,
+    "work_cards": 57,
+    "execution_nodes": 58,
+    "dependency_edges": 108,
+    "dag_acyclic": true,
+    "topological_order": [
+      "M105",
+      "M109",
+      "M187",
+      "M195",
+      "M196",
+      "M197",
+      "M97",
+      "S01",
+      "S02",
+      "S10",
+      "S11",
+      "M198",
+      "S03",
+      "S05",
+      "M98",
+      "S14",
+      "M182",
+      "S04",
+      "S06",
+      "M177",
+      "S12",
+      "S13",
+      "M102",
+      "M191",
+      "M154",
+      "M183.local",
+      "S07",
+      "M103",
+      "S15",
+      "M168",
+      "M155",
+      "M178",
+      "M188",
+      "M149",
+      "M183.upstream",
+      "M176",
+      "M179",
+      "M189",
+      "M151",
+      "M180",
+      "M152",
+      "M185",
+      "M181",
+      "M186",
+      "S08",
+      "M153",
+      "M173",
+      "M158",
+      "M190",
+      "S09",
+      "M184",
+      "M157",
+      "M166",
+      "M167",
+      "M194",
+      "M169",
+      "M171",
+      "M175"
+    ]
+  },
+  "canonical_files_changed": false,
+  "code_changed": false,
+  "live_external_actions_performed": false
+}

@@ -1,0 +1,36 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Pending staged receipt and gitlink are not a completed parent commit
++ actual - expected
+
++ {
++   content_digest: '2032d3d9a25887ea5f4c7ec8703b0f3a97d417bde881a9e2ec6fa5e8762f7f11',
++   heroku_app: 'fixture',
++   release: 1,
++   schema: 1,
++   source_commit: 'cb74b906aaaff8843f5082e1180458a570ebf627',
++   workspace_commit: 'ea155ffe5f01ec6bfec3d23ef4c7ef16180519f8'
++ }
+- null
+
+    at file:///private/tmp/fabric-workspace-skill/maintaining-fabric-workspace/scripts/evaluate.mjs:77:10
+    at test (file:///private/tmp/fabric-workspace-skill/maintaining-fabric-workspace/scripts/evaluate.mjs:30:24)
+    at file:///private/tmp/fabric-workspace-skill/maintaining-fabric-workspace/scripts/evaluate.mjs:54:2 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: {
+    schema: 1,
+    source_commit: 'cb74b906aaaff8843f5082e1180458a570ebf627',
+    workspace_commit: 'ea155ffe5f01ec6bfec3d23ef4c7ef16180519f8',
+    content_digest: '2032d3d9a25887ea5f4c7ec8703b0f3a97d417bde881a9e2ec6fa5e8762f7f11',
+    heroku_app: 'fixture',
+    release: 1
+  },
+  expected: null,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.8.1

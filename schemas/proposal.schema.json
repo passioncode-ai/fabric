@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.local/schemas/proposal.schema.json",
+  "title": "Fabric cross-project proposal",
+  "description": "An immutable evidence-backed request from one project to another project's Product Manager.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "proposal"],
+  "properties": {
+    "schemaVersion": {"const": "0.1.0"},
+    "proposal": {"$ref": "#/$defs/proposal"}
+  },
+  "$defs": {
+    "uri": {"type": "string", "format": "uri", "minLength": 1},
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observationRef", "sourceRef", "observedAt", "claim"],
+      "properties": {
+        "observationRef": {"$ref": "#/$defs/uri"},
+        "sourceRef": {"$ref": "#/$defs/uri"},
+        "observedAt": {"type": "string", "format": "date-time"},
+        "claim": {"type": "string", "minLength": 1},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "expiresAt": {"type": "string", "format": "date-time"}
+      }
+    },
+    "resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decidedAt", "decidedByAgentBindingRef", "reason"],
+      "properties": {
+        "decidedAt": {"type": "string", "format": "date-time"},
+        "decidedByAgentBindingRef": {"$ref": "#/$defs/uri"},
+        "reason": {"type": "string", "minLength": 1},
+        "createdGoalRef": {"$ref": "#/$defs/uri"},
+        "supersedingProposalRef": {"$ref": "#/$defs/uri"}
+      }
+    },
+    "proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "sourceProjectRef", "targetProjectRef", "sourceArtifactRef",
+        "requestedOutcome", "createdAt", "idempotencyKey", "status", "evidence"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/uri"},
+        "sourceProjectRef": {"$ref": "#/$defs/uri"},
+        "targetProjectRef": {"$ref": "#/$defs/uri"},
+        "sourceArtifactRef": {"$ref": "#/$defs/uri"},
+        "requestedOutcome": {"type": "string", "minLength": 1},
+        "createdAt": {"type": "string", "format": "date-time"},
+        "idempotencyKey": {"type": "string", "minLength": 12, "maxLength": 200},
+        "status": {
+          "enum": ["pending", "accepted", "refused", "superseded", "needs-refresh"]
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/evidence"}
+        },
+        "resolution": {"$ref": "#/$defs/resolution"}
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {"enum": ["accepted", "refused", "superseded"]}
+            },
+            "required": ["status"]
+          },
+          "then": {"required": ["resolution"]}
+        },
+        {
+          "if": {
+            "properties": {"status": {"enum": ["pending", "needs-refresh"]}},
+            "required": ["status"]
+          },
+          "then": {"not": {"required": ["resolution"]}}
+        }
+      ]
+    }
+  }
+}

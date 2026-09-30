@@ -1,0 +1,534 @@
+{
+  "date": "2026-09-09",
+  "baseline_commit": "d28c321ccca8c4ef0e803ebea5b7ba056e88bc5d",
+  "previous_delta_commit": "25026daef6dc1829581ca9fe1f68495761dfd1cf",
+  "source_commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+  "scope": "Read-only exact git-object diff and pure target-fixture probes; no browser/native/provider calls.",
+  "baseline_80_scenarios": "unchanged; SCN081–089 remain additive future scope",
+  "runtime_files_changed": [],
+  "runtime_findings_closed": [],
+  "adr": {
+    "id": "ADR-0052",
+    "requirement": "operator accepted auto availability",
+    "detail_status": "proposed policy/defaults",
+    "supersedes": "only ADR0051 no-automatic-rotation scope clause"
+  },
+  "scenarios": [
+    {
+      "id": "SCN-088",
+      "runtime_verdict": "BLOCKED",
+      "runtime_reason": "Draft/coverage none; delta contains no apps/packages/supabase implementation. No provider runtime acceptance attempted.",
+      "design_verdict": "PARTIAL",
+      "evidence": [
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "docs/ux/scenarios.md",
+          "line": 2025
+        },
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "docs/adr/0052-provider-account-automatic-switching.md",
+          "line": 10
+        },
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "scripts/product/provider-accounts.mjs",
+          "line": 71
+        }
+      ],
+      "finding": "Opt-in enrollment, best/consume-first, no repeat confirmation and same coordinator are specified. Fixture demonstrates a no-confirmation counter transition, not native account/identity/budget preservation; full account pool/policy revisions and editable thresholds are future M199.ui/auto.",
+      "owners": [
+        "M199.auto",
+        "M199.resume",
+        "M199.ui",
+        "M199.acceptance"
+      ]
+    },
+    {
+      "id": "SCN-089",
+      "runtime_verdict": "BLOCKED",
+      "runtime_reason": "No runtime implementation/acceptance in delta.",
+      "design_verdict": "FAIL",
+      "evidence": [
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "docs/ux/scenarios.md",
+          "line": 2042
+        },
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "scripts/product/provider-accounts.mjs",
+          "line": 74
+        },
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "scripts/product/provider-accounts.mjs",
+          "line": 94
+        },
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "scripts/product/provider-accounts.mjs",
+          "line": 97
+        }
+      ],
+      "finding": "Pure fixture reproduction contradicts hold semantics: queued switch B + unknown observation still commits B at boundary; deleting queued B allows boundary commit with empty account ID. Ordinary exclude/pause paths cancel queue, but these invalidations do not.",
+      "owners": [
+        "M199.auto",
+        "M199.accounts",
+        "M199.resume",
+        "M199.ui",
+        "M199.acceptance"
+      ]
+    }
+  ],
+  "related_scenario_updates": [
+    {
+      "id": "SCN-083",
+      "design_status": "PARTIAL unchanged",
+      "why": "Empty alternate-account selector and active no-op prepare remain."
+    },
+    {
+      "id": "SCN-086",
+      "design_status": "PARTIAL",
+      "why": "Removal checks current/default accounts but omits queued operation target in fixture."
+    }
+  ],
+  "catalog": [
+    {
+      "id": "M199.probe",
+      "title": "Проверить изоляцию входа и возможности native resume",
+      "depends_on": [],
+      "execution_node_matches": true,
+      "status": "proposed_contract_not_implemented",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/architecture/engineering-specs.json",
+        "line": 12277
+      }
+    },
+    {
+      "id": "M199.accounts",
+      "title": "Локальный реестр аккаунтов и официальный вход",
+      "depends_on": [
+        "M199.probe"
+      ],
+      "execution_node_matches": true,
+      "status": "proposed_contract_not_implemented",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/architecture/engineering-specs.json",
+        "line": 12338
+      }
+    },
+    {
+      "id": "M199.auth",
+      "title": "Изолированный auth context и координация refresh",
+      "depends_on": [
+        "M199.accounts"
+      ],
+      "execution_node_matches": true,
+      "status": "proposed_contract_not_implemented",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/architecture/engineering-specs.json",
+        "line": 12403
+      }
+    },
+    {
+      "id": "M199.binding",
+      "title": "Закрепить аккаунт и native conversation при запуске",
+      "depends_on": [
+        "M199.auth",
+        "S04",
+        "M188"
+      ],
+      "execution_node_matches": true,
+      "status": "proposed_contract_not_implemented",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/architecture/engineering-specs.json",
+        "line": 12468
+      }
+    },
+    {
+      "id": "M199.resume",
+      "title": "Транзакция смены аккаунта с checkpoint и восстановлением",
+      "depends_on": [
+        "M199.binding",
+        "S03.effects"
+      ],
+      "execution_node_matches": true,
+      "status": "proposed_contract_not_implemented",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/architecture/engineering-specs.json",
+        "line": 12535
+      }
+    },
+    {
+      "id": "M199.usage",
+      "title": "Квота того же аккаунта, который запускает работу",
+      "depends_on": [
+        "M199.auth"
+      ],
+      "execution_node_matches": true,
+      "status": "proposed_contract_not_implemented",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/architecture/engineering-specs.json",
+        "line": 12603
+      }
+    },
+    {
+      "id": "M199.auto",
+      "title": "Автосмена по квотам: политика, выбор, polling и защита от циклов",
+      "depends_on": [
+        "M199.resume",
+        "M199.usage"
+      ],
+      "execution_node_matches": true,
+      "status": "proposed_contract_not_implemented",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/architecture/engineering-specs.json",
+        "line": 12669
+      }
+    },
+    {
+      "id": "M199.ui",
+      "title": "Экран аккаунтов и управление автопереключением",
+      "depends_on": [
+        "M199.accounts",
+        "M199.binding",
+        "M199.usage",
+        "M199.auto"
+      ],
+      "execution_node_matches": true,
+      "status": "proposed_contract_not_implemented",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/architecture/engineering-specs.json",
+        "line": 12745
+      }
+    },
+    {
+      "id": "M199.acceptance",
+      "title": "Проверить manual и automatic A→B→A на реальных CLI",
+      "depends_on": [
+        "M199.ui"
+      ],
+      "execution_node_matches": true,
+      "status": "proposed_contract_not_implemented",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/architecture/engineering-specs.json",
+        "line": 12815
+      }
+    }
+  ],
+  "catalog_parent": {
+    "id": "M199",
+    "depends_on": [
+      "M199.acceptance"
+    ],
+    "role": "completion aggregate, not tenth implementation"
+  },
+  "catalog_checks": {
+    "children_count": 9,
+    "all_part_execution_dependencies_match": true,
+    "source_declared_status": "proposed_contract_not_implemented"
+  },
+  "policy_changes": [
+    {
+      "change": "Scope reversal",
+      "statement": "Auto is now operator-required opt-in capability. ADR0052 overrides only no-automatic-rotation clause of ADR0051; old record remains immutable. Requirement accepted; detailed policy/defaults still proposed.",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/adr/0052-provider-account-automatic-switching.md",
+        "line": 3
+      }
+    },
+    {
+      "change": "Enrollment authorization",
+      "statement": "Explicit pool/provider/runtime/project scope + existing-conversation enrollment permits eligible later switches without per-switch reconfirmation. Defaults do not silently enroll existing conversations; manual pin opts out.",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/adr/0052-provider-account-automatic-switching.md",
+        "line": 10
+      }
+    },
+    {
+      "change": "Authority/identity",
+      "statement": "Provider account is not a Fabric grant. Recheck actor/membership, account identity, policy/binding/auth revisions and candidate scope/headroom before stop and commit. Unknown identity/usage/resume/effect holds; expired token follows coordinated refresh first.",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/architecture/provider-accounts.md",
+        "line": 197
+      }
+    },
+    {
+      "change": "Quotas/strategies",
+      "statement": "best uses max relevant account/model utilization; consume-first can move below threshold for earlier verified weekly reset + sufficient headroom. Missing windows are not zero. Ties prefer staying; typed quota exhaustion differs from 429/5xx/network/auth.",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/architecture/provider-accounts.md",
+        "line": 196
+      }
+    },
+    {
+      "change": "Proposed finite controls",
+      "statement": "90% used threshold, 60s polling, 300s cooldown, 10pp hysteresis, 12/hour proposed ceiling (3600/300); enclosing budget/deadline/attempts survive account/TaskRun change. Billed/API-key accounts excluded absent explicit bounded allowance.",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/architecture/provider-accounts.md",
+        "line": 189
+      }
+    },
+    {
+      "change": "Crash/pause",
+      "statement": "Persist dedup intent, cooldown/quarantine/pending operation/backoff; tick lease prevents duplicate dispatch; unknown stop reconciles same ID. Pause before stop cancels intent; after stop recovery only. App shutdown stops polling, restart reconciles first; no implied daemon.",
+      "evidence": {
+        "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+        "file": "docs/architecture/provider-accounts.md",
+        "line": 210
+      }
+    }
+  ],
+  "owner_updates": [
+    {
+      "id": "M199.auto",
+      "disposition": "Extend existing owner; required new capability replaces old no-auto exclusions in earlier audit addendum.",
+      "context": [
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "docs/architecture/engineering-specs.json",
+          "line": 12669
+        },
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "docs/architecture/provider-accounts.md",
+          "line": 181
+        }
+      ],
+      "solution": "One pure policy selector and persisted scheduler submit to M199.resume; no second execution engine. Invalidate queued intent on every observation/policy/account/authority revision change, not only explicit exclude control.",
+      "steps": [
+        "Freeze exact arithmetic for selected model windows, candidate freshness, threshold boundary, consume-first reset eligibility and 10pp hysteresis; use deterministic stay on ties. Specify rolling/hourly cap and time-source/restart behavior before storage implementation.",
+        "Persist policy enrollment/allowlist/scope/budgetRef plus immutable dedup intent with target account/auth/binding/policy/observation revisions.",
+        "Recheck actual target eligibility at certified boundary and immediately before stop; unknown newer observation produces hold and invalidates stale eligibility.",
+        "One tick lease, bounded refresh requests and per-account typed backoff; restore counters/cooldown/quarantine/pending operation before scheduling.",
+        "Reuse same selector for preview/dry-run, producing decision trace without credentials/PTY/paid-execution mutations."
+      ],
+      "positive_acceptance": [
+        "Enabled/enrolled A95%, fresh B20%, correct scope/native receipts → automatic switch through coordinator without another confirmation.",
+        "Both below threshold with earlier verified weekly reset B: consume-first selects B with headroom; best stays."
+      ],
+      "negative_acceptance": [
+        "Queued fresh B then unknown/stale observation cannot switch at boundary; duplicate tick and concurrent processes cannot create second operation.",
+        "89/91 oscillation cannot ping-pong; 12 accepted switches exhaust cap through restart/100% quota; budget never resets.",
+        "Wrong scope/provider/runtime, disabled/quarantined/revoked account, missing model window or unverified resume cannot become candidate."
+      ],
+      "dependencies": [
+        "M199.resume",
+        "M199.usage"
+      ],
+      "exclusions": [
+        "No cross-provider fallback, global credential swap, implicit background daemon or per-switch consent prompt after enrollment."
+      ]
+    },
+    {
+      "id": "M199.accounts",
+      "disposition": "Retain former PA01; add queued SwitchOperation references to safe removal dependency set.",
+      "context": [
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "docs/architecture/engineering-specs.json",
+          "line": 12338
+        },
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "scripts/product/provider-accounts.mjs",
+          "line": 94
+        }
+      ],
+      "solution": "Deletion/default/auth revision changes atomically invalidate dependent pending selection or refuse deletion until its owner resolves it. A queued target is a dependency before it becomes current.",
+      "steps": [
+        "List current bindings, defaults AND queued/active switch operations in remove preflight.",
+        "CAS remove account revision and dependent intent revision; notify read model that target became ineligible.",
+        "Keep current account/history/draft; local deletion remains separate from provider revocation."
+      ],
+      "positive_acceptance": [
+        "Unused account can be removed; existing history remains; blocked deletion names pending conversation/operation."
+      ],
+      "negative_acceptance": [
+        "Queued B deletion cannot later commit empty/missing B; deletion racing admission never succeeds against stale dependency list."
+      ],
+      "dependencies": [
+        "M199.probe"
+      ],
+      "exclusions": [
+        "No new task owner; no credentials in receipt."
+      ]
+    },
+    {
+      "id": "M199.resume",
+      "disposition": "Manual and automatic paths share transaction; retain former PA04 and revalidate at execution, even if selector said eligible earlier.",
+      "context": [
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "docs/architecture/engineering-specs.json",
+          "line": 12535
+        },
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "scripts/product/provider-accounts.mjs",
+          "line": 97
+        }
+      ],
+      "solution": "Immutable operation target and versioned checkpoint/identity/authority receipts are required inputs; never use mutable UI selected field as execution target.",
+      "steps": [
+        "Freeze target account/native conversation IDs on prepare; read latest existence/auth/scope/authority at boundary/stop/admission/commit.",
+        "Reject stale/empty/deleted target; reconcile unknown old writer/effect before new spawn intent.",
+        "After stop, pause/revoke permits fencing/recovery only; never starts another paid auto run."
+      ],
+      "positive_acceptance": [
+        "Valid intent has exactly one fenced writer and new linked Session/TaskRun under same open Task/native conversation."
+      ],
+      "negative_acceptance": [
+        "Late callback, missing target, wrong identity/native ack, crash after spawn intent and duplicate advance never duplicate spawn or effects."
+      ],
+      "dependencies": [
+        "M199.binding",
+        "S03.effects"
+      ],
+      "dependency_note": "Catalog has hard S03.effects prerequisite. Existing general-effect dispatcher deferral must be revisited against exact required outcome/fencing outputs when M199.resume starts; do not silently bypass edge or make whole unrelated backup product a prerequisite.",
+      "exclusions": [
+        "No handoff transcript substituted for native continuation."
+      ]
+    },
+    {
+      "id": "M199.ui",
+      "disposition": "Absorb ADD-PA-02 design refinement; empty-selector gap still open at new SHA, plus auto hold/removal interaction defects.",
+      "context": [
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "docs/architecture/engineering-specs.json",
+          "line": 12745
+        },
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "scripts/product/provider-accounts.mjs",
+          "line": 57
+        },
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "scripts/product/provider-accounts.mjs",
+          "line": 74
+        }
+      ],
+      "solution": "Render authoritative policy/operation states and useful no-candidate recovery; fixture should model same invalidations as declared design, while remaining explicitly non-runtime.",
+      "steps": [
+        "Zero eligible targets: no active no-op prepare; show reason and add/manage account action with preserved draft/history.",
+        "Render pool from actual accounts, not hardcoded Working+Reserve; removed target cannot remain advertised.",
+        "Unknown observation/deleted target invalidates waiting fixture intent; boundary does not infer target from mutable selected field.",
+        "Expose off/monitoring/waiting/switching/cooling/exhausted/held/paused plus reason, receipt and next probe; threshold/advanced controls align with policy source.",
+        "RU/EN, keyboard focus, narrow view and CAS conflict recovery; no extra confirmation on each eligible automatic switch."
+      ],
+      "positive_acceptance": [
+        "Enable displays affected conversation/scope/pool; pause retains draft; known no-candidate state gives actionable next step."
+      ],
+      "negative_acceptance": [
+        "Replay attached pure probes: unknown queued target must remain A, deleted queued B must remain A or controlled recovery, never account empty.",
+        "No native-success claim from fixture history/counter preservation; stale policy edit cannot silently overwrite another window."
+      ],
+      "dependencies": [
+        "M199.accounts",
+        "M199.binding",
+        "M199.usage",
+        "M199.auto"
+      ],
+      "exclusions": [
+        "Only existing M199.ui owner; design fixture repairs do not count as production UI."
+      ]
+    },
+    {
+      "id": "M199.acceptance",
+      "disposition": "Former PA06 now covers both manual and opted-in auto; runtime remains not executed.",
+      "context": [
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "docs/architecture/engineering-specs.json",
+          "line": 12815
+        },
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "docs/ux/scenarios.md",
+          "line": 2025
+        },
+        {
+          "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+          "file": "docs/ux/scenarios.md",
+          "line": 2042
+        }
+      ],
+      "solution": "Independent native identity/conversation/effect evidence plus failure controls; fixture tests verify design states separately.",
+      "steps": [
+        "Add pure fixture negative controls from provider-auto-probe.mjs and then invert expected bad outcomes in owning tests.",
+        "After certified adapter and explicit test-account authorization, run manual A→B→A and quota-trigger auto A→B without second confirmation.",
+        "Verify native markers/tool history, account subject at activation, unchanged other conversation, pending text and enclosing budget.",
+        "Crash/revoke/delete/unknown/reset/cooldown/hysteresis/exhausted/concurrent tick matrix scoped by provider CLI/OS/runtime; publish redacted observed receipts."
+      ],
+      "positive_acceptance": [
+        "Automatic success needs no second confirmation after enrollment and preserves all declared identity/history/budget boundaries."
+      ],
+      "negative_acceptance": [
+        "Wrong identity/native ack, repeated effect, changed other conversation or fabricated transcript-only resume must fail acceptance.",
+        "No authorized accounts/provider certificate → BLOCKED/not-executed, not PASS; resetAt clock alone is not fresh quota."
+      ],
+      "dependencies": [
+        "M199.ui"
+      ],
+      "exclusions": [
+        "This addendum authorizes no live login/spend/launch or recurring task."
+      ]
+    }
+  ],
+  "prior_addendum_disposition": [
+    {
+      "finding": "ADD-PA-01 no automatic rotation exclusion",
+      "status": "SUPERSEDED",
+      "by": "ADR0052/M199.auto; preserve same-provider/isolation/no effect replay exclusions"
+    },
+    {
+      "finding": "PA01–06 as current execution IDs",
+      "status": "REFINED",
+      "by": "M199.probe/accounts/auth/binding/resume/usage/auto/ui/acceptance; old plan dated snapshot"
+    },
+    {
+      "finding": "ADD-PA-02 empty selector",
+      "status": "OPEN",
+      "by": "M199.ui; reproduced at new SHA"
+    },
+    {
+      "finding": "ADD-PA-03 queue report deletion",
+      "status": "RESOLVED for this delta",
+      "by": "Restored docs/reports/2026-09-09-queue-progress-report.html byte-identical to d28c321 baseline (git diff --quiet exit0)"
+    }
+  ],
+  "checks": [
+    "git rev-parse 8a0e9dbc17ac → 8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+    "git diff --name-only 25026da 8a0e9db -- apps packages supabase → empty",
+    "git diff --quiet d28c321 8a0e9db -- docs/reports/2026-09-09-queue-progress-report.html → exit0",
+    "9 detailed part depends_on arrays equal corresponding execution_nodes arrays; M199 completion aggregate depends M199.acceptance",
+    "node /tmp/fabric-audit-20260909/provider-auto-probe.mjs → output log reproduces 3 fixture defects; initial probe syntax error corrected before results"
+  ],
+  "probe_artifacts": [
+    "provider-auto-probe.mjs",
+    "provider-auto-probe.log",
+    "provider-fixture-at-8a0e9db.mjs"
+  ],
+  "limits": [
+    "No runtime support/authority/identity acceptance inferred from design.",
+    "No upstream cswap facts reverified; source defaults reported as proposed design inputs only.",
+    "No repository modifications or agent/runtime interaction."
+  ]
+}

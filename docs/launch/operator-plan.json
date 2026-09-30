@@ -1,0 +1,597 @@
+{
+  "schema": "fabric-operator-plan/v1",
+  "status": "proposed-not-executed",
+  "baseline": "192cdcc29a9145d930bc696a9658f95987bceeb7",
+  "entry": "docs/launch/operator-first.md",
+  "audit": "docs/ux/audits/2026-09-15-r0-operator.md",
+  "plan": "docs/ux/plans/2026-09-15-r0-operator.md",
+  "contract": "docs/architecture/operator-interaction.md",
+  "requirements": [
+    "OF-01",
+    "OF-02",
+    "OF-03",
+    "OF-04",
+    "OF-05",
+    "OF-06",
+    "OF-07",
+    "OF-08",
+    "OF-09",
+    "OF-10",
+    "OF-11",
+    "OF-12"
+  ],
+  "capabilities": [
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "C07",
+    "C08",
+    "C09",
+    "C10",
+    "C11",
+    "C12",
+    "C13",
+    "C14",
+    "C15",
+    "C16",
+    "C17",
+    "C18",
+    "C19",
+    "C20",
+    "C21",
+    "C22",
+    "C23",
+    "C24",
+    "C25",
+    "C26",
+    "C27",
+    "C28",
+    "C29",
+    "C30"
+  ],
+  "findings": [
+    "AUD-2026-09-15-OF01",
+    "AUD-2026-09-15-OF02",
+    "AUD-2026-09-15-OF03",
+    "AUD-2026-09-15-OF04",
+    "AUD-2026-09-15-OF05",
+    "AUD-2026-09-15-OF06",
+    "AUD-2026-09-15-OF07",
+    "AUD-2026-09-15-OF08",
+    "AUD-2026-09-15-OF09",
+    "AUD-2026-09-15-OF10"
+  ],
+  "nodes": [
+    {
+      "id": "OX-01",
+      "title": "Область, адрес объекта и inventory",
+      "owner": "architecture",
+      "status": "planned",
+      "requirements": [
+        "OF-01",
+        "OF-03",
+        "OF-09",
+        "OF-12"
+      ],
+      "capabilities": [
+        "C02",
+        "C04",
+        "C06",
+        "C14",
+        "C17",
+        "C24",
+        "C29"
+      ],
+      "findings": [
+        "AUD-2026-09-15-OF01",
+        "AUD-2026-09-15-OF02"
+      ]
+    },
+    {
+      "id": "OX-02",
+      "title": "Полный UX-контракт R0",
+      "owner": "ux",
+      "status": "planned",
+      "requirements": [
+        "OF-01",
+        "OF-02",
+        "OF-03",
+        "OF-04",
+        "OF-05",
+        "OF-06",
+        "OF-07",
+        "OF-08",
+        "OF-09",
+        "OF-10",
+        "OF-11",
+        "OF-12"
+      ],
+      "capabilities": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C11",
+        "C12",
+        "C13",
+        "C14",
+        "C15",
+        "C16",
+        "C17",
+        "C18",
+        "C19",
+        "C20",
+        "C21",
+        "C22",
+        "C23",
+        "C24",
+        "C25",
+        "C26",
+        "C27",
+        "C28",
+        "C29",
+        "C30"
+      ],
+      "findings": [
+        "AUD-2026-09-15-OF01",
+        "AUD-2026-09-15-OF02",
+        "AUD-2026-09-15-OF03",
+        "AUD-2026-09-15-OF04",
+        "AUD-2026-09-15-OF05",
+        "AUD-2026-09-15-OF06",
+        "AUD-2026-09-15-OF07",
+        "AUD-2026-09-15-OF08",
+        "AUD-2026-09-15-OF09",
+        "AUD-2026-09-15-OF10"
+      ]
+    },
+    {
+      "id": "OX-03",
+      "title": "Минимальная композиция и раскрытие",
+      "owner": "design",
+      "status": "planned",
+      "requirements": [
+        "OF-02",
+        "OF-03"
+      ],
+      "capabilities": [
+        "C01",
+        "C03",
+        "C05",
+        "C14",
+        "C16",
+        "C17"
+      ],
+      "findings": [
+        "AUD-2026-09-15-OF09"
+      ]
+    },
+    {
+      "id": "OX-04",
+      "title": "Связный интерактивный макет",
+      "owner": "prototype",
+      "status": "planned",
+      "requirements": [
+        "OF-01",
+        "OF-03",
+        "OF-04",
+        "OF-06",
+        "OF-11"
+      ],
+      "capabilities": [
+        "C02",
+        "C04",
+        "C06",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C11",
+        "C12",
+        "C13",
+        "C14",
+        "C15",
+        "C17",
+        "C18",
+        "C24",
+        "C25",
+        "C26"
+      ],
+      "findings": [
+        "AUD-2026-09-15-OF01",
+        "AUD-2026-09-15-OF02",
+        "AUD-2026-09-15-OF05",
+        "AUD-2026-09-15-OF07",
+        "AUD-2026-09-15-OF08"
+      ]
+    },
+    {
+      "id": "OX-05",
+      "title": "Durable разговор и outbox",
+      "owner": "data",
+      "status": "planned",
+      "requirements": [
+        "OF-08",
+        "OF-09",
+        "OF-11"
+      ],
+      "capabilities": [
+        "C24",
+        "C25",
+        "C28",
+        "C29"
+      ],
+      "findings": [
+        "AUD-2026-09-15-OF03"
+      ]
+    },
+    {
+      "id": "OX-06",
+      "title": "Текстовый CEO и command receipt",
+      "owner": "ceo",
+      "status": "planned",
+      "requirements": [
+        "OF-04",
+        "OF-05",
+        "OF-06"
+      ],
+      "capabilities": [
+        "C08",
+        "C10",
+        "C11",
+        "C13",
+        "C24",
+        "C25",
+        "C26"
+      ],
+      "findings": [
+        "AUD-2026-09-15-OF03",
+        "AUD-2026-09-15-OF05",
+        "AUD-2026-09-15-OF06"
+      ]
+    },
+    {
+      "id": "OX-07",
+      "title": "Запись, STT и отправка голоса",
+      "owner": "desktop-media",
+      "status": "planned",
+      "requirements": [
+        "OF-07",
+        "OF-08",
+        "OF-11"
+      ],
+      "capabilities": [
+        "C27",
+        "C30"
+      ],
+      "findings": [
+        "AUD-2026-09-15-OF04"
+      ]
+    },
+    {
+      "id": "OX-08",
+      "title": "Атрибуция, timeline и поиск",
+      "owner": "knowledge",
+      "status": "planned",
+      "requirements": [
+        "OF-03",
+        "OF-08",
+        "OF-09"
+      ],
+      "capabilities": [
+        "C05",
+        "C12",
+        "C19",
+        "C28",
+        "C29"
+      ],
+      "findings": [
+        "AUD-2026-09-15-OF03",
+        "AUD-2026-09-15-OF08"
+      ]
+    },
+    {
+      "id": "OX-09",
+      "title": "Настройка команды",
+      "owner": "agent-lifecycle",
+      "status": "planned",
+      "requirements": [
+        "OF-06",
+        "OF-10",
+        "OF-11"
+      ],
+      "capabilities": [
+        "C20",
+        "C21",
+        "C22",
+        "C26"
+      ],
+      "findings": [
+        "AUD-2026-09-15-OF06"
+      ]
+    },
+    {
+      "id": "OX-10",
+      "title": "Готовые рабочие циклы",
+      "owner": "workflow",
+      "status": "planned",
+      "requirements": [
+        "OF-04",
+        "OF-06",
+        "OF-10"
+      ],
+      "capabilities": [
+        "C09",
+        "C14",
+        "C15",
+        "C23",
+        "C26"
+      ],
+      "findings": [
+        "AUD-2026-09-15-OF06"
+      ]
+    },
+    {
+      "id": "OX-11",
+      "title": "Самостоятельность и исключения",
+      "owner": "governance",
+      "status": "planned",
+      "requirements": [
+        "OF-04",
+        "OF-05"
+      ],
+      "capabilities": [
+        "C06",
+        "C08",
+        "C10",
+        "C22"
+      ],
+      "findings": [
+        "AUD-2026-09-15-OF05",
+        "AUD-2026-09-15-OF06"
+      ]
+    },
+    {
+      "id": "OX-12",
+      "title": "Сквозная приёмка R0",
+      "owner": "delivery",
+      "status": "planned",
+      "requirements": [
+        "OF-01",
+        "OF-02",
+        "OF-03",
+        "OF-04",
+        "OF-05",
+        "OF-06",
+        "OF-07",
+        "OF-08",
+        "OF-09",
+        "OF-10",
+        "OF-11",
+        "OF-12"
+      ],
+      "capabilities": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C11",
+        "C12",
+        "C13",
+        "C14",
+        "C15",
+        "C16",
+        "C17",
+        "C18",
+        "C19",
+        "C20",
+        "C21",
+        "C22",
+        "C23",
+        "C24",
+        "C25",
+        "C26",
+        "C27",
+        "C28",
+        "C29",
+        "C30"
+      ],
+      "findings": [
+        "AUD-2026-09-15-OF10"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "OX-01",
+      "to": "OX-02",
+      "kind": "data",
+      "payload": "ScopeRef/SubjectRef/command outcomes и inventory"
+    },
+    {
+      "from": "OX-02",
+      "to": "OX-03",
+      "kind": "data",
+      "payload": "Подтверждённые actions/states и обязательные входы"
+    },
+    {
+      "from": "OX-03",
+      "to": "OX-04",
+      "kind": "data",
+      "payload": "Screen/disclosure specification и render targets"
+    },
+    {
+      "from": "OX-01",
+      "to": "OX-05",
+      "kind": "data",
+      "payload": "Journal/storage owner и типы адресации"
+    },
+    {
+      "from": "OX-02",
+      "to": "OX-05",
+      "kind": "data",
+      "payload": "Lifecycle пользовательского ввода и delivery states"
+    },
+    {
+      "from": "OX-05",
+      "to": "OX-06",
+      "kind": "data",
+      "payload": "Durable messages, idempotent requests и outbox"
+    },
+    {
+      "from": "OX-05",
+      "to": "OX-07",
+      "kind": "data",
+      "payload": "Draft/Message persistence и input contract"
+    },
+    {
+      "from": "OX-06",
+      "to": "OX-08",
+      "kind": "data",
+      "payload": "Message/command/result refs для двусторонних связей"
+    },
+    {
+      "from": "OX-06",
+      "to": "OX-09",
+      "kind": "control",
+      "payload": "Один typed proposal/command gateway"
+    },
+    {
+      "from": "OX-06",
+      "to": "OX-10",
+      "kind": "control",
+      "payload": "Тот же gateway для cycle configuration"
+    },
+    {
+      "from": "OX-06",
+      "to": "OX-11",
+      "kind": "authorization",
+      "payload": "Policy-aware command path и refusal receipts"
+    },
+    {
+      "from": "OX-04",
+      "to": "OX-12",
+      "kind": "data",
+      "payload": "Реализованный путь и scoped acceptance receipts"
+    },
+    {
+      "from": "OX-07",
+      "to": "OX-12",
+      "kind": "data",
+      "payload": "Реализованный путь и scoped acceptance receipts"
+    },
+    {
+      "from": "OX-08",
+      "to": "OX-12",
+      "kind": "data",
+      "payload": "Реализованный путь и scoped acceptance receipts"
+    },
+    {
+      "from": "OX-09",
+      "to": "OX-12",
+      "kind": "data",
+      "payload": "Реализованный путь и scoped acceptance receipts"
+    },
+    {
+      "from": "OX-10",
+      "to": "OX-12",
+      "kind": "data",
+      "payload": "Реализованный путь и scoped acceptance receipts"
+    },
+    {
+      "from": "OX-11",
+      "to": "OX-12",
+      "kind": "data",
+      "payload": "Реализованный путь и scoped acceptance receipts"
+    },
+    {
+      "from": "OX-06",
+      "to": "OX-07",
+      "kind": "control",
+      "payload": "Integration acceptance requires the same text-to-command submission path; capture development can start after OX-05"
+    }
+  ],
+  "external_prerequisites": [
+    {
+      "node": "OX-01",
+      "source": "D01/P0",
+      "meaning": "Same inventory pass; do not run two duplicate inventories",
+      "home": "docs/audit/2026-09-15-launch/packets.md"
+    },
+    {
+      "node": "OX-06",
+      "source": "CO-158 + M166…M175",
+      "meaning": "Per-tool producer/core/ModelPort readiness before activation",
+      "home": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md"
+    },
+    {
+      "node": "OX-07",
+      "source": "Target OS + STT + retention + budget",
+      "meaning": "Measure native capability and choose adapter before activation",
+      "home": "docs/architecture/operator-interaction.md"
+    },
+    {
+      "node": "OX-10",
+      "source": "P4/P5 + S15",
+      "meaning": "Cycle windows, replay, authority and host liveness receipts",
+      "home": "docs/architecture/personal-fabric-pulse.md"
+    },
+    {
+      "node": "OX-11",
+      "source": "ADR-0036/0039 + S09",
+      "meaning": "Real command boundary enforcement, not a prompt promise",
+      "home": "docs/architecture/system-contract.md"
+    },
+    {
+      "node": "OX-12",
+      "source": "P1-P5 + L01-L06 runtime receipts",
+      "meaning": "Identity, onboarding/order, context, Board, live, activity/releases must work in desktop; OX-04 prototype cannot satisfy this gate",
+      "home": "docs/ux/plans/2026-09-15-r0-operator.md"
+    }
+  ],
+  "resource_constraints": [
+    {
+      "paths": [
+        "scripts/product/controller.js",
+        "scripts/product/assistant.mjs"
+      ],
+      "nodes": [
+        "OX-04",
+        "OX-06",
+        "OX-07"
+      ],
+      "policy": "OX-01 supplies write sets; serialize integration in shared assembly"
+    },
+    {
+      "paths": [
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/shared/types.ts"
+      ],
+      "nodes": [
+        "OX-05",
+        "OX-06",
+        "OX-09",
+        "OX-10",
+        "OX-11"
+      ],
+      "policy": "One contract owner; do not parallel-edit assembly without resource ordering"
+    }
+  ],
+  "remaining_home": "CO-166",
+  "runtime_verdict": "BLOCKED: not exercised by this planning iteration"
+}

@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:fabric:schema:project-blueprint:0.1.0",
+  "title": "Fabric project blueprint revision",
+  "description": "One immutable configuration revision for a persistent Fabric project. It is architecture intent, not a storage migration.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "project", "manager", "targetScope", "agentBindings", "connectionBindings", "routines", "crossProjectPolicy", "memoryPolicy"],
+  "properties": {
+    "schemaVersion": {"const": "0.1.0"},
+    "project": {"$ref": "#/$defs/project"},
+    "manager": {"$ref": "#/$defs/manager"},
+    "targetScope": {"$ref": "#/$defs/targetScope"},
+    "agentBindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/agentBinding"}
+    },
+    "connectionBindings": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/connectionBinding"}
+    },
+    "routines": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/routine"}
+    },
+    "crossProjectPolicy": {"$ref": "#/$defs/crossProjectPolicy"},
+    "memoryPolicy": {"$ref": "#/$defs/memoryPolicy"}
+  },
+  "$defs": {
+    "uri": {"type": "string", "format": "uri", "minLength": 3},
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "revision", "name", "purpose", "createdAt", "createdBy"],
+      "properties": {
+        "id": {"$ref": "#/$defs/uri"},
+        "revision": {"type": "integer", "minimum": 1},
+        "predecessorRef": {"$ref": "#/$defs/uri"},
+        "name": {"type": "string", "minLength": 1, "maxLength": 120},
+        "purpose": {"type": "string", "minLength": 1, "maxLength": 500},
+        "templateRef": {"$ref": "#/$defs/uri"},
+        "createdAt": {"type": "string", "format": "date-time"},
+        "createdBy": {"$ref": "#/$defs/uri"}
+      }
+    },
+    "manager": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agentBindingId"],
+      "properties": {"agentBindingId": {"$ref": "#/$defs/uri"}}
+    },
+    "targetScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "projectRefs", "assetRefs"],
+      "properties": {
+        "mode": {"enum": ["owned-assets", "selected", "all-current", "all-current-and-future"]},
+        "projectRefs": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/uri"}},
+        "assetRefs": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/uri"}}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"mode": {"const": "selected"}}, "required": ["mode"]},
+          "then": {"anyOf": [{"properties": {"projectRefs": {"minItems": 1}}}, {"properties": {"assetRefs": {"minItems": 1}}}]}
+        }
+      ]
+    },
+    "agentBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "role", "providerBindingRef", "required", "status", "capabilities", "grantRefs"],
+      "properties": {
+        "id": {"$ref": "#/$defs/uri"},
+        "role": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+        "providerBindingRef": {"$ref": "#/$defs/uri"},
+        "configRevisionRef": {"$ref": "#/$defs/uri"},
+        "required": {"type": "boolean"},
+        "status": {"enum": ["enabled", "disabled", "retired"]},
+        "capabilities": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/uri"}},
+        "grantRefs": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/uri"}}
+      }
+    },
+    "resourceSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "resourceRefs"],
+      "properties": {
+        "kind": {"type": "string", "pattern": "^[a-z][a-z0-9.-]*$"},
+        "resourceRefs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/uri"}}
+      }
+    },
+    "connectionBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "connectionRef", "revision", "accessCeiling", "resourceSelectors", "allowedAgentBindingIds"],
+      "properties": {
+        "id": {"$ref": "#/$defs/uri"},
+        "connectionRef": {"$ref": "#/$defs/uri"},
+        "revision": {"type": "integer", "minimum": 1},
+        "accessCeiling": {"enum": ["read", "draft", "effect"]},
+        "resourceSelectors": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/resourceSelector"}},
+        "allowedAgentBindingIds": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/uri"}}
+      }
+    },
+    "trigger": {
+      "oneOf": [
+        {"type": "object", "additionalProperties": false, "required": ["kind"], "properties": {"kind": {"const": "manual"}}},
+        {"type": "object", "additionalProperties": false, "required": ["kind", "cron", "timezone"], "properties": {"kind": {"const": "schedule"}, "cron": {"type": "string", "minLength": 5}, "timezone": {"type": "string", "minLength": 1}}},
+        {"type": "object", "additionalProperties": false, "required": ["kind", "eventType"], "properties": {"kind": {"const": "event"}, "eventType": {"type": "string", "minLength": 1}}}
+      ]
+    },
+    "routine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "revision", "name", "enabled", "trigger", "capabilityRef", "preferredAgentBindingId", "targetScope", "concurrency", "catchUp", "checkerPolicyRef"],
+      "properties": {
+        "id": {"$ref": "#/$defs/uri"},
+        "revision": {"type": "integer", "minimum": 1},
+        "name": {"type": "string", "minLength": 1, "maxLength": 120},
+        "enabled": {"type": "boolean"},
+        "trigger": {"$ref": "#/$defs/trigger"},
+        "capabilityRef": {"$ref": "#/$defs/uri"},
+        "preferredAgentBindingId": {"$ref": "#/$defs/uri"},
+        "targetScope": {"$ref": "#/$defs/targetScope"},
+        "concurrency": {"enum": ["skip", "queue-one", "parallel"]},
+        "catchUp": {"enum": ["none", "latest-only", "all"]},
+        "checkerPolicyRef": {"$ref": "#/$defs/uri"}
+      }
+    },
+    "crossProjectPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["defaultDelivery", "directEffectGrantRefs"],
+      "properties": {
+        "defaultDelivery": {"const": "proposal-to-target-pm"},
+        "directEffectGrantRefs": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/uri"}}
+      }
+    },
+    "memoryPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectIsolation", "estatePromotion", "targetProjectTransfer"],
+      "properties": {
+        "projectIsolation": {"const": "strict"},
+        "estatePromotion": {"enum": ["reviewed-evidence-only", "disabled"]},
+        "targetProjectTransfer": {"const": "accepted-proposal-only"}
+      }
+    }
+  }
+}
+

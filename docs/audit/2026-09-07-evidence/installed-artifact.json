@@ -1,0 +1,19 @@
+{
+  "package.json": {
+    "bytes": 392,
+    "sha256": "d7772b149477707455fab29aa5575fd0f0fa0efeedcafd5f3fd87de8b3ccc546"
+  },
+  "version": "0.1.0",
+  "out/main/index.js": {
+    "bytes": 760619,
+    "sha256": "80087051c9f9bbc1ee2ed0011a395e6bdeed0f440eed1de7ce1f4cc9c92c13c4"
+  },
+  "out/preload/index.mjs": {
+    "bytes": 4451,
+    "sha256": "39bab2894a0005fbcede53fbbdf82bc1bb5780f603e8ad99bf82216c3cb1d2e4"
+  },
+  "out/renderer/assets/index-DRkIgerq.js": {
+    "bytes": 8078370,
+    "sha256": "da83444394bbb83d8d4300fdcca76f2a9bf61f09ef08c050727507aaf77e92d1"
+  }
+}

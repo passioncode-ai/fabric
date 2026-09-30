@@ -1,0 +1,1202 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PassionCode — карта экранов</title>
+<style>
+:root{color-scheme:dark;
+ --bg:#0a0a0a;--surface:#171717;--quiet:#262626;--ink:#fafafa;--muted:#a1a1a1;
+ --line:#ffffff1a;--line2:#ffffff26;--good:#34d06f;--warn:#fbbf24;--danger:#fb2c36;
+ --info:#60a5fa;--idle:#9a958a;--plum:#41054b;--magenta:#f20673;--gold:#ffd21a;
+ --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;
+ --rsm:5px;--rmd:8px;--rlg:11px;--pill:9999px;
+ --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+ --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:#050505;color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+.wrap{max-width:1400px;margin:0 auto;padding:44px 24px 90px}
+h1{font-size:2rem;margin:0 0 8px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:64px 0 4px;letter-spacing:-.01em;scroll-margin-top:20px}
+h3{font-size:1rem;margin:26px 0 6px}
+.sub{color:var(--muted);margin:0 0 24px}
+.label{font-family:var(--mono);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+code{font-family:var(--mono);font-size:.84em}
+.caption{font-size:.83rem;color:var(--muted);margin:0 0 14px;max-width:86ch}
+table{width:100%;border-collapse:collapse;font-size:.85rem;margin:12px 0}
+th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400}
+.note{border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:var(--rmd);padding:13px 15px;margin:16px 0;font-size:.89rem;color:var(--muted)}
+.note b{color:var(--ink)}.note.ok{border-left-color:var(--good)}.note.bad{border-left-color:var(--danger)}
+.tag{font-family:var(--mono);font-size:.59rem;letter-spacing:.07em;text-transform:uppercase;padding:1px 6px;
+ border-radius:var(--pill);border:1px solid var(--line2);color:var(--muted);white-space:nowrap}
+.t-has{border-color:var(--good);color:var(--good)}.t-new{border-color:var(--info);color:var(--info)}
+.t-move{border-color:var(--warn);color:var(--warn)}.t-cut{border-color:var(--danger);color:var(--danger)}
+a{color:var(--info);text-decoration:none}
+.toc{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:var(--s2);margin:16px 0 0}
+.toc a{display:block;border:1px solid var(--line);border-radius:var(--rsm);padding:8px 11px;font-size:.83rem;color:var(--ink)}
+.toc a span{display:block;font-size:.68rem;color:var(--muted);font-family:var(--mono)}
+
+/* window */
+.win{border:1px solid var(--line2);border-radius:var(--rlg);overflow:hidden;background:var(--bg);
+ margin:14px 0 6px;box-shadow:0 18px 50px #00000080;position:relative}
+.chrome{display:flex;align-items:center;gap:var(--s1);padding:var(--s2) var(--s3);background:#141412;border-bottom:1px solid var(--line)}
+.lights{display:flex;gap:6px;margin-right:var(--s3)}
+.lights i{width:11px;height:11px;border-radius:var(--pill);background:#3a3836;display:block}
+.tab{font-size:.78rem;padding:3px 10px;border-radius:var(--rsm);color:var(--muted)}
+.tab.active{background:var(--quiet);color:var(--ink)}
+.tab .live{font-family:var(--mono);font-size:.62rem;color:var(--info);margin-left:5px}
+.sp{flex:1}
+.body{padding:var(--s5)}
+/* floating CEO — on every screen */
+.ceo{position:absolute;right:18px;bottom:16px;width:46px;height:46px;border-radius:50%;
+ border:1px solid var(--line2);box-shadow:0 10px 28px #000000b3;
+ background:radial-gradient(circle at 48% 40%,var(--gold) 0 20%,var(--magenta) 20% 58%,var(--plum) 58% 100%)}
+.ceo::after{content:"✎";position:absolute;right:-3px;bottom:-3px;width:20px;height:20px;border-radius:50%;
+ background:var(--surface);border:1px solid var(--line2);font-size:.6rem;color:var(--ink);
+ display:flex;align-items:center;justify-content:center}
+.ceo.on{outline:2px solid var(--info);outline-offset:2px}
+/* components */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--rmd);padding:var(--s4);margin-bottom:var(--s3)}
+.panel.q{padding:var(--s3) var(--s4)}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin-bottom:var(--s3)}
+.pt{margin:0;font-size:.67rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400}
+.chip{font-size:.59rem;text-transform:uppercase;letter-spacing:.08em;padding:1px 7px;border-radius:var(--pill);
+ border:1px solid var(--line2);color:var(--muted);display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.chip.dot::before{content:"";width:6px;height:6px;border-radius:var(--pill);background:currentColor}
+.chip.good{border-color:var(--good);color:var(--good)}.chip.info{border-color:var(--info);color:var(--info)}
+.chip.warn{border-color:var(--warn);color:var(--warn)}.chip.bad{border-color:var(--danger);color:var(--danger)}
+.row{display:flex;gap:var(--s3);align-items:baseline;padding:4px 0;border-bottom:1px solid var(--line);font-size:.82rem}
+.row:last-child{border-bottom:none}
+.lead{color:var(--muted);font-family:var(--mono);font-size:.7rem;min-width:3rem}
+.main{flex:1;min-width:0}.trail{color:var(--muted);font-size:.7rem;white-space:nowrap}
+.btn{font:inherit;font-size:.77rem;padding:3px 11px;border-radius:var(--rsm);border:1px solid var(--line2);background:var(--ink);color:#0a0a0a}
+.btn.g{background:none;color:var(--ink)}
+.tb{display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
+.muted{color:var(--muted)}.mono{font-family:var(--mono);font-size:.77rem}
+.ask{border:1px solid var(--line2);border-radius:var(--rsm);padding:9px 10px;color:var(--muted);font-size:.82rem}
+/* profile */
+.folio{display:grid;grid-template-columns:196px 1fr;gap:var(--s5);padding-bottom:var(--s4);
+ border-bottom:1px solid var(--line);margin-bottom:var(--s4)}
+.portrait{aspect-ratio:1;border-radius:14px;position:relative;overflow:hidden;border:1px solid var(--line2);
+ background:radial-gradient(120% 90% at 22% 12%,#7a0a55 0%,#4b0354 34%,#2d0039 66%,#16001c 100%)}
+.portrait::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(to bottom,#00000000 0 2px,#00000026 2px 3px)}
+.head{position:absolute;left:50%;bottom:52%;transform:translateX(-50%);width:39%;aspect-ratio:1;border-radius:50%;
+ background:radial-gradient(circle at 36% 32%,#ff4d9e 0%,#f20673 28%,#7d0640 62%,#3a0330 100%);box-shadow:6px -4px 0 -1px #ffd21a66}
+.bust{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:66%;height:60%;border-radius:48% 48% 12% 12%;
+ background:linear-gradient(180deg,#f2067340,#41054b90);border-top:1px solid #ffd21a4d}
+.pmark{position:absolute;left:8px;top:8px;font-family:var(--mono);font-size:.5rem;letter-spacing:.1em;
+ color:#ffffff8c;background:#0a0a0a99;padding:2px 5px;border-radius:3px}
+.st{display:flex;flex-direction:column}.st b{font-family:var(--mono);font-size:1rem}.st span{font-size:.66rem;color:var(--muted)}
+.fstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:var(--s4);margin:var(--s3) 0}
+.spark{display:flex;gap:2px;align-items:flex-end;height:24px}
+.spark i{width:5px;border-radius:1px;background:var(--info);opacity:.85;display:block}
+.ctl{display:flex;gap:var(--s2);align-items:center}
+.ic{width:30px;height:30px;border-radius:var(--rsm);border:1px solid var(--line2);display:flex;align-items:center;
+ justify-content:center;font-size:.8rem;color:var(--muted);position:relative}
+.ic.on{border-color:var(--ink);color:var(--ink)}
+.ic .bdg{position:absolute;top:-6px;right:-6px;min-width:16px;height:16px;border-radius:var(--pill);
+ background:var(--danger);color:#fff;font-family:var(--mono);font-size:.56rem;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.works{display:grid;grid-template-columns:repeat(auto-fit,minmax(186px,1fr));gap:var(--s2)}
+.work{border:1px solid var(--line);border-radius:var(--rsm);padding:8px 10px;background:var(--surface)}
+.work b{font-size:.84rem;display:block}.work span{font-size:.66rem;color:var(--muted)}
+/* layouts */
+.two{display:grid;grid-template-columns:1fr 320px;gap:var(--s4)}
+.three{display:grid;grid-template-columns:1fr 290px 300px;gap:var(--s3)}
+.favs{display:grid;grid-template-columns:repeat(auto-fit,minmax(206px,1fr));gap:var(--s3)}
+.pc{background:var(--surface);border:1px solid var(--line);border-radius:var(--rmd);padding:var(--s3) var(--s4)}
+.pc h4{margin:0 0 1px;font-size:.92rem}.pc .pur{font-size:.73rem;color:var(--muted);display:block;margin-bottom:8px}
+.agrid{display:flex;gap:var(--s3);flex-wrap:wrap;padding-top:7px;border-top:1px solid var(--line)}
+.ag{display:flex;flex-direction:column}.ag b{font-family:var(--mono);font-size:.9rem}.ag span{font-size:.61rem;color:var(--muted)}
+.ag.w b{color:var(--warn)}
+.fitem{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:.78rem;align-items:flex-start}
+.fitem:last-child{border-bottom:none}
+.fdot{width:7px;height:7px;border-radius:var(--pill);flex:none;margin-top:6px;background:var(--muted)}
+.fdot.i{background:var(--info)}.fdot.w{background:var(--warn)}.fdot.g{background:var(--good)}.fdot.b{background:var(--danger)}
+.who{font-family:var(--mono);font-size:.65rem;color:var(--muted);display:block}
+.t{color:var(--muted);font-size:.65rem;white-space:nowrap;margin-left:auto}
+.chatpane{background:var(--surface);border:1px solid var(--info);border-radius:var(--rmd);display:flex;flex-direction:column;align-self:start}
+.cp-h{display:flex;align-items:center;gap:9px;padding:9px var(--s3);border-bottom:1px solid var(--line)}
+.cp-b{padding:var(--s3)}
+.cp-f{padding:8px var(--s3);border-top:1px solid var(--line);color:var(--muted);font-size:.73rem}
+.mini{width:28px;height:28px;border-radius:8px;flex:none;
+ background:radial-gradient(circle at 48% 40%,var(--gold) 0 20%,var(--magenta) 20% 58%,var(--plum) 58% 100%)}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s2)}
+.bcol{background:#12120f;border:1px solid var(--line);border-radius:var(--rsm);padding:8px}
+.bcol.drop{border-style:dashed;border-color:var(--info);background:#60a5fa0f}
+.bcol>p{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+ margin:0 0 7px;display:flex;justify-content:space-between}
+.card{background:var(--surface);border:1px solid var(--line2);border-radius:var(--rsm);padding:8px 9px;margin-bottom:6px;font-size:.76rem}
+.card.drag{transform:rotate(-1.5deg);box-shadow:0 10px 24px #000000a6;border-color:var(--info)}
+.card .m{font-size:.61rem;color:var(--muted);display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center}
+.lease{border:1px solid var(--info);color:var(--info);border-radius:3px;padding:0 4px;font-size:.56rem;font-family:var(--mono)}
+.kv div{display:flex;gap:var(--s3);padding:5px 0;border-bottom:1px solid var(--line);font-size:.79rem}
+.kv div:last-child{border-bottom:none}
+.kv span:first-child{color:var(--muted);min-width:8.2rem;font-family:var(--mono);font-size:.7rem}
+.tl{position:relative;padding-left:16px}
+.tl .ev{position:relative;padding:5px 0;font-size:.79rem;border-bottom:1px solid var(--line)}
+.tl .ev:last-child{border-bottom:none}
+.tl .ev::before{content:"";position:absolute;left:-13px;top:12px;width:7px;height:7px;border-radius:var(--pill);background:var(--muted)}
+.tl::after{content:"";position:absolute;left:-10px;top:6px;bottom:6px;width:1px;background:var(--line)}
+.gwrap{background:#0d0d0c;border:1px solid var(--line);border-radius:var(--rmd);padding:var(--s3)}
+svg text{font-family:var(--sans);fill:var(--ink)}
+.term{background:#1f1d1a;border:1px solid #2f2c28;border-radius:var(--rmd);padding:var(--s3);
+ font-family:var(--mono);font-size:.73rem;color:#c9c4bb;line-height:1.6}
+.term .p{color:#6a6560}
+.mdbox{border:1px solid var(--line);border-radius:var(--rsm);background:#12120f;padding:var(--s3);font-size:.82rem}
+.mdbox h6{margin:0 0 5px;font-size:.84rem}
+.mdbox p{margin:0 0 8px}
+.mdbox code{background:var(--quiet);padding:1px 4px;border-radius:3px}
+.entry{border-bottom:1px solid var(--line);padding:9px 0}
+.entry:last-child{border-bottom:none}
+.by{font-family:var(--mono);font-size:.63rem;color:var(--muted);display:flex;gap:7px;align-items:center;margin-bottom:4px}
+.by .w{border:1px solid var(--line2);border-radius:3px;padding:0 4px}
+.by .w.a{border-color:var(--info);color:var(--info)}
+.by .w.h{border-color:var(--good);color:var(--good)}
+.res{display:flex;gap:7px;align-items:center;padding:4px 0;font-size:.79rem;border-bottom:1px solid var(--line)}
+.res:last-child{border-bottom:none}
+.res i{font-style:normal;font-family:var(--mono);font-size:.62rem;color:var(--muted);border:1px solid var(--line2);border-radius:3px;padding:0 4px}
+footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:.8rem}
+</style>
+</head>
+<body><div class="wrap">
+
+<p class="label">PassionCode.ai · карта экранов · 2026-09-04</p>
+<h1>Карта мокапов</h1>
+<p class="sub">Один документ на все экраны. Заменяет четыре отдельных файла мокапов — они разошлись между собой, и это первое, что чинится.</p>
+
+<div class="note ok"><b>Три сквозных правила, действующих на каждом экране ниже.</b>
+<br>· <b>CEO — плавающая иконка внизу справа</b>, на всех страницах без исключения. Клик открывает чат.
+<br>· <b>Чат — дополнительная панель справа</b>, которая раздвигает раскладку, а не накрывает панели. Открытый чат ничего не прячет.
+<br>· <b>Поле «дать задачу» — сверху</b>, над доской: основное действие не должно требовать прокрутки мимо чужой работы.</div>
+
+<div class="toc">
+  <a href="#s0">1 · Всплеск запуска<span>есть · main</span></a>
+  <a href="#s01">2 · Онбординг проекта<span>SCR-27 · есть</span></a>
+  <a href="#s1">3 · Дом эстейта<span>SCR-30 · проект</span></a>
+  <a href="#s2">4 · Дом + чат<span>SCR-30 / чат</span></a>
+  <a href="#s9">5 · Профиль CEO<span>SCR-36 · проект</span></a>
+  <a href="#s3">6 · Страница проекта<span>SCR-31 · частично</span></a>
+  <a href="#s4">7 · Проект + чат<span>SCR-31 / чат</span></a>
+  <a href="#s5">8 · Страница задачи<span>SCR-32 · проект</span></a>
+  <a href="#s6">9 · План и граф<span>SCR-33 · проект</span></a>
+  <a href="#s7">10 · Память<span>SCR-34 · проект</span></a>
+  <a href="#s8">11 · Харнес<span>SCR-35 · проект</span></a>
+  <a href="#s11">12 · Канвас проекта<span>SCR-26 · есть</span></a>
+  <a href="#s10">13 · Окно сессии<span>SCR-25 · есть</span></a>
+  <a href="#s12">14 · Окно редактора<span>SCR-17 · есть</span></a>
+  <a href="#s13">15 · Настройки<span>есть</span></a>
+  <a href="#s16" style="border-color:var(--info)">16 · Агенты эстейта<span>SCR-39 · новый</span></a>
+  <a href="#spec" style="border-color:var(--warn)">Блоки и переходы<span>+ пробелы</span></a>
+  <a href="#closed" style="border-color:var(--good)">Пробелы закрыты<span>14 решений</span></a>
+  <a href="#data" style="border-color:var(--info)">Карта данных<span>хранение и контекст</span></a>
+  <a href="#style" style="border-color:var(--good)">Стили и перенос<span>токены · контракты · порядок</span></a>
+</div>
+
+<div class="note"><b>Порядок — навигационный, а не по важности:</b> от того, что человек видит первым при холодном старте, до окон, которые открываются из других экранов. У каждого стоит, <b>построен он или нарисован</b>: из пятнадцати сегодня существует шесть, два перестраиваются, семь новых.</div>
+
+<h2 id="s0">1 · Всплеск запуска <span class="tag t-has">есть</span></h2>
+<p class="caption">Первое окно, которое видит человек. 380×120, без рамки, рисуется <b>до того, как существует хоть один стиль</b> — поэтому два цвета в нём захардкожены руками, и это единственное такое место в приложении.</p>
+<div class="win" style="max-width:420px">
+  <div class="body" style="padding:var(--s4);text-align:center">
+    <p class="mono muted" style="margin:0;font-size:.8rem">Поднимаю локальный стек…</p>
+  </div>
+</div>
+<div class="note bad" style="margin-top:10px"><b>Здесь же живёт M100 и M101.</b> Если стек не поднимается, окно молчит: ни диалога, ни причины. И запуск стека блокирует главный поток до четырёх минут — <b>непроверено, успевает ли этот текст отрисоваться</b>. Пока не проверено, экран считается недоказанным.</div>
+
+<h2 id="s01">2 · Онбординг проекта <span class="tag t-has">есть</span> <span class="tag t-move">на набор переведён</span></h2>
+<p class="caption">Новая вкладка — это форма проекта, а не пустой экран. Уже переведена на <code>Field</code>, <code>FieldGroup</code>, <code>Row</code>, <code>Button</code>.</p>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab">⌂</span>
+    <span class="tab active">Новый проект</span><span class="sp"></span><span class="mono muted" style="font-size:.7rem">org #1</span></div>
+  <div class="body">
+    <div class="panel" style="max-width:640px">
+      <div class="ph"><h2 class="pt">Новый проект</h2></div>
+      <div class="kv" style="margin-bottom:14px">
+        <div><span>название</span><span>Как называется проект?</span></div>
+        <div><span>назначение</span><span>Для чего он? Одной строки достаточно.</span></div>
+      </div>
+      <p class="pt">Репозитории</p>
+      <p class="muted" style="font-size:.78rem;margin:0 0 8px">Сессии стартуют в основном репозитории. Остальные можно добавить позже.</p>
+      <div class="row"><span class="main mono">.</span>
+        <span class="tb"><span class="chip">основной</span><button class="btn g">убрать</button></span></div>
+      <div class="tb" style="margin:10px 0 16px"><button class="btn g">Выбрать папку…</button></div>
+      <p class="pt">Память</p>
+      <div class="row"><span class="main"><strong>Локально</strong> <span class="muted">— в базе этой машины. Доступно сейчас.</span></span></div>
+      <div class="row"><span class="main muted">Облако — размещённые эстейты ещё не построены</span></div>
+      <div class="tb" style="margin-top:16px"><button class="btn">Создать проект</button><button class="btn g">Отмена</button></div>
+    </div>
+  </div>
+  <span class="ceo"></span>
+</div>
+
+<h2 id="s1">3 · Дом эстейта <span class="tag t-new">SCR-30 · проектируется</span></h2>
+<p class="caption">Портфолио-шапка: портрет, стаж, цифры, работы. Дальше избранное, все проекты и живая лента.</p>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab active">⌂</span>
+    <span class="tab">Fabric<span class="live">2</span></span><span class="tab">PassionCode.ai</span>
+    <span class="sp"></span><span class="mono muted" style="font-size:.7rem">org #1</span></div>
+  <div class="body">
+    <div class="folio">
+      <div class="portrait"><span class="pmark">ПОРТРЕТ 1:1</span><span class="head"></span><span class="bust"></span></div>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--s4)">
+          <div><h3 style="font-size:1.6rem;margin:0 0 2px;letter-spacing:-.02em">Пассионарий</h3>
+            <p class="muted" style="margin:0;font-size:.86rem">CEO эстейта org #1 · в работе 47 дней · серия 6 дней</p></div>
+          <div class="ctl"><span class="ic">⌕</span><span class="ic">!<span class="bdg">2</span></span>
+            <span class="ic" style="width:auto;padding:0 9px;font-family:var(--mono);font-size:.69rem">34%</span>
+            <span class="ic">✎</span><span class="ic">+</span><span class="ic">⚙</span></div>
+        </div>
+        <div class="fstats">
+          <span class="st"><b>2</b><span>проекта</span></span><span class="st"><b>11</b><span>задач закрыто</span></span>
+          <span class="st"><b>6</b><span>дней подряд</span></span><span class="st"><b>0</b><span>агентов привязано</span></span>
+          <span class="st"><span class="spark"><i style="height:7px"></i><i style="height:13px"></i><i style="height:5px"></i>
+            <i style="height:20px"></i><i style="height:16px"></i><i style="height:24px"></i><i style="height:11px"></i>
+            <i style="height:19px"></i><i style="height:9px"></i><i style="height:22px"></i><i style="height:14px"></i>
+            <i style="height:26px"></i></span><span>задач по дням</span></span>
+        </div>
+        <p class="muted" style="font-size:.78rem;margin:0">Список проектов — ниже, в избранном. Здесь только счёт, иначе на одном экране два списка одного и того же.</p>
+      </div>
+    </div>
+    <div class="two">
+      <div>
+        <div class="panel"><div class="ph"><h2 class="pt">Избранное</h2><span class="chip">2 из 5</span></div>
+          <div class="favs">
+            <div class="pc"><h4>Fabric</h4><span class="pur">ядро под PassionCode.ai</span>
+              <div class="agrid"><span class="ag"><b>2</b><span>работают</span></span><span class="ag w"><b>1</b><span>ждёт вас</span></span>
+                <span class="ag"><b>3</b><span>закончили</span></span><span class="ag"><b>0</b><span>нет доступа</span></span></div></div>
+            <div class="pc"><h4>PassionCode.ai</h4><span class="pur">публичный продукт и сайт</span>
+              <div class="agrid"><span class="ag"><b>0</b><span>работают</span></span><span class="ag"><b>0</b><span>ждёт вас</span></span>
+                <span class="ag"><b>1</b><span>закончил</span></span><span class="ag"><b>0</b><span>нет доступа</span></span></div></div>
+          </div></div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Все проекты · 2</h2><span class="chip">по активности</span></div>
+          <div class="row"><span class="main"><strong>Fabric</strong></span><span class="tb"><span class="chip info dot">2 работают</span><span class="chip warn dot">1 ждёт вас</span></span><span class="trail">2 мин</span></div>
+          <div class="row"><span class="main"><strong>PassionCode.ai</strong></span><span class="tb"><span class="chip">тихо</span></span><span class="trail">вчера</span></div></div>
+      </div>
+      <div class="panel q" style="margin:0">
+        <div class="ph"><h2 class="pt">Живая лента</h2><span class="chip good dot">поток</span></div>
+        <div class="fitem"><span class="fdot w"></span><span><span class="who">dev · Fabric</span>Перезаписать файл, изменённый на диске?</span><span class="t">сейчас</span></div>
+        <div class="fitem"><span class="fdot i"></span><span><span class="who">dev · Fabric</span>Переносит ProjectHome</span><span class="t">40 с</span></div>
+        <div class="fitem"><span class="fdot g"></span><span><span class="who">dev · Fabric</span>Закрыл: марка в доке</span><span class="t">6 мин</span></div>
+        <div class="fitem"><span class="fdot b"></span><span><span class="who">CEO · PassionCode.ai</span>Нет гранта на research MCP</span><span class="t">1 ч</span></div>
+      </div>
+    </div>
+  </div>
+  <span class="ceo"></span>
+</div>
+
+<h2 id="s2">4 · Дом + чат <span class="tag t-new">SCR-30 / чат</span></h2>
+<p class="caption">Чат — <b>третья колонка</b>. Лента остаётся на месте и остаётся читаемой; сужается только основная колонка.</p>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab active">⌂</span>
+    <span class="tab">Fabric<span class="live">2</span></span><span class="sp"></span><span class="mono muted" style="font-size:.7rem">org #1</span></div>
+  <div class="body">
+    <div class="folio" style="grid-template-columns:120px 1fr;padding-bottom:12px;margin-bottom:14px">
+      <div class="portrait"><span class="head"></span><span class="bust"></span></div>
+      <div><div style="display:flex;justify-content:space-between"><div>
+        <h3 style="font-size:1.25rem;margin:0">Пассионарий</h3>
+        <p class="muted" style="margin:0;font-size:.79rem">стаж 47 дней · серия 6</p></div>
+        <div class="ctl"><span class="ic">!<span class="bdg">2</span></span><span class="ic on">✎</span><span class="ic">⚙</span></div></div>
+        <div class="fstats" style="margin:10px 0 0"><span class="st"><b>2</b><span>проекта</span></span>
+          <span class="st"><b>11</b><span>задач</span></span><span class="st"><b>6</b><span>дней подряд</span></span></div></div>
+    </div>
+    <div class="three">
+      <div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Избранное</h2></div>
+          <div class="pc" style="margin-bottom:8px"><h4>Fabric</h4>
+            <div class="agrid" style="border:none;padding-top:5px"><span class="ag"><b>2</b><span>работают</span></span><span class="ag w"><b>1</b><span>ждёт вас</span></span></div></div>
+          <div class="pc"><h4>PassionCode.ai</h4>
+            <div class="agrid" style="border:none;padding-top:5px"><span class="ag"><b>0</b><span>работают</span></span></div></div></div>
+      </div>
+      <div class="panel q" style="margin:0"><div class="ph"><h2 class="pt">Живая лента</h2><span class="chip good dot">поток</span></div>
+        <div class="fitem"><span class="fdot w"></span><span><span class="who">dev · Fabric</span>Перезаписать файл?</span><span class="t">сейчас</span></div>
+        <div class="fitem"><span class="fdot i"></span><span><span class="who">dev · Fabric</span>Переносит ProjectHome</span><span class="t">40 с</span></div>
+        <div class="fitem"><span class="fdot b"></span><span><span class="who">CEO</span>Нет гранта на research</span><span class="t">1 ч</span></div></div>
+      <div class="chatpane">
+        <div class="cp-h"><span class="mini"></span><div style="flex:1"><strong style="font-size:.85rem">Пассионарий</strong>
+          <div class="muted" style="font-size:.66rem">контекст: <b style="color:var(--info)">дом эстейта</b></div></div><span class="chip">×</span></div>
+        <div class="cp-b">
+          <div class="row"><span class="lead">CEO</span><span class="main">Двое ждут вас: dev спрашивает про перезапись, и мне нужен грант на research MCP.</span></div>
+          <div class="row"><span class="lead">вы</span><span class="main">разберись с грантом</span></div>
+          <div class="row"><span class="lead">CEO</span><span class="main">Нужен ваш один раз — класс publication, на 24 часа. Выдать?</span></div>
+          <div class="tb" style="margin-top:10px"><button class="btn">Выдать</button><button class="btn g">Не сейчас</button></div></div>
+        <div class="cp-f">Разговор кончается артефактом — грантом, биндингом, задачей — или ничем, и он это скажет.</div>
+      </div>
+    </div>
+  </div>
+  <span class="ceo on"></span>
+</div>
+
+<h2 id="s3">6 · Страница проекта <span class="tag t-move">SCR-31 · частично есть</span></h2>
+<p class="caption">Порядок: где остановились → <b>дать задачу</b> → доска → лента справа.</p>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab">⌂</span>
+    <span class="tab active">Fabric<span class="live">2</span></span><span class="tab">PassionCode.ai</span>
+    <span class="sp"></span><span class="mono muted" style="font-size:.7rem">org #1</span></div>
+  <div class="body">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+      <div><h3 style="margin:0;font-size:1.2rem">Fabric</h3>
+        <p class="mono muted" style="margin:2px 0 0">codex/brand-system · 3 изменения</p></div>
+      <div class="tb"><span class="chip warn dot">1 ждёт вас</span><span class="chip">2 работают</span><button class="btn g">Настройки</button></div></div>
+    <div class="two">
+      <div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Где мы остановились</h2><span class="chip">12 мин назад</span></div>
+          <div class="row"><span class="lead">2 дня</span><span class="main">Отложили импорт кук до редакции транскриптов <span class="muted mono">· #4180</span></span></div>
+          <div class="row"><span class="lead">4 дня</span><span class="main">Доска — проекция журнала <span class="muted mono">· ADR-0034</span></span></div></div>
+
+        <div class="panel">
+          <div class="ph"><h2 class="pt">Дать задачу</h2><div class="tb"><span class="chip">Claude Code</span><span class="chip warn">план</span></div></div>
+          <div class="ask">Что должно произойти в этом проекте?</div>
+          <div class="tb" style="margin-top:9px"><button class="btn">Запустить</button><span class="muted" style="font-size:.74rem">или:</span>
+            <button class="btn g">аудит</button><button class="btn g">баги</button><button class="btn g">ошибки прода</button><button class="btn g">бэклог</button></div>
+        </div>
+
+        <div class="panel"><div class="ph"><h2 class="pt">Доска</h2>
+          <div class="tb"><span class="chip info dot">⚙ агент</span><span class="chip">✎ человек</span><button class="btn g">План →</button></div></div>
+          <div class="board">
+            <div class="bcol"><p><span>backlog</span><span>2</span></p>
+              <div class="card">Воркспейс как репозиторий<div class="m">✎ вы → CEO</div></div>
+              <div class="card">Идея: экспорт эстейта<div class="m">✎ вы</div></div></div>
+            <div class="bcol"><p><span>running</span><span>1</span></p>
+              <div class="card drag">Перенести ProjectHome<div class="m">⚙ CEO → dev <span class="lease">лиза 24м</span></div></div></div>
+            <div class="bcol drop"><p><span>review</span><span>1</span></p>
+              <div class="card">Пол: первый проход<div class="m">⚙ dev → вы <span class="chip good" style="font-size:.54rem">расписка #4291</span></div></div></div>
+            <div class="bcol"><p><span>done</span><span>1</span></p>
+              <div class="card">Марка в доке<div class="m">⚙ dev · вчера</div></div></div></div>
+          <p class="muted" style="font-size:.72rem;margin:9px 0 0">Перенос — событие <code>task.moved@1</code>. Не принятый журналом перенос откатывается: доска не показывает состояния, которого нет в журнале.</p></div>
+      </div>
+      <div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Лента проекта</h2><span class="chip good dot">поток</span></div>
+          <div class="fitem"><span class="fdot w"></span><span><span class="who">dev</span>Перезаписать файл?</span><span class="t">сейчас</span></div>
+          <div class="fitem"><span class="fdot i"></span><span><span class="who">dev</span>Взял лизу: ProjectHome</span><span class="t">24 м</span></div>
+          <div class="fitem"><span class="fdot g"></span><span><span class="who">dev</span>Закрыл: марка в доке</span><span class="t">6 ч</span></div></div>
+        <div class="panel q"><div class="ph"><h2 class="pt">План</h2><button class="btn g">развернуть</button></div>
+          <div class="row"><span class="main">Операционная единица</span><span class="trail">3 из 7</span></div>
+          <div class="row"><span class="main">Интерфейс в одном наборе</span><span class="trail">6 из 10</span></div></div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Доска агентов</h2><span class="chip">2</span></div>
+          <div class="row"><span class="lead">dev</span><span class="main">Гейт цитат слеп к 5-буквенному префиксу</span></div>
+          <div class="row"><span class="lead">CEO</span><span class="main">Малые экраны до ProjectHome</span></div></div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Харнес</h2><button class="btn g">→</button></div>
+          <div class="row"><span class="main">2 агента · 3 скила · 1 MCP</span></div></div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Память · Файлы · Журнал</h2><span class="chip">свёрнуто</span></div></div>
+      </div>
+    </div>
+  </div>
+  <span class="ceo"></span>
+</div>
+
+<h2 id="s4">7 · Проект + чат <span class="tag t-new">SCR-31 / чат</span></h2>
+<p class="caption">Та же логика: чат — третья колонка. Доска сужается, но остаётся четырёхколоночной; лента и панели справа не прячутся.</p>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab">⌂</span>
+    <span class="tab active">Fabric<span class="live">2</span></span><span class="sp"></span><span class="mono muted" style="font-size:.7rem">org #1</span></div>
+  <div class="body">
+    <div class="three">
+      <div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Дать задачу</h2></div>
+          <div class="ask">Что должно произойти?</div>
+          <div class="tb" style="margin-top:8px"><button class="btn">Запустить</button><button class="btn g">аудит</button><button class="btn g">баги</button></div></div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Доска</h2></div>
+          <div class="board" style="grid-template-columns:repeat(2,1fr)">
+            <div class="bcol"><p><span>running</span><span>1</span></p><div class="card">Перенести ProjectHome<div class="m">⚙ dev <span class="lease">24м</span></div></div></div>
+            <div class="bcol"><p><span>review</span><span>1</span></p><div class="card">Пол: первый проход<div class="m">⚙ dev → вы</div></div></div></div></div>
+      </div>
+      <div class="panel q" style="margin:0"><div class="ph"><h2 class="pt">Лента проекта</h2></div>
+        <div class="fitem"><span class="fdot w"></span><span><span class="who">dev</span>Перезаписать файл?</span><span class="t">сейчас</span></div>
+        <div class="fitem"><span class="fdot i"></span><span><span class="who">dev</span>Взял лизу</span><span class="t">24 м</span></div></div>
+      <div class="chatpane">
+        <div class="cp-h"><span class="mini"></span><div style="flex:1"><strong style="font-size:.85rem">Пассионарий</strong>
+          <div class="muted" style="font-size:.66rem">контекст: проект Fabric</div></div><span class="chip">×</span></div>
+        <div class="cp-b">
+          <div class="row"><span class="lead">вы</span><span class="main">нужен агент на трендовые темы раз в день</span></div>
+          <div class="row"><span class="lead">CEO</span><span class="main">Спецификация готова, до подтверждения ничего не создано.</span></div>
+          <div class="kv" style="margin-top:10px">
+            <div><span>роль</span><span>researcher</span></div><div><span>MCP</span><span>research <span class="chip bad" style="font-size:.54rem">нужен грант</span></span></div>
+            <div><span>триггер</span><span>cron 09:00</span></div><div><span>бюджет</span><span>$2 · 40 ходов</span></div></div>
+          <div class="tb" style="margin-top:10px"><button class="btn">Создать</button><button class="btn g">Отменить</button></div></div>
+        <div class="cp-f">Выход — артефакт или ничего.</div>
+      </div>
+    </div>
+  </div>
+  <span class="ceo on"></span>
+</div>
+
+<h2 id="s5">8 · Страница задачи <span class="tag t-new">SCR-32</span></h2>
+<p class="caption">Не карточка, а <b>живой документ</b>: агенты наполняют его по ходу работы, человек правит. Открывается из доски и живёт по своему адресу.</p>
+
+<div class="note bad"><b>Граница, которая важнее вёрстки: это НЕ вторая документация.</b>
+Страница задачи — рабочий контекст одной задачи: что делаем, зачем, чем кончилось. Знание о проекте живёт
+отдельно — в <code>docs/</code> и в памяти проекта, — и страница на него <b>ссылается, а не копирует</b>.
+Без этого за месяц заметки на задачах станут теневой вики, и на любой вопрос будет два ответа в двух местах.
+Механика, которая это держит, а не обещает: у заметки есть действие <b>«в память проекта»</b>. Заметка,
+оказавшаяся долговечным фактом, <b>уезжает</b> в память с цитатой назад на задачу — и на задаче остаётся ссылка,
+а не копия. Задача закрывается и уходит вниз; факт остаётся.</div>
+
+<div class="note bad"><b>Вторая проблема, до рисования: два писателя на один документ.</b> Если агент и человек пишут в одно поле, кто-то кого-то затрёт — и потеря будет молчаливой. Решение то же, которым в памяти решён конфликт версий: <b>не один документ, а секции с владельцем</b>, и у каждого поля видно, <b>кто его заполнил и когда</b>. Правка человека не стирает версию агента, а становится поверх неё и помечается — как исправление факта.</div>
+
+<table>
+<tr><th>Секция</th><th>Кто пишет</th><th>Что при конфликте</th></tr>
+<tr><td><b>Бриф</b> — что делаем, зачем, какой результат ждём</td><td>агент черновиком, человек правит</td><td>правка человека побеждает и помечается; версия агента остаётся читаемой</td></tr>
+<tr><td><b>Поля</b> — тип, раздел, цель, связи, ресурсы</td><td>агент, по ходу работы</td><td>человек может переопределить любое; поле показывает обоих</td></tr>
+<tr><td><b>Заметки</b> — свободный markdown</td><td>оба</td><td><b>только добавление</b>: каждая запись отдельная, с автором и временем. Ничто не перезаписывается</td></tr>
+<tr><td><b>История</b> и <b>расписки</b></td><td>только система</td><td>не редактируется вообще — это журнал</td></tr>
+<tr><td><b>Ресурсы</b> — файлы, доки, решения</td><td>агент собирает</td><td><b>только ссылки.</b> Содержимое дока на задачу не копируется никогда</td></tr>
+</table>
+
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab">⌂</span>
+    <span class="tab">Fabric</span><span class="tab active">TSK-118</span><span class="sp"></span><span class="chip info dot">running</span></div>
+  <div class="body">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+      <div><h3 style="margin:0;font-size:1.18rem">Перенести ProjectHome на компонентный набор</h3>
+        <div class="tb" style="margin-top:5px"><span class="chip">TSK-118</span><span class="chip info">разработка</span>
+          <span class="chip">раздел: интерфейс</span><span class="chip info dot">dev · лиза 21 мин</span></div></div>
+      <div class="tb"><button class="btn g">Открыть сессию</button><button class="btn">Отпустить лизу</button></div></div>
+    <div class="two">
+      <div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Бриф</h2>
+          <div class="tb"><span class="chip info">черновик агента</span><button class="btn g">Править</button></div></div>
+          <div class="mdbox">
+            <h6>Что делаем</h6>
+            <p>Переводим <code>ProjectHome.tsx</code> — последний и самый большой экран — на компонентный набор.</p>
+            <h6>Зачем</h6>
+            <p>Пока экран пишет свои классы, гейт «класс вне реестра = падение» посадить нельзя: он сразу красный. Перенос — предпосылка гейта, а не украшение.</p>
+            <h6>Какой результат ждём</h6>
+            <p>Ни одного собственного класса в файле; typecheck, 25 тестов и дизайн-гейт зелёные; визуально экран не изменился.</p>
+          </div>
+          <div class="by" style="margin-top:8px"><span class="w a">агент dev</span> составил 6 ч назад ·
+            <span class="w h">вы</span> поправили «Зачем» 2 ч назад</div></div>
+
+        <div class="panel q"><div class="ph"><h2 class="pt">Заметки по задаче</h2>
+          <div class="tb"><span class="chip">только добавление</span><button class="btn g">+ запись</button></div></div>
+          <p class="muted" style="font-size:.74rem;margin:0 0 10px">Рабочий контекст этой задачи, не знание о проекте. Заметка, которая переживёт задачу, уезжает в память.</p>
+          <div class="entry"><div class="by"><span class="w a">dev</span>24 мин назад
+              <span style="margin-left:auto"><button class="btn g" style="font-size:.68rem;padding:1px 8px">в память проекта →</button></span></div>
+            <div class="mdbox" style="border:none;background:none;padding:0">
+              Нашёл: <code>.stat-value</code> объявлен дважды — на <code>:175</code> и <code>:297</code>. Снимаю оба, набор владеет им один раз.</div></div>
+          <div class="entry"><div class="by"><span class="w h">вы</span>1 ч назад</div>
+            <div class="mdbox" style="border:none;background:none;padding:0">
+              Гейт не трогай в этой задаче. Он садится после переноса всех экранов, отдельной задачей.</div></div>
+          <div class="entry"><div class="by"><span class="w a">CEO</span>6 ч назад
+              <span style="margin-left:auto"><span class="chip good" style="font-size:.54rem">уехало в память · факт #221</span></span></div>
+            <div class="mdbox" style="border:none;background:none;padding:0">
+              Порядок: малые экраны сначала, ProjectHome последним — набор к тому моменту устоится.</div></div></div>
+
+        <div class="panel q"><div class="ph"><h2 class="pt">История</h2><span class="chip">журнал · не редактируется</span></div>
+          <div class="tl">
+            <div class="ev"><b>running</b> — dev взял лизу <span class="muted">· 24 мин</span></div>
+            <div class="ev"><b>backlog → running</b> — CEO назначил dev <span class="muted">· 6 ч</span></div>
+            <div class="ev"><b>создана</b> — из решения «набор до переноса» <span class="muted mono">· #4102</span></div></div></div>
+
+        <div class="panel q"><div class="ph"><h2 class="pt">Что сделано снаружи</h2><span class="chip good">2 расписки</span></div>
+          <div class="row"><span class="lead">#4291</span><span class="main">file.overwrite · ProjectHome.tsx <span class="muted">· грант потрачен</span></span><span class="trail">13:40</span></div>
+          <div class="row"><span class="lead">#4288</span><span class="main">file.write · components.css</span><span class="trail">13:12</span></div></div>
+      </div>
+
+      <div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Поля</h2><span class="chip info">заполняет агент</span></div>
+          <div class="kv">
+            <div><span>тип</span><span>разработка</span></div>
+            <div><span>раздел</span><span>интерфейс</span></div>
+            <div><span>цель</span><span>интерфейс в одном наборе</span></div>
+            <div><span>состояние</span><span><span class="chip info dot">running</span></span></div>
+            <div><span>лиза</span><span>dev · истечёт через 21 мин</span></div>
+            <div><span>назначил</span><span>CEO · 6 ч назад</span></div>
+            <div><span>происхождение</span><span>решение #4102</span></div>
+            <div><span>оценка</span><span>~2 ч <span class="muted">(агент)</span></span></div></div></div>
+
+        <div class="panel q"><div class="ph"><h2 class="pt">Связанные задачи</h2></div>
+          <div class="row"><span class="lead">блок.</span><span class="main">TSK-121 гейт компонентов</span><span class="trail"><span class="chip warn">ждёт</span></span></div>
+          <div class="row"><span class="lead">родил</span><span class="main">TSK-124 снять мёртвый CSS</span><span class="trail"><span class="chip">backlog</span></span></div>
+          <div class="row"><span class="lead">рядом</span><span class="main">TSK-117 перенос малых экранов</span><span class="trail"><span class="chip good">done</span></span></div></div>
+
+        <div class="panel q"><div class="ph"><h2 class="pt">Ресурсы</h2><span class="chip info">ссылки, не копии</span></div>
+          <div class="res"><i>файл</i><span>ProjectHome.tsx <span class="muted">868 строк</span></span></div>
+          <div class="res"><i>файл</i><span>components/registry.ts</span></div>
+          <div class="res"><i>док</i><span>docs/brand/ui.md <span class="muted">→ открыть</span></span></div>
+          <div class="res"><i>факт</i><span>#221 порядок переноса экранов</span></div>
+          <div class="res"><i>сессия</i><span>транскрипт от 13:12</span></div>
+          <div class="res"><i>решение</i><span>#4102 набор до переноса</span></div></div>
+
+        <div class="panel q"><div class="ph"><h2 class="pt">Сессия</h2><span class="chip info dot">живая</span></div>
+          <p class="mono muted" style="margin:0;font-size:.73rem">typecheck ok · vitest 25 passed<br>переносит ProjectHome…</p></div>
+      </div>
+    </div>
+  </div>
+  <span class="ceo"></span>
+</div>
+
+<h2>Контекст CEO — лестница</h2>
+<p class="caption">Чат всегда несёт <b>самый узкий открытый контекст</b>. Это не удобство, а ограничение: то, что CEO может сделать без уточнения, определяется тем, где вы стоите.</p>
+<table>
+<tr><th>Где открыт</th><th>Что видит</th><th>Что может сделать сразу</th></tr>
+<tr><td>Дом эстейта</td><td>все проекты, очередь внимания, квота</td><td>завести проект, разобрать очередь, создать агента на эстейт</td></tr>
+<tr><td>Проект</td><td>его доска, план, агенты, харнес, память</td><td>создать задачу, нанять агента в проект, выдать грант, пересобрать сводку</td></tr>
+<tr><td><b>Задача</b></td><td>бриф, поля, связи, ресурсы, историю, расписки</td><td>переписать бриф, разбить на подзадачи, назначить, оценить, отпустить лизу</td></tr>
+<tr><td>Сессия агента</td><td>транскрипт и заявленную стадию</td><td>ответить на его вопрос, остановить, передать другому</td></tr>
+<tr><td>Память</td><td>четыре хранилища и промахи</td><td>исправить факт, объяснить, откуда он</td></tr>
+</table>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab">Fabric</span>
+    <span class="tab active">TSK-118</span><span class="sp"></span><span class="chip info dot">running</span></div>
+  <div class="body">
+    <div class="three" style="grid-template-columns:1fr 300px">
+      <div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Бриф</h2></div>
+          <div class="mdbox"><h6>Что делаем</h6><p>Переводим <code>ProjectHome.tsx</code> на компонентный набор.</p></div></div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Заметки</h2></div>
+          <div class="entry"><div class="by"><span class="w a">dev</span>24 мин</div>
+            <div style="font-size:.8rem"><code>.stat-value</code> объявлен дважды</div></div></div>
+      </div>
+      <div class="chatpane">
+        <div class="cp-h"><span class="mini"></span><div style="flex:1"><strong style="font-size:.85rem">Пассионарий</strong>
+          <div class="muted" style="font-size:.65rem">контекст: <b style="color:var(--info)">TSK-118</b> <span style="opacity:.7">← проект Fabric, свёрнут</span></div></div><span class="chip">×</span></div>
+        <div class="cp-b">
+          <div class="row"><span class="lead">вы</span><span class="main">разбей на подзадачи, она великовата</span></div>
+          <div class="row"><span class="lead">CEO</span><span class="main">Вижу задачу и её бриф. Предлагаю три: шапка и статус-бар, левая колонка, правая колонка. Лиза у dev — оставить за ним все три?</span></div>
+          <div class="tb" style="margin-top:10px"><button class="btn">Создать 3</button><button class="btn g">Показать разбивку</button></div></div>
+        <div class="cp-f">Он не спрашивает «какая задача» — он на ней стоит.</div>
+      </div>
+    </div>
+  </div>
+  <span class="ceo on"></span>
+</div>
+
+<h2 id="s6">9 · План и граф решений <span class="tag t-new">SCR-33</span></h2>
+<p class="caption">Слева цели, справа граф: решения → задачи → цели, с держателем на каждом узле.</p>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab active">Fabric · план</span>
+    <span class="sp"></span><span class="tb"><span class="chip">граф</span><span class="chip">бэклог</span><span class="chip">приоритеты</span></span></div>
+  <div class="body">
+    <div class="two" style="grid-template-columns:300px 1fr">
+      <div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Операционная единица</h2><span class="chip warn">3 из 7</span></div>
+          <div class="row"><span class="main">✓ org #1 не пуст</span></div>
+          <div class="row"><span class="main">✓ порт решений</span></div>
+          <div class="row"><span class="main">✓ первый эффект через пол</span></div>
+          <div class="row"><span class="main">Агент просит — оператор выдаёт</span><span class="trail"><span class="chip warn">следующая</span></span></div></div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Интерфейс в наборе</h2><span class="chip info">6 из 10</span></div>
+          <div class="row"><span class="main">Перенести ProjectHome</span><span class="trail"><span class="chip info dot">dev</span></span></div></div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Бэклог без цели</h2><span class="chip bad">4</span></div>
+          <p class="muted" style="margin:0;font-size:.77rem">Задача, про которую никто не скажет зачем. Видно отдельно намеренно.</p></div>
+      </div>
+      <div class="gwrap">
+        <svg viewBox="0 0 700 340" role="img" aria-label="Граф решений, задач и целей">
+          <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#a1a1a1"/></marker>
+          <style>.n{fill:#171717;stroke:#ffffff26}.done{stroke:#34d06f}.now{stroke:#60a5fa;stroke-width:1.6}
+          .next{stroke:#fbbf24;stroke-dasharray:4 3}.goal{fill:#1c1420;stroke:#f20673}
+          .lb{font-size:11px;fill:#fafafa}.sm{font-size:9px;fill:#a1a1a1;font-family:ui-monospace,monospace}.e{stroke:#a1a1a1;fill:none;opacity:.5}</style></defs>
+          <text class="sm" x="6" y="13">РЕШЕНИЯ</text>
+          <rect class="n done" x="6" y="22" width="140" height="38" rx="7"/><text class="lb" x="16" y="39">Пол в схеме</text><text class="sm" x="16" y="52">ADR-0028</text>
+          <rect class="n done" x="6" y="80" width="140" height="38" rx="7"/><text class="lb" x="16" y="97">Набор до переноса</text><text class="sm" x="16" y="110">#4102</text>
+          <path class="e" d="M146,41 L192,41" marker-end="url(#ar)"/><path class="e" d="M146,99 L192,140" marker-end="url(#ar)"/>
+          <text class="sm" x="192" y="13">ЗАДАЧИ</text>
+          <rect class="n done" x="192" y="22" width="146" height="38" rx="7"/><text class="lb" x="202" y="39">Порт решений</text><text class="sm" x="202" y="52">✓ M137</text>
+          <rect class="n done" x="192" y="78" width="146" height="38" rx="7"/><text class="lb" x="202" y="95">Первый эффект</text><text class="sm" x="202" y="108">✓ M139 · #4291</text>
+          <rect class="n now" x="192" y="134" width="146" height="42" rx="7"/><text class="lb" x="202" y="151">Перенести ProjectHome</text><text class="sm" x="202" y="165">⚙ dev · лиза 24м</text>
+          <rect class="n next" x="192" y="194" width="146" height="38" rx="7"/><text class="lb" x="202" y="211">Гейт компонентов</text><text class="sm" x="202" y="224">ждёт переноса</text>
+          <rect class="n next" x="192" y="250" width="146" height="38" rx="7"/><text class="lb" x="202" y="267">Агент просит грант</text><text class="sm" x="202" y="280">M140</text>
+          <path class="e" d="M338,41 L386,108" marker-end="url(#ar)"/><path class="e" d="M338,97 L386,118" marker-end="url(#ar)"/>
+          <path class="e" d="M338,269 L386,136" marker-end="url(#ar)"/><path class="e" d="M338,155 L386,228" marker-end="url(#ar)"/>
+          <path class="e" d="M338,213 L386,238" marker-end="url(#ar)"/><path class="e" d="M265,176 L265,194" marker-end="url(#ar)"/>
+          <text class="sm" x="386" y="13">ЦЕЛИ</text>
+          <rect class="goal" x="386" y="92" width="168" height="52" rx="9"/><text class="lb" x="398" y="113">Операционная единица</text><text class="sm" x="398" y="128">3 из 7 · далее M140</text>
+          <rect class="goal" x="386" y="210" width="168" height="52" rx="9"/><text class="lb" x="398" y="231">Интерфейс в наборе</text><text class="sm" x="398" y="246">6 из 10</text>
+          <rect class="n" x="580" y="22" width="114" height="106" rx="7"/><text class="sm" x="591" y="39">ЛЕГЕНДА</text>
+          <circle cx="597" cy="56" r="4" fill="#34d06f"/><text class="sm" x="608" y="60">закрыто</text>
+          <circle cx="597" cy="76" r="4" fill="#60a5fa"/><text class="sm" x="608" y="80">идёт</text>
+          <circle cx="597" cy="96" r="4" fill="#fbbf24"/><text class="sm" x="608" y="100">следующая</text>
+          <circle cx="597" cy="116" r="4" fill="#f20673"/><text class="sm" x="608" y="120">цель</text>
+        </svg>
+        <p class="muted" style="font-size:.72rem;margin:9px 0 0">Ребро только вперёд: цикл отказывается в момент рисования (M91).</p>
+      </div>
+    </div>
+  </div>
+  <span class="ceo"></span>
+</div>
+
+<h2 id="s7">10 · Память проекта <span class="tag t-new">SCR-34</span></h2>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab active">Fabric · память</span><span class="sp"></span></div>
+  <div class="body">
+    <div class="panel"><div class="ph"><h2 class="pt">Что проект помнит</h2><span class="chip">пересчитано сейчас</span></div>
+      <table><tr><th>хранилище</th><th>держит</th><th>записал</th><th>читали</th></tr>
+        <tr><td>факты</td><td>48 · <span class="muted">3 исправлены</span></td><td>агент 41 · вы 7</td><td>14 мин</td></tr>
+        <tr><td>транскрипты</td><td>22 сессии · 3.1 МБ</td><td>Fabric</td><td>2 ч</td></tr>
+        <tr><td>контекст-паки</td><td>на каждую сессию</td><td>Fabric</td><td>при старте</td></tr>
+        <tr><td>обращения</td><td>312 · <span class="muted">47 пустых</span></td><td>Fabric</td><td>14 мин</td></tr></table></div>
+    <div class="panel q"><div class="ph"><h2 class="pt">Факты</h2><span class="chip">источник виден у каждого</span></div>
+      <div class="row"><span class="lead">агент</span><span class="main">Гейт цитат слеп к 5-буквенному префиксу</span><span class="trail">вчера</span></div>
+      <div class="row"><span class="lead">вы</span><span class="main">Сторонний проект убран из плана</span><span class="trail">вчера</span></div>
+      <div class="row"><span class="lead">агент</span><span class="main"><span class="muted" style="text-decoration:line-through">Догфуд-петля закрыта</span> <span class="chip bad">исправлено</span></span><span class="trail">3 дня</span></div></div>
+  </div>
+  <span class="ceo"></span>
+</div>
+
+<h2 id="s8">11 · Харнес проекта <span class="tag t-new">SCR-35</span></h2>
+<p class="caption">Что подключено к проекту и чем агенты им пользуются. Экран-инвентарь; сам контракт — инструменты, а не документ.</p>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab active">Fabric · харнес</span><span class="sp"></span></div>
+  <div class="body">
+    <div class="two">
+      <div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Агенты проекта</h2><button class="btn g">+ добавить</button></div>
+          <div class="row"><span class="lead">dev</span><span class="main">Claude Code · разработка</span><span class="tb"><span class="chip info dot">работает</span><span class="chip">план</span></span></div>
+          <div class="row"><span class="lead">CEO</span><span class="main">эстейт · управление</span><span class="tb"><span class="chip">свободен</span></span></div></div>
+        <div class="panel q"><div class="ph"><h2 class="pt">Скилы</h2><span class="chip">3 · 1 обязательный</span></div>
+          <div class="row"><span class="main"><strong>fabric-tasks</strong> <span class="chip bad" style="font-size:.54rem">обязательный</span></span><span class="trail">управление задачами</span></div>
+          <div class="row"><span class="main">task-pipeline</span><span class="trail">доставка изменений</span></div>
+          <div class="row"><span class="main">super-ux</span><span class="trail">сценарии</span></div></div>
+        <div class="panel q"><div class="ph"><h2 class="pt">MCP-серверы</h2><button class="btn g">+ подключить</button></div>
+          <div class="row"><span class="main">fabric <span class="muted">· свой</span></span><span class="tb"><span class="chip good dot">выдан</span></span></div>
+          <div class="row"><span class="main">research</span><span class="tb"><span class="chip bad dot">нужен грант</span></span></div></div>
+      </div>
+      <div class="panel q"><div class="ph"><h2 class="pt">Что агент обязан делать</h2><span class="chip">контракт</span></div>
+        <div class="kv">
+          <div><span>взять задачу</span><span>fabric_task_claim</span></div>
+          <div><span>отметить прогресс</span><span>fabric_stage_report</span></div>
+          <div><span>сменить статус</span><span>fabric_task_move</span></div>
+          <div><span>увидеть соседей</span><span>fabric_leases_list</span></div>
+          <div><span>оставить заметку</span><span>fabric_note_write</span></div>
+          <div><span>отпустить</span><span>fabric_task_release</span></div></div>
+        <p class="muted" style="font-size:.75rem;margin:12px 0 0">Это <b>инструменты, а не инструкция</b>: текст на диске разойдётся с продуктом в первый релиз, вызов — нет.</p></div>
+    </div>
+  </div>
+  <span class="ceo"></span>
+</div>
+
+<h2 id="s9">5 · Профиль CEO <span class="tag t-new">SCR-36</span></h2>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab active">Пассионарий</span><span class="sp"></span></div>
+  <div class="body">
+    <div class="folio">
+      <div class="portrait"><span class="pmark">ПОРТРЕТ 1:1</span><span class="head"></span><span class="bust"></span></div>
+      <div><h3 style="font-size:1.5rem;margin:0 0 2px">Пассионарий</h3>
+        <p class="muted" style="margin:0 0 12px;font-size:.85rem">CEO эстейта org #1 · в работе 47 дней</p>
+        <div class="fstats">
+          <span class="st"><b>2</b><span>проекта · <span class="mono">projects</span></span></span>
+          <span class="st"><b>11</b><span>задач · <span class="mono">task.finished@1</span></span></span>
+          <span class="st"><b>6</b><span>дней подряд · <span class="mono">journal</span></span></span>
+          <span class="st"><b>7</b><span>расписок · <span class="mono">effect_intents</span></span></span>
+          <span class="st"><b>0</b><span>агентов · <span class="mono">agent_bindings</span></span></span></div>
+      </div></div>
+    <div class="note bad" style="margin:0">Строк кода, багов и релизов здесь нет: Fabric их не измеряет. Цифра, которая не измерение, — враньё, и на профиле это заметнее всего.</div>
+  </div>
+  <span class="ceo"></span>
+</div>
+
+<h2 id="s10">13 · Окно сессии <span class="tag t-has">SCR-25 · есть</span></h2>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span>
+    <span class="mono muted" style="font-size:.72rem">Claude Code · DATA/fabric</span><span class="sp"></span><span class="chip info dot">работает</span></div>
+  <div class="body" style="padding:var(--s3)">
+    <div class="term"><span class="p">›</span> переношу ProjectHome на набор<br><span class="p">…</span> Panel × 6, Row × 12<br>
+      <span class="p">›</span> typecheck ok · vitest 25 passed<br><span class="p">▍</span></div></div>
+  <span class="ceo"></span>
+</div>
+
+
+<h2 id="s11">12 · Канвас проекта <span class="tag t-has">SCR-26 · есть</span> <span class="tag t-move">переведён</span></h2>
+<p class="caption">Сетка виджетов на ограниченном гриде (ADR-0024). Сегодня все виджеты нулевого уровня — хост рисует их из проекций; уровни 1 и 2 встанут в те же слоты, не двигая раскладку.</p>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab">⌂</span>
+    <span class="tab active">Fabric · канвас</span><span class="sp"></span><span class="mono muted" style="font-size:.7rem">ревизия 1</span></div>
+  <div class="body">
+    <div class="tb" style="margin-bottom:14px"><button class="btn g">← к проекту</button>
+      <span class="muted" style="font-size:.8rem">виджеты хоста · ревизия раскладки 1</span></div>
+    <div class="two" style="grid-template-columns:1fr 1fr">
+      <div class="panel q"><div class="ph"><h2 class="pt">Агенты</h2><span class="chip">уровень 0</span></div>
+        <div class="row"><span class="lead"><span class="chip info dot">работает</span></span>
+          <span class="main">Claude Code</span><span class="trail">переносит ProjectHome</span></div></div>
+      <div class="panel q"><div class="ph"><h2 class="pt">Активность</h2><span class="chip">уровень 0</span></div>
+        <div class="row"><span class="lead">#4291</span><span class="main">effect.executed@1</span></div>
+        <div class="row"><span class="lead">#4288</span><span class="main">repo.attached@1</span></div></div>
+    </div>
+    <div class="panel q"><div class="ph"><h2 class="pt">Результаты агентов</h2><span class="chip">уровень 0</span></div>
+      <p class="empty">Слот под стоящий результат биндинга. Пока биндингов нет, он говорит это, а не показывает пустоту как ответ.</p></div>
+  </div>
+  <span class="ceo"></span>
+</div>
+
+<h2 id="s12">14 · Окно редактора <span class="tag t-has">есть</span> <span class="tag t-move">переведён</span></h2>
+<p class="caption">Отдельное окно на файл. Показан <b>конфликт сохранения</b> — состояние, ради которого экран и существует: содержимое изменилось на диске, и перезапись теперь проходит через пол с грантом на этот файл.</p>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span>
+    <span class="mono muted" style="font-size:.72rem">ProjectHome.tsx · DATA/fabric</span><span class="sp"></span>
+    <span class="tb"><span class="chip warn">не сохранено</span><button class="btn">Сохранить</button><button class="btn g">Открыть в системе</button></span></div>
+  <div class="body" style="padding:var(--s3)">
+    <div class="panel q" style="border-color:var(--danger);margin-bottom:var(--s3)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--s3)">
+        <span style="font-size:.85rem">Файл изменился на диске, пока вы его правили.</span>
+        <span class="tb"><button class="btn g">Взять версию с диска</button><button class="btn">Оставить мою</button></span></div></div>
+    <div class="term" style="min-height:150px"><span class="p">1</span>  import { Panel, Row, StateChip } from './components'<br>
+      <span class="p">2</span><br><span class="p">3</span>  export function ProjectHome({<br>
+      <span class="p">4</span>    project,<br><span class="p">▍</span></div>
+  </div>
+  <span class="ceo"></span>
+</div>
+<div class="note ok" style="margin-top:10px"><b>«Оставить мою» — первый эффект продукта, проходящий через пол.</b> Кнопка запрашивает грант, называющий <b>этот файл</b>, живущий минуту и тратящийся один раз; политика решает; запись происходит, только если она разрешила; отказ приходит словами политики, а не сырым исключением IPC. До этого между перезаписью и тихой потерей работы агента стоял только баннер.</div>
+
+<h2 id="s13">15 · Настройки <span class="tag t-has">есть</span> <span class="tag t-move">переведены</span></h2>
+<p class="caption">Полоса, раскрывающаяся из значка в табстрипе. Три поля на <code>Field</code> — до переноса подписи не были связаны с контролами.</p>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab">⌂</span>
+    <span class="tab">Fabric</span><span class="sp"></span><span class="ic on" style="width:26px;height:26px">⚙</span></div>
+  <div class="body">
+    <div class="panel q">
+      <div class="tb" style="gap:var(--s5);align-items:flex-end">
+        <span class="st"><span style="font-size:.7rem;color:var(--muted)">Тема</span><b style="font-family:var(--sans);font-size:.85rem">Тёмная</b></span>
+        <span class="st"><span style="font-size:.7rem;color:var(--muted)">Язык</span><b style="font-family:var(--sans);font-size:.85rem">English</b></span>
+        <span class="st"><span style="font-size:.7rem;color:var(--muted)">Не давать Mac уснуть</span><b style="font-family:var(--sans);font-size:.85rem">Пока агент работает</b></span>
+      </div>
+      <p class="muted" style="font-size:.76rem;margin:12px 0 0">Держит машину от засыпания; экран гаснет как обычно. С закрытой крышкой на батарее macOS всё равно уснёт — сказано здесь, а не обнаруживается потом.</p>
+    </div>
+  </div>
+  <span class="ceo"></span>
+</div>
+
+
+
+<h2 id="s16">16 · Агенты эстейта <span class="tag t-new">SCR-39 · M70+M71+M86</span></h2>
+<p class="caption">Все работающие агенты всех проектов на одном экране. Три колонки: <b>кто работает</b> — <b>что он делает прямо сейчас</b> — <b>где он это делает</b>. Не новый майлстоун: это три уже решённых — вид сессий, сессии по всем проектам и «один список вместо трёх» — сведённые в один экран, чем M86 и просил.</p>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab">⌂</span>
+    <span class="tab active">Агенты</span><span class="tab">Fabric</span><span class="sp"></span>
+    <span class="tb"><span class="chip warn dot">1 ждёт вас</span><span class="chip info dot">2 работают</span></span></div>
+  <div class="body" style="padding:0">
+    <div style="display:grid;grid-template-columns:236px 1fr 268px;min-height:400px">
+
+      <div style="border-right:1px solid var(--line);padding:var(--s3)">
+        <div class="ph" style="margin-bottom:var(--s2)"><h2 class="pt">Агенты · 4</h2><span class="chip">по активности</span></div>
+        <button class="btn" style="width:100%;margin-bottom:9px">+ Запустить агента</button>
+        <div style="border:1px solid var(--info);border-radius:var(--rsm);padding:8px 9px;margin-bottom:6px;background:#60a5fa0f">
+          <div style="font-size:.83rem"><strong>dev</strong> <span class="muted" style="font-size:.72rem">· Fabric</span></div>
+          <div class="tb" style="margin-top:5px"><span class="chip info dot">работает</span></div>
+          <div class="muted mono" style="font-size:.66rem;margin-top:4px">переносит ProjectHome…</div></div>
+        <div style="border:1px solid var(--warn);border-radius:var(--rsm);padding:8px 9px;margin-bottom:6px">
+          <div style="font-size:.83rem"><strong>dev-2</strong> <span class="muted" style="font-size:.72rem">· Fabric</span></div>
+          <div class="tb" style="margin-top:5px"><span class="chip warn dot">ждёт вас</span></div>
+          <div class="muted mono" style="font-size:.66rem;margin-top:4px">перезаписать файл?</div></div>
+        <div style="border:1px solid var(--line);border-radius:var(--rsm);padding:8px 9px;margin-bottom:6px">
+          <div style="font-size:.83rem"><strong>CEO</strong> <span class="muted" style="font-size:.72rem">· эстейт</span></div>
+          <div class="tb" style="margin-top:5px"><span class="chip">свободен</span></div></div>
+        <div style="border:1px solid var(--line);border-radius:var(--rsm);padding:8px 9px;opacity:.6">
+          <div style="font-size:.83rem"><strong>dev</strong> <span class="muted" style="font-size:.72rem">· PassionCode.ai</span></div>
+          <div class="tb" style="margin-top:5px"><span class="chip good dot">закончил</span></div>
+          <div class="muted mono" style="font-size:.66rem;margin-top:4px">6 ч назад · exit 0</div></div>
+      </div>
+
+      <div style="padding:var(--s3);display:flex;flex-direction:column;gap:var(--s2)">
+        <div class="tb" style="justify-content:space-between">
+          <span class="tb"><strong style="font-size:.9rem">dev · Fabric</strong><span class="chip info dot">работает</span>
+            <span class="chip">TSK-118</span></span>
+          <span class="tb"><button class="btn g">В отдельное окно</button><button class="btn g">Завершить</button></span></div>
+        <div class="term" style="flex:1;min-height:250px"><span class="p">›</span> переношу ProjectHome на набор<br>
+          <span class="p">…</span> Panel × 6, Row × 12, StateChip × 4<br>
+          <span class="p">›</span> typecheck ok · vitest 26 passed<br>
+          <span class="p">›</span> снимаю мёртвый CSS: .agent-tile, .memory-row<br><span class="p">▍</span></div>
+        <div class="ask">Написать агенту…</div>
+      </div>
+
+      <div style="border-left:1px solid var(--line);padding:var(--s3)">
+        <div class="panel q" style="margin-bottom:var(--s2)">
+          <div class="ph"><h2 class="pt">Где он работает</h2><button class="btn g">→ проект</button></div>
+          <div class="kv">
+            <div><span>проект</span><span>Fabric</span></div>
+            <div><span>репозиторий</span><span>passioncode-ai/fabric</span></div>
+            <div><span>папка</span><span class="mono">DATA/fabric</span></div>
+            <div><span>ветка</span><span class="mono">codex/brand-system</span></div>
+            <div><span>изменено</span><span>3 файла · 1 без версии</span></div>
+          </div>
+          <div class="tb" style="margin-top:9px"><button class="btn g">Посмотреть файлы</button></div>
+        </div>
+        <div class="panel q" style="margin:0">
+          <div class="ph"><h2 class="pt">История агента</h2><span class="chip">из журнала</span></div>
+          <div class="row"><span class="lead">13:40</span><span class="main">эффект: перезаписал ProjectHome.tsx <span class="muted">· расписка #4291</span></span></div>
+          <div class="row"><span class="lead">13:39</span><span class="main">получил грант · deletion</span></div>
+          <div class="row"><span class="lead">13:16</span><span class="main">взял лизу TSK-118</span></div>
+          <div class="row"><span class="lead">13:15</span><span class="main">записал факт: .stat-value дважды</span></div>
+          <div class="row"><span class="lead">13:12</span><span class="main">сессия открыта · план</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <span class="ceo"></span>
+</div>
+<div class="scroll"><table>
+<tr><th>Блок</th><th>Что обязан уметь</th><th>Куда ведёт</th></tr>
+<tr><td>список слева</td><td>все сессии всех проектов, по активности; <b>ждущие вверх</b>; закончившие приглушены и не исчезают сразу</td><td>→ выбор меняет центр и правое</td></tr>
+<tr><td>консоль</td><td>живой терминал выбранного, со скроллбэком; ввод сюда же</td><td>→ отдельное окно · → завершить</td></tr>
+<tr><td>задача в шапке центра</td><td>чем агент занят, ссылкой</td><td>→ страница задачи <span class="tag t-has">П-19 закрыт</span></td></tr>
+<tr><td>где он работает</td><td>проект, репозиторий, папка, ветка, сколько изменено</td><td>→ проект · → файлы</td></tr>
+<tr><td>история агента</td><td>его действия из журнала: лизы, гранты, эффекты, факты — <b>не транскрипт</b>, а поступки</td><td>→ расписка, задача, факт</td></tr>
+</table></div>
+<div class="note ok"><b>Почему история — не транскрипт.</b> Транскрипт это всё, что агент напечатал; история — то, что он <b>сделал</b>: взял лизу, получил грант, выполнил эффект, записал факт. Первое читают, когда разбираются; второе смотрят, когда надо понять за десять секунд. Оба уже есть в системе, и смешивать их в один список значит потерять оба.</div>
+<div class="note ok"><b>П-21 найден и закрыт на месте.</b> Отсюда нельзя было <b>запустить</b> нового агента — экран показывал существующих и не заводил, хотя рука тянется именно здесь. Контрол запуска встаёт в голову списка: экран, который показывает агентов и не умеет их стартовать, отправляет человека обратно в проект ради одного клика.</div>
+
+<h2 id="spec">Блоки, функции и переходы</h2>
+<p class="caption">Экран за экраном: из чего состоит, что каждый блок обязан уметь, и куда ведёт клик. Пробелы нумеруются сквозно и живут внизу отдельным списком — их находит именно эта работа, а не осмотр макета.</p>
+
+<h3>1 · Всплеск запуска</h3>
+<div class="scroll"><table>
+<tr><th>Блок</th><th>Что обязан уметь</th><th>Куда ведёт</th></tr>
+<tr><td>строка стадии</td><td>назвать <b>какую именно</b> стадию ждём: поднять стек, применить миграции, дождаться базы. Три разных ожидания с тремя разными починками</td><td>— <span class="tag t-cut">П-3</span></td></tr>
+<tr><td>исход: успех</td><td>закрыться, открыть главное окно</td><td>→ дом эстейта</td></tr>
+<tr><td>исход: провал</td><td>назвать, какая предпосылка не выполнена, и что делать</td><td><b>никуда</b> <span class="tag t-cut">П-1</span></td></tr>
+<tr><td>отмена</td><td>дать выйти из четырёхминутного ожидания</td><td><b>нет</b> <span class="tag t-cut">П-2</span></td></tr>
+</table></div>
+
+<h3>2 · Онбординг проекта</h3>
+<div class="scroll"><table>
+<tr><th>Блок</th><th>Что обязан уметь</th><th>Куда ведёт</th></tr>
+<tr><td>название, назначение</td><td>принять, проверить непустое имя</td><td>—</td></tr>
+<tr><td>репозитории</td><td>системный пикер; первый становится основным; убрать с подтверждением, если он основной</td><td>→ системный диалог</td></tr>
+<tr><td>память</td><td>выбрать бэкенд</td><td>облако <b>предлагается и отказывает</b> <span class="tag t-cut">П-5</span></td></tr>
+<tr><td>агент по умолчанию</td><td>выбрать из доступных; недоступные видимо отключены</td><td>—</td></tr>
+<tr><td>создать</td><td>записать <code>project.created@1</code>, привязать репозитории</td><td>→ страница проекта <span class="tag t-cut">П-4</span></td></tr>
+<tr><td>отмена</td><td>спросить, если что-то введено</td><td>→ закрыть вкладку</td></tr>
+<tr><td colspan="3"><b>Отсутствующий блок:</b> «взять существующий репозиторий и дать CEO предложить проект» — вход в M119 отсюда не ведёт <span class="tag t-cut">П-6</span></td></tr>
+</table></div>
+
+<h3>3 · Дом эстейта</h3>
+<div class="scroll"><table>
+<tr><th>Блок</th><th>Что обязан уметь</th><th>Куда ведёт</th></tr>
+<tr><td>портрет</td><td>показать канон; сменить вариант по событию</td><td>→ профиль CEO</td></tr>
+<tr><td>имя, стаж, серия</td><td>считать из журнала, а не хранить</td><td>→ профиль CEO</td></tr>
+<tr><td>цифры (проекты, задачи, дни, агенты)</td><td>каждая называет реестр; каждая <b>открывает своё доказательство</b></td><td>→ реестр цифры <span class="tag t-cut">П-12</span></td></tr>
+<tr><td>спарклайн задач</td><td>14 дней из <code>task.finished@1</code></td><td>→ профиль CEO</td></tr>
+<tr><td>работы</td><td>проекты как послужной список</td><td>→ проект · <b>дублирует избранное</b> <span class="tag t-cut">П-9</span></td></tr>
+<tr><td>поиск</td><td>по проектам, задачам, памяти, транскриптам</td><td><b>нет экрана результатов</b> <span class="tag t-cut">П-8</span></td></tr>
+<tr><td><b>внимание</b> с числом</td><td>сколько агентов ждут ответа прямо сейчас</td><td>→ <b>очередь одобрений</b> <span class="tag t-cut">П-7</span></td></tr>
+<tr><td>квота</td><td>5ч и 7д, время сброса; отсутствует, если нет источника</td><td>→ журнал</td></tr>
+<tr><td>чат</td><td>открыть третью колонку в контексте эстейта</td><td>→ дом + чат</td></tr>
+<tr><td>новый проект / настройки</td><td>—</td><td>→ онбординг · → настройки</td></tr>
+<tr><td>избранное</td><td>до пяти; закрепить/освободить; при шести и меньше не предлагается</td><td>→ проект</td></tr>
+<tr><td>все проекты</td><td>сортировка по активности; проект с ждущим агентом наверх</td><td>→ проект · <b>нет архивации</b> <span class="tag t-cut">П-10</span></td></tr>
+<tr><td>живая лента</td><td>события всех проектов; вопрос визуально отличается от прогресса</td><td>→ сессия агента, породившего строку</td></tr>
+<tr><td>плавающий CEO</td><td>всегда снизу справа</td><td>→ чат в контексте экрана</td></tr>
+</table></div>
+
+<h3>4 · Дом + чат</h3>
+<div class="scroll"><table>
+<tr><th>Блок</th><th>Что обязан уметь</th><th>Куда ведёт</th></tr>
+<tr><td>панель чата</td><td>третья колонка; ничего не прячет</td><td>—</td></tr>
+<tr><td>контекст</td><td>назвать, что видит: «дом эстейта»</td><td>—</td></tr>
+<tr><td>реплики</td><td>предложить действие, не совет</td><td>→ артефакт</td></tr>
+<tr><td>кнопки решения</td><td>выдать грант / создать / отказаться</td><td>→ запись в журнал</td></tr>
+<tr><td>смена вкладки при открытом чате</td><td><b>не определено:</b> чат следует за контекстом или закрывается?</td><td><span class="tag t-cut">П-11</span></td></tr>
+</table></div>
+
+<h3>5 · Очередь одобрений <span class="tag t-has">SCR-24 · уже спроектирована</span></h3>
+<p class="caption">Экран существует в цепочке с августа и в карту не входил. Он — <b>назначение контрола «внимание»</b>, то есть недостающее звено П-7.</p>
+<div class="scroll"><table>
+<tr><th>Блок</th><th>Что обязан уметь</th><th>Куда ведёт</th></tr>
+<tr><td>очередь по времени ожидания</td><td>вопросы от агентов, действия под полом, автоматические отказы</td><td>→ деталь пункта</td></tr>
+<tr><td>деталь пункта</td><td>узел, цель, уровень автономии, класс действия, доказательства</td><td>→ задача · → сессия</td></tr>
+<tr><td>одобрить</td><td>выдать одноразовый грант там, где под полом</td><td>→ расписка</td></tr>
+<tr><td>отказать / ответить</td><td>типизированный ответ, разблокирующий узел</td><td>→ агент продолжает</td></tr>
+<tr><td>отказы</td><td>что пол отказал сам, с распиской</td><td>→ журнал</td></tr>
+</table></div>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab">⌂</span>
+    <span class="tab active">Внимание</span><span class="sp"></span><span class="chip bad dot">2 ждут</span></div>
+  <div class="body">
+    <div class="panel"><div class="ph"><h2 class="pt">Ждут вашего ответа</h2><span class="chip">по времени ожидания</span></div>
+      <div class="row"><span class="lead">24 мин</span>
+        <span class="main"><strong>dev · Fabric</strong> — перезаписать <code>ProjectHome.tsx</code>, изменённый на диске
+          <span class="muted"> · класс deletion · нужен одноразовый грант</span></span>
+        <span class="tb"><button class="btn">Одобрить</button><button class="btn g">Отказать</button></span></div>
+      <div class="row"><span class="lead">1 ч</span>
+        <span class="main"><strong>CEO · PassionCode.ai</strong> — нужен доступ к research MCP
+          <span class="muted"> · класс publication</span></span>
+        <span class="tb"><button class="btn">Одобрить</button><button class="btn g">Отказать</button></span></div></div>
+    <div class="panel q"><div class="ph"><h2 class="pt">Пол отказал сам</h2><span class="chip">за сегодня</span></div>
+      <div class="row"><span class="lead">#4287</span><span class="main">file.overwrite без гранта — отказано <span class="muted">· расписка</span></span><span class="trail">12:58</span></div></div>
+  </div>
+  <span class="ceo"></span>
+</div>
+
+<h3>6 · Профиль CEO</h3>
+<div class="scroll"><table>
+<tr><th>Блок</th><th>Что обязан уметь</th><th>Куда ведёт</th></tr>
+<tr><td>портрет</td><td>канон; история вариантов по событиям</td><td>—</td></tr>
+<tr><td>цифра с реестром</td><td>пересчитываться, а не храниться; называть реестр</td><td><b>реестр назван текстом, но не открывается</b> <span class="tag t-cut">П-12</span></td></tr>
+<tr><td>серия дней</td><td>считать подряд идущие дни с событием агента</td><td>—</td></tr>
+<tr><td>отсутствующая цифра</td><td>отсутствовать, а не показывать ноль</td><td>—</td></tr>
+</table></div>
+
+
+<h2>Решено оператором · 2026-09-04</h2>
+<div class="scroll"><table>
+<tr><th>Пробел</th><th>Решение</th><th>Следствие</th></tr>
+<tr><td><b>П-4</b> пустой проект после создания</td><td>сразу предложить <b>два действия</b>: поставить задачу или открыть агента</td><td>у проекта появляется первое состояние, которого не было ни в одном сценарии</td></tr>
+<tr><td><b>П-9</b> два списка проектов</td><td>в шапке — <b>только счёт</b>; списком быть избранному</td><td>применено выше</td></tr>
+<tr><td><b>П-11</b> чат при смене экрана</td><td><b>следует</b>; новый контекст <b>добавляется</b>, прежний <b>сворачивается в сводку</b></td><td>чат перестаёт быть панелью на экран и становится <b>нитью через экраны</b> — см. П-13</td></tr>
+</table></div>
+<div class="note bad"><b>П-13, новый, порождён решением по П-11.</b> Если контекст накапливается, у нити нужна граница: где она сбрасывается. Без неё через день разговор тащит десять свёрнутых контекстов, и CEO отвечает про то, что вы уже забыли. Варианты: сброс по смене проекта, по времени, или явной кнопкой «начать заново» — но решить надо, потому что «накапливается всегда» — это не решение, а его отсутствие.</div>
+
+<h3>7 · Страница проекта</h3>
+<div class="scroll"><table>
+<tr><th>Блок</th><th>Что обязан уметь</th><th>Куда ведёт</th></tr>
+<tr><td>шапка: имя, ветка, изменения</td><td>показать состояние кода; помечать устаревшее чтение</td><td>→ настройки проекта</td></tr>
+<tr><td>чипы внимания</td><td>сколько ждут вас в <b>этом</b> проекте</td><td>→ очередь одобрений, отфильтрованная проектом</td></tr>
+<tr><td>полоса статуса</td><td>каждая ячейка — факт, открывающий свою секцию</td><td>→ агенты · файлы · журнал</td></tr>
+<tr><td><b>первый шаг</b> <span class="tag t-new">П-4</span></td><td>у проекта без задач и истории: <b>поставить задачу</b> или <b>открыть агента</b></td><td>→ поле задачи · → новая сессия</td></tr>
+<tr><td>где мы остановились</td><td>решения, каждое с цитатой; возраст сводки; пересобрать</td><td>→ событие, транскрипт или факт</td></tr>
+<tr><td>дать задачу</td><td>выбрать агента и режим разрешений; шорткаты</td><td>→ сессия + карточка на доске</td></tr>
+<tr><td>доска</td><td>перетаскивание = событие; отказ журнала откатывает</td><td>→ страница задачи</td></tr>
+<tr><td>лента проекта</td><td>события проекта; вопрос отличается от прогресса</td><td>→ сессия агента</td></tr>
+<tr><td>план</td><td>цели с прогрессом</td><td>→ план и граф</td></tr>
+<tr><td>доска агентов</td><td>заметки между агентами; продвижение в память</td><td>→ память</td></tr>
+<tr><td>харнес</td><td>агенты, скилы, MCP, состояние грантов</td><td>→ харнес</td></tr>
+<tr><td>память · файлы · журнал</td><td>свёрнуты; раскрываются на месте</td><td>→ память (целый экран)</td></tr>
+<tr><td colspan="3"><b>Отсутствует:</b> архивация проекта отсюда <span class="tag t-cut">П-10</span> · нет перехода к транскриптам как к списку <span class="tag t-cut">П-14</span></td></tr>
+</table></div>
+
+<h3>8 · Страница задачи</h3>
+<div class="scroll"><table>
+<tr><th>Блок</th><th>Что обязан уметь</th><th>Куда ведёт</th></tr>
+<tr><td>заголовок: тип, раздел, лиза</td><td>показать остаток лизы; отпустить</td><td>→ отпустить лизу</td></tr>
+<tr><td>бриф</td><td>черновик агента; правка человека поверх, обе версии читаемы</td><td>—</td></tr>
+<tr><td>заметки</td><td>только добавление; автор у каждой; <b>продвинуть в память</b></td><td>→ память (факт)</td></tr>
+<tr><td>история</td><td>журнал, не редактируется</td><td>→ событие</td></tr>
+<tr><td>что сделано снаружи</td><td>расписки за эффекты; грант, который их разрешил</td><td>→ строка журнала</td></tr>
+<tr><td>поля</td><td>агент заполняет; человек переопределяет; видно обоих</td><td>→ цель</td></tr>
+<tr><td>связанные</td><td>блокирует, заблокирована, породила</td><td>→ другая задача</td></tr>
+<tr><td>ресурсы</td><td><b>только ссылки</b>, содержимое не копируется</td><td>→ файл, док, решение, транскрипт</td></tr>
+<tr><td>сессия</td><td>живой хвост</td><td>→ окно сессии</td></tr>
+<tr><td>чат в контексте задачи</td><td>разбить, назначить, оценить, переписать бриф</td><td>→ артефакт</td></tr>
+<tr><td colspan="3"><b>Отсутствует:</b> нельзя закрыть или отменить задачу с этой страницы — только перетащить на доске <span class="tag t-cut">П-15</span></td></tr>
+</table></div>
+
+
+<h2>Модель нити CEO · решено 2026-09-04</h2>
+<p class="caption">П-13 закрыт: <b>граница нити — проект</b>.</p>
+<div class="scroll"><table>
+<tr><th>Что</th><th>Правило</th></tr>
+<tr><td>сколько нитей</td><td>одна на проект <b>плюс одна общая</b>, эстейтная</td></tr>
+<tr><td>переключение проекта</td><td>меняет нить целиком; разговор про другой проект не тянется следом</td></tr>
+<tr><td>навигация внутри проекта</td><td>задача, память, харнес, план <b>добавляют</b> контекст в нить этого проекта, прежний сворачивается в строку</td></tr>
+<tr><td>дом эстейта</td><td>общая нить: очередь внимания, квота, все проекты</td></tr>
+<tr><td>что переходит между нитями</td><td><b>ничего.</b> Долговечное уезжает в память проекта и доступно любой нити оттуда</td></tr>
+</table></div>
+<div class="note ok"><b>Одно правило, применённое третий раз.</b> Заметка на задаче не копит знание — она его продвигает в память. Страница задачи не становится документацией — она ссылается. Нить чата не становится хранилищем — она сворачивается и продвигает. <b>Рабочий контекст ограничен и одноразов; знание живёт в одном месте и переживает его.</b> Три разных места, одна граница — значит это правило системы, а не приём одного экрана.</div>
+<div class="win">
+  <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="tab">⌂</span>
+    <span class="tab active">Fabric</span><span class="tab">PassionCode.ai</span><span class="sp"></span></div>
+  <div class="body">
+    <div class="three" style="grid-template-columns:1fr 320px">
+      <div><div class="panel q"><div class="ph"><h2 class="pt">Доска</h2></div>
+        <p class="empty">…</p></div></div>
+      <div class="chatpane">
+        <div class="cp-h"><span class="mini"></span><div style="flex:1">
+          <strong style="font-size:.85rem">Пассионарий</strong>
+          <div class="muted" style="font-size:.65rem">нить проекта <b style="color:var(--info)">Fabric</b></div></div><span class="chip">×</span></div>
+        <div class="cp-b">
+          <div class="row"><span class="lead">свёрнуто</span><span class="main muted">дом эстейта · 2 реплики · очередь внимания</span></div>
+          <div class="row"><span class="lead">свёрнуто</span><span class="main muted">TSK-118 · 4 реплики · разбивка на подзадачи</span></div>
+          <div class="row"><span class="lead">сейчас</span><span class="main">Вижу доску Fabric. Одна задача ждёт вашего ответа.</span></div>
+          <div class="tb" style="margin-top:10px"><button class="btn g">Нить эстейта</button><button class="btn g">Начать заново</button></div></div>
+        <div class="cp-f">Переключитесь на другой проект — откроется его нить. Эта останется здесь.</div>
+      </div>
+    </div>
+  </div>
+  <span class="ceo on"></span>
+</div>
+
+<h3>9 · План и граф решений</h3>
+<div class="scroll"><table>
+<tr><th>Блок</th><th>Что обязан уметь</th><th>Куда ведёт</th></tr>
+<tr><td>цель с прогрессом</td><td>сколько закрыто из скольких; что следующее</td><td>→ задача</td></tr>
+<tr><td>задача под целью</td><td>состояние и держатель</td><td>→ страница задачи</td></tr>
+<tr><td>бэклог без цели</td><td>показывать отдельно как находку, а не прятать</td><td>→ задача · <b>нельзя присвоить цель отсюда</b> <span class="tag t-cut">П-16</span></td></tr>
+<tr><td>граф: узел</td><td>решение, задача или цель; состояние и держатель</td><td>→ задача · → сессия держателя</td></tr>
+<tr><td>граф: ребро</td><td>рисуется только вперёд; цикл отказывается в момент рисования</td><td>→ отказ с названным циклом</td></tr>
+<tr><td>вкладки бэклог / приоритеты</td><td>переупорядочить</td><td><b>не спроектированы</b> <span class="tag t-cut">П-17</span></td></tr>
+</table></div>
+
+<h3>10 · Память проекта</h3>
+<div class="scroll"><table>
+<tr><th>Блок</th><th>Что обязан уметь</th><th>Куда ведёт</th></tr>
+<tr><td>инвентарь хранилищ</td><td>что держит, кто записал, когда читали</td><td>→ хранилище</td></tr>
+<tr><td>промахи</td><td>считать отдельно от попаданий</td><td>→ список пустых запросов</td></tr>
+<tr><td>факт</td><td>источник у каждого; исправленный зачёркнут и читаем</td><td>→ задача или транскрипт, откуда он</td></tr>
+<tr><td>исправить факт</td><td>новый поверх, старый закрывает окно валидности</td><td>→ событие</td></tr>
+<tr><td>транскрипты</td><td>список, поиск, чтение целиком</td><td>→ транскрипт <span class="tag t-cut">П-14 закрывается здесь</span></td></tr>
+<tr><td>контекст-паки</td><td>что было скомпилировано в сессию и что не влезло</td><td>→ сессия</td></tr>
+</table></div>
+
+<h3>11 · Харнес проекта</h3>
+<div class="scroll"><table>
+<tr><th>Блок</th><th>Что обязан уметь</th><th>Куда ведёт</th></tr>
+<tr><td>агент</td><td>состояние, режим разрешений, чего ждёт</td><td>→ сессия · → снять биндинг</td></tr>
+<tr><td>добавить агента</td><td>через CEO со спецификацией до создания</td><td>→ чат в контексте проекта</td></tr>
+<tr><td>скилы</td><td>обязательный помечен; нельзя снять</td><td>→ описание скила</td></tr>
+<tr><td>MCP-сервер</td><td>состояние гранта; кто им пользуется</td><td>→ выдать грант</td></tr>
+<tr><td>контракт инструментов</td><td>шесть вызовов, которыми агент работает с доской</td><td>→ <b>нет страницы инструмента</b> <span class="tag t-cut">П-18</span></td></tr>
+</table></div>
+
+<h3>12–15 · Канвас, сессия, редактор, настройки</h3>
+<div class="scroll"><table>
+<tr><th>Экран · блок</th><th>Что обязан уметь</th><th>Куда ведёт</th></tr>
+<tr><td><b>канвас</b> · виджет</td><td>рисоваться из проекции; свой пустой вид у каждого</td><td>→ секция проекта</td></tr>
+<tr><td><b>канвас</b> · слот результата</td><td>стоящий результат биндинга</td><td>пусто, пока нет биндингов</td></tr>
+<tr><td><b>сессия</b> · терминал</td><td>переживать закрытие окна; отдавать скроллбэк при возврате</td><td>—</td></tr>
+<tr><td><b>сессия</b> · состояние</td><td>наблюдение, отдельно от заявления агента</td><td>→ задача, если сессия её ведёт <span class="tag t-cut">П-19</span></td></tr>
+<tr><td><b>редактор</b> · конфликт</td><td>две кнопки; «оставить мою» проходит через пол с грантом</td><td>→ расписка</td></tr>
+<tr><td><b>редактор</b> · отказ политики</td><td>показать словами политики, не исключением IPC</td><td>—</td></tr>
+<tr><td><b>настройки</b> · тема, язык, бодрствование</td><td>сохранять сразу; сказать, чего ОС не сделает</td><td>—</td></tr>
+<tr><td><b>настройки</b> · агенты и диагностика</td><td><b>нет</b> — реестр агентов и лог живут только в планах</td><td><span class="tag t-cut">П-20</span></td></tr>
+</table></div>
+
+
+<h2 id="closed">Пробелы закрыты · 2026-09-04</h2>
+<p class="caption">Четырнадцать оставшихся. У каждого — решение, а не намерение; два потребовали новых экранов, и карта стала семнадцатью.</p>
+<div class="scroll"><table>
+<tr><th>#</th><th>Решение</th><th>Где живёт</th></tr>
+<tr><td>П-1</td><td>Провал запуска показывает <b>диалог с названной предпосылкой</b>: стек не поднялся, миграции не применены, CLI не на PATH — три разных текста и три разных действия. Никогда молчаливый выход</td><td>всплеск · M100</td></tr>
+<tr><td>П-2</td><td>Запуск стека уходит в дочерний процесс, всплеск опрашивает его и <b>даёт отмену</b> с первой секунды</td><td>всплеск · M101</td></tr>
+<tr><td>П-3</td><td>Стадия называется словом: «поднимаю стек» → «применяю миграции» → «жду базу». Молчащая стадия через 30 с говорит, сколько уже ждёт</td><td>всплеск</td></tr>
+<tr><td>П-5</td><td>Облачная память <b>убирается из пикера</b>, пока не работает. Опция, которую нельзя выбрать, стоит доверия дороже, чем стоит её обещание</td><td>онбординг · M99</td></tr>
+<tr><td>П-6</td><td>На онбординге <b>третий путь</b>: «указать репозиторий и дать CEO предложить проект» — вход в M119 из места, где человек и так заводит проект</td><td>онбординг</td></tr>
+<tr><td>П-8</td><td><b>Новый экран: результаты поиска.</b> Одно поле, результаты сгруппированы по природе — проекты, задачи, факты памяти, транскрипты, решения. У каждой группы свой счёт и свой «показать все»</td><td>SCR-37 · новый</td></tr>
+<tr><td>П-10</td><td>Архивация проекта — в настройках проекта, <b>класс deletion, через пол</b>: подтверждение выдаёт грант, архивация оставляет расписку. Проект не удаляется, а уходит из списка, потому что журнал за ним остаётся</td><td>настройки проекта · M77</td></tr>
+<tr><td>П-12</td><td>Правило применяется до конца: <b>каждая цифра — кнопка</b>, открывающая свой реестр. «11 задач» → список закрытых, «7 расписок» → журнал эффектов, «6 дней подряд» → дни с событиями</td><td>шапка дома, профиль</td></tr>
+<tr><td>П-15</td><td>На странице задачи появляются <b>действия состояния</b>: закрыть, вернуть в бэклог, отменить с причиной. Отмена требует причины — задача, исчезнувшая без объяснения, это потерянное решение</td><td>страница задачи</td></tr>
+<tr><td>П-16</td><td>В бэклоге без цели у каждой строки <b>присвоение цели на месте</b>. Интерфейс, который жалуется и не даёт починить, учит не смотреть</td><td>план</td></tr>
+<tr><td>П-17</td><td>Вкладки развёрнуты в модель. <b>Бэклог</b> — всё, что не в работе, с фильтром по цели, типу и автору. <b>Приоритеты</b> — переупорядочивание внутри цели перетаскиванием, и порядок это поле задачи, а не мнение экрана</td><td>план</td></tr>
+<tr><td>П-18</td><td><b>Новый экран: инструмент харнеса.</b> Что делает, что принимает, что возвращает, кто вызывал за неделю и сколько раз отказал</td><td>SCR-38 · новый</td></tr>
+<tr><td>П-19</td><td>В шапке окна сессии — задача, которую она ведёт, ссылкой. Связь была в модели и не была в интерфейсе</td><td>окно сессии</td></tr>
+<tr><td>П-20</td><td>В настройках две секции: <b>агенты эстейта</b> (реестр дескрипторов, режимы разрешений) и <b>диагностика</b> (лог с фильтром уровня, M81)</td><td>настройки</td></tr>
+</table></div>
+
+<h2 id="data">Карта данных · что где хранится и что попадает в контекст</h2>
+<p class="caption">Снято с кода и базы, не по памяти: семнадцать таблиц, три файла на сессию, два канала в контекст агента.</p>
+
+<h3>Где что лежит</h3>
+<div class="scroll"><table>
+<tr><th>Слой</th><th>Что</th><th>Правило</th></tr>
+<tr><td><b>Журнал</b></td><td><code>journal</code> — каждое событие эстейта, по порядку, без дыр</td><td>единственный путь записи; всё остальное — его проекция</td></tr>
+<tr><td><b>Проекции</b></td><td><code>projects</code>, <code>project_repos</code>, <code>project_tasks</code>, <code>goals</code>, <code>agent_bindings</code>, <code>agent_stages</code>, <code>estates</code>, <code>persons</code>, <code>memberships</code></td><td>пересобираются из журнала; строка без события за ней запрещена схемой</td></tr>
+<tr><td><b>Полномочия</b></td><td><code>grants</code>, <code>effect_intents</code></td><td>пол в схеме: эффект под полом без гранта база не принимает</td></tr>
+<tr><td><b>Память</b></td><td><code>memory_facts</code> (би-темпоральная), <code>memory_retrievals</code>, <code>session_transcripts</code>, <code>session_context_packs</code></td><td>факт не удаляется, а закрывает окно валидности; промах записывается наравне с попаданием</td></tr>
+<tr><td><b>Служебное</b></td><td><code>event_types</code></td><td>реестр словаря: незарегистрированное событие журнал не принимает</td></tr>
+<tr><td><b>Файлы сессии</b></td><td>каталог 0700 на сессию: <code>mcp.json</code> (0600), <code>context.md</code> (0600)</td><td>вне репозитория; кред одноразовый, гибнет с сессией</td></tr>
+<tr><td><b>В памяти процесса</b></td><td>скроллбэк до 400 000 символов на сессию</td><td>не переживает перезапуск; транскрипт — то, что переживает</td></tr>
+<tr><td><b>Репозиторий проекта</b></td><td>код и <code>docs/</code></td><td>Fabric читает; пишет только агент под грантом</td></tr>
+<tr><td><b>Репозиторий воркспейса</b> <span class="tag t-new">M118</span></td><td>проекты, связи, настройки</td><td>только декларированное (ADR-0002); наблюдаемое туда не едет</td></tr>
+</table></div>
+
+<h3>Что попадает агенту в контекст — два канала, и они разные</h3>
+<div class="scroll"><table>
+<tr><th>Канал</th><th>Что именно</th><th>Когда</th><th>Граница</th></tr>
+<tr><td><b>Толкаем</b> — контекст-пак</td><td><code>context.md</code>: факты памяти с цитатами и выдержки прошлых сессий</td><td>компилируется <b>при старте сессии</b>, до первого символа агента</td><td><b>ограничен по объёму.</b> Что не влезло — посчитано, и пак сам говорит, сколько опущено</td></tr>
+<tr><td><b>Толкаем</b> — бандл</td><td><code>mcp.json</code>: адрес поверхности и одноразовый кред</td><td>там же</td><td>кред спенится на первом <code>initialize</code></td></tr>
+<tr><td><b>Толкаем</b> — инструкция</td><td>то, что человек написал в поле задачи</td><td>после готовности TUI</td><td>одним блоком, а не построчно (M103)</td></tr>
+<tr><td><b>Тянем</b> — <code>fabric_whoami</code></td><td>проект, репозитории, задача, правила, состав пака</td><td>по вызову агента</td><td>только свой проект</td></tr>
+<tr><td><b>Тянем</b> — поиск памяти</td><td>факты, по умолчанию только действующие</td><td>по вызову</td><td>промах записывается</td></tr>
+<tr><td><b>Тянем</b> — поиск транскриптов</td><td>что делали прошлые сессии, дословно</td><td>по вызову</td><td>выдержка; целиком — по id</td></tr>
+<tr><td><b>Тянем</b> — кто ещё работает</td><td>наблюдение и заявления соседей</td><td>по вызову</td><td>только этот проект</td></tr>
+<tr><td><b>Тянем</b> — лизы <span class="tag t-new">M123</span></td><td>кто какую задачу держит в моём скоупе</td><td>по вызову</td><td>ещё не построено</td></tr>
+</table></div>
+<div class="note ok"><b>Почему каналов два, а не один.</b> Толкаемое ограничено и честно про свою неполноту — пак говорит, сколько не влезло, и советует искать самому. Тянутое неограниченно, но стоит вызова и записывается. Один канал вместо двух был бы либо переполненным контекстом, либо агентом, который не знает, чего не знает.</div>
+<div class="note bad"><b>Что в контекст не попадает и не должно.</b> Другие проекты — кред привязан к одному. Секреты — <b>но сегодня это неправда</b>: транскрипты пишутся дословно и отдаются каждому агенту проекта, и до редакции (M95) любой <code>env</code> в сессии попадает в общий контекст. Это единственная строка на этой карте, которая описывает не правило, а дыру.</div>
+
+<h2>Пробелы, найденные разбором</h2>
+<div class="scroll"><table>
+<tr><th>#</th><th>Пробел</th><th>Вес</th></tr>
+<tr><td>П-1</td><td><b>Провал запуска не ведёт никуда.</b> <code>console.error</code> и <code>app.quit()</code>: человек кликает по иконке и не происходит ничего</td><td><span class="tag t-cut">крит · M100</span></td></tr>
+<tr><td>П-2</td><td>Из четырёхминутного ожидания нельзя выйти — нет отмены</td><td><span class="tag t-move">средне · M101</span></td></tr>
+<tr><td>П-3</td><td>Всплеск не называет стадию: «поднимаю стек», «применяю миграции» и «жду базу» чинятся по-разному</td><td><span class="tag t-move">средне</span></td></tr>
+<tr><td>П-4</td><td><b>После создания проекта человек попадает на пустой экран</b> и не знает, что делать первым. Первого шага нет ни в одном сценарии</td><td><span class="tag t-cut">крит</span></td></tr>
+<tr><td>П-5</td><td>Облачная память предлагается и отказывает</td><td><span class="tag t-move">средне · M99</span></td></tr>
+<tr><td>П-6</td><td>Нет входа «взять репозиторий → CEO предложит проект»: M119 спроектирован и недостижим</td><td><span class="tag t-move">средне</span></td></tr>
+<tr><td>П-7</td><td><b>Контрол «внимание» вёл в никуда.</b> Закрыт: назначение — SCR-24, экран существовал с августа и в карту не входил</td><td><span class="tag t-has">закрыт здесь</span></td></tr>
+<tr><td>П-8</td><td>У поиска нет экрана результатов</td><td><span class="tag t-cut">крит</span></td></tr>
+<tr><td>П-9</td><td>«Работы» в шапке и «избранное» — два списка проектов на одном экране</td><td><span class="tag t-move">средне</span></td></tr>
+<tr><td>П-10</td><td>Проект нельзя ни архивировать, ни удалить ниоткуда</td><td><span class="tag t-move">средне · M77</span></td></tr>
+<tr><td>П-11</td><td>Не определено: при смене вкладки чат следует за контекстом или закрывается</td><td><span class="tag t-move">средне</span></td></tr>
+<tr><td>П-12</td><td>Правило «каждый факт открывает свою расписку» объявлено и <b>не применено к цифрам профиля и шапки</b> — реестр назван словом, но не кликается</td><td><span class="tag t-move">средне</span></td></tr>
+<tr><td>П-13</td><td>У нити чата нет границы</td><td><span class="tag t-has">закрыт: граница — проект</span></td></tr>
+<tr><td>П-14</td><td>Транскрипты без своего адреса</td><td><span class="tag t-has">закрыт: живут в памяти</span></td></tr>
+<tr><td>П-16</td><td>В бэклоге без цели <b>нельзя присвоить цель</b> — находка показана и не чинится на месте</td><td><span class="tag t-move">средне</span></td></tr>
+<tr><td>П-17</td><td>Вкладки «бэклог» и «приоритеты» на экране плана нарисованы и не спроектированы</td><td><span class="tag t-cut">крит</span></td></tr>
+<tr><td>П-18</td><td>У инструмента харнеса нет страницы: что он делает, что возвращает, кто им пользовался</td><td><span class="tag t-move">средне</span></td></tr>
+<tr><td>П-19</td><td>Из окна сессии нельзя попасть в задачу, которую она ведёт</td><td><span class="tag t-move">средне</span></td></tr>
+<tr><td>П-20</td><td>В настройках нет ни реестра агентов, ни диагностического лога (M81) — оба спроектированы и недостижимы</td><td><span class="tag t-move">средне</span></td></tr>
+<tr><td>П-15</td><td>Задачу нельзя закрыть или отменить с её страницы — только перетащить на доске</td><td><span class="tag t-move">средне</span></td></tr>
+</table></div>
+<div class="note bad"><b>Двенадцать пробелов на первых шести экранах, и три из них критические.</b> Два — П-4 и П-8 — не покрыты ни одним майлстоуном: пустой проект после создания и поиск без результатов. Их надо заводить. П-7 закрыт прямо здесь: экран нашёлся в цепочке.</div>
+
+
+<h2 id="style">Стилевой справочник · для переноса</h2>
+<p class="caption">Всё, чем нарисована эта карта, уже существует в продукте. Переносить нечего, кроме ссылок: экран собирается из четырнадцати компонентов набора и токенов пака — и гейт роняет сборку на классе вне реестра.</p>
+
+<h3>Источники — по одному на слой</h3>
+<div class="scroll"><table>
+<tr><th>Слой</th><th>Файл</th><th>Правило</th></tr>
+<tr><td>токены пака</td><td class="mono">tokens.paperclip.css</td><td>дословная копия пака; дарк — базовый, лайт — <code>data-theme="light"</code></td></tr>
+<tr><td>семантические алиасы</td><td class="mono">tokens.app.css</td><td>компоненты потребляют только <code>--app-*</code> и <code>--state-*</code></td></tr>
+<tr><td>компоненты</td><td class="mono">components.css + components/registry.ts</td><td>класс имеет ровно одного владельца; реестр читается гейтом как данные</td></tr>
+<tr><td>раскладка экранов</td><td class="mono">styles.css</td><td>позиционирует, не красит: цвет/бордер/радиус — только у компонентов</td></tr>
+<tr><td>интент</td><td class="mono">docs/brand/ui.md · docs/brand/components.md</td><td>первый переживает переписывание интерфейса, второй меняется с ним</td></tr>
+</table></div>
+
+<h3>Палитра — роли, не имена цветов</h3>
+<div class="scroll"><table>
+<tr><th>Роль</th><th>Дарк</th><th>Что красит</th></tr>
+<tr><td class="mono">--bg / --surface / --quiet</td><td class="mono">#0a0a0a / #171717 / #262626</td><td>фон · панель · чип/карточка доски</td></tr>
+<tr><td class="mono">--ink / --muted</td><td class="mono">#fafafa / #a1a1a1</td><td>текст · справка</td></tr>
+<tr><td class="mono">--line / --line2</td><td class="mono">white 10% / 15%</td><td>hairline покоя · hover и контролы</td></tr>
+<tr><td class="mono">--state-running/-idle/-good/-danger</td><td class="mono">#60a5fa / #fbbf24 / #34d06f / #fb2c36</td><td><b>только состояния</b>; слово несёт состояние, цвет поддерживает</td></tr>
+<tr><td class="mono">марка: seed/interior/flesh</td><td class="mono">#41054B / #F20673 / #FFD21A</td><td><b>только бренд-объекты</b>: марка, портрет CEO. Никогда — контролы</td></tr>
+</table></div>
+
+<h3>Ритм</h3>
+<p class="caption">Пространство — лестница <code>--space-1…6</code> (4/8/12/16/24/32). Радиусы <code>--r-sm/md/lg</code> (4.8/8/11.2) + pill. Шрифты: display Inter Tight · body Inter · mono JetBrains Mono. Табличные цифры на всём, что меняется на глазах (<code>.tick</code>, <code>.stat-value</code>). Тени только у плавающего: CEO-иконка, панель чата, окно.</p>
+
+<h3>Контракты, добавленные аудитом 2026-09-05</h3>
+<p class="caption">Шесть находок аудита стали строками состояний в <code>screens.md</code> — на этой карте они помечаются при переносе экрана:</p>
+<div class="scroll"><table>
+<tr><th>Экран</th><th>Контракт</th></tr>
+<tr><td>Редактор</td><td>ответ сохранения со старым хешем не затирает новый ввод (UX-04); закрытие с грязным буфером спрашивает (UX-05)</td></tr>
+<tr><td>Онбординг</td><td>id проекта генерируется до первой попытки — повтор это тот же create, не близнец (UX-06)</td></tr>
+<tr><td>Страница проекта</td><td>ответ IPC несёт свой проект и гибнет в чужом (UX-01); «использовать снова» поверх черновика спрашивает и не тащит чужой preset-провенанс (UX-14); инструкция уходит одним bracketed-paste по маркеру готовности (UX-15/M103)</td></tr>
+</table></div>
+
+<h3>Что строить по этой карте — порядок</h3>
+<p class="caption">Архитектура слоя — <code>docs/architecture/operating-surfaces.md</code>: события, проекции, шесть инструментов задач, реестр агентов, DAG-триггер. Порядок сборки — восемь шагов, каждый оставляет продукт рабочим: миграция → доска-читалка → инструменты+лизы → drag с откатом → страница задачи → реестр агентов → цели+граф → нити CEO.</p>
+<h2>Инвентарь · 18 экранов</h2>
+<table>
+<tr><th>#</th><th>Экран</th><th>Где живёт</th><th>Сценарий</th><th>Состояние</th></tr>
+<tr><td>1</td><td>Всплеск запуска</td><td>главный процесс</td><td>—</td><td><span class="tag t-has">есть</span> <span class="tag t-cut">M100/M101</span></td></tr>
+<tr><td>2</td><td>Онбординг проекта</td><td>вкладка</td><td>SCN-035</td><td><span class="tag t-has">есть</span></td></tr>
+<tr><td>3</td><td>Дом эстейта</td><td>вкладка ⌂</td><td>SCN-043, SCN-044</td><td><span class="tag t-new">перестраивается</span></td></tr>
+<tr><td>4</td><td>Дом + чат</td><td>третья колонка</td><td>SCN-042</td><td><span class="tag t-new">новое</span></td></tr>
+<tr><td>5</td><td>Профиль CEO</td><td>из контрола менеджера</td><td>SCN-044</td><td><span class="tag t-new">новое</span></td></tr>
+<tr><td>6</td><td>Страница проекта</td><td>вкладка проекта</td><td>SCN-040, SCN-041</td><td><span class="tag t-move">частично · перестраивается</span></td></tr>
+<tr><td>7</td><td>Проект + чат</td><td>третья колонка</td><td>SCN-042</td><td><span class="tag t-new">новое</span></td></tr>
+<tr><td>8</td><td>Страница задачи</td><td>из карточки доски</td><td>SCN-045</td><td><span class="tag t-new">новое</span></td></tr>
+<tr><td>9</td><td>План и граф</td><td>из виджета плана</td><td>SCN-046</td><td><span class="tag t-new">новое</span></td></tr>
+<tr><td>10</td><td>Память проекта</td><td>из панели памяти</td><td>SCN-039</td><td><span class="tag t-new">новое</span></td></tr>
+<tr><td>11</td><td>Харнес проекта</td><td>из панели харнеса</td><td>SCN-047</td><td><span class="tag t-new">новое</span></td></tr>
+<tr><td>12</td><td>Канвас проекта</td><td>из проекта</td><td>SCN-030</td><td><span class="tag t-has">есть</span></td></tr>
+<tr><td>13</td><td>Окно сессии</td><td>отдельное окно</td><td>SCN-036</td><td><span class="tag t-has">есть</span></td></tr>
+<tr><td>14</td><td>Окно редактора</td><td>отдельное окно</td><td>SCN-034</td><td><span class="tag t-has">есть</span></td></tr>
+<tr><td>15</td><td>Настройки</td><td>полоса из табстрипа</td><td>—</td><td><span class="tag t-has">есть</span></td></tr>
+<tr><td>16</td><td><b>Агенты эстейта</b></td><td>вкладка</td><td>SCN-049</td><td><span class="tag t-new">новое · M70/71/86</span></td></tr>
+<tr><td>17</td><td>Очередь одобрений</td><td>из контрола внимания</td><td>SCN-023</td><td><span class="tag t-has">спроектирована</span></td></tr>
+<tr><td>18</td><td>Результаты поиска</td><td>из поиска</td><td>SCN-048</td><td><span class="tag t-new">новое · M141</span></td></tr>
+<tr><td>—</td><td>Workflows</td><td>—</td><td>—</td><td><span class="tag t-cut">убрано · M99</span></td></tr>
+</table>
+<p class="caption"><b>Шесть построено, два перестраиваются, семь новых.</b> Восемь из пятнадцати уже переведены на компонентный набор; последний непереведённый — страница проекта, и она в работе.</p>
+
+<div class="note"><b>Ещё три сценария нужны:</b> детали задачи, план с графом и харнес. Без них эти экраны не выйдут из <code>draft</code> и не станут кодом — цепочка требует сценарий до сборки.</div>
+
+<footer>
+Собрано 2026-09-04. Заменяет <code>ux-mockups.html</code>, <code>ux-screens-full.html</code>,
+<code>ux-estate-home-v2.html</code> и <code>ux-project-page.html</code> — они удалены как разошедшиеся копии.
+Экраны регистрируются в <code>docs/ux/screens.md</code> как SCR-30…SCR-36. Файл не закоммичен.
+</footer>
+
+</div></body></html>

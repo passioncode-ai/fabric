@@ -1,0 +1,80 @@
+{
+  "schema": "CeoPrivateArchive@1",
+  "archive_id": "00000000-0000-4000-8000-000000008000",
+  "source_schema_version": 66,
+  "owner_person_id": "00000000-0000-4000-8000-000000009100",
+  "estate_archive": {
+    "schema": "FabricArchive@1",
+    "sourceEstateId": "00000000-0000-4000-8000-000000009001",
+    "takenAtUtc": "2026-09-28T09:00:00.000Z",
+    "watermarkSeq": 20,
+    "eventCount": 20,
+    "digest": "46d71168d14a462d569af05b0e0c1b979d20912c98e83c01de0d73ec33212396"
+  },
+  "retention": "no-deletion-v1",
+  "conversations": [
+    {
+      "id": "00000000-0000-4000-8000-000000002003",
+      "subject_kind": "question",
+      "subject_id": "00000000-0000-4000-8000-000000009300",
+      "owner_project_id": "00000000-0000-4000-8000-000000009200",
+      "created_seq": 6,
+      "revision": 1
+    }
+  ],
+  "messages": [
+    {
+      "id": "00000000-0000-4000-8000-000000003003",
+      "conversation_id": "00000000-0000-4000-8000-000000002003",
+      "ordinal": 1,
+      "content_id": "00000000-0000-4000-8000-000000005003",
+      "request_id": "00000000-0000-4000-8000-000000006003",
+      "accepted_seq": 7,
+      "envelope": {
+        "schema": "CeoSend@1",
+        "operation_id": "00000000-0000-4000-8000-000000004003",
+        "conversation_id": "00000000-0000-4000-8000-000000002003",
+        "message_id": "00000000-0000-4000-8000-000000003003",
+        "expected_revision": 0,
+        "subject_revision": 1,
+        "input_channel": "text",
+        "text": "Что изменилось в Atlas за неделю?",
+        "preparation_version": "har06-ceo-v1",
+        "context": {
+          "schema": "CeoContext@1",
+          "mode": "none",
+          "selection_revision": 0,
+          "project_id": null,
+          "project_revision": null,
+          "estate_seq": 0
+        }
+      },
+      "source_digest": "5513c6a95da6b1c19bd6b5d145e07728df824ddd02997012208d2ddea8e6aab8",
+      "origin": {
+        "estate_id": "00000000-0000-4000-8000-000000009001",
+        "canonical_digest": "5513c6a95da6b1c19bd6b5d145e07728df824ddd02997012208d2ddea8e6aab8"
+      }
+    }
+  ],
+  "operations": [
+    {
+      "operation_id": "00000000-0000-4000-8000-000000004003",
+      "kind": "send",
+      "message_id": "00000000-0000-4000-8000-000000003003"
+    },
+    {
+      "operation_id": "00000000-0000-4000-8000-000000072003",
+      "kind": "open",
+      "requested_conversation_id": "00000000-0000-4000-8000-000000002003",
+      "subject_kind": "question",
+      "subject_id": "00000000-0000-4000-8000-000000009300",
+      "receipt": {
+        "conversation_id": "00000000-0000-4000-8000-000000002003",
+        "revision": 0,
+        "receipt_seq": 6
+      }
+    }
+  ],
+  "tombstones": [],
+  "archive_digest": "a9deefbb091c1dcc1c540d816ad47479afee5d458f12a2dd7499ae08ae39459d"
+}

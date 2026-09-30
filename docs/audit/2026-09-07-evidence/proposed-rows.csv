@@ -1,0 +1,44 @@
+audit_id,proposed_work,source_batch,title,priority_as_assessed,scope
+RT-01,W06,runtime,Фоновые запуски и зеркало читают чужие estate,S1,proposal only; production incidence unmeasured
+RT-02,W09,runtime,Chain advance не запускает существующий follower и повторяет работу,S1,proposal only; production incidence unmeasured
+RT-03,W10,runtime,"Квота разрешает unattended work при неизвестном формате, chains обходят gate",S1,proposal only; production incidence unmeasured
+RT-04,W08,runtime,Разрешение агенту записывается как уже совершенный внешний эффект,S1,proposal only; production incidence unmeasured
+RT-05,W08,runtime,One-shot grant проверяется и расходуется неатомарно и без project/action scope,S1,proposal only; production incidence unmeasured
+RT-06,W07,runtime,M195 redaction обходится через policy dependency,S1,proposal only; production incidence unmeasured
+RT-07,W22,runtime,Attention queue может показывать решенное как ожидающее и скрывать неизвестное,S2,proposal only; production incidence unmeasured
+RT-08,W18,runtime,Project config_revision меняется при rebuild — уже учтенная работа M198,S2,proposal only; production incidence unmeasured
+RT-09,W14,runtime,Документированная архитектура и реальные текущие контракты разошлись,S2,proposal only; production incidence unmeasured
+RT-10,W09,runtime,Проверка task-link cycle fail-open при ошибке и не сериализована с append,S2,proposal only; production incidence unmeasured
+UV-01,W01,ux,Main window crashes after the metadata read succeeds,P0,proposal only; production incidence unmeasured
+UV-02,W02,ux,Newer editor keystrokes are still lost while Save is in flight (existing UX-04),P1,proposal only; production incidence unmeasured
+UV-03,W05,ux,A completely empty Board has no way to file the first idea,P1,proposal only; production incidence unmeasured
+UV-04,W26,ux,Codex is shown as “Terminal” in runner selectors and session headers,P1,proposal only; production incidence unmeasured
+UV-05,W26,ux,Ending a session also activates its enclosing session card (existing UX-02),P1,proposal only; production incidence unmeasured
+UV-06,W05,ux,Навигация не закрывает режим Estate Agents,P1,proposal only; production incidence unmeasured
+UV-07,W05,ux,Создание проекта не восстанавливается атомарно после частичного сбоя,P1,proposal only; production incidence unmeasured
+UV-08,W17,ux,Непрочитанное и ошибочное состояние выглядит пустым,P1,proposal only; production incidence unmeasured
+UV-09,W26,ux,Evidence не открывает точный источник,P1,proposal only; production incidence unmeasured
+UV-10,W17,ux,Поздний transcript A подменяет выбранный B,P1,proposal only; production incidence unmeasured
+UV-11,W11,ux,Доставка задачи основана на эвристике готовности PTY,P1,proposal only; production incidence unmeasured
+UV-12,W26,ux,Повторное использование задачи недоступно из интерфейса,P1,proposal only; production incidence unmeasured
+UV-13,W17,ux,Соседние экраны держат несогласованные снимки данных,P1,proposal only; production incidence unmeasured
+UV-14,W26,ux,Светлая тема нарушает контраст editor и terminal,P1,proposal only; production incidence unmeasured
+UV-15,W26,ux,Controls не имеют полных доступных имён и состояний,P2,proposal only; production incidence unmeasured
+UV-16,W26,ux,Семантика цвета warning и muted text не соответствует роли,P2,proposal only; production incidence unmeasured
+UV-17,W26,ux,Grid span selector и узкая Board не соответствуют layout,P2,proposal only; production incidence unmeasured
+UV-18,W14,ux,Реестры screens и flows расходятся с реализованными экранами,P2,proposal only; production incidence unmeasured
+UV-19,W31,ux,Публичный сценарий и фактическая навигация расходятся,P2,proposal only; production incidence unmeasured
+PLAN-01,W21,operating-plan,Two questions block one task; answering first clears the task block while second remains open,P1,proposal only; production incidence unmeasured
+PLAN-02,W04,operating-plan,Digest advances read mark on refresh and on failed reads,P1,proposal only; production incidence unmeasured
+PLAN-03,W03,operating-plan,Sibling navigation can save old task brief into the new task,P1,proposal only; production incidence unmeasured
+PLAN-04,W26,operating-plan,Five-favourite ceiling does not exist despite shipped claim,P2,proposal only; production incidence unmeasured
+PLAN-05,W26,operating-plan,"Search ships three groups and project navigation, while contract promises five groups and exact subjects",P2,proposal only; production incidence unmeasured
+PLAN-06,W26,operating-plan,Task evidence trail is stored but not fully readable/navigable,P2,proposal only; production incidence unmeasured
+PLAN-07,W26,operating-plan,Harness screen describes global runner availability as project harness and hides grant errors as zero,P2,proposal only; production incidence unmeasured
+PLAN-08,W26,operating-plan,Goal with completed work appears undecomposed,P2,proposal only; production incidence unmeasured
+PLAN-09,W17,operating-plan,Memory/agent views can retain outdated or wrong-subject readings while errors are displayed elsewhere,P2,proposal only; production incidence unmeasured
+PLAN-10,W14,operating-plan,Execution briefs contain non-existent event/field names and missing producer changes,P1,proposal only; production incidence unmeasured
+PLAN-11,W22,operating-plan,Fact-first dual append is not an exactly-once domain command,P1,proposal only; production incidence unmeasured
+PLAN-12,W20,operating-plan,Trajectory eval is planned over a trace that does not exist,P1,proposal only; production incidence unmeasured
+PLAN-13,W14,operating-plan,"Dependency arrows mix hard dependencies with sequencing preference, and omit actual prerequisites",P2,proposal only; production incidence unmeasured
+PLAN-14,W14,operating-plan,Backlog and canonical iteration story retain contradictory current/delivered states,P2,proposal only; production incidence unmeasured

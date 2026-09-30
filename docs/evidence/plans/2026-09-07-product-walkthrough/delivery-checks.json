@@ -1,0 +1,39 @@
+{
+  "status": "pass",
+  "scope": "documentation/prototype delivery; production/runtime tasks remain open",
+  "baseline": "91337391aa8d24966bf0c57db381e6fe63b48bce",
+  "ci_fast": {
+    "command": "bash scripts/ci.sh fast",
+    "exit_code": 0,
+    "receipt": "ci-fast.txt"
+  },
+  "browser": {
+    "receipt": "browser-check.json",
+    "status": "pass"
+  },
+  "independent_review": {
+    "p1": 0,
+    "p2": 2,
+    "p2_fixed_in_prototype": 2,
+    "cases": [
+      "custom_project_has_no_atlas_history",
+      "task_intent_fields_preserved"
+    ]
+  },
+  "source_hashes": {
+    "scripts/product/controller.js": "8dfca09c36498663909e12d539c0279910cd17434511799b1d954d27f3a0acec",
+    "scripts/product/renderers.mjs": "7009a9a502a3fde3c4749b207300b5bcae76f1f0b0c2f1bea82b1908006b41a2",
+    "scripts/product/report.css": "6e99d8650361a0c2d43271f940a773bc382ee09c79f57772b566ff39c79c3d91",
+    "scripts/test/product-report.browser.cjs": "a3352babdcb64efc815504cb2c2128ff94d4a1a17823125464a4ca4daf595368",
+    "docs/ux/product-model.json": "4344d80b97ffcd211e988bea222626616a627fe5f5585f46d93f22bf3639cf51",
+    "docs/reports/product.html": "b67e520769b79028e78dd19e1858ff2bb6c753d75f9dcf3d13c8e4bfd1fc3f07"
+  },
+  "not_run": [
+    "native Fabric",
+    "production database",
+    "live agents",
+    "stack-backed probes",
+    "Safari/Firefox",
+    "full screen-reader audit"
+  ]
+}

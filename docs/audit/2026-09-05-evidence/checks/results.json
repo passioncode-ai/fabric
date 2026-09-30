@@ -1,0 +1,58 @@
+[
+  {
+    "name": "typecheck",
+    "command": "pnpm typecheck",
+    "exit": 0,
+    "seconds": 7.4,
+    "log": "docs/audit/2026-09-05-evidence/checks/typecheck.log"
+  },
+  {
+    "name": "docs",
+    "command": "pnpm gates:docs",
+    "exit": 0,
+    "seconds": 3.53,
+    "log": "docs/audit/2026-09-05-evidence/checks/docs.log"
+  },
+  {
+    "name": "design",
+    "command": "pnpm gates:design",
+    "exit": 0,
+    "seconds": 1.59,
+    "log": "docs/audit/2026-09-05-evidence/checks/design.log"
+  },
+  {
+    "name": "build",
+    "command": "pnpm --filter @fabric/desktop build",
+    "exit": 0,
+    "seconds": 5.67,
+    "log": "docs/audit/2026-09-05-evidence/checks/build.log"
+  },
+  {
+    "name": "test",
+    "command": "pnpm test",
+    "exit": 0,
+    "seconds": 20.16,
+    "log": "docs/audit/2026-09-05-evidence/checks/test.log"
+  },
+  {
+    "name": "dependencies",
+    "command": "pnpm audit --json",
+    "exit": 1,
+    "seconds": 2.34,
+    "log": "docs/audit/2026-09-05-evidence/checks/dependencies.log"
+  },
+  {
+    "name": "ci",
+    "command": "gh run list --repo passioncode-ai/fabric --limit 60 --json conclusion,name,status,createdAt,url",
+    "exit": 0,
+    "seconds": 0.62,
+    "log": "docs/audit/2026-09-05-evidence/checks/ci.log"
+  },
+  {
+    "name": "releases",
+    "command": "gh release list --repo passioncode-ai/fabric --json tagName,publishedAt,isPrerelease,isDraft --limit 20",
+    "exit": 0,
+    "seconds": 0.97,
+    "log": "docs/audit/2026-09-05-evidence/checks/releases.log"
+  }
+]

@@ -1,0 +1,1124 @@
+{
+  "schema": 1,
+  "source_commit": "d0260d430797f16dfaad1fde53a72afbed503893",
+  "status": "architecture proposal and bounded planning queue; not approved runtime changes",
+  "requirements": [
+    "LR01",
+    "LR02",
+    "LR03",
+    "LR04",
+    "LR05",
+    "LR06",
+    "LR07",
+    "LR08",
+    "LR09",
+    "LR10"
+  ],
+  "requirements_owner": {
+    "LR01": "Experience",
+    "LR02": "Attention",
+    "LR03": "Projects",
+    "LR04": "Experience",
+    "LR05": "Work",
+    "LR06": "Knowledge",
+    "LR07": "Planning",
+    "LR08": "Delivery",
+    "LR09": "Cycles",
+    "LR10": "Delivery"
+  },
+  "nodes": [
+    {
+      "id": "D01",
+      "title": "Подтвердить настоящий фундамент R1",
+      "owner": "Delivery",
+      "requirements": [
+        "LR10"
+      ],
+      "depends_on": [],
+      "legacy": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S10",
+        "S12",
+        "S14",
+        "S15",
+        "M188",
+        "M152",
+        "M190"
+      ],
+      "edit_targets": [
+        "docs/architecture/system-contract.md",
+        "docs/architecture/engineering-specs.json",
+        "docs/evidence/backlog.md"
+      ],
+      "proposed_output": "readiness-and-contracts.md + принятый минимальный ReadContext/GraphExpansion mapping",
+      "change": "Сопоставить code/receipt/old-plan по каждому обязательному шву и принять минимальные контракты контекста/графа. Это следующий исполнимый пакет решения.",
+      "steps": [
+        "Прочитать CO-119/122/126/148/150/152/154/156 и current work rows.",
+        "Проследить task_runs admission→bind→end и answer→delivery→ack; исторические запреты отличить от нынешнего отсутствия.",
+        "Для каждого R1 действия записать существующий producer, reader, scope, revision, ref и измерительный пробел.",
+        "Зафиксировать поддерживаемые run/decision/context edges и boundary unknown; новые изменения вынести отдельными именованными leaves."
+      ],
+      "positive": "Таблица R1-швов полностью покрыта; каждый пропуск либо уже механизм, либо конкретное изменение, либо activation blocker.",
+      "negative": "Строка shipped без cross-seam proof не закрывает capability; missing producer не заменяется fixture.",
+      "exclusions": "Не переизобретать journal и TaskRun. Не запускать live CEO, не сбрасывать рабочую БД.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Начать с contracts.md: таблица производителей уже прочитана, C1–C6 рекомендуются. Проверить названные остатки и принять точные DTO; не повторять весь аудит. Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [],
+      "context_manifest": [
+        {
+          "path": "docs/architecture/system-contract.md",
+          "sha256": "c478a4c16940daf98aeff5b036da2d64c44e5d0753b45bb242dd378e5420e1e4"
+        },
+        {
+          "path": "docs/architecture/engineering-specs.json",
+          "sha256": "96792aa7d43165b5280733ace7418473597aa4c7c6b66d589209c23423991bac"
+        },
+        {
+          "path": "docs/evidence/backlog.md",
+          "sha256": "0cdb03c6762e0ba987236e6a87304bd48c3a7f7d226646d8c0da13a4e021a2ae"
+        }
+      ]
+    },
+    {
+      "id": "D02",
+      "title": "Согласовать сценарии и четыре поверхности",
+      "owner": "Experience",
+      "requirements": [
+        "LR01",
+        "LR04",
+        "LR05",
+        "LR06",
+        "LR07"
+      ],
+      "depends_on": [
+        "D01"
+      ],
+      "legacy": [
+        "V1-M1",
+        "V1-M6",
+        "V1-M7",
+        "T-01",
+        "T-02",
+        "P01",
+        "P03"
+      ],
+      "edit_targets": [
+        "docs/ux/scenarios.md",
+        "docs/ux/flows.md",
+        "docs/ux/screens.md",
+        "docs/ux/product-model.json",
+        "scripts/product/workbench.mjs"
+      ],
+      "proposed_output": "reviewed-ux-chain + target mockup comparisons",
+      "change": "Превратить принятую композицию и контекстные вопросы в согласованную UX-цепочку и target mockups.",
+      "steps": [
+        "Home: профиль→доска→проекты→лента; Project/Agent/Planning на одних данных.",
+        "Покрыть first visit, week return, missing/stale source, competing edit, keyboard back и absent provider.",
+        "Обновить journeys/model и затронутые renderers; запустить sync/build/check product model.",
+        "Сравнить 1280×720, узкий viewport, темы и reduced motion; явно оставить runtime coverage прежним."
+      ],
+      "positive": "Все LR этой карточки трассируются к сценариям, переходам и кадрам; профиль ведёт Home, action Board достижим.",
+      "negative": "Demo-граф или gradient preview не объявлен работающим графом/генератором.",
+      "exclusions": "Не менять полномочия ради визуального сценария. Точный visual pass через sheleg-design; тексты через brand/copywriting.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [
+        {
+          "from_id": "D01",
+          "to_id": "D02",
+          "kind": "data",
+          "carries": "readiness-and-contracts.md + принятый минимальный ReadContext/GraphExpansion mapping"
+        }
+      ],
+      "context_manifest": [
+        {
+          "path": "docs/ux/scenarios.md",
+          "sha256": "39a5243f4b95194f053d75b435fb6ba79da07f151b979e837fb1286721029744"
+        },
+        {
+          "path": "docs/ux/flows.md",
+          "sha256": "959e0d14e64045bd025cb7b8995c0da020889b97a1b57cf2cb97c5db9dc0370d"
+        },
+        {
+          "path": "docs/ux/screens.md",
+          "sha256": "bff93c1651297a826dc0eb3992aa5ebf50abc3cf4844eb3455fb6fe40e317907"
+        },
+        {
+          "path": "docs/ux/product-model.json",
+          "sha256": "86cbc88d550efcfd1843f18d8f885e23447f7d66c0211f98d098ddb6a94347e8"
+        },
+        {
+          "path": "scripts/product/workbench.mjs",
+          "sha256": "f720e211457f74c52eed044c01dcac277514a6b993b7f1af3d3026e4be300674"
+        }
+      ]
+    },
+    {
+      "id": "D03",
+      "title": "Принять модель повестки и настроек дома",
+      "owner": "Attention",
+      "requirements": [
+        "LR02",
+        "LR03"
+      ],
+      "depends_on": [
+        "D01",
+        "D02"
+      ],
+      "legacy": [
+        "P05",
+        "M120",
+        "M131",
+        "M151",
+        "M156"
+      ],
+      "edit_targets": [
+        "docs/architecture/board-and-ceo.md",
+        "apps/desktop/src/shared/board.ts",
+        "apps/desktop/src/shared/favourites.ts"
+      ],
+      "proposed_output": "agenda-and-home-preferences contract + ADR при принятии",
+      "change": "Выбрать durable source свободной темы, review-session metadata, pin/rank и статистические определения.",
+      "steps": [
+        "Предложение: свободная тема — типизированная Work-запись с source; Board query объединяет её с действующими обязательствами.",
+        "Повестка хранит membership/order/revisit и итоги; resolution по-прежнему живёт у исходной сущности.",
+        "Развести личный порядок проектов и business priority; задать revision/CAS и undo.",
+        "Записать формулу полезного дня/накопленных показателей, timezone, missed imports, source age. При новой семантике — новый ADR и migration gate."
+      ],
+      "positive": "У каждой записи один owner; повторный разбор не теряет тему; известен контракт optimistic/conflict/save.",
+      "negative": "Прочтение, snooze или перестановка не отменяют unresolved blocker; preview не даёт activity credit.",
+      "exclusions": "Не заводить независимую копию задач; не применять числовые формулы до review и источников.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [
+        {
+          "from_id": "D01",
+          "to_id": "D03",
+          "kind": "data",
+          "carries": "readiness-and-contracts.md + принятый минимальный ReadContext/GraphExpansion mapping"
+        },
+        {
+          "from_id": "D02",
+          "to_id": "D03",
+          "kind": "data",
+          "carries": "reviewed-ux-chain + target mockup comparisons"
+        }
+      ],
+      "context_manifest": [
+        {
+          "path": "docs/architecture/board-and-ceo.md",
+          "sha256": "a6a09bd59cec09edaac134530d457881a087797f6e59850e9f7f20b032b31e60"
+        },
+        {
+          "path": "apps/desktop/src/shared/board.ts",
+          "sha256": "0a9b7d9769ee605f3e2187e4b321373deb9dcaa74c601088c0ee1645cd561379"
+        },
+        {
+          "path": "apps/desktop/src/shared/favourites.ts",
+          "sha256": "bd9ff347bba07ccc5f6d30c9a3f3d330231a557e5c378913d6fbab4264356637"
+        }
+      ]
+    },
+    {
+      "id": "D04",
+      "title": "Принять границу ограниченного Fabric-agent",
+      "owner": "Agents",
+      "requirements": [
+        "LR09"
+      ],
+      "depends_on": [
+        "D01"
+      ],
+      "legacy": [
+        "M166",
+        "M167",
+        "M168",
+        "M169",
+        "M171",
+        "M175",
+        "M176",
+        "M194",
+        "CO-158"
+      ],
+      "edit_targets": [
+        "docs/architecture/ceo-runtime.md",
+        "docs/architecture/system-contract.md",
+        "apps/desktop/src/shared/managerEval.ts"
+      ],
+      "proposed_output": "bounded-fabric-profile contract + принятое решение до L08",
+      "change": "Специфицировать один bounded manager profile для R1: чтение контекста и proposal через инструменты, без молчаливой широкой автономии.",
+      "steps": [
+        "Определить immutable scope, capabilities, input revision, allowed tools и profile revision.",
+        "Существующие checker/authority инструменты обязательны; max steps/time/budget и total retries на invocation.",
+        "Model unavailable оставляет deterministic view; исход предложения отдельно от commit/dispatch.",
+        "Записать corpus, planted counterexamples, остановку и дальнейшие prerequisites M194; если узкий срез небезопасен — назвать точный blocker R1."
+      ],
+      "positive": "Названы точные command/tool contracts, persistence/trace и activation verdict; оператор может понять доступные действия.",
+      "negative": "Prompt не расширяет права, stale scope и exhausted budget отказывают; нет доверия неподтверждённому tool result.",
+      "exclusions": "Не включать автоматический settlement, расширенные права, remote manager или marketplace.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [
+        {
+          "from_id": "D01",
+          "to_id": "D04",
+          "kind": "data",
+          "carries": "readiness-and-contracts.md + принятый минимальный ReadContext/GraphExpansion mapping"
+        }
+      ],
+      "context_manifest": [
+        {
+          "path": "docs/architecture/ceo-runtime.md",
+          "sha256": "7c1e8b54fb5fac6a6e6763bc2e0bfe830affb80200512dd41bccf6d985b2fc5e"
+        },
+        {
+          "path": "docs/architecture/system-contract.md",
+          "sha256": "c478a4c16940daf98aeff5b036da2d64c44e5d0753b45bb242dd378e5420e1e4"
+        },
+        {
+          "path": "apps/desktop/src/shared/managerEval.ts",
+          "sha256": "0b2a48ed803c9fb93d9983c7da3498b26b0221d88ab82d73d467363da468c0e0"
+        }
+      ]
+    },
+    {
+      "id": "L01",
+      "title": "Собрать единый человеческий срез контекста",
+      "owner": "Knowledge",
+      "requirements": [
+        "LR06"
+      ],
+      "depends_on": [
+        "D01",
+        "D02"
+      ],
+      "legacy": [
+        "P02",
+        "T-04",
+        "M191",
+        "S14"
+      ],
+      "edit_targets": [
+        "apps/desktop/src/main/contextPack.ts",
+        "apps/desktop/src/main/digestRead.ts",
+        "apps/desktop/src/shared/readEnvelope.ts"
+      ],
+      "proposed_output": "typed read contract + cross-reader fixtures",
+      "change": "Читать одну доказуемую границу estate/project/task-run с citations и historical context, сохранив model pack отдельно.",
+      "steps": [
+        "Переиспользовать readers и scoped store; собрать поля D01.",
+        "Отдельно передать исходный brief, действующие решения, текущее/будущее, included/omitted, age и observed/claimed.",
+        "Использовать payload watermark для shown data; проверить late A после переключения B."
+      ],
+      "positive": "Два consumer читают одинаковые source refs/revision; partial источник не гасит остальные.",
+      "negative": "Ошибка не даёт ноль; current preview не подменяет pack запуска; событие в ходе чтения остаётся непрочитанным.",
+      "exclusions": "Не создавать вторую memory DB или обязательный LLM summary.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [
+        {
+          "from_id": "D01",
+          "to_id": "L01",
+          "kind": "data",
+          "carries": "readiness-and-contracts.md + принятый минимальный ReadContext/GraphExpansion mapping"
+        },
+        {
+          "from_id": "D02",
+          "to_id": "L01",
+          "kind": "data",
+          "carries": "reviewed-ux-chain + target mockup comparisons"
+        }
+      ],
+      "context_manifest": [
+        {
+          "path": "apps/desktop/src/main/contextPack.ts",
+          "sha256": "26a7daf8b948175e2c93b9c1a0188f065c2a6c09e5338d77f5162f02a7225be0"
+        },
+        {
+          "path": "apps/desktop/src/main/digestRead.ts",
+          "sha256": "0990932f5394527921eb817a0393e7c1ce8ff9d319afee2d361a132c12437a10"
+        },
+        {
+          "path": "apps/desktop/src/shared/readEnvelope.ts",
+          "sha256": "c5376f46f132d351ddb773db6738aa57b457cbafdb6e13b14da883f2ef9331c1"
+        }
+      ]
+    },
+    {
+      "id": "L02",
+      "title": "Сделать исторический источник и возврат точными",
+      "owner": "Knowledge",
+      "requirements": [
+        "LR06"
+      ],
+      "depends_on": [
+        "L01"
+      ],
+      "legacy": [
+        "P06",
+        "P08",
+        "CO-148",
+        "CO-149",
+        "CO-150",
+        "CO-152",
+        "CO-154",
+        "CO-155"
+      ],
+      "edit_targets": [
+        "apps/desktop/src/renderer/src/TaskPage.tsx",
+        "apps/desktop/src/main/runLifecycle.ts",
+        "apps/desktop/src/renderer/src/SessionWindow.tsx"
+      ],
+      "proposed_output": "исторический drilldown + возврат в IDE",
+      "change": "Адресовать исходный brief, сохранённые версии/решения/пакет и сессию; открыть источник и вернуться к выбору.",
+      "steps": [
+        "Использовать task/run/session identity из D01; не восстанавливать неизвестную причину догадкой.",
+        "Сохранить исторические edits и ref revision по принятому контракту.",
+        "Подключить drilldown рядом с терминалом; navigation state не влияет на execution."
+      ],
+      "positive": "Оператор видит исходную и изменённую задачу, прежние прогоны, выдачу pack и ответ; Back восстанавливает scope/selection.",
+      "negative": "Concurrent brief edit даёт conflict; отсутствующий source отмечен; закрытие панели не останавливает агента.",
+      "exclusions": "Не обещать доступ ко всем скрытым данным модели или native resume.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [
+        {
+          "from_id": "L01",
+          "to_id": "L02",
+          "kind": "data",
+          "carries": "typed read contract + cross-reader fixtures"
+        }
+      ],
+      "context_manifest": [
+        {
+          "path": "apps/desktop/src/renderer/src/TaskPage.tsx",
+          "sha256": "2828108e5c526d7754497ef87ac90b920887250d1daf898fb9788f05ce042b84"
+        },
+        {
+          "path": "apps/desktop/src/main/runLifecycle.ts",
+          "sha256": "4a136be253963997a8106e2a3c4dcf287eba126f4ce3f7fcead9e2755742315b"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/SessionWindow.tsx",
+          "sha256": "bf137fc16b2b372d0ca8860a718fab30bae8a0f2ef456e2c626cd20a5ee357b6"
+        }
+      ]
+    },
+    {
+      "id": "L03",
+      "title": "Собрать дом Fabric и упорядочиваемые проекты",
+      "owner": "Experience",
+      "requirements": [
+        "LR01",
+        "LR03",
+        "LR04"
+      ],
+      "depends_on": [
+        "L01",
+        "D03"
+      ],
+      "legacy": [
+        "P03",
+        "P04",
+        "M120",
+        "M131",
+        "V1-M6"
+      ],
+      "edit_targets": [
+        "apps/desktop/src/renderer/src/EstateHome.tsx",
+        "apps/desktop/src/renderer/src/ProfileSection.tsx",
+        "apps/desktop/src/main/favourites.ts"
+      ],
+      "proposed_output": "Home + shared Fabric identity",
+      "change": "Воплотить принятую композицию и единый образ Fabric, используя существующую ленту и реальные измерения.",
+      "steps": [
+        "Один avatar identity + fallback, сохранение и undo.",
+        "Сохранить избранные и добавить устойчивый order; предоставить move up/down.",
+        "Подключить Board preview, projects и feed; age/unknown при источниках.",
+        "Проверить профиль и first action на согласованных viewports."
+      ],
+      "positive": "Главная узнаваема, проекты переставляются и сохраняются; событие ленты открывает контекст.",
+      "negative": "Конфликт настроек не теряет выбор; сортировка не меняет authority/ранг blocker; отсутствие расхода не даёт $0.",
+      "exclusions": "AI-генерация и богатые достижения отдельные расширения.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [
+        {
+          "from_id": "L01",
+          "to_id": "L03",
+          "kind": "data",
+          "carries": "typed read contract + cross-reader fixtures"
+        },
+        {
+          "from_id": "D03",
+          "to_id": "L03",
+          "kind": "data",
+          "carries": "agenda-and-home-preferences contract + ADR при принятии"
+        }
+      ],
+      "context_manifest": [
+        {
+          "path": "apps/desktop/src/renderer/src/EstateHome.tsx",
+          "sha256": "48220644696f4def89cffb45bf13e59882cf9a83b2c2f802e347fcbd334a2187"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/ProfileSection.tsx",
+          "sha256": "43c6239aa3522ecb33abde538eb5e87275b9913afcb525d303290e9ee640f0f4"
+        },
+        {
+          "path": "apps/desktop/src/main/favourites.ts",
+          "sha256": "70981181bbe8dab3d515a2ec7e19fa0d96748a204cf7b63931eab0bc8304f8f3"
+        }
+      ]
+    },
+    {
+      "id": "L04",
+      "title": "Замкнуть ежедневную доску",
+      "owner": "Attention",
+      "requirements": [
+        "LR02"
+      ],
+      "depends_on": [
+        "L01",
+        "D03"
+      ],
+      "legacy": [
+        "P05",
+        "P07",
+        "M151",
+        "M152",
+        "M185",
+        "V1-M2"
+      ],
+      "edit_targets": [
+        "apps/desktop/src/shared/board.ts",
+        "apps/desktop/src/renderer/src/BoardPanel.tsx",
+        "apps/desktop/src/shared/inbox.ts"
+      ],
+      "proposed_output": "Board agenda + итог разбора",
+      "change": "Добавить agenda/capture/revisit поверх Work; один разговор об актуальном на Home и Project.",
+      "steps": [
+        "Реализовать source/metadata из D03 journal-first.",
+        "Сделать capture, add to agenda, resolve/delegate/revisit с receipts.",
+        "Ответ использовать существующий M152 путь; отдельно показывать commit/delivered/accepted/resumed.",
+        "Разобранное за прошлый визит доступно как итог, нерешённое остаётся."
+      ],
+      "positive": "Два последовательных утренних разбора на вопросе, blocker, review и свободной теме воспроизводят историю.",
+      "negative": "Retry не дублирует тему; read не закрывает; urgent arrival не подменяет карточку под кнопкой.",
+      "exclusions": "Не создавать competing notification store; не менять системные веса без отдельной проверки.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [
+        {
+          "from_id": "L01",
+          "to_id": "L04",
+          "kind": "data",
+          "carries": "typed read contract + cross-reader fixtures"
+        },
+        {
+          "from_id": "D03",
+          "to_id": "L04",
+          "kind": "data",
+          "carries": "agenda-and-home-preferences contract + ADR при принятии"
+        }
+      ],
+      "context_manifest": [
+        {
+          "path": "apps/desktop/src/shared/board.ts",
+          "sha256": "0a9b7d9769ee605f3e2187e4b321373deb9dcaa74c601088c0ee1645cd561379"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/BoardPanel.tsx",
+          "sha256": "7e87e7c8bb746ab1691cd86a5ebd3ed97ca45a43fe96832c6daa3685d7c8acb9"
+        },
+        {
+          "path": "apps/desktop/src/shared/inbox.ts",
+          "sha256": "e4d5df00f5df2da4a72f411a4069aebd8ab757163fb38117255959133f0c7ff7"
+        }
+      ]
+    },
+    {
+      "id": "L05",
+      "title": "Сделать циклы видимыми и управляемыми",
+      "owner": "Cycles",
+      "requirements": [
+        "LR09"
+      ],
+      "depends_on": [
+        "L01",
+        "D02"
+      ],
+      "legacy": [
+        "S15",
+        "M186",
+        "V1-M3",
+        "T-10",
+        "T-11",
+        "T-12"
+      ],
+      "edit_targets": [
+        "apps/desktop/src/shared/cyclePort.ts",
+        "apps/desktop/src/shared/cycleView.ts",
+        "apps/desktop/src/main/chainAdvance.ts"
+      ],
+      "proposed_output": "Cycles view + работающий повтор",
+      "change": "Показать cadence/last/next/health, включить безопасный повтор по существующему цикловому контракту.",
+      "steps": [
+        "Проследить invocation receipts от producer до view.",
+        "Настройка/пауза/следующее окно через доверенные commands; удержать concurrency/catch-up.",
+        "При unknown не повторять эффект; при app-off показать host gap с неопределённой причиной.",
+        "Проверить два окна и quota refusal на disposable harness."
+      ],
+      "positive": "Два цикла имеют разные windows и версионированные результаты, next due объясним.",
+      "negative": "Partial и unknown не превращаются в complete; восстановление не порождает второй запуск.",
+      "exclusions": "Не вводить круглосуточный daemon, fleet scheduler или автоматическую смену аккаунтов.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [
+        {
+          "from_id": "L01",
+          "to_id": "L05",
+          "kind": "data",
+          "carries": "typed read contract + cross-reader fixtures"
+        },
+        {
+          "from_id": "D02",
+          "to_id": "L05",
+          "kind": "data",
+          "carries": "reviewed-ux-chain + target mockup comparisons"
+        }
+      ],
+      "context_manifest": [
+        {
+          "path": "apps/desktop/src/shared/cyclePort.ts",
+          "sha256": "167baaa9d0312780ca1ea70c35a3022fa40eb31f7eee575120b49cc9a56e5b48"
+        },
+        {
+          "path": "apps/desktop/src/shared/cycleView.ts",
+          "sha256": "4914156adfec645533b5bd5b70abce43fdead7d61408a1d2f308d37daa6a5d4c"
+        },
+        {
+          "path": "apps/desktop/src/main/chainAdvance.ts",
+          "sha256": "bcfeb0fa36518ea02d073724d74103c66317dc81b1233a7b927acd6f148b8ab4"
+        }
+      ]
+    },
+    {
+      "id": "L06",
+      "title": "Пройти рабочий workflow и раннюю R0",
+      "owner": "Work",
+      "requirements": [
+        "LR05",
+        "LR09"
+      ],
+      "depends_on": [
+        "L02",
+        "L03",
+        "L04",
+        "L05"
+      ],
+      "legacy": [
+        "P06",
+        "P12",
+        "S08",
+        "V1-M1",
+        "V1-M4"
+      ],
+      "edit_targets": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx",
+        "apps/desktop/src/main/runLifecycle.ts",
+        "apps/desktop/src/renderer/src/SessionWindow.tsx"
+      ],
+      "proposed_output": "R0 integration receipt + workflow template",
+      "change": "Собрать один end-to-end путь цель→задача→план→исполнение→вопрос→решение→review→следующий проход.",
+      "steps": [
+        "Переиспользовать admission/ack/task state; добавить недостающие consumers, названные D01.",
+        "Сделать один преднастроенный workflow без нового competing state machine.",
+        "Проверить two-project переключение и новый TaskRun при итерации.",
+        "Описать R0 как доступную раннюю сборку без нового Fabric-agent; записать первое наблюдение ценности."
+      ],
+      "positive": "Рабочий результат принят человеком/проверкой, сохранён, виден при повторном входе; есть следующий шаг.",
+      "negative": "Exit 0 не означает verified task; stale answer, второй blocker и unknown delivery не запускают работу повторно.",
+      "exclusions": "R0 не называется полной R1; общий workflow builder не требуется.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [
+        {
+          "from_id": "L02",
+          "to_id": "L06",
+          "kind": "data",
+          "carries": "исторический drilldown + возврат в IDE"
+        },
+        {
+          "from_id": "L03",
+          "to_id": "L06",
+          "kind": "data",
+          "carries": "Home + shared Fabric identity"
+        },
+        {
+          "from_id": "L04",
+          "to_id": "L06",
+          "kind": "data",
+          "carries": "Board agenda + итог разбора"
+        },
+        {
+          "from_id": "L05",
+          "to_id": "L06",
+          "kind": "data",
+          "carries": "Cycles view + работающий повтор"
+        }
+      ],
+      "context_manifest": [
+        {
+          "path": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+          "sha256": "fe7eb6ce981f844c1d44f7933e327290d84ff64836e3fea0dee8d47073a97aeb"
+        },
+        {
+          "path": "apps/desktop/src/main/runLifecycle.ts",
+          "sha256": "4a136be253963997a8106e2a3c4dcf287eba126f4ce3f7fcead9e2755742315b"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/SessionWindow.tsx",
+          "sha256": "bf137fc16b2b372d0ca8860a718fab30bae8a0f2ef456e2c626cd20a5ee357b6"
+        }
+      ]
+    },
+    {
+      "id": "L07",
+      "title": "Построить раскрываемое планирование",
+      "owner": "Planning",
+      "requirements": [
+        "LR07"
+      ],
+      "depends_on": [
+        "L02",
+        "D02"
+      ],
+      "legacy": [
+        "P08",
+        "P09",
+        "M173",
+        "M190",
+        "V1-M7",
+        "CO-156"
+      ],
+      "edit_targets": [
+        "apps/desktop/src/shared/plan.ts",
+        "apps/desktop/src/shared/decisions.ts",
+        "apps/desktop/src/renderer/src/PlanSection.tsx"
+      ],
+      "proposed_output": "Planning routes + hierarchy query",
+      "change": "Отдельный Planning читает уровни portfolio/project/goal/task/run; видит блокеры и движение.",
+      "steps": [
+        "Реализовать GraphExpansion из D01 через existing refs, pagination и completeness.",
+        "Разделить DID и SHOULD routes; сохранять expanded set/selection/revision.",
+        "Рисовать typed dependencies, hidden cross-boundary edges и unknown counts.",
+        "Сделать доступный outline и keyboard expand, source drilldown, cycle refusal для изменений плана."
+      ],
+      "positive": "Из проекта раскрывается цель→задача→прогон, одна cross-project связь открывает обе стороны без потери места.",
+      "negative": "Spawned не blocker; недоступная нода не раскрывает чужие данные; truncated graph не изображает полный %.",
+      "exclusions": "Без новой graph DB, полного trace ingestion всех providers и generic canvas editor.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [
+        {
+          "from_id": "L02",
+          "to_id": "L07",
+          "kind": "data",
+          "carries": "исторический drilldown + возврат в IDE"
+        },
+        {
+          "from_id": "D02",
+          "to_id": "L07",
+          "kind": "data",
+          "carries": "reviewed-ux-chain + target mockup comparisons"
+        }
+      ],
+      "context_manifest": [
+        {
+          "path": "apps/desktop/src/shared/plan.ts",
+          "sha256": "f181f03796b7a61333143e7e6a2899dc6626ffa3619d6893883175aeb4febc0e"
+        },
+        {
+          "path": "apps/desktop/src/shared/decisions.ts",
+          "sha256": "99076e135b46bce6a4bf10c80820436b48757478bfc6d9127be54c520728bd50"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/PlanSection.tsx",
+          "sha256": "38c49a54944385af950afb4e8e1bdf8e7f15920fe0f15f115ff2c9aa25242dcf"
+        }
+      ]
+    },
+    {
+      "id": "L08",
+      "title": "Включить ограниченный Fabric-agent",
+      "owner": "Agents",
+      "requirements": [
+        "LR09"
+      ],
+      "depends_on": [
+        "D04",
+        "L01",
+        "L04",
+        "L06"
+      ],
+      "legacy": [
+        "M166",
+        "M167",
+        "M168",
+        "M169",
+        "M171",
+        "M175",
+        "M176",
+        "M194"
+      ],
+      "edit_targets": [
+        "apps/desktop/src/shared/managerEval.ts",
+        "apps/desktop/src/main/agentSurface.ts"
+      ],
+      "proposed_output": "bounded Fabric-agent + activation evidence",
+      "change": "Ввести только принятое в D04 действие: sourced разбор по запросу, проверяемое предложение и trace.",
+      "steps": [
+        "Добавить profile/ModelPort adapter по решению D04.",
+        "Все tools проходят scoped gateway и validator; no-provider fallback детерминирован.",
+        "Сохранить invocation identity, call trace, usage unknown и total budgets.",
+        "Прогнать corpus и negative controls до activation, затем один согласованный реальный вызов."
+      ],
+      "positive": "Fabric объясняет положение по sources и предлагает следующее действие; принятое предложение проходит штатную команду.",
+      "negative": "Нет источника/полномочия/бюджета — нет commit; malformed tool result не проходит; отсутствие model видно.",
+      "exclusions": "Полный M194, широкое autonomous settlement и auto hiring остаются вне среза.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [
+        {
+          "from_id": "D04",
+          "to_id": "L08",
+          "kind": "data",
+          "carries": "bounded-fabric-profile contract + принятое решение до L08"
+        },
+        {
+          "from_id": "L01",
+          "to_id": "L08",
+          "kind": "data",
+          "carries": "typed read contract + cross-reader fixtures"
+        },
+        {
+          "from_id": "L04",
+          "to_id": "L08",
+          "kind": "data",
+          "carries": "Board agenda + итог разбора"
+        },
+        {
+          "from_id": "L06",
+          "to_id": "L08",
+          "kind": "data",
+          "carries": "R0 integration receipt + workflow template"
+        }
+      ],
+      "context_manifest": [
+        {
+          "path": "apps/desktop/src/shared/managerEval.ts",
+          "sha256": "0b2a48ed803c9fb93d9983c7da3498b26b0221d88ab82d73d467363da468c0e0"
+        },
+        {
+          "path": "apps/desktop/src/main/agentSurface.ts",
+          "sha256": "d377a0b6762f4090d7eea213fcd3987caa1952c0b813a4809703b82a90943760"
+        }
+      ]
+    },
+    {
+      "id": "L09",
+      "title": "Проверить R1 целиком и повторный возврат",
+      "owner": "Delivery",
+      "requirements": [
+        "LR10"
+      ],
+      "depends_on": [
+        "L06",
+        "L07",
+        "L08",
+        "L10",
+        "L11"
+      ],
+      "legacy": [
+        "P12",
+        "V1-M5",
+        "T-19"
+      ],
+      "edit_targets": [
+        "docs/evidence/verification.md",
+        "docs/evidence/backlog.md"
+      ],
+      "proposed_output": "R1 acceptance ledger + следующий приоритет",
+      "change": "Принять работу всей системы, а не сумму зелёных компонентных тестов.",
+      "steps": [
+        "Два проекта: утренний разбор→запуск→переключение→вопрос→ответ→проверка→повторный цикл.",
+        "Повторить после паузы/перезапуска; записать время до правильного решения, переходы и ошибки понимания.",
+        "Клавиатура, narrow viewport, увеличение текста и source failures отдельными наблюдениями.",
+        "В каждом LR сохранить outcome/source/build revision и остаток; разрешить релиз только при выбранном scope."
+      ],
+      "positive": "Каждое LR подтверждено конкретным сценарием на идентифицированной сборке; все незавершённые идеи имеют homes.",
+      "negative": "Макет/юнит-тест не заменяет live value; нет утверждения «за 10 секунд» без замера.",
+      "exclusions": "Не закрывать все legacy milestones из-за одной новой приёмки.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [
+        {
+          "from_id": "L06",
+          "to_id": "L09",
+          "kind": "data",
+          "carries": "R0 integration receipt + workflow template"
+        },
+        {
+          "from_id": "L07",
+          "to_id": "L09",
+          "kind": "data",
+          "carries": "Planning routes + hierarchy query"
+        },
+        {
+          "from_id": "L08",
+          "to_id": "L09",
+          "kind": "data",
+          "carries": "bounded Fabric-agent + activation evidence"
+        },
+        {
+          "from_id": "L10",
+          "to_id": "L09",
+          "kind": "control",
+          "carries": "wiki launch navigation + verified source/pin chain"
+        },
+        {
+          "from_id": "L11",
+          "to_id": "L09",
+          "kind": "control",
+          "carries": "release prerequisites receipt"
+        }
+      ],
+      "context_manifest": [
+        {
+          "path": "docs/evidence/verification.md",
+          "sha256": "ec0b280ae9970877287bc39354b0def3e5e570e07c4763035963a0703b12315b"
+        },
+        {
+          "path": "docs/evidence/backlog.md",
+          "sha256": "0cdb03c6762e0ba987236e6a87304bd48c3a7f7d226646d8c0da13a4e021a2ae"
+        }
+      ]
+    },
+    {
+      "id": "L10",
+      "title": "Сделать wiki входом в текущую работу",
+      "owner": "Delivery",
+      "requirements": [
+        "LR08"
+      ],
+      "depends_on": [
+        "D01",
+        "D02"
+      ],
+      "legacy": [
+        "P10",
+        "CO-162",
+        "CO-164",
+        "CO-165"
+      ],
+      "edit_targets": [
+        "docs/DOCMAP.md",
+        "workspace/lib/navigation.mjs",
+        "workspace/lib/pages.mjs"
+      ],
+      "proposed_output": "wiki launch navigation + verified source/pin chain",
+      "change": "Вывести current launch index, весь горизонт и историю из единого parent overlay; сохранить адреса.",
+      "steps": [
+        "Сопоставить каждый исходный документ с библиотекой/current home.",
+        "Добавить current pointer с revision/status; устаревшие планы открываются как история.",
+        "Host читает parent snapshot; проверить ссылки/фильтры/Back и current-vs-history.",
+        "После исправленных publication gates committed export→child verify→parent pin отдельным циклом."
+      ],
+      "positive": "Cold reader находит текущий пакет, архитектуру и отложенную идею; все исходные paths доступны.",
+      "negative": "Не копировать delivery state в host; не править workspace/content; stale publication не зовётся текущей.",
+      "exclusions": "Parent и child коммитятся раздельно; существующие приватные границы сохраняются.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [
+        {
+          "from_id": "D01",
+          "to_id": "L10",
+          "kind": "data",
+          "carries": "readiness-and-contracts.md + принятый минимальный ReadContext/GraphExpansion mapping"
+        },
+        {
+          "from_id": "D02",
+          "to_id": "L10",
+          "kind": "data",
+          "carries": "reviewed-ux-chain + target mockup comparisons"
+        }
+      ],
+      "context_manifest": [
+        {
+          "path": "docs/DOCMAP.md",
+          "sha256": "6b0d642fa975fdeba5fe1ffc74ba230f3738adbdfa4d0e43cf5a04907bbeade8"
+        },
+        {
+          "path": "workspace/lib/navigation.mjs",
+          "sha256": "567b40e90e9f1f3709fdf284e4b1b4724d4caab1f4b7279d7e02e919a94e718c"
+        },
+        {
+          "path": "workspace/lib/pages.mjs",
+          "sha256": "3db538289d282116c6c428e1ae12372fe4b760570a7d9c50ef4b515e35c3d52e"
+        }
+      ]
+    },
+    {
+      "id": "L11",
+      "title": "Подготовить честный выпуск R1",
+      "owner": "Delivery",
+      "requirements": [
+        "LR10"
+      ],
+      "depends_on": [
+        "D01"
+      ],
+      "legacy": [
+        "P11",
+        "S07",
+        "CO-114",
+        "CO-115",
+        "CO-117",
+        "CO-124",
+        "CO-129"
+      ],
+      "edit_targets": [
+        "scripts/ci.sh",
+        "docs/architecture/external-contracts.md",
+        ".github/workflows/ci.yml"
+      ],
+      "proposed_output": "release prerequisites receipt",
+      "change": "Закрыть фактические release blockers: проверенные CLI capabilities, CI scope, совместимость данных и поставляемые bytes.",
+      "steps": [
+        "Переизмерить установленные CLI на безопасных probes перед обновлением матрицы.",
+        "Развести parent-only и child-initialized CI без потери проверки реальных missing symbols.",
+        "Проверить fresh/upgrade/restore для меняемых R1 миграций; фиксировать исключения.",
+        "Сформировать build/runtime/source receipt; не обходить красный gate публикации."
+      ],
+      "positive": "Идентифицированная сборка проходит предусмотренные gates и читает прежние данные.",
+      "negative": "Неверный symbol, чужой scope или неподдержанный capability остаются отказом; journal не чистится для зелёного теста.",
+      "exclusions": "Нельзя произвольно обновить pin по номеру версии, force-push или выпускать пакет как часть планирования.",
+      "status": "planned; not dispatched",
+      "dispatch_ready": false,
+      "rollback": "Отменить только изменение пакета; сохранить journal и evidence. Миграции — совместимая компенсирующая миграция, не удаление истории.",
+      "input_contract": "Source baseline + README этого пакета + принятые результаты depends_on; перед исполнением перепроверить SHA и актуализировать context digest.",
+      "edges": [
+        {
+          "from_id": "D01",
+          "to_id": "L11",
+          "kind": "data",
+          "carries": "readiness-and-contracts.md + принятый минимальный ReadContext/GraphExpansion mapping"
+        }
+      ],
+      "context_manifest": [
+        {
+          "path": "scripts/ci.sh",
+          "sha256": "f4a64ddecfbf6b10d7a847229c891c7661c996485397b27fd2be6a27c72c218f"
+        },
+        {
+          "path": "docs/architecture/external-contracts.md",
+          "sha256": "eaa2c39719d2e7d2ceb735453d345f49be0089da7c9cc203d7152f8f42717985"
+        },
+        {
+          "path": ".github/workflows/ci.yml",
+          "sha256": "442d8fb0d8ec212b1f28d3a7328017dace6dedf135c5bc90316f892af2825638"
+        }
+      ]
+    }
+  ],
+  "resource_constraints": [
+    {
+      "nodes": [
+        "D01",
+        "D04"
+      ],
+      "paths": [
+        "docs/architecture/system-contract.md"
+      ],
+      "rule": "Один integration owner сериализует правки этих файлов при dispatch; отдельные worktrees не устраняют конфликт владения."
+    },
+    {
+      "nodes": [
+        "D01",
+        "L09"
+      ],
+      "paths": [
+        "docs/evidence/backlog.md"
+      ],
+      "rule": "Один integration owner сериализует правки этих файлов при dispatch; отдельные worktrees не устраняют конфликт владения."
+    },
+    {
+      "nodes": [
+        "D03",
+        "L04"
+      ],
+      "paths": [
+        "apps/desktop/src/shared/board.ts"
+      ],
+      "rule": "Один integration owner сериализует правки этих файлов при dispatch; отдельные worktrees не устраняют конфликт владения."
+    },
+    {
+      "nodes": [
+        "D04",
+        "L08"
+      ],
+      "paths": [
+        "apps/desktop/src/shared/managerEval.ts"
+      ],
+      "rule": "Один integration owner сериализует правки этих файлов при dispatch; отдельные worktrees не устраняют конфликт владения."
+    },
+    {
+      "nodes": [
+        "L02",
+        "L06"
+      ],
+      "paths": [
+        "apps/desktop/src/main/runLifecycle.ts",
+        "apps/desktop/src/renderer/src/SessionWindow.tsx"
+      ],
+      "rule": "Один integration owner сериализует правки этих файлов при dispatch; отдельные worktrees не устраняют конфликт владения."
+    }
+  ],
+  "dispatch_policy": "Decision leaves first. Implementation leaves must absorb accepted contracts and current hashes; they are deliberately not dispatch-ready before predecessors exist.",
+  "common_contract": "README.md sections 2–7; docs/architecture/system-contract.md; CONTEXT.md; docs/AGENT_SYNC.md",
+  "source_status": "Receipt-specific; old proposed/shipped strings are never inferred into current product coverage",
+  "proposed_contracts": "contracts.md"
+}

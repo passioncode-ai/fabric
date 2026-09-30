@@ -1,0 +1,10 @@
+{
+  "verificationRows": 190,
+  "watchedFailingNo": 53,
+  "carryOver": 107,
+  "openExact": 68,
+  "openIncludingQualified": 78,
+  "milestones": 145,
+  "shippedMilestones": 19,
+  "definitions": "Watched failing? starts no; CO status begins open after stripping markdown emphasis; milestone status contains shipped."
+}

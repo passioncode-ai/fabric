@@ -1,0 +1,18 @@
+<sub>ssheleg skills — project-audit · ux-audit · sheleg-design · agent-harness · agent-evals · agent-interop · task-pipeline · evidence-docs · agent-sync · maintaining-fabric-workspace</sub>
+
+---
+
+**Made with [ssheleg skills](https://github.com/ssheleg/sshlg-skills)**
+
+- [`project-audit`](https://github.com/ssheleg/task-pipeline) — проверка состояния и предыдущих находок
+- [`ux-audit`](https://github.com/ssheleg/super-ux) — проверка сценариев
+- [`sheleg-design`](https://github.com/ssheleg/sheleg-design-skill) — проверка визуальных ограничений
+- [`agent-harness`](https://github.com/ssheleg/agent-stack) — проверка инструкций и вызовов
+- [`agent-evals`](https://github.com/ssheleg/agent-stack) — разделение тестов и наблюдений
+- [`agent-interop`](https://github.com/ssheleg/agent-stack) — проверка границ контрактов
+- [`task-pipeline`](https://github.com/ssheleg/task-pipeline) — декомпозиция и передача
+- [`evidence-docs`](https://github.com/ssheleg/task-pipeline) — проверяемые ссылки
+- [`agent-sync`](https://github.com/ssheleg/agent-sync) — lease и резерв CO
+- `maintaining-fabric-workspace` — публикация карты — not a skill this family ships
+
+<sub>A star on [the bundle](https://github.com/ssheleg/sshlg-skills) helps.</sub>

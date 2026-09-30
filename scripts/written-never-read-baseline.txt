@@ -1,0 +1,74 @@
+# Fields written and never read — the debt at the moment this gate was laid.
+#
+# 2026-09-10, AX-05. `scripts/check-written-never-read.mjs` found sixty-six
+# fields declared in a shared contract, written by somebody, and read by
+# nothing. They are recorded rather than fixed in one pass, and the rule is the
+# same ratchet `ru-baseline.txt` uses: THIS LIST MAY ONLY SHRINK.
+#
+#   a NEW field with no reader fails the gate;
+#   a field here that HAS gained a reader must be struck from this file, and the
+#   gate fails until it is — otherwise the debt would look paid while growing.
+#
+# WHY A RATCHET AND NOT A FIX. M113 already met this class and built the strong
+# form of the check: `renderer/src/halfShipped.test.tsx` asserts that specific
+# numbers reach a screen, "which is the only thing that would ever notice:
+# nothing breaks, nothing throws, and a unit test on the reader stays green".
+# That is per-number and deliberate. This gate is the broad, cheap complement —
+# and a gate that arrives red on sixty-six pre-existing entries is a gate
+# somebody switches off. Each line below is a question for whoever owns that
+# contract: give it a reader, or delete it.
+#
+# Five instances of this shape were found by hand in one cycle before the gate
+# existed — a lint nobody ran, a revision no command carried, a receipt the
+# only caller discarded, two columns selected and dropped, and a return route
+# written on every navigation with no Back to read it.
+AcceptanceReceipt.checkpointDigests
+AccountListView.systemDefault
+AnswerSummary.loopClosed
+AutoPolicy.policyId
+AutomationState.lastRanAt
+AutomationStateRow.lastRanAt
+Candidate.windowId
+CorpusReport.corpusVersion
+CorpusReport.violations
+Correction.previousRef
+CoverageRow.obligationId
+CycleRow.cycleKey
+CycleSummary.needsIntervention
+Degradation.completionAssessment
+Delivery.deadlineMs
+Delivery.writtenAt
+Fixture.scenario
+HappenedItem.subjectRef
+LoopFixture.contextPackHash
+LoopFixture.expectedResult
+LoopFixture.seededDefect
+LoopFixture.serviceFixtureHash
+LoopFixture.verificationCommand
+MemoryChoice.selectable
+MirrorManifest.generatedAt
+ObservationGap.observedMs
+ProjectStats.agentsRunning
+ProjectStats.memoryFacts
+ProjectStats.memorySuperseded
+ProjectStats.retrievalMisses
+ProjectStats.transcriptChars
+ProtocolVocabulary.agentMoves
+ProtocolVocabulary.floorClasses
+ProtocolVocabulary.taskStates
+RetroPage.historyOnPage
+RunObservation.processRunning
+RunStatusView.runRef
+Subject.authUser
+Subject.displayName
+SwitchOperation.newGeneration
+Target.taskRunId
+TaskRow.brief_draft
+TaskRow.moved_at
+TaskRow.moved_by
+TaskRun.taskRunId
+UsageObservation.contextIdentity
+UsageObservation.nextProbeAt
+UsageWindow.resetAt
+Verdict.corpusVersion
+Verdict.unknowns

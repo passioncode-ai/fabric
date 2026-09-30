@@ -1,0 +1,18 @@
+agent-sync 1.19.2 — fabric@153b4f0
+  record plane   : notion
+  lease          : git — exclusive across machines
+  runs recorded  : gated
+  run id         : r-codexfabricp
+  leases held    : none
+  expired locks  : 1 — 0 this run's to clear, 1 left alone
+
+  Expired leases still on disk. Nobody holds these: the TTL ended the lease
+  and left the file.
+    · 1 expired over 24h ago — M146
+    The rest are foreign or ambiguously owned — reported, not touched.
+  other runs     : none holding anything
+
+  Mirror drift (60 page(s)): regenerate with `board --mirror`
+
+NEXT: acquire a lease before you touch a guarded file —
+  agent_sync.py acquire <TASK-ID>

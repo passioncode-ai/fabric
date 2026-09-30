@@ -1,0 +1,7 @@
+{
+  "name": "fabric-codex-tui-probe-test-only",
+  "private": true,
+  "type": "module",
+  "description": "Manual isolated no-model probe dependencies; never production dependencies",
+  "dependencies": { "ws": "8.22.0", "ajv": "8.17.1" }
+}

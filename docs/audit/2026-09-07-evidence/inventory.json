@@ -1,0 +1,927 @@
+{
+  "head": "153b4f029e626230d465d5d21d02fb8c9de5fadf",
+  "tracked_files": 681,
+  "groups": {
+    "other": {
+      "files": 197,
+      "lines": 103612
+    },
+    "apps/desktop/src/main": {
+      "files": 27,
+      "lines": 7616
+    },
+    "apps/desktop/src/preload": {
+      "files": 1,
+      "lines": 166
+    },
+    "apps/desktop/src/renderer": {
+      "files": 61,
+      "lines": 9644
+    },
+    "apps/desktop/src/shared": {
+      "files": 79,
+      "lines": 7090
+    },
+    "apps/desktop/test": {
+      "files": 26,
+      "lines": 4888
+    },
+    "docs/architecture": {
+      "files": 20,
+      "lines": 5846
+    },
+    "docs/brand": {
+      "files": 10,
+      "lines": 535
+    },
+    "docs/evidence": {
+      "files": 20,
+      "lines": 5784
+    },
+    "docs/ux": {
+      "files": 7,
+      "lines": 4042
+    },
+    "packages/journal": {
+      "files": 4,
+      "lines": 270
+    },
+    "packages/schema": {
+      "files": 2,
+      "lines": 1125
+    },
+    "supabase/migrations": {
+      "files": 30,
+      "lines": 4201
+    }
+  },
+  "source_files": [
+    {
+      "file": "apps/desktop/src/main/agentSurface.ts",
+      "lines": 1325,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/appIcon.ts",
+      "lines": 78,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/chainAdvance.ts",
+      "lines": 140,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/codeStats.ts",
+      "lines": 150,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/contextPack.ts",
+      "lines": 266,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/digestMark.ts",
+      "lines": 36,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/env.ts",
+      "lines": 105,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/favourites.ts",
+      "lines": 23,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/files.ts",
+      "lines": 167,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/gateway.ts",
+      "lines": 33,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/gitRun.ts",
+      "lines": 52,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/index.ts",
+      "lines": 2692,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/localStore.ts",
+      "lines": 46,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/menu.ts",
+      "lines": 18,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/menuTemplate.ts",
+      "lines": 60,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/policy.ts",
+      "lines": 271,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/power.ts",
+      "lines": 119,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/pty.ts",
+      "lines": 496,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/quota.ts",
+      "lines": 209,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/repoRoot.ts",
+      "lines": 50,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/repoState.ts",
+      "lines": 189,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/routineTick.ts",
+      "lines": 174,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/sessionBundle.ts",
+      "lines": 206,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/sessionEnv.ts",
+      "lines": 49,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/settings.ts",
+      "lines": 75,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/transcripts.ts",
+      "lines": 372,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/main/workspace.ts",
+      "lines": 215,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/App.tsx",
+      "lines": 564,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/AttentionPanel.tsx",
+      "lines": 158,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/DecisionsSection.tsx",
+      "lines": 86,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/DigestSection.tsx",
+      "lines": 80,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/EditorWindow.tsx",
+      "lines": 303,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/EstateAgents.test.tsx",
+      "lines": 154,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/EstateAgents.tsx",
+      "lines": 187,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/EstateHome.tsx",
+      "lines": 269,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/Feed.test.tsx",
+      "lines": 47,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/Feed.tsx",
+      "lines": 40,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/HarnessSection.tsx",
+      "lines": 115,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/MemoryOverviewSection.tsx",
+      "lines": 138,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+      "lines": 97,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/Onboarding.tsx",
+      "lines": 213,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/OperatorError.test.tsx",
+      "lines": 83,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/OperatorError.tsx",
+      "lines": 73,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/PlanSection.tsx",
+      "lines": 153,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/ProfileSection.tsx",
+      "lines": 89,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+      "lines": 1786,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/SearchPanel.tsx",
+      "lines": 124,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/SessionWindow.tsx",
+      "lines": 64,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/TaskPage.test.tsx",
+      "lines": 127,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/TaskPage.tsx",
+      "lines": 287,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/Tasks.test.tsx",
+      "lines": 63,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/Tasks.tsx",
+      "lines": 293,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/TerminalView.tsx",
+      "lines": 66,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/Workspace.tsx",
+      "lines": 115,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components.css",
+      "lines": 369,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/Banner.tsx",
+      "lines": 25,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/Board.tsx",
+      "lines": 56,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/Button.tsx",
+      "lines": 43,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/Caret.tsx",
+      "lines": 18,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/Claim.tsx",
+      "lines": 49,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/EmptyState.tsx",
+      "lines": 39,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/Field.tsx",
+      "lines": 75,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/FileTree.tsx",
+      "lines": 81,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/Panel.tsx",
+      "lines": 68,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/Row.tsx",
+      "lines": 46,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/Stat.tsx",
+      "lines": 52,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/StateChip.tsx",
+      "lines": 36,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/StatusBar.tsx",
+      "lines": 62,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/TabStrip.tsx",
+      "lines": 96,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/TaskCard.tsx",
+      "lines": 96,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/Toolbar.tsx",
+      "lines": 15,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/components.test.tsx",
+      "lines": 468,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/index.ts",
+      "lines": 20,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/components/registry.ts",
+      "lines": 209,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/duration.ts",
+      "lines": 11,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/evidence.test.ts",
+      "lines": 57,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/evidence.ts",
+      "lines": 72,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/global.d.ts",
+      "lines": 9,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/halfShipped.test.tsx",
+      "lines": 170,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/i18n/en.ts",
+      "lines": 688,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/i18n/index.tsx",
+      "lines": 73,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/i18n/ru.ts",
+      "lines": 125,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/main.tsx",
+      "lines": 29,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/sessionTone.ts",
+      "lines": 26,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/styles.css",
+      "lines": 301,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/tokens.app.css",
+      "lines": 88,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/tokens.paperclip.css",
+      "lines": 294,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/renderer/src/vite-env.d.ts",
+      "lines": 4,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/agentSpec.test.ts",
+      "lines": 73,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/agentSpec.ts",
+      "lines": 93,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/agents.test.ts",
+      "lines": 75,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/agents.ts",
+      "lines": 167,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/attention.test.ts",
+      "lines": 116,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/attention.ts",
+      "lines": 179,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/automations.test.ts",
+      "lines": 85,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/automations.ts",
+      "lines": 86,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/backlogBrief.test.ts",
+      "lines": 72,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/backlogBrief.ts",
+      "lines": 71,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/boardRank.test.ts",
+      "lines": 100,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/boardRank.ts",
+      "lines": 107,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/chain.test.ts",
+      "lines": 67,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/chain.ts",
+      "lines": 90,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/decisions.test.ts",
+      "lines": 67,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/decisions.ts",
+      "lines": 79,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/delivery.test.ts",
+      "lines": 33,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/delivery.ts",
+      "lines": 46,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/digest.test.ts",
+      "lines": 80,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/digest.ts",
+      "lines": 86,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/editorBuffer.test.ts",
+      "lines": 43,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/editorBuffer.ts",
+      "lines": 46,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/errorText.test.ts",
+      "lines": 66,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/errorText.ts",
+      "lines": 86,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/favourites.test.ts",
+      "lines": 63,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/favourites.ts",
+      "lines": 56,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/idea.test.ts",
+      "lines": 71,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/idea.ts",
+      "lines": 80,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/ladder.test.ts",
+      "lines": 68,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/ladder.ts",
+      "lines": 56,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/loopBound.test.ts",
+      "lines": 66,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/loopBound.ts",
+      "lines": 89,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/memoryChoice.test.ts",
+      "lines": 46,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/memoryChoice.ts",
+      "lines": 53,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/memoryOverview.test.ts",
+      "lines": 58,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/memoryOverview.ts",
+      "lines": 57,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/mirror.test.ts",
+      "lines": 111,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/mirror.ts",
+      "lines": 248,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/mirrorRead.test.ts",
+      "lines": 102,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/notify.test.ts",
+      "lines": 57,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/notify.ts",
+      "lines": 72,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/origin.test.ts",
+      "lines": 52,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/origin.ts",
+      "lines": 59,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/plan.test.ts",
+      "lines": 62,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/plan.ts",
+      "lines": 62,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/preamble.test.ts",
+      "lines": 27,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/preamble.ts",
+      "lines": 30,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/presets.test.ts",
+      "lines": 52,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/presets.ts",
+      "lines": 77,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/projectWeight.test.ts",
+      "lines": 87,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/projectWeight.ts",
+      "lines": 97,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/provenance.test.ts",
+      "lines": 44,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/provenance.ts",
+      "lines": 54,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/pty-decode.ts",
+      "lines": 31,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/quotaGate.test.ts",
+      "lines": 75,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/quotaGate.ts",
+      "lines": 80,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/redact.test.ts",
+      "lines": 66,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/redact.ts",
+      "lines": 150,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/redactPayload.test.ts",
+      "lines": 56,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/repoWatch.test.ts",
+      "lines": 41,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/repoWatch.ts",
+      "lines": 55,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/routine.test.ts",
+      "lines": 73,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/routine.ts",
+      "lines": 88,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/search.test.ts",
+      "lines": 88,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/search.ts",
+      "lines": 54,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/servers.test.ts",
+      "lines": 171,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/servers.ts",
+      "lines": 199,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/splashProgress.test.ts",
+      "lines": 46,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/splashProgress.ts",
+      "lines": 48,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/startupFailure.test.ts",
+      "lines": 163,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/startupFailure.ts",
+      "lines": 200,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/surfaceTools.ts",
+      "lines": 48,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/tabs.test.ts",
+      "lines": 65,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/tabs.ts",
+      "lines": 65,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/taskDraft.test.ts",
+      "lines": 112,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/taskDraft.ts",
+      "lines": 83,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/tenure.test.ts",
+      "lines": 37,
+      "test": true
+    },
+    {
+      "file": "apps/desktop/src/shared/tenure.ts",
+      "lines": 31,
+      "test": false
+    },
+    {
+      "file": "apps/desktop/src/shared/types.ts",
+      "lines": 896,
+      "test": false
+    },
+    {
+      "file": "packages/journal/package.json",
+      "lines": 18,
+      "test": false
+    },
+    {
+      "file": "packages/journal/src/index.ts",
+      "lines": 126,
+      "test": false
+    },
+    {
+      "file": "packages/journal/test/retry.test.mjs",
+      "lines": 122,
+      "test": true
+    },
+    {
+      "file": "packages/journal/tsconfig.json",
+      "lines": 4,
+      "test": false
+    },
+    {
+      "file": "packages/schema/package.json",
+      "lines": 13,
+      "test": false
+    },
+    {
+      "file": "packages/schema/test/planted.test.mjs",
+      "lines": 1112,
+      "test": true
+    }
+  ],
+  "migration_count": 30,
+  "adr_count": 43
+}

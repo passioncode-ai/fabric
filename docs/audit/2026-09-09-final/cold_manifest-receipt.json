@@ -1,0 +1,10 @@
+{
+  "command": [
+    "node",
+    "scripts/build-manifest.mjs",
+    "/tmp/fabric-audit-20260909/missing-dir/build-manifest.json"
+  ],
+  "cwd": "fresh checkout",
+  "exit_code": 1,
+  "output": "node:fs:2997\n    return binding.writeFileUtf8(\n                   ^\n\nError: ENOENT: no such file or directory, open '/private/tmp/fabric-final-audit-worktree/tmp/fabric-audit-20260909/missing-dir/build-manifest.json'\n    at writeFileSync (node:fs:2997:20)\n    at file:///private/tmp/fabric-final-audit-worktree/scripts/build-manifest.mjs:124:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  errno: -2,\n  code: 'ENOENT',\n  syscall: 'open',\n  path: '/private/tmp/fabric-final-audit-worktree/tmp/fabric-audit-20260909/missing-dir/build-manifest.json'\n}\n\nNode.js v26.8.1\n"
+}

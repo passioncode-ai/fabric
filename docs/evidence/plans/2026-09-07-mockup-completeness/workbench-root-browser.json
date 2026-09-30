@@ -1,0 +1,746 @@
+{
+  "suite": "independent-root-workbench/v1",
+  "at": "2026-09-07T19:31:01.078Z",
+  "root_commit": "01d9cb15a79d476699827bb3ee6af219b0ee381f",
+  "base": "http://127.0.0.1:8770/reports/product.html",
+  "served_sha256": "e9544b0779ad50a10b0ce6b77e42e06ebe6e7a6631d42e5114ed7b8fa77fdf3c",
+  "source_sha256": {
+    "scripts/product/controller.js": "0c5c4a425f19a4ba5693de7779c2238603035fed79a6ba17a3126d4d80f63604",
+    "scripts/product/workbench.mjs": "666ba086401da234b88b90278f1e7abf0c7246acbc9a7fe02eb1e1ebb6257c4e",
+    "scripts/product/routines.mjs": "5ec69ec9d0c9caa16b2df188e00b568aa9b196b0edafb8c6dd99182a1bd5f1e0",
+    "scripts/product/new-project.mjs": "d78608082c0b4ec327ea77529b343adbae1c12c78f2f15e986d91332dab98894",
+    "scripts/product/governance.mjs": "b5e7b53a388d6db03dc881c939fb24990aa9b2ffd88b2fd79f3e6b03334a109f",
+    "scripts/product/integrations.mjs": "f35f2a221ce419923704fa5683a0ef4da88e9f4e71ed471126cca0ea1c4ad594",
+    "scripts/product/operations.mjs": "455b0a8ab7c6ac5d72c94cde4fd2ef58085c19bb54e7947a7541f0a2d4ae2539"
+  },
+  "scope": "Prototype fixture behavior only. Real DB/providers/processes/OAuth untouched.",
+  "checks": [
+    {
+      "name": "G04 independent drafts retain each intent; cancellation makes no project",
+      "status": "pass",
+      "evidence": {
+        "first": "project-draft-1",
+        "second": "project-draft-2",
+        "projects": 3
+      }
+    },
+    {
+      "name": "G04 cancel saves addressed draft and resume restores exact intent without creating project",
+      "status": "pass",
+      "evidence": null
+    },
+    {
+      "name": "G04 refused creation preserves draft; discard removes only addressed draft",
+      "status": "pass",
+      "evidence": null
+    },
+    {
+      "name": "G04 unknown creation freezes request and replay creates exactly one identity",
+      "status": "pass",
+      "evidence": {
+        "command": "create-project:project-draft-1",
+        "project": "local-1"
+      }
+    },
+    {
+      "name": "G05 software preview persists edited stages and roles in actual startupSpec and pipeline",
+      "status": "pass",
+      "evidence": {
+        "project": "local-1",
+        "spec": {
+          "starter": "software",
+          "stages": [
+            "Define contract",
+            "Verify boundary",
+            "Release with receipt"
+          ],
+          "roles": [
+            "Product manager",
+            "Builder",
+            "Reviewer"
+          ],
+          "routines": "paused",
+          "targets": [],
+          "futureConsent": false
+        }
+      }
+    },
+    {
+      "name": "G05 PM activation requires exact project role binding and checked canary",
+      "status": "pass",
+      "evidence": {
+        "project": "local-1",
+        "binding": {
+          "project": "local-1",
+          "role": "product-manager",
+          "provider": "fabric",
+          "revision": "demo-2",
+          "binding": "demo-binding-15",
+          "admission": "admitted",
+          "status": "ready",
+          "canary": "passed",
+          "futureEligible": true,
+          "checker": "checker-output-v1",
+          "budget": 10
+        },
+        "receipt": "pm-activation:local-1:demo-2"
+      }
+    },
+    {
+      "name": "G54 cycles manual admission / ACK / completion and next-window dedup",
+      "status": "pass",
+      "evidence": {
+        "runs": [
+          {
+            "id": "tick-retro-1",
+            "iteration": 1,
+            "revision": 1,
+            "provider": "fabric",
+            "window": "window-0",
+            "snapshot": "fixture snapshot 09:42",
+            "outcome": "completed",
+            "steps": [
+              {
+                "id": "collect",
+                "status": "done"
+              },
+              {
+                "id": "review",
+                "status": "done"
+              },
+              {
+                "id": "propose",
+                "status": "done"
+              }
+            ]
+          },
+          {
+            "id": "tick-retro-2",
+            "iteration": 2,
+            "revision": 1,
+            "provider": "fabric",
+            "window": "window-1",
+            "snapshot": "fixture snapshot 09:42",
+            "outcome": "admitted",
+            "steps": [
+              {
+                "id": "collect",
+                "status": "admitted"
+              },
+              {
+                "id": "review",
+                "status": "pending"
+              },
+              {
+                "id": "propose",
+                "status": "pending"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "G54 admitted old run keeps provider/version when routine revised for future window",
+      "status": "pass",
+      "evidence": {
+        "old": {
+          "id": "tick-retro-1",
+          "iteration": 1,
+          "revision": 1,
+          "provider": "fabric",
+          "window": "window-0",
+          "snapshot": "fixture snapshot 09:42",
+          "outcome": "completed",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "done"
+            },
+            {
+              "id": "propose",
+              "status": "done"
+            }
+          ]
+        },
+        "next": {
+          "id": "tick-retro-2",
+          "iteration": 2,
+          "revision": 2,
+          "provider": "codex",
+          "window": "window-1",
+          "snapshot": "fixture snapshot 09:42",
+          "outcome": "admitted",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "admitted"
+            },
+            {
+              "id": "review",
+              "status": "pending"
+            },
+            {
+              "id": "propose",
+              "status": "pending"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "G55 unready binding cannot resume; fresh readiness restores next admission",
+      "status": "pass",
+      "evidence": null
+    },
+    {
+      "name": "G55 independent source failure holds mutation and paused state, recovery retains history",
+      "status": "pass",
+      "evidence": null
+    },
+    {
+      "name": "G54 unknown same-window reconcile cannot invent a second known admission",
+      "status": "pass",
+      "evidence": null
+    },
+    {
+      "name": "SRC06 edge 0 missing=block applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / missing",
+          "outcome": "blocked",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "blocked"
+            },
+            {
+              "id": "propose",
+              "status": "pending"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 0 missing=skip applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / missing",
+          "outcome": "skipped",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "skipped"
+            },
+            {
+              "id": "propose",
+              "status": "pending"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 1 missing=block applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "blockedByUpstream": true,
+        "policyConfigured": "block",
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / missing",
+          "outcome": "skipped",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "skipped"
+            },
+            {
+              "id": "propose",
+              "status": "pending"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 1 missing=skip applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "blockedByUpstream": true,
+        "policyConfigured": "skip",
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / missing",
+          "outcome": "skipped",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "skipped"
+            },
+            {
+              "id": "propose",
+              "status": "pending"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 0 empty=skip applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / empty",
+          "outcome": "skipped",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "skipped"
+            },
+            {
+              "id": "propose",
+              "status": "pending"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 0 empty=run applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / empty",
+          "outcome": "skipped",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "done"
+            },
+            {
+              "id": "propose",
+              "status": "skipped"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 0 empty=block applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / empty",
+          "outcome": "blocked",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "blocked"
+            },
+            {
+              "id": "propose",
+              "status": "pending"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 1 empty=skip applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / empty",
+          "outcome": "skipped",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "done"
+            },
+            {
+              "id": "propose",
+              "status": "skipped"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 1 empty=run applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / empty",
+          "outcome": "completed",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "done"
+            },
+            {
+              "id": "propose",
+              "status": "done"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 1 empty=block applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / empty",
+          "outcome": "blocked",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "done"
+            },
+            {
+              "id": "propose",
+              "status": "blocked"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 0 stale=refresh applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / stale",
+          "outcome": "awaiting-fresh-source",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "awaiting-fresh-source"
+            },
+            {
+              "id": "propose",
+              "status": "pending"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 0 stale=block applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / stale",
+          "outcome": "blocked",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "blocked"
+            },
+            {
+              "id": "propose",
+              "status": "pending"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 0 stale=allow applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / stale",
+          "outcome": "blocked",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "done"
+            },
+            {
+              "id": "propose",
+              "status": "blocked"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 1 stale=refresh applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / stale",
+          "outcome": "awaiting-fresh-source",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "done"
+            },
+            {
+              "id": "propose",
+              "status": "awaiting-fresh-source"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 1 stale=block applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / stale",
+          "outcome": "blocked",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "done"
+            },
+            {
+              "id": "propose",
+              "status": "blocked"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 edge 1 stale=allow applies to full run and keeps upstream states",
+      "status": "pass",
+      "evidence": {
+        "run": {
+          "id": "RT-1-run-1",
+          "iteration": 1,
+          "revision": 2,
+          "provider": "fabric",
+          "window": "window-1",
+          "snapshot": "fixture-observations-09:42 / stale",
+          "outcome": "completed",
+          "steps": [
+            {
+              "id": "collect",
+              "status": "done"
+            },
+            {
+              "id": "review",
+              "status": "done"
+            },
+            {
+              "id": "propose",
+              "status": "done"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "SRC06 catch-up latest produces 1 full fresh runs",
+      "status": "pass",
+      "evidence": {
+        "policy": "latest",
+        "actualRuns": 1
+      }
+    },
+    {
+      "name": "SRC06 catch-up all produces 3 full fresh runs",
+      "status": "pass",
+      "evidence": {
+        "policy": "all",
+        "actualRuns": 3
+      }
+    },
+    {
+      "name": "SRC06 catch-up none produces 0 full fresh runs",
+      "status": "pass",
+      "evidence": {
+        "policy": "none",
+        "actualRuns": 0
+      }
+    },
+    {
+      "name": "SRC06 failed first input stops bounded series without a false boundary proposal",
+      "status": "pass",
+      "evidence": {
+        "stopped": "RT-1-run-1",
+        "createdBoundaryProposal": false
+      }
+    },
+    {
+      "name": "SRC06 bounded full runs create exact observation and resolvable PM proposal with replay dedup",
+      "status": "pass",
+      "evidence": {
+        "proposal": "RT-1-proposal-3",
+        "source": "RT-1-run-3",
+        "decision": "DEMO-002",
+        "task": "AT-62"
+      }
+    },
+    {
+      "name": "workbench surfaces remain usable at 390px",
+      "status": "pass",
+      "evidence": {
+        "width": 390
+      }
+    }
+  ],
+  "page_errors": [],
+  "served_sha256_after": "e9544b0779ad50a10b0ce6b77e42e06ebe6e7a6631d42e5114ed7b8fa77fdf3c",
+  "served_changed": false,
+  "source_sha256_after": {
+    "scripts/product/controller.js": "0c5c4a425f19a4ba5693de7779c2238603035fed79a6ba17a3126d4d80f63604",
+    "scripts/product/workbench.mjs": "666ba086401da234b88b90278f1e7abf0c7246acbc9a7fe02eb1e1ebb6257c4e",
+    "scripts/product/routines.mjs": "5ec69ec9d0c9caa16b2df188e00b568aa9b196b0edafb8c6dd99182a1bd5f1e0",
+    "scripts/product/new-project.mjs": "d78608082c0b4ec327ea77529b343adbae1c12c78f2f15e986d91332dab98894",
+    "scripts/product/governance.mjs": "b5e7b53a388d6db03dc881c939fb24990aa9b2ffd88b2fd79f3e6b03334a109f",
+    "scripts/product/integrations.mjs": "f35f2a221ce419923704fa5683a0ef4da88e9f4e71ed471126cca0ea1c4ad594",
+    "scripts/product/operations.mjs": "455b0a8ab7c6ac5d72c94cde4fd2ef58085c19bb54e7947a7541f0a2d4ae2539"
+  },
+  "sources_changed": [],
+  "status": "pass",
+  "totals": {
+    "pass": 33,
+    "fail": 0
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "audit_date": "2026-09-05 Europe/Warsaw",
+  "head": "844c7a3c787d3f1bc87703a548e6099fc546a880",
+  "provenance": "Scripts transcribed from the already executed tool invocations; outputs captured from their tool results. Archive creation did NOT rerun any probe. Leading explanatory comments were added to saved scripts. Commands originally used node --input-type=module with the same module body on stdin.",
+  "scope": "No user estate rows, real secrets, real effects or provider API calls. SQL fixtures use random UUIDs inside BEGIN/ROLLBACK; actual app modules are exercised through their existing injected seams. Standard local Supabase postgres:postgres development endpoint appears in scripts, not a user secret.",
+  "interpretation": "These diagnostic probes intentionally print accepted defects. Exit code 0 means the probe completed; it does not mean the product passed. Compare measured output with each linked finding/acceptance.",
+  "receipts": [
+    {
+      "script": "01-module-boundaries.mjs",
+      "findings": [
+        "IMP-03",
+        "IMP-04",
+        "IMP-10",
+        "IMP-13",
+        "IMP-14"
+      ],
+      "original_exit_code": 0,
+      "output": "source_ref preserved forged heading: true\nbudget= 400 actual chars= 50459\nDB error pack: {\"chars\":249,\"omittedFacts\":0,\"omittedTranscripts\":0,\"namesUnnamed\":true}\ndecodePty CR truncates residual: {\"input\":\"abcdef\\rX\\n\",\"terminalExpected\":\"Xbcdef\\n\",\"actual\":\"X\\n\"}\ndecodePty backspace: {\"input\":\"a\\bb\\n\",\"terminalExpected\":\"b\\n\",\"actual\":\"ab\\n\"}\ngit status failure: {\"path\":\"/tmp\",\"branch\":\"main\",\"ahead\":null,\"behind\":null,\"changed\":0,\"untracked\":0,\"lastCommit\":null,\"readAt\":\"2026-09-04T22:49:51.799Z\",\"error\":null}\n",
+      "command": "node /tmp/fabric-audit-20260905/probes/01-module-boundaries.mjs",
+      "source_sha256": "6cc9135852b50d3835af3ffcb293f1f09dc6221058ef08855dcd950c72f45db1"
+    },
+    {
+      "script": "02-schema-acl.mjs",
+      "findings": [
+        "IMP-08"
+      ],
+      "original_exit_code": 0,
+      "output": "[\n  { role: 'anon', journal_truncate: false, event_type_insert: false },\n  { role: 'authenticated', journal_truncate: true, event_type_insert: false },\n  { role: 'service_role', journal_truncate: true, event_type_insert: false }\n]\n",
+      "output_note": "Safe aggregate preserves the ACL result. Original invocation also listed public pg_policies: SELECT policies, all TO authenticated. No row contents or credentials were read. TRUNCATE was not executed.",
+      "command": "node /tmp/fabric-audit-20260905/probes/02-schema-acl.mjs",
+      "source_sha256": "8ee43ff4d95eca320fc6e31164911175131f30f20a479ee9b700adc8b8e8bc3e"
+    },
+    {
+      "script": "03-schema-authority-rebuild.mjs",
+      "findings": [
+        "IMP-01",
+        "IMP-02",
+        "IMP-09",
+        "IMP-17"
+      ],
+      "original_exit_code": 0,
+      "output": "rebuild config_revision= [ 2, 3, 4 ]\nschema accepted mismatched estate/class, expired, consumed grant with nonexistent receipts twice= 2\nproject name after B event targeting A existing UUID= { still_a: true, name: 'Cross-estate overwrite' }\naccepted estate A memory for project in B= { estate_a: true, project_b: true }\nfuture fact included by production current filter= 1\nabandon repair= { status: 'abandoned', abandoned_reason: 'restarted' }\nROLLBACK complete\n",
+      "command": "node /tmp/fabric-audit-20260905/probes/03-schema-authority-rebuild.mjs",
+      "source_sha256": "060feb412a71deefbf7d932c5fe6a49a7ba856b6a9d21d358980f569353f6d48"
+    },
+    {
+      "script": "04-policy-mcp-errors.mjs",
+      "findings": [
+        "IMP-01",
+        "IMP-04"
+      ],
+      "original_exit_code": 0,
+      "output": "same one-shot concurrent decisions: [ 'allow', 'allow' ]\nreceipts after consumed_at update failed: { inserts: 2, updates: 2, consumedEvents: 2 }\nMCP database outage result: {\"result\":{\"content\":[{\"type\":\"text\",\"text\":\"{\\n  \\\"facts\\\": [],\\n  \\\"note\\\": \\\"Nothing recorded here matches. That means nobody wrote it down, not that it is untrue.\\\"\\n}\"}]},\"jsonrpc\":\"2.0\",\"id\":2}\nMCP logged hits for outage: 0\n",
+      "command": "node /tmp/fabric-audit-20260905/probes/04-policy-mcp-errors.mjs",
+      "source_sha256": "56849e3b1d84c9fcd070d9fba3e3b5e2531afa2254104db7d16e75f0c293cafc"
+    },
+    {
+      "script": "05-schema-replay-history.mjs",
+      "findings": [
+        "IMP-02"
+      ],
+      "original_exit_code": 0,
+      "output": "reattach rebuild error: 23505 project_repos_unique_path\ncorrupted abandoned task status after rebuild: { status: 'finished' }\ncorrupted memory valid_to after rebuild: { valid_to: 2099-01-01T00:00:00.000Z }\nROLLBACK complete\n",
+      "command": "node /tmp/fabric-audit-20260905/probes/05-schema-replay-history.mjs",
+      "source_sha256": "2b1cbadf68d8c0a78af338960582e074d4ca37f5d12b62c314a9a8945246e0dc"
+    }
+  ]
+}

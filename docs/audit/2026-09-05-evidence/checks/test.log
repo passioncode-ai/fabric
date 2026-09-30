@@ -1,0 +1,294 @@
+Scope: 3 of 4 workspace projects
+packages/schema test$ node test/planted.test.mjs
+packages/journal test$ node test/retry.test.mjs
+packages/schema test: planted-defect suite — migration 1
+packages/journal test: journal: contention retry policy
+packages/journal test:   ok   T1 a contended append is retried and succeeds (attempts: 3)
+packages/journal test:   ok   T1 backoff grows between attempts (100 -> 200 ms)
+packages/journal test:   ok   T2 a non-contention error fails immediately, carrying the database reason
+packages/journal test:   ok   T3 giving up names contention, not a generic failure (3 attempts)
+packages/journal test:   ok   T4 the default policy is bounded (3 attempts)
+packages/journal test: all green: contention is retried, decisions are not, and giving up is honest
+packages/journal test: Done
+packages/schema test:   ok   P0 gapless per-estate seq (1,2)
+packages/schema test:   ok   P1 positive control: member of A sees A (harness engaged)
+packages/schema test:   ok   P1 cross-tenant read refused (0 rows of B)
+packages/schema test:   ok   P1 cross-tenant journal read refused
+packages/schema test:   ok   P2 floored effect without grant (refused: 23514)
+packages/schema test:   ok   P2 positive control: granted floored effect accepted
+packages/schema test:   ok   P3 second product-manager on one project (refused: 23505)
+packages/schema test:   ok   P4 journal UPDATE as service_role (refused: 42501)
+packages/schema test:   ok   P4 journal DELETE as service_role (refused: 42501)
+packages/schema test:   ok   P4 journal direct INSERT as service_role (append_event is the only door) (refused: 42501)
+packages/schema test:   ok   P6 positive control: member of A recalls A's fact
+packages/schema test:   ok   P6 cross-tenant memory read refused
+packages/schema test:   ok   P6 FTS finds the fact by its words
+packages/schema test:   ok   P7 partial update moved only repo_path and bumped the revision
+packages/schema test:   ok   P8 first attached repo is primary and mirrors into projects.repo_path
+packages/schema test:   ok   P8 duplicate repository path on one project (refused: 23505)
+packages/schema test:   ok   P8 detaching the primary promotes the next and re-mirrors
+packages/schema test:   ok   P9 settings moved through the journal
+packages/schema test:   ok   P9 unknown memory backend (refused: 23514)
+packages/schema test:   ok   P10 a task exists before its session, so a failed start is still an attempt
+packages/schema test:   ok   P10 task records instruction, agent, session and preset
+packages/schema test:   ok   P10 task closes with its exit code
+packages/schema test:   ok   P10 unknown task status (refused: 23514)
+packages/schema test:   ok   P11 the latest claim wins, one row per session
+packages/schema test:   ok   P11 every claim survives in the journal, not just the last
+packages/schema test:   ok   P11 the claim table carries no observed field — the two cannot be confused
+packages/schema test:   ok   P12 apply_projections is not reachable from any API role
+packages/schema test:   ok   P12 the journal writer and the rebuilder stay behind the app role
+packages/schema test:   ok   P12 the app role can still append through the real door
+packages/schema test:   ok   P13 an unregistered event type is refused at the write boundary (refused: 22023)
+packages/schema test:   ok   P13 nothing was journalled for the refused type
+packages/schema test:   ok   P13 all 15 emitted types are registered
+packages/schema test:   ok   P14 a contended append fails fast (55P03 after 3002 ms) instead of hanging
+packages/schema test:   ok   P14 the same append succeeds once the lock is released
+packages/schema test:   ok   P15 a transcript projects verbatim — the body is unaltered
+packages/schema test:   ok   P15 the transcript is findable by its own words
+packages/schema test:   ok   P15 a 1980k-character transcript journals and stores whole
+packages/schema test:   ok   P15 the observation table carries no claim-shaped column
+packages/schema test:   ok   P16 a fact the operator recorded is attributed to the operator
+packages/schema test:   ok   P16 a fact an agent recorded is attributed to that agent
+packages/schema test:   ok   P16 provenance is recoverable from the journal by rebuild
+packages/schema test:   ok   P16 an open task closes as abandoned, carrying why
+packages/schema test:   ok   P16 an abandoned task has no exit code — nobody watched it exit
+packages/schema test:   ok   P16 a task that really finished is not overwritten by reconciliation
+packages/schema test:   ok   P16 an unknown task status is refused (refused: 23514)
+packages/schema test:   ok   P17 a new fact is valid from when it was recorded, and open-ended
+packages/schema test:   ok   P17 a contradicted fact keeps its text, closes its window, and names its successor
+packages/schema test:   ok   P17 the replacing fact is the one that is currently true
+packages/schema test:   ok   P17 the store still says what was believed before the correction, and only that
+packages/schema test:   ok   P17 a window cannot close without naming what closed it (refused: 23514)
+packages/schema test:   ok   P17 supersession survives a rebuild from the journal
+packages/schema test:   ok   P17 a supersession cannot reach a fact outside its own project
+packages/schema test:   ok   P18 an agent cannot supersede a fact the operator recorded
+packages/schema test:   ok   P18 the agent's claim is still recorded, so both sit side by side for a human to judge
+packages/schema test:   ok   P18 an agent may still correct another agent
+packages/schema test:   ok   P18 the operator may correct anyone
+packages/schema test:   ok   P5 project rebuild equals replay (corruption repaired)
+packages/schema test:   ok   P5 memory rebuild equals replay
+packages/schema test:   ok   cleanup: test estates removed
+packages/schema test: all probes green: every attempted violation was refused by the database
+packages/schema test: Done
+apps/desktop test$ vitest run && node test/app-icon.test.mjs && node test/policy.test.mjs && node test/pty.test.mjs && node test/power.test.mjs && node test/repo-quota.test.mjs && node test/files.test.mjs && node test/file-roots.test.mjs && node test/transcripts.test.mjs && node test/session-bundle.test.mjs && node test/reconcile.test.mjs && node test/context-pack.test.mjs && node test/agent-surface.test.mjs && node test/transcript-live.test.mjs && node test/memory-eval.test.mjs
+apps/desktop test:  RUN  v4.1.11 apps/desktop
+apps/desktop test:  Test Files  1 passed (1)
+apps/desktop test:       Tests  26 passed (26)
+apps/desktop test:    Start at  00:48:52
+apps/desktop test:    Duration  1.03s (transform 75ms, setup 0ms, import 187ms, tests 182ms, environment 556ms)
+apps/desktop test: ok: the brand mark reaches the packager, the bundle and the runtime
+apps/desktop test: Stopped services: [supabase_imgproxy_fabric supabase_pooler_fabric]
+apps/desktop test:   ok   an action below the floor is allowed
+apps/desktop test:   ok   the decision is journalled even when nothing was at stake
+apps/desktop test:   ok   a floored action with no grant is refused, BY THAT NAME, and says what it needs
+apps/desktop test:   ok   refused — no such grant
+apps/desktop test:   ok   refused — another target
+apps/desktop test:   ok   refused — another class
+apps/desktop test:   ok   refused — an expired grant
+apps/desktop test:   ok   a valid grant authorises
+apps/desktop test:   ok   the effect is recorded against the grant that allowed it
+apps/desktop test:   ok   the receipt points at the journal row that IS the record
+apps/desktop test:   ok   the grant is spent — a second attempt is refused
+apps/desktop test:   ok   an overwrite grant for one file does not authorise another
+apps/desktop test:   ok   the file it names is authorised
+apps/desktop test:   ok   the database refuses a floored effect with no grant, with policy bypassed entirely
+apps/desktop test: ok   PTY spawn + echo through a real pseudo-terminal
+apps/desktop test: power: the machine stays awake while agents work, and not otherwise
+apps/desktop test:   ok   the default is 'while-working' — the only value that chooses nothing for the operator
+apps/desktop test:   ok   while-working: idle machine sleeps normally
+apps/desktop test: power: holding the machine awake (policy while-working, 1 session(s) running)
+apps/desktop test:   ok   while-working: a running session holds it awake
+apps/desktop test:   ok   more sessions do not start more blockers
+apps/desktop test: power: released — the machine may sleep normally (policy while-working)
+apps/desktop test:   ok   the last session ending releases it
+apps/desktop test:   ok   nothing is left holding the machine awake
+apps/desktop test: power: holding the machine awake (policy always, 0 session(s) running)
+apps/desktop test:   ok   'always' holds it awake with nothing running
+apps/desktop test: power: released — the machine may sleep normally (policy never)
+apps/desktop test:   ok   'never' releases immediately, even mid-session
+apps/desktop test:   ok   'never' stays out of the way while five sessions run
+apps/desktop test: power: holding the machine awake (policy always, 0 session(s) running)
+apps/desktop test:   ok   repeated reconciliation starts exactly one blocker
+apps/desktop test:   ok   exactly one blocker is live
+apps/desktop test:   ok   quitting releases it
+apps/desktop test: power: holding the machine awake (policy while-working, 2 session(s) running)
+apps/desktop test:   ok   state() reports the policy, the count and whether it is actually blocking
+apps/desktop test: all green: awake while agents work, asleep otherwise, and exactly one blocker
+apps/desktop test: repository state and account quota
+apps/desktop test:   ok   changed and untracked are counted apart — "8 changed" and "3 new" are different facts
+apps/desktop test:   ok   a clean tree counts zero
+apps/desktop test:   ok   ahead and behind are read in the order git prints them (behind first)
+apps/desktop test:   ok   no upstream parses to null rather than to zero
+apps/desktop test:   ok   the branch is read
+apps/desktop test:   ok   ahead and behind are read
+apps/desktop test:   ok   the working tree is counted
+apps/desktop test:   ok   the last commit is read and its sha is shortened
+apps/desktop test:   ok   every reading carries when it was taken
+apps/desktop test:   ok   a read inside the TTL is served from cache — never from a render
+apps/desktop test:   ok   the reading is re-taken once the TTL passes
+apps/desktop test:   ok   a branch with no upstream is a fact, not a failure
+apps/desktop test:   ok   with no upstream, ahead and behind are null rather than zero
+apps/desktop test:   ok   the parts that could be read are still there
+apps/desktop test:   ok   a failed reading keeps the last good facts
+apps/desktop test:   ok   and carries the error, so "could not look" is not read as "nothing here"
+apps/desktop test:   ok   with a fresh timestamp, so its age is visible
+apps/desktop test:   ok   the five-hour window and its reset are read
+apps/desktop test:   ok   the seven-day window is read
+apps/desktop test:   ok   per-model windows are read
+apps/desktop test:   ok   codenamed internal buckets are NOT shown — a number whose meaning is unknown is worse than none
+apps/desktop test:   ok   a fresh reading has no problem and no age
+apps/desktop test:   ok   unreachable returns the last known reading with its real age (60s)
+apps/desktop test:   ok   and the numbers are the last ones actually measured
+apps/desktop test:   ok   a 429 is reported as throttled, not as an error
+apps/desktop test:   ok   Retry-After is honoured — nothing is asked until it passes
+apps/desktop test:   ok   and asking resumes once it has
+apps/desktop test:   ok   no credential is its own state — Claude Code is simply not signed in here
+apps/desktop test:   ok   and no numbers are invented for it
+apps/desktop test:   ok   a hostile core.fsmonitor does NOT execute — the repository cannot run code in this process
+apps/desktop test:   ok   and the repository is still read correctly (branch master)
+apps/desktop test: all green: both readings carry their age, keep their facts, and invent nothing
+apps/desktop test: ok   editor save refuses a stale write and returns the disk version
+apps/desktop test: ok   the operator decision overrides it and lands
+apps/desktop test: file roots: the filesystem API reaches only what is open
+apps/desktop test:   ok   a file inside an open repository reads normally
+apps/desktop test:   ok   the repository itself lists
+apps/desktop test:   ok   an absolute path outside every root is refused
+apps/desktop test:   ok   /etc/passwd is refused
+apps/desktop test:   ok   listing a directory outside every root is refused
+apps/desktop test:   ok   writing outside every root is refused
+apps/desktop test:   ok   ..-traversal out of a root is refused
+apps/desktop test:   ok   a symlink inside the root pointing outside it is refused
+apps/desktop test:   ok   a sibling whose NAME starts with the root name is not inside it
+apps/desktop test:   ok   a file that does not exist yet can still be created inside a root
+apps/desktop test:   ok   a folder the operator explicitly opens becomes reachable
+apps/desktop test: all green: the filesystem API reaches what the operator opened, and nothing else
+apps/desktop test: transcripts: what the session actually did
+apps/desktop test:   ok   ANSI colour codes are removed, the words are not
+apps/desktop test:   ok   OSC sequences (terminal titles) are removed
+apps/desktop test:   ok   a line repainted with carriage returns keeps what was left standing
+apps/desktop test:   ok   plain text passes through byte for byte
+apps/desktop test:   ok   CRLF is normalised to LF
+apps/desktop test:   ok   the body is the decoded session, in order, complete
+apps/desktop test:   ok   sha256 addresses exactly what is stored
+apps/desktop test:   ok   lines are counted
+apps/desktop test:   ok   L0 is composed from facts, not judgement: "claude-code · 7 min · 4 lines · 66 chars · exit 1"
+apps/desktop test:   ok   L1 is the whole text when the text is short
+apps/desktop test:   ok   the working file is removed once the record is in hand
+apps/desktop test:   ok   a session that produced nothing produces no record
+apps/desktop test:   ok   L2 keeps everything
+apps/desktop test:   ok   L1 is head and tail of the real text
+apps/desktop test:   ok   L1 states how much it skipped, so it cannot be mistaken for the whole
+apps/desktop test:   ok   a session past the ceiling is marked truncated, not silently shortened
+apps/desktop test:   ok   truncation keeps the HEAD — the start is what explains a runaway
+apps/desktop test:   ok   L0 says it was truncated, so a reader is not misled by a short record
+apps/desktop test:   ok   discard removes the working file and produces nothing
+apps/desktop test:   ok   a discarded capture cannot be closed into a record
+apps/desktop test: all green: the record is what the operator saw, whole, and says when it is not
+apps/desktop test: session bundle: a credential lives and dies with its session
+apps/desktop test:   ok   mcp.json is written 0600
+apps/desktop test:   ok   the session directory is 0700, so the session ids are not listable either
+apps/desktop test:   ok   the bundle carries the credential it was minted with
+apps/desktop test:   ok   the session is launched with --strict-mcp-config
+apps/desktop test:   ok   the context pack is written 0600, beside the credential
+apps/desktop test:   ok   the pack holds what the compiler produced
+apps/desktop test:   ok   the pack is compiled per session, before the session starts
+apps/desktop test: context pack failed for session ab0a1d24-2a8a-4014-ba5a-93c122a83fa3: Error: memory is unreachable
+apps/desktop test:     at Object.context (file://apps/desktop/[eval1]:69:34)
+apps/desktop test:     at Object.compile (file://apps/desktop/src/main/sessionBundle.ts:79:35)
+apps/desktop test:     at file://apps/desktop/[eval1]:72:26
+apps/desktop test:   ok   a session still gets its bundle when its pack cannot be compiled
+apps/desktop test:   ok   and no half-written pack is left for it to read
+apps/desktop test:   ok   the credential is still written — the surface is what the session needs to work at all
+apps/desktop test:   ok   discard removes the session directory
+apps/desktop test:   ok   discard revokes the credential, not just the file
+apps/desktop test:   ok   a spawn that throws surfaces as SpawnFailure, not a silent dead session
+apps/desktop test:   ok   a spawn that never happened revokes its credential and removes its bundle
+apps/desktop test: all green: a bundle exists exactly as long as the session it was made for
+apps/desktop test: startup reconciliation: a task cannot outlive its process
+apps/desktop test: Stopped services: [supabase_imgproxy_fabric supabase_pooler_fabric]
+apps/desktop test:   ok   the sweep finds a task left open by a previous run
+apps/desktop test:   ok   a task that already finished is not in the sweep at all
+apps/desktop test:   ok   the orphaned task is closed as abandoned, not as finished
+apps/desktop test:   ok   it carries why it was closed, so the row is not a mystery later
+apps/desktop test:   ok   no exit code was invented — nobody watched it exit
+apps/desktop test:   ok   it has a closing time, so it stops ageing as if it were running
+apps/desktop test:   ok   a task that really finished keeps its exit code and its status
+apps/desktop test:   ok   a second sweep leaves an already-abandoned task alone
+apps/desktop test:   ok   a second sweep still cannot touch a task that finished
+apps/desktop test: all green: an unaccounted task says so, and an accounted one is left alone
+apps/desktop test: context pack: one entrance, and a lockfile of what went through it
+apps/desktop test: Stopped services: [supabase_imgproxy_fabric supabase_pooler_fabric]
+apps/desktop test:   ok   facts recorded in the project are in the pack, as written
+apps/desktop test:   ok   the instruction the session was opened for is in the pack
+apps/desktop test:   ok   every fact cites the journal event it came from
+apps/desktop test:   ok   the pack says who recorded each fact — the operator or an agent
+apps/desktop test:   ok   past sessions appear as their measured annotation, not as a retelling
+apps/desktop test:   ok   the hash addresses exactly the text handed over
+apps/desktop test:   ok   the lockfile names every fact that went in
+apps/desktop test:   ok   the lockfile carries a journal seq per fact, so a claim is traceable
+apps/desktop test:   ok   the pack separates what the operator recorded from what an agent reported
+apps/desktop test:   ok   the agent section is labelled as data, not direction
+apps/desktop test:   ok   the injected claim is readable, and only under the untrusted heading
+apps/desktop test:   ok   newlines are stripped, so a claim cannot forge a heading or break its list item
+apps/desktop test:   ok   a corrected fact is not in the pack
+apps/desktop test:   ok   the correction is
+apps/desktop test:   ok   the lockfile records what was actually handed over
+apps/desktop test:   ok   a tight budget leaves things out and counts them (3 facts, 1 sessions)
+apps/desktop test:   ok   the pack tells the agent, in the pack, that it is partial
+apps/desktop test:   ok   and says what to do about it
+apps/desktop test:   ok   the bound is respected (528 chars for a 400 budget plus fixed header)
+apps/desktop test:   ok   a tight budget never leaves agent content standing without its fence
+apps/desktop test:   ok   a project with no memory yet gets a pack that says so rather than failing
+apps/desktop test: all green: bounded, cited, current-only, and honest about what it left out
+apps/desktop test: Stopped services: [supabase_imgproxy_fabric supabase_pooler_fabric]
+apps/desktop test: agent surface: refused a second initialize on session 1deae50b-7dbb-4506-a1a3-04e4599b98d3's credential
+apps/desktop test: agent surface: a request for session 1deae50b-7dbb-4506-a1a3-04e4599b98d3 carried NO mcp-session-id after initialising. If every tool call is failing, the client is not returning the session id the MCP spec requires, and that is the bug — not the credential.
+apps/desktop test: agent surface: session 7af7d0ee-f005-49ae-ab2e-fa29e97c0a6d hit its call budget (3 per 60s)
+apps/desktop test: agent surface: session 7af7d0ee-f005-49ae-ab2e-fa29e97c0a6d hit its call budget (3 per 60s)
+apps/desktop test:   ok   the surface refuses an invented credential
+apps/desktop test:   ok   the surface refuses no credential
+apps/desktop test:   ok   a minted credential lists the seven tools
+apps/desktop test:   ok   fabric_whoami answers with this session and the rules that apply
+apps/desktop test:   ok   fabric_stage_report lands in the claim projection
+apps/desktop test:   ok   the journal records the report as the AGENT speaking, not the operator
+apps/desktop test:   ok   fabric_agents_list keeps observation and claim in separate fields, and captions the claim
+apps/desktop test:   ok   an agent can write and find project memory
+apps/desktop test:   ok   an agent can find a past session by what it printed
+apps/desktop test:   ok   the search answers at the excerpt tier, not the whole body
+apps/desktop test:   ok   asking for one session by id returns it whole
+apps/desktop test:   ok   called with neither a query nor an id, it says what it needs
+apps/desktop test:   ok   an empty result says it found nothing, rather than implying nothing happened
+apps/desktop test:   ok   a transcript is invisible to a credential scoped to another project
+apps/desktop test:   ok   an agent can record a correction that names what it replaces
+apps/desktop test:   ok   search returns what is true now, not what was true before
+apps/desktop test:   ok   the corrected fact is still there, still readable, and marked corrected
+apps/desktop test:   ok   every retrieval is recorded, hits and misses alike
+apps/desktop test:   ok   a search that found nothing leaves a row saying so — the row that earns the table
+apps/desktop test:   ok   a miss names which store missed, not "memory" in general
+apps/desktop test:   ok   a retrieval is attributed to the session that asked
+apps/desktop test:   ok   a credential already spent on one session cannot open a second
+apps/desktop test:   ok   the bearer without the session id is refused (401)
+apps/desktop test:   ok   an unclaimed credential expires and is dropped, not merely refused
+apps/desktop test:   ok   a credential over budget is refused 429 with Retry-After and a readable reason
+apps/desktop test:   ok   the budget window reopens: the next call passes the budget gate and is stopped by the handshake gate instead
+apps/desktop test:   ok   revoking the session closes its credential immediately
+apps/desktop test: transcript capture, live: a session ends and its record appears
+apps/desktop test: Stopped services: [supabase_imgproxy_fabric supabase_pooler_fabric]
+apps/desktop test:   ok   a real session produced a record containing what it printed
+apps/desktop test:   ok   L0 was composed without anyone asking: "shell · 0 min · 6 lines · 62 chars · exit 0"
+apps/desktop test:   ok   the record reached the projection through the journal, verbatim
+apps/desktop test:   ok   the finished session is findable by a word it printed
+apps/desktop test: all green: a session that ends leaves its record, and nobody had to export it
+apps/desktop test: memory eval: what breaks when memory is switched off (M47)
+apps/desktop test: Stopped services: [supabase_imgproxy_fabric supabase_pooler_fabric]
+apps/desktop test:   ok   A every question is answered from memory (6/6)
+apps/desktop test:   ok   A a question nothing answers comes back empty AND says so
+apps/desktop test:   ok   B every question fails with memory removed (0/6)
+apps/desktop test:   ok   C memory rebuilt from the journal answers everything again (6/6)
+apps/desktop test:   score  with memory 6/6 · without 0/6 · rebuilt 6/6
+apps/desktop test:   delta  memory contributes 6 of 6 answers
+apps/desktop test:   ok   the fixture can tell memory apart from its absence (delta 6)
+apps/desktop test: all green: memory answers, its absence is detectable, and it rebuilds from the journal
+apps/desktop test: Done
+$ pnpm -r test

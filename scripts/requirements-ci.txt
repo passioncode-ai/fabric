@@ -1,0 +1,2 @@
+# scripts/check-project-schemas.py uses Draft202012Validator and FormatChecker.
+jsonschema==4.26.0

@@ -1,0 +1,708 @@
+{
+  "baseline": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+  "method": "34 observations; overlapping evidence retained, consolidated into 18 proposed decisions. P0 indicates planning/launch risk, not measured production incident.",
+  "findings": [
+    {
+      "id": "ENT-01",
+      "severity": "P1",
+      "title": "Two competing creation paths and contracts (confirmed STATIC)",
+      "detail": "Sources: `controller.js:99`, `calm.mjs:23`, `workbench.mjs:100–103`, `guided.mjs:25–34`, `controller.js:198`, persona `applyPulseAction`.\nIssue: same +Project intent leads to guided 4-step flow or advanced workbench; capabilities differ (repository suggestions/templates/independent draft list/reconciliation vs scan/guide). Completion lands in different home. The user must learn entry points, not just a product concept.\nDecision: one draft domain and one primary entry; preserve advanced configuration as a subordinate module, route all creation affordances through the same coordinator. Preserve old deep links as aliases, not remove features.\nImpact: route model, model journey links, SCN031/059, FLW18/32, SCR27, guided/workbench/controller, persona transitions, fixtures and exact route tests.\nAcceptance: every create affordance yields same draft identity/schema; changing path cannot lose fields; source modes and optional configs reconcile; success same Project+receipt; previous deep links still work; keyboard/mobile entry and return verified.",
+      "batch": "entry",
+      "decisions": [
+        "D02"
+      ]
+    },
+    {
+      "id": "ENT-02",
+      "severity": "P1",
+      "title": "Choosing idea still deduplicates against previous repository (confirmed EXEC handler probe)",
+      "detail": "Sources: `guided.mjs:42,47`, `controller.js:197`.\nRepro: enter existing repo `/archived`; switch mode to idea; create. `g.repo` remains `/archived`, before repoMode none is applied the duplicate check finds archived Project and blocks creation. Output: `{mode:\"idea\",repo:\"/archived\",created:0,archive:\"old\"}`.\nDecision: retain per-mode field drafts if useful, but derive effective source before review, duplicate check and create; idea has no repository identity. Review and command must share exactly that effective source.\nImpact: source-mode draft schema + dedupe + review; canonical source identity also needed for URL/path aliases.\nAcceptance: single→idea with existing/archived repo creates repo-free idea; idea→single restores optional draft but requires explicit attachment; path whitespace/alias/case/symlink identity tested at runtime resolver, no UI guess.",
+      "batch": "entry",
+      "decisions": [
+        "D03"
+      ]
+    },
+    {
+      "id": "ENT-03",
+      "severity": "P1",
+      "title": "Native restarted draft IDs can collide and overwrite restored work (STATIC strong code finding, native DOM test not run)",
+      "detail": "Sources: `App.tsx:193,232,402–405`. `draftSeq` starts at 0, restored disk keys not used to seed it; newDraft writes `draft-1` with object spread overwrite. Existing persistence test fixture uses `tab-1`, not realistic generated `draft-1` (`onboardingDraft.persist.test.tsx:34`).\nDecision: UUID draft identity or allocator collision-proof over restored/in-flight IDs; restore and create must not race. Keep project UUID identity separate.\nAcceptance: restore dirty draft-1 and draft-2, click new draft twice, all old fields+project IDs unchanged; separate tabs unique; restart preserves all; no create before hydration overwrites pending disk state. Test actual shell event, not standalone counter.",
+      "batch": "entry",
+      "decisions": [
+        "D04"
+      ]
+    },
+    {
+      "id": "ENT-04",
+      "severity": "P1",
+      "title": "No dedicated value checkpoint/return loop in current guided path (PROPOSED product gap)",
+      "detail": "Sources: `guided.mjs:34,49–51`; foundation ST039/040 and vision progressive adoption. Guide completion is Project+Task+tutorial topic, not demonstrated context recovery.\nDecision: two cohort routes: existing work → sourced orientation and one next action; idea → saved intent/checkpoint. Define first value and first return evidence independently from feature lesson completion.\nImpact: read adapters/source coverage, context capsule, read/ack checkpoint, attention feed, guide progression, event schema and privacy-conscious measurement. Never fabricate delta when no history or unread sources.\nAcceptance: user can answer goal/current state/next decision from own source card; source link exact; unknown shown; return after one new event highlights it once only after acknowledgement; routine heartbeat alone cannot qualify.",
+      "batch": "entry",
+      "decisions": [
+        "D05"
+      ]
+    },
+    {
+      "id": "ENT-05",
+      "severity": "P2",
+      "title": "Guide completion can mark Board learned without reading/resolving it (confirmed STATIC; existing EXEC test deliberately accepts mere IDs)",
+      "detail": "Sources: `guided.mjs:34,50,51`; `scripts/test/calm-flows.test.mjs:6` onward.\nDecision: distinguish created/read/applied/skipped. Prefer first real Board outcome. If tutorial, separate learning record with `tutorial` provenance; do not include in meaningful progress metrics.\nImpact: GuideProgress event/projection, Board outcome linkage, deletion/supersession/replay handling, pulse filters.\nAcceptance: creating topic alone does not mark learned; navigate away/skip distinct; real resolved item can satisfy objective once; delete item doesn't delete user's Task; no fabricated production evidence or points.",
+      "batch": "entry",
+      "decisions": [
+        "D06"
+      ]
+    },
+    {
+      "id": "ENT-06",
+      "severity": "P2",
+      "title": "Skip hides obvious exact resumption (STATIC discoverability gap)",
+      "detail": "Sources: `guided.mjs:51`, `controller.js:161`, `guided.mjs:19,22`.\nDecision: separate passive-nudge dismissal from feature accessibility. Help exposes “Продолжить знакомство с <Project>” with exact progress; plus explicit restart optional. Never force creation of second Project to resume lessons.\nAcceptance: skip at every step→navigate other Project→help resume restores original Estate/Project/revision/draft; archived/ACL loss safe; no repeated automatic nudge after opt-out; request to resume clears only relevant dismissal.",
+      "batch": "entry",
+      "decisions": [
+        "D06"
+      ]
+    },
+    {
+      "id": "ENT-07",
+      "severity": "P2",
+      "title": "“Настроить позже” still creates Builder candidate with provider `later` (STATIC)",
+      "detail": "Sources: `guided.mjs:27`; `new-project.mjs:7`; `operations.mjs:355–359`.\nIssue: domain treats UI sentinel `later` as provider identity; Project contains unverified Builder/session/binding rows though user deferred executor. Native default agent is Claude Code even when options unavailable (`onboardingDraft.ts:52`).\nDecision: represent no executor as null/pending role, never a fake Provider. If default role scaffolding is intentional, label it unfilled and create no provider/binding/session until selection. Resolve ST001 “exactly one PM” vs progressive idea-only semantics explicitly.\nAcceptance: defer→no provider ID later, no runnable session/binding; creation still allowed; next needed action offers setup; selecting real candidate preserves original Project and Task; authority remains explicit.",
+      "batch": "entry",
+      "decisions": [
+        "D07"
+      ]
+    },
+    {
+      "id": "ENT-08",
+      "severity": "P2",
+      "title": "Guided chat shortcut can write draft to a different thread than currently shown (STATIC hypothesis requiring browser/controller test)",
+      "detail": "Sources: `controller.js:30,32,46`; `guided.mjs:48`.\nIssue: override chat scope within same route; guided chat shortcut computes assistantScope(view,state) ignoring scopeOverride, writes there, then assistantUI.render honours still-valid override. User sees old/empty draft while intended prompt exists in another thread.\nDecision: one context resolver for display and all composer mutations. Explicit object shortcut either announces/pins destination or respects current scope; no silent split.\nAcceptance: on guide Project A choose chat Project B/global then invoke guided example; displayed scope and draft destination agree; no overwrite other draft; cancelled speech/attachments remain scoped; send creates no wrong-project artifact.",
+      "batch": "entry",
+      "decisions": [
+        "D09"
+      ]
+    },
+    {
+      "id": "ENT-09",
+      "severity": "P2",
+      "title": "Native retry of same Project ID doesn't validate changed create payload (STATIC contract gap)",
+      "detail": "Sources: `apps/desktop/src/main/index.ts:1064–1067`; `Onboarding.tsx:61–69`.\nIssue: existing ID returns old name/purpose while attaches whatever repo list is supplied on retry. After partial/unknown create, edited retry silently combines original intent and new repositories. UI currently generic error and editable draft.\nDecision: immutable pending create command+payload fingerprint, reconcile before edited submission; user chooses explicit post-create update for new values. Do not infer from already-exists success that current fields were saved.\nAcceptance: lost create response + changed name/purpose/repos yields conflict/review, not silent success; same request identical payload idempotent; partial attachments reconciliation exact; authorization rechecked. Backend/native integration required.",
+      "batch": "entry",
+      "decisions": [
+        "D04"
+      ]
+    },
+    {
+      "id": "ENT-10",
+      "severity": "P2",
+      "title": "First conversation prompt asks for “changes since last visit” before any visit/history (STATIC UX mismatch)",
+      "detail": "Sources: `guided.mjs:48`; first-task suggestion `guided.mjs:34`.\nDecision: starter prompt based on observed phase: existing source→“Помоги понять, где остановились”; idea→“Помоги уточнить первый результат”; returning→delta since known checkpoint. No imperative launch promise.\nAcceptance: new idea no-history message says known unknown and offers next step; imported source cites actual source; returning digest uses cutoff; actions explicitly preview destination.",
+      "batch": "entry",
+      "decisions": [
+        "D05"
+      ]
+    },
+    {
+      "id": "ENT-11",
+      "severity": "P2",
+      "title": "Guided creation lacks explicit pending/refused/unknown result branch (STATIC target gap)",
+      "detail": "Sources: `guided.mjs:47`; global state screen `guided.mjs:16`; compare workbench `controller.js:250,259–260`.\nIssue: prototype create callback synchronous, no receipt affordance at point of success, no retry identity display/reconciliation on guided route. Global simulated error is not command-state recovery. Current synchronous prototype means no actual async failure claimed.\nDecision: same command coordinator for both creation entries; pending/unknown held, same request reconcile, back/read-only with draft preserved.\nAcceptance: late success after navigating away doesn't switch wrong tab; duplicate click no sibling; async refusal retained; unknown refresh finds same Project; cancelled scan never creates.",
+      "batch": "entry",
+      "decisions": [
+        "D02"
+      ]
+    },
+    {
+      "id": "ENT-12",
+      "severity": "P2",
+      "title": "Canonical onboarding acceptance and newer target refinements conflict (STATIC documentation contract drift)",
+      "detail": "Sources: `scenarios.md:810–829` (memory/default agent/multi-folder full setup, saved configured), `scenarios.md:1552–1574` (durable optional intent), `scenarios.md:2353–2355` (source-first guided), foundation ST001 exactly PM vs deferred candidate.\nDecision: consolidated current normative contract with superseded details clearly marked; retain dated history. Distinguish current production implementation, target and tested prototype in each packet.\nAcceptance: same allowed prerequisites/required fields/landing/command states everywhere; map/SCN/FLW/SCR/model links resolve; historical receipts unchanged; no status upgrade from mockup traversal.",
+      "batch": "entry",
+      "decisions": [
+        "D02"
+      ]
+    },
+    {
+      "id": "RET-01",
+      "severity": "P1",
+      "title": "New personal Home still shows Atlas/Studio activity",
+      "detail": "- Evidence STATIC: `launch.mjs:58–68` appends fixed Atlas/Studio Live rows regardless of owned projects; `launch.mjs:18–22` correctly resets personal project/topic data but not this feed. Pure render TEST with sole personal project `own` returned `newPersonalHomeShowsAtlas:true`, `newPersonalHomeShowsStudio:true`, ownedProjects `[own]`.\n- Affects SCN-059/060/090/094. First user can believe somebody else's work belongs to them; the honest empty/first-work state is lost.\n- Decision A (recommended): estate-scoped observation read model, explicit sample dataset only behind “Посмотреть пример”. B: keep sample alongside empty state but label the entire sample region and disable real-work actions; inferior for first real project.\n- Impact: Home feed + Pulse + Board counts + fixtures + estate filtering + generated previews. Do not patch only the two displayed names.\n- Negative checks: one fresh personal project → no Atlas/Studio name, IDs, links or activity counters; archive/remove last project; switch estate while feed paused; missing source ≠ zero activity.",
+      "batch": "return",
+      "decisions": [
+        "D08"
+      ]
+    },
+    {
+      "id": "RET-02",
+      "severity": "P1",
+      "title": "Home resume cannot recover the exact work or a true since-last-visit delta",
+      "detail": "- Evidence STATIC: `launch.mjs:57` selects `lastProject`, then latest `launchData.events`, with Atlas fixed “3 изменения”; button always opens project overview. `launch.mjs:73` sets lastProject only when rendering launch-project. Operations has independent history and mark at `operations.mjs:34,73,198`. `controller.js:34` inserts chat messages into launch events, not operation lifecycle.\n- Affects SCN-040/045/060/090/093/094. Visiting Task/Run directly, switching project, answering or completing work can produce a resume card that knows neither exact entity nor measured delta. A chat reply may replace the meaningful next step.\n- Decision A (recommended): one ReturnSnapshot contract keyed estate/project/user: source cursor, seen cursor, exact continuation ref, pending operator decision, next permitted action, coverage/age, observed state. Home compact projection; Project expanded projection; CEO same snapshot. B: call existing card “Последний открытый проект” and defer promise of context return (does not deliver core launch value).\n- Impact: durable read cursor and journal, Home/Project/CEO/notifications, session restore, origin routing, cache invalidation. “Continue” must not mark unrelated updates read.\n- Negative checks: Task/Run direct deep link updates continuation; two projects retain distinct marks; new event after render but before leave remains unread; refresh failure keeps prior age; deleted/inaccessible target recovers without another project's substitution.",
+      "batch": "return",
+      "decisions": [
+        "D05"
+      ]
+    },
+    {
+      "id": "RET-03",
+      "severity": "P1",
+      "title": "Return shortcut is a count summary, not the promised return insight",
+      "detail": "- Evidence STATIC/TEST: `assistant.mjs:57` suggests “Собери изменения с прошлого визита”; `concierge.mjs:41–43` returns project purpose + total tasks + open question count and one project link. Pure test returned “Only my project: First value. В снимке 0 задач; открытых вопросов — 0.” No visit cursor/decisions/what changed/next step.\n- Affects SCN-042/090/093, guide first chat. Current guide promises first value through a query unable to demonstrate it (`guided.mjs:48`).\n- Decision: reuse RET-02 snapshot instead of separate NLU-specific summary. On truly first visit say no previous checkpoint, show sourced imported context or capture a first checkpoint. Never invent “changes since visit.”\n- Impact: read service, CEO answer schema and source links, guide milestones, telemetry definitions.\n- Negative checks: first visit, no changes, stale/partial observation, empty journal, unresolved blocker, changed decision, answer sources all in exact allowed scope.",
+      "batch": "return",
+      "decisions": [
+        "D05"
+      ]
+    },
+    {
+      "id": "RET-04",
+      "severity": "P1",
+      "title": "Task link correction is exposed but wired to Board-topic relinking",
+      "detail": "- Evidence STATIC: saved task card exposes “Уточнить связь” (`assistant.mjs:38`); handler `save-link` at 55 invokes controller `onRelink` (`controller.js:35`), which always calls `relinkLaunchArtifact`; that function only finds `d.topics` entry `ceo:<artifact.id>` (`launch.mjs:31`). Task path `controller.js:41` creates only operations Task.\n- Pure TEST: relink of saved task proposal returned `{ok:false,error:\"Исходная запись не найдена\"}`. Existing tests cover references and task creation but not this callback chain.\n- Affects SCN-042/045 and conversation attribution. The visible feature cannot finish its purpose for the only artifact type where it is shown.\n- Decision A: explicit attribution command shared by Task and Board, typed entityRef + immutable original origin + append-only link change receipt. B: remove Task relink until supported and preserve original attribution; do not leave failing control.\n- Impact: command contracts, artifact provenance, task timeline, conversation card, authorization and cross-project rejection.\n- Negative checks: existing task same project succeeds; blank allowed/unlink policy explicit; foreign task refuses; same request repeat no duplicate receipt; archived project refuses write; original message origin unchanged.",
+      "batch": "return",
+      "decisions": [
+        "D10"
+      ]
+    },
+    {
+      "id": "RET-05",
+      "severity": "P1",
+      "title": "design gap — Product run controls force operator through low-level runner stages",
+      "detail": "- Evidence STATIC: ordinary primary Run actions include “Создать процесс”, “Доставить инструкцию”, “Сверить адресную доставку”, “Подтвердить остановку”, “Checker: принять результат” (`operations.mjs:118–127`). Handlers mutate simulated process/checker facts (`244–251`). Fault injection is disclosed, but these normal source transitions still look like operator responsibilities.\n- Affects SCN-052/067; contrary to user request that agents handle routine mechanics. Useful simulator, incomplete production UX contract.\n- Decision A: one explicit “Начать работу” after scoped readiness, automatic process/admission/delivery/checker state machine, visible stop/retry/reconcile only when operator action required. Observations are read-only; simulator controls explicitly marked. B: expert console retains manual steps behind advanced mode, never default onboarding.\n- Impact: orchestrator/admission/host observation, Run state projection, buttons and labels, permissions, integration tests. Preserve admission ≠ acknowledgement ≠ independent acceptance as data even when automation hides mechanical steps.\n- Negative checks: duplicate start; uncertain delivery does not resend; unknown stop never shows stopped; checker absent/author cannot award acceptance; partial artifacts survive retry; UI offers only actions supported by current server capabilities.",
+      "batch": "return",
+      "decisions": [
+        "D11"
+      ]
+    },
+    {
+      "id": "RET-06",
+      "severity": "P2",
+      "title": "Deferred Board topic has no explicit return trigger",
+      "detail": "- Evidence STATIC: defer requires text then sets only status `later` (`launch.mjs:32–36,84`). Home shows only `open` (`70`); Board offers Later filter (`71`). No due date/trigger/next-review contract in topic model.\n- Affects SCN-041/093. “На следующий раз” can disappear indefinitely unless user remembers to inspect a separate tab; hook lacks reliable reason to return.\n- Decision A: “Следующий разбор” as default explicit trigger, optional date/event in details, resurfacing receipt and dedupe. B: rename “Отложить без напоминания” and show deferred count on return. Avoid silently scheduled reminders without user choice.\n- Impact: attention read model, daily review/session boundary, scheduler optionally, Board status versus resurfacing event, notification consent.\n- Negative checks: once-only resurfacing, overdue/no source, archived project, skipped review, many deferrals, clear distinction task priority vs personal attention.",
+      "batch": "return",
+      "decisions": [
+        "D12"
+      ]
+    },
+    {
+      "id": "RET-07",
+      "severity": "P2",
+      "title": "Shortcut/example overwrites a user's unsent draft",
+      "detail": "- Evidence STATIC: `assistant.mjs:57` assigns `t.draft` for any suggest action without retaining old text; `controller.js:46` guide examples also assign t.draft. Scope switching itself retains drafts, so this is a different loss path.\n- Affects SCN-042/059. Need not ask a modal each time: recommendation insert example only into empty draft, otherwise offer append/replace with immediate Undo and retain original.\n- Impact: common composer draft reducer for shortcuts, examples, voice transcript and contextual actions; ownership by scope and revision.\n- Negative checks: typed draft → shortcut → Undo; switching scope during shortcut; voice draft and attachments preserved; repeated shortcut does not pile up duplicate text.",
+      "batch": "return",
+      "decisions": [
+        "D09"
+      ]
+    },
+    {
+      "id": "RET-08",
+      "severity": "P2",
+      "title": "Default voice example requests a compound action but executes only Board read",
+      "detail": "- Evidence STATIC: transcript at `assistant.mjs:60` = “Собери изменения с прошлого визита и вынеси вопросы на доску.” Classifier uses first regex match, Board precedes Context (`concierge.mjs:12–13,32`); TEST returns `{id:board,mode:read}`. No summary or Board write occurs.\n- Affects SCN-042/093, voice introduction. Misleading first voice experience even within labeled demo.\n- Decision A: first voice example one supported read intent; explicitly preview multi-intent plan later and execute typed commands with separate receipts. B: recognize compound intent and clearly state which part is unsupported, never imply completion.\n- Impact: capability routing, action plan schema, tutorial examples, partial completion and retry contract.\n- Negative checks: compound command partial failure; clarify missing destination; read success/write refusal; no duplicate topic on retry; transcription edits preserve original and final text attribution.",
+      "batch": "return",
+      "decisions": [
+        "D13"
+      ]
+    },
+    {
+      "id": "RET-09",
+      "severity": "P2",
+      "title": "Returning digest acknowledges current total, not the exact displayed boundary",
+      "detail": "- Evidence STATIC: `operations.mjs:73` renders sorted newest-first rows and uses count equality; navigation at `operations.mjs:191` and `controller.js:136` writes current history length. SCN-090 (`scenarios.md:2163–2182`) requires oldest-first and acknowledgement of exactly the visible reading, including sources arriving during view.\n- Affects SCN-090. No event-stream browser reproduction claimed; static callback is susceptible if history grows between render and leave. Counts also fail on reordering/backfill.\n- Decision: immutable render receipt with source head/cursor, visibility rule and monotonic acknowledgement. Preserve currently approved leaving-ack behavior, but use rendered receipt, not current length. Unify with RET-02.\n- Impact: every navigation route, digest polling, active-pane visibility, background tabs, stream append/backfill, persistent marks.\n- Negative checks: event appended after last render, late/backfilled event, failed head, switching task while digest hidden, double return no repeated old rows, source reordering.",
+      "batch": "return",
+      "decisions": [
+        "D14"
+      ]
+    },
+    {
+      "id": "RET-10",
+      "severity": "P2",
+      "title": "Session tutorial measures setup records instead of demonstrated return value",
+      "detail": "- Evidence STATIC: guide completion gate is task+topic (`guided.mjs:51`); guide progress counts project/task/topic/finished (`34`). It neither requires handling the tutorial topic nor a context switch/second visit nor actual result. Created topic at `50` instructs user to close it but completion does not depend on that.\n- Affects SCN-059/060/090. User can finish the entire guide without experiencing the core promise, while tutorial itself adds a noisy attention item.\n- Decision A: milestones are actual outcomes: scope known → first checkpoint/context digest saved → first useful action → leave/return comparison → real attention resolution. Task/topic records remain analytics but not activation. B: retain setup checklist labeled setup, add separate voluntary first-value path. No artificial blocker on work if skipped.\n- Impact: onboarding state machine, ReturnSnapshot, analytics cohorts, tutorial Board metadata/priority, empty project path vs imported existing project path.\n- Negative checks: skip never advances milestone; deleted task doesn't erase historical success but invalidates continuation; archived project suspends prompts; manual completion outside guide counts; no re-show after dismissal unless meaningful trigger.",
+      "batch": "return",
+      "decisions": [
+        "D05"
+      ]
+    },
+    {
+      "id": "RET-11",
+      "severity": "P2",
+      "title": "Missing conversation deep link silently falls back to current scope",
+      "detail": "- Evidence STATIC: `controller.js:30` overrides context only if matching conversation is found; otherwise it uses current scope, with no “conversation missing” state. Threads are in-memory Map (`assistant.mjs:7,14`); source links are shareable hash params (`launch.mjs:42`).\n- Affects SCN-040/042/060 and durable conversation requirement. Existing empty thread can appear in place of expected source conversation after refresh or missing data.\n- Decision: explicit unresolved/missing/denied source-link state that preserves requested identity and offers current scope as separate action. Durable history later uses same contract.\n- Impact: route parser, conversation resolver, source citations, reload/session restoration, access revocation, snapshots.\n- Negative checks: missing conversation, wrong estate, deleted project, partial history, inaccessible original, message missing within existing conversation. Never substitute another message.",
+      "batch": "return",
+      "decisions": [
+        "D10"
+      ]
+    },
+    {
+      "id": "INV-01",
+      "title": "Traceability parser absorbs unrelated appendices",
+      "severity": "P0",
+      "detail": "`scripts/sync-product-ux.mjs:11` slices a registry record until the next *same-prefix* `###`, or EOF; `:18` collects every SCN occurrence in that body. Therefore SCR-63 inherits SCN-094/042/031/059 from general appendices beginning `docs/ux/screens.md:1356`, although its declared Scenarios field at `:1336` only lists SCN-083/084/085/087/088/089. The same boundary function parses scenarios and flows, so final SCN/FLW records need checks too. **Red regression run (exit 1):** assert that references extracted from SCR-63's parser slice exclude SCN-031; actual references were `083,084,085,087,088,089,094,042,031,059`. Repair packet before trusting downstream auto coverage: bound record at next equal-or-higher heading, parse own fields, model general appendices as explicit overrides keyed to named records; preserve legitimate inverse references. Do not raise canonical status on resync.",
+      "full_text": "1. **P0 · Traceability parser absorbs unrelated appendices.** `scripts/sync-product-ux.mjs:11` slices a registry record until the next *same-prefix* `###`, or EOF; `:18` collects every SCN occurrence in that body. Therefore SCR-63 inherits SCN-094/042/031/059 from general appendices beginning `docs/ux/screens.md:1356`, although its declared Scenarios field at `:1336` only lists SCN-083/084/085/087/088/089. The same boundary function parses scenarios and flows, so final SCN/FLW records need checks too. **Red regression run (exit 1):** assert that references extracted from SCR-63's parser slice exclude SCN-031; actual references were `083,084,085,087,088,089,094,042,031,059`. Repair packet before trusting downstream auto coverage: bound record at next equal-or-higher heading, parse own fields, model general appendices as explicit overrides keyed to named records; preserve legitimate inverse references. Do not raise canonical status on resync.",
+      "sources": [
+        "scripts/sync-product-ux.mjs:11",
+        "###",
+        ":18",
+        "docs/ux/screens.md:1356",
+        ":1336",
+        "083,084,085,087,088,089,094,042,031,059"
+      ],
+      "proposed_acceptance": "Add a real regression for final SCN/FLW/SCR record boundaries and explicit global appendix refinements. Old parser must fail; fixed parser preserves legitimate IDs/aliases/statuses and no longer attaches SCN-031 to SCR-63. Regenerate model and check all 85 views without changing runtime coverage.",
+      "batch": "inventory",
+      "decisions": [
+        "D01"
+      ]
+    },
+    {
+      "id": "INV-02",
+      "title": "Required R0 capabilities and later catalogue screens need narrower contracts",
+      "severity": "P0",
+      "detail": "OX-09/10 are R0 at `docs/ux/plans/2026-09-15-r0-operator.md:74–75`, but providers/admission/routine-editor/pipeline are later model views. `docs/ux/screens.md:1403–1404` already distinguishes basic config from advanced gates. Decision: define one admitted preset setup and one paused review-cycle preset as R0 journeys, reuse advanced details only when needed. Do not infer that later editor permits bypassing admission, cost or authority.",
+      "full_text": "2. **P0 · Required R0 capabilities and later catalogue screens need narrower contracts.** OX-09/10 are R0 at `docs/ux/plans/2026-09-15-r0-operator.md:74–75`, but providers/admission/routine-editor/pipeline are later model views. `docs/ux/screens.md:1403–1404` already distinguishes basic config from advanced gates. Decision: define one admitted preset setup and one paused review-cycle preset as R0 journeys, reuse advanced details only when needed. Do not infer that later editor permits bypassing admission, cost or authority.",
+      "sources": [
+        "docs/ux/plans/2026-09-15-r0-operator.md:74–75",
+        "docs/ux/screens.md:1403–1404"
+      ],
+      "proposed_acceptance": "Demonstrate first admitted executable preset and first paused cycle preset without opening full provider catalogue/DAG editor. Scope, budget, compatibility/admission, save versus enable and observed state remain explicit; later advanced screens cannot bypass these gates.",
+      "batch": "inventory",
+      "decisions": [
+        "D07"
+      ]
+    },
+    {
+      "id": "INV-03",
+      "title": "Runtime account setup cannot be a universal first-use gate",
+      "severity": "P0",
+      "detail": "`docs/ux/scenarios.md:2109`, `:2126`, `:2160` say ProviderAccounts component has tests but no reachable runtime IPC/settings entry; M199 stays proposed at `docs/evidence/backlog.md:767`. `apps/desktop/src/shared/providerCapabilityMatrix.ts:10–22` records explicit capability/certification limitations (version-specific historical evidence, not a claim about today's external product). New users need system-login/read-only/manual-task path; managed second account and cross-account continuity introduced only when capability is actually certified. Never promise live resume from prototype account-switch.",
+      "full_text": "3. **P0 · Runtime account setup cannot be a universal first-use gate.** `docs/ux/scenarios.md:2109`, `:2126`, `:2160` say ProviderAccounts component has tests but no reachable runtime IPC/settings entry; M199 stays proposed at `docs/evidence/backlog.md:767`. `apps/desktop/src/shared/providerCapabilityMatrix.ts:10–22` records explicit capability/certification limitations (version-specific historical evidence, not a claim about today's external product). New users need system-login/read-only/manual-task path; managed second account and cross-account continuity introduced only when capability is actually certified. Never promise live resume from prototype account-switch.",
+      "sources": [
+        "docs/ux/scenarios.md:2109",
+        ":2126",
+        ":2160",
+        "docs/evidence/backlog.md:767",
+        "apps/desktop/src/shared/providerCapabilityMatrix.ts:10–22"
+      ],
+      "proposed_acceptance": "A user without managed provider accounts can create/read a project and save a task, using certified system login only when executing. Unsupported second-account and resume paths explain limitation and leave original session intact. No provider capability claimed from fixture success.",
+      "batch": "inventory",
+      "decisions": [
+        "D07"
+      ]
+    },
+    {
+      "id": "INV-04",
+      "title": "Teaching collaboration must disclose estate-wide visibility before invitation",
+      "severity": "P0",
+      "detail": "`apps/desktop/src/shared/membership.ts:129–154` explicitly says v1 sees the whole estate; renderer filters cannot manufacture project-only membership. Model SCR-14 description reports no invitation/acceptance renderer; canonical `docs/ux/screens.md:302`. Give invited users separate entry/intent, existing work restoration and role-specific actions. Do not show “invite to this project only” absent enforced contract.",
+      "full_text": "4. **P0 · Teaching collaboration must disclose estate-wide visibility before invitation.** `apps/desktop/src/shared/membership.ts:129–154` explicitly says v1 sees the whole estate; renderer filters cannot manufacture project-only membership. Model SCR-14 description reports no invitation/acceptance renderer; canonical `docs/ux/screens.md:302`. Give invited users separate entry/intent, existing work restoration and role-specific actions. Do not show “invite to this project only” absent enforced contract.",
+      "sources": [
+        "apps/desktop/src/shared/membership.ts:129–154",
+        "docs/ux/screens.md:302"
+      ],
+      "proposed_acceptance": "Before invite, show actual estate-wide visibility and current role; invited member resumes exact invitation after auth. No project-only access claim unless trusted boundary enforces it; denied/revoked invitation hides data without widening scope.",
+      "batch": "inventory",
+      "decisions": [
+        "D16"
+      ]
+    },
+    {
+      "id": "INV-05",
+      "title": "Recurring-value hook must respect desktop availability",
+      "severity": "P0",
+      "detail": "`apps/desktop/src/main/routineTick.ts:16–20` says closed app runs nothing, with bounded catch-up; future cycle overview is not proof of background service. Teaching “come back tomorrow, Fabric worked” is invalid without actual receipts. Preview next due + host requirement, then first real completed window, then pause/recovery. Pause feed is distinct from pause schedule and stop current run (OX plan `:28–32`).",
+      "full_text": "5. **P0 · Recurring-value hook must respect desktop availability.** `apps/desktop/src/main/routineTick.ts:16–20` says closed app runs nothing, with bounded catch-up; future cycle overview is not proof of background service. Teaching “come back tomorrow, Fabric worked” is invalid without actual receipts. Preview next due + host requirement, then first real completed window, then pause/recovery. Pause feed is distinct from pause schedule and stop current run (OX plan `:28–32`).",
+      "sources": [
+        "apps/desktop/src/main/routineTick.ts:16–20",
+        ":28–32"
+      ],
+      "proposed_acceptance": "Preview host availability and timezone/next window before enabling. Close desktop through due time and reopen: show bounded catch-up and real window receipts, not fabricated background progress. Pause display, schedule and current run separately.",
+      "batch": "inventory",
+      "decisions": [
+        "D15"
+      ]
+    },
+    {
+      "id": "INV-06",
+      "title": "Current guide is one linear setup, not a cross-session adoption system",
+      "severity": "P1",
+      "detail": "`scripts/product/guided.mjs:7–11` is an in-memory Map and fixed four steps; `:29` explicitly limits retention to page lifetime; `docs/launch/ceo-onboarding.md:47` describes future GuideRecord but no entry/trigger policy for later capabilities. Add durable per-user+estate+project adoption state with eligibility triggers, dismiss/resume, source receipts and independent feature availability. Session number is guidance, not a lock or streak obligation.",
+      "full_text": "6. **P1 · Current guide is one linear setup, not a cross-session adoption system.** `scripts/product/guided.mjs:7–11` is an in-memory Map and fixed four steps; `:29` explicitly limits retention to page lifetime; `docs/launch/ceo-onboarding.md:47` describes future GuideRecord but no entry/trigger policy for later capabilities. Add durable per-user+estate+project adoption state with eligibility triggers, dismiss/resume, source receipts and independent feature availability. Session number is guidance, not a lock or streak obligation.",
+      "sources": [
+        "scripts/product/guided.mjs:7–11",
+        ":29",
+        "docs/launch/ceo-onboarding.md:47"
+      ],
+      "proposed_acceptance": "Guide survives relaunch and switching projects/estate without losing draft, changing destination or recreating task. Dismiss/skip independent from completion; introduction policy uses actual event eligibility, not compulsory elapsed days.",
+      "batch": "inventory",
+      "decisions": [
+        "D05"
+      ]
+    },
+    {
+      "id": "INV-07",
+      "title": "“Learning completed” conflates object creation with experienced value",
+      "severity": "P1",
+      "detail": "`scripts/product/guided.mjs:34` counts task/topic IDs; `:50` creates an educational Board topic; `:51` marks finished once both exist. User could complete without resolving the topic or returning after a pause. Keep setup receipts separate from first-value, first-return and learning evidence; never invent learning from a click. Educational topic must be visibly tutorial, removable/skippable and never outrank real obligations.",
+      "full_text": "7. **P1 · “Learning completed” conflates object creation with experienced value.** `scripts/product/guided.mjs:34` counts task/topic IDs; `:50` creates an educational Board topic; `:51` marks finished once both exist. User could complete without resolving the topic or returning after a pause. Keep setup receipts separate from first-value, first-return and learning evidence; never invent learning from a click. Educational topic must be visibly tutorial, removable/skippable and never outrank real obligations.",
+      "sources": [
+        "scripts/product/guided.mjs:34",
+        ":50",
+        ":51"
+      ],
+      "proposed_acceptance": "First-value receipt names real saved/read/accepted result; learning completion requires evidence of the intended task, distinct from creating a tutorial row. User may skip/remove tutorial without affecting real task/permissions; tutorial never outranks critical obligation.",
+      "batch": "inventory",
+      "decisions": [
+        "D05"
+      ]
+    },
+    {
+      "id": "INV-08",
+      "title": "Synthetic default cycles can contaminate empty-project learning",
+      "severity": "P1",
+      "detail": "`scripts/product/routines.mjs:24–25` seeds “Проверка уроков” with a three-node fixture graph for every project; `:28–30` clones it when user proposes a cycle. This is explicitly a simulator (`:1`), but guided new-project demonstrations need genuine empty state and explicit preset preview so they do not teach that a real new project already has configured work. Verify new project→cycles with no fixture graft before accepting prototype flow; do not treat this as a proven runtime bug.",
+      "full_text": "8. **P1 · Synthetic default cycles can contaminate empty-project learning.** `scripts/product/routines.mjs:24–25` seeds “Проверка уроков” with a three-node fixture graph for every project; `:28–30` clones it when user proposes a cycle. This is explicitly a simulator (`:1`), but guided new-project demonstrations need genuine empty state and explicit preset preview so they do not teach that a real new project already has configured work. Verify new project→cycles with no fixture graft before accepting prototype flow; do not treat this as a proven runtime bug.",
+      "sources": [
+        "scripts/product/routines.mjs:24–25",
+        ":28–30",
+        ":1"
+      ],
+      "proposed_acceptance": "New own project with no configured routines opens a genuine empty cycle view; explicit preset preview precedes saving a paused routine. Do not clone unrelated demo graph/history implicitly; retain demo fixtures only in clearly chosen example cohort.",
+      "batch": "inventory",
+      "decisions": [
+        "D08"
+      ]
+    },
+    {
+      "id": "INV-09",
+      "title": "Full catalogue remains reachable as 85-item mobile control",
+      "severity": "P1",
+      "detail": "`scripts/product/calm.mjs:23` renders all model views in mobile select and “Все разделы · 85” for every cohort. Good for design review, unsuitable as default novice IA. Separate preview controls from proposed product shell; use progressive suggested entries plus stable search, never remove recovery or experienced-user direct navigation. Map/editor aliases should not become extra concepts to learn.",
+      "full_text": "9. **P1 · Full catalogue remains reachable as 85-item mobile control.** `scripts/product/calm.mjs:23` renders all model views in mobile select and “Все разделы · 85” for every cohort. Good for design review, unsuitable as default novice IA. Separate preview controls from proposed product shell; use progressive suggested entries plus stable search, never remove recovery or experienced-user direct navigation. Map/editor aliases should not become extra concepts to learn.",
+      "sources": [
+        "scripts/product/calm.mjs:23"
+      ],
+      "proposed_acceptance": "Novice product shell excludes review-only catalogue/control noise but preserves help, search/direct expert access and emergency recovery. Mobile novice journey does not require choosing among 85 demo views; aliases count as one concept.",
+      "batch": "inventory",
+      "decisions": [
+        "D17"
+      ]
+    },
+    {
+      "id": "INV-10",
+      "title": "Conversational discovery is currently a deterministic catalogue, not general manager execution",
+      "severity": "P1",
+      "detail": "`scripts/product/concierge.mjs:1–32` regex routes to forms; `:42–43` explicitly says changes are not applied and link to common form. Define each introduced shortcut by intent→scope→prerequisite→command/read→receipt→next action. User should get value after click, not a tour of a form that cannot act. Unsupported/freeform clarification must preserve draft and give exact fallback, not silently create a task.",
+      "full_text": "10. **P1 · Conversational discovery is currently a deterministic catalogue, not general manager execution.** `scripts/product/concierge.mjs:1–32` regex routes to forms; `:42–43` explicitly says changes are not applied and link to common form. Define each introduced shortcut by intent→scope→prerequisite→command/read→receipt→next action. User should get value after click, not a tour of a form that cannot act. Unsupported/freeform clarification must preserve draft and give exact fallback, not silently create a task.",
+      "sources": [
+        "scripts/product/concierge.mjs:1–32",
+        ":42–43"
+      ],
+      "proposed_acceptance": "For each introduced chat shortcut test intent, exact scope, required capability, dispatched shared handler, receipt and next action. Form-only intent says no change yet; unknown intent preserves draft, asks bounded clarification and creates no hidden task.",
+      "batch": "inventory",
+      "decisions": [
+        "D13"
+      ]
+    },
+    {
+      "id": "INV-11",
+      "title": "Learnable system requires meaningful unit receipts, not all-screen smoke",
+      "severity": "P1",
+      "detail": "`docs/ux/audits/2026-09-16-calm-ui.md:11` disclaims full-operation coverage. SCN registry `docs/ux/scenarios.md:39–98` remains partial/blocked/fail/unobserved. Test first-time novice with no seeded tasks/agents/conversations and distinct invited/existing/new-idea cohorts, then leave/relaunch and verify correct next action. Existing green prototype tests do not certify value or production readiness.",
+      "full_text": "11. **P1 · Learnable system requires meaningful unit receipts, not all-screen smoke.** `docs/ux/audits/2026-09-16-calm-ui.md:11` disclaims full-operation coverage. SCN registry `docs/ux/scenarios.md:39–98` remains partial/blocked/fail/unobserved. Test first-time novice with no seeded tasks/agents/conversations and distinct invited/existing/new-idea cohorts, then leave/relaunch and verify correct next action. Existing green prototype tests do not certify value or production readiness.",
+      "sources": [
+        "docs/ux/audits/2026-09-16-calm-ui.md:11",
+        "docs/ux/scenarios.md:39–98"
+      ],
+      "proposed_acceptance": "Acceptance ledger records cohort/data/action/effect/receipt/negative check plus evidence category. Complete no-seed S0→leave/relaunch→S1 on real project; smoke PASS never upgrades runtime or user-value status. Quantitative conversion claims require measured pilot.",
+      "batch": "inventory",
+      "decisions": [
+        "D18"
+      ]
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D01",
+      "title": "Сначала исправить доказательную карту",
+      "choice": "Не доверять ошибочной автоматической связи SCR/SCN. Ограничить разделы, проверить явные и обратные ссылки; сохранить исторические статусы.",
+      "alternative": "Оставить нынешний зелёный --check: отвергнуто, он проверяет воспроизводимость ошибки.",
+      "findings": [
+        "INV-01"
+      ],
+      "packets": [
+        "AD00"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D02",
+      "title": "Один вход и один черновик проекта",
+      "choice": "Все +Проект и deep links ведут в один coordinator. Дополнительные настройки раскрываются в нём; у всех входов одинаковые identity, review, исход и восстановление.",
+      "alternative": "Удалить старый вход: отвергнуто, потеряет ссылки и независимые черновики.",
+      "findings": [
+        "ENT-01",
+        "ENT-11",
+        "ENT-12"
+      ],
+      "packets": [
+        "AD03",
+        "AD04"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D03",
+      "title": "Источник вычисляется из выбранного режима",
+      "choice": "Отдельные поля черновика допустимы; effectiveSource idea=none. Проверка дубликата, review и команда читают один effectiveSource.",
+      "alternative": "Обнулять все поля при каждом переключении: лишняя потеря ввода.",
+      "findings": [
+        "ENT-02"
+      ],
+      "packets": [
+        "AD03",
+        "AD05",
+        "AD24"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D04",
+      "title": "Сохранённый ввод не перезаписывается",
+      "choice": "Коллизионно безопасный draft ID и гидратация; immutable pending create payload; reconcile неизвестного результата перед изменённым повтором.",
+      "alternative": "Повторить создание с новыми данными под старым ID: смешивает два намерения.",
+      "findings": [
+        "ENT-03",
+        "ENT-09"
+      ],
+      "packets": [
+        "AD02",
+        "AD04"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D05",
+      "title": "Первый value — ясный контекст и следующий шаг",
+      "choice": "Existing: sourced orientation. Idea: собственная цель и сохранённый следующий шаг без вымышленной истории. Отдельно измеряем первый полезный возврат.",
+      "alternative": "Считать созданные Project/Task активацией: это только setup.",
+      "findings": [
+        "ENT-04",
+        "ENT-10",
+        "RET-02",
+        "RET-03",
+        "RET-10",
+        "INV-06",
+        "INV-07"
+      ],
+      "packets": [
+        "AD06",
+        "AD07",
+        "AD08",
+        "AD18",
+        "AD19"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D06",
+      "title": "Учить на реальной работе, разрешать пропуск",
+      "choice": "Создано / просмотрено / применено / пропущено различаются. Помощь возобновляет точный проект. Учебные данные отдельно и исключены из рабочих счётчиков.",
+      "alternative": "Обязательная учебная задача на главной доске: шум и ложная работа.",
+      "findings": [
+        "ENT-05",
+        "ENT-06"
+      ],
+      "packets": [
+        "AD18",
+        "AD19"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D07",
+      "title": "Настройка исполнителя по потребности",
+      "choice": "Нет выбранного исполнителя = незаполненная роль, не Provider later. Context/manual path работает без подключения аккаунта; агент нужен перед реальным Run.",
+      "alternative": "Сразу проходить весь provider/account/admission каталог: блокирует первый value.",
+      "findings": [
+        "ENT-07",
+        "INV-02",
+        "INV-03"
+      ],
+      "packets": [
+        "AD01",
+        "AD15"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D08",
+      "title": "Общий scoped read model без чужих fixtures",
+      "choice": "Home, Live, Pulse и cycles получают только разрешённые наблюдения; пример открывается явно и имеет отдельный dataset. Empty/unknown/stale различаются.",
+      "alternative": "Переименовать Atlas/Studio: маскирует утечку тестовых данных.",
+      "findings": [
+        "RET-01",
+        "INV-08"
+      ],
+      "packets": [
+        "AD07",
+        "AD17",
+        "AD20"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D09",
+      "title": "Один resolver для контекста и один reducer ввода",
+      "choice": "Селектор над полем показывает назначение. Шорткат уважает область либо явно переключает её. Непустой текст не теряется: добавить/заменить с Undo.",
+      "alternative": "Шорткат молча перезаписывает текст: потеря намерения.",
+      "findings": [
+        "ENT-08",
+        "RET-07"
+      ],
+      "packets": [
+        "AD10"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D10",
+      "title": "Атрибуция меняется типизированной командой",
+      "choice": "Task и Board имеют разные типы entityRef; исходный origin неизменяем. Отсутствующая ссылка показывает missing/denied, не другой разговор.",
+      "alternative": "Убрать коррекцию совсем: допустимый временный выключенный control до handler, не окончательное решение.",
+      "findings": [
+        "RET-04",
+        "RET-11"
+      ],
+      "packets": [
+        "AD11"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D11",
+      "title": "Оператор задаёт результат, система исполняет механику",
+      "choice": "Spawn/deliver/checker являются наблюдаемыми backend-этапами. Оператор видит действие/ожидание/исключение; проверка и полномочия не обходятся.",
+      "alternative": "Спрятать кнопки без автоматического перехода: тупик.",
+      "findings": [
+        "RET-05"
+      ],
+      "packets": [
+        "AD16"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D12",
+      "title": "Отложенное внимание имеет условие возврата",
+      "choice": "Следующий ручной разбор по умолчанию либо выбранный срок. Без напоминания — отдельный выбор; повторные показы не дублируют тему.",
+      "alternative": "Later без объяснения когда вернётся: вопрос исчезает из рабочего цикла.",
+      "findings": [
+        "RET-06"
+      ],
+      "packets": [
+        "AD14"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D13",
+      "title": "Голос — реальный ввод с понятным результатом",
+      "choice": "Первый пример — одно поддержанное намерение. Compound даёт план/частичный исход, не притворяется выполненным; capture→оригинал→правка→journal→command.",
+      "alternative": "Демо-транскрипт как R0 voice: не подтверждает работу устройства/STT.",
+      "findings": [
+        "RET-08",
+        "INV-10"
+      ],
+      "packets": [
+        "AD09",
+        "AD12",
+        "AD13"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D14",
+      "title": "Прочитано относится к показанному снимку",
+      "choice": "Rendered snapshot receipt фиксирует cursor; поздние события остаются непрочитанными. Существующее leaving-ack применяется только к видимому snapshot.",
+      "alternative": "Текущая длина history: неверна при late/backfill событиях.",
+      "findings": [
+        "RET-09"
+      ],
+      "packets": [
+        "AD07",
+        "AD08"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D15",
+      "title": "Повторение включается после понятного полезного действия",
+      "choice": "R0 preset сохраняется paused; показываем timezone, next due, бюджет, host requirement, результат и pause. Desktop закрыт — новых запусков нет.",
+      "alternative": "Обещать автономную ночную работу без daemon: ложное ожидание.",
+      "findings": [
+        "INV-05"
+      ],
+      "packets": [
+        "AD17"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D16",
+      "title": "Приглашённый приходит в существующую работу",
+      "choice": "Отдельный вход: роль, область видимости Estate, назначенная работа. Не заставлять создавать проект, не обещать project-only ACL.",
+      "alternative": "Маскировать Estate-wide доступ фильтром проекта: неверная граница.",
+      "findings": [
+        "INV-04"
+      ],
+      "packets": [
+        "AD21"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D17",
+      "title": "Прогрессивная помощь без сокрытия возможностей",
+      "choice": "Product shell ≠ 85-item review catalogue. Поиск/помощь/точные ссылки доступны всегда; подсказка одна и контекстная.",
+      "alternative": "Жёсткое открытие функций по дням/уровню: блокирует опытного пользователя.",
+      "findings": [
+        "INV-09"
+      ],
+      "packets": [
+        "AD19",
+        "AD20"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    },
+    {
+      "id": "D18",
+      "title": "Приёмка по реальному результату и слоям доказательств",
+      "choice": "Source, pure test, prototype click, native integration, observed user outcome хранятся раздельно. Полный проход R0 нужен до runtime readiness.",
+      "alternative": "85 красивых экранов = готовый продукт: отвергнуто.",
+      "findings": [
+        "INV-11"
+      ],
+      "packets": [
+        "AD22",
+        "AD23"
+      ],
+      "status": "proposed-for-review",
+      "risk": "Решение проверяется указанными packet acceptance; не является runtime receipt или принятым ADR."
+    }
+  ]
+}

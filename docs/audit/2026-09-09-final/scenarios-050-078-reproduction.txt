@@ -1,0 +1,44 @@
+{
+  "orientation": {
+    "handlerInputs": {
+      "state": "stalled",
+      "reason": "this session is producing output and Fabric has no record of it reading its rules. That may mean the skill did not load — or it may mean the record failed while the rules were delivered. Worth opening; not proof on its own.",
+      "coverage": "available",
+      "evidence": [
+        "no session.oriented@1",
+        "output observed"
+      ]
+    },
+    "recordedOrientation": {
+      "state": "working",
+      "reason": "it reported \"working\"",
+      "coverage": "available",
+      "evidence": [
+        "beat #3",
+        "1s since the last beat"
+      ]
+    }
+  },
+  "wait": {
+    "callerInputs": {
+      "state": "stalled",
+      "reason": "no heartbeat for 999s, past the 900s this estate calls a stall. Something MAY be wrong; nothing here proves where.",
+      "coverage": "available",
+      "evidence": [
+        "beat #3",
+        "999s since the last beat"
+      ]
+    },
+    "unresolvedQuestion": {
+      "state": "waiting",
+      "reason": "waiting on question q1",
+      "coverage": "available",
+      "evidence": [
+        "beat #3",
+        "999s since the last beat",
+        "waiting on question"
+      ]
+    }
+  }
+}
+PASS: both input-wiring counterexamples reproduced using current pure derivation; no live agent or database used.

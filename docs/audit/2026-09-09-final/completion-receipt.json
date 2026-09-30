@@ -1,0 +1,88 @@
+{
+  "date": "2026-09-09",
+  "source_baseline": "d28c321ccca8c4ef0e803ebea5b7ba056e88bc5d",
+  "scope": "audit deliverable before preserving later provider design",
+  "checks": [
+    {
+      "command": "python3 docs/audit/2026-09-09-final/check.py",
+      "exit": 0,
+      "result": "78 scenarios; 59 corrective and 65 catalog packets; no corrective dependency cycles; negative acceptance present; 483 local links"
+    },
+    {
+      "command": "bash scripts/ci.sh fast",
+      "exit": 0,
+      "result": "fast tier green; disposable worktree with manually prepared ignored resources directory; does not close FA-01",
+      "test_count_outputs": [
+        "11",
+        "24",
+        "907",
+        "2",
+        "95"
+      ]
+    },
+    {
+      "command": "node scripts/check-design-map.mjs --refresh",
+      "exit": 0,
+      "result": "Reviewed audit map content; 1183 files, 174 anchors, 580 link targets"
+    },
+    {
+      "command": "CUA local docs-only report visual inspection",
+      "result": "1280px screenshot inspected; search UX28-01 yields 2/124 packets; packet expands with owner/context visible. Native product not launched."
+    }
+  ],
+  "full_db": "NOT RUN",
+  "publication": "Subsequent verified docs/workspace-receipt.json and parent pin are authoritative; this precommit receipt makes no deployed claim.",
+  "source_commit_checks": {
+    "command": "bash scripts/ci.sh fast",
+    "exit": 0,
+    "component_tests": 907,
+    "scope": "pre-integration source commit 2d132cd; prepared output directory, full DB not run"
+  },
+  "integration": {
+    "preserved_design_source": "25026daef6dc1829581ca9fe1f68495761dfd1cf",
+    "review": "Diff of runtime apps/packages/supabase empty; ADR-0051 remains proposed; source history merged into audit branch, original worktree untouched",
+    "restored_input": "docs/reports/2026-09-09-queue-progress-report.html from d28c321",
+    "combined_register_check": {
+      "command": "node scripts/check-registers.mjs",
+      "exit": 0,
+      "rows": {
+        "carryover": 113,
+        "milestones": 197,
+        "verification": 846
+      },
+      "counter_note": "81 legacy open vs 83 escaped-pipe semantic count; baseline remains 79 vs 81"
+    }
+  },
+  "final_structural_check": {
+    "command": "python3 docs/audit/2026-09-09-final/check.py",
+    "exit": 0,
+    "baseline_scenarios": 80,
+    "later_provider_scenarios": 7,
+    "baseline_verdicts": {
+      "PARTIAL": 44,
+      "FAIL": 31,
+      "BLOCKED": 5
+    },
+    "local_links": 486,
+    "coverage_repair": "Check now compares source headings. SCN079/080 audited and merged as amendments, no duplicate remediation task."
+  },
+  "integrated_fast": {
+    "command": "bash scripts/ci.sh fast",
+    "exit": 0,
+    "actual_final_line": "fast tier green. The stack-backed probes did not run — use scripts/ci.sh full.",
+    "scope": "Merged provider target design, retained historical queue input, all 87 scenario audit records, renderer/regression and documentation/map gates. Prepared resources workaround remains; FA-01 is not fixed."
+  },
+  "latest_source_delta": {
+    "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+    "scenarios_added": [
+      "SCN-088",
+      "SCN-089"
+    ],
+    "runtime_changes": false,
+    "catalog_packets": 75,
+    "structural_check_exit": 0,
+    "resolved_local_links": 518,
+    "fixture_evidence": "provider-auto-probe.log",
+    "publication_recovery": "Installed locked child dependencies; all14 host tests pass; reviewed concurrent9ee publication (no host-code changes), preserved source and ancestry before new export."
+  }
+}

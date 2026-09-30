@@ -1,0 +1,9 @@
+Scope: 3 of 4 workspace projects
+packages/journal typecheck$ tsc --noEmit
+packages/schema typecheck$ echo 'schema: SQL only, nothing to typecheck'
+packages/schema typecheck: schema: SQL only, nothing to typecheck
+packages/schema typecheck: Done
+packages/journal typecheck: Done
+apps/desktop typecheck$ tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json
+apps/desktop typecheck: Done
+$ pnpm -r typecheck

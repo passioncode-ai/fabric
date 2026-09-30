@@ -1,0 +1,20 @@
+# Fabric — final integration gap cluster
+
+Commit `821ca9d` (after `e7a3bdd`). Changes are limited to standalone `scripts/product/integrations.mjs` and two new dedicated tests. No new routes, parent controller/model changes, canonical policies or shared register edits. All actions remain local fixture transitions.
+
+- G46: shape/protocol/semantic/effects gates now have individual expected/actual, fixture-independent actor, source, exact revision, computed artifact SHA-256 and receipt. Admission needs every gate for the same digest. The inspectable artifact bytes are synthetic JSON, explicitly not a vendor binary. Local evidence replacement invalidates all independent gates/admission. Existing batch gate buttons produce the same individual records.
+- G47: Adapt/Create recipes carry distinct skill paths/content hashes/byte counts at pinned adapter commit. Recipe expiry is executable against an explicit fixture clock. Reissue preserves intent and old recipe, gives a new ID/expiry and refuses an old local report. Cleanup is an inspectable before/after/hash-guarded diff over a local prototype file catalog; unchanged generated fixture records can be removed, user-modified records survive. No actual workspace file is read or deleted. Importing a report is separate from applying it as local gate evidence; recipe, Provider revision and artifact digest must match. Independent conformance/admission still remain unsatisfied.
+- G50: callback has stable operationId, base binding revision, reconcile receipt and committed receipt. Unknown reconciles the same operation. Repeated callback/commit returns the same saved receipt with no second binding revision. A stale base revision refuses overwrite. Expired callback still requires a new review.
+- G51: access list has Project scope and active/revoked/expired filters, shown/total count and explicit empty result. Exact active/revoked inspectors retain their identity.
+- G64: typed responses record revision, actor, policy revision and stable command. A second participant's fixture response preserves the current terminal receipt and the local unsent draft; both can be inspected side by side. Reusing the same command with a different payload is a conflict. Identical retry is idempotent. The unsent text can become a separate follow-up draft without creating a task, effect or second resolution.
+
+API additions: `fixtureSha256(text)` is a dependency-free synchronous SHA-256 used only for prototype bytes. Existing public module APIs remain unchanged. New fields live in integrations state. No additional controller parameters are required. The optional local report JSON now accepts `artifactDigest`; a missing digest may be imported as a report but cannot become local gate evidence. UI supplies the exact fixture digest for its example report.
+
+Skill content pins were computed read-only with git show + Python hashlib from `$HOME/DATA/fabric-agent-adapter`, commit `5d2ccd7a124d7052f743529d8dcf0caf294bfdfd`:
+
+- `plugins/fabric-agent-adapter/skills/adapting-projects-to-fabric/SKILL.md`: 7467 bytes; SHA-256 `2deb71e8168ab0f9de652c3fc36a4caf735ad5bc479fa66fb089e952babd5914`.
+- `plugins/fabric-agent-adapter/skills/creating-fabric-agents/SKILL.md`: 7697 bytes; SHA-256 `c6b93dfa8e60446e2e8aee2aec23bc9f077c9668b5be784a09991fe32d69b638`.
+
+Verification: 48 integration pure tests pass (10 final + 17 source + 21 prior). SHA-256 tests compare against Node crypto for empty input, ASCII, Unicode, block boundary and longer input; computed manifest digest is checked independently. Final Playwright suite: 8 checks pass; source suite: 15 pass; prior integration suite: 13 pass; all zero page errors. Final suite also checks 390 px without page overflow. `git diff --check` passed; working tree clean after commit. No native product, database, external provider or real agent ran.
+
+Scope/status boundaries: CO-056/060 stay open; promotion remains reviewable with checker/cap retained. No new production claims, no hidden reasoning claims, no new vendor verification. Parent owns final integrated browser/visual acceptance and the overall UX registry delivery.

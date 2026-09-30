@@ -1,0 +1,11 @@
+{
+  "source_status": "working tree of this documentation delivery; counts independently rechecked by check-registers.mjs",
+  "verificationRows": 497,
+  "watchedFailingNo": 61,
+  "carryOver": 108,
+  "openIncludingQualified": 77,
+  "milestones": 196,
+  "shippedMilestones": 64,
+  "counter": "scripts/check-registers.mjs#truth",
+  "definitions": "verification prefix2\u20136 uppercase letters and optional word suffix; Watched failing cell /^no\\b/; CO status cell7 /^open\\b/ after leading emphasis; final milestone status contains shipped and excludes partly shipped."
+}

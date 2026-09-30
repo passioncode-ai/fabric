@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "--experimental-strip-types",
+    "/tmp/fabric-audit-20260909/runtime-probes.mjs",
+    "/tmp/fabric-final-audit-worktree"
+  ],
+  "cwd": "fresh checkout",
+  "exit_code": 0,
+  "output": "REPRODUCED chain: two ticks launch two new tasks; original follower identity absent from launch contract; no database or agent used\nREPRODUCED quota: missing windows and non-finite utilization allow unattended; completely absent quota correctly refuses\n"
+}

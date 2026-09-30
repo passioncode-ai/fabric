@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:fabric:schema:project-dashboard:0.1.0",
+  "title": "Fabric estate project dashboard projection",
+  "description": "A sourced monitoring projection for the estate home. It is a view, never the durable run or observation record.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "estateId", "generatedAt", "projects", "attentionTotal", "activeRunsTotal"],
+  "properties": {
+    "schemaVersion": {"const": "0.1.0"},
+    "estateId": {"type": "string", "format": "uri"},
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "projects": {"type": "array", "items": {"$ref": "#/$defs/projectCard"}},
+    "attentionTotal": {"type": "integer", "minimum": 0},
+    "activeRunsTotal": {"type": "integer", "minimum": 0}
+  },
+  "$defs": {
+    "uri": {"type": "string", "format": "uri"},
+    "runSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "status", "at"],
+      "properties": {
+        "id": {"$ref": "#/$defs/uri"},
+        "name": {"type": "string", "minLength": 1},
+        "status": {"enum": ["scheduled", "running", "waiting", "succeeded", "failed", "cancelled", "partial"]},
+        "at": {"type": "string", "format": "date-time"},
+        "agentBindingId": {"$ref": "#/$defs/uri"}
+      }
+    },
+    "healthDimension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "receiptRef", "observedAt"],
+      "properties": {
+        "status": {"enum": ["healthy", "attention", "failed", "stale", "not-configured"]},
+        "receiptRef": {"$ref": "#/$defs/uri"},
+        "observedAt": {"type": "string", "format": "date-time"}
+      }
+    },
+    "projectCard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "purpose", "configRevision", "scopeMode", "manager", "health", "agents", "connections", "attentionCount", "activeRunCount"],
+      "properties": {
+        "id": {"$ref": "#/$defs/uri"},
+        "name": {"type": "string", "minLength": 1},
+        "purpose": {"type": "string", "minLength": 1},
+        "configRevision": {"type": "integer", "minimum": 1},
+        "scopeMode": {"enum": ["owned-assets", "selected", "all-current", "all-current-and-future"]},
+        "manager": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["agentBindingId", "status"],
+          "properties": {"agentBindingId": {"$ref": "#/$defs/uri"}, "status": {"enum": ["idle", "running", "waiting", "failed", "offline"]}}
+        },
+        "health": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["execution", "connections", "production", "repository", "dataFreshness"],
+          "properties": {
+            "execution": {"$ref": "#/$defs/healthDimension"},
+            "connections": {"$ref": "#/$defs/healthDimension"},
+            "production": {"$ref": "#/$defs/healthDimension"},
+            "repository": {"$ref": "#/$defs/healthDimension"},
+            "dataFreshness": {"$ref": "#/$defs/healthDimension"}
+          }
+        },
+        "agents": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["total", "running", "idle", "waiting", "failed", "offline"],
+          "properties": {
+            "total": {"type": "integer", "minimum": 1},
+            "running": {"type": "integer", "minimum": 0},
+            "idle": {"type": "integer", "minimum": 0},
+            "waiting": {"type": "integer", "minimum": 0},
+            "failed": {"type": "integer", "minimum": 0},
+            "offline": {"type": "integer", "minimum": 0}
+          }
+        },
+        "connections": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["total", "healthy", "attention", "failed"],
+          "properties": {
+            "total": {"type": "integer", "minimum": 0},
+            "healthy": {"type": "integer", "minimum": 0},
+            "attention": {"type": "integer", "minimum": 0},
+            "failed": {"type": "integer", "minimum": 0}
+          }
+        },
+        "attentionCount": {"type": "integer", "minimum": 0},
+        "activeRunCount": {"type": "integer", "minimum": 0},
+        "lastRun": {"$ref": "#/$defs/runSummary"},
+        "nextRun": {"$ref": "#/$defs/runSummary"},
+        "lastReportRef": {"$ref": "#/$defs/uri"}
+      }
+    }
+  }
+}
+

@@ -1,0 +1,27 @@
+warn:  [U057] flows.md: FLW-02 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-03 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-06 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-07 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-08 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-09 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-10 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-11 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-12 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-13 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-14 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-20 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-25 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-26 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-27 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-28 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-29 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-30 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-31 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-34 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-35 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U057] flows.md: FLW-36 has no screen naming an implementing file, so its coverage cannot be measured — only inherited
+warn:  [U055] screens.md: SCR-29 claims Coverage 'external repository passioncode-ai.github.io (`index.html` and `styles.css`), rendered locally at wide and narrow viewports' and names no file
+warn:  [U064] scenarios.md: SCN-038 claims Coverage 'external repository passioncode-ai.github.io; rendered locally at wide and narrow viewports on 2026-09-03' and names no file
+warn:  [U077] AGENTS.md: the installed vision rule differs from the one this version ships — a rule edited by hand or left behind by an upgrade reads exactly like a rule being obeyed. Re-run the `vision` skill's step 4, or keep the edit deliberately
+
+0 error(s), 25 warning(s)

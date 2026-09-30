@@ -1,0 +1,596 @@
+{
+  "capabilities": [
+    "cargo",
+    "docker",
+    "gh",
+    "git",
+    "network",
+    "node",
+    "npm",
+    "python3"
+  ],
+  "counts": {
+    "findings": 18,
+    "probes_blind": 1,
+    "probes_run": 8
+  },
+  "findings": [
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-af1b9f6781b2",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:31Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "secrets-tree",
+      "remedy": "rotate the credential at its issuer, then remove it from the tree; if it is in history, rotation is the fix and rewriting history is not",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A openai-style key is committed in the tree",
+      "where": "apps/desktop/src/shared/opsLog.test.ts:46",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-b4acdd19fa61",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:31Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "secrets-tree",
+      "remedy": "rotate the credential at its issuer, then remove it from the tree; if it is in history, rotation is the fix and rewriting history is not",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A openai-style key is committed in the tree",
+      "where": "apps/desktop/src/shared/opsLog.test.ts:48",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-273c2bd5ae6a",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:31Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "secrets-tree",
+      "remedy": "rotate the credential at its issuer, then remove it from the tree; if it is in history, rotation is the fix and rewriting history is not",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A openai-style key is committed in the tree",
+      "where": "apps/desktop/src/shared/opsLog.test.ts:60",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-561ffcc91882",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:31Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "secrets-tree",
+      "remedy": "rotate the credential at its issuer, then remove it from the tree; if it is in history, rotation is the fix and rewriting history is not",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A openai-style key is committed in the tree",
+      "where": "apps/desktop/src/shared/opsLog.test.ts:62",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-975725823cd5",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:31Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "secrets-tree",
+      "remedy": "rotate the credential at its issuer, then remove it from the tree; if it is in history, rotation is the fix and rewriting history is not",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A openai-style key is committed in the tree",
+      "where": "apps/desktop/src/shared/redact.test.ts:7",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-b3dded8c75c4",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:31Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "secrets-tree",
+      "remedy": "rotate the credential at its issuer, then remove it from the tree; if it is in history, rotation is the fix and rewriting history is not",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A slack token is committed in the tree",
+      "where": "apps/desktop/src/shared/redact.test.ts:9",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-3feacbe06210",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:31Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "secrets-tree",
+      "remedy": "rotate the credential at its issuer, then remove it from the tree; if it is in history, rotation is the fix and rewriting history is not",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A aws access key is committed in the tree",
+      "where": "apps/desktop/src/shared/redact.test.ts:10",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-4b6f256d3e1e",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:31Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "secrets-tree",
+      "remedy": "rotate the credential at its issuer, then remove it from the tree; if it is in history, rotation is the fix and rewriting history is not",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A jwt is committed in the tree",
+      "where": "apps/desktop/src/shared/redact.test.ts:11",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-4dd250025933",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:31Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "secrets-tree",
+      "remedy": "rotate the credential at its issuer, then remove it from the tree; if it is in history, rotation is the fix and rewriting history is not",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A private key block is committed in the tree",
+      "where": "apps/desktop/src/shared/redact.test.ts:32",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-7af426f1c1d3",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:31Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "secrets-tree",
+      "remedy": "rotate the credential at its issuer, then remove it from the tree; if it is in history, rotation is the fix and rewriting history is not",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A openai-style key is committed in the tree",
+      "where": "apps/desktop/src/shared/redact.test.ts:42",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-c8f9a2702daa",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:31Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "secrets-tree",
+      "remedy": "rotate the credential at its issuer, then remove it from the tree; if it is in history, rotation is the fix and rewriting history is not",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A openai-style key is committed in the tree",
+      "where": "apps/desktop/test/ops.test.mjs:112",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-f1aa03a350c4",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:31Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "secrets-tree",
+      "remedy": "rotate the credential at its issuer, then remove it from the tree; if it is in history, rotation is the fix and rewriting history is not",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A openai-style key is committed in the tree",
+      "where": "apps/desktop/test/ops.test.mjs:114",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-d05bf8b8bae4",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:31Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "secrets-tree",
+      "remedy": "rotate the credential at its issuer, then remove it from the tree; if it is in history, rotation is the fix and rewriting history is not",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A openai-style key is committed in the tree",
+      "where": "apps/desktop/test/session-env.test.mjs:25",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-c26b6928def1",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:31Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "secrets-tree",
+      "remedy": "rotate the credential at its issuer, then remove it from the tree; if it is in history, rotation is the fix and rewriting history is not",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A openai-style key is committed in the tree",
+      "where": "apps/desktop/test/transcripts.test.mjs:244",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 2,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-96492cf3a014",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:50Z",
+      "observed_scope": "local checkout",
+      "p": 1.5,
+      "probe": "secrets-history",
+      "remedy": "rotate the credential at its issuer",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A openai-style key appears in git history",
+      "where": "commit db7eb4e62abf",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 2,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-e9919d3afff9",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:50Z",
+      "observed_scope": "local checkout",
+      "p": 1.5,
+      "probe": "secrets-history",
+      "remedy": "rotate the credential at its issuer",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A openai-style key appears in git history",
+      "where": "commit d2a215fca610",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 2,
+      "evidence": "",
+      "first_seen": "2026-09-14",
+      "id": "f-e714d146e44c",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:50Z",
+      "observed_scope": "local checkout",
+      "p": 1.5,
+      "probe": "secrets-history",
+      "remedy": "rotate the credential at its issuer",
+      "runs_open": 0,
+      "severity": "critical",
+      "title": "A openai-style key appears in git history",
+      "where": "commit dc5f794431ee",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Pattern occurs in redaction/environment test fixtures; match alone does not establish a live credential. Tree test callsites and historical test commits inspected; values deliberately omitted."
+      }
+    },
+    {
+      "blast": 3,
+      "detail": "",
+      "effort": 1,
+      "evidence": "npm view fabric version -> 7.4.0; manifest -> 0.1.0",
+      "first_seen": "2026-09-14",
+      "id": "f-e3b2f042c0f0",
+      "incidence": "unknown",
+      "mechanism": "confirmed",
+      "observed_at": "2026-09-14T14:24:51Z",
+      "observed_scope": "local checkout",
+      "p": 3.0,
+      "probe": "published-version",
+      "remedy": "publish the manifest's version, or bring the manifest back to what shipped; a reader cannot tell which one is the product",
+      "runs_open": 0,
+      "severity": "high",
+      "title": "The registry and the manifest disagree about the current version",
+      "where": "package.json",
+      "review": {
+        "verdict": "clean",
+        "disposition": "false-positive",
+        "reason": "Private package name collides with unrelated public npm package; package.json private=true."
+      }
+    }
+  ],
+  "generated_at": "2026-09-14T14:24:51Z",
+  "probes": [
+    {
+      "id": "secrets-tree",
+      "needs": [
+        "git"
+      ],
+      "phase": "probe",
+      "reason": "14 credential pattern(s)",
+      "verdict": "finding"
+    },
+    {
+      "id": "secrets-history",
+      "needs": [
+        "git"
+      ],
+      "phase": "probe",
+      "reason": "3 in history",
+      "verdict": "finding"
+    },
+    {
+      "id": "worktree",
+      "needs": [
+        "git"
+      ],
+      "phase": "probe",
+      "reason": "working tree clean",
+      "verdict": "clean"
+    },
+    {
+      "id": "telemetry",
+      "needs": [],
+      "phase": "prod",
+      "reason": "no deploy target declared — a library or tool, for which absent telemetry is a design, not a gap",
+      "verdict": "clean"
+    },
+    {
+      "id": "ci-present",
+      "needs": [],
+      "phase": "prod",
+      "reason": "CI configured: github-actions",
+      "verdict": "clean"
+    },
+    {
+      "id": "docs-present",
+      "needs": [],
+      "phase": "seams",
+      "reason": "6 documentation marker(s): README.md, docs, CLAUDE.md, AGENTS.md, docs/adr, docs/evidence",
+      "verdict": "clean"
+    },
+    {
+      "id": "gitignore-secrets",
+      "needs": [
+        "git"
+      ],
+      "phase": "probe",
+      "reason": "no credential-shaped file is tracked",
+      "verdict": "clean"
+    },
+    {
+      "id": "channel-divergence",
+      "needs": [
+        "git"
+      ],
+      "phase": "prod",
+      "reason": "HEAD says 0.1.0 and no tag v0.1.0 exists — the channels make no common claim yet",
+      "verdict": "blind"
+    },
+    {
+      "id": "published-version",
+      "needs": [
+        "npm",
+        "network"
+      ],
+      "phase": "prod",
+      "reason": "registry 7.4.0 vs manifest 0.1.0",
+      "verdict": "finding"
+    }
+  ],
+  "profile": {
+    "ci": [
+      "github-actions"
+    ],
+    "deploy": [],
+    "docs": [
+      "README.md",
+      "docs",
+      "CLAUDE.md",
+      "AGENTS.md",
+      "docs/adr",
+      "docs/evidence"
+    ],
+    "languages": [
+      "javascript"
+    ],
+    "managers": [
+      "npm",
+      "pnpm"
+    ],
+    "monorepo": true,
+    "name": "fabric",
+    "root": ".",
+    "submodules": [
+      {
+        "describe": "heads/main",
+        "path": "workspace",
+        "sha": "40e6d0fe5fee717f0728a59aac25f9b8c3313a6e"
+      }
+    ],
+    "telemetry": [],
+    "tracked_files": 1501,
+    "vcs": "git",
+    "version": "0.1.0",
+    "workspaces": false
+  },
+  "ratchet": {
+    "carried": [],
+    "closed": [],
+    "first_run": true,
+    "new": [],
+    "unranked": [
+      "f-273c2bd5ae6a",
+      "f-3feacbe06210",
+      "f-4b6f256d3e1e",
+      "f-4dd250025933",
+      "f-561ffcc91882",
+      "f-7af426f1c1d3",
+      "f-96492cf3a014",
+      "f-975725823cd5",
+      "f-af1b9f6781b2",
+      "f-b3dded8c75c4",
+      "f-b4acdd19fa61",
+      "f-c26b6928def1",
+      "f-c8f9a2702daa",
+      "f-d05bf8b8bae4",
+      "f-e3b2f042c0f0",
+      "f-e714d146e44c",
+      "f-e9919d3afff9",
+      "f-f1aa03a350c4"
+    ]
+  },
+  "root": ".",
+  "schema": "project-audit/1",
+  "sidecar": "collector.json",
+  "review_note": "Collector output preserved as instrument output, not accepted product findings. Profile misses TypeScript/Electron and the separate workspace deploy; see audit report. No exhaustive security certification."
+}

@@ -1,0 +1,80 @@
+# The runner and its services. Everything this workflow DOES lives in
+# `scripts/ci.sh`, which is the point (REL-01).
+#
+# A check that can only be exercised by pushing is a check nobody debugs, and
+# one nobody can watch fail is not proven — the standard every other gate in
+# this repository is held to. So the workflow provides a machine and calls the
+# script; the script is what was broken on purpose and watched refusing, on a
+# laptop, before this file existed.
+
+name: ci
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+concurrency:
+  # A second push supersedes the first: two runs of the same branch tell you the
+  # same thing and only the later one is about the code you have.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fast:
+    # Types, the interface and documentation gates, the register arithmetic and
+    # every pure test. Proven stack-independent by running it with the local
+    # stack STOPPED, not by assuming it.
+    name: fast — no database
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Documentation source receipts reference immutable research revisions.
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Documentation gate prerequisites
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ripgrep
+          python3 -m pip install -r scripts/requirements-ci.txt
+      - run: pnpm install --frozen-lockfile
+      - run: ./scripts/ci.sh fast
+
+  full:
+    # The probes that talk to the database: the journal's contract, the schema's
+    # planted defects, the agent surface, memory retrieval, the operating
+    # surfaces. Slower by minutes, so it does not gate the fast answer.
+    name: full — with the local stack
+    runs-on: ubuntu-latest
+    needs: fast
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Documentation source receipts reference immutable research revisions.
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Documentation gate prerequisites
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ripgrep
+          python3 -m pip install -r scripts/requirements-ci.txt
+      - run: pnpm install --frozen-lockfile
+      - run: ./scripts/ci.sh full

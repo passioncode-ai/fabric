@@ -1,0 +1,10 @@
+# gitleaks false positives (fingerprint = file:rule:line), reviewed 2026-09-30 for publication (ADR-0096).
+# `stable_key` in the 2026-09-07 audit is a 16-hex digest of a finding, not a credential.
+docs/audit/2026-09-07-deep-audit.json:generic-api-key:1916
+docs/audit/2026-09-07-deep-audit.json:generic-api-key:1982
+# Synthetic keys and a JWT built to test the redactor (redact/ops/transcripts tests); reviewed 2026-09-30.
+apps/desktop/src/shared/opsLog.test.ts:private-key:108
+apps/desktop/src/shared/redact.test.ts:private-key:32
+apps/desktop/src/shared/redact.test.ts:jwt:11
+apps/desktop/test/ops.test.mjs:private-key:119
+apps/desktop/test/transcripts.test.mjs:private-key:267

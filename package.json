@@ -1,0 +1,22 @@
+{
+  "name": "fabric",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Fabric — the CEO AI agent by PassionCode.ai: the desktop app and its kernel.",
+  "scripts": {
+    "postinstall": "chmod +x node_modules/.pnpm/node-pty@*/node_modules/node-pty/prebuilds/*/spawn-helper 2>/dev/null || true",
+    "dev": "pnpm --filter @fabric/desktop dev",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "db:reset": "supabase db reset",
+    "gates:docs": "node --test scripts/test/workspace-snapshot.test.mjs scripts/test/workspace-release.test.mjs && node --test scripts/test/product-model.test.mjs && node scripts/check-product-model.mjs && node scripts/sync-product-ux.mjs --check && node scripts/build-product-report.mjs --check && node scripts/build-mockup-coverage.mjs --check && node scripts/test/check-system-model.test.mjs && node scripts/check-system-model.mjs && node scripts/build-system-map.mjs --check && node scripts/test/check-design-map.test.mjs && node scripts/check-design-map.mjs && bash scripts/check-docs.sh && bash scripts/check-narrative.sh && python3 scripts/check-project-schemas.py && python3 docs/ux/lint.py && python3 docs/brand/lint.py && node scripts/check-vocabulary.mjs && node scripts/check-registers.mjs",
+    "gates:design": "node scripts/check-design.mjs && node scripts/build-brand-icons.mjs --check && node scripts/build-brand-pack.mjs --check",
+    "workspace:status": "node scripts/workspace.mjs status",
+    "workspace:publish": "node scripts/workspace.mjs publish"
+  },
+  "packageManager": "pnpm@11.21.0",
+  "devDependencies": {
+    "parse5": "8.0.1"
+  },
+  "license": "AGPL-3.0-only OR LicenseRef-PassionCode-Commercial"
+}

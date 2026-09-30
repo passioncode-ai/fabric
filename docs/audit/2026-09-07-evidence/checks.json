@@ -1,0 +1,222 @@
+{
+  "checks": [
+    {
+      "id": "fast",
+      "verdict": "clean",
+      "scope": "configured local fast gates",
+      "command": "bash scripts/ci.sh fast",
+      "exit_code": 0,
+      "log_pointer": "/tmp/fabric-audit-fast.log"
+    },
+    {
+      "id": "suite",
+      "verdict": "clean",
+      "scope": "configured tests, not full Electron E2E",
+      "command": "pnpm -r test",
+      "exit_code": 0,
+      "vitest_files": 48,
+      "vitest_tests": 415,
+      "memory_fixture": {
+        "with_memory": "6/6",
+        "without_memory": "0/6",
+        "rebuilt": "6/6"
+      },
+      "log_pointer": "/tmp/fabric-audit-full-tests.log"
+    },
+    {
+      "id": "additional-probes",
+      "verdict": "finding",
+      "scope": "controlled mechanisms, not production frequency",
+      "runtime_probe_count": 7,
+      "pointers": [
+        "/tmp/fabric-runtime-probes-output.txt",
+        "/tmp/fabric-ux-probe/shell.log",
+        "/tmp/fabric-ux-probe/editor.log",
+        "/tmp/fabric-ux-probe/project.log"
+      ]
+    },
+    {
+      "id": "contract",
+      "verdict": "clean",
+      "scope": "sibling shape/fixtures/docs, not host admission",
+      "command": "pnpm run check",
+      "exit_code": 0,
+      "tests": 34,
+      "root": "<home>/DATA/fabric-agent-contract"
+    },
+    {
+      "id": "adapter",
+      "verdict": "clean",
+      "scope": "sibling validator/unit tests, not package channel audit",
+      "command": "pnpm test",
+      "exit_code": 0,
+      "tests": 8,
+      "root": "<home>/DATA/fabric-agent-adapter"
+    },
+    {
+      "id": "remote-ci",
+      "verdict": "blind",
+      "reason": "zero recorded workflow runs, current HEAD not available remotely; cannot derive release failure rate"
+    },
+    {
+      "id": "installed-artifact",
+      "verdict": "finding",
+      "reason": "same 0.1.0 label, different main/preload tree and sandbox configuration"
+    },
+    {
+      "id": "desktop-e2e",
+      "verdict": "blind",
+      "reason": "native app not launched against enabled foreign fixture routines; isolated component tests used"
+    },
+    {
+      "id": "usage-impact",
+      "verdict": "blind",
+      "reason": "attached owner estate has no task/effect activity; no real incident or demand frequency measured"
+    },
+    {
+      "id": "accessibility-native",
+      "verdict": "blind",
+      "reason": "no native VoiceOver/keyboard/zoom session"
+    },
+    {
+      "id": "model-comparison",
+      "verdict": "blind",
+      "reason": "no live agent behavior eval or provider canary executed"
+    },
+    {
+      "id": "migration-fresh-upgrade",
+      "verdict": "blind",
+      "reason": "existing applied local database tested; no reset/from-empty/upgrade run"
+    }
+  ],
+  "public_surface": {
+    "url": "https://passioncode.ai/",
+    "method": "CUA live DOM and screenshots",
+    "read_local_date": "2026-09-07",
+    "viewports": [
+      {
+        "width": 1280,
+        "height": 720,
+        "hero_cta_y": 719.3984375,
+        "hero_cta_bottom": 769.3984375,
+        "top_github_visible": true
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "body_width": 390,
+        "hero_cta_y": 772.6171875,
+        "hero_cta_bottom": 822.6171875
+      }
+    ],
+    "scope": "landing presentation and actual links; no conversion study"
+  },
+  "scanner": {
+    "counts": {
+      "findings": 11,
+      "probes_blind": 1,
+      "probes_run": 8
+    },
+    "probes": [
+      {
+        "id": "secrets-tree",
+        "needs": [
+          "git"
+        ],
+        "phase": "probe",
+        "reason": "8 credential pattern(s)",
+        "verdict": "finding"
+      },
+      {
+        "id": "secrets-history",
+        "needs": [
+          "git"
+        ],
+        "phase": "probe",
+        "reason": "2 in history",
+        "verdict": "finding"
+      },
+      {
+        "id": "worktree",
+        "needs": [
+          "git"
+        ],
+        "phase": "probe",
+        "reason": "working tree clean",
+        "verdict": "clean"
+      },
+      {
+        "id": "telemetry",
+        "needs": [],
+        "phase": "prod",
+        "reason": "no deploy target declared — a library or tool, for which absent telemetry is a design, not a gap",
+        "verdict": "clean"
+      },
+      {
+        "id": "ci-present",
+        "needs": [],
+        "phase": "prod",
+        "reason": "CI configured: github-actions",
+        "verdict": "clean"
+      },
+      {
+        "id": "docs-present",
+        "needs": [],
+        "phase": "seams",
+        "reason": "6 documentation marker(s): README.md, docs, CLAUDE.md, AGENTS.md, docs/adr, docs/evidence",
+        "verdict": "clean"
+      },
+      {
+        "id": "gitignore-secrets",
+        "needs": [
+          "git"
+        ],
+        "phase": "probe",
+        "reason": "no credential-shaped file is tracked",
+        "verdict": "clean"
+      },
+      {
+        "id": "channel-divergence",
+        "needs": [
+          "git"
+        ],
+        "phase": "prod",
+        "reason": "HEAD says 0.1.0 and no tag v0.1.0 exists — the channels make no common claim yet",
+        "verdict": "blind"
+      },
+      {
+        "id": "published-version",
+        "needs": [
+          "npm",
+          "network"
+        ],
+        "phase": "prod",
+        "reason": "registry 7.4.0 vs manifest 0.1.0",
+        "verdict": "finding"
+      }
+    ],
+    "adjudication": {
+      "credential_patterns_tree": {
+        "count": 8,
+        "verdict": "clean",
+        "reason": "synthetic test fixtures, not verified live credentials"
+      },
+      "credential_patterns_history": {
+        "count": 2,
+        "verdict": "clean",
+        "reason": "same synthetic fixture introduction commits"
+      },
+      "published_version": {
+        "count": 1,
+        "verdict": "clean",
+        "reason": "unrelated public npm Fabric.js package; private desktop is not that channel"
+      },
+      "channel_divergence": {
+        "verdict": "blind",
+        "reason": "no common release tag; installed app examined separately"
+      },
+      "profile_override": "TypeScript Electron pnpm desktop monorepo; scanner generic library/JS profile is incomplete",
+      "telemetry_override": "product incident/adoption visibility blind; library-default clean is not evidence of desktop reliability"
+    }
+  }
+}

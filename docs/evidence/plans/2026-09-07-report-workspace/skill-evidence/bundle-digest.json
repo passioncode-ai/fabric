@@ -1,0 +1,28 @@
+{
+  "files": [
+    {
+      "path": "maintaining-fabric-workspace/README.md",
+      "sha256": "4b15e53c9ed2c222b9553f5b669ba0aeb4888e54ef2f983c1e7b3ed370a6c168"
+    },
+    {
+      "path": "maintaining-fabric-workspace/SKILL.md",
+      "sha256": "93956e458eaceea123d8bda851bd7fac2a1b22d78bfd161cb776c1240cafbc8a"
+    },
+    {
+      "path": "maintaining-fabric-workspace/evaluations.json",
+      "sha256": "28cf3d58c2836ddc73663e6474d9e761e4902fc212c9adfcad25ac3c47969aee"
+    },
+    {
+      "path": "maintaining-fabric-workspace/references/authoring-homes.md",
+      "sha256": "d04fbba7e2a2c272613a2f71901fe0624bacf04853200915d36246f5640df05e"
+    },
+    {
+      "path": "maintaining-fabric-workspace/references/publication.md",
+      "sha256": "be78f1b4be7e603f16217717aa346621ba956255f8d7e7a35f545c07229fbd17"
+    },
+    {
+      "path": "maintaining-fabric-workspace/scripts/evaluate.mjs",
+      "sha256": "99babdf9a8c24501e1b8e78fe5fdb625f94ede2e2af09b3e69025fd3fc27540d"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+packages:
+  - apps/*
+  - packages/*
+allowBuilds:
+  esbuild: true
+  node-pty: true
+  electron: true
+  # Windows-only helper of electron-builder; never built on this machine
+  electron-winstaller: false

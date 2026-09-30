@@ -1,0 +1,315 @@
+/* Component styles. Every value here is a var(--…) from the token layer —
+   the palette gate (scripts/check-design.mjs) fails the build on a raw colour,
+   which is what keeps a new screen from inventing its own look. */
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  font: var(--app-fs-body)/var(--app-lh-body) var(--font-body);
+  background: var(--app-bg);
+  color: var(--app-ink);
+}
+.mono { font-family: var(--font-mono); font-size: var(--app-fs-mono); }
+.muted { color: var(--app-muted); font-size: var(--app-fs-caption); }
+h1 { font-size: var(--app-fs-title); margin: 0 0 2px; font-family: var(--font-display); letter-spacing: var(--app-track-title); }
+h2 { font-size: var(--app-fs-label); margin: 0 0 var(--space-3); letter-spacing: var(--app-track-label); text-transform: uppercase; color: var(--app-muted); }
+h3 { font-size: var(--app-fs-caption); margin: 0; }
+label { font-size: var(--app-fs-caption); }
+
+input, select, textarea {
+  background: var(--app-panel-quiet);
+  border: 1px solid var(--app-line-strong);
+  border-radius: var(--app-radius-control);
+  color: inherit;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--app-fs-body);
+  font-family: inherit;
+}
+textarea { font-family: var(--font-mono); font-size: var(--app-fs-mono); width: 100%; resize: vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible {
+  outline: 2px solid var(--app-focus); outline-offset: 1px;
+}
+
+button {
+  background: var(--app-accent);
+  border: none;
+  border-radius: var(--app-radius-control);
+  color: var(--app-accent-ink);
+  padding: var(--space-2) var(--space-4);
+  font-weight: 600;
+  font-size: var(--app-fs-body);
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity var(--dur-quick) var(--ease-enter);
+}
+button:hover { opacity: .88; }
+button:disabled { opacity: .4; cursor: default; }
+.booting { display: flex; align-items: center; justify-content: center; height: 100%; }
+
+/* M106a — the window could not read what it is for, and now says so instead of
+   holding the answer one branch away in unreachable state. */
+.boot-failure {
+  max-width: 46ch;
+  display: flex; flex-direction: column; gap: var(--space-2);
+  padding: var(--space-4);
+  text-align: left;
+}
+/* The machine's own words: kept, and subordinate to our sentence. Wrapped
+   because an unbroken path or stack line would otherwise widen the banner past
+   the window. */
+.error-detail {
+  margin: 0;
+  overflow-wrap: anywhere;
+  max-height: 8lh;
+  overflow-y: auto;
+}
+
+.app { display: flex; flex-direction: column; height: 100%; }
+
+/* ── tab bar: projects are tabs ─────────────────────────────── */
+.tabbar {
+  display: flex; align-items: stretch; gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--app-line);
+  background: var(--app-panel); flex-wrap: wrap;
+}
+.tab-btn {
+  display: inline-flex; align-items: stretch;
+  background: var(--app-panel-quiet);
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-control);
+  color: var(--app-ink); font-weight: 500; padding: 0; overflow: hidden;
+}
+.tab-btn.active { border-color: var(--app-accent); }
+.tab-btn.active .tab-label, .tab-btn.active > span[aria-hidden] { font-weight: 700; }
+.tab-btn.active { box-shadow: inset 0 -2px 0 0 var(--app-accent); }
+.tab-btn.home, .tab-btn.plus, .tab-btn.settings-btn {
+  padding: var(--space-1) var(--space-3);
+  background: var(--app-panel-quiet); color: var(--app-ink); font-weight: 500;
+}
+.tab-btn .tab-label {
+  background: none; border: none; color: inherit;
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3); font-weight: 500;
+}
+.tab-btn .tab-close {
+  background: none; border: none; color: var(--app-muted);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1); font-weight: 500;
+}
+.tab-btn .tab-close:hover { color: var(--state-danger); }
+.live-count {
+  margin-left: var(--space-2); font-size: var(--app-fs-badge);
+  text-transform: uppercase; letter-spacing: var(--app-track-badge);
+  color: var(--state-ink-quiet);
+}
+.live-count::before {
+  content: ''; display: inline-block; width: 6px; height: 6px; margin-right: var(--space-1);
+  border-radius: var(--app-radius-pill); background: var(--state-good);
+}
+.tabbar-estate { margin-left: auto; align-self: center; color: var(--app-muted); font-size: var(--app-fs-caption); }
+
+.settings-bar {
+  display: flex; gap: var(--space-5); padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--app-line); background: var(--app-panel);
+}
+.settings-note { color: var(--app-muted); font-size: var(--app-fs-badge); max-width: 42ch; line-height: var(--app-lh-body); }
+.settings-bar label { display: flex; gap: var(--space-2); align-items: center; color: var(--app-muted); }
+
+.content { flex: 1; overflow-y: auto; min-height: 0;
+  /* Room for the fixed controls in the bottom corner, so the last card is never under them. */
+  padding-bottom: calc(2.5rem + var(--space-3) * 2); }
+
+/* ── estate home ────────────────────────────────────────────── */
+.estate-home { padding: var(--space-4) var(--space-5); max-width: 1100px; }
+.project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: var(--space-3); }
+
+/* ── onboarding ─────────────────────────────────────────────── */
+.onboarding { padding: var(--space-5); max-width: 720px; }
+.onboarding header { margin-bottom: var(--space-5); }
+.onboarding .field { margin-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-2); }
+.onboarding .field > label, .field-label { color: var(--app-muted); text-transform: uppercase; letter-spacing: var(--app-track-label); font-size: var(--app-fs-label); display: block; }
+.onboarding .actions { display: flex; gap: var(--space-2); }
+.choice-row { display: flex; flex-direction: column; gap: var(--space-2); }
+.choice {
+  display: flex; gap: var(--space-3); align-items: flex-start;
+  border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-3);
+}
+.choice > span { display: flex; flex-direction: column; gap: 2px; }
+.repo-list { display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* ── project home ───────────────────────────────────────────── */
+.project-home { padding: var(--space-4) var(--space-5); max-width: 1400px; }
+.project-header {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-4);
+  padding-bottom: var(--space-3); margin-bottom: var(--space-3); border-bottom: 1px solid var(--app-line);
+}
+.project-header p { margin: 1px 0; }
+.edit-grid { display: flex; gap: var(--space-3); flex-wrap: wrap; flex: 1; }
+.edit-grid label { display: flex; flex-direction: column; gap: var(--space-1); color: var(--app-muted); flex: 1; min-width: 180px; }
+/* TWO children: main then side. `ProjectHome` renders them in that order. */
+.project-columns { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); gap: var(--space-3); }
+
+/* THREE children: list, console, where-it-is-working — the estate agents screen
+   (UX28-14). It used `.project-columns` and put three children into two tracks,
+   so the session LIST took the wide 1.6fr, the console took the narrow one, and
+   the third panel wrapped to a second row. The console is the widest track here
+   because it is the thing being read; the list needs a name and a state chip,
+   and the right column needs a branch and a count.
+
+   The `col-main`/`col-side` names have no rule in any stylesheet — placement is
+   positional — so `ProjectHome` is correct BY ACCIDENT, its order happening to
+   match its names. `check-grid-arity.mjs` refuses the mismatch rather than the
+   naming, because the naming is a comment and the arity is the defect. */
+.project-columns-3 { grid-template-columns: minmax(220px, 1fr) minmax(0, 2.2fr) minmax(280px, 1fr); }
+
+/* One column below 1000px, for BOTH templates. A three-track grid at 375 css
+   pixels gives each panel 125 of them; the card's narrow targets are 640 and
+   375 and this is the rule that answers them. Declared after the templates so
+   it wins on source order at equal specificity. */
+@media (max-width: 1000px) {
+  .project-columns,
+  .project-columns-3 { grid-template-columns: 1fr; }
+}
+
+
+
+.agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-3); }
+
+/* The word carries the state; the colour supports it (paperclip: status is
+   never by colour alone). */
+/* The word carries the state; the hue is spent on the border and the dot only.
+   In the light twin --warn and --idle sit below the 3:1 non-text floor on
+   paper, which the pack states outright — so they are never set as text. */
+
+.file-tree { list-style: none; margin: 0; padding-inline-start: var(--space-4); }
+.file-row {
+  display: flex; gap: var(--space-2); align-items: center; width: 100%;
+  background: none; border: none; color: var(--app-ink); padding: 2px 0;
+  font-weight: 400; text-align: left; border-radius: var(--app-radius-control);
+}
+.file-row.dir { cursor: pointer; }
+.file-row.dir:hover { background: var(--app-panel-quiet); }
+.caret { width: 12px; color: var(--app-muted); font-size: var(--app-fs-badge); }
+
+.memory-add { display: flex; gap: var(--space-2); margin-bottom: var(--space-2); }
+.memory-add input { flex: 1; }
+.memory-search { width: 100%; margin-bottom: var(--space-2); }
+.memory-list { max-height: 260px; overflow-y: auto; }
+
+/* ── workspace canvas ───────────────────────────────────────── */
+.workspace { padding: var(--space-4) var(--space-5); }
+.workspace-head { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
+.canvas-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+@media (max-width: 900px) { .canvas-grid { grid-template-columns: 1fr; } }
+.widget { background: var(--app-panel); border: 1px solid var(--app-line); border-radius: var(--app-radius-panel); padding: var(--space-3) var(--space-4); }
+.widget.span-2 { grid-column: span 2; }
+@media (max-width: 900px) { .widget.span-2 { grid-column: span 1; } }
+.widget-list { list-style: none; margin: 0; padding: 0; }
+.widget-list li { display: flex; gap: var(--space-2); align-items: center; padding: var(--space-1) 0; border-bottom: 1px solid var(--app-line); }
+
+/* ── feed ───────────────────────────────────────────────────── */
+.feed { max-height: 420px; overflow-y: auto; }
+.feed.compact { max-height: 240px; }
+
+/* ── session window ─────────────────────────────────────────── */
+.session-window { display: flex; flex-direction: column; height: 100%; }
+.session-head {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--terminal-rule); background: var(--terminal-head);
+}
+.terminal-host { flex: 1; min-height: 0; padding: var(--space-2); background: var(--terminal); }
+.terminal-host .xterm { height: 100%; }
+
+/* The message reads on the ink ramp in both themes; the danger hue is the rule
+   above it. A dismiss button replaced click-anywhere, so it is reachable by
+   keyboard. */
+
+/* ── tasks ──────────────────────────────────────────────────── */
+.task-panel .task-input { width: 100%; margin: var(--space-2) 0; }
+.task-history-head { margin: var(--space-4) 0 var(--space-2); color: var(--app-muted);
+  text-transform: uppercase; letter-spacing: var(--app-track-label); font-size: var(--app-fs-label); }
+.task-history { list-style: none; margin: 0; padding: 0; }
+.task-history li { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: var(--space-3);
+  align-items: center; padding: var(--space-2) 0; border-bottom: 1px solid var(--app-line); }
+
+/* ── collapsible panel head ─────────────────────────────────── */
+
+/* ── stats strip as navigation ──────────────────────────────── */
+
+/* ── editor window ──────────────────────────────────────────── */
+.editor-window { display: flex; flex-direction: column; height: 100%; }
+.editor-head { display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--terminal-rule);
+  background: var(--terminal-head); }
+.editor-head .mono { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.editor-host { flex: 1; min-height: 0; }
+.file-row.file { cursor: pointer; }
+.file-row.file:hover { background: var(--app-panel-quiet); }
+
+/* ── accessibility helpers ──────────────────────────────────────────────── */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; clip-path: inset(50%); padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Every number that ticks — a duration, a countdown, an age — sits on tabular
+   figures. Without this the row jitters horizontally once a second as the glyph
+   widths change, which is the difference between a live number and a nervous
+   one. Applied by class so it can be spent deliberately rather than globally. */
+/* hiddenInset draws the traffic lights over the content, so every window's own
+   top strip starts clear of them (M63). */
+.tabbar, .session-head, .editor-head { padding-left: var(--chrome-lights); -webkit-app-region: drag; }
+.tabbar button, .session-head button, .editor-head button,
+.tabbar input, .session-head input { -webkit-app-region: no-drag; }
+
+
+/* An agent's self-report sits beside what Fabric observed, marked as an account
+   rather than a measurement: the label is part of the meaning, not decoration. */
+/* Not a button: nothing to scroll to. Same rhythm, no affordance it cannot honour. */
+/* The one state that needs a person, so the only one that earns a colour here. */
+
+/* The age is what makes the label mean anything. A claim from three hours ago
+   and a measurement from four seconds ago look identical without it. */
+/* Behind the observation: the agent is still working and has stopped narrating.
+   Colour is never the only carrier — the text already says how long ago. */
+
+/* Sessions recorded: L0 is the row, L1 the excerpt under it, L2 on request. */
+.transcript-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+/* An agent's account is marked, and the words already say so — the colour only
+   makes it findable at a glance. */
+/* A corrected fact is dimmed and marked, never struck through: it is not wrong,
+   it stopped being current, and the words say which (M48). */
+.correcting {
+  display: flex; gap: var(--space-2); align-items: baseline; justify-content: space-between;
+  margin: var(--space-2) 0 0; padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--state-idle); border-radius: var(--app-radius-control);
+  font-size: var(--app-fs-caption);
+}
+.memory-toggle { margin-top: var(--space-2); font-size: var(--app-fs-badge); }
+
+.transcript-body { margin-top: var(--space-2); display: grid; gap: var(--space-2); }
+.transcript-body pre {
+  margin: 0; padding: var(--space-3); background: var(--app-panel-quiet);
+  border-radius: var(--app-radius-control); font-size: var(--app-fs-caption);
+  white-space: pre-wrap; word-break: break-word; max-height: 24em; overflow: auto;
+}
+
+/* The CEO panel PUSHES rather than covers (M146): a panel that overlays the
+   board hides the thing you opened it to act on. */
+.shell { display: flex; min-height: 0; flex: 1; }
+.shell-with-panel .content { flex: 1; min-width: 0; }
+.ceo-panel {
+  width: 22rem; max-width: 40vw; flex: none;
+  border-left: 1px solid var(--app-line);
+  overflow-y: auto; padding: var(--space-3);
+}
+/* In the narrow panel the title keeps its line and the actions take the next one. */
+.ceo-panel .panel-head .panel-title { flex: 1 0 100%; }
+
+/* The conversation with Fabric (SCR-64), opened from the launcher in the navigation. The panel
+   reuses .ceo-panel; the log is the only growing area and the composer stays at the bottom. */
+.chat-log { display: flex; flex-direction: column; gap: var(--space-2); min-height: 8rem; overflow-y: auto; }
+.chat-message { padding: var(--space-2); border: 1px solid var(--app-line); border-radius: var(--app-radius-control); }
+.chat-message p { margin: var(--space-1) 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-composer { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
+.chat-composer textarea { width: 100%; resize: vertical; font: inherit; }

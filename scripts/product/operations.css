@@ -1,0 +1,22 @@
+/* Uses the product's existing tokens and native controls; every order has a
+   button-based alternative and the DOM order is the narrow reading order. */
+.ops-surface { min-width: 0; }
+.ops-surface form { margin-bottom: var(--space-4); }
+.ops-surface .notice { margin-block: var(--space-3); }
+.ops-surface .actions { margin-block: var(--space-2); }
+.ops-surface .disclosure { margin-block: var(--space-3); }
+.ops-surface textarea { resize: vertical; }
+.ops-kanban { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: var(--space-3); align-items: start; }
+.ops-kanban > .panel { padding: var(--space-3); }
+.ops-kanban h3 { font-size: var(--app-fs-caption); }
+.ops-task-card { padding: var(--space-3); margin-bottom: var(--space-3); border: var(--report-line) solid var(--app-line-strong); border-radius: var(--app-radius-panel); background: var(--app-bg); }
+.ops-task-card > .button { padding: 0; border: 0; border-radius: 0; text-align: left; justify-content: start; }
+.ops-layout { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-3); }
+.ops-tile { grid-column: span var(--ops-span,1); }
+.ops-linear { display: block; max-width: 38rem; }
+.ops-code textarea { font: var(--app-fs-mono)/var(--report-mono-line) var(--font-mono); min-height: 18rem; }
+.ops-demo-states { margin-top: var(--space-6); color: var(--app-muted); }
+.ops-surface [aria-current="step"] { border-color: var(--app-ink); font-weight: 600; }
+.ops-surface pre { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; }
+@media(max-width:1100px) { .ops-kanban { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:768px) { .ops-kanban,.ops-layout { grid-template-columns: minmax(0,1fr); } .ops-tile { grid-column: 1; } .ops-surface .actions { align-items: stretch; } .ops-surface .table-wrap { overflow-x: auto; } }

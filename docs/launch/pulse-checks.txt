@@ -1,0 +1,42 @@
+Pulse design checks, 2026-09-15. Command receipts; no runtime acceptance.
+
+node --test scripts/test/pulse-design.test.mjs scripts/test/launch-design.test.mjs
+PASS 9 tests, 0 failures.
+
+Negative controls against the real prototype source; restored after each plant:
+REFUSED: save ignored
+REFUSED: unknown becomes zero
+REFUSED: unseen auto-applied
+REFUSED: conflict save enabled
+REFUSED: published becomes verified
+RESTORED: 5/5 PASS
+
+node scripts/check-product-model.mjs
+PASS 63 screens, 81 views, 94 scenarios, 54 flows, 37 journeys.
+
+node docs/audit/2026-09-15-launch/check.mjs
+PASS 656 documents, 527 preserved rows, 15 packets, 31 edges, 94 local links.
+
+bash scripts/ci.sh fast
+Exit 0. fast tier green. The stack-backed probes did not run.
+Initial attempts correctly rejected a missing local map review anchor, a blank ADR table row, and a stale unexecuted ADR reservation; all three causes were repaired before this pass.
+
+node scripts/check-design-map.mjs
+PASS: map source stamp (1549 files), 265 unique anchors and 878 link targets.
+
+node scripts/build-mockup-previews.mjs --check
+PASS 81 previews pinned to current prototype/model.
+
+node scripts/build-system-map.mjs --check
+PASS exact model/catalog/contract/template parity.
+
+node scripts/build-product-report.mjs --check
+PASS exact canonical input parity.
+
+node scripts/build-mockup-coverage.mjs --check
+PASS 105 legacy rows, 0 remaining; new pulse scope covered separately above.
+
+python3 test/audit_regressions/fix-pf-06.03.py
+PASS: existing unexecuted plan re-reserved ADR-0060; no migration or ADR executed.
+
+Browser observations: local docs-only HTTP; 1280x720 and 390x844; dark and light. Persona save and first-entry creation path, chart/day/filter, unknown day, pulse pause/batch/loss, publication-without-verification, conflict/reread. No console errors observed. Not a full WCAG or runtime acceptance audit.

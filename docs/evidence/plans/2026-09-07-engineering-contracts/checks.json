@@ -1,0 +1,56 @@
+{
+  "date": "2026-09-07",
+  "stage": "verified documentation delivery; product implementation remains open",
+  "checks": [
+    {
+      "command": "node scripts/test/check-system-model.test.mjs",
+      "exit_code": 0,
+      "result": "13 planted defects refused"
+    },
+    {
+      "command": "python3 docs/ux/lint.py",
+      "exit_code": 0,
+      "errors": 0,
+      "warnings": 21
+    },
+    {
+      "command": "FABRIC_PLAYWRIGHT_MODULE=<installed module> FABRIC_BROWSER_OUTPUT=<output> node scripts/test/system-map.browser.cjs",
+      "exit_code": 0,
+      "receipt": "browser-check.json",
+      "scope": "isolated generated documentation; wide/dark 1440 and narrow/light 390, 16 anchor visits, filters, keyboard link, no-JS fallback"
+    },
+    {
+      "command": "bash scripts/ci.sh fast",
+      "exit_code": 0,
+      "output_sha256": "cee74ca860a8f4c0098dba2a7bdae8a6f2fae80ef674c977f0e975de5f5b1459",
+      "terminal_result": "fast tier green. The stack-backed probes did not run.",
+      "scope": "includes types, design/docs/register gates, build and existing pure tests"
+    },
+    {
+      "command": "node scripts/check-system-model.mjs",
+      "exit_code": 0,
+      "receipt": "design-checks.json"
+    },
+    {
+      "command": "node scripts/build-system-map.mjs --check",
+      "exit_code": 0,
+      "receipt": "same deterministic equality also checked by check-system-model"
+    },
+    {
+      "command": "node scripts/check-design-map.mjs --refresh; node scripts/check-design-map.mjs",
+      "exit_code": 0,
+      "note": "Reviewed top iteration and source stamp; final check is rerun after recording these receipts."
+    }
+  ],
+  "not_executed": [
+    "native Fabric app",
+    "live agents",
+    "product DB restore/admission/permission tests",
+    "future acceptance cases in task cards"
+  ],
+  "historical_warnings": {
+    "ux": 21,
+    "brand": 421,
+    "note": "Warnings remain visible; these gates permit them. New designed surfaces add unimplemented-coverage warnings intentionally."
+  }
+}

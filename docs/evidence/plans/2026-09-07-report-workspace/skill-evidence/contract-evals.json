@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "scope": "Offline repository contract fixtures; no LLM routing benchmark and no network or deployment",
+  "implementation": {
+    "snapshot_sha256": "9401fbebc15b10654d634c3d215b9c0afc59104ab98ac89bd738f1abe6853f89",
+    "entry_sha256": "496adfdcf0c0d2e6b55ec00af5c31adf418c53e4a4366f3597dd0106a216fa6a",
+    "release_sha256": "a61200af9e9a1308aa62cc9087ecedbe49211099981d7dc7b887ac43f20169e1"
+  },
+  "results": [
+    {
+      "id": "WS-E01 missing-submodule status is idempotent",
+      "status": "PASS"
+    },
+    {
+      "id": "WS-E02 immutable export preserves a dirty source and repeats identically",
+      "status": "PASS"
+    },
+    {
+      "id": "WS-E03 valid receipt passes, then source advance fails freshness",
+      "status": "PASS"
+    },
+    {
+      "id": "WS-E07 full deployed identity requires the current successful runtime release",
+      "status": "PASS"
+    }
+  ],
+  "count": 4
+}

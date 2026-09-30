@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "0.1.0",
+  "project": {
+    "id": "urn:fabric:project:portfolio-observer",
+    "revision": 1,
+    "name": "Portfolio Observer",
+    "purpose": "Observe every managed project and route evidence-backed findings to its Product Manager.",
+    "templateRef": "urn:fabric:project-template:portfolio-observer:1",
+    "createdAt": "2026-08-27T08:00:00Z",
+    "createdBy": "urn:fabric:operator:example"
+  },
+  "manager": {"agentBindingId": "urn:fabric:project-agent:portfolio-observer:pm"},
+  "targetScope": {"mode": "all-current-and-future", "projectRefs": [], "assetRefs": []},
+  "agentBindings": [
+    {"id": "urn:fabric:project-agent:portfolio-observer:pm", "role": "product-manager", "providerBindingRef": "urn:fabric:binding:pm:1", "required": true, "status": "enabled", "capabilities": ["urn:fabric:capability:project-management"], "grantRefs": []},
+    {"id": "urn:fabric:project-agent:portfolio-observer:cloudflare", "role": "cloudflare-observer", "providerBindingRef": "urn:fabric:binding:cloudflare-observer:1", "required": false, "status": "enabled", "capabilities": ["urn:fabric:capability:observe-cloudflare"], "grantRefs": []},
+    {"id": "urn:fabric:project-agent:portfolio-observer:search", "role": "search-observer", "providerBindingRef": "urn:fabric:binding:search-observer:1", "required": false, "status": "enabled", "capabilities": ["urn:fabric:capability:observe-search-console"], "grantRefs": []},
+    {"id": "urn:fabric:project-agent:portfolio-observer:analytics", "role": "analytics-agent", "providerBindingRef": "urn:fabric:binding:analytics-agent:1", "required": false, "status": "enabled", "capabilities": ["urn:fabric:capability:analyse-metrics"], "grantRefs": []},
+    {"id": "urn:fabric:project-agent:portfolio-observer:reporter", "role": "portfolio-reporter", "providerBindingRef": "urn:fabric:binding:portfolio-reporter:1", "required": false, "status": "enabled", "capabilities": ["urn:fabric:capability:write-portfolio-report"], "grantRefs": []}
+  ],
+  "connectionBindings": [
+    {"id": "urn:fabric:project-connection:portfolio-observer:cloudflare", "connectionRef": "urn:fabric:connection:cloudflare:personal", "revision": 1, "accessCeiling": "read", "resourceSelectors": [{"kind": "cloudflare.zone", "resourceRefs": ["urn:cloudflare:zone:managed-all"]}], "allowedAgentBindingIds": ["urn:fabric:project-agent:portfolio-observer:cloudflare"]},
+    {"id": "urn:fabric:project-connection:portfolio-observer:google", "connectionRef": "urn:fabric:connection:google:personal", "revision": 1, "accessCeiling": "read", "resourceSelectors": [{"kind": "google.search-console-site", "resourceRefs": ["urn:google:search-console-site:managed-all"]}, {"kind": "google.ga4-property", "resourceRefs": ["urn:google:ga4-property:managed-all"]}], "allowedAgentBindingIds": ["urn:fabric:project-agent:portfolio-observer:search", "urn:fabric:project-agent:portfolio-observer:analytics"]}
+  ],
+  "routines": [
+    {"id": "urn:fabric:routine:portfolio-observer:cloudflare-hourly", "revision": 1, "name": "Hourly Cloudflare health", "enabled": true, "trigger": {"kind": "schedule", "cron": "0 * * * *", "timezone": "Europe/Warsaw"}, "capabilityRef": "urn:fabric:capability:observe-cloudflare", "preferredAgentBindingId": "urn:fabric:project-agent:portfolio-observer:cloudflare", "targetScope": {"mode": "all-current-and-future", "projectRefs": [], "assetRefs": []}, "concurrency": "skip", "catchUp": "latest-only", "checkerPolicyRef": "urn:fabric:checker-policy:observation-evidence:1"},
+    {"id": "urn:fabric:routine:portfolio-observer:weekly-report", "revision": 1, "name": "Weekly portfolio report", "enabled": true, "trigger": {"kind": "schedule", "cron": "0 9 * * 1", "timezone": "Europe/Warsaw"}, "capabilityRef": "urn:fabric:capability:write-portfolio-report", "preferredAgentBindingId": "urn:fabric:project-agent:portfolio-observer:reporter", "targetScope": {"mode": "all-current-and-future", "projectRefs": [], "assetRefs": []}, "concurrency": "skip", "catchUp": "latest-only", "checkerPolicyRef": "urn:fabric:checker-policy:report-evidence:1"}
+  ],
+  "crossProjectPolicy": {"defaultDelivery": "proposal-to-target-pm", "directEffectGrantRefs": []},
+  "memoryPolicy": {"projectIsolation": "strict", "estatePromotion": "reviewed-evidence-only", "targetProjectTransfer": "accepted-proposal-only"}
+}
+

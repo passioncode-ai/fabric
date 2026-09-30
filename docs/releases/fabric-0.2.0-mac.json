@@ -1,0 +1,22 @@
+{
+  "schema": "FabricMacRelease@1",
+  "version": "0.2.0",
+  "commit": "f3569996de02f330e55d8e041e5d5df178323bcf",
+  "artifact": "Fabric-0.2.0-arm64.dmg",
+  "bytes": 167134889,
+  "sha256": "ae04aabdf67c62bd74c4e8d1d0a8e120998b031e0d37a81c3c3309e57b2b9ae6",
+  "arch": "arm64",
+  "minimumMacOS": "13.0",
+  "signed": "Developer ID Application (KJ35UYYL22), hardened runtime",
+  "notarization": {
+    "dmg": "8daf0d53-9d27-4423-8381-93575062ec05",
+    "status": "Accepted"
+  },
+  "checks": {
+    "codesignDeepStrict": "passed",
+    "gatekeeperApp": "apps/desktop/dist/mac-arm64/Fabric.app: accepted",
+    "staple": "app and DMG validated",
+    "gatekeeperDmg": "apps/desktop/dist/Fabric-0.2.0-arm64.dmg: accepted"
+  },
+  "builtAt": "2026-09-29T05:39:47.890Z"
+}

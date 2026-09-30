@@ -1,0 +1,55 @@
+# Flows whose delivery verdict cannot be MEASURED, only inherited (U057, AX-17).
+#
+# A flow is a path across screens and has no artefact of its own, so its verdict
+# is derived from the screens it traverses. When no screen on the path cites an
+# implementing file, there is nothing to derive from — and a derived verdict
+# presented as a measured one is what let one project carry no code verdict for
+# 42 flows across three weeks.
+#
+# MEASURED 2026-09-11: 21 of 53 flows are in that state, and `docs/ux/lint.py`
+# reported every one of them as a WARNING into a channel that fails nothing.
+# Twenty-one permanent warnings are furniture, and furniture is what a reader
+# stops seeing. This file makes them a DEBT instead: it may only shrink.
+#
+#   a flow not listed here and unmeasurable  -> fails, because the debt grew
+#   a listed flow that gained a citation     -> fails until struck, or the debt
+#                                               reads as paid while it is not
+#   a listed flow that no longer exists      -> fails as a stale line
+#
+# Strike a line only when a screen on that flow's path cites a real implementing
+# file. Adding a citation that does not resolve is refused by U010 and U033
+# before it reaches here.
+FLW-02
+FLW-03
+FLW-06
+FLW-07
+FLW-08
+FLW-09
+FLW-10
+FLW-11
+FLW-12
+FLW-13
+FLW-14
+FLW-20
+FLW-25
+FLW-26
+FLW-28
+FLW-29
+FLW-30
+FLW-31
+FLW-34
+FLW-35
+# FLW-36 struck 2026-09-28: SCR-48 now cites apps/desktop/src/main/backup.ts.
+# FLW-58 added 2026-09-28 (the debt grew by one, deliberately): private history
+# export/import has no implementing file yet — its codec and SQL are preserved
+# drafts, not code on main. Strike it when packet A1-6 lands SCR-65.
+# FLW-58 struck 2026-09-28: SCR-65 now cites apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx and apps/desktop/src/main/privateHistory.ts (A1-6).
+# FLW-60, FLW-65, FLW-66 added 2026-09-29 (the debt grew by three, deliberately; FLW-63 and FLW-64
+# traverse SCR-49 and SCR-64, which already cite implementing files):
+# the agent-registry design (docs/evidence/specs/2026-09-29-agent-registry-design.md) adds
+# SCR-66..SCR-69 (new) and refines SCR-49; the new screens have no implementing file yet. Strike each when its module lands the
+# screen: FLW-60 with AR-2 (SCR-66), FLW-65 with AR-6 (SCR-67),
+# FLW-66 with AR-8/AR-9 (SCR-68, SCR-69).
+FLW-60
+FLW-65
+FLW-66

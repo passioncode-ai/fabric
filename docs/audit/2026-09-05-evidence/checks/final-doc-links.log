@@ -1,0 +1,167 @@
+ok: decision home is docs/adr/
+ok: ADR numbers are unique
+ok: canonical documentation homes exist
+ok: public surfaces contain no internal product-economics language
+ok: public product spelling is consistent
+ok: positioning, category and slogan match across 7 surfaces
+PASS: PassionCode.ai public narrative
+ok: public narrative gate passes
+accepted B051 docs/public/organization-profile.md:0: project copy decision
+accepted B051 docs/guides/passioncode-overview.md:0: project copy decision
+accepted B051 docs/guides/passioncode-overview.ru.md:0: project copy decision
+accepted B062 docs/public/organization-profile.md:3: project copy decision
+accepted B062 docs/guides/passioncode-overview.md:3: project copy decision
+warn  B005 voice.md:1: foundation.md changed on 2026-09-04, after the voice was last calibrated on 2026-09-03
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "PassionCode" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Loading…" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Home" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "New project" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Close tab" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Projects" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Estate journal" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Create the first project" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Name" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "What is this project called?" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Purpose" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "What is it for? One line is enough." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Repositories" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Sessions start in the primary repository. You can attach more later." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Choose folder…" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Remove" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "No repository attached yet." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Memory" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Local" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Stored in this machine’s database. Available now." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Cloud" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "This project has not been created yet. Discard what you entered?" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Default agent" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "What the quick Launch action starts. You can always pick another." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Create project" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Creating…" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Cancel" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "unavailable on this machine" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Settings" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Save revision" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Saving…" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "rev {n}" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "no purpose set" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "no repository bound" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "At a glance" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Agents running" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Memory facts" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Journal events" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Last activity" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Files" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Attach a repository to see its files." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Cannot read this folder." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "…{count} more" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Agents" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Launch" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Launching…" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "No agent is running here. Launch one — it opens in its own window and keeps running when you close it." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Claude Code" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Terminal" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "End session" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Dismiss" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "active {time} ago · up {uptime}" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "exit {code} · {time} ago" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "no output yet" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "the agent says" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: " · said {time} ago" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "this account is older than the last thing Fabric saw" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Sessions recorded" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "No session has finished here yet. Each one is recorded whole when it ends." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Read the whole session" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Close" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "truncated — the beginning was kept" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Reading…" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "sessions recorded" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "memory asked, nothing found" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: " · step {step} of {of}" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Task" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Write what should happen. It opens a session with that instruction, in {repo}." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Replace what you have written with this preset?" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "What should happen in this project?" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Run" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Starting…" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Recent tasks" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Nothing has been asked here yet." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "running · started {time} ago" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "finished with exit {code} · {time} ago" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Open session" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Use again" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Collect context" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Review recent work" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Read the most recent changes in this repository and report what they do, what they leave unfinished and what could break. Cite files and lines. Change nothing." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Run the checks" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Find how this project runs its tests and checks, run them, and report exactly what passed and what failed. Do not fix anything yet." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Save" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Open in system editor" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "The overwrite was refused: {reason}" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Take the version on disk" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Keep mine and save" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Try again" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "changed on disk" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Remember a fact about this project" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Remember" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Search memory" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Nothing remembered yet." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Nothing matches." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "you wrote this" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "an agent reported this" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "recorded by Fabric" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "source not recorded" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Correct this" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Correcting: {claim}" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Never mind" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Show corrected facts" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Hide corrected facts" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "corrected since" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "facts corrected since" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "no agents running" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "+{n} new" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "no repository" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "not a git repository" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "+{n} more" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "5h {pct}%" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "7d {pct}%" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "resets {time}" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "quota as of {age} ago" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "quota unknown — Claude Code is not signed in here" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "last activity {time}" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Keep the Mac awake" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Always" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "While an agent is working" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Never" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Stops the machine suspending; the screen still sleeps as usual. With the lid closed on battery macOS sleeps anyway." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "not accounted for — {reason}" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Workflows" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Workspace" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Open canvas" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "The project’s dashboard: host widgets today, agent-contributed views later." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Back to {project}" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "host widgets · layout revision {n}" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Activity" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Agent results" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "nothing running" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "no events yet" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "tier {n}" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Project journal" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "The journal is empty — it fills as things happen." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "This session is gone. You can close the window." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Theme" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Dark" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Light" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "System" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Language" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "English" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "This is the primary repository. Removing it moves where new sessions start. Continue?" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Keep mine" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "Replace" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/renderer/src/i18n/en.ts:0: "evidence is stale — the last read failed" is in the code with no registry row -- agree it or retire it
+
+0 error(s), 148 warning(s)
+ok: brand contract gate passes
+relative Markdown links resolve (98 files inspected)
+ok: relative Markdown links resolve
+PASS: Fabric documentation structure

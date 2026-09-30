@@ -1,0 +1,1579 @@
+{
+  "schemaVersion": "fabric.adoption.producer-bindings@1",
+  "status": "source-bound",
+  "sourceCommit": "c1fb56125c28f14de88191e7ffb162b7eb0eed72",
+  "sourceStatus": "Immutable implementation source; source-bound means inspected, not runnable.",
+  "date": "2026-09-17",
+  "proofTier": "source",
+  "receiptProduced": false,
+  "upstream": "docs/launch/adoption/receipts/AD00.json: passed pure BoundedRegistryProjection, c1fb56125c28f14de88191e7ffb162b7eb0eed72",
+  "sharedExistingBindings": [
+    {
+      "file": "apps/desktop/src/shared/scope.ts",
+      "symbol": "Scope",
+      "kind": "export",
+      "line": 28,
+      "sha256": "ac96468a8d6106464e7c70e4b05b2fad7e2777b7ad9fb19b005c2509c7941389"
+    },
+    {
+      "file": "apps/desktop/src/shared/entityRef.ts",
+      "symbol": "EntityRef",
+      "kind": "export",
+      "line": 49,
+      "sha256": "0bc91cd03281a2f5765d2a728e6759a726c306164ccf8df8edc41b2ab76868bf"
+    },
+    {
+      "file": "apps/desktop/src/shared/entityRef.ts",
+      "symbol": "destinationOf",
+      "kind": "export",
+      "line": 121,
+      "sha256": "0bc91cd03281a2f5765d2a728e6759a726c306164ccf8df8edc41b2ab76868bf"
+    },
+    {
+      "file": "apps/desktop/src/shared/readEnvelope.ts",
+      "symbol": "ReadEnvelope",
+      "kind": "export",
+      "line": 50,
+      "sha256": "c5376f46f132d351ddb773db6738aa57b457cbafdb6e13b14da883f2ef9331c1"
+    },
+    {
+      "file": "apps/desktop/src/shared/readEnvelope.ts",
+      "symbol": "SourceReceipt",
+      "kind": "export",
+      "line": 31,
+      "sha256": "c5376f46f132d351ddb773db6738aa57b457cbafdb6e13b14da883f2ef9331c1"
+    },
+    {
+      "file": "apps/desktop/src/shared/readEnvelope.ts",
+      "symbol": "envelope",
+      "kind": "export",
+      "line": 75,
+      "sha256": "c5376f46f132d351ddb773db6738aa57b457cbafdb6e13b14da883f2ef9331c1"
+    },
+    {
+      "file": "apps/desktop/src/main/localState.ts",
+      "symbol": "LocalFile",
+      "kind": "export",
+      "line": 46,
+      "sha256": "12a9533744b55208e6fa6cc1474bf9142a0a7020feb8be0900525d65d4d5b7e9"
+    },
+    {
+      "file": "apps/desktop/src/main/localState.ts",
+      "symbol": "LocalRead",
+      "kind": "export",
+      "line": 64,
+      "sha256": "12a9533744b55208e6fa6cc1474bf9142a0a7020feb8be0900525d65d4d5b7e9"
+    },
+    {
+      "file": "apps/desktop/src/main/localState.ts",
+      "symbol": "LocalWrite",
+      "kind": "export",
+      "line": 75,
+      "sha256": "12a9533744b55208e6fa6cc1474bf9142a0a7020feb8be0900525d65d4d5b7e9"
+    },
+    {
+      "file": "apps/desktop/src/main/localState.ts",
+      "symbol": "readLocal",
+      "kind": "export",
+      "line": 115,
+      "sha256": "12a9533744b55208e6fa6cc1474bf9142a0a7020feb8be0900525d65d4d5b7e9"
+    },
+    {
+      "file": "apps/desktop/src/main/localState.ts",
+      "symbol": "writeLocal",
+      "kind": "export",
+      "line": 197,
+      "sha256": "12a9533744b55208e6fa6cc1474bf9142a0a7020feb8be0900525d65d4d5b7e9"
+    },
+    {
+      "file": "apps/desktop/src/main/localState.ts",
+      "symbol": "updateLocal",
+      "kind": "export",
+      "line": 229,
+      "sha256": "12a9533744b55208e6fa6cc1474bf9142a0a7020feb8be0900525d65d4d5b7e9"
+    },
+    {
+      "file": "packages/journal/src/index.ts",
+      "symbol": "JournalEvent",
+      "kind": "export",
+      "line": 23,
+      "sha256": "4d620477f1567a25535a86f933d5937850091deb430f5f25b5a6df13f76f3e31"
+    },
+    {
+      "file": "packages/journal/src/index.ts",
+      "symbol": "Journal",
+      "kind": "export",
+      "line": 47,
+      "sha256": "4d620477f1567a25535a86f933d5937850091deb430f5f25b5a6df13f76f3e31"
+    },
+    {
+      "file": "packages/journal/src/index.ts",
+      "symbol": "createJournal",
+      "kind": "export",
+      "line": 71,
+      "sha256": "4d620477f1567a25535a86f933d5937850091deb430f5f25b5a6df13f76f3e31"
+    },
+    {
+      "file": "apps/desktop/src/shared/types.ts",
+      "symbol": "FabricApi",
+      "kind": "export",
+      "line": 741,
+      "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+    },
+    {
+      "file": "apps/desktop/src/shared/types.ts",
+      "symbol": "IPC",
+      "kind": "export",
+      "line": 1284,
+      "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+    }
+  ],
+  "proposedScopedReference": {
+    "name": "ScopedRevisionRef",
+    "ownerCandidate": "apps/desktop/src/shared/entityRef.ts",
+    "definition": "Readonly<{ scope: Scope; ref: EntityRef; revision: R | null }>",
+    "imports": {
+      "Scope": "apps/desktop/src/shared/scope.ts",
+      "EntityRef": "apps/desktop/src/shared/entityRef.ts"
+    },
+    "constraints": [
+      "Do not redeclare or replace canonical EntityRef/Scope",
+      "Null revision is unread/unavailable, never wildcard permission",
+      "Extending ENTITY_KINDS is explicit, resolver/tests evolve in same change",
+      "Separate origin scope from command destination and attachment read scope",
+      "Journal-only source cut uses estate seq; external sources carry immutable own revision alongside it",
+      "R is the actual producer revision type, bound per port; preserve numeric config/question/journal revisions without string coercion."
+    ]
+  },
+  "capabilities": [
+    {
+      "capability": "project-creation",
+      "semanticPort": "ProjectCreationPort",
+      "semanticOutputs": [
+        "ProjectCreateReceipt"
+      ],
+      "currentReadiness": "partial",
+      "proofTier": "source-inspection-only",
+      "existingBindings": [
+        {
+          "file": "apps/desktop/src/shared/types.ts",
+          "symbol": "CreateProjectInput",
+          "kind": "export",
+          "line": 516,
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+        },
+        {
+          "file": "apps/desktop/src/shared/types.ts",
+          "symbol": "ProjectRow",
+          "kind": "export",
+          "line": 72,
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+        },
+        {
+          "file": "apps/desktop/src/shared/onboardingDraft.ts",
+          "symbol": "Draft",
+          "kind": "export",
+          "line": 34,
+          "sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5"
+        },
+        {
+          "file": "apps/desktop/src/shared/onboardingDraft.ts",
+          "symbol": "DraftFile",
+          "kind": "export",
+          "line": 56,
+          "sha256": "800daa963da101a2e18941f3f6cb42fc8d0c6295fff50347383e1a9feabc14e5"
+        },
+        {
+          "file": "apps/desktop/src/main/onboardingDrafts.ts",
+          "symbol": "createDrafts",
+          "kind": "export",
+          "line": 51,
+          "sha256": "ab475a2c3f7c8a97882529c37f00e16883152376b64487e647ddd41d19ce6f59"
+        },
+        {
+          "file": "apps/desktop/src/main/index.ts",
+          "symbol": "handle(IPC.projectsCreate",
+          "kind": "handler",
+          "line": 1053,
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        }
+      ],
+      "futureOwnerCandidates": {
+        "shared": [
+          {
+            "file": "apps/desktop/src/shared/types.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/onboardingDraft.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/projectCreation.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "main": [
+          {
+            "file": "apps/desktop/src/main/commands/projectCreateCommand.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/onboardingDrafts.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "renderer": [
+          {
+            "file": "apps/desktop/src/renderer/src/Onboarding.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/renderer/src/App.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "tests": [
+          {
+            "file": "apps/desktop/test/project-create-command.test.mjs",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/test/onboarding-drafts.test.mjs",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "ipc": [
+          {
+            "file": "apps/desktop/src/shared/types.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/preload/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ]
+      },
+      "currentMapping": {
+        "scope": "Trusted native operator/Estate scope; Project id in command is target, not grant",
+        "identity": "CreateProjectInput.id is caller-chosen Project identity persisted in Draft.projectId; no independent command identity",
+        "revision": "projects.config_revision: current update producer uses journal seq; create initial default is not a command revision",
+        "error": "Native throws on missing name/id, append, attach/read-back failures; existence read currently ignores error",
+        "effectReceipt": "Returns ProjectRow; existing-id path re-attaches caller repoPaths; append and attachments are separate",
+        "authority": "Canonical projects and project_repos projected by existing journal; no PM binding created in projectsCreate"
+      },
+      "missingMechanisms": [
+        "Immutable create request ID plus payload hash and replay conflict check",
+        "Atomic business-command receipt / reconcile unknown result",
+        "Explicit partial source-attachment outcome",
+        "Strict runtime input decoding incl unknown fields",
+        "PM setup versus managed activation decision; no fake provider later"
+      ],
+      "downstreamPackets": [
+        "AD03",
+        "AD04",
+        "AD05",
+        "AD06",
+        "AD24"
+      ]
+    },
+    {
+      "capability": "source-observation",
+      "semanticPort": "SourceObservationPort",
+      "semanticOutputs": [
+        "SourceObservationReceipt"
+      ],
+      "currentReadiness": "partial",
+      "proofTier": "source-inspection-only",
+      "existingBindings": [
+        {
+          "file": "apps/desktop/src/main/repoState.ts",
+          "symbol": "RepoState",
+          "kind": "export",
+          "line": 24,
+          "sha256": "6a24f870199ecb157cda99ce881d932de046a4ec3b7b6af7dd9eedc6d22dc445"
+        },
+        {
+          "file": "apps/desktop/src/main/repoState.ts",
+          "symbol": "RepoStateReader",
+          "kind": "export",
+          "line": 41,
+          "sha256": "6a24f870199ecb157cda99ce881d932de046a4ec3b7b6af7dd9eedc6d22dc445"
+        },
+        {
+          "file": "apps/desktop/src/main/repoState.ts",
+          "symbol": "createRepoStateReader",
+          "kind": "export",
+          "line": 81,
+          "sha256": "6a24f870199ecb157cda99ce881d932de046a4ec3b7b6af7dd9eedc6d22dc445"
+        },
+        {
+          "file": "apps/desktop/src/main/files.ts",
+          "symbol": "FileRoots",
+          "kind": "export",
+          "line": 43,
+          "sha256": "85d5c32fc31cb4b2bac2d2c255121eb71b055a563455a9d613efb6093cb2c732"
+        },
+        {
+          "file": "apps/desktop/src/main/files.ts",
+          "symbol": "OutsideRoots",
+          "kind": "export",
+          "line": 28,
+          "sha256": "85d5c32fc31cb4b2bac2d2c255121eb71b055a563455a9d613efb6093cb2c732"
+        },
+        {
+          "file": "apps/desktop/src/main/files.ts",
+          "symbol": "listDirectory",
+          "kind": "export",
+          "line": 143,
+          "sha256": "85d5c32fc31cb4b2bac2d2c255121eb71b055a563455a9d613efb6093cb2c732"
+        },
+        {
+          "file": "apps/desktop/src/main/files.ts",
+          "symbol": "resolveForOpen",
+          "kind": "export",
+          "line": 197,
+          "sha256": "85d5c32fc31cb4b2bac2d2c255121eb71b055a563455a9d613efb6093cb2c732"
+        },
+        {
+          "file": "apps/desktop/src/main/files.ts",
+          "symbol": "readFile",
+          "kind": "export",
+          "line": 212,
+          "sha256": "85d5c32fc31cb4b2bac2d2c255121eb71b055a563455a9d613efb6093cb2c732"
+        },
+        {
+          "file": "apps/desktop/src/main/contextPack.ts",
+          "symbol": "ContextPack",
+          "kind": "export",
+          "line": 40,
+          "sha256": "26a7daf8b948175e2c93b9c1a0188f065c2a6c09e5338d77f5162f02a7225be0"
+        },
+        {
+          "file": "apps/desktop/src/main/contextPack.ts",
+          "symbol": "compileContextPack",
+          "kind": "export",
+          "line": 138,
+          "sha256": "26a7daf8b948175e2c93b9c1a0188f065c2a6c09e5338d77f5162f02a7225be0"
+        }
+      ],
+      "futureOwnerCandidates": {
+        "shared": [
+          {
+            "file": "apps/desktop/src/shared/sourceObservation.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/readEnvelope.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "main": [
+          {
+            "file": "apps/desktop/src/main/sourceObservation.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/repoState.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/files.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/projectDiscovery.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "renderer": [
+          {
+            "file": "apps/desktop/src/renderer/src/Onboarding.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "tests": [
+          {
+            "file": "apps/desktop/test/source-observation.test.mjs",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/test/project-discovery.test.mjs",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/test/file-roots.test.mjs",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/test/repo-quota.test.mjs",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "ipc": [
+          {
+            "file": "apps/desktop/src/shared/types.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/preload/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ]
+      },
+      "currentMapping": {
+        "scope": "FileRoots with realpath/opened-root scope; scoped canonical readers; no source-text authority",
+        "identity": "RepoState.path; FilePayload content hash; ContextPack sha256 plus compilerRevision and source ids",
+        "revision": "Repository lastCommit.sha/readAt; file content hash; canonical journal seq; these are distinct versions",
+        "error": "OutsideRoots; RepoState.error; ReadEnvelope source failures/omissions; selected source unread is not empty",
+        "effectReceipt": "Read observations only; current native types do not export semantic SourceObservationReceipt",
+        "authority": "Explicit read-only source boundary; adding source does not create Project/Task/grant"
+      },
+      "missingMechanisms": [
+        "No-source/single-source unified coverage receipt",
+        "Explicit mapping to existing SourceReceipt statuses, not unsafe cast",
+        "Folder candidate enumeration/limits/symlink and partial coverage",
+        "Immutable selected source revision and stale reread behavior"
+      ],
+      "downstreamPackets": [
+        "AD05",
+        "AD06",
+        "AD24"
+      ]
+    },
+    {
+      "capability": "context-return",
+      "semanticPort": "ContextReturnPort",
+      "semanticOutputs": [
+        "ContextCheckpoint",
+        "ReturnSnapshot",
+        "ShownSnapshot"
+      ],
+      "currentReadiness": "partial",
+      "proofTier": "source-inspection-only",
+      "existingBindings": [
+        {
+          "file": "apps/desktop/src/main/digestRead.ts",
+          "symbol": "boundaryOf",
+          "kind": "export",
+          "line": 43,
+          "sha256": "0990932f5394527921eb817a0393e7c1ce8ff9d319afee2d361a132c12437a10"
+        },
+        {
+          "file": "apps/desktop/src/main/digestRead.ts",
+          "symbol": "digestFor",
+          "kind": "export",
+          "line": 67,
+          "sha256": "0990932f5394527921eb817a0393e7c1ce8ff9d319afee2d361a132c12437a10"
+        },
+        {
+          "file": "apps/desktop/src/shared/digest.ts",
+          "symbol": "Digest",
+          "kind": "export",
+          "line": 61,
+          "sha256": "085274b18441cf73ba3bf2e4b035ac95ebf9f5199344c0b0147ce2552fa3c98e"
+        },
+        {
+          "file": "apps/desktop/src/shared/digest.ts",
+          "symbol": "DigestBoundary",
+          "kind": "export",
+          "line": 59,
+          "sha256": "085274b18441cf73ba3bf2e4b035ac95ebf9f5199344c0b0147ce2552fa3c98e"
+        },
+        {
+          "file": "apps/desktop/src/shared/digest.ts",
+          "symbol": "digestOf",
+          "kind": "export",
+          "line": 74,
+          "sha256": "085274b18441cf73ba3bf2e4b035ac95ebf9f5199344c0b0147ce2552fa3c98e"
+        },
+        {
+          "file": "apps/desktop/src/main/digestMark.ts",
+          "symbol": "markFor",
+          "kind": "export",
+          "line": 30,
+          "sha256": "ca8806e5a9bf171991ce165764a560d38931124b0e98181ca64a3f87075cb171"
+        },
+        {
+          "file": "apps/desktop/src/main/digestMark.ts",
+          "symbol": "setMark",
+          "kind": "export",
+          "line": 34,
+          "sha256": "ca8806e5a9bf171991ce165764a560d38931124b0e98181ca64a3f87075cb171"
+        },
+        {
+          "file": "apps/desktop/src/main/contextPack.ts",
+          "symbol": "ContextPack",
+          "kind": "export",
+          "line": 40,
+          "sha256": "26a7daf8b948175e2c93b9c1a0188f065c2a6c09e5338d77f5162f02a7225be0"
+        }
+      ],
+      "futureOwnerCandidates": {
+        "shared": [
+          {
+            "file": "apps/desktop/src/shared/returnSnapshot.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/digest.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/entityRef.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "main": [
+          {
+            "file": "apps/desktop/src/main/returnSnapshot.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/digestRead.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/digestMark.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "renderer": [
+          {
+            "file": "apps/desktop/src/renderer/src/App.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/renderer/src/AttentionPanel.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "tests": [
+          {
+            "file": "apps/desktop/test/return-snapshot.test.mjs",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/test/digest-boundary.test.mjs",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/digest.test.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "ipc": [
+          {
+            "file": "apps/desktop/src/shared/types.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/preload/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ]
+      },
+      "currentMapping": {
+        "scope": "Existing scoped reads + operator-local digest marks currently keyed only by Project id",
+        "identity": "Digest payload carries journal seq boundary; no snapshot/checkpoint ID producer exists",
+        "revision": "Per-Estate journal seq is existing boundary; null acknowledges nothing; cursor monotonic; no list length",
+        "error": "Content read failure throws; missing head gives null boundary; setMark returns void so no explicit write receipt",
+        "effectReceipt": "digestSeen accepts payload boundary rather than latest head; no immutable ShownSnapshot acknowledgement receipt",
+        "authority": "Digest is read projection over memory/tasks/transcripts; no Task truth or historical context-pack reconstruction"
+      },
+      "missingMechanisms": [
+        "Durable checkpoint and exact continuation",
+        "Actor/Estate scoped cursor migration on existing local persistence",
+        "Pinned source cut: current reads use gt(since) without lte(head)",
+        "Snapshot identity with journal seq plus independent external source revisions",
+        "Explicit shown-snapshot acknowledgement and write failure receipt"
+      ],
+      "downstreamPackets": [
+        "AD06",
+        "AD07",
+        "AD08",
+        "AD14",
+        "AD20"
+      ]
+    },
+    {
+      "capability": "conversation",
+      "semanticPort": "ConversationPort",
+      "semanticOutputs": [
+        "MessageEnvelope",
+        "CommandOutcome",
+        "TranscriptRevision",
+        "Attribution"
+      ],
+      "currentReadiness": "missing",
+      "proofTier": "source-inspection-only",
+      "existingBindings": [
+        {
+          "file": "apps/desktop/src/main/conversationRegistry.ts",
+          "symbol": "createConversationRegistry",
+          "kind": "export",
+          "line": 81,
+          "sha256": "367a65ecd39b90ec9a875323da4988404fb62f9ce23ac2549869d9992fe18212"
+        },
+        {
+          "file": "apps/desktop/src/shared/conversationBinding.ts",
+          "symbol": "ConversationBinding",
+          "kind": "export",
+          "line": 27,
+          "sha256": "742c83ef36a1e713887a5376758ac70934da8c870d5c9d8cc48e1cfbbe8730bd"
+        },
+        {
+          "file": "apps/desktop/src/shared/conversationBinding.ts",
+          "symbol": "mayWrite",
+          "kind": "export",
+          "line": 141,
+          "sha256": "742c83ef36a1e713887a5376758ac70934da8c870d5c9d8cc48e1cfbbe8730bd"
+        },
+        {
+          "file": "apps/desktop/src/shared/conversationBinding.ts",
+          "symbol": "mayDispatch",
+          "kind": "export",
+          "line": 225,
+          "sha256": "742c83ef36a1e713887a5376758ac70934da8c870d5c9d8cc48e1cfbbe8730bd"
+        },
+        {
+          "file": "apps/desktop/src/shared/providerCapability.ts",
+          "symbol": "ProviderCapabilityReceipt",
+          "kind": "export",
+          "line": 56,
+          "sha256": "d41a2dcbf9f0b182e059e9483517c982054a08005bf8f9ea4a510f39693e1361"
+        },
+        {
+          "file": "apps/desktop/src/renderer/src/AttentionPanel.tsx",
+          "symbol": "There is no conversation here",
+          "kind": "comment",
+          "line": 8,
+          "sha256": "ac82a68a26945e235ff33d036114eae2c287da963088134772500e00f3fcb39b"
+        }
+      ],
+      "futureOwnerCandidates": {
+        "shared": [
+          {
+            "file": "apps/desktop/src/shared/conversation.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/attribution.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "main": [
+          {
+            "file": "apps/desktop/src/main/conversationJournal.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/commands/conversationCommand.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "renderer": [
+          {
+            "file": "apps/desktop/src/renderer/src/AttentionPanel.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/renderer/src/App.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/renderer/src/TaskPage.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "tests": [
+          {
+            "file": "apps/desktop/test/conversation-journal.test.mjs",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/test/conversation-binding.test.mjs",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/renderer/src/AttentionPanel.test.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "ipc": [
+          {
+            "file": "apps/desktop/src/shared/types.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/preload/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ]
+      },
+      "currentMapping": {
+        "scope": "Future business Conversation is Estate/audience scoped with explicit origin and destination; existing provider binding is Project/device-local",
+        "identity": "Existing ConversationBinding.conversationId/nativeRef identifies provider continuity only, not Fabric messages",
+        "revision": "Provider-local bindingRevision/sessionGeneration/authRevision and file CAS; no CEO Message or correction revision export",
+        "error": "Provider registry refuses duplicate identity, wrong runtime/workspace/project, old generation, stale revision, missing auth revision",
+        "effectReceipt": "Existing registry result is local binding admission; no native message+outbox or business command receipt",
+        "authority": "Do not reuse provider conversation-bindings.json as CEO history; canonical journal must own sent messages and command facts"
+      },
+      "missingMechanisms": [
+        "Versioned journal event registration/projections and message+outbox atomicity",
+        "Original/correction text, attribution and command result linkage",
+        "Strict scoped input decoder and denied/missing exact deep links",
+        "Native conversation IPC and right-side dialog integration",
+        "Independent voice capture/STT readiness and retention decision"
+      ],
+      "downstreamPackets": [
+        "AD09",
+        "AD10",
+        "AD11",
+        "AD12",
+        "AD13",
+        "AD08"
+      ]
+    },
+    {
+      "capability": "attention",
+      "semanticPort": "AttentionReviewPort",
+      "semanticOutputs": [
+        "AttentionReviewReceipt"
+      ],
+      "currentReadiness": "partial",
+      "proofTier": "source-inspection-only",
+      "existingBindings": [
+        {
+          "file": "apps/desktop/src/shared/attention.ts",
+          "symbol": "attentionOf",
+          "kind": "export",
+          "line": 110,
+          "sha256": "9f6385b90a52d52cbfe4877b4ca3fcda3dd972c50687e74aa84ca11b088f3c32"
+        },
+        {
+          "file": "apps/desktop/src/shared/attention.ts",
+          "symbol": "AttentionItem",
+          "kind": "export",
+          "line": 26,
+          "sha256": "9f6385b90a52d52cbfe4877b4ca3fcda3dd972c50687e74aa84ca11b088f3c32"
+        },
+        {
+          "file": "apps/desktop/src/shared/board.ts",
+          "symbol": "boardEntries",
+          "kind": "export",
+          "line": 103,
+          "sha256": "0a9b7d9769ee605f3e2187e4b321373deb9dcaa74c601088c0ee1645cd561379"
+        },
+        {
+          "file": "apps/desktop/src/shared/board.ts",
+          "symbol": "BoardEntry",
+          "kind": "export",
+          "line": 55,
+          "sha256": "0a9b7d9769ee605f3e2187e4b321373deb9dcaa74c601088c0ee1645cd561379"
+        },
+        {
+          "file": "apps/desktop/src/shared/board.ts",
+          "symbol": "BoardCut",
+          "kind": "export",
+          "line": 162,
+          "sha256": "0a9b7d9769ee605f3e2187e4b321373deb9dcaa74c601088c0ee1645cd561379"
+        },
+        {
+          "file": "apps/desktop/src/shared/types.ts",
+          "symbol": "AnswerReceipt",
+          "kind": "export",
+          "line": 637,
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+        },
+        {
+          "file": "apps/desktop/src/main/index.ts",
+          "symbol": "IPC.questionAnswer",
+          "kind": "handler",
+          "line": 2658,
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        },
+        {
+          "file": "apps/desktop/src/main/index.ts",
+          "symbol": "IPC.attentionList",
+          "kind": "handler",
+          "line": 2634,
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        }
+      ],
+      "futureOwnerCandidates": {
+        "shared": [
+          {
+            "file": "apps/desktop/src/shared/attentionReview.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/attention.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/board.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "main": [
+          {
+            "file": "apps/desktop/src/main/attentionReview.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "renderer": [
+          {
+            "file": "apps/desktop/src/renderer/src/BoardPanel.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/renderer/src/AttentionPanel.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "tests": [
+          {
+            "file": "apps/desktop/test/attention-review.test.mjs",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/attention.test.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/renderer/src/BoardPanel.test.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "ipc": [
+          {
+            "file": "apps/desktop/src/shared/types.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/preload/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ]
+      },
+      "currentMapping": {
+        "scope": "Canonical obligation reads in scoped store; future review preference personal actor/Estate/subject revision",
+        "identity": "Typed obligation EntityRef; questionId/projectId/commandId on answer",
+        "revision": "Question expectedRevision; answer decisionId/commitSeq and repeated flag; immutable settlement history",
+        "error": "ReadEnvelope unavailable/partial; answer validation and RPC refusal; continuation result distinct from answered",
+        "effectReceipt": "AnswerReceipt committed/decisionId/commitSeq/unblocked/stillBlocked/continuations; Board display not business completion",
+        "authority": "Canonical question/answer/effect is source; personal dismiss/review may not close underlying obligation"
+      },
+      "missingMechanisms": [
+        "Personal shown-snapshot review receipt and persisted write status",
+        "Explicit next-review/date/no-reminder defer and resurfacing rules",
+        "Scope/revision safe state mapping from real answer/effect receipt"
+      ],
+      "downstreamPackets": [
+        "AD14",
+        "AD18",
+        "AD19",
+        "AD20"
+      ]
+    },
+    {
+      "capability": "execution",
+      "semanticPort": "ExecutionReadinessPort",
+      "semanticOutputs": [
+        "AgentReadyReceipt",
+        "RunResultReceipt"
+      ],
+      "currentReadiness": "partial",
+      "proofTier": "source-inspection-only",
+      "existingBindings": [
+        {
+          "file": "apps/desktop/src/main/admitExisting.ts",
+          "symbol": "createAdmitExisting",
+          "kind": "export",
+          "line": 30,
+          "sha256": "faeb1eee963261c61d85f47e44227ccdbead75e6d4b868527d7e072d76a29735"
+        },
+        {
+          "file": "apps/desktop/src/main/admitExisting.ts",
+          "symbol": "AdmitInput",
+          "kind": "export",
+          "line": 19,
+          "sha256": "faeb1eee963261c61d85f47e44227ccdbead75e6d4b868527d7e072d76a29735"
+        },
+        {
+          "file": "apps/desktop/src/shared/admission.ts",
+          "symbol": "AdmissionReceipt",
+          "kind": "export",
+          "line": 22,
+          "sha256": "0e7acabc57884d9dbeccb8b2af58e25b7a31982ec3328c9840add32ad0a23069"
+        },
+        {
+          "file": "apps/desktop/src/shared/admission.ts",
+          "symbol": "AdmitOutcome",
+          "kind": "export",
+          "line": 38,
+          "sha256": "0e7acabc57884d9dbeccb8b2af58e25b7a31982ec3328c9840add32ad0a23069"
+        },
+        {
+          "file": "apps/desktop/src/shared/admission.ts",
+          "symbol": "admissionOutcome",
+          "kind": "export",
+          "line": 54,
+          "sha256": "0e7acabc57884d9dbeccb8b2af58e25b7a31982ec3328c9840add32ad0a23069"
+        },
+        {
+          "file": "apps/desktop/src/main/runLifecycle.ts",
+          "symbol": "createRunLifecycle",
+          "kind": "export",
+          "line": 78,
+          "sha256": "4a136be253963997a8106e2a3c4dcf287eba126f4ce3f7fcead9e2755742315b"
+        },
+        {
+          "file": "apps/desktop/src/main/runLifecycle.ts",
+          "symbol": "RunLifecycle",
+          "kind": "export",
+          "line": 67,
+          "sha256": "4a136be253963997a8106e2a3c4dcf287eba126f4ce3f7fcead9e2755742315b"
+        },
+        {
+          "file": "apps/desktop/src/shared/agentSpec.ts",
+          "symbol": "AgentSpec",
+          "kind": "export",
+          "line": 24,
+          "sha256": "96e4ae6b9d6e7bb6c980e1468ae683a60b3140266c374e5be6e38771061f9cf2"
+        },
+        {
+          "file": "apps/desktop/src/shared/agentSpec.ts",
+          "symbol": "readSpec",
+          "kind": "export",
+          "line": 40,
+          "sha256": "96e4ae6b9d6e7bb6c980e1468ae683a60b3140266c374e5be6e38771061f9cf2"
+        },
+        {
+          "file": "apps/desktop/src/shared/agentSpec.ts",
+          "symbol": "resolveServers",
+          "kind": "export",
+          "line": 78,
+          "sha256": "96e4ae6b9d6e7bb6c980e1468ae683a60b3140266c374e5be6e38771061f9cf2"
+        },
+        {
+          "file": "apps/desktop/src/shared/providerCapability.ts",
+          "symbol": "ProviderCapabilityReceipt",
+          "kind": "export",
+          "line": 56,
+          "sha256": "d41a2dcbf9f0b182e059e9483517c982054a08005bf8f9ea4a510f39693e1361"
+        },
+        {
+          "file": "apps/desktop/src/shared/types.ts",
+          "symbol": "CreatedAgent",
+          "kind": "export",
+          "line": 555,
+          "sha256": "20d8716e5decc89c92dee71c80b132f3422d69ee82250d2434c83a16abd71515"
+        }
+      ],
+      "futureOwnerCandidates": {
+        "shared": [
+          {
+            "file": "apps/desktop/src/shared/executionReadiness.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/admission.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/agentSpec.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/providerCapability.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "main": [
+          {
+            "file": "apps/desktop/src/main/executionReadiness.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/admitExisting.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/runLifecycle.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "renderer": [
+          {
+            "file": "apps/desktop/src/renderer/src/TaskPage.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "tests": [
+          {
+            "file": "apps/desktop/test/execution-readiness.test.mjs",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/test/run-lifecycle.test.mjs",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/admission.test.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/agentSpec.test.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "ipc": [
+          {
+            "file": "apps/desktop/src/shared/types.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/preload/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ]
+      },
+      "currentMapping": {
+        "scope": "Trusted Project/Estate command scope; Project server grants are ceiling; provider capability per build",
+        "identity": "Canonical agent_bindings roster and project_tasks; task_run_id admitted before session; session transport distinct",
+        "revision": "Admission receipt_seq plus pinned provider/binding/runtime context; provider status supported/unsupported/unverified",
+        "error": "admissionOutcome refuses absent verdict or missing required IDs; readSpec only nonblank runner is not readiness proof",
+        "effectReceipt": "AdmissionReceipt and RunLifecycle bind/end journal facts; no consolidated adopted result/readiness wrapper",
+        "authority": "Existing admit_task_launch and runtime enforcement; no second task/agent store or CEO; pending role cannot run"
+      },
+      "missingMechanisms": [
+        "Consolidated supported/unsupported/unverified readiness facade",
+        "Strict provider/extra-field decoder before mutation",
+        "Explicit manager activation invariants separate from optional executor setup",
+        "Observed delivery/stop/result-verification state and same-admission reconcile"
+      ],
+      "downstreamPackets": [
+        "AD15",
+        "AD16",
+        "AD17",
+        "AD22"
+      ]
+    },
+    {
+      "capability": "cycles",
+      "semanticPort": "CycleWindowPort",
+      "semanticOutputs": [
+        "CycleWindowReceipt"
+      ],
+      "currentReadiness": "partial",
+      "proofTier": "source-inspection-only",
+      "existingBindings": [
+        {
+          "file": "apps/desktop/src/shared/routine.ts",
+          "symbol": "Routine",
+          "kind": "export",
+          "line": 21,
+          "sha256": "af344c503e42d9658aa7a1a357cb6f96fd46ac5cb17b6bb8d6179e56316d48dc"
+        },
+        {
+          "file": "apps/desktop/src/shared/routine.ts",
+          "symbol": "dueRoutines",
+          "kind": "export",
+          "line": 50,
+          "sha256": "af344c503e42d9658aa7a1a357cb6f96fd46ac5cb17b6bb8d6179e56316d48dc"
+        },
+        {
+          "file": "apps/desktop/src/shared/routine.ts",
+          "symbol": "nextDue",
+          "kind": "export",
+          "line": 82,
+          "sha256": "af344c503e42d9658aa7a1a357cb6f96fd46ac5cb17b6bb8d6179e56316d48dc"
+        },
+        {
+          "file": "apps/desktop/src/main/routineTick.ts",
+          "symbol": "createRoutineTick",
+          "kind": "export",
+          "line": 83,
+          "sha256": "754c7b3fe37abd37a191c6cc9c641b76624e66e4397344de7e0f0f6e0efd4f6f"
+        },
+        {
+          "file": "apps/desktop/src/main/routineTick.ts",
+          "symbol": "TickResult",
+          "kind": "export",
+          "line": 55,
+          "sha256": "754c7b3fe37abd37a191c6cc9c641b76624e66e4397344de7e0f0f6e0efd4f6f"
+        },
+        {
+          "file": "apps/desktop/src/shared/cyclePort.ts",
+          "symbol": "WindowState",
+          "kind": "export",
+          "line": 38,
+          "sha256": "167baaa9d0312780ca1ea70c35a3022fa40eb31f7eee575120b49cc9a56e5b48"
+        },
+        {
+          "file": "apps/desktop/src/shared/cyclePort.ts",
+          "symbol": "CycleOutcome",
+          "kind": "export",
+          "line": 57,
+          "sha256": "167baaa9d0312780ca1ea70c35a3022fa40eb31f7eee575120b49cc9a56e5b48"
+        },
+        {
+          "file": "apps/desktop/src/shared/cyclePort.ts",
+          "symbol": "planCycle",
+          "kind": "export",
+          "line": 70,
+          "sha256": "167baaa9d0312780ca1ea70c35a3022fa40eb31f7eee575120b49cc9a56e5b48"
+        },
+        {
+          "file": "apps/desktop/src/shared/cyclePort.ts",
+          "symbol": "worstOf",
+          "kind": "export",
+          "line": 99,
+          "sha256": "167baaa9d0312780ca1ea70c35a3022fa40eb31f7eee575120b49cc9a56e5b48"
+        },
+        {
+          "file": "apps/desktop/src/shared/cyclePort.ts",
+          "symbol": "advancesWatermark",
+          "kind": "export",
+          "line": 41,
+          "sha256": "167baaa9d0312780ca1ea70c35a3022fa40eb31f7eee575120b49cc9a56e5b48"
+        },
+        {
+          "file": "apps/desktop/src/shared/cyclePort.ts",
+          "symbol": "readCycleGap",
+          "kind": "export",
+          "line": 145,
+          "sha256": "167baaa9d0312780ca1ea70c35a3022fa40eb31f7eee575120b49cc9a56e5b48"
+        },
+        {
+          "file": "apps/desktop/src/main/index.ts",
+          "symbol": "const runCycle = async",
+          "kind": "closure",
+          "line": 2115,
+          "sha256": "92ddbe5d5fd4fb7f7b4884bb46b2b453cea6ac171ada3c03dad46249d2b4f193"
+        }
+      ],
+      "futureOwnerCandidates": {
+        "shared": [
+          {
+            "file": "apps/desktop/src/shared/routine.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/cyclePort.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/cyclePreset.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "main": [
+          {
+            "file": "apps/desktop/src/main/commands/routineCommand.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/routineTick.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "renderer": [
+          {
+            "file": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "tests": [
+          {
+            "file": "apps/desktop/test/routine-command.test.mjs",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/test/routine-tick.test.mjs",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/shared/cyclePort.test.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "ipc": [
+          {
+            "file": "apps/desktop/src/shared/types.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/preload/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ]
+      },
+      "currentMapping": {
+        "scope": "Project routine bounded execution through existing admission; process-owned scheduler only",
+        "identity": "Current definition random routine ID; cycle.ran@1 lacks stable versioned invocation-window/attempt identity",
+        "revision": "lastRunAt/read states and journal seq; no versioned preset request receipt",
+        "error": "Partial/outcome_unknown cannot advance; missing receipt may mean app-off or failed persistence; not healthy idle proof",
+        "effectReceipt": "cycle.ran@1 state/ms/sessions_observed/says/advances; per-routine ran facts; no requested CycleWindowReceipt",
+        "authority": "Existing tick/limits; current routine schema defaults enabled=true, so save-paused needs actual command change"
+      },
+      "missingMechanisms": [
+        "Immutable window/preset request identity and definition revision",
+        "Save paused separately from enable; same-id reconciliation",
+        "Explicit supported schedule/timezone/host semantics without claiming always-on",
+        "Pause schedule distinct from TaskRun stop and Live pause"
+      ],
+      "downstreamPackets": [
+        "AD17",
+        "AD18",
+        "AD22"
+      ]
+    },
+    {
+      "capability": "adoption",
+      "semanticPort": "AdoptionProjectionPort",
+      "semanticOutputs": [
+        "AdoptionProjection",
+        "GuideRecord"
+      ],
+      "currentReadiness": "missing",
+      "proofTier": "source-inspection-only",
+      "existingBindings": [
+        {
+          "file": "scripts/product/guided.mjs",
+          "symbol": "guideRecords",
+          "kind": "export",
+          "line": 7,
+          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458"
+        },
+        {
+          "file": "scripts/product/guided.mjs",
+          "symbol": "guideRecord",
+          "kind": "export",
+          "line": 9,
+          "sha256": "1c328c6e9cb217ad4f8dcd34f5bac62e1fab6be4c7240d6526372206164eb458"
+        },
+        {
+          "file": "apps/desktop/src/main/onboardingDrafts.ts",
+          "symbol": "createDrafts",
+          "kind": "export",
+          "line": 51,
+          "sha256": "ab475a2c3f7c8a97882529c37f00e16883152376b64487e647ddd41d19ce6f59"
+        }
+      ],
+      "futureOwnerCandidates": {
+        "shared": [
+          {
+            "file": "apps/desktop/src/shared/adoptionProgress.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "main": [
+          {
+            "file": "apps/desktop/src/main/adoptionProgress.ts",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "renderer": [
+          {
+            "file": "apps/desktop/src/renderer/src/Onboarding.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/renderer/src/ProjectHome.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/renderer/src/App.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "tests": [
+          {
+            "file": "apps/desktop/test/adoption-progress.test.mjs",
+            "status": "proposed-new-module",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ],
+        "ipc": [
+          {
+            "file": "apps/desktop/src/shared/types.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/main/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          },
+          {
+            "file": "apps/desktop/src/preload/index.ts",
+            "status": "existing-extension",
+            "authority": "candidate-only; parent binds exact write set before dispatch"
+          }
+        ]
+      },
+      "currentMapping": {
+        "scope": "Prototype only Estate/Project-or-draft/v1 key; native future state personal actor/Estate scope",
+        "identity": "Prototype guideRecords in-memory Map; native onboarding Draft is not guide completion",
+        "revision": "Prototype v1 hard-coded; no native evidence receipt projection or version migration",
+        "error": "Prototype route guards not a durable error contract; missing receipt never experienced",
+        "effectReceipt": "None: mockup counts Task/topic existence and finished flag; not actual learned value",
+        "authority": "No business authority; guide references receipts and may offer existing commands without itself granting scope"
+      },
+      "missingMechanisms": [
+        "Persistent guide schema over existing localState CAS",
+        "Receipt-derived eligible/offered/dismissed/experienced/retired states",
+        "Actor/Estate/scope and exact resume identity",
+        "Idempotent guide version migration and skip/resume preserving work",
+        "User pilot evidence separate from implementation acceptance"
+      ],
+      "downstreamPackets": [
+        "AD18",
+        "AD19",
+        "AD21",
+        "AD22",
+        "AD23"
+      ]
+    }
+  ],
+  "proposedDecisions": [
+    {
+      "id": "setup-versus-activation",
+      "status": "accepted-architecture-ADR0061-runtime-gates-pending",
+      "choice": "Allow setup Project with explicitly unconfigured PM before managed activation; require exactly one admitted PM assignment before managed activation; provider/executor deferred creates no fake runnable binding.",
+      "sources": [
+        "docs/ux/foundation.md:233",
+        "CONTEXT.md",
+        "docs/adr/0043-the-manager-seat-is-a-binding.md",
+        "docs/adr/0046-manager-role-slots-epochs-and-provider-compatibility.md",
+        "supabase/migrations/20260831000001_migration_one.sql:73"
+      ],
+      "caveat": "ST001 exactly-one normative claim exceeds observed at-most-one SQL mechanism. ADR0046 is proposed, not implicitly accepted wholesale."
+    },
+    {
+      "id": "one-business-journal",
+      "choice": "Sent messages, accepted checkpoints and business command outcomes extend existing journal and canonical projections; no second event/task/agent store."
+    },
+    {
+      "id": "personal-local-state",
+      "choice": "Unsent drafts, personal review state and guide progression reuse localState CAS/recovery; not Estate business truth."
+    },
+    {
+      "id": "explicit-source-boundary",
+      "choice": "Return projection uses journal seq plus independent external source revisions and acknowledgement of exact shown snapshot; preserve existing digest payload boundary behavior."
+    }
+  ],
+  "irreducibleAmbiguities": [
+    {
+      "id": "A1",
+      "subject": "Atomic journal-backed business command representation",
+      "requiredOwner": "AD04/AD09 dispatch",
+      "detail": "Current append_event has no generic request ID. Need exact SQL command/event registration/projection ownership and payload identity constraints; do not label existing Journal a ready command producer."
+    },
+    {
+      "id": "A2",
+      "subject": "Conversation audience and excerpt access",
+      "requiredOwner": "AD09/AD11 dispatch",
+      "detail": "Estate membership is not Project-private ACL. Decide authorized message audience/excerpts and revocation behavior before exposing cross-project conversation history."
+    },
+    {
+      "id": "A3",
+      "subject": "PM activation enforcement",
+      "requiredOwner": "ADR0061 plus AD04/AD15",
+      "detail": "Normative setup-versus-managed decision needs actual activation gate later; current unique index only rejects second active PM. Do not fabricate readiness from docs."
+    },
+    {
+      "id": "A4",
+      "subject": "Reference extension for new Message and TaskRun identities",
+      "requiredOwner": "AD09/AD11",
+      "detail": "Canonical EntityRef lacks message/task-run kind. Choose additive kinds with exact resolver or a named typed related identity; no duplicate EntityRef union."
+    },
+    {
+      "id": "A5",
+      "subject": "Per-actor persistence on shared desktop and cursor migration",
+      "requiredOwner": "AD07/AD18",
+      "detail": "Current digest marks keyed by Project. Future actor/Estate namespace and legacy migration must not mark unread as seen or infer current user from mutable view."
+    },
+    {
+      "id": "A6",
+      "subject": "Schema migration filenames",
+      "requiredOwner": "integration owner",
+      "detail": "Exact numbered SQL paths intentionally unallocated in this prep; reserve migration slot under repository coordination at dispatch to avoid conflict. Native shared/main owner candidates are exact paths; absent files explicitly proposed."
+    },
+    {
+      "id": "A7",
+      "subject": "Voice input provider and raw retention",
+      "requiredOwner": "AD12",
+      "detail": "No measured STT selection from this source audit. AD13 cannot consume unresolved STT outcome; text journal implementation may proceed independently."
+    },
+    {
+      "id": "A8",
+      "subject": "Checkpoint persistence grain",
+      "requiredOwner": "AD06",
+      "detail": "Only accepted useful checkpoint/next step is business event. Passive cursor/visited UI state remains personal. Do not append every navigation or claim unselected source coverage."
+    }
+  ],
+  "validation": {
+    "commands": [
+      "node scripts/check-adoption-bindings.mjs",
+      "node --test scripts/test/adoption-bindings.test.mjs"
+    ],
+    "notRun": [
+      "No database/native/provider acceptance from source bindings",
+      "AD01 source receipt is a separate committed artifact; matrix validation does not issue it"
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "status": "MATCHED",
+  "scope": "two-clean-output-builds-one-checkout-one-installed-dependency-tree",
+  "builds": [
+    {
+      "digest": "ba4173d2da909695fee0805c3c689ccd77619576220876194bf6093f678deddd",
+      "toolchainDigest": "445599ed674da55a9d4d53f80ae719d1ed3878ea1839d12fc1d8c959a39c62b6",
+      "files": 191
+    },
+    {
+      "digest": "ba4173d2da909695fee0805c3c689ccd77619576220876194bf6093f678deddd",
+      "toolchainDigest": "445599ed674da55a9d4d53f80ae719d1ed3878ea1839d12fc1d8c959a39c62b6",
+      "files": 191
+    }
+  ],
+  "differingPaths": [],
+  "cleanInstallReproduction": "not_checked",
+  "nativePackageReproduction": "not_checked",
+  "signing": "not_checked",
+  "measuredAt": "2026-09-27",
+  "sourceBase": "7636805326d4d11e68604b17c60314d1b4664744",
+  "sourceState": "integrated startup/toolchain working tree; not a clean release checkout",
+  "command": "FABRIC_PNPM_EXECUTABLE=<existing pnpm 11.21.0 executable> node scripts/compare-bundle-builds.mjs"
+}

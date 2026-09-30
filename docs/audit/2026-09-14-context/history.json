@@ -1,0 +1,2367 @@
+[
+  {
+    "commit": "fad9455739fd9d4c7de5386e8971c23953439155",
+    "date": "2026-08-17T18:17:23+02:00",
+    "title": "Seed the fabric: vision, ontology, decisions, measured registry, external contracts"
+  },
+  {
+    "commit": "21772a03ddac15ae63c1cea0948fa23e40517ea2",
+    "date": "2026-08-17T18:18:01+02:00",
+    "title": "Record the run stamp and put stage 1 on the README map"
+  },
+  {
+    "commit": "e62cc1f9a46684c2107248678733c0cf08915353",
+    "date": "2026-08-19T02:01:22+02:00",
+    "title": "Record the product direction, the cost ledger, and what the adopted doctrine imposes"
+  },
+  {
+    "commit": "c6b5eb3c3fe6e4984221c3b2011c3b341b90df5d",
+    "date": "2026-08-19T02:18:00+02:00",
+    "title": "ADR-0007: the fabric answers by default, escalation is the exception"
+  },
+  {
+    "commit": "1342cdc129bf04ac7e0d28e3a0c651713ec28ab2",
+    "date": "2026-08-19T13:39:41+02:00",
+    "title": "ADR-0008 and ADR-0009: standalone, terminals inside, pipelines as editable data"
+  },
+  {
+    "commit": "33a4ed2739167dbdf70e00fb4b499693a838022f",
+    "date": "2026-08-19T14:28:00+02:00",
+    "title": "Add docs/overview.html — the whole project in one readable pass"
+  },
+  {
+    "commit": "2ef8c313893f540a349fb979ec6a07b6d69ddb04",
+    "date": "2026-08-19T14:41:57+02:00",
+    "title": "Reconcile vision and README with ADR-0007..0009, and add a Russian overview"
+  },
+  {
+    "commit": "d91c32f7e421f23ca941ec0e87c74268109d116b",
+    "date": "2026-08-24T21:23:12+02:00",
+    "title": "Record the agent family as a proposal, and the scope question it forces"
+  },
+  {
+    "commit": "5383765edc1ae0737582158bb8e35a76dc838ebd",
+    "date": "2026-08-25T09:22:43+02:00",
+    "title": "Add the four outbound roles, and the floor they run into"
+  },
+  {
+    "commit": "227ee250118dda3178cb19e508e69f1fbcf701f0",
+    "date": "2026-08-25T09:27:55+02:00",
+    "title": "Design the composition layer: capabilities, bundles, transports, trust tiers"
+  },
+  {
+    "commit": "9a213d3009233365f88a85701b9bdf7ff4962473",
+    "date": "2026-08-25T13:48:31+02:00",
+    "title": "ADR-0010: the org chart lives inside the project, not above it"
+  },
+  {
+    "commit": "f3f0338fb9d48f57090a3e89a7d7258183ea2e3a",
+    "date": "2026-08-25T14:09:10+02:00",
+    "title": "Move to passioncode-ai/fabric and rename the project"
+  },
+  {
+    "commit": "16ed59b9483f2243aa3d0ce9509ead50832a5820",
+    "date": "2026-08-25T16:24:28+02:00",
+    "title": "Initialise agent-sync, and record PostHog as a candidate signal source"
+  },
+  {
+    "commit": "178a9efd36129e7f422b01fa3b1bfb710440b918",
+    "date": "2026-08-25T16:24:47+02:00",
+    "title": "Merge agent-sync-init — agent-sync-init"
+  },
+  {
+    "commit": "deb43f2286da2873b1e42714f356108344e2db62",
+    "date": "2026-08-25T16:24:47+02:00",
+    "title": "docs(merges): record agent-sync-init → main"
+  },
+  {
+    "commit": "71a0e67e8670a285f191e24e78950be17c4698a6",
+    "date": "2026-08-26T00:28:37+02:00",
+    "title": "CO-049 closes: the Notion backend shipped as agent-sync 1.18.0"
+  },
+  {
+    "commit": "c580226fe452be31aef2f90d4badc57776433444",
+    "date": "2026-08-26T00:28:49+02:00",
+    "title": "Merge co-049-close — CO-049-close"
+  },
+  {
+    "commit": "c6cc5b89cafde423531ea995262ecbcb6121727f",
+    "date": "2026-08-26T00:28:50+02:00",
+    "title": "docs(merges): record co-049-close → main"
+  },
+  {
+    "commit": "d5c274a7a764c8f600ef2ce03ef29b7759009a1b",
+    "date": "2026-08-26T01:00:49+02:00",
+    "title": "Point fabric's record plane at notion"
+  },
+  {
+    "commit": "f17b4b7d7753bdd93d05c2b486b93efbe13ffbc9",
+    "date": "2026-08-26T01:00:52+02:00",
+    "title": "Merge plane-notion — CO-049-plane"
+  },
+  {
+    "commit": "587104fd1132ead3b005ad4f08588a3d8170b1a0",
+    "date": "2026-08-26T01:00:52+02:00",
+    "title": "docs(merges): record plane-notion → main"
+  },
+  {
+    "commit": "73690e4aaef7c083a904f8001f1d69ed35b73c85",
+    "date": "2026-08-26T01:25:34+02:00",
+    "title": "ADR-0011: the fabric is an estate tool, and the agent layer follows from it"
+  },
+  {
+    "commit": "2fb84b584dd587d20739bb5760951c5a8ff652fb",
+    "date": "2026-08-26T01:25:48+02:00",
+    "title": "Merge adr-scope — ADR-0011-scope"
+  },
+  {
+    "commit": "6d42441ec2f0436f408231378b4f1456b07147e2",
+    "date": "2026-08-26T01:25:48+02:00",
+    "title": "docs(merges): record adr-scope → main"
+  },
+  {
+    "commit": "1866c0b859b0802ed34142b72d36acffc35e402b",
+    "date": "2026-08-26T10:22:10+02:00",
+    "title": "Publish for a second reader: the map lands, and the docs mirror to Notion"
+  },
+  {
+    "commit": "2f43997332ad2f2a6b7a7df8f452e37d99545a76",
+    "date": "2026-08-26T10:22:14+02:00",
+    "title": "Merge share-with-cofounder — SHARE-COFOUNDER"
+  },
+  {
+    "commit": "762785b8173b592ab12559a63464ece260afb4db",
+    "date": "2026-08-26T10:22:14+02:00",
+    "title": "docs(merges): record share-with-cofounder → main"
+  },
+  {
+    "commit": "ef91cd07d83779ad5e1b25ebc1a504151ce26ba8",
+    "date": "2026-08-26T10:28:06+02:00",
+    "title": "Record where the map is published"
+  },
+  {
+    "commit": "7c403f005cffe2c27c278360e95f0f6acae5408d",
+    "date": "2026-08-26T10:28:10+02:00",
+    "title": "Merge share-link — SHARE-LINK"
+  },
+  {
+    "commit": "6b919aa19811435c0f6dcc38a7d9db6090d4bec5",
+    "date": "2026-08-26T10:28:10+02:00",
+    "title": "docs(merges): record share-link → main"
+  },
+  {
+    "commit": "d2f8435d53dd119457c18d20b6442ed2b0b77f81",
+    "date": "2026-08-26T11:23:28+02:00",
+    "title": "Drop a published link that does not resolve"
+  },
+  {
+    "commit": "d4a1e3cf8a6f0f7c6a63a6aa4e0c0c5e3a791dff",
+    "date": "2026-08-26T11:23:33+02:00",
+    "title": "Merge drop-dead-link — FIX-LINK"
+  },
+  {
+    "commit": "78c573c217e18371380b419dbfddd0028984fc08",
+    "date": "2026-08-26T11:23:33+02:00",
+    "title": "docs(merges): record drop-dead-link → main"
+  },
+  {
+    "commit": "5bb98740c84b006e0ef4f1509ec66018623d75cd",
+    "date": "2026-08-26T22:37:27+02:00",
+    "title": "docs: adopt Fabric Agent Contract 0.1.0 (#1)"
+  },
+  {
+    "commit": "98fc294c606aa401a5f83072312cddcf3d45ab59",
+    "date": "2026-08-27T02:47:55+02:00",
+    "title": "docs: define persistent project workspace brief"
+  },
+  {
+    "commit": "b68eae9ac017b20668f6fd90fececafcbd2f9bd9",
+    "date": "2026-08-27T03:07:36+02:00",
+    "title": "docs: define project workspaces and monitoring UX"
+  },
+  {
+    "commit": "e583c77ed7c8e0eeb2a2164f4e8694abf5f49f06",
+    "date": "2026-08-27T03:10:20+02:00",
+    "title": "docs: verify project workspace architecture"
+  },
+  {
+    "commit": "331fbba6630480a6480db6b2c643e39121db1123",
+    "date": "2026-08-27T03:13:05+02:00",
+    "title": "Merge project workspace architecture — PROJECT-WORKSPACE-MODEL"
+  },
+  {
+    "commit": "61bd4851e7766aaece4b23133e4143b9e84d303d",
+    "date": "2026-08-27T03:13:05+02:00",
+    "title": "docs(merges): record feat/project-workspace-model → main"
+  },
+  {
+    "commit": "dc1626d6d341e2d91a46850699fa6e87f302c5f2",
+    "date": "2026-08-27T11:36:53+02:00",
+    "title": "docs: file the 2026-08-27 architecture review — event journal and agent production"
+  },
+  {
+    "commit": "a6b5e4d6282b78c475c5b46402d56a9ca51a7b4b",
+    "date": "2026-08-27T11:37:44+02:00",
+    "title": "docs: verify the audit filing"
+  },
+  {
+    "commit": "a03352ad00e467962bcae751bd765f55562b5c1d",
+    "date": "2026-08-27T11:41:19+02:00",
+    "title": "Merge audit-filing — AUDIT-FILING"
+  },
+  {
+    "commit": "00a30d85f7b15fbf4231bb84b5ed93e73bc7b425",
+    "date": "2026-08-27T11:41:19+02:00",
+    "title": "docs(merges): record feat/audit-filing → main"
+  },
+  {
+    "commit": "21217552b225f7b955708c5425b1e1ea0ef4f9ac",
+    "date": "2026-08-27T13:45:17+02:00",
+    "title": "docs: absorb the agent-stack doctrine — checker contract, two clocks, governance seams"
+  },
+  {
+    "commit": "e5201b9a410aef6529616620cc364fd58b2372e5",
+    "date": "2026-08-27T13:45:46+02:00",
+    "title": "docs: verify the doctrine sync"
+  },
+  {
+    "commit": "e43253c1641a7ddd398db3aa8c6eb08ee1a0be1d",
+    "date": "2026-08-27T13:45:55+02:00",
+    "title": "Merge doctrine-sync — DOCTRINE-SYNC"
+  },
+  {
+    "commit": "685c3c6e28fb553e9ae80eb4aa0d33b9d9b3206e",
+    "date": "2026-08-27T13:45:55+02:00",
+    "title": "docs(merges): record feat/doctrine-sync → main"
+  },
+  {
+    "commit": "633c07224a1ef789e33869b42e5b36beef09f2b3",
+    "date": "2026-08-28T17:43:12+02:00",
+    "title": "docs: the federation — ADR-0016/0017, the platform of estates"
+  },
+  {
+    "commit": "be03811a9660ce3ca1c4946f5b3006c0e348e4c4",
+    "date": "2026-08-28T17:43:41+02:00",
+    "title": "docs: verify the federation filing — R-001 fired and swept"
+  },
+  {
+    "commit": "9805b56b888d2d99bc327e08be14ff6b4521dea5",
+    "date": "2026-08-28T17:43:48+02:00",
+    "title": "Merge federation-filing — FEDERATION-FILING"
+  },
+  {
+    "commit": "45731f090bc9ff52d4a320e110782d59d5a50b35",
+    "date": "2026-08-28T17:43:48+02:00",
+    "title": "docs(merges): record feat/federation-filing → main"
+  },
+  {
+    "commit": "73a1375bc61e5de2c3917f1735f3812017ee55a1",
+    "date": "2026-08-29T14:27:05+02:00",
+    "title": "docs: lock high-level vision brief"
+  },
+  {
+    "commit": "827b0707433ced23d13b207ca1533ec146329262",
+    "date": "2026-08-29T14:54:04+02:00",
+    "title": "docs: define PassionCode platform architecture"
+  },
+  {
+    "commit": "fb22dcb373b0e3ea7767a4123df0295b5ddf9e21",
+    "date": "2026-08-29T14:57:46+02:00",
+    "title": "docs: record vision verification evidence"
+  },
+  {
+    "commit": "122c3fb03fd7205551d6065f3c2583519aa029ec",
+    "date": "2026-08-29T14:59:11+02:00",
+    "title": "docs: make graph verification reproducible"
+  },
+  {
+    "commit": "27fe2af60ea55fa79d9e5d39482379551d656ab8",
+    "date": "2026-08-29T15:01:00+02:00",
+    "title": "docs: qualify graph diagnostic evidence"
+  },
+  {
+    "commit": "b6917a91426a353c6c5efee2cae106fbd6291c26",
+    "date": "2026-08-29T18:17:23+02:00",
+    "title": "docs: update PassionCode positioning and slogan"
+  },
+  {
+    "commit": "2420c1cb147e2d7421da813df32a603fb863aa7a",
+    "date": "2026-08-29T18:51:28+02:00",
+    "title": "docs: establish PassionCode public narrative"
+  },
+  {
+    "commit": "b3fc8f541c1b973c793ecc5ed9cb7fe84adce763",
+    "date": "2026-08-29T19:11:36+02:00",
+    "title": "Merge codex/high-level-vision — PUBLIC-NARRATIVE"
+  },
+  {
+    "commit": "a80d0868daba8c3da381b74402b2537209ea0efa",
+    "date": "2026-08-29T19:11:36+02:00",
+    "title": "docs(merges): record codex/high-level-vision → main"
+  },
+  {
+    "commit": "af7afce50aaa696621bb5beb706a64b61c92d86e",
+    "date": "2026-08-29T23:03:46+02:00",
+    "title": "docs: settle runtime policy and workspace architecture"
+  },
+  {
+    "commit": "120365430aaa0c269ed61c3ad10453914a10cda6",
+    "date": "2026-08-29T23:05:12+02:00",
+    "title": "merge: runtime policy and workspace decisions"
+  },
+  {
+    "commit": "acfa1c7218199c9082220b08fde22d98f3e88513",
+    "date": "2026-08-29T23:05:12+02:00",
+    "title": "docs(merges): record codex/runtime-policy-decisions → main"
+  },
+  {
+    "commit": "61101d920c1dc8851523406ae216aa498bdf1408",
+    "date": "2026-08-30T14:51:37+02:00",
+    "title": "docs: define Fabric MCP control surface"
+  },
+  {
+    "commit": "96a4e1dae3e9275e1fdc27780622046749c274f9",
+    "date": "2026-08-30T14:52:09+02:00",
+    "title": "docs: record Fabric MCP verification"
+  },
+  {
+    "commit": "110b6bd7743a825397e2c8e89c8eb09cd9ed33fd",
+    "date": "2026-08-30T14:52:39+02:00",
+    "title": "docs: calibrate voice for external control"
+  },
+  {
+    "commit": "1b506fcb261ebb0452c229a5c8e8c795322765fb",
+    "date": "2026-08-30T14:53:27+02:00",
+    "title": "merge: Fabric MCP control surface"
+  },
+  {
+    "commit": "446987a38013f0263a1f7d2a06905b6471e6363d",
+    "date": "2026-08-30T14:53:27+02:00",
+    "title": "docs(merges): record codex/fabric-mcp-control-plane → main"
+  },
+  {
+    "commit": "8d522a6de228c0fcd01ed39387db179957a457ad",
+    "date": "2026-08-31T03:29:58+02:00",
+    "title": "docs: the iteration ladder — six slices to the operator's working version"
+  },
+  {
+    "commit": "b510b2be6d84400504771187461f628606233284",
+    "date": "2026-08-31T03:30:13+02:00",
+    "title": "Merge feat/iteration-ladder"
+  },
+  {
+    "commit": "612f6bdff9b07dae3ed5adaf4e7d6e21b5a73e95",
+    "date": "2026-08-31T03:30:13+02:00",
+    "title": "docs(merges): record feat/iteration-ladder → main"
+  },
+  {
+    "commit": "33520561495e3a0feda1d275e06b3c4394a4b62d",
+    "date": "2026-08-31T04:15:26+02:00",
+    "title": "feat: slice-1 walking skeleton — migration 1, the journal, the desktop app, hosted terminals"
+  },
+  {
+    "commit": "7e80321fae3336edaee9b26d33906918d0f1857b",
+    "date": "2026-08-31T04:15:38+02:00",
+    "title": "Merge feat/slice1-walking-skeleton"
+  },
+  {
+    "commit": "afce9b720eadb360d2e491cb8c0237525e8395d0",
+    "date": "2026-08-31T04:15:38+02:00",
+    "title": "docs(merges): record feat/slice1-walking-skeleton → main"
+  },
+  {
+    "commit": "0d806ffc9e0ee79a375fa8521e0b2038d406a8cd",
+    "date": "2026-08-31T04:41:27+02:00",
+    "title": "feat: the daily driver — PassionCode.app the operator moves into"
+  },
+  {
+    "commit": "f9f545415709915743b1b14eebdaa58284468a05",
+    "date": "2026-08-31T04:41:36+02:00",
+    "title": "Merge feat/fabric-in-fabric"
+  },
+  {
+    "commit": "c0d76c3defc5f91eb4e01f441c7059ec470d0936",
+    "date": "2026-08-31T04:41:37+02:00",
+    "title": "docs(merges): record feat/fabric-in-fabric → main"
+  },
+  {
+    "commit": "792c6820e66902ce6590406a1354dd11e9cd4436",
+    "date": "2026-08-31T12:07:45+02:00",
+    "title": "feat: the project workbench — projects as tabs, agents as tiles, memory, canvas"
+  },
+  {
+    "commit": "5e3eeeecb3a92da4c70b1e1e2a655e8430701a52",
+    "date": "2026-08-31T12:07:52+02:00",
+    "title": "Merge feat/project-workbench"
+  },
+  {
+    "commit": "b1e4e4f85fe1b12882d7aaa0d44f0ae7de88cbd3",
+    "date": "2026-08-31T12:07:52+02:00",
+    "title": "docs(merges): record feat/project-workbench → main"
+  },
+  {
+    "commit": "3e49d922c08e1a68e469b7c0c7bd7524587f64fc",
+    "date": "2026-08-31T17:38:45+02:00",
+    "title": "feat: onboarding, project foundations, design tokens and i18n"
+  },
+  {
+    "commit": "7c2ed7e90e97aed5413a275cfd937e7400d94b9a",
+    "date": "2026-08-31T17:38:51+02:00",
+    "title": "Merge feat/onboarding-and-foundations"
+  },
+  {
+    "commit": "a1ada112b834c91f64b6421f2e95795bfb777b80",
+    "date": "2026-08-31T17:38:51+02:00",
+    "title": "docs(merges): record feat/onboarding-and-foundations → main"
+  },
+  {
+    "commit": "6d6fef39b9b511e4ba134238584a157276a4ba0d",
+    "date": "2026-08-31T18:31:10+02:00",
+    "title": "feat: tasks, the file editor, and the fixes a UX audit found"
+  },
+  {
+    "commit": "e3dc3f84bfbf599d0c85e44711d80607bb5285e3",
+    "date": "2026-08-31T18:31:18+02:00",
+    "title": "Merge feat/tasks-and-editor"
+  },
+  {
+    "commit": "87299852bd620ccee2215721701c02cd17315759",
+    "date": "2026-08-31T18:31:18+02:00",
+    "title": "docs(merges): record feat/tasks-and-editor → main"
+  },
+  {
+    "commit": "d6d29b01876713d9b4620642e4f283d4eb755159",
+    "date": "2026-08-31T18:40:15+02:00",
+    "title": "feat: the agent surface — Fabric's own door, opened inward"
+  },
+  {
+    "commit": "66325d93962ca3b18800e2d00ce4dc01550e05c6",
+    "date": "2026-08-31T18:40:21+02:00",
+    "title": "Merge feat/agent-surface"
+  },
+  {
+    "commit": "d5bffb0c768a7b144074d708ca0ba4efbe7aefab",
+    "date": "2026-08-31T18:40:21+02:00",
+    "title": "docs(merges): record feat/agent-surface → main"
+  },
+  {
+    "commit": "a48a0f1d1be7d1064534ef11d23ec23a60a3fcbd",
+    "date": "2026-08-31T19:09:41+02:00",
+    "title": "fix: close the door beside the only door"
+  },
+  {
+    "commit": "e4a8256d869e31199504106542e3c1c63c6e8612",
+    "date": "2026-08-31T19:09:48+02:00",
+    "title": "Merge fix/projection-door"
+  },
+  {
+    "commit": "1b3227d0c1bc5daf6ee134c9f0dc702b35a0bd7f",
+    "date": "2026-08-31T19:09:48+02:00",
+    "title": "docs(merges): record fix/projection-door → main"
+  },
+  {
+    "commit": "5f3828bc1893bf8f3b8de340c745ee65f083a838",
+    "date": "2026-08-31T20:26:35+02:00",
+    "title": "fix: close three open doors, and decide what memory is made of"
+  },
+  {
+    "commit": "0fea410a2124ebeb2c62b95a867d22730f04aa56",
+    "date": "2026-08-31T20:26:45+02:00",
+    "title": "Merge fix/memory-adr-sec-wave1"
+  },
+  {
+    "commit": "c73f774a059a2e67ba072d2d8fb533a05dd196e3",
+    "date": "2026-08-31T20:28:40+02:00",
+    "title": "docs(merges): record fix/memory-adr-sec-wave1 → main"
+  },
+  {
+    "commit": "68e6c89c4c829cc81e99bdb414efa0fdd8fc3cdb",
+    "date": "2026-08-31T22:58:33+02:00",
+    "title": "feat: sessions leave a record, and the interface stops asserting what it cannot see"
+  },
+  {
+    "commit": "5e7f5a529e621a56ac30edfda282c1e3b2fdd2a1",
+    "date": "2026-08-31T22:58:33+02:00",
+    "title": "Merge feat/transcripts-and-honesty"
+  },
+  {
+    "commit": "044e73de7457c0741c127f1b539a1a25bdf64a6a",
+    "date": "2026-08-31T22:59:02+02:00",
+    "title": "docs(merges): record feat/transcripts-and-honesty → main"
+  },
+  {
+    "commit": "ea96beef5cbba4a1a0803096dccd0bd1ace57647",
+    "date": "2026-09-01T00:07:50+02:00",
+    "title": "fix: a task cannot outlive its process, a fact knows who said it, and a miss leaves a trace"
+  },
+  {
+    "commit": "b57e832b871fa6f34c1bf015fc89f4f4120d5da5",
+    "date": "2026-09-01T00:07:50+02:00",
+    "title": "Merge fix/reconcile-provenance-retrieval"
+  },
+  {
+    "commit": "ae68f33a3f0b92ff772386b79420d7a7f98f5677",
+    "date": "2026-09-01T00:08:19+02:00",
+    "title": "docs(merges): record fix/reconcile-provenance-retrieval → main"
+  },
+  {
+    "commit": "cfc65c0b5ac8d128216487d5360278d01b5e61fb",
+    "date": "2026-09-01T00:24:28+02:00",
+    "title": "feat: a correction annotates instead of deleting, and memory reaches the model through one door"
+  },
+  {
+    "commit": "776db5258e1aa361ae573fb884b12a3fc903f841",
+    "date": "2026-09-01T00:24:29+02:00",
+    "title": "Merge feat/bitemporal-and-context-pack"
+  },
+  {
+    "commit": "740b2adb624dd496a466925bb856a15b11247643",
+    "date": "2026-09-01T00:24:52+02:00",
+    "title": "docs(merges): record feat/bitemporal-and-context-pack → main"
+  },
+  {
+    "commit": "79ecaa2252782b4e6cd9fb545b3aabff94c0aba9",
+    "date": "2026-09-01T01:24:41+02:00",
+    "title": "docs(board): record the project page and manager-agent work as M50–M64"
+  },
+  {
+    "commit": "61f132aa445169767aac30b555ede97a8608904a",
+    "date": "2026-09-01T01:24:41+02:00",
+    "title": "Merge docs/project-page-plan"
+  },
+  {
+    "commit": "e39acbafac820595ac7db54bbc2b8b451ea7013d",
+    "date": "2026-09-01T01:48:23+02:00",
+    "title": "fix: test suites stop writing into the operator's estate; record the full board"
+  },
+  {
+    "commit": "0938c063f33458f27ec10049e167d9e48376f594",
+    "date": "2026-09-01T01:48:23+02:00",
+    "title": "Merge fix/test-estate-and-full-board"
+  },
+  {
+    "commit": "ebb8da68c8b37a7563476ba91accf901635d317a",
+    "date": "2026-09-01T01:54:24+02:00",
+    "title": "feat: hold the Mac awake while agents work, and give every window the same chrome"
+  },
+  {
+    "commit": "e0e79abf48c218d142a5cfde149ae6702f76c00a",
+    "date": "2026-09-01T01:54:24+02:00",
+    "title": "Merge feat/wave1-power-and-chrome"
+  },
+  {
+    "commit": "2ba713f2bf8a549d0cc1c972c648d259c7530cd7",
+    "date": "2026-09-01T02:17:30+02:00",
+    "title": "docs(board): resolve CO-096 by measurement, and record the home as a console"
+  },
+  {
+    "commit": "7a2ed775b4e94948da0d75ec4d3452a1444e34ec",
+    "date": "2026-09-01T02:25:20+02:00",
+    "title": "docs(board): the canvas as a composition surface — M87–M94, CO-103…106"
+  },
+  {
+    "commit": "3a884b10d8e5e109388933a920e03bfb8fe1a9cf",
+    "date": "2026-09-01T10:04:31+02:00",
+    "title": "feat: the page can finally say what the code and the account are doing"
+  },
+  {
+    "commit": "a306445e35762124f294e358dc00738b6457aa07",
+    "date": "2026-09-01T10:04:31+02:00",
+    "title": "Merge feat/repo-state-and-quota"
+  },
+  {
+    "commit": "b8d77b4a7dddfba1e5f9f39952d2c0b8bfd6d65f",
+    "date": "2026-09-01T13:10:49+02:00",
+    "title": "fix: audit findings M95–M99, and two defects this session shipped an hour earlier"
+  },
+  {
+    "commit": "0e6bf6d2a382e569349a7d8ee5076341063ddc98",
+    "date": "2026-09-01T13:10:50+02:00",
+    "title": "Merge fix/audit-findings"
+  },
+  {
+    "commit": "6d8dae5f11df06cc1ec3c7c89fc2fed5fb3271cd",
+    "date": "2026-09-01T13:35:07+02:00",
+    "title": "fix: the splash window had no ground colour, and M63 said three windows when there are four"
+  },
+  {
+    "commit": "92cc8dbe53646a7bb517d10726641f41394229f9",
+    "date": "2026-09-01T13:36:36+02:00",
+    "title": "docs(board): M102 — the M42 fix cured a freeze and caused a stampede"
+  },
+  {
+    "commit": "af32c6726f40e58dbc82ac4a429b57c57d061736",
+    "date": "2026-09-01T13:38:53+02:00",
+    "title": "docs(board): repeat audit — 4 of 37 scenarios hold, and M103–M112"
+  },
+  {
+    "commit": "74f8928bed08bc8d8204995e58e93196924ebde1",
+    "date": "2026-09-01T13:46:01+02:00",
+    "title": "fix: a repository could execute code in the process holding every credential"
+  },
+  {
+    "commit": "0f8b3bbf2acc65c3461e70f74c2886f632ecff02",
+    "date": "2026-09-01T13:46:01+02:00",
+    "title": "Merge fix/git-rce-and-memory-trust"
+  },
+  {
+    "commit": "7feed43d6cecf4f2866fad23966e1ed7f407066d",
+    "date": "2026-09-01T13:55:35+02:00",
+    "title": "fix: the registers stopped being registers, and my \"measured\" counts were invented"
+  },
+  {
+    "commit": "a1182f91d2eec118a8a95c8f77fe8ce10ab28f4b",
+    "date": "2026-09-01T13:55:35+02:00",
+    "title": "Merge fix/registers-and-counts"
+  },
+  {
+    "commit": "5ed3426e56e669338662a51df08b3292a0bed072",
+    "date": "2026-09-01T13:56:13+02:00",
+    "title": "fix: the register gate caught its own author within one commit"
+  },
+  {
+    "commit": "8c937c59fffbffc18bde8e4ed7549ed7a192493a",
+    "date": "2026-09-02T23:50:54+02:00",
+    "title": "feat: add passion fruit favicon family"
+  },
+  {
+    "commit": "91a666c5551e9190f86b4d72188f7fe4c6060800",
+    "date": "2026-09-02T23:54:52+02:00",
+    "title": "docs: how Orca gives an agent a browser and a desktop, read at a pinned commit"
+  },
+  {
+    "commit": "4f91377e5c661c7069aba01211cf846d04d03f85",
+    "date": "2026-09-03T00:08:22+02:00",
+    "title": "feat: add PNG and JPG brand pack"
+  },
+  {
+    "commit": "1b2a9e317165ba77df6fe71733346020d3b1bef3",
+    "date": "2026-09-03T00:19:32+02:00",
+    "title": "fix: use the approved passion fruit mark"
+  },
+  {
+    "commit": "3e0d606ae6c1d13a2f261515102be93c82c97f1f",
+    "date": "2026-09-03T01:30:56+02:00",
+    "title": "feat: establish PassionCode public narrative and launch surface"
+  },
+  {
+    "commit": "d73d026f6df60d4ffc9b4c339ca752d69a26ee98",
+    "date": "2026-09-03T01:34:03+02:00",
+    "title": "Merge codex/brand-system — BRAND-2026-09-03"
+  },
+  {
+    "commit": "a360b51778d6a80eb294a9a91dd4809fd4dfbff1",
+    "date": "2026-09-03T01:34:03+02:00",
+    "title": "docs(merges): record codex/brand-system → main"
+  },
+  {
+    "commit": "068c3a05d7a49a8c2377a25d55fc79efc27397f9",
+    "date": "2026-09-03T02:15:50+02:00",
+    "title": "feat: the mark reaches the dock, and 20 rows of operator intake reach the register"
+  },
+  {
+    "commit": "0424f71f779a16e4ad6f368e5f4d056ac9d05fc0",
+    "date": "2026-09-03T13:41:30+02:00",
+    "title": "feat(M117): the component set the brand pack describes, with a harness under it"
+  },
+  {
+    "commit": "55b790b090776ed66f3038fa2214720675751737",
+    "date": "2026-09-03T13:45:02+02:00",
+    "title": "refactor(M117): the first two screens move onto the set, and it grew once"
+  },
+  {
+    "commit": "9a576b44a7dea82a44112719c542a7ab17ef2374",
+    "date": "2026-09-03T16:00:08+02:00",
+    "title": "docs: the worked example becomes PassionCode.ai, and the former flagship product leaves the plan"
+  },
+  {
+    "commit": "4740e864413b382ef5e31a20ddc2e5bd0806e35f",
+    "date": "2026-09-03T16:35:33+02:00",
+    "title": "refactor(M117): four more screens, and FileTree joins the set"
+  },
+  {
+    "commit": "91d15e00424ea3e610cf00b25f94d5afa092eafa",
+    "date": "2026-09-03T16:36:48+02:00",
+    "title": "refactor(M117): the editor window, and Button learns to forward a ref"
+  },
+  {
+    "commit": "8245963f5a8922b7f6caa139f395b9aced7bd43e",
+    "date": "2026-09-03T20:16:48+02:00",
+    "title": "refactor(M117): onboarding and tasks, and the set learns about groups"
+  },
+  {
+    "commit": "458f75756fcb5448cfa2a717d0aa0aa5a2152f7a",
+    "date": "2026-09-03T20:18:54+02:00",
+    "title": "refactor(M117): the application shell, and the tab strip joins the set"
+  },
+  {
+    "commit": "a16f40daff2790ff08d7b02353a7294da1554b80",
+    "date": "2026-09-03T20:46:14+02:00",
+    "title": "feat(M136-M138): the operating unit gets its first instance, and the floor its first passage"
+  },
+  {
+    "commit": "ae93d28b07d97c6230e4c970790bc635314bfb9d",
+    "date": "2026-09-03T20:51:37+02:00",
+    "title": "feat(M139): the floor gets its first caller, and it is an effect that already happened"
+  },
+  {
+    "commit": "ff39a77fafde315a900210dc6bcdc32ec1ce12de",
+    "date": "2026-09-04T13:42:07+02:00",
+    "title": "docs(ux): nine scenarios, nine stories, four flows and seven screens for the new surfaces"
+  },
+  {
+    "commit": "57f5ddddf93096c4f2099ca338153204f5b330f5",
+    "date": "2026-09-04T14:02:43+02:00",
+    "title": "refactor(M117): the project page starts moving, and the set gains two more"
+  },
+  {
+    "commit": "eef1f07c90ba885583ceeaff7a509a2dee5f5bc5",
+    "date": "2026-09-04T18:01:59+02:00",
+    "title": "refactor(M117): the project page's panels, and the inventory test earns its keep"
+  },
+  {
+    "commit": "e4278406c7d334f3812ebbb0f9419ed97e841059",
+    "date": "2026-09-04T23:16:22+02:00",
+    "title": "docs(ux): twenty gaps found by walking the transitions, and all twenty closed"
+  },
+  {
+    "commit": "1183387926f3697886a208893025335a2fdea14b",
+    "date": "2026-09-04T23:30:23+02:00",
+    "title": "docs(ux): the estate agents screen — one place for every agent in every project"
+  },
+  {
+    "commit": "690013183947791b06681b7a94799a6e7d6fbecf",
+    "date": "2026-09-05T00:29:09+02:00",
+    "title": "refactor(M117): the project page is on the set, and claim-versus-observation joins it"
+  },
+  {
+    "commit": "70dc8fa37952f2a3ea9c508671ca2fa2c04b5d65",
+    "date": "2026-09-05T00:36:05+02:00",
+    "title": "feat(M117): the gate the whole milestone was for — a class outside the registry fails"
+  },
+  {
+    "commit": "844c7a3c787d3f1bc87703a548e6099fc546a880",
+    "date": "2026-09-05T00:40:10+02:00",
+    "title": "docs(M117): the set is documented, verified and closed"
+  },
+  {
+    "commit": "59c142e965a8ce6168af9a1cfb5af3f572da4e44",
+    "date": "2026-09-05T12:01:54+02:00",
+    "title": "docs: the operating-surfaces architecture, ARCH-03 fixed, and the map ready for transfer"
+  },
+  {
+    "commit": "37727c22141639e1492b8aaee917cf1982ebc236",
+    "date": "2026-09-05T12:29:14+02:00",
+    "title": "feat(M146): the board's data layer, and the rule it taught about projections"
+  },
+  {
+    "commit": "84ff9cf279d77e123b910f349902239f73a497cf",
+    "date": "2026-09-05T12:30:55+02:00",
+    "title": "fix(M146): a lease does not outlive the process that took it"
+  },
+  {
+    "commit": "6f7f94606ee6f1e16bb5bf47f362abeb38349ab7",
+    "date": "2026-09-05T12:40:17+02:00",
+    "title": "feat(M146): the board, read-only, and it follows the journal for free"
+  },
+  {
+    "commit": "afa15efe36d6ea75c0f70d557825bcbff083d9be",
+    "date": "2026-09-05T12:48:57+02:00",
+    "title": "feat(M146): the board from the agent's side, and the rule that an agent cannot close its own task"
+  },
+  {
+    "commit": "6e08d47c6506fcf92b4fe59e0c2589d3e86e1112",
+    "date": "2026-09-05T12:56:20+02:00",
+    "title": "feat(M146): the operator's half of the ladder, and drag is only the accelerator"
+  },
+  {
+    "commit": "87751c71fa085e0f709b9a18b903beb856d6e809",
+    "date": "2026-09-05T13:02:49+02:00",
+    "title": "feat(M146): the task page, and the note that leaves the task"
+  },
+  {
+    "commit": "1caa73b530fa218a3a951229efd5a8a98a09c3a7",
+    "date": "2026-09-05T13:13:21+02:00",
+    "title": "feat(M146): the agent registry, and bypass refused in three places"
+  },
+  {
+    "commit": "bc7075fd35dcd3b71fdefe0436b50cfb9c1b93c7",
+    "date": "2026-09-05T13:21:29+02:00",
+    "title": "feat(M146): goals and the plan — and the door I had left open"
+  },
+  {
+    "commit": "9da0ff43cf3374be7a73ce96b833cfec1421e68d",
+    "date": "2026-09-05T13:27:52+02:00",
+    "title": "feat(M146): what needs the operator — and the chat that was not built"
+  },
+  {
+    "commit": "adb505dde868aa7b951ddbda27c2279fb012ca4c",
+    "date": "2026-09-05T13:33:08+02:00",
+    "title": "fix(M146): the audit of the layer against itself — three seams closed, one deferred"
+  },
+  {
+    "commit": "dc5f794431eeb656cd53e5b86a040a68fc13e037",
+    "date": "2026-09-05T13:37:46+02:00",
+    "title": "fix(R0/IMP-07): a session no longer inherits the keys to Fabric's own database"
+  },
+  {
+    "commit": "7ac4e0523f2f65e30462f49f801410f0d931fa26",
+    "date": "2026-09-05T13:38:10+02:00",
+    "title": "docs: the register's prefix convention is letters, and the gate said so"
+  },
+  {
+    "commit": "96c4f507ba39b1a25e2208cc647e359b2ebfc9e3",
+    "date": "2026-09-05T13:42:28+02:00",
+    "title": "fix(R0/IMP-08): TRUNCATE is a privilege of its own, and twenty tables had it"
+  },
+  {
+    "commit": "8b26e2a10d954bd2fe7ce55ea51f3964ac47ee24",
+    "date": "2026-09-05T13:48:58+02:00",
+    "title": "fix(R0/IMP-12): a session's record survives a failed append, and a crash"
+  },
+  {
+    "commit": "a264828d8f40ac1c709ca48e15735dcee94372d6",
+    "date": "2026-09-05T13:54:29+02:00",
+    "title": "feat(R0/REL-01): the project has CI, and what it runs is a script"
+  },
+  {
+    "commit": "d2a215fca610460d791ccfaa1cf0d9a246bb7b54",
+    "date": "2026-09-05T14:01:07+02:00",
+    "title": "feat(R1/M95): secrets are removed before the record is written, and bypass unblocks"
+  },
+  {
+    "commit": "209f5bce544f3599988d38f169641daefef71c27",
+    "date": "2026-09-05T14:06:54+02:00",
+    "title": "fix(R1/IMP-04): a read that failed is not a read that found nothing"
+  },
+  {
+    "commit": "119e35881b305c1da6ed9ac100df84fd6cc58d5b",
+    "date": "2026-09-05T14:11:06+02:00",
+    "title": "fix(R1/IMP-03): the defence was applied to one field and not to its neighbour"
+  },
+  {
+    "commit": "cbd1bfbc2ebbfc050fbab7817a514437ee39314f",
+    "date": "2026-09-05T14:18:02+02:00",
+    "title": "fix(R1/IMP-06): one Fabric per machine, because three sweeps assume there is one"
+  },
+  {
+    "commit": "8c6320ae56eeee7596791fe9053d64f1d13a084d",
+    "date": "2026-09-05T14:23:30+02:00",
+    "title": "fix(R1/IMP-05): three windows around a session's start and end"
+  },
+  {
+    "commit": "cf0e704608785dbd9a8cae2c905f9a256af6949f",
+    "date": "2026-09-05T14:30:01+02:00",
+    "title": "feat(R2/M103): the instruction reaches a listening agent, whole, once"
+  },
+  {
+    "commit": "0d6ec2e88b9d7a12f323223954e64fdc2eb3f257",
+    "date": "2026-09-05T14:36:10+02:00",
+    "title": "fix(R2/UX-06): the id is chosen before the first attempt, so a retry is the same create"
+  },
+  {
+    "commit": "1544e4f8fdf1ec0f5b45fb5bd039c4df87afb440",
+    "date": "2026-09-05T14:41:01+02:00",
+    "title": "fix(R2/UX-04,UX-05): two rules that compounded into silent data loss"
+  },
+  {
+    "commit": "170a941876118d1e6a9f0b86647f7583f5666baf",
+    "date": "2026-09-05T14:46:45+02:00",
+    "title": "fix(R2/UX-01): the project page is per project, and so is the instruction in it"
+  },
+  {
+    "commit": "73acc943f1bbe6bed9e224fd677f8683cf768f60",
+    "date": "2026-09-05T14:52:12+02:00",
+    "title": "fix(R2/UX-14): two call sites held two rules, and one of them was better"
+  },
+  {
+    "commit": "39417149987174823c66ae0b8a8f97b95ea07a10",
+    "date": "2026-09-05T15:00:53+02:00",
+    "title": "feat(R3/M135): the four memory stores get a surface, and the misses get a panel"
+  },
+  {
+    "commit": "105044a2ec67ad0604da0ae721412664e77efa2e",
+    "date": "2026-09-05T15:08:08+02:00",
+    "title": "feat(R4/M133): where we left off — composed from stores, never generated"
+  },
+  {
+    "commit": "585f65b230129b69a70786da14e94923ed9ff490",
+    "date": "2026-09-05T15:13:47+02:00",
+    "title": "feat(M141): one field across every project, grouped rather than merged"
+  },
+  {
+    "commit": "3875cc9bfd76b40c24bd24853acbea502ec2586b",
+    "date": "2026-09-05T15:14:15+02:00",
+    "title": "docs: the register's prefix convention, written where rows are written"
+  },
+  {
+    "commit": "242ebceb7591ae913557212e2956353bf7bec85c",
+    "date": "2026-09-05T15:20:37+02:00",
+    "title": "feat(M120): favourites are a partition, and a card is two sibling controls"
+  },
+  {
+    "commit": "c5bf512705a4729877d8a8359ed06cef1c5292d9",
+    "date": "2026-09-05T15:28:52+02:00",
+    "title": "feat(M140): the agent asks, the operator grants, and the agent never holds the permission"
+  },
+  {
+    "commit": "14bd92318050ee166fa82e0b495c71cfcd11a635",
+    "date": "2026-09-05T15:35:51+02:00",
+    "title": "fix(audit): one screen one clock, one side panel, and a gate instead of a warning"
+  },
+  {
+    "commit": "d676653fc6b030db4dac09e5997ec0bc78fc39f4",
+    "date": "2026-09-05T15:43:21+02:00",
+    "title": "feat(M144): decisions are a list, and the panel says why it is not a diagram"
+  },
+  {
+    "commit": "977a00edb1458ff4bf0c82f5f8b34002c7939b0e",
+    "date": "2026-09-05T15:48:22+02:00",
+    "title": "feat(M145): the harness, and the number it refuses to show"
+  },
+  {
+    "commit": "b50ac83680ff5276b57b9c4502f15f8a992ff349",
+    "date": "2026-09-05T15:54:28+02:00",
+    "title": "feat(M17): a third agent, and the seam that was declared but never implemented"
+  },
+  {
+    "commit": "c7982861ee7266c39ada8011ce19f40704f49ac3",
+    "date": "2026-09-05T15:58:04+02:00",
+    "title": "feat(M147): the estate card counts what is waiting, from the panel's own items"
+  },
+  {
+    "commit": "9e0b2905aa3059fd4bc4b3464bf77ee0b3549b2a",
+    "date": "2026-09-05T16:01:12+02:00",
+    "title": "docs: the architecture record catches up, and says that the catching up is the finding"
+  },
+  {
+    "commit": "33c0815801c34765d3b9e9f38f61a4a5581dd201",
+    "date": "2026-09-05T16:06:29+02:00",
+    "title": "feat(M131): three of the four things asked for are already in the record"
+  },
+  {
+    "commit": "d914c65a065ef2dd7826f98548aa8e07388a46aa",
+    "date": "2026-09-05T16:11:56+02:00",
+    "title": "feat(SCR-39): every agent in the estate, in one place"
+  },
+  {
+    "commit": "510d06d25f42fd4b5ade2507db1dc7b6f25bd261",
+    "date": "2026-09-05T16:16:53+02:00",
+    "title": "docs: seventeen shipped screens said \"designed\", and now \"built\" is checkable"
+  },
+  {
+    "commit": "0267cad89622ec5cd85023d7e4d567fe00951bbc",
+    "date": "2026-09-05T16:32:12+02:00",
+    "title": "feat(M146): the register against the history, and the id I invented for myself"
+  },
+  {
+    "commit": "3c907f35771227c06fc46cc36f33f6fad7993ed2",
+    "date": "2026-09-05T16:41:38+02:00",
+    "title": "feat(M123): the rules were served, nothing delivered them, and now it is observed"
+  },
+  {
+    "commit": "de17e0cc70f4aafbd3c2e3d11e1eee7c08840e82",
+    "date": "2026-09-05T16:51:11+02:00",
+    "title": "feat(M146): the receipt was a machine identifier, and every fraction was half-checked"
+  },
+  {
+    "commit": "d064a384b1b871e158d05af1c0afa0a5051f809b",
+    "date": "2026-09-05T16:58:00+02:00",
+    "title": "feat(M121): a shortcut that reads the project is a briefing, not a slogan"
+  },
+  {
+    "commit": "8e5402f9cf5763ad3e7f3d114cca7914bb883b5f",
+    "date": "2026-09-05T17:05:04+02:00",
+    "title": "feat(M124): a reverse lookup that would have looked built and done nothing"
+  },
+  {
+    "commit": "6739471868acbbccffc31f9a506101892add3e3b",
+    "date": "2026-09-05T17:15:30+02:00",
+    "title": "feat(M124): a status with no provenance is a claim with no owner"
+  },
+  {
+    "commit": "fe10d9f5e2f2a9e53779aa713ba75e8ce0464fc3",
+    "date": "2026-09-05T17:23:14+02:00",
+    "title": "feat(M142): a figure that cites a source it will not open"
+  },
+  {
+    "commit": "77e46b4eae822c05cff45d03f4b35e6bade773c0",
+    "date": "2026-09-05T17:31:51+02:00",
+    "title": "feat(M134): the backlog was a place a person could not write to"
+  },
+  {
+    "commit": "b746fb93ec58a4920986bb670a55a04b2df4339d",
+    "date": "2026-09-05T17:45:47+02:00",
+    "title": "feat(M127): an agent reaches another MCP server through the machine's gateway"
+  },
+  {
+    "commit": "01f74b3efe3b286f1279f1e20b650372bec64521",
+    "date": "2026-09-05T17:57:21+02:00",
+    "title": "feat(M125): an agent is created from a prompt, and a runner is not an agent"
+  },
+  {
+    "commit": "30a067f7b35cb4ab3a499e5b96131cf491d22203",
+    "date": "2026-09-05T18:05:19+02:00",
+    "title": "feat(M118): the workspace is a repository, and a mirror that reorders is worse than none"
+  },
+  {
+    "commit": "32a8f9b4ab310f7b8ef8bc2c42cd45d02f7aa5e3",
+    "date": "2026-09-05T18:12:45+02:00",
+    "title": "feat(M118): the question that offers the workspace, and an import that refuses"
+  },
+  {
+    "commit": "f9a994ac2ba1987cadf7bdeae5728df38fc4ae77",
+    "date": "2026-09-05T18:21:49+02:00",
+    "title": "feat(M94, M13): the bound built before the thing it bounds"
+  },
+  {
+    "commit": "786cc480618559a68d2d0064522ced6415c87875",
+    "date": "2026-09-05T18:31:01+02:00",
+    "title": "feat(M68): a bound that never trips looks exactly like one nobody has reached"
+  },
+  {
+    "commit": "a97a1e4cc5641bdac522aa25194603fd4f3221e9",
+    "date": "2026-09-05T18:37:28+02:00",
+    "title": "feat(M65): a collapsed panel making a false claim"
+  },
+  {
+    "commit": "027f87fabb8f078a2e43eec0df471952501000d7",
+    "date": "2026-09-05T18:47:23+02:00",
+    "title": "feat(M132): the nightly backlog agent, and two tables that shipped dead"
+  },
+  {
+    "commit": "535dbd980f4115e64ab6416a5d8719c2c0adaf04",
+    "date": "2026-09-05T18:54:07+02:00",
+    "title": "test(M110): the code that starts agents unattended had never been run by a check"
+  },
+  {
+    "commit": "57619cacf704ac6439bbcaf3cf211e8caff44366",
+    "date": "2026-09-05T19:00:45+02:00",
+    "title": "docs(ux): the skip was right about absence and wrong about presence"
+  },
+  {
+    "commit": "07c482945c9bba46a6e97137c2d5a7b4482b1f0b",
+    "date": "2026-09-05T19:08:30+02:00",
+    "title": "feat(M112): twenty-eight sentences on no screen"
+  },
+  {
+    "commit": "02d8eedc045b1c1fb648c06e6e2a9b393017c701",
+    "date": "2026-09-05T19:09:38+02:00",
+    "title": "docs: a slow search finished afterwards and said the opposite"
+  },
+  {
+    "commit": "2559defb031f8f165c3cc28e27e6aacffa2d9706",
+    "date": "2026-09-05T19:14:10+02:00",
+    "title": "feat(M114, M115): the number I could not define, and did not publish"
+  },
+  {
+    "commit": "c2cf497c5266b6b409d6a0edd5c4658069a37608",
+    "date": "2026-09-05T19:22:16+02:00",
+    "title": "feat(M111): the fix was more dangerous than the bug"
+  },
+  {
+    "commit": "b160c1871dc40c26f46753fd02c680741a299c48",
+    "date": "2026-09-05T19:27:12+02:00",
+    "title": "feat(M8): a derived queue notified naively rings forever"
+  },
+  {
+    "commit": "b9005f060598ae7f7803babc9c2d4d3b1c522258",
+    "date": "2026-09-05T19:32:26+02:00",
+    "title": "docs: I marked a milestone shipped for a mechanism it did not describe"
+  },
+  {
+    "commit": "e0b38e36a9d4e67ca136592a707c091a72592406",
+    "date": "2026-09-05T19:41:59+02:00",
+    "title": "feat(slice 3): a chain hands the next step a named thing, or does not start it"
+  },
+  {
+    "commit": "bcdc7dee03e088f6f952c8e30e730f8660eb5f8f",
+    "date": "2026-09-05T19:47:01+02:00",
+    "title": "fix(M104): four failures in the door every agent uses"
+  },
+  {
+    "commit": "a20367f79af47b04120c7a2b16c684ac0f6219f7",
+    "date": "2026-09-05T19:56:14+02:00",
+    "title": "fix(M108): the safe answer was the default"
+  },
+  {
+    "commit": "473b4b4acb477d009513bb138463eed5436b160d",
+    "date": "2026-09-05T20:02:03+02:00",
+    "title": "fix(M109): three drifts, and the reason there could be three"
+  },
+  {
+    "commit": "8caf02dfeeb85f3302ad70103aad7438ea4e4f3a",
+    "date": "2026-09-05T20:16:36+02:00",
+    "title": "fix(M107): the git watcher reaches a renderer, and a poll covers what it cannot see"
+  },
+  {
+    "commit": "c96e3c410cd4773926d6cde24861a57919ab78b9",
+    "date": "2026-09-05T20:27:58+02:00",
+    "title": "fix(M100): a failed start says which precondition failed, on screen"
+  },
+  {
+    "commit": "39a5da75807103eee99d004dce6b817322981a33",
+    "date": "2026-09-05T20:37:01+02:00",
+    "title": "fix(M101): the stack starts off the main thread, and the splash finally paints"
+  },
+  {
+    "commit": "a5f39dd303a056680ba4d0cf6690f678a4fb475b",
+    "date": "2026-09-05T20:47:40+02:00",
+    "title": "fix(M106): the failures a person could not see — and one the row got wrong"
+  },
+  {
+    "commit": "697db2605f3624dcf7efd4f0d201e4094cc0e681",
+    "date": "2026-09-05T21:01:25+02:00",
+    "title": "fix(M113): the board was more generous than the product, three times"
+  },
+  {
+    "commit": "3dd2fe03b69358a8094ca728b9da1153add04205",
+    "date": "2026-09-05T21:11:03+02:00",
+    "title": "fix(M99): a choice with one answer is not a choice — and half the row was done"
+  },
+  {
+    "commit": "c42d808e88052eac075091a991ee246f8de45f41",
+    "date": "2026-09-05T21:19:18+02:00",
+    "title": "fix(M96): the citation gate could not catch the example its own row reproduces"
+  },
+  {
+    "commit": "152a7fbed4c56b1de962ad576a8c6fc436e94dca",
+    "date": "2026-09-05T21:26:16+02:00",
+    "title": "revert(M99): the cloud backend is shown again — the operator's call"
+  },
+  {
+    "commit": "1972c58466974b84a0a4416a248ee03369721dea",
+    "date": "2026-09-05T21:50:48+02:00",
+    "title": "design: the Board, the CEO, and the product management an agent must actually do"
+  },
+  {
+    "commit": "1ec91cbc6663d065be92c61d060702fe2168f576",
+    "date": "2026-09-05T22:03:23+02:00",
+    "title": "design: the CEO settles what it can cite, and trust is autonomy on a different subject"
+  },
+  {
+    "commit": "a87341b0f7ecb3601be9aa57284ee0f3138e30af",
+    "date": "2026-09-05T23:15:40+02:00",
+    "title": "design: the Telegram surface — the bot answers by reply, and we have no always-on process"
+  },
+  {
+    "commit": "abbaf6b974e5b3f66ffe985603705c1cf833b424",
+    "date": "2026-09-05T23:27:17+02:00",
+    "title": "docs: a status report as a dated snapshot, in the product's own palette"
+  },
+  {
+    "commit": "6783d352ac35279ae957886ff371ecb181912919",
+    "date": "2026-09-05T23:33:12+02:00",
+    "title": "design: the CEO is not an agent loop — arithmetic, four typed calls, and the runner we have"
+  },
+  {
+    "commit": "d204fda40b49efd38f81766674fd475d2b9afe0d",
+    "date": "2026-09-06T00:20:43+02:00",
+    "title": "design: the agent system mapped for gaps — the CEO becomes an agent, the line moves to the tools"
+  },
+  {
+    "commit": "bbb6da7ceb5df3e801a6cbbfa43b81af3c457bbc",
+    "date": "2026-09-06T00:53:54+02:00",
+    "title": "feat(M148): the Board's authored half — a question blocks, an answer unblocks"
+  },
+  {
+    "commit": "28b5c5d58be022e1826063b9db5af5af5b44da4d",
+    "date": "2026-09-06T01:08:27+02:00",
+    "title": "feat(M156): a project's priority is declared, and CEO trust inherits with a ceiling"
+  },
+  {
+    "commit": "1d9464d3ebb900547a30b40521965112a9b0def7",
+    "date": "2026-09-06T01:26:25+02:00",
+    "title": "feat(M150): the Board's order is arithmetic, explainable, and stable"
+  },
+  {
+    "commit": "1a9728caa28a4f56117351db5f0ea867e9cc5462",
+    "date": "2026-09-06T14:16:16+02:00",
+    "title": "docs: the product map, and the missing health/heartbeat/failure design"
+  },
+  {
+    "commit": "0fa32f016d99ef99dc957abea5eb5f1f1dfa22ce",
+    "date": "2026-09-06T14:28:46+02:00",
+    "title": "docs: the iteration contract, the living map, and the backlog re-layered from the bottom"
+  },
+  {
+    "commit": "a860675756244dd6dbcb807e031d61d4760bdb29",
+    "date": "2026-09-06T18:57:24+02:00",
+    "title": "design: retro categories, the anonymised product loop, one inbox, and the density principle"
+  },
+  {
+    "commit": "764478d66b992e38076c1c82f5832105105eaf1c",
+    "date": "2026-09-06T19:56:52+02:00",
+    "title": "audit+design: the security pass, the run model, the graphs, and the manager seat"
+  },
+  {
+    "commit": "8c5264af190c986a9e9f95e8771db9cdc4902f25",
+    "date": "2026-09-06T20:11:12+02:00",
+    "title": "plan: an execution brief per task, self-contained for a different agent"
+  },
+  {
+    "commit": "ac20fb8035ad730b5748c4b923cae3eecf05f4b2",
+    "date": "2026-09-06T21:38:35+02:00",
+    "title": "plan: the v2 self-audit — seven findings, corrected briefs, and the standing question"
+  },
+  {
+    "commit": "15647d3b6510bec54afa60d256ac16925eeb36aa",
+    "date": "2026-09-06T21:44:24+02:00",
+    "title": "plan v3: the trust dial is the operator's workload dial, and M157/M158 were mis-gated"
+  },
+  {
+    "commit": "25ba76e644952b4a9edb774a93c47ea8647a2a45",
+    "date": "2026-09-06T21:51:30+02:00",
+    "title": "audit: the per-module review across seven levels — seven findings, zero new milestones"
+  },
+  {
+    "commit": "33b123b731ebd6e622a1ff7e784101abc809763f",
+    "date": "2026-09-06T21:57:45+02:00",
+    "title": "feat(M197): bilingual as a ratchet — RU/EN laid down now, translations top up later"
+  },
+  {
+    "commit": "58b1ddd01d95a8bd5ed01f835247f83d76feada7",
+    "date": "2026-09-06T22:50:41+02:00",
+    "title": "fix(M195): redaction at the agent surface — one door, not thirteen call sites"
+  },
+  {
+    "commit": "95ee4c8a9e8a1c524f031e9f0ec4c3e825852595",
+    "date": "2026-09-06T23:26:44+02:00",
+    "title": "fix(M196): the windows run sandboxed — and the reason they did not is now recorded"
+  },
+  {
+    "commit": "153b4f029e626230d465d5d21d02fb8c9de5fadf",
+    "date": "2026-09-06T23:53:10+02:00",
+    "title": "refactor(M97): the legacy projector is dissolved, and two extraction errors were caught by probes"
+  },
+  {
+    "commit": "d51eb35cc797b0f98c07b3d58f04e4eb9fd13ddb",
+    "date": "2026-09-07T02:25:30+02:00",
+    "title": "docs: retain audit and prioritize foundation-first delivery"
+  },
+  {
+    "commit": "e12ace606dc9d3331f0d39c32c92df059bf563bf",
+    "date": "2026-09-07T02:29:58+02:00",
+    "title": "docs: make historical contract receipts portable to clean checkouts"
+  },
+  {
+    "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+    "date": "2026-09-07T02:34:59+02:00",
+    "title": "ci: declare documentation gate prerequisites on clean runners"
+  },
+  {
+    "commit": "91337391aa8d24966bf0c57db381e6fe63b48bce",
+    "date": "2026-09-07T12:39:09+02:00",
+    "title": "docs: specify implementation contracts and map system data flows"
+  },
+  {
+    "commit": "fce89652754c21ce4538fbdea11d6556ac351469",
+    "date": "2026-09-07T17:19:32+02:00",
+    "title": "docs(ux): add reviewed product walkthrough and visual handoff"
+  },
+  {
+    "commit": "b321420e6e43c30f13f4e4f647214e9a904c03ea",
+    "date": "2026-09-07T18:24:11+02:00",
+    "title": "Add versioned Fabric report workspace and verified publication contract"
+  },
+  {
+    "commit": "82bc95099a0d09326aa34c612f182b5742cac964",
+    "date": "2026-09-07T18:25:58+02:00",
+    "title": "Pin published Fabric workspace 73c407ab25ea"
+  },
+  {
+    "commit": "9e4ff27ce49c40b45f0a6be0af382e868fd1646b",
+    "date": "2026-09-07T19:54:40+02:00",
+    "title": "Add interactive graph explorers for Fabric mockups"
+  },
+  {
+    "commit": "d384c2a40cf2f3b5001309704770c0fc800510e7",
+    "date": "2026-09-07T19:59:22+02:00",
+    "title": "feat(mockups): add governed goals pipelines settings and proposals"
+  },
+  {
+    "commit": "18d2441aec6dbcd21fe1428c487a6319c05cd164",
+    "date": "2026-09-07T20:11:13+02:00",
+    "title": "feat(product): model task execution and operating workflows in mockups"
+  },
+  {
+    "commit": "a7c5e7ad05d5adff4f257197f3a8352054f7d1a5",
+    "date": "2026-09-07T20:14:07+02:00",
+    "title": "Complete integration lifecycle mockups with scoped receipts"
+  },
+  {
+    "commit": "676f0ddb9d85a4d73fc26cf7bd2b28d2510901a6",
+    "date": "2026-09-07T20:21:25+02:00",
+    "title": "feat(product): separate project lifecycle purge and service terminals"
+  },
+  {
+    "commit": "83de73c608d1b259599e28595168644695ceeb8f",
+    "date": "2026-09-07T20:24:36+02:00",
+    "title": "Project graph fixtures by explicit project agent and TaskRun scope"
+  },
+  {
+    "commit": "7b6d6edcb3ebe525a1e727af453d2dc0a614015a",
+    "date": "2026-09-07T20:27:42+02:00",
+    "title": "feat(product): add source tabs and document-linked idea research"
+  },
+  {
+    "commit": "38bf3e68cd5298e27a286efc259207542277e25d",
+    "date": "2026-09-07T20:33:21+02:00",
+    "title": "feat(mockups): connect governance state and demonstrate budget admission"
+  },
+  {
+    "commit": "00b8ad0ab1ec79c7fe04e3bace57a73ef0e08cf6",
+    "date": "2026-09-07T20:35:12+02:00",
+    "title": "feat(product): share operational model with newly created projects"
+  },
+  {
+    "commit": "1c2cd8872f0966760fb8753fab4aff8f9ab1b377",
+    "date": "2026-09-07T20:42:27+02:00",
+    "title": "Add estate delegation agent configuration and source evidence mockups"
+  },
+  {
+    "commit": "8e7833ecf185543551a88f1afa27c1d3c8a93c08",
+    "date": "2026-09-07T20:44:22+02:00",
+    "title": "feat(product): close creation import memory and layout review gaps"
+  },
+  {
+    "commit": "a0f45e728bd7e4b1d67d67d73b1339939ad26f94",
+    "date": "2026-09-07T20:51:29+02:00",
+    "title": "Add versioned plan membership and dependency editor to graph mockups"
+  },
+  {
+    "commit": "64adb66aca6a9e696cdc80a892ad225da201d7f5",
+    "date": "2026-09-07T20:58:12+02:00",
+    "title": "feat(mockups): resolve addressed proposals and review settings revisions"
+  },
+  {
+    "commit": "fec2c29d4939b5855f9de66e697c0c8ff8fd17fb",
+    "date": "2026-09-07T20:58:11+02:00",
+    "title": "feat(product): complete scoped operating state and module checks"
+  },
+  {
+    "commit": "5b685d595f3d3fecadc3312d8c77130172c01b14",
+    "date": "2026-09-07T21:04:07+02:00",
+    "title": "Complete conformance bootstrap callback and response conflict mockups"
+  },
+  {
+    "commit": "13dda4955248d17d3256bc1f29400c446f17ae73",
+    "date": "2026-09-07T21:12:24+02:00",
+    "title": "feat(product): preserve digest sources and resolved board history"
+  },
+  {
+    "commit": "8c6cf9b09ea8e97043c133ed098b43420448253b",
+    "date": "2026-09-07T21:21:38+02:00",
+    "title": "fix(product): release rechecked admission and publish repository changes"
+  },
+  {
+    "commit": "a93be0ab28e97e1398caa2050aa7f4eaa3d475aa",
+    "date": "2026-09-07T21:21:24+02:00",
+    "title": "Preserve decision timestamp and exact context provenance in graph mockups"
+  },
+  {
+    "commit": "01d9cb15a79d476699827bb3ee6af219b0ee381f",
+    "date": "2026-09-07T21:26:43+02:00",
+    "title": "test(product): persist integrated mockup identity and recovery review"
+  },
+  {
+    "commit": "f2890957a21d6f6aa17ea5472b1b72f96b886e1d",
+    "date": "2026-09-07T21:31:53+02:00",
+    "title": "Verify root workbench draft, startup and routine semantics end to end"
+  },
+  {
+    "commit": "d2fdf649c9c3dc3942fd4dd0c4e5ddcc1222aa1b",
+    "date": "2026-09-07T21:41:40+02:00",
+    "title": "Complete Fabric mockup scenarios, source audit and review workspace"
+  },
+  {
+    "commit": "629f050323ab5a302feffc7a1f4de8c079526b9a",
+    "date": "2026-09-07T21:44:04+02:00",
+    "title": "Pin published Fabric workspace 8fcd8aa71204"
+  },
+  {
+    "commit": "4017bea8931a40782fd11d6f89fcb240f3b7a393",
+    "date": "2026-09-08T00:33:32+02:00",
+    "title": "feat(S02.store): the estate boundary moves out of the call site"
+  },
+  {
+    "commit": "c638ffd02fbb9e4919c8994a15c791f3261783e2",
+    "date": "2026-09-08T02:48:43+02:00",
+    "title": "feat(S02.acl): anon is denied by statement, not by inheritance"
+  },
+  {
+    "commit": "20f8d3f5d27821d21ac07f3f4f5dcc011a827fe4",
+    "date": "2026-09-08T03:38:56+02:00",
+    "title": "decide(ADR-0049): a boundary is held by a mechanism, not by a convention"
+  },
+  {
+    "commit": "08444e47571c93f98cbe3d169158494f5c111c0f",
+    "date": "2026-09-08T13:28:17+02:00",
+    "title": "feat(S14): a read reports what it could not read, and a local save reports whether it happened"
+  },
+  {
+    "commit": "2976bb1658578d51e4dbe6d518aa42fa9e390872",
+    "date": "2026-09-08T16:27:01+02:00",
+    "title": "decide(S10): ADR-0045 accepted — one word, one meaning, and a gate that keeps it"
+  },
+  {
+    "commit": "0cfac0c2f725ca543ec4360d7e32bf0444aeb2c2",
+    "date": "2026-09-08T16:45:48+02:00",
+    "title": "feat(S03.boundary): the floor validates a live matching grant, not a filled column"
+  },
+  {
+    "commit": "8790eab784f73172e99de30f93799184bf2c94b0",
+    "date": "2026-09-08T17:34:07+02:00",
+    "title": "feat(S06): the blocking set is canonical, and an answer is one commit"
+  },
+  {
+    "commit": "2902c5bb96ed0004d5ebc70e61b69031962e867b",
+    "date": "2026-09-08T17:42:09+02:00",
+    "title": "feat(M177): what a session is told is built from what enforces it"
+  },
+  {
+    "commit": "db7eb4e62abfec31c8e89051abbaa3badccbc0bb",
+    "date": "2026-09-08T22:34:38+02:00",
+    "title": "feat(M81): the operations log — what the program did, not what happened to the estate"
+  },
+  {
+    "commit": "361e7df745873abcc0650a1477d643d1ea3a3a05",
+    "date": "2026-09-08T22:52:05+02:00",
+    "title": "feat(M149): an agent can ask the owner, and the ask cannot jump the queue"
+  },
+  {
+    "commit": "aabbc5094ed828cfe5d0143ff7b55c13d30df4bd",
+    "date": "2026-09-08T23:15:14+02:00",
+    "title": "feat(M151): one Board query at three scales"
+  },
+  {
+    "commit": "6bd724f64813f5f40555e77d43e4dd31749092d8",
+    "date": "2026-09-08T23:23:56+02:00",
+    "title": "feat(M152.commit): the operator answers, and the loop closes"
+  },
+  {
+    "commit": "0f5b806ff75722d9e691fb5812d0fd48c5b88ae8",
+    "date": "2026-09-08T23:35:14+02:00",
+    "title": "feat(S01): a draft belongs to the task it was written for, and the board has a door"
+  },
+  {
+    "commit": "aece715a05da25940043490d9c41c334ee7caee3",
+    "date": "2026-09-08T23:44:02+02:00",
+    "title": "fix(M198): a revision is the event that set it, not a counter"
+  },
+  {
+    "commit": "8a56926986622c0046970714a4410353425c1019",
+    "date": "2026-09-08T23:52:20+02:00",
+    "title": "feat(S02.roots): a folder grant belongs to the window that made it"
+  },
+  {
+    "commit": "2be73e76659166fa2b458a2d605eaaafae358d9c",
+    "date": "2026-09-09T00:02:41+02:00",
+    "title": "feat(M109): every IPC handler is compared against the answer its channel declares"
+  },
+  {
+    "commit": "ad314db7b1bfb9c07628932fb841bbaeab6cb6ec",
+    "date": "2026-09-09T00:29:13+02:00",
+    "title": "S05: trace every tool call at the transport, not around the handlers"
+  },
+  {
+    "commit": "6cd42fa230c8fe5550ab8458eb3ae030dd1309e8",
+    "date": "2026-09-09T00:31:34+02:00",
+    "title": "S05 retrospective: an assertion that passed against its own planted defect"
+  },
+  {
+    "commit": "f0f6eeaf5e062b95ecc0feb2a20b6d3a1e02690a",
+    "date": "2026-09-09T00:57:29+02:00",
+    "title": "S03.effects: permission is not execution (ADR-0050)"
+  },
+  {
+    "commit": "086f895f24d630dcdfa64dee473d72f23ae74bb1",
+    "date": "2026-09-09T01:15:14+02:00",
+    "title": "S12: a mirror that says what it does not hold, and an import that lands whole"
+  },
+  {
+    "commit": "ac892bb5748611118ef3412565ae42ff4dd832e1",
+    "date": "2026-09-09T01:32:02+02:00",
+    "title": "M178: a heartbeat is a positive signal, and silence stops being one state"
+  },
+  {
+    "commit": "458e23e433f9c0e467eae0e3017cf232645f2b70",
+    "date": "2026-09-09T01:44:28+02:00",
+    "title": "M168: one checker in front of every proposal write"
+  },
+  {
+    "commit": "10fedbaca5e91ccb7ef23e9f5d603304341ebfb4",
+    "date": "2026-09-09T01:57:24+02:00",
+    "title": "S02: a reference carries its estate, not just a uuid"
+  },
+  {
+    "commit": "6c8a03b573312339b3a7139430f3ccf37e34012c",
+    "date": "2026-09-09T02:09:52+02:00",
+    "title": "S03: the safe sink at authority ingress, and a target is refused not rewritten"
+  },
+  {
+    "commit": "0a5e932a17da34213ba30c0a67759dfe26eda8fd",
+    "date": "2026-09-09T02:23:23+02:00",
+    "title": "S04: an existing task can be started, and admission is its own act"
+  },
+  {
+    "commit": "9e210f836875eef4f476beff8698c1ca3eda7bc9",
+    "date": "2026-09-09T02:46:31+02:00",
+    "title": "M103: bytes written is not an instruction accepted"
+  },
+  {
+    "commit": "eb46411f9d884b8b8d07f65859e066499b711472",
+    "date": "2026-09-09T02:58:23+02:00",
+    "title": "M179: the liveness derivation gets a caller, and the observer is watched too"
+  },
+  {
+    "commit": "5a5c7aff1cac13972870f0cd37fcc9383a27fa64",
+    "date": "2026-09-09T03:13:40+02:00",
+    "title": "S15: the cycle leaves a receipt, and the observer gets its caller"
+  },
+  {
+    "commit": "1a36a39dc6260fa8c13de51afc7964f514e1b198",
+    "date": "2026-09-09T03:23:57+02:00",
+    "title": "M180: \"failed\" is not one thing, and an exit code is not an outcome"
+  },
+  {
+    "commit": "1fae47df458fe8fd825e2f96b81c877ccb4d422c",
+    "date": "2026-09-09T03:34:10+02:00",
+    "title": "M181: a capability is not tested by recognising a runner's name"
+  },
+  {
+    "commit": "821642fc822847d24082072defbd87b54b4218d4",
+    "date": "2026-09-09T03:44:13+02:00",
+    "title": "M155: a rule says what kind of rule it is"
+  },
+  {
+    "commit": "242eeb8fc98bb37eb30aab1c3ac44efe6de4236e",
+    "date": "2026-09-09T04:03:58+02:00",
+    "title": "M188: a run has an identity, and run_id finally carries a value"
+  },
+  {
+    "commit": "3ee0eeadbf1e18b5d63140561c0e3c5a27f1f542",
+    "date": "2026-09-09T04:12:03+02:00",
+    "title": "M152.continue: the answer reaches the work that was waiting"
+  },
+  {
+    "commit": "41a973e69047f396b45391abe3626bbf9f88494a",
+    "date": "2026-09-09T04:20:37+02:00",
+    "title": "M152: the aggregate does not compress into one enum"
+  },
+  {
+    "commit": "1364ba9228cd74ddcdbd02e389de2b50689e6da8",
+    "date": "2026-09-09T04:31:00+02:00",
+    "title": "M191: see what the agent will be told, without launching an agent"
+  },
+  {
+    "commit": "9b521a053d67bc0f48d90d1a2f1a1526fcab3dd1",
+    "date": "2026-09-09T04:40:17+02:00",
+    "title": "M189: the liveness apparatus becomes visible to the person it exists for"
+  },
+  {
+    "commit": "b9e8715060a53025a2cdfdfcbdc84506304abe9c",
+    "date": "2026-09-09T04:51:06+02:00",
+    "title": "M190: truncation that says so, and a goal with a denominator"
+  },
+  {
+    "commit": "1056b5f0d199f4a322ae9cf1dc3d61ffcaf808c4",
+    "date": "2026-09-09T05:00:28+02:00",
+    "title": "M173: a lineage that keeps every predecessor, and a comment corrected"
+  },
+  {
+    "commit": "458d78a2ac128043ee9d28e6ac5505d831ba7d3d",
+    "date": "2026-09-09T05:08:26+02:00",
+    "title": "M185: an obligation cannot be marked read, and the type is what says so"
+  },
+  {
+    "commit": "8e21fbf2b166c7b6e53a8c092c4fa0bce5c98501",
+    "date": "2026-09-09T05:17:02+02:00",
+    "title": "M186: \"started\" is not \"succeeded\", and health is not inferred from a schedule"
+  },
+  {
+    "commit": "6dffd6186960edc933852fc7548d43d87a283692",
+    "date": "2026-09-09T05:44:44+02:00",
+    "title": "S13: one name for one thing, and the shell in one place at a time"
+  },
+  {
+    "commit": "0212763f826e5d09cd1dfd7002db6f31ee0528d7",
+    "date": "2026-09-09T10:53:52+02:00",
+    "title": "FIX-PF-07.01 — chain advance reuses the existing follower identity and is idempotent"
+  },
+  {
+    "commit": "9e632a3ff470a35352e454940e711c72cc3f6723",
+    "date": "2026-09-09T12:12:36+02:00",
+    "title": "FIX-PF-07.02 — crash-safe dispatch: CAS, a durable intent before the spawn, restart reconciliation"
+  },
+  {
+    "commit": "6122ba61e041a05964e3c3c377e3e2dd5e034bbb",
+    "date": "2026-09-09T12:23:57+02:00",
+    "title": "M182: the closed insight category, and a correction that reports its outcome"
+  },
+  {
+    "commit": "851f46fb41b3c461dc6fc9a4568fc997649fa541",
+    "date": "2026-09-09T13:06:16+02:00",
+    "title": "M154: the drawer findings have been going into, finally opened"
+  },
+  {
+    "commit": "ad6d3e03e347d44c946e022865e2bf33143c844c",
+    "date": "2026-09-09T13:06:22+02:00",
+    "title": "FIX-PF-04.02 — the chain preserves the satisfaction distinction; unknown fails closed"
+  },
+  {
+    "commit": "01df3d35e3eed4979d36673a1b9348976a99a314",
+    "date": "2026-09-09T13:33:50+02:00",
+    "title": "FIX-PF-05.02 — context is materialized content-addressed; a path is not an identity"
+  },
+  {
+    "commit": "be03f710204d3b8435bc7ae427617a4592a02ac9",
+    "date": "2026-09-09T13:37:26+02:00",
+    "title": "M176: the evaluation that must exist before a profile is allowed to manage"
+  },
+  {
+    "commit": "d3b5c5841960419f66fb17df663a6124bbeb2e58",
+    "date": "2026-09-09T13:51:19+02:00",
+    "title": "S07: the build finally says what it is"
+  },
+  {
+    "commit": "0429466f39eb252bbb22ae608dc71958381122af",
+    "date": "2026-09-09T13:54:29+02:00",
+    "title": "FIX-PF-08.01 — all-prerequisite fan-in: a follower runs on ALL predecessors or not at all"
+  },
+  {
+    "commit": "da799dc92be7bbdac1f9834e4540145961102d47",
+    "date": "2026-09-09T14:03:47+02:00",
+    "title": "FIX-PF-06.03 — the persistence contract is a bounded decision, not an execution"
+  },
+  {
+    "commit": "451d6839e5ef0b5ecdd0447e3d2fe20596085983",
+    "date": "2026-09-09T14:12:10+02:00",
+    "title": "S08: one full cycle against a service that really answers"
+  },
+  {
+    "commit": "ed7249b4d52b8210902c23fc01aff24bd7c54eea",
+    "date": "2026-09-09T14:16:16+02:00",
+    "title": "FIX-PF-06.01 — the taskPipeline adapter refuses what it cannot honour"
+  },
+  {
+    "commit": "bdfea39341fc6a42ec0a710eeb62589af8c7cca2",
+    "date": "2026-09-09T14:27:25+02:00",
+    "title": "FIX-PF-06.02 — single-authority dispatch over immutable projections"
+  },
+  {
+    "commit": "d2a84b15b690636cb838dca1f921a0be421111c2",
+    "date": "2026-09-09T14:37:30+02:00",
+    "title": "docs: verify provider account switching against Orca and cswap"
+  },
+  {
+    "commit": "14bbf2aa672a60cbed6b5ab5aca352b9a25ba2f3",
+    "date": "2026-09-09T14:40:06+02:00",
+    "title": "Pin published Fabric workspace 4d78f3e28d37"
+  },
+  {
+    "commit": "32bfe67933bb259f2dd6d9fdeed56ae65e076ef1",
+    "date": "2026-09-09T14:58:28+02:00",
+    "title": "S09: an estate keeps an owner, and revoking one invalidates what was read"
+  },
+  {
+    "commit": "b01afd5b6311e0024fe054ca0b876731030d7686",
+    "date": "2026-09-09T15:00:52+02:00",
+    "title": "FIX-PF-08.02 — namespaced input merge; a collision is an explicit error"
+  },
+  {
+    "commit": "e0f4e07436f34479950e250c5960f8733f8256f2",
+    "date": "2026-09-09T15:13:24+02:00",
+    "title": "FIX-PF-09.01 — authenticated publication: only the live owner hands a result on"
+  },
+  {
+    "commit": "07a7b1c557f218a986a52af3726854bc9000c785",
+    "date": "2026-09-09T15:28:31+02:00",
+    "title": "FIX-PF-09.02 — accepted outputs are immutable; a file is not a task lease"
+  },
+  {
+    "commit": "76ce1bc14c0280df478d0b0427a529c67a1edcdd",
+    "date": "2026-09-09T16:23:37+02:00",
+    "title": "FIX-PF-10.01 — the Codex capability adapter: readiness is a channel, not a spawn"
+  },
+  {
+    "commit": "9d24151af1e81e20a8f1352f0b5bb735c74fb114",
+    "date": "2026-09-09T16:35:31+02:00",
+    "title": "docs: dated queue progress report at 44/61, loops stopped"
+  },
+  {
+    "commit": "d28c321ccca8c4ef0e803ebea5b7ba056e88bc5d",
+    "date": "2026-09-09T16:37:43+02:00",
+    "title": "docs: map changelog entry for the stop-and-report snapshot"
+  },
+  {
+    "commit": "25026daef6dc1829581ca9fe1f68495761dfd1cf",
+    "date": "2026-09-09T16:40:58+02:00",
+    "title": "design: propose provider accounts and verified conversation continuation"
+  },
+  {
+    "commit": "aafd194d068dade9078cca44cdcc4d5b38b388fe",
+    "date": "2026-09-09T16:45:10+02:00",
+    "title": "Pin published Fabric workspace a3d379cf6a03"
+  },
+  {
+    "commit": "2d132cdb9eaaa5dca9f70e2119679a9177c58b01",
+    "date": "2026-09-09T17:12:48+02:00",
+    "title": "audit: reconcile Fabric delivery and prepare bounded remediation packets"
+  },
+  {
+    "commit": "c3a5f9282fbb4610a35ee402afd230b57c0d9d54",
+    "date": "2026-09-09T17:18:24+02:00",
+    "title": "FIX-PF-10.02 — a real two-session handoff, verified not simulated"
+  },
+  {
+    "commit": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+    "date": "2026-09-09T17:20:47+02:00",
+    "title": "docs: add detailed provider account backlog and automatic switching"
+  },
+  {
+    "commit": "6b7c04a50c73778027e12c6e254ce110bbe2c142",
+    "date": "2026-09-09T17:21:07+02:00",
+    "title": "audit: cover all scenario headings and preserve later account design"
+  },
+  {
+    "commit": "a84006c0940cea4d863e189dcdb07469d1fb4ed7",
+    "date": "2026-09-09T17:23:12+02:00",
+    "title": "Pin published Fabric workspace 9ee0260cf7c8"
+  },
+  {
+    "commit": "ad2ed62c877f168fee452c766dc9f0ffdfc18b2c",
+    "date": "2026-09-09T17:31:28+02:00",
+    "title": "audit: preserve automatic switching plan and verify all 89 scenarios"
+  },
+  {
+    "commit": "5bca065066124310bcd043092dadbde77ef1046a",
+    "date": "2026-09-09T17:34:21+02:00",
+    "title": "Pin published Fabric workspace 378581b77b35"
+  },
+  {
+    "commit": "36f15ba6403829ea5014bdbfc6417dcb5acb2a59",
+    "date": "2026-09-09T19:15:11+02:00",
+    "title": "Merge sherlock/impl-20260907: the twelve findings nobody was running"
+  },
+  {
+    "commit": "8f2fbe45e814d5cdc13e0329fb6e796b3132f40d",
+    "date": "2026-09-09T19:25:23+02:00",
+    "title": "Consolidate the branches, repair what the abandoned one carried, and give the workspace an address"
+  },
+  {
+    "commit": "868cad50f6fa09dad6da34ed710d9168f25f07ba",
+    "date": "2026-09-09T19:28:06+02:00",
+    "title": "Pin published Fabric workspace 244860ad688a"
+  },
+  {
+    "commit": "c5b04eb2daab454667b452241a5d8067c4102e0a",
+    "date": "2026-09-10T00:01:34+02:00",
+    "title": "FA-01: a build that can be made from nothing, and says what it is"
+  },
+  {
+    "commit": "3b6f493e7c7bc1606c64047d43eb8880cb3137cd",
+    "date": "2026-09-10T00:06:45+02:00",
+    "title": "Pin published Fabric workspace af9a5f17bf02"
+  },
+  {
+    "commit": "20cbe5953941be3d336395dd8a0885248681911d",
+    "date": "2026-09-10T00:47:26+02:00",
+    "title": "FA-04: linking two tasks is one act, and provenance is not a dependency"
+  },
+  {
+    "commit": "c617184d9ca5992316f1872e255602da57f474fd",
+    "date": "2026-09-10T00:49:56+02:00",
+    "title": "Pin published Fabric workspace f8ea2d7d00a5"
+  },
+  {
+    "commit": "39929c4752f8d1045697b2e670805bda3e3d3e82",
+    "date": "2026-09-10T01:05:31+02:00",
+    "title": "UX28-01: a brief belongs to the task it was written for"
+  },
+  {
+    "commit": "328b9493b3d090bfde0408ca0fa08c3ba6fa4708",
+    "date": "2026-09-10T01:08:14+02:00",
+    "title": "Pin published Fabric workspace 4b3359891742"
+  },
+  {
+    "commit": "d0232534082b245b6494bdc49cb1f9ed6dac75da",
+    "date": "2026-09-10T01:31:34+02:00",
+    "title": "FA-03: an empty answer is not permission"
+  },
+  {
+    "commit": "e1de475ab0fa918f7a59a624266e598c997fb411",
+    "date": "2026-09-10T01:34:07+02:00",
+    "title": "Pin published Fabric workspace d78ac7651e7a"
+  },
+  {
+    "commit": "f66925ac93007b576cad4054da599b173ed4aeb0",
+    "date": "2026-09-10T02:00:17+02:00",
+    "title": "FA-02: no chain had ever advanced, and three swallowed failures kept it quiet"
+  },
+  {
+    "commit": "dfbcc9c66e0417a07792ca580499a8f3df12b13e",
+    "date": "2026-09-10T02:02:41+02:00",
+    "title": "Pin published Fabric workspace e38338192949"
+  },
+  {
+    "commit": "eb1034fc652e4c6d2077774b3f2c2344d068d239",
+    "date": "2026-09-10T02:20:24+02:00",
+    "title": "AX-01: a complete table with no runtime behind it"
+  },
+  {
+    "commit": "6d235a2970a8c0e855070534b7d6f0461efd3306",
+    "date": "2026-09-10T02:22:42+02:00",
+    "title": "Pin published Fabric workspace e2895b8b83d6"
+  },
+  {
+    "commit": "2224ca4bfb1d7fa0e2487ebae54a1ffe3735798a",
+    "date": "2026-09-10T02:46:29+02:00",
+    "title": "FA-06: an archive that may be called one, and a restore that cannot destroy anything"
+  },
+  {
+    "commit": "3e41b58c21ff2f490dc8bb5001db51558dddf224",
+    "date": "2026-09-10T02:48:53+02:00",
+    "title": "Pin published Fabric workspace 5926fd784106"
+  },
+  {
+    "commit": "7efad9dc7f5b2582dd2617311fbc34b99eaf59c3",
+    "date": "2026-09-10T03:11:16+02:00",
+    "title": "FA-07: the floor existed and identity did not"
+  },
+  {
+    "commit": "f3dcb72b8c99984924fc1fa178f8137e1081af4c",
+    "date": "2026-09-10T03:13:36+02:00",
+    "title": "Pin published Fabric workspace aca0403c7086"
+  },
+  {
+    "commit": "70e051c70bafda019572543f5a07d7623f02a281",
+    "date": "2026-09-10T03:32:09+02:00",
+    "title": "FA-05: the file that already knew the rule"
+  },
+  {
+    "commit": "eef846b087fc9cb335db6f3899118b6a5601e394",
+    "date": "2026-09-10T03:34:24+02:00",
+    "title": "Pin published Fabric workspace cc31ad6c2baa"
+  },
+  {
+    "commit": "b110459f59670a04481530b3223bee3fa83d94b9",
+    "date": "2026-09-10T03:59:20+02:00",
+    "title": "FA-09: containment — an allow authorised the asking, not the doing"
+  },
+  {
+    "commit": "6b5d450850f3c3cc6ccdfb8adcca4373ab46ebec",
+    "date": "2026-09-10T04:01:40+02:00",
+    "title": "Pin published Fabric workspace 0d96f6babd5b"
+  },
+  {
+    "commit": "ac093a6f5f46301f76651d4329188530aaf48e47",
+    "date": "2026-09-10T10:51:01+02:00",
+    "title": "FA-08: what a byte of agent output costs, measured before it was changed"
+  },
+  {
+    "commit": "4a6878054477037c8d9b2751b7ee556ea0379231",
+    "date": "2026-09-10T10:56:01+02:00",
+    "title": "Pin published Fabric workspace 252780ff45fe"
+  },
+  {
+    "commit": "0e5ed8585084afb875d48eafcadb7536aac2decd",
+    "date": "2026-09-10T11:19:12+02:00",
+    "title": "FA-10: forty-five per cent of the evidence ledger was not a table"
+  },
+  {
+    "commit": "557d1675fa7b9e92f5020b9a43741c8e7d168521",
+    "date": "2026-09-10T11:22:00+02:00",
+    "title": "Pin published Fabric workspace f1322a4af604"
+  },
+  {
+    "commit": "8fbe12411d1d5a86b42aa2403f365754dc277f9f",
+    "date": "2026-09-10T11:38:59+02:00",
+    "title": "M199.probe: two providers, opposite answers, and only asking could tell"
+  },
+  {
+    "commit": "071020cfde9b2520c79d06c313cbc1ce7f09cead",
+    "date": "2026-09-10T11:41:40+02:00",
+    "title": "Pin published Fabric workspace f920c91cc8f3"
+  },
+  {
+    "commit": "5ed8d2813a9676ee32af8601287a39e5b00b72f5",
+    "date": "2026-09-10T11:55:15+02:00",
+    "title": "M199.accounts: \"indistinguishable\" is a third answer, not a rounding error"
+  },
+  {
+    "commit": "a012fae3fb1aebe67b09290c56668f100ec02d05",
+    "date": "2026-09-10T11:57:53+02:00",
+    "title": "Pin published Fabric workspace 5f1d608782b6"
+  },
+  {
+    "commit": "9cd66bb3b9c10e258bc59c9e53d5967485c46c9f",
+    "date": "2026-09-10T12:12:18+02:00",
+    "title": "M199.auth: cleaning is a guess about a list, reading back is a measurement"
+  },
+  {
+    "commit": "a0ade08283b04521e3d54dbca96414b8e8ccf491",
+    "date": "2026-09-10T12:14:50+02:00",
+    "title": "Pin published Fabric workspace a2f36fbd7c4e"
+  },
+  {
+    "commit": "bcc55908f9b67644d35345251b605087ca2320c2",
+    "date": "2026-09-10T12:46:30+02:00",
+    "title": "M199.usage: whose headroom a reading is about — and a 414 with no author"
+  },
+  {
+    "commit": "43a962f12c1969cd8c241c2e0162b70f92383c2b",
+    "date": "2026-09-10T12:49:13+02:00",
+    "title": "Pin published Fabric workspace 25fa62413a99"
+  },
+  {
+    "commit": "bd116912be0553bfb25dbcbbd55b936443316457",
+    "date": "2026-09-10T13:02:18+02:00",
+    "title": "M199.binding: the guarantee is that the function cannot reach it"
+  },
+  {
+    "commit": "52c581e89d876a8ba67498b1013e4c71c7029524",
+    "date": "2026-09-10T13:04:54+02:00",
+    "title": "Pin published Fabric workspace f9eeb03e5244"
+  },
+  {
+    "commit": "9f5b1dc216e974badda317cd78cb4ab7bb1a8162",
+    "date": "2026-09-10T13:18:17+02:00",
+    "title": "M199.resume: a switch that cannot be confirmed is not a switch that worked"
+  },
+  {
+    "commit": "efc1d8a946fa4a9a0a605b9f978643d42bc37cfa",
+    "date": "2026-09-10T13:20:44+02:00",
+    "title": "Pin published Fabric workspace 48cb917c9b76"
+  },
+  {
+    "commit": "345333298ef66356c1e648f8abeb43e08ab96022",
+    "date": "2026-09-10T13:33:57+02:00",
+    "title": "M199.auto: the autonomy that cannot engage here, and says so"
+  },
+  {
+    "commit": "647472a5c1fc3d5707f54b97818f762748896baa",
+    "date": "2026-09-10T13:36:34+02:00",
+    "title": "Pin published Fabric workspace 2f5a4d4f997a"
+  },
+  {
+    "commit": "199f8379925c80330ebd9cdf3388b07f77e19616",
+    "date": "2026-09-10T13:53:25+02:00",
+    "title": "M199.ui (partial): a number nobody read is never shown as a number"
+  },
+  {
+    "commit": "a06dcbcb8933e2cd1e6bef516def2481492a29c8",
+    "date": "2026-09-10T13:56:31+02:00",
+    "title": "Pin published Fabric workspace a13c02aa78fe"
+  },
+  {
+    "commit": "000800a32a5a55b65941c039320a7dd9c9ea868d",
+    "date": "2026-09-10T14:10:53+02:00",
+    "title": "M199.acceptance: not executed, and that is the correct answer"
+  },
+  {
+    "commit": "205e4f2a17d1e0da8cf34366515227a44a5f98a6",
+    "date": "2026-09-10T14:14:08+02:00",
+    "title": "Pin published Fabric workspace dbd273014b3e"
+  },
+  {
+    "commit": "137b05898ed316b4a9a74068ef12dd8d4c0224a7",
+    "date": "2026-09-10T14:51:49+02:00",
+    "title": "UX28-02: a renderer payload that knows whose it is"
+  },
+  {
+    "commit": "882381f57e65f73f05174bb51372fb10339e6453",
+    "date": "2026-09-10T14:54:28+02:00",
+    "title": "Pin published Fabric workspace dafde9d2cf36"
+  },
+  {
+    "commit": "a1c60780c1411f012337c8c6d85569a4b08e3b8b",
+    "date": "2026-09-10T15:21:49+02:00",
+    "title": "UX28-03: the digest stops acknowledging news it never showed"
+  },
+  {
+    "commit": "5978b80560d21217c0f2368942c91423bab171d7",
+    "date": "2026-09-10T15:24:41+02:00",
+    "title": "Pin published Fabric workspace 04767ed18784"
+  },
+  {
+    "commit": "86e030eaef4e31d810ef167a3a5f215902cdbbce",
+    "date": "2026-09-10T15:45:32+02:00",
+    "title": "UX28-04: a card the board could not put back"
+  },
+  {
+    "commit": "58d00d50c0be486d3ecd0a927b3307af1cb364a8",
+    "date": "2026-09-10T15:48:59+02:00",
+    "title": "Pin published Fabric workspace 69a52c99a916"
+  },
+  {
+    "commit": "b116345a61812eeff3b54279fdea44c03b811118",
+    "date": "2026-09-10T16:15:13+02:00",
+    "title": "UX28-05: a count that could not fail, and a snapshot that knew no scope"
+  },
+  {
+    "commit": "bf7bc841f21636a756140aea449688a8534b0b5f",
+    "date": "2026-09-10T16:18:34+02:00",
+    "title": "Pin published Fabric workspace e4ab787e4047"
+  },
+  {
+    "commit": "d9bde81eb4cc394dbbcddde58183a2e222163013",
+    "date": "2026-09-10T16:45:43+02:00",
+    "title": "UX28-06: a ref has two projects, and they were one argument"
+  },
+  {
+    "commit": "ea03b64165db226f83c7f80a255da4fffbfd795e",
+    "date": "2026-09-10T16:48:19+02:00",
+    "title": "Pin published Fabric workspace ec3638f4d7b6"
+  },
+  {
+    "commit": "4f1cff11cd5f962878b4d35377e0d5cb0d5bc025",
+    "date": "2026-09-10T17:07:35+02:00",
+    "title": "UX28-07: six counts that skipped the one place scope is enforced"
+  },
+  {
+    "commit": "5d6ee612c9f18ca5c0b65febb454d49b245b88f5",
+    "date": "2026-09-10T17:09:49+02:00",
+    "title": "Pin published Fabric workspace 8ffa2a0fed39"
+  },
+  {
+    "commit": "2efc53e07ae1ee35675f2542704513804c7b1abc",
+    "date": "2026-09-10T17:25:55+02:00",
+    "title": "UX28-08: \"nobody counted\" is not \"nothing was cut\""
+  },
+  {
+    "commit": "8985c525a363c1e559d3c01b57466aac713cf65d",
+    "date": "2026-09-10T17:28:13+02:00",
+    "title": "Pin published Fabric workspace e8804d49a296"
+  },
+  {
+    "commit": "07c9ef135e2686f35530121329683cfe4744fc68",
+    "date": "2026-09-10T17:46:10+02:00",
+    "title": "UX28-09: a field that promised five stores and asked three"
+  },
+  {
+    "commit": "629c51cdc642c9d994ba47f59b59c0c89d5d9e19",
+    "date": "2026-09-10T17:48:16+02:00",
+    "title": "Pin published Fabric workspace 5a50213a0ca1"
+  },
+  {
+    "commit": "59c8966d79193c8299dc54f76fbf3da00ae7dea0",
+    "date": "2026-09-10T18:04:31+02:00",
+    "title": "UX28-10: no limit, no threshold, and nothing asked"
+  },
+  {
+    "commit": "040eeba3a0d2b71ff179284c9ed7592827788953",
+    "date": "2026-09-10T18:06:42+02:00",
+    "title": "Pin published Fabric workspace d72d9c840ef6"
+  },
+  {
+    "commit": "d9f722f4aa373295fffffc88b4a1298b9a0b7a74",
+    "date": "2026-09-10T18:27:47+02:00",
+    "title": "UX28-15: a linter that knew the answer for seven iterations and ran nowhere"
+  },
+  {
+    "commit": "2df2ea9e668701804e622975b9c5db5be4d9c0aa",
+    "date": "2026-09-10T18:30:06+02:00",
+    "title": "Pin published Fabric workspace ad785fc90b57"
+  },
+  {
+    "commit": "a91aa4db4e2fff4d1644e64d44a0f58aa95458b9",
+    "date": "2026-09-10T19:09:36+02:00",
+    "title": "UX28-11: one settings save, one revision, and a draft the product cannot erase"
+  },
+  {
+    "commit": "2c21c044f7988a224453e84f8fda889ed8b129ff",
+    "date": "2026-09-10T19:12:12+02:00",
+    "title": "Pin published Fabric workspace 5eb1df3a8c38"
+  },
+  {
+    "commit": "1ab36acfc363a3e78eaa7fce63d35a4412368ae9",
+    "date": "2026-09-10T19:33:30+02:00",
+    "title": "UX28-12: the receipt M168 built on purpose, and the only caller that read it"
+  },
+  {
+    "commit": "19bc6d02f71c3b7119901a41e5de182ec29dba48",
+    "date": "2026-09-10T19:35:43+02:00",
+    "title": "Pin published Fabric workspace da8f4ed07f60"
+  },
+  {
+    "commit": "aa3cec6e63f1e7257fafa0e61760d205702542c6",
+    "date": "2026-09-10T20:04:47+02:00",
+    "title": "UX28-13: the estate agents screen shows the session, not a snapshot of it"
+  },
+  {
+    "commit": "ca90bbbd71b4b27f93ed04a5ed95a68e519b58ee",
+    "date": "2026-09-10T20:06:54+02:00",
+    "title": "Pin published Fabric workspace 7b600c1343bc"
+  },
+  {
+    "commit": "7ef7c43ac52cd550949c03e91c6b00779098982f",
+    "date": "2026-09-10T20:39:11+02:00",
+    "title": "UX28-14: the apparatus for a walk no machine can perform, and the defects found on the way"
+  },
+  {
+    "commit": "2ca7674f98754f5490b59bbf46a674d554bd5e9f",
+    "date": "2026-09-10T20:41:54+02:00",
+    "title": "Pin published Fabric workspace 89a857b681f7"
+  },
+  {
+    "commit": "8b02055b995fda2718a290d16647a05cf341b9e2",
+    "date": "2026-09-10T21:16:50+02:00",
+    "title": "CO-161: each probe rebuilds its own estate — 7.56s becomes 36ms, nothing deleted"
+  },
+  {
+    "commit": "63b2b73cb234c9f495170528a170190e8a231591",
+    "date": "2026-09-10T21:19:37+02:00",
+    "title": "Pin published Fabric workspace fc65c11cf5b6"
+  },
+  {
+    "commit": "d8de66c3c3b19854d63a510458e3aec3bf6ed4d8",
+    "date": "2026-09-10T21:47:50+02:00",
+    "title": "AX-02: one observation, so the watcher and the widget stop disagreeing"
+  },
+  {
+    "commit": "d951c06cb6b978b4c5a3412e78ab796e9e8b287a",
+    "date": "2026-09-10T21:51:24+02:00",
+    "title": "AX-02: record the deferred workspace publication"
+  },
+  {
+    "commit": "4db06952452ec45c5bfe0d5c88558c8bdf875bdc",
+    "date": "2026-09-10T21:56:25+02:00",
+    "title": "Record the crossed runs: `git add -A` carried another agent's work"
+  },
+  {
+    "commit": "596089b9f97e1d0a4adf20c840e16fecde2c6b84",
+    "date": "2026-09-10T22:29:31+02:00",
+    "title": "AX-05: a half-described project survives quitting"
+  },
+  {
+    "commit": "84152988652c0366afd937c104caf0908c8c5fd7",
+    "date": "2026-09-10T22:46:25+02:00",
+    "title": "AX-05b: a fence for the field written on every path and read on none"
+  },
+  {
+    "commit": "38c37d31b17edba74860a9096f94a28550317ba6",
+    "date": "2026-09-10T23:15:50+02:00",
+    "title": "AX-05c: an entity gets an address the route itself can hold"
+  },
+  {
+    "commit": "e68b3f7639b6d0f16b0b97e372a24cb59f394883",
+    "date": "2026-09-10T23:34:42+02:00",
+    "title": "AX-03: one answer reaches the waiting work exactly once"
+  },
+  {
+    "commit": "42637279206cebe6c717ec44049aada3126df14b",
+    "date": "2026-09-10T23:52:28+02:00",
+    "title": "AX-04: the context a session ran from is readable, or honestly absent"
+  },
+  {
+    "commit": "5e523b47fc373aa62512318f148c049b2b82890e",
+    "date": "2026-09-11T00:08:21+02:00",
+    "title": "AX-08: a cycle receipt says what the pass did, not what it defaulted to"
+  },
+  {
+    "commit": "ade0954de3336c915ec11f28466ed5205e1314c4",
+    "date": "2026-09-11T00:24:19+02:00",
+    "title": "AX-10: a criterion nobody could ask is not a criterion anybody passed"
+  },
+  {
+    "commit": "8f6af9b0a1c5d91c91f074e67445d4c9184a4c35",
+    "date": "2026-09-11T00:36:03+02:00",
+    "title": "AX-12: the folder is not a backup, and the product finally says so"
+  },
+  {
+    "commit": "cb92c8918a79658e5621b9d999a41a101cdff4d5",
+    "date": "2026-09-11T00:46:46+02:00",
+    "title": "AX-17: an inherited verdict is a debt, not a permanent warning"
+  },
+  {
+    "commit": "08882bd58812e19b4bc2e45b3bdee5b62ee103b9",
+    "date": "2026-09-11T00:59:19+02:00",
+    "title": "AX-06: a false hole is the mirror of a false completeness"
+  },
+  {
+    "commit": "9ad50c95480d64689069a2b610ba76264065e5e8",
+    "date": "2026-09-11T01:12:13+02:00",
+    "title": "AX-07: an invariant with no callers is true in the weakest possible way"
+  },
+  {
+    "commit": "49b0a6fef87868c1c049a5ae01a2accc1c56059f",
+    "date": "2026-09-11T01:22:33+02:00",
+    "title": "AX-09: the card has no subject, and establishing that was the work"
+  },
+  {
+    "commit": "d9a38f65a3eeffcd18933930f7e751dbd0d070c7",
+    "date": "2026-09-11T01:35:19+02:00",
+    "title": "AX-11: a probe can be too specific to notice the thing it was written for"
+  },
+  {
+    "commit": "8652799b1eaf7ed60c06123cc66117aafce0c88d",
+    "date": "2026-09-11T01:50:29+02:00",
+    "title": "AX-13: the runaway was reachable through the guard built to stop it"
+  },
+  {
+    "commit": "1dab3a662ee9abe81405bd86ddb78fd3147e464f",
+    "date": "2026-09-11T02:02:36+02:00",
+    "title": "AX-14: a doctrine applied to three readers of four is a habit with a gap"
+  },
+  {
+    "commit": "dbe72552d55b27e543b74107bd009898a9f4ca41",
+    "date": "2026-09-11T02:13:13+02:00",
+    "title": "AX-15: the boundary was on three doors of four, and the fourth led to the OS"
+  },
+  {
+    "commit": "2e4b25eef6fdc20e8d0e3428f71f243c31a03bfe",
+    "date": "2026-09-11T02:25:04+02:00",
+    "title": "AX-16: the order of two lines was the defect"
+  },
+  {
+    "commit": "c39b4962326c7fb858f949f7934bfeecc52e8832",
+    "date": "2026-09-11T02:42:38+02:00",
+    "title": "UXA-C01: a failed read of what is waiting rendered as a measured calm"
+  },
+  {
+    "commit": "c3bbf5d427a6e48b194b8662f86ae998b9fb9531",
+    "date": "2026-09-11T03:00:24+02:00",
+    "title": "UXA-C02: the call succeeded and the answer was not the whole answer"
+  },
+  {
+    "commit": "29f084d7d91881777e8bf10a5b5bf9199239c07c",
+    "date": "2026-09-11T03:22:48+02:00",
+    "title": "UXA-C03: the erasure was in a type annotation"
+  },
+  {
+    "commit": "ab3a42b6f431d3508919042b139f42c67a565819",
+    "date": "2026-09-11T03:37:50+02:00",
+    "title": "UXA-C04: sixty-four lines, four ways to lose the truth"
+  },
+  {
+    "commit": "afa17cdc187c2d6574742025e7b26beeb67c22b9",
+    "date": "2026-09-11T03:51:03+02:00",
+    "title": "UXA-C05: one value, four doors, one of them right"
+  },
+  {
+    "commit": "2641449d6de11aaff6ceef446bb72a06c4e4d3f4",
+    "date": "2026-09-11T04:06:56+02:00",
+    "title": "UXA-C06: the journal is the spine and its rows led nowhere"
+  },
+  {
+    "commit": "64126c2ac388db1150efe94734ade8f04dbdfa32",
+    "date": "2026-09-11T13:30:51+02:00",
+    "title": "WSNAV: the site stopped disappearing under its own reports"
+  },
+  {
+    "commit": "8edf8b5a4ea16241bff9fe30ba08ec56e3641bd6",
+    "date": "2026-09-11T13:33:47+02:00",
+    "title": "Pin published Fabric workspace c9bd917eec65"
+  },
+  {
+    "commit": "7ece75c02f92c3f78a93a9a0d99a425577c1ea37",
+    "date": "2026-09-11T13:37:41+02:00",
+    "title": "WSNAV receipt: release v50, measured against the live site"
+  },
+  {
+    "commit": "80b3583dfd52be1c0ddafb6a0cbf9d2468fa668f",
+    "date": "2026-09-11T13:43:19+02:00",
+    "title": "WSNAV ledger: the code graph could not be used, and CO-164 says so"
+  },
+  {
+    "commit": "4c39002624ee5aca0c4cf71a8a0a0f278c80afbb",
+    "date": "2026-09-11T13:49:36+02:00",
+    "title": "Pin published Fabric workspace caee0c0cf1c1"
+  },
+  {
+    "commit": "d9a04e6918fafeda7327fb190a465ba79721d97e",
+    "date": "2026-09-12T00:53:41+02:00",
+    "title": "The map says which section you are reading, and four more plants"
+  },
+  {
+    "commit": "8a8c747ca04f89c6fdc464ff7d8f47d60ec43e43",
+    "date": "2026-09-12T00:58:51+02:00",
+    "title": "Close the 2026-09-09 plan, and teach a receipt to tell a move from an edit"
+  },
+  {
+    "commit": "566ca9d43ef06f67958875379edaf287cc04d708",
+    "date": "2026-09-12T01:13:58+02:00",
+    "title": "Pin published Fabric workspace 0498432a2db1"
+  },
+  {
+    "commit": "47caa19ccfe31170fd9b117db08168d95bebd8e8",
+    "date": "2026-09-12T01:31:15+02:00",
+    "title": "WSUI ledger: eight rows, and a citation that could go stale inside HEAD"
+  },
+  {
+    "commit": "bfc8ff9483a42128f823e9931d015a32c66b490c",
+    "date": "2026-09-12T01:35:01+02:00",
+    "title": "Pin published Fabric workspace 71840e15e093"
+  },
+  {
+    "commit": "c13fdf2f552150daadf7dfd0239010545e05be5f",
+    "date": "2026-09-12T03:09:49+02:00",
+    "title": "MOCK: a state offered on seventy-two screens and drawn on six"
+  },
+  {
+    "commit": "88f78c5f0dff7250fa04cf4e61f09d14bb08e0ec",
+    "date": "2026-09-12T03:12:50+02:00",
+    "title": "Pin published Fabric workspace 3d0da0f5c133"
+  },
+  {
+    "commit": "46c93268d8bb8d3c7ed43e61a2f06c52b3f5ea49",
+    "date": "2026-09-12T11:29:51+02:00",
+    "title": "V1PLAN: three levels unfold the same five lanes, and the hero gets a name"
+  },
+  {
+    "commit": "854d81f236fceef81dbb174db601dd60d344c7ef",
+    "date": "2026-09-12T11:33:16+02:00",
+    "title": "Pin published Fabric workspace f75228a90b7f"
+  },
+  {
+    "commit": "3c09749e34ba1036d970734aab298dcc1ec19be3",
+    "date": "2026-09-12T12:05:06+02:00",
+    "title": "V1REENTRY: fifteen lanes measured against the code, and five absences share one address"
+  },
+  {
+    "commit": "39204c2d011b65998b6f1705255d6bbf243afe56",
+    "date": "2026-09-12T12:07:42+02:00",
+    "title": "Pin published Fabric workspace 839266512e70"
+  },
+  {
+    "commit": "5a9e820d4a992db20ed47843e14318efb35c8dde",
+    "date": "2026-09-12T12:59:25+02:00",
+    "title": "V1DESIGN: spaciousness bought with disclosure, play bought with the journal"
+  },
+  {
+    "commit": "6cedd0bd944ee3d01bee4c4ffcde4c42b80641db",
+    "date": "2026-09-12T13:02:31+02:00",
+    "title": "Pin published Fabric workspace 5dc72914421b"
+  },
+  {
+    "commit": "140c01ae4d4affa590607f0f5dca7cda6ab08dcb",
+    "date": "2026-09-12T13:34:14+02:00",
+    "title": "V1WIKI: the wiki's doors renamed to intents, and every preview is the artifact itself"
+  },
+  {
+    "commit": "7dd7916d4b44609a60749327a651589a22f11228",
+    "date": "2026-09-12T13:36:58+02:00",
+    "title": "Pin published Fabric workspace 512610b94b71"
+  },
+  {
+    "commit": "d4ef6b337743ed97dc33f8e38ec8c43315e71c6f",
+    "date": "2026-09-12T22:44:38+02:00",
+    "title": "V1HOME: the home greets, the figures name their registers, five lanes unfold"
+  },
+  {
+    "commit": "9f7869d5c2b7895625da43ccce054a713a4505ff",
+    "date": "2026-09-12T22:48:08+02:00",
+    "title": "Pin published Fabric workspace ca1da91ceac9"
+  },
+  {
+    "commit": "29950b90477ba7ab2ceeca085349642e7a80c7ec",
+    "date": "2026-09-12T23:16:41+02:00",
+    "title": "V1FPROF: the dashboard is Fabric's page — a generated face, a computed level"
+  },
+  {
+    "commit": "a838073de097be1ce136730c8ef41070929a7196",
+    "date": "2026-09-12T23:19:14+02:00",
+    "title": "Pin published Fabric workspace 40e6d0fe5fee"
+  }
+]

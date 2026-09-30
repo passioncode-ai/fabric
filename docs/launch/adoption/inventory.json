@@ -1,0 +1,4833 @@
+{
+  "baseline": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
+  "method": "Read-only static source audit. No browser or runtime acceptance. Explicit canonical Scenarios fields parsed only within own heading, not contaminated model unions. Existing model status is descriptive historical evidence; source line receipts identify baseline. Proposed introduction stages are design recommendations, not measured conversion. Root synthesis aligns proposed introduction stages with journey.json S0–S6; raw batch proposal remains in audit/2026-09-17-inventory.md. R0 target routes appended 2026-09-25; old pinned evidence retained, new canonical links explicitly target current documents.",
+  "counts": {
+    "views": 104,
+    "families": 20,
+    "each_view_exactly_once": true
+  },
+  "families": [
+    {
+      "id": "entry",
+      "title": "Вход и первый проект",
+      "outcome": "Понять обещание и сохранить свою первую работу",
+      "introduction": "S0: своё начало; для приглашённого — существующая работа",
+      "scope_recommendation": "R0 узкий запуск; публичный вход external",
+      "views": [
+        {
+          "view": "landing",
+          "route": "docs/reports/product.html#view-landing",
+          "title": "Публичный вход",
+          "catalogue_horizon": "external",
+          "task_ids": [
+            "S11",
+            "S07"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-29",
+              "source": "docs/ux/screens.md:553",
+              "explicit_scenarios": [
+                "SCN-038"
+              ],
+              "runtime_description": "External repository указан в registry; в этом проходе сайт не запускался и новая визуальная версия не проверялась.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-038",
+              "line": 1024,
+              "status": "draft",
+              "coverage": "none from this repository — the subject is `passioncode-ai.github.io`, and a citation this tree cannot resolve is not a",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "onboarding",
+          "route": "docs/reports/product.html#view-onboarding",
+          "title": "Новый проект",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S09",
+            "S01",
+            "S13",
+            "S14",
+            "M17"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-27",
+              "source": "docs/ux/screens.md:516",
+              "explicit_scenarios": [
+                "SCN-031",
+                "SCN-033",
+                "SCN-059"
+              ],
+              "runtime_description": "Onboarding form построена; readiness/first useful result team funnel S09 ещё target.",
+              "alias_of": null
+            },
+            {
+              "screen": "SCR-02",
+              "source": "docs/ux/screens.md:113",
+              "explicit_scenarios": [
+                "SCN-001",
+                "SCN-002"
+              ],
+              "runtime_description": "Базовая форма построена; выбор starter, seeded PM/routines и activation review отсутствуют.",
+              "alias_of": "SCR-27"
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-001",
+              "line": 118,
+              "status": "validated",
+              "coverage": "none yet — project creation is built (`apps/desktop/src/renderer/src/Onboarding.tsx`), the STARTER it describes is not: nothing offers a template to create from",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-002",
+              "line": 140,
+              "status": "validated",
+              "coverage": "none yet — an observer that watches across projects needs a producer other than the operator (M20), which is unscheduled",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-031",
+              "line": 810,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/Onboarding.tsx`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-033",
+              "line": 886,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/main/index.ts`, `apps/desktop/src/renderer/src/ProjectHome.tsx`, `apps/desktop/src/shared/repoWatch.ts`, `apps/desktop/src/renderer/src/EstateAgents.test.tsx`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-059",
+              "line": 1552,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "launch-start",
+          "route": "docs/reports/product.html#view-launch-start",
+          "title": "Первый проект · пошаговая настройка",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S14",
+            "M185"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-27",
+              "source": "docs/ux/screens.md:516",
+              "explicit_scenarios": [
+                "SCN-031",
+                "SCN-033",
+                "SCN-059"
+              ],
+              "runtime_description": "Onboarding form построена; readiness/first useful result team funnel S09 ещё target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-031",
+              "line": 810,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/Onboarding.tsx`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-033",
+              "line": 886,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/main/index.ts`, `apps/desktop/src/renderer/src/ProjectHome.tsx`, `apps/desktop/src/shared/repoWatch.ts`, `apps/desktop/src/renderer/src/EstateAgents.test.tsx`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-059",
+              "line": 1552,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "launch-guide",
+          "route": "docs/reports/product.html#view-launch-guide",
+          "title": "Знакомство на своём проекте",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S14",
+            "M185"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-31",
+              "source": "docs/ux/screens.md:605",
+              "explicit_scenarios": [
+                "SCN-040",
+                "SCN-041",
+                "SCN-060"
+              ],
+              "runtime_description": "ProjectHome панели/kanban/task field built; target preview composition и адресуемые readers ещё planned.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-040",
+              "line": 1082,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/decisions.ts`, `apps/desktop/src/renderer/src/DecisionsSection.tsx`, `apps/desktop/src/shared/decisions.test.ts`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-041",
+              "line": 1104,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/ladder.ts`, `apps/desktop/src/renderer/src/components/Board.tsx`, `apps/desktop/test/operating-surfaces.test.mjs`, `ProjectHome.tsx#BoardSection`, `apps/desktop/src/renderer/src/BoardSection.test.tsx`. UX28-04 closed the rejection path and the three rules above; the keyboard move is a native `select` and stays one, which is the card's own exclusion. `draft` rather than `built` because no run has watched an agent move its own card on a live board",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-060",
+              "line": 1577,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "launch-help",
+          "route": "docs/reports/product.html#view-launch-help",
+          "title": "Fabric · руководство и примеры",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S14",
+            "M185"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-44",
+              "source": "docs/ux/screens.md:887",
+              "explicit_scenarios": [
+                "SCN-061"
+              ],
+              "runtime_description": "Новый целевой экран. Production UI не реализован.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-061",
+              "line": 1602,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "r0-source",
+          "route": "docs/reports/product.html#view-r0-source",
+          "title": "Выбрать проект",
+          "catalogue_horizon": "launch",
+          "task_ids": [
+            "S09",
+            "S01",
+            "S13",
+            "S14",
+            "M17"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-27",
+              "source": "docs/ux/screens.md",
+              "source_href": "../ux/screens.md",
+              "explicit_scenarios": [
+                "SCN-095"
+              ],
+              "runtime_description": "2026-09-25 target composition; native acceptance pending.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-095",
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "r0-discovery",
+          "route": "docs/reports/product.html#view-r0-discovery",
+          "title": "Fabric знакомится с проектом",
+          "catalogue_horizon": "launch",
+          "task_ids": [
+            "S09",
+            "S01",
+            "S13",
+            "S14",
+            "M17"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-27",
+              "source": "docs/ux/screens.md",
+              "source_href": "../ux/screens.md",
+              "explicit_scenarios": [
+                "SCN-095"
+              ],
+              "runtime_description": "2026-09-25 target composition; native acceptance pending.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-095",
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "r0-guide",
+          "route": "docs/reports/product.html#view-r0-guide",
+          "title": "Знакомство по ходу работы",
+          "catalogue_horizon": "launch",
+          "task_ids": [
+            "M194",
+            "M175",
+            "M166",
+            "M167",
+            "M176",
+            "S15"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-44",
+              "source": "docs/ux/screens.md",
+              "source_href": "../ux/screens.md",
+              "explicit_scenarios": [
+                "SCN-095"
+              ],
+              "runtime_description": "2026-09-25 target composition; native acceptance pending.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-095",
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "orientation",
+      "title": "Обзор и возврат",
+      "outcome": "Понять сейчас/дальше и вернуться в нужный проект",
+      "introduction": "S1: первое понимание; S2: настоящий возврат",
+      "scope_recommendation": "R0",
+      "views": [
+        {
+          "view": "estate",
+          "route": "docs/reports/product.html#view-estate",
+          "title": "Обзор работы",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S13",
+            "S14",
+            "M151",
+            "M185",
+            "M186",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-30",
+              "source": "docs/ux/screens.md:575",
+              "explicit_scenarios": [
+                "SCN-043",
+                "SCN-044",
+                "SCN-059",
+                "SCN-060",
+                "SCN-092",
+                "SCN-093"
+              ],
+              "runtime_description": "EstateHome/Profile/Attention/feed построены; единые Board top5, Inbox и Cycles previews target.",
+              "alias_of": null
+            },
+            {
+              "screen": "SCR-01",
+              "source": "docs/ux/screens.md:96",
+              "explicit_scenarios": [
+                "SCN-001",
+                "SCN-006",
+                "SCN-007"
+              ],
+              "runtime_description": "Частично реализовано: список/пины/сессии; многомерная health и PM readiness не реализованы.",
+              "alias_of": "SCR-30"
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-001",
+              "line": 118,
+              "status": "validated",
+              "coverage": "none yet — project creation is built (`apps/desktop/src/renderer/src/Onboarding.tsx`), the STARTER it describes is not: nothing offers a template to create from",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-006",
+              "line": 228,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-007",
+              "line": 248,
+              "status": "validated",
+              "coverage": "`apps/desktop/src/shared/attention.ts`, `apps/desktop/src/renderer/src/AttentionPanel.tsx`, `apps/desktop/src/shared/attention.test.ts`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-043",
+              "line": 1165,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/favourites.ts`, `apps/desktop/src/main/favourites.ts`, `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/shared/favourites.test.ts`, `apps/desktop/src/renderer/src/halfShipped.test.tsx`. `draft` rather than `built` because no run has watched an operator with more than six projects choose which to release",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-044",
+              "line": 1186,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/ProfileSection.tsx`, `apps/desktop/src/shared/types.ts#EstateSummary`, the `estate:summary` handler in `apps/desktop/src/main/index.ts`. CORRECTED 2026-09-10 (UX28-03): this row cited `apps/desktop/src/shared/digest.ts`, `apps/desktop/src/renderer/src/DigestSection.tsx` and `apps/desktop/src/shared/digest.test.ts`, which are the project page's \"where we left off\" band and not the manager's profile at all — so the digest appeared covered by a scenario about something else, and had no scenario of its own until SCN-090",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-059",
+              "line": 1552,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-060",
+              "line": 1577,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-092",
+              "line": 2207,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-093",
+              "line": 2229,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "project",
+          "route": "docs/reports/product.html#view-project",
+          "title": "Проект",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S01",
+            "S04",
+            "S13",
+            "S14",
+            "M151",
+            "M189",
+            "M190",
+            "M173",
+            "M191"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-31",
+              "source": "docs/ux/screens.md:605",
+              "explicit_scenarios": [
+                "SCN-040",
+                "SCN-041",
+                "SCN-060"
+              ],
+              "runtime_description": "ProjectHome панели/kanban/task field built; target preview composition и адресуемые readers ещё planned.",
+              "alias_of": null
+            },
+            {
+              "screen": "SCR-03",
+              "source": "docs/ux/screens.md:127",
+              "explicit_scenarios": [
+                "SCN-001",
+                "SCN-007",
+                "SCN-011"
+              ],
+              "runtime_description": "ProjectHome реализован; полный readiness/configuration overview старого контракта отсутствует.",
+              "alias_of": "SCR-31"
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-001",
+              "line": 118,
+              "status": "validated",
+              "coverage": "none yet — project creation is built (`apps/desktop/src/renderer/src/Onboarding.tsx`), the STARTER it describes is not: nothing offers a template to create from",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-007",
+              "line": 248,
+              "status": "validated",
+              "coverage": "`apps/desktop/src/shared/attention.ts`, `apps/desktop/src/renderer/src/AttentionPanel.tsx`, `apps/desktop/src/shared/attention.test.ts`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-011",
+              "line": 332,
+              "status": "validated",
+              "coverage": "the resolve-once half only — `apps/desktop/src/main/commands/proposalCommands.ts`, `apps/desktop/src/shared/proposals.ts`, `apps/desktop/src/renderer/src/AttentionPanel.tsx`, `apps/desktop/src/renderer/src/AttentionPanel.test.tsx`, `apps/desktop/src/shared/proposals.test.ts`. NOT covered: SCR-11, the resolution preview of step 2, `supersede`, and the cross-project links of step 3.",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-040",
+              "line": 1082,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/decisions.ts`, `apps/desktop/src/renderer/src/DecisionsSection.tsx`, `apps/desktop/src/shared/decisions.test.ts`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-041",
+              "line": 1104,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/ladder.ts`, `apps/desktop/src/renderer/src/components/Board.tsx`, `apps/desktop/test/operating-surfaces.test.mjs`, `ProjectHome.tsx#BoardSection`, `apps/desktop/src/renderer/src/BoardSection.test.tsx`. UX28-04 closed the rejection path and the three rules above; the keyboard move is a native `select` and stays one, which is the card's own exclusion. `draft` rather than `built` because no run has watched an agent move its own card on a live board",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-060",
+              "line": 1577,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "launch-home",
+          "route": "docs/reports/product.html#view-launch-home",
+          "title": "Fabric · главный экран запуска",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S13",
+            "S14",
+            "M151",
+            "M185",
+            "M186",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-30",
+              "source": "docs/ux/screens.md:575",
+              "explicit_scenarios": [
+                "SCN-043",
+                "SCN-044",
+                "SCN-059",
+                "SCN-060",
+                "SCN-092",
+                "SCN-093"
+              ],
+              "runtime_description": "EstateHome/Profile/Attention/feed построены; единые Board top5, Inbox и Cycles previews target.",
+              "alias_of": null
+            },
+            {
+              "screen": "SCR-01",
+              "source": "docs/ux/screens.md:96",
+              "explicit_scenarios": [
+                "SCN-001",
+                "SCN-006",
+                "SCN-007"
+              ],
+              "runtime_description": "Частично реализовано: список/пины/сессии; многомерная health и PM readiness не реализованы.",
+              "alias_of": "SCR-30"
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-001",
+              "line": 118,
+              "status": "validated",
+              "coverage": "none yet — project creation is built (`apps/desktop/src/renderer/src/Onboarding.tsx`), the STARTER it describes is not: nothing offers a template to create from",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-006",
+              "line": 228,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-007",
+              "line": 248,
+              "status": "validated",
+              "coverage": "`apps/desktop/src/shared/attention.ts`, `apps/desktop/src/renderer/src/AttentionPanel.tsx`, `apps/desktop/src/shared/attention.test.ts`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-043",
+              "line": 1165,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/favourites.ts`, `apps/desktop/src/main/favourites.ts`, `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/shared/favourites.test.ts`, `apps/desktop/src/renderer/src/halfShipped.test.tsx`. `draft` rather than `built` because no run has watched an operator with more than six projects choose which to release",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-044",
+              "line": 1186,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/ProfileSection.tsx`, `apps/desktop/src/shared/types.ts#EstateSummary`, the `estate:summary` handler in `apps/desktop/src/main/index.ts`. CORRECTED 2026-09-10 (UX28-03): this row cited `apps/desktop/src/shared/digest.ts`, `apps/desktop/src/renderer/src/DigestSection.tsx` and `apps/desktop/src/shared/digest.test.ts`, which are the project page's \"where we left off\" band and not the manager's profile at all — so the digest appeared covered by a scenario about something else, and had no scenario of its own until SCN-090",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-059",
+              "line": 1552,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-060",
+              "line": 1577,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-092",
+              "line": 2207,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-093",
+              "line": 2229,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "launch-project",
+          "route": "docs/reports/product.html#view-launch-project",
+          "title": "Проект · возврат в контекст",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S01",
+            "S04",
+            "S13",
+            "S14",
+            "M151",
+            "M189",
+            "M190",
+            "M173",
+            "M191"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-31",
+              "source": "docs/ux/screens.md:605",
+              "explicit_scenarios": [
+                "SCN-040",
+                "SCN-041",
+                "SCN-060"
+              ],
+              "runtime_description": "ProjectHome панели/kanban/task field built; target preview composition и адресуемые readers ещё planned.",
+              "alias_of": null
+            },
+            {
+              "screen": "SCR-03",
+              "source": "docs/ux/screens.md:127",
+              "explicit_scenarios": [
+                "SCN-001",
+                "SCN-007",
+                "SCN-011"
+              ],
+              "runtime_description": "ProjectHome реализован; полный readiness/configuration overview старого контракта отсутствует.",
+              "alias_of": "SCR-31"
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-001",
+              "line": 118,
+              "status": "validated",
+              "coverage": "none yet — project creation is built (`apps/desktop/src/renderer/src/Onboarding.tsx`), the STARTER it describes is not: nothing offers a template to create from",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-007",
+              "line": 248,
+              "status": "validated",
+              "coverage": "`apps/desktop/src/shared/attention.ts`, `apps/desktop/src/renderer/src/AttentionPanel.tsx`, `apps/desktop/src/shared/attention.test.ts`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-011",
+              "line": 332,
+              "status": "validated",
+              "coverage": "the resolve-once half only — `apps/desktop/src/main/commands/proposalCommands.ts`, `apps/desktop/src/shared/proposals.ts`, `apps/desktop/src/renderer/src/AttentionPanel.tsx`, `apps/desktop/src/renderer/src/AttentionPanel.test.tsx`, `apps/desktop/src/shared/proposals.test.ts`. NOT covered: SCR-11, the resolution preview of step 2, `supersede`, and the cross-project links of step 3.",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-040",
+              "line": 1082,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/decisions.ts`, `apps/desktop/src/renderer/src/DecisionsSection.tsx`, `apps/desktop/src/shared/decisions.test.ts`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-041",
+              "line": 1104,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/ladder.ts`, `apps/desktop/src/renderer/src/components/Board.tsx`, `apps/desktop/test/operating-surfaces.test.mjs`, `ProjectHome.tsx#BoardSection`, `apps/desktop/src/renderer/src/BoardSection.test.tsx`. UX28-04 closed the rejection path and the three rules above; the keyboard move is a native `select` and stays one, which is the card's own exclusion. `draft` rather than `built` because no run has watched an agent move its own card on a live board",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-060",
+              "line": 1577,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "inbox",
+          "route": "docs/reports/product.html#view-inbox",
+          "title": "Inbox",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M185",
+            "M151",
+            "S14",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-42",
+              "source": "docs/ux/screens.md:847",
+              "explicit_scenarios": [
+                "SCN-044",
+                "SCN-055",
+                "SCN-058"
+              ],
+              "runtime_description": "Feed/Attention primitives построены; единый Inbox с per-operator read watermark target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-044",
+              "line": 1186,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/ProfileSection.tsx`, `apps/desktop/src/shared/types.ts#EstateSummary`, the `estate:summary` handler in `apps/desktop/src/main/index.ts`. CORRECTED 2026-09-10 (UX28-03): this row cited `apps/desktop/src/shared/digest.ts`, `apps/desktop/src/renderer/src/DigestSection.tsx` and `apps/desktop/src/shared/digest.test.ts`, which are the project page's \"where we left off\" band and not the manager's profile at all — so the digest appeared covered by a scenario about something else, and had no scenario of its own until SCN-090",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-055",
+              "line": 1464,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-058",
+              "line": 1531,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "search",
+          "route": "docs/reports/product.html#view-search",
+          "title": "Поиск",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S13",
+            "S14",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-37",
+              "source": "docs/ux/screens.md:741",
+              "explicit_scenarios": [
+                "SCN-048"
+              ],
+              "runtime_description": "SearchPanel built; task hits сейчас ведут к project, полнота/фильтры/exact EntityRef resolver нужны S13.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-048",
+              "line": 1288,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/search.ts`, `apps/desktop/src/main/searchRead.ts`, `apps/desktop/src/renderer/src/SearchPanel.tsx`, `apps/desktop/src/shared/search.test.ts`, `apps/desktop/src/renderer/src/SearchPanel.test.tsx`, `apps/desktop/test/search-read.test.mjs`. `draft` rather than `built` because no run has watched a person find something they could not otherwise name",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "r0-home",
+          "route": "docs/reports/product.html#view-r0-home",
+          "title": "Fabric · сейчас",
+          "catalogue_horizon": "launch",
+          "task_ids": [
+            "S13",
+            "S14",
+            "M151",
+            "M185",
+            "M186",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-30",
+              "source": "docs/ux/screens.md",
+              "source_href": "../ux/screens.md",
+              "explicit_scenarios": [
+                "SCN-095"
+              ],
+              "runtime_description": "2026-09-25 target composition; native acceptance pending.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-095",
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "r0-project",
+          "route": "docs/reports/product.html#view-r0-project",
+          "title": "Проект · контекст и следующий шаг",
+          "catalogue_horizon": "launch",
+          "task_ids": [
+            "S01",
+            "S04",
+            "S13",
+            "S14",
+            "M151",
+            "M189",
+            "M190",
+            "M173",
+            "M191"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-31",
+              "source": "docs/ux/screens.md",
+              "source_href": "../ux/screens.md",
+              "explicit_scenarios": [
+                "SCN-095"
+              ],
+              "runtime_description": "2026-09-25 target composition; native acceptance pending.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-095",
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "ceo-conversation",
+          "route": "docs/reports/product.html#view-ceo-conversation",
+          "title": "Разговор с Fabric",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M167",
+            "M166",
+            "S14",
+            "S13"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-64",
+              "source": "docs/ux/screens.md:1375",
+              "explicit_scenarios": [
+                "SCN-042"
+              ],
+              "runtime_description": "Новый целевой экран (2026-09-28, U1–U2). Production UI не реализован.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-042",
+              "line": 1158,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "identity",
+      "title": "Облик Fabric и прогресс",
+      "outcome": "Узнавать своего помощника и видеть подтверждённый накопленный результат",
+      "introduction": "После S1 по желанию; не блокирует ни одну фазу",
+      "scope_recommendation": "R0 простой облик; AI генерация позже",
+      "views": [
+        {
+          "view": "profile",
+          "route": "docs/reports/product.html#view-profile",
+          "title": "Профиль пространства",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S13",
+            "S14",
+            "M194"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-36",
+              "source": "docs/ux/screens.md:722",
+              "explicit_scenarios": [
+                "SCN-044"
+              ],
+              "runtime_description": "ProfileSection читает Estate record. Выбор manager не реализован здесь; новый target SCR-44.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-044",
+              "line": 1186,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/ProfileSection.tsx`, `apps/desktop/src/shared/types.ts#EstateSummary`, the `estate:summary` handler in `apps/desktop/src/main/index.ts`. CORRECTED 2026-09-10 (UX28-03): this row cited `apps/desktop/src/shared/digest.ts`, `apps/desktop/src/renderer/src/DigestSection.tsx` and `apps/desktop/src/shared/digest.test.ts`, which are the project page's \"where we left off\" band and not the manager's profile at all — so the digest appeared covered by a scenario about something else, and had no scenario of its own until SCN-090",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "launch-persona",
+          "route": "docs/reports/product.html#view-launch-persona",
+          "title": "Ваш Fabric · знакомство и облик",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S13",
+            "S14",
+            "M194"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-36",
+              "source": "docs/ux/screens.md:722",
+              "explicit_scenarios": [
+                "SCN-044"
+              ],
+              "runtime_description": "ProfileSection читает Estate record. Выбор manager не реализован здесь; новый target SCR-44.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-044",
+              "line": 1186,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/ProfileSection.tsx`, `apps/desktop/src/shared/types.ts#EstateSummary`, the `estate:summary` handler in `apps/desktop/src/main/index.ts`. CORRECTED 2026-09-10 (UX28-03): this row cited `apps/desktop/src/shared/digest.ts`, `apps/desktop/src/renderer/src/DigestSection.tsx` and `apps/desktop/src/shared/digest.test.ts`, which are the project page's \"where we left off\" band and not the manager's profile at all — so the digest appeared covered by a scenario about something else, and had no scenario of its own until SCN-090",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "r0-setup",
+          "route": "docs/reports/product.html#view-r0-setup",
+          "title": "Ваш Fabric",
+          "catalogue_horizon": "launch",
+          "task_ids": [
+            "S13",
+            "S14",
+            "M194"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-36",
+              "source": "docs/ux/screens.md",
+              "source_href": "../ux/screens.md",
+              "explicit_scenarios": [
+                "SCN-095"
+              ],
+              "runtime_description": "2026-09-25 target composition; native acceptance pending.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-095",
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "attention",
+      "title": "Доска и решения",
+      "outcome": "Дать одно необходимое решение и проверить исход",
+      "introduction": "S1 при реальном вопросе; S2 при возврате",
+      "scope_recommendation": "R0",
+      "views": [
+        {
+          "view": "board",
+          "route": "docs/reports/product.html#view-board",
+          "title": "Доска",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S06",
+            "M149",
+            "M151",
+            "M152",
+            "M157",
+            "M158",
+            "M168",
+            "S14"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-41",
+              "source": "docs/ux/screens.md:825",
+              "explicit_scenarios": [
+                "SCN-050",
+                "SCN-051",
+                "SCN-053",
+                "SCN-055",
+                "SCN-058"
+              ],
+              "runtime_description": "AttentionPanel даёт derived obligations; authored question form/full union/continuation target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-050",
+              "line": 1346,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-051",
+              "line": 1368,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-053",
+              "line": 1421,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-055",
+              "line": 1464,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-058",
+              "line": 1531,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "launch-board",
+          "route": "docs/reports/product.html#view-launch-board",
+          "title": "Доска · ежедневный разбор",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S06",
+            "M149",
+            "M151",
+            "M152",
+            "M157",
+            "M158",
+            "M168",
+            "S14"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-41",
+              "source": "docs/ux/screens.md:825",
+              "explicit_scenarios": [
+                "SCN-050",
+                "SCN-051",
+                "SCN-053",
+                "SCN-055",
+                "SCN-058"
+              ],
+              "runtime_description": "AttentionPanel даёт derived obligations; authored question form/full union/continuation target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-050",
+              "line": 1346,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-051",
+              "line": 1368,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-053",
+              "line": 1421,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-055",
+              "line": 1464,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-058",
+              "line": 1531,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "question",
+          "route": "docs/reports/product.html#view-question",
+          "title": "Вопрос и ответ",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S06",
+            "M149",
+            "M151",
+            "M152",
+            "M157",
+            "M158",
+            "M168",
+            "S14"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-41",
+              "source": "docs/ux/screens.md:825",
+              "explicit_scenarios": [
+                "SCN-050",
+                "SCN-051",
+                "SCN-053",
+                "SCN-055",
+                "SCN-058"
+              ],
+              "runtime_description": "AttentionPanel даёт derived obligations; authored question form/full union/continuation target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-050",
+              "line": 1346,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-051",
+              "line": 1368,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-053",
+              "line": 1421,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-055",
+              "line": 1464,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-058",
+              "line": 1531,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "authority",
+          "route": "docs/reports/product.html#view-authority",
+          "title": "Полномочие и эффект",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S03",
+            "S06",
+            "M151",
+            "M152",
+            "S13"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-24",
+              "source": "docs/ux/screens.md:464",
+              "explicit_scenarios": [
+                "SCN-027"
+              ],
+              "runtime_description": "AttentionPanel умеет выдавать floor grant; единый authority inspector/typed refusal history неполон.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-027",
+              "line": 703,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/main/policy.ts`, `apps/desktop/src/renderer/src/AttentionPanel.tsx`, `apps/desktop/test/policy.test.mjs`",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "decisions",
+          "route": "docs/reports/product.html#view-decisions",
+          "title": "История решений",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M173",
+            "M152",
+            "S14",
+            "S10",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-33",
+              "source": "docs/ux/screens.md:662",
+              "explicit_scenarios": [
+                "SCN-040",
+                "SCN-051",
+                "SCN-054",
+                "SCN-058"
+              ],
+              "runtime_description": "DecisionsSection строит legacy list; отдельный decision history route/lineage/pack provenance target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-040",
+              "line": 1082,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/decisions.ts`, `apps/desktop/src/renderer/src/DecisionsSection.tsx`, `apps/desktop/src/shared/decisions.test.ts`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-051",
+              "line": 1368,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-054",
+              "line": 1443,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-058",
+              "line": 1531,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "r0-board",
+          "route": "docs/reports/product.html#view-r0-board",
+          "title": "Доска внимания",
+          "catalogue_horizon": "launch",
+          "task_ids": [
+            "S06",
+            "M149",
+            "M151",
+            "M152",
+            "M157",
+            "M158",
+            "M168",
+            "S14"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-41",
+              "source": "docs/ux/screens.md",
+              "source_href": "../ux/screens.md",
+              "explicit_scenarios": [
+                "SCN-095"
+              ],
+              "runtime_description": "2026-09-25 target composition; native acceptance pending.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-095",
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "execution",
+      "title": "Задача и исполнение",
+      "outcome": "Записать результат, адресовать работу, наблюдать run и проверить результат",
+      "introduction": "S1 сохранить задачу по потребности; S3 делегировать",
+      "scope_recommendation": "R0",
+      "views": [
+        {
+          "view": "task-new",
+          "route": "docs/reports/product.html#view-task-new",
+          "title": "Новая задача",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S01",
+            "S04",
+            "S06",
+            "S13",
+            "S14",
+            "M189",
+            "M152",
+            "M191"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-32",
+              "source": "docs/ux/screens.md:639",
+              "explicit_scenarios": [
+                "SCN-045",
+                "SCN-060",
+                "SCN-067"
+              ],
+              "runtime_description": "TaskPage построен; original brief comparison, note metadata/navigation и новый TaskRun widget неполны.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-045",
+              "line": 1206,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/TaskPage.tsx`, `apps/desktop/src/renderer/src/TaskPage.test.tsx`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-060",
+              "line": 1577,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-067",
+              "line": 1752,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "launch",
+          "route": "docs/reports/product.html#view-launch",
+          "title": "Условия запуска",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S01",
+            "S04",
+            "S06",
+            "S13",
+            "S14",
+            "M189",
+            "M152",
+            "M191"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-32",
+              "source": "docs/ux/screens.md:639",
+              "explicit_scenarios": [
+                "SCN-045",
+                "SCN-060",
+                "SCN-067"
+              ],
+              "runtime_description": "TaskPage построен; original brief comparison, note metadata/navigation и новый TaskRun widget неполны.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-045",
+              "line": 1206,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/TaskPage.tsx`, `apps/desktop/src/renderer/src/TaskPage.test.tsx`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-060",
+              "line": 1577,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-067",
+              "line": 1752,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "task",
+          "route": "docs/reports/product.html#view-task",
+          "title": "Задача и текущий прогон",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S01",
+            "S04",
+            "S06",
+            "S13",
+            "S14",
+            "M189",
+            "M152",
+            "M191"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-32",
+              "source": "docs/ux/screens.md:639",
+              "explicit_scenarios": [
+                "SCN-045",
+                "SCN-060",
+                "SCN-067"
+              ],
+              "runtime_description": "TaskPage построен; original brief comparison, note metadata/navigation и новый TaskRun widget неполны.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-045",
+              "line": 1206,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/TaskPage.tsx`, `apps/desktop/src/renderer/src/TaskPage.test.tsx`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-060",
+              "line": 1577,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-067",
+              "line": 1752,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "run",
+          "route": "docs/reports/product.html#view-run",
+          "title": "Подробный прогон",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S04",
+            "M188",
+            "M189",
+            "M103",
+            "S03",
+            "S14"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-09",
+              "source": "docs/ux/screens.md:226",
+              "explicit_scenarios": [
+                "SCN-007",
+                "SCN-008"
+              ],
+              "runtime_description": "Есть session/transcript/claim UI; самостоятельный typed TaskRun detail target отсутствует.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-007",
+              "line": 248,
+              "status": "validated",
+              "coverage": "`apps/desktop/src/shared/attention.ts`, `apps/desktop/src/renderer/src/AttentionPanel.tsx`, `apps/desktop/src/shared/attention.test.ts`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-008",
+              "line": 269,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "task-archive",
+          "route": "docs/reports/product.html#view-task-archive",
+          "title": "Завершённые задачи",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M77",
+            "M124"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-31",
+              "source": "docs/ux/screens.md:605",
+              "explicit_scenarios": [
+                "SCN-040",
+                "SCN-041",
+                "SCN-060"
+              ],
+              "runtime_description": "ProjectHome панели/kanban/task field built; target preview composition и адресуемые readers ещё planned.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-040",
+              "line": 1082,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/decisions.ts`, `apps/desktop/src/renderer/src/DecisionsSection.tsx`, `apps/desktop/src/shared/decisions.test.ts`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-041",
+              "line": 1104,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/ladder.ts`, `apps/desktop/src/renderer/src/components/Board.tsx`, `apps/desktop/test/operating-surfaces.test.mjs`, `ProjectHome.tsx#BoardSection`, `apps/desktop/src/renderer/src/BoardSection.test.tsx`. UX28-04 closed the rejection path and the three rules above; the keyboard move is a native `select` and stays one, which is the card's own exclusion. `draft` rather than `built` because no run has watched an agent move its own card on a live board",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-060",
+              "line": 1577,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "launch-agent",
+          "route": "docs/reports/product.html#view-launch-agent",
+          "title": "Агент / IDE · полный контекст",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S13",
+            "S14",
+            "M105",
+            "M189",
+            "M190",
+            "M194"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-39",
+              "source": "docs/ux/screens.md:776",
+              "explicit_scenarios": [
+                "SCN-049",
+                "SCN-052",
+                "SCN-053",
+                "SCN-091"
+              ],
+              "runtime_description": "EstateAgents построен поверх sessions, snapshot console/history; live TaskRun correlation и устойчивые read states target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-049",
+              "line": 1310,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/agents.ts`, `apps/desktop/src/renderer/src/HarnessSection.tsx`, `apps/desktop/src/shared/agents.test.ts`, `apps/desktop/src/shared/keyedRead.ts`, `apps/desktop/src/renderer/src/EstateAgents.tsx`, `apps/desktop/src/renderer/src/EstateAgents.reads.test.tsx`, `apps/desktop/src/renderer/src/TerminalView.tsx`, `apps/desktop/src/shared/sessionOrder.ts`, `apps/desktop/src/shared/sessionOrder.test.ts`, `apps/desktop/src/renderer/src/EstateAgents.terminal.test.tsx`. UX28-02 keyed the two readings and rendered each one's failure; UX28-13 attached the console, ordered the list and added the task route as a third keyed read. UX28-14 gave the screen a THREE-track grid (`apps/desktop/src/renderer/src/styles.css`, `.project-columns-3`): it had been using the two-track `.project-columns` with three children, so the session list took the wide track, the console took the narrow one and the third panel wrapped to a second row — and `col-main`/`col-side` have no rule anywhere, so placement was positional all along. STILL NOT covered: the staleness AGE this scenario's `stale` state names is computed by `keyedRead.ts#staleness` and not shown here; the per-agent END action named in UI elements, which is destructive and has no confirmation idiom on this screen; and the launch control at the head of the list, which SCR-39's Elements names and nothing builds.",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-052",
+              "line": 1389,
+              "status": "draft",
+              "coverage": "the run-status widget and the reading behind it — `apps/desktop/src/shared/livenessInput.ts`, `apps/desktop/src/main/livenessRead.ts`, `apps/desktop/src/shared/liveness.ts`, `apps/desktop/src/main/runtimeObserver.ts`, `apps/desktop/test/liveness-callers.test.mjs`, `apps/desktop/src/renderer/src/AgentTile.test.tsx`. NOT covered: the expansion of step 2, the older-run and plan-revision selection of step 3, the SCR-40 route of step 4 and the restore of step 5 — and plan steps remain zero because `PlanRevision` and `StepClaim` are not built (M188 named them).",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-053",
+              "line": 1421,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-091",
+              "line": 2184,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "agent-detail",
+          "route": "docs/reports/product.html#view-agent-detail",
+          "title": "Агент: текущая работа",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S13",
+            "S14",
+            "M105",
+            "M189",
+            "M190",
+            "M194"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-39",
+              "source": "docs/ux/screens.md:776",
+              "explicit_scenarios": [
+                "SCN-049",
+                "SCN-052",
+                "SCN-053",
+                "SCN-091"
+              ],
+              "runtime_description": "EstateAgents построен поверх sessions, snapshot console/history; live TaskRun correlation и устойчивые read states target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-049",
+              "line": 1310,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/agents.ts`, `apps/desktop/src/renderer/src/HarnessSection.tsx`, `apps/desktop/src/shared/agents.test.ts`, `apps/desktop/src/shared/keyedRead.ts`, `apps/desktop/src/renderer/src/EstateAgents.tsx`, `apps/desktop/src/renderer/src/EstateAgents.reads.test.tsx`, `apps/desktop/src/renderer/src/TerminalView.tsx`, `apps/desktop/src/shared/sessionOrder.ts`, `apps/desktop/src/shared/sessionOrder.test.ts`, `apps/desktop/src/renderer/src/EstateAgents.terminal.test.tsx`. UX28-02 keyed the two readings and rendered each one's failure; UX28-13 attached the console, ordered the list and added the task route as a third keyed read. UX28-14 gave the screen a THREE-track grid (`apps/desktop/src/renderer/src/styles.css`, `.project-columns-3`): it had been using the two-track `.project-columns` with three children, so the session list took the wide track, the console took the narrow one and the third panel wrapped to a second row — and `col-main`/`col-side` have no rule anywhere, so placement was positional all along. STILL NOT covered: the staleness AGE this scenario's `stale` state names is computed by `keyedRead.ts#staleness` and not shown here; the per-agent END action named in UI elements, which is destructive and has no confirmation idiom on this screen; and the launch control at the head of the list, which SCR-39's Elements names and nothing builds.",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-052",
+              "line": 1389,
+              "status": "draft",
+              "coverage": "the run-status widget and the reading behind it — `apps/desktop/src/shared/livenessInput.ts`, `apps/desktop/src/main/livenessRead.ts`, `apps/desktop/src/shared/liveness.ts`, `apps/desktop/src/main/runtimeObserver.ts`, `apps/desktop/test/liveness-callers.test.mjs`, `apps/desktop/src/renderer/src/AgentTile.test.tsx`. NOT covered: the expansion of step 2, the older-run and plan-revision selection of step 3, the SCR-40 route of step 4 and the restore of step 5 — and plan steps remain zero because `PlanRevision` and `StepClaim` are not built (M188 named them).",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-053",
+              "line": 1421,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-091",
+              "line": 2184,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "estate-agents",
+          "route": "docs/reports/product.html#view-estate-agents",
+          "title": "Все агенты",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S13",
+            "S14",
+            "M105",
+            "M189",
+            "M190",
+            "M194"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-39",
+              "source": "docs/ux/screens.md:776",
+              "explicit_scenarios": [
+                "SCN-049",
+                "SCN-052",
+                "SCN-053",
+                "SCN-091"
+              ],
+              "runtime_description": "EstateAgents построен поверх sessions, snapshot console/history; live TaskRun correlation и устойчивые read states target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-049",
+              "line": 1310,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/agents.ts`, `apps/desktop/src/renderer/src/HarnessSection.tsx`, `apps/desktop/src/shared/agents.test.ts`, `apps/desktop/src/shared/keyedRead.ts`, `apps/desktop/src/renderer/src/EstateAgents.tsx`, `apps/desktop/src/renderer/src/EstateAgents.reads.test.tsx`, `apps/desktop/src/renderer/src/TerminalView.tsx`, `apps/desktop/src/shared/sessionOrder.ts`, `apps/desktop/src/shared/sessionOrder.test.ts`, `apps/desktop/src/renderer/src/EstateAgents.terminal.test.tsx`. UX28-02 keyed the two readings and rendered each one's failure; UX28-13 attached the console, ordered the list and added the task route as a third keyed read. UX28-14 gave the screen a THREE-track grid (`apps/desktop/src/renderer/src/styles.css`, `.project-columns-3`): it had been using the two-track `.project-columns` with three children, so the session list took the wide track, the console took the narrow one and the third panel wrapped to a second row — and `col-main`/`col-side` have no rule anywhere, so placement was positional all along. STILL NOT covered: the staleness AGE this scenario's `stale` state names is computed by `keyedRead.ts#staleness` and not shown here; the per-agent END action named in UI elements, which is destructive and has no confirmation idiom on this screen; and the launch control at the head of the list, which SCR-39's Elements names and nothing builds.",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-052",
+              "line": 1389,
+              "status": "draft",
+              "coverage": "the run-status widget and the reading behind it — `apps/desktop/src/shared/livenessInput.ts`, `apps/desktop/src/main/livenessRead.ts`, `apps/desktop/src/shared/liveness.ts`, `apps/desktop/src/main/runtimeObserver.ts`, `apps/desktop/test/liveness-callers.test.mjs`, `apps/desktop/src/renderer/src/AgentTile.test.tsx`. NOT covered: the expansion of step 2, the older-run and plan-revision selection of step 3, the SCR-40 route of step 4 and the restore of step 5 — and plan steps remain zero because `PlanRevision` and `StepClaim` are not built (M188 named them).",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-053",
+              "line": 1421,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-091",
+              "line": 2184,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "r0-work",
+          "route": "docs/reports/product.html#view-r0-work",
+          "title": "Работа · агент и продолжение",
+          "catalogue_horizon": "launch",
+          "task_ids": [
+            "S01",
+            "S04",
+            "S06",
+            "S13",
+            "S14",
+            "M189",
+            "M152",
+            "M191"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-32",
+              "source": "docs/ux/screens.md",
+              "source_href": "../ux/screens.md",
+              "explicit_scenarios": [
+                "SCN-095"
+              ],
+              "runtime_description": "2026-09-25 target composition; native acceptance pending.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-095",
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "run-trace",
+          "route": "docs/reports/product.html#view-run-trace",
+          "title": "Трасса прогона",
+          "catalogue_horizon": "next",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-67",
+              "source": "docs/ux/screens.md:1587",
+              "explicit_scenarios": [
+                "SCN-115",
+                "SCN-116"
+              ],
+              "runtime_description": "Новый целевой экран (2026-09-29, дизайн реестра агентов). Production UI не реализован.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-115",
+              "line": 2844,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-116",
+              "line": 2864,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "agents",
+      "title": "Команда, исполнитель и manager",
+      "outcome": "Настроить действующего исполнителя с ясными полномочиями",
+      "introduction": "S3 перед первым Run",
+      "scope_recommendation": "R0 preset/readiness; полный каталог/production pipeline позже",
+      "views": [
+        {
+          "view": "agents",
+          "route": "docs/reports/product.html#view-agents",
+          "title": "Команда проекта",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M17",
+            "M194",
+            "M32",
+            "S04",
+            "S02"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-04",
+              "source": "docs/ux/screens.md:148",
+              "explicit_scenarios": [
+                "SCN-001",
+                "SCN-003",
+                "SCN-004"
+              ],
+              "runtime_description": "Есть AgentsSection/CreatedAgents и descriptor picker; admitted catalog и role-slot handoff не реализованы.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-001",
+              "line": 118,
+              "status": "validated",
+              "coverage": "none yet — project creation is built (`apps/desktop/src/renderer/src/Onboarding.tsx`), the STARTER it describes is not: nothing offers a template to create from",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-003",
+              "line": 163,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-004",
+              "line": 184,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "providers",
+          "route": "docs/reports/product.html#view-providers",
+          "title": "Выбор исполнителя",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M32",
+            "M34",
+            "M37"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-05",
+              "source": "docs/ux/screens.md:163",
+              "explicit_scenarios": [
+                "SCN-003",
+                "SCN-004"
+              ],
+              "runtime_description": "Полного каталога нет; terminal.options — локальные descriptor choices, не conformance/admission.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-003",
+              "line": 163,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-004",
+              "line": 184,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "manager",
+          "route": "docs/reports/product.html#view-manager",
+          "title": "Жизненный цикл manager",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M194",
+            "M175",
+            "M166",
+            "M167",
+            "M176",
+            "S15"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-44",
+              "source": "docs/ux/screens.md:887",
+              "explicit_scenarios": [
+                "SCN-061"
+              ],
+              "runtime_description": "Новый целевой экран. Production UI не реализован.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-061",
+              "line": 1602,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "admission",
+          "route": "docs/reports/product.html#view-admission",
+          "title": "Совместимость и допуск",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M34",
+            "M37",
+            "M32"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-16",
+              "source": "docs/ux/screens.md:333",
+              "explicit_scenarios": [
+                "SCN-015",
+                "SCN-016",
+                "SCN-017"
+              ],
+              "runtime_description": "Отдельный conformance/admission renderer отсутствует.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-015",
+              "line": 429,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-016",
+              "line": 451,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-017",
+              "line": 473,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "bootstrap",
+          "route": "docs/reports/product.html#view-bootstrap",
+          "title": "Свой агент: адаптация",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M37",
+            "M32",
+            "M34"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-15",
+              "source": "docs/ux/screens.md:318",
+              "explicit_scenarios": [
+                "SCN-015",
+                "SCN-016",
+                "SCN-017"
+              ],
+              "runtime_description": "CreatedAgents — локальная instruction форма, не bootstrap/adaptation pipeline.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-015",
+              "line": 429,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-016",
+              "line": 451,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-017",
+              "line": 473,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "r0-provider",
+          "route": "docs/reports/product.html#view-r0-provider",
+          "title": "Исполнитель Fabric",
+          "catalogue_horizon": "launch",
+          "task_ids": [
+            "M32",
+            "M34",
+            "M37"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-05",
+              "source": "docs/ux/screens.md",
+              "source_href": "../ux/screens.md",
+              "explicit_scenarios": [
+                "SCN-095"
+              ],
+              "runtime_description": "2026-09-25 target composition; native acceptance pending.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-095",
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "harness",
+      "title": "Harness и настройки проекта",
+      "outcome": "Видеть что доступно агенту и менять настройки осознанно",
+      "introduction": "S3 перед конкретным действием с доступом",
+      "scope_recommendation": "R0 нужные пределы; полный каталог по потребности",
+      "views": [
+        {
+          "view": "project-settings",
+          "route": "docs/reports/product.html#view-project-settings",
+          "title": "Настройки проекта",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S13",
+            "S02",
+            "M198",
+            "S12",
+            "M194"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-12",
+              "source": "docs/ux/screens.md:272",
+              "explicit_scenarios": [
+                "SCN-001",
+                "SCN-002",
+                "SCN-003",
+                "SCN-012"
+              ],
+              "runtime_description": "ProjectHeader позволяет редактировать name/purpose/settings; immutable full revision review пока не построен.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-001",
+              "line": 118,
+              "status": "validated",
+              "coverage": "none yet — project creation is built (`apps/desktop/src/renderer/src/Onboarding.tsx`), the STARTER it describes is not: nothing offers a template to create from",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-002",
+              "line": 140,
+              "status": "validated",
+              "coverage": "none yet — an observer that watches across projects needs a producer other than the operator (M20), which is unscheduled",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-003",
+              "line": 163,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-012",
+              "line": 364,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "harness",
+          "route": "docs/reports/product.html#view-harness",
+          "title": "Harness проекта",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S02",
+            "S05",
+            "M177",
+            "S14",
+            "S13"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-35",
+              "source": "docs/ux/screens.md:702",
+              "explicit_scenarios": [
+                "SCN-047"
+              ],
+              "runtime_description": "HarnessSection построен; актуальный scoped grant reader и complete trace tool usage требуют S02/S05.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-047",
+              "line": 1255,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/agents.ts`, `apps/desktop/src/shared/agentSpec.ts`, `apps/desktop/src/shared/agentSpec.test.ts`, `apps/desktop/src/shared/harness.ts`, `apps/desktop/src/main/harnessRead.ts`, `apps/desktop/src/renderer/src/HarnessSection.tsx`, `apps/desktop/src/renderer/src/HarnessSection.test.tsx`, `apps/desktop/test/harness-read.test.mjs`, `scripts/check-surface-tools.mjs`. `draft` rather than `built` because the skills half is M123's and unbuilt, and no run has watched an operator hold an agent to this panel",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "harness-tool",
+          "route": "docs/reports/product.html#view-harness-tool",
+          "title": "Контракт инструмента",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S05",
+            "S13",
+            "S14",
+            "M177"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-38",
+              "source": "docs/ux/screens.md:761",
+              "explicit_scenarios": [
+                "SCN-047"
+              ],
+              "runtime_description": "Tool rows в HarnessSection существуют; отдельного detail и полной call trace нет.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-047",
+              "line": 1255,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/agents.ts`, `apps/desktop/src/shared/agentSpec.ts`, `apps/desktop/src/shared/agentSpec.test.ts`, `apps/desktop/src/shared/harness.ts`, `apps/desktop/src/main/harnessRead.ts`, `apps/desktop/src/renderer/src/HarnessSection.tsx`, `apps/desktop/src/renderer/src/HarnessSection.test.tsx`, `apps/desktop/test/harness-read.test.mjs`, `scripts/check-surface-tools.mjs`. `draft` rather than `built` because the skills half is M123's and unbuilt, and no run has watched an operator hold an agent to this panel",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "accounts",
+      "title": "Аккаунты провайдера",
+      "outcome": "Работать с нужной identity и сохранить разговор при возможной смене",
+      "introduction": "S6 при квоте/другой identity; не обязательный вход",
+      "scope_recommendation": "Near catalogue, M199 proposed; не обязательный onboarding gate",
+      "views": [
+        {
+          "view": "provider-accounts",
+          "route": "docs/reports/product.html#view-provider-accounts",
+          "title": "Аккаунты ИИ",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M199"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-62",
+              "source": "docs/ux/screens.md:1310",
+              "explicit_scenarios": [
+                "SCN-081",
+                "SCN-082",
+                "SCN-086"
+              ],
+              "runtime_description": "Предложенный интерактивный дизайн; runtime отсутствует, CO-112 открыт.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-081",
+              "line": 2010,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-082",
+              "line": 2027,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-086",
+              "line": 2095,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/ProviderAccounts.test.tsx` — возраст рядом с каждым показанным числом, непрочитанное показано как «не прочитано» с причиной (не 0%), заблокированное удаление недоступно и причина стоит на самой кнопке, а не в баннере — но до компонента ещё нельзя дойти из приложения: IPC-канала и точки входа в настройках нет, поэтому сценарий остаётся `draft`",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "account-switch",
+          "route": "docs/reports/product.html#view-account-switch",
+          "title": "Продолжить разговор с другим аккаунтом",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M199"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-63",
+              "source": "docs/ux/screens.md:1332",
+              "explicit_scenarios": [
+                "SCN-083",
+                "SCN-084",
+                "SCN-085",
+                "SCN-087",
+                "SCN-088",
+                "SCN-089"
+              ],
+              "runtime_description": "Предложенный интерактивный дизайн; runtime отсутствует, CO-112 открыт.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-083",
+              "line": 2044,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-084",
+              "line": 2061,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-085",
+              "line": 2078,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-087",
+              "line": 2112,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/ProviderAccounts.test.tsx` — ограничение выведено первым блоком, до любого органа управления, и текст берётся из измеренной матрицы (`limitationOf`), а не из литерала — но до компонента ещё нельзя дойти из приложения: IPC-канала и точки входа в настройках нет, поэтому сценарий остаётся `draft`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-088",
+              "line": 2129,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-089",
+              "line": 2146,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/ProviderAccounts.test.tsx` — состояние вычисляется из решения и фазы (`autoStateOf`), удержание отличено от исчерпания и от остывания, каждый непригодный аккаунт назван с причиной — но до компонента ещё нельзя дойти из приложения: IPC-канала и точки входа в настройках нет, поэтому сценарий остаётся `draft`",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "integrations",
+      "title": "Внешние подключения и MCP",
+      "outcome": "Дать точный доступ к инструменту/аккаунту",
+      "introduction": "S6 при нужном внешнем ресурсе",
+      "scope_recommendation": "Later; не все аккаунты заранее",
+      "views": [
+        {
+          "view": "connections",
+          "route": "docs/reports/product.html#view-connections",
+          "title": "Подключения",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M9",
+            "M11",
+            "M29",
+            "S03",
+            "S02"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-06",
+              "source": "docs/ux/screens.md:179",
+              "explicit_scenarios": [
+                "SCN-001",
+                "SCN-005"
+              ],
+              "runtime_description": "Полной account/resource UI нет; gateway server offer в настройках не OAuth account registry.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-001",
+              "line": 118,
+              "status": "validated",
+              "coverage": "none yet — project creation is built (`apps/desktop/src/renderer/src/Onboarding.tsx`), the STARTER it describes is not: nothing offers a template to create from",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-005",
+              "line": 205,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "connect-account",
+          "route": "docs/reports/product.html#view-connect-account",
+          "title": "Подключить аккаунт",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M9",
+            "M11",
+            "M29",
+            "S03"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-07",
+              "source": "docs/ux/screens.md:195",
+              "explicit_scenarios": [
+                "SCN-005"
+              ],
+              "runtime_description": "OAuth/resource binding мастер не построен.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-005",
+              "line": 205,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "access",
+          "route": "docs/reports/product.html#view-access",
+          "title": "MCP-доступ",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M15",
+            "S02",
+            "S03",
+            "S05"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-21",
+              "source": "docs/ux/screens.md:411",
+              "explicit_scenarios": [
+                "SCN-022",
+                "SCN-023",
+                "SCN-024"
+              ],
+              "runtime_description": "Есть southbound local session MCP surface; northbound external access-binding UI отсутствует.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-022",
+              "line": 584,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/main/sessionBundle.ts`, `apps/desktop/src/shared/servers.ts`, `apps/desktop/src/shared/servers.test.ts`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-023",
+              "line": 606,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-024",
+              "line": 628,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/main/agentSurface.ts`, `apps/desktop/test/agent-surface.test.mjs`",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "access-detail",
+          "route": "docs/reports/product.html#view-access-detail",
+          "title": "Ограниченный доступ",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M15",
+            "S02",
+            "S03",
+            "S05"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-22",
+              "source": "docs/ux/screens.md:427",
+              "explicit_scenarios": [
+                "SCN-022",
+                "SCN-023",
+                "SCN-024"
+              ],
+              "runtime_description": "Credential lifecycle northbound UI не построен.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-022",
+              "line": 584,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/main/sessionBundle.ts`, `apps/desktop/src/shared/servers.ts`, `apps/desktop/src/shared/servers.test.ts`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-023",
+              "line": 606,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-024",
+              "line": 628,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/main/agentSurface.ts`, `apps/desktop/test/agent-surface.test.mjs`",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "mcp-servers",
+          "route": "docs/reports/product.html#view-mcp-servers",
+          "title": "MCP-серверы",
+          "catalogue_horizon": "next",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-66",
+              "source": "docs/ux/screens.md:1569",
+              "explicit_scenarios": [
+                "SCN-103",
+                "SCN-104"
+              ],
+              "runtime_description": "Новый целевой экран (2026-09-29, дизайн реестра агентов). Production UI не реализован.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-103",
+              "line": 2602,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-104",
+              "line": 2622,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cycles",
+      "title": "Повторяемая работа и workflow",
+      "outcome": "Превратить уже полезный ручной цикл в контролируемое повторение",
+      "introduction": "S5 после полезного ручного цикла",
+      "scope_recommendation": "R0 ограниченный preset, save/enable/pause; full DAG editor later",
+      "views": [
+        {
+          "view": "cycles",
+          "route": "docs/reports/product.html#view-cycles",
+          "title": "Циклы",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M186",
+            "S15",
+            "S14",
+            "M178",
+            "M179",
+            "M180",
+            "M181"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-43",
+              "source": "docs/ux/screens.md:866",
+              "explicit_scenarios": [
+                "SCN-056",
+                "SCN-058"
+              ],
+              "runtime_description": "Project routines/automations UI существует; full cycle registry/detail/coverage/wake contract target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-056",
+              "line": 1485,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-058",
+              "line": 1531,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "schedule",
+          "route": "docs/reports/product.html#view-schedule",
+          "title": "Расписание и прогоны",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M13",
+            "S15",
+            "M186",
+            "M188",
+            "S04",
+            "S14"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-08",
+              "source": "docs/ux/screens.md:210",
+              "explicit_scenarios": [
+                "SCN-008",
+                "SCN-009"
+              ],
+              "runtime_description": "Routines/Automations построены как секция ProjectHome; полный runs reader и correlation пока нет.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-008",
+              "line": 269,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-009",
+              "line": 290,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "routine-editor",
+          "route": "docs/reports/product.html#view-routine-editor",
+          "title": "Редактор цикла",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M66",
+            "M67",
+            "M68",
+            "M90"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-56",
+              "source": "docs/ux/screens.md:1173",
+              "explicit_scenarios": [
+                "SCN-075"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-075",
+              "line": 1903,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "pipeline",
+          "route": "docs/reports/product.html#view-pipeline",
+          "title": "Маршрут работы",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M18"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-49",
+              "source": "docs/ux/screens.md:1012",
+              "explicit_scenarios": [
+                "SCN-068"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-068",
+              "line": 1777,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "fabric-tools",
+          "route": "docs/reports/product.html#view-fabric-tools",
+          "title": "Инструменты Fabric",
+          "catalogue_horizon": "next",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-68",
+              "source": "docs/ux/screens.md:1604",
+              "explicit_scenarios": [
+                "SCN-117",
+                "SCN-118"
+              ],
+              "runtime_description": "Новый целевой экран (2026-09-29, дизайн реестра агентов). Production UI не реализован.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-117",
+              "line": 2884,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-118",
+              "line": 2904,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "optimizer",
+          "route": "docs/reports/product.html#view-optimizer",
+          "title": "Предложения оптимизатора",
+          "catalogue_horizon": "next",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-69",
+              "source": "docs/ux/screens.md:1621",
+              "explicit_scenarios": [
+                "SCN-119",
+                "SCN-120"
+              ],
+              "runtime_description": "Новый целевой экран (2026-09-29, дизайн реестра агентов). Production UI не реализован.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-119",
+              "line": 2924,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-120",
+              "line": 2944,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "planning",
+      "title": "Цели и графы",
+      "outcome": "Различать направление, зависимости и историю",
+      "introduction": "S4 при нескольких работах; S6 для глубины",
+      "scope_recommendation": "R0 read context; arbitrary editing R1",
+      "views": [
+        {
+          "view": "goals",
+          "route": "docs/reports/product.html#view-goals",
+          "title": "Цели проекта",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M144"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-50",
+              "source": "docs/ux/screens.md:1035",
+              "explicit_scenarios": [
+                "SCN-069"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-069",
+              "line": 1795,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "goal",
+          "route": "docs/reports/product.html#view-goal",
+          "title": "Цели проекта",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M144"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-50",
+              "source": "docs/ux/screens.md:1035",
+              "explicit_scenarios": [
+                "SCN-069"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-069",
+              "line": 1795,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "project-plan",
+          "route": "docs/reports/product.html#view-project-plan",
+          "title": "Целевой граф плана",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M190",
+            "M188",
+            "M189",
+            "M152",
+            "S13",
+            "S14",
+            "S10",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-40",
+              "source": "docs/ux/screens.md:804",
+              "explicit_scenarios": [
+                "SCN-046",
+                "SCN-052",
+                "SCN-053",
+                "SCN-058"
+              ],
+              "runtime_description": "PlanSection/goals legacy preview есть; full graph/outline/list source inspector и addresses отсутствуют.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-046",
+              "line": 1230,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/plan.ts`, `apps/desktop/src/shared/planProgress.ts`, `apps/desktop/src/renderer/src/PlanSection.tsx`, `apps/desktop/src/shared/plan.test.ts`, `apps/desktop/src/shared/planProgress.test.ts`, `apps/desktop/src/renderer/src/PlanSection.test.tsx`, `scripts/check-coverage-reads.mjs`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-052",
+              "line": 1389,
+              "status": "draft",
+              "coverage": "the run-status widget and the reading behind it — `apps/desktop/src/shared/livenessInput.ts`, `apps/desktop/src/main/livenessRead.ts`, `apps/desktop/src/shared/liveness.ts`, `apps/desktop/src/main/runtimeObserver.ts`, `apps/desktop/test/liveness-callers.test.mjs`, `apps/desktop/src/renderer/src/AgentTile.test.tsx`. NOT covered: the expansion of step 2, the older-run and plan-revision selection of step 3, the SCR-40 route of step 4 and the restore of step 5 — and plan steps remain zero because `PlanRevision` and `StepClaim` are not built (M188 named them).",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-053",
+              "line": 1421,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-058",
+              "line": 1531,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "launch-plan",
+          "route": "docs/reports/product.html#view-launch-plan",
+          "title": "Планирование · раскрытие уровней",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M190",
+            "M188",
+            "M189",
+            "M152",
+            "S13",
+            "S14",
+            "S10",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-40",
+              "source": "docs/ux/screens.md:804",
+              "explicit_scenarios": [
+                "SCN-046",
+                "SCN-052",
+                "SCN-053",
+                "SCN-058"
+              ],
+              "runtime_description": "PlanSection/goals legacy preview есть; full graph/outline/list source inspector и addresses отсутствуют.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-046",
+              "line": 1230,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/plan.ts`, `apps/desktop/src/shared/planProgress.ts`, `apps/desktop/src/renderer/src/PlanSection.tsx`, `apps/desktop/src/shared/plan.test.ts`, `apps/desktop/src/shared/planProgress.test.ts`, `apps/desktop/src/renderer/src/PlanSection.test.tsx`, `scripts/check-coverage-reads.mjs`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-052",
+              "line": 1389,
+              "status": "draft",
+              "coverage": "the run-status widget and the reading behind it — `apps/desktop/src/shared/livenessInput.ts`, `apps/desktop/src/main/livenessRead.ts`, `apps/desktop/src/shared/liveness.ts`, `apps/desktop/src/main/runtimeObserver.ts`, `apps/desktop/test/liveness-callers.test.mjs`, `apps/desktop/src/renderer/src/AgentTile.test.tsx`. NOT covered: the expansion of step 2, the older-run and plan-revision selection of step 3, the SCR-40 route of step 4 and the restore of step 5 — and plan steps remain zero because `PlanRevision` and `StepClaim` are not built (M188 named them).",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-053",
+              "line": 1421,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-058",
+              "line": 1531,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "agent-history",
+          "route": "docs/reports/product.html#view-agent-history",
+          "title": "Граф действий агента",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M190",
+            "M188",
+            "M189",
+            "M152",
+            "S13",
+            "S14",
+            "S10",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-40",
+              "source": "docs/ux/screens.md:804",
+              "explicit_scenarios": [
+                "SCN-046",
+                "SCN-052",
+                "SCN-053",
+                "SCN-058"
+              ],
+              "runtime_description": "PlanSection/goals legacy preview есть; full graph/outline/list source inspector и addresses отсутствуют.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-046",
+              "line": 1230,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/plan.ts`, `apps/desktop/src/shared/planProgress.ts`, `apps/desktop/src/renderer/src/PlanSection.tsx`, `apps/desktop/src/shared/plan.test.ts`, `apps/desktop/src/shared/planProgress.test.ts`, `apps/desktop/src/renderer/src/PlanSection.test.tsx`, `scripts/check-coverage-reads.mjs`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-052",
+              "line": 1389,
+              "status": "draft",
+              "coverage": "the run-status widget and the reading behind it — `apps/desktop/src/shared/livenessInput.ts`, `apps/desktop/src/main/livenessRead.ts`, `apps/desktop/src/shared/liveness.ts`, `apps/desktop/src/main/runtimeObserver.ts`, `apps/desktop/test/liveness-callers.test.mjs`, `apps/desktop/src/renderer/src/AgentTile.test.tsx`. NOT covered: the expansion of step 2, the older-run and plan-revision selection of step 3, the SCR-40 route of step 4 and the restore of step 5 — and plan steps remain zero because `PlanRevision` and `StepClaim` are not built (M188 named them).",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-053",
+              "line": 1421,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-058",
+              "line": 1531,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "project-history",
+          "route": "docs/reports/product.html#view-project-history",
+          "title": "Граф истории проекта",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M190",
+            "M188",
+            "M189",
+            "M152",
+            "S13",
+            "S14",
+            "S10",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-40",
+              "source": "docs/ux/screens.md:804",
+              "explicit_scenarios": [
+                "SCN-046",
+                "SCN-052",
+                "SCN-053",
+                "SCN-058"
+              ],
+              "runtime_description": "PlanSection/goals legacy preview есть; full graph/outline/list source inspector и addresses отсутствуют.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-046",
+              "line": 1230,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/plan.ts`, `apps/desktop/src/shared/planProgress.ts`, `apps/desktop/src/renderer/src/PlanSection.tsx`, `apps/desktop/src/shared/plan.test.ts`, `apps/desktop/src/shared/planProgress.test.ts`, `apps/desktop/src/renderer/src/PlanSection.test.tsx`, `scripts/check-coverage-reads.mjs`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-052",
+              "line": 1389,
+              "status": "draft",
+              "coverage": "the run-status widget and the reading behind it — `apps/desktop/src/shared/livenessInput.ts`, `apps/desktop/src/main/livenessRead.ts`, `apps/desktop/src/shared/liveness.ts`, `apps/desktop/src/main/runtimeObserver.ts`, `apps/desktop/test/liveness-callers.test.mjs`, `apps/desktop/src/renderer/src/AgentTile.test.tsx`. NOT covered: the expansion of step 2, the older-run and plan-revision selection of step 3, the SCR-40 route of step 4 and the restore of step 5 — and plan steps remain zero because `PlanRevision` and `StepClaim` are not built (M188 named them).",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-053",
+              "line": 1421,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-058",
+              "line": 1531,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "r0-plan",
+          "route": "docs/reports/product.html#view-r0-plan",
+          "title": "План проекта",
+          "catalogue_horizon": "launch",
+          "task_ids": [
+            "M190",
+            "M188",
+            "M189",
+            "M152",
+            "S13",
+            "S14",
+            "S10",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-40",
+              "source": "docs/ux/screens.md",
+              "source_href": "../ux/screens.md",
+              "explicit_scenarios": [
+                "SCN-095"
+              ],
+              "runtime_description": "2026-09-25 target composition; native acceptance pending.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-095",
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "memory",
+      "title": "Память и источник",
+      "outcome": "Проверить что известно, откуда и что реально видел агент",
+      "introduction": "S1 источник; S3 переданный pack; S6 lineage",
+      "scope_recommendation": "R0 источники и historical pack; расширенный документ later",
+      "views": [
+        {
+          "view": "memory",
+          "route": "docs/reports/product.html#view-memory",
+          "title": "Память",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M191",
+            "M177",
+            "S14",
+            "S12",
+            "M182"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-34",
+              "source": "docs/ux/screens.md:680",
+              "explicit_scenarios": [
+                "SCN-039",
+                "SCN-057",
+                "SCN-062",
+                "SCN-064"
+              ],
+              "runtime_description": "MemoryOverview + search/current facts построены; next pack/exact past pack/lineage/sync full drill-in target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-039",
+              "line": 1059,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/memoryOverview.ts`, `apps/desktop/src/main/memoryOverviewRead.ts`, `apps/desktop/src/renderer/src/MemoryOverviewSection.tsx`, `apps/desktop/src/shared/memoryOverview.test.ts`, `apps/desktop/src/renderer/src/MemoryOverviewSection.test.tsx`, `apps/desktop/test/memory-overview-read.test.mjs`. `draft` rather than `built` because the drill-in this scenario's step 3 describes is CO-153 and unbuilt",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-057",
+              "line": 1510,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-062",
+              "line": 1627,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/entityRef.ts#destinationOf`, `apps/desktop/src/shared/retroView.ts#evidenceOf`, `apps/desktop/src/renderer/src/RetroSection.tsx`, `apps/desktop/src/shared/entityRef.test.ts`, `apps/desktop/src/renderer/src/RetroSection.test.tsx`. UX28-06 closed the cross-project hole and the unresolved-target rendering; the lifecycle this scenario describes (observing → verified/regressed) is M154/M184's and is not built",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-064",
+              "line": 1677,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "context-pack",
+          "route": "docs/reports/product.html#view-context-pack",
+          "title": "Контекст прогона",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M191",
+            "M177",
+            "S14",
+            "S12",
+            "M182"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-34",
+              "source": "docs/ux/screens.md:680",
+              "explicit_scenarios": [
+                "SCN-039",
+                "SCN-057",
+                "SCN-062",
+                "SCN-064"
+              ],
+              "runtime_description": "MemoryOverview + search/current facts построены; next pack/exact past pack/lineage/sync full drill-in target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-039",
+              "line": 1059,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/memoryOverview.ts`, `apps/desktop/src/main/memoryOverviewRead.ts`, `apps/desktop/src/renderer/src/MemoryOverviewSection.tsx`, `apps/desktop/src/shared/memoryOverview.test.ts`, `apps/desktop/src/renderer/src/MemoryOverviewSection.test.tsx`, `apps/desktop/test/memory-overview-read.test.mjs`. `draft` rather than `built` because the drill-in this scenario's step 3 describes is CO-153 and unbuilt",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-057",
+              "line": 1510,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-062",
+              "line": 1627,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/entityRef.ts#destinationOf`, `apps/desktop/src/shared/retroView.ts#evidenceOf`, `apps/desktop/src/renderer/src/RetroSection.tsx`, `apps/desktop/src/shared/entityRef.test.ts`, `apps/desktop/src/renderer/src/RetroSection.test.tsx`. UX28-06 closed the cross-project hole and the unresolved-target rendering; the lifecycle this scenario describes (observing → verified/regressed) is M154/M184's and is not built",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-064",
+              "line": 1677,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "memory-lineage",
+          "route": "docs/reports/product.html#view-memory-lineage",
+          "title": "Происхождение факта",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M191",
+            "M177",
+            "S14",
+            "S12",
+            "M182"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-34",
+              "source": "docs/ux/screens.md:680",
+              "explicit_scenarios": [
+                "SCN-039",
+                "SCN-057",
+                "SCN-062",
+                "SCN-064"
+              ],
+              "runtime_description": "MemoryOverview + search/current facts построены; next pack/exact past pack/lineage/sync full drill-in target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-039",
+              "line": 1059,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/memoryOverview.ts`, `apps/desktop/src/main/memoryOverviewRead.ts`, `apps/desktop/src/renderer/src/MemoryOverviewSection.tsx`, `apps/desktop/src/shared/memoryOverview.test.ts`, `apps/desktop/src/renderer/src/MemoryOverviewSection.test.tsx`, `apps/desktop/test/memory-overview-read.test.mjs`. `draft` rather than `built` because the drill-in this scenario's step 3 describes is CO-153 and unbuilt",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-057",
+              "line": 1510,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-062",
+              "line": 1627,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/entityRef.ts#destinationOf`, `apps/desktop/src/shared/retroView.ts#evidenceOf`, `apps/desktop/src/renderer/src/RetroSection.tsx`, `apps/desktop/src/shared/entityRef.test.ts`, `apps/desktop/src/renderer/src/RetroSection.test.tsx`. UX28-06 closed the cross-project hole and the unresolved-target rendering; the lifecycle this scenario describes (observing → verified/regressed) is M154/M184's and is not built",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-064",
+              "line": 1677,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "document",
+          "route": "docs/reports/product.html#view-document",
+          "title": "Документ и происхождение задач",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M124",
+            "M130",
+            "M134"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-61",
+              "source": "docs/ux/screens.md:1288",
+              "explicit_scenarios": [
+                "SCN-080"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-080",
+              "line": 1993,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "r0-memory",
+          "route": "docs/reports/product.html#view-r0-memory",
+          "title": "Память и сессии",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M191",
+            "M177",
+            "S14",
+            "S12",
+            "M182"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-34",
+              "source": "docs/ux/screens.md:680",
+              "explicit_scenarios": [
+                "SCN-039",
+                "SCN-057",
+                "SCN-062",
+                "SCN-064"
+              ],
+              "runtime_description": "R0 target-only workspace: scoped fixture search/source/Run/context attachment. Native gaps MEM-P0…P7; no readiness promotion.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-039",
+              "line": 1059,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/memoryOverview.ts`, `apps/desktop/src/main/memoryOverviewRead.ts`, `apps/desktop/src/renderer/src/MemoryOverviewSection.tsx`, `apps/desktop/src/shared/memoryOverview.test.ts`, `apps/desktop/src/renderer/src/MemoryOverviewSection.test.tsx`, `apps/desktop/test/memory-overview-read.test.mjs`. `draft` rather than `built` because the drill-in this scenario's step 3 describes is CO-153 and unbuilt",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-057",
+              "line": 1510,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-062",
+              "line": 1627,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/entityRef.ts#destinationOf`, `apps/desktop/src/shared/retroView.ts#evidenceOf`, `apps/desktop/src/renderer/src/RetroSection.tsx`, `apps/desktop/src/shared/entityRef.test.ts`, `apps/desktop/src/renderer/src/RetroSection.test.tsx`. UX28-06 closed the cross-project hole and the unresolved-target rendering; the lifecycle this scenario describes (observing → verified/regressed) is M154/M184's and is not built",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-064",
+              "line": 1677,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pulse",
+      "title": "Активность и релизы",
+      "outcome": "Увидеть изменение и отличить публикацию от проверки",
+      "introduction": "S1 после фактического события; S2 изменения",
+      "scope_recommendation": "R0 узкие source-backed readers",
+      "views": [
+        {
+          "view": "launch-pulse",
+          "route": "docs/reports/product.html#view-launch-pulse",
+          "title": "Пульс · активность и живые наблюдения",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M185",
+            "M151",
+            "S14",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-42",
+              "source": "docs/ux/screens.md:847",
+              "explicit_scenarios": [
+                "SCN-044",
+                "SCN-055",
+                "SCN-058"
+              ],
+              "runtime_description": "Feed/Attention primitives построены; единый Inbox с per-operator read watermark target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-044",
+              "line": 1186,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/ProfileSection.tsx`, `apps/desktop/src/shared/types.ts#EstateSummary`, the `estate:summary` handler in `apps/desktop/src/main/index.ts`. CORRECTED 2026-09-10 (UX28-03): this row cited `apps/desktop/src/shared/digest.ts`, `apps/desktop/src/renderer/src/DigestSection.tsx` and `apps/desktop/src/shared/digest.test.ts`, which are the project page's \"where we left off\" band and not the manager's profile at all — so the digest appeared covered by a scenario about something else, and had no scenario of its own until SCN-090",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-055",
+              "line": 1464,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-058",
+              "line": 1531,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "launch-releases",
+          "route": "docs/reports/product.html#view-launch-releases",
+          "title": "Релизы · состав и подтверждение",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M185",
+            "M151",
+            "S14",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-42",
+              "source": "docs/ux/screens.md:847",
+              "explicit_scenarios": [
+                "SCN-044",
+                "SCN-055",
+                "SCN-058"
+              ],
+              "runtime_description": "Feed/Attention primitives построены; единый Inbox с per-operator read watermark target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-044",
+              "line": 1186,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/ProfileSection.tsx`, `apps/desktop/src/shared/types.ts#EstateSummary`, the `estate:summary` handler in `apps/desktop/src/main/index.ts`. CORRECTED 2026-09-10 (UX28-03): this row cited `apps/desktop/src/shared/digest.ts`, `apps/desktop/src/renderer/src/DigestSection.tsx` and `apps/desktop/src/shared/digest.test.ts`, which are the project page's \"where we left off\" band and not the manager's profile at all — so the digest appeared covered by a scenario about something else, and had no scenario of its own until SCN-090",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-055",
+              "line": 1464,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-058",
+              "line": 1531,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "learning",
+      "title": "Ретро и улучшение Fabric",
+      "outcome": "Превратить повторяемую проблему в проверенное улучшение",
+      "introduction": "S6 при повторной проблеме",
+      "scope_recommendation": "Near catalogue; полный lifecycle не доказан",
+      "views": [
+        {
+          "view": "retro",
+          "route": "docs/reports/product.html#view-retro",
+          "title": "Ретроспективы",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M154",
+            "M182",
+            "M184",
+            "M168",
+            "S15"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-45",
+              "source": "docs/ux/screens.md:911",
+              "explicit_scenarios": [
+                "SCN-062",
+                "SCN-063"
+              ],
+              "runtime_description": "Новый целевой экран. Production UI не реализован.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-062",
+              "line": 1627,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/entityRef.ts#destinationOf`, `apps/desktop/src/shared/retroView.ts#evidenceOf`, `apps/desktop/src/renderer/src/RetroSection.tsx`, `apps/desktop/src/shared/entityRef.test.ts`, `apps/desktop/src/renderer/src/RetroSection.test.tsx`. UX28-06 closed the cross-project hole and the unresolved-target rendering; the lifecycle this scenario describes (observing → verified/regressed) is M154/M184's and is not built",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-063",
+              "line": 1652,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "feedback",
+          "route": "docs/reports/product.html#view-feedback",
+          "title": "Улучшение Fabric",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M183",
+            "S12",
+            "S14"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-46",
+              "source": "docs/ux/screens.md:936",
+              "explicit_scenarios": [
+                "SCN-063"
+              ],
+              "runtime_description": "Новый целевой экран. Production UI не реализован.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-063",
+              "line": 1652,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "team",
+      "title": "Совместная работа",
+      "outcome": "Подключить коллегу и разрешать свои взаимодействия",
+      "introduction": "S0 для приглашённого; S6 при приглашении коллеги",
+      "scope_recommendation": "S09 narrow estate membership; role workspace later",
+      "views": [
+        {
+          "view": "membership",
+          "route": "docs/reports/product.html#view-membership",
+          "title": "Команда и доступ",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S09",
+            "M38",
+            "M39",
+            "S02",
+            "S03"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-14",
+              "source": "docs/ux/screens.md:302",
+              "explicit_scenarios": [
+                "SCN-013",
+                "SCN-014",
+                "SCN-066"
+              ],
+              "runtime_description": "В renderer нет invitation/acceptance/typed role interaction; S09 задаёт узкий membership MVP.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-013",
+              "line": 386,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-014",
+              "line": 406,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-066",
+              "line": 1727,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "invite",
+          "route": "docs/reports/product.html#view-invite",
+          "title": "Принятие приглашения",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S09",
+            "M38",
+            "M39",
+            "S02",
+            "S03"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-14",
+              "source": "docs/ux/screens.md:302",
+              "explicit_scenarios": [
+                "SCN-013",
+                "SCN-014",
+                "SCN-066"
+              ],
+              "runtime_description": "В renderer нет invitation/acceptance/typed role interaction; S09 задаёт узкий membership MVP.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-013",
+              "line": 386,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-014",
+              "line": 406,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-066",
+              "line": 1727,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "role-workspace",
+          "route": "docs/reports/product.html#view-role-workspace",
+          "title": "Рабочая среда роли",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M38",
+            "M39",
+            "M40"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-13",
+              "source": "docs/ux/screens.md:286",
+              "explicit_scenarios": [
+                "SCN-013",
+                "SCN-014",
+                "SCN-018"
+              ],
+              "runtime_description": "Membership/role projection и provider tile host не построены; Workspace — другой общий dashboard.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-013",
+              "line": 386,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-014",
+              "line": 406,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-018",
+              "line": 495,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "workspace-editor",
+          "route": "docs/reports/product.html#view-workspace-editor",
+          "title": "Редактор среды роли",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M39",
+            "M37",
+            "M34"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-17",
+              "source": "docs/ux/screens.md:348",
+              "explicit_scenarios": [
+                "SCN-018"
+              ],
+              "runtime_description": "Редактор среды роли не реализован. Ранее SCR-17 ошибочно ссылался на редактор файла SCR-28; реестр исправлен в этой итерации.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-018",
+              "line": 495,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "workbench",
+      "title": "Рабочие инструменты IDE",
+      "outcome": "Изучать и менять результат рядом с агентом",
+      "introduction": "S3 при результате; S6 по точной ссылке",
+      "scope_recommendation": "Near workspace/editor/session; остальные later",
+      "views": [
+        {
+          "view": "workspace",
+          "route": "docs/reports/product.html#view-workspace",
+          "title": "Рабочая область",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S13",
+            "S14",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-26",
+              "source": "docs/ux/screens.md:500",
+              "explicit_scenarios": [
+                "SCN-030"
+              ],
+              "runtime_description": "Workspace constrained dashboard построен; provider-rendered виджеты/публикуемый role layout отсутствуют.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-030",
+              "line": 789,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "editor",
+          "route": "docs/reports/product.html#view-editor",
+          "title": "Редактор файла",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S01",
+            "S02",
+            "S13"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-28",
+              "source": "docs/ux/screens.md:534",
+              "explicit_scenarios": [
+                "SCN-034"
+              ],
+              "runtime_description": "EditorWindow/Monaco и hash conflict UI построены; inflight save edit-loss и dirty-close исправляет S01.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-034",
+              "line": 911,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/main/files.ts`, `apps/desktop/src/renderer/src/EditorWindow.tsx`, `apps/desktop/test/files.test.mjs`",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "session",
+          "route": "docs/reports/product.html#view-session",
+          "title": "Сессия агента",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "M16",
+            "M105",
+            "S13",
+            "S14",
+            "S02"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-25",
+              "source": "docs/ux/screens.md:481",
+              "explicit_scenarios": [
+                "SCN-025",
+                "SCN-029",
+                "SCN-091"
+              ],
+              "runtime_description": "SessionWindow + TerminalView построены; lifecycle/read/performance audit delta остаются в плане.",
+              "alias_of": null
+            },
+            {
+              "screen": "SCR-23",
+              "source": "docs/ux/screens.md:444",
+              "explicit_scenarios": [
+                "SCN-025"
+              ],
+              "runtime_description": "SCR23 явно superseded by SCR25; отдельный project-terminal tab никогда не был построен.",
+              "alias_of": "SCR-25"
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-025",
+              "line": 652,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/main/pty.ts`, `apps/desktop/src/renderer/src/SessionWindow.tsx`, `apps/desktop/test/pty.test.mjs`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-029",
+              "line": 765,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/main/pty.ts`, `apps/desktop/src/shared/agents.ts`, `apps/desktop/src/shared/agents.test.ts`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-091",
+              "line": 2184,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "service-terminal",
+          "route": "docs/reports/product.html#view-service-terminal",
+          "title": "Сервисные терминалы",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M10"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-57",
+              "source": "docs/ux/screens.md:1196",
+              "explicit_scenarios": [
+                "SCN-076"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-076",
+              "line": 1921,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "internal-browser",
+          "route": "docs/reports/product.html#view-internal-browser",
+          "title": "Встроенный браузер",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M74"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-58",
+              "source": "docs/ux/screens.md:1219",
+              "explicit_scenarios": [
+                "SCN-077"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-077",
+              "line": 1939,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "media-preview",
+          "route": "docs/reports/product.html#view-media-preview",
+          "title": "Предпросмотр медиа",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M75"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-59",
+              "source": "docs/ux/screens.md:1242",
+              "explicit_scenarios": [
+                "SCN-078"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-078",
+              "line": 1957,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "file-diff",
+          "route": "docs/reports/product.html#view-file-diff",
+          "title": "Diff выбранного файла",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M76",
+            "M62"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-60",
+              "source": "docs/ux/screens.md:1265",
+              "explicit_scenarios": [
+                "SCN-079"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-079",
+              "line": 1975,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "governance",
+      "title": "Предпочтения, затраты, уведомления",
+      "outcome": "Управлять пределами и получать только полезные сигналы",
+      "introduction": "Предел до эффекта; уведомление по opt-in; полные экраны S6",
+      "scope_recommendation": "Later full surfaces; обязательные R0 ограничения не откладывать",
+      "views": [
+        {
+          "view": "usage",
+          "route": "docs/reports/product.html#view-usage",
+          "title": "Использование",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M83",
+            "M94"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-51",
+              "source": "docs/ux/screens.md:1058",
+              "explicit_scenarios": [
+                "SCN-070"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-070",
+              "line": 1813,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "estate-settings",
+          "route": "docs/reports/product.html#view-estate-settings",
+          "title": "Настройки Estate",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M72",
+            "M73",
+            "M152"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-52",
+              "source": "docs/ux/screens.md:1081",
+              "explicit_scenarios": [
+                "SCN-071"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-071",
+              "line": 1831,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "settings",
+          "route": "docs/reports/product.html#view-settings",
+          "title": "Настройки Estate",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M72",
+            "M73",
+            "M152"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-52",
+              "source": "docs/ux/screens.md:1081",
+              "explicit_scenarios": [
+                "SCN-071"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-071",
+              "line": 1831,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "notifications",
+          "route": "docs/reports/product.html#view-notifications",
+          "title": "Уведомления и Telegram",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M159",
+            "M160",
+            "M161",
+            "M162",
+            "M163",
+            "M164",
+            "M165"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-53",
+              "source": "docs/ux/screens.md:1104",
+              "explicit_scenarios": [
+                "SCN-072"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-072",
+              "line": 1849,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "r0-settings",
+          "route": "docs/reports/product.html#view-r0-settings",
+          "title": "Настройки Fabric",
+          "catalogue_horizon": "launch",
+          "task_ids": [
+            "M72",
+            "M73",
+            "M152"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-52",
+              "source": "docs/ux/screens.md",
+              "source_href": "../ux/screens.md",
+              "explicit_scenarios": [
+                "SCN-095"
+              ],
+              "runtime_description": "2026-09-25 target composition; native acceptance pending.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-095",
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "recovery",
+      "title": "Диагностика, синхронизация, восстановление, архив",
+      "outcome": "Понять сбой, вернуть данные или завершить жизненный цикл",
+      "introduction": "Всегда при исключении; никогда не скрывать за обучением",
+      "scope_recommendation": "Near sync/restore target; later full maintenance; never hide emergency actions",
+      "views": [
+        {
+          "view": "diagnostics",
+          "route": "docs/reports/product.html#view-diagnostics",
+          "title": "Диагностика",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M81"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-54",
+              "source": "docs/ux/screens.md:1127",
+              "explicit_scenarios": [
+                "SCN-073"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-073",
+              "line": 1867,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "sync",
+          "route": "docs/reports/product.html#view-sync",
+          "title": "Хранение и синхронизация",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S12",
+            "S14",
+            "M191"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-47",
+              "source": "docs/ux/screens.md:962",
+              "explicit_scenarios": [
+                "SCN-064",
+                "SCN-065"
+              ],
+              "runtime_description": "Новый целевой экран. Production UI не реализован.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-064",
+              "line": 1677,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-065",
+              "line": 1702,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "restore",
+          "route": "docs/reports/product.html#view-restore",
+          "title": "Восстановление",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S12",
+            "S14"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-48",
+              "source": "docs/ux/screens.md:987",
+              "explicit_scenarios": [
+                "SCN-065"
+              ],
+              "runtime_description": "Новый целевой экран. Production UI не реализован.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-065",
+              "line": 1702,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "archive",
+          "route": "docs/reports/product.html#view-archive",
+          "title": "Архив и удаление",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M77"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-55",
+              "source": "docs/ux/screens.md:1150",
+              "explicit_scenarios": [
+                "SCN-074"
+              ],
+              "runtime_description": "Целевой интерактивный макет; полнота реализации продукта не утверждается.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-074",
+              "line": 1885,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "private-history",
+          "route": "docs/reports/product.html#view-private-history",
+          "title": "Личная история",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S12",
+            "S14"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-65",
+              "source": "docs/ux/screens.md:1402",
+              "explicit_scenarios": [
+                "SCN-097"
+              ],
+              "runtime_description": "Новый целевой экран (2026-09-28, U1–U2). Production UI не реализован.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-097",
+              "line": 2431,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "specialist",
+      "title": "Специализированные роли и межпроектные предложения",
+      "outcome": "Закрывать поддержку, выпуск, контент и передачи с проверенным результатом",
+      "introduction": "S6 по роли/предметной задаче",
+      "scope_recommendation": "Later; идеи сохраняются, не входят в принудительный tour",
+      "views": [
+        {
+          "view": "support",
+          "route": "docs/reports/product.html#view-support",
+          "title": "Поддержка",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M27",
+            "M11",
+            "M39",
+            "S03"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-18",
+              "source": "docs/ux/screens.md:364",
+              "explicit_scenarios": [
+                "SCN-019"
+              ],
+              "runtime_description": "Support domain UI/connector/delivery loop не реализован.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-019",
+              "line": 518,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "release",
+          "route": "docs/reports/product.html#view-release",
+          "title": "Работа и выпуск",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M2",
+            "M4",
+            "M25",
+            "M188",
+            "M190",
+            "M168",
+            "S03",
+            "S08"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-19",
+              "source": "docs/ux/screens.md:380",
+              "explicit_scenarios": [
+                "SCN-020"
+              ],
+              "runtime_description": "Есть задачи/планы/receipts примитивы; полноценный production release flow отсутствует.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-020",
+              "line": 540,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "content",
+          "route": "docs/reports/product.html#view-content",
+          "title": "Контентный цикл",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M21",
+            "M19",
+            "M22",
+            "M23",
+            "M29",
+            "S03"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-20",
+              "source": "docs/ux/screens.md:395",
+              "explicit_scenarios": [
+                "SCN-021"
+              ],
+              "runtime_description": "Контентный pipeline и publisher UI не реализованы.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-021",
+              "line": 562,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "reports",
+          "route": "docs/reports/product.html#view-reports",
+          "title": "Результаты и находки",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M4",
+            "M11",
+            "M20",
+            "M25",
+            "S03"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-10",
+              "source": "docs/ux/screens.md:241",
+              "explicit_scenarios": [
+                "SCN-010",
+                "SCN-011"
+              ],
+              "runtime_description": "Отдельного reports/finding catalogue UI нет; общий Feed не заменяет finding lifecycle.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-010",
+              "line": 312,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-011",
+              "line": 332,
+              "status": "validated",
+              "coverage": "the resolve-once half only — `apps/desktop/src/main/commands/proposalCommands.ts`, `apps/desktop/src/shared/proposals.ts`, `apps/desktop/src/renderer/src/AttentionPanel.tsx`, `apps/desktop/src/renderer/src/AttentionPanel.test.tsx`, `apps/desktop/src/shared/proposals.test.ts`. NOT covered: SCR-11, the resolution preview of step 2, `supersede`, and the cross-project links of step 3.",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "proposal",
+          "route": "docs/reports/product.html#view-proposal",
+          "title": "Проверка результата",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M20",
+            "M35",
+            "M157",
+            "S03",
+            "S06"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-11",
+              "source": "docs/ux/screens.md:257",
+              "explicit_scenarios": [
+                "SCN-010",
+                "SCN-011",
+                "SCN-012"
+              ],
+              "runtime_description": "В AttentionPanel есть accept/decline простых proposals; богатый cross-project review не построен.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-010",
+              "line": 312,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-011",
+              "line": 332,
+              "status": "validated",
+              "coverage": "the resolve-once half only — `apps/desktop/src/main/commands/proposalCommands.ts`, `apps/desktop/src/shared/proposals.ts`, `apps/desktop/src/renderer/src/AttentionPanel.tsx`, `apps/desktop/src/renderer/src/AttentionPanel.test.tsx`, `apps/desktop/src/shared/proposals.test.ts`. NOT covered: SCR-11, the resolution preview of step 2, `supersede`, and the cross-project links of step 3.",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-012",
+              "line": 364,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "cross-project-proposal",
+          "route": "docs/reports/product.html#view-cross-project-proposal",
+          "title": "Предложение целевому PM",
+          "catalogue_horizon": "later",
+          "task_ids": [
+            "M20",
+            "M35"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-11",
+              "source": "docs/ux/screens.md:257",
+              "explicit_scenarios": [
+                "SCN-010",
+                "SCN-011",
+                "SCN-012"
+              ],
+              "runtime_description": "В AttentionPanel есть accept/decline простых proposals; богатый cross-project review не построен.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-010",
+              "line": 312,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-011",
+              "line": 332,
+              "status": "validated",
+              "coverage": "the resolve-once half only — `apps/desktop/src/main/commands/proposalCommands.ts`, `apps/desktop/src/shared/proposals.ts`, `apps/desktop/src/renderer/src/AttentionPanel.tsx`, `apps/desktop/src/renderer/src/AttentionPanel.test.tsx`, `apps/desktop/src/shared/proposals.test.ts`. NOT covered: SCR-11, the resolution preview of step 2, `supersede`, and the cross-project links of step 3.",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-012",
+              "line": 364,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "design",
+      "title": "Карта и каталог дизайна",
+      "outcome": "Проверить дизайн и покрытие экранов",
+      "introduction": "Только review-оболочка, не урок нового пользователя",
+      "scope_recommendation": "Review-only catalogue, не новая production capability",
+      "views": [
+        {
+          "view": "launch-map",
+          "route": "docs/reports/product.html#view-launch-map",
+          "title": "Карта экранов · первый запуск",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S13",
+            "S14",
+            "M151",
+            "M185",
+            "M186",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-30",
+              "source": "docs/ux/screens.md:575",
+              "explicit_scenarios": [
+                "SCN-043",
+                "SCN-044",
+                "SCN-059",
+                "SCN-060",
+                "SCN-092",
+                "SCN-093"
+              ],
+              "runtime_description": "EstateHome/Profile/Attention/feed построены; единые Board top5, Inbox и Cycles previews target.",
+              "alias_of": null
+            },
+            {
+              "screen": "SCR-01",
+              "source": "docs/ux/screens.md:96",
+              "explicit_scenarios": [
+                "SCN-001",
+                "SCN-006",
+                "SCN-007"
+              ],
+              "runtime_description": "Частично реализовано: список/пины/сессии; многомерная health и PM readiness не реализованы.",
+              "alias_of": "SCR-30"
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-001",
+              "line": 118,
+              "status": "validated",
+              "coverage": "none yet — project creation is built (`apps/desktop/src/renderer/src/Onboarding.tsx`), the STARTER it describes is not: nothing offers a template to create from",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-006",
+              "line": 228,
+              "status": "validated",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-007",
+              "line": 248,
+              "status": "validated",
+              "coverage": "`apps/desktop/src/shared/attention.ts`, `apps/desktop/src/renderer/src/AttentionPanel.tsx`, `apps/desktop/src/shared/attention.test.ts`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-043",
+              "line": 1165,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/favourites.ts`, `apps/desktop/src/main/favourites.ts`, `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/shared/favourites.test.ts`, `apps/desktop/src/renderer/src/halfShipped.test.tsx`. `draft` rather than `built` because no run has watched an operator with more than six projects choose which to release",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-044",
+              "line": 1186,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/ProfileSection.tsx`, `apps/desktop/src/shared/types.ts#EstateSummary`, the `estate:summary` handler in `apps/desktop/src/main/index.ts`. CORRECTED 2026-09-10 (UX28-03): this row cited `apps/desktop/src/shared/digest.ts`, `apps/desktop/src/renderer/src/DigestSection.tsx` and `apps/desktop/src/shared/digest.test.ts`, which are the project page's \"where we left off\" band and not the manager's profile at all — so the digest appeared covered by a scenario about something else, and had no scenario of its own until SCN-090",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-059",
+              "line": 1552,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-060",
+              "line": 1577,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-092",
+              "line": 2207,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-093",
+              "line": 2229,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "launch-design",
+          "route": "docs/reports/product.html#view-launch-design",
+          "title": "Карта интерфейса · главное и детали",
+          "catalogue_horizon": "near",
+          "task_ids": [
+            "S14",
+            "M185"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-30",
+              "source": "docs/ux/screens.md:575",
+              "explicit_scenarios": [
+                "SCN-043",
+                "SCN-044",
+                "SCN-059",
+                "SCN-060",
+                "SCN-092",
+                "SCN-093"
+              ],
+              "runtime_description": "EstateHome/Profile/Attention/feed построены; единые Board top5, Inbox и Cycles previews target.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-043",
+              "line": 1165,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/shared/favourites.ts`, `apps/desktop/src/main/favourites.ts`, `apps/desktop/src/renderer/src/EstateHome.tsx`, `apps/desktop/src/shared/favourites.test.ts`, `apps/desktop/src/renderer/src/halfShipped.test.tsx`. `draft` rather than `built` because no run has watched an operator with more than six projects choose which to release",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-044",
+              "line": 1186,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/renderer/src/ProfileSection.tsx`, `apps/desktop/src/shared/types.ts#EstateSummary`, the `estate:summary` handler in `apps/desktop/src/main/index.ts`. CORRECTED 2026-09-10 (UX28-03): this row cited `apps/desktop/src/shared/digest.ts`, `apps/desktop/src/renderer/src/DigestSection.tsx` and `apps/desktop/src/shared/digest.test.ts`, which are the project page's \"where we left off\" band and not the manager's profile at all — so the digest appeared covered by a scenario about something else, and had no scenario of its own until SCN-090",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-059",
+              "line": 1552,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-060",
+              "line": 1577,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-092",
+              "line": 2207,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-093",
+              "line": 2229,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "r0-map",
+          "route": "docs/reports/product.html#view-r0-map",
+          "title": "Первый релиз · карта экранов",
+          "catalogue_horizon": "launch",
+          "task_ids": [
+            "S13",
+            "S14",
+            "M151",
+            "M185",
+            "M186",
+            "M187"
+          ],
+          "canonical": [
+            {
+              "screen": "SCR-30",
+              "source": "docs/ux/screens.md",
+              "source_href": "../ux/screens.md",
+              "explicit_scenarios": [
+                "SCN-095"
+              ],
+              "runtime_description": "2026-09-25 target composition; native acceptance pending.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-095",
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "memory_review": "2026-09-26: added r0-memory target route; historical source pin and scenario verdicts retained."
+}

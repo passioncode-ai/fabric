@@ -1,0 +1,320 @@
+{
+  "audit_date": "2026-09-07",
+  "head": "153b4f029e626230d465d5d21d02fb8c9de5fadf",
+  "scope": "SCN-025..038, shared shell, visual system, a11y and IA",
+  "read_only": true,
+  "verdict": "REFINE reliability; REDESIGN project information architecture",
+  "skills_used": {
+    "ux-audit": "scenario/flow/screen conformance and exact evidence",
+    "sheleg-design": "token/theme/composition audit and restrained parent/product visual recommendations"
+  },
+  "checks": {
+    "ux_lint": {
+      "errors": 0,
+      "warnings": 14
+    },
+    "probes": [
+      "/tmp/fabric-ux-probe/shell.test.tsx",
+      "/tmp/fabric-ux-probe/shell.log",
+      "/tmp/fabric-ux-probe/editor.test.tsx",
+      "/tmp/fabric-ux-probe/editor.log",
+      "/tmp/fabric-ux-probe/project.test.tsx",
+      "/tmp/fabric-ux-probe/project.log"
+    ]
+  },
+  "findings": [
+    {
+      "id": "UV-01",
+      "priority": "P0",
+      "title": "Main window crashes after the metadata read succeeds",
+      "detail": "`Shell` starts with `sessionWindowId=undefined` and returns before all hooks. Once metadata resolves to the main-window value null, it reaches three additional hooks. React throws “Rendered more hooks than during the previous render.” There is no production error boundary around App.\n\nEvidence: `apps/desktop/src/renderer/src/App.tsx:97`, `:171`, `:247`, `:292`, `:304`, `:308`; `main.tsx:26`. Actual isolated repro: `/tmp/fabric-ux-probe/shell.test.tsx`, `/tmp/fabric-ux-probe/shell.log` (React hook 31 undefined→useEffect, stack at App.tsx:292). Fake IPC is deliberately successful; no backend error is needed. This invalidates current-source main-window runtime availability, separate from local scenario conformance below. It is one root cause, not thirteen separate scenario bugs.\n\nRemedy: route window kind in a small parent and render an estate-shell child, or move every hook above conditional returns; add rules-of-hooks lint and successful root mount smoke. Acceptance: main/editor/session routing all mount under StrictMode, metadata failure renders retry, no console hook errors.",
+      "classification": "current_defect",
+      "method": "current_component_jsdom_reproduction"
+    },
+    {
+      "id": "UV-02",
+      "priority": "P1",
+      "title": "Newer editor keystrokes are still lost while Save is in flight (existing UX-04)",
+      "detail": "The added `afterSave` helper correctly notices a newer buffer, but `setFile({content: submitted})` changes the effect dependency. Monaco is disposed and recreated from the old submitted content. The dirty flag says there is unsaved work while the work itself has disappeared. Ordinary successful saves also discard the editor instance/undo history/selection.\n\nEvidence: `EditorWindow.tsx:74`, `:78`, `:94`, `:99`, `:151`, `:160`; `shared/editorBuffer.test.ts:9` tests only the helper. Repro `/tmp/fabric-ux-probe/editor.log`: typed a→ab, Save pending, typed abc, completed Save: second editor value ab. `/tmp/fabric-ux-probe/editor.test.tsx` renders actual EditorWindow with a controlled Monaco model.\n\nRemedy: keep the Monaco model alive for the file identity; track persisted baseline/hash separately. Save snapshots must not replace the current model. Apply the same rule to conflict modified models. Acceptance: typing during ordinary/forced save and during conflict arrival preserves every newer edit, undo stack and caret; saving responses out of order cannot regress the baseline. Existing UX-05 dirty-close guard and external-open error handling are improvements, not proof that UX-04 closed.",
+      "classification": "current_defect",
+      "method": "current_component_jsdom_reproduction"
+    },
+    {
+      "id": "UV-03",
+      "priority": "P1",
+      "title": "A completely empty Board has no way to file the first idea",
+      "detail": "When tasks=[], BoardSection renders EmptyState and bypasses Board entirely. Its only idea form lives inside the backlog column, which therefore does not exist for a new project. M134 is marked shipped but its first-use path is missing.\n\nEvidence: `ProjectHome.tsx:497`, `:527`, `:539`; `docs/evidence/backlog.md:589`. Actual component probe `/tmp/fabric-ux-probe/project.log`: `emptyBoardIdeaInput:false` after the empty task read resolves.\n\nRemedy: render the idea entry independently of populated columns, including the zero-task state. Acceptance: new empty project → file idea → one backlog task → research it, all from UI, with failure preserving the text.",
+      "classification": "current_defect",
+      "method": "current_component_jsdom_reproduction"
+    },
+    {
+      "id": "UV-04",
+      "priority": "P1",
+      "title": "Codex is shown as “Terminal” in runner selectors and session headers",
+      "detail": "The runner descriptor now contains Codex, but most surfaces still have the two-value Claude/else-Terminal ternary. The dropdown contains two identically labeled Terminal options. A Codex session looks like a plain shell. Its descriptor explicitly says it does not connect to Fabric, but that capability limitation is not exposed by these selectors.\n\nEvidence: `shared/agents.ts:114`–131; `Onboarding.tsx:194`; `Tasks.tsx:204`; `ProjectHome.tsx:969`, `:1069`, `:1557`; `SessionWindow.tsx:54`; `Workspace.tsx:55`. Actual `/tmp/fabric-ux-probe/project.log`: options `{claude-code:Claude Code,codex:Terminal,shell:Terminal}`.\n\nRemedy: expose descriptor label, runner identity, Fabric connectivity, permission/adapter capabilities and unavailability reason in one shared presentation contract. Acceptance: adding a fourth runner only adds its descriptor; every selector/tile/header shows the proper label; a non-integrated runner is visibly distinct from an admitted agent.",
+      "classification": "current_defect",
+      "method": "current_component_jsdom_reproduction"
+    },
+    {
+      "id": "UV-05",
+      "priority": "P1",
+      "title": "Ending a session also activates its enclosing session card (existing UX-02)",
+      "detail": "Panel renders a real button whenever onClick is provided. AgentTile places End, Cancel and Dismiss buttons inside it. This remains present despite a known audit finding and comments elsewhere describing the trap. Keyboard and click bubbling can focus/open the session while trying to end it.\n\nEvidence: `components/Panel.tsx:59`; `ProjectHome.tsx:1552`, `:1597`, `:1615`, `:1620`. Actual current-component probe `/tmp/fabric-ux-probe/project.log`: one nested button, plus React invalid button-descendant warning.\n\nRemedy: a noninteractive card wrapper with sibling Open session and End controls; distinguish card link/action composition in the component API. Acceptance: zero nested interactive controls, End does not invoke openSession, keyboard can activate both independently.",
+      "classification": "current_defect",
+      "method": "current_component_jsdom_reproduction"
+    },
+    {
+      "id": "UV-06",
+      "priority": "P1",
+      "prior_mapping": "new",
+      "detail": "Global Agents mode overrides content. Home, project tab, New project, Search and Attention navigation update active but never clear showAgents. `App.tsx:252`, `:261`, `:319`, `:339`, `:386`.",
+      "remedy_acceptance": "One discriminated route state, or consistently exit global mode on navigation. Test Agents→each destination and back; visible selected tab must describe displayed content.",
+      "classification": "current_defect",
+      "method": "static_code_trace"
+    },
+    {
+      "id": "UV-07",
+      "priority": "P1",
+      "prior_mapping": "UX-06 partial",
+      "detail": "Create now reuses a caller ID, but appends project then attaches repos sequentially; Cancel/tab close remain possible while create is pending. A late success can activate a project after its draft tab was removed. `main/index.ts:712`, `:723`, `:729`, `:743`; `Onboarding.tsx:57`, `:69`, `:206`; `App.tsx:268`, `:282`.",
+      "remedy_acceptance": "Pending create is an owned operation. Prevent destructive dismissal or reconcile late success honestly. Either transactionally create config+repos or show recoverable partially configured state; retry same ID. Test append/attach/readback failures and closing/switching tabs during save.",
+      "classification": "current_defect",
+      "method": "static_code_trace"
+    },
+    {
+      "id": "UV-08",
+      "priority": "P1",
+      "prior_mapping": "UX-07 / M108 remains",
+      "detail": "null becomes zero: ProjectHome passes `sessions ?? []` to AgentsSection and computes running from [] (`ProjectHome.tsx:244`, `:297`), so unread session state appears idle. App feed returns immediately when replay yields [] and never setsFeed([]) (`App.tsx:189`), leaving an empty estate's journal indefinitely “reading”. Initial project/session fetches also have no catch (`App.tsx:215`, `:227`). Local resource errors are global banners; stale values remain unmarked.",
+      "remedy_acceptance": "Shared resource state: unread/loading/fresh/empty/stale/error, with observedAt and request generation. Preserve last success but mark stale. Test initial empty, initial failure, refresh failure, retry and out-of-order response. Do not treat error as empty or forever loading.",
+      "classification": "current_defect",
+      "method": "static_code_trace"
+    },
+    {
+      "id": "UV-09",
+      "priority": "P1",
+      "prior_mapping": "UX-08 / M142",
+      "detail": "Feed rows still have no link/handler, filters or unread marker (`Feed.tsx:26`); Workspace activity prints raw event types (`Workspace.tsx:76`). `reveal()` only scrolls: it neither opens collapsed Files/Transcripts nor focuses the destination (`evidence.ts:52`; `ProjectHome.tsx:784`). Memory “superseded facts” goes to decisions (`MemoryOverviewSection.tsx:83`) even though superseded notes are not decisions.",
+      "remedy_acceptance": "One typed evidence-target resolver: project/task/session/event/file/fact. Open the exact record, expand necessary section and move focus; surface missing/unavailable record. Test each statistic/feed item against the actual source type, not merely an existing DOM id.",
+      "classification": "current_defect",
+      "method": "static_code_trace"
+    },
+    {
+      "id": "UV-10",
+      "priority": "P1",
+      "prior_mapping": "UX-01 / UX-12 residual",
+      "detail": "Transcript selection has one openId and one body. A slow A response can overwrite B's body after selecting B. Global project remount fixes cross-project leakage, not same-project race (`ProjectHome.tsx:1123`–1140). Main invisibly caps history to 30 (`main/index.ts:813`–819).",
+      "remedy_acceptance": "Key requests/cache by session ID with generation cancellation; display per-record read failure. Cursor pagination with total/hasMore. Acceptance: open A then B and resolve A last; B still shows B. Session31 reachable without DB/MCP.",
+      "classification": "current_defect",
+      "method": "static_code_trace"
+    },
+    {
+      "id": "UV-11",
+      "priority": "P1",
+      "prior_mapping": "UX-15 partial / M103",
+      "detail": "Quiet output is treated as readiness and 15-second deadline sends anyway; warning goes to console, no visible delivered/acknowledged state (`pty.ts:198`–246). SCN-032 still says no task recorded if spawn fails, while implementation records failed attempts.",
+      "remedy_acceptance": "Preserve bracketed single-paste fix, then runner-specific readiness/acknowledgment and an explicit undelivered/unknown status. Require visible delivery receipt before calling the task running in the user's sense. Test delayed first-run login, trust prompt, spinner, early exit, multiline payload. Scope no claim of per-runner hook enforcement.",
+      "classification": "current_defect",
+      "method": "static_code_trace"
+    },
+    {
+      "id": "UV-12",
+      "priority": "P1",
+      "prior_mapping": "SCN-032 / ST-024",
+      "detail": "Use again was removed with task history. BoardSection accepts onReuse but never calls it; TaskPage has no reuse control. The old promise survives in SCN-032, helper plumbing and strings. `ProjectHome.tsx:362`, `:428`, `:559`; `Tasks.tsx:89`; `TaskPage.tsx:194`–287; `foundation.md:427`; `scenarios.md:803`.",
+      "remedy_acceptance": "Add explicit rerun/reuse on task detail into a project-owned draft, preserve edited drafts, reset borrowed preset provenance, keep a source-task link. Test complete visible click path, not just loadInto.",
+      "classification": "current_defect",
+      "method": "static_code_trace"
+    },
+    {
+      "id": "UV-13",
+      "priority": "P1",
+      "prior_mapping": "new live consistency",
+      "detail": "New created agents are absent from the Run picker until ProjectHome remount: CreatedAgents reloads only its own made list; Tasks loads made and preset data only on project.id (`ProjectHome.tsx:1241`; `Tasks.tsx:110`–126). Backlog presets likewise don't update with the board. Memory facts only reload on search/toggle/project, while overview follows feedMark (`ProjectHome.tsx:1669`; `MemoryOverviewSection.tsx:41`). Automations read once (`ProjectHome.tsx:1358`, `:1418`).",
+      "remedy_acceptance": "Invalidate by affected project/object version through one query cache; share read models instead of sibling private copies. Acceptance: create agent, file idea, record/correct fact via another writer, routine starts/completes; all visible siblings agree without tab hopping.",
+      "classification": "current_defect",
+      "method": "static_code_trace"
+    },
+    {
+      "id": "UV-14",
+      "priority": "P1",
+      "prior_mapping": "light visual state",
+      "detail": "Light theme keeps terminal background #1f1d1a but EditorWindow uses light --ink #0a0a0a and Monaco vs syntax palette (`tokens.paperclip.css:248`–255; `EditorWindow.tsx:37`–49, `:76`; `styles.css:191`, `:217`). Session/editor header inherits the light foreground on a dark background. Old committed screenshot `docs/audit/2026-09-05-evidence/screenshots/editor-light-1280.png` visibly demonstrates black-on-dark code and header; current sources preserve cause.",
+      "remedy_acceptance": "Give terminal/editor a coherent scoped dark theme in either app theme, or provide a true light terminal palette. Test syntax tokens, selection, diff, header, controls, caret, placeholder in both themes. Never assume token use proves contrast.",
+      "classification": "current_defect",
+      "method": "static_code_trace"
+    },
+    {
+      "id": "UV-15",
+      "priority": "P2",
+      "prior_mapping": "UX-13",
+      "detail": "Tasks and Agents runner selects have no accessible names; file folder buttons omit expanded state; close-tab controls all say only Close tab; Field hints are not described-by their controls. `Tasks.tsx:201`; `ProjectHome.tsx:1066`; `FileTree.tsx:51`; `TabStrip.tsx:80`; `Field.tsx:23`.",
+      "remedy_acceptance": "Add programmatic names/state and contextual close labels; hints/errors tied by IDs. Complete keyboard + VoiceOver top-flow pass; scanner alone cannot certify accessibility.",
+      "classification": "current_defect",
+      "method": "static_code_trace"
+    },
+    {
+      "id": "UV-16",
+      "priority": "P2",
+      "prior_mapping": "visual",
+      "detail": "Stale Claim label/age uses --state-idle→--warn in light theme, contrary to tokens.app comment that warning hue is never text (`components.css:245`; `tokens.app.css:58`, `:66`; `tokens.paperclip.css:271`). Small muted text on #f5f5f5 remains #737373, recorded ratio4.349 (`light-contrast.json:3`).",
+      "remedy_acceptance": "Separate state-ink from status-dot roles with light/dark contrast tests on actual composited backgrounds. Minimum 4.5:1 ordinary text; don't repair by removing state labels.",
+      "classification": "current_defect",
+      "method": "static_code_trace"
+    },
+    {
+      "id": "UV-17",
+      "priority": "P2",
+      "prior_mapping": "visual/contract",
+      "detail": "Workspace gives result Panel class span-2, but CSS span rule only matches `.widget.span-2`; Panel uses panel, never widget. Current result slot doesn't span both columns. `Workspace.tsx:115`; `Panel.tsx:46`; `styles.css:179`. Board remains four columns at all widths (`components.css:249`); settings/push panels lack compact mode.",
+      "remedy_acceptance": "Correct span selector; add content-aware board/list breakpoint and side-panel behavior at 200% zoom. Acceptance at1280×800,1024,768,640 and200% zoom: named task/move readable, primary action reachable, no unintended horizontal page scroll; preserve intentional workspace reading order.",
+      "classification": "current_defect",
+      "method": "static_code_trace"
+    },
+    {
+      "id": "UV-18",
+      "priority": "P2",
+      "prior_mapping": "docs UX-10/11",
+      "detail": "Screen registry index/body conflicts remain: SCR-30 Estate home maps AttentionPanel, SCR-17 Workspace editor maps text EditorWindow, superseded SCR-23 marked built; source/components/assets “none yet”. `screens.md:29`, `:35`, `:42`, `:58`, `:421`. FLW-13 remains active and SCN-025 traces it; FLW-15 promises header repository-path editor, while repos are picker-driven; FLW-21 duplicates attention edge to two destinations. `flows.md:437`, `:511`, `:708`, `:714`.",
+      "remedy_acceptance": "Version current baseline separately from target flows; canonical screen identity with aliases, implementer receipts and state coverage. Mark superseded records retired. Linter should validate semantic implementing role rather than first filename presence. Fix all chain layers in same change.",
+      "classification": "contract_drift",
+      "method": "static_code_trace"
+    },
+    {
+      "id": "UV-19",
+      "priority": "P2",
+      "prior_mapping": "public UX-16",
+      "detail": "Local public landing still targets #project from second CTA, while SCN-038 says repository map; one-column Project frame starts620px vs registry720px. `passioncode-ai.github.io/index.html:73`; `styles.css:410`, `:429`; `scenarios.md:968`; `screens.md:533`.",
+      "remedy_acceptance": "Set accepted actual navigation/breakpoint in the chain or implement original intent. This is contract drift, not proof of a broken link. New parent-brand/product hierarchy must be an explicit coordinated content revision.",
+      "classification": "contract_drift",
+      "method": "static_code_trace"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "SCN-025",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "PTY start/replay/reattach/end exists (`pty.ts:259`, `:366`, `:387`; `TerminalView.tsx:13`; `SessionWindow.tsx:16`). UV-04/05/08 and stale FLW-13 prevent full launcher/lifecycle conformance. Tests `test/pty.test.mjs` verify process behavior, not actual launch UX.",
+      "shared_runtime_blocker": "UV-01"
+    },
+    {
+      "id": "SCN-026",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Human sentences and durable replay exist (`Feed.tsx:34`; `App.tsx:189`; `main/index.ts:2290`). UV-08/09: empty read never resolves, no receipt navigation/filter/unread; realtime is polling by explicit App.tsx:18 design. `Feed.test.tsx` tests copy fallback, not ordering/reconnect.",
+      "shared_runtime_blocker": "UV-01"
+    },
+    {
+      "id": "SCN-027",
+      "verdict": "FAIL",
+      "qualification": "FAIL, planned gap",
+      "evidence": "Refusal/one-shot grant UI exists (`AttentionPanel.tsx:121`; `main/policy.ts`). Scenario demands canUseTool interception, checkpoint resume, refusal reason and expiry. M140 explicitly remains partial (`backlog.md:614`; `iterations.md:79`). Do not call agent-initiated effect request universal enforcement.",
+      "shared_runtime_blocker": "UV-01"
+    },
+    {
+      "id": "SCN-028",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Project-keyed mount/draft patches now isolate instructions (`App.tsx:417`, `:430`). Header save exists (`ProjectHome.tsx:912`; `main/index.ts:2257`). UV-06/07/08, only instruction draft persisted, and old header-path contract remain.",
+      "shared_runtime_blocker": "UV-01"
+    },
+    {
+      "id": "SCN-029",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Detached window and live card lifecycle exist (`ProjectHome.tsx:1047`; `main/index.ts:2366`; `SessionWindow.tsx:50`). UV-04/05/08 and missing concrete unavailability reason.",
+      "shared_runtime_blocker": "UV-01"
+    },
+    {
+      "id": "SCN-030",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Real tier0 grid and explicit empty results slot (`Workspace.tsx:30`–115). UV-09/17: no stale resource branch/receipt navigation, raw event identifiers, wrong span selector. Tier1/2 provider widgets are planned, not missing shipped work.",
+      "shared_runtime_blocker": "UV-01"
+    },
+    {
+      "id": "SCN-031",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Independent draft data and picker/default memory inputs (`App.tsx:261`; `Onboarding.tsx:48`, `:57`, `:163`). Stable ID retry is an improvement. UV-04/06/07 prevent reliable full first-run. Onboarding tests focus memory choice, not create/cancel race.",
+      "shared_runtime_blocker": "UV-01"
+    },
+    {
+      "id": "SCN-032",
+      "verdict": "FAIL",
+      "qualification": "FAIL",
+      "evidence": "Instruction and preset protection exist (`Tasks.tsx:151`, `:184`, `:265`). Current final expected result fails UV-11/12/13; shared launch label defect UV-04. Test Tasks.test.tsx only verifies preset content/availability, not run history/end/reuse cycle.",
+      "shared_runtime_blocker": "UV-01"
+    },
+    {
+      "id": "SCN-033",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Picker attach/detach, primary confirmation, watcher+10s refresh are implemented (`ProjectHome.tsx:208`, `:825`, `:859`; `main/index.ts:2217`). Unreadable branch exists, yet “clean” is still computed unguarded when primary.error set (`ProjectHome.tsx:674`, `:685`); the tree can fail opening a file without showing a reason (`FileTree.tsx:70`).",
+      "shared_runtime_blocker": "UV-01"
+    },
+    {
+      "id": "SCN-034",
+      "verdict": "FAIL",
+      "qualification": "FAIL",
+      "evidence": "Hash conflict, grant and path boundary exist (`EditorWindow.tsx:144`; `main/files.ts`; `test/file-roots.test.mjs`). UV-02 reproduces loss violating no-surprise outcome; UV-14 corrupts light readability. Guarded close exists, but its pure helper test does not verify native Electron quit sequencing.",
+      "shared_runtime_blocker": "UV-01"
+    },
+    {
+      "id": "SCN-035",
+      "verdict": "PASS",
+      "qualification": "PASS, static behavior only",
+      "evidence": "Claim author/age/stale comparison remains separate from observed state (`ProjectHome.tsx:1192`, `:1564`; `components/Claim.tsx:33`; `main/sessionBundle.ts`; `main/contextPack.ts`). Marked as local semantic PASS; current display accessibility and source-capability limitations UV-04/16 are separate. No live agent run claimed.",
+      "shared_runtime_blocker": "UV-01"
+    },
+    {
+      "id": "SCN-036",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Automatic capture, excerpt/truncation and lazy full-body read exist (`main/transcripts.ts`; `main/index.ts:813`, `:824`; `ProjectHome.tsx:1153`). UV-10 row31 inaccessible and selection race. Transcript main tests do not cover two fast row selections.",
+      "shared_runtime_blocker": "UV-01"
+    },
+    {
+      "id": "SCN-037",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL",
+      "evidence": "Actor marker/correction history/retrieval bookkeeping are real (`ProjectHome.tsx:1649`, `:1744`; `main/index.ts:2306`, `:2331`). M112 correctly amends removed status-strip counts. UV-09/13: stale fact list versus overview, correction count opens wrong store; same-query/toggle race generation not guarded.",
+      "shared_runtime_blocker": "UV-01"
+    },
+    {
+      "id": "SCN-038",
+      "verdict": "PARTIAL",
+      "qualification": "PARTIAL, minor contract drift",
+      "evidence": "Static semantic local landing includes category, role/provider distinction, human authority, availability, organization link, no JS dependence (`passioncode-ai.github.io/index.html:44`, `:63`, `:170`, `:187`). UV-19 remains. Live domain availability belongs to parent's pass; new brand hierarchy is proposal, not existing scenario defect.",
+      "shared_runtime_blocker": "UV-01"
+    }
+  ],
+  "module_coverage": [
+    "App/Shell",
+    "Onboarding",
+    "ProjectHome/ProjectHeader/BoardSection/AgentsSection/AgentTile/CreatedAgents/Automations/Routines/MemorySection/TranscriptsSection",
+    "Tasks",
+    "SessionWindow/TerminalView",
+    "EditorWindow/FileTree",
+    "Feed",
+    "Workspace",
+    "MemoryOverviewSection",
+    "AttentionPanel (intersecting approval scope only)",
+    "components:Panel/Field/FieldGroup/TabStrip/Claim/EmptyState/StateChip",
+    "tokens.paperclip/tokens.app/styles/components CSS",
+    "main:project/repo/transcript/memory/terminal/feed IPC and PTY delivery",
+    "shared:agents/editorBuffer",
+    "public local index.html/styles.css",
+    "UX foundation/vision/scenarios/flows/screens; brand/ui; latest audit/backlog"
+  ],
+  "limits": [
+    "No production app/DB run",
+    "No native keyboard/VoiceOver conformance claim",
+    "No actual Monaco native close/quit path replay",
+    "Historical screenshots dated2026-09-05 only",
+    "Live public domain/render owned by parent",
+    "No base status or shared registry edits"
+  ],
+  "report": "/tmp/fabric-audit-ux.md"
+}

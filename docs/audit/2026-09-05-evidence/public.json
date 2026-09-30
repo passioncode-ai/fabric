@@ -1,0 +1,525 @@
+{
+  "audit_date": "2026-09-05",
+  "repo": "<home>/DATA/passioncode-ai.github.io",
+  "git_head": "0a5f69980820604458d6942c21d634d06e9c2618",
+  "tracked_tree_clean": true,
+  "untracked_count": 2,
+  "untracked_description": "OS metadata only; audit did not change repository files",
+  "verdict": "PARTIAL",
+  "rationale": "Source, branding, published assets and CI hold; two minor scenario/screen contract mismatches need reconciliation. Product capabilities are explicitly active development, not missing public-site features.",
+  "method": "Read-only source/CSS/brand/CI and production HTTP. Parent owns desktop/mobile visual pass. No deploy, repo write, install, cloud setting change or local build mutation.",
+  "scenarios": [
+    "SCN-038"
+  ],
+  "screens": [
+    "SCR-29"
+  ],
+  "flows": [
+    "FLW-20"
+  ],
+  "checks": {
+    "npm_run_check": {
+      "exit_code": 0,
+      "canonical_brand_files": 20,
+      "pack_exports": 27,
+      "runtime_aliases": 7,
+      "required_files": 12,
+      "social_dimensions": [
+        1200,
+        630
+      ]
+    },
+    "static_html": {
+      "h1": 1,
+      "scripts": [
+        {
+          "type": "application/ld+json"
+        }
+      ],
+      "executable_scripts": 0,
+      "links": 12,
+      "fragment_links": 5,
+      "unresolved_fragments": [],
+      "primary_cta_count": 2,
+      "availability_evidence": "<home>/DATA/passioncode-ai.github.io/index.html:75"
+    },
+    "brand_current_fabric_matches": {
+      "matched": 20,
+      "total": 20,
+      "upstream_record": {
+        "repository": "passioncode-ai/fabric",
+        "commit": "a360b51778d6a80eb294a9a91dd4809fd4dfbff1",
+        "path": "assets/brand"
+      }
+    },
+    "build": {
+      "allowlist_entries": 11,
+      "local_build_rerun": false,
+      "reason": "Build removes/recreates dist; read-only audit used current HEAD successful GitHub build and read the allowlist script.",
+      "source": "<home>/DATA/passioncode-ai.github.io/scripts/build-site.mjs:7",
+      "workflow": "<home>/DATA/passioncode-ai.github.io/.github/workflows/check.yml:22"
+    },
+    "ci": {
+      "sample": 8,
+      "successes": 8,
+      "failures": 0,
+      "scope": "Latest8 workflow runs includes PR/main events; not deployment failure rate",
+      "runs": [
+        {
+          "conclusion": "success",
+          "createdAt": "2026-09-03T10:07:35Z",
+          "databaseId": 33742620830,
+          "headSha": "0a5f69980820604458d6942c21d634d06e9c2618",
+          "status": "completed",
+          "url": "https://github.com/passioncode-ai/passioncode-ai.github.io/actions/runs/33742620830"
+        },
+        {
+          "conclusion": "success",
+          "createdAt": "2026-09-03T10:07:13Z",
+          "databaseId": 33742586943,
+          "headSha": "278dad9265d5a477977e6296750eea681327efab",
+          "status": "completed",
+          "url": "https://github.com/passioncode-ai/passioncode-ai.github.io/actions/runs/33742586943"
+        },
+        {
+          "conclusion": "success",
+          "createdAt": "2026-09-03T10:05:05Z",
+          "databaseId": 33742387899,
+          "headSha": "c47f129f926b7014b93a9feb52be556075c343a0",
+          "status": "completed",
+          "url": "https://github.com/passioncode-ai/passioncode-ai.github.io/actions/runs/33742387899"
+        },
+        {
+          "conclusion": "success",
+          "createdAt": "2026-09-03T10:04:36Z",
+          "databaseId": 33742341748,
+          "headSha": "d009084dfac65c2e89e86a98871f6257a6b09809",
+          "status": "completed",
+          "url": "https://github.com/passioncode-ai/passioncode-ai.github.io/actions/runs/33742341748"
+        },
+        {
+          "conclusion": "success",
+          "createdAt": "2026-09-03T10:00:56Z",
+          "databaseId": 33742004262,
+          "headSha": "d5c168d1e1ed51070b5d56e9416e69efa5cbd4fd",
+          "status": "completed",
+          "url": "https://github.com/passioncode-ai/passioncode-ai.github.io/actions/runs/33742004262"
+        },
+        {
+          "conclusion": "success",
+          "createdAt": "2026-09-03T10:00:25Z",
+          "databaseId": 33741951657,
+          "headSha": "e9f6481c0d6c35a74d855eeb6934c4999370b8db",
+          "status": "completed",
+          "url": "https://github.com/passioncode-ai/passioncode-ai.github.io/actions/runs/33741951657"
+        },
+        {
+          "conclusion": "success",
+          "createdAt": "2026-09-03T09:59:43Z",
+          "databaseId": 33741885674,
+          "headSha": "4a738233fc21fcf52e7dc6f1bb3bc098c16fd9a1",
+          "status": "completed",
+          "url": "https://github.com/passioncode-ai/passioncode-ai.github.io/actions/runs/33741885674"
+        },
+        {
+          "conclusion": "success",
+          "createdAt": "2026-09-02T23:35:45Z",
+          "databaseId": 33695795396,
+          "headSha": "e9da9f3b71fbd21d7246bbb4f73c4663d3f18c7e",
+          "status": "completed",
+          "url": "https://github.com/passioncode-ai/passioncode-ai.github.io/actions/runs/33695795396"
+        }
+      ]
+    },
+    "deployment": {
+      "mechanism": "Authenticated manual Wrangler deploy; GitHub workflow checks/builds only",
+      "documented_deployed_source": "d5c168d1e1ed51070b5d56e9416e69efa5cbd4fd",
+      "deployed_to_head_diff_files": [
+        "README.md",
+        "docs/CUTOVER_RECEIPT.md",
+        "docs/DEPLOYMENT.md"
+      ],
+      "source_change_since_deploy": false,
+      "evidence": [
+        "<home>/DATA/passioncode-ai.github.io/docs/DEPLOYMENT.md:9",
+        "<home>/DATA/passioncode-ai.github.io/docs/DEPLOYMENT.md:12",
+        "<home>/DATA/passioncode-ai.github.io/docs/CUTOVER_RECEIPT.md:8"
+      ]
+    },
+    "production_http": {
+      "observed_at": "2026-09-04T23:02:41.940973+00:00",
+      "client": "curl default user agent; no custom browser impersonation",
+      "public_200": 11,
+      "exact_source_matches": 10,
+      "allowlist_count": 11,
+      "managed_transform": {
+        "path": "robots.txt",
+        "served_bytes": 1904,
+        "source_bytes": 68,
+        "prefix_bytes": 1836,
+        "source_contained_verbatim": true,
+        "meaning": "Cloudflare crawler rules prepend source; production is not solely repository bytes. No indexing failure inferred."
+      },
+      "nonpublic_paths_404": 4,
+      "www_redirect": {
+        "status": 301,
+        "request": "https://www.passioncode.ai/audit-path?q=1",
+        "location": "https://passioncode.ai/audit-path?q=1"
+      },
+      "files": [
+        {
+          "path": "index.html",
+          "url": "https://passioncode.ai/",
+          "status": 200,
+          "content_type": "text/html",
+          "bytes": 13236,
+          "sha256": "08ea7f00f530f53b532f2a43a5f38126c18b1b90254751b1b4114414d5cb80b7",
+          "matches_local": true
+        },
+        {
+          "path": "styles.css",
+          "url": "https://passioncode.ai/styles.css",
+          "status": 200,
+          "content_type": "text/css",
+          "bytes": 15164,
+          "sha256": "bb457d19f786df6c16a695ff465d603387688169a1ec69579f366f31d3fc9cc9",
+          "matches_local": true
+        },
+        {
+          "path": "robots.txt",
+          "url": "https://passioncode.ai/robots.txt",
+          "status": 200,
+          "content_type": "text/plain; charset=utf-8",
+          "bytes": 1904,
+          "sha256": "21e0857c032e00b7e28dc5a4a86f89b278326433b58f542bb5adc380771c25f8",
+          "matches_local": false,
+          "local_bytes": 68,
+          "contains_local_verbatim": true,
+          "managed_prefix": "# As a condition of accessing this website, you agree to abide by the following\n# content signals:\n\n# (a)  If a Content-Signal = yes, you may collect content for the corresponding\n#      use.\n# (b)  If a Content-Signal = no, you may not collect content for the\n#      corresponding use.\n# (c)  If the website operator does not include a Content-Signal for a\n#      corresponding use, the website operator neither grants nor restricts\n#      permission via Content-Signal with respect to the corresponding use.\n\n# The content signals and their meanings are:\n\n# search:   building a search index and providing search results (e.g., returning\n#           hyperlinks and short excerpts from your website's contents). Search does not\n#           include providing AI-generated search summaries.\n# ai-input: inputting content into one or more AI models (e.g., retrieval\n#           augmented generation, grounding, or other real-time taking of content for\n#           generative AI search answers).\n# ai-train: training or fine-tuning AI models.\n# use:      how AI systems may consume the content (immediate, reference, or full).\n\n# ANY RESTRICTIONS EXPRESSED VIA CONTENT SIGNALS ARE EXPRESS RESERVATIONS OF\n# RIGHTS UNDER ARTICLE 4 OF THE EUROPEAN UNION DIRECTIVE 2019/790 ON COPYRIGHT\n# AND RELATED RIGHTS IN THE DIGITAL SINGLE MARKET.\n\n# BEGIN Cloudflare Managed content\n\nUser-agent: *\nContent-Signal: search=yes,ai-train=no,use=reference\nAllow: /\n\nUser-agent: Amazonbot\nDisallow: /\n\nUser-agent: Applebot-Extended\nDisallow: /\n\nUser-agent: Bytespider\nDisallow: /\n\nUser-agent: CCBot\nDisallow: /\n\nUser-agent: ClaudeBot\nDisallow: /\n\nUser-agent: CloudflareBrowserRenderingCrawler\nDisallow: /\n\nUser-agent: Google-Extended\nDisallow: /\n\nUser-agent: GPTBot\nDisallow: /\n\nUser-agent: meta-externalagent\nDisallow: /\n\n"
+        },
+        {
+          "path": "sitemap.xml",
+          "url": "https://passioncode.ai/sitemap.xml",
+          "status": 200,
+          "content_type": "application/xml",
+          "bytes": 265,
+          "sha256": "6a83c1a2da7c8b91eb861f726aad8ad609e7047168f407c722752b6f7489f087",
+          "matches_local": true
+        },
+        {
+          "path": "assets/passioncode-mark.svg",
+          "url": "https://passioncode.ai/assets/passioncode-mark.svg",
+          "status": 200,
+          "content_type": "image/svg+xml",
+          "bytes": 2975,
+          "sha256": "8b49637faa386ce9658029a142d48e8a8c3ee4ed2d44ccb611cd03051046e1aa",
+          "matches_local": true
+        },
+        {
+          "path": "assets/favicon-64.png",
+          "url": "https://passioncode.ai/assets/favicon-64.png",
+          "status": 200,
+          "content_type": "image/png",
+          "bytes": 5013,
+          "sha256": "34fb5047708a4381e660da439f06d405af8575b3de5a86cc2e315da95c294ea2",
+          "matches_local": true
+        },
+        {
+          "path": "assets/icon-256.png",
+          "url": "https://passioncode.ai/assets/icon-256.png",
+          "status": 200,
+          "content_type": "image/png",
+          "bytes": 40679,
+          "sha256": "a8c1265dcd1340109d329ad988ebb7b5aad2d0d5b5bc38f95ad67208899055f6",
+          "matches_local": true
+        },
+        {
+          "path": "assets/icon-1024.png",
+          "url": "https://passioncode.ai/assets/icon-1024.png",
+          "status": 200,
+          "content_type": "image/png",
+          "bytes": 437457,
+          "sha256": "6e753b92ed5b28f5883f1e784350e2bf9b377cd7be1538129a12982ef0df2dfc",
+          "matches_local": true
+        },
+        {
+          "path": "assets/passioncode-social-card.svg",
+          "url": "https://passioncode.ai/assets/passioncode-social-card.svg",
+          "status": 200,
+          "content_type": "image/svg+xml",
+          "bytes": 4781,
+          "sha256": "4e7bb0872785368025b347c897de60a0c3a75287df3d4f05c40de711ee96bdf2",
+          "matches_local": true
+        },
+        {
+          "path": "assets/passioncode-social-card.png",
+          "url": "https://passioncode.ai/assets/passioncode-social-card.png",
+          "status": 200,
+          "content_type": "image/png",
+          "bytes": 529680,
+          "sha256": "66f540fdcdaf38d0bf624af39e926a4cccdf5b1977932ca4d3a0c52919a2f00e",
+          "matches_local": true
+        },
+        {
+          "path": "assets/passioncode-social-card.jpg",
+          "url": "https://passioncode.ai/assets/passioncode-social-card.jpg",
+          "status": 200,
+          "content_type": "image/jpeg",
+          "bytes": 123778,
+          "sha256": "49357798a821b5b60c26bbe41ac00fd93ab671548398f33c098de9b28c993d23",
+          "matches_local": true
+        },
+        {
+          "path": "assets/README.md",
+          "url": "https://passioncode.ai/assets/README.md",
+          "status": 404,
+          "content_type": null,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "matches_local": false
+        },
+        {
+          "path": "brand/LOCK.json",
+          "url": "https://passioncode.ai/brand/LOCK.json",
+          "status": 404,
+          "content_type": null,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "matches_local": false
+        },
+        {
+          "path": "package.json",
+          "url": "https://passioncode.ai/package.json",
+          "status": 404,
+          "content_type": null,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "matches_local": false
+        },
+        {
+          "path": "docs/DEPLOYMENT.md",
+          "url": "https://passioncode.ai/docs/DEPLOYMENT.md",
+          "status": 404,
+          "content_type": null,
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "matches_local": false
+        }
+      ],
+      "client_boundary": "Python urllib default received403 error1010 for10/11 public entries; curl default and parent CUA browser succeed. Client-dependent edge behavior, not proven outage or crawler failure."
+    }
+  },
+  "findings": [
+    {
+      "id": "PUBLIC-01",
+      "ux_finding_id": "UX-16",
+      "severity": "minor",
+      "classification": "current_contract_drift",
+      "title": "Secondary CTA destination differs from SCN-038",
+      "evidence": [
+        "docs/ux/scenarios.md:949",
+        "<home>/DATA/passioncode-ai.github.io/index.html:73",
+        "<home>/DATA/passioncode-ai.github.io/index.html:181"
+      ],
+      "impact": "SCN-038 step6 promises an in-page repository-map CTA; shipped secondary CTA says See the Project model and targets #project. Both sections exist and the primary GitHub CTA is consistent. Documentation mismatch, not broken link.",
+      "proposed_fix": "Align SCN-038/FLW-20 to the chosen Project-model discovery path, or deliberately change destination and label together. Prefer documenting current successful path if intent is unchanged.",
+      "existing_plan": [
+        "CO-089 canonical UX reconciliation"
+      ],
+      "validation_required": "Scenario step, visible label, fragment and target heading agree; same-page anchors resolve."
+    },
+    {
+      "id": "PUBLIC-02",
+      "ux_finding_id": "UX-16",
+      "severity": "minor",
+      "classification": "current_contract_drift",
+      "title": "Narrow-screen breakpoint differs from screen contract",
+      "evidence": [
+        "docs/ux/screens.md:530",
+        "<home>/DATA/passioncode-ai.github.io/styles.css:402",
+        "<home>/DATA/passioncode-ai.github.io/styles.css:410",
+        "<home>/DATA/passioncode-ai.github.io/styles.css:429",
+        "docs/audit/2026-09-05-evidence/public-responsive.json"
+      ],
+      "impact": "SCR-29 requires Project frame one column below720px; CSS retains two between621–719px and collapses at620px. No overflow claim inferred from source. Parent live browser confirms at700px Project frame324+324px, document scrollWidth700; at390px main sections one column, scrollWidth390. This is contract drift without observed overflow.",
+      "proposed_fix": "Use the parent700px reading-order measurement to choose accepted breakpoint; update screen contract or CSS in the same change.",
+      "existing_plan": [
+        "CO-089 canonical UX reconciliation"
+      ],
+      "validation_required": "Check620,621,700,719,720px; column count, reading order and document scrollWidth match accepted contract.",
+      "method": "source + parent production browser reproduction"
+    }
+  ],
+  "capability_assessment": [
+    {
+      "area": "Positioning, category transition",
+      "verdict": "PASS",
+      "evidence": [
+        "<home>/DATA/passioncode-ai.github.io/index.html:62",
+        "<home>/DATA/passioncode-ai.github.io/index.html:93"
+      ]
+    },
+    {
+      "area": "Project frame, roles/providers, human authority",
+      "verdict": "PASS",
+      "evidence": [
+        "<home>/DATA/passioncode-ai.github.io/index.html:138",
+        "<home>/DATA/passioncode-ai.github.io/index.html:174",
+        "<home>/DATA/passioncode-ai.github.io/index.html:177"
+      ]
+    },
+    {
+      "area": "Availability and repository-role honesty",
+      "verdict": "PASS",
+      "evidence": [
+        "<home>/DATA/passioncode-ai.github.io/index.html:75",
+        "<home>/DATA/passioncode-ai.github.io/index.html:197",
+        "<home>/DATA/passioncode-ai.github.io/index.html:204",
+        "<home>/DATA/passioncode-ai.github.io/index.html:210"
+      ]
+    },
+    {
+      "area": "Static metadata and semantic no-JS delivery",
+      "verdict": "PASS",
+      "evidence": [
+        "<home>/DATA/passioncode-ai.github.io/index.html:6",
+        "<home>/DATA/passioncode-ai.github.io/index.html:31",
+        "<home>/DATA/passioncode-ai.github.io/robots.txt:1",
+        "<home>/DATA/passioncode-ai.github.io/sitemap.xml:4"
+      ]
+    },
+    {
+      "area": "Structural accessibility (not full conformance)",
+      "verdict": "PARTIAL",
+      "evidence": [
+        "<home>/DATA/passioncode-ai.github.io/index.html:44",
+        "<home>/DATA/passioncode-ai.github.io/styles.css:58",
+        "<home>/DATA/passioncode-ai.github.io/styles.css:438"
+      ],
+      "limit": "Parent owns keyboard/contrast/image-block/reading-order browser checks."
+    }
+  ],
+  "blindspots": [
+    "Cloudflare dashboard/bot/security settings and actual deploy execution not inspected.",
+    "GitHub8-run sample validates checks/builds, not manual-deploy reliability or product telemetry.",
+    "No traffic, conversion, indexing, reader comprehension or product outcome measurement.",
+    "390/700px responsive geometry directly measured by parent. Full VoiceOver, image-block and reduced-motion behavior are not proved by this source subaudit."
+  ],
+  "reviewed_files": [
+    "<home>/DATA/passioncode-ai.github.io/package.json",
+    "<home>/DATA/passioncode-ai.github.io/README.md",
+    "<home>/DATA/passioncode-ai.github.io/index.html",
+    "<home>/DATA/passioncode-ai.github.io/styles.css",
+    "<home>/DATA/passioncode-ai.github.io/robots.txt",
+    "<home>/DATA/passioncode-ai.github.io/sitemap.xml",
+    "<home>/DATA/passioncode-ai.github.io/worker/index.js",
+    "<home>/DATA/passioncode-ai.github.io/wrangler.json",
+    "<home>/DATA/passioncode-ai.github.io/scripts/build-site.mjs",
+    "<home>/DATA/passioncode-ai.github.io/scripts/check-site.mjs",
+    "<home>/DATA/passioncode-ai.github.io/scripts/check-brand-lock.mjs",
+    "<home>/DATA/passioncode-ai.github.io/scripts/check-worker.mjs",
+    "<home>/DATA/passioncode-ai.github.io/brand/LOCK.json",
+    "<home>/DATA/passioncode-ai.github.io/brand/brand-pack/manifest.json",
+    "<home>/DATA/passioncode-ai.github.io/.github/workflows/check.yml",
+    "<home>/DATA/passioncode-ai.github.io/docs/DEPLOYMENT.md",
+    "<home>/DATA/passioncode-ai.github.io/docs/CUTOVER_RECEIPT.md"
+  ],
+  "privacy": "Aggregate account/CI facts only; no credentials, cloud account IDs or private record IDs reproduced.",
+  "browser_evidence": {
+    "method": "Parent CUA browser, actual public website, read-only",
+    "receipt": "docs/audit/2026-09-05-evidence/public-responsive.json",
+    "measurements": {
+      "mobile390": {
+        "grid": [
+          {
+            "cls": "site-header",
+            "columns": "257.453px 104.547px"
+          },
+          {
+            "cls": "hero-mark",
+            "columns": "362px"
+          },
+          {
+            "cls": "comparison",
+            "columns": "362px"
+          },
+          {
+            "cls": "comparison-arrow",
+            "columns": "362px"
+          },
+          {
+            "cls": "project-frame",
+            "columns": "362px"
+          },
+          {
+            "cls": "stages",
+            "columns": "362px"
+          },
+          {
+            "cls": "principles",
+            "columns": "362px"
+          },
+          {
+            "cls": "repo-grid",
+            "columns": "362px"
+          },
+          {
+            "cls": "",
+            "columns": "181px 181px"
+          }
+        ],
+        "height": 844,
+        "scroll": 390,
+        "width": 390
+      },
+      "mobile700": {
+        "grid": [
+          {
+            "cls": "site-header",
+            "columns": "548.5px 111.5px"
+          },
+          {
+            "cls": "hero",
+            "columns": "660px"
+          },
+          {
+            "cls": "hero-mark",
+            "columns": "660px"
+          },
+          {
+            "cls": "comparison",
+            "columns": "660px"
+          },
+          {
+            "cls": "comparison-arrow",
+            "columns": "660px"
+          },
+          {
+            "cls": "project-frame",
+            "columns": "324px 324px"
+          },
+          {
+            "cls": "stages",
+            "columns": "330px 330px"
+          },
+          {
+            "cls": "principles",
+            "columns": "324px 324px"
+          },
+          {
+            "cls": "repo-grid",
+            "columns": "324px 324px"
+          },
+          {
+            "cls": "",
+            "columns": "330px 330px"
+          }
+        ],
+        "height": 800,
+        "scroll": 700,
+        "width": 700
+      }
+    },
+    "scope": "390 and700px settled grid/scroll dimensions; parent owns full visual pass"
+  }
+}

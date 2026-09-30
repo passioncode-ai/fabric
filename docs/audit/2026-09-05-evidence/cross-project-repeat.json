@@ -1,0 +1,5 @@
+{
+  "actionLog": "task.start {\"projectId\":\"project-b\",\"instruction\":\"AUDIT: This instruction belongs only to Project A.\",\"optionId\":\"claude-code\",\"presetEdited\":false}\nwindows.openSession \"session-a\"\n",
+  "heading": "Project B — a separate operating context",
+  "typeError": false
+}

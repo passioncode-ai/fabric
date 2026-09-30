@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    // Nothing in this repository emits with tsc — electron-vite builds, and
+    // the workspace packages point `main` straight at their TypeScript source.
+    // So an import may name the file it means, which is what the raw Node
+    // probes need: they run the real module under --experimental-strip-types,
+    // where the resolver does not guess extensions.
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

@@ -1,0 +1,36 @@
+warning: adding embedded git repository: workspace
+hint: You've added another git repository inside your current repository.
+hint: Clones of the outer repository will not contain the contents of
+hint: the embedded repository and will not know how to obtain it.
+hint: If you meant to add a submodule, use:
+hint:
+hint: 	git submodule add <url> workspace
+hint:
+hint: If you added this path by mistake, you can remove it from the
+hint: index with:
+hint:
+hint: 	git rm --cached workspace
+hint:
+hint: See "git help submodule" for more information.
+hint: Disable this message with "git config set advice.addEmbeddedRepo false"
+✔ healthy old source/build/release and pending releases cannot certify publication (0.520417ms)
+To /var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-child-remote-JyGILt
+ * [new branch]      main -> main
+✔ actual publisher resumes a failed parent push without creating a second snapshot or commit (2934.6255ms)
+✔ immutable source snapshot excludes runtime/secrets and ignores dirty working bytes (101.775708ms)
+✔ symlinks and sensitive paths inside allowed sources fail closed (189.097292ms)
+✔ export reproduces source, removes obsolete generated entries and detects tampering (127.660041ms)
+✔ export never overwrites an unmanaged content directory (100.779208ms)
+✔ publication-only pin has no content cycle; later code-only edit invalidates publication (423.306042ms)
+✔ wrong gitlink and false digest cannot pass the receipt check (277.642958ms)
+✔ mutable source refs and incomplete deployment receipts fail before source comparison (112.945041ms)
+✔ ignored historical logs cannot disappear between local validation and the published Git commit (272.169458ms)
+✔ committed snapshot verification preserves Unicode paths instead of Git display quoting (198.041459ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2988.562542

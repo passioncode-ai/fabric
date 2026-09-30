@@ -1,0 +1,17 @@
+/* The governance target views inherit the shipped Paperclip/app semantic tokens. */
+.governance { min-width: 0; }
+.governance-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-4); align-items: start; }
+.governance-grid > * { min-width: 0; }
+.governance-stage-list { display: grid; gap: var(--space-3); margin-block: var(--space-4); }
+.governance-stage { border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-4); margin: 0; }
+.governance-stage legend { padding-inline: var(--space-2); }
+.governance-stage .field { margin-bottom: var(--space-3); }
+.governance-verdict { padding: var(--space-3); margin-block: var(--space-3); background: var(--app-panel-quiet); border: 1px solid var(--app-line); border-radius: var(--app-radius-control); }
+.governance-receipts { margin: 0; padding-left: var(--space-5); display: grid; gap: var(--space-3); }
+.governance-receipts strong { font-size: var(--app-fs-caption); }
+.governance-receipts p { margin-top: var(--space-1); color: var(--app-muted); font-size: var(--app-fs-caption); }
+.governance form > .actions { margin-block: var(--space-3); }
+.governance form > h3 { margin-bottom: var(--space-4); }
+.governance [data-governance-notice]:focus { outline: 2px solid var(--app-focus); outline-offset: 2px; }
+@media (max-width: 900px) { .governance-grid { grid-template-columns: minmax(0,1fr); } }
+@media (prefers-reduced-motion: reduce) { .governance * { scroll-behavior: auto; } }

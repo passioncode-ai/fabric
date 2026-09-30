@@ -1,0 +1,4831 @@
+{
+  "schema": "fabric.system-model@1",
+  "status": "recommended-target-design",
+  "source_commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+  "date": "2026-09-07",
+  "description": "Целевая модель Fabric; наличие исходного объекта не означает реализацию всех показанных контрактов. Runtime-состояние эта схема не измеряет.",
+  "modules": [
+    {
+      "id": "scope",
+      "name": "Проект и доступ",
+      "purpose": "Проект хранит цель, команду и границы. Identity определяет, кто может действовать.",
+      "tasks": [
+        "S02",
+        "S09"
+      ]
+    },
+    {
+      "id": "authority",
+      "name": "Полномочия и эффекты",
+      "purpose": "Проверить область, потолок, основание; зарезервировать действие и сохранить результат.",
+      "tasks": [
+        "S03",
+        "S06",
+        "M157",
+        "M158",
+        "M168"
+      ]
+    },
+    {
+      "id": "work",
+      "name": "Работа и решения",
+      "purpose": "Цели, версии плана, задачи и вопросы связаны доказуемыми причинными рёбрами.",
+      "tasks": [
+        "M149",
+        "M151",
+        "M152",
+        "M153",
+        "M173",
+        "M190"
+      ]
+    },
+    {
+      "id": "execution",
+      "name": "Исполнение и прогресс",
+      "purpose": "Отделить проход графа, прогон задачи, шаг, попытку и сессию исполнителя.",
+      "tasks": [
+        "S04",
+        "S05",
+        "M103",
+        "M188",
+        "M189"
+      ]
+    },
+    {
+      "id": "agents",
+      "name": "Агенты и управление",
+      "purpose": "Выбираемые исполнители и manager, единые инструменты и наблюдатель вне агента.",
+      "tasks": [
+        "M177",
+        "M178",
+        "M179",
+        "M180",
+        "M181",
+        "M166",
+        "M167",
+        "M169",
+        "M171",
+        "M175",
+        "M176",
+        "M194",
+        "M199"
+      ]
+    },
+    {
+      "id": "knowledge",
+      "name": "Память и обучение",
+      "purpose": "Хранить наблюдения, утверждения, основания и версии контекста раздельно.",
+      "tasks": [
+        "M154",
+        "M155",
+        "M182",
+        "M183",
+        "M184",
+        "M191"
+      ]
+    },
+    {
+      "id": "continuity",
+      "name": "Циклы и сохранность",
+      "purpose": "Планировщик, durable delivery, восстановление и синхронизация со своим источником правды.",
+      "tasks": [
+        "S12",
+        "S14",
+        "S15",
+        "M198"
+      ]
+    },
+    {
+      "id": "surfaces",
+      "name": "Рабочая среда",
+      "purpose": "Показывать sourced snapshots, адресовать действия человеку, сохранять ввод и доставлять проверенную сборку.",
+      "tasks": [
+        "S01",
+        "S07",
+        "S08",
+        "S10",
+        "S11",
+        "S13",
+        "M97",
+        "M98",
+        "M102",
+        "M105",
+        "M109",
+        "M185",
+        "M186",
+        "M187",
+        "M195",
+        "M196",
+        "M197"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "id": "person",
+      "name": "Person / человек",
+      "module": "scope",
+      "implementation": "existing",
+      "store": "persons · identity plane",
+      "scope": "system",
+      "identity": "person_id; auth_user unique",
+      "fields": [
+        "auth_user",
+        "display_name"
+      ],
+      "invariants": [
+        "Display name is not an authorization credential."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260831000001_migration_one.sql",
+          "symbol": "create table persons",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 14,
+          "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+          "excerpt": "create table persons (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L14",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S09"
+      ]
+    },
+    {
+      "id": "estate",
+      "name": "Estate / организация",
+      "module": "scope",
+      "implementation": "existing",
+      "store": "journal → estates projection",
+      "scope": "estate",
+      "identity": "estate_id",
+      "fields": [
+        "name"
+      ],
+      "invariants": [
+        "Cross-estate sequence numbers cannot be compared."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260831000001_migration_one.sql",
+          "symbol": "create table estates",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 25,
+          "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+          "excerpt": "create table estates (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L25",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S02",
+        "S09"
+      ]
+    },
+    {
+      "id": "membership",
+      "name": "Membership / доступ",
+      "module": "scope",
+      "implementation": "partial",
+      "store": "memberships · authority plane",
+      "scope": "estate",
+      "identity": "(person_id, estate_id)",
+      "fields": [
+        "role: owner|member",
+        "revision (target)"
+      ],
+      "invariants": [
+        "At least one owner; revocation checked at command and external dispatch boundaries."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260831000001_migration_one.sql",
+          "symbol": "create table memberships",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 31,
+          "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+          "excerpt": "create table memberships (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L31",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S02",
+        "S09"
+      ]
+    },
+    {
+      "id": "project",
+      "name": "Project / проект",
+      "module": "scope",
+      "implementation": "existing",
+      "store": "journal → projects projection",
+      "scope": "project",
+      "identity": "project_id",
+      "fields": [
+        "estate_id",
+        "purpose",
+        "config_revision",
+        "status"
+      ],
+      "invariants": [
+        "Project persists across goals, agents and native sessions."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260831000001_migration_one.sql",
+          "symbol": "create table projects",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 40,
+          "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+          "excerpt": "create table projects (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L40",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S02",
+        "M198"
+      ]
+    },
+    {
+      "id": "workspace",
+      "name": "Repository / файловая область",
+      "module": "scope",
+      "implementation": "partial",
+      "store": "project_repos + authorised local roots",
+      "scope": "project",
+      "identity": "repo_id + host_id (target)",
+      "fields": [
+        "canonical_root",
+        "binding_revision",
+        "access_ceiling"
+      ],
+      "invariants": [
+        "Canonical realpath and symlink policy checked at point of file operation; UI path is not a grant."
+      ],
+      "sources": [
+        {
+          "path": "apps/desktop/src/main/files.ts",
+          "symbol": "readFile",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 22,
+          "file_sha256": "df666cc2758c8552fabec37b2d50b69be59918125caa28dd4e8da32c9a16d476",
+          "excerpt": "import { existsSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs'",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/main/files.ts#L22",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S02",
+        "S12"
+      ]
+    },
+    {
+      "id": "grant",
+      "name": "Grant / разовое разрешение",
+      "module": "authority",
+      "implementation": "partial",
+      "store": "grants · durable authority store",
+      "scope": "estate",
+      "identity": "grant_id",
+      "fields": [
+        "scope",
+        "target_hash",
+        "expires_at",
+        "preconditions",
+        "reservation_owner (target)"
+      ],
+      "invariants": [
+        "At most one active or consumed reservation per one-shot grant. Released pre-dispatch reservations remain historical; revoked/expired grants never become usable through release."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260831000001_migration_one.sql",
+          "symbol": "create table grants",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 80,
+          "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+          "excerpt": "create table grants (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L80",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S03"
+      ]
+    },
+    {
+      "id": "effect",
+      "name": "Effect / внешнее действие",
+      "module": "authority",
+      "implementation": "partial",
+      "store": "effect_intents + attempt/outcome receipts (target)",
+      "scope": "project",
+      "identity": "effect_id; command_id unique per estate (target)",
+      "fields": [
+        "target_hash",
+        "policy_revision",
+        "grant_id",
+        "attempt_id",
+        "outcome"
+      ],
+      "invariants": [
+        "Approved intent is not effect execution; unknown outcome requires reconciliation before retry."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260831000001_migration_one.sql",
+          "symbol": "create table effect_intents",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 93,
+          "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+          "excerpt": "create table effect_intents (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L93",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S03",
+        "S05"
+      ]
+    },
+    {
+      "id": "command",
+      "name": "Command receipt / результат команды",
+      "module": "authority",
+      "implementation": "planned",
+      "store": "transactional command_requests + journal (target)",
+      "scope": "estate",
+      "identity": "(estate_id,command_id)",
+      "fields": [
+        "payload_hash",
+        "actor_scope",
+        "expected_revision",
+        "outcome",
+        "receipt_seq"
+      ],
+      "invariants": [
+        "Same command id+different payload refused; retry returns prior receipt."
+      ],
+      "sources": [
+        {
+          "path": "packages/journal/src/index.ts",
+          "symbol": "append",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 2,
+          "file_sha256": "4d620477f1567a25535a86f933d5937850091deb430f5f25b5a6df13f76f3e31",
+          "excerpt": "// append() is the only write path (it calls the append_event RPC, the single",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/packages/journal/src/index.ts#L2",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S03",
+        "S04",
+        "S06"
+      ]
+    },
+    {
+      "id": "checker",
+      "name": "Checker verdict / проверка предложения",
+      "module": "authority",
+      "implementation": "planned",
+      "store": "journal event + bounded evidence refs (target)",
+      "scope": "project",
+      "identity": "proposal_id + check_revision",
+      "fields": [
+        "input_hash",
+        "policy_revision",
+        "basis_refs",
+        "verdict",
+        "reason_codes"
+      ],
+      "invariants": [
+        "Refusal is journalled; valid JSON is not sufficient permission."
+      ],
+      "sources": [
+        {
+          "path": "docs/architecture/ceo-runtime.md",
+          "symbol": "checker",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 10,
+          "file_sha256": "4429286e3ae857154b03de0b4a9f5a3b40b80bdc600c778d2f3eff42dbfca345",
+          "excerpt": "> **REVISED 2026-09-06 by [ADR-0039](../adr/0039-the-ceo-is-an-agent-after-all-and-the-line-moves-to-the-tools.md).** The operator chose an agent, for flexibility and tools. §1–§2 here (“not an agent loop”) and §5 (“no loop guards”) are superseded: the CEO IS a small tool-calling loop, with the four guards. What survives is everything else — the deterministic core, the core-as-checker, the router, `ModelPort | null`, and placement — and the new load-bearing idea is that **auditability moves from the shape of the run to the tools the agent holds**. See [`agent-system-map.md`](agent-system-map.md) §5.",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/ceo-runtime.md#L10",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M168",
+        "M157",
+        "M158"
+      ]
+    },
+    {
+      "id": "goal",
+      "name": "Goal / результат",
+      "module": "work",
+      "implementation": "existing",
+      "store": "journal → goals projection",
+      "scope": "project",
+      "identity": "goal_id",
+      "fields": [
+        "parent_goal_id",
+        "autonomy",
+        "title"
+      ],
+      "invariants": [
+        "Outcome verification is separate from child task count."
+      ],
+      "sources": [
+        {
+          "path": "apps/desktop/src/shared/plan.ts",
+          "symbol": "GoalRow",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 13,
+          "file_sha256": "f181f03796b7a61333143e7e6a2899dc6626ffa3619d6893883175aeb4febc0e",
+          "excerpt": "export interface GoalRow {",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/shared/plan.ts#L13",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M190"
+      ]
+    },
+    {
+      "id": "plan",
+      "name": "PlanVersion / целевой граф",
+      "module": "work",
+      "implementation": "planned",
+      "store": "journal declarations → versioned plan projection (target)",
+      "scope": "project",
+      "identity": "plan_id + immutable version",
+      "fields": [
+        "nodes",
+        "edges with payload",
+        "predecessor_version",
+        "change_reason",
+        "accepted_by"
+      ],
+      "invariants": [
+        "Each version is acyclic; additions by agents are proposed changes, never silent replacement of approved plan."
+      ],
+      "sources": [
+        {
+          "path": "docs/architecture/agent-visibility-and-runs.md",
+          "symbol": "SHOULD",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 74,
+          "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+          "excerpt": "| **Plan graph** | how it SHOULD go, and how it is going | goals → tasks → (runs) | goal membership, `follows` + `needs` (chains), progress overlay from statuses |",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-visibility-and-runs.md#L74",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M188",
+        "M190"
+      ]
+    },
+    {
+      "id": "task",
+      "name": "Task / единица работы",
+      "module": "work",
+      "implementation": "existing",
+      "store": "journal → project_tasks projection",
+      "scope": "project",
+      "identity": "task_id",
+      "fields": [
+        "instruction",
+        "status",
+        "origin",
+        "assignee",
+        "current task_run_id (target)"
+      ],
+      "invariants": [
+        "Task survives executions; retry of an unfinished task does not create another task; terminal continuation creates a new linked task under ladder policy."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260831000004_tasks.sql",
+          "symbol": "create table project_tasks",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 9,
+          "file_sha256": "cc2c09711a3af47acb96b56c7eefa0c3a3ce966e7afae3163e534772def58f0e",
+          "excerpt": "create table project_tasks (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000004_tasks.sql#L9",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S04",
+        "M190"
+      ]
+    },
+    {
+      "id": "task_link",
+      "name": "Task relation / происхождение и зависимость",
+      "module": "work",
+      "implementation": "partial",
+      "store": "task_links + causal events",
+      "scope": "project",
+      "identity": "(source_id,relation,target_id,event_ref) (target)",
+      "fields": [
+        "follows",
+        "blocks",
+        "spawned",
+        "payload_ref"
+      ],
+      "invariants": [
+        "Time adjacency never invents a dependency; actual history may contain loops across distinct iterations."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260905000016_operating_surfaces.sql",
+          "symbol": "create table task_links",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 107,
+          "file_sha256": "9befadf715078b492ad2648ee5e1946dbc5511e7d19ade00610c6b86a0a9cf37",
+          "excerpt": "create table task_links (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260905000016_operating_surfaces.sql#L107",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M190"
+      ]
+    },
+    {
+      "id": "question",
+      "name": "Question / вопрос",
+      "module": "work",
+      "implementation": "existing",
+      "store": "journal → questions projection",
+      "scope": "project",
+      "identity": "question_id",
+      "fields": [
+        "kind",
+        "topic (target)",
+        "recipient",
+        "criticality",
+        "status",
+        "revision"
+      ],
+      "invariants": [
+        "Answered, withdrawn and superseded are distinct terminal outcomes."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260906000028_questions.sql",
+          "symbol": "create table questions",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 18,
+          "file_sha256": "da80d63b655466fdf9c5216d2968de6a9c3e301bd718499876c88ae3ba175a2f",
+          "excerpt": "create table questions (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260906000028_questions.sql#L18",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M149",
+        "M151",
+        "M153",
+        "M158"
+      ]
+    },
+    {
+      "id": "block",
+      "name": "QuestionBlock / препятствие",
+      "module": "work",
+      "implementation": "partial",
+      "store": "journal → question_blocks projection",
+      "scope": "project",
+      "identity": "(question_id,task_id)",
+      "fields": [
+        "status",
+        "resolved_by_receipt"
+      ],
+      "invariants": [
+        "Task remains blocked while any applicable blocker is active."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260906000028_questions.sql",
+          "symbol": "create table question_blocks",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 62,
+          "file_sha256": "da80d63b655466fdf9c5216d2968de6a9c3e301bd718499876c88ae3ba175a2f",
+          "excerpt": "create table question_blocks (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260906000028_questions.sql#L62",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S06",
+        "M152"
+      ]
+    },
+    {
+      "id": "decision",
+      "name": "Decision / принятое решение",
+      "module": "work",
+      "implementation": "partial",
+      "store": "memory_facts kind=decision + append-only lineage",
+      "scope": "project",
+      "identity": "fact_id + content_version (target)",
+      "fields": [
+        "source_ref",
+        "actor",
+        "basis_refs (target)",
+        "supersedes",
+        "valid_time"
+      ],
+      "invariants": [
+        "Record of decision contains stated rationale/evidence, never a promise of hidden model chain-of-thought."
+      ],
+      "sources": [
+        {
+          "path": "apps/desktop/src/shared/decisions.ts",
+          "symbol": "Lineage",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 38,
+          "file_sha256": "8a7808492c3b632dec0d3ed39790ba1ecfc1756c16cf5caaf99cb1cb2ac7366d",
+          "excerpt": "export interface Lineage {",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/shared/decisions.ts#L38",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M152",
+        "M173",
+        "M157"
+      ]
+    },
+    {
+      "id": "workflow_run",
+      "name": "WorkflowRun / проход графа",
+      "module": "execution",
+      "implementation": "planned",
+      "store": "journal.run_id + rebuildable workflow projection (target)",
+      "scope": "project",
+      "identity": "workflow_run_id; wire run_id retained",
+      "fields": [
+        "plan_version",
+        "routine_id?",
+        "pinned bindings",
+        "started_at",
+        "terminal_outcome"
+      ],
+      "invariants": [
+        "One immutable graph version per workflow execution; legacy run_id is not silently repurposed."
+      ],
+      "sources": [
+        {
+          "path": "docs/adr/0030-a-run-is-one-execution-of-one-graph.md",
+          "symbol": "Run",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 1,
+          "file_sha256": "320cdb80cd91d3f032397dc9117ca038029c3c7d5b6f34b077af775014358f80",
+          "excerpt": "# ADR-0030 — A Run is one execution of one graph",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/adr/0030-a-run-is-one-execution-of-one-graph.md#L1",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S10",
+        "M188"
+      ]
+    },
+    {
+      "id": "task_run",
+      "name": "TaskRun / прогон задачи",
+      "module": "execution",
+      "implementation": "planned",
+      "store": "admission transaction + journal → task_runs (target)",
+      "scope": "project",
+      "identity": "task_run_id (new UUID)",
+      "fields": [
+        "task_id",
+        "workflow_run_id?",
+        "iteration_index",
+        "plan_revision",
+        "binding_revision",
+        "epoch",
+        "status"
+      ],
+      "invariants": [
+        "Created after successful admission, before spawn; admitted failed spawn is a run; denied admission is not."
+      ],
+      "sources": [
+        {
+          "path": "docs/adr/0042-a-run-is-the-unit-of-progress-and-every-graph-is-a-query.md",
+          "symbol": "A run is a session",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 19,
+          "file_sha256": "694778c55cecaffb5fd1fb9ef32efa447d707b25c915ef87f214d47610a22295",
+          "excerpt": "1. **A run is a session bound to a task.** No new id: `task.session.attached@1`",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/adr/0042-a-run-is-the-unit-of-progress-and-every-graph-is-a-query.md#L19",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S04",
+        "M188",
+        "M189"
+      ]
+    },
+    {
+      "id": "step",
+      "name": "StepExecution / шаг прогона",
+      "module": "execution",
+      "implementation": "planned",
+      "store": "journal claims → step projection (target)",
+      "scope": "project",
+      "identity": "(task_run_id,plan_revision,step_id)",
+      "fields": [
+        "claim_status",
+        "observations",
+        "evidence_refs",
+        "checkpoint_refs"
+      ],
+      "invariants": [
+        "New explicit iteration resets all step claims; verified outcome stays a separate field."
+      ],
+      "sources": [
+        {
+          "path": "docs/architecture/agent-visibility-and-runs.md",
+          "symbol": "plan.step",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 32,
+          "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+          "excerpt": "fabric_plan_step({ task_id, step_id, status, note? })        → plan.step@1",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-visibility-and-runs.md#L32",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M188",
+        "M189"
+      ]
+    },
+    {
+      "id": "checkpoint",
+      "name": "Checkpoint / точка проверки",
+      "module": "execution",
+      "implementation": "planned",
+      "store": "journal → checkpoints (target)",
+      "scope": "project",
+      "identity": "checkpoint_id",
+      "fields": [
+        "task_run_id",
+        "step_id",
+        "gate_kind",
+        "expected_artifacts",
+        "verdict",
+        "receipt_ref"
+      ],
+      "invariants": [
+        "Waiting for person releases execution worker; process liveness does not approve checkpoint."
+      ],
+      "sources": [
+        {
+          "path": "docs/architecture/agent-visibility-and-runs.md",
+          "symbol": "checkpoint",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 4,
+          "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+          "excerpt": "model with checkpoints, the per-agent history graph, the project task/plan",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-visibility-and-runs.md#L4",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M188",
+        "M189"
+      ]
+    },
+    {
+      "id": "session",
+      "name": "Session / транспорт исполнителя",
+      "module": "execution",
+      "implementation": "existing",
+      "store": "PTY map + terminal journal + transcript store",
+      "scope": "project",
+      "identity": "fabric_session_id; provider_native_session_ref opaque",
+      "fields": [
+        "pid",
+        "status",
+        "runner_revision",
+        "started_at",
+        "last_output"
+      ],
+      "invariants": [
+        "Provider internal model/tool turns do not imply Fabric iterations."
+      ],
+      "sources": [
+        {
+          "path": "apps/desktop/src/main/pty.ts",
+          "symbol": "PtyManager",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 1,
+          "file_sha256": "cc39093a3efcda41e9e45425add1463bca25ac4b8450be93fa7236e9e1639774",
+          "excerpt": "// PtyManager — hosted terminals (ADR-0008 §3 / ADR-0031). Sessions live in the",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/main/pty.ts#L1",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M103",
+        "M105",
+        "M188"
+      ]
+    },
+    {
+      "id": "attempt",
+      "name": "Attempt / попытка операции",
+      "module": "execution",
+      "implementation": "planned",
+      "store": "durable operation log + outcome event (target)",
+      "scope": "project",
+      "identity": "attempt_id; parent operation_id",
+      "fields": [
+        "attempt_index",
+        "started_at",
+        "finished_at",
+        "status",
+        "external_receipt"
+      ],
+      "invariants": [
+        "Attempts count within bounded budget; uncertain completion is not retryable failure."
+      ],
+      "sources": [
+        {
+          "path": "apps/desktop/src/shared/delivery.ts",
+          "symbol": "asOnePaste",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 43,
+          "file_sha256": "193e39fbdcd8d4aed4460b3aef4d6f7f7c707f2fce8147eef81fd1b52dd27b15",
+          "excerpt": "export function asOnePaste(instruction: string): string {",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/shared/delivery.ts#L43",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S03",
+        "S04",
+        "S05"
+      ]
+    },
+    {
+      "id": "handoff",
+      "name": "Delivery / передача работы",
+      "module": "execution",
+      "implementation": "partial",
+      "store": "task_handoffs + durable delivery outbox (target)",
+      "scope": "project",
+      "identity": "delivery_id; source receipt + target task_run_id",
+      "fields": [
+        "payload_ref",
+        "target_binding",
+        "delivery_status",
+        "ack_ref",
+        "retry_at"
+      ],
+      "invariants": [
+        "Writing PTY bytes is not semantic receipt acknowledgement."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260905000027_chains.sql",
+          "symbol": "task_handoffs",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 9,
+          "file_sha256": "621a8b19240484bdaba970edb5de11cc34fffc09be82291a8286789b06e237cc",
+          "excerpt": "-- drawn. `task_handoffs` is what a predecessor actually PRODUCED — part of the",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260905000027_chains.sql#L9",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M103",
+        "M152"
+      ]
+    },
+    {
+      "id": "provider",
+      "name": "ProviderRevision / исполнитель",
+      "module": "agents",
+      "implementation": "partial",
+      "store": "admitted provider registry + contract pins",
+      "scope": "estate",
+      "identity": "provider_id + immutable revision",
+      "fields": [
+        "capabilities",
+        "placement",
+        "contract_revision",
+        "conformance_receipts"
+      ],
+      "invariants": [
+        "Listing or user selecting a provider does not confer authority."
+      ],
+      "sources": [
+        {
+          "path": "docs/architecture/agent-production.md",
+          "symbol": "provider",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 32,
+          "file_sha256": "9e07ebf27018899d538aae1698ee918c163e0af738ac3a5df405763bb92b46a9",
+          "excerpt": "| What the agent can do | **Capability** from the controlled vocabulary; the provider maps onto it | ADR-0012, CO-041 |",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-production.md#L32",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S08",
+        "M169",
+        "M194"
+      ]
+    },
+    {
+      "id": "binding",
+      "name": "AgentBinding / член команды",
+      "module": "agents",
+      "implementation": "partial",
+      "store": "journal → agent_bindings projection",
+      "scope": "project",
+      "identity": "binding_id + revision (target)",
+      "fields": [
+        "provider_ref",
+        "role",
+        "status",
+        "scope",
+        "capabilities"
+      ],
+      "invariants": [
+        "Role/authority/history belong to project; future rebinding does not rewrite old run."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260831000001_migration_one.sql",
+          "symbol": "create table agent_bindings",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 63,
+          "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+          "excerpt": "create table agent_bindings (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L63",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M194"
+      ]
+    },
+    {
+      "id": "role_slot",
+      "name": "RoleSlot / место руководителя",
+      "module": "agents",
+      "implementation": "planned",
+      "store": "role_slots + binding revisions (target)",
+      "scope": "estate",
+      "identity": "(estate_id,role,scope_key)",
+      "fields": [
+        "role: ceo|product-manager",
+        "scope_kind: estate|project",
+        "binding_revision",
+        "epoch",
+        "lease"
+      ],
+      "invariants": [
+        "One canonical assignment for a configured managed role; handoff atomically changes revision with runtime suspended; at most one effective writer epoch."
+      ],
+      "sources": [
+        {
+          "path": "docs/adr/0043-the-manager-seat-is-a-binding.md",
+          "symbol": "ROLE BINDING",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 13,
+          "file_sha256": "e98b16c7b1de8e4f360c9190c8aaf2394e9b36f877c0642c1de1079f86a6999c",
+          "excerpt": "1. **The manager is a ROLE BINDING** (ADR-0010): `role = manager`,",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/adr/0043-the-manager-seat-is-a-binding.md#L13",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M194"
+      ]
+    },
+    {
+      "id": "manager_invocation",
+      "name": "ManagerInvocation / разбор ситуации",
+      "module": "agents",
+      "implementation": "planned",
+      "store": "invocation journal + operational lease (target)",
+      "scope": "estate",
+      "identity": "invocation_id",
+      "fields": [
+        "role_slot_id",
+        "epoch",
+        "signal_watermark",
+        "pack_hash",
+        "budget",
+        "outcome"
+      ],
+      "invariants": [
+        "Invocation consumes a fixed signal batch; own bookkeeping does not wake itself."
+      ],
+      "sources": [
+        {
+          "path": "docs/architecture/agent-visibility-and-runs.md",
+          "symbol": "Lifecycle",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 143,
+          "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+          "excerpt": "### 4.2 Lifecycle — wake, verify, pass data",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-visibility-and-runs.md#L143",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M166",
+        "M175",
+        "M194"
+      ]
+    },
+    {
+      "id": "health",
+      "name": "Health observation / состояние агента",
+      "module": "agents",
+      "implementation": "planned",
+      "store": "heartbeat and host-observer events (target)",
+      "scope": "project",
+      "identity": "(binding_revision,task_run_id,observer_seq)",
+      "fields": [
+        "phase",
+        "expected_object",
+        "observed_at",
+        "lease_until",
+        "observer_host"
+      ],
+      "invariants": [
+        "No heartbeat means unknown/stale; independent exit evidence can mean stopped; silence alone is not failure."
+      ],
+      "sources": [
+        {
+          "path": "docs/architecture/agent-health-and-failure.md",
+          "symbol": "heartbeat",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 1,
+          "file_sha256": "2745e44a4369e269d4a86a1d9c1c61a6d9b5f185747722c772f17c2d6b257021",
+          "excerpt": "# Agent health, the heartbeat, and what happens when something breaks",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-health-and-failure.md#L1",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M178",
+        "M179",
+        "M180",
+        "M181"
+      ]
+    },
+    {
+      "id": "usage",
+      "name": "Usage / расход",
+      "module": "agents",
+      "implementation": "planned",
+      "store": "usage attempt receipts + budget reservation (target)",
+      "scope": "estate",
+      "identity": "usage_id; attempt_id + provider receipt unique",
+      "fields": [
+        "model",
+        "tokens known/unknown",
+        "money known/unknown",
+        "budget_id",
+        "reservation"
+      ],
+      "invariants": [
+        "Unknown usage is not zero; reservations count concurrent in-flight calls."
+      ],
+      "sources": [
+        {
+          "path": "docs/architecture/ceo-runtime.md",
+          "symbol": "ModelPort",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 10,
+          "file_sha256": "4429286e3ae857154b03de0b4a9f5a3b40b80bdc600c778d2f3eff42dbfca345",
+          "excerpt": "> **REVISED 2026-09-06 by [ADR-0039](../adr/0039-the-ceo-is-an-agent-after-all-and-the-line-moves-to-the-tools.md).** The operator chose an agent, for flexibility and tools. §1–§2 here (“not an agent loop”) and §5 (“no loop guards”) are superseded: the CEO IS a small tool-calling loop, with the four guards. What survives is everything else — the deterministic core, the core-as-checker, the router, `ModelPort | null`, and placement — and the new load-bearing idea is that **auditability moves from the shape of the run to the tools the agent holds**. See [`agent-system-map.md`](agent-system-map.md) §5.",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/ceo-runtime.md#L10",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M169",
+        "M171",
+        "M176"
+      ]
+    },
+    {
+      "id": "journal",
+      "name": "Journal / журнал фактов записи",
+      "module": "knowledge",
+      "implementation": "existing",
+      "store": "PostgreSQL append_event single writer",
+      "scope": "estate",
+      "identity": "(estate_id,seq bigint)",
+      "fields": [
+        "type@version",
+        "actor",
+        "project_id",
+        "run_id",
+        "occurred_at",
+        "payload"
+      ],
+      "invariants": [
+        "A journal records claims as claims. Ordering of committed events does not prove real-world causation."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260831000001_migration_one.sql",
+          "symbol": "create table journal",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 110,
+          "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+          "excerpt": "create table journal (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L110",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S05",
+        "M198"
+      ]
+    },
+    {
+      "id": "fact",
+      "name": "Memory fact / утверждение",
+      "module": "knowledge",
+      "implementation": "existing",
+      "store": "journal → memory_facts projection",
+      "scope": "project",
+      "identity": "fact_id",
+      "fields": [
+        "kind",
+        "about",
+        "source_ref",
+        "actor_kind",
+        "valid_from/to",
+        "recorded_at"
+      ],
+      "invariants": [
+        "Current means not superseded in this store, not objectively correct."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260831000002_project_workbench.sql",
+          "symbol": "create table memory_facts",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 7,
+          "file_sha256": "dd415ec0f7b9b7b83888555fb0a0cf1978edb6d659a75cfe4bb1ab3ce3446c9c",
+          "excerpt": "create table memory_facts (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000002_project_workbench.sql#L7",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M155",
+        "M191"
+      ]
+    },
+    {
+      "id": "transcript",
+      "name": "Transcript / наблюдаемый вывод",
+      "module": "knowledge",
+      "implementation": "existing",
+      "store": "session_transcripts + local capture",
+      "scope": "project",
+      "identity": "session_id / transcript_id",
+      "fields": [
+        "text",
+        "redactions",
+        "sha256",
+        "complete",
+        "source_ref"
+      ],
+      "invariants": [
+        "Observed output can include wrong or malicious statements; it is not instructions or validated rationale."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260831000008_transcripts.sql",
+          "symbol": "create table session_transcripts",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 30,
+          "file_sha256": "fb82dbb01f5d467962fce9a97aa39836014a358d2e15e71550b46f06e4556935",
+          "excerpt": "create table session_transcripts (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000008_transcripts.sql#L30",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S05",
+        "M191"
+      ]
+    },
+    {
+      "id": "pack",
+      "name": "ContextPack / контекст прогона",
+      "module": "knowledge",
+      "implementation": "partial",
+      "store": "session_context_packs + compilation event",
+      "scope": "project",
+      "identity": "pack_id / content_hash (target)",
+      "fields": [
+        "scope",
+        "input_versions",
+        "compiler_version",
+        "budget units",
+        "selected_refs",
+        "omissions",
+        "source_errors"
+      ],
+      "invariants": [
+        "Preview is not proof of use; only compiled and actually supplied pack receipt binds a run."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260901000013_context_packs.sql",
+          "symbol": "create table session_context_packs",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 24,
+          "file_sha256": "fdf7744dd848ce001f344ed8232d2bfce4d8025764b4856b81884d88fb35d671",
+          "excerpt": "create table session_context_packs (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260901000013_context_packs.sql#L24",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M177",
+        "M191",
+        "S14"
+      ]
+    },
+    {
+      "id": "retrieval",
+      "name": "Retrieval / обращение к памяти",
+      "module": "knowledge",
+      "implementation": "existing",
+      "store": "memory_retrievals",
+      "scope": "project",
+      "identity": "retrieval_id",
+      "fields": [
+        "query",
+        "source",
+        "result_refs",
+        "no_results",
+        "unavailable"
+      ],
+      "invariants": [
+        "Miss, skipped and source unavailable are different results."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260831000011_retrieval_log.sql",
+          "symbol": "create table memory_retrievals",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 19,
+          "file_sha256": "2c389da94fd9c0058e72bee021ea6e9479e1376d5e656a2d97bcdb98766cd236",
+          "excerpt": "create table memory_retrievals (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000011_retrieval_log.sql#L19",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M191",
+        "S14"
+      ]
+    },
+    {
+      "id": "retro",
+      "name": "Retro insight / урок",
+      "module": "knowledge",
+      "implementation": "partial",
+      "store": "memory_facts insight + proposed occurrence projection",
+      "scope": "project",
+      "identity": "insight_id + occurrence_id (target)",
+      "fields": [
+        "category",
+        "about",
+        "content_version",
+        "evidence_refs",
+        "lifecycle",
+        "review_after"
+      ],
+      "invariants": [
+        "Agent report, distinct incident and verified corrective lesson are separate objects."
+      ],
+      "sources": [
+        {
+          "path": "docs/architecture/retro-and-signals.md",
+          "symbol": "retro",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 5,
+          "file_sha256": "aa2938b00d9bcc1a3e78fabd77c58b2bf4f2a188566b9b69b26c92e73f6d8f3e",
+          "excerpt": "becomes Fabric's own product backlog; the CEO runs a retrospective cycle; every",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/retro-and-signals.md#L5",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M154",
+        "M182",
+        "M184"
+      ]
+    },
+    {
+      "id": "feedback",
+      "name": "Service feedback / улучшение Fabric",
+      "module": "knowledge",
+      "implementation": "planned",
+      "store": "estate-private durable service insights + minimization and consent-gated outbox (target)",
+      "scope": "estate",
+      "identity": "feedback lineage ID stable across consent/schema changes; delivery generation separate",
+      "fields": [
+        "category",
+        "issue_code",
+        "schema_version",
+        "export_state",
+        "consent_revision"
+      ],
+      "invariants": [
+        "No raw free text/paths/transcripts in default export; anonymization is not an absolute guarantee.",
+        "Suppression is durable estate-private state, never disposable installation settings."
+      ],
+      "sources": [
+        {
+          "path": "docs/adr/0041-insights-carry-a-category-and-only-service-categories-ever-leave.md",
+          "symbol": "category",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 1,
+          "file_sha256": "290efa0b4d39079a02a0302279bf1b331812f2bfd4bedbadef6a45a33bdf8ab8",
+          "excerpt": "# ADR-0041 — Insights carry a closed category, and only service categories ever leave the project",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/adr/0041-insights-carry-a-category-and-only-service-categories-ever-leave.md#L1",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M183"
+      ]
+    },
+    {
+      "id": "routine",
+      "name": "Routine / повторяемое намерение",
+      "module": "continuity",
+      "implementation": "existing",
+      "store": "journal → routines projection",
+      "scope": "project",
+      "identity": "routine_id",
+      "fields": [
+        "schedule",
+        "capability",
+        "target_scope",
+        "enabled",
+        "catch_up_policy"
+      ],
+      "invariants": [
+        "Enabled is configuration; it is not evidence that a scheduler is running."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260905000022_routines.sql",
+          "symbol": "routines",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 15,
+          "file_sha256": "6214c917baa5815390102bf56a6441137aa83edaa92c790e7168a3edcb06ee07",
+          "excerpt": "create table if not exists routines (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260905000022_routines.sql#L15",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S15",
+        "M186"
+      ]
+    },
+    {
+      "id": "cycle",
+      "name": "CycleInvocation / срабатывание цикла",
+      "module": "continuity",
+      "implementation": "planned",
+      "store": "cycle invocation journal + operational ledger (target)",
+      "scope": "estate",
+      "identity": "(cycle_id,window_key,revision)",
+      "fields": [
+        "cursor_before/after",
+        "lease_epoch",
+        "claimed_at",
+        "outcome",
+        "receipts"
+      ],
+      "invariants": [
+        "Dedup identity is stable across host restart; cursor advances only with durable results."
+      ],
+      "sources": [
+        {
+          "path": "apps/desktop/src/main/routineTick.ts",
+          "symbol": "createRoutineTick",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 50,
+          "file_sha256": "6108cb8c23b6b76dbeb377ce3ca6a89353839ed48eeef7eac3a3fa9b76ccaf4a",
+          "excerpt": "export function createRoutineTick(deps: RoutineTickDeps): RoutineTick {",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/main/routineTick.ts#L50",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S15",
+        "M184",
+        "M186"
+      ]
+    },
+    {
+      "id": "ledger",
+      "name": "Operational ledger / lease и outbox",
+      "module": "continuity",
+      "implementation": "partial",
+      "store": "leases plus command/delivery/scheduler tables (target)",
+      "scope": "estate",
+      "identity": "operation_id / dedup key",
+      "fields": [
+        "epoch",
+        "owner",
+        "expires_at",
+        "request_hash",
+        "state",
+        "retry_at"
+      ],
+      "invariants": [
+        "Operational safety state is not disposable projection cache; full backup includes it."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260905000016_operating_surfaces.sql",
+          "symbol": "create table leases",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 186,
+          "file_sha256": "9befadf715078b492ad2648ee5e1946dbc5511e7d19ade00610c6b86a0a9cf37",
+          "excerpt": "create table leases (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260905000016_operating_surfaces.sql#L186",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S04",
+        "S12",
+        "S15"
+      ]
+    },
+    {
+      "id": "mirror",
+      "name": "MirrorManifest / зеркало конфигурации",
+      "module": "continuity",
+      "implementation": "partial",
+      "store": "workspace YAML + manifest/checksums (target)",
+      "scope": "local",
+      "identity": "export_id + source estate seq",
+      "fields": [
+        "coverage",
+        "file_hashes",
+        "source_revision",
+        "excluded_classes",
+        "schema_version"
+      ],
+      "invariants": [
+        "YAML mirror is neither two-way database synchronization nor a full backup."
+      ],
+      "sources": [
+        {
+          "path": "apps/desktop/src/shared/mirror.ts",
+          "symbol": "mirror",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 4,
+          "file_sha256": "847c3dec1b44d7b740d45989ae7de520af7b79aefa54a4cf781ba6e80bde5ba2",
+          "excerpt": "// DECLARED layer — what a person chose — is mirrored to files so the operator's",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/shared/mirror.ts#L4",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S12",
+        "M191"
+      ]
+    },
+    {
+      "id": "backup",
+      "name": "Backup / восстановление",
+      "module": "continuity",
+      "implementation": "planned",
+      "store": "DB snapshot + blob/local manifest (target)",
+      "scope": "estate",
+      "identity": "backup_id",
+      "fields": [
+        "journal_highwater",
+        "schema_version",
+        "identity_version",
+        "operational_state",
+        "blob_hashes",
+        "omissions",
+        "consistency_token",
+        "identity_snapshot_digest",
+        "operational_snapshot_digest",
+        "recovery_generation",
+        "held_capabilities"
+      ],
+      "invariants": [
+        "Restore in isolated environment with all executors disabled before comparing and activating.",
+        "Activation uses fresh authority generation outside restored state. Pending effects/deliveries/export stay quarantined until current proofs and reconciliation; old backup cannot revive opt-out or revoked bindings."
+      ],
+      "sources": [
+        {
+          "path": "docs/audit/2026-09-07-merged-execution-plan.json",
+          "symbol": "S12",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 120,
+          "file_sha256": "8f3536cf1ea0e3cf4037353b5c5746a275ebb2c6eb393e7299fc5a63bfa4dd61",
+          "excerpt": "        \"S12\"",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/audit/2026-09-07-merged-execution-plan.json#L120",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S07",
+        "S12"
+      ]
+    },
+    {
+      "id": "prefs",
+      "name": "Preferences / рабочий контекст",
+      "module": "continuity",
+      "implementation": "partial",
+      "store": "per-user atomic local settings",
+      "scope": "local",
+      "identity": "(host,user,estate,project,key) (target)",
+      "fields": [
+        "schema_version",
+        "revision",
+        "tabs",
+        "drafts",
+        "display_settings"
+      ],
+      "invariants": [
+        "Local UI preference is not project policy or shared business state."
+      ],
+      "sources": [
+        {
+          "path": "apps/desktop/src/main/settings.ts",
+          "symbol": "writeSettings",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 71,
+          "file_sha256": "ac8f988f20a7a22dd0af005d7ecf807588ed08f7f3b0e682b1d972191f62bb78",
+          "excerpt": "export function writeSettings(next: Partial<AppSettings>): AppSettings {",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/main/settings.ts#L71",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S01",
+        "S14"
+      ]
+    },
+    {
+      "id": "read",
+      "name": "ReadEnvelope / снимок и полнота",
+      "module": "surfaces",
+      "implementation": "planned",
+      "store": "derived query result only",
+      "scope": "project",
+      "identity": "(scope,reader,filter_hash,at_seq)",
+      "fields": [
+        "data",
+        "as_of",
+        "source_revision",
+        "availability",
+        "errors",
+        "omissions",
+        "next_cursor"
+      ],
+      "invariants": [
+        "Partial source failure cannot produce healthy zero totals."
+      ],
+      "sources": [
+        {
+          "path": "apps/desktop/src/shared/memoryOverview.ts",
+          "symbol": "MemoryOverview",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 25,
+          "file_sha256": "ca778cd84675a32763f60a41a6ff49ac8a9ddb31e7260deadc3158e915633440",
+          "excerpt": "export interface MemoryOverview {",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/shared/memoryOverview.ts#L25",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S14",
+        "M102"
+      ]
+    },
+    {
+      "id": "board",
+      "name": "Board / ранжированная работа",
+      "module": "surfaces",
+      "implementation": "partial",
+      "store": "query over questions/tasks/proposals",
+      "scope": "estate",
+      "identity": "query(scope,filter,as_of)",
+      "fields": [
+        "subject_ref",
+        "rank",
+        "needs_action",
+        "recipient",
+        "blockers"
+      ],
+      "invariants": [
+        "Board does not own duplicated mutable tasks."
+      ],
+      "sources": [
+        {
+          "path": "apps/desktop/src/shared/boardRank.ts",
+          "symbol": "rankBoard",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 101,
+          "file_sha256": "aad2450ba4923608e5df5f0b9896ab082d787d207305c51d0bba233a7cbe082a",
+          "excerpt": "export function rankBoard<T extends BoardItem>(items: readonly T[]): T[] {",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/shared/boardRank.ts#L101",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M151",
+        "M152"
+      ]
+    },
+    {
+      "id": "inbox",
+      "name": "Inbox / участие и события",
+      "module": "surfaces",
+      "implementation": "partial",
+      "store": "event queries + per-person seen cursor (target)",
+      "scope": "estate",
+      "identity": "(person_id,subject_ref,obligation_key)",
+      "fields": [
+        "needs_action",
+        "seen_at",
+        "resolved_at",
+        "deep_link",
+        "source_ref"
+      ],
+      "invariants": [
+        "Read is not resolved; event feed is not a second obligation store."
+      ],
+      "sources": [
+        {
+          "path": "apps/desktop/src/shared/attention.ts",
+          "symbol": "AttentionItem",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 23,
+          "file_sha256": "a9aa9576b2d58337a059c5f02057bcafe2009d8c44eeb1aa7150d4b195014365",
+          "excerpt": "export interface AttentionItem {",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/shared/attention.ts#L23",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M185"
+      ]
+    },
+    {
+      "id": "graph",
+      "name": "GraphQuery / история и план",
+      "module": "surfaces",
+      "implementation": "planned",
+      "store": "bounded projections only; no mutable graph store",
+      "scope": "project",
+      "identity": "(kind,scope,plan_version?,cursor)",
+      "fields": [
+        "nodes",
+        "typed_edges",
+        "hidden_counts",
+        "availability",
+        "source_refs"
+      ],
+      "invariants": [
+        "Agent DID, project DID, project SHOULD and decision lineage have separate routes and semantics."
+      ],
+      "sources": [
+        {
+          "path": "docs/architecture/agent-visibility-and-runs.md",
+          "symbol": "graph",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 1,
+          "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+          "excerpt": "# Runs, graphs, and what the operator sees of an agent's work",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-visibility-and-runs.md#L1",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M173",
+        "M190",
+        "M189"
+      ]
+    },
+    {
+      "id": "release",
+      "name": "ReleaseArtifact / поставленная версия",
+      "module": "surfaces",
+      "implementation": "planned",
+      "store": "signed package + embedded manifest (target)",
+      "scope": "system",
+      "identity": "build_id + artifact hash",
+      "fields": [
+        "source_sha",
+        "schema_window",
+        "contract_pin",
+        "test_receipts"
+      ],
+      "invariants": [
+        "HEAD, tested build, installed build and user-observed outcome are distinct."
+      ],
+      "sources": [
+        {
+          "path": "scripts/ci.sh",
+          "symbol": "build",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 36,
+          "file_sha256": "ab4b194357605d21c94b807941120edbfb146e01a397347c757105cacc21bd7c",
+          "excerpt": "step \"build — what ships is what the probes read\"",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/scripts/ci.sh#L36",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S07",
+        "S08"
+      ]
+    },
+    {
+      "id": "proposal",
+      "name": "Proposal / предложение",
+      "module": "work",
+      "implementation": "partial",
+      "store": "proposals + checker events (target)",
+      "scope": "project",
+      "identity": "proposal_id",
+      "fields": [
+        "author",
+        "target_scope",
+        "type",
+        "basis_refs",
+        "state"
+      ],
+      "invariants": [
+        "Proposal is not a command and cannot execute itself."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260905000023_loop_bound.sql",
+          "symbol": "proposals",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 14,
+          "file_sha256": "e44f4b5e9ce48d1d6d3c807b6d8988ef507f4bec14993fdc0c0d4344ef86c440",
+          "excerpt": "create table if not exists proposals (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260905000023_loop_bound.sql#L14",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M168",
+        "M166"
+      ],
+      "planning_scope": "focus"
+    },
+    {
+      "id": "artifact",
+      "name": "Artifact / проверяемый результат",
+      "module": "execution",
+      "implementation": "planned",
+      "store": "content-addressed references; source storage remains owner",
+      "scope": "project",
+      "identity": "artifact_id + sha256",
+      "fields": [
+        "kind",
+        "source_location",
+        "produced_by",
+        "verification_refs"
+      ],
+      "invariants": [
+        "Reference never grants filesystem or external-account access."
+      ],
+      "sources": [
+        {
+          "path": "docs/architecture/agent-production.md",
+          "symbol": "artifact",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 28,
+          "file_sha256": "9e07ebf27018899d538aae1698ee918c163e0af738ac3a5df405763bb92b46a9",
+          "excerpt": "| The agent as artifact: repository, manifest, service | **Asset** — exists independently of work, outlives every goal | ADR-0003 |",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-production.md#L28",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S08",
+        "M188"
+      ],
+      "planning_scope": "focus"
+    },
+    {
+      "id": "asset",
+      "name": "Asset / объект наблюдения",
+      "module": "scope",
+      "implementation": "planned",
+      "store": "declared asset registry (boundary only)",
+      "scope": "estate",
+      "identity": "asset_id",
+      "fields": [
+        "owner_project_id?",
+        "kind",
+        "target_selectors"
+      ],
+      "invariants": [
+        "Owning an asset and observing it are distinct grants."
+      ],
+      "sources": [
+        {
+          "path": "CONTEXT.md",
+          "symbol": "**Asset**",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 21,
+          "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+          "excerpt": "**Asset** — something the company owns that exists independently of any work being",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/CONTEXT.md#L21",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S02"
+      ],
+      "planning_scope": "boundary-only"
+    },
+    {
+      "id": "connection",
+      "name": "Connection / внешний аккаунт",
+      "module": "scope",
+      "implementation": "planned",
+      "store": "secret reference + connection definition (boundary only)",
+      "scope": "estate",
+      "identity": "connection_id",
+      "fields": [
+        "provider_identity",
+        "secret_ref",
+        "status"
+      ],
+      "invariants": [
+        "No secret value in journal, pack, graph or renderer."
+      ],
+      "sources": [
+        {
+          "path": "CONTEXT.md",
+          "symbol": "**Connection**",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 57,
+          "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+          "excerpt": "**Connection** — one estate-level link to an external account or service, such as a",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/CONTEXT.md#L57",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S02",
+        "S03"
+      ],
+      "planning_scope": "boundary-only"
+    },
+    {
+      "id": "connection_binding",
+      "name": "ConnectionBinding / область ресурса",
+      "module": "scope",
+      "implementation": "planned",
+      "store": "versioned project connection binding (boundary only)",
+      "scope": "project",
+      "identity": "connection_binding_id + revision",
+      "fields": [
+        "resource_selectors",
+        "access_ceiling",
+        "permitted_agents"
+      ],
+      "invariants": [
+        "Binding narrows connection, never implicitly exposes the entire account."
+      ],
+      "sources": [
+        {
+          "path": "CONTEXT.md",
+          "symbol": "**Project connection binding**",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 62,
+          "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+          "excerpt": "**Project connection binding** — the versioned grant that exposes selected resources",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/CONTEXT.md#L62",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S02",
+        "S03"
+      ],
+      "planning_scope": "boundary-only"
+    },
+    {
+      "id": "gateway",
+      "name": "Gateway / внешние инструменты",
+      "module": "authority",
+      "implementation": "partial",
+      "store": "machine gateway configuration + scoped session references",
+      "scope": "local",
+      "identity": "gateway_id + session token reference",
+      "fields": [
+        "allowed_upstreams",
+        "tool_policy",
+        "upstream_identity"
+      ],
+      "invariants": [
+        "MCP discovery restriction is not enforcement over a runner’s built-in tools."
+      ],
+      "sources": [
+        {
+          "path": "apps/desktop/src/main/gateway.ts",
+          "symbol": "gateway",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 1,
+          "file_sha256": "d9a30f4f52de5792143464c04df4fe0f2c056ab8e157f19f1a9d917c3a9fb475",
+          "excerpt": "// What the machine's agentgateway offers this session (M127).",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/main/gateway.ts#L1",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S03",
+        "M194"
+      ],
+      "planning_scope": "focus"
+    },
+    {
+      "id": "mcp_access",
+      "name": "MCP access / внешние клиенты",
+      "module": "authority",
+      "implementation": "planned",
+      "store": "estate-owned access binding (boundary only)",
+      "scope": "estate",
+      "identity": "access_binding_id + credential revision",
+      "fields": [
+        "project_set",
+        "capabilities",
+        "revocation_epoch"
+      ],
+      "invariants": [
+        "Token points to authority; token itself does not define scope."
+      ],
+      "sources": [
+        {
+          "path": "CONTEXT.md",
+          "symbol": "**MCP access binding**",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 177,
+          "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+          "excerpt": "**MCP access binding** — an immutable Estate-owned authorization record that lets one",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/CONTEXT.md#L177",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S02",
+        "M194"
+      ],
+      "planning_scope": "boundary-only"
+    },
+    {
+      "id": "tool_call",
+      "name": "ToolCall / наблюдаемый вызов",
+      "module": "execution",
+      "implementation": "partial",
+      "store": "safe attempt/outcome trace (target)",
+      "scope": "project",
+      "identity": "tool_call_id + attempt_id",
+      "fields": [
+        "arguments_digest",
+        "redacted_preview",
+        "origin",
+        "parent_call_ref",
+        "outcome"
+      ],
+      "invariants": [
+        "Trace coverage must say which native tool sources were observed and which unavailable."
+      ],
+      "sources": [
+        {
+          "path": "apps/desktop/src/main/agentSurface.ts",
+          "symbol": "appendRedacted",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 380,
+          "file_sha256": "b7335a6b973de06035ab81e3051d3f497fea70774c9e98d3755094e58a5a7913",
+          "excerpt": "  private async appendRedacted(input: {",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/main/agentSurface.ts#L380",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S05",
+        "M176"
+      ],
+      "planning_scope": "focus"
+    },
+    {
+      "id": "stage_claim",
+      "name": "AgentStage / отчёт агента",
+      "module": "execution",
+      "implementation": "existing",
+      "store": "journal → agent_stages projection",
+      "scope": "project",
+      "identity": "stage event ID",
+      "fields": [
+        "session_id",
+        "phase",
+        "status",
+        "note"
+      ],
+      "invariants": [
+        "Self-reported progress is a claim; independent observation stays separate."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260831000005_agent_surface.sql",
+          "symbol": "create table agent_stages",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 11,
+          "file_sha256": "9dd40ad5e9639817d43267490bbe8172d8b4026eed32b544236fd7a3bc50f5ab",
+          "excerpt": "create table agent_stages (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000005_agent_surface.sql#L11",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M188",
+        "M189"
+      ],
+      "planning_scope": "focus"
+    },
+    {
+      "id": "skill",
+      "name": "Skill revision / инструкция роли",
+      "module": "agents",
+      "implementation": "planned",
+      "store": "versioned skill registry (boundary only)",
+      "scope": "estate",
+      "identity": "skill_id + revision",
+      "fields": [
+        "source",
+        "permitted_roles",
+        "content_hash"
+      ],
+      "invariants": [
+        "Live capabilities and protocol instructions must agree; untrusted memory is data."
+      ],
+      "sources": [
+        {
+          "path": "CONTEXT.md",
+          "symbol": "**Skill**",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 106,
+          "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+          "excerpt": "**Skill** — a registry object with a name, a source, a version and the departments allowed",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/CONTEXT.md#L106",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M177"
+      ],
+      "planning_scope": "boundary-only"
+    },
+    {
+      "id": "pipeline",
+      "name": "PipelineVersion / процесс работы",
+      "module": "work",
+      "implementation": "planned",
+      "store": "versioned pipeline definition (boundary only)",
+      "scope": "project",
+      "identity": "pipeline_id + revision",
+      "fields": [
+        "stages",
+        "gate_definitions",
+        "required_skill_refs"
+      ],
+      "invariants": [
+        "A running graph pins its process revision; changes affect future executions."
+      ],
+      "sources": [
+        {
+          "path": "CONTEXT.md",
+          "symbol": "**Pipeline**",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 97,
+          "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+          "excerpt": "**Pipeline** — the route development takes, as a versioned record rather than as code: a",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/CONTEXT.md#L97",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M188",
+        "M190"
+      ],
+      "planning_scope": "boundary-only"
+    },
+    {
+      "id": "host",
+      "name": "ExecutionHost / место исполнения",
+      "module": "continuity",
+      "implementation": "partial",
+      "store": "local desktop runtime; optional remote placement contract",
+      "scope": "estate",
+      "identity": "host_id + boot_id (target)",
+      "fields": [
+        "placement",
+        "capabilities",
+        "heartbeat",
+        "availability"
+      ],
+      "invariants": [
+        "Desktop app off is unavailable; remote always-on needs its own implemented host contract."
+      ],
+      "sources": [
+        {
+          "path": "docs/adr/0037-the-telegram-bot-answers-by-reply-and-fabric-has-no-always-on-process.md",
+          "symbol": "always-on",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 1,
+          "file_sha256": "9c2f9d477db794960838e7f0337b645f741e4232d1a0401be5a23d5204f19706",
+          "excerpt": "# ADR-0037 — The Telegram bot answers by reply, reads nothing it was not given, and Fabric has no always-on process",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/adr/0037-the-telegram-bot-answers-by-reply-and-fabric-has-no-always-on-process.md#L1",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S15",
+        "M179",
+        "M194"
+      ],
+      "planning_scope": "focus"
+    },
+    {
+      "id": "execution_snapshot",
+      "name": "ExecutionSnapshot / состояние продолжения",
+      "module": "execution",
+      "implementation": "planned",
+      "store": "durable portable continuation snapshot + content hash (target)",
+      "scope": "project",
+      "identity": "execution_snapshot_id + task_run_id + revision",
+      "fields": [
+        "plan_revision",
+        "completed_artifact_refs",
+        "pending_operation_refs",
+        "open_blocker_refs",
+        "context_pack_ref",
+        "captured_at",
+        "schema_version"
+      ],
+      "invariants": [
+        "A resume snapshot is not checkpoint approval; restoring it never restores credentials or silently repeats unknown effects."
+      ],
+      "sources": [
+        {
+          "path": "docs/architecture/agent-visibility-and-runs.md",
+          "symbol": "checkpoint",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 4,
+          "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+          "excerpt": "model with checkpoints, the per-agent history graph, the project task/plan",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-visibility-and-runs.md#L4",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "M188",
+        "M194"
+      ]
+    },
+    {
+      "id": "grant_reservation",
+      "name": "GrantReservation / резерв разрешения",
+      "module": "authority",
+      "implementation": "planned",
+      "store": "grant_reservations + durable transition receipts (target)",
+      "scope": "estate",
+      "identity": "reservation_id; partial unique grant_id on active/consumed/revoked state",
+      "fields": [
+        "grant_id",
+        "command_id",
+        "state",
+        "revision",
+        "release_proof_ref",
+        "acquired_seq",
+        "released_seq"
+      ],
+      "invariants": [
+        "Release is atomic with grant/intent lock and requires proof no dispatch occurred. Consumed/unknown is not releasable. Historical linkage is retained."
+      ],
+      "sources": [
+        {
+          "path": "supabase/migrations/20260831000001_migration_one.sql",
+          "symbol": "create table grants",
+          "repository": "fabric",
+          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "line": 80,
+          "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+          "excerpt": "create table grants (",
+          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L80",
+          "verification": "git-blob"
+        }
+      ],
+      "tasks": [
+        "S03"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "id": "person-holds-membership",
+      "source": "person",
+      "target": "membership",
+      "kind": "holds",
+      "payload": "verified auth subject and membership revision",
+      "implementation": "target",
+      "tasks": [
+        "S09"
+      ]
+    },
+    {
+      "id": "membership-authorizes-estate",
+      "source": "membership",
+      "target": "estate",
+      "kind": "authorizes",
+      "payload": "owner/member scope and role",
+      "implementation": "target",
+      "tasks": [
+        "S02",
+        "S09"
+      ]
+    },
+    {
+      "id": "estate-contains-project",
+      "source": "estate",
+      "target": "project",
+      "kind": "contains",
+      "payload": "estate_id ownership",
+      "implementation": "target",
+      "tasks": [
+        "S02"
+      ]
+    },
+    {
+      "id": "project-binds-workspace",
+      "source": "project",
+      "target": "workspace",
+      "kind": "binds",
+      "payload": "repo root + host binding revision",
+      "implementation": "target",
+      "tasks": [
+        "S02"
+      ]
+    },
+    {
+      "id": "project-owns-goal",
+      "source": "project",
+      "target": "goal",
+      "kind": "owns",
+      "payload": "purpose and autonomy",
+      "implementation": "target",
+      "tasks": [
+        "M190"
+      ]
+    },
+    {
+      "id": "goal-decomposes-plan",
+      "source": "goal",
+      "target": "plan",
+      "kind": "decomposes",
+      "payload": "accepted goal-to-plan version relation",
+      "implementation": "target",
+      "tasks": [
+        "M190"
+      ]
+    },
+    {
+      "id": "plan-declares-task",
+      "source": "plan",
+      "target": "task",
+      "kind": "declares",
+      "payload": "node task_ref + depends_on payload refs",
+      "implementation": "target",
+      "tasks": [
+        "M190"
+      ]
+    },
+    {
+      "id": "task-relates-task_link",
+      "source": "task",
+      "target": "task_link",
+      "kind": "relates",
+      "payload": "source task ID and causal event reference",
+      "implementation": "target",
+      "tasks": [
+        "M190"
+      ]
+    },
+    {
+      "id": "task_link-targets-task",
+      "source": "task_link",
+      "target": "task",
+      "kind": "targets",
+      "payload": "target task/goal ID and named payload",
+      "implementation": "target",
+      "tasks": [
+        "M190"
+      ]
+    },
+    {
+      "id": "task-raises-question",
+      "source": "task",
+      "target": "question",
+      "kind": "raises",
+      "payload": "origin task/run and requested decision",
+      "implementation": "target",
+      "tasks": [
+        "M149"
+      ]
+    },
+    {
+      "id": "question-blocks-block",
+      "source": "question",
+      "target": "block",
+      "kind": "blocks",
+      "payload": "explicit affected task IDs",
+      "implementation": "target",
+      "tasks": [
+        "S06"
+      ]
+    },
+    {
+      "id": "block-restrains-task",
+      "source": "block",
+      "target": "task",
+      "kind": "restrains",
+      "payload": "active blocker set, never single Boolean reset",
+      "implementation": "target",
+      "tasks": [
+        "S06"
+      ]
+    },
+    {
+      "id": "question-settles-decision",
+      "source": "question",
+      "target": "decision",
+      "kind": "settles",
+      "payload": "answer body + basis + immutable resolution receipt",
+      "implementation": "target",
+      "tasks": [
+        "M152"
+      ]
+    },
+    {
+      "id": "decision-supersedes-decision",
+      "source": "decision",
+      "target": "decision",
+      "kind": "supersedes",
+      "payload": "explicit predecessor ID and replacement reason",
+      "implementation": "target",
+      "tasks": [
+        "M173"
+      ]
+    },
+    {
+      "id": "decision-informs-plan",
+      "source": "decision",
+      "target": "plan",
+      "kind": "informs",
+      "payload": "accepted change proposal and basis reference",
+      "implementation": "target",
+      "tasks": [
+        "M190"
+      ]
+    },
+    {
+      "id": "membership-authenticates-command",
+      "source": "membership",
+      "target": "command",
+      "kind": "authenticates",
+      "payload": "server-derived actor and current scope revision",
+      "implementation": "target",
+      "tasks": [
+        "S02",
+        "S09"
+      ]
+    },
+    {
+      "id": "binding-authenticates-command",
+      "source": "binding",
+      "target": "command",
+      "kind": "authenticates",
+      "payload": "scoped session credential, binding revision and epoch",
+      "implementation": "target",
+      "tasks": [
+        "S02",
+        "M194"
+      ]
+    },
+    {
+      "id": "command-reserves-grant",
+      "source": "command",
+      "target": "grant",
+      "kind": "reserves",
+      "payload": "target hash, intent ID, expected revision",
+      "implementation": "target",
+      "tasks": [
+        "S03"
+      ]
+    },
+    {
+      "id": "grant-permits-effect",
+      "source": "grant",
+      "target": "effect",
+      "kind": "permits",
+      "payload": "single-use reservation receipt",
+      "implementation": "target",
+      "tasks": [
+        "S03"
+      ]
+    },
+    {
+      "id": "command-requests-checker",
+      "source": "command",
+      "target": "checker",
+      "kind": "requests",
+      "payload": "typed proposal + referenced evidence versions",
+      "implementation": "target",
+      "tasks": [
+        "M168"
+      ]
+    },
+    {
+      "id": "checker-allows-decision",
+      "source": "checker",
+      "target": "decision",
+      "kind": "allows",
+      "payload": "verdict under current policy, not model confidence",
+      "implementation": "target",
+      "tasks": [
+        "M157",
+        "M168"
+      ]
+    },
+    {
+      "id": "effect-dispatches-attempt",
+      "source": "effect",
+      "target": "attempt",
+      "kind": "dispatches",
+      "payload": "authorised bounded target + idempotency key",
+      "implementation": "target",
+      "tasks": [
+        "S03"
+      ]
+    },
+    {
+      "id": "attempt-records-journal",
+      "source": "attempt",
+      "target": "journal",
+      "kind": "records",
+      "payload": "attempt/outcome receipt including unknown",
+      "implementation": "target",
+      "tasks": [
+        "S03",
+        "S05"
+      ]
+    },
+    {
+      "id": "command-commits-journal",
+      "source": "command",
+      "target": "journal",
+      "kind": "commits",
+      "payload": "validated event batch + command receipt in one transaction",
+      "implementation": "target",
+      "tasks": [
+        "S04",
+        "S06"
+      ]
+    },
+    {
+      "id": "plan-pins-workflow_run",
+      "source": "plan",
+      "target": "workflow_run",
+      "kind": "pins",
+      "payload": "immutable plan version and admitted bindings",
+      "implementation": "target",
+      "tasks": [
+        "M188"
+      ]
+    },
+    {
+      "id": "workflow_run-contains-task_run",
+      "source": "workflow_run",
+      "target": "task_run",
+      "kind": "contains",
+      "payload": "node eligibility and verified predecessor results",
+      "implementation": "target",
+      "tasks": [
+        "S04",
+        "M188"
+      ]
+    },
+    {
+      "id": "task-executes-task_run",
+      "source": "task",
+      "target": "task_run",
+      "kind": "executes",
+      "payload": "existing task ID, instruction revision, iteration index",
+      "implementation": "target",
+      "tasks": [
+        "S04",
+        "M188"
+      ]
+    },
+    {
+      "id": "task_run-contains-step",
+      "source": "task_run",
+      "target": "step",
+      "kind": "contains",
+      "payload": "pinned plan revision and fresh per-run step status",
+      "implementation": "target",
+      "tasks": [
+        "M188"
+      ]
+    },
+    {
+      "id": "step-awaits-checkpoint",
+      "source": "step",
+      "target": "checkpoint",
+      "kind": "awaits",
+      "payload": "gate criteria and evidence refs",
+      "implementation": "target",
+      "tasks": [
+        "M188"
+      ]
+    },
+    {
+      "id": "checkpoint-resumes-task_run",
+      "source": "checkpoint",
+      "target": "task_run",
+      "kind": "gates_continuation",
+      "payload": "verification/approval verdict permits separately admitted continuation; carries no restorable execution state",
+      "implementation": "target",
+      "tasks": [
+        "M188"
+      ]
+    },
+    {
+      "id": "task_run-uses-session",
+      "source": "task_run",
+      "target": "session",
+      "kind": "uses",
+      "payload": "explicit invocation-to-transport mapping",
+      "implementation": "target",
+      "tasks": [
+        "M188"
+      ]
+    },
+    {
+      "id": "handoff-continues-task_run",
+      "source": "handoff",
+      "target": "task_run",
+      "kind": "continues",
+      "payload": "addressed content + command receipt + ack token",
+      "implementation": "target",
+      "tasks": [
+        "M103",
+        "M152"
+      ]
+    },
+    {
+      "id": "decision-delivers-handoff",
+      "source": "decision",
+      "target": "handoff",
+      "kind": "delivers",
+      "payload": "answer/decision references committed with outbox row",
+      "implementation": "target",
+      "tasks": [
+        "M152"
+      ]
+    },
+    {
+      "id": "session-performs-attempt",
+      "source": "session",
+      "target": "attempt",
+      "kind": "performs",
+      "payload": "tool-call correlation, request digest",
+      "implementation": "target",
+      "tasks": [
+        "S05"
+      ]
+    },
+    {
+      "id": "provider-implements-binding",
+      "source": "provider",
+      "target": "binding",
+      "kind": "implements",
+      "payload": "admitted revision + supported capabilities",
+      "implementation": "target",
+      "tasks": [
+        "S08",
+        "M194"
+      ]
+    },
+    {
+      "id": "role_slot-selects-binding",
+      "source": "role_slot",
+      "target": "binding",
+      "kind": "selects",
+      "payload": "one active manager binding revision per scope",
+      "implementation": "target",
+      "tasks": [
+        "M194"
+      ]
+    },
+    {
+      "id": "binding-pins-task_run",
+      "source": "binding",
+      "target": "task_run",
+      "kind": "pins",
+      "payload": "provider revision, placement and authority envelope",
+      "implementation": "target",
+      "tasks": [
+        "S04",
+        "M194"
+      ]
+    },
+    {
+      "id": "role_slot-leases-manager_invocation",
+      "source": "role_slot",
+      "target": "manager_invocation",
+      "kind": "leases",
+      "payload": "fencing epoch + coalesced signal watermark",
+      "implementation": "target",
+      "tasks": [
+        "M194"
+      ]
+    },
+    {
+      "id": "manager_invocation-consumes-pack",
+      "source": "manager_invocation",
+      "target": "pack",
+      "kind": "consumes",
+      "payload": "bounded manager context and lockfile hash",
+      "implementation": "target",
+      "tasks": [
+        "M177",
+        "M194"
+      ]
+    },
+    {
+      "id": "manager_invocation-proposes-command",
+      "source": "manager_invocation",
+      "target": "command",
+      "kind": "proposes",
+      "payload": "typed tool arguments under fixed scope/floor",
+      "implementation": "target",
+      "tasks": [
+        "M168",
+        "M194"
+      ]
+    },
+    {
+      "id": "session-observes-health",
+      "source": "session",
+      "target": "health",
+      "kind": "observes",
+      "payload": "positive signal/session exit from named observer",
+      "implementation": "target",
+      "tasks": [
+        "M178",
+        "M179"
+      ]
+    },
+    {
+      "id": "health-alerts-inbox",
+      "source": "health",
+      "target": "inbox",
+      "kind": "alerts",
+      "payload": "actionable lifecycle event + exact affected run",
+      "implementation": "target",
+      "tasks": [
+        "M180",
+        "M185"
+      ]
+    },
+    {
+      "id": "attempt-accounts-usage",
+      "source": "attempt",
+      "target": "usage",
+      "kind": "accounts",
+      "payload": "provider usage receipt or explicitly unknown cost",
+      "implementation": "target",
+      "tasks": [
+        "M171"
+      ]
+    },
+    {
+      "id": "usage-bounds-manager_invocation",
+      "source": "usage",
+      "target": "manager_invocation",
+      "kind": "bounds",
+      "payload": "reserved+reported spending and remaining budget",
+      "implementation": "target",
+      "tasks": [
+        "M169",
+        "M171"
+      ]
+    },
+    {
+      "id": "journal-projects-task",
+      "source": "journal",
+      "target": "task",
+      "kind": "projects",
+      "payload": "task lifecycle events in estate order",
+      "implementation": "target",
+      "tasks": [
+        "M198"
+      ]
+    },
+    {
+      "id": "journal-projects-fact",
+      "source": "journal",
+      "target": "fact",
+      "kind": "projects",
+      "payload": "memory claim/supersession events",
+      "implementation": "target",
+      "tasks": [
+        "M198"
+      ]
+    },
+    {
+      "id": "journal-projects-question",
+      "source": "journal",
+      "target": "question",
+      "kind": "projects",
+      "payload": "question states and explicit blocker mutations",
+      "implementation": "target",
+      "tasks": [
+        "S06"
+      ]
+    },
+    {
+      "id": "session-captures-transcript",
+      "source": "session",
+      "target": "transcript",
+      "kind": "captures",
+      "payload": "observed output and durable completion status",
+      "implementation": "target",
+      "tasks": [
+        "S05",
+        "M105"
+      ]
+    },
+    {
+      "id": "transcript-supports-fact",
+      "source": "transcript",
+      "target": "fact",
+      "kind": "supports",
+      "payload": "evidence reference; no automatic truth promotion",
+      "implementation": "target",
+      "tasks": [
+        "M155"
+      ]
+    },
+    {
+      "id": "fact-retrieves-pack",
+      "source": "fact",
+      "target": "pack",
+      "kind": "retrieves",
+      "payload": "eligible current fact versions with provenance",
+      "implementation": "target",
+      "tasks": [
+        "M177",
+        "M191"
+      ]
+    },
+    {
+      "id": "transcript-retrieves-pack",
+      "source": "transcript",
+      "target": "pack",
+      "kind": "retrieves",
+      "payload": "bounded selected excerpts and completeness",
+      "implementation": "target",
+      "tasks": [
+        "M191"
+      ]
+    },
+    {
+      "id": "pack-records-retrieval",
+      "source": "pack",
+      "target": "retrieval",
+      "kind": "records",
+      "payload": "selected/omitted/source-error attribution",
+      "implementation": "target",
+      "tasks": [
+        "S14",
+        "M191"
+      ]
+    },
+    {
+      "id": "pack-supplies-task_run",
+      "source": "pack",
+      "target": "task_run",
+      "kind": "supplies",
+      "payload": "actual compilation receipt and content hash",
+      "implementation": "target",
+      "tasks": [
+        "M177",
+        "M188"
+      ]
+    },
+    {
+      "id": "fact-classifies-retro",
+      "source": "fact",
+      "target": "retro",
+      "kind": "classifies",
+      "payload": "category/about/version plus evidence references",
+      "implementation": "target",
+      "tasks": [
+        "M182"
+      ]
+    },
+    {
+      "id": "retro-escalates-question",
+      "source": "retro",
+      "target": "question",
+      "kind": "escalates",
+      "payload": "unsettled process decision addressed to operator",
+      "implementation": "target",
+      "tasks": [
+        "M184"
+      ]
+    },
+    {
+      "id": "retro-minimizes-feedback",
+      "source": "retro",
+      "target": "feedback",
+      "kind": "minimizes",
+      "payload": "service category allowlist and reviewed issue code",
+      "implementation": "target",
+      "tasks": [
+        "M183"
+      ]
+    },
+    {
+      "id": "routine-triggers-cycle",
+      "source": "routine",
+      "target": "cycle",
+      "kind": "triggers",
+      "payload": "schedule window + config revision + catch-up policy",
+      "implementation": "target",
+      "tasks": [
+        "S15"
+      ]
+    },
+    {
+      "id": "cycle-claims-ledger",
+      "source": "cycle",
+      "target": "ledger",
+      "kind": "claims",
+      "payload": "dedup key/epoch/lease + durable cursor",
+      "implementation": "target",
+      "tasks": [
+        "S15"
+      ]
+    },
+    {
+      "id": "cycle-starts-workflow_run",
+      "source": "cycle",
+      "target": "workflow_run",
+      "kind": "starts",
+      "payload": "admitted workflow execution for this window",
+      "implementation": "target",
+      "tasks": [
+        "S04",
+        "S15"
+      ]
+    },
+    {
+      "id": "cycle-wakes-manager_invocation",
+      "source": "cycle",
+      "target": "manager_invocation",
+      "kind": "wakes",
+      "payload": "Board/retro delta cursor under slot revision",
+      "implementation": "target",
+      "tasks": [
+        "M184",
+        "M194"
+      ]
+    },
+    {
+      "id": "feedback-enqueues-ledger",
+      "source": "feedback",
+      "target": "ledger",
+      "kind": "enqueues",
+      "payload": "consent-bound export intent and suppression state",
+      "implementation": "target",
+      "tasks": [
+        "M183"
+      ]
+    },
+    {
+      "id": "project-exports-mirror",
+      "source": "project",
+      "target": "mirror",
+      "kind": "exports",
+      "payload": "declared configuration coverage with hashes",
+      "implementation": "target",
+      "tasks": [
+        "S12"
+      ]
+    },
+    {
+      "id": "journal-snapshots-backup",
+      "source": "journal",
+      "target": "backup",
+      "kind": "snapshots",
+      "payload": "ordered events and high-water mark",
+      "implementation": "target",
+      "tasks": [
+        "S12"
+      ]
+    },
+    {
+      "id": "ledger-snapshots-backup",
+      "source": "ledger",
+      "target": "backup",
+      "kind": "snapshots",
+      "payload": "operational effect/lease/outbox state",
+      "implementation": "target",
+      "tasks": [
+        "S12"
+      ]
+    },
+    {
+      "id": "transcript-snapshots-backup",
+      "source": "transcript",
+      "target": "backup",
+      "kind": "snapshots",
+      "payload": "blob checksums and unavailable-local-source report",
+      "implementation": "target",
+      "tasks": [
+        "S12"
+      ]
+    },
+    {
+      "id": "prefs-configures-read",
+      "source": "prefs",
+      "target": "read",
+      "kind": "configures",
+      "payload": "display filters only, never domain authorization",
+      "implementation": "target",
+      "tasks": [
+        "S14"
+      ]
+    },
+    {
+      "id": "journal-projects-read",
+      "source": "journal",
+      "target": "read",
+      "kind": "projects",
+      "payload": "scoped consistent at_seq snapshot",
+      "implementation": "target",
+      "tasks": [
+        "S14"
+      ]
+    },
+    {
+      "id": "read-renders-board",
+      "source": "read",
+      "target": "board",
+      "kind": "renders",
+      "payload": "ranked scoped entities + per-source availability",
+      "implementation": "target",
+      "tasks": [
+        "M151"
+      ]
+    },
+    {
+      "id": "read-renders-graph",
+      "source": "read",
+      "target": "graph",
+      "kind": "renders",
+      "payload": "bounded nodes/typed evidence-bearing edges",
+      "implementation": "target",
+      "tasks": [
+        "M190"
+      ]
+    },
+    {
+      "id": "read-renders-inbox",
+      "source": "read",
+      "target": "inbox",
+      "kind": "renders",
+      "payload": "business obligations + event history + seen cursor",
+      "implementation": "target",
+      "tasks": [
+        "M185"
+      ]
+    },
+    {
+      "id": "cycle-reports-read",
+      "source": "cycle",
+      "target": "read",
+      "kind": "reports",
+      "payload": "enabled/config versus heartbeat/last outcome separately",
+      "implementation": "target",
+      "tasks": [
+        "M186"
+      ]
+    },
+    {
+      "id": "mirror-reports-read",
+      "source": "mirror",
+      "target": "read",
+      "kind": "reports",
+      "payload": "coverage/drift/errors, not sync success by absence",
+      "implementation": "target",
+      "tasks": [
+        "M191"
+      ]
+    },
+    {
+      "id": "release-identifies-read",
+      "source": "release",
+      "target": "read",
+      "kind": "identifies",
+      "payload": "embedded build identity + schema compatibility",
+      "implementation": "target",
+      "tasks": [
+        "S07"
+      ]
+    },
+    {
+      "id": "project-owns-asset",
+      "source": "project",
+      "target": "asset",
+      "kind": "owns",
+      "payload": "ownership distinct from target observation",
+      "implementation": "target",
+      "tasks": [
+        "S02"
+      ]
+    },
+    {
+      "id": "connection-narrows-connection_binding",
+      "source": "connection",
+      "target": "connection_binding",
+      "kind": "narrows",
+      "payload": "finite resource selectors + revision",
+      "implementation": "target",
+      "tasks": [
+        "S02"
+      ]
+    },
+    {
+      "id": "connection_binding-grants-project",
+      "source": "connection_binding",
+      "target": "project",
+      "kind": "grants",
+      "payload": "resource scope + access ceiling",
+      "implementation": "target",
+      "tasks": [
+        "S02",
+        "S03"
+      ]
+    },
+    {
+      "id": "connection_binding-exposes-gateway",
+      "source": "connection_binding",
+      "target": "gateway",
+      "kind": "exposes",
+      "payload": "admitted tool capabilities, no secret values",
+      "implementation": "target",
+      "tasks": [
+        "S03"
+      ]
+    },
+    {
+      "id": "mcp_access-authorizes-command",
+      "source": "mcp_access",
+      "target": "command",
+      "kind": "authorizes",
+      "payload": "finite project set + revoked credentials check",
+      "implementation": "target",
+      "tasks": [
+        "S02"
+      ]
+    },
+    {
+      "id": "gateway-dispatches-tool_call",
+      "source": "gateway",
+      "target": "tool_call",
+      "kind": "dispatches",
+      "payload": "tool request and upstream correlation",
+      "implementation": "target",
+      "tasks": [
+        "S05"
+      ]
+    },
+    {
+      "id": "session-emits-tool_call",
+      "source": "session",
+      "target": "tool_call",
+      "kind": "emits",
+      "payload": "observed invocation identity and safe arguments",
+      "implementation": "target",
+      "tasks": [
+        "S05"
+      ]
+    },
+    {
+      "id": "tool_call-records-attempt",
+      "source": "tool_call",
+      "target": "attempt",
+      "kind": "records",
+      "payload": "per-call operation attempt ID",
+      "implementation": "target",
+      "tasks": [
+        "S05"
+      ]
+    },
+    {
+      "id": "manager_invocation-creates-proposal",
+      "source": "manager_invocation",
+      "target": "proposal",
+      "kind": "creates",
+      "payload": "typed judgement + cited source versions",
+      "implementation": "target",
+      "tasks": [
+        "M166",
+        "M168"
+      ]
+    },
+    {
+      "id": "proposal-submits-checker",
+      "source": "proposal",
+      "target": "checker",
+      "kind": "submits",
+      "payload": "canonical proposal payload hash",
+      "implementation": "target",
+      "tasks": [
+        "M168"
+      ]
+    },
+    {
+      "id": "task_run-produces-artifact",
+      "source": "task_run",
+      "target": "artifact",
+      "kind": "produces",
+      "payload": "output digest + origin refs",
+      "implementation": "target",
+      "tasks": [
+        "S08"
+      ]
+    },
+    {
+      "id": "artifact-evidences-checkpoint",
+      "source": "artifact",
+      "target": "checkpoint",
+      "kind": "evidences",
+      "payload": "versioned verification input",
+      "implementation": "target",
+      "tasks": [
+        "S08",
+        "M188"
+      ]
+    },
+    {
+      "id": "skill-equips-binding",
+      "source": "skill",
+      "target": "binding",
+      "kind": "equips",
+      "payload": "version-pinned instruction requirements",
+      "implementation": "target",
+      "tasks": [
+        "M177"
+      ]
+    },
+    {
+      "id": "pipeline-templates-plan",
+      "source": "pipeline",
+      "target": "plan",
+      "kind": "templates",
+      "payload": "stages and gates without live statuses",
+      "implementation": "target",
+      "tasks": [
+        "M188",
+        "M190"
+      ]
+    },
+    {
+      "id": "session-reports-stage_claim",
+      "source": "session",
+      "target": "stage_claim",
+      "kind": "reports",
+      "payload": "claimed phase/status with source",
+      "implementation": "target",
+      "tasks": [
+        "M189"
+      ]
+    },
+    {
+      "id": "host-hosts-session",
+      "source": "host",
+      "target": "session",
+      "kind": "hosts",
+      "payload": "process placement + boot identity",
+      "implementation": "target",
+      "tasks": [
+        "M179"
+      ]
+    },
+    {
+      "id": "host-schedules-cycle",
+      "source": "host",
+      "target": "cycle",
+      "kind": "schedules",
+      "payload": "host liveness + fenced scheduler owner",
+      "implementation": "target",
+      "tasks": [
+        "S15"
+      ]
+    },
+    {
+      "id": "host-observes-health",
+      "source": "host",
+      "target": "health",
+      "kind": "observes",
+      "payload": "outside-process lifecycle evidence",
+      "implementation": "target",
+      "tasks": [
+        "M179"
+      ]
+    },
+    {
+      "id": "task_run-captures-execution_snapshot",
+      "source": "task_run",
+      "target": "execution_snapshot",
+      "kind": "captures",
+      "payload": "portable continuation state and unresolved operation references",
+      "implementation": "target",
+      "tasks": [
+        "M188"
+      ]
+    },
+    {
+      "id": "execution_snapshot-supplies-handoff",
+      "source": "execution_snapshot",
+      "target": "handoff",
+      "kind": "supplies",
+      "payload": "validated snapshot + current authority resolution, no credentials",
+      "implementation": "target",
+      "tasks": [
+        "M194"
+      ]
+    },
+    {
+      "id": "grant-grant_reservation-reserves",
+      "source": "grant",
+      "target": "grant_reservation",
+      "kind": "reserves",
+      "payload": "grant scope/expiry/target + command identity + locked revision",
+      "implementation": "target",
+      "tasks": [
+        "S03"
+      ]
+    },
+    {
+      "id": "grant_reservation-effect-authorizes_dispatch",
+      "source": "grant_reservation",
+      "target": "effect",
+      "kind": "authorizes_dispatch",
+      "payload": "reservation_id + current grant state + dispatch fence; release before dispatch only",
+      "implementation": "target",
+      "tasks": [
+        "S03"
+      ]
+    }
+  ],
+  "cycles": [
+    {
+      "id": "observe-verify",
+      "name": "Наблюдение → проверенный результат",
+      "module": "work",
+      "trigger": "Routine window or scoped external observation",
+      "dedup_key": "observation source + source event ID + scope",
+      "states": [
+        {
+          "id": "observe",
+          "name": "Измерить"
+        },
+        {
+          "id": "finding",
+          "name": "Сформулировать проблему"
+        },
+        {
+          "id": "propose",
+          "name": "Предложить работу"
+        },
+        {
+          "id": "check",
+          "name": "Проверить границы"
+        },
+        {
+          "id": "execute",
+          "name": "Выполнить"
+        },
+        {
+          "id": "verify",
+          "name": "Независимо проверить"
+        },
+        {
+          "id": "learn",
+          "name": "Записать результат и урок"
+        },
+        {
+          "id": "schedule",
+          "name": "Назначить следующую проверку"
+        },
+        {
+          "id": "attention",
+          "name": "Запросить участие"
+        }
+      ],
+      "transitions": [
+        {
+          "from": "observe",
+          "to": "finding",
+          "guard": "source readable",
+          "carries": "observation with time and evidence"
+        },
+        {
+          "from": "finding",
+          "to": "propose",
+          "guard": "action warranted",
+          "carries": "finding + target + acceptance"
+        },
+        {
+          "from": "propose",
+          "to": "check",
+          "guard": "typed proposal",
+          "carries": "command hash + scope"
+        },
+        {
+          "from": "check",
+          "to": "execute",
+          "guard": "allowed and admitted",
+          "carries": "task/workflow IDs + limits"
+        },
+        {
+          "from": "check",
+          "to": "attention",
+          "guard": "requires person",
+          "carries": "question + reason + target"
+        },
+        {
+          "from": "attention",
+          "to": "check",
+          "guard": "answer committed",
+          "carries": "decision receipt + current authority"
+        },
+        {
+          "from": "execute",
+          "to": "verify",
+          "guard": "artifact/outcome available",
+          "carries": "artifact digest + task-run refs"
+        },
+        {
+          "from": "verify",
+          "to": "learn",
+          "guard": "independent probe passed",
+          "carries": "verification receipt"
+        },
+        {
+          "from": "verify",
+          "to": "finding",
+          "guard": "probe failed",
+          "carries": "failure evidence, not a success claim"
+        },
+        {
+          "from": "learn",
+          "to": "schedule",
+          "guard": "result recorded",
+          "carries": "memory/decision refs"
+        },
+        {
+          "from": "schedule",
+          "to": "observe",
+          "guard": "new due window",
+          "carries": "next invocation identity"
+        }
+      ],
+      "rules": [
+        "Model confidence never substitutes for verifier evidence.",
+        "S08 fixture establishes portability, not production outcome."
+      ],
+      "tasks": [
+        "S08",
+        "S03",
+        "S04",
+        "M152",
+        "M176"
+      ],
+      "output": "verified outcome + next check, or addressed question",
+      "diagram_scope": "Business/data path; exact execution states and interruption semantics are specified by linked task contracts."
+    },
+    {
+      "id": "launch",
+      "name": "Запуск существующей задачи",
+      "module": "execution",
+      "trigger": "Operator/chain/routine requests launch",
+      "dedup_key": "estate_id + launch command_id",
+      "states": [
+        {
+          "id": "request",
+          "name": "Запрос запуска"
+        },
+        {
+          "id": "admit",
+          "name": "Атомарный допуск"
+        },
+        {
+          "id": "denied",
+          "name": "Отказ без прогона"
+        },
+        {
+          "id": "reserved",
+          "name": "TaskRun создан"
+        },
+        {
+          "id": "spawn",
+          "name": "Запустить исполнитель"
+        },
+        {
+          "id": "ack",
+          "name": "Подтвердить доставку"
+        },
+        {
+          "id": "running",
+          "name": "Исполняется"
+        },
+        {
+          "id": "unknown",
+          "name": "Уточнить исход"
+        },
+        {
+          "id": "failed",
+          "name": "Прогон завершён с ошибкой"
+        },
+        {
+          "id": "terminal",
+          "name": "Завершён"
+        }
+      ],
+      "transitions": [
+        {
+          "from": "request",
+          "to": "admit",
+          "guard": "scope/type valid",
+          "carries": "task ID + expected revision + command hash"
+        },
+        {
+          "from": "admit",
+          "to": "denied",
+          "guard": "blocked/quota unknown/revision conflict",
+          "carries": "refusal receipt"
+        },
+        {
+          "from": "admit",
+          "to": "reserved",
+          "guard": "transaction wins",
+          "carries": "task_run_id + fenced lease + pinned revisions"
+        },
+        {
+          "from": "reserved",
+          "to": "spawn",
+          "guard": "same live epoch",
+          "carries": "spawn intent + target binding"
+        },
+        {
+          "from": "spawn",
+          "to": "ack",
+          "guard": "process handle known",
+          "carries": "fabric_session_id"
+        },
+        {
+          "from": "spawn",
+          "to": "unknown",
+          "guard": "dispatch result lost",
+          "carries": "operation ID for reconciliation"
+        },
+        {
+          "from": "spawn",
+          "to": "failed",
+          "guard": "known spawn failure",
+          "carries": "failed-to-spawn receipt"
+        },
+        {
+          "from": "ack",
+          "to": "running",
+          "guard": "adapter semantic acknowledgement",
+          "carries": "delivery ack"
+        },
+        {
+          "from": "ack",
+          "to": "unknown",
+          "guard": "ack deadline elapsed",
+          "carries": "pending receipt, no blind resend"
+        },
+        {
+          "from": "unknown",
+          "to": "running",
+          "guard": "invocation-scoped semantic acknowledgement proven",
+          "carries": "ack receipt matching delivery and task_run_id"
+        },
+        {
+          "from": "unknown",
+          "to": "failed",
+          "guard": "absence proven and budget exhausted",
+          "carries": "failure evidence"
+        },
+        {
+          "from": "running",
+          "to": "terminal",
+          "guard": "terminal evidence committed",
+          "carries": "exit/outcome + transcript state"
+        },
+        {
+          "from": "unknown",
+          "to": "ack",
+          "guard": "spawn handle proven but semantic delivery not yet confirmed",
+          "carries": "fabric_session_id and pending delivery identity"
+        }
+      ],
+      "rules": [
+        "Retry admission with same command ID returns same result.",
+        "No broad startup resume over all estates."
+      ],
+      "tasks": [
+        "S04",
+        "M103",
+        "M188"
+      ],
+      "output": "one TaskRun after admission, or one refusal receipt",
+      "diagram_scope": "Business/data path; exact execution states and interruption semantics are specified by linked task contracts.",
+      "interruptions": [
+        {
+          "event": "cancel_or_revoke",
+          "from": [
+            "reserved",
+            "spawn",
+            "ack",
+            "running",
+            "unknown"
+          ],
+          "to": "unknown",
+          "guard": "invalidate write epoch, request stop, reconcile outstanding dispatch before terminal cancellation",
+          "carries": "cancellation request receipt + actual process/effect outcome; stop request alone is not proof"
+        }
+      ]
+    },
+    {
+      "id": "iterations",
+      "name": "План задачи и полные итерации",
+      "module": "execution",
+      "trigger": "Explicit evaluation loop or operator rerun",
+      "dedup_key": "task_id + iteration_request_id",
+      "states": [
+        {
+          "id": "new",
+          "name": "Новый TaskRun"
+        },
+        {
+          "id": "declare",
+          "name": "Зафиксировать версию плана"
+        },
+        {
+          "id": "step",
+          "name": "Шаг активен"
+        },
+        {
+          "id": "checkpoint",
+          "name": "Проверить чекпоинт"
+        },
+        {
+          "id": "blocked",
+          "name": "Ждёт ответа"
+        },
+        {
+          "id": "finish",
+          "name": "Итог прогона"
+        },
+        {
+          "id": "decide",
+          "name": "Условие продолжения"
+        },
+        {
+          "id": "stop",
+          "name": "Цикл завершён"
+        }
+      ],
+      "transitions": [
+        {
+          "from": "new",
+          "to": "declare",
+          "guard": "admitted",
+          "carries": "fresh run ID + step state namespace"
+        },
+        {
+          "from": "declare",
+          "to": "step",
+          "guard": "dependency outputs ready",
+          "carries": "immutable plan revision"
+        },
+        {
+          "from": "step",
+          "to": "checkpoint",
+          "guard": "claimed done / gate reached",
+          "carries": "claim + separate evidence refs"
+        },
+        {
+          "from": "step",
+          "to": "blocked",
+          "guard": "question blocks progress",
+          "carries": "question block ID"
+        },
+        {
+          "from": "blocked",
+          "to": "step",
+          "guard": "all applicable blockers resolved",
+          "carries": "answer ack + blocker-set revision"
+        },
+        {
+          "from": "checkpoint",
+          "to": "step",
+          "guard": "remaining ready steps",
+          "carries": "verified prerequisite output"
+        },
+        {
+          "from": "checkpoint",
+          "to": "finish",
+          "guard": "all required gates settled",
+          "carries": "per-step summary"
+        },
+        {
+          "from": "finish",
+          "to": "decide",
+          "guard": "terminal receipt persisted",
+          "carries": "iteration outcome + budget consumed"
+        },
+        {
+          "from": "decide",
+          "to": "new",
+          "guard": "explicit repeat condition true, limits permit",
+          "carries": "new iteration ID and reset plan statuses"
+        },
+        {
+          "from": "decide",
+          "to": "stop",
+          "guard": "goal met or limit reached",
+          "carries": "final outcome / cap reason"
+        }
+      ],
+      "rules": [
+        "Each explicit iteration is a whole run; unlimited display history via pagination, finite execution limits are mandatory.",
+        "Plan amendments create new revisions, preserve executed steps and invalidate affected gates; no retroactive denominator rewrite."
+      ],
+      "tasks": [
+        "M188",
+        "M189",
+        "S15"
+      ],
+      "output": "per-iteration complete plan/checkpoint history",
+      "diagram_scope": "Business/data path; exact execution states and interruption semantics are specified by linked task contracts."
+    },
+    {
+      "id": "answer",
+      "name": "Вопрос → решение → продолжение",
+      "module": "work",
+      "trigger": "Addressed human/manager answer",
+      "dedup_key": "question_id + answer command_id",
+      "states": [
+        {
+          "id": "read",
+          "name": "Прочитать вопрос"
+        },
+        {
+          "id": "check",
+          "name": "Проверить версию и основание"
+        },
+        {
+          "id": "conflict",
+          "name": "Показать конфликт"
+        },
+        {
+          "id": "commit",
+          "name": "Атомарно записать"
+        },
+        {
+          "id": "outbox",
+          "name": "Поставить доставку"
+        },
+        {
+          "id": "deliver",
+          "name": "Передать адресату"
+        },
+        {
+          "id": "ack",
+          "name": "Получить ack"
+        },
+        {
+          "id": "ready",
+          "name": "Переоценить препятствия"
+        }
+      ],
+      "transitions": [
+        {
+          "from": "read",
+          "to": "check",
+          "guard": "answer submitted",
+          "carries": "answer + question revision"
+        },
+        {
+          "from": "check",
+          "to": "conflict",
+          "guard": "stale or already settled differently",
+          "carries": "current state without overwrite"
+        },
+        {
+          "from": "check",
+          "to": "commit",
+          "guard": "authorized under current basis",
+          "carries": "decision + resolution + resolved block IDs"
+        },
+        {
+          "from": "commit",
+          "to": "outbox",
+          "guard": "same DB transaction",
+          "carries": "delivery intent referencing committed receipt"
+        },
+        {
+          "from": "outbox",
+          "to": "deliver",
+          "guard": "same target run/binding eligible",
+          "carries": "delivery_id + typed content refs"
+        },
+        {
+          "from": "deliver",
+          "to": "outbox",
+          "guard": "known transient failure, retry budget",
+          "carries": "same delivery id + next retry time"
+        },
+        {
+          "from": "deliver",
+          "to": "ack",
+          "guard": "semantic acknowledgement",
+          "carries": "ack receipt"
+        },
+        {
+          "from": "ack",
+          "to": "ready",
+          "guard": "delivery committed",
+          "carries": "all unresolved blocker IDs"
+        },
+        {
+          "from": "ready",
+          "to": "read",
+          "guard": "other blocker still open",
+          "carries": "next addressed question, not auto-unblocked task"
+        }
+      ],
+      "rules": [
+        "Read/unread is independent of resolution.",
+        "Physical delivery uncertainty is reconciled; do not replay arbitrary PTY text."
+      ],
+      "tasks": [
+        "S06",
+        "M152",
+        "M103"
+      ],
+      "output": "durable answer/decision + acknowledged continuation or explicit blocked state",
+      "diagram_scope": "Business/data path; exact execution states and interruption semantics are specified by linked task contracts."
+    },
+    {
+      "id": "manager",
+      "name": "Жизненный цикл manager",
+      "module": "agents",
+      "trigger": "Relevant Board/worker-result/retro delta or due schedule",
+      "dedup_key": "role_slot_id + binding_revision + signal watermark window",
+      "states": [
+        {
+          "id": "signal",
+          "name": "Получить сигнал"
+        },
+        {
+          "id": "coalesce",
+          "name": "Собрать пакет изменений"
+        },
+        {
+          "id": "lease",
+          "name": "Занять место / epoch"
+        },
+        {
+          "id": "pack",
+          "name": "Собрать context pack"
+        },
+        {
+          "id": "loop",
+          "name": "Judgement loop"
+        },
+        {
+          "id": "tool",
+          "name": "Типизированное предложение"
+        },
+        {
+          "id": "check",
+          "name": "Checker + authority"
+        },
+        {
+          "id": "commit",
+          "name": "Записать результат"
+        },
+        {
+          "id": "close",
+          "name": "Завершить invocation"
+        },
+        {
+          "id": "pause",
+          "name": "Остановить / передать место"
+        }
+      ],
+      "transitions": [
+        {
+          "from": "signal",
+          "to": "coalesce",
+          "guard": "external causal delta; not own bookkeeping",
+          "carries": "bounded signal range"
+        },
+        {
+          "from": "coalesce",
+          "to": "lease",
+          "guard": "eligible slot, budget available",
+          "carries": "watermark + requested binding revision"
+        },
+        {
+          "from": "lease",
+          "to": "pack",
+          "guard": "unique live epoch",
+          "carries": "manager invocation ID"
+        },
+        {
+          "from": "pack",
+          "to": "loop",
+          "guard": "required sources available",
+          "carries": "pinned context and remaining budget"
+        },
+        {
+          "from": "loop",
+          "to": "tool",
+          "guard": "model proposes operation",
+          "carries": "typed arguments + evidence refs"
+        },
+        {
+          "from": "tool",
+          "to": "check",
+          "guard": "syntax passes",
+          "carries": "proposal hash"
+        },
+        {
+          "from": "check",
+          "to": "commit",
+          "guard": "current epoch/scope/basis valid",
+          "carries": "canonical command"
+        },
+        {
+          "from": "check",
+          "to": "loop",
+          "guard": "refused with recoverable explanation, budget left",
+          "carries": "refusal receipt"
+        },
+        {
+          "from": "commit",
+          "to": "loop",
+          "guard": "further bounded work remains",
+          "carries": "tool result + updated watermark facts"
+        },
+        {
+          "from": "loop",
+          "to": "close",
+          "guard": "done/cap/no-model/unavailable",
+          "carries": "outcome + usage + remaining obligations"
+        },
+        {
+          "from": "lease",
+          "to": "pause",
+          "guard": "rebind/revoke",
+          "carries": "incremented epoch"
+        },
+        {
+          "from": "pause",
+          "to": "coalesce",
+          "guard": "new slot admitted",
+          "carries": "checkpoint + source cursor, no private vendor trajectory"
+        }
+      ],
+      "rules": [
+        "Canonical roles are ceo / product-manager; manager is UI family label.",
+        "Old epoch cannot write after handoff. App off has no always-on promise."
+      ],
+      "tasks": [
+        "M194",
+        "M175",
+        "M166",
+        "M167",
+        "M168",
+        "M169",
+        "M171",
+        "M176"
+      ],
+      "output": "replaceable judgement loop, fixed tool/checker boundary",
+      "diagram_scope": "Business/data path; exact execution states and interruption semantics are specified by linked task contracts.",
+      "interruptions": [
+        {
+          "event": "rebind_or_revoke",
+          "from": [
+            "signal",
+            "coalesce",
+            "lease",
+            "pack",
+            "loop",
+            "tool",
+            "check",
+            "commit"
+          ],
+          "to": "pause",
+          "guard": "revision/epoch invalidated under trusted serialization boundary",
+          "carries": "checkpointed obligations and operation receipts; committed effects are not undone"
+        }
+      ]
+    },
+    {
+      "id": "health",
+      "name": "Наблюдение за агентом",
+      "module": "agents",
+      "trigger": "Heartbeat, host observer tick or transport exit",
+      "dedup_key": "observer_id + session/run ref + observation sequence",
+      "states": [
+        {
+          "id": "signal",
+          "name": "Положительный сигнал"
+        },
+        {
+          "id": "fresh",
+          "name": "Свежие данные"
+        },
+        {
+          "id": "stale",
+          "name": "Нет свежих данных"
+        },
+        {
+          "id": "probe",
+          "name": "Проверка вне агента"
+        },
+        {
+          "id": "unavailable",
+          "name": "Наблюдатель недоступен"
+        },
+        {
+          "id": "failed",
+          "name": "Подтверждённый отказ"
+        },
+        {
+          "id": "recover",
+          "name": "Решение о восстановлении"
+        }
+      ],
+      "transitions": [
+        {
+          "from": "signal",
+          "to": "fresh",
+          "guard": "identity and expected object match",
+          "carries": "heartbeat phase and timestamp"
+        },
+        {
+          "from": "fresh",
+          "to": "stale",
+          "guard": "freshness deadline passed",
+          "carries": "last known signal, not inferred death"
+        },
+        {
+          "from": "stale",
+          "to": "probe",
+          "guard": "host observer alive",
+          "carries": "PID/transport/lease query"
+        },
+        {
+          "from": "probe",
+          "to": "fresh",
+          "guard": "positive observation",
+          "carries": "independent host evidence"
+        },
+        {
+          "from": "probe",
+          "to": "unavailable",
+          "guard": "observer/source failed",
+          "carries": "unknown reason/source"
+        },
+        {
+          "from": "probe",
+          "to": "failed",
+          "guard": "exit/crash proved",
+          "carries": "typed failure with causal refs"
+        },
+        {
+          "from": "failed",
+          "to": "recover",
+          "guard": "operator or authorized recovery policy",
+          "carries": "bounded retry/cancel/handoff"
+        },
+        {
+          "from": "recover",
+          "to": "signal",
+          "guard": "new admitted run alive",
+          "carries": "new task_run_id"
+        }
+      ],
+      "rules": [
+        "Agent is not its own only monitor.",
+        "Every age uses observed time and declared TTL, not output volume."
+      ],
+      "tasks": [
+        "M178",
+        "M179",
+        "M180",
+        "M181"
+      ],
+      "output": "source-specific health and actionable failure",
+      "diagram_scope": "Business/data path; exact execution states and interruption semantics are specified by linked task contracts."
+    },
+    {
+      "id": "memory",
+      "name": "Память и компиляция контекста",
+      "module": "knowledge",
+      "trigger": "Remember/observe/correct or context request",
+      "dedup_key": "command_id for writes; pack compilation request + input revisions",
+      "states": [
+        {
+          "id": "capture",
+          "name": "Принять источник"
+        },
+        {
+          "id": "redact",
+          "name": "Очистить и проверить scope"
+        },
+        {
+          "id": "record",
+          "name": "Записать claim/observation"
+        },
+        {
+          "id": "project",
+          "name": "Построить представление"
+        },
+        {
+          "id": "retrieve",
+          "name": "Выбрать актуальные версии"
+        },
+        {
+          "id": "compile",
+          "name": "Собрать pack"
+        },
+        {
+          "id": "supply",
+          "name": "Передать исполнителю"
+        },
+        {
+          "id": "correct",
+          "name": "Проверить новое основание"
+        }
+      ],
+      "transitions": [
+        {
+          "from": "capture",
+          "to": "redact",
+          "guard": "source attributed",
+          "carries": "bounded input + actor + trust"
+        },
+        {
+          "from": "redact",
+          "to": "record",
+          "guard": "allowed payload",
+          "carries": "redacted event"
+        },
+        {
+          "from": "record",
+          "to": "project",
+          "guard": "append committed",
+          "carries": "journal event sequence"
+        },
+        {
+          "from": "project",
+          "to": "retrieve",
+          "guard": "query scoped",
+          "carries": "current facts with valid/recorded time"
+        },
+        {
+          "from": "retrieve",
+          "to": "compile",
+          "guard": "source results known or explicit partial",
+          "carries": "selected refs + errors + omissions"
+        },
+        {
+          "from": "compile",
+          "to": "supply",
+          "guard": "lockfile/hash saved",
+          "carries": "actual pack ID and content digest"
+        },
+        {
+          "from": "supply",
+          "to": "correct",
+          "guard": "contradictory evidence/correction arrives",
+          "carries": "source_ref and expected version"
+        },
+        {
+          "from": "correct",
+          "to": "record",
+          "guard": "authorized versioned supersession",
+          "carries": "new fact, never edit historical body"
+        }
+      ],
+      "rules": [
+        "Pack tells what was supplied, not what the model internally retained.",
+        "Local/cloud routing and unavailable are visible; missing data is not an empty memory."
+      ],
+      "tasks": [
+        "M177",
+        "M155",
+        "M191",
+        "S14"
+      ],
+      "output": "versioned knowledge with reproducible pack lineage",
+      "diagram_scope": "Business/data path; exact execution states and interruption semantics are specified by linked task contracts."
+    },
+    {
+      "id": "retro",
+      "name": "Ретро и обновление уроков",
+      "module": "knowledge",
+      "trigger": "Terminal run, distinct failure occurrence or due review",
+      "dedup_key": "insight/about + occurrence identity + review window",
+      "states": [
+        {
+          "id": "observe",
+          "name": "Зарегистрировать случай"
+        },
+        {
+          "id": "classify",
+          "name": "Назначить категорию"
+        },
+        {
+          "id": "dedup",
+          "name": "Связать повтор"
+        },
+        {
+          "id": "review",
+          "name": "Разбор CEO"
+        },
+        {
+          "id": "check",
+          "name": "Проверить основание"
+        },
+        {
+          "id": "update",
+          "name": "Обновить/закрыть урок"
+        },
+        {
+          "id": "board",
+          "name": "Вопрос оператору"
+        },
+        {
+          "id": "schedule",
+          "name": "Назначить повторный разбор"
+        }
+      ],
+      "transitions": [
+        {
+          "from": "observe",
+          "to": "classify",
+          "guard": "evidence available",
+          "carries": "occurrence ID + project/source"
+        },
+        {
+          "from": "classify",
+          "to": "dedup",
+          "guard": "closed category",
+          "carries": "project|agents|harness|fabric|process"
+        },
+        {
+          "from": "dedup",
+          "to": "review",
+          "guard": "new occurrence/version or review due",
+          "carries": "count of distinct occurrences, not reports"
+        },
+        {
+          "from": "review",
+          "to": "check",
+          "guard": "typed proposed action",
+          "carries": "supersede/retire/task/question proposal"
+        },
+        {
+          "from": "check",
+          "to": "update",
+          "guard": "valid evidence and authority",
+          "carries": "journalled lifecycle transition"
+        },
+        {
+          "from": "check",
+          "to": "board",
+          "guard": "human judgement required",
+          "carries": "kind=decision topic=process question"
+        },
+        {
+          "from": "board",
+          "to": "update",
+          "guard": "answer committed",
+          "carries": "decision receipt"
+        },
+        {
+          "from": "update",
+          "to": "schedule",
+          "guard": "next review warranted",
+          "carries": "review_after + source watermark"
+        },
+        {
+          "from": "schedule",
+          "to": "review",
+          "guard": "new due window",
+          "carries": "cycle invocation ID"
+        }
+      ],
+      "rules": [
+        "Retire is not delete; old evidence persists.",
+        "Raw incident is not a verified corrective retro record in the external memory contract."
+      ],
+      "tasks": [
+        "M154",
+        "M182",
+        "M184",
+        "M153"
+      ],
+      "output": "current lessons, explicit questions, actionable product work",
+      "diagram_scope": "Business/data path; exact execution states and interruption semantics are specified by linked task contracts."
+    },
+    {
+      "id": "feedback",
+      "name": "Сервисные инсайты и отправка",
+      "module": "knowledge",
+      "trigger": "Local service-category candidate",
+      "dedup_key": "stable feedback lineage ID for suppression; delivery attempt generation includes consent and schema revisions",
+      "states": [
+        {
+          "id": "local",
+          "name": "Сохранить локально"
+        },
+        {
+          "id": "minimize",
+          "name": "Сократить payload"
+        },
+        {
+          "id": "review",
+          "name": "Проверить допустимость"
+        },
+        {
+          "id": "pending",
+          "name": "Outbox pending"
+        },
+        {
+          "id": "send",
+          "name": "Попытка отправки"
+        },
+        {
+          "id": "ack",
+          "name": "Подтверждено сервером"
+        },
+        {
+          "id": "suppress",
+          "name": "Отменено для отправки"
+        },
+        {
+          "id": "unknown",
+          "name": "Исход неизвестен"
+        }
+      ],
+      "transitions": [
+        {
+          "from": "local",
+          "to": "minimize",
+          "guard": "category agents/harness/fabric only",
+          "carries": "candidate without raw identifiers"
+        },
+        {
+          "from": "minimize",
+          "to": "review",
+          "guard": "closed allowlist schema",
+          "carries": "issue_code + coarse capability, no prose"
+        },
+        {
+          "from": "review",
+          "to": "pending",
+          "guard": "export enabled and approved schema",
+          "carries": "consent-bound export record"
+        },
+        {
+          "from": "pending",
+          "to": "send",
+          "guard": "consent still current at dispatch",
+          "carries": "idempotency key, minimized payload"
+        },
+        {
+          "from": "send",
+          "to": "ack",
+          "guard": "durable server ack",
+          "carries": "remote receipt"
+        },
+        {
+          "from": "send",
+          "to": "unknown",
+          "guard": "timeout after dispatch",
+          "carries": "attempt ID for reconciliation"
+        },
+        {
+          "from": "pending",
+          "to": "suppress",
+          "guard": "opt-out/revoked consent",
+          "carries": "durable suppression tombstone"
+        },
+        {
+          "from": "unknown",
+          "to": "ack",
+          "guard": "server confirms received",
+          "carries": "actual remote result, not fictional cancellation"
+        },
+        {
+          "from": "unknown",
+          "to": "suppress",
+          "guard": "absence confirmed and consent off",
+          "carries": "suppression receipt"
+        }
+      ],
+      "rules": [
+        "Local collection default on; outbound activation is a separately visible consent choice in proposed privacy ADR.",
+        "Re-enable does not backfill previously suppressed entries.",
+        "Free-text anonymous export is not promised safe; v1 default schema prohibits it.",
+        "Settings reset, schema upgrade and consent re-enable cannot recreate a suppressed lineage."
+      ],
+      "tasks": [
+        "M183"
+      ],
+      "output": "local insight or auditable minimized export with opt-out",
+      "diagram_scope": "Business/data path; exact execution states and interruption semantics are specified by linked task contracts."
+    },
+    {
+      "id": "sync",
+      "name": "Зеркало и импорт конфигурации",
+      "module": "continuity",
+      "trigger": "Explicit export/check/import or drift signal",
+      "dedup_key": "manifest ID + source hash + import command ID",
+      "states": [
+        {
+          "id": "read",
+          "name": "Прочитать источники"
+        },
+        {
+          "id": "manifest",
+          "name": "Создать manifest покрытия"
+        },
+        {
+          "id": "compare",
+          "name": "Сравнить hashes/revisions"
+        },
+        {
+          "id": "conflict",
+          "name": "Показать конфликт"
+        },
+        {
+          "id": "stage",
+          "name": "Проверить импорт целиком"
+        },
+        {
+          "id": "commit",
+          "name": "Атомарно применить"
+        },
+        {
+          "id": "receipt",
+          "name": "Показать результат"
+        }
+      ],
+      "transitions": [
+        {
+          "from": "read",
+          "to": "manifest",
+          "guard": "all declared sources accounted for",
+          "carries": "files + coverage + omissions"
+        },
+        {
+          "from": "manifest",
+          "to": "compare",
+          "guard": "check requested",
+          "carries": "source/current/export digests"
+        },
+        {
+          "from": "compare",
+          "to": "conflict",
+          "guard": "both sides diverged/foreign IDs",
+          "carries": "diff and blocked fields"
+        },
+        {
+          "from": "compare",
+          "to": "stage",
+          "guard": "operator chooses import against expected revision",
+          "carries": "validated full batch"
+        },
+        {
+          "from": "stage",
+          "to": "commit",
+          "guard": "scope/schema/revisions all match",
+          "carries": "single command batch or explicit staged protocol"
+        },
+        {
+          "from": "commit",
+          "to": "receipt",
+          "guard": "transaction persisted",
+          "carries": "import receipt + new manifest"
+        },
+        {
+          "from": "receipt",
+          "to": "read",
+          "guard": "next export/check requested",
+          "carries": "new current source revision"
+        }
+      ],
+      "rules": [
+        "No implicit two-way merge between YAML and event journal.",
+        "Full backup is a separate feature and includes operational/identity/blob state."
+      ],
+      "tasks": [
+        "S12",
+        "M191",
+        "M198"
+      ],
+      "output": "declared coverage and deterministic import/recovery",
+      "diagram_scope": "Business/data path; exact execution states and interruption semantics are specified by linked task contracts."
+    },
+    {
+      "id": "recovery",
+      "name": "Восстановление без побочных запусков",
+      "module": "continuity",
+      "trigger": "Operator restore command",
+      "dedup_key": "backup_id + restore_job_id",
+      "states": [
+        {
+          "id": "freeze",
+          "name": "Отключить исполнение"
+        },
+        {
+          "id": "verify",
+          "name": "Проверить backup"
+        },
+        {
+          "id": "restore",
+          "name": "Восстановить отдельно"
+        },
+        {
+          "id": "replay",
+          "name": "Перестроить projections"
+        },
+        {
+          "id": "compare",
+          "name": "Сравнить с manifest"
+        },
+        {
+          "id": "ready",
+          "name": "Разрешить чтение"
+        },
+        {
+          "id": "activate",
+          "name": "Включить выбранные циклы"
+        },
+        {
+          "id": "reject",
+          "name": "Остановить восстановление"
+        }
+      ],
+      "transitions": [
+        {
+          "from": "freeze",
+          "to": "verify",
+          "guard": "no dispatch credentials/leases active",
+          "carries": "isolated target ID"
+        },
+        {
+          "from": "verify",
+          "to": "restore",
+          "guard": "checksums/schema compatible",
+          "carries": "backup manifest"
+        },
+        {
+          "from": "verify",
+          "to": "reject",
+          "guard": "checksum/scope/version mismatch",
+          "carries": "safe diagnostic"
+        },
+        {
+          "from": "restore",
+          "to": "replay",
+          "guard": "events and operational records restored",
+          "carries": "high-water + replay mode"
+        },
+        {
+          "from": "replay",
+          "to": "compare",
+          "guard": "no external effects allowed",
+          "carries": "projection hashes incl config_revision"
+        },
+        {
+          "from": "compare",
+          "to": "ready",
+          "guard": "declared parity checks pass",
+          "carries": "verification receipt"
+        },
+        {
+          "from": "compare",
+          "to": "reject",
+          "guard": "mismatch",
+          "carries": "diff + source classes"
+        },
+        {
+          "from": "ready",
+          "to": "activate",
+          "guard": "operator chooses current bindings/schedules",
+          "carries": "new epochs and explicit missed-window policy"
+        }
+      ],
+      "rules": [
+        "Replay is never an effect dispatcher.",
+        "Restored leases and in-flight effects reconcile before activation.",
+        "Activation is a separate command after current-authority fencing and per-intent reconciliation. Unknown effects remain held, and outbound consent/suppression cannot be rolled back by restoring an older archive."
+      ],
+      "tasks": [
+        "S12",
+        "S07",
+        "M198"
+      ],
+      "output": "verified restore or explicit refused activation",
+      "diagram_scope": "Business/data path; exact execution states and interruption semantics are specified by linked task contracts."
+    },
+    {
+      "id": "attention",
+      "name": "События → внимание → действие",
+      "module": "surfaces",
+      "trigger": "Business event or unresolved addressed obligation",
+      "dedup_key": "obligation source key; per-person event seq cursor",
+      "states": [
+        {
+          "id": "ingest",
+          "name": "Получить событие"
+        },
+        {
+          "id": "classify",
+          "name": "Определить обязательство"
+        },
+        {
+          "id": "render",
+          "name": "Показать в Inbox"
+        },
+        {
+          "id": "seen",
+          "name": "Отметить прочитанным"
+        },
+        {
+          "id": "act",
+          "name": "Открыть точный объект"
+        },
+        {
+          "id": "resolved",
+          "name": "Получить domain receipt"
+        }
+      ],
+      "transitions": [
+        {
+          "from": "ingest",
+          "to": "classify",
+          "guard": "event typed and redacted",
+          "carries": "subject ref + actor + causal ID"
+        },
+        {
+          "from": "classify",
+          "to": "render",
+          "guard": "visible under actor scope",
+          "carries": "needs_action separately from happened"
+        },
+        {
+          "from": "render",
+          "to": "seen",
+          "guard": "person viewed",
+          "carries": "per-user cursor only"
+        },
+        {
+          "from": "render",
+          "to": "act",
+          "guard": "explicit action",
+          "carries": "stable scoped deep-link"
+        },
+        {
+          "from": "seen",
+          "to": "act",
+          "guard": "unresolved obligation remains",
+          "carries": "same subject ID"
+        },
+        {
+          "from": "act",
+          "to": "resolved",
+          "guard": "domain command committed",
+          "carries": "resolution receipt"
+        },
+        {
+          "from": "resolved",
+          "to": "render",
+          "guard": "projection updated",
+          "carries": "resolved marker and history"
+        }
+      ],
+      "rules": [
+        "Reading never settles a question; feed dedup does not delete business obligations.",
+        "Critical unresolved actions may resurface with policy; ordinary events do not spam on every poll."
+      ],
+      "tasks": [
+        "M185",
+        "M186",
+        "M151"
+      ],
+      "output": "one addressed attention layer, no duplicate work store",
+      "diagram_scope": "Business/data path; exact execution states and interruption semantics are specified by linked task contracts."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "ADR-0045",
+      "name": "Развести WorkflowRun, TaskRun и итерацию",
+      "status": "proposed",
+      "path": "docs/adr/0045-workflow-runs-task-runs-and-explicit-iterations.md",
+      "tasks": [
+        "S04",
+        "S10",
+        "M188",
+        "M189",
+        "M190"
+      ],
+      "choice": "Новый task_run_id после admission; старый run_id сохраняет graph-walk meaning."
+    },
+    {
+      "id": "ADR-0046",
+      "name": "Manager: scope, canonical role и epoch",
+      "status": "proposed",
+      "path": "docs/adr/0046-manager-role-slots-epochs-and-provider-compatibility.md",
+      "tasks": [
+        "M194",
+        "M175",
+        "M166",
+        "M168"
+      ],
+      "choice": "ceo/estate и product-manager/project; атомарное назначение с единственным effective writer epoch."
+    },
+    {
+      "id": "ADR-0047",
+      "name": "Ретро: локальная ценность и контролируемая отправка",
+      "status": "proposed",
+      "path": "docs/adr/0047-service-feedback-minimization-and-durable-suppression.md",
+      "tasks": [
+        "M182",
+        "M183",
+        "M184"
+      ],
+      "choice": "Local collection on; outbound separately activated with closed payload schema and durable suppression."
+    },
+    {
+      "id": "ADR-0052",
+      "name": "Автоматическая смена аккаунтов входит в объём",
+      "status": "proposed",
+      "path": "docs/adr/0052-provider-account-automatic-switching.md",
+      "choice": "Scope accepted by operator; detailed opt-in pool policy proposed. Switches require no second confirmation and use the verified resume transaction.",
+      "tasks": [
+        "M199"
+      ]
+    },
+    {
+      "id": "ADR-0059",
+      "name": "Персональный Fabric и пульс доказанной работы",
+      "status": "proposed",
+      "path": "docs/adr/0059-personal-fabric-and-evidence-backed-pulse.md",
+      "tasks": [
+        "S13",
+        "S14",
+        "S15",
+        "M185",
+        "M186",
+        "M187",
+        "M178"
+      ],
+      "choice": "Цветной appearance revision принадлежит estate; activity, heartbeat, cycles и releases — разные проекции общего журнала. Контракт и P0–P6: docs/architecture/personal-fabric-pulse.md. D01 прежде runtime."
+    }
+  ]
+}

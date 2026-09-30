@@ -1,0 +1,34 @@
+{
+  "archive": "/Applications/PassionCode.app/Contents/Resources/app.asar",
+  "installedMtime": "2026-08-31T16:40:14.662Z",
+  "packageVersion": "0.1.0",
+  "rows": [
+    {
+      "file": "out/main/index.js",
+      "installedSha256": "80087051c9f9bbc1ee2ed0011a395e6bdeed0f440eed1de7ce1f4cc9c92c13c4",
+      "currentSha256": "63166149587b319290d63af940d00f17d8bac050888b2c56fd6e3cfc631f2e45",
+      "equal": false,
+      "installedBytes": 760619,
+      "currentBytes": 807985
+    },
+    {
+      "file": "out/preload/index.mjs",
+      "installedSha256": "39bab2894a0005fbcede53fbbdf82bc1bb5780f603e8ad99bf82216c3cb1d2e4",
+      "currentSha256": "3eb264d90e76379a7a51847bf4b6aeeadf64180489962df663135a54fa65f5b4",
+      "equal": false,
+      "installedBytes": 4451,
+      "currentBytes": 5106
+    },
+    {
+      "file": "out/renderer/index.html",
+      "installedSha256": "dfa54b943f5dfad25190c348edf1c2d7c8bf464d1b4adba07f94a2ecdc5c401e",
+      "currentSha256": "b266a8324b1f1dbaed698cb526ec005600c6be396b472fa6fab816c409bafe23",
+      "equal": false,
+      "installedBytes": 398,
+      "currentBytes": 398
+    }
+  ],
+  "installedEffectExecuted": false,
+  "currentEffectExecuted": true,
+  "limits": "Comparison with current local build; package metadata stripping is not counted as code divergence; installed build commit absent."
+}

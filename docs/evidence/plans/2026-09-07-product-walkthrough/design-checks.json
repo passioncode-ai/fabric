@@ -1,0 +1,57 @@
+{
+  "status": "pass",
+  "scope": "source and structural checks; not product runtime",
+  "source_commit": "91337391aa8d24966bf0c57db381e6fe63b48bce",
+  "commands": [
+    {
+      "command": "node --test scripts/test/product-model.test.mjs",
+      "exit_code": 0,
+      "tests": 24
+    },
+    {
+      "command": "node scripts/check-product-model.mjs",
+      "exit_code": 0,
+      "screens": 48,
+      "views": 53,
+      "scenarios": 67,
+      "flows": 36,
+      "journeys": 22,
+      "findings": 32,
+      "active_tasks": 57,
+      "task_contexts": 80,
+      "pinned_receipts": 159,
+      "git_blobs": 33
+    },
+    {
+      "command": "node scripts/sync-product-ux.mjs --check",
+      "exit_code": 0
+    },
+    {
+      "command": "node scripts/build-product-report.mjs --check",
+      "exit_code": 0
+    },
+    {
+      "command": "node scripts/build-system-map.mjs --check",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 docs/ux/lint.py",
+      "exit_code": 0,
+      "errors": 0,
+      "warnings": 25
+    },
+    {
+      "command": "node scripts/product-spec.mjs SCR-34",
+      "exit_code": 0
+    },
+    {
+      "command": "node scripts/product-spec.mjs M39",
+      "exit_code": 0
+    },
+    {
+      "command": "node scripts/task-spec.mjs M152.commit",
+      "exit_code": 0
+    }
+  ],
+  "warnings_note": "UX warnings preserve unimplemented flow coverage, external-site coverage and existing edited vision-router wording."
+}

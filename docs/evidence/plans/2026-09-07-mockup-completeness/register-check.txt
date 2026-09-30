@@ -1,0 +1,22 @@
+  ok   docs/evidence/specs/2026-08-16-software-fabric-carryover.md: the register is one unbroken table
+  ok   docs/evidence/specs/2026-08-16-software-fabric-carryover.md: every row has 7 columns
+  ok   docs/evidence/backlog.md: the register is one unbroken table
+  ok   docs/evidence/backlog.md: every row has 4 columns
+  ok   docs/adr/README.md: the register is one unbroken table
+  ok   docs/adr/README.md: every row has 4 columns
+  ok   no living document cites a bare line number — every receipt names a symbol
+  ok   all 13 symbol citation(s) name something their file still contains
+  ok   732 line citation(s) in 56 dated snapshot(s) are NOT checked — an audit report records a moment, and rewriting its receipts to match today falsifies it
+  ok   every carry-over reference is written in the form the register uses
+  ok   docs/evidence/backlog.md: the asserted verificationRows count (497) matches the register
+  ok   docs/evidence/backlog.md: the asserted milestones count (196) matches the register
+  ok   docs/evidence/backlog.md: the asserted carryOver count (109) matches the register
+  ok   docs/evidence/backlog.md: the asserted verificationNever count (61) matches the register
+  ok   docs/evidence/backlog.md: the asserted carryOverOpen count (78) matches the register
+  ok   docs/evidence/backlog.md: the asserted probes count (25) matches the register
+  ok   every one of the 51 milestone ids in a feat/fix scope has a register row
+  ok   no row reads as not-started while a commit ships it
+  ok   the asserted shipped count (64) matches the register
+
+registers: 109 carry-over rows, 196 milestones, 497 verification rows
+PASS: registers parse, citations resolve, asserted counts recompute

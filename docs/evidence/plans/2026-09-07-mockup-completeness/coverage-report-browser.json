@@ -1,0 +1,13 @@
+{
+  "status": "pass",
+  "scope": "review-report controls and destinations; not product acceptance",
+  "checks": [
+    "All rows rendered; status/search filters and exact deep link expose review choice",
+    "All 79 local link destinations return200; external code URLs are not live-verified",
+    "Geometry dark 1440",
+    "Geometry dark 390",
+    "Geometry light 1440",
+    "Geometry light 390"
+  ],
+  "errors": []
+}

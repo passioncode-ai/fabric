@@ -1,0 +1,2 @@
+REPRODUCED chain: two ticks launch two new tasks; original follower identity absent from launch contract; no database or agent used
+REPRODUCED quota: missing windows and non-finite utilization allow unattended; completely absent quota correctly refuses

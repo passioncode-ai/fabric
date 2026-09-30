@@ -1,0 +1,12 @@
+{
+  "status": "pass",
+  "scope": "Direct production-mockup module state transitions with synthetic click events; no browser or production runtime claim",
+  "source": "scripts/product/routines.mjs",
+  "sha256": "5ec69ec9d0c9caa16b2df188e00b568aa9b196b0edafb8c6dd99182a1bd5f1e0",
+  "at": "2026-09-07T19:32:17.035Z",
+  "checks": [
+    "missing: stopped series retains its receipt and creates no bound Proposal",
+    "stale: stopped series retains its receipt and creates no bound Proposal",
+    "fresh: exactly N complete rounds produce sourced Proposal; replay creates no new run or Proposal"
+  ]
+}

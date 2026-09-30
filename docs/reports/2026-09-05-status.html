@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PassionCode.ai — состояние на 2026-09-05</title>
+<style>
+  /* Палитра взята из tokens.paperclip.css самого продукта, а не придумана:
+     отчёт о вещи должен выглядеть как эта вещь. */
+  :root{
+    --bg:#0a0a0a; --surface:#171717; --quiet:#262626;
+    --ink:#fafafa; --muted:#a1a1a1;
+    --line:#ffffff1a; --line-strong:#ffffff26;
+    --good:#34d06f; --warn:#fbbf24; --danger:#fb2c36;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#ffffff; --surface:#ffffff; --quiet:#f5f5f5;
+           --ink:#0a0a0a; --muted:#737373; --line:#e5e5e5; --line-strong:#a1a1a1; }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.6 var(--sans);
+    padding:48px 24px 96px;
+  }
+  .wrap{max-width:1000px;margin:0 auto}
+
+  header{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:40px}
+  h1{font-size:28px;line-height:1.25;margin:0 0 8px;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:14px;margin:0}
+  .lede{font-size:17px;line-height:1.55;margin:24px 0 0;max-width:62ch}
+  .lede strong{font-weight:600}
+
+  h2{font-size:19px;margin:48px 0 4px;letter-spacing:-.01em}
+  h2 .n{color:var(--muted);font:400 13px/1 var(--mono);margin-right:10px}
+  h3{font-size:15px;margin:28px 0 8px;color:var(--muted);font-weight:600;
+     text-transform:uppercase;letter-spacing:.06em}
+  p{margin:12px 0;max-width:74ch}
+  a{color:var(--ink);text-decoration:underline;text-underline-offset:3px;
+    text-decoration-color:var(--line-strong)}
+  a:hover{text-decoration-color:currentColor}
+  code{font:13px/1.4 var(--mono);background:var(--quiet);padding:1px 5px;border-radius:4px}
+
+  .scroll{overflow-x:auto;margin:16px 0}
+  table{border-collapse:collapse;width:100%;font-size:14px;min-width:520px}
+  th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+  td.num{font-family:var(--mono);white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:20px 0}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+  .stat .v{font:600 26px/1.1 var(--mono);letter-spacing:-.02em}
+  .stat .k{color:var(--muted);font-size:12px;margin-top:6px;line-height:1.4}
+
+  .chip{display:inline-block;font:500 11px/1.6 var(--sans);padding:1px 8px;border-radius:999px;
+        border:1px solid var(--line-strong);white-space:nowrap}
+  .ok{color:var(--good);border-color:color-mix(in srgb,var(--good) 45%,transparent)}
+  .part{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+  .no{color:var(--muted)}
+  .stop{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,transparent)}
+
+  .gates{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+  .gate{background:var(--surface);border:1px solid var(--line);border-radius:8px;
+        padding:8px 12px;font:13px/1 var(--sans);display:flex;align-items:center;gap:8px}
+  .gate b{font:600 12px/1 var(--mono);color:var(--good)}
+
+  .note{border-left:2px solid var(--line-strong);padding:2px 0 2px 16px;margin:20px 0;
+        color:var(--muted);max-width:70ch}
+  .note strong{color:var(--ink);font-weight:600}
+
+  .rail{display:grid;gap:0;margin:20px 0}
+  .rel{display:grid;grid-template-columns:92px 1fr;gap:20px;padding:16px 0;
+       border-bottom:1px solid var(--line)}
+  .rel:last-child{border-bottom:none}
+  .rel .when{font:600 12px/1.5 var(--mono);color:var(--muted);padding-top:2px}
+  .rel h4{margin:0 0 6px;font-size:15px;font-weight:600}
+  .rel p{margin:0;color:var(--muted);font-size:14px;max-width:66ch}
+
+  footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);
+         color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>PassionCode.ai — состояние ядра Fabric</h1>
+  <p class="sub">Отчёт на 5 сентября 2026 · числа взяты из реестров и ворот, не по памяти</p>
+  <p class="lede">Ядро работает, и на нём <strong>разрабатывают его же</strong> — цикл dogfood
+  замкнут. Продукт запускает агентов, держит их работу в журнале, помнит проект и
+  показывает оператору, что сделано. Чего нет: <strong>провайдера модели</strong> — и потому
+  всего разговорного; и <strong>постоянно работающего процесса</strong> — и потому всего, что
+  должно случаться, пока ноутбук закрыт.</p>
+</header>
+
+<h2><span class="n">01</span>Числа</h2>
+
+<div class="grid">
+  <div class="stat"><div class="v">57<span style="color:var(--muted);font-size:16px">/165</span></div><div class="k">вех отгружено, ещё 7 частично</div></div>
+  <div class="stat"><div class="v">465</div><div class="k">строк верификации, 61 не «watched failing»</div></div>
+  <div class="stat"><div class="v">77<span style="color:var(--muted);font-size:16px">/107</span></div><div class="k">перенесённых вопросов открыто</div></div>
+  <div class="stat"><div class="v">37</div><div class="k">записей решений (ADR)</div></div>
+  <div class="stat"><div class="v">27</div><div class="k">миграций · 22 подсаженных дефекта схемы</div></div>
+  <div class="stat"><div class="v">417</div><div class="k">тестов: 393 vitest + 24 node-пробы</div></div>
+  <div class="stat"><div class="v">39<span style="color:var(--muted);font-size:16px">/49</span></div><div class="k">экранов / сценариев UX</div></div>
+  <div class="stat"><div class="v">83</div><div class="k">коммита за 5 сентября</div></div>
+</div>
+
+<div class="gates">
+  <div class="gate">typecheck <b>0</b></div>
+  <div class="gate">design <b>0</b></div>
+  <div class="gate">docs <b>0</b></div>
+  <div class="gate">registers <b>0</b></div>
+  <div class="gate">ci&nbsp;fast <b>0</b></div>
+  <div class="gate">smoke <b>OK</b></div>
+</div>
+
+<h2><span class="n">02</span>Что работает</h2>
+
+<div class="scroll">
+<table>
+<thead><tr><th style="width:180px">Слой</th><th>Что именно</th></tr></thead>
+<tbody>
+<tr><td>Журнал как хребет</td><td><code>append_event</code> с реестром типов, проекции пересобираются, 22 подсаженных дефекта ловятся (ADR-0014)</td></tr>
+<tr><td>Проекты и репозитории</td><td>вкладки, набор репозиториев с производным primary, живое состояние git — ветка, ahead/behind, изменения, последний коммит</td></tr>
+<tr><td>Агенты</td><td>запуск с выбором раннера и режима прав, PTY внутри окна, реаттач со скроллбеком, транскрипты как артефакты</td></tr>
+<tr><td>MCP-поверхность</td><td>17 инструментов агенту, креды минтятся на сессию, <code>--strict-mcp-config</code>, чужие серверы — через машинный шлюз (ADR-0034)</td></tr>
+<tr><td>Память проекта</td><td>факты с видами <code>note/finding/decision/trap</code>, битемпоральность, FTS, лог обращений включая промахи, контекст-пак с локфайлом</td></tr>
+<tr><td>Доска задач</td><td>лестница статусов с таблицей прав — агент <strong>не может закрыть свою задачу</strong>; цели, план, граф решений</td></tr>
+<tr><td>Плоскость полномочий</td><td><code>grants</code>, <code>effect_intents</code>, пол в схеме (ADR-0004): деньги, удаление, публикация отказываются на любом уровне</td></tr>
+<tr><td>Рутины и цепочки</td><td>расписание, передача с <strong>названной вещью</strong>, предел глубины, квотный гейт против безнадзорной работы</td></tr>
+<tr><td>Механические ворота</td><td>8 гейтов: доки, нарратив, схемы, бренд, реестры, дизайн-система, шаблоны проб, CI</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2><span class="n">03</span>Чего нет, и почему</h2>
+
+<div class="scroll">
+<table>
+<thead><tr><th style="width:230px">Отсутствует</th><th>Ждёт</th></tr></thead>
+<tbody>
+<tr><td>Любой разговор — CEO-чат, предложение проектов <span class="chip no">M126 · M119</span></td><td>провайдера модели. <code>attention.ts</code> отказывается строить эхо: «блокнот, притворяющийся коллегой»</td></tr>
+<tr><td>Что-либо по расписанию при закрытом приложении</td><td>ничего: всё расписание — <code>setInterval</code> в главном процессе Electron. Нет сервера, нет публичной точки</td></tr>
+<tr><td>Внешние наблюдатели <span class="chip no">M128 · M129</span></td><td>Sentry или аналитику в шлюзе. Машинерия готова целиком</td></tr>
+<tr><td>Мультиоператор <span class="chip no">M38</span></td><td>второго человека — у каждого вопроса власти был один ответ, потому что оператор один</td></tr>
+<tr><td>Перехват прав на уровне раннера <span class="chip no">M140b</span></td><td><code>fabric_effect_request</code> полагается на то, что агент <em>спросит</em>; <code>canUseTool</code> перехватывал бы всё</td></tr>
+<tr><td>Облачные эстейты</td><td>горизонт 4 по ADR-0016</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2><span class="n">04</span>Прошлые релизы</h2>
+
+<p class="note"><strong>Тегов нет — ноль.</strong> Релизами служат срезы плана и рабочие волны;
+это честнее назвать, чем изобрести нумерацию задним числом.</p>
+
+<div class="rail">
+  <div class="rel"><div class="when">27–30.08</div><div>
+    <h4>Фундамент <span class="chip ok">готово</span></h4>
+    <p>Схема, журнал, проекции, миграция 1, набор подсаженных дефектов.</p></div></div>
+
+  <div class="rel"><div class="when">31.08</div><div>
+    <h4>S1 — десктоп <span class="chip ok">готово · dogfood замкнут</span></h4>
+    <p>macOS-приложение с терминалом внутри (ADR-0031), проекты, упакованный <code>.app</code>
+    с автостартом стека, онбординг, дизайн-токены и i18n с двумя механическими гейтами.</p></div></div>
+
+  <div class="rel"><div class="when">31.08–01.09</div><div>
+    <h4>S2 — память <span class="chip part">частично</span></h4>
+    <p>Факты и полнотекстовый поиск, транскрипты, контекст-паки, битемпоральность, лог обращений.</p></div></div>
+
+  <div class="rel"><div class="when">01.09</div><div>
+    <h4>Верстак проекта <span class="chip ok">готово</span></h4>
+    <p>Страница проекта, статистика, файловое дерево, автоматизации, настройки,
+    цитаты, ставшие действиями.</p></div></div>
+
+  <div class="rel"><div class="when">03.09</div><div>
+    <h4>Набор компонентов и плоскость полномочий <span class="chip ok">готово</span></h4>
+    <p>M117: ~90 классов свелись к набору, гейт падает на классе вне реестра.
+    M136–M139: порт решений, четыре типа событий, первое действие, прошедшее через пол.</p></div></div>
+
+  <div class="rel"><div class="when">05.09</div><div>
+    <h4>Операционные поверхности <span class="chip ok">готово</span></h4>
+    <p>M146: доска, страница задачи, план и граф решений, харнесс, поиск, избранное,
+    поверхность памяти, дайджест, маскот, создание агента из промпта (M125),
+    шлюз (M127), рутины (M132), цепочки с названной вещью.</p></div></div>
+
+  <div class="rel"><div class="when">05.09</div><div>
+    <h4>Прогон по аудиту <span class="chip ok">готово</span></h4>
+    <p>Десять дефектов, каждый с подсаженным и пойманным: M104, M108, M109, M107,
+    M100, M101, M106, M113, M99, M96. Две аудиторские строки из четырёх оказались
+    <em>частично устаревшими</em> — их половины закрыли более ранние коммиты.</p></div></div>
+
+  <div class="rel"><div class="when">—</div><div>
+    <h4>S3–S6 <span class="chip no">открыты</span></h4>
+    <p>Коннекторы, наблюдатели, публикация, саппорт и custdev.</p></div></div>
+</div>
+
+<h2><span class="n">05</span>Вопросы</h2>
+
+<h3>Закрыты сегодня</h3>
+<div class="scroll">
+<table>
+<thead><tr><th style="width:320px">Вопрос</th><th>Ответ оператора</th></tr></thead>
+<tbody>
+<tr><td>Связывает ли ответ оператора?</td><td>оценить критичность; критичное — на аппрув</td></tr>
+<tr><td>Кто может задавать вопросы?</td><td>любая сессия; приоритет ставит CEO</td></tr>
+<tr><td>Что показывает топ-5, когда всё мелкое?</td><td>просто топ-5 по приоритету, <strong>без порога</strong></td></tr>
+<tr><td>Может ли CEO отвечать сам?</td><td><strong>да</strong>; на доску попадает только то, что он счёл нужным обсудить</td></tr>
+<tr><td>Нужен ли приоритет проектов?</td><td><strong>да</strong> — шкала, настраиваемая, с наблюдаемым давлением рядом</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Открыты</h3>
+<p><strong>77 перенесённых вопросов (CO)</strong>, большинство со «stage 0» — заданы и не закрыты:
+SLA и эскалация, приватность, изоляция, паспорта раннеров, ревизии инструкций,
+инвентарь подключений.</p>
+<p>Блокирующих вопросов дизайна не осталось. Три решатся при реализации:
+окно ретенции сообщений чата, порог критичности по умолчанию (сейчас 60),
+и нужен ли лимит открытых вопросов на сессию.</p>
+
+<h2><span class="n">06</span>Роадмап</h2>
+
+<div class="scroll">
+<table>
+<thead><tr><th style="width:150px">Релиз</th><th>Состав</th><th style="width:130px">Вехи</th><th style="width:110px">Ждёт</th></tr></thead>
+<tbody>
+<tr><td><strong>R1 — Доска</strong></td><td>вопросы как записи, <code>fabric_question_ask</code>, приоритет проектов и доверие CEO, функция приоритета, три поверхности (топ-5 / топ-10 / полный экран), <strong>ответ становится фактом-решением</strong></td><td class="num">M148–M152<br>M156</td><td><span class="chip ok">ничего</span></td></tr>
+<tr><td><strong>R2 — CEO</strong></td><td>решения по цитате, критичность и аппрув смены решения, гигиена доски, ретро-поверхность, наблюдение протокола</td><td class="num">M153–M155<br>M157, M158</td><td><span class="chip ok">ничего</span></td></tr>
+<tr><td><strong>R3 — Telegram</strong></td><td>токен и опрос, привязка личности, аутбокс с очередью, <strong>ответ реплаем</strong>, вечернее письмо, уведомители, захват с согласием</td><td class="num">M159–M165</td><td><span class="chip ok">ничего</span></td></tr>
+<tr><td><strong>R4 — долги</strong></td><td>разрезать монолиты, стампида загрузчиков, стоимость байта агента, холст и карточки агентов</td><td class="num">M97, M98<br>M102, M105<br>M88–M93</td><td><span class="chip ok">ничего</span></td></tr>
+<tr><td><strong>R5 — внешнее</strong></td><td>CEO-чат, наблюдатели продакшна и трендов, мультиоператор, всегда-живое реле</td><td class="num">M119, M126<br>M128, M129<br>M38</td><td><span class="chip stop">внешнее</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<p class="note"><strong>R1 — то, ради чего всё.</strong> Оператор открывает приложение раз в день,
+отвечает на ждущее, уходит; ответ попадает в память проекта, и следующая сессия
+получает его в контекст-паке — кода доставки при этом не пишется.
+<strong>R3 переносит тот же цикл в Telegram и работает без модели</strong>, потому что
+реплай несёт собственную адресацию.</p>
+
+<h2><span class="n">07</span>Документы</h2>
+
+<div class="scroll">
+<table>
+<thead><tr><th style="width:230px">Что</th><th>Где</th></tr></thead>
+<tbody>
+<tr><td>Доска и CEO</td><td><a href="../architecture/board-and-ceo.md"><code>docs/architecture/board-and-ceo.md</code></a></td></tr>
+<tr><td>Telegram</td><td><a href="../architecture/telegram-surface.md"><code>docs/architecture/telegram-surface.md</code></a></td></tr>
+<tr><td>Решения</td><td><a href="../adr/"><code>docs/adr/</code></a> — ADR-0035 (доска как запрос), 0036 (доверие CEO), 0037 (Telegram)</td></tr>
+<tr><td>Вехи и статусы</td><td><a href="../evidence/backlog.md"><code>docs/evidence/backlog.md</code></a></td></tr>
+<tr><td>Строки верификации</td><td><a href="../evidence/verification.md"><code>docs/evidence/verification.md</code></a></td></tr>
+<tr><td>Ретро</td><td><a href="../evidence/retro.md"><code>docs/evidence/retro.md</code></a></td></tr>
+<tr><td>Платформа</td><td><a href="../architecture/passioncode-platform.md"><code>docs/architecture/passioncode-platform.md</code></a></td></tr>
+<tr><td>UX-цепочка</td><td><a href="../ux/"><code>docs/ux/</code></a> — vision, foundation, flows, screens, scenarios</td></tr>
+</tbody>
+</table>
+</div>
+
+<footer>
+  Снимок момента. Числа пересчитываются командами
+  <code>node scripts/check-registers.mjs</code> и <code>bash scripts/ci.sh fast</code>;
+  датированный документ намеренно исключён из проверки актуальности цитат —
+  отчёт фиксирует день, а не претендует на сегодняшнюю правду.
+</footer>
+
+</div>
+</body>
+</html>

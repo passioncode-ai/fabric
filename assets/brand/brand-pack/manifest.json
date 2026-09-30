@@ -1,0 +1,305 @@
+{
+  "version": 1,
+  "brand": "PassionCode.ai",
+  "source": "../favicon/source/passioncode-passion-fruit.svg",
+  "sourceSha256": "8b49637faa386ce9658029a142d48e8a8c3ee4ed2d44ccb611cd03051046e1aa",
+  "palette": {
+    "rind": [
+      "#2D0039",
+      "#4B0354"
+    ],
+    "interior": [
+      "#F20673",
+      "#D90066"
+    ],
+    "flesh": [
+      "#FFD21A",
+      "#F5B800"
+    ],
+    "seed": [
+      "#41054B",
+      "#26002F"
+    ],
+    "darkCanvas": "#0A0A0A",
+    "whiteCanvas": "#FFFFFF"
+  },
+  "sizes": [
+    1024,
+    512,
+    256,
+    128,
+    64
+  ],
+  "exports": [
+    {
+      "path": "png/transparent/passioncode-icon-1024.png",
+      "format": "png",
+      "variant": "transparent",
+      "size": 1024,
+      "width": 1024,
+      "height": 1024,
+      "background": null,
+      "sha256": "6e753b92ed5b28f5883f1e784350e2bf9b377cd7be1538129a12982ef0df2dfc"
+    },
+    {
+      "path": "png/transparent/passioncode-icon-512.png",
+      "format": "png",
+      "variant": "transparent",
+      "size": 512,
+      "width": 512,
+      "height": 512,
+      "background": null,
+      "sha256": "4357af561c79ac4640e64782c3e6651cf460eb391bf5f0c445fba8b76b676a71"
+    },
+    {
+      "path": "png/transparent/passioncode-icon-256.png",
+      "format": "png",
+      "variant": "transparent",
+      "size": 256,
+      "width": 256,
+      "height": 256,
+      "background": null,
+      "sha256": "a8c1265dcd1340109d329ad988ebb7b5aad2d0d5b5bc38f95ad67208899055f6"
+    },
+    {
+      "path": "png/transparent/passioncode-icon-128.png",
+      "format": "png",
+      "variant": "transparent",
+      "size": 128,
+      "width": 128,
+      "height": 128,
+      "background": null,
+      "sha256": "7c1707b12e653cf937a473d69b32fa0e5e85ed089122ded2e6317fbb1e96305e"
+    },
+    {
+      "path": "png/transparent/passioncode-icon-64.png",
+      "format": "png",
+      "variant": "transparent",
+      "size": 64,
+      "width": 64,
+      "height": 64,
+      "background": null,
+      "sha256": "34fb5047708a4381e660da439f06d405af8575b3de5a86cc2e315da95c294ea2"
+    },
+    {
+      "path": "png/dark/passioncode-icon-1024.png",
+      "format": "png",
+      "variant": "dark",
+      "size": 1024,
+      "width": 1024,
+      "height": 1024,
+      "background": "#0A0A0A",
+      "sha256": "7ac50c3681c0a48e21c4460ce65c0851ba4b1f0b3cc183cd1f5307a15f6fda46"
+    },
+    {
+      "path": "png/dark/passioncode-icon-512.png",
+      "format": "png",
+      "variant": "dark",
+      "size": 512,
+      "width": 512,
+      "height": 512,
+      "background": "#0A0A0A",
+      "sha256": "1e0a4903862ee21f37c3323e6c193bed999b1710c7a377d65a4104f601d8d4f7"
+    },
+    {
+      "path": "png/dark/passioncode-icon-256.png",
+      "format": "png",
+      "variant": "dark",
+      "size": 256,
+      "width": 256,
+      "height": 256,
+      "background": "#0A0A0A",
+      "sha256": "f2dfeb7dbebb47ae094f2675124754d5484705d5b159b7c2b8aa0213fba4f4f4"
+    },
+    {
+      "path": "png/dark/passioncode-icon-128.png",
+      "format": "png",
+      "variant": "dark",
+      "size": 128,
+      "width": 128,
+      "height": 128,
+      "background": "#0A0A0A",
+      "sha256": "3977699614501e21e537bbfd75d12b697bd5d4d18532e3d837f823d09eae7c73"
+    },
+    {
+      "path": "png/dark/passioncode-icon-64.png",
+      "format": "png",
+      "variant": "dark",
+      "size": 64,
+      "width": 64,
+      "height": 64,
+      "background": "#0A0A0A",
+      "sha256": "81b615b63fb63613ac0aea02053b72813ecfc9133826c05f50588bb9185b7e1e"
+    },
+    {
+      "path": "png/white/passioncode-icon-1024.png",
+      "format": "png",
+      "variant": "white",
+      "size": 1024,
+      "width": 1024,
+      "height": 1024,
+      "background": "#FFFFFF",
+      "sha256": "dee9e6f91afe0b3aa0feef9bc492850b22563ad6cdf5d283115b523a371c5cd7"
+    },
+    {
+      "path": "png/white/passioncode-icon-512.png",
+      "format": "png",
+      "variant": "white",
+      "size": 512,
+      "width": 512,
+      "height": 512,
+      "background": "#FFFFFF",
+      "sha256": "d8bdd8c1b7f205cd05ed91b8d55f0d7668cac7b10e1f9528ea7c118392c55429"
+    },
+    {
+      "path": "png/white/passioncode-icon-256.png",
+      "format": "png",
+      "variant": "white",
+      "size": 256,
+      "width": 256,
+      "height": 256,
+      "background": "#FFFFFF",
+      "sha256": "bc23aab0c6b3c3d33e5c1bb422afeca396d02585e88e8e2c5ab5e4357db3962a"
+    },
+    {
+      "path": "png/white/passioncode-icon-128.png",
+      "format": "png",
+      "variant": "white",
+      "size": 128,
+      "width": 128,
+      "height": 128,
+      "background": "#FFFFFF",
+      "sha256": "6ba8e6c108da023db6141b62496a9a1b607d09c1eec32ad46b53d9f34dfbf356"
+    },
+    {
+      "path": "png/white/passioncode-icon-64.png",
+      "format": "png",
+      "variant": "white",
+      "size": 64,
+      "width": 64,
+      "height": 64,
+      "background": "#FFFFFF",
+      "sha256": "a2bb71041f25831236a146ae097ba45586dc35b87ffbcdd239d2f7a99cc2e25f"
+    },
+    {
+      "path": "jpg/dark/passioncode-icon-1024.jpg",
+      "format": "jpg",
+      "variant": "dark",
+      "size": 1024,
+      "width": 1024,
+      "height": 1024,
+      "background": "#0A0A0A",
+      "sha256": "f9b014a0fd9c905ef75caa9a221202201bfea9d280a3c11dc37fde2899599ad2"
+    },
+    {
+      "path": "jpg/dark/passioncode-icon-512.jpg",
+      "format": "jpg",
+      "variant": "dark",
+      "size": 512,
+      "width": 512,
+      "height": 512,
+      "background": "#0A0A0A",
+      "sha256": "582b2eb72cb22771c6d369fd690c074cb3fa24aac513b4735b5ce68a22458615"
+    },
+    {
+      "path": "jpg/dark/passioncode-icon-256.jpg",
+      "format": "jpg",
+      "variant": "dark",
+      "size": 256,
+      "width": 256,
+      "height": 256,
+      "background": "#0A0A0A",
+      "sha256": "24e98bc9f478effde3380242a4292f3cc47819b42e510f8b6e7e7c11585c0c1d"
+    },
+    {
+      "path": "jpg/dark/passioncode-icon-128.jpg",
+      "format": "jpg",
+      "variant": "dark",
+      "size": 128,
+      "width": 128,
+      "height": 128,
+      "background": "#0A0A0A",
+      "sha256": "20c608760c70701a257e33f5e75a43fdc98fe6fa35c787f896eb4fbfaeb88298"
+    },
+    {
+      "path": "jpg/dark/passioncode-icon-64.jpg",
+      "format": "jpg",
+      "variant": "dark",
+      "size": 64,
+      "width": 64,
+      "height": 64,
+      "background": "#0A0A0A",
+      "sha256": "12dc17bab336bcc5459c6c1c5218d361b505737502349c518b63d807a22d8191"
+    },
+    {
+      "path": "jpg/white/passioncode-icon-1024.jpg",
+      "format": "jpg",
+      "variant": "white",
+      "size": 1024,
+      "width": 1024,
+      "height": 1024,
+      "background": "#FFFFFF",
+      "sha256": "6bf85292defba37e919e9caed7e3c5584a7cfa2e90c5903eedffc17edfb33a62"
+    },
+    {
+      "path": "jpg/white/passioncode-icon-512.jpg",
+      "format": "jpg",
+      "variant": "white",
+      "size": 512,
+      "width": 512,
+      "height": 512,
+      "background": "#FFFFFF",
+      "sha256": "12cc27fd1e34f5a99efed63c1f1981858343cdc608fddb131bfd3d59998ad257"
+    },
+    {
+      "path": "jpg/white/passioncode-icon-256.jpg",
+      "format": "jpg",
+      "variant": "white",
+      "size": 256,
+      "width": 256,
+      "height": 256,
+      "background": "#FFFFFF",
+      "sha256": "2274b139ed7767a228dc7149bae53167c258d4232a75033bdaa503cf1d9bf418"
+    },
+    {
+      "path": "jpg/white/passioncode-icon-128.jpg",
+      "format": "jpg",
+      "variant": "white",
+      "size": 128,
+      "width": 128,
+      "height": 128,
+      "background": "#FFFFFF",
+      "sha256": "7240a5cb2d6d3d4139bf31d1adbe31bd90fbdc6795565d9e390af701d565a382"
+    },
+    {
+      "path": "jpg/white/passioncode-icon-64.jpg",
+      "format": "jpg",
+      "variant": "white",
+      "size": 64,
+      "width": 64,
+      "height": 64,
+      "background": "#FFFFFF",
+      "sha256": "b35b699a5e701d063e96127483be5e1db344e2789fbdbbdfb3f9d34f251d3301"
+    },
+    {
+      "path": "preview/passioncode-brand-pack-overview.png",
+      "format": "png",
+      "variant": "overview",
+      "size": 1920,
+      "width": 1920,
+      "height": 1080,
+      "background": "#0A0A0A",
+      "sha256": "f8c299b64fe6e335db1fe57fc0b8b0827a3d5766ded05672848b57127fd57a30"
+    },
+    {
+      "path": "preview/passioncode-brand-pack-overview.jpg",
+      "format": "jpg",
+      "variant": "overview",
+      "size": 1920,
+      "width": 1920,
+      "height": 1080,
+      "background": "#0A0A0A",
+      "sha256": "a93809c28eee98bd2c1c263140dd4e929cbb65bcfe9302a8be9d1fce4ff8f5c9"
+    }
+  ]
+}

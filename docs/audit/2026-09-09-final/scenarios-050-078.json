@@ -1,0 +1,1546 @@
+{
+  "schema": "fabric.audit-scenario-slice@1",
+  "date": "2026-09-09",
+  "source_commit": "d28c321ccca8c4ef0e803ebea5b7ba056e88bc5d",
+  "scope": "SCN-050..SCN-078 inclusive",
+  "verdict": "REFINE",
+  "limits": [
+    "Read-only source audit; no database state sampled, no UI walkthrough, no real agent/effect/auth/restore invoked.",
+    "FAIL denotes target scenario missing or broken, not regression in previously released capability. PARTIAL distinguishes shipped foundations.",
+    "Absence checked across current renderer/main/preload including multiline calls; ProjectHome runs.status is present.",
+    "Skill use: ux-audit scenario source tracing; agent-harness prompt/tool boundary inspection; agent-evals distinction between synthetic evaluator and real observed behavior. No interop skill used.",
+    "Parent integrates canonical statuses/leases/Git/publication and owns full auth/storage/chain execution audit."
+  ],
+  "checks": [
+    {
+      "command": "python3 docs/ux/lint.py",
+      "result": "exit 0; 0 errors, 38 warnings; missing scenario index SCN-068..080 and flow/file evidence warnings"
+    },
+    {
+      "command": "node /tmp/fabric-audit-20260909/reproduce-slice.mjs",
+      "result": "exit 0; actual pure liveness derivation reproduced orientation inputs working→stalled and waitingOn omission waiting→stalled",
+      "artifact": "scenarios-050-078-reproduction.txt"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "SCN-050",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M151",
+        "M152.commit",
+        "M152.continue",
+        "S04",
+        "S13"
+      ],
+      "implemented": "Board preview, typed options, CAS answer commit, draft retained on refusal, separate continuation summary.",
+      "gaps": "Full question route/history absent. Receipt lives only under still-open row; refresh removes answered row. Transport rejection escapes submit try/finally without local catch. Continuation targets pre-spawn session recorded in task_runs; repeated answer RPC re-enters delivery with fresh delivery UUID.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/BoardPanel.tsx:84",
+        "apps/desktop/src/renderer/src/BoardPanel.tsx:117",
+        "apps/desktop/src/main/index.ts:2419",
+        "apps/desktop/src/main/index.ts:2448",
+        "apps/desktop/src/main/index.ts:2472"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-051",
+      "verdict": "FAIL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M158",
+        "M157",
+        "M168",
+        "M194",
+        "M173"
+      ],
+      "implemented": "Proposal checker exists; decision list distinguishes authorship.",
+      "gaps": "No manager settlement lifecycle, current-basis assessment UI or human override path. Existing checker is prerequisite, not delivered settlement.",
+      "evidence": [
+        "docs/ux/screens.md:53",
+        "apps/desktop/src/renderer/src/DecisionsSection.tsx:74",
+        "apps/desktop/src/shared/managerEval.ts:3",
+        "docs/evidence/backlog.md:71"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-052",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M188",
+        "M189",
+        "M178",
+        "M179",
+        "S04"
+      ],
+      "implemented": "TaskRun schema and run ordinal; status IPC and agent tile; claim/observation types.",
+      "gaps": "Admission session differs from actual PTY, no production run.ended producer, missing run/session binding; no PlanRevision/StepClaim/history selector. Widget omits envelope coverage, stale failures and independent clock. Status reader drops orientation/wait/gap inputs and secondary read errors.",
+      "evidence": [
+        "supabase/migrations/20260909000044_admit_task_launch.sql:111",
+        "supabase/migrations/20260909000049_task_runs.sql:91",
+        "apps/desktop/src/main/index.ts:1408",
+        "apps/desktop/src/main/index.ts:1273",
+        "apps/desktop/src/main/index.ts:1303",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:1598"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-053",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M190",
+        "M188",
+        "M173",
+        "S13"
+      ],
+      "implemented": "Legacy goal list, explicit closed-count truncation and decision lineage list.",
+      "gaps": "No SCR-40 history/plan routes, typed edge inspector, outline-equivalent view, as-of or historical plan. PlanSection filters completed task membership out of list even while progress counts it.",
+      "evidence": [
+        "docs/ux/screens.md:52",
+        "apps/desktop/src/shared/appRoute.ts:36",
+        "apps/desktop/src/renderer/src/PlanSection.tsx:84",
+        "apps/desktop/src/renderer/src/DecisionsSection.tsx:90"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-054",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M173",
+        "M191",
+        "S13"
+      ],
+      "implemented": "List with four actor kinds, superseded predecessors and cap disclosure.",
+      "gaps": "Source_ref is plain span, not exact navigable source; supplied pack, retrieval receipts, valid-period/branch/as-of selection absent. Current query cannot reconstruct exact past context.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/DecisionsSection.tsx:56",
+        "apps/desktop/src/renderer/src/DecisionsSection.tsx:90",
+        "apps/desktop/src/main/index.ts:2941",
+        "apps/desktop/src/main/index.ts:419"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-055",
+      "verdict": "FAIL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M185",
+        "S14",
+        "S13",
+        "CO-111"
+      ],
+      "implemented": "Two-lane types exist; Board obligations cannot be marked read.",
+      "gaps": "No Inbox route, persistent per-operator watermark, safe event detail reader or displayed-cursor transaction. Type shape does not deliver user flow.",
+      "evidence": [
+        "apps/desktop/src/shared/inbox.ts:25",
+        "apps/desktop/src/shared/appRoute.ts:36",
+        "docs/ux/screens.md:54",
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:122"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-056",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M186",
+        "S15",
+        "M179",
+        "S04"
+      ],
+      "implemented": "Scheduled pass writes cycle.ran, observer called, routine summaries and three-column DTO exist.",
+      "gaps": "No all-cycles route/detail/wake. Outer cycle reports completed when inner routine read/spawn failed and was swallowed; capped inner partial receipt may be followed by outer completed. No stable tick ID/config revision/cursor across both.",
+      "evidence": [
+        "apps/desktop/src/main/index.ts:1924",
+        "apps/desktop/src/main/routineTick.ts:63",
+        "apps/desktop/src/main/routineTick.ts:196",
+        "apps/desktop/src/shared/cycleView.ts:25",
+        "docs/ux/screens.md:55"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-057",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M191",
+        "M49",
+        "S14",
+        "S12"
+      ],
+      "implemented": "Same compiler supports dry IPC preview; source read envelope, character budget and hash exist.",
+      "gaps": "Preview has no renderer consumer; history keeps only hash/IDs, not immutable rendered artifact/compiler/budget. context.md is removed on session discard. Mandatory sources are optional and not supplied on unattended compile, launch proceeds after context failure.",
+      "evidence": [
+        "apps/desktop/src/main/index.ts:1209",
+        "apps/desktop/src/main/index.ts:397",
+        "apps/desktop/src/main/index.ts:419",
+        "apps/desktop/src/main/sessionBundle.ts:136",
+        "apps/desktop/src/main/sessionBundle.ts:196",
+        "apps/desktop/src/renderer/src/MemoryOverviewSection.tsx:137"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-058",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "S13",
+        "M187",
+        "M190",
+        "M191"
+      ],
+      "implemented": "Typed project focus and reduced-motion section scroll exist.",
+      "gaps": "Section scrolling has no exact entity resolution/focus/return stack or disclosure opening. New targeted views absent. TaskPage async load is unguarded, so previous task response can replace selected task contents.",
+      "evidence": [
+        "apps/desktop/src/shared/appRoute.ts:44",
+        "apps/desktop/src/renderer/src/evidence.ts:53",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:52"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-059",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "S01",
+        "S13",
+        "S14"
+      ],
+      "implemented": "Name/purpose project creation without required repository, shell-owned draft survives project tab switch; stable projectId.",
+      "gaps": "Draft is renderer memory only and excluded from persisted tabs; relaunch loses unfinished fields. Full readiness/admission route still absent.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/Onboarding.tsx:32",
+        "apps/desktop/src/renderer/src/Onboarding.tsx:61",
+        "apps/desktop/src/renderer/src/App.tsx:147",
+        "apps/desktop/src/shared/tabs.ts:38"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-060",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "S13",
+        "S01",
+        "M102"
+      ],
+      "implemented": "One AppRoute removes prior agents-screen/project navigation collision; project tabs persist.",
+      "gaps": "Only open project IDs and active project persist; task/ref/filter/scroll/focus/return state does not. Unguarded TaskPage request can show A under route B.",
+      "evidence": [
+        "apps/desktop/src/shared/appRoute.ts:36",
+        "apps/desktop/src/shared/tabs.ts:28",
+        "apps/desktop/src/renderer/src/TaskPage.tsx:52"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-061",
+      "verdict": "FAIL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M194",
+        "M166",
+        "M167",
+        "M169",
+        "M171",
+        "M175",
+        "M176"
+      ],
+      "implemented": "Agent descriptors, capability declarations, proposal checker and synthetic evaluator are useful prerequisites.",
+      "gaps": "No manager binding/seat lifecycle, replacement fencing, drain, activation authority or cost attribution. Do not treat general runner picker as manager permission.",
+      "evidence": [
+        "docs/ux/screens.md:56",
+        "apps/desktop/src/shared/managerEval.ts:3",
+        "docs/evidence/backlog.md:733"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-062",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M182",
+        "M154",
+        "M153",
+        "M184"
+      ],
+      "implemented": "Retro reader filters category/kind/history, recurrence uses episode identity.",
+      "gaps": "No review→verification→lesson→recurrence/regression operational lifecycle. Source availability resolver remains incomplete. Reader cannot serve as evidence that CEO recurring retro works.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/RetroSection.tsx:62",
+        "apps/desktop/src/main/index.ts:3029",
+        "docs/evidence/backlog.md:71",
+        "docs/reports/2026-09-09-queue-progress-report.html:264"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-063",
+      "verdict": "FAIL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M183.local",
+        "M183.upstream"
+      ],
+      "implemented": "Local category/subject/episode foundations exist.",
+      "gaps": "No service-feedback control or inspectable outbound queue. Privacy/version revocation races and endpoint receipts are not implemented; absence is not proof of a tested stop control.",
+      "evidence": [
+        "docs/ux/screens.md:58",
+        "docs/reports/2026-09-09-queue-progress-report.html:249",
+        "docs/reports/2026-09-09-queue-progress-report.html:265"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-064",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "S12",
+        "M198",
+        "M191",
+        "S14"
+      ],
+      "implemented": "Mirror declares two entity families, exclusions computed from TABLE_SCOPE; import uses one RPC transaction.",
+      "gaps": "No SCR-47 complete declared storage reader, exact generation diff/receipt recovery UX or full estate backup. session_context_packs exclusion says regenerated although exact old bytes are not reproducible.",
+      "evidence": [
+        "apps/desktop/src/shared/storageContract.ts:58",
+        "apps/desktop/src/shared/storageContract.ts:102",
+        "apps/desktop/src/main/index.ts:1966",
+        "docs/ux/screens.md:59"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-065",
+      "verdict": "FAIL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "S12",
+        "S07",
+        "S02"
+      ],
+      "implemented": "Mirror/import correctness foundations exist.",
+      "gaps": "No verified backup archive or fenced read-only restore environment, authority generation rotation or old-writer rejection. Do not equate declared snapshot import to full restore.",
+      "evidence": [
+        "docs/ux/screens.md:60",
+        "docs/reports/2026-09-09-queue-progress-report.html:201",
+        "apps/desktop/src/shared/storageContract.ts:86"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-066",
+      "verdict": "FAIL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "S09",
+        "S02",
+        "S03.boundary"
+      ],
+      "implemented": "Membership command/floor work exists independently.",
+      "gaps": "No authentication/session identity, invitation link transport or scoped auth return; desktop constructs service-role client with persistence/refresh disabled.",
+      "evidence": [
+        "apps/desktop/src/main/index.ts:330",
+        "docs/ux/scenarios.md:1614",
+        "docs/reports/2026-09-09-queue-progress-report.html:204"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-067",
+      "verdict": "FAIL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "S04",
+        "M103",
+        "M188",
+        "S13",
+        "S14"
+      ],
+      "implemented": "Existing-task admission RPC and preload endpoint exist, acknowledgement protocol exists.",
+      "gaps": "No renderer startExisting caller (multiline scan also checked); tasksStart follows old create+spawn route. New path ignores returned run identity, maps only lease to real PTY, writes delivery.written before deferred PTY flush, does not close admitted run on spawn failure/exit.",
+      "evidence": [
+        "apps/desktop/src/preload/index.ts:21",
+        "apps/desktop/src/main/index.ts:1341",
+        "apps/desktop/src/main/index.ts:1363",
+        "apps/desktop/src/main/index.ts:1419",
+        "apps/desktop/src/main/index.ts:1444",
+        "apps/desktop/src/main/pty.ts:217",
+        "apps/desktop/src/main/index.ts:494"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-068",
+      "verdict": "FAIL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M18",
+        "M188"
+      ],
+      "implemented": "Target prototype describes stage/version path.",
+      "gaps": "No production versioned pipeline editor; route union has no destination. New scenario lacks index row, lowering discoverability.",
+      "evidence": [
+        "docs/ux/scenarios.md:1664",
+        "docs/evidence/backlog.md:237",
+        "apps/desktop/src/shared/appRoute.ts:36"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-069",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M144",
+        "M190"
+      ],
+      "implemented": "Goal create/list, task assignment and orphan task handling exist.",
+      "gaps": "No criterion versions, explicit result acceptance/rejection, autonomy limits or supersession route. Task completion remains distinct from goal acceptance only in target design.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/PlanSection.tsx:61",
+        "apps/desktop/src/renderer/src/PlanSection.tsx:72",
+        "docs/ux/scenarios.md:1682"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-070",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M83",
+        "M94",
+        "M171"
+      ],
+      "implemented": "Provider quota/reset visible; unattended quota guard exists.",
+      "gaps": "No unified usage/capacity/cost/source detail; unreadable quota can disappear instead of explain. Manager cost is unmeasured, subscription terms remain open.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:176",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:760",
+        "apps/desktop/src/main/routineTick.ts:117",
+        "docs/ux/scenarios.md:1700"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-071",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M72",
+        "M73",
+        "S14"
+      ],
+      "implemented": "Theme/locale/keep-awake settings and save failure feedback exist.",
+      "gaps": "No integrated settings screen for storage/inherited project override/revision checks; scenario references M152 (answer lifecycle) as settings owner, which is incorrect.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/App.tsx:414",
+        "apps/desktop/src/renderer/src/App.tsx:567",
+        "docs/ux/scenarios.md:1730",
+        "docs/evidence/backlog.md:693"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-072",
+      "verdict": "FAIL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M159",
+        "M160",
+        "M161",
+        "M162",
+        "M163",
+        "M164",
+        "M165",
+        "M185"
+      ],
+      "implemented": "Notification route target has owner rows.",
+      "gaps": "No bound identity challenge/channel route/consent/delivery receipt UI. Needs-you obligations must stay with Board; cannot create second task store to implement notification read state.",
+      "evidence": [
+        "docs/ux/scenarios.md:1736",
+        "docs/evidence/backlog.md:700",
+        "apps/desktop/src/shared/appRoute.ts:36"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-073",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M81",
+        "S05"
+      ],
+      "implemented": "Diagnostics panel reads filtered log and build provenance; errors distinct from empty results.",
+      "gaps": "No export selection/preview/redacted export surface. Successful refresh does not clear prior problem; metadata failure swallowed. Diagnostic log is rotating evidence, not archived agent trajectory.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/DiagnosticsSection.tsx:33",
+        "apps/desktop/src/renderer/src/DiagnosticsSection.tsx:47",
+        "apps/desktop/src/renderer/src/DiagnosticsSection.tsx:112",
+        "apps/desktop/src/main/index.ts:2906"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-074",
+      "verdict": "FAIL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M77",
+        "S12",
+        "S09"
+      ],
+      "implemented": "Project archived state exists in domain.",
+      "gaps": "No operator archive/restore/purge review UI or exact-object command path; generic confirmation is insufficient. Purge must be designed separately from journal-replayable archival.",
+      "evidence": [
+        "apps/desktop/src/shared/types.ts:78",
+        "docs/evidence/backlog.md:418",
+        "apps/desktop/src/shared/appRoute.ts:36"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-075",
+      "verdict": "PARTIAL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M66",
+        "M67",
+        "M68",
+        "M90",
+        "S04",
+        "S15"
+      ],
+      "implemented": "Simple interval/backlog routine editor, pause/resume and bounded chain primitives exist.",
+      "gaps": "No versioned typed DAG editor/event inputs/missing-empty-stale policies or run pinned config. Parent owns additional runtime chain admission defects.",
+      "evidence": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:1457",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx:1542",
+        "apps/desktop/src/main/chainAdvance.ts:72",
+        "docs/evidence/backlog.md:489"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-076",
+      "verdict": "FAIL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M10"
+      ],
+      "implemented": "Ordinary agent/session terminal exists.",
+      "gaps": "No service terminal generation/probe/healthy-unknown lifecycle for gateway and Claude Swap. Do not reuse agent admission as service readiness.",
+      "evidence": [
+        "docs/evidence/backlog.md:25",
+        "docs/ux/scenarios.md:1808",
+        "apps/desktop/src/shared/appRoute.ts:36"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-077",
+      "verdict": "FAIL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M74",
+        "M75"
+      ],
+      "implemented": "Citation/browser target is specified.",
+      "gaps": "No isolated browser production surface. Scenario lists only M74 but sandbox/browser owner is M75; fix trace before assigning agents.",
+      "evidence": [
+        "docs/ux/scenarios.md:1826",
+        "docs/evidence/backlog.md:404",
+        "docs/evidence/backlog.md:405",
+        "apps/desktop/src/shared/appRoute.ts:36"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    },
+    {
+      "id": "SCN-078",
+      "verdict": "FAIL",
+      "evidence_tier": "static-source-trace",
+      "owners": [
+        "M74",
+        "M76"
+      ],
+      "implemented": "File editor exists; media target prototype exists.",
+      "gaps": "No image/PDF production preview. Scenario points to M75 (browser), actual preview owner M76; assigning by scenario would implement wrong module.",
+      "evidence": [
+        "docs/ux/scenarios.md:1844",
+        "docs/evidence/backlog.md:405",
+        "docs/evidence/backlog.md:406"
+      ],
+      "live_replay": "not-run; no live agents, effects, auth or restore"
+    }
+  ],
+  "task_packets": [
+    {
+      "id": "AX-01",
+      "title": "One admitted task → actual session → immutable ended TaskRun",
+      "existing_owners": [
+        "S04",
+        "M188",
+        "M103",
+        "M152.continue"
+      ],
+      "priority": "P0",
+      "scenarios": [
+        "SCN-050",
+        "SCN-052",
+        "SCN-067"
+      ],
+      "context": "Table exists but runtime does not complete its lifecycle. Admission returns task_run_id and pre-spawn session; handler ignores ID, pty generates another, projector never corrects it; no runtime run.ended producer. Current renderer still starts through legacy create+spawn. Upgrade trap: commit 242eeb8 edited already-existing migration44 to emit run.started while migration49 does not replace admit_task_launch; upgrading from 0a5e932 leaves original function unless migrations are replayed manually.",
+      "files": [
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/main/pty.ts",
+        "apps/desktop/src/main/routineTick.ts",
+        "apps/desktop/src/main/chainAdvance.ts",
+        "apps/desktop/src/preload/index.ts",
+        "apps/desktop/src/shared/types.ts",
+        "supabase/migrations/20260909000044_admit_task_launch.sql",
+        "supabase/migrations/20260909000049_task_runs.sql",
+        "apps/desktop/src/renderer/src/Tasks.tsx",
+        "apps/desktop/src/renderer/src/TaskPage.tsx"
+      ],
+      "solution": "Create one launch service for recorded tasks and every trigger; allocate stable command/run/session identities before spawn or append explicit session binding under epoch. Persist dispatch state/outbox. Finalize every admitted run including spawn failure, exit and restart; guard old generations. Deliver acknowledgements under run+epoch+digest.",
+      "decomposition": [
+        "Define command/run/session/epoch DTO and migration with immutable ended constraints.",
+        "Make creation separate from admission; migrate all operator/routine/chain callers; expose startExisting in actual task UI.",
+        "Bind allocated identity through PTY/bundle or atomically attach actual session and run before delivery; record running/ended transitions and recover abandoned admission.",
+        "Make transport write receipt originate at actual flush, ack receipt at authenticated agent acceptance; stable replay never inserts text twice.",
+        "Add integration harness using fake PTY + real temporary schema and exercise renderer→IPC→launch→ack→exit; retain scenario receipts."
+      ],
+      "depends_on": [
+        "S02/S03 current command boundary; parent chain fix must share this service"
+      ],
+      "acceptance_positive": [
+        "One UI start yields one task, one run, one actual session and ending receipt.",
+        "Upgrade database from 0a5e932 with only new migrations then start a task: same run.started/run identity as clean bootstrap; ship append-only corrective function migration.",
+        "Timeout retry with same command yields same run; retry after ended yields new ordinal.",
+        "Answer reaches exact live run, successor waits for all required predecessors."
+      ],
+      "acceptance_negative": [
+        "Spawn throw ends failed_known run and releases lease; app restart reconciles outcome_unknown.",
+        "Wrong session/old epoch/wrong digest refuses ack.",
+        "No run for denied admission; no duplicate write after lost response; no run state rewrite after ended."
+      ],
+      "exclusions": [
+        "Do not rebuild TaskRun table from scratch.",
+        "Do not implement provider-specific external effects or charge real runners for tests.",
+        "Do not count SQL unit probe as complete runtime proof."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-02",
+      "title": "One observed liveness result for watcher and live widget",
+      "existing_owners": [
+        "M178",
+        "M179",
+        "M181",
+        "M189",
+        "S14"
+      ],
+      "priority": "P1",
+      "scenarios": [
+        "SCN-052",
+        "SCN-056"
+      ],
+      "context": "Two consumers call correct derivation with different/incomplete inputs. Widget always orientedAt:null; both omit wait target; widget omits host gap. Secondary failures become zero blockers. Reproduced pure-function divergence: same fresh working beat becomes stalled with handler input.",
+      "files": [
+        "apps/desktop/src/main/runtimeObserver.ts",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/shared/liveness.ts",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx"
+      ],
+      "solution": "Share an observation read service returning complete provenance and source envelope; read exact wait target resolution, orientation receipt and host observation generation; render this response rather than re-derive with invented nulls.",
+      "decomposition": [
+        "Extract shared read+derive with wait/reference scope, orientation and gap inputs.",
+        "Make task/blocker errors explicit unknown in envelope, never zero.",
+        "Drive widget freshness by heartbeat/observation/feed + bounded time tick independent of terminal output; retain last snapshot and show age/error.",
+        "Render run, claim, observation, coverage and reason separately; add fake-clock/browser assertions."
+      ],
+      "depends_on": [
+        "AX-01 for stable run binding; liveness corrections can start independently"
+      ],
+      "acceptance_positive": [
+        "Fresh oriented worker remains working in watcher and UI.",
+        "Unresolved question stays waiting; resolved target grace expires consistently.",
+        "Data updates with no PTY output refresh widget."
+      ],
+      "acceptance_negative": [
+        "Read failure cannot claim no blockers or healthy coverage.",
+        "Host sleep/restart cannot become agent fault.",
+        "Unsupported reporter cannot be called broken solely for no orientation when no orientation capability exists."
+      ],
+      "exclusions": [
+        "No new manager loop or always-on hosted monitor required.",
+        "Do not test only deriveLiveness; test its two callers."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-03",
+      "title": "Recoverable question detail, receipt and exactly-once continuation",
+      "existing_owners": [
+        "M151",
+        "M152.commit",
+        "M152.continue",
+        "S13"
+      ],
+      "priority": "P1",
+      "scenarios": [
+        "SCN-050",
+        "SCN-051"
+      ],
+      "context": "Form receipt is keyed in memory but rendered only while Board open row remains. Refresh can remove answered question and receipt; submit promise rejection lacks local error. Repeat commit path calls continuation again with fresh delivery ID.",
+      "files": [
+        "apps/desktop/src/renderer/src/BoardPanel.tsx",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/shared/answerReceipt.ts",
+        "apps/desktop/src/shared/continuation.ts",
+        "apps/desktop/src/shared/appRoute.ts"
+      ],
+      "solution": "Add exact question/receipt destination independent of ranked open query; persist scoped draft+command; continuation outbox identity derives from committed decision+target run, reconciliation reads existing receipt.",
+      "decomposition": [
+        "Create question detail read DTO and typed route, fixed revision snapshot and explicit conflict response.",
+        "Separate current top-N list refresh from selected detail and durable receipt.",
+        "Handle rejected IPC with draft retained and same command retry; reset command only for a genuinely new intent.",
+        "Persist/dedupe continuation and recheck target epoch/blockers at dispatch, refresh ack state.",
+        "Exercise response loss, already-answered open, concurrent answer and refresh while editing."
+      ],
+      "depends_on": [
+        "AX-01 delivery/run identity; AX-05 route primitive"
+      ],
+      "acceptance_positive": [
+        "Answer remains inspectable after leaving Needs you.",
+        "Current exact options and draft revision cannot silently change under refresh."
+      ],
+      "acceptance_negative": [
+        "Post-commit response loss does not resend or mint second continuation.",
+        "Thrown IPC shows local error and retains draft.",
+        "A second blocker cannot be bypassed by commit-time eligibility snapshot."
+      ],
+      "exclusions": [
+        "Keep existing CAS implementation and option IDs.",
+        "Do not add mark-read to authored questions."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-04",
+      "title": "Immutable past context and safe next-context preview",
+      "existing_owners": [
+        "M191",
+        "M49",
+        "S14",
+        "S12"
+      ],
+      "priority": "P1",
+      "scenarios": [
+        "SCN-054",
+        "SCN-057",
+        "SCN-064"
+      ],
+      "context": "Preview backend is real but has no renderer consumer. Historic journal payload has hash/IDs only; actual context.md lives in disposable credential bundle. Mandatory source list is not passed by unattended launch and compile errors allow start.",
+      "files": [
+        "apps/desktop/src/main/contextPack.ts",
+        "apps/desktop/src/main/sessionBundle.ts",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/renderer/src/MemoryOverviewSection.tsx",
+        "supabase/migrations/20260901000013_context_packs.sql",
+        "apps/desktop/src/shared/storageContract.ts"
+      ],
+      "solution": "Store immutable pack bytes/artifact outside credential bundle with compiler revision/budget/source versions/hash and scoped read API. Use same compiler for dry task-aware preview. Declare mandatory source policy by launch purpose and block unattended admission when unmet.",
+      "decomposition": [
+        "Design PackRef and durable artifact retention, hash verification and source access policy.",
+        "Persist before launch and return reference in session/run receipt; never delete artifact with token cleanup.",
+        "Expose next/past/lineage/retrieval routes and omitted-item reasons; legacy missing artifact renders incomplete.",
+        "Pass task instruction/brief and purpose to preview/compile so preview matches intended launch; preserve character units.",
+        "Test edit/rename/compiler upgrade, file loss, denied source, short budget and source failure."
+      ],
+      "depends_on": [
+        "AX-01 launch purpose/run identity; AX-05 exact source routing; archive snapshot contract shared with S12"
+      ],
+      "acceptance_positive": [
+        "Past pack bytes/hash remain identical after edits and session exit.",
+        "Dry preview writes no lockfile/journal and spawns nothing.",
+        "Preview names all omitted sources/items and budget version."
+      ],
+      "acceptance_negative": [
+        "Never reconstruct with closest current facts.",
+        "Unattended start refuses mandatory memory/task-source failure; interactive degraded mode explicit.",
+        "Missing archive cannot be called restored/generated exact pack."
+      ],
+      "exclusions": [
+        "No tokenizer claim without versioned tokenizer.",
+        "No second memory store or repository plaintext copy of private packs."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-05",
+      "title": "Typed exact destinations and scope-safe async readers",
+      "existing_owners": [
+        "S13",
+        "S01",
+        "M102",
+        "M187"
+      ],
+      "priority": "P1",
+      "scenarios": [
+        "SCN-050",
+        "SCN-053",
+        "SCN-054",
+        "SCN-055",
+        "SCN-057",
+        "SCN-058",
+        "SCN-059",
+        "SCN-060"
+      ],
+      "context": "AppRoute handles only home/draft/project/agents; evidence reveal scrolls section and does not focus exact entity. TaskPage load has no generation guard. PersistedTabs keeps only project IDs.",
+      "files": [
+        "apps/desktop/src/shared/appRoute.ts",
+        "apps/desktop/src/shared/entityRef.ts",
+        "apps/desktop/src/shared/tabs.ts",
+        "apps/desktop/src/renderer/src/evidence.ts",
+        "apps/desktop/src/renderer/src/App.tsx",
+        "apps/desktop/src/renderer/src/TaskPage.tsx"
+      ],
+      "solution": "Extend canonical typed route+source resolver and per-object async state. Add durable draft identity+revision and return-state contract for selection/filter/scroll/focus, no duplicated task or evidence ownership.",
+      "decomposition": [
+        "Define canonical estate/project/entity/revision route and safe denied/missing outcomes.",
+        "Implement effect generations/abort and key loaded detail with requested identity; block mutations against mismatched response.",
+        "Open required disclosure, focus entity heading, preserve prior selection on background updates and Back.",
+        "Persist onboarding/task drafts with atomic write result and recoverable unsaved patch; reuse existing localState.",
+        "Keyboard/narrow/200% zoom checks on one representative detail then route conformance matrix."
+      ],
+      "depends_on": [
+        "S14 localState/read envelope; exact new readers AX-03/04/06 can implement after route contract"
+      ],
+      "acceptance_positive": [
+        "A→B→late-A response still displays B.",
+        "Close/reopen restores draft fields without inventing committed object.",
+        "Source→target→Back restores scope and focus."
+      ],
+      "acceptance_negative": [
+        "Denied reference never reveals foreign data.",
+        "Missing target explains locally, not console-only.",
+        "Late failed save cannot clear different object draft."
+      ],
+      "exclusions": [
+        "Do not redesign visual theme or rewrite all screens.",
+        "Do not revive corrected agents-screen boolean bug."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-06",
+      "title": "Distinct graph/history/plan and decision readers",
+      "existing_owners": [
+        "M190",
+        "M173",
+        "M188",
+        "M144"
+      ],
+      "priority": "P2",
+      "scenarios": [
+        "SCN-053",
+        "SCN-054",
+        "SCN-069"
+      ],
+      "context": "Legacy lists/progress are useful; requirements for four semantic views are retained in merged plan, not superseded by zero edges measured in one estate.",
+      "files": [
+        "apps/desktop/src/renderer/src/PlanSection.tsx",
+        "apps/desktop/src/renderer/src/DecisionsSection.tsx",
+        "apps/desktop/src/shared/plan.ts",
+        "apps/desktop/src/shared/decisions.ts",
+        "apps/desktop/src/main/index.ts",
+        "docs/ux/product-model.json"
+      ],
+      "solution": "Read canonical event/edge queries into separate agent history, project history, target plan and decision destinations; exact plan revisions keep completed membership. Criteria acceptance is separate goal state.",
+      "decomposition": [
+        "Define each query identity, relation kinds, provenance and cap/cursor schema; no new graph truth store.",
+        "Add immutable plan revision/steps in M188 then target-plan read model shared by list and graph.",
+        "Render historical cycle diagnostics/boundary stubs and keyboard outline equivalent; DAG guard only for normative plan.",
+        "Add decision supplied-context/rationale/source links with no hidden-reasoning claim.",
+        "Add acceptance criterion versions and explicit goal acceptance separate from completed tasks."
+      ],
+      "depends_on": [
+        "AX-01 base run producers; AX-04 exact pack; AX-05 source routes; criteria contract can be designed independently"
+      ],
+      "acceptance_positive": [
+        "Same scope/revision yields same nodes in graph and outline.",
+        "Done/cancelled membership retained as declared; partial counts labelled.",
+        "Two predecessors in decision supersession both visible."
+      ],
+      "acceptance_negative": [
+        "No fabricated edges from coincident timestamps.",
+        "Historical DID cycles not rejected by dependency DAG constraint.",
+        "All tasks done does not auto-accept goal."
+      ],
+      "exclusions": [
+        "Do not discard graph requirement because a seed estate has no edges.",
+        "Do not interpret product.html fixture as production reader."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-07",
+      "title": "Cursor-aware Inbox as reader, not task store",
+      "existing_owners": [
+        "M185",
+        "S14",
+        "CO-111"
+      ],
+      "priority": "P2",
+      "scenarios": [
+        "SCN-055",
+        "SCN-058",
+        "SCN-072"
+      ],
+      "context": "Two-lane types built; no production route or per-person read persistence. CO-111 explicitly defers cursor consumer until this work.",
+      "files": [
+        "apps/desktop/src/shared/inbox.ts",
+        "apps/desktop/src/shared/readEnvelope.ts",
+        "apps/desktop/src/shared/appRoute.ts",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/preload/index.ts"
+      ],
+      "solution": "Needs-you reuses Board identity; Happened sanitized source query with per-person visible watermark and cursor generation. Contract must work for authenticated persons before shared deployment.",
+      "decomposition": [
+        "Implement read command with requested/displayed cursors and minimumCursor evidence.",
+        "Persist mark-visible-read against principal/estate, monotonic within current restore generation.",
+        "Build lanes/detail/filter/back with coverage for missing producers.",
+        "Replay duplicate/out-of-order/feed-error/multi-user cases."
+      ],
+      "depends_on": [
+        "AX-05 route; S09 real principal before shared use; S14/CO-111 cursor contract"
+      ],
+      "acceptance_positive": [
+        "Mark read affects only visible Happened rows for current operator."
+      ],
+      "acceptance_negative": [
+        "Arrival/error cannot advance watermark.",
+        "Needs-you remains until canonical obligation resolves.",
+        "Restored generation rejects obsolete cursor."
+      ],
+      "exclusions": [
+        "No second obligation database; no blanket all-event read."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-08",
+      "title": "Cycle receipts carry actual pass outcome and visible coverage",
+      "existing_owners": [
+        "S15",
+        "M186",
+        "M179"
+      ],
+      "priority": "P1",
+      "scenarios": [
+        "SCN-056",
+        "SCN-075"
+      ],
+      "context": "RoutineTick returns void and swallows read/spawn failures. Outer cycle defaults completed. Partial inner receipt and completed outer receipt have no join ID. Reader gap helper also equates gap with app closed though sink failure exists.",
+      "files": [
+        "apps/desktop/src/main/routineTick.ts",
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/shared/cyclePort.ts",
+        "apps/desktop/src/shared/cycleView.ts",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx"
+      ],
+      "solution": "Return typed per-producer pass outcomes; one tick identity/config revision and explicit admitted/skipped/refused/partial/unknown aggregate. Observer independent of routine success; gap means unobserved unless host evidence says otherwise.",
+      "decomposition": [
+        "Define tick identity and aggregation table including source outage and coalesced overlap.",
+        "Return routine/chain results instead of catch-and-complete; cap planned starts vs actual admitted counts separately.",
+        "Separate observer sampling so failed/slow workload does not suppress health recording.",
+        "Expose all-cycles table/detail with planned unsupported sources and guarded wake.",
+        "Use fake clock for sleep, concurrent tick, cap fairness, unavailable DB and failed receipt sink."
+      ],
+      "depends_on": [
+        "AX-01 admission; AX-02 observation service; CO-111 when adding cursors"
+      ],
+      "acceptance_positive": [
+        "One partial pass remains partial in aggregate; zero due explicitly not-due/skipped."
+      ],
+      "acceptance_negative": [
+        "Failed routine read never reports completed empty pass.",
+        "Receipt absence cannot prove app closed.",
+        "Wake cannot bypass leases/admission or duplicate inflight work."
+      ],
+      "exclusions": [
+        "No hosted always-on monitor required for local cycle reader.",
+        "Do not treat task start as verified outcome."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-09",
+      "title": "Safe manager/settlement activation path",
+      "existing_owners": [
+        "M153",
+        "M158",
+        "M157",
+        "M166",
+        "M167",
+        "M169",
+        "M171",
+        "M194",
+        "M175",
+        "M168"
+      ],
+      "priority": "P2",
+      "scenarios": [
+        "SCN-051",
+        "SCN-061"
+      ],
+      "context": "Core/checker prerequisites do not provide manager. Queue order is dependency order, not automatic authority to select vendor, budget or activation owner.",
+      "files": [
+        "docs/architecture/engineering-specs.json",
+        "apps/desktop/src/main/commands/proposalCommands.ts",
+        "apps/desktop/src/shared/managerEval.ts",
+        "apps/desktop/src/shared/authorityIngress.ts",
+        "apps/desktop/src/shared/capabilityReport.ts"
+      ],
+      "solution": "Implement deterministic core and typed criticality first; all seats share checker/current basis/trust floor; replace binding with fenced generation and explicit drain. Provider absence is normal capability state.",
+      "decomposition": [
+        "M153 hygiene preserves questions; M158 assessments snapshot components/hard floor.",
+        "M157 commits only current applicable basis and human override creates new decision.",
+        "M166 deterministic state/priority core, then M167 optional ModelPort.",
+        "M169 shared attempt budget+idempotent fallback and M171 measured usage.",
+        "M194 seat scope/replacement/fencing/eval activation owner; M175 built-in loop as one seat."
+      ],
+      "depends_on": [
+        "AX-01/02/03 execution+delivery; AX-10 eval evidence; S09 principal for human override; M168 existing checker"
+      ],
+      "acceptance_positive": [
+        "Same inputs produce same deterministic queue/core result.",
+        "Absent ModelPort yields explicit unavailable state; replacement preserves history."
+      ],
+      "acceptance_negative": [
+        "Stale basis/trust revision, human-decision reversal, expired generation cannot auto-settle.",
+        "Failover cannot reset budget; eval pass cannot grant activation."
+      ],
+      "exclusions": [
+        "Do not infer first provider/budget owner; leave explicit operator decision packet.",
+        "Do not build parallel manager authority boundary."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-10",
+      "title": "Real trace-to-eval pipeline and evidence completeness",
+      "existing_owners": [
+        "S05",
+        "M176",
+        "S08",
+        "M194"
+      ],
+      "priority": "P1",
+      "scenarios": [
+        "SCN-052",
+        "SCN-061",
+        "SCN-062"
+      ],
+      "context": "Evaluator consumes synthetic Trajectory with authority/touched scope/effect/usage fields. Current tool trace records transport outcome/IDs only; no runtime importer, durable fixture capture or profile activation consumer. Corpus validates checker, not actual agent behavior.",
+      "files": [
+        "apps/desktop/src/main/toolTrace.ts",
+        "apps/desktop/src/shared/managerEval.ts",
+        "apps/desktop/src/shared/managerCorpus.ts",
+        "scripts/check-eval.mjs",
+        "apps/desktop/src/main/ops.ts"
+      ],
+      "solution": "Add sanitized versioned trajectory adapter joining attempts to immutable command/result/authority references. Explicit required-field coverage per fixture/rubric makes absent semantic evidence inconclusive even when transport capture complete.",
+      "decomposition": [
+        "Inventory fixture required evidence and define typed measured fields with unknown/unsupported.",
+        "Capture safe authority revision, touched scope and effect receipts by IDs, not raw private prompts.",
+        "Persist immutable redacted session/run trace artifact and convert to fixture; report incomplete/sink gaps.",
+        "Run offline synthetic+replayed real failures; hold-out blinded human labels only if judge introduced.",
+        "Then one approved fake/local conformance run and later S08 real runner pilot with explicit budget."
+      ],
+      "depends_on": [
+        "AX-01 run identity, AX-04 pack reference, S05 existing transport tap; no need to wait for all manager UI"
+      ],
+      "acceptance_positive": [
+        "Replayed real refusal/run includes observable state change, citations and scope evidence.",
+        "Report pins profile/compiler/corpus/runtime versions and coverage."
+      ],
+      "acceptance_negative": [
+        "Complete transport trace lacking touched scope cannot pass scope-leak criterion.",
+        "Hard violation cannot be offset by success average.",
+        "No real provider run or paid pilot without chosen resource/budget."
+      ],
+      "exclusions": [
+        "Retain current corpus; do not market synthetic pass as proven autonomous manager.",
+        "No raw secret-bearing prompt/result archive."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-11",
+      "title": "Retro review and privacy-separated feedback",
+      "existing_owners": [
+        "M182",
+        "M154",
+        "M153",
+        "M184",
+        "M183.local",
+        "M183.upstream"
+      ],
+      "priority": "P2",
+      "scenarios": [
+        "SCN-062",
+        "SCN-063"
+      ],
+      "context": "Category/episode model and reader shipped. Review state/verification/recurrence and outbound privacy lifecycle remain missing; they are separate workloads.",
+      "files": [
+        "apps/desktop/src/shared/memoryContract.ts",
+        "apps/desktop/src/shared/retroView.ts",
+        "apps/desktop/src/renderer/src/RetroSection.tsx",
+        "apps/desktop/src/main/index.ts",
+        "docs/architecture/engineering-specs.json"
+      ],
+      "solution": "Local episode→proposal→verified lesson state machine, same occurrence IDs. Separate local collection from outbound consent generation; off prevents future dispatch, in-flight unknown stays unknown.",
+      "decomposition": [
+        "Finish exact evidence resolver and review outcomes with append-only supersession.",
+        "M184 recurrent review task consumes only verified episodes for threshold; threshold is explicit policy.",
+        "M183.local minimized schema/allowlist, preview, consent revision, local queue and purge before dispatch.",
+        "M183.upstream endpoint dedupe/receipt/aggregation after independent endpoint/privacy approval.",
+        "Regression test one episode with multiple notes vs multiple verified episodes and disable while inflight."
+      ],
+      "depends_on": [
+        "AX-03 reviewed decisions, AX-04 context references, AX-09 manager optional; local retro independent from upstream"
+      ],
+      "acceptance_positive": [
+        "Verified lesson linked to exact source and test; repeat after fix yields regression review.",
+        "Local retro works with sending off or endpoint absent."
+      ],
+      "acceptance_negative": [
+        "Repeated mentions do not inflate recurrence.",
+        "Off cancels unsent; in-flight result never falsely cancelled/deleted upstream.",
+        "Category does not expand scope."
+      ],
+      "exclusions": [
+        "No second general knowledge store; do not auto-adopt feedback into product backlog."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-12",
+      "title": "Storage, backup and authentication remain distinct gated capabilities",
+      "existing_owners": [
+        "S12",
+        "S09",
+        "S07",
+        "M198"
+      ],
+      "priority": "P1",
+      "scenarios": [
+        "SCN-064",
+        "SCN-065",
+        "SCN-066",
+        "SCN-074"
+      ],
+      "context": "Declared two-family mirror is not backup. Service-role desktop has no person auth flow. Parent owns detailed data/auth packet.",
+      "files": [
+        "apps/desktop/src/shared/storageContract.ts",
+        "apps/desktop/src/main/workspace.ts",
+        "apps/desktop/src/main/index.ts",
+        "supabase/migrations",
+        "docs/ux/scenarios.md"
+      ],
+      "solution": "Keep full restore, mirror import, identity/membership and archive/purge separate task families; integrate through authority generation and read-only restored mode.",
+      "decomposition": [
+        "Parent expands archive custody/manifest/projection rebuild matrix and fenced restoration.",
+        "Parent expands auth provider/current membership/invitation return/single-use receipt.",
+        "Add SCR-47/48 exact storage coverage and read-only restore display after backend contract.",
+        "M77 reversible project archive first; true purge separate tombstone and receipt design."
+      ],
+      "depends_on": [
+        "S02 boundary, AX-05 routes, operator resource choices for backup and auth transport"
+      ],
+      "acceptance_positive": [
+        "Mirror import remains atomic; restored environment read-only until explicitly activated.",
+        "Authentication returns to exact still-valid invitation."
+      ],
+      "acceptance_negative": [
+        "Old writers cannot mutate restored authority generation.",
+        "Auth retry cannot consume second seat; purge cannot resurrect on replay.",
+        "Do not label mirror as full backup."
+      ],
+      "exclusions": [
+        "Do not repeat parent-owned storage/auth analysis; merge by existing owners."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-13",
+      "title": "Versioned pipeline and routine editing",
+      "existing_owners": [
+        "M18",
+        "M66",
+        "M67",
+        "M68",
+        "M90"
+      ],
+      "priority": "P2",
+      "scenarios": [
+        "SCN-068",
+        "SCN-075"
+      ],
+      "context": "Only basic interval routine editor exists; target typed data graph and pipeline revision are not runtime capabilities.",
+      "files": [
+        "apps/desktop/src/renderer/src/ProjectHome.tsx",
+        "apps/desktop/src/shared/routine.ts",
+        "apps/desktop/src/shared/chain.ts",
+        "apps/desktop/src/main/routineTick.ts",
+        "docs/ux/product-model.json"
+      ],
+      "solution": "Version both workflow definition and execution snapshot; typed edges name data, producer run, missing/empty/stale policy. Bound rounds from originating task and require proposal after bound.",
+      "decomposition": [
+        "Implement pipeline revision read/write contract and skills/stage validation.",
+        "Build event/schedule input editor with typed edges and DAG checks.",
+        "Pin execution to admitted revision, retain prior revisions, migrate old fixed routines explicitly.",
+        "Render paused/invalid/missing/empty/stale states and proposal at bound."
+      ],
+      "depends_on": [
+        "AX-01 run/admission, AX-06 plan revisions, AX-08 cycle receipts"
+      ],
+      "acceptance_positive": [
+        "Editing future config never changes started run; round count survives retry/restart."
+      ],
+      "acceptance_negative": [
+        "Missing/empty/stale are distinct; no implicit handoff payload.",
+        "Historical graph cycle does not bypass normative edit DAG guard."
+      ],
+      "exclusions": [
+        "Do not implement an agent loop in UI or invent manager for simple scheduler."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-14",
+      "title": "Settings, usage and diagnostics finish their actual user paths",
+      "existing_owners": [
+        "M72",
+        "M73",
+        "M83",
+        "M94",
+        "M81",
+        "M171"
+      ],
+      "priority": "P2",
+      "scenarios": [
+        "SCN-070",
+        "SCN-071",
+        "SCN-073"
+      ],
+      "context": "Existing controls and quota are useful; desired unified screens/export absent. Wrong scenario owner M152 must be corrected.",
+      "files": [
+        "apps/desktop/src/renderer/src/App.tsx",
+        "apps/desktop/src/renderer/src/DiagnosticsSection.tsx",
+        "apps/desktop/src/renderer/src/ProjectHome.tsx",
+        "apps/desktop/src/main/settings.ts",
+        "apps/desktop/src/main/ops.ts",
+        "docs/ux/scenarios.md"
+      ],
+      "solution": "Assemble existing settings/usage/diagnostics without changing authority semantics. Separate inherited preference from permission; unavailable usage stays explicit; export is selected sanitized immutable snapshot.",
+      "decomposition": [
+        "M72 settings route groups existing local controls plus data locations; project override only for defined safe fields.",
+        "M83/M94 expose source/freshness/reset and limited action; M171 adds measured model usage later.",
+        "M81 local source status, filter, selection, redacted preview/export; errors cleared only after successful read.",
+        "Correct owner traces in scenarios/index, then verify stale/rejected settings save keeps draft."
+      ],
+      "depends_on": [
+        "AX-05 route/read-state, parent redaction checks, S14 atomic local storage"
+      ],
+      "acceptance_positive": [
+        "Existing theme/language/wake saves verified from disk; unavailable quota explains source.",
+        "Export bytes match reviewed redacted selection."
+      ],
+      "acceptance_negative": [
+        "No secret/path/content disclosure in export; no cost zero for missing measurement.",
+        "Preference cannot broaden permissions."
+      ],
+      "exclusions": [
+        "Do not rebuild shipped keep-awake or quota gate.",
+        "Subscription pricing remains decision, not default code."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-15",
+      "title": "Service terminal, isolated browser and media readers",
+      "existing_owners": [
+        "M10",
+        "M74",
+        "M75",
+        "M76"
+      ],
+      "priority": "P2",
+      "scenarios": [
+        "SCN-076",
+        "SCN-077",
+        "SCN-078"
+      ],
+      "context": "These production surfaces are absent; scenario assignment confuses browser M75 and preview M76.",
+      "files": [
+        "apps/desktop/src/main/index.ts",
+        "apps/desktop/src/main/pty.ts",
+        "apps/desktop/src/shared/types.ts",
+        "apps/desktop/src/renderer/src/EditorWindow.tsx",
+        "docs/ux/scenarios.md"
+      ],
+      "solution": "Three independent deliverables on shared citation resolver: service generation/probe, sandboxed browser, exact image/PDF asset preview.",
+      "decomposition": [
+        "Correct SCN-077 owner to M74+M75 and SCN-078 to M74+M76 before dispatch.",
+        "M10 service terminal shows generation and measured probe receipt; close-tab distinct from stop.",
+        "M75 isolated WebContentsView/session partition, no preload/node, strict URL scheme and popup/external control, visible address/history.",
+        "M76 exact approved file asset, image/PDF page rendering with independent source/loader errors; citation return and Cmd-click rule."
+      ],
+      "depends_on": [
+        "AX-05 route/ref contract; file-root safety and existing desktop sandbox boundary"
+      ],
+      "acceptance_positive": [
+        "Each chosen citation opens exact source and Back returns to origin.",
+        "Probe generation change invalidates stale healthy result."
+      ],
+      "acceptance_negative": [
+        "Browser cannot access Fabric IPC or app cookies; popup/javascript/file scheme rejected.",
+        "Missing asset distinct from unavailable loader; no arbitrary native file open on ordinary click.",
+        "Closing service tab cannot silently stop service."
+      ],
+      "exclusions": [
+        "No unsolicited service start or external navigation.",
+        "No conflation of renderer sandbox with agent process permissions."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-16",
+      "title": "Notification identity and transport contract",
+      "existing_owners": [
+        "M159",
+        "M160",
+        "M161",
+        "M162",
+        "M163",
+        "M164",
+        "M165"
+      ],
+      "priority": "P2",
+      "scenarios": [
+        "SCN-072"
+      ],
+      "context": "SCN-072 is a target; main notification-connection settings/consent routes do not exist.",
+      "files": [
+        "docs/architecture/engineering-specs.json",
+        "docs/ux/scenarios.md",
+        "apps/desktop/src/shared/notify.ts",
+        "apps/desktop/src/shared/appRoute.ts",
+        "apps/desktop/src/main/index.ts"
+      ],
+      "solution": "Bind channel to verified principal and explicit project route; minimal disclosure preview, generation-scoped consent, dedup and receipt. Read-only notifications never resolve canonical Board authority obligations.",
+      "decomposition": [
+        "Specify challenge/identity ownership, one token consumer and update id dedupe.",
+        "Implement credentials in main/keychain, consent version and route preview.",
+        "Implement send queue plus provider receipt/unknown recovery and mute/cancel semantics.",
+        "Integrate settings and Inbox source links; test cross-project route and stale consent."
+      ],
+      "depends_on": [
+        "S09 verified person before shared use; AX-07 Inbox; actual transport credentials deferred to operator"
+      ],
+      "acceptance_positive": [
+        "Bound route sends only selected allowed events and shows receipt."
+      ],
+      "acceptance_negative": [
+        "Read/mute never dismisses Needs-you.",
+        "Retry unknown send cannot blindly duplicate message.",
+        "Forged identity or stale consent cannot route private project data."
+      ],
+      "exclusions": [
+        "Do not send real messages during implementation tests.",
+        "Parent should route Telegram-specific wiring skill if Telegram implementation chosen."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    },
+    {
+      "id": "AX-17",
+      "title": "Repair scenario/owner and claimed delivery evidence drift",
+      "existing_owners": [
+        "S10",
+        "CO-108",
+        "M189",
+        "M191",
+        "M152",
+        "M74",
+        "M75",
+        "M76"
+      ],
+      "priority": "P1",
+      "scenarios": [
+        "SCN-050",
+        "SCN-051",
+        "SCN-052",
+        "SCN-053",
+        "SCN-054",
+        "SCN-055",
+        "SCN-056",
+        "SCN-057",
+        "SCN-058",
+        "SCN-059",
+        "SCN-060",
+        "SCN-061",
+        "SCN-062",
+        "SCN-063",
+        "SCN-064",
+        "SCN-065",
+        "SCN-066",
+        "SCN-067",
+        "SCN-068",
+        "SCN-069",
+        "SCN-070",
+        "SCN-071",
+        "SCN-072",
+        "SCN-073",
+        "SCN-074",
+        "SCN-075",
+        "SCN-076",
+        "SCN-077",
+        "SCN-078"
+      ],
+      "context": "UX lint reports no SCN-068..078 index rows. Specific wrong ownership: settings→M152, browser→M74 only, media→M75. Queue report shipped parts coexist with stale missing-table deferrals and milestone M152 still says continuation not shipped.",
+      "files": [
+        "docs/ux/scenarios.md",
+        "docs/ux/screens.md",
+        "docs/ux/flows.md",
+        "docs/evidence/backlog.md",
+        "docs/architecture/engineering-specs.json",
+        "docs/reports/2026-09-09-queue-progress-report.html"
+      ],
+      "solution": "Keep dated report immutable; append current evidence matrix separating helper/schema/backend/caller/UI/live outcome. Correct canonical owner mapping, retain named partial milestones rather than reopening everything.",
+      "decomposition": [
+        "Reconcile each scoped scenario to owner, current implementing file and target-only prototype; restore index.",
+        "Link run table closure vs runtime residual; remove obsolete missing-table rationale.",
+        "Record latest report findings disposition (closed/partial/merge/defer/drop) with source receipts.",
+        "Add mechanical gate for missing index/unknown task IDs and semantic owner review for reused IDs.",
+        "Publish current audit/packets/map through parent workflow; do not edit dated history to hide prior errors."
+      ],
+      "depends_on": [
+        "This audit; no product dependency"
+      ],
+      "acceptance_positive": [
+        "Every scenario 050..078 has verdict and actionable owner.",
+        "Current queue milestone states point to observed deliverable level."
+      ],
+      "acceptance_negative": [
+        "No fixture/prototype/dto-only code counted as operational UI.",
+        "No fresh duplicate milestone for issue existing owner can close."
+      ],
+      "exclusions": [
+        "Never mark Product observed from static audit.",
+        "Do not change old acceptance requirements just to make current code pass."
+      ],
+      "agent_instruction": "Read baseline evidence, UX scenario/flow/screen and engineering catalog owner card before editing. Use a bounded branch and owner modules; do not count pure helper tests as caller or UI coverage. Existing owner IDs retained; these packet IDs are audit-local, not new backlog milestones."
+    }
+  ],
+  "previous_findings": [
+    {
+      "finding": "S04/M103/M178 no task_runs table",
+      "status": "drop-obsolete-rationale / merge residual",
+      "reason": "Migration49 defines table and migration44 admission emits run.started. Existing full runtime/epoch/ack obligations remain AX-01."
+    },
+    {
+      "finding": "M189 no runtime widget",
+      "status": "closed narrow absence / partial scenario",
+      "reason": "ProjectHome:1600 multiline caller exists; no false absence. Input/refresh/envelope flaws remain AX-02."
+    },
+    {
+      "finding": "M191 no dry compiler path",
+      "status": "closed backend / partial UI+history",
+      "reason": "index:1209 dry compile exists; no preview renderer and no immutable history, AX-04."
+    },
+    {
+      "finding": "M152 answer commit + continue fully shipped",
+      "status": "partial",
+      "reason": "CAS exists; delivery route misses real session and repeats fresh delivery IDs. AX-01/03."
+    },
+    {
+      "finding": "M178 wait expires after resolution",
+      "status": "partial helper only",
+      "reason": "Derivation supports waitingOn.resolvedAt; runtimeObserver never selects/passes wait reference, AX-02."
+    },
+    {
+      "finding": "M179 observer has no caller",
+      "status": "closed",
+      "reason": "index:1898 creates and 1931 samples; host observation worker remains future; separate failure semantics AX-08."
+    },
+    {
+      "finding": "S12 import partial writes",
+      "status": "closed narrow transaction / keep restore",
+      "reason": "index:1966 import_declared_snapshot one transaction; archive + restore still absent, parent/AX-12."
+    },
+    {
+      "finding": "S14 complete errors and cursors",
+      "status": "partial/merge CO-111",
+      "reason": "Read envelope helper works; several readers still drop errors, and cursor consumer absent."
+    },
+    {
+      "finding": "M185/M186/M190 reader UI absent",
+      "status": "keep",
+      "reason": "DTO/helper work does not implement route; independent packets AX-06/07/08."
+    },
+    {
+      "finding": "M182/M154 complete learning loop",
+      "status": "partial",
+      "reason": "Capture/category/reader done; recurring verification/feedback remains AX-11."
+    },
+    {
+      "finding": "M176 proves manager behavior",
+      "status": "drop overclaim / keep activation eval",
+      "reason": "Synthetic corpus tests evaluator; no real trajectory importer or activated manager, AX-10."
+    },
+    {
+      "finding": "S13 agents-view navigation collision",
+      "status": "closed narrow / keep deeper continuity",
+      "reason": "One AppRoute fixes boolean collision. Entity/history/draft return still missing, AX-05."
+    },
+    {
+      "finding": "Second runner, signed release, feedback endpoint",
+      "status": "defer external execution; prepare contracts now",
+      "reason": "Keep S08/S07/M183.upstream gated by chosen resource/budget/credentials. No speculative provider dispatcher with zero consumers."
+    },
+    {
+      "finding": "M75 media preview assignment",
+      "status": "drop wrong mapping / retain feature",
+      "reason": "M75 owns sandbox browser, M76 media, M74 citation semantics; AX-15/17."
+    }
+  ],
+  "coverage": {
+    "PASS": 0,
+    "PARTIAL": 16,
+    "FAIL": 13,
+    "BLOCKED": 0
+  },
+  "cross_batch": "Parent must merge AX-01 with parent chain launch finding and AX-12 with parent auth/data; AX-05 duplicates likely navigation findings in SCN-001..049. No contradictory PASS claim; runs.status absence corrected before final report."
+}

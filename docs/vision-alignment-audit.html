@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PassionCode — аудит вижена, бренда, UX и техники</title>
+<style>
+:root{color-scheme:dark;--bg:#0a0a0a;--surface:#171717;--quiet:#262626;--ink:#fafafa;--muted:#a1a1a1;
+--line:#ffffff1a;--line2:#ffffff26;--good:#34d06f;--warn:#fbbf24;--danger:#fb2c36;--info:#60a5fa;
+--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif}
+@media (prefers-color-scheme:light){:root{color-scheme:light;--bg:#fff;--surface:#fff;--quiet:#f5f5f5;
+--ink:#141413;--muted:#5c5c5a;--line:#0000001f;--line2:#00000033;--good:#22c55e;--warn:#f59e0b;--danger:#dc2626;--info:#2563eb}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.62}
+.wrap{max-width:1140px;margin:0 auto;padding:48px 24px 96px}
+h1{font-size:2.05rem;margin:0 0 8px;letter-spacing:-.02em;line-height:1.14}
+h2{font-size:1.38rem;margin:62px 0 8px;letter-spacing:-.01em}
+h3{font-size:1.05rem;margin:30px 0 8px}
+p{margin:0 0 12px}.sub{color:var(--muted);margin:0 0 26px;font-size:1.02rem}
+.label{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+code,.mono{font-family:var(--mono);font-size:.85em}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}
+.meta span{font-family:var(--mono);font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.88rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400}
+.scroll{overflow-x:auto}
+pre{background:var(--quiet);border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.5;margin:14px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:0 0 14px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--muted)}
+.card.crit::before{background:var(--danger)}.card.warn::before{background:var(--warn)}.card.ok::before{background:var(--good)}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(auto-fit,minmax(175px,1fr))}
+.stat b{display:block;font-family:var(--mono);font-size:1.55rem;letter-spacing:-.02em;margin-bottom:2px}
+.stat small{display:block;color:var(--muted);font-size:.76rem}
+.stat.bad b{color:var(--danger)}.stat.ok b{color:var(--good)}.stat.warn b{color:var(--warn)}
+.tag{font-family:var(--mono);font-size:.63rem;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1px solid var(--line2);color:var(--muted);white-space:nowrap}
+.t-crit{border-color:var(--danger);color:var(--danger)}.t-warn{border-color:var(--warn);color:var(--warn)}.t-ok{border-color:var(--good);color:var(--good)}
+.quote{border-left:3px solid var(--line2);padding:2px 0 2px 14px;margin:12px 0;color:var(--muted);font-style:italic}
+.note{border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:8px;padding:14px 16px;margin:16px 0;font-size:.92rem}
+.note.bad{border-left-color:var(--danger)}.note.ok{border-left-color:var(--good)}
+ul.can{margin:10px 0;padding:0;list-style:none}
+ul.can li{padding:4px 0 4px 20px;position:relative}
+ul.can li::before{content:"→";position:absolute;left:0;color:var(--muted);font-family:var(--mono)}
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.82rem}
+</style>
+</head>
+<body><div class="wrap">
+
+<p class="label">PassionCode.ai · Fabric · аудит 2026-09-03</p>
+<h1>Вижен, бренд, UX и техника — что не сходится</h1>
+<p class="sub">Read-only. Ничего не менял. Всё ниже измерено командами и запросами на коммите <code>458f757</code>.</p>
+
+<div class="meta">
+  <span>прочитано: vision, voice, terminology, facts, foundation, screens, flows, scenarios</span>
+  <span>запущено: brand lint, ux lint, docs-гейты, запросы к базе</span>
+  <span>вердикт: архитектура и доктрина сильные, порядок сборки — нет</span>
+</div>
+
+<div class="note bad">
+<b>Главная находка, и она не про баги.</b> Вижен говорит: <i>«Мы оперируем Проектами, а не разговорами с агентами; чат — это поверхность исполнения, а не дом смысла и истории»</i>. Продукт построил <b>поверхность исполнения целиком</b> — терминалы, вкладки, редактор, окна сессий — и <b>операционную единицу не построил вообще</b>: 0 привязок агентов, 0 грантов, 0 эффектов, 0 рутин, 0 ранов, 0 событий авторизации в журнале. Сегодня Проект — это папка с терминалом внутри. То есть <b>порядок сборки перевернул вижен</b>, и это чинится именно сейчас, пока ничего не закончено.
+</div>
+
+<h2>1. Вижен и войс — оценка</h2>
+
+<div class="card ok">
+<p class="label">вердикт</p>
+<h3>Это сильнейший слой проекта, и его не надо трогать</h3>
+<p>Редкое сочетание: вижен <b>называет своё анти-я</b> (§6, пять пунктов), а войс <b>называет свой режим отказа</b> («insider shorthand») и даёт проверку — «новый читатель может объяснить сдвиг после первого абзаца». Каждое публичное утверждение резолвится в <code>facts.md</code>, где у каждого факта источник-ADR, дата проверки и дата пересмотра. Категория («от vibe coding к passion coding») закреплена ADR-0033.</p>
+<p><b>Это и есть линейка, к которой прикладывается всё остальное в этом отчёте.</b> Три из пяти находок ниже — это не «плохо сделано», а «расходится с тем, что сами записали».</p>
+</div>
+
+<h3>Пять принципов и их состояние в коде</h3>
+<div class="scroll"><table>
+<tr><th>Принцип вижена</th><th>Состояние</th><th>Доказательство</th></tr>
+<tr><td>1. Оперируем Проектами, чат — поверхность исполнения</td><td><span class="tag t-crit">перевёрнут</span></td><td>вся отгруженная поверхность — исполнение; операционной единицы нет ни в одной строке базы</td></tr>
+<tr><td>2. Агенты заменяемы, привязка через контракты</td><td><span class="tag t-crit">нарушен в коде</span></td><td><code>pty.ts:97</code> — две захардкоженные строки; <code>sessionBundle.ts:92</code> — Claude-специфичный <code>--mcp-config</code></td></tr>
+<tr><td>3. У каждого эффекта граница, владелец и расписка</td><td><span class="tag t-crit">ноль экземпляров</span></td><td><code>grants</code> 0, <code>effect_intents</code> 0, <code>goals</code> 0; событий <code>policy/grant/effect/run/binding</code> в журнале — <b>0</b></td></tr>
+<tr><td>4. Показываем состояние с источником, а не театр уверенности</td><td><span class="tag t-ok">соблюдён, и хорошо</span></td><td>claim-vs-observation в агентной поверхности, M42–M49 отгружены, M108 заведён именно об этом</td></tr>
+<tr><td>5. Проект растёт от нуля к единице постепенно</td><td><span class="tag t-warn">непроверяемо</span></td><td>в эстейте оператора ноль проектов — путь от нуля никто ни разу не прошёл</td></tr>
+</table></div>
+
+<h2>2. Продукт против собственного анти-вижена</h2>
+<p>Вижен §6 перечисляет пять вещей, которыми PassionCode.ai отказывается быть. Продукт и план сегодня задевают <b>четыре из пяти</b>.</p>
+
+<div class="card crit">
+<p class="label">находка A · критично</p>
+<h3>Отгруженный продукт — это первое, от чего вижен отказывается</h3>
+<p class="quote">«…мульти-чат-кокпит, который заставляет одного человека надзирать за бóльшим числом агентских сессий, не меняя операционную единицу»</p>
+<p>Что есть сегодня: полоса вкладок с проектами, хостед-терминал на проект, лаунчер, поле задачи, которое печатает в PTY, окно сессии, редактор. Что есть у проекта: <b>0 привязанных репозиториев, 0 привязок агентов, 0 рутин, 0 ранов</b>. Операционная единица не отличается от вкладки.</p>
+<p><b>Это не значит, что построенное — мусор.</b> Терминалы, журнал, память, транскрипты и контекст-паки — это фундамент, который понадобится. Но пока над ними нет ни одной привязки и ни одного гранта, продукт визуально и функционально <b>неотличим от того, чем обещал не быть</b>.</p>
+</div>
+
+<div class="card crit">
+<p class="label">находка B · критично</p>
+<h3>Единственный шов исполнения привязан к одному вендору</h3>
+<p class="quote">«…проприетарный агентный рантайм, требующий от Проектов принять одну модель, вендора или приватный формат сессии»</p>
+<p><code>launchOptions()</code> — две строки: <code>claude-code</code> и <code>shell</code>. Бандл сессии отдаёт <code>--mcp-config … --strict-mcp-config</code> — флаги Claude Code. ADR-0012 говорит, что способность привязывается через явные контракты; код привязывается строкой. Это <b>M116/M17 — но переформулированный: это не фича, это отгруженный анти-вижен</b>.</p>
+</div>
+
+<div class="card warn">
+<p class="label">находка C · план</p>
+<h3>Интейк добавляет ещё два столкновения, и им нужна записанная граница</h3>
+<p class="quote">«…человеческий таск-трекер с прикрученными агентами-исполнителями» · «…симулятор автономной компании, стирающий подотчётных людей»</p>
+<p><b>M122 (канбан) + M130 (кто назначил и на кого)</b> — это буквально первое. Разница должна быть записана в самой строке, а не подразумеваться: карточка <b>возникает из наблюдения и несёт расписку</b>, её не печатает человек и не назначает вручную. Иначе продукт становится тем, от чего отказался.</p>
+<p><b>M131 (маскот, профиль, «уровни», геймификация)</b> — это второе, и заодно единственное место, где принцип 4 («не театр уверенности») может отвалиться. Граница уже названа в строке — «каждое число измерение или его нет» — но её надо сделать жёстким условием приёмки, а не намерением.</p>
+</div>
+
+<h2>3. UX — состояние</h2>
+
+<div class="grid g4">
+  <div class="card stat bad"><b>4 / 37</b><small>сценариев держатся (аудит 2026-09-01)</small></div>
+  <div class="card stat"><b>38</b><small>сценариев сейчас</small></div>
+  <div class="card stat"><b>26 / 20</b><small>экранов и флоу описано</small></div>
+  <div class="card stat warn"><b>12</b><small>флоу без единого файла реализации</small></div>
+</div>
+
+<p><code>docs/ux/scenarios.md</code> — объявленный источник правды о пользовательском поведении, и по последнему повторному аудиту <b>держатся 4 из 37</b>. То есть документ на 89% описывает намерение, а не продукт. При этом UX-линт зелёный по ошибкам (14 предупреждений), потому что он проверяет связность цепочки, а не то, что код ей соответствует, — это разные вопросы, и второй задаёт `/ux-audit`.</p>
+
+<div class="note"><b>Что это значит для интейка.</b> Двадцать новых строк (M116–M135) добавляют поведение поверх 33 сценариев, которые уже не держатся. Прежде чем описывать канбан и CEO-чат, надо решить судьбу существующих: подтвердить, переписать или снять. Иначе источник правды перестаёт быть источником — и это уже происходит.</p>
+
+<h3>Разрывы, найденные grep-ом по всем трём UX-источникам</h3>
+<div class="scroll"><table>
+<tr><th>Понятие</th><th>screens</th><th>flows</th><th>scenarios</th><th>При этом</th></tr>
+<tr><td>CEO</td><td>0</td><td>0</td><td>0</td><td>роль живёт в ADR-0012 и в майлстоуне M7 — <b>у роли нет интерфейса нигде</b></td></tr>
+<tr><td>kanban / доска</td><td>0</td><td>0</td><td>0</td><td>M122 — центральная новая поверхность</td></tr>
+<tr><td>маскот</td><td>0</td><td>0</td><td>0</td><td>M131 — то, что будет на каждом экране</td></tr>
+<tr><td>избранное</td><td>0</td><td>0</td><td>0</td><td>M120</td></tr>
+<tr><td>память</td><td>5</td><td>2</td><td>23</td><td>покрыта концептуально, но <b>поверхности нет</b> — это M135</td></tr>
+</table></div>
+
+<h2>4. Бренд и войс — разрыв между пактом и продуктом</h2>
+
+<div class="card crit">
+<p class="label">находка D · критично для голоса</p>
+<h3>146 из 189 строк интерфейса вне голосового контракта</h3>
+<p><code>python3 docs/brand/lint.py</code> → <b>0 ошибок, 146 предупреждений, и все 146 — код B022</b>: «строка есть в коде и не имеет строки в реестре — согласуй или сними». Реестр приложения (<code>i18n/en.ts</code>) держит 189 ключей; <code>docs/brand/strings.md</code> — 35 строк файла.</p>
+<p>То есть войс-пак — с осями, нарративом, инвариантами и режимом отказа — <b>написан и не применён к продукту ни разу</b>. Проверка «новый читатель поймёт сдвиг после первого абзаца» не может сработать на интерфейсе, до которого контракт не дотягивается.</p>
+<p><b>Это чинится дёшево и сейчас</b>: 189 строк — один проход. После M117 их станет меньше, потому что компоненты уже съели часть дублей.</p>
+</div>
+
+<div class="card ok">
+<p class="label">что при этом сделано образцово</p>
+<h3>Брендпак заперт по контрольным суммам между двумя репозиториями</h3>
+<p><code>brand/LOCK.json</code> на лендинге пинит <code>fabric@a360b51</code>, перечисляет 20 файлов с sha256, а <code>npm run check</code> доказывает, что отдаваемое сайтом побайтово равно снапшоту. <code>sourceSha256</code> обоих манифестов совпадает. <b>Это лучшая инженерия в обоих репозиториях</b> — и именно её стоит скопировать на токены, до которых сейчас не дотягивается ни один гейт.</p>
+</div>
+
+<h2>5. Техника — что уже в леджере и что новое</h2>
+
+<p>Технический долг в этом проекте <b>уже измерен и записан</b>: M95–M115 — это результат двух предыдущих аудитов, с воспроизведением и file:line. Повторять их здесь значило бы находить найденное. Ниже — только то, чего в леджере нет.</p>
+
+<div class="scroll"><table>
+<tr><th>Находка</th><th>Доказательство</th><th>Вес</th></tr>
+<tr><td><b>Плоскость полномочий никогда не работала</b> — не «плохо работает», а ноль экземпляров за всё время</td><td><code>grants</code>/<code>effect_intents</code>/<code>goals</code>/<code>agent_bindings</code> = 0; событий авторизации в журнале 0</td><td><span class="tag t-crit">критично</span></td></tr>
+<tr><td><b>Эстейт оператора пуст</b>; 68 проектов в тестовом эстейте <code>…00ff</code>, которого нет в <code>estates</code></td><td>запросы к <code>projects</code>, <code>journal</code>, <code>estates</code></td><td><span class="tag t-crit">критично</span></td></tr>
+<tr><td><b>У ядра нет CI</b>, при том что у лендинга есть и он не выпускает без трёх зелёных проверок</td><td><code>.github/workflows</code> отсутствует в fabric; есть <code>check.yml</code> на лендинге</td><td><span class="tag t-crit">критично</span> (M110)</td></tr>
+<tr><td><b>Токены лендинга не сторожит никто</b>; одно значение под двумя именами (<code>--plum</code> = роль <code>seed</code>)</td><td>сравнение <code>styles.css</code> и <code>tokens.paperclip.css</code></td><td><span class="tag t-warn">средне</span></td></tr>
+<tr><td><b>Гейт цитат слеп к пятибуквенному префиксу</b> — семь строк <code>BRAND-REQ-*</code> невидимы счётчику</td><td>регексп <code>^\| [A-Z]{2,3}-REQ-</code> в <code>check-registers.mjs</code></td><td><span class="tag t-warn">средне</span> (записано в M115)</td></tr>
+</table></div>
+
+<div class="note ok"><b>И то, что надо защитить от переделки.</b> Событийный журнал как хребет с проекциями; claim-versus-observation, доведённая до кода; семь механических гейтов, включая тот, что пересчитывает утверждённые числа и роняет сборку при расхождении; ретро со стоячими инструкциями и правилом их выбытия; ADR-набор из 33 решений с прописанными последствиями. <b>Ни одно из этого не переделывать.</b> Это то, почему аудит вообще смог опереться на измерения, а не на впечатления.</div>
+
+<h2>6. Что переделать сейчас</h2>
+<p>Порядок — по тому, что чинит расхождение с виженом, а не по лёгкости.</p>
+
+<div class="card crit">
+<p class="label">1 · разворот порядка сборки</p>
+<h3>Построить операционную единицу до следующей поверхности исполнения</h3>
+<p>Одна привязка агента, одна рутина, один ран, один грант, одна расписка — <b>на реальном проекте в эстейте оператора</b>. Пока этого нет, каждая новая поверхность увеличивает расхождение с виженом, а не уменьшает. Конкретно: завести org #1 (Fabric и PassionCode.ai), привязать репозитории, и провести один эффект через пол — от <code>policy.decided@1</code> до <code>effect.executed@1</code>.</p>
+<p class="mono" style="color:var(--muted)">проверка: <code>select count(*) from journal where type like 'grant%'</code> возвращает не ноль</p>
+</div>
+
+<div class="card crit">
+<p class="label">2 · снять отгруженный анти-вижен</p>
+<h3>M116 целиком — реестр дескрипторов вместо вендорной привязки</h3>
+<p>Адаптер сюрфейса на агента, <code>args</code> и <code>env</code> в дескрипторе, режим разрешений на проект в <code>terminal.opened@1</code>. Это ровно то, что делает утверждение «agent-agnostic» из позиционирования правдой в коде, а не только в <code>facts.md</code>.</p>
+</div>
+
+<div class="card warn">
+<p class="label">3 · вернуть источнику правды правдивость</p>
+<h3>Разобрать 33 не держащихся сценария до того, как писать новые</h3>
+<p>Каждый — подтвердить, переписать под то, что есть, или снять. Только после этого описывать канбан, CEO-чат, маскот, избранное и поверхность памяти, у которых сейчас <b>ноль строк</b> во всех трёх UX-источниках.</p>
+</div>
+
+<div class="card warn">
+<p class="label">4 · дотянуть голос до продукта</p>
+<h3>189 строк интерфейса через <code>strings.md</code> — один проход</h3>
+<p>Дешевле сделать после M117: компонентный набор уже убрал часть дублей, а <code>EmptyState</code>, <code>Banner</code> и <code>StateChip</code> собрали разрозненные формулировки в одни места.</p>
+</div>
+
+<div class="card warn">
+<p class="label">5 · записать две границы в сами майлстоуны</p>
+<h3>Чтобы интейк не стал анти-виженом</h3>
+<p><b>M122/M130:</b> карточка возникает из наблюдения и несёт расписку — не печатается и не назначается вручную. <b>M131:</b> каждое число на профиле — измерение или его нет; строки кода не считать, Fabric их не измеряет. Обе — условия приёмки, а не намерения.</p>
+</div>
+
+<div class="card">
+<p class="label">6 · инфраструктура</p>
+<h3>CI для ядра, гейт токенов лендинга, префикс в гейте цитат</h3>
+<p>M110 становится срочным сразу после шага 1: в базе появятся настоящие данные, а защищать их нечем.</p>
+</div>
+
+<h2>7. Что в этом отчёте измерено, а что суждение</h2>
+<div class="scroll"><table>
+<tr><th>Часть</th><th>Статус</th><th>Чем получено</th></tr>
+<tr><td>0 грантов, 0 эффектов, 0 привязок, 0 событий авторизации</td><td style="color:var(--good)">измерено</td><td>SQL к локальному стеку</td></tr>
+<tr><td>4 из 37 сценариев держатся</td><td style="color:var(--good)">измерено</td><td>повторный аудит, коммит <code>af32c67</code></td></tr>
+<tr><td>146 из 189 строк вне голосового контракта</td><td style="color:var(--good)">измерено</td><td><code>docs/brand/lint.py</code>, все предупреждения кода B022</td></tr>
+<tr><td>Ноль упоминаний CEO / канбана / маскота / избранного в UX</td><td style="color:var(--good)">измерено</td><td>grep по трём файлам</td></tr>
+<tr><td>Вендорная привязка единственного шва исполнения</td><td style="color:var(--good)">измерено</td><td><code>pty.ts:97</code>, <code>sessionBundle.ts:92</code></td></tr>
+<tr><td>«Порядок сборки перевернул вижен»</td><td style="color:var(--warn)">суждение</td><td>вывод из измерений выше против §5 и §6 вижена</td></tr>
+<tr><td>Приоритет шагов 1–6</td><td style="color:var(--warn)">предложение</td><td>этот отчёт</td></tr>
+</table></div>
+
+<footer>
+Собрано 2026-09-03 на <code>feat/brand-icon-and-intake@458f757</code>. Read-only: ни один файл проекта не изменён.
+Прочитано: <code>docs/ux/vision.md</code>, <code>foundation.md</code>, <code>screens.md</code>, <code>flows.md</code>, <code>scenarios.md</code>,
+<code>docs/brand/{voice,facts,terminology,ui,channels}.md</code>, ADR-набор, <code>backlog.md</code>.
+Запущено: <code>brand/lint.py</code>, <code>ux/lint.py</code>, <code>gates:docs</code>, <code>check-design.mjs</code>, запросы к базе.
+Файл не закоммичен.
+</footer>
+
+</div></body></html>

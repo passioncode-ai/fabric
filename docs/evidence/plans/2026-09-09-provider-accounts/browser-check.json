@@ -1,0 +1,14 @@
+{
+  "status": "pass",
+  "scope": "Generated target report fixtures only; no CLI/native-resume validation",
+  "checks": [
+    "Default affects future launches only; A→B→A retains fixture history/draft, increments run and keeps other binding",
+    "Busy waits; cancel leaves A; only simulated certified boundary permits commit",
+    "Failed target resume does not report success; explicit restoration retains old account",
+    "Unknown outcome remains unknown after repeated reconciliation; no switch button",
+    "Unsupported native resume unavailable; denied and other project hide conversation/identity",
+    "Optional system login, cancel/add fixture account, unknown usage, dependency-safe removal and offline runtime",
+    "Both views at 1440px and 375px without document overflow"
+  ],
+  "errors": []
+}

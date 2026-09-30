@@ -1,0 +1,1140 @@
+[
+  {
+    "id": "CO-001",
+    "subject": "Desktop shell: Electron end-to-end vs local web UI over a privileged daemon",
+    "status_at_baseline": "open (constrained by ADR-0008: whichever shape wins must host a PTY and stream it at interactive latency — the local-web-plus-daemon option survives)",
+    "home": "stage 2",
+    "line": 12,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-002",
+    "subject": "Figma on or text-only for the dashboard, and the destination file + team",
+    "status_at_baseline": "**resolved for this architecture run 2026-08-29 — text-only.** `docs/ux/foundation.md` records Figma disabled; CO-076 reopens the interaction-model choice before visual design",
+    "home": "operator",
+    "line": 13,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-003",
+    "subject": "Full Namecheap inventory — only the alphabetical tail (12 rows) is known",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 14,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-004",
+    "subject": "Google Cloud project + OAuth client for GSC and GA4",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 15,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-005",
+    "subject": "First outward deploy target and its authorization",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 16,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-006",
+    "subject": "Cloud move: the control-plane ↔ runner seam is a contract, but the move itself is not planned",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 17,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-007",
+    "subject": "Linear project states are wrong (the flagship product and another project's website repository marked `canceled` while live)",
+    "status_at_baseline": "recorded",
+    "home": "operator",
+    "line": 18,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-008",
+    "subject": "The personal-assistant system's project memory holds 2 files against ~60 projects and is not a portfolio register",
+    "status_at_baseline": "recorded",
+    "home": "operator",
+    "line": 19,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-009",
+    "subject": "`site-p.example` resolves to `site-p.pages.dev`, and no Pages project of that name exists in any of the three accessible Cloudflare accounts",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 20,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-010",
+    "subject": "the `.spot` sibling of `site-l.example` — `.spot` is not a delegated TLD",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 21,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-011",
+    "subject": "A corporate account (31 zones, out of scope) recorded but unmanaged; it holds 7 more domains duplicating a cluster in the personal account",
+    "status_at_baseline": "recorded",
+    "home": "operator",
+    "line": 22,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-012",
+    "subject": "The seven broken properties are found, not fixed",
+    "status_at_baseline": "open",
+    "home": "`docs/evidence/backlog.md`",
+    "line": 23,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-013",
+    "subject": "Run recorded as `ungated` until `agent-sync` is initialised in this repository",
+    "status_at_baseline": "**resolved 2026-08-25** — initialised: `fs` record plane, lease on pushed git refs (exclusive across machines, `check`: \"lease decided by git refs on 'origin'\"), 7 guarded patterns, ADR and CO registers, plugin hooks live. What it did NOT close is CO-049 and CO-050",
+    "home": "stage 5",
+    "line": 24,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-014",
+    "subject": "Cloudflare's documented per-user rate limit is unverified — 69 calls in one burst passed, which is evidence of headroom, not a limit",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 25,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-015",
+    "subject": "Does `sessionStore` accept a Postgres backend directly or need an adapter?",
+    "status_at_baseline": "open",
+    "home": "stage 3",
+    "line": 26,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-016",
+    "subject": "**A node blocked on `canUseTool` holds a live process.** Long operator waits need either a clean-fail timeout or suspend-and-resume via `resume` + `resumeSessionAt`",
+    "status_at_baseline": "open (narrowed by ADR-0007 to the escalation path only; ADR-0022 decided suspend-and-resume in principle, and CO-083 records the v1 blocking-wait interim taken by `iteration-1-modules.md` §7)",
+    "home": "stage 2",
+    "line": 27,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-017",
+    "subject": "Cursor and OpenClaw headless interfaces unknown — is there anything equivalent to `--output-format stream-json`?",
+    "status_at_baseline": "open",
+    "home": "stage 3",
+    "line": 28,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-018",
+    "subject": "**The safe runner is the metered runner:** `--bare` (the untrusted-repo mitigation) forces `ANTHROPIC_API_KEY` and cannot use subscription auth",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 29,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-019",
+    "subject": "Connector plugins run with the operator's credentials — what is the trust boundary, and is there a sandbox?",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 30,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-020",
+    "subject": "Where the checkup timer lives: launchd, a scheduler inside the daemon, or Supabase cron",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 31,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-021",
+    "subject": "**When may the fabric answer an agent's question on the operator's behalf?** The operator wants the run not to block; ADR-0004 puts escalation on the goal's autonomy level — and answering *is* deciding",
+    "status_at_baseline": "**resolved — ADR-0007**",
+    "home": "stage 2",
+    "line": 32,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-022",
+    "subject": "**Skill provisioning granularity.** `sshlg-skills` installs machine-wide per agent; the SDK takes `skills`/`plugins` per node; and `--bare` — the untrusted-repo mitigation from CO-018 — cannot see machine-wide installs at all",
+    "status_at_baseline": "open — proposed answer in `docs/architecture/agent-composition.md` §4: the bundle is compiled per node into the worktree, so `--bare` and provisioning become one mechanism",
+    "home": "stage 2",
+    "line": 33,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-023",
+    "subject": "**The evidence graph is a third relation the schema does not have.** Proof of Done makes `done` a coverage relation across intent, execution and evidence graphs, and building the third after the code exists lets the output decide what counted as success",
+    "status_at_baseline": "open",
+    "home": "M1",
+    "line": 34,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-024",
+    "subject": "Cost data has no measured source — purchase price, renewal date and annual cost live in the Namecheap panel and in mailboxes, neither of which the fabric reads",
+    "status_at_baseline": "deferred",
+    "home": "operator",
+    "line": 35,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-025",
+    "subject": "`canUseTool` is not invoked for auto-approved tools or for `AskUserQuestion`, so ADR-0007's \"the fabric answers\" needs a second channel for the questions that never reach the callback",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 36,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-026",
+    "subject": "Which pipeline ships as the default — the operator's own `task-pipeline` stage list, a reduced set, or one derived per department",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 37,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-027",
+    "subject": "**Terminal layer: lift or write.** The expensive parts are MIT and liftable — the `node-pty` and `@xterm/*` patches, the PTY provider shape, the SSH provider — but lifting sets a floor on our renderer and a debt against upstream drift",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 38,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-028",
+    "subject": "**Is the fabric an estate tool or a product family?** The agent-family proposal says each agent generates revenue and onboards users who are not the operator; `docs/vision.md` originally said this was neither a hosted product nor a general-purpose agent framework",
+    "status_at_baseline": "**resolved finally 2026-08-29 — product family.** ADR-0011 first chose estate tool; ADR-0016 met its reversal condition and chose multi-estate; ADR-0018 names PassionCode.ai as product and Fabric as kernel. Org #1 still builds first",
+    "home": "operator",
+    "line": 39,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-029",
+    "subject": "Where the A2A boundary falls — between the fabric and third-party or swappable agents, or between our own departments too",
+    "status_at_baseline": "open — proposed answer in `docs/architecture/agent-composition.md` §5: A2A at the edge of what we own, MCP inside",
+    "home": "stage 2",
+    "line": 40,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-030",
+    "subject": "**Postiz is AGPL-3.0** and already forked under the operator's GitHub account. Whether Fabric links it or talks to it as a separate process decides whether the network product reaches Fabric's own source obligations",
+    "status_at_baseline": "open — prefer separate-process boundary until legal/architecture review says otherwise",
+    "home": "operator",
+    "line": 41,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-031",
+    "subject": "A department needs a **model policy**, not only a skill set — localisation into Asian languages is named as needing DeepSeek or Kimi rather than the default",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 42,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-032",
+    "subject": "Attribution introduces a `touchpoint` object and a cross-system identity that must survive sources naming the same visitor differently",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 43,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-033",
+    "subject": "**PBN is a link scheme under Google's spam policies**, and the measured risk is a manual action landing on the money site rather than on the network",
+    "status_at_baseline": "recorded",
+    "home": "operator",
+    "line": 44,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-034",
+    "subject": "`ops-watch` is specified as setting *itself* up per project — what it may read and change in a project it has never seen before is a floor question, not a convenience one",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 45,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-035",
+    "subject": "Do `seo-advisor`, `ops-watch` and `support-manager` file **goals** the CEO decomposes, or **nodes** directly? The first keeps one decomposition authority and one place autonomy is set; the second puts three agents inside the graph with no goal above them",
+    "status_at_baseline": "open — **proposed answer in `docs/architecture/work-producing-agents.md` §1**: neither. They file **observations** (always) and a **proposal** citing them; the CEO accepts, merges or refuses, so one decomposition authority survives and ADR-0004 still has a goal to read the autonomy level from. Needs ratification before M1",
+    "home": "stage 2",
+    "line": 46,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-036",
+    "subject": "**A standing channel grant, or no reply agents.** ADR-0004 puts outward publication under the operator's name on the floor and ADR-0007 says the fabric may never answer the floor; a reply agent gated per reply is a drafting tool with added latency. The only serious candidate is a grant that is continuous rather than single-action, scoped to one account, one surface and one topic range",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 47,
+    "disposition": "linked-current-packet",
+    "packets": [
+      "UXA-F09"
+    ],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-037",
+    "subject": "**Sending reputation is a shared asset the registry cannot see.** Deliverability attaches to the domain and the IP, so an outreach agent that burns it takes transactional mail down for every product behind that domain. The registry records `mail_only` as a state and nothing about sending identity, warm-up, authentication posture or bounce history",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 48,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-038",
+    "subject": "**Do the outbound agents speak from the operator's own identity or from product identities?** And either way, no account is a registered asset — `CONTEXT.md` calls an account an asset, the registry holds 40 domains and three Cloudflare accounts as context only. The estate already carries two live personal sites under two spellings of one name (BL-014)",
+    "status_at_baseline": "**narrowed 2026-08-31** (operator at the fabric-in-fabric grill): voice channels (X/Reddit) speak from a **product identity**, never the operator personally; account registration as assets (M29) and ad/sending identities remain open. Voice-agent v0 build was parked the same day — the IDE ships first",
+    "home": "operator",
+    "line": 49,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-039",
+    "subject": "Reddit, X and LinkedIn each carry terms covering automated posting, replying and connection requests; LinkedIn is the strictest and restriction lands on the account, which is an asset",
+    "status_at_baseline": "recorded",
+    "home": "operator",
+    "line": 50,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-040",
+    "subject": "**Lead collection is personal data.** A list gathered from LinkedIn is processing under GDPR where any subject is in the EU — lawful basis, retention, a subject-access path. Under CO-028's \"product family\" branch it stops being the operator's own exposure and becomes a customer's",
+    "status_at_baseline": "recorded",
+    "home": "operator",
+    "line": 51,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-041",
+    "subject": "**Who owns the capability vocabulary, and how is drift linted?** Chains bind to capabilities rather than to agents; if providers invent their own names there will be nineteen names for \"write a reply\" and resolution degrades to string matching",
+    "status_at_baseline": "**resolved 2026-08-26 — ADR-0012.** Fabric owns the controlled vocabulary; Fabric Agent Contract 0.1.0 owns manifest shape and conformance. Unknown names fail admission rather than extending the registry by accident",
+    "home": "stage 2",
+    "line": 52,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-042",
+    "subject": "A provider's **admission probe** — a health check plus a canned task with a known-good answer, because a provider never watched producing a right answer is a claim rather than a capability",
+    "status_at_baseline": "**resolved 2026-08-26 — ADR-0012 and Fabric Agent Contract 0.1.0.** Shape, protocol negotiation and bounded side-effect-free semantic probes are separate gates; only an immutable accepted admission can be bound",
+    "home": "stage 2",
+    "line": 53,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-043",
+    "subject": "Schedule **concurrency and catch-up** policies. Both failures are silent: an hourly job that takes ninety minutes stacks until something falls over, and a machine asleep for six hours replays six stale \"hottest topic right now\" posts",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 54,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-044",
+    "subject": "**The bundle is a supply chain.** Composing skills from many providers into one prompt surface is prompt injection with a build step. Namespacing resolves tool collisions; it does not resolve a `user`-tier skill whose text instructs the agent to ignore prior instructions",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 55,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-045",
+    "subject": "**A deployed third-party agent is a sandbox problem, not a trust tier.** §8's tiers cover a provider the user hosts themselves; deploying their code onto infrastructure we are responsible for is a different obligation. Cursor's shipped answer is an isolated machine per subagent, which is cheap only if the fleet already exists",
+    "status_at_baseline": "**narrowed 2026-08-26 by ADR-0011** — nobody deploys code onto infrastructure we are responsible for. What remains is the operator choosing to run someone else's agent on their own machine, which is the ground CO-019 already holds. Open there, not here",
+    "home": "operator",
+    "line": 56,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-046",
+    "subject": "**CO-028 is being answered by accumulation rather than by decision.** Three proposals in a row now assume users who are not the operator — revenue per agent and onboarding entry points on 2026-08-24, a marketplace with author payouts on 2026-08-25 — while the row itself is still STOP AND ASK",
+    "status_at_baseline": "**resolved 2026-08-26 — ADR-0011.** The accumulation stopped by a decision, which is what the row asked for. The proposals that assumed users stay in the repository, marked out of scope rather than deleted",
+    "home": "operator",
+    "line": 57,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-047",
+    "subject": "Holding a **customer's** API key so a third party's agent can spend it makes the fabric a credential custodian rather than a credential user. §4 scopes credentials per hop for our own providers; this is a different obligation and a breach is the customer's loss",
+    "status_at_baseline": "**closed 2026-08-26 by ADR-0011** — there is no customer whose key we could hold. Recorded as one of the four prices of the product branch; reopens only if that branch is chosen",
+    "home": "operator",
+    "line": 58,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-048",
+    "subject": "Metering per author, payouts, tax residency, and refunds when a marketplace agent misbehaves — plus metering that survives a disputed invoice, since the LLM tokens an agent burns become somebody's cost of goods",
+    "status_at_baseline": "**closed 2026-08-26 by ADR-0011** — there is no marketplace and no author to pay. Same: recorded as a price, not deleted",
+    "home": "operator",
+    "line": 59,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-049",
+    "subject": "**The shared record plane is a Notion adapter that does not exist yet.** Two people on two machines need shared awareness — who holds what right now, the board, cross-repo signals — and `agent-sync` ships exactly two backends, `outline` and `fs` (`agent_sync.py:4470`). Operator chose 2026-08-25 to write a Notion backend rather than pay for Outline Cloud ($10/month for 1–10 members, getoutline.com/pricing) or share a corporate wiki. Notion can satisfy the contract honestly — `PATCH /v1/blocks/{id}/children` is a server-side append, so `atomicAppend` need not be a lie — under ~3 req/s per connection plus a per-workspace limit",
+    "status_at_baseline": "**resolved 2026-08-26** — built, measured and released as `agent-sync` 1.18.0. The flags are earned, not read off the docs: 200 appends from two processes left 200 lines on one page, two reads returned one order, and two freshly created shards were both enumerated — the Outline defect that cost eight processes eight winners. npm serves 1.18.0 and this machine's plugin is on it. Pointing **fabric's own** plane at `notion` is done too, 2026-08-26: `bootstrap` created the container, the baseline was re-stamped on the new plane (`ADR-0010` / `CO-050`), `check` reports `setup healthy (11 checks passed)`, and `reserve ADR` returned `ADR-0011` — the one thing `fs` could never do. Record plane `notion`, lease on git refs: exclusive across machines, which is what two people on two machines needed. The old `fs` plane's local logs do NOT migrate; they stay in `.agent-sync/`, gitignored, and the new plane starts from the re-stamped baseline",
+    "home": "`agent-sync` repo",
+    "line": 60,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-050",
+    "subject": "**The guard hook does not cover Bash.** `PreToolUse` matches `Edit\\\\|Write\\\\|MultiEdit\\\\|NotebookEdit` and `Bash(git commit *)` (plugin `hooks/hooks.json`), so a guarded file written with `cat >` or `sed -i` is never checked. Every edit in the 2026-08-25 initialisation run went that way; the lease was held and `guard` run by hand, which is the self-check the skill prescribes outside Claude Code — not enforcement",
+    "status_at_baseline": "open — **filed upstream 2026-08-26 as AS-06** on `agent-sync`'s board, with the evidence: `GUARD_SHAPES` covers three `git commit` shapes and no direct Bash write. A second one was found beside it and filed as AS-07 — `hooks/_lib.sh:36` resolves the project as `${CLAUDE_PROJECT_DIR:-$PWD}`, so a lease in a SECOND repository is never renewed; this run's own lease expired 14 minutes before its work ended",
+    "home": "`agent-sync` repo",
+    "line": 61,
+    "disposition": "linked-current-packet",
+    "packets": [
+      "FA-05"
+    ],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-051",
+    "subject": "**Two surfaces will show the same work item, and a resolution in one is invisible to the other.** The flagship's SEO agent already stores work items and records the operator's resolution as an observation (`apps/web/src/app/api/work/resolve/route.ts`, its ADR-0002). If the fabric's board renders the same findings and keeps its own resolution, an operator who dismisses a finding in one place meets it again in the other",
+    "status_at_baseline": "open — `work-producing-agents.md` §3",
+    "home": "stage 2",
+    "line": 62,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-052",
+    "subject": "**The schema has no `proposal` and no per-department default autonomy.** A proposal needs an author, the observations it cites, an outcome and the goal it became — without it a refusal is unrecorded and the same finding arrives forever. A default autonomy for accepted proposals of a kind is what stops every routine finding from being an operator decision",
+    "status_at_baseline": "open — `work-producing-agents.md` §6",
+    "home": "M1",
+    "line": 63,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-053",
+    "subject": "**The board's leak line cannot be trusted in this repository.** `agent_sync.py:3169` (`_leaks`) looks for `f\"{reg}-{value:04d}\"` in the register file, and this ledger's ids are three digits — so `CO-051`, written and committed, is reported as reserved-and-never-written. Reproduced 2026-08-26: `_leaks` returned `[('CO', 51, …), ('CO', 52, …)]` against a file containing both. ADR ids are four digits and are unaffected",
+    "status_at_baseline": "open",
+    "home": "`agent-sync` repo",
+    "line": 64,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-054",
+    "subject": "**Edges need an artifact store, not inline payloads.** An edge carries a named payload (ADR-0005), but a rendered video or a 5 MB crawl result inline in an edge row makes graph versions undiffable and the event journal unmanageable. Missing object: `artifact(id, content_hash, media_type, size, storage_ref, produced_by_node)`; an edge above a size threshold carries an artifact ref. The content hash doubles as the addressing `bundle.lock` already uses",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 65,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-055",
+    "subject": "**Instruction packs and model policy are not versioned records.** The manifesto's provenance requirement names \"model, runtime, policy and instruction versions\"; no object holds them, so \"which prompt did this run carry\" is unanswerable — and provenance is the one thing that cannot be reconstructed retroactively. Needed: `instruction_pack(id, revision, department, content_hash)` and a `model_policy` (department × task → model; CO-031 is its first client), both pinned by runs",
+    "status_at_baseline": "open",
+    "home": "M1",
+    "line": 66,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-056",
+    "subject": "**The schema has no `eval_set`, `promotion` or production provenance.** \"The provider works\" is a claim until golden fixtures pass and planted defects are rejected, watched; a canary's checker comes off silently without a promotion record citing runs; and \"where did this agent come from\" needs provenance on the provider revision — source repo, producing run, eval set, admission",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 67,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-057",
+    "subject": "**No quota ledger and no collector heartbeat.** External quotas are documented per source (GSC 1 200 QPM, GA4 14 000 tokens/property/hour, PostHog 2 400 query-calls/hour org-wide) but consumption is nowhere recorded, so collectors cannot back off on the organisation's behalf — GA4 even returns `returnPropertyQuota` to be recorded rather than estimated. And nothing watches the watcher: a dead collector is silent. A heartbeat is the collector's observation about itself; a stale one is an attention row",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 68,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-058",
+    "subject": "**`README.md:3` describes \"the client that people run\"; ADR-0011 says one operator, one tenant.** Both cannot be true, and ADR-0011 itself prices deciding late as \"a rewrite of the registry, the graph and the run log\". Either `passion-code` is the same operator's shell — then the README sentence is rewritten and the schema may assume a single tenant — or it has users, which is the named buyer ADR-0011 requires, and `tenant_id` enters migration 1 with the four prices answered",
+    "status_at_baseline": "**resolved 2026-08-28 — ADR-0016.** Multi-tenant, tenant = estate (organization); `estate_id` and `actor_id` enter migration 1; `passion-code` is the client owners and members run. The four prices are paid in that record",
+    "home": "operator",
+    "line": 69,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-059",
+    "subject": "**Five permission vocabularies and no map between them:** `autonomy_level` on the goal, the floor, grants, `accessCeiling` (read/draft/effect, `project-blueprint.schema.json:101`) and trust tiers (`agent-composition.md` §8). What `accessCeiling: effect` means under `autonomy: safe` is defined nowhere — the classic hole where each system assumes enforcement lives in the other. Proposed: one effects set (`read · draft · publish · spend · delete`) with the five as filters over it, strictest wins, the refusing filter recorded with the decision",
+    "status_at_baseline": "**narrowed by ADR-0028** (2026-08-31): composition-by-minimum decided, the floor's home is the schema, trust vocabulary is the contract's; what stays open is the full Cedar-context mapping when ADR-0023's evaluator lands",
+    "home": "stage 2",
+    "line": 70,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-060",
+    "subject": "**`checkerPolicyRef` has no shape, and the adopted doctrine supplies one.** A checker verdict decomposes into six failure classes — missing, empty, unevidenced, malformed, contradictory, off-topic — four decided by code checks, two by a judge; every verdict is stored as a score bound to the run with `source: code_check\\\\\\|llm_judge`; the rejection rate is surfaced, because a checker at zero rejections is either a perfect upstream or a broken gate and only stored verdicts tell which",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 71,
+    "disposition": "linked-current-packet",
+    "packets": [
+      "FA-05"
+    ],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-061",
+    "subject": "**Fail-open or fail-closed is undecided per workload.** When the control plane is unreachable — policy store, checker infrastructure, governor — a read-only collector proceeding and an effect-bearing node proceeding are different risks; the doctrine requires the choice written per workload, and neither answer is a default. The fabric has not asked the question",
+    "status_at_baseline": "**partially resolved 2026-08-29 by ADR-0023.** Policy uncertainty never grants a new effect/credential/scope/remote read; a valid signed local bundle and short-lived visibility lease define the only degraded path. Checker-infrastructure and budget-governor failure semantics remain open in this row",
+    "home": "stage 2",
+    "line": 72,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-062",
+    "subject": "**Provider fallback must be policy-equivalent, not merely available.** Capability resolution that falls back across providers can silently downgrade tier or data handling — core→user is a policy change wearing a retry. The binding's eligible-provider list needs a tier floor resolution may never fall below, filtered before health",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 73,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-063",
+    "subject": "**No estate budget governor and no fleet scheduler.** Money is capped per node (`maxBudgetUsd`) and nowhere above it; 60 projects × routines × $-per-node is a bill nobody approved, accruing silently. Hierarchical caps estate→project→goal→node with spend aggregated as a journal projection; an exhausted level refuses run admission; 80% is an attention row. The same object schedules the fleet: maximum concurrent runs on one desktop, priority classes (incident > routine > backfill), per-provider concurrency tied to the quota ledger (CO-057)",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 74,
+    "disposition": "linked-current-packet",
+    "packets": [
+      "FA-03"
+    ],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-064",
+    "subject": "**Projects have no lifecycle states and no dependency projection.** `proposed → active → dormant → archived`: dormant pauses routines (a sleeping project burning quota is silent), archived requires that no active binding in another project points at this project's providers — which needs the \"who consumes whose capabilities\" projection the provider mesh otherwise lacks, and without which retirement is a surprise to the dependents",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 75,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-065",
+    "subject": "**The budgeted standing grant is one shape with two consumers.** CO-036 (reply agents) needs a continuous grant scoped to account, surface, topic and window; campaign spend needs the same plus a budget dimension — \"≤ $X/day on account Y until date D\". Solved separately they become two incompatible grant forms; solved once they extend ADR-0004's named-specific-expiring grant with `budget` and `window`, and the budget feeds the governor (CO-063)",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 76,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-066",
+    "subject": "**Skills and plugins have no observability across required / installed / loaded.** *Required* exists (ADR-0009 §5: an unequippable node fails at its gate). *Installed* needs an inventory collector — `collect.skills@runner` — reusing the estate's measured checks: shadowed plain copies, version skew, broken symlinks, session-start injectors. *Loaded* — whether an installed skill was actually read — is answerable only from the bundle lockfile plus the runner's `system/init` capabilities array captured into the run record. Live receipt from the day of writing: `/reload-plugins` reported \"1 error\"; the cause — marketplace `supabase-community-supabase-plugin: cache-miss` — was found only by hand",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 77,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-067",
+    "subject": "**Findings are routed by the CEO alone, and the CEO is a queue.** Route by rule first: a finding about an asset goes to its owning project by join, not judgement; the CEO receives only the unroutable and the cross-cutting. Reviewer independence becomes a constraint rather than an intention: `reviewerBindingRef` must differ from the producing binding — adopted-doctrine §1 requires the independence and nothing currently enforces it",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 78,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-068",
+    "subject": "**The hosting model for personal estates is undecided, and it is the switch on the sandbox price.** Federated (each person runs their estate on their own machine, as org #1 does) defers CO-045 entirely; hosted (the platform runs personal estates) makes third-party automations run on our infrastructure — per-estate runner isolation with a machine boundary, and CO-045's ADR-0011-era narrowing reverses on that path",
+    "status_at_baseline": "**resolved 2026-08-29 — ADR-0021.** Execution placement is pinned per provider binding: local harness, provider-managed, estate-managed or platform-managed. A personal Estate may use hosted continuity while execution stays local; platform-managed third-party code alone engages the hosted sandbox obligation",
+    "home": "operator",
+    "line": 79,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-069",
+    "subject": "**The vault becomes custody.** Organizations' secrets held by the platform on behalf of owners: per-estate encryption keys, audited access, rotation. Softened by the standing invariant — members never hold credentials, agents get per-hop scoped material — but the obligation is real. Reopens the ground CO-047 closed under ADR-0011, which ADR-0016 supersedes",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 80,
+    "disposition": "linked-current-packet",
+    "packets": [
+      "FA-07"
+    ],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-070",
+    "subject": "**Delegated-slot billing.** Whose wallet burns when a member's personal chain serves an org slot is declared by the interaction point (default: the executor's estate; an org may attach a budgeted grant per slot — CO-065's third consumer). Per-estate wallets follow the billing doctrine: three tiers, markup at exactly one boundary, `pg_advisory_xact_lock` per estate, DB-first with compensating transactions, spend-delta polling. Reopens the ground CO-048 closed under ADR-0011",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 81,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-071",
+    "subject": "**Identity invariants are security-load-bearing and easy to get silently wrong.** Roles live in `app_metadata` (`user_metadata` is user-editable and unsafe in any authorization decision); JWT claims are stale until token refresh, so role removal revokes sessions and sensitive operations verify `session_id`; every RLS policy pairs `TO authenticated` with a membership predicate; UPDATE policies carry both USING and WITH CHECK; `service_role` exists only in the control plane",
+    "status_at_baseline": "open",
+    "home": "M38",
+    "line": 82,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-072",
+    "subject": "**Interaction points need an SLA/escalation policy object.** A task addressed to a role queue that nobody serves must escalate on timeout — to a wider role, then to the owners — or tickets drown silently; the point declares `sla` and `escalation`, and a routine watches queue age as attention rows",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 83,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-073",
+    "subject": "**CO-040 goes live with the first member.** Support tickets carry customers' personal data and members are data subjects themselves: lawful basis, retention, subject-access paths stop being a recorded hypothetical the day M39 onboards a person who is not the operator",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 84,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-074",
+    "subject": "**\"Any agent\" is a design claim until the runner conformance matrix exists.** A supported runner = passed the fixture suite (spawn, stream, interrupt, resume, typed result, budget, bare-mode against untrusted repositories); each harness carries a tier passport; the scheduler never places a node on a runner missing a declared capability — CO-062's policy-equivalence rule applied to runners. Authority already lives at the seams (floor in the DB, tools via the bundle, money on the per-node key, PTY-level observability), so degradation is tiered, not silent. First three passports: Claude Code (mostly measured), Cursor, OpenClaw — closing CO-017 on the way",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 85,
+    "disposition": "linked-current-packet",
+    "packets": [
+      "FA-10"
+    ],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-075",
+    "subject": "**The commercial unit is not decided.** PassionCode.ai can charge for seats, estates, active projects, runs, managed execution, model spend, provider bundles or marketplace transactions; combining them without one primary value metric makes cost unpredictable. Decide the free/open Fabric boundary, included managed capacity, pass-through versus marked-up model spend, and which party invoices marketplace work",
+    "status_at_baseline": "**resolved internally 2026-08-29 — ADR-0025.** Primary unit: Estate subscription containing managed cloud continuity/memory-sync and included credits for PassionCode.ai-supplied agents. Prices, tiers, overages, BYOK and marketplace settlement remain later private decisions; public open-source surfaces intentionally omit this model",
+    "home": "operator",
+    "line": 86,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-076",
+    "subject": "**The workspace composition model is not decided.** ADR-0020 settles that provider views are sandboxed and layout is host-owned, but v1 still needs one interaction contract: constrained responsive grid versus free-form canvas, persistence/versioning, role defaults, sharing, mobile degradation and accessibility. The recommendation is a constrained grid first; adopting a canvas changes navigation, collision, focus and responsive semantics",
+    "status_at_baseline": "**resolved 2026-08-29 — ADR-0024.** V1 uses an immutable, host-owned constrained responsive grid with admitted spans, canonical keyboard/focus order and narrow linearization; no overlap, arbitrary coordinates or canvas mode",
+    "home": "operator",
+    "line": 87,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-077",
+    "subject": "**The durable execution engine and migration seam are not selected.** The contract requires checkpoints per iteration, timers, signals/input, retries, replay or equivalent recovery, idempotent effect attempts and resumable streams. Compare a proven engine (for example Temporal/Restate) with a journal-backed scheduler, including deterministic-code constraints, operational burden, tenancy, cost and how runs migrate without changing their public lifecycle",
+    "status_at_baseline": "**resolved at architecture contract level 2026-08-29 — ADR-0022.** Temporal is the reference managed durable profile behind `DurableExecutionPort`; Fabric's Event Journal remains domain truth. Runs pin engine/build and drain there; a cross-engine move becomes a linked continuation, never rewritten history",
+    "home": "stage 2",
+    "line": 88,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-078",
+    "subject": "**The internal event envelope and schema-evolution rules are not fixed.** ADR-0014 makes the journal the spine, but producers still need stable `id`, `type`, `source`, `time`, tenant/project/run correlation, data schema revision, causation and idempotency semantics. Decide whether the envelope is CloudEvents-compatible, which extensions are mandatory, compatibility rules and how personal data is redacted before routing",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 89,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-079",
+    "subject": "**The policy decision model and engine are not selected.** Effects, membership, interaction points, connection bindings and budgets need one principal/action/resource/context request, default deny, forbid/floor precedence, diagnostics and a versioned decision receipt. Compare Cedar, OPA and a narrowly typed in-process engine; define behaviour on missing policy data, evaluation error and control-plane unavailability alongside CO-059/061/071",
+    "status_at_baseline": "**resolved 2026-08-29 — ADR-0023.** One typed decision port with an embedded Cedar-compatible v1 evaluator and signed last-known-good bundle; missing/expired/invalid policy, entity or evaluation is indeterminate and cannot grant a new effect. Every decision records policy and entity revisions",
+    "home": "stage 2",
+    "line": 90,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-080",
+    "subject": "**A public provider marketplace needs a trust and liability system, not only conformance.** Decide publisher identity, signing/provenance, review tiers, reputation inputs, disclosure of data/effects/cost, malware and prompt-injection response, emergency revocation, refunds/disputes and who is liable for a provider's external action. Admission remains per estate even when marketplace review exists",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 91,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-081",
+    "subject": "**Knowledge portability, deletion and decay have no end-to-end contract.** Define export format and provenance preservation, estate/project deletion and legal hold, connector-source deletion propagation, embedding/index erasure, retention classes, contradiction/supersession and what a delegated provider may retain after unbinding. This extends CO-023/040/054/073 rather than treating vector search as memory",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 92,
+    "disposition": "linked-current-packet",
+    "packets": [
+      "UXA-F06"
+    ],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-082",
+    "subject": "**Production service objectives and recovery are unnamed.** Define SLOs for control plane, run admission, interaction queues and evidence freshness; RPO/RTO for journal, vault metadata and artifacts; backup/restore drills; telemetry retention; degraded-mode rules; region/data-residency expectations; and which failures may continue read-only versus fail closed. OpenTelemetry supplies signals, not these objectives",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 93,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-083",
+    "subject": "**Suspend v1 is a blocking wait, and that is debt.** `iteration-1-modules.md` §7 has a node's process wait on `ask()` with a 30-minute default timeout instead of ADR-0022's released-worker suspend. Return at the first multi-day run; the measurement of how long `canUseTool` may block (external-contracts §5 #3) lands in slice 3",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 94,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-084",
+    "subject": "**The Claude Code pin has no operational mechanism.** external-contracts §1 pins exactly v2.1.223 with no margin, against an auto-updating CLI; nothing prevents an update mid-run or states behaviour when a passport-invalidating update lands. Decide the pin mechanics in slice 1",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 95,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-085",
+    "subject": "**The flagship product's support and custdev channels are undecided** — mailbox, Telegram, in-app or several. Resolved at the slice-6 grill, not invented before it",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 96,
+    "disposition": "linked-current-packet",
+    "packets": [
+      "UXA-F09"
+    ],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-086",
+    "subject": "**The flagship product's crash/error source is undecided** (Sentry vs logs vs PostHog — external-contracts §3 already holds the PostHog row). Resolved at the slice-4 grill",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 97,
+    "disposition": "linked-current-packet",
+    "packets": [
+      "UXA-F09"
+    ],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-087",
+    "subject": "**The runner seam has no security model.** Who signs a `local_harness` passport, how heartbeats authenticate, and the blast radius of a compromised runner on the operator's machine — untracked until the 2026-08-30 audit named it. The GitHub self-hosted-runner literature is the threat precedent; outbound-only long-poll and ephemeral per-node processes are the candidate mitigations",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 98,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-088",
+    "subject": "**The packaged app locates the repository by convention.** `/Applications/PassionCode.app` finds this repo at `~/DATA/fabric` (env `FABRIC_REPO` overrides) — a real config surface (estate settings) is a later slice; until then a moved repo breaks stack autostart with a named error",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 99,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-089",
+    "subject": "**Eight UX-audit findings were deferred as a number and never itemised.** The tasks-and-editor run's ledger said they would leave as CO-089…096; no rows were written, so the only surviving record is the word \"eight\". Recover them by re-running the UX audit over the same surfaces rather than reconstructing them from memory",
+    "status_at_baseline": "open",
+    "home": "stage 3",
+    "line": 100,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-090",
+    "subject": "**Same-uid isolation has a floor, and wave 1 raised it rather than removing it.** Every session runs as the operator, so an `mcp.json` at 0600 is readable by the next agent. ADR-0026's isolation now rests on lifetime — one initialize per credential, plus a session id never written to disk — which defeats a token read AFTER the session starts and does not defeat one read before it, nor anything with access to the agent's own process. Decide whether a stronger boundary (per-session uid, sandbox, or handing the credential over a pipe the child alone holds) is worth its cost",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 101,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-091",
+    "subject": "**The IPC bridge has no per-window authorisation.** Every window receives the whole API, including `feed.replay` across all projects. Wave 1 bounded the filesystem half (SEC-REQ-016); the rest is unbounded by the same argument and untouched because nothing today opens a window Fabric did not build. Decide the model before any window renders provider-supplied content (ADR-0020)",
+    "status_at_baseline": "**open — raised to BLOCKING 2026-09-01.** It was defence-in-depth while every window was ours. M75 renders arbitrary remote content inside the app, and a preload reaching that view would hand a web page `files.write`. Must be settled before the embedded browser exists",
+    "home": "stage 2",
+    "line": 102,
+    "disposition": "linked-current-packet",
+    "packets": [
+      "UXA-F08"
+    ],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-092",
+    "subject": "**The estate id is a constant and the runner is assumed local.** `ORG1` is hardcoded, repository paths are absolute, and session state lives in one process — so on a second machine `fabric_agents_list` would show only local sessions while claims arrive from everywhere, making the observed set a strict subset of the claimed set and inverting the guarantee ADR-0008 exists for. Named now because wave 1 hardened the credential and left this untouched",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 103,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-093",
+    "subject": "**The bundle path has never been exercised by a real Claude Code session, and this run could not exercise it either.** Three attempts inside the sandbox produced zero requests at the surface — the nested CLI never loaded `--mcp-config` at all, so nothing was learned about the handshake either way. What IS proven: the same `@modelcontextprotocol/sdk` client Claude Code is built on initialises and echoes `mcp-session-id` on every later call (`agent-surface.test.mjs`), and the MCP spec requires that. What is NOT proven: that the shipped CLI does. If it does not, every tool call after initialize returns 401 and the surface looks entirely broken — the main-process log now says which of the two it is in one line. This gap predates the run (AS-REQ-005 already read `never`); the run narrowed what is unverified without closing it. Verify at the first real session on the operator's machine",
+    "status_at_baseline": "**resolved 2026-08-31** — closed by `apps/desktop/test/handshake-e2e.test.mjs` over a real PTY: the shipped CLI echoes `mcp-session-id` on every post-initialize call and read the project through `fabric_whoami`. The three failed attempts used `execFileSync`, which gives no TTY — that, not the handshake, was the obstacle.",
+    "home": "operator",
+    "line": 104,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-094",
+    "subject": "**Is an agent OBLIGED to mark its task, or does it merely have the tools?** M51 gives an agent start/finish/blocked against a task row. Obligation means the session is handed a skill that requires it, and an agent that ignores it is a compliance problem with no enforcement point; convention means the board is only as good as each agent's manners. A third option is to derive the marks from what Fabric already observes (session started for task X, session exited) and let the agent add only what observation cannot see — the blocker",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 105,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-095",
+    "subject": "**Where does an agent's logic live, and how is it shared?** M60 says a new agent gets its own repository, is reusable across projects and is private by default. Undecided: whether that repository is local or remote, how a binding pins a version of it (ADR-0012 makes agent compatibility an external versioned contract — this must not become a second mechanism), and what \"shared\" means before estates are hosted",
+    "status_at_baseline": "open",
+    "home": "operator + stage 2",
+    "line": 106,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-096",
+    "subject": "**Where does a token and cost number come from?** M57 wants tokens and spend on the strip. Claude Code does not report its own usage over the MCP surface, and reading it out of the transcript is parsing a UI. Candidates: the provider's usage API per key, a proxy in front of the session, or accepting that cost is per-estate and not per-project. Until one is chosen the strip must not show a number it cannot source",
+    "status_at_baseline": "**RESOLVED 2026-09-01, and the answer is no.** Measured live against the endpoint `claude-swap` uses: `GET https://api.anthropic.com/api/oauth/usage`, bearer from the macOS Keychain (service `Claude Code-credentials` → `claudeAiOauth.accessToken`; on macOS it is NOT in `~/.claude/.credentials.json`), header `anthropic-beta: oauth-2025-04-20`. HTTP 200. It returns `five_hour.utilization: 46.0` with `resets_at`, `seven_day.utilization: 17.0`, per-model `seven_day_opus`/`seven_day_sonnet`, and `extra_usage {monthly_limit, used_credits, currency}`. **`limit_dollars`, `used_dollars` and `remaining_dollars` all came back `None`** on this plan, and nothing in the response is per-session or per-project. So: **the per-project cost cell has no source and is dropped** — not zero, not a dash, absent. What exists instead is an ESTATE-level quota reading, which is M83 and is arguably the more useful number. Three caveats recorded with it: the endpoint is undocumented and internal to the Claude Code client, so it must degrade by showing the last-known value WITH ITS AGE rather than a stale number as current; reading it means the app now holds an OAuth token that can act as the operator, which must never be logged (M81 redaction), must go nowhere but `api.anthropic.com`, and must be disclosed in the interface; and polling must back off and honour `Retry-After`",
+    "home": "stage 2",
+    "line": 107,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-097",
+    "subject": "**What invokes the manager agent?** M50 and M52 both need something that reacts — to a project being created, and to an instruction being typed. A resident session costs a process and a context; a session per event costs a spawn; a cron sweep is late by design. This is the same question ADR-0022 asks about durable execution and should not be answered twice",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 108,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-098",
+    "subject": "**How is repository state read without making the page slow?** M56 wants branch, ahead/behind, dirty count and last commit per attached repository, refreshed as the operator watches. Shelling out to git per panel render is the obvious wrong answer; a watcher with a cache is the obvious right one and is a process to own. Decide the mechanism before the panel is designed around it",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 109,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-099",
+    "subject": "**Three words are already shipped for one thing.** The schema, the ADRs and the glossary say **Routine**; the interface says **Workflows** (`apps/desktop/src/renderer/src/i18n/en.ts:163`); the operator says **automation**. `docs/brand/terminology.md` registers Routine and does not know the word Workflow, so the shipped interface uses a term the brand pack has never seen. Pick ONE surface word and register it — the recommendation is *Automation*, because it is the word a person reaching for this reaches for and the `Workflows` panel it would replace is empty anyway, with Routine kept as the internal noun",
+    "status_at_baseline": "open",
+    "home": "operator + `copywriting`",
+    "line": 110,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-100",
+    "subject": "**What does \"instance\" count?** M69 shows how many instances of each agent a project has. Three concepts are one keystroke from collapsing: a **binding** (this agent is hired into this project), an **instance** (?), and a **session** (a live process). The reading that keeps the panel readable is that both exist and are different — `Developer · 2 hired · 1 running` — but the operator's intent decides. Collapsing them into a single number is how a roster panel becomes unreadable",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 111,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-101",
+    "subject": "**Does the sessions view replace detached windows, or stand beside them?** It was decided earlier that the project tab is a control panel and hands-on work opens in its own window. M70 asks for an in-app view with a list and a terminal. These are not in conflict if the window is for the session you are *working in* and the view is for *surveying* them and stepping into one — the PTY lives in main, so any number of surfaces can attach. But if the view replaces the window, the multi-monitor case is lost. Decide before either is built",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 112,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-102",
+    "subject": "**Does the embedded browser share the operator's logged-in sessions?** It cannot: Electron cannot read Safari's or Chrome's cookies, and giving it the app's own session would mix a web page's storage with the product's. Its own partition means **logged out of everything** — a Sentry link or a private PR shows a login wall. That makes ⌘-click to the real browser load-bearing rather than a nicety, and it must be obvious in the UI rather than discovered. Decide whether the in-app browser is for public pages only",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 113,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-103",
+    "subject": "**Does removing a card stop the routine?** A canvas card is a view of a routine (M88). Removing the view could mean \"stop this work\" or \"stop showing me this work\", and they are opposite. The safe default is that removal hides and a separate, explicit act stops — matching M77's finding that deletion in this system is archive unless someone really means purge — but the operator's intent decides",
+    "status_at_baseline": "open",
+    "home": "operator",
+    "line": 114,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-104",
+    "subject": "**What does a consumer do with a stale dependency?** M90 requires the policy to be declared per edge; the QUESTION is what the choices are. Candidates: run anyway and label the output as built on stale input; skip this tick and say why; block until fresh. Probably all three, chosen per edge — but a default has to be picked, and \"run anyway, silently\" must not be it",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 115,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-105",
+    "subject": "**Can an agent read any other agent's runs inside the project?** M89 makes runs queryable and the operator explicitly wants B to read A's runs, not only its latest result. Inside one project that is probably yes and matches how project memory already works. Across projects it is certainly no. What is undecided is whether an agent needs its edge DECLARED before it can read a producer, or whether reading is open within the project and only the scheduled dependency is declared. Declared-only is stricter and makes the graph honest; open is friendlier and makes the graph a lie",
+    "status_at_baseline": "open",
+    "home": "stage 2",
+    "line": 116,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-106",
+    "subject": "**Does the same ready-made agent on two canvases share its runs?** M60 says an agent is reusable across projects and private by default. If the trend researcher runs for project A and project B, is that one binding with one standing result, or two independent ones? One is cheaper and leaks cross-project context; two is isolated and pays twice for the same public research. The answer probably differs for agents that read the world (trends) versus agents that read the project (bug watcher) — which would mean the manifest declares it",
+    "status_at_baseline": "open",
+    "home": "operator + stage 2",
+    "line": 117,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-107",
+    "subject": "**Audit remediation package; itemised, not fixed.** Integrity, memory, PTY/evidence, current UX, canonical contracts and release parity findings each have source evidence, an existing milestone mapping and acceptance in [the correction plan](../plans/2026-09-05-project-audit.md). CO-089 now has an itemised UX audit but remains open pending corrections; duplicate M rows are not created. Approved mockup source and native Electron replay remain explicit blind spots",
+    "status_at_baseline": "open",
+    "home": "owners by W01–W06 in plan",
+    "line": 118,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-108",
+    "subject": "**Itemised delta, open implementation.** S01–S15 in the [merged audit](../../audit/2026-09-07-merged-execution-plan.md) cover saved work, scope, authority, launch, safe traces, blockers/answers, provenance, complete-loop eval, team onboarding, terminology, brand, restore/sync, existing UX, read state/prefs and recurring-cycle contracts. Existing M/CO owners are linked in the [priority brief](../plans/2026-09-07-foundation-priorities.md); CO-107 is retained and not duplicated or closed. The [engineering contract package](../plans/2026-09-07-engineering-contracts.md) specifies the active cards, dependencies and recovery/privacy gates. The [visual product review](../plans/2026-09-07-product-walkthrough.md) adds PF-01–20 and PG-01–12, each under existing S/M owners; its mockups do not close them. This row files the delta; it does not claim the product fixes shipped",
+    "status_at_baseline": "open",
+    "home": "owners by S subitem and existing milestone",
+    "line": 119,
+    "disposition": "linked-current-packet",
+    "packets": [
+      "FA-05",
+      "AX-17"
+    ],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-109",
+    "subject": "**M131 source correction and character choice.** The profile-count commit `33c0815801c34765d3b9e9f38f61a4a5581dd201` left portrait/name empty; event-driven mascot artwork was not shipped. The [mockup contract](../../ux/mockup-contract.md) proposes the existing brand mark or initials as a visible avatar, with status separate from provider authority. A dedicated character and event-driven image system require brand review; no product implementation is closed by this mockup. Existing M126/M131 own delivery",
+    "status_at_baseline": "open",
+    "home": "M126/M131 and operator brand review",
+    "line": 120,
+    "disposition": "horizon-or-owner-gate",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-110",
+    "subject": "**The projector narrows by id, not by estate.** S02.store put the estate predicate on every read the main process makes, and S02.acl denied `anon` by statement. Inside the projector the same class survives: 16 of the arms in `apply_operating_surfaces` match `where id = (e.payload->>'id')::uuid` with no estate predicate, and the ids come from an event payload. `apply_questions` was narrowed in migration 31 because its `blocks[]` is agent-supplied and demonstrably unverified; the rest were not swept, and no probe distinguishes \"the payload id is trusted\" from \"nobody has tried\".",
+    "status_at_baseline": "closed",
+    "home": "S03.boundary, with S02.store as the precedent for the mechanism",
+    "line": 121,
+    "disposition": "retained-history",
+    "packets": [],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  },
+  {
+    "id": "CO-111",
+    "subject": "**The cursor half of S14, not built.** S14 also specifies `minimumCursor` on a read, a per-consumer seen cursor that advances only for a payload a feature actually displayed, and a generation token beyond the project-switch guard that already exists. None of the three has a consumer in this tree: the feed-cursor surfaces are M185/M186 and the restore contract is S12. Half-building a cursor protocol against no reader is how a contract gets frozen by its first accidental caller.",
+    "status_at_baseline": "open",
+    "home": "M185, M186 and S12; the read envelope they build on shipped with S14",
+    "line": 122,
+    "disposition": "linked-current-packet",
+    "packets": [
+      "UX28-02",
+      "UX28-03",
+      "AX-07",
+      "AX-08"
+    ],
+    "next_action": "Read original owner/activation condition; no broad strategic umbrella may spawn duplicate work. Revalidate the concrete child requirement before activation."
+  }
+]

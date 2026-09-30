@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "fabric.adoption.receipt@1",
+  "packet": "AD01",
+  "status": "passed",
+  "proofTier": "source",
+  "predicate": "acceptance-complete-and-contract-bound",
+  "sourceCommit": "375b18db59c12124204c5e7273a9bfecc1053fcf",
+  "baseCommit": "c1fb56125c28f14de88191e7ffb162b7eb0eed72",
+  "inputReceipts": [
+    {
+      "packet": "AD00",
+      "commit": "375b18db59c12124204c5e7273a9bfecc1053fcf",
+      "schemaVersion": "fabric.adoption.receipt@1",
+      "requiredProofTier": "pure",
+      "observedProofTier": "pure",
+      "status": "passed",
+      "predicate": "acceptance-complete-and-contract-bound"
+    }
+  ],
+  "contractBindings": [
+    {
+      "name": "ProducerContractMatrix",
+      "ownerFile": "docs/launch/adoption/contract-bindings.json",
+      "export": "fabric.adoption.producer-bindings@1",
+      "revision": "375b18db59c12124204c5e7273a9bfecc1053fcf"
+    },
+    {
+      "name": "ScopedRevisionRef",
+      "ownerFile": "apps/desktop/src/shared/entityRef.ts",
+      "export": "EntityRef",
+      "revision": "c1fb56125c28f14de88191e7ffb162b7eb0eed72",
+      "status": "canonical identity reused; generic wrapper remains proposed until runtime consumer owns R"
+    }
+  ],
+  "exactWriteSet": [
+    "CONTEXT.md",
+    "docs/MERGES.md",
+    "docs/adr/0061-project-setup-precedes-managed-activation.md",
+    "docs/adr/README.md",
+    "docs/architecture/operator-interaction.md",
+    "docs/evidence/plans/task-pipeline-persistence-contract.md",
+    "docs/launch/adoption/README.md",
+    "docs/launch/adoption/contract-bindings.json",
+    "docs/launch/adoption/contracts.md",
+    "docs/launch/adoption/execution/2026-09-17-contracts.md",
+    "docs/launch/adoption/receipts/AD00.json",
+    "docs/launch/adoption/receipts/AD02.json",
+    "docs/reports/completeness.html",
+    "docs/reports/map.html",
+    "docs/reports/previews/agents.jpg",
+    "docs/reports/previews/archive.jpg",
+    "docs/reports/previews/authority.jpg",
+    "docs/reports/previews/decisions.jpg",
+    "docs/reports/previews/estate-settings.jpg",
+    "docs/reports/previews/estate.jpg",
+    "docs/reports/previews/inbox.jpg",
+    "docs/reports/previews/launch-agent.jpg",
+    "docs/reports/previews/launch-persona.jpg",
+    "docs/reports/previews/launch-pulse.jpg",
+    "docs/reports/previews/launch-start.jpg",
+    "docs/reports/previews/manager.jpg",
+    "docs/reports/previews/media-preview.jpg",
+    "docs/reports/previews/memory.jpg",
+    "docs/reports/previews/previews.json",
+    "docs/reports/previews/settings.jpg",
+    "docs/reports/previews/task-archive.jpg",
+    "docs/reports/product.html",
+    "docs/ux/flows.md",
+    "docs/ux/foundation.md",
+    "docs/ux/product-model.json",
+    "docs/ux/scenarios.md",
+    "docs/ux/screens.md",
+    "scripts/check-adoption-bindings.mjs",
+    "scripts/ci.sh",
+    "scripts/test/adoption-bindings.test.mjs"
+  ],
+  "decisionIds": [
+    "ADR-0061"
+  ],
+  "checks": [
+    {
+      "command": "node scripts/check-adoption-bindings.mjs",
+      "exitCode": 0,
+      "proofTier": "source",
+      "result": "8 capabilities,79 anchors,50 files,6 partial,2 missing,0 ready",
+      "receipt": "docs/launch/adoption/execution/2026-09-17-contracts.md"
+    },
+    {
+      "command": "node --test scripts/test/adoption-bindings.test.mjs",
+      "exitCode": 0,
+      "proofTier": "pure",
+      "result": "30/30 passed",
+      "receipt": "scripts/test/adoption-bindings.test.mjs"
+    },
+    {
+      "command": "bash scripts/ci.sh fast",
+      "exitCode": 0,
+      "proofTier": "pure",
+      "result": "fast tier green; stack-backed probes not run",
+      "receipt": "docs/launch/adoption/execution/2026-09-17-contracts.md"
+    }
+  ],
+  "negativeChecks": [
+    {
+      "case": "Missing producer cannot become ready",
+      "failedBefore": false,
+      "passesAfter": true,
+      "method": "injected invalid source/schema fixtures rejected",
+      "receipt": "scripts/test/adoption-bindings.test.mjs"
+    },
+    {
+      "case": "Unsupported provider cannot become admitted from source declaration",
+      "failedBefore": false,
+      "passesAfter": true,
+      "method": "injected invalid source/schema fixtures rejected",
+      "receipt": "scripts/test/adoption-bindings.test.mjs"
+    },
+    {
+      "case": "Unknown fields rejected",
+      "failedBefore": false,
+      "passesAfter": true,
+      "method": "injected invalid source/schema fixtures rejected",
+      "receipt": "scripts/test/adoption-bindings.test.mjs"
+    },
+    {
+      "case": "Wrong hash/moved symbol/comment-as-handler rejected",
+      "failedBefore": false,
+      "passesAfter": true,
+      "method": "injected invalid source/schema fixtures rejected",
+      "receipt": "scripts/test/adoption-bindings.test.mjs"
+    },
+    {
+      "case": "Duplicate canonical Scope or EntityRef owner rejected",
+      "failedBefore": false,
+      "passesAfter": true,
+      "method": "injected invalid source/schema fixtures rejected",
+      "receipt": "scripts/test/adoption-bindings.test.mjs"
+    }
+  ],
+  "notRun": [
+    {
+      "check": "Native/runtime producer readiness",
+      "reason": "AD01 accepts source ownership only; native checks belong to dependent packets",
+      "requiredBefore": "Each downstream native receipt"
+    }
+  ],
+  "migrationAndRollback": "Architecture-only change. Existing Projects/history unchanged; configured blueprint still requires PM. Runtime additive migration and activation enforce ADR0061 in their own packets.",
+  "remaining": [
+    "Native ports remain partial/missing per matrix; this does not block AD03 target design but forbids claiming native capability."
+  ],
+  "nextTask": "AD03 unified target creation with immutable AD00/AD01 input receipts; AD04 also requires passed AD02 native receipt."
+}

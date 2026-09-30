@@ -1,0 +1,20 @@
+{
+  "root": "apps/desktop/src/main",
+  "files_considered": 55,
+  "files_agent_related": 0,
+  "findings": [],
+  "cannot_see": [
+    "whether the SYSTEM PROMPT is at the right altitude — or whether it is in this repo at all",
+    "whether two tool descriptions actually distinguish themselves to a model",
+    "whether the workflow/agent choice was made deliberately or defaulted to an agent",
+    "whether a fan-out has a CHECKER between it and the node that consumes it — this pass sees an unguarded gather, never a missing gate",
+    "whether retries and fallbacks MULTIPLY (three providers x three retries is nine calls)",
+    "whether compaction preserves decisions and open questions, or keeps the discussion",
+    "whether tool output is treated as untrusted input",
+    "whether evals exist, judge trajectories, and are calibrated",
+    "whether an audit row could prove a control was applied (policy version)",
+    "everything in a language this pass does not read, and everything in configuration"
+  ],
+  "source_commit": "019a23eaad9169e1e8b0751da8230f939ea76839",
+  "scanner": "agent-stack/0.25.2/skills/agent-harness/scripts/audit_agent.py"
+}

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PassionCode — состояние эстейта и сведение дизайн-системы</title>
+<style>
+:root{color-scheme:dark;--bg:#0a0a0a;--surface:#171717;--quiet:#262626;--ink:#fafafa;--muted:#a1a1a1;
+--line:#ffffff1a;--line2:#ffffff26;--good:#34d06f;--warn:#fbbf24;--danger:#fb2c36;--info:#60a5fa;
+--mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif}
+@media (prefers-color-scheme:light){:root{color-scheme:light;--bg:#fff;--surface:#fff;--quiet:#f5f5f5;
+--ink:#141413;--muted:#5c5c5a;--line:#0000001f;--line2:#00000033;--good:#22c55e;--warn:#f59e0b;--danger:#dc2626;--info:#2563eb}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.62}
+.wrap{max-width:1140px;margin:0 auto;padding:48px 24px 96px}
+h1{font-size:2rem;margin:0 0 8px;letter-spacing:-.02em;line-height:1.15}
+h2{font-size:1.36rem;margin:60px 0 8px;letter-spacing:-.01em}
+h3{font-size:1.04rem;margin:30px 0 8px}
+p{margin:0 0 12px}.sub{color:var(--muted);margin:0 0 26px}
+.label{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+code,.mono{font-family:var(--mono);font-size:.85em}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}
+.meta span{font-family:var(--mono);font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.88rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400}
+.scroll{overflow-x:auto}
+pre{background:var(--quiet);border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.5;margin:14px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:0 0 14px}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.stat b{display:block;font-family:var(--mono);font-size:1.5rem;letter-spacing:-.02em;margin-bottom:2px}
+.stat small{display:block;color:var(--muted);font-size:.76rem}
+.stat.bad b{color:var(--danger)}.stat.ok b{color:var(--good)}
+.tag{font-family:var(--mono);font-size:.63rem;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1px solid var(--line2);color:var(--muted);white-space:nowrap}
+.t-ok{border-color:var(--good);color:var(--good)}.t-warn{border-color:var(--warn);color:var(--warn)}.t-bad{border-color:var(--danger);color:var(--danger)}
+.note{border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:8px;padding:14px 16px;margin:16px 0;font-size:.92rem}
+.note.bad{border-left-color:var(--danger)}.note.ok{border-left-color:var(--good)}
+ul.can{margin:10px 0;padding:0;list-style:none}
+ul.can li{padding:4px 0 4px 20px;position:relative}
+ul.can li::before{content:"→";position:absolute;left:0;color:var(--muted);font-family:var(--mono)}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid var(--line2);vertical-align:-1px;margin-right:6px}
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.82rem}
+</style>
+</head>
+<body><div class="wrap">
+
+<p class="label">PassionCode.ai · аудит на 2026-09-03</p>
+<h1>Состояние эстейта, репозиториев и сведение дизайн-системы</h1>
+<p class="sub">Что реально лежит в проекции, как связаны репозитории организации, и что значит «единая дизайн-система», когда систем на самом деле две — намеренно.</p>
+
+<div class="meta">
+  <span>база: локальный стек fabric, поднят</span>
+  <span>лендинг: passioncode.ai на Cloudflare Workers</span>
+  <span>измерено запросами, не по памяти</span>
+</div>
+
+<div class="note bad"><b>Главное, и это меняет план.</b> Эстейт оператора <code>org #1</code> <b>пуст</b>: ноль проектов, два события в журнале за всё время. Все 68 проектов, 544 события, 74 транскрипта и 97 фактов памяти лежат в <b>тестовом эстейте</b> <code>…00ff</code>, который даже не зарегистрирован в таблице <code>estates</code>. Привязанных репозиториев — <b>ноль</b>. Агентных биндингов — <b>ноль</b>. При этом бэклог в строке slice 1 утверждает: «оператор строит Fabric внутри него — петля догфуда закрыта». Против этой базы это неправда.</div>
+
+<h2>1. Проекция эстейта — измерено</h2>
+
+<div class="grid g4">
+  <div class="card stat bad"><b>0</b><small>проектов в org #1</small></div>
+  <div class="card stat bad"><b>0</b><small>привязанных репозиториев</small></div>
+  <div class="card stat bad"><b>0</b><small>агентных биндингов</small></div>
+  <div class="card stat"><b>68</b><small>проектов в тестовом эстейте</small></div>
+</div>
+
+<div class="scroll"><table>
+<tr><th>Эстейт</th><th>Зарегистрирован</th><th>Проекты</th><th>События</th><th>Период</th></tr>
+<tr><td class="mono">…000001 · org #1</td><td><span class="tag t-ok">да</span></td><td>0</td><td>2</td><td>2026-09-01</td></tr>
+<tr><td class="mono">…0000ff · тестовый</td><td><span class="tag t-bad">нет — в <code>estates</code> его нет</span></td><td>68</td><td>544</td><td>2026-09-01 … 09-02</td></tr>
+</table></div>
+
+<p>Состав тестового эстейта — остатки прогонов: <code>pack probe</code>, <code>nothing here yet</code>, <code>reconcile probe</code>, <code>surface probe</code>, <code>transcript live probe</code>, <code>memory eval corpus</code>, каждое имя повторено по 5–6 раз. Топ событий: <code>memory.retrieved@1</code> — 232, <code>memory.project.recorded@1</code> — 100, <code>project.created@1</code> — 69, <code>transcript.captured@1</code> — 53.</p>
+
+<div class="note"><b>Как это читать честно.</b> Изоляция тестов <b>сработала</b> — прогоны больше не пишут в эстейт оператора, и это была осознанная починка. Побочный эффект: собственный эстейт остался пустым, и целевая картина итерации 1 — «org #1 с двумя проектами, Fabric и PassionCode.ai» — <b>в этой базе не существует</b>. Возможны два объяснения, и я не знаю какое верно: либо петля закрывалась и её снёс <code>supabase db reset</code>, либо она не закрывалась никогда. Журнал — хребет, и в нём по org #1 всего два события, так что восстановить нечего.</div>
+
+<h2>2. Репозитории организации</h2>
+<div class="scroll"><table>
+<tr><th>Локально</th><th>Remote</th><th>Роль</th><th>Гейты</th></tr>
+<tr><td class="mono">fabric</td><td class="mono">passioncode-ai/fabric</td><td>ядро: приложение, журнал, память, агентная поверхность</td><td><span class="tag t-warn">гейты есть, CI нет</span></td></tr>
+<tr><td class="mono">passioncode-ai.github.io</td><td class="mono">passioncode-ai/passioncode-ai.github.io</td><td>публичный лендинг, Cloudflare Workers Static Assets</td><td><span class="tag t-ok">CI + 3 проверки</span></td></tr>
+<tr><td class="mono">fabric-agent-contract</td><td class="mono">passioncode-ai/fabric-agent-contract</td><td>внешний версионированный контракт агентов (ADR-0012)</td><td>—</td></tr>
+<tr><td class="mono">fabric-agent-adapter</td><td class="mono">passioncode-ai/fabric-agent-adapter</td><td>адаптация проектов и создание агентов</td><td>—</td></tr>
+<tr><td class="mono">passioncode-org-profile</td><td class="mono">passioncode-ai/.github</td><td>профиль организации на GitHub</td><td>—</td></tr>
+
+</table></div>
+
+<div class="note"><b>Асимметрия, которую стоит назвать.</b> У лендинга есть CI (<code>check.yml</code>) и три проверки: замок брендпака, сайт, воркер — <code>npm run deploy</code> не выпустит, пока они не зелёные. У <b>ядра</b> <code>.github/workflows</code> не существует вообще (это M110). Маркетинговая страница защищена лучше, чем продукт.</div>
+
+<h2>3. Дизайн-система: их две, и это решение</h2>
+
+<h3>Что уже едино и заперто</h3>
+<p>Брендпак не расходится и не может: <code>brand/LOCK.json</code> в лендинге пинит <code>passioncode-ai/fabric@a360b51</code>, перечисляет 20 файлов с sha256, а <code>npm run check</code> доказывает, что то, что отдаёт сайт, побайтово равно снапшоту. <code>sourceSha256</code> обоих манифестов совпадает: <code>8b49637faa386ce9…</code>, по 27 экспортов в каждом.</p>
+<p class="mono" style="color:var(--good)">это лучшая инженерия в обоих репозиториях, и её надо не сводить, а копировать на остальное</p>
+
+<h3>Что расходится намеренно</h3>
+<p><code>docs/ux/screens.md:56</code> решает прямо: «одобренные бренд-токены и марка <b>заменяют</b> дженерик-стайлпак для этой поверхности», калибровка <code>DESIGN_VARIANCE 7 · MOTION_INTENSITY 3 · VISUAL_DENSITY 4</code>. А <code>docs/brand/ui.md</code> держит продукт монохромным: «интерфейс остаётся операционным и монохромным; марка несёт запоминающийся цвет», «интерактивные контролы остаются монохромными».</p>
+
+<div class="scroll"><table>
+<tr><th>Слой</th><th>Лендинг</th><th>Продукт</th><th>Статус</th></tr>
+<tr><td>фон</td><td class="mono"><span class="sw" style="background:#0a070d"></span>#0a070d сливовый</td><td class="mono"><span class="sw" style="background:#0a0a0a"></span>#0a0a0a нейтральный</td><td><span class="tag t-ok">намеренно</span></td></tr>
+<tr><td>чернила</td><td class="mono"><span class="sw" style="background:#fff9f0"></span>#fff9f0 тёплые</td><td class="mono"><span class="sw" style="background:#fafafa"></span>#fafafa нейтральные</td><td><span class="tag t-ok">намеренно</span></td></tr>
+<tr><td>хрома в UI</td><td>магента, золото, свечение — несущие</td><td>только марка; состояние несёт слово</td><td><span class="tag t-ok">намеренно</span></td></tr>
+<tr><td>радиусы</td><td class="mono">12 / 24 / 38 px</td><td class="mono">4.8 / 8 / 11.2 px</td><td><span class="tag t-warn">не записано нигде</span></td></tr>
+<tr><td>шрифт</td><td class="mono">--font: Inter</td><td class="mono">display Inter Tight · body Inter · mono JetBrains</td><td><span class="tag t-warn">не записано нигде</span></td></tr>
+<tr><td>имя цвета</td><td class="mono">--plum: #41054b</td><td class="mono">роль «seed»: #41054B</td><td><span class="tag t-bad">одно значение, два имени</span></td></tr>
+</table></div>
+
+<h3>Что расходится случайно — и это всё, что надо сводить</h3>
+<ul class="can">
+  <li><b>Одно значение под двумя именами.</b> <code>#41054b</code> в лендинге зовётся <code>--plum</code>, в контракте марки — роль <code>seed</code>. То же и с <code>--magenta</code> = роль <code>interior</code>, <code>--gold</code> = роль <code>flesh</code>. Значения совпадают, словарь — нет, и первый же человек, который поменяет один, не найдёт второй.</li>
+  <li><b>Две шкалы радиусов и две типографские лестницы</b>, ни одна не объявлена как «другой регистр» — они просто разные, и нигде не сказано почему.</li>
+  <li><b>Ни один гейт не смотрит на лендинг с этой стороны.</b> <code>check-brand-lock</code> сторожит файлы марки; <code>check-design.mjs</code> в ядре сторожит рендерер. Токены лендинга не сторожит никто.</li>
+</ul>
+
+<div class="note ok"><b>Предложение — один источник, два регистра.</b> Не сводить лендинг к продукту: это уничтожит решение <code>screens.md:56</code>. Вместо этого поднять <b>один слой значений</b> — палитра марки с ролями <code>rind · interior · flesh · seed</code>, лестница пространства, семейства шрифтов — и объявить два <b>регистра</b> над ним: <code>operational</code> (продукт: хрома только у марки, плотные радиусы, три семейства) и <code>brand-led</code> (лендинг: хрома несущая, крупные радиусы, одно семейство). Тогда <code>--plum</code> исчезает как имя, а <code>#41054b</code> остаётся одним значением с одной ролью в обоих репозиториях.</div>
+
+<h2>4. Обновлённый план</h2>
+
+<p>Порядок меняется относительно вчерашнего отчёта в одном месте, и по измеренной причине: <b>шаги, которые предполагают существующие проекты, не на чем запускать</b>. Избранное, доска, сводка решений — всё это про эстейт, в котором сейчас ноль проектов.</p>
+
+<div class="card">
+<p class="label">шаг 0 · не закрыт · без изменений</p>
+<h4>Доделать M117 — девять экранов, мёртвый CSS, гейт, <code>components.md</code></h4>
+<p>Набор и харнесс в ветке (21 тест, четыре наблюдались падающими).</p>
+</div>
+
+<div class="card">
+<p class="label">шаг 1 · НОВЫЙ, поднялся наверх</p>
+<h4>Завести org #1 по-настоящему</h4>
+<p>Создать в эстейте оператора два проекта целевой картины — <b>fabric</b> и <b>passioncode-ai.github.io</b> — привязать репозитории, и <b>вычистить тестовый эстейт</b> либо зарегистрировать его как настоящий. Сегодня 68 проектов живут в эстейте, которого нет в <code>estates</code>: любая проекция, любой счётчик и любой будущий маскот-профиль считают по мусору.</p>
+<p class="mono" style="color:var(--muted)">выход: <code>select count(*) from projects where estate_id = org1</code> возвращает 2, и у каждого есть репозиторий</p>
+</div>
+
+<div class="card">
+<p class="label">шаг 2 · подтянулся из шага 1 вчерашнего плана</p>
+<h4>Единый слой значений и два регистра</h4>
+<p>Роли палитры вместо имён <code>plum/magenta/gold</code>, объявленные регистры <code>operational</code> и <code>brand-led</code>, запись решения в <code>docs/brand/ui.md</code> (сейчас оно живёт только в <code>screens.md</code>), и гейт токенов на стороне лендинга по образцу <code>check-brand-lock</code>.</p>
+</div>
+
+<div class="card">
+<p class="label">шаг 3</p>
+<h4>CI для ядра — по образцу лендинга</h4>
+<p>У сайта <code>npm run deploy</code> не выпускает без трёх зелёных проверок. У ядра CI нет вообще. Это M110, и после шага 1 оно становится срочным: дальше в базе появляются настоящие данные, которые нечем защитить.</p>
+</div>
+
+<div class="card">
+<p class="label">шаги 4–8 · без изменений по содержанию</p>
+<h4>Сценарии через <code>/ux</code> → M116 → доска+скил+провенанс → воркспейс+CEO+избранное → CEO как интерфейс → агенты</h4>
+<p>Порядок и обоснования — во вчерашнем отчёте <code>docs/architecture-proposal.html</code>. Единственное изменение: они начинаются после того, как есть эстейт, в котором это имеет смысл.</p>
+</div>
+
+<h2>5. Что решено, что измерено, что предложение</h2>
+<div class="scroll"><table>
+<tr><th>Часть</th><th>Статус</th><th>Источник</th></tr>
+<tr><td>Брендпак един и заперт по sha256</td><td style="color:var(--good)">измерено</td><td><code>brand/LOCK.json</code>, оба <code>manifest.json</code></td></tr>
+<tr><td>Лендинг — отдельный визуальный регистр</td><td style="color:var(--good)">решено</td><td><code>docs/ux/screens.md:51-58</code></td></tr>
+<tr><td>Продукт монохромный, состояние несёт слово</td><td style="color:var(--good)">решено</td><td><code>docs/brand/ui.md</code></td></tr>
+<tr><td>Эстейт оператора пуст; 68 проектов в незарегистрированном эстейте</td><td style="color:var(--good)">измерено</td><td>запросы к <code>projects</code>, <code>journal</code>, <code>estates</code></td></tr>
+<tr><td>У ядра нет CI, у лендинга есть</td><td style="color:var(--good)">измерено</td><td><code>ls .github/workflows</code> в обоих</td></tr>
+<tr><td>Один слой значений и два объявленных регистра</td><td style="color:var(--warn)">предложение</td><td>этот отчёт</td></tr>
+<tr><td>Новый шаг 1 — завести org #1</td><td style="color:var(--warn)">предложение</td><td>этот отчёт</td></tr>
+</table></div>
+
+<footer>
+Собрано 2026-09-03 на <code>feat/brand-icon-and-intake@55b790b</code>. Числа получены запросами к
+локальному стеку и командами по файловой системе. Файл не закоммичен.
+</footer>
+
+</div></body></html>

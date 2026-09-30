@@ -1,0 +1,72 @@
+{
+  "remote_heads": {
+    "command": [
+      "git",
+      "ls-remote",
+      "--heads",
+      "origin"
+    ],
+    "exit_code": 0,
+    "result": "273a5f6501637b41be67365ce636d89078241c6a\trefs/heads/codex/adopt-agent-contract\na360b51778d6a80eb294a9a91dd4809fd4dfbff1\trefs/heads/main",
+    "error": ""
+  },
+  "ahead_count": {
+    "command": [
+      "git",
+      "rev-list",
+      "--count",
+      "origin/main..HEAD"
+    ],
+    "exit_code": 0,
+    "result": "116",
+    "error": ""
+  },
+  "remote_ci": {
+    "command": [
+      "gh",
+      "api",
+      "repos/passioncode-ai/fabric/actions/runs?per_page=1",
+      "--jq",
+      "{total_count: .total_count}"
+    ],
+    "exit_code": 0,
+    "result": "{\"total_count\":0}",
+    "error": ""
+  },
+  "release_count": {
+    "command": [
+      "gh",
+      "api",
+      "repos/passioncode-ai/fabric/releases",
+      "--jq",
+      "length"
+    ],
+    "exit_code": 0,
+    "result": "0",
+    "error": ""
+  },
+  "tracking": {
+    "command": [
+      "git",
+      "for-each-ref",
+      "--format=%(refname:short) %(upstream:short)",
+      "refs/heads/feat/brand-icon-and-intake"
+    ],
+    "exit_code": 0,
+    "result": "feat/brand-icon-and-intake",
+    "error": ""
+  },
+  "attachment": {
+    "command": [
+      "docker",
+      "inspect",
+      "--format",
+      "{{.Name}} {{json .Config.Labels}} {{json .HostConfig.PortBindings}}",
+      "supabase_db_fabric",
+      "supabase_kong_fabric"
+    ],
+    "exit_code": 0,
+    "result": "/supabase_db_fabric {\"com.docker.compose.project\":\"fabric\",\"com.supabase.cli.project\":\"fabric\",\"com.supabase.cli.workdir\":\".\"} {\"5432/tcp\":[{\"HostIp\":\"\",\"HostPort\":\"54322\"}]}\n/supabase_kong_fabric {\"com.docker.compose.project\":\"fabric\",\"com.supabase.cli.project\":\"fabric\",\"com.supabase.cli.workdir\":\".\",\"maintainer\":\"Kong\"} {\"8000/tcp\":[{\"HostIp\":\"\",\"HostPort\":\"54321\"}]}",
+    "error": ""
+  }
+}

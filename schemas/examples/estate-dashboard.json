@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "0.1.0",
+  "estateId": "urn:fabric:estate:example",
+  "generatedAt": "2026-08-27T10:00:00Z",
+  "attentionTotal": 2,
+  "activeRunsTotal": 3,
+  "projects": [
+    {
+      "id": "urn:fabric:project:portfolio-observer",
+      "name": "Portfolio Observer",
+      "purpose": "Observe every managed project and route findings.",
+      "configRevision": 1,
+      "scopeMode": "all-current-and-future",
+      "manager": {"agentBindingId": "urn:fabric:project-agent:portfolio-observer:pm", "status": "running"},
+      "health": {
+        "execution": {"status": "healthy", "receiptRef": "urn:fabric:trace:portfolio:latest", "observedAt": "2026-08-27T09:59:00Z"},
+        "connections": {"status": "attention", "receiptRef": "urn:fabric:observation:google-oauth:stale", "observedAt": "2026-08-27T09:58:00Z"},
+        "production": {"status": "not-configured", "receiptRef": "urn:fabric:observation:portfolio:no-production", "observedAt": "2026-08-27T09:58:00Z"},
+        "repository": {"status": "not-configured", "receiptRef": "urn:fabric:observation:portfolio:no-repository", "observedAt": "2026-08-27T09:58:00Z"},
+        "dataFreshness": {"status": "attention", "receiptRef": "urn:fabric:observation:search-console:stale", "observedAt": "2026-08-27T09:58:00Z"}
+      },
+      "agents": {"total": 5, "running": 2, "idle": 3, "waiting": 0, "failed": 0, "offline": 0},
+      "connections": {"total": 2, "healthy": 1, "attention": 1, "failed": 0},
+      "attentionCount": 1,
+      "activeRunCount": 2,
+      "lastRun": {"id": "urn:fabric:run:portfolio:cloudflare:104", "name": "Hourly Cloudflare health", "status": "succeeded", "at": "2026-08-27T09:00:00Z", "agentBindingId": "urn:fabric:project-agent:portfolio-observer:cloudflare"},
+      "nextRun": {"id": "urn:fabric:scheduled-run:portfolio:cloudflare:105", "name": "Hourly Cloudflare health", "status": "scheduled", "at": "2026-08-27T10:00:00Z", "agentBindingId": "urn:fabric:project-agent:portfolio-observer:cloudflare"},
+      "lastReportRef": "urn:fabric:report:portfolio:weekly:2026-W35"
+    },
+    {
+      "id": "urn:fabric:project:passioncode",
+      "name": "PassionCode.ai",
+      "purpose": "Build, operate and grow PassionCode.ai.",
+      "configRevision": 3,
+      "scopeMode": "owned-assets",
+      "manager": {"agentBindingId": "urn:fabric:project-agent:passioncode:pm", "status": "running"},
+      "health": {
+        "execution": {"status": "healthy", "receiptRef": "urn:fabric:trace:passioncode:latest", "observedAt": "2026-08-27T09:57:00Z"},
+        "connections": {"status": "healthy", "receiptRef": "urn:fabric:observation:passioncode:connections", "observedAt": "2026-08-27T09:56:00Z"},
+        "production": {"status": "attention", "receiptRef": "urn:fabric:observation:passioncode:production:latency", "observedAt": "2026-08-27T09:56:00Z"},
+        "repository": {"status": "healthy", "receiptRef": "urn:fabric:observation:passioncode:repository", "observedAt": "2026-08-27T09:55:00Z"},
+        "dataFreshness": {"status": "healthy", "receiptRef": "urn:fabric:observation:passioncode:data", "observedAt": "2026-08-27T09:55:00Z"}
+      },
+      "agents": {"total": 8, "running": 1, "idle": 5, "waiting": 1, "failed": 1, "offline": 0},
+      "connections": {"total": 3, "healthy": 3, "attention": 0, "failed": 0},
+      "attentionCount": 1,
+      "activeRunCount": 1,
+      "lastRun": {"id": "urn:fabric:run:passioncode:analytics:82", "name": "Daily product metrics", "status": "succeeded", "at": "2026-08-27T08:00:00Z", "agentBindingId": "urn:fabric:project-agent:passioncode:analytics"},
+      "nextRun": {"id": "urn:fabric:scheduled-run:passioncode:analytics:83", "name": "Daily product metrics", "status": "scheduled", "at": "2026-08-28T08:00:00Z", "agentBindingId": "urn:fabric:project-agent:passioncode:analytics"},
+      "lastReportRef": "urn:fabric:report:passioncode:analytics:2026-08-27"
+    }
+  ]
+}
+

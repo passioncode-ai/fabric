@@ -1,0 +1,13 @@
+{
+  "system": "PassionCode",
+  "version": "1.1.0",
+  "repository": "https://github.com/passioncode-ai/passioncode-ai.github.io",
+  "commit": "6085d1073b28dc3b97fb9b029350a038d20afd3c",
+  "files": [
+    {
+      "source": "design-system/tokens.css",
+      "vendored": "apps/desktop/src/renderer/src/tokens.passioncode.css",
+      "sha256": "86866df1bec49b85e9def4132021401894483bb819dc2d3a3a70511d2e4b2a61"
+    }
+  ]
+}

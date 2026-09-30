@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">PassionCode.ai social card</title>
+  <desc id="desc">The PassionCode.ai passion fruit mark beside the positioning The agent-agnostic operating system for AI-native teams.</desc>
+  <defs>
+    <radialGradient id="cardGlow" cx="0" cy="0" r="1" gradientTransform="translate(972 102) rotate(118) scale(610 570)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4B0354" stop-opacity=".62"/>
+      <stop offset=".58" stop-color="#1B0C21" stop-opacity=".25"/>
+      <stop offset="1" stop-color="#0A070D" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rind-gradient" x1="250" y1="140" x2="790" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2D0039"/><stop offset="1" stop-color="#4B0354"/>
+    </linearGradient>
+    <linearGradient id="interior-gradient" x1="300" y1="220" x2="730" y2="870" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F20673"/><stop offset="1" stop-color="#D90066"/>
+    </linearGradient>
+    <linearGradient id="flesh-gradient" x1="410" y1="250" x2="620" y2="510" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD21A"/><stop offset="1" stop-color="#F5B800"/>
+    </linearGradient>
+    <linearGradient id="seed-gradient" x1="470" y1="300" x2="555" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#41054B"/><stop offset="1" stop-color="#26002F"/>
+    </linearGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#000" flood-opacity=".42"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" rx="28" fill="#0A070D"/>
+  <rect width="1200" height="630" rx="28" fill="url(#cardGlow)"/>
+  <path d="M64 64H1136" stroke="#FFF" stroke-opacity=".13"/>
+  <circle cx="936" cy="316" r="224" fill="none" stroke="#FFF" stroke-opacity=".09"/>
+  <circle cx="936" cy="316" r="278" fill="none" stroke="#FFF" stroke-opacity=".055"/>
+
+  <g transform="translate(720 94) scale(.42)" filter="url(#shadow)">
+    <path fill="url(#rind-gradient)" d="M512 92c-23 0-42 12-53 32-16 29-54 53-110 98-110 89-177 208-177 342 0 214 134 352 340 368 206-16 340-154 340-368 0-134-67-253-177-342-56-45-94-69-110-98-11-20-30-32-53-32Z"/>
+    <path fill="url(#interior-gradient)" d="M512 181c-18 0-37 7-58 17-145 70-239 213-239 365 0 185 115 306 297 324 182-18 297-139 297-324 0-152-94-295-239-365-21-10-40-17-58-17Z"/>
+    <g fill="url(#flesh-gradient)">
+      <path d="M512 230c-62 0-113 42-113 101 0 64 52 136 98 155 9 4 21 4 30 0 46-19 98-91 98-155 0-59-51-101-113-101Z"/>
+      <path id="social-chamber-left" d="M355 359c-20-1-41 18-62 48-32 45-51 90-46 141 5 52 31 76 69 66 35-9 91-35 119-54 20-13 23-38 9-65l-58-105c-10-18-19-30-31-31Z"/>
+      <use href="#social-chamber-left" transform="translate(1024 0) scale(-1 1)"/>
+      <path id="social-lower-left" d="M437 599c-30 1-66 18-99 41-40 28-58 61-53 93 5 40 46 66 88 81 48 17 90 16 112-4 16-15 14-42 13-72l-2-78c-1-39-24-62-59-61Z"/>
+      <use href="#social-lower-left" transform="translate(1024 0) scale(-1 1)"/>
+      <circle cx="512" cy="555" r="43"/>
+    </g>
+    <g fill="url(#seed-gradient)">
+      <ellipse cx="512" cy="366" rx="43" ry="76"/>
+      <ellipse cx="350" cy="500" rx="70" ry="37" transform="rotate(20 350 500)"/>
+      <ellipse cx="674" cy="500" rx="70" ry="37" transform="rotate(-20 674 500)"/>
+      <ellipse cx="408" cy="699" rx="35" ry="68" transform="rotate(36 408 699)"/>
+      <ellipse cx="616" cy="699" rx="35" ry="68" transform="rotate(-36 616 699)"/>
+    </g>
+  </g>
+
+  <g font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">
+    <text x="64" y="119" fill="#FFF9F0" font-size="26" font-weight="700" letter-spacing="-.5">PassionCode<tspan fill="#FFD21A">.ai</tspan></text>
+    <text x="64" y="185" fill="#FFD21A" font-size="14" font-weight="700" letter-spacing="2.2">FROM VIBE CODING TO PASSION CODING.</text>
+    <text x="64" y="271" fill="#FFF9F0" font-size="54" font-weight="650" letter-spacing="-2.6">The agent-agnostic</text>
+    <text x="64" y="333" fill="#FFF9F0" font-size="54" font-weight="650" letter-spacing="-2.6">operating system for</text>
+    <text x="64" y="395" fill="#FFD21A" font-size="54" font-weight="650" letter-spacing="-2.6">AI-native teams.</text>
+    <text x="64" y="473" fill="#C8BDCA" font-size="22" font-weight="450">Stop managing agents one by one.</text>
+    <text x="64" y="506" fill="#C8BDCA" font-size="22" font-weight="450">Start operating projects.</text>
+    <text x="64" y="572" fill="#857988" font-size="16" font-weight="600" letter-spacing=".5">PASSIONCODE.AI</text>
+  </g>
+</svg>

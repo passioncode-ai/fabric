@@ -1,0 +1,30 @@
+{
+  "project-audit": {
+    "path": "<home>/.agents/skills/project-audit/SKILL.md",
+    "resolved": "<home>/.agents/skills/project-audit/SKILL.md"
+  },
+  "ux-audit": {
+    "path": "<home>/.agents/skills/ux-audit/SKILL.md",
+    "resolved": "<home>/.agents/skills/ux-audit/SKILL.md"
+  },
+  "agent-orchestrator": {
+    "path": "<home>/.agents/skills/agent-orchestrator/SKILL.md",
+    "resolved": "<home>/.agents/skills/agent-orchestrator/SKILL.md"
+  },
+  "agent-harness": {
+    "path": "<home>/.agents/skills/agent-harness/SKILL.md",
+    "resolved": "<home>/.agents/skills/agent-harness/SKILL.md"
+  },
+  "sheleg-design": {
+    "path": "<home>/.agents/skills/sheleg-design/SKILL.md",
+    "resolved": "<home>/.agents/skills/sheleg-design/SKILL.md"
+  },
+  "brand-voice": {
+    "path": "<home>/.agents/skills/brand-voice/SKILL.md",
+    "resolved": "<home>/.agents/skills/brand-voice/SKILL.md"
+  },
+  "copywriting": {
+    "path": "<home>/.agents/skills/copywriting/SKILL.md",
+    "resolved": "<home>/.agents/skills/copywriting/SKILL.md"
+  }
+}

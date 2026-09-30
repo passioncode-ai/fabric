@@ -1,0 +1,395 @@
+# Domain registry — the operator's own estate (org #1), published redacted
+#
+# REDACTED FOR PUBLICATION on 2026-09-30 (ADR-0096). The measured rows are kept — 40
+# domains, their state, DNS shape, HTTP status, traffic, project linkage and expiry — so
+# every count other documents cite from this file still holds. Identifying data is
+# replaced: domain names are site-NN.example, projects are project-x, accounts are
+# personal-a / personal-b / corporate; zone and account ids, e-mail addresses, DNS
+# targets, page titles and repository names are removed. The unredacted registry stays
+# on the operator's machine.
+#
+# SCOPE (decided at the stage-0 grill, 2026-08-16): the two personal Cloudflare accounts.
+# A corporate account (31 zones) is OUT of scope: it has its own team and its own
+# decisions.
+#
+# EVERY FIELD BELOW WAS MEASURED, NOT RECALLED. Method, 2026-08-16:
+#   cloudflare.*  GET /zones?account.id=… and GET /zones/{id}/dns_records
+#   http.*        curl -sSL --max-time 12 -A 'Mozilla/5.0' https://<domain>/
+#   traffic.*     Cloudflare dashboard "unique visitors", pasted by the operator.
+#                 THIS NUMBER COUNTS BOTS. A parked domain showing 1.8k has no
+#                 demand behind it. Never use it alone as an aliveness signal.
+#   project       matched by ripgrep over the operator's project directory (full
+#                 domain, then bare label) and by `gh repo list`
+#   expires       from the registrar panel; only the alphabetical tail was supplied,
+#                 so most rows are `unknown` rather than absent.
+#
+# STATE VOCABULARY
+#   live       HTTP 200 with a non-empty title
+#   broken     DNS resolves, the server answers with an error
+#   parked     DNS points at a registrar parking page
+#   empty      Cloudflare zone exists with ZERO DNS records
+#   mail_only  MX configured, no apex or www A/CNAME — nothing served on the web
+#   no_zone    registered at the registrar, never added to Cloudflare
+
+meta:
+  measured_at: 2026-08-16
+  domains: 40
+  in_scope_accounts: [personal-a, personal-b]
+  out_of_scope_accounts: [corporate]
+  summary: {live: 15, broken: 7, parked: 1, empty: 8, mail_only: 4, no_zone: 5}
+  known_gaps: ['Registrar inventory is incomplete: the operator supplied only the alphabetical tail (12
+      rows). Domains earlier in the alphabet are unaccounted for. Closing this needs a CSV export or a
+      registrar API key.', 'traffic.cf_unique_visitors is a dashboard paste, not an API read. Replace
+      with the Cloudflare Analytics API when the collector ships.']
+accounts:
+  personal-a: {zones: 33}
+  personal-b: {zones: 2}
+  corporate: {zones: 31, in_scope: false, note: 'Corporate, with its own team and decisions. Holds 7 more
+      domains that duplicate one personal cluster; recorded so the duplication is visible, not managed.'}
+clusters:
+  one_theme_one_repository:
+    domains: [site-01.example, site-03.example, site-05.example, site-12.example, site-02.example, site-07.example,
+      site-06.example, site-31.example, site-36.example]
+    served_by: project-a
+    note: Nine domains, one repository. Seven more of the same kind sit in the out-of-scope corporate
+      account — 16 in total across two accounts on one theme.
+  one_product_five_zones:
+    domains: [site-11.example, site-25.example, site-26.example, site-23.example, site-27.example]
+    note: One live, four empty zones bought in a single pass on 2026-07-19.
+  personal_sites:
+    domains: [site-14.example, site-10.example]
+    note: Two live personal sites under two spellings of the same name. One function, two properties.
+domains:
+- name: site-01.example
+  state: live
+  account: personal-a
+  dns: {records: 13, apex: CNAME, host: heroku, mx: 3}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: 80930}
+  project: project-a
+  expires: unknown
+- name: site-02.example
+  state: live
+  account: personal-a
+  dns: {records: 13, apex: A, host: github-pages, mx: 3}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: 3190}
+  project: project-a
+  expires: 2027-04-17
+- name: site-03.example
+  state: live
+  account: personal-a
+  dns: {records: 14, apex: A, host: github-pages, mx: 3}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: 2330}
+  project: project-a
+  expires: unknown
+- name: site-04.example
+  state: live
+  account: personal-a
+  dns: {records: 11, apex: CNAME, host: heroku, mx: 4}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: 2280}
+  project: project-b
+  last_commit: 2026-08-16
+  expires: unknown
+- name: site-05.example
+  state: live
+  account: personal-a
+  dns: {records: 13, apex: A, host: github-pages, mx: 3}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: 2230}
+  project: project-a
+  expires: unknown
+- name: site-06.example
+  state: live
+  account: personal-a
+  dns: {records: 13, apex: A, host: github-pages, mx: 3}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: 2170}
+  project: project-a
+  expires: unknown
+- name: site-07.example
+  state: live
+  account: personal-a
+  dns: {records: 8, apex: A, host: github-pages, mx: 0}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: 2060}
+  project: project-a
+  expires: unknown
+- name: site-08.example
+  state: live
+  account: personal-a
+  dns: {records: 10, apex: A, host: github-pages, mx: 3}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: 1950}
+  project: null
+  source_local: false
+  expires: unknown
+  note: Live product, source on GitHub only — never cloned to this machine.
+- name: site-09.example
+  state: live
+  account: personal-a
+  dns: {records: 10, apex: CNAME, host: cloudflare-pages, mx: 5}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: 1870}
+  project: null
+  source_local: false
+  expires: unknown
+- name: site-10.example
+  state: live
+  account: personal-a
+  dns: {records: 13, apex: A, host: github-pages, mx: 2}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: 1540}
+  project: project-c
+  expires: 2027-03-09
+- name: site-11.example
+  state: live
+  account: personal-a
+  dns: {records: 12, apex: A, host: other, mx: 3}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: 1150}
+  project: project-d
+  expires: unknown
+- name: site-12.example
+  state: live
+  account: personal-a
+  dns: {records: 14, apex: A, host: github-pages, mx: 3}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: 1100}
+  project: project-a
+  expires: unknown
+- name: site-13.example
+  state: live
+  account: personal-a
+  dns: {records: 4, apex: A, host: other, mx: 0}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: 2730}
+  project: null
+  source_local: false
+  expires: unknown
+- name: site-14.example
+  state: live
+  account: personal-a
+  dns: {records: 16, apex: A, host: github-pages, mx: 6}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: 34}
+  project: project-e
+  expires: 2027-07-28
+- name: site-15.example
+  state: live
+  account: personal-b
+  dns: {records: 15, apex: CNAME, host: digitalocean, mx: 4}
+  http: {status: 200, title: non-empty}
+  traffic: {cf_unique_visitors: null}
+  project: project-f
+  last_commit: 2026-08-16
+  expires: unknown
+- name: site-16.example
+  state: broken
+  severity: highest
+  account: personal-a
+  dns: {records: 8, apex: CNAME, host: heroku, mx: 3}
+  http: {status: 503, body: Application Error, bytes: 567}
+  traffic: {cf_unique_visitors: 5630}
+  project: null
+  source_local: false
+  expires: unknown
+  note: The most-visited property in the estate and it is down. Heroku dyno is gone or crashed. No source
+    located.
+- name: site-17.example
+  state: broken
+  account: personal-a
+  dns: {records: 9, apex: A, host: other, mx: 3}
+  http: {status: 525, note: Cloudflare SSL handshake to origin failed}
+  traffic: {cf_unique_visitors: 4450}
+  project: null
+  expires: 2027-06-16
+- name: site-18.example
+  state: broken
+  account: personal-a
+  dns: {records: 10, apex: A, host: other, mx: 3}
+  http: {status: 525, note: Cloudflare SSL handshake to origin failed}
+  traffic: {cf_unique_visitors: 1830}
+  project: null
+  source_local: false
+  expires: unknown
+- name: site-19.example
+  state: broken
+  account: personal-a
+  dns: {records: 1, apex: CNAME, host: heroku, mx: 0}
+  http: {status: 503, body: Application Error}
+  traffic: {cf_unique_visitors: 1400}
+  project: null
+  source_local: false
+  expires: unknown
+- name: site-20.example
+  state: broken
+  account: personal-a
+  dns: {records: 7, apex: CNAME, host: heroku, mx: 3}
+  http: {status: 503, body: Application Error}
+  traffic: {cf_unique_visitors: 1090}
+  project: null
+  source_local: false
+  expires: 2028-03-17
+  note: Local clone was deleted; only an editor trace of it survives on the machine.
+- name: site-21.example
+  state: broken
+  account: personal-a
+  dns: {records: 9, apex: A, host: framer, mx: 3}
+  http: {status: 404, title: non-empty}
+  traffic: {cf_unique_visitors: 215}
+  project: null
+  expires: unknown
+  note: The site-builder page behind it was deleted; DNS still points at the builder.
+- name: site-22.example
+  state: parked
+  account: personal-a
+  dns: {records: 10, apex: A, host: registrar-parking, mx: 5}
+  http: {status: null, note: no response}
+  traffic: {cf_unique_visitors: 1460}
+  project: null
+  expires: unknown
+  note: The address is the registrar's parking range. The recorded 'visitors' are crawlers hitting a parking
+    page.
+- name: site-23.example
+  state: empty
+  severity: decision-not-shipped
+  account: personal-a
+  dns: {records: 0}
+  http: {status: null}
+  traffic: {cf_unique_visitors: 3}
+  project: project-g
+  expires: unknown
+  note: An ADR in another repository (2026-08-15) names this the product's home. The zone has no records.
+- name: site-24.example
+  state: empty
+  account: personal-a
+  dns: {records: 0}
+  traffic: {cf_unique_visitors: 2}
+  project: project-h
+  last_commit: 2026-08-16
+  expires: unknown
+  note: Active repository (54 commits, edited on the day of measurement, 9 uncommitted files); the domain
+    has never been pointed anywhere.
+- name: site-25.example
+  state: empty
+  account: personal-a
+  dns: {records: 0}
+  traffic: {cf_unique_visitors: 1}
+  project: project-d
+  expires: unknown
+- name: site-26.example
+  state: empty
+  account: personal-a
+  dns: {records: 0}
+  traffic: {cf_unique_visitors: 2}
+  project: project-d
+  expires: unknown
+- name: site-27.example
+  state: empty
+  account: personal-a
+  dns: {records: 0}
+  traffic: {cf_unique_visitors: 2}
+  project: project-d
+  expires: unknown
+- name: site-28.example
+  state: empty
+  account: personal-a
+  dns: {records: 0}
+  traffic: {cf_unique_visitors: 1}
+  project: null
+  expires: unknown
+- name: site-29.example
+  state: empty
+  account: personal-a
+  dns: {records: 0}
+  traffic: {cf_unique_visitors: 1}
+  project: null
+  expires: unknown
+- name: site-30.example
+  state: empty
+  account: personal-a
+  dns: {records: 0}
+  traffic: {cf_unique_visitors: 1}
+  project: null
+  expires: 2028-06-15
+- name: site-31.example
+  state: mail_only
+  account: personal-a
+  dns: {records: 7, apex: null, mx: 3}
+  http: {status: null}
+  traffic: {cf_unique_visitors: 2}
+  project: project-a
+  expires: 2026-11-20
+  note: Thousands of in-code references across two repositories, yet nothing is served. Earliest expiry
+    in the estate.
+- name: site-32.example
+  state: mail_only
+  account: personal-a
+  dns: {records: 8, mx: 2}
+  traffic: {cf_unique_visitors: 14}
+  project: project-i
+  source_local: dated snapshot, not live code
+  expires: unknown
+- name: site-33.example
+  state: mail_only
+  account: personal-a
+  dns: {records: 5, apex: null, mx: 3}
+  traffic: {cf_unique_visitors: 1}
+  project: null
+  expires: unknown
+- name: site-34.example
+  state: mail_only
+  account: personal-a
+  dns: {records: 5, apex: null, mx: 3}
+  traffic: {cf_unique_visitors: 1}
+  project: null
+  expires: unknown
+- name: site-35.example
+  state: no_zone
+  registrar: namecheap
+  http: {status: null}
+  project: project-j
+  last_commit: 2026-07-27
+  expires: 2027-05-14
+  note: 90-commit repository, 289 in-code references, and the domain is not even in Cloudflare. Linear
+    marks the project `canceled`.
+- name: site-36.example
+  state: no_zone
+  registrar: namecheap
+  http: {status: null}
+  project: project-j
+  expires: 2027-05-14
+- name: site-37.example
+  state: no_zone
+  registrar: namecheap
+  http: {status: null}
+  project: project-k
+  last_commit: 2026-06-19
+  expires: 2027-06-08
+- name: site-38.example
+  state: no_zone
+  registrar: namecheap
+  http: {status: null}
+  project: project-k
+  expires: 2027-06-08
+- name: site-39.example
+  state: no_zone
+  registrar: namecheap
+  http: {status: null}
+  project: project-k
+  expires: 2027-06-08
+  note: The recorded suffix is not a delegated TLD in the root zone — most likely a transcription error
+    in the registrar-panel paste. Verify.
+- name: site-40.example
+  state: broken
+  account: personal-b
+  dns: {records: 8, apex: CNAME, host: digitalocean, mx: 3}
+  http: {status: 404}
+  traffic: {cf_unique_visitors: null}
+  project: project-f
+  expires: unknown
+  note: Points at a DigitalOcean app that does not answer for this host — hence the 404. Either an alias
+    never configured on the app, or a leftover.

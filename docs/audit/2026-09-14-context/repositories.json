@@ -1,0 +1,34 @@
+[
+  {
+    "repository": "https://github.com/passioncode-ai/fabric",
+    "branch": "codex/context-audit-2026-09-14",
+    "baseline": "a838073de097be1ce136730c8ef41070929a7196",
+    "status": "audit/planning changes in this branch; source delivery commit is Git HEAD containing this file",
+    "entry": "docs/audit/2026-09-14-context/README.md",
+    "next": "P01; product implementation not started"
+  },
+  {
+    "repository": "https://github.com/passioncode-ai/fabric-workspace",
+    "branch": "main",
+    "commit": "40e6d0fe5fee717f0728a59aac25f9b8c3313a6e",
+    "status": "read-only; remote main equals inspected pin; no child changes in audit",
+    "entry": "README.md",
+    "next": "publish reviewed parent only after named fast blockers are resolved"
+  },
+  {
+    "repository": "https://github.com/passioncode-ai/fabric-agent-contract",
+    "branch": "main",
+    "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+    "status": "read-only; remote main verified; not a full sibling audit",
+    "entry": "README.md",
+    "next": "no member work proposed until P09 identifies contract change"
+  },
+  {
+    "repository": "https://github.com/passioncode-ai/fabric-agent-adapter",
+    "branch": "main",
+    "commit": "5d2ccd7a124d7052f743529d8dcf0caf294bfdfd",
+    "status": "read-only; remote main verified; unrelated local untracked files preserved",
+    "entry": "README.md",
+    "next": "no member work proposed until P09 identifies adapter change"
+  }
+]

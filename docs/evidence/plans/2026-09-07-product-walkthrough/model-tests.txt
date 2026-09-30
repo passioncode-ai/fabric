@@ -1,0 +1,32 @@
+✔ complete model and pinned evidence pass without filesystem access (2.027792ms)
+✔ canonical status is read from the owning section, not a later scenario (0.774208ms)
+✔ canonical screen cannot disappear from the report (0.289666ms)
+✔ canonical scenario omission is not hidden by copied counts (0.116708ms)
+✔ screen default cannot point at a non-existing renderer (0.157125ms)
+✔ alias cycle is rejected (0.110084ms)
+✔ four graph meanings cannot collapse into three destinations (0.106583ms)
+✔ journey cannot show another screen under the original label (0.126ms)
+✔ branch must originate at an actual step (0.155958ms)
+✔ fixture route cannot silently fall back to the first project (0.190042ms)
+✔ fixture question cannot borrow a task from another project (0.126208ms)
+✔ fixture run ordinal must exist (0.112417ms)
+✔ active infrastructure task still needs acceptance (0.163792ms)
+✔ active context cannot be removed while active list remains (0.147333ms)
+✔ forged audit source hash fails against pinned git blob (0.166834ms)
+✔ true file hash does not excuse a fabricated excerpt (0.10775ms)
+✔ source range beyond actual blob is rejected (0.216667ms)
+✔ receipt cannot read an absolute path (0.188916ms)
+✔ prototype cannot upgrade canonical draft to implemented (0.100666ms)
+✔ target model cannot claim a runtime audit (0.04125ms)
+✔ active task set must come from independent engineering catalog (0.041542ms)
+✔ invented later task is not legitimised by its own context row (0.071167ms)
+✔ source link cannot point at another commit than the verified receipt (0.148125ms)
+✔ an empty acceptance string does not constitute a usable test (0.113458ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 65.700166

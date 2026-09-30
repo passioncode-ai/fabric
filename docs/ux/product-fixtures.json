@@ -1,0 +1,399 @@
+{
+ "schema": "fabric-product-fixtures/v1",
+ "notice": "Все люди, проекты, задачи, показатели, даты и результаты в мокапе — демонстрационные данные. Это не чтение живого Fabric и не доказательство готовности фич.",
+ "as_of": "2026-09-07T09:42:00+02:00",
+ "estate": "Design studio",
+ "projects": [
+  {
+   "id": "atlas",
+   "name": "Atlas",
+   "purpose": "Запустить командный доступ без потери контекста",
+   "repo": "atlas-app",
+   "work": "AT-42 · Приглашение после входа",
+   "attention": 2,
+   "running": 1,
+   "status": "Нужно решение",
+   "initials": "At"
+  },
+  {
+   "id": "orbit",
+   "name": "Orbit",
+   "purpose": "Надёжная доставка событий API",
+   "repo": "orbit-api",
+   "work": "OR-18 · Повторная доставка",
+   "attention": 0,
+   "running": 2,
+   "status": "В работе",
+   "initials": "Or"
+  },
+  {
+   "id": "studio",
+   "name": "Studio",
+   "purpose": "Проверить спрос на новую услугу",
+   "repo": null,
+   "work": "ST-07 · Интервью с пользователями",
+   "attention": 1,
+   "running": 0,
+   "status": "Пауза",
+   "initials": "St"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "AT-38",
+   "title": "Зафиксировать границы командного доступа",
+   "state": "done",
+   "owner": "Оператор",
+   "origin": "План проекта",
+   "verification": "Контракт проверен",
+   "project": "atlas"
+  },
+  {
+   "id": "AT-42",
+   "title": "Не терять приглашение после входа",
+   "state": "running",
+   "owner": "Builder · Claude Code",
+   "origin": "План проекта",
+   "verification": "Ожидает повторной проверки",
+   "project": "atlas"
+  },
+  {
+   "id": "AT-47",
+   "title": "Проверить отзыв приглашения во время входа",
+   "state": "backlog",
+   "owner": "Reviewer",
+   "origin": "Добавил Builder из AT-42",
+   "verification": "Ещё не проверено",
+   "project": "atlas"
+  },
+  {
+   "id": "AT-50",
+   "title": "Выпустить командный доступ",
+   "state": "backlog",
+   "owner": "Product manager",
+   "origin": "План проекта",
+   "verification": "Зависит от AT-42 и AT-47",
+   "project": "atlas"
+  },
+  {
+   "id": "OR-18",
+   "title": "Проверить повторную доставку событий",
+   "state": "running",
+   "owner": "Builder · Codex",
+   "origin": "Наблюдение цикла",
+   "verification": "Проверки идут",
+   "project": "orbit"
+  }
+ ],
+ "steps": [
+  {
+   "id": "understand",
+   "label": "Воспроизвести потерю приглашения",
+   "result": "Сценарий воспроизведён на стенде"
+  },
+  {
+   "id": "contract",
+   "label": "Зафиксировать контракт возврата",
+   "result": "Параметр возврата привязан к scope"
+  },
+  {
+   "id": "implement",
+   "label": "Сохранить приглашение до подтверждения",
+   "result": "Изменения подготовлены"
+  },
+  {
+   "id": "verify",
+   "label": "Проверить свежий и отозванный invite",
+   "result": "Нужна независимая проверка"
+  },
+  {
+   "id": "checkpoint",
+   "label": "Чекпоинт: review и доказательства",
+   "result": "Приёмка по двум сценариям"
+  }
+ ],
+ "runs": [
+  {
+   "id": "run-01",
+   "iteration": 1,
+   "state": "failed",
+   "plan_version": "plan-v1",
+   "started": "09:08",
+   "ended": "09:21",
+   "summary": "Первый подход не прошёл проверку отозванного приглашения",
+   "step_states": [
+    "done",
+    "done",
+    "done",
+    "failed",
+    "blocked"
+   ],
+   "evidence": "Проверка E-14: отозванное приглашение оставалось в контексте",
+   "reason": "Отрицательный тест не пройден; дальнейший прогон отдельно"
+  },
+  {
+   "id": "run-02",
+   "iteration": 2,
+   "state": "running",
+   "plan_version": "plan-v2",
+   "started": "09:34",
+   "ended": null,
+   "summary": "Новый полный прогон с проверкой отзыва на границе входа",
+   "step_states": [
+    "done",
+    "done",
+    "active",
+    "pending",
+    "pending"
+   ],
+   "evidence": "E-17: воспроизведение; E-18: контракт принят",
+   "reason": "Действующий прогон, шаги не наследуют статус из прогона 1"
+  }
+ ],
+ "questions": [
+  {
+   "id": "Q-12",
+   "kind": "approval",
+   "title": "Разрешить проверку приглашения на staging?",
+   "task": "AT-42",
+   "project": "atlas",
+   "owner": "Оператор",
+   "origin": "Builder · run-02",
+   "state": "open",
+   "detail": "Один проверочный запрос в Atlas staging. Отправки пользователям и production не входят в разрешение.",
+   "asked_at": "2026-09-07T09:30:00+02:00",
+   "priority_components": {
+    "blocking": 40,
+    "breadth": 10,
+    "age": 0,
+    "kind_weight": 15,
+    "goal_proximity": 20,
+    "project_weight": 25
+   },
+   "priority_source": "fixture CEO tick 09:42 / board-and-ceo §4.2"
+  },
+  {
+   "id": "Q-13",
+   "kind": "decision",
+   "title": "Нужна ли проверка уже отозванных приглашений?",
+   "task": "AT-47",
+   "project": "atlas",
+   "owner": "Product manager",
+   "origin": "Ретро прогона 1",
+   "state": "open",
+   "detail": "Reviewer нашёл сценарий отзыва между открытием ссылки и входом. Решение уточняет план и критерий приёмки.",
+   "asked_at": "2026-09-07T09:30:00+02:00",
+   "priority_components": {
+    "blocking": 0,
+    "breadth": 0,
+    "age": 0,
+    "kind_weight": 10,
+    "goal_proximity": 20,
+    "project_weight": 25
+   },
+   "priority_source": "fixture CEO tick 09:42 / board-and-ceo §4.2"
+  }
+ ],
+ "events": [
+  {
+   "time": "09:42",
+   "title": "Builder запросил доступ к staging",
+   "detail": "Q-12 · AT-42 · Atlas",
+   "kind": "Вопрос",
+   "view": "question",
+   "id": "fixture-event-1",
+   "project": "atlas",
+   "question": "Q-12",
+   "task": "AT-42"
+  },
+  {
+   "time": "09:39",
+   "title": "Добавлена проверка отозванного приглашения",
+   "detail": "AT-47 ← AT-42 · автор Builder",
+   "kind": "Новая задача",
+   "view": "project-history",
+   "id": "fixture-event-2",
+   "project": "atlas",
+   "task": "AT-47",
+   "graphSelected": "node:AT-47"
+  },
+  {
+   "time": "09:34",
+   "title": "Начат прогон 2",
+   "detail": "AT-42 · plan-v2 · Builder",
+   "kind": "Прогон",
+   "view": "task",
+   "id": "fixture-event-3",
+   "project": "atlas",
+   "task": "AT-42",
+   "run": "run-02"
+  },
+  {
+   "time": "09:23",
+   "title": "Ретро связано с отрицательным тестом",
+   "detail": "R-08 → E-14 → run-01",
+   "kind": "Ретро",
+   "view": "retro",
+   "id": "fixture-event-4",
+   "project": "atlas",
+   "episode": "R-08"
+  }
+ ],
+ "memory": [
+  {
+   "id": "F-21",
+   "title": "Отзыв приглашения проверяется в момент входа",
+   "kind": "Подтверждённый факт",
+   "source": "Решение D-08 · E-14",
+   "state": "Актуально",
+   "used": "Контекст прогона 2"
+  },
+  {
+   "id": "F-19",
+   "title": "Invite можно хранить до конца браузерной сессии",
+   "kind": "Утверждение агента",
+   "source": "Builder · run-01",
+   "state": "Исправлено → F-21",
+   "used": "Контекст прогона 1"
+  },
+  {
+   "id": "R-08",
+   "title": "Проверять отзыв на границе доступа",
+   "kind": "Урок ретро",
+   "source": "run-01 · отрицательный тест",
+   "state": "На проверке",
+   "used": "Следующий прогон"
+  }
+ ],
+ "agents": [
+  {
+   "id": "pm",
+   "name": "Product manager",
+   "provider": "Fabric loop",
+   "scope": "Atlas",
+   "status": "Пауза до решения",
+   "task": "Q-13",
+   "role": "product-manager"
+  },
+  {
+   "id": "builder",
+   "name": "Builder",
+   "provider": "Claude Code",
+   "scope": "Atlas",
+   "status": "В работе",
+   "task": "AT-42",
+   "role": "builder"
+  },
+  {
+   "id": "reviewer",
+   "name": "Reviewer",
+   "provider": "Codex",
+   "scope": "Atlas",
+   "status": "Ожидает результата",
+   "task": "AT-47",
+   "role": "reviewer"
+  },
+  {
+   "id": "orbit-builder",
+   "name": "Builder",
+   "provider": "Codex",
+   "scope": "Orbit",
+   "status": "В работе",
+   "task": "OR-18",
+   "role": "builder"
+  }
+ ],
+ "decisions": [
+  {
+   "id": "D-08",
+   "title": "Проверять отзыв в момент входа",
+   "project": "atlas",
+   "task": "AT-42",
+   "reason": "Отрицательный тест E-14 показал устаревшее разрешение",
+   "author": "Оператор",
+   "evidence": "E-14",
+   "state": "current",
+   "origin": "Ретроспектива AT-42 / E-14; отдельного вопроса в исходном наборе нет",
+   "time": "09:38"
+  }
+ ],
+ "proposals": [
+  {
+   "id": "P-17",
+   "project": "atlas",
+   "sourceProject": "orbit",
+   "source": "OR-E-02",
+   "title": "Проверить повторную доставку после отзыва доступа",
+   "owner": "Product manager",
+   "status": "open"
+  }
+ ],
+ "observations": [],
+ "goals": [
+  {
+   "id": "G-7",
+   "project": "atlas",
+   "title": "Запустить командный доступ",
+   "revision": "plan-v2",
+   "criteria": "Свежая ссылка работает; отозванная не даёт доступа.",
+   "state": "running",
+   "tasks": [
+    "AT-38",
+    "AT-42",
+    "AT-47",
+    "AT-50"
+   ]
+  },
+  {
+   "id": "OR-G1",
+   "project": "orbit",
+   "title": "Надёжная доставка событий API",
+   "revision": "orbit-plan-v1",
+   "criteria": "Один effect на один event id",
+   "state": "running",
+   "tasks": [
+    "OR-18"
+   ]
+  }
+ ],
+ "taskLinks": [
+  {
+   "project": "atlas",
+   "from": "AT-38",
+   "to": "AT-42",
+   "rel": "needs",
+   "payload": "Проверенный результат задачи AT-38",
+   "source": "plan-v2"
+  },
+  {
+   "project": "atlas",
+   "from": "AT-42",
+   "to": "AT-50",
+   "rel": "needs",
+   "payload": "Проверенный результат задачи AT-42",
+   "source": "plan-v2"
+  },
+  {
+   "project": "atlas",
+   "from": "AT-47",
+   "to": "AT-50",
+   "rel": "needs",
+   "payload": "Проверенный результат задачи AT-47",
+   "source": "plan-v2"
+  }
+ ],
+ "governance": {},
+ "leases": [
+  {
+   "id": "LEASE-AT50-1",
+   "project": "atlas",
+   "task": "AT-50",
+   "owner": "Builder · прежняя сессия",
+   "created_at": "2026-09-07T07:00:00Z",
+   "expires_at": "2026-09-07T07:30:00Z",
+   "status": "expired-unreconciled",
+   "scope": "atlas-app / release preparation",
+   "fenced": false
+  }
+ ]
+}

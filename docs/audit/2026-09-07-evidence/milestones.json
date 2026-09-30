@@ -1,0 +1,1374 @@
+[
+  {
+    "id": "M0",
+    "title": "Vision, ontology, decisions, the measured registry",
+    "status": "**in review**",
+    "line": 15,
+    "normalized_claim": "in_review"
+  },
+  {
+    "id": "M1",
+    "title": "Schema and the declared-layer mirror",
+    "status": "open",
+    "line": 16,
+    "normalized_claim": "open"
+  },
+  {
+    "id": "M2",
+    "title": "The graph: depth, payload edges, versioned rebuilds",
+    "status": "open",
+    "line": 17,
+    "normalized_claim": "open"
+  },
+  {
+    "id": "M3",
+    "title": "The floor and grants",
+    "status": "open",
+    "line": 18,
+    "normalized_claim": "open"
+  },
+  {
+    "id": "M4",
+    "title": "Collectors: Cloudflare, HTTP probe, GitHub",
+    "status": "open",
+    "line": 19,
+    "normalized_claim": "open"
+  },
+  {
+    "id": "M5",
+    "title": "The dashboard: asset map and approval queue",
+    "status": "open — the CO-002 gate note was stale; CO-002 is resolved",
+    "line": 20,
+    "normalized_claim": "open"
+  },
+  {
+    "id": "M6",
+    "title": "Departments, hiring, the terminal runner",
+    "status": "open",
+    "line": 21,
+    "normalized_claim": "open"
+  },
+  {
+    "id": "M7",
+    "title": "The CEO: decompose, assign, escalate",
+    "status": "open",
+    "line": 22,
+    "normalized_claim": "open"
+  },
+  {
+    "id": "M8",
+    "title": "Notifications across four transports",
+    "status": "**partly shipped** — the first transport, and the one that needs no provider, key or configuration: the operating system’s own notification, fired only when the window is not in front, once per waiting thing, and collapsed to one message for a burst. **The other three are named rather than built**: mail, a chat channel and a phone each need a credential, a budget and somewhere to put a failure, and none of that is scheduled",
+    "line": 23,
+    "normalized_claim": "partial_claim"
+  },
+  {
+    "id": "M9",
+    "title": "Google: OAuth, Search Console, Analytics",
+    "status": "open (gated on CO-004)",
+    "line": 24,
+    "normalized_claim": "open"
+  },
+  {
+    "id": "M10",
+    "title": "Service terminals on the board",
+    "status": "open",
+    "line": 25,
+    "normalized_claim": "open"
+  },
+  {
+    "id": "M11",
+    "title": "**Connectors as plugins**",
+    "status": "proposed",
+    "line": 175,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M12",
+    "title": "**Source cadence and processing**",
+    "status": "proposed",
+    "line": 176,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M13",
+    "title": "**Checkups on a timer**",
+    "status": "**partly shipped** — routines exist per project with the three rules a scheduler gets quietly wrong: a missed window is not made up, nothing starts over its own last run, and a routine that was due and did not start records why. The quota gate stands in front of every unattended start. **Not built:** per-kind checkups writing observations, which is what the row is finally about",
+    "line": 177,
+    "normalized_claim": "partial_claim"
+  },
+  {
+    "id": "M14",
+    "title": "**The fabric as the agent's counterpart**",
+    "status": "proposed",
+    "line": 178,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M15",
+    "title": "**Bidirectional MCP control surface** — *southbound half shipped 2026-08-31*: the agent surface serves sessions Fabric starts, over the same Streamable HTTP server, credential-scoped, journal-backed. What remains is the northbound half: external clients, Estate-owned access bindings, the policy port and idempotent control commands (ADR-0026 §3–5)",
+    "status": "**decided, unscheduled**",
+    "line": 179,
+    "normalized_claim": "decided_unscheduled"
+  },
+  {
+    "id": "M16",
+    "title": "**The terminal layer**",
+    "status": "**scheduled — slice 1** (ADR-0031)",
+    "line": 180,
+    "normalized_claim": "scheduled"
+  },
+  {
+    "id": "M17",
+    "title": "**Agent picker and launch**",
+    "status": "**shipped** — `b50ac83`: a third agent is one descriptor row, and the surface adapter it declares is dispatched rather than assumed — an unimplemented adapter now refuses instead of borrowing Claude Code’s flags",
+    "line": 181,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M18",
+    "title": "**Pipeline editor**",
+    "status": "**decided, unscheduled**",
+    "line": 182,
+    "normalized_claim": "decided_unscheduled"
+  },
+  {
+    "id": "M19",
+    "title": "**The growth loop as a pipeline**",
+    "status": "proposed",
+    "line": 212,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M20",
+    "title": "**Producers other than the CEO**",
+    "status": "proposed",
+    "line": 213,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M21",
+    "title": "**The content chain**",
+    "status": "proposed",
+    "line": 214,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M22",
+    "title": "**`copywriter` as a service department**",
+    "status": "proposed",
+    "line": 215,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M23",
+    "title": "**Attribution**",
+    "status": "proposed",
+    "line": 216,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M24",
+    "title": "**`performance-marketing`**",
+    "status": "proposed",
+    "line": 217,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M25",
+    "title": "**`ops-watch`**",
+    "status": "proposed",
+    "line": 218,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M26",
+    "title": "**`domain-scout`**",
+    "status": "proposed",
+    "line": 219,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M27",
+    "title": "**`support-manager`**",
+    "status": "proposed",
+    "line": 220,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M28",
+    "title": "**PBN operation**",
+    "status": "proposed",
+    "line": 221,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M29",
+    "title": "**The account registry**",
+    "status": "proposed",
+    "line": 222,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M30",
+    "title": "**Outbound engagement**",
+    "status": "proposed",
+    "line": 223,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M31",
+    "title": "**`emailer`**",
+    "status": "proposed",
+    "line": 224,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M32",
+    "title": "**Capability registry and bindings**",
+    "status": "proposed",
+    "line": 234,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M33",
+    "title": "**The bundle compiler**",
+    "status": "proposed",
+    "line": 235,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M34",
+    "title": "**Transport adapters and the provider probe**",
+    "status": "proposed",
+    "line": 236,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M35",
+    "title": "**Project-scoped organisation**",
+    "status": "**decided, unscheduled**",
+    "line": 237,
+    "normalized_claim": "decided_unscheduled"
+  },
+  {
+    "id": "M36",
+    "title": "**Agent marketplace**",
+    "status": "proposed",
+    "line": 238,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M37",
+    "title": "**Agent production pipeline**",
+    "status": "**decided, unscheduled**",
+    "line": 239,
+    "normalized_claim": "decided_unscheduled"
+  },
+  {
+    "id": "M42",
+    "title": "**Wave 2 — the interface stops asserting what it cannot see**",
+    "status": "**shipped 2026-08-31**",
+    "line": 250,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M43",
+    "title": "**Wave 2 — startup reconciliation**",
+    "status": "**shipped 2026-09-01**",
+    "line": 251,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M44",
+    "title": "**Wave 2 — provenance in `memory_facts`**",
+    "status": "**shipped 2026-09-01**",
+    "line": 252,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M45",
+    "title": "**Transcript capture — `transcript.captured@1`**",
+    "status": "**shipped 2026-08-31**",
+    "line": 253,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M46",
+    "title": "**Retrieval decisions are logged, including the negative ones**",
+    "status": "**shipped 2026-09-01**",
+    "line": 254,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M47",
+    "title": "**The memory eval fixture**",
+    "status": "**shipped 2026-08-31**",
+    "line": 255,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M48",
+    "title": "**Bi-temporal validity, and the tiered read for FACTS**",
+    "status": "**shipped 2026-09-01**",
+    "line": 256,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M49",
+    "title": "**The context pack with a lockfile**",
+    "status": "**shipped 2026-09-01**",
+    "line": 257,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M50",
+    "title": "**The manager pre-fills a project from its repository**",
+    "status": "proposed",
+    "line": 273,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M51",
+    "title": "**Agents mark the task they are working on**",
+    "status": "proposed",
+    "line": 274,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M52",
+    "title": "**An instruction typed at an agent becomes a task**",
+    "status": "proposed",
+    "line": 275,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M61",
+    "title": "**An agent proves it has the access it needs**",
+    "status": "proposed",
+    "line": 276,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M56",
+    "title": "**Repository state**",
+    "status": "**shipped 2026-09-01; the last commit reached a screen only 2026-09-05 (M113)** — measured, cached and unit-tested from the first day, rendered by nobody until now",
+    "line": 282,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M57",
+    "title": "**Statistics that measure the project, not Fabric**",
+    "status": "**partly shipped; corrected 2026-09-05 (M113)** — commits and lines moved over a window now ship and are on the strip. **“Lines of code” is NOT shipped under that name**: the honest measure is tracked lines, and on this repository its two largest entries are an icon JSON and a font licence. **Tokens and cost are not shippable** — CO-096 measured the endpoint returning utilisation with every dollar field null and nothing per-project. The row claimed five numbers and shipped none; it now claims what exists",
+    "line": 283,
+    "normalized_claim": "partial_claim"
+  },
+  {
+    "id": "M58",
+    "title": "**Project analytics as its own screen**",
+    "status": "proposed",
+    "line": 284,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M59",
+    "title": "**An agent tile that reports time honestly**",
+    "status": "proposed",
+    "line": 285,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M54",
+    "title": "**A task opens into a detail**",
+    "status": "proposed",
+    "line": 286,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M62",
+    "title": "**The project page is re-composed**",
+    "status": "proposed",
+    "line": 292,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M53",
+    "title": "**Tasks as a list, running first**",
+    "status": "proposed",
+    "line": 293,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M55",
+    "title": "**Add a task by hand**",
+    "status": "proposed",
+    "line": 294,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M63",
+    "title": "**Window chrome**",
+    "status": "**shipped 2026-09-01**",
+    "line": 295,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M64",
+    "title": "**The design pass**",
+    "status": "proposed",
+    "line": 301,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M60",
+    "title": "**Adding an agent, and where an agent's logic lives**",
+    "status": "proposed",
+    "line": 302,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M65",
+    "title": "**Automations as one surface**",
+    "status": "**shipped** — one surface: what is running now (and whether a person or a schedule started it), what is scheduled, and what happened before INCLUDING the runs that did not happen. A run of pauses is stated as a sentence rather than left as rows to count. The `Workflows` panel’s claim that routines \"arrive with the agent runtime\" was retired, not left collapsed: a false claim is worse than an empty panel",
+    "line": 319,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M66",
+    "title": "**An automation is an agent, a task and a trigger**",
+    "status": "proposed",
+    "line": 320,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M67",
+    "title": "**An automation's result becomes a task for another agent**",
+    "status": "proposed",
+    "line": 321,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M68",
+    "title": "**A declared bound on agent-to-agent loops**",
+    "status": "**shipped** — the bound is on the CHAIN from one originating task, counted along `spawned` links only (`blocks` and `follows` order work rather than produce it). At the bound the next result becomes a proposal in the attention queue with two acts, and accepting creates the task WITHOUT reattaching it to the chain, because a person deciding is what makes it a new beginning rather than round five",
+    "line": 322,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M69",
+    "title": "**An agent can be hired more than once, and the panel says so**",
+    "status": "proposed",
+    "line": 328,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M70",
+    "title": "**The sessions view**",
+    "status": "proposed",
+    "line": 329,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M71",
+    "title": "**The sessions surface across all projects**",
+    "status": "proposed",
+    "line": 330,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M72",
+    "title": "**A settings screen**",
+    "status": "proposed",
+    "line": 336,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M73",
+    "title": "**Keep the computer awake**",
+    "status": "**shipped 2026-09-01**",
+    "line": 337,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M74",
+    "title": "**One law for a citation**",
+    "status": "proposed",
+    "line": 349,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M75",
+    "title": "**The embedded browser, and its isolation contract**",
+    "status": "proposed",
+    "line": 350,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M76",
+    "title": "**Preview for what the editor cannot open**",
+    "status": "proposed",
+    "line": 351,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M78",
+    "title": "**The estate home is re-composed**",
+    "status": "proposed",
+    "line": 362,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M77",
+    "title": "**Delete a project, with confirmation**",
+    "status": "proposed",
+    "line": 363,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M79",
+    "title": "**A backlog state, before `running`**",
+    "status": "proposed",
+    "line": 369,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M81",
+    "title": "**A diagnostic log across the whole product**",
+    "status": "proposed",
+    "line": 375,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M82",
+    "title": "**`docs/brand/ui.md`**",
+    "status": "**done 2026-09-02** — visual identity, product/brand colour boundary, component/state rules and the generated favicon contract are recorded; `gates:design` checks the icon matrix",
+    "line": 381,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M83",
+    "title": "**Quota on the home, with its reset**",
+    "status": "**shipped 2026-09-01 on the PROJECT page; on the home, with its per-model breakdown, 2026-09-05 (M113)** — the milestone says “on the home”, and the home showed none",
+    "line": 405,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M84",
+    "title": "**The manager, on the home**",
+    "status": "proposed",
+    "line": 406,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M85",
+    "title": "**Sessions without a project**",
+    "status": "proposed",
+    "line": 407,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M86",
+    "title": "**One session list, not three**",
+    "status": "proposed",
+    "line": 408,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M87",
+    "title": "**The canvas opens as a tab, and switches if already open**",
+    "status": "proposed",
+    "line": 431,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M88",
+    "title": "**A canvas card is ONE object with three faces**",
+    "status": "proposed",
+    "line": 432,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M89",
+    "title": "**Runs are events; the standing result is their projection**",
+    "status": "proposed",
+    "line": 433,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M90",
+    "title": "**An edge declares its payload AND its staleness policy**",
+    "status": "proposed",
+    "line": 434,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M91",
+    "title": "**The canvas graph is a DAG, enforced when the edge is drawn**",
+    "status": "proposed",
+    "line": 435,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M92",
+    "title": "**An agent declares what it needs and what it produces**",
+    "status": "proposed",
+    "line": 436,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M93",
+    "title": "**The catalogue of ready-made agents**",
+    "status": "proposed",
+    "line": 437,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M94",
+    "title": "**Automations are gated by quota**",
+    "status": "**shipped** — and built BEFORE the thing it guards, because M132’s own row says a daily unattended agent without it is the shape that burns an account overnight. It gates work nobody is watching and never the operator’s own hands; an unknown quota blocks; and a refusal names the window and its reset, so waiting an hour and waiting for the weekly turnover are different answers",
+    "line": 438,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M95",
+    "title": "**Transcripts redact secrets**",
+    "status": "**shipped** — `d2a215f`: an ordered rule set redacts before the record is written, and `describeRedactions` says what was removed rather than removing it silently",
+    "line": 457,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M96",
+    "title": "**A gate that catches citation rot**",
+    "status": "**shipped** — and the check that existed **could not catch the example this row reproduces**: it failed a citation only when the file was too short or the line blank, and a line holding a statistics loader is neither. It also read 4 of 97 documents. Now: every LIVING document is read, a bare `file:line` in one is refused because no gate can check what a line SAYS, symbol citations are verified against the file, and the 307 citations in 24 dated snapshots are excluded **out loud** — an audit report records a moment, and rewriting its receipts falsifies it. All six living line citations were converted first, so the rule starts from zero",
+    "line": 458,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M97",
+    "title": "**One projector, not ten copies**",
+    "status": "**shipped** — dissolved into `apply_estate_and_projects` (7 arms), `apply_task_lifecycle_base` (7), `apply_memory_facts` (2), and the legacy function DROPPED rather than emptied. **Two extraction errors, both caught by probes within a minute**: the last legacy body is in `…0014`, not 0012 — taking 0012 dropped the rule that an agent may not supersede a PERSON’s fact (P18 red) — and it carries SIXTEEN arms, not fifteen, because 0013 added `context.compiled@1`. Fifteen migrations redefine the projector; “the latest” is measured, never assumed. **P24 proves behaviour did not move**: every projection snapshotted, both estates rebuilt through the new dispatcher, hashes equal",
+    "line": 459,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M98",
+    "title": "**Split the two files that hold everything**",
+    "status": "proposed",
+    "line": 460,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M99",
+    "title": "**Finish or remove the inert surface**",
+    "status": "**shipped — and half of it was already done.** The **Workflows panel was deleted by `a97a1e4` (M65)** at 18:37 on 2026-09-05, two and a half hours before this row was worked; line 132 of `ProjectHome.tsx`, the line it cites, now holds a statistics loader. The memory half is real but was described too harshly: not a dead button but a DISABLED radio carrying its own reason. The defect is that a radiogroup with one selectable option **asks** a question with one answer, in the form where the operator is deciding what their project is. Unavailable backends were removed from that form — and **the operator overturned that on 2026-09-05**: the roadmap a disabled option states out loud is worth more to them than the cost of a radio nobody can press, so it is shown again with its reason. **The half that survives is the more useful one**: a single DECLARED backend is a statement rather than a radiogroup of one, and a shown option is not a selectable one. A latent lie the row did not name is fixed with it: the label and hint were chosen by ternary, so a second available backend would have been labelled “Cloud” and described as living on this machine",
+    "line": 461,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M100",
+    "title": "**A failed start must be visible**",
+    "status": "**shipped** — the catch now classifies, writes a log the operator can find, and shows a dialog naming the precondition with what to do about it. **The row said three causes; measuring found seven**, and two pairs that a careless matcher conflates: a missing binary and a start that timed out are both `spawnSync supabase <CODE>`, and a missing WORKING DIRECTORY is `ENOENT` exactly like a missing binary — so a wrong `FABRIC_REPO` would have told the operator to install software they already have. That ambiguity is removed in `main/repoRoot.ts`, where the knowledge to resolve it exists. Retry is offered only before `surface.start()`, a boundary OBSERVED rather than inferred. Driven for real three times against a rebuilt bundle",
+    "line": 481,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M101",
+    "title": "**Starting the stack blocks the main thread**",
+    "status": "**shipped** — and the UNVERIFIED half is settled first, which changes the answer: **the splash did not paint**. Measured from inside the renderer, whose own clock puts its script at +6387 ms against a block ending at +6328 ms; a main-process timestamp could not have shown it, because an event fired during a block is merely delivered late. The abandoned probe was abandoned for the right reason and the bounded version took one run. `startStack`, `stackStatusEnv` and `resolveSupabaseEnv` are now asynchronous, the same probe shows the page running 44 ms into the wait, and the splash carries elapsed time and the stack’s own last line. Moving the call also changed what a timeout LOOKS like, which would have silently downgraded M100’s diagnosis — caught and covered",
+    "line": 482,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M102",
+    "title": "**Six loaders fire on every feed tick**",
+    "status": "proposed",
+    "line": 483,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M113",
+    "title": "**Three milestones say shipped and mean half-shipped**",
+    "status": "**shipped** — all three claims MEASURED TRUE first, unlike M106’s: `EstateHome` had no quota and `byModel` rendered in zero files; `lastCommit` appeared only in `types.ts` and `main/`; `ProjectStats` held only storage facts. Two are now on screen. M57 ships what is measurable — commits and the lines they moved, over a window carried WITH them — and its row is corrected for what is not: “lines of code” is not shipped under that name because the honest count is a third data files, and tokens and cost are not shippable at all per CO-096",
+    "line": 484,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M114",
+    "title": "**Two register id spaces leak**",
+    "status": "**shipped** — the M-space half closed when the commit-scope gate found `M146`, an id ten commits used and no row held. The CO half is closed here: eight four-digit references corrected to the form the register uses, and a gate that fails on the form. The M80 hole stays a hole — an id nobody used is not a defect, and renumbering to close it would move every reference to every row after it",
+    "line": 485,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M115",
+    "title": "**\"suite now N probes\" is a number with no referent**",
+    "status": "**shipped** — the counter’s blind spot was widened to a six-letter prefix when writing `FEED-REQ` made the total refuse to move, and the suite’s size is now a number `check-registers.mjs` produces. The seven historical tallies stay and are LABELLED as historical: each was true at its own merge. No assertion count is published, because the source has 95 call sites and a green run prints 65 lines and a number nobody can define is the thing this row is about",
+    "line": 486,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M103",
+    "title": "**Instruction delivery is guesswork twice over**",
+    "status": "**shipped** — `cf0e704`: the instruction reaches a listening agent, whole and once",
+    "line": 515,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M104",
+    "title": "**A throw inside the MCP handler hangs the agent**",
+    "status": "**shipped** — the handler catches and ANSWERS (an agent that hangs is worse than one that fails: it looks like work in progress), the body has a cap that refuses rather than truncates, the handshake clears its transport and says so on failure, and the session id is minted by us so the state is set before the client can know it. **The last of those is by construction: the race was not reproduced**, and the verification row says so rather than claiming a watched failure",
+    "line": 521,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M105",
+    "title": "**Every byte an agent prints costs a full-buffer regex and a blocking write**",
+    "status": "proposed",
+    "line": 527,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M106",
+    "title": "**Three failures the operator cannot see**",
+    "status": "**shipped, and one third of the row was WRONG.** (a) real and fixed: a window that cannot read what it is for now says so, where before the diagnosis sat in state one branch above the banner. (b) **measured FALSE** — driving a real `task.abandoned@1` against the live database showed both `abandoned_reason` and `closed_reason` receiving the reason, and `ProjectHome.tsx#BoardSection` rendering it; migration `…0016` had fixed the projector the same day. What was actually wrong was the TEXT, which is (c). (c) real, and **48 sites, not “roughly fourteen”** — all of them the same `setError`, so it is fixed at the ONE display they funnel into rather than at 48 call sites, and the forty-ninth is right the day it is written",
+    "line": 533,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M107",
+    "title": "**The git watcher broadcasts to nobody**",
+    "status": "**shipped** — the channel has a listener, and a separate name: it used to broadcast on `projects:repo-states`, the channel `ipcMain.handle` answers on. Two things measuring corrected in the row itself: the watch was NOT wholly inert (it dropped the cache, so the next read was fresh — only the notification was dead), and `.git` is watched non-recursively, so **a file edited in the working tree fires nothing at all**. A listener alone therefore could not deliver this row’s own sentence about twelve rewritten files; the panel also reads on its own 10 s clock, and stops while hidden. Repository state comes OFF `feedMark` in the same change — one of M102’s six loaders, and the only one this row owns",
+    "line": 534,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M108",
+    "title": "**Four surfaces render \"nothing here yet\" before reading**",
+    "status": "**shipped** — and the durable half is a TYPE, not a gate: `read` is required, so a caller who forgets it no longer claims to have looked. The compiler named all fifteen sites that were taking the old default; nine were genuinely read and six now carry the `null` sentinel repos and transcripts already used. A filtered list keeps its unread-ness: null in, null out",
+    "line": 540,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M112",
+    "title": "**A scenario the code made false, and five dead keys**",
+    "status": "**shipped** — the reverse check exists: every registry key must be reachable from a component, with the dynamic prefixes DERIVED from the code rather than listed by hand. It found twenty-eight dead rows, five of them the ones this row names and one shipped an hour before the check was written. SCN-037’s two promised strip cells are amended: they were removed by M57 and the scenario had described a screen nobody could see",
+    "line": 541,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M109",
+    "title": "**The IPC contract is type-checked on one side only, and has drifted**",
+    "status": "**partly shipped** — all three named drifts are fixed: a failed `openExternally` is reported and shown, a failed git read is no longer rendered as a branch, and the feed channel narrows to the shape it declares. The MECHANISM exists too — `Returns<FabricApi[…]>` derives a handler’s return type from the one declaration, so `tsc` compares them. **It is applied to three handlers and about forty are unannotated**, which is a mechanical sweep this change does not make",
+    "line": 547,
+    "normalized_claim": "partial_claim"
+  },
+  {
+    "id": "M110",
+    "title": "**No renderer tests, no CI, and six suites go green having run nothing**",
+    "status": "**partly shipped** — the renderer has tests and CI runs as a script (`scripts/ci.sh`), and the ROUTINE TICK — the one path that launches an agent with nobody watching — was extracted from `index.ts` so a probe can drive it. The rest of `index.ts` is still reachable only by launching Electron, and \"the file is unimportable\" is recorded as a fact about the file rather than a reason",
+    "line": 548,
+    "normalized_claim": "partial_claim"
+  },
+  {
+    "id": "M111",
+    "title": "**Cmd+W destroys every tab, and tabs are never persisted**",
+    "status": "**shipped** — Cmd+W closes the tab and Cmd+Shift+W the window, through a menu built from Electron’s ROLES so copy, paste and quit survive being replaced. The working set is written on every change and restored once the projects are known; a tab whose project is gone is dropped and said, and a draft is never restored because the tab without its content claims work that is not there",
+    "line": 549,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M116",
+    "title": "**The mark reaches the application**",
+    "status": "**shipped 2026-09-03**",
+    "line": 571,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M117",
+    "title": "**The interface is designed IN the pack, not merely near it**",
+    "status": "**shipped 2026-09-05**",
+    "line": 572,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M118",
+    "title": "**The workspace is a repository, offered at initialisation**",
+    "status": "**shipped** — ADR-0002’s mirror, and now the question that offers it: choose a folder, adopt an existing workspace, or decline. No dismiss, because declining IS later and is reversible. An import preserves IDS — that is what makes it the same estate carried to another machine rather than a copy — refuses an estate that already holds projects, and refuses a file it cannot read whole. Fabric writes and initialises the repository; committing stays the operator’s",
+    "line": 573,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M119",
+    "title": "**The CEO proposes the projects from the evidence**",
+    "status": "proposed",
+    "line": 574,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M120",
+    "title": "**Favourites — at most five**",
+    "status": "**shipped** — `242ebce`: favourites are a partition of the project list, and the five-cap is enforced where the write happens. **Returns at M38**, where a favourite becomes a `(person_id, project_id)` row rather than operator-local state",
+    "line": 575,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M121",
+    "title": "**Shortcuts instead of a blank prompt**",
+    "status": "**shipped** — two constant presets and two that READ the project, offered only when their source has something in it and carrying the items so the session does not open by rediscovering them. A truncated list keeps the true count and says what it left out. **\"Errors in production\" is deliberately absent**: nothing observes production yet (M129), and a shortcut for a signal we do not collect is a promise the product cannot keep",
+    "line": 576,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M122",
+    "title": "**A kanban board per project, written by agents**",
+    "status": "**shipped** with M146 — the board is per project, agents write to it through the task tools, and M53’s list, M79’s backlog state and M54’s detail are its views rather than three screens",
+    "line": 577,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M123",
+    "title": "**Task management is a system skill in every agent's routing**",
+    "status": "**shipped** — the contract (seven `fabric_task_*` tools) and now the DELIVERY: a preamble that names `fabric_whoami` and no rule, carried by the adapter that can carry it, and `session.oriented@1` journalled so a session that never read its rules is visible rather than assumed",
+    "line": 578,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M124",
+    "title": "**The board is bound to the project's documentation**",
+    "status": "**shipped** — the edge is navigable both ways (a ref’s location is separated from its document, and a task shows what else that document produced), and a status now carries the hand that set it: `moved_by_kind` is projected, and the board says what the mover makes the column MEAN. It speaks in two situations only — `review`, where an agent’s claim and a person’s decision look identical, and a terminal state an agent reached, which the ladder forbids and the surface therefore shows rather than normalises",
+    "line": 579,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M125",
+    "title": "**An agent is created from a prompt**",
+    "status": "**shipped** — a RUNNER is a program on this machine and stays code; an AGENT is a named configuration of one and is a row, which is exactly the return trigger `agents.ts` wrote for itself. Created from a name, a brief and the servers it asks for, offered in the picker apart from the runners, and launched with its own brief plus Fabric’s preamble last. The project’s grant is a ceiling checked at creation AND at launch",
+    "line": 580,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M126",
+    "title": "**The CEO is always reachable, and knows where you are**",
+    "status": "proposed",
+    "line": 581,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M127",
+    "title": "**A created agent gets the MCP servers it needs**",
+    "status": "**shipped** — [ADR-0034](../adr/0034-an-agent-reaches-another-mcp-server-through-the-machine-gateway.md). Through the machine gateway, with direct access refused BY DESIGN (an upstream key in a session directory is the superset the credential rule forbids) and a Fabric proxy declared-and-unbuilt. One refusal blocks the launch, the route is read from the gateway rather than composed, and the role key comes from the environment and is stored nowhere",
+    "line": 582,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M128",
+    "title": "**The trend agent, end to end**",
+    "status": "proposed",
+    "line": 583,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M129",
+    "title": "**The production-signal agent**",
+    "status": "proposed",
+    "line": 584,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M130",
+    "title": "**Every task says who assigned it and to whom**",
+    "status": "**shipped** with M146 — `assigned_by`/`assigned_to` are projected from the journal, the card shows `{by} → {to}` and **the task page names both sides in a sentence, guarded so a half-known handoff says nothing rather than naming an absence**",
+    "line": 585,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M131",
+    "title": "**The mascot on the home, and the profile behind it**",
+    "status": "**shipped** — `33c0815`: three of the four things asked for were already in the record; the fourth (event-driven variants) is the part that was built",
+    "line": 586,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M132",
+    "title": "**The dev agent works the backlog daily**",
+    "status": "**shipped** — not a new mechanism but a KIND of routine: its instruction is composed at fire time from the backlog in the operator’s priority order, unplaced tasks last. An empty backlog does not start a session and is journalled as a pause, so the automations surface says why. Its three named dependencies (M65, M94, M68) were built first, in that order",
+    "line": 587,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M133",
+    "title": "**Entering a project answers \"where were we\"**",
+    "status": "**shipped** — `105044a`: composed from the decision store, never generated — the digest quotes rows and refuses to summarise what it has not read",
+    "line": 588,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M134",
+    "title": "**Ideas enter the backlog, and can be researched**",
+    "status": "**shipped** — `task.created@1` had exactly one writer (the agent surface) and the operator’s only door started a session, so the backlog was a place a person could not write to. An idea is filed with the person as its origin, its first line the title and the rest a note, and looking into it SPAWNS a linked task rather than running the idea itself",
+    "line": 589,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M135",
+    "title": "**Where memory lives is visible to the operator**",
+    "status": "**shipped** — `3941714`: the four memory stores get one surface, and a retrieval miss is shown as absent rather than as zero",
+    "line": 590,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M136",
+    "title": "**org #1 stops being empty**",
+    "status": "**shipped 2026-09-03**",
+    "line": 610,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M137",
+    "title": "**The decision port, and the first thing that can refuse**",
+    "status": "**shipped 2026-09-03**",
+    "line": 611,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M138",
+    "title": "**The four authority event types are registered**",
+    "status": "**shipped 2026-09-03**",
+    "line": 612,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M139",
+    "title": "**A floored action in the product**",
+    "status": "**shipped 2026-09-03**",
+    "line": 613,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M140",
+    "title": "**The agent asks, the operator grants**",
+    "status": "**partly shipped** — `c5bf512`: `fabric_effect_request` presents nothing and the surface finds the grant, so the agent never holds the permission it is asking for. **The row named `canUseTool` and this is not that, which matters:** the hook would intercept EVERY tool call, and the tool intercepts only what the agent chooses to ask about. An agent that does not ask is not stopped. Closing that needs the runner’s own permission hook, which is per-runner and not scheduled",
+    "line": 614,
+    "normalized_claim": "partial_claim"
+  },
+  {
+    "id": "M141",
+    "title": "**Search, and a screen for its results**",
+    "status": "**shipped** — `585f65b`: one field over projects, tasks, facts, transcripts and decisions, grouped rather than merged",
+    "line": 627,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M142",
+    "title": "**Every figure opens the register it was counted from**",
+    "status": "**partly shipped** — six of thirteen figures now open their register, through one implementation that REPORTS a missing section instead of swallowing it, with the anchor list held equal to the rendered ids by the design gate. **Seven do not, and deliberately promise nothing**: `retrievals` and `packs` have no surface, and five estate-wide sums (sessions, closed tasks, facts, decisions, grants) have rows that live per project with no cross-project view. The return trigger is that view existing — a figure naming a screen that does not exist is this milestone’s own defect relocated",
+    "line": 628,
+    "normalized_claim": "partial_claim"
+  },
+  {
+    "id": "M143",
+    "title": "**The task page**",
+    "status": "**shipped** with M146 — brief with authorship, working notes, promote-to-memory, links and receipts. The receipts are rendered by `Feed`, not by a second renderer free to disagree about what an event means",
+    "line": 629,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M144",
+    "title": "**The plan and the decision graph**",
+    "status": "**shipped 2026-09-05**",
+    "line": 630,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M145",
+    "title": "**The harness screen and its tool pages**",
+    "status": "**shipped 2026-09-05**",
+    "line": 631,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M146",
+    "title": "**The operating-surfaces layer**",
+    "status": "**shipped** — `37727c2`…`adb505d`. Advances M122 (board), M130 (assignment provenance) and M143 (task page) to shipped; delivers M123’s tool CONTRACT and not its skill installation; leaves M124 (task bound to its document) untouched",
+    "line": 632,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M147",
+    "title": "**The estate card counts what is waiting**",
+    "status": "**shipped 2026-09-05**",
+    "line": 633,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M148",
+    "title": "**A question is a record, and blocking is not a status**",
+    "status": "**shipped** — `questions` + `question_blocks`, `apply_questions` as a per-concern projector called from the dispatcher (M97 pattern), and `blocked_by`/`blocked_since` as COLUMNS on the task. P22 drives the whole path against the live database — a question blocks two tasks, carries its `about` key, is prioritised, answered once (a second answer cannot overwrite: the guard is `status=open`), unblocks both, and is invisible across the tenant boundary with a positive control. Three projector defects planted and each caught. Grants + RLS in migration 4’s shape, the P21 lesson",
+    "line": 634,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M149",
+    "title": "**An agent can ask the owner a question rather than guessing**",
+    "status": "proposed",
+    "line": 635,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M150",
+    "title": "**The rank is arithmetic, and every item says why it is where it is**",
+    "status": "**shipped** — `questionPriority` = `blocking + breadth + age + kind_weight + goal + project_weight`, a tested pure module reading the M156 weight. **Every component travels on the item** so the order is explained, not trusted. Derived obligations enter the SAME scale (`refused` 40+access, `proposal` 35, `review` 25, `abandoned` 20, each plus project weight), so the Board is one list. `rankBoard` breaks ties deterministically — age then id — and the tiebreak test feeds the same pair in BOTH orders, because a `return 0` slipped through the one-directional version (V8’s sort is stable): the same class that bit M107. Four defects planted, each caught",
+    "line": 636,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M151",
+    "title": "**The Board — top 5 on the home, top 10 in a project, all of it on its own screen**",
+    "status": "proposed",
+    "line": 637,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M152",
+    "title": "**Answering closes the loop, and the answer is a decision**",
+    "status": "proposed",
+    "line": 638,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M153",
+    "title": "**The CEO routine — withdraw the stale, de-duplicate, escalate**",
+    "status": "proposed",
+    "line": 639,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M154",
+    "title": "**Findings and traps get a reader, so writing one stops being shouting into a drawer**",
+    "status": "proposed",
+    "line": 640,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M155",
+    "title": "**The protocol is observed where it cannot be refused**",
+    "status": "proposed",
+    "line": 641,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M156",
+    "title": "**A project's priority is declared, and pressure is measured beside it**",
+    "status": "**shipped** — `projectWeight` as a tested pure module: **tier + capped pressure**, where the cap is forced to (15,30) so a maxed `steady` project outranks an idle `active` one and never a bare `critical` one — a flat cap outside that window cannot satisfy both, which a test found before the code did. `ceoTrustFor` inherits the estate and clamps an override DOWN (ADR-0004 shape); an unknown level fails closed to `ask`. Storage: `priority_tier`/`priority_because`/`ceo_trust` on the project (tier NEVER mutated by the system — ADR-0002), one `estate_settings` row, `apply_priority` projector. P23 round-trips a declaration touching nothing else, a bad tier refused by the check, an override cleared, and the settings upsert. Four defects planted and caught",
+    "line": 642,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M157",
+    "title": "**The CEO settles what it can CITE, and every settlement is visible and reversible**",
+    "status": "proposed",
+    "line": 643,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M158",
+    "title": "**A decision that changes is scored, and the operator's own word is held**",
+    "status": "proposed",
+    "line": 644,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M159",
+    "title": "**The Telegram connection: one token, one consumer, and every update claimed**",
+    "status": "proposed",
+    "line": 645,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M160",
+    "title": "**Authority requires a binding, and binding starts in the app**",
+    "status": "proposed",
+    "line": 646,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M161",
+    "title": "**The outbox: a row before a send, `retry_after` honoured exactly**",
+    "status": "proposed",
+    "line": 647,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M162",
+    "title": "**Reply-to-answer — the operator's day moves to Telegram**",
+    "status": "proposed",
+    "line": 648,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M163",
+    "title": "**The evening letter, labelled with the window it covers**",
+    "status": "proposed",
+    "line": 649,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M164",
+    "title": "**Notifiers are composed, not built**",
+    "status": "proposed",
+    "line": 650,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M165",
+    "title": "**Capture, retention, and the consent that a work chat requires**",
+    "status": "proposed",
+    "line": 651,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M166",
+    "title": "**The CEO's core, and it is the whole CEO without a provider**",
+    "status": "proposed",
+    "line": 652,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M167",
+    "title": "**A model port that may be ABSENT, and absence is a state rather than a crash**",
+    "status": "proposed",
+    "line": 653,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M168",
+    "title": "**The core is the checker, and a checker that never refuses is a finding**",
+    "status": "proposed",
+    "line": 654,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M169",
+    "title": "**The provider router — and the three traps that are each a real bill**",
+    "status": "proposed",
+    "line": 655,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M170",
+    "title": "**The four typed calls, one at a time, each behind its validator**",
+    "status": "proposed",
+    "line": 656,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M171",
+    "title": "**`model.called@1`, and the cost surface**",
+    "status": "proposed",
+    "line": 657,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M172",
+    "title": "`pi` as a third runner descriptor",
+    "status": "proposed",
+    "line": 658,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M173",
+    "title": "**The decision graph shows movement, and who decided**",
+    "status": "proposed",
+    "line": 659,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M174",
+    "title": "**The script-vs-agent line, drawn across the product**",
+    "status": "proposed",
+    "line": 660,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M175",
+    "title": "**The CEO is an agent — a small tool-calling loop, ours**",
+    "status": "proposed",
+    "line": 661,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M176",
+    "title": "**A CEO trajectory eval, before its prompt is tuned**",
+    "status": "proposed",
+    "line": 662,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M177",
+    "title": "**Close the cheap harness gaps found by the map**",
+    "status": "proposed",
+    "line": 663,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M178",
+    "title": "**A heartbeat, because silence is ambiguous**",
+    "status": "proposed",
+    "line": 664,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M179",
+    "title": "**The agent is watched from outside, because the reporter is what breaks**",
+    "status": "proposed",
+    "line": 665,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M180",
+    "title": "**A failure is journalled with its KIND — “failed” is not one thing**",
+    "status": "proposed",
+    "line": 666,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M181",
+    "title": "**Degradation is stated, never silent**",
+    "status": "proposed",
+    "line": 667,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M182",
+    "title": "**An insight says what it is ABOUT — a closed category**",
+    "status": "proposed",
+    "line": 668,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M183",
+    "title": "**The anonymised product loop — service insights feed Fabric's backlog**",
+    "status": "proposed",
+    "line": 669,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M184",
+    "title": "**The retrospective is a cycle the CEO runs**",
+    "status": "proposed",
+    "line": 670,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M185",
+    "title": "**One inbox on the dashboard — a view, not a store**",
+    "status": "proposed",
+    "line": 671,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M186",
+    "title": "**The cycles view — everything that ticks, estate-wide**",
+    "status": "proposed",
+    "line": 672,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M187",
+    "title": "**The density review — primary visible, the rest behind ONE disclosure primitive**",
+    "status": "proposed",
+    "line": 673,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M188",
+    "title": "**Runs and plan steps — the unit of progress**",
+    "status": "proposed",
+    "line": 674,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M189",
+    "title": "**The current-task widget — realtime progress, claims labelled as claims**",
+    "status": "proposed",
+    "line": 675,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M190",
+    "title": "**SCR-40 — the graphs screen: agent DID, project DID, plan SHOULD**",
+    "status": "proposed",
+    "line": 676,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M191",
+    "title": "**The memory module made visible: pack preview, lineage, mirror drift**",
+    "status": "proposed",
+    "line": 677,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M194",
+    "title": "**The manager seat is a binding — built-in or an external agent**",
+    "status": "proposed",
+    "line": 678,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M195",
+    "title": "**Redaction at the agent surface — S1, HIGH**",
+    "status": "**shipped** — and step 0 corrected the brief FOURFOLD: it named three fields in three tools; measuring found **thirteen across eight**, the most dangerous being `task.handoff@1`’s 8 000-char `value` — precisely the channel one agent uses to pass the next what it obtained. So the fix is ONE DOOR, not thirteen call sites (M106’s lesson one layer along): `appendRedacted` wraps every agent-written event, and all 15 raw appends in the surface now route through it. `redactPayload` walks the whole payload recursively — **no skip-list**, measured safe: nine ordinary values (ids, enums, `about` keys, formatted strings) came back byte-identical while the secret was caught. The count rides on the event, the transcript idiom. Token entropy verified at 192 bits (S5). Three defects planted, three caught",
+    "line": 679,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M196",
+    "title": "**Sandbox on the windows — S2**",
+    "status": "**shipped** — and the brief’s guess (“sandbox: true is likely compatible”) was wrong TWICE, both found by driving a real window. First: an ESM preload dies in a sandbox with `SyntaxError: Cannot use import statement outside a module` and `window.fabric` is **ABSENT** — the renderer loses all 27 namespaces silently, so the sandbox was off for a REASON nobody had recorded. Rebuilt as CJS, it failed a second way: in CJS format the resolver picks the **electron npm wrapper** — the one that `spawnSync`s the binary — dragging `child_process` into a context that has none. `external: ['electron']` is what makes the sandbox possible at all. Both halves are now held by a probe reading the SHIPPED bundle (CJS, no forbidden builtin, bridge still exposed, all 3 windows sandboxed); three regressions planted, three caught",
+    "line": 680,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M197",
+    "title": "**Двуязычие как храповик — RU/EN заложены, переводы докидываются**",
+    "status": "**shipped**",
+    "line": 681,
+    "normalized_claim": "shipped_claim"
+  },
+  {
+    "id": "M198",
+    "title": "**A rebuild is not idempotent for `config_revision`**",
+    "status": "proposed",
+    "line": 682,
+    "normalized_claim": "proposed"
+  },
+  {
+    "id": "M38",
+    "title": "**Identity plane and memberships**",
+    "status": "**decided, unscheduled**",
+    "line": 703,
+    "normalized_claim": "decided_unscheduled"
+  },
+  {
+    "id": "M39",
+    "title": "**The member surface**",
+    "status": "**decided, unscheduled**",
+    "line": 704,
+    "normalized_claim": "decided_unscheduled"
+  },
+  {
+    "id": "M40",
+    "title": "**Personal estates and delegation**",
+    "status": "**decided, unscheduled**",
+    "line": 705,
+    "normalized_claim": "decided_unscheduled"
+  },
+  {
+    "id": "M41",
+    "title": "**Federation catalog and invitations**",
+    "status": "**decided, unscheduled**",
+    "line": 706,
+    "normalized_claim": "decided_unscheduled"
+  }
+]

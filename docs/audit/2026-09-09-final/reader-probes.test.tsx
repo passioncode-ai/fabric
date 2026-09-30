@@ -1,0 +1,32 @@
+import { afterEach, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { TaskPage } from '@fabric-desktop/src/renderer/src/TaskPage';
+import { DigestSection } from '@fabric-desktop/src/renderer/src/DigestSection';
+afterEach(cleanup);
+const project:any={id:'p1',name:'Fabric',estate_id:'e1',default_agent:'claude-code'};
+const detail=(id:string):any=>({task:{id,project_id:'p1',instruction:id,title:id,status:'backlog',brief_what:id+' what',brief_why:null,brief_expected:null},notes:[],links:[],lease:null,events:[],siblings:{total:0,shown:[]}});
+it('AUDIT reproduces A brief retained and written under B after sibling route change',async()=>{
+const brief=vi.fn().mockResolvedValue({});
+(window as any).fabric={tasks:{detail:vi.fn(async(id:string)=>detail(id)),brief}};
+const props={project,onBack:()=>{},onChanged:async()=>{},onError:()=>{}};
+const {rerender}=render(<TaskPage {...props} taskId="A"/>);
+await waitFor(()=>expect(screen.getByText('A')).toBeTruthy());
+const input=screen.getAllByRole('textbox')[0];
+expect((input as HTMLTextAreaElement).value).toBe('A what');
+rerender(<TaskPage {...props} taskId="B"/>);
+await waitFor(()=>expect(screen.getByText('B')).toBeTruthy());
+expect((screen.getAllByRole('textbox')[0] as HTMLTextAreaElement).value).toBe('A what');
+fireEvent.blur(screen.getAllByRole('textbox')[0]);
+await waitFor(()=>expect(brief).toHaveBeenCalledWith('B','what','A what'));
+});
+it('AUDIT reproduces digest seen advance merely on feedMark refresh',async()=>{
+const seen=vi.fn().mockResolvedValue({});const read=vi.fn().mockResolvedValue({state:'nothing-new',lines:[]});
+(window as any).fabric={digest:{seen,read}};
+const props={project,onError:()=>{}};
+const {rerender}=render(<DigestSection {...props} feedMark={1}/>);
+await waitFor(()=>expect(read).toHaveBeenCalledTimes(1));
+expect(seen).not.toHaveBeenCalled();
+rerender(<DigestSection {...props} feedMark={2}/>);
+await waitFor(()=>expect(read).toHaveBeenCalledTimes(2));
+expect(seen).toHaveBeenCalledWith('p1');
+});

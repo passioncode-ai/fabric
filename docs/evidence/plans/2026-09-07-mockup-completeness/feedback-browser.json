@@ -1,0 +1,35 @@
+{
+  "scope": "Standalone local function patch; no root integration or production claim",
+  "status": "pass",
+  "groups": [
+    "Independent candidate selection shows exact closed-schema bytes and proposed policy metadata",
+    "Queued bytes freeze before dispatch; opt-out suppresses pending without sending; re-enable never revives",
+    "Explicit new candidate preserves prior records; pending cancellation records suppression with zero dispatches",
+    "Unknown inflight survives opt-out; reconciliation finds original operation once and never resends",
+    "Installation local preference has receipt; collection dedups and disabled collection retains prior local history",
+    "Read-only renderer and transition guards retain records"
+  ],
+  "layouts": [
+    {
+      "theme": "dark",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 390,
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,41 @@
+{
+  "source_head": "153b4f029e626230d465d5d21d02fb8c9de5fadf",
+  "code_or_canonical_diff": false,
+  "attachment_milestones": 32,
+  "previous_blocks": 31,
+  "requirements": 31,
+  "work_cards": 57,
+  "execution_nodes": 58,
+  "edges": 108,
+  "dag_acyclic": true,
+  "resolved_source_file_line_refs": 166,
+  "html_internal_links_resolve": true,
+  "semantic_dependency_checks": "passed",
+  "future_implementation_tests_executed": false,
+  "artifacts": {
+    "docs/audit/2026-09-07-merged-execution-plan.md": {
+      "bytes": 115229,
+      "sha256": "40d4ba7e74cf88ed23dc25e47fb084b1714b7d82db0055edd0faf353b39fdc68"
+    },
+    "docs/audit/2026-09-07-merged-execution-plan.json": {
+      "bytes": 134323,
+      "sha256": "8f3536cf1ea0e3cf4037353b5c5746a275ebb2c6eb393e7299fc5a63bfa4dd61"
+    },
+    "docs/audit/2026-09-07-merged-execution-plan.html": {
+      "bytes": 783083,
+      "sha256": "79d702a9942ad6bd43c90a38d653edd3747b2c54608ac088fae91f0524a90cf1"
+    },
+    "docs/audit/2026-09-07-merge-data-retro.md": {
+      "bytes": 66753,
+      "sha256": "cc97fdcdaac76a39bd61061bae64d31c6bb2d3f13d83cb307ae8f3f60626a509"
+    },
+    "docs/audit/2026-09-07-merge-graphs.md": {
+      "bytes": 65489,
+      "sha256": "f819d428680ed320116cb24693ec2087afa29f442bf2abae5bac4d54b0f25da0"
+    },
+    "docs/audit/2026-09-07-merge-manager-cycles.md": {
+      "bytes": 54165,
+      "sha256": "a0e10b12b450bcdf71ec6b3aecbda0ff14bd3996d34f74c9a866ffe3c1c15076"
+    }
+  }
+}

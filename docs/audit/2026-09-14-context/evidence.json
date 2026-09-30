@@ -1,0 +1,168 @@
+{
+  "baseline": "a838073de097be1ce136730c8ef41070929a7196",
+  "source_refs": [
+    {
+      "path": "docs/ux/vision.md",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 82,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/docs/ux/vision.md"
+    },
+    {
+      "path": "docs/ux/plans/2026-09-12-v1-context-reentry.md",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 505,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/docs/ux/plans/2026-09-12-v1-context-reentry.md"
+    },
+    {
+      "path": "docs/ux/plans/2026-09-12-v1-execution-plan.md",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 360,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/docs/ux/plans/2026-09-12-v1-execution-plan.md"
+    },
+    {
+      "path": "docs/ux/plans/2026-09-12-v1-design-language.md",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 179,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/docs/ux/plans/2026-09-12-v1-design-language.md"
+    },
+    {
+      "path": "docs/ux/plans/2026-09-12-wiki-ia-refactor.md",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 77,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/docs/ux/plans/2026-09-12-wiki-ia-refactor.md"
+    },
+    {
+      "path": "docs/adr/README.md",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 78,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/docs/adr/README.md"
+    },
+    {
+      "path": "docs/DOCMAP.md",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 89,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/docs/DOCMAP.md"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/EstateHome.tsx",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 551,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/apps/desktop/src/renderer/src/EstateHome.tsx"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/SessionWindow.tsx",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 112,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/apps/desktop/src/renderer/src/SessionWindow.tsx"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/BoardPanel.tsx",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 239,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/apps/desktop/src/renderer/src/BoardPanel.tsx"
+    },
+    {
+      "path": "apps/desktop/src/shared/board.ts",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 188,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/apps/desktop/src/shared/board.ts"
+    },
+    {
+      "path": "apps/desktop/src/shared/boardRank.ts",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 107,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/apps/desktop/src/shared/boardRank.ts"
+    },
+    {
+      "path": "apps/desktop/src/main/contextPack.ts",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 366,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/apps/desktop/src/main/contextPack.ts"
+    },
+    {
+      "path": "apps/desktop/src/main/digestRead.ts",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 116,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/apps/desktop/src/main/digestRead.ts"
+    },
+    {
+      "path": "scripts/product/assistant.mjs",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 56,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/scripts/product/assistant.mjs"
+    },
+    {
+      "path": "scripts/product/workbench.mjs",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 308,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/scripts/product/workbench.mjs"
+    },
+    {
+      "path": "docs/evidence/backlog.md",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 861,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/docs/evidence/backlog.md"
+    },
+    {
+      "path": "docs/brand/voice.md",
+      "commit": "a838073de097be1ce136730c8ef41070929a7196",
+      "lines": 73,
+      "url": "https://github.com/passioncode-ai/fabric/blob/a838073de097be1ce136730c8ef41070929a7196/docs/brand/voice.md"
+    }
+  ],
+  "tracked_files_ls_files": 1501,
+  "tracked_files_ls_tree": 1501,
+  "adr_files": 56,
+  "scenario_headings": 94,
+  "git_commits": 473,
+  "ci_counts": {
+    "workspace publication:success": 11,
+    "ci:failure": 27,
+    "workspace publication:failure": 19,
+    "ci:cancelled": 3
+  },
+  "report_bytes": {
+    "docs/reports/product.html": 3943521,
+    "docs/reports/system.html": 1970280,
+    "docs/reports/map.html": 763715
+  },
+  "recorded_publication": {
+    "schema": 1,
+    "source_commit": "29950b90477ba7ab2ceeca085349642e7a80c7ec",
+    "workspace_commit": "40e6d0fe5fee717f0728a59aac25f9b8c3313a6e",
+    "content_digest": "2c3d80720c9a520a73af5785bc89b58c82aa5b8ceabdd3df30a46fe42bd4e17d",
+    "heroku_app": "passioncode-fabric-workspace",
+    "release": 61
+  },
+  "scope": "Code/documentation/history audit and local snapshot visual inspection. No live product datastore read or installed application interaction.",
+  "blind": [
+    "Live installed Fabric runtime and its actual avatar",
+    "Authenticated remote wiki browser: ERR_INVALID_AUTH_CREDENTIALS",
+    "Live telemetry and recovery time measurements",
+    "Full DB/effects tests",
+    "Full accessibility and performance assessment"
+  ],
+  "checks": {
+    "baseline_fast": {
+      "exit": 1,
+      "reason": "provider capability matrix: claude-code 2.1.236 vs installed 2.1.270; codex-cli 0.152.1 vs installed 0.154.0"
+    },
+    "remote_ci_latest": {
+      "run": 34719611230,
+      "reason": "5 symbol references in private workspace absent from runner checkout"
+    },
+    "reconcile": {
+      "exit": 1,
+      "reason": "Post-baseline ADR/CO records absent from coordination as-built; baseline debt, not product implementation verdict"
+    }
+  },
+  "code_graph": {
+    "path": "graphify-out/graph.json",
+    "nodes": 1580,
+    "links": 1992,
+    "hyperedges": 8,
+    "built_at_commit": "ae68f33a3f0b92ff772386b79420d7a7f98f5677",
+    "workspace_nodes": 0,
+    "correction": "CO-164 reads edges=0 but real relation field is links; still stale."
+  }
+}

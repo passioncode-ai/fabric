@@ -1,0 +1,42 @@
+{
+  "method": "Repository capability baseline; no fresh-model behavior benchmark was run",
+  "source_commit": "fce89652754c21ce4538fbdea11d6556ac351469",
+  "checks": [
+    {
+      "path": "scripts/workspace.mjs",
+      "command": [
+        "git",
+        "cat-file",
+        "-e",
+        "fce89652754c21ce4538fbdea11d6556ac351469:scripts/workspace.mjs"
+      ],
+      "exit_code": 128,
+      "stderr": "fatal: path 'scripts/workspace.mjs' exists on disk, but not in 'fce89652754c21ce4538fbdea11d6556ac351469'",
+      "finding": "missing baseline contract"
+    },
+    {
+      "path": ".gitmodules",
+      "command": [
+        "git",
+        "cat-file",
+        "-e",
+        "fce89652754c21ce4538fbdea11d6556ac351469:.gitmodules"
+      ],
+      "exit_code": 128,
+      "stderr": "fatal: path '.gitmodules' does not exist in 'fce89652754c21ce4538fbdea11d6556ac351469'",
+      "finding": "missing baseline contract"
+    },
+    {
+      "path": ".agents/skills/maintaining-fabric-workspace/SKILL.md",
+      "command": [
+        "git",
+        "cat-file",
+        "-e",
+        "fce89652754c21ce4538fbdea11d6556ac351469:.agents/skills/maintaining-fabric-workspace/SKILL.md"
+      ],
+      "exit_code": 128,
+      "stderr": "fatal: path '.agents/skills/maintaining-fabric-workspace/SKILL.md' does not exist in 'fce89652754c21ce4538fbdea11d6556ac351469'",
+      "finding": "missing baseline contract"
+    }
+  ]
+}

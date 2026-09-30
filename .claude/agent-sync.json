@@ -1,0 +1,46 @@
+{
+  "backend": "notion",
+  "leaseTtlSeconds": 2700,
+  "renewIntervalSeconds": 300,
+  "gated": true,
+  "idRegisters": {
+    "ADR": {
+      "file": "docs/adr/README.md",
+      "nextFreeIdPattern": "\\*\\*Next free ID:\\*\\* `ADR-(\\d{4})`"
+    },
+    "CO": {
+      "file": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "nextFreeIdPattern": "\\*\\*Next free ID:\\*\\* `CO-(\\d{3})`"
+    }
+  },
+  "guardedFiles": [
+    "CONTEXT.md",
+    "docs/vision.md",
+    "docs/adr/**/*.md",
+    "docs/architecture/*.md",
+    "docs/evidence/**/*.md",
+    "registry/*.yaml",
+    "registry/README.md"
+  ],
+  "claimTags": {},
+  "gates": [],
+  "mirror": {
+    "enabled": true,
+    "sources": [
+      "README.md",
+      "CONTEXT.md",
+      "AGENTS.md",
+      "docs/vision.md",
+      "docs/AGENT_SYNC.md",
+      "docs/adr",
+      "docs/architecture",
+      "docs/evidence",
+      "registry/README.md"
+    ]
+  },
+  "mergeLog": {
+    "file": "docs/MERGES.md",
+    "retentionDays": 7
+  },
+  "leaseBackend": "git"
+}

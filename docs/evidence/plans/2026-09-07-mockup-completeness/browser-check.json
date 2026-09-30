@@ -1,0 +1,154 @@
+{
+  "status": "pass",
+  "scope": "isolated fixture report only; no native app or production checks",
+  "source_commit": "91337391aa8d24966bf0c57db381e6fe63b48bce",
+  "checks": [
+    {
+      "kind": "render_matrix",
+      "views": 70,
+      "states": 7,
+      "renders": 490
+    },
+    {
+      "kind": "journey_steps",
+      "journeys": 35,
+      "steps": 176
+    },
+    {
+      "kind": "coverage_deeplink",
+      "pass": true
+    },
+    {
+      "kind": "screen_deeplink",
+      "pass": true
+    },
+    {
+      "kind": "draft_survives_error",
+      "pass": true
+    },
+    {
+      "kind": "create_project_fixture",
+      "pass": true
+    },
+    {
+      "kind": "fresh_project_own_task_pack_run_ACK_check_graph",
+      "pass": true
+    },
+    {
+      "kind": "CEO_scope_and_explicit_artifact",
+      "pass": true
+    },
+    {
+      "kind": "refusal_receipt_delivery_and_union",
+      "pass": true
+    },
+    {
+      "kind": "manager_validation_drain_checkpoint_binding_ACK",
+      "pass": true
+    },
+    {
+      "kind": "cycle_admission_inflight_completion_dedup",
+      "pass": true
+    },
+    {
+      "kind": "four_distinct_graphs",
+      "pass": true
+    },
+    {
+      "kind": "project_scope",
+      "pass": true
+    },
+    {
+      "kind": "presentation_and_escape",
+      "pass": true
+    },
+    {
+      "kind": "screen_filter",
+      "pass": true
+    },
+    {
+      "kind": "responsive_theme",
+      "width": 1280,
+      "theme": "dark",
+      "views": 12,
+      "pass": true
+    },
+    {
+      "kind": "responsive_theme",
+      "width": 1280,
+      "theme": "light",
+      "views": 12,
+      "pass": true
+    },
+    {
+      "kind": "responsive_theme",
+      "width": 375,
+      "theme": "dark",
+      "views": 12,
+      "pass": true
+    },
+    {
+      "kind": "responsive_theme",
+      "width": 375,
+      "theme": "light",
+      "views": 12,
+      "pass": true
+    },
+    {
+      "kind": "sample_text_contrast",
+      "theme": "dark",
+      "contrast": [
+        {
+          "selector": ".terminal-window pre",
+          "ratio": 16.81
+        },
+        {
+          "selector": "#product-screen .meta",
+          "ratio": 6.94
+        },
+        {
+          "selector": ".button.primary",
+          "ratio": 18.97
+        }
+      ],
+      "scope": "sampled opaque text surfaces; not complete WCAG audit"
+    },
+    {
+      "kind": "sample_text_contrast",
+      "theme": "light",
+      "contrast": [
+        {
+          "selector": ".terminal-window pre",
+          "ratio": 16.81
+        },
+        {
+          "selector": "#product-screen .meta",
+          "ratio": 4.74
+        },
+        {
+          "selector": ".button.primary",
+          "ratio": 19.8
+        }
+      ],
+      "scope": "sampled opaque text surfaces; not complete WCAG audit"
+    },
+    {
+      "kind": "keyboard_entry",
+      "pass": true
+    },
+    {
+      "kind": "text_zoom200_form_present",
+      "pass": true
+    },
+    {
+      "kind": "local_review_export",
+      "pass": true
+    },
+    {
+      "kind": "no_js_fallback",
+      "screens": 70
+    }
+  ],
+  "errors": [],
+  "unexpected_network": []
+}

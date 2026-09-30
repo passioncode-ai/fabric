@@ -1,0 +1,92 @@
+{
+  "mobile390": {
+    "grid": [
+      {
+        "cls": "site-header",
+        "columns": "257.453px 104.547px"
+      },
+      {
+        "cls": "hero-mark",
+        "columns": "362px"
+      },
+      {
+        "cls": "comparison",
+        "columns": "362px"
+      },
+      {
+        "cls": "comparison-arrow",
+        "columns": "362px"
+      },
+      {
+        "cls": "project-frame",
+        "columns": "362px"
+      },
+      {
+        "cls": "stages",
+        "columns": "362px"
+      },
+      {
+        "cls": "principles",
+        "columns": "362px"
+      },
+      {
+        "cls": "repo-grid",
+        "columns": "362px"
+      },
+      {
+        "cls": "",
+        "columns": "181px 181px"
+      }
+    ],
+    "height": 844,
+    "scroll": 390,
+    "width": 390
+  },
+  "mobile700": {
+    "grid": [
+      {
+        "cls": "site-header",
+        "columns": "548.5px 111.5px"
+      },
+      {
+        "cls": "hero",
+        "columns": "660px"
+      },
+      {
+        "cls": "hero-mark",
+        "columns": "660px"
+      },
+      {
+        "cls": "comparison",
+        "columns": "660px"
+      },
+      {
+        "cls": "comparison-arrow",
+        "columns": "660px"
+      },
+      {
+        "cls": "project-frame",
+        "columns": "324px 324px"
+      },
+      {
+        "cls": "stages",
+        "columns": "330px 330px"
+      },
+      {
+        "cls": "principles",
+        "columns": "324px 324px"
+      },
+      {
+        "cls": "repo-grid",
+        "columns": "324px 324px"
+      },
+      {
+        "cls": "",
+        "columns": "330px 330px"
+      }
+    ],
+    "height": 800,
+    "scroll": 700,
+    "width": 700
+  }
+}

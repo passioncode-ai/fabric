@@ -1,0 +1,9 @@
+{
+  "command": "python3 docs/ux/lint.py",
+  "exit": 0,
+  "warnings": {},
+  "false_ok_when_rg_absent": [],
+  "last": [
+    "0 error(s), 14 warning(s)"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "date": "2026-09-07",
+  "result": "pass",
+  "tasks": 57,
+  "deep": 49,
+  "recipes": 4,
+  "preserve": 4,
+  "requirements": 31,
+  "modules": 8,
+  "entities": 61,
+  "relations": 95,
+  "cycles": 12,
+  "execution_nodes": 62,
+  "dependency_edges": 121,
+  "citation_occurrences": 475,
+  "receipts": 280,
+  "verified_git_files": 103,
+  "html_anchors": 310,
+  "scope": "design integrity; future acceptance and production security not executed"
+}

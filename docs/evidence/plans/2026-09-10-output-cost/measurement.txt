@@ -1,0 +1,19 @@
+machine: Apple M4 Pro · 14 cores · 48 GB · node v26.8.1
+workload: 3000 chunks per session, cap 400000 chars, gc exposed
+
+shape	sessions	p50 ms	p95 ms	p99 ms	total ms	chars held	after close MB
+whole-buffer-per-chunk	1	0.1886	0.3827	0.5861	625.7	310886	0.3
+bounded-chunk-ring	1	0.0001	0.0002	0.0003	0.4	310886	0.4
+bounded-chunk-ring + tail read per chunk	1	0.011	0.0163	0.0247	35.2	310886	0.1
+whole-buffer-per-chunk	10	1.7601	4.6252	6.7201	6178.5	3108860	-4.5
+bounded-chunk-ring	10	0.0006	0.0007	0.0008	1.6	3108860	0.4
+bounded-chunk-ring + tail read per chunk	10	0.1005	0.1478	0.2041	315.6	3108860	0.1
+whole-buffer-per-chunk	50	9.344	21.4155	28.411	29503.7	15544300	0.3
+bounded-chunk-ring	50	0.0015	0.0019	0.003	5.2	15544300	0.4
+bounded-chunk-ring + tail read per chunk	50	0.5046	0.7548	1.0021	1582.6	15544300	-0.3
+
+chars held is the acceptance criterion: it must not exceed the cap times the session count.
+heap growth DURING a run is reported in --json but not here — it is GC timing as much as retention,
+and reading it as retention is the kind of claim this card forbids. What is retained is chars held.
+
+Measurements of this machine under this fixture. They are not a budget, and no gate reads them.

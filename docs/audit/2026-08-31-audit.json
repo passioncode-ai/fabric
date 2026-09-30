@@ -1,0 +1,456 @@
+{
+  "capabilities": [
+    "docker",
+    "gh",
+    "git",
+    "network",
+    "node",
+    "npm",
+    "python3"
+  ],
+  "counts": {
+    "findings": 11,
+    "probes_blind": 3,
+    "probes_run": 22
+  },
+  "findings": [
+    {
+      "blast": 2,
+      "detail": "",
+      "effort": 2,
+      "evidence": "no .github/workflows, .gitlab-ci.yml, Jenkinsfile or .circleci/config.yml in the tracked tree",
+      "first_seen": "2026-09-01",
+      "id": "f-b904475dd028",
+      "p": 1.0,
+      "probe": "ci-present",
+      "remedy": "add a workflow that runs the project's own test command on push",
+      "runs_open": 0,
+      "severity": "medium",
+      "title": "Nothing runs the checks except a person remembering to",
+      "where": "repository root"
+    },
+    {
+      "blast": 4,
+      "detail": "Fourteen ERR lines claim positioning and slogan drift across 7 files. Re-derived with `grep -Fc`: every one of the 7 files contains both strings exactly once. The gate is red because `rg` does not resolve inside a bash sub-shell, not because a document drifted. A reader following the message would edit correct documents.",
+      "effort": 1,
+      "evidence": "pnpm gates:docs -> exit 1; 'rg: command not found' x14; grep -Fc over all 7 required surfaces -> positioning=1 slogan=1 on each",
+      "first_seen": "2026-09-01",
+      "id": "f-1435d6e6c289",
+      "p": 4.0,
+      "probe": "gate-docs",
+      "remedy": "make the gate detect its own tool: fail with 'ripgrep not installed' when `command -v rg` is empty, or replace `rg -F -q` with `grep -F -q`, which is present everywhere the gate runs",
+      "runs_open": 0,
+      "severity": "high",
+      "title": "The docs gate fails on main, and the failure names the wrong cause",
+      "where": "scripts/check-narrative.sh:29,32"
+    },
+    {
+      "blast": 4,
+      "detail": "The two content checks are written as `if rg <pattern> <files>; then narrative_err; else narrative_ok; fi`. With `rg` absent the command exits 127, the else branch runs, and the gate prints 'ok: public surfaces contain no internal product-economics language' and 'ok: public product spelling is consistent'. Nothing was read. This is the project's own doctrine inverted: a zero-output failure rendered as a pass.",
+      "effort": 1,
+      "evidence": "scripts/check-narrative.sh:44 and :52; observed output carries both ok: lines directly under 'rg: command not found'",
+      "first_seen": "2026-09-01",
+      "id": "f-e6801fda4dd3",
+      "p": 4.0,
+      "probe": "narrative-tooling",
+      "remedy": "guard the script on `command -v rg` before the first use and exit non-zero if it is absent; an `if <cmd>; then err; else ok; fi` shape must never be reachable with the command missing",
+      "runs_open": 0,
+      "severity": "high",
+      "title": "Two gate assertions print ok when the tool that would check them never ran",
+      "where": "scripts/check-narrative.sh:44,52"
+    },
+    {
+      "blast": 4,
+      "detail": "README:34 reads 'Status: architecture foundation' and :41 'the database, collectors, dashboard and agent runtime are not implemented yet'. Measured: 13 SQL migrations, an Electron app of 24 TypeScript source files, an MCP agent surface serving 7 tools, and 11 test suites that stand up a live Supabase and pass. README:79 says verification.md is 'Currently empty, and says so'; it holds 156 REQ rows across 22 families.",
+      "effort": 1,
+      "evidence": "git ls-files supabase/migrations | wc -l -> 13; grep -c '^| [A-Z]' docs/evidence/verification.md -> 156; pnpm -r test -> exit 0",
+      "first_seen": "2026-09-01",
+      "id": "f-7219c2850fd1",
+      "p": 4.0,
+      "probe": "readme-truth",
+      "remedy": "rewrite the status paragraph against the tree, and replace the verification.md row; the file is the first thing any reader or agent loads",
+      "runs_open": 0,
+      "severity": "high",
+      "title": "The README describes a project that stopped existing two months ago",
+      "where": "README.md:34-41,79"
+    },
+    {
+      "blast": 3,
+      "detail": "The script exits 2 with 'ERROR: install jsonschema>=4.18'. Because gates:docs chains with && and check-docs.sh fails first, the composite never reaches it, so the breakage is invisible from the gate command. Five rows in the verification ledger cite this script as the check that was watched failing against a planted defect; that evidence cannot currently be reproduced.",
+      "effort": 1,
+      "evidence": "python3 scripts/check-project-schemas.py -> exit 2; python3 -c 'import jsonschema' -> ModuleNotFoundError; grep -c check-project-schemas docs/evidence/verification.md -> 5",
+      "first_seen": "2026-09-01",
+      "id": "f-463f5a37e7c7",
+      "p": 3.0,
+      "probe": "schema-gate-tooling",
+      "remedy": "pin the dependency where the gate can find it — a requirements file the gate installs from, or a uv/venv shim — and make the gate say which of 'no jsonschema' and 'schemas invalid' it hit",
+      "runs_open": 0,
+      "severity": "medium",
+      "title": "The schema gate cannot run, and five verification rows name it as their verifier",
+      "where": "scripts/check-project-schemas.py"
+    },
+    {
+      "blast": 3,
+      "detail": "2,173 lines of React across 12 components. No test file imports the renderer, and the package declares no vitest, jsdom, testing-library or playwright. ProjectHome.tsx is 783 lines and the largest file in the app. What does cover it: tsc, and check-design.mjs on tokens and string keys — neither runs a component.",
+      "effort": 1,
+      "evidence": "cat apps/desktop/src/renderer/src/*.tsx | wc -l -> 2173; grep -rn renderer apps/desktop/test/ -> no match; grep -cE 'vitest|jsdom|testing-library|playwright' apps/desktop/package.json -> 0",
+      "first_seen": "2026-09-01",
+      "id": "f-0c31cbf19e63",
+      "p": 3.0,
+      "probe": "renderer-tests",
+      "remedy": "decide the renderer's verification story explicitly — a component harness, or a documented decision that the design gate plus typecheck is the whole contract; either is defensible, the current silence is not",
+      "runs_open": 0,
+      "severity": "medium",
+      "title": "The half of the app a person actually touches has no tests",
+      "where": "apps/desktop/src/renderer/src/"
+    },
+    {
+      "blast": 3,
+      "detail": "CO-093 — 'the bundle path has never been exercised by a real Claude Code session' — was resolved by handshake-e2e.test.mjs over a real PTY. That file is absent from the `test` script and self-skips unless FABRIC_E2E is set. A regression in the shipped CLI's mcp-session-id behaviour would reproduce CO-093 with nothing to catch it.",
+      "effort": 1,
+      "evidence": "node -e on package.json: scripts.test.includes('handshake-e2e') -> false; handshake-e2e.test.mjs:39 `if (!process.env.FABRIC_E2E)` -> skip",
+      "first_seen": "2026-09-01",
+      "id": "f-f96f81c584e4",
+      "p": 3.0,
+      "probe": "e2e-coverage",
+      "remedy": "run it in the default suite where the environment allows, or state in the carry-over row that CO-093 rests on a check nothing re-runs",
+      "runs_open": 0,
+      "severity": "medium",
+      "title": "The check that closed the sharpest carry-over is not in the suite that runs",
+      "where": "apps/desktop/package.json:test"
+    },
+    {
+      "blast": 3,
+      "detail": "93 rows, 65 reading `open`, 15 resolved. Three of the open ones are structural and named as such — CO-090 (same-uid isolation floor), CO-091 (the IPC bridge has no per-window authorisation, and all three BrowserWindows run sandbox:false), CO-092 (ORG1 hardcoded, runner assumed local). Those are filed risks, which is the right state; the finding is the ratio, not any single row.",
+      "effort": 1,
+      "evidence": "awk over the status column -> 65 open / 15 resolved / 93 total; apps/desktop/src/main/index.ts:726,745,759 -> sandbox: false",
+      "first_seen": "2026-09-01",
+      "id": "f-a1bf2443b75b",
+      "p": 3.0,
+      "probe": "carryover-load",
+      "remedy": "age the rows: anything open across three runs is either scheduled, downgraded or closed as accepted risk. The audit's own ratchet counts survivals; the carry-over ledger does not",
+      "runs_open": 0,
+      "severity": "medium",
+      "title": "Sixty-five open carry-overs, and the ledger has no drain",
+      "where": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md"
+    },
+    {
+      "blast": 2,
+      "detail": "docs/brand/lint.py reports 0 errors and 130 B022 warnings, all of the form 'X is in the code with no registry row'. The app declares 166 keys. strings.md holds 11 table rows and states it covers 'the ones where the wording is a product decision rather than a label' — so the ratio may be intended; what is not stated is which side of that line the 130 fall on.",
+      "effort": 1,
+      "evidence": "python3 docs/brand/lint.py -> '0 error(s), 131 warning(s)', 130 of them B022; grep -c \"^  '\" i18n/en.ts -> 166; grep -cE '^\\|' docs/brand/strings.md -> 11",
+      "first_seen": "2026-09-01",
+      "id": "f-a4e69fbb980a",
+      "p": 2.0,
+      "probe": "brand-string-coverage",
+      "remedy": "either agree the rows or narrow the contract to the strings that make a claim, and say which in strings.md — a 130-warning gate trains its reader to skip the output",
+      "runs_open": 0,
+      "severity": "low",
+      "title": "The brand gate is green by being advisory over four fifths of the interface",
+      "where": "docs/brand/strings.md"
+    },
+    {
+      "blast": 2,
+      "detail": "electron-vite emits index-*.js at 8,086.07 kB alongside separate chunks for abap, freemarker2, solidity, powerquery and two dozen other grammars. The app is an editor, so Monaco is deliberate; the full grammar set for a project workbench probably is not.",
+      "effort": 1,
+      "evidence": "pnpm --filter @fabric/desktop build -> 'out/renderer/assets/index-DEEozScy.js 8,086.07 kB'",
+      "first_seen": "2026-09-01",
+      "id": "f-adcd239143b2",
+      "p": 2.0,
+      "probe": "bundle-weight",
+      "remedy": "measure before changing anything: if cold start is acceptable on the target machine this is a non-issue; if not, Monaco's language set is the first place to look",
+      "runs_open": 0,
+      "severity": "low",
+      "title": "One 8 MB renderer chunk, mostly language grammars nothing opens",
+      "where": "apps/desktop/out/renderer/assets/"
+    },
+    {
+      "blast": 1,
+      "detail": "docs/audit/ is the only entry in `git status --short`. .gitignore does not name it, so the next `git add -A` commits an audit report as if it were project documentation, and the run after that shows a diff nobody wrote.",
+      "effort": 1,
+      "evidence": "git status --short -> '?? docs/audit/'; grep -c audit .gitignore -> 0",
+      "first_seen": "2026-09-01",
+      "id": "f-480ecd577467",
+      "p": 1.0,
+      "probe": "audit-hygiene",
+      "remedy": "decide whether the report is committed evidence or local scratch, and record that in .gitignore either way",
+      "runs_open": 0,
+      "severity": "low",
+      "title": "The audit's own output is untracked and ungitignored",
+      "where": "docs/audit/"
+    }
+  ],
+  "generated_at": "2026-08-31T22:45:07Z",
+  "probes": [
+    {
+      "id": "secrets-tree",
+      "needs": [
+        "git"
+      ],
+      "phase": "probe",
+      "reason": "no credential pattern in the tracked tree",
+      "verdict": "clean"
+    },
+    {
+      "id": "secrets-history",
+      "needs": [
+        "git"
+      ],
+      "phase": "probe",
+      "reason": "no credential pattern in the last 400 commits",
+      "verdict": "clean"
+    },
+    {
+      "id": "worktree",
+      "needs": [
+        "git"
+      ],
+      "phase": "probe",
+      "reason": "working tree clean",
+      "verdict": "clean"
+    },
+    {
+      "id": "telemetry",
+      "needs": [],
+      "phase": "prod",
+      "reason": "no deploy target declared — a library or tool, for which absent telemetry is a design, not a gap",
+      "verdict": "clean"
+    },
+    {
+      "id": "ci-present",
+      "needs": [],
+      "phase": "prod",
+      "reason": "no CI configuration",
+      "verdict": "finding"
+    },
+    {
+      "id": "docs-present",
+      "needs": [],
+      "phase": "seams",
+      "reason": "5 documentation marker(s): README.md, docs, AGENTS.md, docs/adr, docs/evidence",
+      "verdict": "clean"
+    },
+    {
+      "id": "gitignore-secrets",
+      "needs": [
+        "git"
+      ],
+      "phase": "probe",
+      "reason": "no credential-shaped file is tracked",
+      "verdict": "clean"
+    },
+    {
+      "id": "channel-divergence",
+      "needs": [
+        "git"
+      ],
+      "phase": "prod",
+      "reason": "HEAD says 0.1.0 and no tag v0.1.0 exists — the channels make no common claim yet",
+      "verdict": "blind"
+    },
+    {
+      "id": "published-version",
+      "needs": [
+        "npm",
+        "network"
+      ],
+      "phase": "prod",
+      "reason": "the manifest is private:true and was never published; `fabric` on npm is fabricjs/fabric.js 7.4.0, a different project. No two channels of THIS package exist to compare",
+      "verdict": "blind"
+    },
+    {
+      "id": "gate-tests",
+      "needs": [
+        "node",
+        "docker"
+      ],
+      "phase": "seams",
+      "reason": "`pnpm -r test` exit 0 — 11 suites over a live Supabase stack, all green",
+      "verdict": "clean"
+    },
+    {
+      "id": "gate-typecheck",
+      "needs": [
+        "node"
+      ],
+      "phase": "seams",
+      "reason": "`pnpm -r typecheck` exit 0 across 3 of 4 workspace projects",
+      "verdict": "clean"
+    },
+    {
+      "id": "gate-build",
+      "needs": [
+        "node"
+      ],
+      "phase": "prod",
+      "reason": "`pnpm --filter @fabric/desktop build` exit 0 in 1.45s",
+      "verdict": "clean"
+    },
+    {
+      "id": "gate-design",
+      "needs": [
+        "node"
+      ],
+      "phase": "seams",
+      "reason": "`node scripts/check-design.mjs` PASS — palette, type/space ladders, 167 string keys",
+      "verdict": "clean"
+    },
+    {
+      "id": "rls-coverage",
+      "needs": [
+        "git"
+      ],
+      "phase": "seams",
+      "reason": "17 of 17 tables carry `enable row level security` and exactly one read policy; writes reach service_role only; anon revoked. Re-derived by counting `create policy` rows independently of the `alter table` rows",
+      "verdict": "clean"
+    },
+    {
+      "id": "gate-docs",
+      "needs": [
+        "bash",
+        "python3"
+      ],
+      "phase": "seams",
+      "reason": "`pnpm gates:docs` exit 1 on a clean main",
+      "verdict": "finding"
+    },
+    {
+      "id": "narrative-tooling",
+      "needs": [
+        "bash"
+      ],
+      "phase": "seams",
+      "reason": "`rg` is a shell function injected into interactive Claude Code shells, not a binary; absent inside `bash scripts/check-narrative.sh`",
+      "verdict": "finding"
+    },
+    {
+      "id": "schema-gate-tooling",
+      "needs": [
+        "python3"
+      ],
+      "phase": "seams",
+      "reason": "`python3 scripts/check-project-schemas.py` exit 2 — `import jsonschema` fails",
+      "verdict": "finding"
+    },
+    {
+      "id": "renderer-tests",
+      "needs": [
+        "git"
+      ],
+      "phase": "seams",
+      "reason": "2,173 lines of React across 12 components; no test imports the renderer and no renderer test tooling is declared",
+      "verdict": "finding"
+    },
+    {
+      "id": "e2e-coverage",
+      "needs": [
+        "node"
+      ],
+      "phase": "seams",
+      "reason": "`handshake-e2e.test.mjs` is not in the default `test` script and self-skips without FABRIC_E2E",
+      "verdict": "finding"
+    },
+    {
+      "id": "readme-truth",
+      "needs": [
+        "git"
+      ],
+      "phase": "seams",
+      "reason": "README's status paragraph and its verification.md row are both contradicted by the tree",
+      "verdict": "finding"
+    },
+    {
+      "id": "brand-string-coverage",
+      "needs": [
+        "python3"
+      ],
+      "phase": "seams",
+      "reason": "130 of 166 interface keys carry no brand-registry row; the gate reports them as warnings",
+      "verdict": "finding"
+    },
+    {
+      "id": "carryover-load",
+      "needs": [
+        "git"
+      ],
+      "phase": "seams",
+      "reason": "65 of 93 carry-over rows read `open`",
+      "verdict": "finding"
+    },
+    {
+      "id": "ci-history",
+      "needs": [
+        "gh",
+        "network"
+      ],
+      "phase": "prod",
+      "reason": "`gh run list` and `gh release list` both return nothing — no run and no release has ever existed",
+      "verdict": "finding"
+    },
+    {
+      "id": "telemetry-desktop",
+      "needs": [],
+      "phase": "prod",
+      "reason": "the mechanical probe read 'no deploy target' as library-shaped, but electron-builder.yml packages a macOS app that runs on an operator's machine. Whether crash/error reporting is wanted there is an undecided design question, not a measured absence",
+      "verdict": "blind"
+    },
+    {
+      "id": "bundle-weight",
+      "needs": [
+        "node"
+      ],
+      "phase": "prod",
+      "reason": "the renderer emits a single 8,086 kB chunk",
+      "verdict": "finding"
+    }
+  ],
+  "profile": {
+    "ci": [],
+    "deploy": [],
+    "docs": [
+      "README.md",
+      "docs",
+      "AGENTS.md",
+      "docs/adr",
+      "docs/evidence"
+    ],
+    "languages": [
+      "javascript"
+    ],
+    "managers": [
+      "npm",
+      "pnpm"
+    ],
+    "monorepo": true,
+    "name": "fabric",
+    "root": ".",
+    "submodules": [],
+    "telemetry": [],
+    "tracked_files": 172,
+    "vcs": "git",
+    "version": "0.1.0",
+    "workspaces": false
+  },
+  "ratchet": {
+    "carried": [],
+    "closed": [],
+    "first_run": true,
+    "new": [],
+    "unranked": [
+      "f-b904475dd028",
+      "f-1435d6e6c289",
+      "f-e6801fda4dd3",
+      "f-7219c2850fd1",
+      "f-463f5a37e7c7",
+      "f-0c31cbf19e63",
+      "f-f96f81c584e4",
+      "f-a1bf2443b75b",
+      "f-a4e69fbb980a",
+      "f-adcd239143b2",
+      "f-480ecd577467"
+    ]
+  },
+  "root": ".",
+  "schema": "project-audit/1",
+  "sidecar": "docs/audit/2026-08-31-audit.json"
+}

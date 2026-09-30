@@ -1,0 +1,38 @@
+{
+  "source": "8a0e9dbc17ac251e543b26653f64540a24ff0a8a",
+  "scope": "pure generated-report fixture; no browser, auth, native, IPC or network",
+  "noCandidate": {
+    "eligibleTargetCount": 0,
+    "target": "",
+    "emptySelect": true,
+    "prepareButtonOffered": true
+  },
+  "unknownAfterQueued": {
+    "before": {
+      "account": "a",
+      "queued": true,
+      "reason": "Квоты неизвестны. Переход удержан до свежего наблюдения; аккаунт не изменён."
+    },
+    "after": {
+      "account": "b",
+      "run": 3,
+      "queued": false
+    }
+  },
+  "deletedQueuedTarget": {
+    "before": {
+      "accounts": [
+        "system-claude",
+        "a",
+        "system-codex"
+      ],
+      "selected": "",
+      "queued": true,
+      "phase": "waiting"
+    },
+    "after": {
+      "account": "",
+      "run": 3
+    }
+  }
+}

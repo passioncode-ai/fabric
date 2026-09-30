@@ -1,0 +1,86 @@
+{
+  "sourceCommit": "c1fb56125c28f14de88191e7ffb162b7eb0eed72",
+  "baseCommit": "ac9e286cb312e9d895e76758ecb046aedb1a62a4",
+  "inputReceipts": [],
+  "decisionIds": [],
+  "packet": "AD00",
+  "status": "passed",
+  "schemaVersion": "fabric.adoption.receipt@1",
+  "proofTier": "pure",
+  "predicate": "acceptance-complete-and-contract-bound",
+  "contractBindings": [
+    {
+      "name": "BoundedRegistryProjection",
+      "ownerFile": "scripts/sync-product-ux.mjs",
+      "export": "projectRegistries",
+      "revision": "c1fb56125c28f14de88191e7ffb162b7eb0eed72"
+    },
+    {
+      "name": "RegistrySections",
+      "ownerFile": "scripts/sync-product-ux.mjs",
+      "export": "registrySections",
+      "revision": "c1fb56125c28f14de88191e7ffb162b7eb0eed72"
+    }
+  ],
+  "exactWriteSet": [
+    "scripts/sync-product-ux.mjs",
+    "scripts/check-product-model.mjs",
+    "scripts/test/product-model.test.mjs",
+    "docs/ux/product-model.json",
+    "docs/reports/product.html",
+    "docs/reports/completeness.html"
+  ],
+  "checks": [
+    {
+      "command": "node --test scripts/test/product-model.test.mjs",
+      "exitCode": 0,
+      "proofTier": "pure",
+      "result": "30/30 passed",
+      "receipt": "docs/launch/adoption/execution/2026-09-17-foundation.md"
+    },
+    {
+      "command": "node scripts/check-product-model.mjs",
+      "exitCode": 0,
+      "proofTier": "source",
+      "result": "85 view identities retained; canonical product statuses not promoted",
+      "receipt": "docs/launch/adoption/execution/2026-09-17-foundation.md"
+    },
+    {
+      "command": "bash scripts/ci.sh fast",
+      "exitCode": 0,
+      "proofTier": "pure",
+      "result": "fast tier green; stack-backed probes not run",
+      "receipt": "docs/launch/adoption/execution/2026-09-17-foundation.md"
+    }
+  ],
+  "negativeChecks": [
+    {
+      "case": "Equal/senior appendix headings do not contaminate final SCR/SCN/FLW",
+      "failedBefore": true,
+      "passesAfter": true,
+      "receipt": "scripts/test/product-model.test.mjs"
+    },
+    {
+      "case": "Duplicate canonical IDs rejected",
+      "failedBefore": true,
+      "passesAfter": true,
+      "receipt": "scripts/test/product-model.test.mjs"
+    },
+    {
+      "case": "Fenced headings and appendix examples do not extend references",
+      "failedBefore": true,
+      "passesAfter": true,
+      "receipt": "scripts/test/product-model.test.mjs"
+    },
+    {
+      "case": "Mixed owner keys preserve abbreviated cross-references",
+      "failedBefore": true,
+      "passesAfter": true,
+      "receipt": "scripts/test/product-model.test.mjs"
+    }
+  ],
+  "notRun": [],
+  "migrationAndRollback": "No storage migration. Revert parser and consumer together; preserve 85 view identities.",
+  "remaining": [],
+  "nextTask": "AD01: bind actual producer contracts and setup versus managed activation invariant."
+}
