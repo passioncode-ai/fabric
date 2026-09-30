@@ -69,3 +69,20 @@ test('actual publisher resumes a failed parent push without creating a second sn
   }
  }finally{await new Promise(resolve=>server.close(resolve))}
 })
+
+test('a published source that is not in this history is a new publication, not an error',async()=>{
+ // After the repository was re-created with one clean history (2026-09-30), the receipt and the
+ // child manifest name a commit this history does not have. That is "Fabric changed", never a crash.
+ const {mkdtempSync,mkdirSync,writeFileSync}=await import('node:fs')
+ const {sourceChangedSince}=await import('../workspace-release.mjs')
+ const root=mkdtempSync(path.join(tmpdir(),'fabric-new-history-'))
+ git(root,'init','-q');git(root,'config','user.name','Fixture');git(root,'config','user.email','fixture@example.invalid')
+ mkdirSync(path.join(root,'docs/reports'),{recursive:true});writeFileSync(path.join(root,'docs/reports/map.html'),'<h1>Map</h1>')
+ git(root,'add','.');git(root,'-c','core.hooksPath=/dev/null','-c','commit.gpgsign=false','commit','-qm','root')
+ const head=git(root,'rev-parse','HEAD').toString().trim(),gone='f'.repeat(40)
+ const child=path.join(root,'workspace');mkdirSync(path.join(child,'content'),{recursive:true})
+ writeFileSync(path.join(child,'content/manifest.json'),JSON.stringify({schema:1,source:{repository:'https://github.com/passioncode-ai/fabric',commit:gone},files:[]}))
+ assert.equal(publicationSource(root,child),head)
+ assert.equal(sourceChangedSince(root,gone),true)
+ assert.equal(sourceChangedSince(root,head),false)
+})
