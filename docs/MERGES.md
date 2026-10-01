@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-01T01:47:28Z · `ci-nightly-20261001` · agent/ci-nightly → main · `b4d06ad7`
+- run: r-5bf1fe8a5
+- files: 2 (2 files changed, 30 insertions(+), 3 deletions(-))
+- conflicts: none
+- summary: full CI job in the 23:00 Europe/Warsaw nightly batch and on dispatch; fast job stays per push
+
 ### 2026-10-01T01:27:34Z · `sync-leftovers-20261001` · agent/sync-leftovers → main · `43f31208`
 - run: r-5bf1fe8a5
 - files: 7 (7 files changed, 42 insertions(+), 6 deletions(-))
