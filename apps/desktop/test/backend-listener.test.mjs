@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { createOwnedBackendProcessRegistry } from '../src/main/ownedBackendProcessRegistry.ts'
@@ -16,11 +16,13 @@ const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 const estate = id(1), dir = mkdtempSync(path.join(tmpdir(), 'fabric-backend-listener-'))
 const executable = realpathSync(process.env.FABRIC_BACKEND_NODE ?? process.execPath), hash = createHash('sha256').update(readFileSync(executable)).digest('hex')
 const fixture = path.join(dir, 'listener.mjs')
-writeFileSync(fixture, `import http from 'node:http';const mode=process.argv[2],extra=process.argv.slice(3)
+writeFileSync(fixture, `import http from 'node:http';import {writeFileSync as mark} from 'node:fs';const mode=process.argv[2],extra=process.argv.slice(3)
 const say=t=>process.stderr.write(t)
 if(mode==='exit'){say('starting\\n');setTimeout(()=>process.exit(4),300)}
 // The receipt waits for SIGUSR2, which the test sends only once the registry owns this process.
 const go=new Promise(r=>process.once('SIGUSR2',r))
+// Armed: until the handler exists, SIGUSR2's default action ends the process (CO-174).
+mark(new URL('ready-'+process.pid,import.meta.url),'')
 if(mode!=='exit'){const server=http.createServer((q,r)=>{r.end(JSON.stringify({argv:extra}))}).listen(0,'127.0.0.1',async()=>{const port=server.address().port
 say('noise before — ünïcode\\n')
 await go
@@ -42,7 +44,14 @@ function registry({ mode = 'listen', listener = { pattern }, root = path.join(di
   registries.push(r); return { registry: r, calls, root }
 }
 const admission = () => { const n = serial++; return { admitted: true, project_id: id(3), task_id: id(n), task_run_id: id(n + 1000), session_id: id(n + 2000), run_ordinal: 1 } }
-async function owned(w, launch) { const a = admission(), s = await w.registry.start(a, a.session_id, async () => true, launch); assert.equal(s.state, 'owned', JSON.stringify(s)); await delay(50); process.kill(tracked[tracked.length - 1].child.pid, 'SIGUSR2'); return s.handle }
+async function owned(w, launch) { const a = admission(), s = await w.registry.start(a, a.session_id, async () => true, launch); assert.equal(s.state, 'owned', JSON.stringify(s))
+  // CO-174. This waited a fixed 50 ms and then signalled. A Node fixture under load had not yet
+  // installed its handler, so the signal's default action killed it, and the cases read a channel
+  // that ended (`owned_channel_end`) instead of the receipt they test. The fixture now says when it
+  // is armed, and the signal waits for that.
+  const pid = tracked[tracked.length - 1].child.pid
+  await until(() => existsSync(path.join(dir, 'ready-' + pid)), 'fixture armed')
+  process.kill(pid, 'SIGUSR2'); return s.handle }
 let count = 0; const test = async (name, fn) => { await fn(); console.log('PASS ' + name); count++ }
 try {
   await test('the announced port is the backend\'s own listener, and per-launch arguments reached it', async () => {
