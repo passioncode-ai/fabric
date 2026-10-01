@@ -115,3 +115,13 @@ test('sync publishes when a source is behind, the host moved or Fabric changed, 
  // An unreadable source is not a reason to publish over it: nothing is known about it.
  assert.deepEqual(syncReasons({lag:[{id:'f',state:'unreachable'}],hostAhead:0,sourceChanged:false}),[])
 })
+
+test('sync drops only its own unfinished publication, never anything else',async()=>{
+ const {syncLeftovers}=await import('../workspace-sources.mjs')
+ // A publication that failed after writing the receipt leaves exactly these two paths behind.
+ assert.deepEqual(syncLeftovers('M  docs/workspace-receipt.json\nM  workspace\n'),{discard:['docs/workspace-receipt.json','workspace'],refuse:[]})
+ assert.deepEqual(syncLeftovers(' M workspace\n'),{discard:['workspace'],refuse:[]})
+ assert.deepEqual(syncLeftovers(''),{discard:[],refuse:[]})
+ // Anything else is someone's change: refuse and touch nothing.
+ assert.deepEqual(syncLeftovers('M  docs/workspace-receipt.json\n M README.md\n'),{discard:['docs/workspace-receipt.json'],refuse:['README.md']})
+})
