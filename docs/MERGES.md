@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-01T09:34:07Z · `final-check-20261001` · agent/final-check → main · `8709ef8`
+- run: r-2f6a4491e
+- files: 14 (14 files changed, 96 insertions(+), 39 deletions(-))
+- conflicts: none
+- summary: final check: Fabric is public, README/facts/guides/manifests/AGENTS match ADR-0090/0092/0093; gitleaks allowlist; registry test race
+
 ### 2026-10-01T01:47:28Z · `ci-nightly-20261001` · agent/ci-nightly → main · `b4d06ad7`
 - run: r-5bf1fe8a5
 - files: 2 (2 files changed, 30 insertions(+), 3 deletions(-))
