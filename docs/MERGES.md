@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-01T01:15:06Z · `ceo-test-deadline-20261001` · agent/ceo-test-deadline → main · `c7cbe791`
+- run: r-5bf1fe8a5
+- files: 2 (2 files changed, 10 insertions(+), 4 deletions(-))
+- conflicts: none
+- summary: test fixture: product default deadline
+
 ### 2026-10-01T00:55:12Z · `repin-public-history-20261001` · agent/repin-public-history → main · `42b6c0c`
 - run: r-94bd37fb1
 - files: 111 (111 files changed, 9337 insertions(+), 3081 deletions(-))
