@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-01T00:55:12Z · `repin-public-history-20261001` · agent/repin-public-history → main · `42b6c0c`
+- run: r-94bd37fb1
+- files: 111 (111 files changed, 9337 insertions(+), 3081 deletions(-))
+- conflicts: none
+- summary: receipts repinned or marked stale across the public re-creation of the history; ci.sh fast green on a fresh clone and on Linux
+
 ### 2026-09-30T22:29:05Z · `open-source-20261001` · agent/public-followup → main · `5dfcc580`
 - run: r-5bf1fe8a5
 - files: 5 (5 files changed, 38 insertions(+), 6 deletions(-))
