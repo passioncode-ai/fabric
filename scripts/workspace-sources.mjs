@@ -104,3 +104,18 @@ export function syncReasons({lag,hostAhead,sourceChanged}){
  if(sourceChanged)reasons.push('Fabric changed since the published source')
  return reasons
 }
+
+/**
+ * What a failed earlier sync left in the sync's OWN checkout (Fabric ADR-0093): a publication that
+ * deployed and wrote its receipt but failed before the pin commit leaves the receipt and the
+ * workspace gitlink changed. Those two paths are the sync's own and are dropped; any other
+ * changed path is someone's work, so the sync refuses and touches nothing.
+ */
+export function syncLeftovers(porcelain){
+ const own=new Set(['docs/workspace-receipt.json','workspace']),discard=[],refuse=[]
+ for(const row of porcelain.split('\n').filter(Boolean)){
+  const p=row.slice(3)
+  ;(own.has(p)?discard:refuse).push(p)
+ }
+ return {discard,refuse}
+}

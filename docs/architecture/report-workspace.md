@@ -137,7 +137,7 @@ moves its checkout to `origin/main`, so it runs only in the checkout
 `scripts/install-workspace-sync.sh` makes that checkout and a launchd job
 (`ai.passioncode.fabric-workspace-sync`, every two hours, log
 `~/Library/Logs/fabric-workspace-sync.log`); `--status` and `--uninstall` report and remove it.
-A push that loses a race with another session fails the run; the next run starts from `origin/main` in both its checkouts — dropping the snapshot or pin the failed run left unpushed — and retries. Measured on the first run, 2026-09-30: a CLA change landed on the host mid-run and the host push was refused.
+A push that loses a race with another session fails the run; the next run starts from `origin/main` in both its checkouts — dropping the snapshot or pin the failed run left unpushed — and retries. A run that deployed and wrote its receipt but failed before the pin commit leaves the receipt and the gitlink changed; the next run drops exactly those two paths (`scripts/workspace-sources.mjs#syncLeftovers`) and refuses if anything else changed. Measured on the first run, 2026-09-30: a CLA change landed on the host mid-run and the host push was refused.
 
 ## Failure and recovery
 

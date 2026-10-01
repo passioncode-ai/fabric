@@ -3,7 +3,7 @@ import {execFileSync} from 'node:child_process'
 import {readFileSync,writeFileSync,existsSync} from 'node:fs'
 import path from 'node:path'
 import {snapshot,writeSnapshot,checkReceipt,git,receiptPath,publicationOnly,verifyCommittedSnapshot,receiptFor} from './workspace-snapshot.mjs'
-import {resolveSources,pinnedSources,localSourceDirs,sourcesMatch,sourcePins,fetchTip,lagReport,syncReasons} from './workspace-sources.mjs'
+import {resolveSources,pinnedSources,localSourceDirs,sourcesMatch,sourcePins,fetchTip,lagReport,syncReasons,syncLeftovers} from './workspace-sources.mjs'
 import {completedPublication,verifyDeployment,publicationSource,publicationHazards,sourceChangedSince} from './workspace-release.mjs'
 const root=path.resolve(import.meta.dirname,'..'),child=path.join(root,'workspace')
 const config=()=>JSON.parse(readFileSync(path.join(root,'workspace.config.json'),'utf8'))
@@ -79,7 +79,11 @@ if(cmd==='status'){
  // checkout of main (the scheduled job keeps its own); refuses anything else rather than guess.
  const c=config()
  if(!process.env.FABRIC_WORKSPACE_SYNC_CHECKOUT||path.resolve(process.env.FABRIC_WORKSPACE_SYNC_CHECKOUT)!==root)throw Error('sync moves its checkout to origin/main, so it runs only in the checkout FABRIC_WORKSPACE_SYNC_CHECKOUT names (scripts/install-workspace-sync.sh makes it)')
- if(git(root,'status','--porcelain','--untracked-files=no').toString().split('\n').filter(Boolean).some(r=>r.slice(3)!=='workspace'))throw Error('sync runs on a clean checkout of main; this one has changes')
+ const left=syncLeftovers(git(root,'status','--porcelain','--untracked-files=no').toString())
+ if(left.refuse.length)throw Error('sync runs on a clean checkout of main; this one has changes: '+left.refuse.slice(0,5).join(', '))
+ // A previous run's unfinished publication (receipt + gitlink) is this checkout's own leftover.
+ if(left.discard.includes('docs/workspace-receipt.json')){git(root,'restore','--staged','--worktree','docs/workspace-receipt.json');console.log('Dropped the receipt an unfinished earlier publication left behind')}
+ if(left.discard.includes('workspace'))git(root,'restore','--staged','workspace')
  run('git',['fetch','-q','origin','main'])
  // Its own checkout: whatever a previous run left (a pin that lost a push race) is dropped by
  // detaching onto origin/main; nobody's work lives here, which is what the guard above ensures.
