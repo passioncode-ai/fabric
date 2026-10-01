@@ -62,7 +62,7 @@ export function lineReceipts(doc) {
   return out
 }
 
-const repinUrl = (url, from, to, line) => {
+export const repinUrl = (url, from, to, line) => {
   if (typeof url !== 'string') return url
   const next = url.replace('/blob/' + from + '/', '/blob/' + to + '/').replace(/#L\d+$/, '#L' + line)
   if (next === url && from !== to) throw new Error('URL does not address its receipt: ' + url)

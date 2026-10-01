@@ -43,6 +43,12 @@ step "probe templates"
 # stale (scripts/lib/public-history.mjs); --summary fails on any receipt in none of the three.
 node --test scripts/test/public-history.test.mjs scripts/test/submodules.test.mjs
 node scripts/repin-public-history.mjs --summary >/dev/null
+# 2026-10-01. Three siblings were re-created the same way, and 180 links into their old commits
+# opened nothing while every gate stayed green. Each link into a sibling commit resolves in its
+# public history, or names a commit on the closed pre-publication list from a dated record or an
+# ADR and prints NOT_CHECKED; repinned receipts are re-read at their new commit. Needs the network.
+node --test scripts/test/sibling-commits.test.mjs
+node scripts/check-sibling-commits.mjs
 node scripts/check-adoption-plan.mjs
 node scripts/check-adoption-bindings.mjs
 # Existed since the R0 operator audit and nothing ran it (the FA-10 class).

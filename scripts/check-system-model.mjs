@@ -8,7 +8,7 @@ import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {parse} from 'parse5'
 import {root,renderSystemMap} from './build-system-map.mjs'
-import {STALE,history as gitHistory,repinProblem,staleProblem} from './lib/public-history.mjs'
+import {STALE,history as gitHistory,repinProblem,siblingRepinProblem,staleProblem} from './lib/public-history.mjs'
 const read=p=>readFileSync(path.join(root,p),'utf8')
 const json=p=>JSON.parse(read(p))
 const assert=(ok,msg)=>{if(!ok)throw new Error(msg)}
@@ -60,11 +60,13 @@ export function validateDesign(model,catalog,{verifySources=true}={}){
  // The receipts file is a DATED record and keeps the addresses the research read. A citation
  // repinned onto the public history (scripts/lib/public-history.mjs) is found there by the
  // address it was first verified at, `repinned_from`, and must still quote the same excerpt.
+ // A SIBLING citation's repin is judged by the closed list (siblingRepinProblem), and its new
+ // address is re-read over the network by scripts/check-sibling-commits.mjs.
  const receiptKey=s=>[s.repository,s.commit,s.path,s.line].join(':');const receiptMap=new Map(receipts.map(s=>[receiptKey(s),s]));const blobs=new Map();let citations=0,stale=0,repinned=0
  const hist=verifySources?gitHistory(root):null
  const walk=v=>{if(!v||typeof v!=='object')return;if(v.path&&v.verification){citations++;if(v.verification==='current-design'){assert(existsSync(path.join(root,v.path)),'Missing design source');return}const from=v.repinned_from;const r=receiptMap.get(receiptKey(from?{...v,commit:from.commit,line:from.line}:v));assert(r&&(from?from.file_sha256:v.file_sha256)===r.file_sha256&&v.excerpt===r.excerpt,'Missing/mismatched citation receipt '+v.path);
  if(v.verification===STALE){assert(!from&&v.repository==='fabric','Stale citation must be an unrepinned fabric receipt '+v.path);if(hist){const problem=staleProblem({commit:v.commit,file:v.path,sha:v.file_sha256,line:v.line,excerpt:v.excerpt,stale:v.stale},hist);assert(!problem,'Stale citation '+v.path+': '+problem)}stale++;return}
- if(from){if(hist){const problem=repinProblem(v,{sha:v.file_sha256,inHistory:hist.inHistory});assert(!problem,'Repinned citation '+v.path+': '+problem)}repinned++}assert(/^[0-9a-f]{40}$/.test(v.commit)&&Number.isInteger(v.line)&&v.line>0,'Unpinned source '+v.path);if(verifySources&&v.verification==='git-blob'){assert(v.repository==='fabric','Unsupported git source repository');const key=v.commit+':'+v.path;let blob=blobs.get(key);if(!blob){blob=execFileSync('git',['show',key],{cwd:root,encoding:'utf8',maxBuffer:10*1024*1024});blobs.set(key,blob)}assert(createHash('sha256').update(blob).digest('hex')===v.file_sha256&&blob.split('\n')[v.line-1]===v.excerpt,'Source blob/excerpt drift '+v.path)}else assert(['git-blob','retained-sibling-receipt'].includes(v.verification),'Unknown citation verification mode '+v.verification)}for(const x of Object.values(v))walk(x)}
+ if(from){const sibling=v.repository!==undefined&&v.repository!=='fabric';if(sibling||hist){const problem=sibling?siblingRepinProblem(v):repinProblem(v,{sha:v.file_sha256,inHistory:hist.inHistory});assert(!problem,'Repinned citation '+v.path+': '+problem)}repinned++}assert(/^[0-9a-f]{40}$/.test(v.commit)&&Number.isInteger(v.line)&&v.line>0,'Unpinned source '+v.path);if(verifySources&&v.verification==='git-blob'){assert(v.repository==='fabric','Unsupported git source repository');const key=v.commit+':'+v.path;let blob=blobs.get(key);if(!blob){blob=execFileSync('git',['show',key],{cwd:root,encoding:'utf8',maxBuffer:10*1024*1024});blobs.set(key,blob)}assert(createHash('sha256').update(blob).digest('hex')===v.file_sha256&&blob.split('\n')[v.line-1]===v.excerpt,'Source blob/excerpt drift '+v.path)}else assert(['git-blob','retained-sibling-receipt'].includes(v.verification),'Unknown citation verification mode '+v.verification)}for(const x of Object.values(v))walk(x)}
  walk(model);walk(catalog)
  return {tasks:cards.size,deep:catalog.items.filter(x=>x.depth==='deep').length,recipes:catalog.items.filter(x=>x.depth==='recipe').length,preserve:catalog.items.filter(x=>x.depth==='preserve').length,requirements:req.size,modules:modules.size,entities:entities.size,relations:relations.size,cycles:cycles.size,execution_nodes:nodes.size,dependency_edges:edges.size,citation_occurrences:citations,receipts:receipts.length,repinned_citations:repinned,stale_citations:stale,verified_git_files:blobs.size}
 }

@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {registrySections} from './sync-product-ux.mjs'
-import {STALE,STALE_REASONS,history as gitHistory,repinProblem,staleProblem} from './lib/public-history.mjs'
+import {STALE,STALE_REASONS,history as gitHistory,repinProblem,siblingRepinProblem,staleProblem} from './lib/public-history.mjs'
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..')
 const nonempty=v=>typeof v==='string'?v.trim().length>0:Array.isArray(v)?v.length>0:v&&typeof v==='object'&&Object.keys(v).length>0
@@ -126,7 +126,8 @@ export function validateProductModel(model,fixtures,options={}){
     if(history){const problem=staleProblem({commit:s.commit,file,sha:s.file_sha256,line:s.line,end_line:s.end_line,excerpt:s.excerpt,stale:s.stale},history);check(!problem,where+' '+problem)}
     stale++;return
    }
-   if(s.repinned_from){if(history){const problem=repinProblem(s,{sha:s.file_sha256,inHistory:history.inHistory});check(!problem,where+' '+problem)}repinned++}
+   // A sibling receipt's repin is judged by the closed list, never by this repository's ancestry.
+   if(s.repinned_from){const sibling=s.repository!==undefined&&s.repository!=='fabric';if(sibling||history){const problem=sibling?siblingRepinProblem(s):repinProblem(s,{sha:s.file_sha256,inHistory:history.inHistory});check(!problem,where+' '+problem)}repinned++}
    receipts++;if(!readGitBlob)return
    const key=s.commit+':'+file;if(!blobs.has(key))blobs.set(key,readGitBlob(s.commit,file));const blob=blobs.get(key)
    check(sha(blob)===s.file_sha256,where+' source hash mismatch '+file)
