@@ -50,3 +50,8 @@ This source handoff is not a deployment receipt; the owning org-index run record
 Local-only: credentials, raw logs, caches, temporary checkouts and third-party dependencies.
 Exact follow-up after publication: take the next ready item from the common backlog using its
 canonical source and dependency evidence; do not restart this documentation review from chat.
+
+Independent final source review corrected two overbroad AR statuses: AR-1.5's consumer
+pin compatibility and AR-2.5's Fabric-side dashboard action stay partial. The cited
+brief proves contract/adapter and Dashboards delivery, not those remaining consumers.
+AR-1's module summary now matches that narrower evidence; acceptance text is preserved.

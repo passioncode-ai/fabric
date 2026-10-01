@@ -248,3 +248,8 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - 2026-08-25 · `CO-049-plane` · plane-notion → main · `f17b4b7` · fabric's plane is notion
 - 2026-08-25 · `CO-049-close` · co-049-close → main · `c580226` · CO-049 closed: the Notion backend shipped
 - 2026-08-25 · `agent-sync-init` · agent-sync-init → main · `178a9ef` · agent-sync initialised; PostHog recorded as a candidate signal source
+
+2026-10-01 · organization-quality source review: AR-1.5/AR-2.5 and the AR-1
+module summary retain partial status where cited acceptance covers only another
+consumer. Documentation-only follow-up, normal fast-forward after local fast gate;
+map anchor `iteration-2026-10-01-backlog-review`.

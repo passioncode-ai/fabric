@@ -19,7 +19,7 @@ Partial delivery in a dependent tool does not complete Fabric's module.
 | ID | Item | Status | Source / next prerequisite |
 |---|---|---|---|
 | AR-0 | Truth layer, names, workspace and contribution rules | done | brief §10; current common-backlog publication is recorded in the organization-quality run |
-| AR-1 | Agent contract and adapter kits | done | brief §11: contract `2ea54f7`, adapter v0.5.2; later releases preserve the module's scope |
+| AR-1 | Agent contract and adapter kits | partial | Published contract `2ea54f7` and adapter v0.5.2; AR-1.5 consumer pin compatibility remains open (brief §11, org-index X-4) |
 | AR-2 | Registry walking skeleton | partial | Dashboards service-host and deep link plus Observatory inventory delivered; Fabric consumption, registry and SCR-66 remain; brief §11 |
 | AR-3 | Hub, northbound MCP and tasking | planned | requires AR-2 and its walking-skeleton acceptance |
 | AR-4 | Floating CEO context and micro-controls | planned | task acceptance below |
@@ -52,7 +52,7 @@ Partial delivery in a dependent tool does not complete Fabric's module.
 | AR-1.2 | `provider.md` + schema for `providers/` entries (C1) | REQ-01 | fixtures; FAC-SEM-013…015 | done — brief §10/§11 acceptance |
 | AR-1.3 | `runners.md` + schema for the runner catalogue (C2) | REQ-01, REQ-02 | fixtures; FAC-SEM-016 | done — brief §10/§11 acceptance |
 | AR-1.4 | `pipeline.md` + schema and the compatibility rule PL-1…PL-4 (C4), with a reference checker | REQ-08 | fixtures incl. an incompatible edge, a missing checker, a cycle | done — brief §10/§11 acceptance |
-| AR-1.5 | Fix G-07 (manifest ↔ descriptor cross-check rule), G-08 (one extension key spelling), G-11 (one contract pin across repositories), G-12 (profile names in CONTEXT match the schema) | REQ-04 | semantic-rule tests; pin check | done — brief §10/§11 acceptance |
+| AR-1.5 | Fix G-07 (manifest ↔ descriptor cross-check rule), G-08 (one extension key spelling), G-11 (one contract pin across repositories), G-12 (profile names in CONTEXT match the schema) | REQ-04 | semantic-rule tests; pin check | partial — published contract corrections; consumer pin compatibility remains org-index X-4, brief §11 |
 | AR-1.6 | Adapter kits emit trace context and job handles; `building-fabric-services` and `adapting-projects-to-fabric` teach interop; new `providers/` writer in the kit | REQ-05, REQ-11, REQ-14 | kit tests; conformance probe gains interop rules | done — brief §10/§11 acceptance |
 
 ## AR-2 — registry (walking skeleton, part 1)
@@ -63,7 +63,7 @@ Partial delivery in a dependent tool does not complete Fabric's module.
 | AR-2.2 | Readers for `services/` (shared service-host code extracted from Fabric Dashboards into a package both apps use) and `providers/` | REQ-01, REQ-10 | the shared state-precedence tests run in both apps | partial — brief §11; remaining Fabric/private-agent work is not delivered |
 | AR-2.3 | `registry.observed@1` event, projection, feed sentence; Fabric agents as entries | REQ-01, REQ-02 | projector test; narrative gate | not recorded |
 | AR-2.4 | SCR-05 as the registry (three groups, problems, primary actions) — SCN-098…102 | REQ-01, REQ-02, REQ-22 | RTL tests per state | not recorded |
-| AR-2.5 | `fabric-dashboards://service/<id>.<instance>` URL scheme in Fabric Dashboards; "Open dashboard" in Fabric — SCN-101 | REQ-10 | e2e in Fabric Dashboards; not-installed state | done — brief §10/§11 acceptance |
+| AR-2.5 | `fabric-dashboards://service/<id>.<instance>` URL scheme in Fabric Dashboards; "Open dashboard" in Fabric — SCN-101 | REQ-10 | e2e in Fabric Dashboards; not-installed state | partial — Dashboards scheme/e2e delivered; Fabric Open dashboard action has no acceptance receipt |
 | AR-2.6 | Observatory `machine.mcp.inventory` capability; SCR-66 MCP servers — SCN-103/104 | REQ-03 | tests incl. Observatory absent and stale | partial — brief §11; remaining Fabric/private-agent work is not delivered |
 
 ## AR-3 — hub and tasking (walking skeleton, part 2)
