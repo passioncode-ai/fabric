@@ -27,7 +27,7 @@ import type { ProviderCapabilityReceipt } from './providerCapability.ts'
 /** The builds these rows are about. An upgrade invalidates them, by design. */
 export const PINNED_BUILDS = {
   'claude-code': '2.1.286',
-  'codex-cli': '0.157.1'
+  'codex-cli': '0.159.3'
 } as const
 
 export const HISTORICAL_PINNED_BUILDS = { 'claude-code': '2.1.236', 'codex-cli': '0.152.1' } as const
@@ -203,8 +203,8 @@ export const HISTORICAL_CAPABILITY_MATRIX: readonly ProviderCapabilityReceipt[] 
 ]
 
 /** A CLI upgrade invalidates the verdict, not the historical observation.
- * Measured with `claude --version` / `codex --version`, 2026-09-30 (Claude Code updated itself to 2.1.286;
- * codex-cli unchanged at 0.157.1). The 2.1.284 rows of 2026-09-28 were version-only too, so nothing measured is lost.
+ * Measured with `claude --version` / `codex --version`, 2026-10-01 (Claude Code remains 2.1.286;
+ * codex-cli is now 0.159.3). The previous current rows were version-only too, so no capability verdict is lost.
  * No login, native session, credential store or model run was probed in this wiki iteration.
  */
 export const CAPABILITY_MATRIX: readonly ProviderCapabilityReceipt[] = [
@@ -213,7 +213,7 @@ export const CAPABILITY_MATRIX: readonly ProviderCapabilityReceipt[] = [
     ...row,
     cliBuild: PINNED_BUILDS[row.provider as keyof typeof PINNED_BUILDS],
     status: 'unverified',
-    checkedAt: '2026-09-30',
-    evidenceRef: `Installed build changed (version-only observation, 2026-09-30). Requires repeating the ${row.capability} probe and, for native continuity, a certified isolated run on this exact build. Historical ${row.cliBuild} receipt remains separate: ${row.evidenceRef}`
+    checkedAt: '2026-10-01',
+    evidenceRef: `Installed build changed (version-only observation, 2026-10-01). Requires repeating the ${row.capability} probe and, for native continuity, a certified isolated run on this exact build. Historical ${row.cliBuild} receipt remains separate: ${row.evidenceRef}`
   }))
 ]

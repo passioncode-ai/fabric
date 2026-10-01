@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-01 · `release-chain-recovery` · codex/provider-cli-0.159.3 → main
+- run: r-01a0f7454075
+- base: f7602c93; integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: provider capability matrix, release-chain handoff, living map and source stamp
+- summary: observed Codex CLI 0.159.3 replaces the 0.157.1 version pin; all current capability rows remain unverified and historical observations stay intact. Unblocks the workspace publication gate without changing its rule or claiming new provider capabilities.
+
 ### 2026-10-01T10:14:02Z · `sibling-repin-20261001` · agent/sibling-repin → main · `960f858`
 - run: r-0331edc1c
 - files: 96 (96 files changed, 1011 insertions(+), 167 deletions(-))
