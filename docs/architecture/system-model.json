@@ -141,12 +141,18 @@
           "path": "supabase/migrations/20260831000001_migration_one.sql",
           "symbol": "create table persons",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 14,
           "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
           "excerpt": "create table persons (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L14",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260831000001_migration_one.sql#L14",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 14,
+            "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -172,12 +178,18 @@
           "path": "supabase/migrations/20260831000001_migration_one.sql",
           "symbol": "create table estates",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 25,
           "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
           "excerpt": "create table estates (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L25",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260831000001_migration_one.sql#L25",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 25,
+            "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -205,12 +217,18 @@
           "path": "supabase/migrations/20260831000001_migration_one.sql",
           "symbol": "create table memberships",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 31,
           "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
           "excerpt": "create table memberships (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L31",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260831000001_migration_one.sql#L31",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 31,
+            "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -240,12 +258,18 @@
           "path": "supabase/migrations/20260831000001_migration_one.sql",
           "symbol": "create table projects",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 40,
           "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
           "excerpt": "create table projects (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L40",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260831000001_migration_one.sql#L40",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 40,
+            "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -274,12 +298,18 @@
           "path": "apps/desktop/src/main/files.ts",
           "symbol": "readFile",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 22,
-          "file_sha256": "df666cc2758c8552fabec37b2d50b69be59918125caa28dd4e8da32c9a16d476",
+          "file_sha256": "85d5c32fc31cb4b2bac2d2c255121eb71b055a563455a9d613efb6093cb2c732",
           "excerpt": "import { existsSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs'",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/main/files.ts#L22",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/apps/desktop/src/main/files.ts#L22",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 22,
+            "file_sha256": "df666cc2758c8552fabec37b2d50b69be59918125caa28dd4e8da32c9a16d476",
+            "rule": "cited-lines-unchanged"
+          }
         }
       ],
       "tasks": [
@@ -310,12 +340,18 @@
           "path": "supabase/migrations/20260831000001_migration_one.sql",
           "symbol": "create table grants",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 80,
           "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
           "excerpt": "create table grants (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L80",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260831000001_migration_one.sql#L80",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 80,
+            "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -345,12 +381,18 @@
           "path": "supabase/migrations/20260831000001_migration_one.sql",
           "symbol": "create table effect_intents",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 93,
           "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
           "excerpt": "create table effect_intents (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L93",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260831000001_migration_one.sql#L93",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 93,
+            "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -381,12 +423,18 @@
           "path": "packages/journal/src/index.ts",
           "symbol": "append",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 2,
           "file_sha256": "4d620477f1567a25535a86f933d5937850091deb430f5f25b5a6df13f76f3e31",
           "excerpt": "// append() is the only write path (it calls the append_event RPC, the single",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/packages/journal/src/index.ts#L2",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/packages/journal/src/index.ts#L2",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 2,
+            "file_sha256": "4d620477f1567a25535a86f933d5937850091deb430f5f25b5a6df13f76f3e31",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -418,12 +466,18 @@
           "path": "docs/architecture/ceo-runtime.md",
           "symbol": "checker",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 10,
-          "file_sha256": "4429286e3ae857154b03de0b4a9f5a3b40b80bdc600c778d2f3eff42dbfca345",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 16,
+          "file_sha256": "7c1e8b54fb5fac6a6e6763bc2e0bfe830affb80200512dd41bccf6d985b2fc5e",
           "excerpt": "> **REVISED 2026-09-06 by [ADR-0039](../adr/0039-the-ceo-is-an-agent-after-all-and-the-line-moves-to-the-tools.md).** The operator chose an agent, for flexibility and tools. §1–§2 here (“not an agent loop”) and §5 (“no loop guards”) are superseded: the CEO IS a small tool-calling loop, with the four guards. What survives is everything else — the deterministic core, the core-as-checker, the router, `ModelPort | null`, and placement — and the new load-bearing idea is that **auditability moves from the shape of the run to the tools the agent holds**. See [`agent-system-map.md`](agent-system-map.md) §5.",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/ceo-runtime.md#L10",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/architecture/ceo-runtime.md#L16",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 10,
+            "file_sha256": "4429286e3ae857154b03de0b4a9f5a3b40b80bdc600c778d2f3eff42dbfca345",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -453,12 +507,18 @@
           "path": "apps/desktop/src/shared/plan.ts",
           "symbol": "GoalRow",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 13,
           "file_sha256": "f181f03796b7a61333143e7e6a2899dc6626ffa3619d6893883175aeb4febc0e",
           "excerpt": "export interface GoalRow {",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/shared/plan.ts#L13",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/apps/desktop/src/shared/plan.ts#L13",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 13,
+            "file_sha256": "f181f03796b7a61333143e7e6a2899dc6626ffa3619d6893883175aeb4febc0e",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -488,12 +548,18 @@
           "path": "docs/architecture/agent-visibility-and-runs.md",
           "symbol": "SHOULD",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 74,
-          "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 80,
+          "file_sha256": "c1f8ddae7b50330f195b362d4a9de4d9d9ac1edddec4572eee27c6e4500ada86",
           "excerpt": "| **Plan graph** | how it SHOULD go, and how it is going | goals → tasks → (runs) | goal membership, `follows` + `needs` (chains), progress overlay from statuses |",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-visibility-and-runs.md#L74",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/architecture/agent-visibility-and-runs.md#L80",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 74,
+            "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -524,12 +590,18 @@
           "path": "supabase/migrations/20260831000004_tasks.sql",
           "symbol": "create table project_tasks",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 9,
           "file_sha256": "cc2c09711a3af47acb96b56c7eefa0c3a3ce966e7afae3163e534772def58f0e",
           "excerpt": "create table project_tasks (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000004_tasks.sql#L9",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260831000004_tasks.sql#L9",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 9,
+            "file_sha256": "cc2c09711a3af47acb96b56c7eefa0c3a3ce966e7afae3163e534772def58f0e",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -559,12 +631,18 @@
           "path": "supabase/migrations/20260905000016_operating_surfaces.sql",
           "symbol": "create table task_links",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 107,
           "file_sha256": "9befadf715078b492ad2648ee5e1946dbc5511e7d19ade00610c6b86a0a9cf37",
           "excerpt": "create table task_links (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260905000016_operating_surfaces.sql#L107",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260905000016_operating_surfaces.sql#L107",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 107,
+            "file_sha256": "9befadf715078b492ad2648ee5e1946dbc5511e7d19ade00610c6b86a0a9cf37",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -595,12 +673,18 @@
           "path": "supabase/migrations/20260906000028_questions.sql",
           "symbol": "create table questions",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 18,
           "file_sha256": "da80d63b655466fdf9c5216d2968de6a9c3e301bd718499876c88ae3ba175a2f",
           "excerpt": "create table questions (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260906000028_questions.sql#L18",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260906000028_questions.sql#L18",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 18,
+            "file_sha256": "da80d63b655466fdf9c5216d2968de6a9c3e301bd718499876c88ae3ba175a2f",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -630,12 +714,18 @@
           "path": "supabase/migrations/20260906000028_questions.sql",
           "symbol": "create table question_blocks",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 62,
           "file_sha256": "da80d63b655466fdf9c5216d2968de6a9c3e301bd718499876c88ae3ba175a2f",
           "excerpt": "create table question_blocks (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260906000028_questions.sql#L62",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260906000028_questions.sql#L62",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 62,
+            "file_sha256": "da80d63b655466fdf9c5216d2968de6a9c3e301bd718499876c88ae3ba175a2f",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -666,12 +756,18 @@
           "path": "apps/desktop/src/shared/decisions.ts",
           "symbol": "Lineage",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 38,
-          "file_sha256": "8a7808492c3b632dec0d3ed39790ba1ecfc1756c16cf5caaf99cb1cb2ac7366d",
+          "file_sha256": "99076e135b46bce6a4bf10c80820436b48757478bfc6d9127be54c520728bd50",
           "excerpt": "export interface Lineage {",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/shared/decisions.ts#L38",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/apps/desktop/src/shared/decisions.ts#L38",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 38,
+            "file_sha256": "8a7808492c3b632dec0d3ed39790ba1ecfc1756c16cf5caaf99cb1cb2ac7366d",
+            "rule": "cited-lines-unchanged"
+          }
         }
       ],
       "tasks": [
@@ -703,12 +799,18 @@
           "path": "docs/adr/0030-a-run-is-one-execution-of-one-graph.md",
           "symbol": "Run",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 1,
           "file_sha256": "320cdb80cd91d3f032397dc9117ca038029c3c7d5b6f34b077af775014358f80",
           "excerpt": "# ADR-0030 — A Run is one execution of one graph",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/adr/0030-a-run-is-one-execution-of-one-graph.md#L1",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/adr/0030-a-run-is-one-execution-of-one-graph.md#L1",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 1,
+            "file_sha256": "320cdb80cd91d3f032397dc9117ca038029c3c7d5b6f34b077af775014358f80",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -741,12 +843,18 @@
           "path": "docs/adr/0042-a-run-is-the-unit-of-progress-and-every-graph-is-a-query.md",
           "symbol": "A run is a session",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 19,
-          "file_sha256": "694778c55cecaffb5fd1fb9ef32efa447d707b25c915ef87f214d47610a22295",
+          "file_sha256": "e569e1339ad133973378741fef456e75d0c2df4c49dc082f269e8d4c10034faa",
           "excerpt": "1. **A run is a session bound to a task.** No new id: `task.session.attached@1`",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/adr/0042-a-run-is-the-unit-of-progress-and-every-graph-is-a-query.md#L19",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/adr/0042-a-run-is-the-unit-of-progress-and-every-graph-is-a-query.md#L19",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 19,
+            "file_sha256": "694778c55cecaffb5fd1fb9ef32efa447d707b25c915ef87f214d47610a22295",
+            "rule": "cited-lines-unchanged"
+          }
         }
       ],
       "tasks": [
@@ -777,12 +885,18 @@
           "path": "docs/architecture/agent-visibility-and-runs.md",
           "symbol": "plan.step",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 32,
-          "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 38,
+          "file_sha256": "c1f8ddae7b50330f195b362d4a9de4d9d9ac1edddec4572eee27c6e4500ada86",
           "excerpt": "fabric_plan_step({ task_id, step_id, status, note? })        → plan.step@1",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-visibility-and-runs.md#L32",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/architecture/agent-visibility-and-runs.md#L38",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 32,
+            "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -814,12 +928,18 @@
           "path": "docs/architecture/agent-visibility-and-runs.md",
           "symbol": "checkpoint",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 4,
-          "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 10,
+          "file_sha256": "c1f8ddae7b50330f195b362d4a9de4d9d9ac1edddec4572eee27c6e4500ada86",
           "excerpt": "model with checkpoints, the per-agent history graph, the project task/plan",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-visibility-and-runs.md#L4",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/architecture/agent-visibility-and-runs.md#L10",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 4,
+            "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -850,12 +970,18 @@
           "path": "apps/desktop/src/main/pty.ts",
           "symbol": "PtyManager",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 1,
-          "file_sha256": "cc39093a3efcda41e9e45425add1463bca25ac4b8450be93fa7236e9e1639774",
+          "file_sha256": "498a88cd91c26a1fd372063f064682abac3ac4875a62a4e944246487c1f26646",
           "excerpt": "// PtyManager — hosted terminals (ADR-0008 §3 / ADR-0031). Sessions live in the",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/main/pty.ts#L1",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/apps/desktop/src/main/pty.ts#L1",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 1,
+            "file_sha256": "cc39093a3efcda41e9e45425add1463bca25ac4b8450be93fa7236e9e1639774",
+            "rule": "cited-lines-unchanged"
+          }
         }
       ],
       "tasks": [
@@ -887,12 +1013,18 @@
           "path": "apps/desktop/src/shared/delivery.ts",
           "symbol": "asOnePaste",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 43,
           "file_sha256": "193e39fbdcd8d4aed4460b3aef4d6f7f7c707f2fce8147eef81fd1b52dd27b15",
           "excerpt": "export function asOnePaste(instruction: string): string {",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/shared/delivery.ts#L43",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/apps/desktop/src/shared/delivery.ts#L43",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 43,
+            "file_sha256": "193e39fbdcd8d4aed4460b3aef4d6f7f7c707f2fce8147eef81fd1b52dd27b15",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -924,12 +1056,18 @@
           "path": "supabase/migrations/20260905000027_chains.sql",
           "symbol": "task_handoffs",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 9,
           "file_sha256": "621a8b19240484bdaba970edb5de11cc34fffc09be82291a8286789b06e237cc",
           "excerpt": "-- drawn. `task_handoffs` is what a predecessor actually PRODUCED — part of the",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260905000027_chains.sql#L9",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260905000027_chains.sql#L9",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 9,
+            "file_sha256": "621a8b19240484bdaba970edb5de11cc34fffc09be82291a8286789b06e237cc",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -959,12 +1097,18 @@
           "path": "docs/architecture/agent-production.md",
           "symbol": "provider",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 32,
-          "file_sha256": "9e07ebf27018899d538aae1698ee918c163e0af738ac3a5df405763bb92b46a9",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 34,
+          "file_sha256": "e2f708188a4193a869fa849cd498a94507a0f6d4c946971fedb521614b78d030",
           "excerpt": "| What the agent can do | **Capability** from the controlled vocabulary; the provider maps onto it | ADR-0012, CO-041 |",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-production.md#L32",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/architecture/agent-production.md#L34",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 32,
+            "file_sha256": "9e07ebf27018899d538aae1698ee918c163e0af738ac3a5df405763bb92b46a9",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -996,12 +1140,18 @@
           "path": "supabase/migrations/20260831000001_migration_one.sql",
           "symbol": "create table agent_bindings",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 63,
           "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
           "excerpt": "create table agent_bindings (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L63",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260831000001_migration_one.sql#L63",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 63,
+            "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -1031,12 +1181,18 @@
           "path": "docs/adr/0043-the-manager-seat-is-a-binding.md",
           "symbol": "ROLE BINDING",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 13,
           "file_sha256": "e98b16c7b1de8e4f360c9190c8aaf2394e9b36f877c0642c1de1079f86a6999c",
           "excerpt": "1. **The manager is a ROLE BINDING** (ADR-0010): `role = manager`,",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/adr/0043-the-manager-seat-is-a-binding.md#L13",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/adr/0043-the-manager-seat-is-a-binding.md#L13",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 13,
+            "file_sha256": "e98b16c7b1de8e4f360c9190c8aaf2394e9b36f877c0642c1de1079f86a6999c",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -1067,12 +1223,18 @@
           "path": "docs/architecture/agent-visibility-and-runs.md",
           "symbol": "Lifecycle",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 143,
-          "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 149,
+          "file_sha256": "c1f8ddae7b50330f195b362d4a9de4d9d9ac1edddec4572eee27c6e4500ada86",
           "excerpt": "### 4.2 Lifecycle — wake, verify, pass data",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-visibility-and-runs.md#L143",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/architecture/agent-visibility-and-runs.md#L149",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 143,
+            "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -1104,12 +1266,18 @@
           "path": "docs/architecture/agent-health-and-failure.md",
           "symbol": "heartbeat",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 1,
           "file_sha256": "2745e44a4369e269d4a86a1d9c1c61a6d9b5f185747722c772f17c2d6b257021",
           "excerpt": "# Agent health, the heartbeat, and what happens when something breaks",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-health-and-failure.md#L1",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/architecture/agent-health-and-failure.md#L1",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 1,
+            "file_sha256": "2745e44a4369e269d4a86a1d9c1c61a6d9b5f185747722c772f17c2d6b257021",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -1142,12 +1310,18 @@
           "path": "docs/architecture/ceo-runtime.md",
           "symbol": "ModelPort",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 10,
-          "file_sha256": "4429286e3ae857154b03de0b4a9f5a3b40b80bdc600c778d2f3eff42dbfca345",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 16,
+          "file_sha256": "7c1e8b54fb5fac6a6e6763bc2e0bfe830affb80200512dd41bccf6d985b2fc5e",
           "excerpt": "> **REVISED 2026-09-06 by [ADR-0039](../adr/0039-the-ceo-is-an-agent-after-all-and-the-line-moves-to-the-tools.md).** The operator chose an agent, for flexibility and tools. §1–§2 here (“not an agent loop”) and §5 (“no loop guards”) are superseded: the CEO IS a small tool-calling loop, with the four guards. What survives is everything else — the deterministic core, the core-as-checker, the router, `ModelPort | null`, and placement — and the new load-bearing idea is that **auditability moves from the shape of the run to the tools the agent holds**. See [`agent-system-map.md`](agent-system-map.md) §5.",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/ceo-runtime.md#L10",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/architecture/ceo-runtime.md#L16",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 10,
+            "file_sha256": "4429286e3ae857154b03de0b4a9f5a3b40b80bdc600c778d2f3eff42dbfca345",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -1180,12 +1354,18 @@
           "path": "supabase/migrations/20260831000001_migration_one.sql",
           "symbol": "create table journal",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 110,
           "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
           "excerpt": "create table journal (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L110",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260831000001_migration_one.sql#L110",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 110,
+            "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -1217,12 +1397,18 @@
           "path": "supabase/migrations/20260831000002_project_workbench.sql",
           "symbol": "create table memory_facts",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 7,
           "file_sha256": "dd415ec0f7b9b7b83888555fb0a0cf1978edb6d659a75cfe4bb1ab3ce3446c9c",
           "excerpt": "create table memory_facts (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000002_project_workbench.sql#L7",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260831000002_project_workbench.sql#L7",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 7,
+            "file_sha256": "dd415ec0f7b9b7b83888555fb0a0cf1978edb6d659a75cfe4bb1ab3ce3446c9c",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -1253,12 +1439,18 @@
           "path": "supabase/migrations/20260831000008_transcripts.sql",
           "symbol": "create table session_transcripts",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 30,
           "file_sha256": "fb82dbb01f5d467962fce9a97aa39836014a358d2e15e71550b46f06e4556935",
           "excerpt": "create table session_transcripts (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000008_transcripts.sql#L30",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260831000008_transcripts.sql#L30",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 30,
+            "file_sha256": "fb82dbb01f5d467962fce9a97aa39836014a358d2e15e71550b46f06e4556935",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -1291,12 +1483,18 @@
           "path": "supabase/migrations/20260901000013_context_packs.sql",
           "symbol": "create table session_context_packs",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 24,
           "file_sha256": "fdf7744dd848ce001f344ed8232d2bfce4d8025764b4856b81884d88fb35d671",
           "excerpt": "create table session_context_packs (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260901000013_context_packs.sql#L24",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260901000013_context_packs.sql#L24",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 24,
+            "file_sha256": "fdf7744dd848ce001f344ed8232d2bfce4d8025764b4856b81884d88fb35d671",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -1328,12 +1526,18 @@
           "path": "supabase/migrations/20260831000011_retrieval_log.sql",
           "symbol": "create table memory_retrievals",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 19,
           "file_sha256": "2c389da94fd9c0058e72bee021ea6e9479e1376d5e656a2d97bcdb98766cd236",
           "excerpt": "create table memory_retrievals (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000011_retrieval_log.sql#L19",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260831000011_retrieval_log.sql#L19",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 19,
+            "file_sha256": "2c389da94fd9c0058e72bee021ea6e9479e1376d5e656a2d97bcdb98766cd236",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -1365,12 +1569,18 @@
           "path": "docs/architecture/retro-and-signals.md",
           "symbol": "retro",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 5,
-          "file_sha256": "aa2938b00d9bcc1a3e78fabd77c58b2bf4f2a188566b9b69b26c92e73f6d8f3e",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 11,
+          "file_sha256": "bbe38e6bfc6d5fef7198f05fb6cca857f971d6068c974c9e4bb2e97108a48a42",
           "excerpt": "becomes Fabric's own product backlog; the CEO runs a retrospective cycle; every",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/retro-and-signals.md#L5",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/architecture/retro-and-signals.md#L11",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 5,
+            "file_sha256": "aa2938b00d9bcc1a3e78fabd77c58b2bf4f2a188566b9b69b26c92e73f6d8f3e",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -1403,12 +1613,18 @@
           "path": "docs/adr/0041-insights-carry-a-category-and-only-service-categories-ever-leave.md",
           "symbol": "category",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 1,
           "file_sha256": "290efa0b4d39079a02a0302279bf1b331812f2bfd4bedbadef6a45a33bdf8ab8",
           "excerpt": "# ADR-0041 — Insights carry a closed category, and only service categories ever leave the project",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/adr/0041-insights-carry-a-category-and-only-service-categories-ever-leave.md#L1",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/adr/0041-insights-carry-a-category-and-only-service-categories-ever-leave.md#L1",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 1,
+            "file_sha256": "290efa0b4d39079a02a0302279bf1b331812f2bfd4bedbadef6a45a33bdf8ab8",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -1438,12 +1654,18 @@
           "path": "supabase/migrations/20260905000022_routines.sql",
           "symbol": "routines",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 15,
           "file_sha256": "6214c917baa5815390102bf56a6441137aa83edaa92c790e7168a3edcb06ee07",
           "excerpt": "create table if not exists routines (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260905000022_routines.sql#L15",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260905000022_routines.sql#L15",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 15,
+            "file_sha256": "6214c917baa5815390102bf56a6441137aa83edaa92c790e7168a3edcb06ee07",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -1474,12 +1696,18 @@
           "path": "apps/desktop/src/main/routineTick.ts",
           "symbol": "createRoutineTick",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 50,
-          "file_sha256": "6108cb8c23b6b76dbeb377ce3ca6a89353839ed48eeef7eac3a3fa9b76ccaf4a",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 83,
+          "file_sha256": "754c7b3fe37abd37a191c6cc9c641b76624e66e4397344de7e0f0f6e0efd4f6f",
           "excerpt": "export function createRoutineTick(deps: RoutineTickDeps): RoutineTick {",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/main/routineTick.ts#L50",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/apps/desktop/src/main/routineTick.ts#L83",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 50,
+            "file_sha256": "6108cb8c23b6b76dbeb377ce3ca6a89353839ed48eeef7eac3a3fa9b76ccaf4a",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -1512,12 +1740,18 @@
           "path": "supabase/migrations/20260905000016_operating_surfaces.sql",
           "symbol": "create table leases",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 186,
           "file_sha256": "9befadf715078b492ad2648ee5e1946dbc5511e7d19ade00610c6b86a0a9cf37",
           "excerpt": "create table leases (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260905000016_operating_surfaces.sql#L186",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260905000016_operating_surfaces.sql#L186",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 186,
+            "file_sha256": "9befadf715078b492ad2648ee5e1946dbc5511e7d19ade00610c6b86a0a9cf37",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -1549,12 +1783,18 @@
           "path": "apps/desktop/src/shared/mirror.ts",
           "symbol": "mirror",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 4,
-          "file_sha256": "847c3dec1b44d7b740d45989ae7de520af7b79aefa54a4cf781ba6e80bde5ba2",
+          "file_sha256": "e51ea02d6515043c0424390a65c45a599356349f63b16a6829b6f2bedaa34bf0",
           "excerpt": "// DECLARED layer — what a person chose — is mirrored to files so the operator's",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/shared/mirror.ts#L4",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/apps/desktop/src/shared/mirror.ts#L4",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 4,
+            "file_sha256": "847c3dec1b44d7b740d45989ae7de520af7b79aefa54a4cf781ba6e80bde5ba2",
+            "rule": "cited-lines-unchanged"
+          }
         }
       ],
       "tasks": [
@@ -1592,12 +1832,18 @@
           "path": "docs/audit/2026-09-07-merged-execution-plan.json",
           "symbol": "S12",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 120,
-          "file_sha256": "8f3536cf1ea0e3cf4037353b5c5746a275ebb2c6eb393e7299fc5a63bfa4dd61",
+          "file_sha256": "75e787458e72c31ec0b259ccd18ab72333c6b748b7ebadaa162eb82a12ed9a1d",
           "excerpt": "        \"S12\"",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/audit/2026-09-07-merged-execution-plan.json#L120",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/audit/2026-09-07-merged-execution-plan.json#L120",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 120,
+            "file_sha256": "8f3536cf1ea0e3cf4037353b5c5746a275ebb2c6eb393e7299fc5a63bfa4dd61",
+            "rule": "cited-lines-unchanged"
+          }
         }
       ],
       "tasks": [
@@ -1633,7 +1879,11 @@
           "file_sha256": "ac8f988f20a7a22dd0af005d7ecf807588ed08f7f3b0e682b1d972191f62bb78",
           "excerpt": "export function writeSettings(next: Partial<AppSettings>): AppSettings {",
           "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/main/settings.ts#L71",
-          "verification": "git-blob"
+          "verification": "stale-pre-publication",
+          "stale": {
+            "since": "03311c856b7771e5e4cfff967b138e89e292c67f",
+            "reason": "claim-changed"
+          }
         }
       ],
       "tasks": [
@@ -1666,12 +1916,18 @@
           "path": "apps/desktop/src/shared/memoryOverview.ts",
           "symbol": "MemoryOverview",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 25,
-          "file_sha256": "ca778cd84675a32763f60a41a6ff49ac8a9ddb31e7260deadc3158e915633440",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 39,
+          "file_sha256": "9347222860e45e17516319fea1a592f3a7563debbd1763f4f71a53e021bee65b",
           "excerpt": "export interface MemoryOverview {",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/shared/memoryOverview.ts#L25",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/apps/desktop/src/shared/memoryOverview.ts#L39",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 25,
+            "file_sha256": "ca778cd84675a32763f60a41a6ff49ac8a9ddb31e7260deadc3158e915633440",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -1702,12 +1958,18 @@
           "path": "apps/desktop/src/shared/boardRank.ts",
           "symbol": "rankBoard",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 101,
           "file_sha256": "aad2450ba4923608e5df5f0b9896ab082d787d207305c51d0bba233a7cbe082a",
           "excerpt": "export function rankBoard<T extends BoardItem>(items: readonly T[]): T[] {",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/shared/boardRank.ts#L101",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/apps/desktop/src/shared/boardRank.ts#L101",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 101,
+            "file_sha256": "aad2450ba4923608e5df5f0b9896ab082d787d207305c51d0bba233a7cbe082a",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -1738,12 +2000,18 @@
           "path": "apps/desktop/src/shared/attention.ts",
           "symbol": "AttentionItem",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 23,
-          "file_sha256": "a9aa9576b2d58337a059c5f02057bcafe2009d8c44eeb1aa7150d4b195014365",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 26,
+          "file_sha256": "9f6385b90a52d52cbfe4877b4ca3fcda3dd972c50687e74aa84ca11b088f3c32",
           "excerpt": "export interface AttentionItem {",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/shared/attention.ts#L23",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/apps/desktop/src/shared/attention.ts#L26",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 23,
+            "file_sha256": "a9aa9576b2d58337a059c5f02057bcafe2009d8c44eeb1aa7150d4b195014365",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -1773,12 +2041,18 @@
           "path": "docs/architecture/agent-visibility-and-runs.md",
           "symbol": "graph",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 1,
-          "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+          "file_sha256": "c1f8ddae7b50330f195b362d4a9de4d9d9ac1edddec4572eee27c6e4500ada86",
           "excerpt": "# Runs, graphs, and what the operator sees of an agent's work",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-visibility-and-runs.md#L1",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/architecture/agent-visibility-and-runs.md#L1",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 1,
+            "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+            "rule": "cited-lines-unchanged"
+          }
         }
       ],
       "tasks": [
@@ -1809,12 +2083,18 @@
           "path": "scripts/ci.sh",
           "symbol": "build",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 36,
-          "file_sha256": "ab4b194357605d21c94b807941120edbfb146e01a397347c757105cacc21bd7c",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 130,
+          "file_sha256": "850c2e445c4e98fff9d6ea2fa3b4753d1845a32bc39a21e552d72e0a992583b8",
           "excerpt": "step \"build — what ships is what the probes read\"",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/scripts/ci.sh#L36",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/scripts/ci.sh#L130",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 36,
+            "file_sha256": "ab4b194357605d21c94b807941120edbfb146e01a397347c757105cacc21bd7c",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -1845,12 +2125,18 @@
           "path": "supabase/migrations/20260905000023_loop_bound.sql",
           "symbol": "proposals",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 14,
           "file_sha256": "e44f4b5e9ce48d1d6d3c807b6d8988ef507f4bec14993fdc0c0d4344ef86c440",
           "excerpt": "create table if not exists proposals (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260905000023_loop_bound.sql#L14",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260905000023_loop_bound.sql#L14",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 14,
+            "file_sha256": "e44f4b5e9ce48d1d6d3c807b6d8988ef507f4bec14993fdc0c0d4344ef86c440",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -1881,12 +2167,18 @@
           "path": "docs/architecture/agent-production.md",
           "symbol": "artifact",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 28,
-          "file_sha256": "9e07ebf27018899d538aae1698ee918c163e0af738ac3a5df405763bb92b46a9",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 30,
+          "file_sha256": "e2f708188a4193a869fa849cd498a94507a0f6d4c946971fedb521614b78d030",
           "excerpt": "| The agent as artifact: repository, manifest, service | **Asset** — exists independently of work, outlives every goal | ADR-0003 |",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-production.md#L28",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/architecture/agent-production.md#L30",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 28,
+            "file_sha256": "9e07ebf27018899d538aae1698ee918c163e0af738ac3a5df405763bb92b46a9",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -1916,12 +2208,18 @@
           "path": "CONTEXT.md",
           "symbol": "**Asset**",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 21,
-          "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 28,
+          "file_sha256": "f85b19c800a502e886957163e18522580f4f692d9f2b59fa1941a8e57bd5f372",
           "excerpt": "**Asset** — something the company owns that exists independently of any work being",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/CONTEXT.md#L21",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/CONTEXT.md#L28",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 21,
+            "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -1950,12 +2248,18 @@
           "path": "CONTEXT.md",
           "symbol": "**Connection**",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 57,
-          "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 67,
+          "file_sha256": "f85b19c800a502e886957163e18522580f4f692d9f2b59fa1941a8e57bd5f372",
           "excerpt": "**Connection** — one estate-level link to an external account or service, such as a",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/CONTEXT.md#L57",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/CONTEXT.md#L67",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 57,
+            "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -1985,12 +2289,18 @@
           "path": "CONTEXT.md",
           "symbol": "**Project connection binding**",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 62,
-          "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 72,
+          "file_sha256": "f85b19c800a502e886957163e18522580f4f692d9f2b59fa1941a8e57bd5f372",
           "excerpt": "**Project connection binding** — the versioned grant that exposes selected resources",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/CONTEXT.md#L62",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/CONTEXT.md#L72",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 62,
+            "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -2020,12 +2330,18 @@
           "path": "apps/desktop/src/main/gateway.ts",
           "symbol": "gateway",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 1,
           "file_sha256": "d9a30f4f52de5792143464c04df4fe0f2c056ab8e157f19f1a9d917c3a9fb475",
           "excerpt": "// What the machine's agentgateway offers this session (M127).",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/main/gateway.ts#L1",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/apps/desktop/src/main/gateway.ts#L1",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 1,
+            "file_sha256": "d9a30f4f52de5792143464c04df4fe0f2c056ab8e157f19f1a9d917c3a9fb475",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -2055,12 +2371,18 @@
           "path": "CONTEXT.md",
           "symbol": "**MCP access binding**",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 177,
-          "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 245,
+          "file_sha256": "f85b19c800a502e886957163e18522580f4f692d9f2b59fa1941a8e57bd5f372",
           "excerpt": "**MCP access binding** — an immutable Estate-owned authorization record that lets one",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/CONTEXT.md#L177",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/CONTEXT.md#L245",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 177,
+            "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -2092,12 +2414,18 @@
           "path": "apps/desktop/src/main/agentSurface.ts",
           "symbol": "appendRedacted",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 380,
-          "file_sha256": "b7335a6b973de06035ab81e3051d3f497fea70774c9e98d3755094e58a5a7913",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 549,
+          "file_sha256": "21a7bd34ec71561e571067da7ec148137d5b38d090c0b250b80efd6697f85b08",
           "excerpt": "  private async appendRedacted(input: {",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/apps/desktop/src/main/agentSurface.ts#L380",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/apps/desktop/src/main/agentSurface.ts#L549",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 380,
+            "file_sha256": "b7335a6b973de06035ab81e3051d3f497fea70774c9e98d3755094e58a5a7913",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -2128,12 +2456,18 @@
           "path": "supabase/migrations/20260831000005_agent_surface.sql",
           "symbol": "create table agent_stages",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 11,
           "file_sha256": "9dd40ad5e9639817d43267490bbe8172d8b4026eed32b544236fd7a3bc50f5ab",
           "excerpt": "create table agent_stages (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000005_agent_surface.sql#L11",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260831000005_agent_surface.sql#L11",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 11,
+            "file_sha256": "9dd40ad5e9639817d43267490bbe8172d8b4026eed32b544236fd7a3bc50f5ab",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -2163,12 +2497,18 @@
           "path": "CONTEXT.md",
           "symbol": "**Skill**",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 106,
-          "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 164,
+          "file_sha256": "f85b19c800a502e886957163e18522580f4f692d9f2b59fa1941a8e57bd5f372",
           "excerpt": "**Skill** — a registry object with a name, a source, a version and the departments allowed",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/CONTEXT.md#L106",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/CONTEXT.md#L164",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 106,
+            "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -2197,12 +2537,18 @@
           "path": "CONTEXT.md",
           "symbol": "**Pipeline**",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 97,
-          "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 155,
+          "file_sha256": "f85b19c800a502e886957163e18522580f4f692d9f2b59fa1941a8e57bd5f372",
           "excerpt": "**Pipeline** — the route development takes, as a versioned record rather than as code: a",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/CONTEXT.md#L97",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/CONTEXT.md#L155",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 97,
+            "file_sha256": "04eea5d525073b046e8cd8ce143fe4c4fab733f8b8a7629392eaebe2768a2910",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -2233,12 +2579,18 @@
           "path": "docs/adr/0037-the-telegram-bot-answers-by-reply-and-fabric-has-no-always-on-process.md",
           "symbol": "always-on",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 1,
           "file_sha256": "9c2f9d477db794960838e7f0337b645f741e4232d1a0401be5a23d5204f19706",
           "excerpt": "# ADR-0037 — The Telegram bot answers by reply, reads nothing it was not given, and Fabric has no always-on process",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/adr/0037-the-telegram-bot-answers-by-reply-and-fabric-has-no-always-on-process.md#L1",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/adr/0037-the-telegram-bot-answers-by-reply-and-fabric-has-no-always-on-process.md#L1",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 1,
+            "file_sha256": "9c2f9d477db794960838e7f0337b645f741e4232d1a0401be5a23d5204f19706",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [
@@ -2273,12 +2625,18 @@
           "path": "docs/architecture/agent-visibility-and-runs.md",
           "symbol": "checkpoint",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
-          "line": 4,
-          "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+          "line": 10,
+          "file_sha256": "c1f8ddae7b50330f195b362d4a9de4d9d9ac1edddec4572eee27c6e4500ada86",
           "excerpt": "model with checkpoints, the per-agent history graph, the project task/plan",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/docs/architecture/agent-visibility-and-runs.md#L4",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/docs/architecture/agent-visibility-and-runs.md#L10",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 4,
+            "file_sha256": "ae9ff1240eedb770a9119703d117c6c7e6b6455ad36cccc0eb35129dd6c09fc3",
+            "rule": "cited-lines-moved"
+          }
         }
       ],
       "tasks": [
@@ -2311,12 +2669,18 @@
           "path": "supabase/migrations/20260831000001_migration_one.sql",
           "symbol": "create table grants",
           "repository": "fabric",
-          "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+          "commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
           "line": 80,
           "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
           "excerpt": "create table grants (",
-          "url": "https://github.com/passioncode-ai/fabric/blob/5051def6304a781615f21adcd84b5836ab56a9dc/supabase/migrations/20260831000001_migration_one.sql#L80",
-          "verification": "git-blob"
+          "url": "https://github.com/passioncode-ai/fabric/blob/03311c856b7771e5e4cfff967b138e89e292c67f/supabase/migrations/20260831000001_migration_one.sql#L80",
+          "verification": "git-blob",
+          "repinned_from": {
+            "commit": "5051def6304a781615f21adcd84b5836ab56a9dc",
+            "line": 80,
+            "file_sha256": "2f9b6ed39b313af19e0bd08b2c004d4e482b353606170714ad52601dfbfbbe03",
+            "rule": "identical-bytes"
+          }
         }
       ],
       "tasks": [

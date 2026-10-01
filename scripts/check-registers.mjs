@@ -40,6 +40,7 @@
 import { cell, cells } from './lib/markdown-table.mjs'
 import { classify, tableRows } from './lib/registers.mjs'
 import { carriesWork, dispositionOf, vocabulary } from './lib/disposition.mjs'
+import { insideUnchecked, uncheckedSubmodules } from './lib/submodules.mjs'
 import { readFileSync, existsSync } from 'node:fs'
 import { readdirSync, statSync } from 'node:fs'
 
@@ -229,9 +230,18 @@ if (lineCited.length) {
 // ── 2b. a SYMBOL citation resolves, in substance ────────────────────────────
 let symbolsChecked = 0
 const badSymbols = []
+// A citation into a submodule that is not checked out cannot be resolved HERE — the private
+// workspace, on a public clone (scripts/lib/submodules.mjs). It is counted in 2c, not passed.
+const unchecked = uncheckedSubmodules(ROOT)
+const submoduleCitations = new Map()
 for (const f of files) {
   for (const m of read(f).matchAll(SYMBOL_CITATION)) {
     const [, rel, symbol] = m
+    const within = insideUnchecked(rel, unchecked)
+    if (within) {
+      submoduleCitations.set(within, (submoduleCitations.get(within) ?? 0) + 1)
+      continue
+    }
     const { hit, ambiguous } = resolveCited(rel)
     if (ambiguous) {
       badSymbols.push(`${f}: cites ${rel}#${symbol}, and ${ambiguous} files carry that name`)
@@ -267,6 +277,11 @@ ok(
   `${snapshotCitations} line citation(s) in ${snapshots.length} dated snapshot(s) are NOT checked — ` +
     `an audit report records a moment, and rewriting its receipts to match today falsifies it`
 )
+for (const [sub, n] of submoduleCitations)
+  ok(
+    `${n} symbol citation(s) into the submodule '${sub}' are NOT checked — it is not checked out here ` +
+      `(private; a public clone cannot initialise it). Where it is checked out they are resolved like any other`
+  )
 
 // ───────────────────────────── 2b. an id in a form the register does not use ─
 //

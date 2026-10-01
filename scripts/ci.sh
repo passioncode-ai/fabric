@@ -38,8 +38,15 @@ node --test scripts/test/check-regions.test.mjs
 node scripts/check-regions.mjs
 
 step "probe templates"
+# 2026-10-01. The public re-creation of the history left receipts addressing commits a fresh
+# clone does not have. Each is verified here, repinned with its rule, or stale and re-proved
+# stale (scripts/lib/public-history.mjs); --summary fails on any receipt in none of the three.
+node --test scripts/test/public-history.test.mjs scripts/test/submodules.test.mjs
+node scripts/repin-public-history.mjs --summary >/dev/null
 node scripts/check-adoption-plan.mjs
 node scripts/check-adoption-bindings.mjs
+# Existed since the R0 operator audit and nothing ran it (the FA-10 class).
+node scripts/check-operator-plan.mjs
 node --test scripts/test/adoption-bindings.test.mjs
 node scripts/build-adoption-report.mjs --check
 node --test scripts/test/adoption-plan.test.mjs

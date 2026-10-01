@@ -1,6 +1,7 @@
 // Checks the planning artifact, not product behavior or the truth of UX judgments.
 import fs from 'node:fs';
 import {execFileSync} from 'node:child_process';
+import {history,historicalBaseline} from './lib/public-history.mjs';
 const plan=JSON.parse(fs.readFileSync('docs/launch/operator-plan.json','utf8'));
 const fail=message=>{throw new Error(message)};
 const unique=(xs,label)=>{if(new Set(xs).size!==xs.length)fail(`Duplicate ${label}`);return new Set(xs)};
@@ -40,18 +41,21 @@ const layers=[];let done=0;
 while(done<ids.size){const layer=[...incoming].filter(([,n])=>n===0).map(([id])=>id);if(!layer.length)fail('Dependency cycle');layers.push(layer);for(const id of layer){incoming.set(id,-1);done++;for(const e of plan.edges.filter(e=>e.from===id))incoming.set(e.to,incoming.get(e.to)-1)}}
 for(const p of plan.external_prerequisites)if(!ids.has(p.node)||!p.meaning||!fs.existsSync(p.home))fail('Unresolved external prerequisite');
 for(const r of plan.resource_constraints){for(const p of r.paths)if(!fs.existsSync(p))fail(`Unresolved resource: ${p}`);for(const id of r.nodes)if(!ids.has(id))fail('Unknown resource owner')}
-if(!/^[a-f0-9]{40}$/.test(plan.baseline))fail('Missing immutable source baseline');
-execFileSync('git',['cat-file','-e',`${plan.baseline}^{commit}`]);
+// The baseline may predate the public re-creation of the history (scripts/lib/public-history.mjs).
+// Its citations live in a DATED audit, which is never rewritten, so they are then counted and
+// said to be unresolved rather than moved onto code that was not what the audit read.
+const baselineState=historicalBaseline(plan,history(process.cwd()).inHistory);
 let references=0;
 for(const m of audit.matchAll(/`((?:scripts|apps)\/[^`:\s]+):([\d,–-]+)`/g)){
+  references++;
+  if(baselineState!=='verify')continue;
   const body=execFileSync('git',['show',`${plan.baseline}:${m[1]}`],{encoding:'utf8'});
   const max=body.split('\n').length;
   for(const line of m[2].split(/[,–-]/).map(Number))if(line<1||line>max)fail(`Invalid source line ${m[1]}:${line}`);
-  references++;
 }
 if(references<30)fail('Evidence references unexpectedly missing');
 const totals={PASS:0,PARTIAL:0,FAIL:0,BLOCKED:0};
 for(const row of rows){const v=row.match(/\| (PARTIAL|FAIL|BLOCKED|PASS):/);if(!v)fail('Missing capability verdict');totals[v[1]]++}
 const summary=`${totals.PARTIAL} PARTIAL / ${totals.FAIL} FAIL / ${totals.BLOCKED} BLOCKED / ${totals.PASS} end-to-end PASS`;
 if(!audit.includes(summary))fail('Published totals differ from rows');
-console.log(JSON.stringify({result:'PASS',scope:'planning references, trace and DAG; not UX/runtime acceptance',requirements:reqs.size,capabilities:caps.size,findings:findings.size,packets:ids.size,edges:plan.edges.length,sourceReferences:references,totals,layers}));
+console.log(JSON.stringify({result:'PASS',scope:'planning references, trace and DAG; not UX/runtime acceptance',requirements:reqs.size,capabilities:caps.size,findings:findings.size,packets:ids.size,edges:plan.edges.length,sourceReferences:references,sourceReferencesResolved:baselineState==='verify'?references:'NOT_CHECKED: pre-publication baseline of a dated audit',totals,layers}));

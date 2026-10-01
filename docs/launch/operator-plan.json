@@ -593,5 +593,9 @@
     }
   ],
   "remaining_home": "CO-166",
-  "runtime_verdict": "BLOCKED: not exercised by this planning iteration"
+  "runtime_verdict": "BLOCKED: not exercised by this planning iteration",
+  "baseline_history": {
+    "state": "pre-publication",
+    "reason": "The baseline addresses the pre-publication history. Its line citations belong to the dated audit docs/ux/audits/2026-09-15-r0-operator.md, which records a moment and is not rewritten; they are not resolved in this history."
+  }
 }

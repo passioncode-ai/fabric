@@ -30,24 +30,33 @@ for(const mode of ['success','revoked','missing-reply','foreign-writer']) {
  emit({id:request.id,result});
  }});
  process.stdin.on('end',()=>process.exit(0));
+ emit({method:'fixture/ready',params:{}});
  `],{stdio:['pipe','pipe','ignore']})
- const exit=once(child,'exit'),calls=[];let authority=true
+ const exit=once(child,'exit'),calls=[];let authority=true,ready
+ // CO-174. The peer is a fresh Node process, and under load it took longer to start than the
+ // 100 ms missing-reply deadline: the request timed out before the peer could even read it, and
+ // the assertion about what reached the peer read nothing. The peer now says it is listening,
+ // and what reached it is awaited (bounded) rather than raced against its notification.
+ const listening=new Promise(r=>{ready=r})
  const transport=createProviderJsonlTransport({input:child.stdout,output:child.stdin,timeoutMs:1000,
-  onNotification:(method,params)=>{if(method==='fixture/call')calls.push(params.method);if(method==='fixture/revoke')authority=false}})
+  onNotification:(method,params)=>{if(method==='fixture/ready')ready();if(method==='fixture/call')calls.push(params.method);if(method==='fixture/revoke')authority=false}})
  const created=createCodexProviderControl({binding,ownership:{...scope,handles:[{itemId:'item',processId:'process'}]},
   currentScope:()=>scope,transport,timeoutMs:mode==='missing-reply'?100:2000})
  assert(created.ok)
  const control=created.value,command={commandId:'stop-command',issuedCursor:0,reason:'operator_stop'}
  try {
+  await Promise.race([listening,exit.then(()=>{throw new Error('protocol peer exited before it listened')})])
   const a=control.requestStop(command,()=>authority),b=control.requestStop(command,()=>authority)
   assert.equal(a,b,'same command shares one effect sequence')
   const result=await a
   assert.equal(result.status,mode==='success'?'request_ack':'outcome_unknown',mode)
   assert.equal('quiescent' in result,false);assert.equal('stopped' in result,false)
   assert(!JSON.stringify(result).includes('secret-canary'));assert(!JSON.stringify(result).includes('/private-canary'))
-  assert.deepEqual(calls,mode==='missing-reply'?['turn/interrupt']:mode==='success'
+  const expected=mode==='missing-reply'?['turn/interrupt']:mode==='success'
    ?['turn/interrupt','thread/backgroundTerminals/list','thread/backgroundTerminals/terminate']
-   :['turn/interrupt','thread/backgroundTerminals/list'])
+   :['turn/interrupt','thread/backgroundTerminals/list']
+  for(const deadline=Date.now()+2000;calls.length<expected.length&&Date.now()<deadline;)await new Promise(r=>setTimeout(r,10))
+  assert.deepEqual(calls,expected)
   const count=calls.length;await control.requestStop(command,()=>authority)
   await new Promise(r=>setTimeout(r,20));assert.equal(calls.length,count,'cached/unknown command never blindly repeats')
  }finally{

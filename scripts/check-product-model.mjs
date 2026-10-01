@@ -5,6 +5,7 @@ import {createHash} from 'node:crypto'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {registrySections} from './sync-product-ux.mjs'
+import {STALE,STALE_REASONS,history as gitHistory,repinProblem,staleProblem} from './lib/public-history.mjs'
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..')
 const nonempty=v=>typeof v==='string'?v.trim().length>0:Array.isArray(v)?v.length>0:v&&typeof v==='object'&&Object.keys(v).length>0
@@ -26,9 +27,12 @@ export function canonicalEntries(markdown,prefix){
  * engineering: authoritative items (not inferred from the report's active_task_ids).
  * readSource(path) and readGitBlob(commit,path) return text; omitted readers skip IO,
  * but receipts are still required and validated structurally. CLI supplies both.
+ * history ({inHistory, readBlob}, scripts/lib/public-history.mjs) re-proves the receipts
+ * the public re-creation of the history marked stale or repinned; omitted, their shape
+ * alone is checked. A stale receipt counts as nothing verified.
  */
 export function validateProductModel(model,fixtures,options={}){
- const {canonical,engineering,readSource,readGitBlob}=options
+ const {canonical,engineering,readSource,readGitBlob,history}=options
  check(model?.schema==='fabric-product-model/v1','Unsupported product model schema')
  check(model.status==='proposed_product_design'&&model.implementation_in_this_change===false&&model.runtime_audit===false,'Target report falsely claims implementation/runtime audit')
  check(/^[a-f0-9]{40}$/.test(model.source_commit||''),'Unpinned model source commit')
@@ -107,7 +111,7 @@ export function validateProductModel(model,fixtures,options={}){
   for(const s of card.sources)check(safePath(s.path)&&nonempty(s.verification),t.id+' unresolvable engineering source reference')
  }}
  for(const id of active)ref(id,contexts,'Missing active task context')
- const blobs=new Map();let receipts=0
+ const blobs=new Map();let receipts=0,stale=0,repinned=0
  const source=(s,pinned,where)=>{
   const file=s?.file||s?.path;check(safePath(file),where+' unsafe/missing source path')
   check(Number.isInteger(s.line)&&s.line>0,where+' invalid source line')
@@ -115,6 +119,14 @@ export function validateProductModel(model,fixtures,options={}){
   if(pinned||s.commit){
    check(/^[a-f0-9]{40}$/.test(s.commit||'')&&/^[a-f0-9]{64}$/.test(s.file_sha256||''),where+' unpinned source receipt')
    if(s.url){const u=new URL(s.url);check(u.protocol==='https:'&&decodeURIComponent(u.pathname).endsWith('/blob/'+s.commit+'/'+file)&&u.hash==='#L'+s.line,where+' source URL does not address pinned receipt')}
+   // Stale evidence keeps its original address as a record and verifies nothing. Its
+   // staleness is re-proved, so a receipt that still holds cannot be parked here.
+   if(s.verification===STALE){
+    check(!s.repinned_from&&STALE_REASONS.includes(s.stale?.reason),where+' stale receipt without its reason')
+    if(history){const problem=staleProblem({commit:s.commit,file,sha:s.file_sha256,line:s.line,end_line:s.end_line,excerpt:s.excerpt,stale:s.stale},history);check(!problem,where+' '+problem)}
+    stale++;return
+   }
+   if(s.repinned_from){if(history){const problem=repinProblem(s,{sha:s.file_sha256,inHistory:history.inHistory});check(!problem,where+' '+problem)}repinned++}
    receipts++;if(!readGitBlob)return
    const key=s.commit+':'+file;if(!blobs.has(key))blobs.set(key,readGitBlob(s.commit,file));const blob=blobs.get(key)
    check(sha(blob)===s.file_sha256,where+' source hash mismatch '+file)
@@ -129,14 +141,14 @@ export function validateProductModel(model,fixtures,options={}){
  for(const j of model.journeys)for(const x of [j,...j.steps,...j.branches])for(const s of x.sources||[])source(s,false,j.id)
  for(const c of model.review_choices||[])refs(c.views||[],views,'Review choice '+c.id)
  for(const a of model.flow_alternatives||[]){refs(a.journey_ids,journeys,a.id+' journeys');const ids=unique(a.options,a.id+' options');ref(a.selected,ids,a.id+' selected alternative')}
- return {screens:screens.size,views:views.size,scenarios:scenarios.size,flows:flows.size,journeys:journeys.size,findings:findings.size,active_tasks:active.size,task_contexts:contexts.size,pinned_receipts:receipts,verified_git_blobs:blobs.size,source_io_checked:Boolean(readSource&&readGitBlob)}
+ return {screens:screens.size,views:views.size,scenarios:scenarios.size,flows:flows.size,journeys:journeys.size,findings:findings.size,active_tasks:active.size,task_contexts:contexts.size,pinned_receipts:receipts,repinned_receipts:repinned,stale_receipts:stale,verified_git_blobs:blobs.size,source_io_checked:Boolean(readSource&&readGitBlob)}
 }
 
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  try{
   const readSource=p=>readFileSync(path.join(root,p),'utf8'),json=p=>JSON.parse(readSource(p))
   const canonical={screens:canonicalEntries(readSource('docs/ux/screens.md'),'SCR'),scenarios:canonicalEntries(readSource('docs/ux/scenarios.md'),'SCN'),flows:canonicalEntries(readSource('docs/ux/flows.md'),'FLW')}
-  const result=validateProductModel(json('docs/ux/product-model.json'),json('docs/ux/product-fixtures.json'),{canonical,engineering:json('docs/architecture/engineering-specs.json'),knownTaskIds:[...readSource('docs/evidence/backlog.md').matchAll(/\bM\d+\b/g)].map(m=>m[0]),readSource,readGitBlob:(commit,file)=>execFileSync('git',['show',commit+':'+file],{cwd:root,encoding:'utf8',maxBuffer:10*1024*1024})})
+  const result=validateProductModel(json('docs/ux/product-model.json'),json('docs/ux/product-fixtures.json'),{canonical,engineering:json('docs/architecture/engineering-specs.json'),knownTaskIds:[...readSource('docs/evidence/backlog.md').matchAll(/\bM\d+\b/g)].map(m=>m[0]),readSource,readGitBlob:(commit,file)=>execFileSync('git',['show',commit+':'+file],{cwd:root,encoding:'utf8',maxBuffer:10*1024*1024}),history:gitHistory(root)})
   console.log('PASS product model: '+JSON.stringify(result))
   console.log('Scope: canonical crosswalk, fixture routes and pinned audit receipts; not product/runtime acceptance. Generated HTML parity: node scripts/build-product-report.mjs --check')
  }catch(error){console.error('FAIL product model: '+error.message);process.exitCode=1}

@@ -3,6 +3,7 @@ import {createHash} from 'node:crypto'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {escapeHtml as h,renderProduct,viewHref} from './product/renderers.mjs'
+import {STALE} from './lib/public-history.mjs'
 export const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..')
 export const inputs=['docs/ux/product-model.json','docs/ux/product-fixtures.json','scripts/product/renderers.mjs','scripts/product/controller.js','scripts/product/report.css','scripts/product/report-template.html','apps/desktop/src/renderer/src/tokens.paperclip.css','apps/desktop/src/renderer/src/tokens.app.css','assets/brand/favicon/source/passioncode-passion-fruit.svg','docs/evidence/plans/2026-09-07-mockup-completeness/signature.md','docs/ux/scenarios.md','docs/ux/flows.md','docs/ux/screens.md','docs/architecture/engineering-specs.json','scripts/build-product-report.mjs','scripts/sync-product-ux.mjs','scripts/product-spec.mjs','apps/desktop/src/renderer/src/tokens.passioncode.css']
 const read=p=>readFileSync(path.join(root,p),'utf8')
@@ -15,7 +16,9 @@ export function value(v){if(v===undefined||v===null)return 'Не задано';i
 const screenUrl=s=>viewHref(s.view)
 const taskUrl=(id,m)=>m.active_task_ids.includes(id)?`system.html#task-${id.replaceAll('.','-')}`:'../evidence/backlog.md'
 const taskLinks=(ids,m)=>ids.map(id=>`<a href="${taskUrl(id,m)}">${h(id)}</a>`).join(' · ')
-const evidence=e=>`<li><a href="${h(e.url||'#')}" target="_blank" rel="noreferrer">${h(e.file||e.path)} · ${h(e.symbol||'источник')} ${e.line?':'+e.line:''}</a>${e.excerpt?`<pre class="code-block">${h(e.excerpt)}</pre>`:''}</li>`
+// A stale receipt addresses a commit the public history does not have: shown as a record with
+// its reason, never as a link that would open nothing (scripts/lib/public-history.mjs).
+const evidence=e=>{const where=`${h(e.file||e.path)} · ${h(e.symbol||'источник')} ${e.line?':'+e.line:''}`;return `<li>${e.verification===STALE?`<span class="muted">${where}</span> <small>устарело: коммит истории до публикации; на ${h(e.stale?.since?.slice(0,7))} цитата не подтверждается (${h(e.stale?.reason)})</small>`:`<a href="${h(e.url||'#')}" target="_blank" rel="noreferrer">${where}</a>`}${e.excerpt?`<pre class="code-block">${h(e.excerpt)}</pre>`:''}</li>`}
 function staticIds(html,prefix){
  const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(x=>x[1]);
  for(const id of new Set(ids)){

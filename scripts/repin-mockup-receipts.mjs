@@ -25,6 +25,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { locateClaim } from './lib/public-history.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const MATRIX = path.join(ROOT, 'docs/evidence/plans/2026-09-07-mockup-completeness/resolution-matrix.json')
@@ -87,15 +88,13 @@ for (const { row, receipt, now } of stale) {
   let movedTo = null
   let claimHolds = false
   if (named) {
-    if (afterLines[line - 1] === cited) claimHolds = true
-    else {
-      // Exactly one. Two identical lines cannot say which one the reviewer read,
-      // and guessing is the confident answer this receipt exists to prevent.
-      const hits = afterLines.flatMap((text, i) => (text === cited ? [i + 1] : []))
-      if (hits.length === 1) {
-        claimHolds = true
-        movedTo = hits[0]
-      }
+    // Exactly one. Two identical lines cannot say which one the reviewer read,
+    // and guessing is the confident answer this receipt exists to prevent. The
+    // rule is shared with repin-public-history.mjs, so the two cannot drift.
+    const found = locateClaim(afterLines, [cited], line)
+    if (found.line) {
+      claimHolds = true
+      if (found.moved) movedTo = found.line
     }
   }
 
