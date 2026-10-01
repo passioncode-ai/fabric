@@ -3,7 +3,11 @@ import assert from 'node:assert/strict'
 import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,symlinkSync} from 'node:fs'
 import {tmpdir} from 'node:os'
 import path from 'node:path'
-import {snapshot,writeSnapshot,verifyContent,verifyCommittedSnapshot,checkReceipt,git,receiptPath,digest} from '../workspace-snapshot.mjs'
+import {snapshot,writeSnapshot,verifyContent,verifyCommittedSnapshot,checkReceipt,git,receiptPath,digest,sourceSelected} from '../workspace-snapshot.mjs'
+test('the common backlog includes root source registers without exporting hidden configuration',()=>{
+ for(const name of ['BACKLOG.md','ROADMAP.md','docs/backlog-sources.json']) assert.equal(sourceSelected(name),true,name)
+ for(const name of ['.env','.claude/backlog.json','node_modules/BACKLOG.md','src/tasks.js']) assert.equal(sourceSelected(name),false,name)
+})
 const write=(root,p,b)=>{mkdirSync(path.dirname(path.join(root,p)),{recursive:true});writeFileSync(path.join(root,p),b)}
 function repo(){const root=mkdtempSync(path.join(tmpdir(),'fabric-snapshot-'));git(root,'init','-q');git(root,'config','user.name','Fixture');git(root,'config','user.email','fixture@example.invalid');return root}
 function commit(root,msg='fixture'){git(root,'add','.');git(root,'-c','core.hooksPath=/dev/null','-c','commit.gpgsign=false','commit','-qm',msg);return git(root,'rev-parse','HEAD').toString().trim()}

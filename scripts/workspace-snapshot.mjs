@@ -15,7 +15,7 @@ export const digest=files=>sha(JSON.stringify(files))
 // commit (agent-registry plan AR-0.5). Only their documentation travels: the entry documents,
 // docs/, the org profile, schemas and every skill's SKILL.md. The id is a plain folder name; the
 // repository may be dotted (`.github`, the organization defaults), which a folder may not.
-export const sourceSelected=p=>!p.split('/').some(x=>x.startsWith('.'))&&(/^(README(\.[a-z]{2})?|AGENTS|CONTEXT|CONTRIBUTING|RULES|ONBOARDING|SECURITY|CHANGELOG)\.md$/.test(p)||p==='repositories.json'||/^(docs|profile|schemas)\//.test(p)||/(^|\/)SKILL\.md$/.test(p))
+export const sourceSelected=p=>!p.split('/').some(x=>x.startsWith('.'))&&(/^(README(\.[a-z]{2})?|AGENTS|CONTEXT|CONTRIBUTING|RULES|ONBOARDING|SECURITY|CHANGELOG|BACKLOG|ROADMAP)\.md$/.test(p)||p==='repositories.json'||/^(docs|profile|schemas)\//.test(p)||/(^|\/)SKILL\.md$/.test(p))
 // The host's own path rule (fabric-workspace lib/snapshot.mjs#safePath): checked here so an
 // unservable path fails the export, not the deployment it would otherwise take down.
 export const hostServable=p=>p.length<=700&&!/[\\\x00-\x1f\x7f?#%:]/.test(p)&&p.split('/').every(x=>x&&x!=='.'&&x!=='..'&&!x.startsWith('.'))

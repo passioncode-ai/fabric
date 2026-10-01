@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { mock } from 'node:test'
 import { PassThrough, Writable } from 'node:stream'
 import { createClaudeControlTransport, CLAUDE_CONTROL_LIMITS as L } from '../src/main/claudeControlTransport.ts'
 
@@ -68,13 +69,26 @@ try {
   }
   // Lost/late response never retries; timer-starved replies cannot become ACKs.
   {
-    const f = fixture({ timeoutMs: 5 }), p = f.transport.requestControl({ subtype: 'interrupt' }, () => true)
-    const result = await p; assert.equal(result.status, 'outcome_unknown'); assert.equal(result.reason, 'deadline')
-    f.response(); await sleep(1); assert.equal(f.frames.length, 1); assert.equal(f.transport.closed, null); f.transport.close()
+    // Hold the monotonic clock during synchronous enqueue: host scheduling must not
+    // turn this lost-reply case into the separately tested pre-send expiry case.
+    const clock = mock.method(performance, 'now', () => 0)
+    try {
+      const f = fixture({ timeoutMs: 5 }), p = f.transport.requestControl({ subtype: 'interrupt' }, () => true)
+      assert.equal(f.frames.length, 1, 'the request crossed the write boundary')
+      const result = await p; assert.equal(result.status, 'outcome_unknown'); assert.equal(result.reason, 'deadline')
+      f.response(); await sleep(1); assert.equal(f.frames.length, 1); assert.equal(f.transport.closed, null); f.transport.close()
+    } finally { clock.mock.restore() }
   }
   {
-    const f = fixture({ timeoutMs: 5 }), p = f.transport.requestControl({ subtype: 'interrupt' }, () => true)
-    busy(20); f.response(); assert.equal((await p).reason, 'deadline'); f.transport.close()
+    let now = 0
+    const clock = mock.method(performance, 'now', () => now)
+    try {
+      const f = fixture({ timeoutMs: 5 }), p = f.transport.requestControl({ subtype: 'interrupt' }, () => true)
+      assert.equal(f.frames.length, 1)
+      now = 6; f.response()
+      const result = await p
+      assert.equal(result.status, 'outcome_unknown'); assert.equal(result.reason, 'deadline'); f.transport.close()
+    } finally { clock.mock.restore() }
   }
   // Ordinary raw events remain ordered and intact, with no session/origin inference.
   {

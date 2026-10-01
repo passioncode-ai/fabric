@@ -163,3 +163,13 @@ cross-repository fact changed — a product, a version, a plan row, a principle 
 `workspace/knowledge/` that owns it (a fabric-workspace PR); then `node scripts/workspace.mjs sync`
 (or leave it to the scheduled sync) so the wiki matches `main`.
 
+
+## Shared backlog
+
+[docs/backlog-sources.json](docs/backlog-sources.json) declares this repository's canonical task sources.
+The [common backlog](https://wiki.passioncode.ai/backlog) is generated from committed local rows.
+Read the [backlog contract](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/backlog.md) before task work.
+Edit status only in its owning source, under the project lease; preserve IDs, history and evidence.
+A cross-project task has one owner and links to dependencies, never a second editable status.
+Land local changes, then run `node scripts/workspace.mjs sync`; verify publication and source freshness.
+The shared view is a publication, not a separate board to edit.

@@ -178,3 +178,13 @@ ahead of remote are permitted, remote divergence or a behind branch is refused.
 The publisher verifies the **committed** child manifest files before pushing, not just
 working-tree bytes. Canonical historical `.log` evidence overrides runtime-log ignore
 patterns inside generated content. Heroku postbuild validates that same committed payload.
+
+## Common backlog sources
+
+[ADR-0098](../adr/0098-workspace-federates-repository-backlogs.md) adds a source-addressed common
+backlog to the host. Every repository declares `docs/backlog-sources.json`; local rows stay
+authoritative. Root `BACKLOG.md` and `ROADMAP.md` are selected by `sourceSelected` in
+`scripts/workspace-snapshot.mjs`, alongside existing documentation. Hidden paths and runtime
+code remain excluded. The regression `the common backlog includes root source registers without
+exporting hidden configuration` checks both sides of that boundary. Workspace
+`knowledge/backlog.md` owns parsing, goal and agent-update rules; the exporter owns bytes and pins.

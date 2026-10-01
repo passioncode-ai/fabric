@@ -20,7 +20,8 @@
     "docs/architecture/*.md",
     "docs/evidence/**/*.md",
     "registry/*.yaml",
-    "registry/README.md"
+    "registry/README.md",
+    "docs/backlog-sources.json"
   ],
   "claimTags": {},
   "gates": [],

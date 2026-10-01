@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-01 · `organization-quality` · codex/org-quality-2026-10-01 → main
+- run: r-01a0f7454075
+- integration: planned fast-forward after the local fast gate; final commit in task handoff
+- scope: ADR-0098, common backlog source declaration, exporter allow-list, deterministic control-transport fixture and living map
+- summary: source-owned local tasks compose the workspace backlog; root backlog documents now reach the snapshot. No Fabric runtime screen changes.
+
 ### 2026-10-01 · `release-chain-recovery` · codex/provider-cli-0.159.3 → main
 - run: r-01a0f7454075
 - base: f7602c93; integration: fast-forward after `bash scripts/ci.sh fast`

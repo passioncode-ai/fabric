@@ -24,6 +24,13 @@ keeps Fabric CEO development distinct from Switchboard availability; existing ca
 registers remain authoritative. [Fabric Inbox](launch/inbox.md) records the desktop
 email product’s membership, source evidence and preview boundary.
 
+## Common backlog · 2026-10-01
+
+[ADR-0098](adr/0098-workspace-federates-repository-backlogs.md) keeps local task ownership while
+Workspace composes the [common view](https://wiki.passioncode.ai/backlog).
+[`backlog-sources.json`](backlog-sources.json) declares the source registers; edits propagate through
+the normal source commit → workspace snapshot → verified publication chain.
+
 ## Current entry
 
 [Harness audit and R0 correction plan](audit/2026-09-26-harness/README.md): current native modules, adapter/skills ownership, delivery/stop gaps and H00…H09. Runtime readiness remains receipt-based.
