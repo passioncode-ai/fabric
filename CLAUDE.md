@@ -2,10 +2,10 @@
 
 # CLAUDE.md — Fabric / PassionCode.ai
 
-Kernel of PassionCode.ai: Electron 44 + electron-vite + React 19 + TypeScript,
-pnpm workspace, local Supabase stack, journal-as-spine (ADR-0014). The shared rules
-for every org repository (branches, landing, CI, leases, secrets, handoffs) are
-[org-index RULES.md](https://github.com/passioncode-ai/org-index/blob/main/RULES.md);
+Fabric, PassionCode.ai's product and CEO AI agent (ADR-0090): Electron 44 + electron-vite +
+React 19 + TypeScript, pnpm workspace, local Supabase stack, journal-as-spine (ADR-0014). The
+shared rules for every org repository (branches, landing, CI, leases, secrets, handoffs) are the
+knowledge base's [`knowledge/rules.md`](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/rules.md);
 `AGENTS.md`, imported above, is this repository's contract. The operator's machine
 also loads a private `~/.claude/CLAUDE.md` (language, quality bar, evidence rules);
 nothing here depends on it, so a contributor without that file loses no rule this

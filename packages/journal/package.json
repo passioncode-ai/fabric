@@ -2,6 +2,12 @@
   "name": "@fabric/journal",
   "version": "0.1.0",
   "private": true,
+  "license": "AGPL-3.0-only OR LicenseRef-PassionCode-Commercial",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/passioncode-ai/fabric.git",
+    "directory": "packages/journal"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",

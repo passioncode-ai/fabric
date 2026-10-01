@@ -9,8 +9,9 @@ tasks. Passion coding moves the control point up one level: stop managing agents
 one and start operating Projects. A Project keeps its purpose, team, Routines, authority,
 work, Evidence and feedback loop together while agents and Providers can change.
 
-PassionCode.ai is a toolkit for AI-native teams. **Fabric** is its CEO AI agent for
-coordinating agents and Projects, in development. **Fabric Switchboard**, or Switchboard,
+PassionCode.ai is the organization; its toolkit is for AI-native teams. **Fabric** is its
+product, the CEO AI agent for coordinating agents and Projects; 0.2.0 is an early preview for
+macOS on Apple silicon, downloadable from [its product page](https://passioncode.ai/fabric/). **Fabric Switchboard**, or Switchboard,
 is the first publicly downloadable product: a desktop beta for managing AI-provider
 accounts. Open source under the GNU AGPL-3.0, with a commercial license available; releases
 up to 0.4.0-beta.1 were released under PolyForm Noncommercial or Internal Use, and earlier ones
@@ -143,8 +144,9 @@ This keeps three things stable while implementations change:
 
 ## What exists today
 
-Fabric is in development. This private repository holds architecture, contracts, UX
-scenarios and a local macOS application; those are not a public CEO release.
+Fabric is in development. This repository, public since 2026-10-01, holds architecture,
+contracts, UX scenarios and the macOS application; its early preview 0.2.0 is the signed DMG on
+[its product page](https://passioncode.ai/fabric/).
 Switchboard has its own [source repository](https://github.com/passioncode-ai/fabric-switchboard)
 and [product page](https://passioncode.ai/switchboard/). Platform downloads, signatures
 and acceptance are stated with the release rather than implied by the toolkit name.

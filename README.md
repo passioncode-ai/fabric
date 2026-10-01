@@ -1,11 +1,6 @@
 <p align="center">
-
-**Текущий фокус:** [первый полезный запуск Fabric](docs/launch/README.md) · [интерактивная карта](docs/reports/product.html#view-launch-map).
   <img src="assets/brand/brand-pack/png/transparent/passioncode-icon-256.png" width="128" height="128" alt="PassionCode.ai passion fruit mark">
-
 </p>
-
-[Private project workspace](https://wiki.passioncode.ai) · [Publication and agent workflow](docs/architecture/report-workspace.md)
 
 # Fabric — the CEO AI agent in the PassionCode.ai toolkit
 
@@ -24,13 +19,18 @@ change.
 
 **PassionCode.ai is the organization; its toolkit is for AI-native teams.** **Fabric** is the
 product and CEO AI agent: it plans, coordinates agents, runs Projects and works with their data,
-and it grows through its own tools — Fabric Inbox, Fabric Dashboards, Fabric Switchboard
-(names: [ADR-0090](docs/adr/0090-names-passioncode-is-the-organization-fabric-is-the-ceo-and-its-tools-carry-its-name.md)). **Fabric 0.2.0 is an early preview for macOS on
+and it grows through its own tools — Fabric Inbox, Fabric Dashboards, Fabric Switchboard,
+Fabric VR — each of which also works on its own (names: [ADR-0090](docs/adr/0090-names-passioncode-is-the-organization-fabric-is-the-ceo-and-its-tools-carry-its-name.md)). **Fabric 0.2.0 is an early preview for macOS on
 Apple silicon**: a signed and notarized DMG, [downloadable from its product page](https://passioncode.ai/fabric/#download);
 its build receipt is [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json) and the
-procedure [`docs/launch/release-mac.md`](docs/launch/release-mac.md). This private
-repository holds Fabric and its agent-agnostic technical kernel: portable contracts,
-durable work, policy, admission, Evidence and projections.
+procedure [`docs/launch/release-mac.md`](docs/launch/release-mac.md). This repository holds
+Fabric and its agent-agnostic technical kernel: portable contracts, durable work, policy,
+admission, Evidence and projections.
+
+**Current focus:** [Fabric's first useful run](docs/launch/README.md) ·
+[interactive map](docs/reports/product.html#view-launch-map) ·
+[private project workspace](https://wiki.passioncode.ai) (org members) ·
+[publication and agent workflow](docs/architecture/report-workspace.md).
 
 **Fabric Switchboard** is the first publicly downloadable product: a desktop beta
 for managing AI-provider accounts. Every PassionCode.ai repository is open source under the
@@ -43,10 +43,11 @@ entry points; availability and platform acceptance are recorded in the
 
 **Fabric Inbox** is the toolkit’s desktop email product, currently a development
 preview. [Product page](https://passioncode.ai/inbox/) ·
-[Private source repository](https://github.com/passioncode-ai/fabric-inbox) ·
+[Source repository](https://github.com/passioncode-ai/fabric-inbox) ·
 [Status and handoff](docs/launch/inbox.md). Its Cloudflare and Gmail implementation
 has local/synthetic evidence; real-account acceptance and production deployment remain
-unverified. Inbox is a standalone product; this registration adds no Fabric kernel integration.
+unverified. Inbox is Fabric's tool and also works on its own; this registration adds no Fabric
+kernel integration yet.
 
 [ADR-0070](docs/adr/0070-passioncode-toolkit-and-product-design-system.md) defines this
 portfolio hierarchy. The technical kernel boundary from ADR-0018 and CEO name from
@@ -102,8 +103,10 @@ plan survives as org #1 and builds first.
 - **Configure:** Fabric uses the Claude Code and Codex logins already on the Mac; no key is typed
   into Fabric. Coordination in this repository needs your own Notion token in `.env.agent-sync`
   (org-index [ONBOARDING §4](https://github.com/passioncode-ai/org-index/blob/main/ONBOARDING.md#4-agent-tooling)).
-- **MCP:** Fabric's own entry for other agents — its northbound MCP with `agent.call` — arrives
-  with plan AR-3 ([plans](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/plans.md)); until then you work with Fabric in the app, and Fabric
+- **MCP:** every agent session Fabric starts is given Fabric's agent surface automatically — a
+  scoped, single-use `mcp.json` per session ([`agentSurface.ts`](apps/desktop/src/main/agentSurface.ts));
+  nothing is registered by hand. Fabric's own entry for agents outside it — its northbound MCP
+  with `agent.call`, which `claude mcp add` would register — arrives with plan AR-3 ([plans](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/plans.md)); until then you work with Fabric in the app, and Fabric
   drives the other products over their MCP servers ([products](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/products.md)).
 - **Develop:** `pnpm install`, then `bash scripts/ci.sh fast` (no database) or `full` (with the
   local stack) — [Local development](#local-development) below.
@@ -136,7 +139,7 @@ plan survives as org #1 and builds first.
 | [`docs/architecture/project-workspaces.md`](docs/architecture/project-workspaces.md) | **canonical design** — projects as persistent agent workspaces, account bindings, routines, memory, cross-project scope, dashboard projections and the control-plane component map |
 | [`docs/ux/`](docs/ux/) | validated org-#1 scenarios plus draft member, Bring Your Agent, provider-view and external MCP-control scenarios; foundation, flows and screen registry trace the same paths |
 | [`schemas/`](schemas/) | explanatory JSON Schemas plus complete Portfolio Observer, product-project, cross-project proposal and estate-dashboard examples |
-| [`fabric-agent-contract`](https://github.com/passioncode-ai/fabric-agent-contract/tree/489737051828fafec92463df04b6a6fd3280c7b7) | **normative private contract 0.1.0** — machine-checkable provider profiles, admission, binding, results, memory, coordination, execution contexts and governance |
+| [`fabric-agent-contract`](https://github.com/passioncode-ai/fabric-agent-contract/tree/74d3852f122f5ca5cbc4138a201483531dfa5006) | **normative contract 0.1.0** (public; the commit the Fabric Agent Adapter pins) — machine-checkable provider profiles, admission, binding, results, memory, coordination, execution contexts and governance |
 | [`docs/architecture/work-producing-agents.md`](docs/architecture/work-producing-agents.md) | **design** — where the output of an agent that produces WORK enters the graph. Answers CO-035, and takes the estate's one existing work-producing agent as the worked example |
 | [`docs/architecture/agent-production.md`](docs/architecture/agent-production.md) | **design** — where agents come from: production as a pipeline over an ordinary project, the template in three profiles, the cold-start shortcuts, and a bootstrap whose first products are the observer's own collectors. The model is decided in [ADR-0015](docs/adr/0015-agent-production-is-a-pipeline-over-an-ordinary-project.md); the milestone is M37 |
 | [`docs/architecture/federation.md`](docs/architecture/federation.md) | **design, canonical under ADR-0016/0017** — the platform of estates: planes, the member model and interaction points, delegation, data transfer on A2A, memory storage and the sharing matrix, the access stack, runner agnosticism, and the v1 decision table |
