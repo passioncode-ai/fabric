@@ -31,7 +31,9 @@
 //
 // scripts/repin-public-history.mjs applies these states to the documents; the
 // owning gates (check-product-model, check-system-model, check-adoption-plan,
-// check-adoption-bindings, check-operator-plan) verify them.
+// check-adoption-bindings, check-operator-plan) verify them. Commits of SIBLING
+// repositories follow the same three states by a closed list instead of ancestry
+// (SIBLING_PUBLICATION below; scripts/check-sibling-commits.mjs).
 
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
@@ -112,6 +114,11 @@ export function repinProblem(receipt, { sha, inHistory }) {
   if (!from || typeof from !== 'object') return 'repinned_from must be an object'
   if (!HEX40.test(from.commit || '')) return 'repinned_from.commit must be a full commit'
   if (inHistory(from.commit)) return 'repinned_from.commit ' + from.commit + ' is in this history; the receipt needs no repin'
+  return ruleProblem(receipt, from, sha)
+}
+
+/** The rule half of a repin record, shared by Fabric's own receipts and its siblings'. */
+function ruleProblem(receipt, from, sha) {
   if (!REPIN_RULES.includes(from.rule)) return 'unknown repin rule ' + from.rule
   if (!HEX64.test(from.file_sha256 || '')) return 'repinned_from.file_sha256 must be a sha256'
   if (from.rule === 'identical-bytes' && from.file_sha256 !== sha) return 'identical-bytes repin with a different content hash'
@@ -154,6 +161,68 @@ export function staleProblem(r, { inHistory, readBlob }) {
 /** A dated record — an audit, a dated plan or report — records a moment and is never rewritten
  *  to match a later tree (CLAUDE.md, "Dated documents"). Its path carries the date. */
 export const isDatedRecord = (file) => typeof file === 'string' && /(^|\/)\d{4}-\d{2}-\d{2}(?=[-./]|$)/.test(file)
+
+/** History, in the sense the cutover rules use it: a dated record, or an ADR — append-only,
+ *  never edited (AGENTS.md, rule 2). The ADR index beside them is maintained, so it is not. */
+export const isHistoricalRecord = (file) => isDatedRecord(file) || /^docs\/adr\/\d{4}-[^/]+\.md$/.test(file)
+
+// SIBLING REPOSITORIES. On 2026-09-30 and 2026-10-01 three sibling repositories were re-created
+// public the same way Fabric was: ONE orphan root whose tree equals a commit of the earlier,
+// private main (measured 2026-10-01 against a checkout that still holds the old objects:
+// fabric-agent-contract ebcf11f = e3449f7, fabric-vr 2536a3d = a930f59). Their earlier commits
+// are gone from GitHub — `gh api repos/passioncode-ai/<repo>/commits/<sha>` answers 422 "No
+// commit found" — and, unlike Fabric's own, this repository never held their objects, so
+// "an ancestor of HEAD" cannot answer for them. Their third state is therefore a CLOSED LIST,
+// the shape fabric-vr gave its own dead references (its DEC-0101):
+//
+//   pre-publication  a commit listed below, spelled as the documents cite it. A reference to it
+//                    is history: accepted in a dated record or an ADR (isHistoricalRecord),
+//                    printed NOT_CHECKED, never counted as followed. In a living document it is
+//                    refused: the evidence is re-read at a public commit and repinned
+//                    (scripts/repin-sibling-receipts.mjs), or the link is re-pointed by hand
+//                    after the same reading.
+//   repinned         a sibling receipt re-read at a public commit; `repinned_from` keeps the
+//                    listed address and the rule (REPIN_RULES), checked by siblingRepinProblem.
+//   public           any other commit. scripts/check-sibling-commits.mjs resolves it against
+//                    the sibling's public history and refuses one that does not resolve.
+//
+// The list is CLOSED: check-sibling-commits.mjs pins the digest of its entries (siblingDigest),
+// so an entry cannot be added in the same breath as the dead link it would let through. Adding
+// one is a reviewed change to two files, and the gate refuses an entry the public history has.
+// `root` is the public root, recorded for the reader; nothing is decided by it.
+export const SIBLING_PUBLICATION = Object.freeze({
+  'fabric-agent-contract': Object.freeze({
+    root: 'ebcf11fe8749a4d1218e7671571d4140e3961229',
+    pre_publication: Object.freeze(['1eeb5a302518a25af4c3ef82f1942aa3288bc9b9', '489737051828fafec92463df04b6a6fd3280c7b7'])
+  }),
+  'fabric-inbox': Object.freeze({ root: 'a9f9516e344a8f700084a1a4aaef86214e062f66', pre_publication: Object.freeze([]) }),
+  'fabric-vr': Object.freeze({ root: '2536a3d1d184bcf38c559c7d16fe3dd00531d3fa', pre_publication: Object.freeze(['161d621']) })
+})
+
+/** "<repository> <commit>" per listed entry, sorted: what the pinned digest is taken over. */
+export const siblingEntries = (list = SIBLING_PUBLICATION) =>
+  Object.entries(list).flatMap(([repo, s]) => s.pre_publication.map((c) => repo + ' ' + c)).sort()
+export const siblingDigest = (list = SIBLING_PUBLICATION) => sha256(siblingEntries(list).join('\n') + '\n')
+export const isSiblingPrePublication = (repo, commit, list = SIBLING_PUBLICATION) => !!list[repo]?.pre_publication.includes(commit)
+
+/**
+ * Checks the `repinned_from` record of a SIBLING receipt: it moved off a listed pre-publication
+ * commit, onto a full commit that is not listed, under a rule consistent with its hash and line.
+ * Whether the new commit resolves, and still says what the receipt quotes, is the gate's network
+ * half (scripts/check-sibling-commits.mjs). Returns a problem string, or null.
+ */
+export function siblingRepinProblem(receipt, list = SIBLING_PUBLICATION) {
+  const repo = receipt.repository
+  if (!repo || repo === 'fabric') return 'a sibling repin needs the sibling repository it addresses'
+  const record = list[repo]
+  if (!record) return repo + ' has no publication record; its commits cannot be repinned'
+  const from = receipt.repinned_from
+  if (!from || typeof from !== 'object') return 'repinned_from must be an object'
+  if (!record.pre_publication.includes(from.commit)) return 'repinned_from.commit ' + from.commit + ' is not a listed pre-publication commit of ' + repo
+  if (!HEX40.test(receipt.commit || '')) return 'a repinned sibling receipt names its new commit in full'
+  if (record.pre_publication.includes(receipt.commit)) return 'the receipt still addresses a pre-publication commit of ' + repo
+  return ruleProblem(receipt, from, receipt.file_sha256)
+}
 
 /**
  * The baseline of a plan whose line citations live in a dated record. 'verify' when the baseline is

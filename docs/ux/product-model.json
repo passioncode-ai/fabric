@@ -37363,11 +37363,17 @@
           "symbol": "conflicts",
           "claim": "ranking cannot collapse supported conflicts",
           "repository": "fabric-agent-contract",
-          "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+          "commit": "b7d7e4ced0ef21220aaca10dd0c7954a691833e7",
           "file_sha256": "874ea52223c8f3f58579f87b94d42ed58e42dfff393ebd0a79ef6e46338a1ec8",
           "excerpt": "Conflicting supported records are returned together. Ranking MUST NOT silently",
-          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/1eeb5a302518a25af4c3ef82f1942aa3288bc9b9/docs/specification/memory-and-learning.md#L129",
-          "verification": "retained-sibling-receipt"
+          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/b7d7e4ced0ef21220aaca10dd0c7954a691833e7/docs/specification/memory-and-learning.md#L129",
+          "verification": "retained-sibling-receipt",
+          "repinned_from": {
+            "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+            "line": 129,
+            "file_sha256": "874ea52223c8f3f58579f87b94d42ed58e42dfff393ebd0a79ef6e46338a1ec8",
+            "rule": "identical-bytes"
+          }
         }
       ]
     },
@@ -37501,11 +37507,17 @@
           "symbol": "conceptual record",
           "claim": "scope/function/classification are separate axes; wire future",
           "repository": "fabric-agent-contract",
-          "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+          "commit": "b7d7e4ced0ef21220aaca10dd0c7954a691833e7",
           "file_sha256": "874ea52223c8f3f58579f87b94d42ed58e42dfff393ebd0a79ef6e46338a1ec8",
           "excerpt": "## Canonical record",
-          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/1eeb5a302518a25af4c3ef82f1942aa3288bc9b9/docs/specification/memory-and-learning.md#L89",
-          "verification": "retained-sibling-receipt"
+          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/b7d7e4ced0ef21220aaca10dd0c7954a691833e7/docs/specification/memory-and-learning.md#L89",
+          "verification": "retained-sibling-receipt",
+          "repinned_from": {
+            "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+            "line": 89,
+            "file_sha256": "874ea52223c8f3f58579f87b94d42ed58e42dfff393ebd0a79ef6e46338a1ec8",
+            "rule": "identical-bytes"
+          }
         }
       ]
     },
@@ -37661,11 +37673,17 @@
           "symbol": "classification/retention",
           "claim": "retention and sourceclassification required",
           "repository": "fabric-agent-contract",
-          "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+          "commit": "b7d7e4ced0ef21220aaca10dd0c7954a691833e7",
           "file_sha256": "2abf15405c2cbbf202df67b324b8220e664ad8f826fd63553ce3906370fcad12",
           "excerpt": "## Data classification",
-          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/1eeb5a302518a25af4c3ef82f1942aa3288bc9b9/docs/specification/governance-and-roles.md#L34",
-          "verification": "retained-sibling-receipt"
+          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/b7d7e4ced0ef21220aaca10dd0c7954a691833e7/docs/specification/governance-and-roles.md#L34",
+          "verification": "retained-sibling-receipt",
+          "repinned_from": {
+            "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+            "line": 34,
+            "file_sha256": "2abf15405c2cbbf202df67b324b8220e664ad8f826fd63553ce3906370fcad12",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "docs/specification/governance-and-roles.md",
@@ -37673,11 +37691,17 @@
           "symbol": "approval separation",
           "claim": "agent cannot approve ownpromotion",
           "repository": "fabric-agent-contract",
-          "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+          "commit": "b7d7e4ced0ef21220aaca10dd0c7954a691833e7",
           "file_sha256": "2abf15405c2cbbf202df67b324b8220e664ad8f826fd63553ce3906370fcad12",
           "excerpt": "## Approval separation",
-          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/1eeb5a302518a25af4c3ef82f1942aa3288bc9b9/docs/specification/governance-and-roles.md#L57",
-          "verification": "retained-sibling-receipt"
+          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/b7d7e4ced0ef21220aaca10dd0c7954a691833e7/docs/specification/governance-and-roles.md#L57",
+          "verification": "retained-sibling-receipt",
+          "repinned_from": {
+            "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+            "line": 57,
+            "file_sha256": "2abf15405c2cbbf202df67b324b8220e664ad8f826fd63553ce3906370fcad12",
+            "rule": "identical-bytes"
+          }
         }
       ]
     },
@@ -37782,11 +37806,17 @@
           "symbol": "retro required",
           "claim": "verifiedCorrectionmandatory, rawsignalsnotverifiedretro",
           "repository": "fabric-agent-contract",
-          "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+          "commit": "b7d7e4ced0ef21220aaca10dd0c7954a691833e7",
           "file_sha256": "6ed48eeb8110216e04f1df322d810bf7c0ed25f45ade197acebec3e6096c7b98",
           "excerpt": "      \"required\": [\"kind\", \"meta\", \"project\", \"run\", \"node\", \"goal\", \"outcome\", \"failedAttempt\", \"verifiedCorrection\", \"causalHypothesis\", \"evidence\"],",
-          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/1eeb5a302518a25af4c3ef82f1942aa3288bc9b9/schemas/memory.schema.json#L50",
-          "verification": "retained-sibling-receipt"
+          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/b7d7e4ced0ef21220aaca10dd0c7954a691833e7/schemas/memory.schema.json#L50",
+          "verification": "retained-sibling-receipt",
+          "repinned_from": {
+            "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+            "line": 50,
+            "file_sha256": "6ed48eeb8110216e04f1df322d810bf7c0ed25f45ade197acebec3e6096c7b98",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "docs/specification/memory-and-learning.md",
@@ -37794,11 +37824,17 @@
           "symbol": "formation/evolution/use/retro",
           "claim": "evidencecontrast and independentapproval",
           "repository": "fabric-agent-contract",
-          "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+          "commit": "b7d7e4ced0ef21220aaca10dd0c7954a691833e7",
           "file_sha256": "874ea52223c8f3f58579f87b94d42ed58e42dfff393ebd0a79ef6e46338a1ec8",
           "excerpt": "## Formation, evolution, use and retrospectives",
-          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/1eeb5a302518a25af4c3ef82f1942aa3288bc9b9/docs/specification/memory-and-learning.md#L237",
-          "verification": "retained-sibling-receipt"
+          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/b7d7e4ced0ef21220aaca10dd0c7954a691833e7/docs/specification/memory-and-learning.md#L237",
+          "verification": "retained-sibling-receipt",
+          "repinned_from": {
+            "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+            "line": 237,
+            "file_sha256": "874ea52223c8f3f58579f87b94d42ed58e42dfff393ebd0a79ef6e46338a1ec8",
+            "rule": "identical-bytes"
+          }
         }
       ]
     },
@@ -40085,11 +40121,17 @@
           "symbol": "Fallback",
           "claim": "reason allowlist and pinned pool; noimplicitwritescopechange",
           "repository": "fabric-agent-contract",
-          "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+          "commit": "b7d7e4ced0ef21220aaca10dd0c7954a691833e7",
           "file_sha256": "4875f4013830c24c9edd7ce297de17b76561ed5b6db35ea76942017f9208b7e8",
           "excerpt": "## Fallback",
-          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/1eeb5a302518a25af4c3ef82f1942aa3288bc9b9/docs/specification/execution-context.md#L54",
-          "verification": "retained-sibling-receipt"
+          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/b7d7e4ced0ef21220aaca10dd0c7954a691833e7/docs/specification/execution-context.md#L54",
+          "verification": "retained-sibling-receipt",
+          "repinned_from": {
+            "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+            "line": 54,
+            "file_sha256": "4875f4013830c24c9edd7ce297de17b76561ed5b6db35ea76942017f9208b7e8",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "apps/desktop/src/main/routineTick.ts",
@@ -40206,11 +40248,17 @@
           "symbol": "limits",
           "claim": "wall/cost/concurrency are versionedexecutioncontext",
           "repository": "fabric-agent-contract",
-          "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+          "commit": "b7d7e4ced0ef21220aaca10dd0c7954a691833e7",
           "file_sha256": "fc2cd0e94f4e180ba0f3916c0013d654941f299d69c943ba7edced6a63b093d5",
           "excerpt": "        \"limits\": { \"type\": \"object\", \"required\": [\"wallSeconds\", \"concurrency\"], \"properties\": { \"wallSeconds\": { \"type\": \"integer\", \"minimum\": 1 }, \"costMicrounits\": { \"type\": \"integer\", \"minimum\": 0 }, \"concurrency\": { \"type\": \"integer\", \"minimum\": 1 } }, \"additionalProperties\": false },",
-          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/1eeb5a302518a25af4c3ef82f1942aa3288bc9b9/schemas/execution-context.schema.json#L47",
-          "verification": "retained-sibling-receipt"
+          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/b7d7e4ced0ef21220aaca10dd0c7954a691833e7/schemas/execution-context.schema.json#L47",
+          "verification": "retained-sibling-receipt",
+          "repinned_from": {
+            "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+            "line": 47,
+            "file_sha256": "fc2cd0e94f4e180ba0f3916c0013d654941f299d69c943ba7edced6a63b093d5",
+            "rule": "identical-bytes"
+          }
         }
       ]
     },
@@ -40644,23 +40692,35 @@
           "symbol": "role enum",
           "claim": "ceo/product-manager; manager invalid",
           "repository": "fabric-agent-contract",
-          "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+          "commit": "b7d7e4ced0ef21220aaca10dd0c7954a691833e7",
           "file_sha256": "d9238b483d748ad46e8189a60eb3a32878246cec79efe2e03d5e56e9a7502355",
           "excerpt": "          \"role\": { \"type\": \"string\", \"pattern\": \"^(ceo|product-manager|developer|[a-z][a-z0-9.-]*/[a-z][a-z0-9.-]*)$\" },",
-          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/1eeb5a302518a25af4c3ef82f1942aa3288bc9b9/schemas/roles.schema.json#L17",
-          "verification": "retained-sibling-receipt"
+          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/b7d7e4ced0ef21220aaca10dd0c7954a691833e7/schemas/roles.schema.json#L17",
+          "verification": "retained-sibling-receipt",
+          "repinned_from": {
+            "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+            "line": 17,
+            "file_sha256": "d9238b483d748ad46e8189a60eb3a32878246cec79efe2e03d5e56e9a7502355",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "src/semantic-rules.ts",
-          "line": 30,
+          "line": 31,
           "symbol": "FAC-SEM-005/006",
           "claim": "exactlyone active CEO/PM governance",
           "repository": "fabric-agent-contract",
-          "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
-          "file_sha256": "7d21a800b23c160d4f2f21ada93f27d1a4cca2c6b8197ec47cccbc07ed977865",
+          "commit": "b7d7e4ced0ef21220aaca10dd0c7954a691833e7",
+          "file_sha256": "d9ab0497a3e46b1b0d94b3af73898b6f850e850f3a3a88dbafb1eeb88125937d",
           "excerpt": "    const ceos = active.filter((item) => item.role === \"ceo\");",
-          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/1eeb5a302518a25af4c3ef82f1942aa3288bc9b9/src/semantic-rules.ts#L30",
-          "verification": "retained-sibling-receipt"
+          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/b7d7e4ced0ef21220aaca10dd0c7954a691833e7/src/semantic-rules.ts#L31",
+          "verification": "retained-sibling-receipt",
+          "repinned_from": {
+            "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+            "line": 30,
+            "file_sha256": "7d21a800b23c160d4f2f21ada93f27d1a4cca2c6b8197ec47cccbc07ed977865",
+            "rule": "cited-lines-moved"
+          }
         },
         {
           "path": "schemas/binding.schema.json",
@@ -40668,11 +40728,17 @@
           "symbol": "binding.project",
           "claim": "estate unsupported currentwire",
           "repository": "fabric-agent-contract",
-          "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+          "commit": "b7d7e4ced0ef21220aaca10dd0c7954a691833e7",
           "file_sha256": "dde6dca8e6edb02b6b676733c4b4b5b165468adf36dbd0c85890ed49ae8ff59e",
           "excerpt": "  \"required\": [\"meta\", \"project\", \"capability\", \"provider\", \"admission\", \"profileKind\", \"executionContext\", \"accountPool\", \"grants\", \"dataPolicy\", \"coordinationPolicy\", \"checkerPolicy\", \"state\"],",
-          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/1eeb5a302518a25af4c3ef82f1942aa3288bc9b9/schemas/binding.schema.json#L6",
-          "verification": "retained-sibling-receipt"
+          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/b7d7e4ced0ef21220aaca10dd0c7954a691833e7/schemas/binding.schema.json#L6",
+          "verification": "retained-sibling-receipt",
+          "repinned_from": {
+            "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+            "line": 6,
+            "file_sha256": "dde6dca8e6edb02b6b676733c4b4b5b165468adf36dbd0c85890ed49ae8ff59e",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "schemas/execution-context.schema.json",
@@ -40680,11 +40746,17 @@
           "symbol": "executioncontext.project",
           "claim": "same projectonly seam",
           "repository": "fabric-agent-contract",
-          "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+          "commit": "b7d7e4ced0ef21220aaca10dd0c7954a691833e7",
           "file_sha256": "fc2cd0e94f4e180ba0f3916c0013d654941f299d69c943ba7edced6a63b093d5",
           "excerpt": "      \"required\": [\"kind\", \"meta\", \"project\", \"provider\", \"workingDirectory\", \"environment\", \"accountPool\", \"limits\", \"cleanup\"],",
-          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/1eeb5a302518a25af4c3ef82f1942aa3288bc9b9/schemas/execution-context.schema.json#L12",
-          "verification": "retained-sibling-receipt"
+          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/b7d7e4ced0ef21220aaca10dd0c7954a691833e7/schemas/execution-context.schema.json#L12",
+          "verification": "retained-sibling-receipt",
+          "repinned_from": {
+            "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+            "line": 12,
+            "file_sha256": "fc2cd0e94f4e180ba0f3916c0013d654941f299d69c943ba7edced6a63b093d5",
+            "rule": "identical-bytes"
+          }
         },
         {
           "path": "docs/specification/governance-and-roles.md",
@@ -40692,11 +40764,17 @@
           "symbol": "independent approval",
           "claim": "manager cannot approve ownpromotion/rulechange",
           "repository": "fabric-agent-contract",
-          "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+          "commit": "b7d7e4ced0ef21220aaca10dd0c7954a691833e7",
           "file_sha256": "2abf15405c2cbbf202df67b324b8220e664ad8f826fd63553ce3906370fcad12",
           "excerpt": "## Approval separation",
-          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/1eeb5a302518a25af4c3ef82f1942aa3288bc9b9/docs/specification/governance-and-roles.md#L57",
-          "verification": "retained-sibling-receipt"
+          "url": "https://github.com/passioncode-ai/fabric-agent-contract/blob/b7d7e4ced0ef21220aaca10dd0c7954a691833e7/docs/specification/governance-and-roles.md#L57",
+          "verification": "retained-sibling-receipt",
+          "repinned_from": {
+            "commit": "1eeb5a302518a25af4c3ef82f1942aa3288bc9b9",
+            "line": 57,
+            "file_sha256": "2abf15405c2cbbf202df67b324b8220e664ad8f826fd63553ce3906370fcad12",
+            "rule": "identical-bytes"
+          }
         }
       ]
     },
