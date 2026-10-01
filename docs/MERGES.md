@@ -4,6 +4,12 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-01T10:14:02Z · `sibling-repin-20261001` · agent/sibling-repin → main · `960f858`
+- run: r-0331edc1c
+- files: 96 (96 files changed, 1011 insertions(+), 167 deletions(-))
+- conflicts: none
+- summary: sibling commit links: 109 living links repinned to public fabric-agent-contract b7d7e4c after re-reading; 71 in dated records/ADRs on a closed list; check-sibling-commits gate in ci.sh fast
+
 ### 2026-10-01T09:34:07Z · `final-check-20261001` · agent/final-check → main · `8709ef8`
 - run: r-2f6a4491e
 - files: 14 (14 files changed, 96 insertions(+), 39 deletions(-))
