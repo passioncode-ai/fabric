@@ -3,6 +3,11 @@
   "private": true,
   "version": "0.1.0",
   "description": "Fabric — the CEO AI agent by PassionCode.ai: the desktop app and its kernel.",
+  "homepage": "https://passioncode.ai/fabric/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/passioncode-ai/fabric.git"
+  },
   "scripts": {
     "postinstall": "chmod +x node_modules/.pnpm/node-pty@*/node_modules/node-pty/prebuilds/*/spawn-helper 2>/dev/null || true",
     "dev": "pnpm --filter @fabric/desktop dev",

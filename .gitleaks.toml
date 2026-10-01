@@ -1,0 +1,20 @@
+# gitleaks configuration: the default rules, plus one reviewed allowlist (2026-10-01).
+#
+# The `workspace` submodule (fabric-workspace, which carries the same file) holds content/, a
+# generated snapshot of every repository's documents; a scan from this root reads it too, and
+# docs/audit/ has the same digest shapes. Those evidence files map a
+# file path to its sha256 digest ("site/tokens.css": "<64 hex>") and name audit findings by a
+# 16-hex `stable_key`; generic-api-key reads both as keys. A digest is not a credential. The
+# allowlist matches only that line shape and only for generic-api-key, so every other rule — and
+# generic-api-key on any other line — still fires.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "sha256 digests keyed by a file path, and 16-hex audit finding keys"
+targetRules = ["generic-api-key"]
+regexTarget = "line"
+regexes = [
+  '''"[^"\s]+\.(css|png|svg|jpe?g|webp|gif|ico|js|mjs|json|html|woff2?)"\s*:\s*"[0-9a-f]{64}"''',
+  '''"stable_key"\s*:\s*"[0-9a-f]{16}"''',
+]

@@ -125,7 +125,10 @@ try{
  await test('late capture after timeout never restores write but remains available for explicit cleanup',async()=>{
   const f=fixture({timeoutMs:150}),capture=f.native.boundary.capture;let release
   f.native.boundary.capture=async pid=>{const owned=await capture(pid);await new Promise(r=>release=r);return owned}
-  const a=admission(),r=await f.registry.start(a,a.session_id,async()=>true);assert.equal(r.state,'outcome_unknown');release()
+  const a=admission(),r=await f.registry.start(a,a.session_id,async()=>true);assert.equal(r.state,'outcome_unknown')
+  // Under load the 150 ms timeout can fire before the native capture itself returns, so the hold
+  // is not set yet when start() answers; wait for the capture to reach it instead of assuming it.
+  await until(()=>typeof release==='function','late capture reached its hold');release()
   // The late capture settles on a later turn; under load one turn is not enough, so wait for it rather than assume it.
   await until(()=>/^process:/.test(f.registry.snapshot(r.handle).processIdentityRef??''),'late capture recorded its identity')
   assert.match(f.registry.snapshot(r.handle).processIdentityRef,/^process:/);assert.equal(f.registry.canWrite(r.handle),false);assert.equal((await f.registry.signalOwned(r.handle,'SIGTERM',()=>true)).sent,true)
