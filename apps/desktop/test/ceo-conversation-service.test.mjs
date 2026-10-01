@@ -11,6 +11,11 @@ const C=id(3),OP=id(4),MSG=id(5),ctx={schema:'CeoContext@1',mode:'none',selectio
 const draft=(text='A useful question')=>({text,context:structuredClone(ctx),expected_revision:0,subject_revision:1})
 const pending=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve}}
 const roots=[]
+// A test that is not about the deadline runs with the product's own default (ceoConversationService.ts:
+// `deps.timeoutMs ?? 10000`). A shorter default made the 32-send cleanup test report commit_unknown
+// under machine load — true behaviour for a slow send, a false failure for this test. Tests about the
+// deadline set their own (5–150 ms) explicitly.
+const CEO_TEST_DEFAULT_TIMEOUT_MS=10000
 function fixture(options={}){
  const dir=mkdtempSync(path.join(tmpdir(),'fabric-ceo-service-'));roots.push(dir)
  const initial={estateId:id(1),personId:id(2),revision:1,actor:{kind:'person',id:id(2)}}
@@ -26,7 +31,7 @@ function fixture(options={}){
    return {data:{ok:true,conversation_id:a.p_conversation_id,revision:rows.length,subject:{kind:'project',id:id(7),owner_project_id:id(7),current:{revision:1,project_id:id(7),active:true,status:'active'}},messages:rows.map(row=>({message_id:row.envelope.message_id,ordinal:row.receipt.revision,request_id:row.receipt.request_id,receipt_seq:10,content_state:'available',envelope:Object.fromEntries(Object.entries(row.envelope).reverse()),canonical_digest:row.receipt.canonical_digest,dispatch:'unavailable'})),next_ordinal:null}}
   }
  }
- const deps={rootDir:dir,identity:{held:()=>state.held,guard:async()=>state.guard?state.guard():state.valid?state.held:null},rpc,online:()=>state.online,timeoutMs:options.timeoutMs??1000}
+ const deps={rootDir:dir,identity:{held:()=>state.held,guard:async()=>state.guard?state.guard():state.valid?state.held:null},rpc,online:()=>state.online,timeoutMs:options.timeoutMs??CEO_TEST_DEFAULT_TIMEOUT_MS}
  const service=createCeoConversationService(deps)
  const ns=()=>path.join(dir,'ceo-conversations',initial.estateId,initial.personId)
  const file=()=>path.join(ns(),'drafts.json')
@@ -76,7 +81,7 @@ await test('not-found while first request is late permits only explicit same-inp
  const f=fixture({timeoutMs:150});await freeze(f);const wait=pending();let first
  f.state.send=a=>{first=structuredClone(a.p_envelope);return wait.promise}
  const result=await f.service.send(C,OP);assert.equal(result.state,'commit_unknown')
- f.deps.timeoutMs=1000
+ f.deps.timeoutMs=CEO_TEST_DEFAULT_TIMEOUT_MS
  const lookup=await f.service.reconcile(C,OP);assert.equal(lookup.reason_code,'receipt_not_found');assert.equal(f.calls.filter(x=>x.name==='send').length,1)
  f.state.send=a=>{const receipt=f.commit(first);assert.deepEqual(a.p_envelope,first);wait.resolve({data:receipt});return {data:f.commit(a.p_envelope)}}
  const retry=await f.service.retrySavedInput(C,OP);assert.equal(retry.state,'accepted_pending',JSON.stringify(retry));assert.equal(f.accepted.size,1)
@@ -210,7 +215,7 @@ await test('in-flight cap bounds hanging identity guards across read/open/send a
  assert.equal((await f.service.open({operationId:OP,conversationId:C,subjectKind:'global',subjectId:C})).reason_code,'busy')
  assert.equal((await f.service.send(C,OP)).reason_code,'busy')
  const results=await Promise.all(calls);assert.ok(results.every(r=>r.reason_code==='timeout'));assert.equal(f.calls.length,0)
- f.state.guard=null;f.deps.timeoutMs=1000;assert.equal((await f.service.readDraft(C)).ok,true)
+ f.state.guard=null;f.deps.timeoutMs=CEO_TEST_DEFAULT_TIMEOUT_MS;assert.equal((await f.service.readDraft(C)).ok,true)
 })
 await test('deadline handles blocked guard and synchronous starvation before RPC or filesystem write',async()=>{
  const f=fixture({timeoutMs:5});f.state.guard=async()=>{const until=Date.now()+20;while(Date.now()<until){}return f.initial}
