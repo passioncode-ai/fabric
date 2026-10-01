@@ -14,6 +14,10 @@ const binary = path.join(dir, 'codex'); writeFileSync(binary, '#!/bin/sh\nexit 0
 const pin = createHash('sha256').update(readFileSync(binary)).digest('hex')
 const uuid = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 let count = 0; const test = async (name, fn) => { await fn(); console.log('PASS ' + name); count++ }
+// The recipe confines Codex with macOS `sandbox-exec` (codexLoopback.ts#codexLoopbackRecipe), and Fabric
+// ships for macOS only. On another host — the Linux CI runner — those cases cannot run, and they say so
+// by name rather than shrinking the denominator in silence; the rest of the suite is pure and runs.
+let notRun = 0; const darwinTest = (name, fn) => process.platform === 'darwin' ? test(name, fn) : (console.log(`NOT_RUN ${name}: needs macOS sandbox-exec; this host is ${process.platform}`), notRun++)
 function scripted(replies) {
   const calls = []
   return { calls, client: {
@@ -29,7 +33,7 @@ const bindInput = over => ({ fabric: { estateId: uuid(1), taskId: uuid(2), runId
   backend: { epoch: uuid(5), processRef: 'process:' + 'a'.repeat(64) }, connectionId: 'controller:' + uuid(6), threadId: 'thread-1',
   turn: { threadId: 'thread-1', turn: { id: 'turn-1' } }, manifestDigest: 'b'.repeat(64), policyDigest: 'c'.repeat(64), ...over })
 try {
-  await test('the recipe pins the binary, confines writes to its own root and exposes no token', async () => {
+  await darwinTest('the recipe pins the binary, confines writes to its own root and exposes no token', async () => {
     const root = path.join(dir, 'scope-a'), { recipe, listener, codexHome } = codexLoopbackRecipe({ binary, binarySha256: pin, root, path: '/usr/bin:/bin' })
     assert.equal(recipe.executable, '/usr/bin/sandbox-exec'); assert.match(recipe.executableSha256, /^[a-f0-9]{64}$/)
     assert.deepEqual(recipe.argv.slice(2), [binary, 'app-server', '--listen', 'ws://127.0.0.1:0', '--ws-auth', 'capability-token'])
@@ -44,7 +48,7 @@ try {
     assert.equal(statSync(path.join(codexHome, 'config.toml')).mode & 0o777, 0o600)
   })
 
-  await test('an unpinned, writable or relative binary and a shared root are refused', async () => {
+  await darwinTest('an unpinned, writable or relative binary and a shared root are refused', async () => {
     assert.throws(() => codexLoopbackRecipe({ binary, binarySha256: 'd'.repeat(64), root: path.join(dir, 's1'), path: '/usr/bin' }), /codex_binary_not_pinned/)
     const loose = path.join(dir, 'loose'); writeFileSync(loose, '#!/bin/sh\n', { mode: 0o777 }); chmodSync(loose, 0o777)
     assert.throws(() => codexLoopbackRecipe({ binary: loose, binarySha256: createHash('sha256').update(readFileSync(loose)).digest('hex'), root: path.join(dir, 's2'), path: '/usr/bin' }), /codex_binary_not_pinned/)
@@ -53,7 +57,7 @@ try {
     assert.throws(() => codexLoopbackRecipe({ binary, binarySha256: pin, root: shared, path: '/usr/bin' }), /codex_loopback_root_not_private/)
   })
 
-  await test('model access links the existing login instead of copying it, and opens only 443 and DNS', async () => {
+  await darwinTest('model access links the existing login instead of copying it, and opens only 443 and DNS', async () => {
     const login = path.join(dir, 'auth.json'); writeFileSync(login, '{}', { mode: 0o600 })
     const root = path.join(dir, 'scope-model'), { recipe, codexHome } = codexLoopbackRecipe({ binary, binarySha256: pin, root, path: '/usr/bin', modelAccess: { authFile: login } })
     const link = path.join(codexHome, 'auth.json')
@@ -129,5 +133,5 @@ try {
     assert.equal(writerAllowed(b, { connectionId: 'controller:' + uuid(7), closed: null }), false, 'a reconnect is a new writer')
     assert.equal(writerAllowed(b, { connectionId: 'controller:' + uuid(6), closed: 'socket_closed' }), false)
   })
-  console.log(`PASS ${count} Codex loopback recipe, thread and binding groups`)
+  console.log(`PASS ${count} Codex loopback recipe, thread and binding groups` + (notRun ? `; NOT_RUN ${notRun} recipe groups (not macOS)` : ''))
 } finally { rmSync(dir, { recursive: true, force: true }) }
