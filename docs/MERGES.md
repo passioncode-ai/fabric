@@ -10,6 +10,11 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - scope: ADR-0098, common backlog source declaration, exporter allow-list, deterministic control-transport fixture and living map
 - summary: source-owned local tasks compose the workspace backlog; root backlog documents now reach the snapshot. No Fabric runtime screen changes.
 
+### 2026-10-02 · `claude-repin-cla` · claude/cla-no-checkbox → main
+- base: 4dd6f91c; integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: provider capability matrix (Claude Code 2.1.287), CLA.md without the checkbox sentence, living map and source stamp
+- summary: the workspace publication gate refused the 2.1.286 pin after Claude Code updated itself; the pin follows `claude --version`, every current capability row stays unverified. CLA.md matches the knowledge-base template changed the same day: opening a pull request is the agreement, nothing to tick.
+
 ### 2026-10-01 · `release-chain-recovery` · codex/provider-cli-0.159.3 → main
 - run: r-01a0f7454075
 - base: f7602c93; integration: fast-forward after `bash scripts/ci.sh fast`
