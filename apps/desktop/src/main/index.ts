@@ -231,6 +231,11 @@ import { tenureFrom } from '../shared/tenure.ts'
 import { markFor, setMark } from './digestMark.ts'
 import { favourites, moveProject, projectOrder, replaceFavourite, toggleFavourite } from './favourites.ts'
 import { persona, savePersona } from './persona.ts'
+import { inspectFolder, scanFolder } from './projectDiscovery.ts'
+import { detectExecutors } from './executorDetect.ts'
+import { createProjectFolder, keepScan, lastScan } from './startPaths.ts'
+import { sessionEnvironment } from './sessionEnv.ts'
+import type { CandidateView, FolderFacts, ScanView } from '../shared/startPaths.ts'
 import { livenessFor } from './livenessRead.ts'
 import { classifyObservationGap, type HostWindow } from '../shared/harnessBreak.ts'
 import { createDrafts } from './onboardingDrafts.ts'
@@ -2806,6 +2811,89 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       replaceFavourite(release, add)
   )
   handle(IPC.favouritesOrder, (): Returns<FabricApi['favourites']['order']> => projectOrder())
+  // #region start-paths-ipc — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+  // The first run and the start paths (ADR-0100). Every folder here goes through the window's
+  // granted roots (S02.roots): the picker grants, `fileRoots.resolve` refuses anything else.
+  const importedIndex = async (): Promise<Map<string, { id: string; name: string }[]>> => {
+    const [{ data: repos, error: e1 }, { data: projects, error: e2 }] = await Promise.all([
+      store.select('project_repos', 'path,project_id'),
+      store.select('projects', 'id,name')
+    ])
+    if (e1 || e2) throw new Error(`projects read failed: ${(e1 ?? e2)?.message}`)
+    const names = new Map((projects ?? []).map((r) => [r.id as string, r.name as string]))
+    const out = new Map<string, { id: string; name: string }[]>()
+    for (const r of repos ?? []) {
+      const key = r.path as string
+      out.set(key, [...(out.get(key) ?? []), { id: r.project_id as string, name: names.get(r.project_id as string) ?? (r.project_id as string) }])
+    }
+    return out
+  }
+  const withImported = async <T extends FolderFacts>(rows: T[]): Promise<(T & { importedBy: { id: string; name: string }[] })[]> => {
+    const index = await importedIndex()
+    return rows.map((r) => ({ ...r, importedBy: index.get(r.path) ?? [] }))
+  }
+  const scans = new Map<string, AbortController>()
+  handle(IPC.startChooseFolder, async (event, purpose: 'project' | 'scan' | 'parent'): Promise<Returns<FabricApi['start']['chooseFolder']>> => {
+    const message =
+      purpose === 'scan' ? 'Choose the folder that holds your projects'
+        : purpose === 'parent' ? 'Choose where the new project folder goes'
+          : 'Choose a project folder'
+    // The walk harness (scripts/walk/start-paths.mjs) cannot click a native dialog. In an UNPACKAGED
+    // run only, `FABRIC_WALK_PICK` answers the picker with a folder; a packaged app ignores it, so no
+    // installed build can be made to grant a folder nobody chose.
+    const walkPick = !app.isPackaged ? process.env.FABRIC_WALK_PICK : undefined
+    const result = walkPick
+      ? { canceled: false, filePaths: [walkPick.split(path.delimiter)[purpose === 'scan' ? 1 : purpose === 'parent' ? 2 : 0] ?? walkPick] }
+      : await dialog.showOpenDialog({ properties: ['openDirectory', 'createDirectory'], message })
+    if (result.canceled || !result.filePaths[0]) return null
+    fileRoots.allow(result.filePaths[0], scopeOf(event))
+    return result.filePaths[0]
+  })
+  handle(IPC.startInspect, async (event, folder: string): Promise<Returns<FabricApi['start']['inspect']>> => {
+    const facts = await inspectFolder(fileRoots.resolve(folder, scopeOf(event)))
+    return (await withImported([facts]))[0]
+  })
+  handle(IPC.startScan, async (event, root: string): Promise<Returns<FabricApi['start']['scan']>> => {
+    const scope = scopeOf(event)
+    const resolved = fileRoots.resolve(root, scope)
+    scans.get(scope)?.abort()
+    const ctl = new AbortController()
+    scans.set(scope, ctl)
+    try {
+      const result = await scanFolder(resolved, { signal: ctl.signal })
+      const kept = keepScan(result)
+      const view: ScanView = { ...result, scannedAt: kept?.scannedAt ?? new Date().toISOString(), candidates: (await withImported(result.candidates)) as CandidateView[] }
+      ops.record({ op: 'start.scan', outcome: 'ok', detail: { visited: result.visited, candidates: result.candidates.length, truncated: result.truncated, cancelled: result.cancelled }, ctx: { correlationId: ops.correlate() } })
+      return view
+    } finally {
+      if (scans.get(scope) === ctl) scans.delete(scope)
+    }
+  })
+  handle(IPC.startCancelScan, async (event): Promise<Returns<FabricApi['start']['cancelScan']>> => {
+    scans.get(scopeOf(event))?.abort()
+  })
+  handle(IPC.startLastScan, async (event): Promise<Returns<FabricApi['start']['lastScan']>> => {
+    const kept = lastScan()
+    if (!kept) return null
+    // The kept list is re-marked against today's projects, and its root is granted again only
+    // because the operator chose it in the picker once; a candidate is reachable only through it.
+    fileRoots.allow(kept.root, scopeOf(event))
+    return { ...kept, candidates: (await withImported(kept.candidates)) as CandidateView[] }
+  })
+  handle(IPC.startCreateFolder, async (event, input): Promise<Returns<FabricApi['start']['createFolder']>> => {
+    const scope = scopeOf(event)
+    const result = createProjectFolder(input, (p) => fileRoots.resolve(p, scope))
+    if (result.ok) fileRoots.allow(result.path, scope)
+    else ops.record({ op: 'start.create-folder', outcome: 'failed', level: 'warn', detail: { refused: result.reason }, ctx: { correlationId: ops.correlate() } })
+    return result
+  })
+  handle(IPC.startExecutors, async (): Promise<Returns<FabricApi['start']['executors']>> =>
+    detectExecutors(
+      AGENTS.filter((a) => (a.id === 'claude-code' || a.id === 'codex') && a.program).map((a) => ({ id: a.id, label: a.label, program: a.program as string })),
+      { env: sessionEnvironment(process.env) }
+    )
+  )
+  // #endregion start-paths-ipc
   handle(IPC.personaRead, (): Returns<FabricApi['persona']['read']> => persona())
   handle(IPC.personaSave, (_e, next: unknown): Returns<FabricApi['persona']['save']> => savePersona(next))
   handle(

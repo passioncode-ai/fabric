@@ -1,0 +1,103 @@
+/* #region start-styles — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+   The first run and the start paths (ADR-0100). Tokens only: colour from --app-*, size from the
+   app's type and space ladders, so the screens answer the theme and the reader's text size like
+   every other launch surface. Layout follows launch.css (`.lp`); nothing here restyles it. */
+
+.st { max-width: 1080px; }
+.st h2 { font-size: var(--app-fs-title); letter-spacing: var(--app-track-title); margin: 0 0 var(--space-2); }
+
+/* ── the five paths ── */
+.st-cards { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-3); margin-bottom: var(--space-4); }
+.st-cards > li { display: flex; }
+.st-card {
+  width: 100%; font: inherit; color: var(--app-ink); text-align: left; cursor: pointer;
+  display: flex; flex-direction: column; gap: var(--space-2); min-height: 168px;
+  background: var(--app-panel); border: 1px solid var(--app-line); border-radius: var(--app-radius-panel);
+  padding: var(--space-4);
+}
+.st-card:hover { border-color: var(--app-line-strong); background: var(--app-panel-quiet); }
+.st-card:focus-visible { outline: 2px solid var(--app-focus); outline-offset: 2px; }
+.st-card b { font-size: var(--app-fs-body); }
+.st-card > span:not(.st-card-mark) { color: var(--app-muted); font-size: var(--app-fs-caption); line-height: var(--app-lh-body); flex: 1; }
+.st-card small { color: var(--app-muted); font-size: var(--app-fs-label); letter-spacing: var(--app-track-label); text-transform: uppercase; }
+.st-card.planned { border-style: dashed; }
+.st-card.planned b { color: var(--app-muted); }
+.st-card-mark {
+  display: grid; place-items: center; width: var(--space-6); height: var(--space-6);
+  border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-control);
+  background: var(--app-panel-quiet); font-size: var(--app-fs-body);
+}
+
+/* ── a step of a path ── */
+.st-step { max-width: 760px; }
+.st-step > p { margin: 0 0 var(--space-3); }
+.st-facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--space-2) var(--space-4); margin: var(--space-4) 0; font-size: var(--app-fs-caption); }
+.st-facts dt { color: var(--app-muted); }
+.st-facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.st code, .st-first code { font-family: var(--font-mono); font-size: var(--app-fs-mono); overflow-wrap: anywhere; }
+
+/* ── scan results ── */
+.st-summary { margin: 0; font-size: var(--app-fs-caption); color: var(--app-muted); overflow-wrap: anywhere; }
+.st-step .lp-panel-head .lp-button { white-space: nowrap; }
+.st .lp-meta, .st-first .lp-meta { margin: var(--space-2) 0 var(--space-3); }
+.st-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: var(--space-3) 0; }
+.st-toolbar .st-search { flex: 1; min-width: 200px; margin: 0; }
+.st-groups, .st-groups ul, .st-pick, .st-exec { list-style: none; margin: 0; padding: 0; }
+.st-group { border-top: 1px solid var(--app-line); padding: var(--space-2) 0; }
+.st-group-head { margin: var(--space-2) 0 var(--space-1); font-size: var(--app-fs-label); letter-spacing: var(--app-track-label); text-transform: uppercase; color: var(--app-muted); }
+.st-candidate label { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: var(--space-3); padding: var(--space-2) 0; cursor: pointer; }
+.st-candidate.imported label { cursor: default; }
+.st-candidate.imported .st-candidate-main b { color: var(--app-muted); }
+.st-candidate input[type='checkbox'] { margin-top: var(--space-1); accent-color: var(--app-accent); }
+.st-candidate-main { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.st-candidate-main small { color: var(--app-muted); font-size: var(--app-fs-caption); }
+.st-candidate-main code { color: var(--app-muted); }
+.st-candidate-end { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: var(--space-1); }
+.st-foot { margin-top: var(--space-3); }
+.st-empty { color: var(--app-muted); padding: var(--space-4) 0; }
+.st-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ── a new project ── */
+.st-choice { border: 0; padding: 0; margin: var(--space-3) 0; display: grid; gap: var(--space-2); }
+.st-choice legend { font-size: var(--app-fs-caption); margin-bottom: var(--space-2); }
+.st-choice label { display: flex; gap: var(--space-3); align-items: flex-start; border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-3); cursor: pointer; }
+.st-choice label:has(input:checked) { border-color: var(--app-line-strong); background: var(--app-panel-quiet); }
+.st-choice label span { display: flex; flex-direction: column; gap: var(--space-1); }
+.st-choice small { color: var(--app-muted); font-size: var(--app-fs-caption); }
+.st-folder { display: grid; gap: var(--space-2); margin-bottom: var(--space-3); }
+.st-folder-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); border: 1px dashed var(--app-line-strong); border-radius: var(--app-radius-control); padding: var(--space-3); min-width: 0; }
+.st-folder-row > span { min-width: 0; color: var(--app-muted); font-size: var(--app-fs-caption); }
+.st-problem { margin: 0; color: var(--app-ink); font-size: var(--app-fs-caption); }
+.st-check { display: flex; gap: var(--space-2); align-items: center; font-size: var(--app-fs-caption); }
+.st-pick { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+/* ── the convert plan ── */
+.st-steps { margin: var(--space-4) 0; padding-left: var(--space-5); display: grid; gap: var(--space-3); }
+.st-steps li { display: flex; flex-direction: column; gap: var(--space-1); }
+.st-steps span { color: var(--app-muted); font-size: var(--app-fs-caption); }
+
+/* ── the first run ── */
+.st-first { max-width: 960px; }
+.st-progress { list-style: none; display: flex; gap: var(--space-4); margin: 0 0 var(--space-5); padding: 0; font-size: var(--app-fs-caption); color: var(--app-muted); }
+.st-progress li { display: flex; align-items: center; gap: var(--space-2); }
+.st-progress li span { display: grid; place-items: center; width: var(--space-5); height: var(--space-5); border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-pill); font-size: var(--app-fs-label); }
+.st-progress li.current { color: var(--app-ink); font-weight: 600; }
+.st-progress li.current span { background: var(--app-ink); color: var(--app-bg); border-color: var(--app-ink); }
+.st-progress li.done span { background: var(--app-panel-quiet); }
+.st-first-step { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-5); align-items: start; }
+.st-first-step.wide { grid-template-columns: minmax(0, 1fr); }
+.st-first-stage { display: flex; flex-direction: column; gap: var(--space-3); padding-top: var(--space-2); }
+.st-first-stage p { color: var(--app-muted); line-height: var(--app-lh-body); margin: 0; }
+.st-first .lp-field small { color: var(--app-muted); font-size: var(--app-fs-caption); }
+.st-exec-row:first-child { border-top: 0; }
+.st-exec-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2) var(--space-3); align-items: center; border-top: 1px solid var(--app-line); padding: var(--space-3) 0; }
+.st-exec-row > div { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.st-exec-row small { color: var(--app-muted); font-size: var(--app-fs-caption); }
+.st-exec-row code { color: var(--app-muted); }
+.st-install { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); background: var(--app-panel-quiet); border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-2) var(--space-3); }
+.st-install code { flex: 1; color: var(--app-ink); }
+
+@media (max-width: 760px) {
+  .st-first-step { grid-template-columns: minmax(0, 1fr); }
+}
+/* #endregion start-styles */

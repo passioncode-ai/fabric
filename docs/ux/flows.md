@@ -2099,3 +2099,135 @@ flowchart TD
   |---|---|
   | SCR-64 CEO conversation | answered, no-memory, memory-unavailable |
   | SCR-34 Project memory | success |
+
+## Start paths · 2026-10-03 (ADR-0100)
+
+### FLW-69: First run
+- **Traces:** ST-001, ST-022; SCN-126 (JTBD-01)
+- **Goal:** Meet Fabric once and leave on a path.
+- **Entry points:** First launch of an empty estate; Help.
+- **Success exit:** the chosen start path, or home.
+- **Task analysis:** Name and look; check coding agents; choose where to start.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ A[Screen: SCR-70 step 1 Your Fabric] -->|Continue / Skip| B[SCR-70 step 2 Coding agents]
+ B -->|Continue| C[SCR-70 step 3 Where to start]
+ C -->|path| D[Start path SCR-71..75]
+ C -->|Later| H[Home]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-70 First run | first-visit, saving, not-saved, checking, found, unresponsive, missing, choose-path |
+
+### FLW-70: Add an existing project
+- **Traces:** ST-001, ST-031; SCN-127 (JTBD-01)
+- **Goal:** Turn one folder into a Project.
+- **Entry points:** Start menu; first run.
+- **Success exit:** the new project's page.
+- **Task analysis:** Choose; confirm what was found; add.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ A[Screen: SCR-71 Add a project] -->|Choose| P{Picker}
+ P -->|cancel| A
+ P -->|folder| R[Reading]
+ R --> F[Facts and name]
+ F -->|already in a project| O[Open that project]
+ F -->|Add| C[Project created] --> H[Project page]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-71 Add a project | idle, reading, ready, duplicate, not-git, creating, failed |
+
+### FLW-71: Scan a projects folder
+- **Traces:** ST-001, ST-031; SCN-128 (JTBD-01)
+- **Goal:** Bring many repositories in, each as its own Project.
+- **Entry points:** Start menu; first run; the pending-candidates note.
+- **Success exit:** projects created for the ticked rows.
+- **Task analysis:** Choose a parent; review the checklist; tick; add.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ A[Screen: SCR-72 Scan] -->|Choose| S[Scanning]
+ S -->|Stop| A
+ S --> L[Checklist grouped by product]
+ L -->|tick and Add| I[Importing row by row]
+ I --> D[Summary: added / not added]
+ D -->|retry ticked| I
+ D -->|Open the first| H[Project page]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-72 Scan a projects folder | idle, scanning, results, empty, truncated, importing, imported, failed |
+
+### FLW-72: Create a new project
+- **Traces:** ST-001; SCN-129 (JTBD-01)
+- **Goal:** Start a project from nothing.
+- **Entry points:** Start menu; first run.
+- **Success exit:** the new project's page.
+- **Task analysis:** Name; purpose; where it lives; create.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ A[Screen: SCR-73 New project] -->|folder| L[Choose location]
+ A -->|idea| C[Create]
+ L --> C
+ C -->|folder refused| A
+ C --> H[Project page]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-73 New project | idle, invalid-name, no-parent, creating, exists, outside, failed |
+
+### FLW-73: Start a new agent
+- **Traces:** ST-050; SCN-130 (JTBD-05)
+- **Goal:** Reach the agent form of the right project.
+- **Entry points:** Start menu; first run.
+- **Success exit:** the project's team section.
+- **Task analysis:** Choose the project.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ A[Screen: SCR-74 New agent] -->|project| T[Project team, agent form]
+ A -->|no project| P[Add a project / New project]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-74 New agent | loading, no-project, choose-project |
+
+### FLW-74: Convert an agent (planned)
+- **Traces:** ST-050; SCN-131 (JTBD-05)
+- **Goal:** Make an outside agent a Fabric agent, with a plan and a probe.
+- **Entry points:** Start menu.
+- **Success exit:** a registry entry with a green probe receipt.
+- **Task analysis:** Choose folder; review plan; adapter on a branch; probe.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ A[Screen: SCR-75 Convert] -->|today| M[Planned: manual route]
+ A -.->|AR-7 / AR-11| P[Dry-run plan] -.-> B[Adapter on a branch] -.-> Q{Conformance probe}
+ Q -.->|green| R[Registry]
+ Q -.->|red| F[Findings; branch kept]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-75 Convert an agent | planned |

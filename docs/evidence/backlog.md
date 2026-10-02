@@ -41,6 +41,37 @@ schedule.
 | S5 | trend researcher + publisher (draft → per-post grant) | M21 (partial: research + publish path; Postiz not adopted here) | open |
 | S6 | support/feedback + custdev agents | M27 (first shape), channels per CO-085 | open |
 
+<a id="general-development-plan"></a>
+## General development plan
+
+**One page of direction for everyone working here** ([ADR-0101](../adr/0101-the-general-development-plan.md),
+2026-10-03). Read the [vision](../ux/vision.md), then this plan, then the
+[build order](#build-order-by-layer) that schedules the work inside each lane. The plan orders
+**lanes** — stages of the product — and names the work by id; it holds no status of its own except
+its `P-*` rows below. A row's status lives in its register. `scripts/check-plan-ids.mjs` fails on an
+id no document defines. Change the plan under the agent-sync lease, in the same change as the work
+that moves it, with a living-map entry; reversing a recorded decision is a new ADR.
+
+<!-- general-plan:begin -->
+| Lane | Outcome | Entry rule | Delivers |
+|---|---|---|---|
+| 1 · Start | A person installs Fabric, names it, sees which coding agents it can run, and brings a project — one folder, a scanned folder, or a new one ([ADR-0100](../adr/0100-first-run-and-start-paths.md)) | none — it is the door | P-01, P-04 |
+| 2 · Release gate | Every release ships after three independent verification iterations across scenario, UI, UX, errors, code↔docs, data, memory, orchestration and harness, with every finding fixed or ruled by id | lane 1's code is on `main` | P-02, P-03 |
+| 3 · Real providers | The first slice runs on the real Claude Code and Codex CLIs, with accounts and continuity measured, not assumed | lane 2 done for the current release | N1, M199 |
+| 4 · Agents | One registry of coding agents, your agents and Fabric agents; an agent built elsewhere converts with a plan, a branch and a conformance probe | N1 accepted | AR-1, AR-2, AR-7, AR-11 |
+| 5 · Launch fit | The launch surfaces read their sources correctly and the board keeps its place | in parallel with lanes 3–4 where files do not overlap | AD00, AD01, OX-01, D01, L3c |
+| 6 · The manager loop | Retrospectives and the manager close the observe-to-verify loop on real runs | AR-2 done | M153, M158, M157, M184, M166, M167, M169, M171, M194, M175 |
+| 7 · Reach | Connectors, research and support slices, and the remaining integration milestones | lane 6 producing receipts | S4, S5, S6, M98, M105, M187, S11 |
+| 8 · V1 operator plan | The V1 milestones close in their own table's order | each row's own dependencies | V1-M1, V1-M2, V1-M3, V1-M4, V1-M5, V1-M6, V1-M7 |
+
+| ID | Plan item | Status | Source |
+|---|---|---|---|
+| P-01 | First run and start paths: name and look, executor detection, add a project, scan a projects folder (checklist), new project, the agent entry, the planned conversion screen, the Fabric app icon | built 2026-10-03; acceptance by P-02 | [run brief](plans/2026-10-03-onboarding-and-plan.md) |
+| P-02 | Three independent verification iterations before release, every finding fixed or ruled by id | open | [run brief](plans/2026-10-03-onboarding-and-plan.md#req-table) |
+| P-03 | Fabric 0.3.0: notarized DMG from the final `main`, installed and walked on this Mac, published on passioncode.ai | open; blocked by P-02 | [run brief](plans/2026-10-03-onboarding-and-plan.md#req-table) |
+| P-04 | The provider-capability pin re-pins version-only rows by command and refuses to carry a verdict (`scripts/repin-provider-builds.mjs`) | done 2026-10-03 | [run brief](plans/2026-10-03-onboarding-and-plan.md#req-table) |
+<!-- general-plan:end -->
+
 <a id="build-order-by-layer"></a>
 ## Build order by layer — reviewed 2026-09-07
 

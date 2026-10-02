@@ -82,6 +82,10 @@ export type AppRoute =
   | { kind: 'quota' }
   /** The first useful result on one project (the launch guide). */
   | { kind: 'guide'; projectId: string }
+  /** ADR-0100 · SCR-70. The first run: name and look, coding agents, where to start. */
+  | { kind: 'welcome' }
+  /** ADR-0100 · SCR-71…75. Where a project or an agent comes from; `path` is one of the start paths. */
+  | { kind: 'start'; path: 'menu' | 'add' | 'scan' | 'new' | 'agent' | 'convert' }
 
 /**
  * What the screen on show must reveal — DERIVED from the route by `revealAt`,

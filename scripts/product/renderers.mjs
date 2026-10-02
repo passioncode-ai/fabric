@@ -399,6 +399,47 @@ answer.commit → decision + delivery obligation
     +panel('Предложение · заменить шаг «разбор CSV» скриптом',row('Основание','9 прогонов с одинаковой формой данных',badge('Доказательства'))+row('Ожидаемая экономия','≈ 6 000 токенов на прогон',badge('Экономия'))+row('Изменение','новый инструмент csv.to_rows с тестом + версия 4 пайплайна',badge('Черновик')))
     +note('Ничего не меняется до вашего решения','Отклонённый паттерн не предлагается снова без новых данных.',action('Принять','accept',true))
   }
+  case 'first-run': {
+   // SCR-70 · SCN-126 (ADR-0100): name and look → coding agents → where to start; each step skippable.
+   return title('Здравствуйте. Я Atlas.','Fabric ведёт ваши проекты вместе с агентами, которыми вы уже пользуетесь. Имя и облик меняют только то, как он выглядит.',link('Позже — на главную','r0-home'),'Знакомство · шаг 1 из 3')
+    +panel('Ваш Fabric',field('Имя','name','Atlas','Оставьте пустым — будет «Fabric».')+row('Характер','орбита · искра · волна',badge('Выбрано: орбита'))+row('Вариант','3 варианта · «Ещё варианты»',badge('2')),action('Дальше','next',true))
+    +panel('Шаг 2 · Исполнители',row('Claude Code','Установлен · версия 2.1.288 · /opt/homebrew/bin/claude',badge('готов'))+row('Codex','Не установлен · npm install -g @openai/codex',badge('не установлен','attention')),action('Проверить снова','recheck'))
+    +panel('Шаг 3 · С чего Atlas начнёт?',row('Добавить проект','Одна папка','', 'start-add')+row('Сканировать папку проектов','Сразу несколько','', 'start-scan')+row('Новый проект','С нуля','', 'start-new')+row('Новый агент','В проекте','', 'start-agent')+row('Конвертировать агента','Запланировано','', 'start-convert'))
+  }
+  case 'start-add': {
+   // SCR-71 · SCN-127: one folder, its facts, a confirmed name; nothing in the folder changes.
+   return title('Добавить проект','Выберите папку. Fabric прочитает её, покажет, что нашёл, и создаст проект только после подтверждения.',link('Назад','first-run'))
+    +panel('~/DATA/billing-service',field('Название проекта','name','billing-service')+row('Git','репозиторий · main','')+row('Удалённый репозиторий','git@github.com:example/billing.git','')+row('Последний коммит','1 окт. 2026 · fix: retry webhooks','')+row('Стек','Node.js',''),action('Добавить проект','create',true)+action('Выбрать другую папку','choose'))
+    +note('Эта папка уже в проекте Billing','Fabric не создаёт второй проект для той же папки.',link('Открыть этот проект','r0-project'))
+  }
+  case 'start-scan': {
+   // SCR-72 · SCN-128: a checklist; each ticked repository becomes its own Project; nothing without a tick.
+   return title('Сканировать папку проектов','Каждый отмеченный репозиторий станет отдельным проектом. Сканирование только читает.',link('Сканировать снова','start-scan'))
+    +panel('Репозиториев: 4, групп: 3 — в ~/DATA · просмотрено 3 окт.',
+      row('☑ alpha','1 окт. 2026 · first · Node.js',badge('отмечен'))
+     +row('  └ worktree alpha-fix','группа alpha · ветка fix',badge('часть alpha'))
+     +row('☐ beta','28 сент. 2026 · Python',badge('В проекте Bee'),'r0-project')
+     +row('☑ gamma','коммитов пока нет',badge('отмечен')),
+      action('Добавить как проекты: 2','import',true))
+    +note('Сканирование остановилось после 5000 папок','Ниже не вся папка — выберите папку поуже.','', 'warning')
+  }
+  case 'start-new': {
+   // SCR-73 · SCN-129: a new folder (optionally git) or only an idea.
+   return title('Новый проект','Название, зачем он нужен и где живёт.',link('Назад','first-run'))
+    +panel('Проект',field('Название проекта','name','billing-service')+field('Зачем он нужен (необязательно)','purpose','Принимать платежи и выставлять счета')+row('Где он живёт','В новой папке · ~/DATA/billing-service',badge('git init'))+row('или','Пока только идея — без папки',''),action('Создать проект','create',true))
+    +note('Папка с таким названием уже есть','Проект не создан. Выберите другое название или место.')
+  }
+  case 'start-agent': {
+   // SCR-74 · SCN-130: an agent belongs to a project; the path opens that project's team.
+   return title('Новый агент','Агент принадлежит проекту: работает с его исходниками и в его полномочиях.',link('Назад','first-run'))
+    +panel('Для какого проекта?',row('billing-service','команда проекта → форма агента','', 'agents')+row('site','команда проекта → форма агента','', 'agents'))
+  }
+  case 'start-convert': {
+   // SCR-75 · SCN-131: designed, not built (AR-7/AR-11); no action pretends to run.
+   return title('Конвертировать агента','Для агента, созданного вне Fabric. Путь спроектирован, но ещё не сделан.',link('Назад','first-run'))
+    +panel('Как это будет работать',row('1. Выберите папку агента','Fabric читает её и только её',badge('Запланировано'))+row('2. Проверьте план','манифест, MCP-вход, каждый изменяемый файл','')+row('3. Ваш агент пишет адаптер','на отдельной ветке, скилами Fabric Agent Adapter','')+row('4. Решает проба совместимости','в реестр — только при зелёном',''))
+    +note('Сейчас','Установите скилы: npx @passioncode-ai/passioncode@latest update — и попросите своего агента адаптировать проект.')
+  }
   default:
    throw new Error('Missing visual renderer: '+view)
  }

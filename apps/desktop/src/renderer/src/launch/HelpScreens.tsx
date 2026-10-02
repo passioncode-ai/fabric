@@ -15,7 +15,7 @@ export function HelpScreen({ projects, onChat, onGuide, onBack, onGo }: {
   onGuide: (projectId: string) => void
   onBack: () => void
   /** The screens «Все управленческие возможности» names. */
-  onGo: (to: 'board' | 'plan' | 'pulse' | 'persona') => void
+  onGo: (to: 'board' | 'plan' | 'pulse' | 'persona' | 'welcome') => void
 }): React.JSX.Element {
   const t = useT()
   const first = (projects ?? []).find((p) => p.status !== 'archived') ?? null
@@ -62,7 +62,7 @@ export function HelpScreen({ projects, onChat, onGuide, onBack, onGo }: {
       <details className="lp-panel">
         <summary>{t('launch.help.all')}</summary>
         <div className="lp-actions">
-          {(['board', 'plan', 'pulse', 'persona'] as const).map((to) => (
+          {(['board', 'plan', 'pulse', 'persona', 'welcome'] as const).map((to) => (
             <button key={to} type="button" className="lp-button" onClick={() => onGo(to)}>{t(`launch.help.go.${to}` as 'launch.help.go.board')}</button>
           ))}
         </div>

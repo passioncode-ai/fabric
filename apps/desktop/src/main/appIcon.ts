@@ -28,7 +28,7 @@ const CANDIDATES = (): string[] =>
         path.join(import.meta.dirname, '../../build/icon.png'),
         path.join(
           import.meta.dirname,
-          '../../../../assets/brand/brand-pack/png/transparent/passioncode-icon-1024.png'
+          '../../../../assets/brand/app-icon/fabric-icon-1024.png'
         )
       ]
 

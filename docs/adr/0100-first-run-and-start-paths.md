@@ -1,0 +1,71 @@
+# ADR-0100 — The first run and the start paths
+
+**Status:** accepted; implemented for the first run, adding a project, scanning a projects folder,
+creating a project and the entry to a new agent; converting an agent is designed, not built.
+**Date:** 2026-10-03. **Decided by:** the operator, in the grill of run
+`2026-10-03-onboarding-and-plan` ([brief](../evidence/plans/2026-10-03-onboarding-and-plan.md),
+decisions D1–D5). **Amends:** SCN-095 step 4 and ONB-01 of `docs/launch/ceo-onboarding.md` (scan
+semantics); `docs/launch/single-entry.md` and FLW-55's "no personalisation form" (first run);
+SCN-015's recipe model as the default for converting an agent.
+
+## Context
+
+The six ways a person starts with Fabric were specified three times over and built once. The code
+created a project from one form (`Onboarding.tsx#save` → `IPC.projectsCreate`) and an agent from a
+prompt (`IPC.agentsCreate`); there was no first run, no folder scan and no conversion. The UX layer
+contradicted itself: SCN-095 made every repository in a parent folder ONE Project, ONB-01 said a scan
+creates no Project at all, `single-entry.md` forbade a personalisation step that FLW-55 still drew,
+and converting an agent had two incompatible models (SCN-015 copy a recipe out; SCN-122 Fabric drives
+it). The operator settled each one.
+
+## Decision
+
+1. **The first run** (SCN-126, SCR-70) is three steps, each skippable: *your Fabric* — a name and a
+   look (persona: name, character, variant), which changes how Fabric looks and never what it may
+   do; *coding agents* — Claude Code and Codex detected on PATH by `--version` (found, needs setup,
+   missing, with the vendor's install command); *where to start* — the start paths. It is shown once,
+   to an estate with no project, and only after the project list is known; finishing or skipping
+   stamps `settings.firstRun.completedAt`. Help reopens it. An installation with projects is never
+   walked back through it.
+2. **Adding a project** (SCN-127, SCR-71): one folder from the native picker → a read-only preview
+   (git kind, branch, remote, last commit, stack, and the projects that already hold it) → the
+   operator confirms a name → `projects.create` with the folder attached. A folder already in a
+   project offers that project instead of a duplicate. A plain folder may be added and says what
+   Fabric will not see.
+3. **Scanning a projects folder** (SCN-128, SCR-72) is a CHECKLIST. A bounded, cancellable,
+   read-only walk lists every repository under the chosen folder; worktrees are grouped under their
+   repository and nested repositories under the enclosing one; **each ticked repository becomes its
+   own Project**; nothing is created without a tick; already-imported repositories are marked and
+   cannot be ticked; unticked ones stay in the last scan and can be imported later. Dependency trees,
+   build output, hidden folders and symlinks out of the chosen folder are never entered. A walk
+   stopped by its bound says so.
+4. **Creating a project** (SCN-129, SCR-73): a name, an optional purpose, and a home — a new folder
+   under a chosen parent (optionally `git init`) or only an idea with no folder yet.
+5. **A new agent** (SCN-130, SCR-74) belongs to a project: the path chooses the project and opens
+   its team, where the existing agent form (`ProjectHome.tsx#CreatedAgents`) lives.
+6. **Converting an agent** (SCN-131, SCR-75) happens inside Fabric with a plan: choose the agent's
+   folder → a dry run lists the manifest, the MCP entry and every file that would change → the
+   operator's coding agent writes the adapter on its own branch with the Fabric Agent Adapter skills
+   → the conformance probe decides, and only a passing agent enters the registry. Until AR-7/AR-11
+   build it, the start menu shows this path as **planned**, explains it, and gives today's manual
+   route; it offers no action that pretends to run.
+7. **The boundary.** Every folder these paths read is one the operator chose in this window's
+   picker (`fileRoots`, S02.roots); the main process refuses anything else as outside. A new
+   project's folder is created only under such a parent.
+
+## Consequences
+
+- `shared/startPaths.ts` is the one definition of the shapes; `main/projectDiscovery.ts`,
+  `main/executorDetect.ts` and `main/startPaths.ts` produce them; the renderer is
+  `renderer/src/start/`. Each carries a `#region … docs:` marker pointing here.
+- The scan is asynchronous I/O in the main process, so a large folder never freezes the windows.
+- SCN-095 step 4 carries an amendment note pointing here in the same change. ONB-01
+  (`docs/launch/ceo-onboarding.md`) and `docs/launch/single-entry.md` are dated records and keep their
+  wording; this record supersedes them where they differ. SCN-015 remains as the documented manual
+  fallback, not the default.
+- Sidebar *New project* and the estate home's empty state open the start menu. Its *New project*
+  path is the draft-backed form (`Onboarding.tsx`), so a half-described project still survives a
+  restart (AD02); the form gained *Create a new folder for it* (`#region new-project-folder`).
+- Not built here, and owned by the plan ([ADR-0101](0101-the-general-development-plan.md)):
+  conversion (AR-7, AR-11), the three-group agent registry (AR-2), sign-in verification of a
+  detected executor, and re-scanning on a schedule.

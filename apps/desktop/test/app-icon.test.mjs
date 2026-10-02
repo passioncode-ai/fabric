@@ -14,7 +14,7 @@ import path from 'node:path'
 
 const APP = path.resolve(import.meta.dirname, '..')
 const ROOT = path.resolve(APP, '../..')
-const EXPORT_PATH = 'png/transparent/passioncode-icon-1024.png'
+const EXPORT_PATH = 'fabric-icon-1024.png'
 
 let failed = 0
 const check = (ok, message) => {
@@ -24,7 +24,7 @@ const check = (ok, message) => {
 }
 
 // 1. the generated asset is the one the manifest recorded
-const manifestPath = path.join(ROOT, 'assets/brand/brand-pack/manifest.json')
+const manifestPath = path.join(ROOT, 'assets/brand/app-icon/manifest.json')
 check(existsSync(manifestPath), 'no brand manifest — the pack was never generated')
 if (existsSync(manifestPath)) {
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
@@ -59,12 +59,12 @@ for (const script of ['dev', 'package'])
 //    computed from the wrong one resolves to nothing and warns forever.
 const OUT_MAIN = path.join(APP, 'out/main')
 const source = readFileSync(path.join(APP, 'src/main/appIcon.ts'), 'utf8')
-const relatives = [...source.matchAll(/'(\.\.\/[^']*(?:icon\.png|passioncode-icon-1024\.png))'/g)].map(
+const relatives = [...source.matchAll(/'(\.\.\/[^']*(?:icon\.png|fabric-icon-1024\.png))'/g)].map(
   (m) => m[1]
 )
 check(relatives.length === 2, `expected two dev candidates in appIcon.ts, found ${relatives.length}`)
 const staged = relatives.find((r) => r.endsWith('build/icon.png'))
-const packAsset = relatives.find((r) => r.endsWith('passioncode-icon-1024.png'))
+const packAsset = relatives.find((r) => r.endsWith('fabric-icon-1024.png'))
 check(
   staged !== undefined && path.resolve(OUT_MAIN, staged) === path.join(APP, 'build/icon.png'),
   `the staged-icon candidate does not resolve to apps/desktop/build/icon.png from out/main`
@@ -72,7 +72,7 @@ check(
 check(
   packAsset !== undefined &&
     path.resolve(OUT_MAIN, packAsset) ===
-      path.join(ROOT, 'assets/brand/brand-pack', EXPORT_PATH),
+      path.join(ROOT, 'assets/brand/app-icon', EXPORT_PATH),
   'the brand-pack fallback does not resolve to the generated export from out/main'
 )
 

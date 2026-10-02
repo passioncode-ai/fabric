@@ -38,6 +38,9 @@ import { I18nProvider, useT, type Locale } from './i18n'
 import { LaunchShell, PROJECT_SECTION_ANCHOR, type ProjectSection } from './launch/LaunchShell'
 import './launch/launch.css'
 import { Onboarding } from './Onboarding'
+import { FirstRun, firstRunDue } from './start/FirstRun'
+import { StartScreen } from './start/StartPaths'
+import './start/start.css'
 import { BootFailure, OperatorError } from './OperatorError'
 import { ProjectHome } from './ProjectHome'
 import { SessionWindow } from './SessionWindow'
@@ -381,6 +384,18 @@ function Shell({
   // branch away. A window that cannot say what it is must still be able to say
   // that, which is why this branch renders rather than returning a bare div.
 
+  // ADR-0100: the first run is shown ONCE, to an estate with no project, and only after both the
+  // settings and the project list are known — an unknown list is not an empty one.
+  const firstRunOffered = useRef(false)
+  useEffect(() => {
+    if (firstRunOffered.current || projects === null) return
+    firstRunOffered.current = true
+    if (firstRunDue(settings.firstRun?.completedAt, projects)) goTo({ kind: 'welcome' })
+  }, [projects, settings.firstRun?.completedAt])
+
+  /** Help's "go" links: the named place, the first run included (ADR-0100). */
+  const goFromHelp = (to: 'board' | 'plan' | 'pulse' | 'persona' | 'welcome'): void => setActive({ kind: to })
+
   const openProject = (id: string): void => {
     setTabs((old) =>
       old.some((x) => x.kind === 'project' && x.projectId === id)
@@ -576,7 +591,7 @@ function Shell({
         onHome={() => { setShowSettings(false); setActive({ kind: 'home' }); setWorkspaceFor(null) }}
         onBoard={() => { setShowSettings(false); setActive({ kind: 'board' }) }}
         onPlan={() => { setShowSettings(false); setActive({ kind: 'plan' }) }}
-        onNewProject={() => { setShowSettings(false); newDraft() }}
+        onNewProject={() => { setShowSettings(false); goTo({ kind: 'start', path: 'menu' }) }}
         onProject={(projectId: string, section: ProjectSection) => {
           setShowSettings(false)
           openProject(projectId)
@@ -654,7 +669,34 @@ function Shell({
             onChat={(suggestion) => openChat(suggestion ?? null)}
             onGuide={(projectId) => setActive({ kind: 'guide', projectId })}
             onBack={() => setActive({ kind: 'home' })}
-            onGo={(to) => setActive({ kind: to })}
+            onGo={goFromHelp}
+          />
+        )}
+        {active.kind === 'welcome' && (
+          <FirstRun
+            onFinish={async (next) => {
+              // Finishing or skipping is the same act: the first run is not shown again, and Help reopens it.
+              const written = await window.fabric.settings.write({ firstRun: { completedAt: new Date().toISOString() } })
+              onSettings(written.settings)
+              if (!written.saved) setError(t('settings.notSaved', { reason: written.reason ?? '' }))
+              if (next === 'new') newDraft()
+              else goTo(next === 'home' ? { kind: 'home' } : { kind: 'start', path: next })
+            }}
+          />
+        )}
+        {active.kind === 'start' && (
+          <StartScreen
+            path={active.path}
+            projects={projects}
+            onPath={(path) => (path === 'new' ? newDraft() : goTo({ kind: 'start', path }))}
+            onCreated={async (projectId) => { await refreshProjects(); openProject(projectId) }}
+            onOpenProject={(projectId, section) => {
+              openProject(projectId)
+              const anchor = section ? PROJECT_SECTION_ANCHOR[section] : null
+              if (anchor) setTimeout(() => document.getElementById(anchor)?.scrollIntoView({ block: 'start' }), 60)
+            }}
+            onHome={() => goTo({ kind: 'home' })}
+            onProjectsChanged={() => void refreshProjects()}
           />
         )}
         {active.kind === 'guide' && (projects ?? []).some((p) => p.id === active.projectId) && (
@@ -735,7 +777,7 @@ function Shell({
               if (!written.saved) setError(t('settings.notSaved', { reason: written.reason ?? '' }))
             }}
             onOpen={openProject}
-            onNew={newDraft}
+            onNew={() => goTo({ kind: 'start', path: 'menu' })}
             onBoard={() => setActive({ kind: 'board' })}
             onPulse={() => setActive({ kind: 'pulse' })}
             onPersona={() => setActive({ kind: 'persona' })}
@@ -883,7 +925,7 @@ function SettingsBar({
 
 /** The route as a tab, where it is one. The agents view and the board are not. */
 function tabOf(route: AppRoute): Tab | null {
-  return route.kind === 'agents' || route.kind === 'board' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'quota' ? null : route
+  return route.kind === 'agents' || route.kind === 'board' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'quota' || route.kind === 'welcome' || route.kind === 'start' ? null : route
 }
 
 function keyOf(tab: Tab): string {

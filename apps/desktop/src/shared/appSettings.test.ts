@@ -11,7 +11,8 @@ describe('validateSettings', () => {
       tabs: { tabs: [{ kind: 'project', id: 'a' }, { kind: 'draft', id: 'd1' }], active: { kind: 'draft', id: 'd1' } },
       // A saved read position must survive validation unchanged, or marking
       // things read would not outlive a restart (AX-07).
-      readThroughSeq: 42
+      readThroughSeq: 42,
+      firstRun: { completedAt: '2026-10-03T10:00:00.000Z' }
     }
     expect(validateSettings(file)).toEqual(file)
   })
@@ -103,5 +104,12 @@ describe('a read position is normalised on the way in', () => {
   it('but keeps a real one', () => {
     expect(validateSettings({ readThroughSeq: 7 })?.readThroughSeq).toBe(7)
     expect(validateSettings({ readThroughSeq: 0 })?.readThroughSeq).toBe(0)
+  })
+
+  it('keeps a first-run completion stamp and reads anything else as not finished (ADR-0100)', () => {
+    expect(validateSettings({ firstRun: { completedAt: '2026-10-03T10:00:00.000Z' } })?.firstRun.completedAt).toBe('2026-10-03T10:00:00.000Z')
+    for (const bad of [undefined, null, 'yes', { completedAt: 42 }, { completedAt: 'not a date' }, []]) {
+      expect(validateSettings({ firstRun: bad })?.firstRun.completedAt, String(JSON.stringify(bad))).toBeNull()
+    }
   })
 })

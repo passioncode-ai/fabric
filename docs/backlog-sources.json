@@ -478,6 +478,15 @@
       "idColumn": "Task",
       "titleColumn": "Does",
       "statusColumn": "Status"
+    },
+    {
+      "path": "docs/evidence/backlog.md",
+      "goal": "agent-workplace",
+      "kind": "tasks",
+      "format": "table",
+      "idColumn": "ID",
+      "titleColumn": "Plan item",
+      "statusColumn": "Status"
     }
   ]
 }

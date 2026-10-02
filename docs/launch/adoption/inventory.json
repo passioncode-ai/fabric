@@ -2,8 +2,8 @@
   "baseline": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
   "method": "Read-only static source audit. No browser or runtime acceptance. Explicit canonical Scenarios fields parsed only within own heading, not contaminated model unions. Existing model status is descriptive historical evidence; source line receipts identify baseline. Proposed introduction stages are design recommendations, not measured conversion. Root synthesis aligns proposed introduction stages with journey.json S0–S6; raw batch proposal remains in audit/2026-09-17-inventory.md. R0 target routes appended 2026-09-25; old pinned evidence retained, new canonical links explicitly target current documents.",
   "counts": {
-    "views": 104,
-    "families": 20,
+    "views": 110,
+    "families": 21,
     "each_view_exactly_once": true
   },
   "families": [
@@ -4820,6 +4820,174 @@
           "scenario_verdicts": [
             {
               "id": "SCN-095",
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Начало: знакомство и стартовые пути",
+      "views": [
+        {
+          "view": "first-run",
+          "route": "docs/reports/product.html#view-first-run",
+          "title": "Знакомство",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-70",
+              "source": "docs/ux/screens.md:1656",
+              "explicit_scenarios": [
+                "SCN-126"
+              ],
+              "runtime_description": "ADR-0100: live app renderer/src/start/; the prototype view is the target design.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-126",
+              "line": 3075,
+              "status": "draft",
+              "coverage": "apps/desktop/src/renderer/src/start/FirstRun.tsx; apps/desktop/src/renderer/src/start/StartPaths.test.tsx",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "start-add",
+          "route": "docs/reports/product.html#view-start-add",
+          "title": "Добавить проект",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-71",
+              "source": "docs/ux/screens.md:1675",
+              "explicit_scenarios": [
+                "SCN-127"
+              ],
+              "runtime_description": "ADR-0100: live app renderer/src/start/; the prototype view is the target design.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-127",
+              "line": 3096,
+              "status": "draft",
+              "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/test/project-discovery.test.mjs",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "start-scan",
+          "route": "docs/reports/product.html#view-start-scan",
+          "title": "Сканировать папку проектов",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-72",
+              "source": "docs/ux/screens.md:1693",
+              "explicit_scenarios": [
+                "SCN-128"
+              ],
+              "runtime_description": "ADR-0100: live app renderer/src/start/; the prototype view is the target design.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-128",
+              "line": 3117,
+              "status": "draft",
+              "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/src/main/startPaths.ts",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "start-new",
+          "route": "docs/reports/product.html#view-start-new",
+          "title": "Новый проект",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-73",
+              "source": "docs/ux/screens.md:1711",
+              "explicit_scenarios": [
+                "SCN-129"
+              ],
+              "runtime_description": "ADR-0100: live app renderer/src/start/; the prototype view is the target design.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-129",
+              "line": 3139,
+              "status": "draft",
+              "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/startPaths.ts",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "start-agent",
+          "route": "docs/reports/product.html#view-start-agent",
+          "title": "Новый агент",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-74",
+              "source": "docs/ux/screens.md:1729",
+              "explicit_scenarios": [
+                "SCN-130"
+              ],
+              "runtime_description": "ADR-0100: live app renderer/src/start/; the prototype view is the target design.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-130",
+              "line": 3160,
+              "status": "draft",
+              "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "start-convert",
+          "route": "docs/reports/product.html#view-start-convert",
+          "title": "Конвертировать агента",
+          "catalogue_horizon": "next",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-75",
+              "source": "docs/ux/screens.md:1744",
+              "explicit_scenarios": [
+                "SCN-131"
+              ],
+              "runtime_description": "ADR-0100: live app renderer/src/start/; the prototype view is the target design.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-131",
+              "line": 3180,
               "status": "draft",
               "coverage": "none yet",
               "product": "unobserved"

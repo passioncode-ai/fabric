@@ -83,6 +83,12 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-67 | Run trace | FLW-65 | none — text spec | designed | none yet |
 | SCR-68 | Fabric tools | FLW-66 | none — text spec | designed | none yet |
 | SCR-69 | Optimizer proposals | FLW-66 | none — text spec | designed | none yet |
+| SCR-70 | First run | FLW-69 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
+| SCR-71 | Add a project | FLW-70 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
+| SCR-72 | Scan a projects folder | FLW-71 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
+| SCR-73 | New project | FLW-72 | none — text spec | built | apps/desktop/src/renderer/src/Onboarding.tsx |
+| SCR-74 | New agent | FLW-73 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
+| SCR-75 | Convert an agent | FLW-74 | none — text spec | built | apps/desktop/src/renderer/src/start/StartPaths.tsx |
 
 ## Design system
 
@@ -1644,3 +1650,106 @@ results always pair text with an icon — colour is never the only signal.
 - **SCR-15 / SCR-16 run agent production inside Fabric.** SCR-15 shows the production project started from the conversation or from SCR-05 (intake, producing, blocked); SCR-16 shows probe and admission results for first use in a project (SCN-106) and for produced agents (SCN-121…SCN-123).
 - **SCR-22 lists routed calls and refusals** for agents reaching Fabric over MCP (SCN-109).
 - **SCR-49 (Маршрут работы) is the pipeline screen of this design** — not a new screen. Refined: stages bind a capability and show the resolved agent; a graph view with named payloads on edges, checker and interaction-point markers; check results per edge (compatibility, checker before effect, no cycle) with Fabric's proposed fix; scope project / global with a used-by list; micro-controls (inline rename, drag within a lane, stage toggle, pin preferred agent); everything else is asked of the floating Fabric. New states: **proposed**, **checking**, **blocked**, **approved**, **versioned**. Scenarios SCN-110…SCN-114 beside SCN-068.
+
+## Start paths · 2026-10-03 (ADR-0100)
+
+### SCR-70: First run
+- **Used by:** FLW-69
+- **Purpose:** Meet Fabric once: name and look, the coding agents on this Mac, where to start.
+- **Elements:** three-step progress; name, character, variants; executor rows (state, version, path, install command, Copy, Check again); the five path cards; Back, Skip, Later.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | first-visit | empty estate, first run not finished | none | step 1 with defaults |
+  | not-saved | look save refused | none | reason and Continue without saving |
+  | checking | detection running | none | busy line |
+  | found | agent answered --version | none | ready pill and version |
+  | unresponsive | on PATH, no answer | none | needs-setup pill and install command |
+  | missing | not on PATH | none | not-installed pill and install command |
+  | choose-path | step 3 | none | five cards |
+- **Coverage:** apps/desktop/src/renderer/src/start/FirstRun.tsx
+- **Scenarios:** SCN-126
+- **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
+- **Implementation tasks:** P-01
+
+### SCR-71: Add a project
+- **Used by:** FLW-70
+- **Purpose:** Turn one chosen folder into a Project after confirming what Fabric found.
+- **Elements:** Choose a folder; facts (path, git kind, branch, remote, last commit, stack); name; already-in notice; not-git notice; Add project; Choose another folder.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | idle | path opened | none | choose prompt |
+  | reading | folder chosen | none | busy line with the folder |
+  | ready | facts read | none | name and facts |
+  | duplicate | folder already in a project | none | notice with Open that project |
+  | not-git | plain folder | none | notice of what Fabric will not see |
+  | failed | create or read failed | none | reason; the same create on retry |
+- **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx
+- **Scenarios:** SCN-127
+- **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
+- **Implementation tasks:** P-02
+
+### SCR-72: Scan a projects folder
+- **Used by:** FLW-71
+- **Purpose:** List every repository in a chosen folder and create one Project per ticked row.
+- **Elements:** Choose a folder to scan; Stop; summary; truncation notice; filter; Tick all shown; Clear; grouped candidate rows; Add N as projects; per-row result.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | scanning | walk running | none | busy line and Stop |
+  | results | walk finished | none | grouped checklist |
+  | empty | no repositories | none | says none were found |
+  | truncated | walk stopped by its bound | none | says the list is not the whole folder |
+  | importing | Add pressed | none | progress N of M |
+  | imported | all rows tried | none | summary; failed rows stay ticked |
+- **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx
+- **Scenarios:** SCN-128
+- **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
+- **Implementation tasks:** P-03
+
+### SCR-73: New project
+- **Used by:** FLW-72
+- **Purpose:** Start a project from nothing: in a new folder or as an idea.
+- **Elements:** the draft-backed form: name; purpose; repositories with Add repository and Create a new folder for it; git checkbox; folder problem line; memory backend; default agent; Save.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | idle | path opened | none | empty form |
+  | no-parent | folder chosen without location | none | Create disabled; location prompt |
+  | invalid-name | name cannot be a folder | none | the problem in words |
+  | exists | folder already there | none | refusal, no Project |
+  | outside | location not granted | none | refusal, choose again |
+  | failed | mkdir/git/create failed | none | reason; retry reuses a made folder |
+- **Coverage:** apps/desktop/src/renderer/src/Onboarding.tsx
+- **Scenarios:** SCN-129
+- **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
+- **Implementation tasks:** P-04
+
+### SCR-74: New agent
+- **Used by:** FLW-73
+- **Purpose:** Route to the agent form of the project the agent belongs to.
+- **Elements:** project list; no-project notice with Add a project and New project.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | loading | project list unknown | none | busy line |
+  | no-project | estate has no project | none | notice with two paths |
+  | choose-project | projects exist | none | one button per project |
+- **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx
+- **Scenarios:** SCN-130
+- **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
+- **Implementation tasks:** P-05
+
+### SCR-75: Convert an agent
+- **Used by:** FLW-74
+- **Purpose:** Explain the planned conversion and today's manual route, with no action that pretends to run.
+- **Elements:** planned pill; four steps; today's command.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | planned | AR-7/AR-11 not built | none | explanation and command only |
+- **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx (the planned state; the conversion itself is AR-7/AR-11)
+- **Scenarios:** SCN-131
+- **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
+- **Implementation tasks:** AR-7, AR-11

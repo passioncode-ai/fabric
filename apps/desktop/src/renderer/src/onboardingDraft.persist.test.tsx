@@ -72,6 +72,7 @@ function stub(
     terminal: { list: async () => [], options: async () => [], memoryBackends: async () => [] },
     feed: { replay: async () => [] },
     drafts: over.draftApi ?? { read, save },
+    start: { lastScan: async () => null },
     gateway: { offer: async () => ({ reachable: false, servers: [] }) },
     memory: { backends: async () => [], overview: async () => null },
     estate: { summary: async () => null, profile: async () => null },
@@ -137,6 +138,12 @@ describe('a draft outlives the window', () => {
   })
 })
 
+// Since ADR-0100 the sidebar's New project opens the start menu; its New project card opens the draft.
+async function newProject(): Promise<void> {
+  fireEvent.click(await screen.findByRole('link', { name: en['launch.nav.newProject'] }))
+  fireEvent.click(await screen.findByRole('button', { name: new RegExp(en['start.card.new.title']) }))
+}
+
 describe('AD02: real shell and main draft store survive restart', () => {
   const restored: DraftFile = {
     'draft-1': { ...started['tab-1'], name: 'Original one' },
@@ -164,7 +171,7 @@ describe('AD02: real shell and main draft store survive restart', () => {
       const shell = render(<App />)
       await screen.findByDisplayValue('Original one')
       for (const name of ['New one', 'New two']) {
-        fireEvent.click(screen.getByRole('link', { name: en['launch.nav.newProject'] }))
+        await newProject()
         fireEvent.change(screen.getByPlaceholderText(en['onboarding.namePlaceholder']), { target: { value: name } })
         await waitFor(() => expect(Object.values(d.store.read().drafts).some(x => x.name === name)).toBe(true))
       }
@@ -192,7 +199,7 @@ describe('AD02: real shell and main draft store survive restart', () => {
       d.api.read.mockImplementation(() => pending)
       stub({ draftApi: d.api, savedTabs: tabs })
       render(<App />)
-      fireEvent.click(await screen.findByRole('link', { name: en['launch.nav.newProject'] }))
+      await newProject()
       fireEvent.change(screen.getByPlaceholderText(en['onboarding.namePlaceholder']), { target: { value: 'Early input' } })
       expect(d.api.save).not.toHaveBeenCalled()
       await act(async () => { resolve(d.store.read()); await pending })
@@ -209,7 +216,7 @@ describe('AD02: real shell and main draft store survive restart', () => {
       writeFileSync(path.join(d.dir, 'drafts.json.last-good'), '{broken')
       stub({ draftApi: d.api })
       render(<App />)
-      fireEvent.click(await screen.findByRole('link', { name: en['launch.nav.newProject'] }))
+      await newProject()
       fireEvent.change(screen.getByPlaceholderText(en['onboarding.namePlaceholder']), { target: { value: 'Unsaved input' } })
       await waitFor(() => expect(screen.getByText(/drafts could not be read/)).toBeTruthy())
       expect(d.api.save).not.toHaveBeenCalled()
@@ -218,7 +225,7 @@ describe('AD02: real shell and main draft store survive restart', () => {
       cleanup()
       stub({ draftApi: d.api, savedTabs: { tabs: [], active: { kind: 'home' } } })
       render(<App />)
-      fireEvent.click(await screen.findByRole('link', { name: en['launch.nav.newProject'] }))
+      await newProject()
       fireEvent.change(screen.getByPlaceholderText(en['onboarding.namePlaceholder']), { target: { value: 'Input after restart' } })
       await waitFor(() => expect(screen.getByText(/drafts could not be read/)).toBeTruthy())
       expect(d.api.save).not.toHaveBeenCalled()
@@ -232,7 +239,7 @@ describe('AD02: real shell and main draft store survive restart', () => {
       rmSync(path.join(d.dir, 'drafts.json.last-good'))
       stub({ draftApi: d.api, savedTabs: { tabs: [], active: { kind: 'home' } } })
       render(<App />)
-      fireEvent.click(await screen.findByRole('link', { name: en['launch.nav.newProject'] }))
+      await newProject()
       fireEvent.change(screen.getByPlaceholderText(en['onboarding.namePlaceholder']), { target: { value: 'First project' } })
       await waitFor(() => expect(Object.values(d.store.read().drafts).map(x => x.name)).toEqual(['First project']))
     } finally { cleanup(); rmSync(d.dir, { recursive: true, force: true }) }

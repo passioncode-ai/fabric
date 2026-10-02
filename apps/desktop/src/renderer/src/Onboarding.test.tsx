@@ -10,8 +10,9 @@
 // `available: false`, and the day it turns true the radiogroup returns by
 // itself. The last test here is that promise, written down.
 
-import { afterEach, describe, expect, it } from 'vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import * as React from 'react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { I18nProvider } from './i18n'
 import { Onboarding } from './Onboarding'
 import { EMPTY_DRAFT } from './App'
@@ -93,5 +94,37 @@ describe('where memory lives, in the form that creates a project', () => {
   it('a machine with NO backend says so rather than showing an empty field', async () => {
     mount([{ ...LOCAL, available: false, reason: 'no-database' }, CLOUD_OFF])
     expect(await screen.findByText(en['onboarding.memoryNone'])).toBeTruthy()
+  })
+})
+
+// ADR-0100 · SCN-129: a new project in a NEW folder, created under a chosen parent and added to the draft.
+describe('a new folder for a new project (SCN-129)', () => {
+  const NewFolderHost = ({ createFolder }: { createFolder: (i: unknown) => Promise<unknown> }): React.JSX.Element => {
+    const [draft, setDraft] = React.useState({ ...EMPTY_DRAFT, projectId: 'p1', name: 'walk-new' })
+    ;(window as unknown as { fabric: unknown }).fabric = {
+      terminal: { memoryBackends: async () => [], options: async () => [] },
+      repos: { choose: async () => [] },
+      projects: { create: async () => ({}) },
+      start: { chooseFolder: async () => '/w', createFolder }
+    }
+    return (
+      <I18nProvider locale="en">
+        <Onboarding draft={draft} onDraftChange={setDraft} onCreated={() => {}} onCancel={() => {}} onError={() => {}} />
+      </I18nProvider>
+    )
+  }
+  it('creates the folder under the chosen parent, named after the project, and adds it as the primary repository', async () => {
+    const createFolder = vi.fn(async () => ({ ok: true, path: '/w/walk-new' }))
+    render(<NewFolderHost createFolder={createFolder} />)
+    fireEvent.click(screen.getByRole('button', { name: en['onboarding.newFolder'] }))
+    await waitFor(() => expect(createFolder).toHaveBeenCalledWith({ parent: '/w', name: 'walk-new', git: true }))
+    await screen.findByText('/w/walk-new')
+  })
+  it('a refused folder says why and adds nothing', async () => {
+    const createFolder = vi.fn(async () => ({ ok: false, reason: 'exists', detail: '/w/walk-new' }))
+    render(<NewFolderHost createFolder={createFolder} />)
+    fireEvent.click(screen.getByRole('button', { name: en['onboarding.newFolder'] }))
+    await screen.findByText(en['start.new.refused.exists'].replace('{detail}', '/w/walk-new'))
+    expect(screen.queryByText('/w/walk-new', { selector: '.mono' })).toBeNull()
   })
 })

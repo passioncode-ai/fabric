@@ -81,6 +81,16 @@ export function validateSettings(parsed: unknown): AppSettings | null {
       Number.isInteger(raw.readThroughSeq) &&
       raw.readThroughSeq >= 0
         ? raw.readThroughSeq
-        : APP_SETTINGS_DEFAULTS.readThroughSeq
+        : APP_SETTINGS_DEFAULTS.readThroughSeq,
+    // A completion stamp is an ISO timestamp or nothing; anything else reads as
+    // "not finished", which at worst shows the first run to an empty estate again.
+    firstRun: {
+      completedAt:
+        raw.firstRun !== null && typeof raw.firstRun === 'object' && !Array.isArray(raw.firstRun) &&
+        typeof (raw.firstRun as Record<string, unknown>).completedAt === 'string' &&
+        !Number.isNaN(Date.parse((raw.firstRun as Record<string, unknown>).completedAt as string))
+          ? ((raw.firstRun as Record<string, unknown>).completedAt as string)
+          : null
+    }
   }
 }

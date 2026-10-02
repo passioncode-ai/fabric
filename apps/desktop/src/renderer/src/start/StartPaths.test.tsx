@@ -1,0 +1,198 @@
+// The first run and the start paths (ADR-0100), driven through the real components with the bridge
+// stubbed at its edge. Each case asserts what reaches the bridge — the act — not only what is drawn.
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { I18nProvider } from '../i18n'
+import { en } from '../i18n/en'
+import { PersonaProvider } from '../launch/persona'
+import { FirstRun, firstRunDue } from './FirstRun'
+import { StartScreen, type StartPath } from './StartPaths'
+import type { CandidateView, FolderView, ScanView } from '../../../shared/startPaths.ts'
+
+afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+
+const repo = (over: Partial<CandidateView>): CandidateView => ({
+  path: '/w/a', name: 'a', git: true, kind: 'repository', parent: null, branch: 'main', remote: null,
+  lastCommit: { at: '2026-10-01T10:00:00Z', subject: 'first' }, stack: ['Node.js'], group: '/w/a', importedBy: [], ...over
+})
+
+function bridge(over: Record<string, unknown> = {}) {
+  const fabric = {
+    persona: { read: vi.fn(async () => ({ persona: { seed: 731, style: 'orbit' }, chosen: false })), save: vi.fn(async (next: unknown) => ({ persona: next, saved: true })) },
+    start: {
+      chooseFolder: vi.fn(async () => '/w'),
+      inspect: vi.fn(async (): Promise<FolderView> => ({ ...repo({ path: '/w/alpha', name: 'alpha' }) })),
+      scan: vi.fn(async (): Promise<ScanView> => ({ root: '/w', candidates: [], visited: 1, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z' })),
+      cancelScan: vi.fn(async () => undefined),
+      lastScan: vi.fn(async () => null),
+      createFolder: vi.fn(async () => ({ ok: true, path: '/w/new-thing' })),
+      executors: vi.fn(async () => [
+        { id: 'claude-code', label: 'Claude Code', state: 'found', version: '2.1.288', path: '/bin/claude', install: 'npm install -g @anthropic-ai/claude-code' },
+        { id: 'codex', label: 'Codex', state: 'missing', version: null, path: null, install: 'npm install -g @openai/codex' }
+      ])
+    },
+    projects: { create: vi.fn(async (input: { id: string; name: string; repoPaths?: string[] }) => ({ id: input.id, name: input.name })) },
+    ...over
+  }
+  vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric }))
+  return fabric
+}
+
+function start(path: StartPath, projects: { id: string; name: string }[] | null = []) {
+  const handlers = { onPath: vi.fn(), onCreated: vi.fn(), onOpenProject: vi.fn(), onHome: vi.fn(), onProjectsChanged: vi.fn() }
+  render(
+    <I18nProvider locale="en">
+      <StartScreen path={path} projects={projects as never} {...handlers} />
+    </I18nProvider>
+  )
+  return handlers
+}
+
+describe('the first run (SCN-126)', () => {
+  it('is due only for a never-finished estate known to be empty', () => {
+    expect(firstRunDue(null, [])).toBe(true)
+    expect(firstRunDue(null, null), 'an unknown list is not an empty one').toBe(false)
+    expect(firstRunDue(null, [{}]), 'an installation with projects is never walked back through it').toBe(false)
+    expect(firstRunDue('2026-10-03T00:00:00Z', [])).toBe(false)
+    expect(firstRunDue(undefined, []), 'settings from a main process that predates the first run never start it').toBe(false)
+  })
+
+  it('keeps the name and look, shows what the machine has, and finishes on the chosen path', async () => {
+    const fabric = bridge()
+    const onFinish = vi.fn()
+    render(<I18nProvider locale="en"><PersonaProvider><FirstRun onFinish={onFinish} /></PersonaProvider></I18nProvider>)
+    fireEvent.change(await screen.findByLabelText(new RegExp(en['first.persona.name'])), { target: { value: '  Atlas  ' } })
+    expect(screen.getByText(en['first.persona.hello'].replace('{name}', 'Atlas'))).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['first.next'] }))
+    await waitFor(() => expect(fabric.persona.save).toHaveBeenCalledWith({ seed: 731, style: 'orbit', name: 'Atlas' }))
+
+    await screen.findByText(en['first.exec.title'])
+    await screen.findByText(en['first.exec.found'].replace('{version}', '2.1.288'))
+    expect(screen.getByText('npm install -g @openai/codex'), 'a missing agent shows its install command').toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['first.next'] }))
+
+    await screen.findByText(en['first.start.title'].replace('{name}', 'Atlas'))
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(en['start.card.scan.title']) }))
+    expect(onFinish).toHaveBeenCalledWith('scan')
+  })
+
+  it('a look that was not saved says so and still lets the operator continue', async () => {
+    bridge({ persona: { read: vi.fn(async () => ({ persona: { seed: 731, style: 'orbit' }, chosen: false })), save: vi.fn(async () => ({ persona: { seed: 731, style: 'orbit' }, saved: false, reason: 'disk full' })) } })
+    render(<I18nProvider locale="en"><PersonaProvider><FirstRun onFinish={vi.fn()} /></PersonaProvider></I18nProvider>)
+    fireEvent.click(await screen.findByRole('button', { name: en['first.next'] }))
+    await screen.findByText(en['first.persona.notSaved'].replace('{reason}', 'disk full'))
+    fireEvent.click(screen.getByRole('button', { name: en['first.persona.continueAnyway'] }))
+    await screen.findByText(en['first.exec.title'])
+  })
+
+  it('with no coding agent found, says so and still continues', async () => {
+    bridge({ start: { ...bridge().start, executors: vi.fn(async () => [{ id: 'claude-code', label: 'Claude Code', state: 'unresponsive', version: null, path: '/bin/claude', install: 'npm install -g @anthropic-ai/claude-code' }]) } })
+    render(<I18nProvider locale="en"><PersonaProvider><FirstRun onFinish={vi.fn()} /></PersonaProvider></I18nProvider>)
+    fireEvent.click(await screen.findByRole('button', { name: en['first.skip'] }))
+    await screen.findByText(en['first.exec.unresponsive'])
+    expect(screen.getByRole('button', { name: en['first.exec.continueWithout'] })).toBeTruthy()
+  })
+})
+
+describe('add a project (SCN-127)', () => {
+  it('reads the chosen folder, then creates the Project with it attached under the confirmed name', async () => {
+    const fabric = bridge()
+    const h = start('add')
+    fireEvent.click(screen.getByRole('button', { name: en['start.add.choose'] }))
+    const name = await screen.findByLabelText(en['start.name.label'])
+    expect((name as HTMLInputElement).value).toBe('alpha')
+    fireEvent.change(name, { target: { value: 'Alpha service' } })
+    fireEvent.click(screen.getByRole('button', { name: en['start.add.create'] }))
+    await waitFor(() => expect(fabric.projects.create).toHaveBeenCalledWith(expect.objectContaining({ name: 'Alpha service', repoPaths: ['/w/alpha'] })))
+    await waitFor(() => expect(h.onCreated).toHaveBeenCalled())
+  })
+
+  it('a folder already in a project offers that project', async () => {
+    bridge({ start: { ...bridge().start, inspect: vi.fn(async () => repo({ path: '/w/alpha', name: 'alpha', importedBy: [{ id: 'p1', name: 'Alpha' }] })) } })
+    const h = start('add')
+    fireEvent.click(screen.getByRole('button', { name: en['start.add.choose'] }))
+    await screen.findByText(en['start.add.already'].replace('{names}', 'Alpha'))
+    expect(screen.queryByRole('button', { name: en['start.add.create'] }), 'no duplicate Project is offered').toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: en['start.add.openExisting'] }))
+    expect(h.onOpenProject).toHaveBeenCalledWith('p1')
+  })
+
+  it('a failed create says why and keeps the folder, and a retry is the same create (same id)', async () => {
+    const create = vi.fn().mockRejectedValueOnce(new Error('stack down')).mockImplementation(async (i: { id: string }) => ({ id: i.id }))
+    bridge({ projects: { create } })
+    start('add')
+    fireEvent.click(screen.getByRole('button', { name: en['start.add.choose'] }))
+    fireEvent.click(await screen.findByRole('button', { name: en['start.add.create'] }))
+    await screen.findByText(en['start.add.failed'].replace('{reason}', 'stack down'))
+    fireEvent.click(screen.getByRole('button', { name: en['start.add.create'] }))
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(2))
+    expect(create.mock.calls[0][0].id).toBe(create.mock.calls[1][0].id)
+  })
+})
+
+describe('scan a projects folder (SCN-128)', () => {
+  const scan: ScanView = {
+    root: '/w', visited: 9, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z',
+    candidates: [
+      repo({ path: '/w/a', name: 'a', group: '/w/a' }),
+      repo({ path: '/w/_wt/a-fix', name: 'a-fix', kind: 'worktree', parent: '/w/a', group: '/w/a' }),
+      repo({ path: '/w/b', name: 'b', group: '/w/b', importedBy: [{ id: 'pb', name: 'Bee' }] }),
+      repo({ path: '/w/c', name: 'c', group: '/w/c' })
+    ]
+  }
+
+  it('creates nothing until ticked, then one Project per ticked repository; an imported one cannot be ticked', async () => {
+    const fabric = bridge({ start: { ...bridge().start, scan: vi.fn(async () => scan) } })
+    const h = start('scan')
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
+    await screen.findByText(en['start.scan.group'].replace('{name}', 'a').replace('{count}', '2'))
+    expect(fabric.projects.create).not.toHaveBeenCalled()
+    const row = (name: string) => screen.getByText(name, { selector: 'b' }).closest('label') as HTMLElement
+    expect((within(row('b')).getByRole('checkbox') as HTMLInputElement).disabled, 'an imported repository cannot be ticked again').toBe(true)
+    fireEvent.click(within(row('a')).getByRole('checkbox'))
+    fireEvent.click(within(row('c')).getByRole('checkbox'))
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.import'].replace('{count}', '2') }))
+    await waitFor(() => expect(fabric.projects.create).toHaveBeenCalledTimes(2))
+    expect(fabric.projects.create.mock.calls.map((c) => c[0].repoPaths)).toEqual([['/w/a'], ['/w/c']])
+    await waitFor(() => expect(h.onProjectsChanged, 'the sidebar is told new projects exist').toHaveBeenCalled())
+    await screen.findByText(en['start.scan.importedSummary'].replace('{ok}', '2').replace('{failed}', '0'))
+  })
+
+  it('says when the walk was stopped by its bound', async () => {
+    bridge({ start: { ...bridge().start, scan: vi.fn(async () => ({ ...scan, truncated: true })) } })
+    start('scan')
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
+    await screen.findByText(en['start.scan.truncated'].replace('{visited}', '9'))
+  })
+
+  it('a failed import of one repository is reported and stays ticked for a retry', async () => {
+    const create = vi.fn().mockRejectedValueOnce(new Error('no')).mockImplementation(async (i: { id: string }) => ({ id: i.id }))
+    bridge({ start: { ...bridge().start, scan: vi.fn(async () => scan) }, projects: { create } })
+    start('scan')
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
+    const row = async (name: string) => (await screen.findByText(name, { selector: 'b' })).closest('label') as HTMLElement
+    fireEvent.click(within(await row('a')).getByRole('checkbox'))
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.import'].replace('{count}', '1') }))
+    await screen.findByText(en['start.scan.importedSummary'].replace('{ok}', '0').replace('{failed}', '1'))
+    expect((within(await row('a')).getByRole('checkbox') as HTMLInputElement).checked).toBe(true)
+  })
+})
+
+describe('agent paths (SCN-130, SCN-131)', () => {
+  it('a new agent opens the chosen project\'s team, and with no project offers to make one', () => {
+    bridge()
+    const h = start('agent', [{ id: 'p1', name: 'One' }])
+    fireEvent.click(screen.getByRole('button', { name: 'One' }))
+    expect(h.onOpenProject).toHaveBeenCalledWith('p1', 'team')
+    cleanup()
+    start('agent', [])
+    expect(screen.getByText(en['start.agent.noProject'])).toBeTruthy()
+  })
+
+  it('converting is shown as planned and offers no action that pretends to run', () => {
+    bridge()
+    start('convert')
+    expect(screen.getByText(en['start.planned'])).toBeTruthy()
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual([en['start.back']])
+  })
+})

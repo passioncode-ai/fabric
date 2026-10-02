@@ -170,6 +170,8 @@ step "pure tests — no database"
 # the stack must FAIL here rather than be silently promoted to the full tier.
 pnpm --filter @fabric/desktop exec vitest run
 node apps/desktop/test/app-icon.test.mjs
+# ADR-0100 D5: the icon PNG is the render of fabric-icon.svg, never a hand edit.
+node scripts/build-app-icon.mjs --check
 # Reads the SHIPPED bundle produced by the step above, so it is never reading a
 # stale artefact. It launches nothing, so it belongs with the pure tests.
 node apps/desktop/test/preload-sandbox.test.mjs
@@ -180,6 +182,9 @@ node --experimental-strip-types apps/desktop/test/session-env.test.mjs
 node --experimental-strip-types apps/desktop/test/quota-reader.test.mjs
 node --experimental-strip-types apps/desktop/test/transcripts.test.mjs
 node apps/desktop/test/file-roots.test.mjs
+# ADR-0100: the start paths' disk reads and executor detection, against a real git tree and real processes.
+node --experimental-strip-types apps/desktop/test/project-discovery.test.mjs
+node --experimental-strip-types apps/desktop/test/executor-detect.test.mjs
 node --experimental-strip-types apps/desktop/test/delivery.test.mjs
 node --experimental-strip-types apps/desktop/test/pty-launch-failure.test.mjs
 node --experimental-strip-types apps/desktop/test/chain-launch-failure.test.mjs
@@ -352,6 +357,8 @@ step "provider capability: what the installed CLIs actually support, per build"
 # carrying yesterday's answer forward. Runs `--version` and nothing else; it
 # reads no credential and performs no login.
 node --experimental-strip-types scripts/check-provider-capability.mjs
+# REQ-19 (2026-10-03): the mechanical re-pin of version-only rows, and its refusal to carry a verdict.
+node --test scripts/test/repin-provider-builds.test.mjs
 
 step "acceptance: a capability is supported only after a run nobody can fake"
 # M199.acceptance. Two sentences from the card, made mechanical: "without test

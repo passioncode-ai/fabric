@@ -14,6 +14,7 @@ import type {
 import { Button, EmptyState, Field, FieldGroup, Row, StateChip, Toolbar } from './components'
 import { memoryChoice } from '../../shared/memoryChoice.ts'
 import { useT } from './i18n'
+import { folderNameProblem } from '../../shared/startPaths.ts'
 
 export function Onboarding({
   draft,
@@ -53,6 +54,27 @@ export function Onboarding({
       onError(String(e))
     }
   }
+
+  // #region new-project-folder — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+  // SCN-129: a new project in a NEW folder — under a parent the operator chooses, named after the
+  // project, optionally a git repository. The folder joins the draft's repositories like a chosen one.
+  const [git, setGit] = useState(true)
+  const [folderProblem, setFolderProblem] = useState<string | null>(null)
+  const newFolder = async (): Promise<void> => {
+    setFolderProblem(null)
+    const bad = folderNameProblem(name)
+    if (bad) { setFolderProblem(t('onboarding.newFolder.badName', { problem: bad })); return }
+    try {
+      const parent = await window.fabric.start.chooseFolder('parent')
+      if (!parent) return
+      const made = await window.fabric.start.createFolder({ parent, name: name.trim(), git })
+      if (!made.ok) { setFolderProblem(t(`start.new.refused.${made.reason}` as 'start.new.refused.exists', { detail: made.detail ?? '' })); return }
+      patch({ repoPaths: [...new Set([...repoPaths, made.path])] })
+    } catch (e) {
+      setFolderProblem(t('start.new.refused.failed', { detail: e instanceof Error ? e.message : String(e) }))
+    }
+  }
+  // #endregion new-project-folder
 
   const save = async (): Promise<void> => {
     if (!name.trim() || busy) return
@@ -137,7 +159,14 @@ export function Onboarding({
             <Button tone="ghost" onClick={() => void choose()}>
               {t('onboarding.addRepo')}
             </Button>
+            <Button tone="ghost" disabled={!name.trim()} onClick={() => void newFolder()}>
+              {t('onboarding.newFolder')}
+            </Button>
+            <label>
+              <input type="checkbox" checked={git} onChange={(e) => setGit(e.target.checked)} /> {t('start.new.git')}
+            </label>
           </div>
+          {folderProblem && <p className="muted" role="status">{folderProblem}</p>}
         </FieldGroup>
 
         {/* M99 shipped this as "take it off the screen until it works", and the

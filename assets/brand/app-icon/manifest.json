@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "brand": "Fabric",
+  "source": "fabric-icon.svg",
+  "sourceSha256": "475aea61f41481c165b78127a23ebcf6aa782f09a257898d79367b00e1d5f09e",
+  "mark": "../favicon/source/passioncode-passion-fruit.svg",
+  "markSha256": "8b49637faa386ce9658029a142d48e8a8c3ee4ed2d44ccb611cd03051046e1aa",
+  "renderer": "Electron offscreen capture, transparent (scripts/lib/render-svg-electron.cjs)",
+  "exports": [
+    {
+      "path": "fabric-icon-1024.png",
+      "format": "png",
+      "width": 1024,
+      "height": 1024,
+      "sha256": "c0c6af048a058a3b2286af4d0de7c8f4c4b3da1e6481cb835d571d0d59f220bb"
+    }
+  ]
+}

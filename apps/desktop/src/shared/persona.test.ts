@@ -14,4 +14,10 @@ describe('Fabric\'s look (SCR-36)', () => {
     expect(variantsOf(0)[0]).toBe(DEFAULT_PERSONA.seed)
     expect(variantsOf(-3)).toEqual(variantsOf(0))
   })
+
+  it('keeps a name the operator gave, and reads a bad one as no name rather than refusing the look (ADR-0100)', () => {
+    expect(validatePersona({ seed: 768, style: 'spark', name: '  Atlas ' })).toEqual({ seed: 768, style: 'spark', name: 'Atlas' })
+    for (const bad of ['', '   ', 42, 'x'.repeat(41), 'a\u0007b'])
+      expect(validatePersona({ seed: 768, style: 'spark', name: bad }), JSON.stringify(bad)).toEqual({ seed: 768, style: 'spark' })
+  })
 })

@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "source": {
-    "docs/reports/product.html": "0681e9872cdc9680a12f6b823a115c69bb98cd94bda364d45bf4797621b638e6",
-    "docs/ux/product-model.json": "479f86b459d184f441077682da391fb13bec821552682d642113eee61ec4c94d"
+    "docs/reports/product.html": "2091ef6f845d1204b99b3765aa9f6d96f56e03c1e41740c0a11911f478407067",
+    "docs/ux/product-model.json": "9b57589899fda7f35812d6ca2384ec634a46695978361176bfc8bf5c31b906cd"
   },
   "views": [
     {
@@ -420,6 +420,30 @@
     {
       "id": "optimizer",
       "file": "optimizer.jpg"
+    },
+    {
+      "id": "first-run",
+      "file": "first-run.jpg"
+    },
+    {
+      "id": "start-add",
+      "file": "start-add.jpg"
+    },
+    {
+      "id": "start-scan",
+      "file": "start-scan.jpg"
+    },
+    {
+      "id": "start-new",
+      "file": "start-new.jpg"
+    },
+    {
+      "id": "start-agent",
+      "file": "start-agent.jpg"
+    },
+    {
+      "id": "start-convert",
+      "file": "start-convert.jpg"
     }
   ]
 }

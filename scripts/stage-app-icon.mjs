@@ -12,16 +12,18 @@
 //   * `--check` asserts the staged copy is byte-identical to that export, which
 //     is what CI and `pnpm test` can run without writing anything.
 //
-// The transparent 1024 variant is the staged one on purpose: macOS does not
-// mask an application icon, and the mark's silhouette is the identity.
+// macOS does not mask an application icon, so the icon carries its own tile: the mark on a graphite
+// rounded square on Apple's 1024 grid, with transparent corners (ADR-0100 D5).
 
 import { createHash } from 'node:crypto'
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
-const MANIFEST = path.join(ROOT, 'assets/brand/brand-pack/manifest.json')
-const EXPORT_PATH = 'png/transparent/passioncode-icon-1024.png'
+// ADR-0100 D5 (2026-10-03): the Fabric app icon — the PassionCode.ai mark composed on a graphite macOS
+// tile — replaces the bare mark here. Its manifest binds the PNG to the SVG that rendered it.
+const MANIFEST = path.join(ROOT, 'assets/brand/app-icon/manifest.json')
+const EXPORT_PATH = 'fabric-icon-1024.png'
 const STAGED = path.join(ROOT, 'apps/desktop/build/icon.png')
 const CHECK = process.argv.includes('--check')
 
@@ -31,7 +33,7 @@ const fail = (message) => {
   process.exit(1)
 }
 
-if (!existsSync(MANIFEST)) fail(`no brand manifest at ${path.relative(ROOT, MANIFEST)} — run scripts/build-brand-pack.mjs`)
+if (!existsSync(MANIFEST)) fail(`no app-icon manifest at ${path.relative(ROOT, MANIFEST)} — run scripts/build-app-icon.mjs`)
 const manifest = JSON.parse(readFileSync(MANIFEST, 'utf8'))
 const entry = manifest.exports.find((e) => e.path === EXPORT_PATH)
 if (!entry) fail(`the manifest does not describe ${EXPORT_PATH}`)
@@ -43,7 +45,7 @@ const sourceHash = sha256(source)
 if (sourceHash !== entry.sha256)
   fail(
     `${entry.path} does not match its manifest checksum — the brand pack was edited by hand ` +
-      `or is stale. Regenerate with scripts/build-brand-pack.mjs rather than staging this file.`
+      `or is stale. Render it with scripts/build-app-icon.mjs rather than staging this file.`
   )
 
 if (CHECK) {

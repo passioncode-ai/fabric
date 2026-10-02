@@ -382,6 +382,14 @@ export interface AppSettings {
    * used any of it. This is the first consumer.
    */
   readThroughSeq: number
+  /**
+   * Whether this operator finished the first run (ADR-0100, SCN-126). Local for
+   * the same reason as the fields above: it is what THIS person on THIS machine
+   * has been through. `null` is "not finished", which shows the first run only
+   * when the estate also has no project — an installation with projects is never
+   * walked back through it.
+   */
+  firstRun: { completedAt: string | null }
 }
 
 /**
@@ -397,7 +405,8 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   tabs: { tabs: [], active: null },
   // Nothing read, which is the only honest default: a fresh install has not
   // seen the history, and starting at the head would hide it.
-  readThroughSeq: 0
+  readThroughSeq: 0,
+  firstRun: { completedAt: null }
 }
 
 export interface FeedEvent {
@@ -1222,6 +1231,25 @@ export interface FabricApi {
      *  shows them; a pinned project moves among the pins. */
     move(projectId: string, dir: 'up' | 'down', rest: string[]): Promise<ArrangeResult>
   },
+  /**
+   * The first run and the start paths (ADR-0100). Every folder read here is one the operator chose
+   * in this window's native picker (`chooseFolder`); anything else is refused as outside.
+   */
+  start: {
+    /** The native folder picker for ONE folder; grants it to this window. Null when cancelled. */
+    chooseFolder(purpose: 'project' | 'scan' | 'parent'): Promise<string | null>
+    /** Facts about one chosen folder, with the projects that already hold it. */
+    inspect(folder: string): Promise<import('./startPaths.ts').FolderView>
+    /** Scan a chosen parent folder; bounded, cancellable, never creates anything. Kept as the last scan. */
+    scan(root: string): Promise<import('./startPaths.ts').ScanView>
+    cancelScan(): Promise<void>
+    /** The last completed scan, re-marked against today's projects; null when none was kept. */
+    lastScan(): Promise<import('./startPaths.ts').ScanView | null>
+    /** Create a new project's folder under a chosen parent, optionally as a git repository. */
+    createFolder(input: import('./startPaths.ts').NewFolderInput): Promise<import('./startPaths.ts').NewFolderResult>
+    /** Which coding agents this machine can run. */
+    executors(): Promise<import('./startPaths.ts').ExecutorRow[]>
+  }
   persona: {
     /** Fabric's look on this machine (SCR-36). */
     read(): Promise<PersonaRead>
@@ -1492,6 +1520,13 @@ export const IPC = {
   favouritesReplace: 'favourites:replace',
   favouritesOrder: 'favourites:order',
   favouritesMove: 'favourites:move',
+  startChooseFolder: 'start:choose-folder',
+  startInspect: 'start:inspect',
+  startScan: 'start:scan',
+  startCancelScan: 'start:cancel-scan',
+  startLastScan: 'start:last-scan',
+  startCreateFolder: 'start:create-folder',
+  startExecutors: 'start:executors',
   personaRead: 'persona:read',
   personaSave: 'persona:save',
   searchRun: 'search:run',

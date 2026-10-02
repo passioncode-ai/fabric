@@ -135,6 +135,12 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-123 | Agent production fails a gate | Agent production | P-01 | ST-050, FLW-67 | draft | — |
 | SCN-124 | Fabric answers from memory with sources | Memory | P-01 | ST-051, FLW-68 | draft | — |
 | SCN-125 | Nothing in memory, or memory unavailable | Memory | P-01 | ST-051, FLW-68 | draft | — |
+| SCN-126 | First run: name, look, coding agents, where to start | First run | P-01 | ST-001, ST-022, FLW-69 | draft | — |
+| SCN-127 | Add an existing project from one folder | Start paths | P-01 | ST-001, ST-031, FLW-70 | draft | — |
+| SCN-128 | Scan a projects folder and tick what becomes a Project | Start paths | P-01 | ST-001, ST-031, FLW-71 | draft | — |
+| SCN-129 | Create a new project in a new folder or as an idea | Start paths | P-01 | ST-001, FLW-72 | draft | — |
+| SCN-130 | Start a new agent inside a project | Start paths | P-01 | ST-050, FLW-73 | draft | — |
+| SCN-131 | Convert an agent built elsewhere into a Fabric agent | Start paths | P-01 | ST-050, FLW-74 | draft | — |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -2422,7 +2428,7 @@ SCN-031/059/094: уход из знакомства не считается вы
   1. Operator opens SCR-36 r0-setup → sees Fabric name and colour avatar with usable defaults, optional customisation and one continuation action.
   2. Operator chooses Claude Code or Codex on SCR-05 r0-provider → Fabric checks installation, authentication and required capabilities. Missing installation offers instructions/open official installer; auth-required offers login and recheck. These actions never claim readiness before observation.
   3. Operator opens SCR-27 r0-source → chooses one project folder or a parent folder in a system picker; URL is the only typed source address. Cancel returns focus and preserves earlier selection.
-  4. Fabric enters SCR-27 r0-discovery → records scan identity, reads only the chosen scope and reports stages/sources. A parent folder produces candidate sources; operator selects several together, the first selected is the primary and can be changed. One Project contains the primary and related sources, each with its own reference, purpose, read status and authority. Related sources never silently become separate top-level Projects or writable roots. Repository instructions remain data until admitted by policy.
+  4. *(Amended 2026-10-03 by [ADR-0100](../adr/0100-first-run-and-start-paths.md): a parent folder is now SCN-128's checklist — each ticked repository becomes its own Project.)* Fabric enters SCR-27 r0-discovery → records scan identity, reads only the chosen scope and reports stages/sources. A parent folder produces candidate sources; operator selects several together, the first selected is the primary and can be changed. One Project contains the primary and related sources, each with its own reference, purpose, read status and authority. Related sources never silently become separate top-level Projects or writable roots. Repository instructions remain data until admitted by policy.
   5. Fabric derives the name and reports what the project is, known guides, Git state, recent work and unknowns on SCR-30 r0-home / SCR-31 r0-project. Every fact links to source/revision; a proposed next action stays a proposal until admitted.
   6. Operator accepts or corrects the next action, opens its task or continues later → the same Project owns facts, history and decisions, independent of provider.
 - **Expected result:** First value is an inspectable sourced project overview and saved continuation. The operator supplies source and intent only where discovery cannot establish them; no required rename, purpose form or separate review/check step.
@@ -3056,6 +3062,139 @@ Source: the approved [design](../evidence/specs/2026-09-29-agent-registry-design
 - **Errors & recovery:** Unavailable memory never degrades into an unsourced answer.
 - **Telemetry:** none.
 - **Implementation tasks:** design module AR-10 ([design](../evidence/specs/2026-09-29-agent-registry-design.md#12-modules-stages-310-run-per-module-ids-ar-0ar-11-so-they-never-collide-with-backlog-m-ids)).
+- **Status:** draft
+- **Coverage:** none yet
+- **Product:** unobserved
+
+## Start paths · 2026-10-03 ([ADR-0100](../adr/0100-first-run-and-start-paths.md))
+
+The first run and the five ways a project or an agent comes into Fabric. These supersede SCN-095
+step 4 (a parent folder is now a checklist, each ticked repository its own Project) and its "no
+personalisation form" line (the operator chose name and look first, 2026-10-03).
+
+### SCN-126: First run: name, look, coding agents, where to start
+- **Persona:** P-01
+- **Feature:** First run
+- **Traces:** ST-001, ST-022, FLW-69 (JTBD-01, JTBD-02)
+- **Entry point:** First launch of an estate with no project, after the project list is known; Help → Walk through the first run again.
+- **Preconditions:** The settings file and the project list have been read. `settings.firstRun.completedAt` is null. No step grants authority: the look is a preference, detection runs `--version` only.
+- **Steps:**
+  1. Operator sees SCR-70 step 1 → types a name for their Fabric (optional; empty keeps "Fabric"), picks a character and a variant; the greeting and avatar update live → Continue saves the look, Skip keeps the default.
+  2. Operator sees step 2 → Fabric lists Claude Code and Codex with one state each: ready (version), needs setup (installed, did not answer `--version`), not installed (with the vendor's install command and Copy) → Check again re-reads; Continue is labelled "Continue without an agent" when none is ready.
+  3. Operator sees step 3 → the five start paths (SCR-71…75 entries) → choosing one opens it; "Later" goes home.
+- **Expected result:** The first run is finished once; `settings.firstRun.completedAt` holds the moment; the operator is on the chosen path or home.
+- **Alt paths:** Back on steps 2–3; Skip on step 1; Help reopens the first run for an estate that already has projects.
+- **UI elements:** Three-step progress; name field with hint and 40-character limit; character choice; variants and "More variants"; executor rows with state pill, path, install command and Copy; five path cards.
+- **States covered:** first-visit,saving,not-saved,checking,found,unresponsive,missing,check-failed,choose-path,skipped
+- **Errors & recovery:** A look that is not saved says why and offers Continue without saving. A detection that fails says so and offers Check again. An installation already holding projects is never walked back through the first run; an unknown project list never triggers it.
+- **Design rationale:** One question per step, every step skippable; the agent check is information, not a gate, because Fabric itself is useful before an agent is ready.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** apps/desktop/src/renderer/src/start/FirstRun.tsx; apps/desktop/src/renderer/src/start/StartPaths.test.tsx
+- **Product:** unobserved
+
+### SCN-127: Add an existing project from one folder
+- **Persona:** P-01
+- **Feature:** Start paths
+- **Traces:** ST-001, ST-031, FLW-70 (JTBD-01)
+- **Entry point:** Start menu → Add a project; first run step 3.
+- **Preconditions:** The folder is chosen in this window's native picker; Fabric reads only it.
+- **Steps:**
+  1. Operator selects Choose a folder → the native picker opens; cancel returns to the step unchanged.
+  2. Fabric reads the folder → SCR-71 shows its name (editable), git kind and branch, remote, last commit with date, stack, and the projects that already hold it.
+  3. Operator confirms Add project → the Project is created with the folder attached → its page opens.
+- **Expected result:** One new Project holding exactly the chosen folder; nothing in the folder changed.
+- **Alt paths:** A folder already in a project shows "already in …" with Open that project. A plain folder (not git) can be added and says what Fabric will not see. Choose another folder at any time.
+- **UI elements:** Choose a folder; reading state; name field; facts list; already-in notice; not-a-repository notice; Add project; Choose another folder.
+- **States covered:** idle,picker-cancel,reading,ready,duplicate,not-git,creating,failed,created
+- **Errors & recovery:** A failed create says why, keeps the folder and the name; a retry is the same create (the same id), never a second Project. A folder outside the window's grant is refused by the main process.
+- **Design rationale:** Recognition over recall — the operator confirms what Fabric found rather than typing it.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/test/project-discovery.test.mjs
+- **Product:** unobserved
+
+### SCN-128: Scan a projects folder and tick what becomes a Project
+- **Persona:** P-01
+- **Feature:** Start paths
+- **Traces:** ST-001, ST-031, FLW-71 (JTBD-01)
+- **Entry point:** Start menu → Scan a projects folder; first run step 3; the start card's "N not added yet".
+- **Preconditions:** The parent folder is chosen in this window's picker. The scan is read-only.
+- **Steps:**
+  1. Operator selects Choose a folder to scan → the picker opens.
+  2. Fabric walks the folder (bounded, cancellable; skips dependency trees, build output, hidden folders and symlinks out of it) → SCR-72 lists every repository with name, last commit, stack and path, grouped by product (a worktree under its repository, a nested repository under its parent).
+  3. Operator filters, ticks repositories (Tick all shown / Clear) → Add N as projects creates one Project per ticked repository, in order, showing each row's result.
+  4. Operator sees the summary → Open the first one, or leaves the unticked ones for later.
+- **Expected result:** One Project per ticked repository; nothing created for an unticked one; the last scan is kept so unticked candidates can be imported later.
+- **Alt paths:** Stop during the scan returns to the start of the path. Scan again re-reads the same folder. An already-imported repository is marked "In <project>", cannot be ticked, and opens that project.
+- **UI elements:** Choose a folder to scan; scanning with Stop; summary (count, groups, folder, date); truncation notice; filter; group heads; candidate rows with checkbox, pills and in-project link; Add N as projects; per-row added/not added.
+- **States covered:** idle,picker-cancel,scanning,cancelled,results,empty,truncated,duplicate,importing,partial,imported,failed
+- **Errors & recovery:** A walk stopped by its bound says the list is not the whole folder. A row that failed to import is marked "not added", stays ticked, and Add retries it with the same id. A scan error says why and offers to choose again.
+- **Design rationale:** Nothing becomes a Project without the operator's tick; grouping keeps worktrees from becoming duplicate projects.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/src/main/startPaths.ts
+- **Product:** unobserved
+
+### SCN-129: Create a new project in a new folder or as an idea
+- **Persona:** P-01
+- **Feature:** Start paths
+- **Traces:** ST-001, FLW-72 (JTBD-01)
+- **Entry point:** Start menu → New project; first run step 3.
+- **Preconditions:** A new folder is created only under a parent chosen in this window's picker.
+- **Steps:**
+  1. Operator sees the new-project form (a draft that survives a restart, AD02) → types a name and, optionally, what it is for.
+  2. Operator chooses where it lives: Create a new folder for it (choose the parent; optionally start it as a git repository) — the folder joins the draft's repositories — or adds existing repositories, or none (only an idea for now).
+  3. Operator selects Save → the Project is created with its repositories attached → its page opens.
+- **Expected result:** A new Project; with a folder, the folder exists under the chosen parent and, when asked, is a git repository on `main`.
+- **Alt paths:** Change location; switch to an idea at any point.
+- **UI elements:** Name; purpose; repositories with Add repository and Create a new folder for it; git checkbox; folder problem line; memory backend; default agent; Save; Cancel.
+- **States covered:** idle,invalid-name,no-parent,creating,exists,outside,failed,created
+- **Errors & recovery:** A folder that already exists, an invalid folder name, a location outside the window's grant and a failed mkdir/git init each say what happened; the Project is not created. A failure after the folder was made reuses that folder on retry.
+- **Design rationale:** The idea path keeps "zero to one progressively" honest: a project can exist before its code does.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** apps/desktop/src/renderer/src/Onboarding.tsx; apps/desktop/src/main/startPaths.ts
+- **Product:** unobserved
+
+### SCN-130: Start a new agent inside a project
+- **Persona:** P-01
+- **Feature:** Start paths
+- **Traces:** ST-050, FLW-73 (JTBD-05)
+- **Entry point:** Start menu → New agent; first run step 3.
+- **Preconditions:** An agent belongs to a project (CONTEXT: an Agent is a provider revision bound into one project).
+- **Steps:**
+  1. Operator sees the projects → chooses one.
+  2. Fabric opens that project's team (`#sec-agents`), where the agent form lives (name, instructions, runner, MCP servers).
+- **Expected result:** The operator is at the project's agent form; the agent is created there (SCN-121).
+- **Alt paths:** With no project, the path offers Add a project and New project.
+- **UI elements:** Project choice; no-project notice with the two paths.
+- **States covered:** loading,no-project,choose-project
+- **Errors & recovery:** An unknown project list shows loading, never "no project".
+- **Design rationale:** One place creates agents; the start path only routes to it.
+- **Telemetry:** planned only.
+- **Status:** draft
+- **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx
+- **Product:** unobserved
+
+### SCN-131: Convert an agent built elsewhere into a Fabric agent
+- **Persona:** P-01
+- **Feature:** Start paths
+- **Traces:** ST-050, FLW-74 (JTBD-05)
+- **Entry point:** Start menu → Convert an agent (shown as planned).
+- **Preconditions:** Designed by ADR-0100 §6; built by AR-7/AR-11. Until then the path explains itself and offers no action.
+- **Steps:**
+  1. Operator chooses the agent's folder → Fabric reads it and nothing else.
+  2. Fabric shows a dry-run plan: the manifest, the MCP entry, every file that would change.
+  3. Operator approves → their coding agent writes the adapter on its own branch with the Fabric Agent Adapter skills; the main branch is not touched.
+  4. The conformance probe runs → green: the agent enters the registry; red: the findings, and the branch stays for another attempt.
+- **Expected result:** A Fabric-compatible agent in the registry, with the probe's receipt; or a red receipt and no registry entry.
+- **Alt paths:** Today (planned state): install the adapter skills with the launcher and ask the coding agent to adapt the project (SCN-015 recipe model).
+- **UI elements:** Planned pill; four-step explanation; today's command.
+- **States covered:** planned
+- **Errors & recovery:** Not applicable while planned; the screen never offers an action that pretends to run.
+- **Design rationale:** The operator approves a plan before any write; the probe, not the author, decides compatibility.
+- **Telemetry:** planned only.
 - **Status:** draft
 - **Coverage:** none yet
 - **Product:** unobserved
