@@ -10,6 +10,11 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - scope: ADR-0098, common backlog source declaration, exporter allow-list, deterministic control-transport fixture and living map
 - summary: source-owned local tasks compose the workspace backlog; root backlog documents now reach the snapshot. No Fabric runtime screen changes.
 
+### 2026-10-03 · `claude-repin-2.1.288` · claude/repin-claude-2.1.288 → main
+- base: 0ca25630; integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: provider capability matrix (Claude Code 2.1.288), `scripts/repin-provider-builds.mjs` with `scripts/lib/repin-provider-builds.mjs` and its test, the gate's message, living map
+- summary: a re-pin of version-only rows is a command now, refused when any current row holds a verdict; landed apart from the onboarding run so the workspace sync can publish (it had stopped on 2.1.287).
+
 ### 2026-10-02 · `claude-repin-cla` · claude/cla-no-checkbox → main
 - base: 4dd6f91c; integration: fast-forward after `bash scripts/ci.sh fast`
 - scope: provider capability matrix (Claude Code 2.1.287), CLA.md without the checkbox sentence, living map and source stamp

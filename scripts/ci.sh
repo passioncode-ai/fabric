@@ -352,6 +352,8 @@ step "provider capability: what the installed CLIs actually support, per build"
 # carrying yesterday's answer forward. Runs `--version` and nothing else; it
 # reads no credential and performs no login.
 node --experimental-strip-types scripts/check-provider-capability.mjs
+# REQ-19 (2026-10-03): the mechanical re-pin of version-only rows, and its refusal to carry a verdict.
+node --test scripts/test/repin-provider-builds.test.mjs
 
 step "acceptance: a capability is supported only after a run nobody can fake"
 # M199.acceptance. Two sentences from the card, made mechanical: "without test

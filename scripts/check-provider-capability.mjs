@@ -93,7 +93,9 @@ for (const [provider, build] of Object.entries(pinned)) {
   else if (found !== build)
     problems.push(
       `${provider}: the matrix describes ${build} and ${found} is installed. A capability of somebody else's program ` +
-        `is a property of its version — re-run the probes and re-pin, rather than carrying yesterday's answer forward.`
+        `is a property of its version — re-run the probes and re-pin, rather than carrying yesterday's answer forward. ` +
+        `When every current row is a version-only observation, \`node --experimental-strip-types scripts/repin-provider-builds.mjs\` ` +
+        `re-pins it and refuses if any row holds a verdict.`
     )
   else notes.push(`${provider} ${build} is the installed build`)
 }
