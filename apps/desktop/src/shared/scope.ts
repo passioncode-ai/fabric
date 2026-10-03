@@ -103,7 +103,10 @@ export const TABLE_SCOPE: Record<string, TableScope> = {
   session_context_packs: ESTATE_AND_PROJECT,
   deliveries: ESTATE_AND_PROJECT,
   continuation_dispatches: ESTATE_AND_PROJECT,
-  transcript_recovery_authorizations: ESTATE_AND_PROJECT,
+  // Migration 63 revokes every role's access to it, service_role included: a transaction-bound authorization
+  // `recover_transcript` writes and `append_event` consumes in the same transaction. Marked private on
+  // 2026-10-03 (release review iteration 2): as ESTATE_AND_PROJECT a scoped read compiled and was refused.
+  transcript_recovery_authorizations: { private: 'transaction-only authorization for recover_transcript; no generic reader or writer' },
   run_stop_commands: ESTATE_AND_PROJECT,
   run_launch_compensations: ESTATE_ONLY,
   task_runs: ESTATE_AND_PROJECT,

@@ -11,6 +11,7 @@
 import pg from 'pg'
 import { probeEnv } from '../../../scripts/lib/test-stack.mjs'
 import { randomUUID } from 'node:crypto'
+import { TABLE_SCOPE } from '../../../apps/desktop/src/shared/scope.ts'
 
 // The disposable stack the tier started; probeEnv() refuses the live one (54322) before connecting.
 const DB_URL = probeEnv().DATABASE_URL
@@ -866,14 +867,23 @@ async function p21_grants() {
   // "covers grants" is green — which is what happened (run 34070268253).
 
   // ——————————————————————————————————— 1 · capability: the app can read
+  //
+  // EXCEPT the tables made private ON PURPOSE (migrations 63–66): `scope.ts` marks each with the reason
+  // and the one dedicated reader that may touch it, and their migrations revoke service_role's SELECT so
+  // no generic read can reach them. They are read from the same map the store refuses them by, never
+  // from a second list here — and each one is still required to be UNREADABLE, below, so a private
+  // table that regains a generic grant fails this probe instead of passing it.
+  const privateTables = Object.entries(TABLE_SCOPE).filter(([, s]) => s.private).map(([name]) => name).sort()
   const { rows: unreadable } = await client.query(
     `select c.relname as name
        from pg_class c join pg_namespace n on n.oid = c.relnamespace
       where n.nspname = 'public' and c.relkind = 'r'
         and not has_table_privilege('service_role', c.oid, 'select')
-      order by 1`
+        and not (c.relname = any($1::text[]))
+      order by 1`,
+    [privateTables]
   )
-  if (unreadable.length === 0) ok('P21 every table in the schema is readable by the role the app connects as')
+  if (unreadable.length === 0) ok(`P21 every table in the schema is readable by the role the app connects as (${privateTables.length} private by design excluded)`)
   else
     fail(
       'P21 tables the app cannot read',
@@ -887,6 +897,23 @@ async function p21_grants() {
   // Without this the check above passes just as happily against an empty schema.
   if (tables > 20) ok(`P21 positive control: ${tables} tables were actually examined`)
   else fail('P21 control', `only ${tables} tables in the schema — the sweep proves nothing`)
+
+  // The exclusion is not a blind spot: every private table exists, and the app's role still cannot read
+  // it. A name in `scope.ts` that no migration creates, or a private table that regained a generic grant,
+  // fails here.
+  const { rows: privateState } = await client.query(
+    `select name, c.oid is not null as present,
+            c.oid is not null and has_table_privilege('service_role', c.oid, 'select') as readable
+       from unnest($1::text[]) as name
+       left join pg_class c on c.relname = name and c.relkind = 'r'
+                           and c.relnamespace = 'public'::regnamespace`,
+    [privateTables]
+  )
+  const stale = privateState.filter((r) => !r.present).map((r) => r.name)
+  const leaky = privateState.filter((r) => r.readable).map((r) => r.name)
+  if (privateTables.length && !stale.length && !leaky.length)
+    ok(`P21 and each of the ${privateTables.length} private tables exists and stays unreadable to the generic role`)
+  else fail('P21 private tables', `${stale.length ? `not in the schema: ${stale.join(', ')}` : ''}${leaky.length ? ` readable by service_role: ${leaky.join(', ')}` : ''}${privateTables.length ? '' : 'scope.ts marks none private'}`)
 
   // ——————————————————————————————————— 2 · capability: anon may not ask
   const { rows: open } = await client.query(
@@ -1343,8 +1370,9 @@ async function p32_taskRuns() {
     [A, seedActor, JSON.stringify({ id: taskId, instruction: 'run me', option_id: 'claude-code' }), projA])
   await client.query(`update project_tasks set status = 'backlog' where estate_id = $1 and id = $2`, [A, taskId])
 
+  const firstSession = randomUUID()
   const { rows: [first] } = await client.query(
-    `select admit_task_launch($1,$2,$3::jsonb,$4) as r`, [A, taskId, seedActor, randomUUID()])
+    `select admit_task_launch($1,$2,$3::jsonb,$4) as r`, [A, taskId, seedActor, firstSession])
   first.r.task_run_id && first.r.run_ordinal === 1
     ? ok('P32 admission creates a run, and it is attempt 1')
     : fail('P32 first admission', JSON.stringify(first.r))
@@ -1369,8 +1397,30 @@ async function p32_taskRuns() {
     : fail('P32 denied admission made a run: ' + runsBefore + ' -> ' + runsAfter)
 
   // AN ENDED RUN DOES NOT REOPEN. A retry is a new run with its own id.
-  await client.query(`select append_event($1,'run.ended@1',$2::jsonb,$3::jsonb)`,
-    [A, seedActor, JSON.stringify({ task_run_id: first.r.task_run_id, outcome: 'completed' })])
+  //
+  // Ended THROUGH THE MANAGED STOP PATH (migration 62), the only end that releases ownership: a stop
+  // request, the terminal's close receipt, and a complete observation, which itself journals
+  // `run.ended@1` and frees the lease. A raw `run.ended@1` append — what this probe did until the
+  // release review of 2026-10-03 found it — leaves `run_ownership_unresolved` true, so the retry below
+  // was refused `run_unresolved` and P32 failed on every full run since migration 62.
+  const stopCommand = randomUUID()
+  const { rows: [stop] } = await client.query(
+    `select request_task_run_stop($1,$2,$3,$4,$5::jsonb,null,null,'natural_exit') as r`,
+    [A, first.r.task_run_id, firstSession, stopCommand, seedActor])
+  stop.r.requested === true ? ok('P32 the run accepts a managed stop request') : fail('P32 stop request', JSON.stringify(stop.r))
+  await client.query(`select append_event($1,'terminal.closed@1',$2::jsonb,$3::jsonb,'1',$4)`,
+    [A, seedActor, JSON.stringify({ session_id: firstSession, exit_code: 0 }), projA])
+  const { rows: [observed] } = await client.query(
+    `select record_task_run_stop_observation($1,$2,$3,$4,$5::jsonb) as r`,
+    [A, first.r.task_run_id, firstSession, stopCommand, JSON.stringify({
+      rootExited: true, processTreeQuiescent: true, providerQuiescent: true, authorityRevoked: true, transcriptCommitted: true,
+      hostInstanceId: 'host-p32', bootId: 'boot-p32', processIdentityRef: 'process:p32', providerObservationRef: 'provider:p32',
+      authorityRevocationRef: 'revoke:p32', transcriptRef: 'sha256:p32', outcome: 'completed' })])
+  const { rows: [ended] } = await client.query(
+    `select state, outcome from task_runs where estate_id = $1 and task_run_id = $2`, [A, first.r.task_run_id])
+  observed.r.state === 'stopped' && ended.state === 'ended' && ended.outcome === 'completed'
+    ? ok('P32 and a complete observation ends the run (stopped, ended, completed)')
+    : fail('P32 managed end', JSON.stringify({ observed: observed.r, ended }))
   await expectError(
     'P32 reopening an ended run',
     `update task_runs set state = 'active' where estate_id = $1 and task_run_id = $2`,
@@ -1382,8 +1432,8 @@ async function p32_taskRuns() {
     [A, first.r.task_run_id], '23514')
 
   // And a fresh admission is a NEW run with its own ordinal — a retry does not
-  // overwrite the first attempt's account of itself.
-  await client.query(`delete from leases where estate_id = $1 and work_id = $2`, [A, taskId])
+  // overwrite the first attempt's account of itself. The managed stop already released the lease; no
+  // row is deleted by hand, so a stop that forgot to would fail here.
   await client.query(`update project_tasks set status = 'backlog' where estate_id = $1 and id = $2`, [A, taskId])
   const { rows: [second] } = await client.query(
     `select admit_task_launch($1,$2,$3::jsonb,$4) as r`, [A, taskId, seedActor, randomUUID()])
