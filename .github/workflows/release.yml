@@ -1,0 +1,116 @@
+# The release: Fabric for macOS as one DMG for Apple silicon, signed with the organization's CI
+# Developer ID, notarized and stapled (the app and the DMG); then attested (Sigstore), summed and
+# GPG-signed, and published as a release of this repository. Signing happens only here, in the
+# protected `release` environment: approved by release-approvers, never by whoever pushed the tag
+# (passioncode-ai/.github release-signing/README.md, ADR-0111). A published release is never
+# rewritten: a fix is a new tag. How to cut one: docs/launch/release-mac.md.
+#
+# Release:    push an annotated vX.Y.Z tag on a commit of main whose apps/desktop/package.json says
+#             X.Y.Z and whose release gate (docs/launch/release-gate.json) is clear.
+# Rehearsal:  push vX.Y.Z-rc.N (the push trigger ignores it), then
+#             gh workflow run release.yml --ref vX.Y.Z-rc.N -f publish=false
+#             The signed set is kept as a workflow artifact; no release is created.
+name: release
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "false = rehearsal: sign, notarize and attest, create no release"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  # One release of a tag at a time; a second run waits rather than racing the first to the release.
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    # Before anyone is asked to approve: the commit is on main, the tag names the version the commit
+    # carries, and the release gate is clear. No secret, no environment, no dependencies.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0   # the ancestry check needs main's history
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: The commit, the tag and the release gate
+        env:
+          TAG: ${{ github.ref_name }}
+        run: node scripts/release-mac.mjs --check-only --tag "$TAG"
+
+  macos:
+    needs: [preflight]
+    runs-on: macos-latest
+    environment: release
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0   # the ancestry check, and the build manifest names the commit
+      - name: The Node version the desktop toolchain is pinned to
+        id: pin
+        run: echo "node=$(python3 -c 'import json; print(json.load(open("toolchain.lock.json"))["node"])')" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ steps.pin.outputs.node }}
+          package-manager-cache: false   # no cache feeds a signing job
+      - run: pnpm install --frozen-lockfile
+      - id: sign
+        uses: passioncode-ai/.github/actions/apple-signing@v1
+        with:
+          developer-id-p12-b64: ${{ secrets.APPLE_DEVELOPER_ID_P12_B64 }}
+          p12-password: ${{ secrets.APPLE_DEVELOPER_ID_P12_PASSWORD }}
+          team-id: ${{ vars.APPLE_TEAM_ID }}
+      - name: Build, sign, notarize, staple and assess the app and the DMG
+        # electron-builder signs with the action's identity from the action's keychain and notarizes and
+        # staples the app with the App Store Connect key; the script notarizes and staples the DMG, then
+        # checks both with codesign, stapler and spctl, and writes the receipt.
+        env:
+          TAG: ${{ github.ref_name }}
+          FABRIC_SIGN_IDENTITY: ${{ steps.sign.outputs.identity }}
+          CSC_KEYCHAIN: ${{ steps.sign.outputs.keychain }}
+          ASC_API_KEY_P8_B64: ${{ secrets.ASC_API_KEY_P8_B64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: node scripts/release-mac.mjs --tag "$TAG"
+      - name: Collect the release files
+        run: |
+          version=$(node -p 'require("./apps/desktop/package.json").version')
+          mkdir -p release
+          cp "apps/desktop/dist/Fabric-$version-arm64.dmg" "docs/releases/fabric-$version-mac.json" release/
+          ls -l release
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-macos
+          path: release/*
+          if-no-files-found: error
+      - if: always()
+        uses: passioncode-ai/.github/actions/apple-signing/cleanup@v1
+
+  publish:
+    needs: [macos]
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    uses: passioncode-ai/.github/.github/workflows/release-publish.yml@v1
+    with:
+      publish: ${{ github.event_name == 'push' || inputs.publish }}
+      # Fabric is an early preview (0.x): every release is published as a prerelease. The tag stays
+      # vX.Y.Z, the version apps/desktop/package.json carries. Set "auto" (or drop the line) when Fabric
+      # stops being a preview; ADR-0111 §1.
+      prerelease: "true"
+    secrets: inherit
