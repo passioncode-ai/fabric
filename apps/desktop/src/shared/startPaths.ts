@@ -39,13 +39,47 @@ export interface ScanResult {
   unreadable: number
   /** Folders below the depth limit that were not entered. */
   deep: number
+  /** Symlinked folders the walk did not follow (it never leaves the chosen folder through a link). */
+  symlinks: number
   truncated: boolean
   cancelled: boolean
 }
 
-export interface ScanView extends Omit<ScanResult, 'candidates'> {
+/**
+ * A scan as the renderer sees it. Main always sends `symlinks` (`scanFolder`, `parseStoredScan`); it is
+ * optional on the VIEW only because the renderer's own fixtures predate the field, and a renderer reading
+ * it must treat a missing value as unknown rather than as zero.
+ */
+export interface ScanView extends Omit<ScanResult, 'candidates' | 'symlinks'> {
   candidates: CandidateView[]
   scannedAt: string
+  symlinks?: number
+}
+
+/**
+ * A kept scan read back from disk (`main/startPaths.ts`), or null when it is not one. Counts that are
+ * missing read as 0; a missing `truncated` reads as TRUE — "nobody recorded it" must never read as "this
+ * is the whole folder"; a kept scan is never `cancelled` (a cancelled one is not kept).
+ */
+export function parseStoredScan(v: unknown): (ScanResult & { scannedAt: string }) | null {
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return null
+  const r = v as Record<string, unknown>
+  if (typeof r.root !== 'string' || typeof r.scannedAt !== 'string' || !Array.isArray(r.candidates)) return null
+  const candidates = r.candidates.filter(
+    (c): c is Candidate => !!c && typeof c === 'object' && typeof (c as Candidate).path === 'string' && typeof (c as Candidate).group === 'string' && typeof (c as Candidate).name === 'string'
+  )
+  const count = (x: unknown): number => (typeof x === 'number' && Number.isFinite(x) && x >= 0 ? x : 0)
+  return {
+    root: r.root,
+    scannedAt: r.scannedAt,
+    candidates,
+    visited: count(r.visited),
+    unreadable: count(r.unreadable),
+    deep: count(r.deep),
+    symlinks: count(r.symlinks),
+    truncated: typeof r.truncated === 'boolean' ? r.truncated : true,
+    cancelled: false
+  }
 }
 
 export type ExecutorState = 'found' | 'unresponsive' | 'missing'

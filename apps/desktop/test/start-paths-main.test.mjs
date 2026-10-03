@@ -44,6 +44,26 @@ assert.equal(folderNameProblem('billing-service'), null)
 assert.deepEqual(readdirSync(parent).sort(), ['alpha', 'beta', 'gamma'])
 console.log('PASS project folder: made with git, exists/invalid/outside refused, failed git leaves nothing, non-blocking, name rule')
 
+// ── a kept scan read back (main/startPaths.ts validateScan → shared parseStoredScan): every count validated,
+// `symlinks` included (iteration 2, errors finding 4); a missing `truncated` reads as cut.
+{
+  const { parseStoredScan } = await import(path.resolve(import.meta.dirname, '../src/shared/startPaths.ts'))
+  const base = { root: '/w', scannedAt: '2026-10-03T00:00:00Z', candidates: [{ path: '/w/a', group: '/w/a', name: 'a' }, { nope: 1 }] }
+  const full = parseStoredScan({ ...base, visited: 9, unreadable: 1, deep: 2, symlinks: 3, truncated: false, cancelled: true })
+  assert.deepEqual(
+    { visited: full.visited, unreadable: full.unreadable, deep: full.deep, symlinks: full.symlinks, truncated: full.truncated, cancelled: full.cancelled, n: full.candidates.length },
+    { visited: 9, unreadable: 1, deep: 2, symlinks: 3, truncated: false, cancelled: false, n: 1 },
+    'counts survive; a kept scan is never cancelled; a malformed candidate is dropped'
+  )
+  const old = parseStoredScan({ ...base, deep: 'x', symlinks: -4 })
+  assert.equal(old.symlinks, 0, 'a missing or invalid symlink count reads as 0, like deep')
+  assert.equal(old.deep, 0)
+  assert.equal(old.truncated, true, 'a kept scan that does not say whether it was cut reads as cut')
+  assert.equal(parseStoredScan({ root: 1 }), null)
+  assert.equal(parseStoredScan([]), null)
+}
+console.log('PASS kept scan: counts validated (symlinks like deep), unknown truncation reads as cut')
+
 // ── the window's choices (iteration 1 → 2): a parent folder is remembered per window and forgotten with
 // it; only an unpackaged run answers the picker from FABRIC_WALK_PICK.
 const { ParentChoices, walkPickFor } = await import(path.resolve(import.meta.dirname, '../src/main/startChoices.ts'))

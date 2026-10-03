@@ -1,4 +1,4 @@
-// #region start-paths-main — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+// #region start-paths-main — docs: docs/ux/scenarios.md#scn-128-scan-a-projects-folder-and-tick-what-becomes-a-project
 /**
  * The main-process half of the start paths (ADR-0100): the last scan, kept so
  * unticked candidates stay visible later (SCN-128). The new project's folder is
@@ -13,32 +13,20 @@
  */
 
 import { localStore } from './localStore.ts'
-import type { Candidate, ScanResult } from '../shared/startPaths.ts'
+import { parseStoredScan, type ScanResult } from '../shared/startPaths.ts'
 
 export interface StoredScan extends ScanResult { scannedAt: string }
 
+/**
+ * A kept scan as read back: every count (`visited`, `unreadable`, `deep`, `symlinks`) validated, a missing
+ * `truncated` read as cut. The rule lives in `shared/startPaths.ts#parseStoredScan`, where it is tested
+ * without Electron.
+ */
 function validateScan(v: unknown): StoredScan | null {
-  if (!v || typeof v !== 'object' || Array.isArray(v)) return null
-  const r = v as Record<string, unknown>
-  if (typeof r.root !== 'string' || typeof r.scannedAt !== 'string' || !Array.isArray(r.candidates)) return null
-  const candidates = r.candidates.filter(
-    (c): c is Candidate => !!c && typeof c === 'object' && typeof (c as Candidate).path === 'string' && typeof (c as Candidate).group === 'string' && typeof (c as Candidate).name === 'string'
-  )
-  return {
-    root: r.root,
-    scannedAt: r.scannedAt,
-    candidates,
-    visited: typeof r.visited === 'number' ? r.visited : 0,
-    unreadable: typeof r.unreadable === 'number' ? r.unreadable : 0,
-    deep: typeof r.deep === 'number' ? r.deep : 0,
-    // A kept scan that does not say whether it was cut is read as cut: "nobody recorded it" must never
-    // read as "this is the whole folder".
-    truncated: typeof r.truncated === 'boolean' ? r.truncated : true,
-    cancelled: false
-  }
+  return parseStoredScan(v)
 }
 
-const EMPTY: StoredScan = { root: '', scannedAt: '', candidates: [], visited: 0, unreadable: 0, deep: 0, truncated: false, cancelled: false }
+const EMPTY: StoredScan = { root: '', scannedAt: '', candidates: [], visited: 0, unreadable: 0, deep: 0, symlinks: 0, truncated: false, cancelled: false }
 const scans = localStore<StoredScan>('last-scan.json', EMPTY, validateScan)
 
 /** The last completed scan, or null when none was kept. */

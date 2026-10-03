@@ -2915,7 +2915,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       if (!result.cancelled) scanCandidates.record(scope, 'scan', result.candidates.map((c) => c.path))
       const kept = keepScan(result)
       const view: ScanView = { ...result, scannedAt: kept?.scannedAt ?? new Date().toISOString(), candidates: (await withImported(result.candidates)) as CandidateView[] }
-      ops.record({ op: 'start.scan', outcome: 'ok', detail: { visited: result.visited, candidates: result.candidates.length, unreadable: result.unreadable, deep: result.deep, truncated: result.truncated, cancelled: result.cancelled }, ctx: { correlationId: ops.correlate() } })
+      ops.record({ op: 'start.scan', outcome: 'ok', detail: { visited: result.visited, candidates: result.candidates.length, unreadable: result.unreadable, deep: result.deep, symlinks: result.symlinks, truncated: result.truncated, cancelled: result.cancelled }, ctx: { correlationId: ops.correlate() } })
       return view
     } finally {
       if (scans.get(scope) === ctl) scans.delete(scope)
