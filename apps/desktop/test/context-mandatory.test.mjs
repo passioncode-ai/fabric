@@ -60,14 +60,35 @@ await test('an unattended start with every required source answered compiles as 
   assert.match(pack.markdown, /Atlas/)
 })
 
-await test('what a session must carry is decided by how it was ADMITTED', async () => {
-  const admitted = (trigger) => store({ journal: { data: [{ payload: { trigger, session_id: 's' } }], error: null } })
-  assert.deepEqual([...(await contextDemandFor(admitted('chain'), 's'))], [...UNATTENDED_CONTEXT_SOURCES])
-  assert.deepEqual([...(await contextDemandFor(admitted('routine'), 's'))], [...UNATTENDED_CONTEXT_SOURCES])
-  assert.deepEqual([...(await contextDemandFor(admitted('operator'), 's'))], [])
-  assert.deepEqual([...(await contextDemandFor(store({ journal: { data: [], error: null } }), 's'))], [], 'a terminal with no admission is a person\'s')
-  assert.deepEqual([...(await contextDemandFor(store({ journal: { data: null, error: { message: 'down' } } }), 's'))],
-    [...UNATTENDED_CONTEXT_SOURCES], 'an unread admission was taken as proof a person is present')
+await test('what a session must carry is decided by the trigger the LAUNCH passes, not guessed from the journal', async () => {
+  // Release review iteration 2, memory finding 7: the demand was read back from `task.admitted@1`, and a
+  // failed read demanded the unattended set — refusing a person's own session because a query failed.
+  // The launch knows how it admitted the session; it says so, and nothing is read.
+  assert.deepEqual([...contextDemandFor('chain')], [...UNATTENDED_CONTEXT_SOURCES])
+  assert.deepEqual([...contextDemandFor('routine')], [...UNATTENDED_CONTEXT_SOURCES])
+  assert.deepEqual([...contextDemandFor('operator')], [])
+  assert.deepEqual([...contextDemandFor('answer')], [], 'an answered question resumes a person\'s work')
+  assert.deepEqual([...contextDemandFor(undefined)], [], 'a terminal opened with no launch is a person\'s')
+})
+
+await test('the project source counts as met only when the project row EXISTS', async () => {
+  const noProject = { ...healthy, projects: { data: null, error: null } }
+  await assert.rejects(
+    compileContextPack({ store: store(noProject), projectId: 'p1', mandatory: UNATTENDED_CONTEXT_SOURCES }),
+    (e) => e instanceof MandatoryContextUnmet && e.unmet.join() === 'project',
+    'an unattended start ran with no project row — an empty answer was counted as the project'
+  )
+  const pack = await compileContextPack({ store: store(noProject), projectId: 'p1' })
+  assert.notEqual(pack.read.availability, 'complete', 'a pack with no project row claimed to be complete')
+})
+
+await test('facts past one read are COUNTED: omittedFacts includes what the gateway did not return', async () => {
+  const fact = (i) => ({ id: `f${i}`, claim: `fact ${i}`, source_ref: null, kind: 'note', actor_kind: 'person', actor_id: 'op', recorded_at: 'x', seq: i })
+  const many = { ...healthy, memory_facts: { data: Array.from({ length: 1000 }, (_, i) => fact(i)), error: null, count: 1500 } }
+  const pack = await compileContextPack({ store: store(many), projectId: 'p1', budget: 1_000_000 })
+  assert.equal(pack.factIds.length, 1000)
+  assert.equal(pack.omittedFacts, 500, `omittedFacts said ${pack.omittedFacts} while 500 facts were never read`)
+  assert.match(pack.markdown, /500 fact\(s\)/)
 })
 
 if (failures) { console.log('\n' + failures + ' failure(s)'); process.exit(1) }

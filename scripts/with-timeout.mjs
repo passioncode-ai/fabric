@@ -8,6 +8,7 @@
 // the command named — so a hang becomes a failure someone reads, not a run nobody finishes. Otherwise
 // the command's own exit code (or 128 + signal) is returned.
 import { spawn } from 'node:child_process'
+import { constants } from 'node:os'
 
 const [limitArg, sep, cmd, ...args] = process.argv.slice(2)
 const limit = Number(limitArg)
@@ -42,6 +43,8 @@ child.on('exit', (code, signal) => {
   // The leader is gone; anything it left behind in its group goes too.
   group('SIGKILL')
   if (timedOut) process.exit(124)
-  process.exit(code ?? 128 + (signal === 'SIGKILL' ? 9 : 15))
+  // 128 + the signal's own number, as a shell reports it: SIGABRT is 134 and SIGINT 130, not "143" for
+  // every signal but KILL (release review iteration 2). An unknown name falls back to SIGTERM's number.
+  process.exit(code ?? 128 + (constants.signals[signal] ?? constants.signals.SIGTERM))
 })
 // #endregion with-timeout

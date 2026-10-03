@@ -25,7 +25,8 @@ import { AgentSurface } from './agentSurface'
 import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
 import { createBundleCompiler } from './sessionBundle'
 import { createTranscriptStore } from './transcripts'
-import { compileContextPack, contextDemandFor } from './contextPack'
+import { compileContextPack, contextDemandFor, type LaunchTrigger } from './contextPack'
+import { refreshFileRootsFrom } from './fileRootsRefresh.ts'
 import { readSettings, writeSettings } from './settings'
 import { createPowerKeeper, type PowerKeeper } from './power'
 import { createRepoStateReader } from './repoState'
@@ -98,7 +99,7 @@ import { createPrivateHistory, type PrivateHistory } from './privateHistory.ts'
 type Returns<T> = T extends (...args: never[]) => Promise<infer R> ? R : never
 import { hasSiblings, originDocument, sameDocument } from '../shared/origin.ts'
 import { researchBrief } from '../shared/idea.ts'
-import { nameTaken, readSpec, resolveServers } from '../shared/agentSpec.ts'
+import { agentNameTakenAtWrite, nameTaken, readSpec, resolveServers } from '../shared/agentSpec.ts'
 import { dueRoutines } from '../shared/routine.ts'
 import { automationStates } from '../shared/automations.ts'
 import { createRoutineTick } from './routineTick'
@@ -510,7 +511,9 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
         store,
         projectId,
         // An unattended start (chain, routine) requires its context sources; a missing one refuses it.
-        mandatory: await contextDemandFor(store, sessionId),
+        // The trigger is the one the launch admitted this session with (`launchTriggerBySession`, set
+        // by the managed launch around `ptys.open`); a terminal opened without a launch has none.
+        mandatory: contextDemandFor(launchTriggerBySession.get(sessionId)),
         taskInstruction: (task?.data?.instruction as string | undefined) ?? null,
         // The brief travels too. Found by auditing the layer against itself:
         // step 5 gave a task a brief and nothing carried it to the agent, so a
@@ -741,6 +744,9 @@ const scopeOf = (event: Electron.IpcMainInvokeEvent): string => `win:${event.sen
  *  does not outlive it. */
 /** A start-path parent chosen in a window, and that window's running scan (ADR-0100) — both end with it. */
 const parentChoices = new ParentChoices()
+/** How each session being opened by a managed launch was admitted, for the length of `ptys.open` — the
+ *  context pack's demand is decided by it (`contextPack.ts#contextDemandFor`). */
+const launchTriggerBySession = new Map<string, LaunchTrigger>()
 const startScans = new Map<string, AbortController>()
 
 export function revokeWindowRoots(webContentsId: number): void {
@@ -752,13 +758,12 @@ export function revokeWindowRoots(webContentsId: number): void {
 }
 
 async function refreshFileRoots(): Promise<void> {
-  const { data, error } = await store.select('project_repos', 'path')
-  if (error) {
-    ops.failed('index.could-not-refresh-file-roots', error.message, { note: 'could not refresh file roots:' })
-    return
-  }
-  const paths = (data ?? []).map((r) => r.path as string)
-  fileRoots.reset(paths)
+  // Every page, or the roots stay as they were (release review iteration 2, data finding 3): one capped
+  // request reset the roots to the first 1000 repositories (`fileRootsRefresh.ts`).
+  const refreshed = await refreshFileRootsFrom(store, (paths) => fileRoots.reset(paths), (failed) =>
+    ops.failed('index.could-not-refresh-file-roots', failed, { note: 'could not refresh file roots; the current roots are kept:' }))
+  if (refreshed.state === 'kept') return
+  const paths = refreshed.paths
   // The same set bounds the filesystem API and is watched for git changes: one
   // list of what the operator opened, two consumers (M56, SEC-REQ-016).
   // M107 — on its OWN channel. This broadcast used to go out on
@@ -1645,21 +1650,31 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         throw new Error(`this project already has an agent called ${verdict.spec.name}`)
 
       const id = randomUUID()
-      await journal.append({
-        estateId: ACTIVE_ESTATE,
-        type: 'agent.registered@1',
-        actor: OPERATOR_ACTOR,
-        projectId: input.projectId,
-        payload: {
-          id,
-          project_id: input.projectId,
-          name: verdict.spec.name,
-          runner_id: verdict.spec.runnerId,
-          instructions: verdict.spec.instructions,
-          mcp_servers: resolved.servers,
-          permission_mode: input.permissionMode ?? null
-        }
-      })
+      // #region one-agent-per-name — docs: docs/ux/scenarios.md#scn-130-start-a-new-agent-inside-a-project
+      // The read above is the quick answer; the RULE is at the write boundary. Two creates of one name
+      // could both pass that read, so `append_event` checks the name again under the estate's lock
+      // (migration 72) and refuses the second with the same sentence, which is mapped back here.
+      try {
+        await journal.append({
+          estateId: ACTIVE_ESTATE,
+          type: 'agent.registered@1',
+          actor: OPERATOR_ACTOR,
+          projectId: input.projectId,
+          payload: {
+            id,
+            project_id: input.projectId,
+            name: verdict.spec.name,
+            runner_id: verdict.spec.runnerId,
+            instructions: verdict.spec.instructions,
+            mcp_servers: resolved.servers,
+            permission_mode: input.permissionMode ?? null
+          }
+        })
+      } catch (e) {
+        if (agentNameTakenAtWrite(e)) throw new Error(`this project already has an agent called ${verdict.spec.name}`)
+        throw e
+      }
+      // #endregion one-agent-per-name
       const { data, error } = await store
         .select('agent_bindings', '*').eq('id', id).single()
       if (error) throw new Error(`agent read-back failed: ${error.message}`)
@@ -2415,11 +2430,20 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           servers: (data.mcp_servers as string[] | null) ?? [] }
       }
       return async (sessionId, validateLaunch) => {
-        const session = await ptys.open(receipt.project_id!, project.repo_path!, optionId,
-          input.taskId, input.permissionMode ?? null, agent, sessionId,
-          async () => (await identity.guard()).ok && await validateLaunch())
-        syncPower()
-        return session
+        // #region context-demand — docs: docs/evidence/backlog.md#work-s14
+        // The context pack is compiled inside `ptys.open`; it asks this map how the session was admitted
+        // instead of reading the journal back (release review iteration 2, memory finding 7).
+        launchTriggerBySession.set(sessionId, input.trigger)
+        try {
+          const session = await ptys.open(receipt.project_id!, project.repo_path!, optionId,
+            input.taskId, input.permissionMode ?? null, agent, sessionId,
+            async () => (await identity.guard()).ok && await validateLaunch())
+          syncPower()
+          return session
+        } finally {
+          launchTriggerBySession.delete(sessionId)
+        }
+        // #endregion context-demand
       }
     },
     track: (sessionId, taskId) => { taskBySession.set(sessionId, taskId) },

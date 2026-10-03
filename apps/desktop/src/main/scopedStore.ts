@@ -47,6 +47,7 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       return q
     },
 
+    // #region bounded-reads — docs: docs/evidence/backlog.md#work-s02-store
     /**
      * A read whose filter is a LIST the caller did not size.
      *
@@ -149,6 +150,7 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       }
       return { rows, failed: null }
     },
+    // #endregion bounded-reads
 
     /** Fills the scope columns rather than trusting the caller to. A row whose
      *  own values disagreed with the scope would be written and then invisible

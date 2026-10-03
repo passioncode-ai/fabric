@@ -220,7 +220,9 @@ The probes that need a database never use the stack above. That stack is the one
 app keeps your real estates in, and until 2026-10-03 the probes wrote into it. Now
 [`scripts/test-stack.mjs`](scripts/test-stack.mjs) copies the root `supabase/` project into a
 temporary folder. The copy gets its own `fabric_test_<hex>` project id and its own block of ten
-ports (from 55420 up; `FABRIC_TEST_STACK_BASE` pins the block). It starts fresh, so the whole
+ports (from 55420 up; `FABRIC_TEST_STACK_BASE` pins the block). Two runs started at once do not
+pick the same block: a block is claimed with a lock file holding the run's pid from the choice until
+`supabase start` has bound its ports, and a dead run's claim is taken over. It starts fresh, so the whole
 migration chain and the seed are applied. It runs only db, auth, rest and kong. It is stopped,
 with its volumes deleted, when the work is done.
 
@@ -239,16 +241,25 @@ A probe reads its connection only from `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KE
 and each probe itself. The live ports are whatever the root `supabase/config.toml` declares,
 plus 54321 and 54322 in every case. A refusal is a FAIL with exit 1, and nothing connects
 first. Two other things are refused as well: the live project id, and an address that is not
-loopback. `down` acts only on a folder that carries the marker `up` wrote. It never runs
-`supabase stop --no-backup` for the live project.
+loopback. `DATABASE_URL` is read the way the probes' `pg` client reads it — pg-connection-string,
+then `PGHOST` / `PGPORT` when the URL names no host or port — and a `host`, `hostaddr` or `port` in
+its query string is refused, because it overrides the address the URL shows. `down` acts only on a
+folder that carries the marker `up` wrote. It never runs `supabase stop --no-backup` for the live
+project.
 
-`pnpm -r test` in the full tier runs under [`scripts/with-timeout.mjs`](scripts/with-timeout.mjs)
+The full tier runs every package's test suites through
+[`scripts/run-test-chains.mjs`](scripts/run-test-chains.mjs): each `a && b && …` link of each
+package's `test` script runs on its own, and the tier fails at the end listing every suite that
+failed — one failure no longer hides the suites behind it (`node scripts/run-test-chains.mjs --list`
+prints them). It runs under [`scripts/with-timeout.mjs`](scripts/with-timeout.mjs)
 (`FABRIC_FULL_TIMEOUT_S`, default 2700): past the limit the whole process group is stopped and the
 tier fails with exit 124 and the command named, so a hung probe cannot keep the tier running forever.
+A command ended by a signal exits 128 plus that signal's number.
 
 The eleven `apps/desktop/test/run-*-db.mjs` suites own a temporary PostgreSQL cluster each.
 They need PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default `/opt/homebrew/opt/postgresql@17/bin`)
-and run first in the full tier.
+and run first in the full tier; every one runs, and the step fails at the end naming each that did not
+pass.
 
 ### Test residue in the live database
 

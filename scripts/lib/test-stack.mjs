@@ -19,6 +19,7 @@
 // The disposable stack itself is made by `scripts/test-stack.mjs`.
 
 import { readFileSync, existsSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -131,6 +132,47 @@ function portOf(value, defaultPort) {
 }
 
 /**
+ * pg's own connection-string parser, loaded from beside `pg` (a dependency of @fabric/schema): the guard
+ * must read DATABASE_URL exactly as the probes' client will, not as `new URL` does. Null when it cannot
+ * be loaded — the caller then refuses, because an address it cannot read the client's way is unverified.
+ */
+let pgParse
+function pgConnectionParse() {
+  if (pgParse !== undefined) return pgParse
+  try {
+    const fromSchema = createRequire(path.join(REPO_ROOT, 'packages', 'schema', 'package.json'))
+    const fromPg = createRequire(fromSchema.resolve('pg/package.json'))
+    const mod = fromPg('pg-connection-string')
+    pgParse = mod.parse ?? mod
+  } catch {
+    pgParse = null
+  }
+  return pgParse
+}
+
+/** Query parameters through which libpq and pg move a connection somewhere the URL does not say. */
+const ADDRESS_PARAMS = ['host', 'hostaddr', 'port']
+
+/**
+ * Where `pg` will actually connect for this DATABASE_URL and environment (release review 2026-10-03,
+ * iteration 2): pg-connection-string's host and port — a `?host=` or `?port=` in the query overrides the
+ * URL's own — then PGHOST / PGPORT when the string names none, then localhost:5432. A host or port in the
+ * query string is refused outright: the address must be the one a person reads in the URL.
+ */
+export function pgTarget(value, env = process.env) {
+  let url
+  try { url = new URL(value) } catch { return { error: 'is not a URL' } }
+  const inQuery = ADDRESS_PARAMS.filter((k) => url.searchParams.has(k))
+  if (inQuery.length) return { error: `carries ${inQuery.join(', ')} in its query string, which overrides the address the URL shows` }
+  const parse = pgConnectionParse()
+  if (!parse) return { error: 'cannot be read the way the pg client reads it (pg-connection-string did not load)' }
+  const parsed = parse(value)
+  const host = parsed.host || env.PGHOST || 'localhost'
+  const port = Number(parsed.port || env.PGPORT || 5432)
+  return { host: host.replace(/^\[(.*)\]$/, '$1'), port }
+}
+
+/**
  * Every reason this environment must NOT be used by a database-backed probe. Empty means it names
  * a disposable stack. Pure, so the refusals are tested one by one (scripts/test/test-stack.test.mjs).
  */
@@ -143,13 +185,16 @@ export function checkTestStack(env, live = liveStack()) {
   if (env.FABRIC_TEST_STACK && !DISPOSABLE_ID.test(env.FABRIC_TEST_STACK))
     reasons.push(`FABRIC_TEST_STACK "${env.FABRIC_TEST_STACK}" is not a disposable project id (fabric_test_<hex>)`)
   const targets = [
-    ['SUPABASE_URL', env.SUPABASE_URL, 80],
-    ['DATABASE_URL', env.DATABASE_URL, 5432]
+    ['SUPABASE_URL', env.SUPABASE_URL, (v) => portOf(v, new URL(v).protocol === 'https:' ? 443 : 80)],
+    // Read the way the probes' pg client reads it, environment included — not the way `new URL` does.
+    ['DATABASE_URL', env.DATABASE_URL, (v) => pgTarget(v, env)]
   ]
-  for (const [name, value, defaultPort] of targets) {
+  for (const [name, value, read] of targets) {
     if (!value) continue
-    const at = portOf(value, defaultPort)
+    let at
+    try { at = read(value) } catch { at = null }
     if (!at) { reasons.push(`${name} is not a URL`); continue }
+    if (at.error) { reasons.push(`${name} ${at.error}`); continue }
     if (live.ports.has(at.port))
       reasons.push(`${name} points at port ${at.port}, which is the LIVE stack's (API ${live.apiPort}, DB ${live.dbPort}) — the operator's database`)
     if (!LOOPBACK.has(at.host)) reasons.push(`${name} host ${at.host} is not loopback — a disposable stack is local by construction`)

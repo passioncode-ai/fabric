@@ -123,8 +123,14 @@ export interface ChainTickResult {
   says: string
 }
 
+// #region chain-launch — docs: docs/launch/harness-r0/checks.md#har-r0-03--единый-managed-launch-2026-09-27
 export function createChainAdvance(deps: ChainDeps): () => Promise<ChainTickResult> {
   let running = false
+  // Launch failures whose `chain.dispatch@1 phase=failed` receipt could NOT be journalled, per follower,
+  // for the life of this controller (release review iteration 2, finding 8). They count against
+  // MAX_CHAIN_LAUNCH_ATTEMPTS beside the journalled ones: a failure the journal refused to record is still
+  // a failure, and without this a follower whose launch always failed was relaunched on every pass.
+  const unjournalledFailures = new Map<string, number>()
   return async (): Promise<ChainTickResult> => {
     // Not `completed`: the pass in flight will report for itself.
     if (running) return { state: 'running', started: 0, says: 'a previous chain pass was still running' }
@@ -459,20 +465,34 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<ChainTickResu
           // missing took every follower after it in the same pass down too, and
           // the receipt could not say which. The failure is journalled, counted
           // against MAX_CHAIN_LAUNCH_ATTEMPTS, and carried into the result.
-          await deps.journal.append({
-            estateId: deps.estateId,
-            type: 'chain.dispatch@1',
-            actor: { kind: 'system', id: 'chain' },
-            projectId: follower.project_id as string,
-            payload: {
-              id: follower.id,
-              phase: 'failed',
-              task_run_id: admitted.receipt.task_run_id,
-              says: 'The launch did not complete. Inspect the run receipt before retrying.'
-            }
-          })
+          //
+          // AND IT IS COUNTED EVEN IF ITS RECEIPT CANNOT BE WRITTEN. A throw from this append used to
+          // escape the pass (every later follower unjudged) and leave the failure uncounted.
+          let recorded = true
+          try {
+            await deps.journal.append({
+              estateId: deps.estateId,
+              type: 'chain.dispatch@1',
+              actor: { kind: 'system', id: 'chain' },
+              projectId: follower.project_id as string,
+              payload: {
+                id: follower.id,
+                phase: 'failed',
+                task_run_id: admitted.receipt.task_run_id,
+                says: 'The launch did not complete. Inspect the run receipt before retrying.'
+              }
+            })
+          } catch (appendError) {
+            recorded = false
+            const id = follower.id as string
+            unjournalledFailures.set(id, (unjournalledFailures.get(id) ?? 0) + 1)
+            ops.failed('chain.launch-failure-unrecorded', appendError, { followerId: follower.id })
+          }
           ops.failed('chain.launch-failed', spawnError, { followerId: follower.id })
-          problems.push(`${follower.id as string} did not launch: ${String(spawnError)}`)
+          problems.push(
+            `${follower.id as string} did not launch: ${String(spawnError)}` +
+              (recorded ? '' : ' (and the failure could not be recorded in the journal; it is counted in memory)')
+          )
           continue
         }
         dispatched.add(follower.id as string)
@@ -516,7 +536,8 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<ChainTickResu
       ops.failed('chain.launch-history-unreadable', new Error(failed.error?.message ?? 'no count returned'), { followerId })
       return 'unreadable'
     }
-    if (failed.count < MAX_CHAIN_LAUNCH_ATTEMPTS) return false
+    const failures = failed.count + (unjournalledFailures.get(followerId) ?? 0)
+    if (failures < MAX_CHAIN_LAUNCH_ATTEMPTS) return false
     const said = await deps.store
       .select('journal', 'seq', { count: 'exact', head: true })
       .eq('type', 'routine.paused@1')
@@ -535,7 +556,7 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<ChainTickResu
         payload: {
           id: followerId,
           reason:
-            `its launch failed ${failed.count} times, so the chain stopped starting it unattended. ` +
+            `its launch failed ${failures} times, so the chain stopped starting it unattended. ` +
             'Read the failed run receipts, fix the cause, then start it yourself.',
           window: null,
           reason_code: 'launch-retries-exhausted'
@@ -544,3 +565,4 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<ChainTickResu
     return true
   }
 }
+// #endregion chain-launch

@@ -19,6 +19,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { probeEnv } from '../lib/test-stack.mjs'
+import { endApp, removeTemp } from './cleanup.mjs'
 
 const stackEnv = probeEnv() // exits 1 unless this runs against a disposable stack
 const ROOT = path.resolve(import.meta.dirname, '../..')
@@ -60,6 +61,8 @@ const child = spawn(electron, [APP, `--user-data-dir=${userData}`, `--remote-deb
 let appLog = ''
 child.stdout.on('data', (d) => { appLog += d })
 child.stderr.on('data', (d) => { appLog += d })
+// Interrupted: the app still exits and the temp folders still go (cleanup.mjs, release review iteration 2).
+for (const sig of ['SIGINT', 'SIGTERM']) process.once(sig, async () => { await endApp(child); removeTemp([fx, userData]); process.exit(130) })
 
 async function page() {
   for (let i = 0; i < 120; i++) {
@@ -194,7 +197,11 @@ try {
 } finally {
   writeFileSync(path.join(OUT, 'walk.json'), JSON.stringify({ theme: THEME, locale: LOCALE, steps, fixtures: fx, userData }, null, 2))
   writeFileSync(path.join(OUT, 'app.log'), appLog)
-  child.kill('SIGTERM')
+  // The app has EXITED before the walk ends, and its temp folders are removed (they were left behind on
+  // every run, and the app could still hold the user-data folder and the port when the next walk began).
+  const ended = await endApp(child)
+  const left = removeTemp([fx, userData])
+  log(`app ${ended}; temp folders ${left.length ? `left behind: ${left.join(', ')}` : 'removed'}`)
   const failed = steps.filter((s) => !s.ok).length
   log(`${steps.length - failed}/${steps.length} walk steps passed → ${OUT}`)
   process.exit(failed ? 1 : 0)

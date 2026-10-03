@@ -37,3 +37,55 @@ for (const processStarted of [false, true]) {
   assert.equal(events.filter(e=>e.type==='chain.dispatch@1'&&e.payload.phase==='failed').length,1)
 }
 console.log('PASS chain launch failure: no competing lease cleanup or false ending outside shared coordinator')
+
+// A LAUNCH FAILURE COUNTS EVEN WHEN ITS RECEIPT CANNOT BE WRITTEN (release review 2026-10-03, iteration 2,
+// finding 8). The failure is counted against MAX_CHAIN_LAUNCH_ATTEMPTS by reading `chain.dispatch@1
+// phase=failed` back. When that append threw inside the catch, the throw escaped the pass — every
+// follower after it went unjudged — and the failure was never counted, so a follower whose launch always
+// failed while the journal refused that one append was relaunched unattended on every pass, forever.
+{
+  const MAX = 3
+  let starts = 0
+  const events = []
+  const store = {
+    // The journal counts read back what was actually appended (the refused receipts never were).
+    select() {
+      const filters = []
+      const field = (e, c) => (c.startsWith('payload->>') ? e.payload?.[c.slice(10)] : e[c])
+      const q = {
+        eq(c, v) { filters.push([c, v]); return q },
+        then(resolve) {
+          const n = events.filter((e) => filters.every(([c, v]) => c === 'estate_id' || field(e, c) === v)).length
+          return Promise.resolve({ data: [], error: null, count: n }).then(resolve)
+        }
+      }
+      return q
+    },
+    async selectAll(table, columns, { eq = [] } = {}) {
+      const rel = eq.find(([k]) => k === 'rel')?.[1]
+      return { rows: table === 'task_links' && rel === 'follows' ? [{ task_id: 'follower', target_id: 'parent', needs: [] }] : [], failed: null }
+    },
+    async selectIn(table, columns, field, ids) {
+      return { rows: ids.includes('follower') ? [{ id: 'follower', project_id: 'project', status: 'backlog', instruction: 'do work', option_id: 'shell' }] : [{ id: 'parent', status: 'done' }], failed: null }
+    },
+    delete() { const q = { eq() { return q }, then(resolve) { return Promise.resolve({ data: [], error: null }).then(resolve) } }; return q }
+  }
+  const advance = createChainAdvance({ store, estateId: 'estate', quota: async () => null, admission: { claim: () => ({ ok: true }) },
+    journal: { append: async (e) => {
+      if (e.type === 'chain.dispatch@1' && e.payload.phase === 'failed') throw new Error('lock timeout on the journal')
+      events.push(e); return { seq: events.length }
+    } },
+    admitExisting: async () => ({ admitted: true, receipt: { task_run_id: 'run', project_id: 'project', instruction: 'do work' } }),
+    bindRun: async () => ({ ok: true }), endRun: async () => ({ ok: true }),
+    startTask: async () => { starts++; throw Error('binary not found') }
+  })
+  const first = await advance()
+  assert.equal(first.state, 'failed_known')
+  assert.match(first.says, /follower did not launch/, 'the pass did not carry the launch failure: ' + first.says)
+  assert.match(first.says, /could not be recorded/, 'the pass hid that the failure was not journalled: ' + first.says)
+  for (let i = 1; i < MAX + 2; i++) await advance()
+  assert.equal(starts, MAX, `an unjournalled launch failure was not counted: ${starts} launches against a limit of ${MAX}`)
+  assert.equal(events.filter((e) => e.type === 'routine.paused@1' && e.payload.reason_code === 'launch-retries-exhausted').length, 1,
+    'the exhausted follower was not paused with its reason')
+  console.log('PASS chain launch failure: counted even when its receipt could not be journalled')
+}

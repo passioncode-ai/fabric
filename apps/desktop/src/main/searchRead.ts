@@ -119,22 +119,10 @@ export function substringFilter(columns: readonly string[], text: string): strin
  * the searched-stores sentence read in one order and cannot disagree about
  * which stores exist.
  */
+// #region search-read — docs: docs/ux/scenarios.md#scn-048-find-anything-the-estate-holds-from-one-field
 export async function searchFor(store: ScopedStore, query: string): Promise<SearchGroup[]> {
   const text = query?.trim()
   if (!text) return []
-
-  // NOT destructured past the error. A refused projects read used to leave the
-  // label map empty, and every hit then rendered with a blank project column —
-  // indistinguishable from hits that genuinely have no project name, and
-  // reported to nobody.
-  const projectRead = (await store.select('projects', 'id,name')) as Read
-  const names = Object.fromEntries(
-    (projectRead.data ?? []).map((r) => [String(r.id), String(r.name)])
-  )
-  const named = (projectId: string): string | null => names[projectId] ?? null
-  const labelProblem = projectRead.error
-    ? `project names could not be read: ${projectRead.error.message}`
-    : null
 
   // NEWEST FIRST, in every store (M141, release review 2026-10-03). The word stores were labelled
   // "ranked" while nothing ordered them by rank, so a capped group was an arbitrary subset. Each store
@@ -175,6 +163,19 @@ export async function searchFor(store: ScopedStore, query: string): Promise<Sear
       .order('captured_at', { ascending: false })
       .limit(SEARCH_CAP)
   ])) as unknown as [Read, Read, Read, Read, Read]
+
+  // THE LABELS OF THE HITS, AND ONLY THOSE (release review iteration 2, data finding 4). The label map
+  // came from one unpaged `projects` read: past the gateway's 1000-row cap a hit from a later project
+  // rendered with a blank project while `labelProblem` stayed null. Now the ids the hits carry are asked
+  // for by `selectIn` — at most five capped groups' worth, chunked — and a refused read is said, NOT
+  // destructured past: a blank project column is indistinguishable from a project with no name.
+  const ids = new Set<string>()
+  for (const [read, column] of [[projects, 'id'], [tasks, 'project_id'], [facts, 'project_id'], [decisions, 'project_id'], [transcripts, 'project_id']] as const)
+    for (const r of read.data ?? []) if (r[column] != null && r[column] !== '') ids.add(String(r[column]))
+  const labels = await store.selectIn('projects', 'id,name', 'id', [...ids].sort())
+  const names = Object.fromEntries(labels.rows.map((r) => [String(r.id), String(r.name)]))
+  const named = (projectId: string): string | null => names[projectId] ?? null
+  const labelProblem = labels.failed ? `project names could not be read: ${labels.failed}` : null
 
   return [
     groupOf({
@@ -222,3 +223,4 @@ export async function searchFor(store: ScopedStore, query: string): Promise<Sear
     })
   ]
 }
+// #endregion search-read

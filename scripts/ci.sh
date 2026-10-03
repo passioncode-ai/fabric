@@ -269,6 +269,8 @@ node apps/desktop/test/session-bundle.test.mjs
 node --experimental-strip-types apps/desktop/test/digest-boundary.test.mjs
 node --experimental-strip-types apps/desktop/test/search-read.test.mjs
 node --experimental-strip-types apps/desktop/test/run-lifecycle-contract.test.mjs
+# Release review iteration 2: the file roots read every page or keep what they had.
+node --experimental-strip-types apps/desktop/test/file-roots-refresh.test.mjs
 
 step "owned databases: the SQL contract and the reads, on a cluster this run creates and removes"
 # A disposable PostgreSQL (`initdb` into a temp dir, Unix socket only) with the
@@ -287,7 +289,7 @@ done
 # 2026-10-03 (release review iteration 1, finding 2). The guard that keeps every database probe
 # off the operator's live stack, and the residue report's read-only property. Pure: they start
 # nothing and connect to nothing; the full tier below is where the guard is used.
-node --test scripts/test/test-stack.test.mjs scripts/test/residue-report.test.mjs scripts/test/with-timeout.test.mjs scripts/test/release-gate.test.mjs
+node --test scripts/test/test-stack.test.mjs scripts/test/residue-report.test.mjs scripts/test/with-timeout.test.mjs scripts/test/run-test-chains.test.mjs scripts/test/walk-cleanup.test.mjs scripts/test/release-gate.test.mjs
 
 step "measured runtimes: the private pipe adapters under Node and inside Electron main (E0, B1, B2a, B2b-1, B4)"
 # The registry and the native view host read a private Node pipe field and rely on libuv's
@@ -484,14 +486,21 @@ step "owned-cluster suites: each starts its own PostgreSQL and touches no other 
 # which the hosted fast runner does not have, and together they take ~94 s on this Mac
 # (2026-10-03: 3–32 s each, 11 of 11 exit 0). In this tier a runner that cannot run (exit 2,
 # NOT_RUN) fails it: the full tier is the one whose job is the database.
+# Every runner runs even when one fails (release review iteration 2): the step fails once, at the end,
+# naming each runner that did not pass.
+owned_failed=()
 for suite in run-board-deferral-db run-ceo-conversation-db run-ceo-host-sql run-ceo-private-archive-db \
   run-command-ingress-db run-dispatch-db run-managed-launch-db run-managed-stop-db run-releases-db \
   run-restore-authority-db run-transcript-recovery-db; do
   if ! node "apps/desktop/test/$suite.mjs"; then
     echo "FAIL: $suite (exit non-zero; exit 2 is NOT_RUN — set FABRIC_PG_BIN to PostgreSQL 17 binaries)"
-    exit 1
+    owned_failed+=("$suite")
   fi
 done
+if [ "${#owned_failed[@]}" -gt 0 ]; then
+  echo "FAIL: ${#owned_failed[@]} owned-cluster runner(s) did not pass: ${owned_failed[*]}"
+  exit 1
+fi
 
 step "a disposable stack — never the operator's"
 # 2026-10-03 (release review iteration 1, finding 2). This step used to be `supabase start` and
@@ -523,7 +532,10 @@ node scripts/test-stack.mjs guard
 step "every probe, including the ones that need the database"
 # A wall-clock limit (FABRIC_FULL_TIMEOUT_S, default 45 min): a probe that hangs — planted P14 waited
 # on a lock with no limit on 2026-10-03 — fails the tier with its command named instead of never ending.
-node scripts/with-timeout.mjs "${FABRIC_FULL_TIMEOUT_S:-2700}" -- pnpm -r test
+# EVERY suite runs (release review iteration 2): `pnpm -r test` ran each package's `a && b && …` chain and
+# stopped it at the first failure, so three failures that day hid ~50 desktop suites. The runner splits
+# the chains, runs every link, and fails at the end listing each failure (scripts/run-test-chains.mjs).
+node scripts/with-timeout.mjs "${FABRIC_FULL_TIMEOUT_S:-2700}" -- node scripts/run-test-chains.mjs
 
 step "residue the probes left — in the disposable stack, read-only"
 # Informational: the same report the operator can run against the live database, here showing

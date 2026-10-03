@@ -131,7 +131,11 @@ const KEY_B = { ...KEY_A, subject: 'sub-B', accountId: 'acct-B' }
     ttlMs: 120_000
   })
   const throttled = await reader.read(KEY_A)
-  throttled === null ? ok('A is rate-limited and has no previous reading, so it answers null') : fail('A answered ' + JSON.stringify(throttled))
+  // A failed first read is a READING that names its problem, never null (8209d923): null rendered as
+  // "not signed in", our own throttled request reported as the operator's account.
+  throttled !== null && throttled.problem === 'throttled' && throttled.fiveHour === null && throttled.sevenDay === null
+    ? ok('A is rate-limited and has no previous reading, so it answers a reading with problem "throttled" and no numbers')
+    : fail('A answered ' + JSON.stringify(throttled))
   const other = await reader.read(KEY_B)
   other?.fiveHour?.utilization === 10
     ? ok('and B is asked and answered — a 429 about A does not silence an account nobody asked about')
