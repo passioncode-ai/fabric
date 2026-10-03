@@ -24,7 +24,9 @@ The plan everyone works to: [general development plan](../evidence/backlog.md#ge
   further holes closed — migration 74 (one canonical id spelling at the door and in the journal; command
   ingress now refuses an upper-case or non-hyphenated id with `invalid_identifier`, a contract change) and
   file roots that refuse a repository path which became a link or resolves too broad — recorded as
-  V3-59…V3-65.
+  V3-59…V3-65. A re-verification closed two more: migration 75 (no projector or internal command callable
+  by API roles; a fast-tier sweep enforces it) and file roots that grant a stored path only while it is its
+  own canonical spelling — V3-66…V3-68.
 - **Verification iteration 3** (five fresh reviewers): 58 findings, each fixed or ruled, none blocking open —
   [ledger §Iteration 3](../evidence/plans/2026-10-03-verification.md#iteration-3). Merged
   `claude/iter3-data-fixes` (migration 73: a session belongs to one estate at the door, ids locked, the

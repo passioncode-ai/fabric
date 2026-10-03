@@ -37,3 +37,21 @@ test('the walk\'s fixture and user-data folders are removed, and the walk script
   assert.match(walk, /await endApp\(child/, 'start-paths.mjs still exits without waiting for the app')
   assert.match(walk, /removeTemp\(\[fx, userData\]/, 'start-paths.mjs still leaves its temp folders behind')
 })
+
+// The walk starts the app through a wrapper (`node_modules/.bin/electron`, a node script) that spawns the
+// real Electron as ITS child. Ending only the wrapper orphaned the app: twenty copies were left in the
+// operator's Dock on 2026-10-03. The walk now spawns the wrapper in its own process group and ends the group.
+test('a grandchild the app process started is ended too, not orphaned', async () => {
+  const script = 'const c=require("child_process").spawn(process.execPath,["-e","process.on(\\"SIGTERM\\",()=>{});setInterval(()=>{},1000)"],{stdio:"ignore"});console.log("GRAND "+c.pid);setInterval(()=>{},1000)'
+  const child = spawn(process.execPath, ['-e', script], { stdio: ['ignore', 'pipe', 'ignore'], detached: true })
+  const line = await new Promise((resolve) => child.stdout.once('data', (d) => resolve(String(d))))
+  const grand = Number(/GRAND (\d+)/.exec(line)?.[1])
+  assert.ok(grand > 0)
+  await endApp(child, { graceMs: 500 })
+  await new Promise((r) => setTimeout(r, 200))
+  assert.equal(alive(grand), false, 'the real app outlived the wrapper the walk ended')
+})
+test('the walk spawns the app in its own process group', () => {
+  const walk = readFileSync(path.resolve(import.meta.dirname, '../walk/start-paths.mjs'), 'utf8')
+  assert.match(walk, /detached: true/, 'start-paths.mjs spawns the app outside its own process group')
+})

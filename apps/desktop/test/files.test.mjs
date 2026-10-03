@@ -4,12 +4,14 @@
 // would, and requires the refusal.
 
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, realpathSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
 const SRC = path.resolve(import.meta.dirname, '../src/main/files.ts')
-const dir = mkdtempSync(path.join(tmpdir(), 'fabric-files-'))
+// The native canonical path, as the app stores a repository (a stored path that is not its own canonical
+// spelling grants nothing).
+const dir = realpathSync.native(mkdtempSync(path.join(tmpdir(), 'fabric-files-')))
 const file = path.join(dir, 'note.md')
 writeFileSync(file, 'original\n')
 

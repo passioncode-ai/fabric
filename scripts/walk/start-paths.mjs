@@ -58,7 +58,9 @@ writeFileSync(path.join(userData, 'settings.json'), JSON.stringify({ theme: THEM
 const electron = path.join(APP, 'node_modules/.bin/electron')
 const child = spawn(electron, [APP, `--user-data-dir=${userData}`, `--remote-debugging-port=${PORT}`], {
   env: { ...stackEnv, FABRIC_WALK_PICK: [fresh, projects, parent].join(path.delimiter) },
-  stdio: ['ignore', 'pipe', 'pipe']
+  stdio: ['ignore', 'pipe', 'pipe'],
+  // Its own process group, so endApp ends the real Electron the wrapper starts, not only the wrapper.
+  detached: true
 })
 let appLog = ''
 child.stdout.on('data', (d) => { appLog += d })

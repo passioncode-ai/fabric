@@ -57,6 +57,9 @@ ever show. A declared import into an empty estate C reported success while creat
   `refuse_foreign_identity` in the same migration that registers it; an event that names a `session_id`
   is covered automatically; a new id key the door reads must be added to `refuse_noncanonical_identity`'s
   list. Command ingress refuses a non-canonical id itself (`invalid_identifier`) rather than passing it on.
+- The door is the only door: no projector (`apply_*`) and no internal command is executable by an API role
+  (migration 75); `function-privileges-db.test.mjs` sweeps `has_function_privilege` on the migrated chain,
+  so a new function left open to `public`, `anon` or `authenticated` fails the fast tier.
 - Each create takes one advisory lock per distinct id for its transaction, so a single import of many
   thousands of ids weighs on the lock table (migration 73's header).
 - Migration 70's header overstated its coverage; migration 72's header records the correction, since
