@@ -92,10 +92,11 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
     try {
       return await fn()
     } catch (e) {
-      // A failure Fabric could not get past is said as one: a refusal with its cause, never a
-      // silent empty answer and never a grant assumed.
+      // A failure Fabric could not get past is said as one: a refusal, never a silent empty answer and
+      // never a grant assumed. Its cause goes to the operations log only — a store error's text is not
+      // the agent's to read (ER-11, verification iteration 1 for 0.3.1).
       ops.failed(`hub.${op}`, e, { principal: principal.kind })
-      return refusal('hub-unavailable', `Fabric could not complete this: ${(e as Error).message}`)
+      return refusal('hub-unavailable', 'Fabric could not complete this just now; nothing was decided or sent. Try again later; the operator can see why in Fabric\'s operations log.')
     }
   }
 

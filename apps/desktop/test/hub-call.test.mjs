@@ -108,4 +108,22 @@ test('ER-13: the caller\'s signal reaches the forward, so hanging up mid-call ab
   assert.ok(Date.now() - started < 700, 'the forward ran to its end after the caller hung up')
   assert.equal(w.spans.at(-1).payload.outcome, 'cancelled')
 })
+
+// ER-11 (the tools' own guard): a throw inside fabric.access.request/status reached the agent as
+// "Fabric could not complete this: <the exception text>" — a store error's detail handed to an agent.
+test('ER-11: a throw inside an access tool gives the agent a fixed sentence, never the exception text', async () => {
+  const { hubServerFor } = await import(path.join(SRC, 'hubTools.ts'))
+  const { Client } = await import('@modelcontextprotocol/sdk/client/index.js')
+  const { InMemoryTransport } = await import('@modelcontextprotocol/sdk/inMemory.js')
+  const access = { request: async () => { throw new Error('relation "access_requests": secret-internal-detail') }, status: async () => { throw new Error('secret-internal-detail') } }
+  const server = hubServerFor({ kind: 'door' }, { access })
+  const [a, b] = InMemoryTransport.createLinkedPair()
+  const client = new Client({ name: 't', version: '0' })
+  await Promise.all([server.connect(a), client.connect(b)])
+  const r = await client.callTool({ name: 'fabric.access.request', arguments: { agentId: 'example-agent', callee: 'fabric-inbox', capabilities: ['read_message'], resources: ['cloudflare:news@example.com'], reason: 'r' } })
+  assert.equal(r.isError, true)
+  assert.equal(r.structuredContent.error.code, 'hub-unavailable')
+  assert.doesNotMatch(JSON.stringify(r), /secret-internal-detail/, 'the exception text reached the agent')
+  await client.close()
+})
 // #endregion hub-call
