@@ -5,7 +5,7 @@ import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, net, powe
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { mkdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
@@ -235,7 +235,7 @@ import { inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors } from './executorDetect.ts'
 import { keepScan, lastScan } from './startPaths.ts'
 import { createProjectFolder } from './projectFolder.ts'
-import { ParentChoices, indexImported, realOrResolved, walkPickFor } from './startChoices.ts'
+import { ParentChoices, ScanCandidates, admitRepoPaths, indexImported, realOrResolved, walkPickFor } from './startChoices.ts'
 import { sessionEnvironment } from './sessionEnv.ts'
 import type { CandidateView, FolderFacts, ScanView } from '../shared/startPaths.ts'
 import { livenessFor } from './livenessRead.ts'
@@ -742,11 +742,18 @@ const scopeOf = (event: Electron.IpcMainInvokeEvent): string => `win:${event.sen
 /** A start-path parent chosen in a window, and that window's running scan (ADR-0100) — both end with it. */
 const parentChoices = new ParentChoices()
 const startScans = new Map<string, AbortController>()
+/** The repositories main listed for each window's scan and kept scan: what `projects.create` and
+ *  `repos.attach` may admit besides the window's own roots (iteration 2, errors finding 2). */
+const scanCandidates = new ScanCandidates()
+/** A window's repository paths, admitted against what THAT window can reach, or the whole call refused. */
+const admitForWindow = (event: Electron.IpcMainInvokeEvent, paths: unknown): string[] =>
+  admitRepoPaths(paths, scopeOf(event), { granted: (p, scope) => fileRoots.resolve(p, scope), candidates: scanCandidates })
 
 export function revokeWindowRoots(webContentsId: number): void {
   const scope = `win:${webContentsId}`
   fileRoots.revoke(scope)
   parentChoices.revoke(scope)
+  scanCandidates.revoke(scope)
   startScans.get(scope)?.abort()
   startScans.delete(scope)
 }
@@ -897,7 +904,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     )
   }
 
-  handle(IPC.projectsCreate, async (_e, input: CreateProjectInput): Promise<Returns<FabricApi['projects']['create']>> => {
+  handle(IPC.projectsCreate, async (event, input: CreateProjectInput): Promise<Returns<FabricApi['projects']['create']>> => {
     const name = input.name?.trim()
     if (!name) throw new Error('project name is required')
     const id = input.id
@@ -908,16 +915,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // then failed attaching would otherwise be "already exists, nothing to do",
     // and the operator would be left with a project missing the repositories
     // they chose — a partial creation that looks complete.
-    // Every repository path the renderer names is checked here, not trusted (iteration 1): an absolute
-    // path to an existing folder, taken by its real path, or the create is refused before anything is
-    // journalled.
-    const repoPaths = (input.repoPaths ?? []).map((p) => {
-      if (typeof p !== 'string' || !path.isAbsolute(p)) throw new Error(`not a repository folder: ${String(p)}`)
-      let real: string
-      try { real = realpathSync(p) } catch { throw new Error(`repository folder does not exist: ${p}`) }
-      if (!statSync(real).isDirectory()) throw new Error(`not a repository folder: ${p}`)
-      return real
-    })
+    // #region repo-path-admission — docs: docs/ux/scenarios.md#scn-128-scan-a-projects-folder-and-tick-what-becomes-a-project
+    // Every repository path the renderer names is checked here, not trusted: an absolute path to an
+    // existing folder that THIS window can reach (its picker, a folder it made, the estate's repositories)
+    // or that main listed for this window's scan — or the create is refused before anything is journalled
+    // (iteration 1: any string; iteration 2: any existing folder, then exposed to every window).
+    const repoPaths = admitForWindow(event, input.repoPaths)
+    // #endregion repo-path-admission
     // A failed read is not "no such project" (iteration 1: it appended a second create that cleared the
     // project's folder).
     const { data: already, error: alreadyError } = await store.select('projects', 'id').eq('id', id).maybeSingle()
@@ -2907,6 +2911,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     scans.set(scope, ctl)
     try {
       const result = await scanFolder(resolved, { signal: ctl.signal })
+      // What main found is what this window may add without the picker; a stopped scan lists nothing.
+      if (!result.cancelled) scanCandidates.record(scope, 'scan', result.candidates.map((c) => c.path))
       const kept = keepScan(result)
       const view: ScanView = { ...result, scannedAt: kept?.scannedAt ?? new Date().toISOString(), candidates: (await withImported(result.candidates)) as CandidateView[] }
       ops.record({ op: 'start.scan', outcome: 'ok', detail: { visited: result.visited, candidates: result.candidates.length, unreadable: result.unreadable, deep: result.deep, truncated: result.truncated, cancelled: result.cancelled }, ctx: { correlationId: ops.correlate() } })
@@ -2919,12 +2925,14 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     scans.get(scopeOf(event))?.abort()
   })
   handle(IPC.startLastScan, async (event): Promise<Returns<FabricApi['start']['lastScan']>> => {
-    void event
     const kept = lastScan()
     if (!kept) return null
     // The kept list is re-marked against today's projects and shown — it is NOT a grant (iteration 1:
     // re-granting its root gave any window a folder it never chose). Scanning it again goes through
-    // the picker; adding a listed candidate goes through `projects.create`, which checks each path.
+    // the picker. Its CANDIDATES — repositories main itself found under a folder the operator picked —
+    // are what this window may add from it (ADR-0100 §3), through `projects.create`'s admission; the
+    // root and everything else under it stay unreachable.
+    scanCandidates.record(scopeOf(event), 'kept', kept.candidates.map((c) => c.path))
     return { ...kept, candidates: (await withImported(kept.candidates)) as CandidateView[] }
   })
   handle(IPC.startCreateFolder, async (event, input): Promise<Returns<FabricApi['start']['createFolder']>> => {
@@ -3467,8 +3475,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return result.filePaths
   })
 
-  handle(IPC.reposAttach, async (_e, projectId: string, paths: string[]): Promise<Returns<FabricApi['repos']['attach']>> => {
-    await attachRepos(projectId, paths)
+  handle(IPC.reposAttach, async (event, projectId: string, paths: string[]): Promise<Returns<FabricApi['repos']['attach']>> => {
+    // The same admission as projects.create (iteration 2, errors finding 2): this window's own folders,
+    // by their real paths, or nothing is attached.
+    await attachRepos(projectId, admitForWindow(event, paths))
     await refreshFileRoots()
     return listRepos(projectId)
   })

@@ -85,3 +85,64 @@ const { indexImported } = await import(path.resolve(import.meta.dirname, '../src
   assert.deepEqual(index.get(path.join(parent, 'gone')), [{ id: 'p3', name: 'p3' }], 'a removed folder still names its project, by id when the name is unknown')
 }
 console.log('PASS imported index: real paths, each holder once')
+
+// ── which repository paths a window may hand to projects.create / repos.attach (iteration 2, errors
+// finding 2, blocking): the renderer named ANY existing folder — `projects.create({repoPaths:['/']})` —
+// and the attach put it in every window's roots. A path is admitted only when the CALLING window can
+// already reach it (its picker, a folder it made, the estate's own repositories) or main itself listed it
+// as a candidate of that window's scan; anything else is refused before a byte is journalled.
+const { ScanCandidates, admitRepoPaths, RepoPathRefused } = await import(path.resolve(import.meta.dirname, '../src/main/startChoices.ts'))
+const { FileRoots } = await import(path.resolve(import.meta.dirname, '../src/main/files.ts'))
+{
+  const { mkdirSync, writeFileSync, symlinkSync } = await import('node:fs')
+  const home = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-admit-')))
+  const picked = path.join(home, 'picked'); mkdirSync(picked)
+  const scanned = path.join(home, 'scanned'); mkdirSync(scanned)
+  const found = path.join(scanned, 'repo-a'); mkdirSync(found)
+  const found2 = path.join(scanned, 'repo-b'); mkdirSync(found2)
+  const kept = path.join(home, 'kept-repo'); mkdirSync(kept)
+  const estate = path.join(home, 'estate-repo'); mkdirSync(estate)
+  const elsewhere = path.join(home, 'elsewhere'); mkdirSync(elsewhere)
+  const file = path.join(home, 'file.txt'); writeFileSync(file, 'x')
+  const link = path.join(home, 'link-to-a'); symlinkSync(found, link)
+
+  const roots = new FileRoots()
+  roots.reset([estate])
+  roots.allow(picked, 'win:1')
+  const candidates = new ScanCandidates()
+  candidates.record('win:1', 'scan', [found])
+  candidates.record('win:1', 'kept', [kept])
+  const reach = { granted: (p, scope) => roots.resolve(p, scope), candidates }
+  const admit = (paths, scope = 'win:1') => admitRepoPaths(paths, scope, reach)
+  const refusal = (paths, scope = 'win:1') => {
+    try { admit(paths, scope) } catch (e) { assert.ok(e instanceof RepoPathRefused, String(e)); return e.code }
+    return 'admitted'
+  }
+
+  assert.deepEqual(admit([picked]), [picked], 'a folder this window chose in its picker is admitted')
+  assert.deepEqual(admit([found, kept]), [found, kept], "a candidate main listed for this window's scan, or its kept scan, is admitted")
+  assert.deepEqual(admit([link]), [found], 'a path is admitted and returned by its real path')
+  assert.deepEqual(admit([estate], 'win:2'), [estate], "the estate's own repository is reachable from every window already")
+  assert.deepEqual(admit(undefined), [], 'no paths is no paths')
+
+  assert.equal(refusal(['/']), 'not-chosen', 'the disk root is refused: no window chose it')
+  assert.equal(refusal([elsewhere]), 'not-chosen', 'an existing folder nobody chose is refused')
+  assert.equal(refusal([picked], 'win:2'), 'not-chosen', "another window's choice is not this window's")
+  assert.equal(refusal([found], 'win:2'), 'not-chosen', "another window's scan candidate is not this window's")
+  assert.equal(refusal([picked, elsewhere]), 'not-chosen', 'one refused path refuses the whole call')
+  assert.equal(refusal(['relative/path']), 'not-a-path')
+  assert.equal(refusal([42]), 'not-a-path')
+  assert.equal(refusal('/not/an/array'), 'not-a-path')
+  assert.equal(refusal([path.join(home, 'missing')]), 'missing')
+  assert.equal(refusal([file]), 'not-a-folder')
+
+  // The scan slot is the window's MOST RECENT scan: a new scan replaces the old candidates.
+  candidates.record('win:1', 'scan', [found2])
+  assert.equal(refusal([found]), 'not-chosen', 'a candidate of an earlier scan is not admitted after a new scan')
+  assert.deepEqual(admit([found2, kept]), [found2, kept], 'the new scan and the kept list each keep their own slot')
+  // Closing the window revokes its candidates, like its roots and its parent choices.
+  candidates.revoke('win:1')
+  assert.equal(refusal([found2]), 'not-chosen')
+  assert.equal(refusal([kept]), 'not-chosen')
+}
+console.log('PASS repo path admission: picker, folder made, scan candidates, kept scan, estate — per window; anything else refused before journalling')
