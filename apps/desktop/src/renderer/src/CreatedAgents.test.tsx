@@ -1,6 +1,7 @@
 // Creating an agent inside a project (M125, SCN-130 via SCR-74): every state the form can be in —
 // reading, unreadable, empty, invalid, saving, failed, created — driven through the real component
 // with the bridge stubbed at its edge. Each case asserts what reaches the bridge, not only what is drawn.
+import { StrictMode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { I18nProvider } from './i18n'
@@ -71,11 +72,19 @@ describe('creating an agent (M125)', () => {
     await openForm()
     const create = screen.getByRole('button', { name: 'Create the agent' }) as HTMLButtonElement
     expect(create.disabled).toBe(true)
-    expect(screen.getByText(`At least ${INSTRUCTIONS_MIN} characters, 0 so far.`)).toBeTruthy()
+    expect(screen.getByText('Still needed: a name, what it is for.'), 'a greyed button says why').toBeTruthy()
+    expect(screen.getByText(`At least ${INSTRUCTIONS_MIN} characters: this text is all it will be told.`), 'a neutral hint before typing, not "0 so far"').toBeTruthy()
+    fireEvent.change(screen.getByLabelText('What it is for'), { target: { value: 'short' } })
+    expect(screen.getByText(`At least ${INSTRUCTIONS_MIN} characters, 5 so far.`).className).toBe('field-problem')
+    expect(screen.getByLabelText('What it is for').getAttribute('aria-invalid')).toBe('true')
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'x'.repeat(NAME_MAX + 1) } })
     expect(screen.getByText(`At most ${NAME_MAX} characters.`)).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: '' } })
+    expect(screen.getByText('Give it a name you will pick it by.')).toBeTruthy()
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: ' reviewer ' } })
-    expect(screen.getByText('This project already has an agent called reviewer.'), 'one name, one agent — picked by name later').toBeTruthy()
+    const taken = screen.getByText('This project already has an agent called Reviewer.')
+    expect(taken.className, 'a problem is said in the danger tone, not the grey of a hint').toBe('field-problem')
+    expect(screen.getByLabelText('Name').getAttribute('aria-describedby'), 'and bound to its field').toBe(taken.id)
     fireEvent.change(screen.getByLabelText('What it is for'), { target: { value: BRIEF } })
     expect(create.disabled).toBe(true)
     fireEvent.click(create)
@@ -121,13 +130,49 @@ describe('creating an agent (M125)', () => {
     await openForm()
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: '  Planner ' } })
     fireEvent.change(screen.getByLabelText('What it is for'), { target: { value: BRIEF } })
-    fireEvent.change(screen.getByLabelText('Runs in'), { target: { value: 'shell' } })
+    fireEvent.change(screen.getByLabelText('Coding agent'), { target: { value: 'shell' } })
     fireEvent.click(screen.getByLabelText('github'))
     fireEvent.click(screen.getByRole('button', { name: 'Create the agent' }))
     expect((await screen.findByRole('status')).textContent).toBe('Created Planner.')
     expect(fabric.agents.create).toHaveBeenCalledWith({ projectId: 'p1', name: 'Planner', instructions: BRIEF, runnerId: 'shell', servers: ['github'] })
     expect(await screen.findByText('Planner')).toBeTruthy()
     expect(screen.queryByLabelText('Name'), 'the form closes on success').toBeNull()
+    expect(document.activeElement?.textContent, 'focus lands on the confirmation').toBe('Created Planner.')
+    expect(screen.getByText('Terminal'), 'the row names the coding agent, never its raw id').toBeTruthy()
+  })
+
+  it('opens with focus on the name, and names Codex as Codex', async () => {
+    bridge()
+    mount([option({}), option({ id: 'codex', label: 'Codex', program: 'codex' })])
+    await openForm()
+    expect(document.activeElement).toBe(screen.getByLabelText('Name'))
+    const labels = [...(screen.getByLabelText('Coding agent') as HTMLSelectElement).options].map((o) => o.textContent)
+    expect(labels).toEqual(['Claude Code', 'Codex'])
+  })
+
+  it('does not create while the coding agents are still being read', async () => {
+    const fabric = bridge()
+    mount(null)
+    await openForm()
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Planner' } })
+    fireEvent.change(screen.getByLabelText('What it is for'), { target: { value: BRIEF } })
+    expect((screen.getByRole('button', { name: 'Create the agent' }) as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.getByText('Still needed: a coding agent to run in.')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Create the agent' }))
+    expect(fabric.agents.create).not.toHaveBeenCalled()
+  })
+
+  it('leaves "reading" under StrictMode, which mounts every effect twice', async () => {
+    bridge({ list: async () => [agent()] })
+    render(
+      <StrictMode>
+        <I18nProvider locale="en">
+          <CreatedAgents project={{ id: 'p1', default_agent: 'claude-code', mcp_servers: [] }} options={OPTIONS} />
+        </I18nProvider>
+      </StrictMode>
+    )
+    expect(await screen.findByText('Reviewer')).toBeTruthy()
+    expect((screen.getByRole('button', { name: 'Create an agent' }) as HTMLButtonElement).disabled).toBe(false)
   })
 
   it('with no program available to run it, says so and offers no create', async () => {

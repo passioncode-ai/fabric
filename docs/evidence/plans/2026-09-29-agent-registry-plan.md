@@ -104,3 +104,12 @@ Partial delivery in a dependent tool does not complete Fabric's module.
 The brief's REQ set must equal the union of `Implements:` above. Computed, not typed:
 Computed 2026-09-29 by reading the REQ rows of the brief and the `Implements:` column of every
 task row above: **brief 24, implemented 24, missing none, extra none.**
+
+## Note, 2026-10-03 — what the start paths delivered into AR-2.1
+
+The first run's coding-agent detection ([ADR-0100](../../adr/0100-first-run-and-start-paths.md),
+`apps/desktop/src/main/executorDetect.ts`, plan row P-01) is a first part of AR-2.1: it runs only the
+catalogued programs (`AGENTS` in `shared/agents.ts`) with `--version`, a timeout and no shell, and is
+tested with fake binaries (`apps/desktop/test/executor-detect.test.mjs`). AR-2.1 itself stays
+**not recorded** here: the runner catalogue data and the registry's own detection are not built. This
+note is appended; the table above is the record of 2026-09-29.

@@ -15,6 +15,8 @@ import { Button, EmptyState, Field, FieldGroup, Row, StateChip, Toolbar } from '
 import { memoryChoice } from '../../shared/memoryChoice.ts'
 import { useT } from './i18n'
 import { folderNameProblem, type FolderNameProblem } from '../../shared/startPaths.ts'
+import { runnerLabel } from './runnerLabel'
+import { errorText } from './start/StartPaths'
 
 export function Onboarding({
   draft,
@@ -55,12 +57,15 @@ export function Onboarding({
     }
   }
 
-  // #region new-project-folder — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+  // #region new-project-folder — docs: docs/ux/scenarios.md#scn-129-create-a-new-project-in-a-new-folder-or-as-an-idea
   // SCN-129: a new project in a NEW folder — under a parent the operator chooses, named after the
   // project, optionally a git repository. The folder joins the draft's repositories like a chosen one.
   const [git, setGit] = useState(true)
   const [folderProblem, setFolderProblem] = useState<string | null>(null)
   const [folderBusy, setFolderBusy] = useState(false)
+  // Folders this form made on disk: they stay there if the operator removes them or leaves, and the form says so.
+  const [made, setMade] = useState<string[]>([])
+  const [leftOnDisk, setLeftOnDisk] = useState<string | null>(null)
   const newFolder = async (): Promise<void> => {
     if (folderBusy) return
     setFolderBusy(true)
@@ -80,9 +85,11 @@ export function Onboarding({
         setFolderProblem(t(`start.new.refused.${made.reason}` as 'start.new.refused.exists', { detail }))
         return
       }
+      setMade((old) => [...old, made.path])
+      setLeftOnDisk(null)
       patch({ repoPaths: [...new Set([...repoPaths, made.path])] })
     } catch (e) {
-      setFolderProblem(t('start.new.refused.failed', { detail: e instanceof Error ? e.message : String(e) }))
+      setFolderProblem(t('start.new.refused.failed', { detail: errorText(e) }))
     }
   }
   // #endregion new-project-folder
@@ -153,9 +160,13 @@ export function Onboarding({
                 trail={
                   <Toolbar>
                     {i === 0 && <StateChip>{t('onboarding.primary')}</StateChip>}
+                    {made.includes(p) && <StateChip>{t('onboarding.newFolder.made')}</StateChip>}
                     <Button
                       tone="ghost"
-                      onClick={() => patch({ repoPaths: repoPaths.filter((x) => x !== p) })}
+                      onClick={() => {
+                        patch({ repoPaths: repoPaths.filter((x) => x !== p) })
+                        if (made.includes(p)) setLeftOnDisk(p)
+                      }}
                     >
                       {t('onboarding.removeRepo')}
                     </Button>
@@ -171,13 +182,14 @@ export function Onboarding({
               {t('onboarding.addRepo')}
             </Button>
             <Button tone="ghost" disabled={!name.trim() || folderBusy} onClick={() => void newFolder()}>
-              {t('onboarding.newFolder')}
+              {folderBusy ? t('onboarding.newFolder.making') : t('onboarding.newFolder')}
             </Button>
             <label>
               <input type="checkbox" checked={git} onChange={(e) => setGit(e.target.checked)} /> {t('start.new.git')}
             </label>
           </div>
-          {folderProblem && <p className="muted" role="status">{folderProblem}</p>}
+          {folderProblem && <p className="field-problem" role="alert">{folderProblem}</p>}
+          {leftOnDisk && <p className="field-hint" role="status">{t('onboarding.newFolder.leftOnDisk', { path: leftOnDisk })}</p>}
         </FieldGroup>
 
         {/* M99 shipped this as "take it off the screen until it works", and the
@@ -232,7 +244,7 @@ export function Onboarding({
               {agents.map((o) => (
                 <option key={o.id} value={o.id} disabled={!o.available}>
                   {/* Each option by its own name (iteration 1: Codex was shown as "Terminal"); the shell has no program. */}
-                  {o.id === 'claude-code' ? t('agents.claudeCode') : o.program === null ? t('agents.terminal') : o.label}
+                  {runnerLabel(o.id, t)}
                   {o.available ? '' : ` — ${t('onboarding.unavailable')}`}
                 </option>
               ))}

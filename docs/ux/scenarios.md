@@ -3130,8 +3130,8 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Expected result:** One Project per ticked repository; nothing created for an unticked one; the last scan is kept so unticked candidates can be imported later.
 - **Alt paths:** Stop during the scan returns to the start and says nothing was added. Scan again opens the picker at the same folder. Leaving the screen stops a running scan. An already-imported repository is marked "In <project>", cannot be ticked, and opens that project. The kept last scan is shown when the path opens; it is not a grant.
 - **UI elements:** Choose a folder to scan; scanning with Stop; summary (count, groups, folder, date); truncation notice; filter; group heads; candidate rows with checkbox, pills and in-project link; Add N as projects; per-row added/not added.
-- **States covered:** idle,picker-cancel,scanning,cancelled,results,empty,truncated,unreadable,duplicate,part-ticked,importing,partial,imported,failed
-- **Errors & recovery:** A walk stopped by its bound says the list is not the whole folder; folders that could not be read are counted and named as a gap. A row that failed to import shows its reason, stays ticked, and Add retries it with the same id. A scan error says why and offers to choose again.
+- **States covered:** idle,picker-cancel,scanning,cancelled,results,empty,truncated,unreadable,deep,duplicate,part-ticked,importing,partial,imported,failed
+- **Errors & recovery:** A walk stopped by its bound says the list is not the whole folder; folders that could not be read are counted and named as a gap. Folders deeper than the scan goes are counted and said, with how to reach a repository there; Stop leaves the scanning state at once and a late answer is ignored; a kept list that cannot be read is said. A row that failed to import shows its reason, stays ticked, and Add retries it with the same id. A scan error says why and offers to choose again.
 - **Design rationale:** Nothing becomes a Project without the operator's tick; Tick all shown ticks one Project per product, so a worktree becomes a separate Project only by a deliberate, warned tick.
 - **Telemetry:** planned only.
 - **Status:** draft
@@ -3156,7 +3156,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Design rationale:** The idea path keeps "zero to one progressively" honest: a project can exist before its code does.
 - **Telemetry:** planned only.
 - **Status:** draft
-- **Coverage:** apps/desktop/src/renderer/src/Onboarding.tsx; apps/desktop/src/main/startPaths.ts
+- **Coverage:** apps/desktop/src/renderer/src/Onboarding.tsx; apps/desktop/src/main/projectFolder.ts; apps/desktop/src/main/startChoices.ts
 - **Product:** unobserved
 
 ### SCN-130: Start a new agent inside a project
@@ -3200,5 +3200,5 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Design rationale:** The operator approves a plan before any write; the probe, not the author, decides compatibility.
 - **Telemetry:** planned only.
 - **Status:** draft
-- **Coverage:** none yet
+- **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx (the planned screen only; the conversion itself is not built — AR-11)
 - **Product:** unobserved

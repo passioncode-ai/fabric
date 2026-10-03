@@ -10,21 +10,29 @@ import { useId, type ReactNode } from 'react'
 export function Field({
   label,
   hint,
+  problem,
   children
 }: {
   label: ReactNode
   hint?: ReactNode
-  /** Receives the id the label points at. */
-  children: (id: string) => ReactNode
+  /** What is wrong with the value, said in the danger tone — never in the grey of a hint. */
+  problem?: ReactNode
+  /** Receives the id the label points at, and the ids of the hint and problem lines for
+   *  `aria-describedby` (undefined when there are none). */
+  children: (id: string, describedBy: string | undefined) => ReactNode
 }): React.JSX.Element {
   const id = useId()
+  const described = [hint !== undefined ? `${id}-hint` : '', problem !== undefined && problem !== null ? `${id}-problem` : '']
+    .filter(Boolean)
+    .join(' ')
   return (
     <section className="field">
       <label className="field-label" htmlFor={id}>
         {label}
       </label>
-      {hint !== undefined && <p className="field-hint">{hint}</p>}
-      {children(id)}
+      {hint !== undefined && <p className="field-hint" id={`${id}-hint`}>{hint}</p>}
+      {problem !== undefined && problem !== null && <p className="field-problem" id={`${id}-problem`}>{problem}</p>}
+      {children(id, described || undefined)}
     </section>
   )
 }

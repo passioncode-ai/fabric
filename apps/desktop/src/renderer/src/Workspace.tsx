@@ -9,6 +9,7 @@ import { Button, EmptyState, Panel, Row, StateChip } from './components'
 import { sessionTone } from './sessionTone'
 import { StopStatus } from './SessionStop'
 import { useT } from './i18n'
+import { runnerLabel } from './runnerLabel'
 
 const LAYOUT_REVISION = 1
 
@@ -51,7 +52,7 @@ export function Workspace({
               }
               trail={s.tail || t('agents.noOutput')}
             >
-              {s.optionId === 'claude-code' ? t('agents.claudeCode') : t('agents.terminal')}
+              {runnerLabel(s.optionId, t)}
             </Row>
           ))}
         </div>

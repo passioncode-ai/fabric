@@ -4,7 +4,7 @@ import path from 'node:path'
 import { planProblems } from './lib/plan-ids.mjs'
 const root = path.resolve(import.meta.dirname, '..')
 const files = {}
-const walk = (d) => { for (const e of readdirSync(d)) { const p = path.join(d, e); if (statSync(p).isDirectory()) walk(p); else if (p.endsWith('.md')) files[path.relative(root, p)] = readFileSync(p, 'utf8') } }
+const walk = (d) => { for (const e of readdirSync(d)) { const p = path.join(d, e); if (statSync(p).isDirectory()) walk(p); else if (p.endsWith('.md') || /adoption\/receipts\/AD\d{2}\.json$/.test(p)) files[path.relative(root, p)] = readFileSync(p, 'utf8') } }
 walk(path.join(root, 'docs'))
 const problems = planProblems(files['docs/evidence/backlog.md'] ?? '', files)
 if (problems.length) { for (const p of problems) console.log('  FAIL ' + p); process.exit(1) }

@@ -239,3 +239,59 @@ describe('iteration 1 fixes', () => {
     await screen.findByText(en['start.scan.failed'].replace('{reason}', 'that file is outside every folder open in Fabric: /x'))
   })
 })
+
+describe('iteration 2 fixes', () => {
+  const scanOf = (over: Partial<ScanView>): ScanView => ({ root: '/w', visited: 3, unreadable: 0, deep: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [], ...over })
+
+  it('arriving on a path moves focus to its heading', async () => {
+    bridge()
+    start('scan')
+    expect(document.activeElement?.textContent).toBe(en['start.scan.title'])
+  })
+
+  it('folders deeper than the scan goes are said, even when nothing was found', async () => {
+    bridge({ start: { ...bridge().start, scan: vi.fn(async () => scanOf({ deep: 7 })) } })
+    start('scan')
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
+    expect(await screen.findByText(en['start.scan.deep'].replace('{count}', '7'))).toBeTruthy()
+    expect(screen.getByText(en['start.scan.none'])).toBeTruthy()
+  })
+
+  it('Stop leaves "scanning" at once, and a late answer does not come back', async () => {
+    let answer!: (v: ScanView) => void
+    const cancelScan = vi.fn(async () => undefined)
+    bridge({ start: { ...bridge().start, cancelScan, scan: vi.fn(() => new Promise<ScanView>((r) => { answer = r })) } })
+    start('scan')
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
+    fireEvent.click(await screen.findByRole('button', { name: en['start.scan.stop'] }))
+    expect(screen.getByText(en['start.scan.stopped'])).toBeTruthy()
+    expect(cancelScan).toHaveBeenCalled()
+    answer(scanOf({ candidates: [repo({ path: '/w/late', name: 'late', group: '/w/late' })] }))
+    await new Promise((r) => setTimeout(r, 20))
+    expect(screen.queryByText('late', { selector: 'b' }), 'the stuck scan answering late does not replace the stopped screen').toBeNull()
+  })
+
+  it('a kept list that cannot be read is said, not dropped', async () => {
+    bridge({ start: { ...bridge().start, lastScan: vi.fn(async () => { throw new Error("Error invoking remote method 'start:lastScan': Error: unreadable") }) } })
+    start('scan')
+    expect((await screen.findByRole('alert')).textContent).toContain('The last scan could not be read: unreadable')
+  })
+
+  it('the menu counts products not yet added, never their worktrees or nested parts', async () => {
+    bridge({ start: { ...bridge().start, lastScan: vi.fn(async () => scanOf({ candidates: [
+      repo({ path: '/w/a', name: 'a', group: '/w/a' }),
+      repo({ path: '/w/_wt/a-fix', name: 'a-fix', kind: 'worktree', parent: '/w/a', group: '/w/a' }),
+      repo({ path: '/w/a/packages/t', name: 't', group: '/w/a' })
+    ] })) } })
+    start('menu')
+    expect(await screen.findByText(en['start.card.scan.pending'].replace('{count}', '1'), { exact: false })).toBeTruthy()
+  })
+
+  it('a refused clipboard says so on the button', async () => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: vi.fn(async () => { throw new Error('denied') }) } })
+    bridge()
+    start('convert')
+    fireEvent.click(screen.getByRole('button', { name: en['first.exec.copy'] }))
+    expect(await screen.findByRole('button', { name: en['first.exec.copyFailed'] })).toBeTruthy()
+  })
+})

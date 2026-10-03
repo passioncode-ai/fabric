@@ -15,6 +15,7 @@ import { createHash } from 'node:crypto'
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import { releaseGateProblems } from './lib/release-gate.mjs'
 
 const root = path.resolve(import.meta.dirname, '..'), desktop = path.join(root, 'apps', 'desktop')
 const run = (bin, args, opts = {}) => execFileSync(bin, args, { cwd: desktop, stdio: 'inherit', ...opts })
@@ -26,6 +27,16 @@ const assess = (args, what) => { const r = spawnSync('spctl', args, { encoding: 
 for (const v of ['ASC_API_KEY_P8_B64', 'ASC_KEY_ID', 'ASC_ISSUER_ID']) if (!process.env[v]) fail(`${v} missing — run through use_secret.py (see the header)`)
 if (out('git', ['status', '--porcelain'], { cwd: root })) fail('the tree is not clean; commit first so the build names its commit')
 const version = JSON.parse(readFileSync(path.join(desktop, 'package.json'), 'utf8')).version
+// The release gate (plan row P-02): three independent verification iterations, the last with no blocking
+// finding open, recorded in the ledger docs/launch/release-gate.json names (scripts/lib/release-gate.mjs).
+{
+  const gateFile = path.join(root, 'docs', 'launch', 'release-gate.json')
+  const gateText = (() => { try { return readFileSync(gateFile, 'utf8') } catch { return '' } })()
+  const ledgerPath = (() => { try { return JSON.parse(gateText).ledger } catch { return null } })()
+  const ledgerText = (() => { try { return ledgerPath ? readFileSync(path.join(root, ledgerPath), 'utf8') : '' } catch { return '' } })()
+  const problems = releaseGateProblems({ version, gateText, ledgerText })
+  if (problems.length) fail(`the release gate is not clear:\n  ${problems.join('\n  ')}`)
+}
 const commit = out('git', ['rev-parse', 'HEAD'], { cwd: root })
 
 const tmp = mkdtempSync(path.join(tmpdir(), 'fabric-release-'))

@@ -82,7 +82,7 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   },
   {
     component: 'Field',
-    classes: ['field', 'field-label', 'field-hint', 'field-row', 'field-grid', 'field-actions'],
+    classes: ['field', 'field-label', 'field-hint', 'field-problem', 'field-row', 'field-grid', 'field-actions'],
     purpose:
       'A labelled control with an optional hint, so a form does not re-invent its own label rhythm. `FieldGroup` is the same shell for one label over several controls, which binds by role and `aria-labelledby` rather than by id.'
   },

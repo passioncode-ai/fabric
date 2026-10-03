@@ -62,11 +62,15 @@ export function StartScreen(props: StartProps): React.JSX.Element {
 }
 
 function Heading({ kicker, title, lede, back }: { kicker: string; title: string; lede: string; back?: { label: string; onClick: () => void } }): React.JSX.Element {
+  // Each path mounts its own heading, and focus lands on it: a keyboard or screen-reader user hears
+  // where they arrived instead of staying on a button that is gone (iteration 2: focus stayed on BODY).
+  const ref = useRef<HTMLHeadingElement>(null)
+  useEffect(() => { ref.current?.focus() }, [])
   return (
     <header className="lp-heading">
       <div>
         <p className="lp-kicker">{kicker}</p>
-        <h2 tabIndex={-1}>{title}</h2>
+        <h2 tabIndex={-1} ref={ref}>{title}</h2>
         <p>{lede}</p>
       </div>
       {back && <div className="lp-actions"><button type="button" className="lp-button" onClick={back.onClick}>{back.label}</button></div>}
@@ -77,10 +81,11 @@ function Heading({ kicker, title, lede, back }: { kicker: string; title: string;
 /** Copy a command; says Copied only when the clipboard took it. */
 export function CopyButton({ text }: { text: string }): React.JSX.Element {
   const t = useT()
-  const [copied, setCopied] = useState(false)
+  // A copy that fails says so: the command stays selectable on screen (iteration 2: a refused clipboard was silent).
+  const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
   return (
-    <button type="button" className="lp-button" onClick={() => { void navigator.clipboard.writeText(text).then(() => setCopied(true), () => setCopied(false)) }}>
-      {copied ? t('first.exec.copied') : t('first.exec.copy')}
+    <button type="button" className="lp-button" onClick={() => { void navigator.clipboard.writeText(text).then(() => setState('copied'), () => setState('failed')) }}>
+      {state === 'copied' ? t('first.exec.copied') : state === 'failed' ? t('first.exec.copyFailed') : t('first.exec.copy')}
     </button>
   )
 }
@@ -97,7 +102,8 @@ const PATHS: { path: Exclude<StartPath, 'menu'>; planned?: boolean }[] = [
 
 export function StartCards({ onPath, lastScan }: { onPath(path: StartPath): void; lastScan?: ScanView | null }): React.JSX.Element {
   const t = useT()
-  const pending = lastScan ? lastScan.candidates.filter((c) => c.importedBy.length === 0).length : 0
+  // Products not yet added — a worktree or nested repository is a part, not something the menu should keep asking about.
+  const pending = lastScan ? lastScan.candidates.filter((c) => c.importedBy.length === 0 && c.path === c.group).length : 0
   return (
     <ul className="st-cards">
       {PATHS.map(({ path, planned }) => (
@@ -122,6 +128,8 @@ function StartMenu({ onPath, onHome }: { onPath(path: StartPath): void; onHome()
   const [last, setLast] = useState<ScanView | null>(null)
   useEffect(() => {
     let alive = true
+    // The pending count is a hint on a card; a kept list that cannot be read only removes the hint. The scan
+    // screen itself says when it cannot read the kept list.
     window.fabric.start.lastScan().then((s) => alive && setLast(s), () => undefined)
     return () => { alive = false }
   }, [])
@@ -258,14 +266,18 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
   const [query, setQuery] = useState('')
   const ids = useRef<Record<string, string>>({})
   const scanning = useRef(false)
+  // Each scan has a number; Stop and a newer scan advance it, so a late answer is ignored (iteration 2:
+  // the screen stayed on "scanning" until a stuck call returned).
+  const runs = useRef(0)
+  const [keptProblem, setKeptProblem] = useState<string | null>(null)
 
   useEffect(() => {
     let alive = true
     // The kept list fills the screen only while nothing else has started (iteration 1: a late read
-    // replaced a scan already in flight).
+    // replaced a scan already in flight). A kept list that cannot be read is said, not dropped.
     window.fabric.start.lastScan().then(
       (last) => { if (alive && last && last.candidates.length) setS((cur) => (cur.at === 'idle' && !scanning.current ? { at: 'results', scan: last } : cur)) },
-      () => undefined
+      (e: unknown) => { if (alive) setKeptProblem(errorText(e)) }
     )
     return () => {
       alive = false
@@ -279,16 +291,28 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
       // Always through the picker: a kept or earlier folder is a suggestion, never a grant (ADR-0100 §7).
       const folder = await window.fabric.start.chooseFolder('scan', defaultPath)
       if (!folder) return
+      const n = ++runs.current
       scanning.current = true
       setS({ at: 'scanning', root: folder })
       setPicked(new Set())
-      const scan = await window.fabric.start.scan(folder)
-      setS(scan.cancelled ? { at: 'idle', stopped: true } : { at: 'results', scan })
+      try {
+        const scan = await window.fabric.start.scan(folder)
+        if (n !== runs.current) return
+        setS(scan.cancelled ? { at: 'idle', stopped: true } : { at: 'results', scan })
+      } catch (e) {
+        if (n === runs.current) setS({ at: 'failed', reason: errorText(e) })
+      } finally {
+        if (n === runs.current) scanning.current = false
+      }
     } catch (e) {
       setS({ at: 'failed', reason: errorText(e) })
-    } finally {
-      scanning.current = false
     }
+  }
+  const stop = (): void => {
+    runs.current++
+    scanning.current = false
+    setS({ at: 'idle', stopped: true })
+    void window.fabric.start.cancelScan()
   }
 
   const importPicked = async (scan: ScanView): Promise<void> => {
@@ -321,7 +345,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
     const shown = q ? scan.candidates.filter((c) => c.name.toLowerCase().includes(q) || c.path.toLowerCase().includes(q)) : scan.candidates
     return groupCandidates(shown)
   }, [scan, query])
-  const products = scan ? groupCandidates(scan.candidates).length : 0
+  const parts = scan ? scan.candidates.filter(isPart).length : 0
   // "Tick all shown" ticks one Project per product: the head of each group, never its worktrees or nested parts.
   const tickable = groups.flatMap((g) => g.items).filter((c) => c.importedBy.length === 0 && !isPart(c))
   const busy = s.at === 'importing'
@@ -337,6 +361,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
         <section className="lp-panel st-step">
           {s.at === 'failed' && <div className="lp-callout" role="alert"><p>{t('start.scan.failed', { reason: s.reason })}</p></div>}
           {s.at === 'idle' && s.stopped && <div className="lp-callout" role="status"><p>{t('start.scan.stopped')}</p></div>}
+          {s.at === 'idle' && keptProblem && <div className="lp-callout" role="alert"><p>{t('start.scan.keptFailed', { reason: keptProblem })}</p></div>}
           <p>{t('start.scan.choose.body')}</p>
           <div className="lp-actions"><button type="button" className="lp-button primary" onClick={() => void run()}>{t('start.scan.choose')}</button></div>
           <p className="lp-meta">{t('start.scan.readOnly')}</p>
@@ -345,20 +370,21 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
       {s.at === 'scanning' && (
         <section className="lp-panel st-step" aria-busy="true">
           <p role="status">{t('start.scan.scanning', { folder: s.root })}</p>
-          <div className="lp-actions"><button type="button" className="lp-button" onClick={() => void window.fabric.start.cancelScan()}>{t('start.scan.stop')}</button></div>
+          <div className="lp-actions"><button type="button" className="lp-button" onClick={stop}>{t('start.scan.stop')}</button></div>
         </section>
       )}
       {scan && (
         <section className="lp-panel st-step st-scan">
           <div className="lp-panel-head">
             <p className="st-summary">
-              {t('start.scan.summary', { count: scan.candidates.length, products, folder: scan.root })}
+              {t('start.scan.summary', { count: scan.candidates.length, parts, folder: scan.root })}
               {' · '}{t('start.scan.when', { date: shortDate(scan.scannedAt, locale) })}
             </p>
             <button type="button" className="lp-button" disabled={busy} onClick={() => void run(scan.root)}>{t('start.scan.again')}</button>
           </div>
           {scan.truncated && <div className="lp-callout" role="status"><p>{t('start.scan.truncated', { visited: scan.visited })}</p></div>}
           {scan.unreadable > 0 && <div className="lp-callout" role="status"><p>{t('start.scan.unreadable', { count: scan.unreadable })}</p></div>}
+          {scan.deep > 0 && <div className="lp-callout" role="status"><p>{t('start.scan.deep', { count: scan.deep })}</p></div>}
           {s.at === 'imported' && (
             <div className="lp-callout" role="status">
               <p>{failedCount === 0 ? t('start.scan.importedAll', { ok: s.created.length }) : t('start.scan.importedSome', { ok: s.created.length, failed: failedCount })}</p>
@@ -457,7 +483,7 @@ function NewAgent({ projects, onPath, onOpenProject }: StartProps): React.JSX.El
       <section className="lp-panel st-step">
         {projects === null ? (
           <p aria-busy="true">{t('start.agent.loading')}</p>
-        ) : projects.length === 0 ? (
+        ) : projects.filter((p) => p.status !== 'archived').length === 0 ? (
           <div className="lp-callout" role="status">
             <p>{t('start.agent.noProject')}</p>
             <div className="lp-actions">
@@ -469,7 +495,7 @@ function NewAgent({ projects, onPath, onOpenProject }: StartProps): React.JSX.El
           <>
             <p>{t('start.agent.pick')}</p>
             <ul className="st-pick">
-              {projects.map((p) => (
+              {projects.filter((p) => p.status !== 'archived').map((p) => (
                 <li key={p.id}>
                   <button type="button" className="lp-button" onClick={() => onOpenProject(p.id, 'team')}>{p.name}</button>
                 </li>

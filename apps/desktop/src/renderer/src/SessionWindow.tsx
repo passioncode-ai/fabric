@@ -14,6 +14,7 @@ import {
   sessionSays,
   type SessionReading
 } from '../../shared/sessionReading.ts'
+import { runnerLabel } from './runnerLabel'
 
 export function SessionWindow({ sessionId }: { sessionId: string }): React.JSX.Element {
   const t = useT()
@@ -93,7 +94,7 @@ export function SessionWindow({ sessionId }: { sessionId: string }): React.JSX.E
     <div className="session-window">
       <header className="session-head">
         <strong>
-          {session.optionId === 'claude-code' ? t('agents.claudeCode') : t('agents.terminal')}
+          {runnerLabel(session.optionId, t)}
         </strong>
         <span className="muted mono">{session.cwd}</span>
         <>{session.termination ? <StopStatus state={session.termination} /> : <StateChip tone={sessionTone(session.state)} dot>

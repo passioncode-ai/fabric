@@ -244,7 +244,7 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `first.back` | Back | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.skip` | Skip | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.persona.hello` | Hello. I'm {name}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `first.persona.lede` | Fabric runs your projects with the coding agents you already use. Give it a name and a face. That changes how Fabric looks, never what it may do. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `first.persona.lede` | I run your projects with the coding agents you already use. Give me a name and a face: that changes how I look, never what I may do. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.persona.name` | Name | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.persona.nameHint` | Leave it empty to keep “Fabric”. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.persona.tooLong` | At most {max} characters. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
@@ -255,14 +255,14 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `first.exec.checking` | Looking for coding agents… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.failed` | The check did not run: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.found` | Installed · version {version} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `first.exec.unresponsive` | Installed, but `{program} --version` did not answer. Run `{program}` once in a terminal to finish its setup, then check again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `first.exec.unresponsive` | {program} is on this Mac, but “{program} --version” did not answer. Run {program} once in a terminal to finish its setup, then check again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.missing` | Not installed. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `first.exec.state.found` | ready | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `first.exec.state.unresponsive` | needs setup | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `first.exec.state.missing` | not installed | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `first.exec.state.found` | Ready | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `first.exec.state.unresponsive` | Needs setup | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `first.exec.state.missing` | Not installed | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.copy` | Copy | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.copied` | Copied | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `first.exec.note` | Found means the program is on this Mac. Whether your account signs in is checked the first time an agent starts. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `first.exec.note` | Installed means the program is on this Mac and answers; ready means the tools of Fabric also reach its sessions. Whether your account signs in is checked the first time an agent starts. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.recheck` | Check again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.continueWithout` | Continue without an agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.start.title` | Where shall {name} start? | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
@@ -321,12 +321,12 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.scan.title` | Scan a projects folder | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.lede` | Choose the folder that holds your projects. Fabric lists the repositories it finds; each one you tick becomes its own Project. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.choose` | Choose a folder to scan… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
-| `start.scan.choose.body` | For example the folder where you clone repositories. Dependency folders, build output and hidden folders are skipped. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.scan.choose.body` | For example the folder where you clone repositories. The scan goes four folders deep (two inside a repository) and skips dependency folders, build output and hidden folders. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.readOnly` | Scanning only reads. Nothing is created until you tick and confirm. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.scanning` | Scanning {folder}… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.stop` | Stop | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.failed` | The scan did not finish: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
-| `start.scan.summary` | Repositories: {count} · products: {products} · in {folder} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.scan.summary` | Repositories: {count}, of them parts of another (worktrees, nested): {parts} · in {folder} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.when` | scanned {date} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.again` | Scan again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.truncated` | The scan stopped after {visited} folders. The list below is not the whole folder. Scan a narrower one. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
@@ -342,10 +342,10 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.scan.import` | Add {count} as projects | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.importing` | Adding {done} of {count}… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.openFirst` | Open the first one | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
-| `first.exec.state.foundUnconnected` | installed | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `first.exec.state.foundUnconnected` | Installed | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.unconnected` | {name} runs in a project folder as itself. Fabric's tools are not connected to it yet, so it cannot report work back to Fabric. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.scan.stopped` | The scan was stopped. Nothing was added. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
-| `start.scan.unreadable` | {count} folders could not be read (permissions or an unavailable disk), so repositories under them may be missing. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.scan.unreadable` | Folders that could not be read (permissions or an unavailable disk): {count}. Repositories under them may be missing. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.importedAll` | Added: {ok}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.importedSome` | Added: {ok}. Not added: {failed}. Those stay ticked, so adding again retries them. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.nested` | inside another repository | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
@@ -377,7 +377,7 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `agents.madeReading` | Reading the agents of this project… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.readFailed` | The agents could not be read: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.retry` | Try again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
-| `agents.runner` | Runs in | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
+| `agents.runner` | Coding agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.noRunner` | No program to run it in is available on this computer. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.nameTooLong` | At most {max} characters. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.nameTaken` | This project already has an agent called {name}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
@@ -392,3 +392,27 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `onboarding.newFolder.problem.leading-dot` | it starts with a dot | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
 | `onboarding.newFolder.problem.separator` | it contains a slash, a colon or a control character | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
 | `onboarding.newFolder.problem.text-direction` | it contains a character that reverses the reading direction | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
+| `onboarding.newFolder.making` | Creating the folder… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
+| `onboarding.newFolder.made` | new folder | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
+| `onboarding.newFolder.leftOnDisk` | The folder {path} stays on disk; Fabric does not delete folders. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
+| `onboarding.defaultAgent` | Default coding agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
+| `estate.quotaUnreachableUnread` | The service could not be reached, and no reading has come back yet. This says nothing about whether Claude Code is signed in. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-030 | implemented; release pending (P-02) |
+| `estate.quotaRejectedUnread` | The service refused the request, and no reading has come back yet. This says nothing about whether Claude Code is signed in. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-030 | implemented; release pending (P-02) |
+| `estate.quotaEmptyUnread` | The service answered with nothing, so there are no numbers to show yet. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-030 | implemented; release pending (P-02) |
+| `estate.quotaThrottledUnread` | Rate-limited before the first reading came back, so there are no numbers yet. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-030 | implemented; release pending (P-02) |
+| `estate.quotaNone` | No reading came back, so there is nothing to show. This says nothing about the account itself. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-030 | implemented; release pending (P-02) |
+| `agents.runnersReading` | Reading the coding agents on this computer… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
+| `agents.unknownRunner` | no coding agent recorded | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
+| `agents.createdAgent` | Created agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
+| `agents.nameEmpty` | Give it a name you will pick it by. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
+| `agents.instructionsMin` | At least {min} characters: this text is all it will be told. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
+| `agents.missing` | Still needed: {items}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
+| `agents.missing.name` | a name | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
+| `agents.missing.brief` | what it is for | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
+| `agents.missing.runner` | a coding agent to run in | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
+| `search.method.substring` | matched as text anywhere: this store has no word index; newest first | apps/desktop/src/renderer/src/i18n/en.ts | SCN-037 | implemented; release pending (P-02) |
+| `first.persona.character` | Character | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `first.persona.variant` | Variant | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `first.exec.copyFailed` | Not copied: select the text | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `start.scan.keptFailed` | The last scan could not be read: {reason}. Scan a folder to see its repositories. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.scan.deep` | Folders deeper than the scan goes, not entered: {count}. A repository among them is not listed; to find it, scan the folder that holds it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |

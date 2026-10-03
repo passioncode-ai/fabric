@@ -16,7 +16,7 @@ repository needs. This file holds only what is true of THIS repository.
 Read and follow the shared [iteration contract](AGENTS.md#iteration-contract),
 including the design-map gate and precise final review links. The same rule applies
 in Claude Code, Codex and other agents; it is not duplicated here.
-Current delivery order lives in [the backlog](docs/evidence/backlog.md#build-order-by-layer).
+Current direction — lanes and the Now/Next line — lives in [the general development plan](docs/evidence/backlog.md#general-development-plan); the [build order](docs/evidence/backlog.md#build-order-by-layer) schedules the batches it names.
 
 ## What is load-bearing here
 

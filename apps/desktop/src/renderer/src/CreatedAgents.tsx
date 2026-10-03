@@ -6,13 +6,20 @@
 // was typed, and a success is confirmed. The limits come from `shared/agentSpec.ts`, the same
 // definition the main process enforces (R-005), so the form cannot accept what the handler refuses.
 import { useEffect, useRef, useState } from 'react'
-import { Banner, Button, EmptyState, Field, Row, StateChip, Toolbar } from './components'
+import { Banner, Button, EmptyState, Field, FieldGroup, Row, StateChip, Toolbar } from './components'
 import { useT } from './i18n'
+import { runnerLabel } from './runnerLabel'
 import { errorText } from './start/StartPaths'
-import { INSTRUCTIONS_MIN, NAME_MAX, nameTaken } from '../../shared/agentSpec.ts'
+import { INSTRUCTIONS_MIN, NAME_MAX } from '../../shared/agentSpec.ts'
 import type { CreatedAgent, LaunchOption } from '../../shared/types'
 
 type Read = { state: 'reading' } | { state: 'ready'; agents: CreatedAgent[] } | { state: 'failed'; reason: string }
+
+/** The existing agent a name collides with (trimmed, case-insensitive) — the same rule as `nameTaken`. */
+function holderOf(name: string, agents: readonly CreatedAgent[]): CreatedAgent | undefined {
+  const n = name.trim().toLowerCase()
+  return n ? agents.find((a) => a.name.trim().toLowerCase() === n) : undefined
+}
 
 export function CreatedAgents({
   project,
@@ -26,23 +33,33 @@ export function CreatedAgents({
   const [read, setRead] = useState<Read>({ state: 'reading' })
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
+  const [nameTouched, setNameTouched] = useState(false)
   const [brief, setBrief] = useState('')
   const [runner, setRunner] = useState(project.default_agent)
   const [wants, setWants] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState<string | null>(null)
   const [created, setCreated] = useState<string | null>(null)
-  const alive = useRef(true)
-  useEffect(() => () => { alive.current = false }, [])
+  const nameInput = useRef<HTMLInputElement>(null)
+  const notice = useRef<HTMLParagraphElement>(null)
+  // Set in the effect body, not only cleared in its cleanup: StrictMode mounts, cleans up and mounts
+  // again, and a ref that is only ever cleared left the list "reading" for good (iteration 2).
+  const mounted = useRef(false)
+  useEffect(() => {
+    mounted.current = true
+    return () => { mounted.current = false }
+  }, [])
 
-  const load = (): void => {
+  const reread = (): (() => void) => {
+    let current = true
     setRead({ state: 'reading' })
     window.fabric.agents
       .list(project.id)
-      .then((agents) => { if (alive.current) setRead({ state: 'ready', agents }) })
-      .catch((e) => { if (alive.current) setRead({ state: 'failed', reason: errorText(e) }) })
+      .then((agents) => { if (current && mounted.current) setRead({ state: 'ready', agents }) })
+      .catch((e) => { if (current && mounted.current) setRead({ state: 'failed', reason: errorText(e) }) })
+    return () => { current = false }
   }
-  useEffect(load, [project.id])
+  useEffect(reread, [project.id])
 
   const available = (options ?? []).filter((o) => o.available)
   // The chosen program must be one that can run here; the project default if it can, else the first.
@@ -50,16 +67,26 @@ export function CreatedAgents({
     if (options === null) return
     if (!available.some((o) => o.id === runner)) setRunner(available[0]?.id ?? '')
   }, [options])
+  useEffect(() => { if (open) nameInput.current?.focus() }, [open])
+  useEffect(() => { if (created !== null) notice.current?.focus() }, [created])
 
   const agents = read.state === 'ready' ? read.agents : []
   const trimmed = name.trim()
+  const holder = holderOf(trimmed, agents)
   const nameProblem =
     trimmed.length > NAME_MAX ? t('agents.nameTooLong', { max: NAME_MAX })
-      : nameTaken(trimmed, agents) ? t('agents.nameTaken', { name: trimmed })
-        : null
-  const briefShort = brief.trim().length < INSTRUCTIONS_MIN
+      : holder ? t('agents.nameTaken', { name: holder.name })
+        : nameTouched && trimmed === '' ? t('agents.nameEmpty')
+          : null
+  const briefLength = brief.trim().length
+  const briefShort = briefLength < INSTRUCTIONS_MIN
   const noRunner = options !== null && available.length === 0
-  const ready = trimmed !== '' && nameProblem === null && !briefShort && runner !== '' && !noRunner && read.state === 'ready'
+  const ready = trimmed !== '' && nameProblem === null && !briefShort && runner !== '' && options !== null && !noRunner && read.state === 'ready'
+  const missing = [
+    trimmed === '' ? t('agents.missing.name') : null,
+    briefShort ? t('agents.missing.brief') : null,
+    runner === '' || options === null || noRunner ? t('agents.missing.runner') : null
+  ].filter((x): x is string => x !== null)
 
   const create = async (): Promise<void> => {
     if (!ready || busy) return
@@ -73,28 +100,27 @@ export function CreatedAgents({
         runnerId: runner,
         servers: wants
       })
-      if (!alive.current) return
+      if (!mounted.current) return
       setName('')
+      setNameTouched(false)
       setBrief('')
       setWants([])
       setOpen(false)
       setCreated(made.name)
-      load()
+      reread()
     } catch (e) {
-      if (alive.current) setFailure(errorText(e))
+      if (mounted.current) setFailure(errorText(e))
     } finally {
-      if (alive.current) setBusy(false)
+      if (mounted.current) setBusy(false)
     }
   }
 
   const grants = project.mcp_servers ?? []
-  const label = (o: LaunchOption): string =>
-    o.id === 'claude-code' ? t('agents.claudeCode') : o.program === null ? t('agents.terminal') : o.label
 
   return (
     <>
       {read.state === 'failed' ? (
-        <Banner actions={<Button tone="quiet" onClick={load}>{t('agents.retry')}</Button>}>
+        <Banner actions={<Button tone="quiet" onClick={() => { reread() }}>{t('agents.retry')}</Button>}>
           {t('agents.readFailed', { reason: read.reason })}
         </Banner>
       ) : (
@@ -104,7 +130,7 @@ export function CreatedAgents({
           read.agents.map((a) => (
             <Row
               key={a.id}
-              lead={<StateChip tone="quiet">{a.runner_id}</StateChip>}
+              lead={<StateChip tone="quiet">{runnerLabel(a.runner_id, t)}</StateChip>}
               trail={
                 <span className="muted">
                   {a.mcp_servers.length > 0
@@ -118,7 +144,7 @@ export function CreatedAgents({
           ))
         )
       )}
-      {created !== null && !open && <p className="muted" role="status">{t('agents.createdNotice', { name: created })}</p>}
+      {created !== null && !open && <p className="muted" role="status" tabIndex={-1} ref={notice}>{t('agents.createdNotice', { name: created })}</p>}
       {!open ? (
         <Toolbar>
           <Button tone="quiet" onClick={() => { setOpen(true); setCreated(null); setFailure(null) }} disabled={read.state !== 'ready'}>
@@ -128,46 +154,55 @@ export function CreatedAgents({
       ) : (
         <form aria-busy={busy} onSubmit={(e) => { e.preventDefault(); void create() }}>
           <p className="muted">{t('agents.newLede')}</p>
-          <Field label={t('agents.newName')} hint={nameProblem ?? undefined}>
-            {(id) => <input id={id} value={name} disabled={busy} aria-invalid={nameProblem !== null} onChange={(e) => setName(e.target.value)} />}
+          <Field label={t('agents.newName')} problem={nameProblem}>
+            {(id, describedBy) => (
+              <input id={id} ref={nameInput} value={name} disabled={busy} aria-invalid={nameProblem !== null} aria-describedby={describedBy}
+                onChange={(e) => { setName(e.target.value); setNameTouched(true) }} />
+            )}
           </Field>
-          <Field label={t('agents.newInstructions')} hint={briefShort ? t('agents.instructionsShort', { min: INSTRUCTIONS_MIN, count: brief.trim().length }) : undefined}>
-            {(id) => <textarea id={id} rows={4} value={brief} disabled={busy} onChange={(e) => setBrief(e.target.value)} />}
+          <Field
+            label={t('agents.newInstructions')}
+            hint={briefLength === 0 ? t('agents.instructionsMin', { min: INSTRUCTIONS_MIN }) : undefined}
+            problem={briefLength > 0 && briefShort ? t('agents.instructionsShort', { min: INSTRUCTIONS_MIN, count: briefLength }) : null}
+          >
+            {(id, describedBy) => (
+              <textarea id={id} rows={4} value={brief} disabled={busy} aria-invalid={briefLength > 0 && briefShort} aria-describedby={describedBy}
+                onChange={(e) => setBrief(e.target.value)} />
+            )}
           </Field>
-          <Field label={t('agents.runner')} hint={noRunner ? t('agents.noRunner') : undefined}>
-            {(id) => (
-              <select id={id} value={runner} disabled={busy || noRunner || options === null} onChange={(e) => setRunner(e.target.value)}>
-                {options === null && <option value={runner}>{runner}</option>}
+          <Field label={t('agents.runner')} problem={noRunner ? t('agents.noRunner') : null}>
+            {(id, describedBy) => (
+              <select id={id} value={runner} disabled={busy || noRunner || options === null} aria-describedby={describedBy} onChange={(e) => setRunner(e.target.value)}>
+                {options === null && <option value={runner}>{t('agents.runnersReading')}</option>}
                 {(options ?? []).map((o) => (
                   <option key={o.id} value={o.id} disabled={!o.available}>
-                    {o.available ? label(o) : `${label(o)} (${t('onboarding.unavailable')})`}
+                    {o.available ? runnerLabel(o.id, t) : `${runnerLabel(o.id, t)} (${t('onboarding.unavailable')})`}
                   </option>
                 ))}
               </select>
             )}
           </Field>
-          <Field label={t('agents.newServers')}>
-            {(id) =>
-              grants.length === 0 ? (
-                <span id={id} className="muted">{t('agents.newServersNone')}</span>
-              ) : (
-                <span id={id}>
-                  {grants.map((sv) => (
-                    <label key={sv}>
-                      <input
-                        type="checkbox"
-                        disabled={busy}
-                        checked={wants.includes(sv)}
-                        onChange={(e) => setWants((prev) => (e.target.checked ? [...prev, sv] : prev.filter((x) => x !== sv)))}
-                      />
-                      <span className="mono">{sv}</span>
-                    </label>
-                  ))}
-                </span>
-              )
-            }
-          </Field>
+          {grants.length === 0 ? (
+            <Field label={t('agents.newServers')}>
+              {(id) => <span id={id} className="muted">{t('agents.newServersNone')}</span>}
+            </Field>
+          ) : (
+            <FieldGroup label={t('agents.newServers')} role="group">
+              {grants.map((sv) => (
+                <label key={sv}>
+                  <input
+                    type="checkbox"
+                    disabled={busy}
+                    checked={wants.includes(sv)}
+                    onChange={(e) => setWants((prev) => (e.target.checked ? [...prev, sv] : prev.filter((x) => x !== sv)))}
+                  />
+                  <span className="mono">{sv}</span>
+                </label>
+              ))}
+            </FieldGroup>
+          )}
           {failure !== null && <Banner>{t('agents.createFailed', { reason: failure })}</Banner>}
+          {!ready && !busy && missing.length > 0 && <p className="muted">{t('agents.missing', { items: missing.join(', ') })}</p>}
           <Toolbar align="end">
             <Button type="submit" disabled={busy || !ready}>
               {busy ? t('agents.creating') : t('agents.create')}

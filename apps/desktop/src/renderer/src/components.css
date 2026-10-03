@@ -153,6 +153,7 @@
 .field { display: flex; flex-direction: column; gap: var(--space-1); }
 .field-label { font-size: var(--app-fs-caption); color: var(--app-muted); }
 .field-hint { font-size: var(--app-fs-caption); color: var(--app-muted); margin: 0; }
+.field-problem { font-size: var(--app-fs-caption); color: var(--state-danger); margin: 0; }
 .field-row { display: flex; gap: var(--space-3); align-items: flex-end; }
 .field-actions { display: flex; gap: var(--space-2); align-items: center; }
 .field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-3); }

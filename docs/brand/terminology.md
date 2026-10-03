@@ -21,6 +21,9 @@ Contract: brand-contract v1
 | Fabric Switchboard | Fabric Switcher, F Switchboard; use Switchboard as the short form |
 | Fabric Inbox | Fabric Mail; use Inbox as the short form |
 | Fabric Agent Adapter | Fabric Adapter, Fabric agent adapter; the published skills that adapt a project to the Fabric protocol |
+| Coding agent | executor, runner (in interface text), «агент» alone in Russian where a runner is meant — use «агент для кода» |
+| First run | onboarding wizard, setup tour |
+| Start path | wizard, flow (in interface text) |
 | Claude Code | Cloud Code, CloudCode |
 | Codex | CodeX |
 | AI-native team | AI team, autonomous company |

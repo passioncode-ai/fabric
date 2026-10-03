@@ -2853,7 +2853,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       replaceFavourite(release, add)
   )
   handle(IPC.favouritesOrder, (): Returns<FabricApi['favourites']['order']> => projectOrder())
-  // #region start-paths-ipc — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+  // #region start-paths-ipc — docs: docs/adr/0100-first-run-and-start-paths.md#boundary
   // The first run and the start paths (ADR-0100). Every folder here goes through the window's
   // granted roots (S02.roots): the picker grants, `fileRoots.resolve` refuses anything else.
   // Which projects already hold a folder. Every page is read (iteration 1: past PostgREST's 1000-row cap

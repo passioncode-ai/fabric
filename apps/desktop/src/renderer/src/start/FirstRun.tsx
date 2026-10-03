@@ -1,4 +1,4 @@
-// #region first-run — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+// #region first-run — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
 // The first run (ADR-0100, SCN-126, SCR-70): name and look → the coding agents on this machine →
 // where to start. Three steps, each skippable, none a form about the operator. It is shown once,
 // to an estate with no project; finishing or skipping stamps `settings.firstRun.completedAt`, and
@@ -11,7 +11,7 @@ import type { ExecutorRow, ScanView } from '../../../shared/startPaths.ts'
 import { useT } from '../i18n'
 import { FabricAvatar } from '../launch/FabricAvatar'
 import { usePersona } from '../launch/persona'
-import { StartCards, type StartPath } from './StartPaths'
+import { CopyButton, StartCards, errorText, type StartPath } from './StartPaths'
 
 export interface FirstRunProps {
   /** The operator chose a path (or skipped): stamp completion, then go there. */
@@ -70,7 +70,7 @@ function PersonaStep({ onNext }: { onNext(): void }): React.JSX.Element {
       if (!r.saved) { setProblem(t('first.persona.notSaved', { reason: r.reason ?? '' })); return }
       onNext()
     } catch (e) {
-      setProblem(t('first.persona.notSaved', { reason: e instanceof Error ? e.message : String(e) }))
+      setProblem(t('first.persona.notSaved', { reason: errorText(e) }))
     } finally {
       setBusy(false)
     }
@@ -90,8 +90,8 @@ function PersonaStep({ onNext }: { onNext(): void }): React.JSX.Element {
           <input value={name} maxLength={PERSONA_NAME_MAX + 10} placeholder={t('launch.brand.product')} onChange={(e) => { touched.current = true; setName(e.target.value) }} aria-invalid={tooLong} />
           <small>{tooLong ? t('first.persona.tooLong', { max: PERSONA_NAME_MAX }) : t('first.persona.nameHint')}</small>
         </label>
-        <p className="lp-kicker">{t('launch.persona.character')}</p>
-        <div className="fp-style-options" role="group" aria-label={t('launch.persona.character')}>
+        <p className="lp-kicker">{t('first.persona.character')}</p>
+        <div className="fp-style-options" role="group" aria-label={t('first.persona.character')}>
           {PERSONA_STYLES.map((style: PersonaStyle) => (
             <button key={style} type="button" className="fp-style" aria-pressed={draft.style === style} onClick={() => { touched.current = true; setDraft({ ...draft, style }) }}>
               <FabricAvatar size="tiny" seed={draft.seed} style={style} label="" />
@@ -100,17 +100,16 @@ function PersonaStep({ onNext }: { onNext(): void }): React.JSX.Element {
           ))}
         </div>
         <div className="lp-panel-head">
-          <p className="lp-kicker">{t('launch.persona.variant')}</p>
+          <p className="lp-kicker">{t('first.persona.variant')}</p>
           <button type="button" className="lp-button" onClick={() => setGeneration(generation + 1)}>{t('launch.persona.more')}</button>
         </div>
-        <div className="fp-variants" role="group" aria-label={t('launch.persona.variant')}>
+        <div className="fp-variants" role="group" aria-label={t('first.persona.variant')}>
           {variantsOf(generation).map((seed, n) => (
             <button key={seed} type="button" aria-pressed={draft.seed === seed} aria-label={t('launch.persona.variantN', { n: n + 1 })} onClick={() => { touched.current = true; setDraft({ ...draft, seed }) }}>
               <FabricAvatar size="small" seed={seed} style={draft.style} label="" />
             </button>
           ))}
         </div>
-        <p className="lp-meta">{t('launch.persona.noAuthority')}</p>
         <div className="lp-actions">
           <button type="button" className="lp-button primary" disabled={busy || tooLong} onClick={() => void next()}>{t('first.next')}</button>
           <button type="button" className="lp-button" disabled={busy} onClick={onNext}>{t('first.skip')}</button>
@@ -124,17 +123,19 @@ function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): R
   const t = useT()
   const [rows, setRows] = useState<ExecutorRow[] | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
-  const [copied, setCopied] = useState<string | null>(null)
+  // Only the latest check may answer: a slower earlier one arriving last must not replace it (iteration 2).
+  const checks = useRef(0)
   const check = (): void => {
+    const n = ++checks.current
     setRows(null)
     setFailure(null)
-    window.fabric.start.executors().then(setRows, (e: unknown) => setFailure(e instanceof Error ? e.message : String(e)))
+    window.fabric.start.executors().then(
+      (r) => { if (n === checks.current) setRows(r) },
+      (e: unknown) => { if (n === checks.current) setFailure(errorText(e)) }
+    )
   }
   useEffect(check, [])
   const anyFound = rows?.some((r) => r.state === 'found' && r.connected) ?? false
-  const copy = async (text: string): Promise<void> => {
-    try { await navigator.clipboard.writeText(text); setCopied(text) } catch { setCopied(null) }
-  }
   return (
     <section className="st-first-step" aria-labelledby="first-exec">
       <div className="st-first-stage">
@@ -164,7 +165,7 @@ function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): R
                 {r.state === 'missing' && r.install && (
                   <div className="st-install">
                     <code>{r.install}</code>
-                    <button type="button" className="lp-button" onClick={() => void copy(r.install!)}>{copied === r.install ? t('first.exec.copied') : t('first.exec.copy')}</button>
+                    <CopyButton text={r.install!} />
                   </div>
                 )}
               </li>

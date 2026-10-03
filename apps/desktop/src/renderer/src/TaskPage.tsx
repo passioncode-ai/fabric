@@ -32,6 +32,7 @@ import { originDocument } from '../../shared/origin.ts'
 import { since } from './duration'
 import { DecisionsSection } from './DecisionsSection'
 import { ConsoleDetails, ContextTab, RunCallout, useRunStatus } from './launch/AgentWorkspace'
+import { runnerLabel } from './runnerLabel'
 
 export function TaskPage({
   project,
@@ -186,7 +187,7 @@ export function TaskPage({
     { key: 'expected', label: t('task.expected'), value: task.brief_expected }
   ]
 
-  const agentLabel = task.option_id === 'claude-code' ? t('agents.claudeCode') : task.option_id || t('launch.home.live.agent')
+  const agentLabel = task.option_id ? runnerLabel(task.option_id, t) : t('launch.home.live.agent')
   return (
     <div className="lp" data-launch-view="launch-agent">
       <header className="lp-heading">

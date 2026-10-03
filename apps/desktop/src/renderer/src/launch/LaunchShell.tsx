@@ -16,11 +16,39 @@ export const PROJECT_SECTION_ANCHOR: Record<ProjectSection, string | null> = {
   overview: null, team: 'sec-agents', cycles: 'sec-automations', goals: 'sec-plan', memory: 'sec-memory', settings: 'sec-project-settings'
 }
 
+/**
+ * Brings a project section into view once it has rendered, and moves focus to its heading (SCN-130
+ * step 2). It waits for the element rather than a fixed timer, and scrolls only the nearest scrolling
+ * container — `scrollIntoView` scrolled the whole shell and cut the tab bar off (iteration 2).
+ */
+export function revealSection(anchor: string, deadlineMs = 2000): void {
+  const started = performance.now()
+  const step = (): void => {
+    const el = document.getElementById(anchor)
+    if (!el) {
+      if (performance.now() - started < deadlineMs) requestAnimationFrame(step)
+      return
+    }
+    let box: HTMLElement | null = el.parentElement
+    while (box && box !== document.body) {
+      const { overflowY } = getComputedStyle(box)
+      if ((overflowY === 'auto' || overflowY === 'scroll') && box.scrollHeight > box.clientHeight) break
+      box = box.parentElement
+    }
+    if (box && box !== document.body) box.scrollTop += el.getBoundingClientRect().top - box.getBoundingClientRect().top
+    else el.scrollIntoView({ block: 'start' })
+    const heading = el.querySelector<HTMLElement>('h2, h3') ?? el
+    if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1')
+    heading.focus({ preventScroll: true })
+  }
+  requestAnimationFrame(step)
+}
+
 export interface LaunchShellProps {
   estateName: string
   projects: ProjectRow[] | null
   /** Where the operator is, for the current marker and the breadcrumb. */
-  at: { kind: 'home' } | { kind: 'board' } | { kind: 'plan' } | { kind: 'pulse' } | { kind: 'help' } | { kind: 'quota' } | { kind: 'agents' } | { kind: 'settings' } | { kind: 'draft' } | { kind: 'project'; projectId: string }
+  at: { kind: 'home' } | { kind: 'board' } | { kind: 'plan' } | { kind: 'pulse' } | { kind: 'help' } | { kind: 'quota' } | { kind: 'agents' } | { kind: 'settings' } | { kind: 'draft' } | { kind: 'start' } | { kind: 'welcome' } | { kind: 'project'; projectId: string; section?: ProjectSection }
   onHome(): void
   onBoard(): void
   onPlan(): void
@@ -67,13 +95,13 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
             <a href="#" {...current(at.kind === 'home')} onClick={e => { e.preventDefault(); props.onHome() }}>{t('launch.nav.fabric')}</a>
             <a href="#" {...current(at.kind === 'board')} onClick={e => { e.preventDefault(); props.onBoard() }}>{t('launch.nav.board')}</a>
             <a href="#" {...current(at.kind === 'plan')} onClick={e => { e.preventDefault(); props.onPlan() }}>{t('launch.nav.plan')}</a>
-            <a href="#" {...current(at.kind === 'draft')} onClick={e => { e.preventDefault(); props.onNewProject() }}>{t('launch.nav.newProject')}</a>
+            <a href="#" {...current(at.kind === 'draft' || at.kind === 'start')} onClick={e => { e.preventDefault(); props.onNewProject() }}>{t('launch.nav.newProject')}</a>
           </div>
           {(projects ?? []).filter(p => p.status !== 'archived').map(p => (
             <details key={p.id} className="calm-nav-group" open={project?.id === p.id}>
               <summary>{p.name}</summary>
               {(['overview', 'team', 'cycles', 'goals', 'memory', 'settings'] as ProjectSection[]).map(section => (
-                <a key={section} href="#" {...current(project?.id === p.id && section === 'overview')}
+                <a key={section} href="#" {...current(project?.id === p.id && section === (at.kind === 'project' ? at.section ?? 'overview' : 'overview'))}
                   onClick={e => { e.preventDefault(); props.onProject(p.id, section) }}>{t(`launch.nav.project.${section}`)}</a>
               ))}
             </details>

@@ -78,6 +78,7 @@ import { DiagnosticsSection } from './DiagnosticsSection'
 import { MemoryOverviewSection } from './MemoryOverviewSection'
 import { DigestSection } from './DigestSection'
 import { since, since as ago, until as ahead } from './duration'
+import { runnerLabel } from './runnerLabel'
 import { ProjectLaunch } from './launch/ProjectLaunch'
 import { go } from './evidence'
 import { describeMove } from '../../shared/provenance.ts'
@@ -1384,7 +1385,7 @@ export function ProjectHeader({
           <select value={agent} onChange={(e) => setAgent(e.target.value)}>
             {agents.map((o) => (
               <option key={o.id} value={o.id} disabled={!o.available}>
-                {o.id === 'claude-code' ? t('agents.claudeCode') : t('agents.terminal')}
+                {runnerLabel(o.id, t)}
               </option>
             ))}
           </select>
@@ -1498,7 +1499,7 @@ export function AgentsSection({
           >
             {options.map((o) => (
               <option key={o.id} value={o.id} disabled={!o.available}>
-                {o.id === 'claude-code' ? t('agents.claudeCode') : t('agents.terminal')}
+                {runnerLabel(o.id, t)}
                 {o.available ? '' : ` — ${t('onboarding.unavailable')}`}
               </option>
             ))}
@@ -1980,7 +1981,7 @@ export function AgentTile({
     <Panel
       quiet
       title={<Button tone="ghost" onClick={() => window.fabric.windows.openSession(session.sessionId).catch(e => onError(String(e)))}>
-        {session.optionId === 'claude-code' ? t('agents.claudeCode') : session.optionId}
+        {runnerLabel(session.optionId, t)}
       </Button>}
       actions={
         // M189 — what FABRIC SEES, not `session.state`. That was `stateOf`'s

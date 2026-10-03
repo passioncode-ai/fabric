@@ -35,7 +35,7 @@ import { SearchPanel } from './SearchPanel'
 import { EstateAgents } from './EstateAgents'
 import { Banner, Button, Field, TabStrip, Toolbar } from './components'
 import { I18nProvider, useT, type Locale } from './i18n'
-import { LaunchShell, PROJECT_SECTION_ANCHOR, type ProjectSection } from './launch/LaunchShell'
+import { LaunchShell, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection } from './launch/LaunchShell'
 import './launch/launch.css'
 import { Onboarding } from './Onboarding'
 import { FirstRun, firstRunDue } from './start/FirstRun'
@@ -396,7 +396,10 @@ function Shell({
   /** Help's "go" links: the named place, the first run included (ADR-0100). */
   const goFromHelp = (to: 'board' | 'plan' | 'pulse' | 'persona' | 'welcome'): void => setActive({ kind: to })
 
+  // Which section of the open project the operator asked for, so the sidebar marks it (iteration 2).
+  const [projectSection, setProjectSection] = useState<ProjectSection>('overview')
   const openProject = (id: string): void => {
+    setProjectSection('overview')
     setTabs((old) =>
       old.some((x) => x.kind === 'project' && x.projectId === id)
         ? old
@@ -587,7 +590,7 @@ function Shell({
       <LaunchShell
         estateName={estateName}
         projects={projects}
-        at={showSettings ? { kind: 'settings' } : active.kind === 'board' ? { kind: 'board' } : active.kind === 'plan' ? { kind: 'plan' } : active.kind === 'pulse' || active.kind === 'releases' ? { kind: 'pulse' } : active.kind === 'help' || active.kind === 'guide' ? { kind: 'help' } : active.kind === 'quota' ? { kind: 'quota' } : active.kind === 'project' ? { kind: 'project', projectId: active.projectId } : active.kind === 'agents' ? { kind: 'agents' } : active.kind === 'draft' ? { kind: 'draft' } : { kind: 'home' }}
+        at={showSettings ? { kind: 'settings' } : active.kind === 'board' ? { kind: 'board' } : active.kind === 'plan' ? { kind: 'plan' } : active.kind === 'pulse' || active.kind === 'releases' ? { kind: 'pulse' } : active.kind === 'help' || active.kind === 'guide' ? { kind: 'help' } : active.kind === 'quota' ? { kind: 'quota' } : active.kind === 'project' ? { kind: 'project', projectId: active.projectId, section: projectSection } : active.kind === 'agents' ? { kind: 'agents' } : active.kind === 'draft' ? { kind: 'draft' } : active.kind === 'start' ? { kind: 'start' } : active.kind === 'welcome' ? { kind: 'welcome' } : { kind: 'home' }}
         onHome={() => { setShowSettings(false); setActive({ kind: 'home' }); setWorkspaceFor(null) }}
         onBoard={() => { setShowSettings(false); setActive({ kind: 'board' }) }}
         onPlan={() => { setShowSettings(false); setActive({ kind: 'plan' }) }}
@@ -595,9 +598,10 @@ function Shell({
         onProject={(projectId: string, section: ProjectSection) => {
           setShowSettings(false)
           openProject(projectId)
+          setProjectSection(section)
           const anchor = PROJECT_SECTION_ANCHOR[section]
           // After the project has rendered: the anchor is its section, not a route.
-          if (anchor) setTimeout(() => document.getElementById(anchor)?.scrollIntoView({ block: 'start' }), 60)
+          if (anchor) revealSection(anchor)
         }}
         onAgents={() => { setShowSettings(false); setActive({ kind: 'agents' }) }}
         onSettings={() => setShowSettings((v) => !v)}
@@ -697,8 +701,9 @@ function Shell({
             onCreated={async (projectId) => { await refreshProjects(); openProject(projectId) }}
             onOpenProject={(projectId, section) => {
               openProject(projectId)
+              setProjectSection(section ?? 'overview')
               const anchor = section ? PROJECT_SECTION_ANCHOR[section] : null
-              if (anchor) setTimeout(() => document.getElementById(anchor)?.scrollIntoView({ block: 'start' }), 60)
+              if (anchor) revealSection(anchor)
             }}
             onHome={() => goTo({ kind: 'home' })}
             onProjectsChanged={() => void refreshProjects()}

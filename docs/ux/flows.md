@@ -2122,7 +2122,7 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-70 First run | first-visit, saving, not-saved, checking, found, unresponsive, missing, choose-path |
+  | SCR-70 First run | first-visit, saving, not-saved, checking, found, found-unconnected, unresponsive, missing, check-failed, choose-path, skipped |
 
 ### FLW-70: Add an existing project
 - **Traces:** ST-001, ST-031; SCN-127 (JTBD-01)
@@ -2145,7 +2145,7 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-71 Add a project | idle, reading, ready, duplicate, not-git, creating, failed |
+  | SCR-71 Add a project | idle, picker-cancel, reading, ready, duplicate, not-git, creating, failed, created |
 
 ### FLW-71: Scan a projects folder
 - **Traces:** ST-001, ST-031; SCN-128 (JTBD-01)
@@ -2169,7 +2169,7 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-72 Scan a projects folder | idle, scanning, results, empty, truncated, importing, imported, failed |
+  | SCR-72 Scan a projects folder | idle, picker-cancel, scanning, cancelled, results, empty, truncated, unreadable, deep, duplicate, part-ticked, importing, partial, imported, failed |
 
 ### FLW-72: Create a new project
 - **Traces:** ST-001; SCN-129 (JTBD-01)
@@ -2191,7 +2191,7 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-73 New project | idle, invalid-name, no-parent, creating, exists, outside, failed |
+  | SCR-73 New project | idle, invalid-name, no-parent, creating, exists, outside, failed, created |
 
 ### FLW-73: Start a new agent
 - **Traces:** ST-050; SCN-130 (JTBD-05)

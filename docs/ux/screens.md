@@ -1670,7 +1670,7 @@ results always pair text with an icon — colour is never the only signal.
   | missing | not on PATH | none | not-installed pill and install command with Copy |
   | check-failed | detection itself failed | none | reason and Check again |
   | choose-path | step 3 | none | five cards |
-  | skipped | Skip or Later | none | first run marked finished; home, Help reopens it |
+  | skipped | Later on step 3 (Skip on step 1 only moves to step 2) | none | first run marked finished; home, Help reopens it |
 - **Coverage:** apps/desktop/src/renderer/src/start/FirstRun.tsx
 - **Scenarios:** SCN-126
 - **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
@@ -1684,11 +1684,14 @@ results always pair text with an icon — colour is never the only signal.
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
   | idle | path opened | none | choose prompt |
+  | picker-cancel | picker closed without a folder | none | nothing changes |
   | reading | folder chosen | none | busy line with the folder |
   | ready | facts read | none | name and facts |
-  | duplicate | folder already in a project | none | notice with Open that project |
+  | duplicate | folder already in a project | none | notice with Open that project; no name field, no Add |
   | not-git | plain folder | none | notice of what Fabric will not see |
+  | creating | Add pressed | none | Add busy |
   | failed | create or read failed | none | reason; the same create on retry |
+  | created | project made | none | the project's page |
 - **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx
 - **Scenarios:** SCN-127
 - **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
@@ -1709,7 +1712,8 @@ results always pair text with an icon — colour is never the only signal.
   | empty | no repositories | none | says none were found |
   | truncated | walk stopped by its bound | none | says the list is not the whole folder |
   | unreadable | folders could not be read | none | counts them as a gap |
-  | duplicate | candidate already in a project | none | no box; In <project> opens it |
+  | deep | folders past the depth limit | none | counts them and says how to reach a repository there |
+  | duplicate | candidate already in a project | none | a ticked, disabled box; In <project> opens it |
   | part-ticked | a worktree or nested repository ticked | none | warning that it becomes its own project |
   | importing | Add pressed | none | progress N of M |
   | partial | some rows failed | none | added and not-added counts; failed rows keep their reason and stay ticked |

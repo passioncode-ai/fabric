@@ -3,8 +3,11 @@
 **Status:** accepted.
 **Date:** 2026-10-03. **Decided by:** the operator's instruction to fix one general development
 plan for this repository that every participant follows and extends
-([brief](../evidence/plans/2026-10-03-onboarding-and-plan.md), D9). **Extends**
-[ADR-0044](0044-foundation-first-delivery-and-the-living-design-map.md) §1; replaces nothing.
+([brief](../evidence/plans/2026-10-03-onboarding-and-plan.md), D9). **Amends**
+[ADR-0044](0044-foundation-first-delivery-and-the-living-design-map.md) §1: the "one home of the
+delivery queue" becomes two pages with one job each — the plan says *what next* (its lanes and the
+Now/Next line), the build order schedules the batches it names (amended 2026-10-03 after verification
+iteration 2, which found the original "replaces nothing" untrue).
 
 ## Context
 
@@ -24,9 +27,15 @@ order from chat.
    its outcome, its entry rule and the existing ids that deliver it. It creates **no status**: a
    row's status lives in its own register, and the plan links to it.
 2. **Ids, never prose promises.** Every work item the plan names is an id that resolves to a row
-   (`M*`, `CO-*`, `V1-M*`, `AR-*`, `L*`, `S*`, `AD*`, `OX-*`, `D01`, `N1`, or a new `P-*` row
-   created in the plan's own table for work no register held). `scripts/check-plan-ids.mjs` fails
-   on an id the repository cannot resolve, and was watched failing on a planted dangling id.
+   (`M*`, `CO-*`, `V1-M*`, `AR-*`, `FR-A…G`, `MEM-P*`, `F*` batches, `L*`, `S*`, `AD*`, `OX-*`,
+   `D01`, `N1`, or a `P-*` row of the plan's own table for work no register held — a `P-*` id resolves
+   only there, since `P-01…P-06` are also personas). `scripts/check-plan-ids.mjs` fails on an id the
+   repository cannot resolve, an id of an unknown form, a lane that names no work, and a lane that
+   schedules work its own register calls finished (the closing words the workspace's
+   `normalizeStatus` knows, an adoption packet's `Status:` line or receipt); each was watched failing.
+5. **Inside a lane the order is that register's own** — the strategy table for FR, the packets'
+   prerequisites for AD, the registry plan for AR, the memory plan's graph for MEM-P. An entry rule
+   restates the register's prerequisite; it never adds a gate the register does not have.
 3. **Changing the plan** is an ordinary guarded edit under the agent-sync lease, in the same change
    as the work that moves it, with a living-map changelog entry (ADR-0044). Reordering lanes or
    adding one is a plan edit; reversing a recorded decision is a new ADR.

@@ -39,9 +39,9 @@ Owner: `passioncode-ai/fabric`; branch `codex/context-audit-2026-09-14`; immutab
 
 | Module | Own requirement | Deliverable | Packets | Status |
 |---|---|---|---|---|
-| traceability | REQ-01 | корректная связь evidence→UX | AD00 | planned |
-| contracts | REQ-02 | один producer/тип/authority на port | AD01 | planned |
-| project | REQ-03 | один сохраняемый путь проекта | AD02–04 | planned |
+| traceability | REQ-01 | корректная связь evidence→UX | AD00 | done 2026-09-17 — [квитанция AD00](receipts/AD00.json) passed |
+| contracts | REQ-02 | один producer/тип/authority на port | AD01 | done 2026-09-17 — [квитанция AD01](receipts/AD01.json) passed |
+| project | REQ-03 | один сохраняемый путь проекта | AD02–04 | blocked — native-приёмка AD02 ([квитанция](receipts/AD02.json)) |
 | sources | REQ-04 | наблюдать выбранные источники честно | AD05, AD24 | planned |
 | context | REQ-05 | first checkpoint + exact return | AD06–08 | planned |
 | conversation | REQ-06 | scoped durable input и атрибуция | AD09–11 | planned |

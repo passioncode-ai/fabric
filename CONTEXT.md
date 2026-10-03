@@ -177,9 +177,12 @@ set, terminal/runtime, project grants and the node it currently holds. The proje
 binding is what makes it a member of one project. Agents are added, replaced and
 retired; project routines and history survive them.
 
+<a id="coding-agent"></a>
 **Coding agent** — a program on the operator's machine that writes code in a project folder — Claude
-Code, Codex. The first run's word for what the code calls an executor (`AGENTS`, `shared/agents.ts`).
-It is *installed* when it answers `--version`, *connected* when Fabric's own tools reach its sessions,
+Code, Codex. The first run's word for what the code calls an executor or runner (`AGENTS`,
+`shared/agents.ts`); the interface says "coding agent" wherever a runner is meant, and "agent" only for
+the configuration bound into a project. It is *on this machine* when its program is on the PATH,
+*responding* when it also answers `--version`, *connected* when Fabric's own tools reach its sessions,
 and becomes an Agent only when bound into a project. Detection never verifies its account (CO-176).
 [ADR-0100](docs/adr/0100-first-run-and-start-paths.md).
 

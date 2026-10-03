@@ -19,6 +19,11 @@ extends the local packaging config; `pnpm --dir apps/desktop package` keeps buil
 
 ## Cut a release
 
+0. **The release gate.** [`docs/launch/release-gate.json`](release-gate.json) names the version and the
+   verification ledger that clears it ([general plan](../evidence/backlog.md#general-development-plan),
+   P-02). `scripts/release-mac.mjs` refuses unless that ledger has three iterations, each ending
+   `Exit for iteration N: … Blocking findings open: none.` (`scripts/lib/release-gate.mjs`, tested by
+   `scripts/test/release-gate.test.mjs`).
 1. Bump `version` in [`apps/desktop/package.json`](../../apps/desktop/package.json), commit, and run
    `bash scripts/ci.sh fast`. The script refuses a dirty tree, so the build manifest names a real commit.
 2. Build, sign, notarize and verify — the notarization key comes from the secret store and is never printed:

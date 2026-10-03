@@ -13,8 +13,17 @@ const FORMS = String.raw`V1-M\d+|AR-\d+(?:\.\d+)?|CO-\d+|M\d+(?:\.[a-z0-9-]+)?|L
 const ID = new RegExp(String.raw`\b(?:${FORMS})(?![\w.-]*\w)`, 'g')
 const WHOLE_ID = new RegExp(String.raw`^(?:${FORMS})$`)
 /** A status cell that closes the work it describes. */
-/** The status word stands alone — optionally dated — so a prerequisite like "Passed AD12 receipt…" does not read as one. */
-const FINISHED = /^(?:\*\*)?(?:✅\s*)?(?:done|passed|shipped|landed|closed|merged|superseded)(?:\s+\d{4}-\d{2}-\d{2})?(?:\*\*)?\s*(?:$|[—–\-;:.,(])/i
+/**
+ * A status that closes the work: every closing word the workspace's own `normalizeStatus` knows
+ * (`workspace/lib/backlog.mjs` — done and cancelled; the test checks the two agree), plus this
+ * repository's `passed`, `landed`, `merged`. Markup is stripped first (`**shipped** 2026-10-03`), and the
+ * word must stand alone — optionally dated — so a prerequisite like "Passed AD12 receipt…" is not one.
+ */
+export const CLOSING_WORDS = ['done', 'closed', 'resolved', 'shipped', 'complete', 'completed', 'закрыто', 'готово', 'решено',
+  'cancelled', 'canceled', 'dropped', 'superseded', 'отменено', 'passed', 'landed', 'merged']
+const FINISHED = new RegExp(String.raw`^(?:✅\s*)?(?:${CLOSING_WORDS.join('|')})(?:\s+\d{4}-\d{2}-\d{2})?\s*(?:$|[—–\-;:.,(])`, 'iu')
+const plain = (cell) => cell.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*`]/g, '').trim()
+export const isFinished = (cell) => FINISHED.test(plain(cell))
 /** A lane row: its first cell is `<n> · <name>`. */
 const LANE = /^\s*\d+\s*·/
 
@@ -56,8 +65,19 @@ export function finishedIds(files) {
     for (const line of text.split('\n')) {
       if (!line.startsWith('|')) continue
       const cells = line.split('|').slice(1, -1).map((c) => c.trim())
-      if (!cells.slice(1).some((c) => FINISHED.test(c))) continue
+      if (!cells.slice(1).some(isFinished)) continue
       for (const m of (cells[0] ?? '').matchAll(ID)) out.add(m[0])
+    }
+  }
+  // Adoption packets keep their state in a `Status:` line and a receipt; a receipt outranks the line.
+  for (const [name, text] of Object.entries(files)) {
+    const id = name.split('/').pop().replace(/\.(md|json)$/, '')
+    if (!/^AD\d{2}$/.test(id)) continue
+    if (name.endsWith('.json')) {
+      try { if (isFinished(String(JSON.parse(text).status ?? ''))) out.add(id) } catch { /* an unreadable receipt proves nothing */ }
+    } else {
+      const m = /^Status:\s*(.+)$/m.exec(text)
+      if (m && isFinished(m[1])) out.add(id)
     }
   }
   return out
@@ -92,13 +112,17 @@ export function planProblems(backlog, files) {
     const cells = line.split('|').slice(1, -1).map((c) => c.trim())
     for (const m of (cells[0] ?? '').matchAll(/\bP-\d{2}\b/g)) {
       own.add(m[0])
-      if (cells.slice(1).some((c) => FINISHED.test(c))) ownFinished.add(m[0])
+      if (cells.slice(1).some(isFinished)) ownFinished.add(m[0])
     }
   }
   const defined = definedIds(files)
   const finished = finishedIds(files)
   const problems = []
-  for (const id of citedIds(block)) if (!own.has(id) && !defined.has(id)) problems.push(`the plan cites ${id}, which no document under docs/ defines`)
+  // A P-id is the plan's own row, nothing else: P-01…P-06 are also personas (docs/ux/foundation.md).
+  for (const id of citedIds(block)) {
+    if (/^P-\d{2}$/.test(id) ? !own.has(id) : !own.has(id) && !defined.has(id))
+      problems.push(/^P-\d{2}$/.test(id) ? `the plan cites ${id}, which is not a row of the plan's own table` : `the plan cites ${id}, which no document under docs/ defines`)
+  }
   for (const lane of laneEntries(block)) {
     const ids = lane.entries.filter((e) => WHOLE_ID.test(e))
     for (const e of lane.entries) if (!WHOLE_ID.test(e)) problems.push(`lane "${lane.name}" names "${e}", which is not a work id of a form the plan knows`)

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// #region walk-start-paths — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+// #region walk-start-paths — docs: README.md#the-disposable-test-stack
 // Walk the first run and the start paths in the REAL built app (ADR-0100), screenshot every state.
 //
 //   pnpm --filter @fabric/desktop exec electron-vite build   # the app this walks

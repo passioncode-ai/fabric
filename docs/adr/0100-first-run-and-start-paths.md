@@ -24,6 +24,7 @@ it). The operator settled each one.
 
 ## Decision
 
+<a id="first-run"></a>
 1. **The first run** (SCN-126, SCR-70) is three steps, each skippable: *your Fabric* — a name and a
    look (persona: name, character, variant), which changes how Fabric looks and never what it may
    do; *coding agents* — Claude Code and Codex detected on PATH by `--version`: **ready** (installed and
@@ -34,11 +35,13 @@ it). The operator settled each one.
    to an estate with no project, and only after the project list is known; finishing or skipping
    stamps `settings.firstRun.completedAt`. Help reopens it. An installation with projects is never
    walked back through it.
+<a id="add-project"></a>
 2. **Adding a project** (SCN-127, SCR-71): one folder from the native picker → a read-only preview
    (git kind, branch, remote, last commit, stack, and the projects that already hold it) → the
    operator confirms a name → `projects.create` with the folder attached. A folder already in a
    project offers that project instead of a duplicate. A plain folder may be added and says what
    Fabric will not see.
+<a id="scan"></a>
 3. **Scanning a projects folder** (SCN-128, SCR-72) is a CHECKLIST. A bounded, cancellable,
    read-only, breadth-first walk lists every repository under the chosen folder; worktrees are grouped
    under their repository and nested repositories under the enclosing one; **each ticked repository
@@ -52,23 +55,28 @@ it). The operator settled each one.
    anything; a remote URL loses its credentials before it is shown or kept. What the walk could not
    cover is said: stopped by its bound, folders that could not be read, a folder read abandoned after
    its timeout. Re-scanning on a schedule is not built (CO-177).
+<a id="new-project"></a>
 4. **Creating a project** (SCN-129, SCR-73): a name, an optional purpose, and a home — a new folder
    under a chosen parent (optionally `git init`) or only an idea with no folder yet.
+<a id="new-agent"></a>
 5. **A new agent** (SCN-130, SCR-74) belongs to a project: the path chooses the project and opens
-   its team, where the existing agent form (`ProjectHome.tsx#CreatedAgents`) lives.
+   its team, where the existing agent form (`CreatedAgents.tsx#CreatedAgents`) lives.
+<a id="convert"></a>
 6. **Converting an agent** (SCN-131, SCR-75) happens inside Fabric with a plan: choose the agent's
    folder → a dry run lists the manifest, the MCP entry and every file that would change → the
    operator's coding agent writes the adapter on its own branch with the Fabric Agent Adapter skills
    → the conformance probe decides, and only a passing agent enters the registry. Until AR-7/AR-11
    build it, the start menu shows this path as **planned**, explains it, and gives today's manual
    route; it offers no action that pretends to run.
+<a id="boundary"></a>
 7. **The boundary.** Every folder these paths read is one the operator chose in this window's
    picker (`fileRoots`, S02.roots); the main process refuses anything else as outside. A folder chosen
-   as the PARENT of a new project is not opened: the window may create one folder in it. A kept scan
+   as the PARENT of a new project is not opened: the window may create new folders in it and nothing more — the folder itself is never opened for reading or writing. A kept scan
    is shown, never granted. `projects.create` checks every repository path it is given (absolute, an
    existing folder, by its real path) and adds the new project's folders to the estate's roots and the
    git watch at once. The only exception is the walk harness's `FABRIC_WALK_PICK`, which answers the
    picker in an UNPACKAGED run and is ignored by a packaged app.
+<a id="app-icon"></a>
 8. **The app icon** is the PassionCode.ai mark from its source SVG, composed on a graphite macOS
    tile (Apple's 1024 grid) and rendered by `scripts/build-app-icon.mjs`; the PNG is bound to the SVG
    by manifest, so a hand edit fails `--check`. Four generated candidates did not keep the mark; the

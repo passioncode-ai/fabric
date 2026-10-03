@@ -10,6 +10,7 @@ import type { CreatedAgent, LaunchOption, ProjectRow, TaskRow } from '../../shar
 import { resolvePresets, type PresetInput, type TaskPreset } from '../../shared/presets.ts'
 import { Banner, Button, Panel, Toolbar } from './components'
 import { useT } from './i18n'
+import { runnerLabel } from './runnerLabel'
 
 /** Presets are content: a label and an instruction, both registry keys. The
  *  first one is what used to be the kickoff block.
@@ -236,7 +237,7 @@ export function Tasks({
         >
           {options.map((o) => (
             <option key={o.id} value={o.id} disabled={!o.available}>
-              {o.id === 'claude-code' ? t('agents.claudeCode') : t('agents.terminal')}
+              {runnerLabel(o.id, t)}
               {o.available ? '' : ` — ${t('onboarding.unavailable')}`}
             </option>
           ))}

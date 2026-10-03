@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// #region app-icon — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+// #region app-icon — docs: docs/adr/0100-first-run-and-start-paths.md#app-icon
 // The Fabric app icon (ADR-0100 §8, operator's choice 2026-10-03): the PassionCode.ai mark from its
 // source SVG, composed on a graphite macOS tile — `assets/brand/app-icon/fabric-icon.svg`. Composed,
 // not generated: four Asset Foundry candidates (job_01M3ZC9B3DYDH7ECV6ECECD45T) did not keep the mark
@@ -27,6 +27,8 @@ if (process.argv.includes('--check')) {
   if (!existsSync(MANIFEST)) fail('no app-icon manifest — run: node scripts/build-app-icon.mjs')
   const m = JSON.parse(readFileSync(MANIFEST, 'utf8'))
   if (sha(SVG) !== m.sourceSha256) fail('fabric-icon.svg changed since it was rendered — run: node scripts/build-app-icon.mjs')
+  // The tile carries the PassionCode mark copied from its source; a changed mark must re-compose the tile.
+  if (!m.mark || sha(path.join(DIR, m.mark)) !== m.markSha256) fail(`the PassionCode mark (${m.mark}) changed since the icon was composed — update fabric-icon.svg from it, then run: node scripts/build-app-icon.mjs`)
   const e = m.exports.find((x) => x.path === 'fabric-icon-1024.png')
   if (!e || sha(PNG) !== e.sha256) fail('fabric-icon-1024.png does not match its manifest checksum — render it, never edit it')
   console.log(`ok: app icon ${e.width}×${e.height} rendered from fabric-icon.svg ${m.sourceSha256.slice(0, 12)}`)

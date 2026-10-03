@@ -9390,7 +9390,7 @@
         },
         {
           "state": "skipped",
-          "trigger": "Skip or Later",
+          "trigger": "Later on step 3 (Skip on step 1 only moves to step 2)",
           "behavior": "first run marked finished; home, Help reopens it"
         }
       ]
@@ -9448,6 +9448,11 @@
           "behavior": "choose prompt"
         },
         {
+          "state": "picker-cancel",
+          "trigger": "picker closed without a folder",
+          "behavior": "nothing changes"
+        },
+        {
           "state": "reading",
           "trigger": "folder chosen",
           "behavior": "busy line with the folder"
@@ -9460,7 +9465,7 @@
         {
           "state": "duplicate",
           "trigger": "folder already in a project",
-          "behavior": "notice with Open that project"
+          "behavior": "notice with Open that project; no name field, no Add"
         },
         {
           "state": "not-git",
@@ -9468,9 +9473,19 @@
           "behavior": "notice of what Fabric will not see"
         },
         {
+          "state": "creating",
+          "trigger": "Add pressed",
+          "behavior": "Add busy"
+        },
+        {
           "state": "failed",
           "trigger": "create or read failed",
           "behavior": "reason; the same create on retry"
+        },
+        {
+          "state": "created",
+          "trigger": "project made",
+          "behavior": "the project's page"
         }
       ]
     },
@@ -9515,7 +9530,7 @@
       "view": "start-scan",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1697,
+        "line": 1700,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9561,9 +9576,14 @@
           "behavior": "counts them as a gap"
         },
         {
+          "state": "deep",
+          "trigger": "folders past the depth limit",
+          "behavior": "counts them and says how to reach a repository there"
+        },
+        {
           "state": "duplicate",
           "trigger": "candidate already in a project",
-          "behavior": "no box; In <project> opens it"
+          "behavior": "a ticked, disabled box; In <project> opens it"
         },
         {
           "state": "part-ticked",
@@ -9633,7 +9653,7 @@
       "view": "start-new",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1723,
+        "line": 1727,
         "coverage_claim": "apps/desktop/src/renderer/src/Onboarding.tsx",
         "status_claim": "designed"
       },
@@ -9721,7 +9741,7 @@
       "view": "start-agent",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1743,
+        "line": 1747,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9784,7 +9804,7 @@
       "view": "start-convert",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1758,
+        "line": 1762,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx (the planned state; the conversion itself is AR-7/AR-11)",
         "status_claim": "designed"
       },
@@ -31747,7 +31767,7 @@
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "One Project per ticked repository; nothing created for an unticked one; the last scan is kept so unticked candidates can be imported later.",
-      "errors_recovery": "A walk stopped by its bound says the list is not the whole folder; folders that could not be read are counted and named as a gap. A row that failed to import shows its reason, stays ticked, and Add retries it with the same id. A scan error says why and offers to choose again.",
+      "errors_recovery": "A walk stopped by its bound says the list is not the whole folder; folders that could not be read are counted and named as a gap. Folders deeper than the scan goes are counted and said, with how to reach a repository there; Stop leaves the scanning state at once and a late answer is ignored; a kept list that cannot be read is said. A row that failed to import shows its reason, stays ticked, and Add retries it with the same id. A scan error says why and offers to choose again.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 3119
@@ -31760,7 +31780,7 @@
         "FLW-72"
       ],
       "screen_refs": [],
-      "coverage": "apps/desktop/src/renderer/src/Onboarding.tsx; apps/desktop/src/main/startPaths.ts",
+      "coverage": "apps/desktop/src/renderer/src/Onboarding.tsx; apps/desktop/src/main/projectFolder.ts; apps/desktop/src/main/startChoices.ts",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "A new Project; with a folder, the folder exists under the chosen parent and, when asked, is a git repository on `main`.",
@@ -31794,7 +31814,7 @@
         "FLW-74"
       ],
       "screen_refs": [],
-      "coverage": "none yet",
+      "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx (the planned screen only; the conversion itself is not built — AR-11)",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "A Fabric-compatible agent in the registry, with the probe's receipt; or a red receipt and no registry entry.",
