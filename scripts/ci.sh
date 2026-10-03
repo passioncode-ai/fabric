@@ -269,6 +269,8 @@ node apps/desktop/test/session-bundle.test.mjs
 node --experimental-strip-types apps/desktop/test/digest-boundary.test.mjs
 node --experimental-strip-types apps/desktop/test/search-read.test.mjs
 node --experimental-strip-types apps/desktop/test/run-lifecycle-contract.test.mjs
+# Release review iteration 2: the file roots read every page or keep what they had.
+node --experimental-strip-types apps/desktop/test/file-roots-refresh.test.mjs
 
 step "owned databases: the SQL contract and the reads, on a cluster this run creates and removes"
 # A disposable PostgreSQL (`initdb` into a temp dir, Unix socket only) with the

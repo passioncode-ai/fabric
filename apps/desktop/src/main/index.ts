@@ -26,6 +26,7 @@ import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from '.
 import { createBundleCompiler } from './sessionBundle'
 import { createTranscriptStore } from './transcripts'
 import { compileContextPack, contextDemandFor } from './contextPack'
+import { refreshFileRootsFrom } from './fileRootsRefresh.ts'
 import { readSettings, writeSettings } from './settings'
 import { createPowerKeeper, type PowerKeeper } from './power'
 import { createRepoStateReader } from './repoState'
@@ -752,13 +753,12 @@ export function revokeWindowRoots(webContentsId: number): void {
 }
 
 async function refreshFileRoots(): Promise<void> {
-  const { data, error } = await store.select('project_repos', 'path')
-  if (error) {
-    ops.failed('index.could-not-refresh-file-roots', error.message, { note: 'could not refresh file roots:' })
-    return
-  }
-  const paths = (data ?? []).map((r) => r.path as string)
-  fileRoots.reset(paths)
+  // Every page, or the roots stay as they were (release review iteration 2, data finding 3): one capped
+  // request reset the roots to the first 1000 repositories (`fileRootsRefresh.ts`).
+  const refreshed = await refreshFileRootsFrom(store, (paths) => fileRoots.reset(paths), (failed) =>
+    ops.failed('index.could-not-refresh-file-roots', failed, { note: 'could not refresh file roots; the current roots are kept:' }))
+  if (refreshed.state === 'kept') return
+  const paths = refreshed.paths
   // The same set bounds the filesystem API and is watched for git changes: one
   // list of what the operator opened, two consumers (M56, SEC-REQ-016).
   // M107 — on its OWN channel. This broadcast used to go out on
