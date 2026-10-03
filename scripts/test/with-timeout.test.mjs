@@ -32,3 +32,12 @@ test('a usage error is refused, not run without a limit', () => {
   assert.equal(run('soon', '--', 'true').status, 2)
   assert.equal(run('5', 'true').status, 2)
 })
+
+// Release review 2026-10-03, iteration 2: every non-KILL signal was reported as 143 (SIGTERM), so a
+// command that aborted (SIGABRT, 134) or was interrupted (SIGINT, 130) read as one that was terminated.
+test('a command ended by a signal exits 128 + that signal\'s number, as a shell reports it', () => {
+  for (const [signal, code] of [['SIGABRT', 134], ['SIGINT', 130], ['SIGTERM', 143], ['SIGKILL', 137]]) {
+    const r = run('5', '--', process.execPath, '-e', `process.kill(process.pid, '${signal}'); setInterval(() => {}, 1000)`)
+    assert.equal(r.status, code, `${signal} was reported as ${r.status}`)
+  }
+})
