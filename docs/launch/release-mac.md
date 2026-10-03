@@ -1,9 +1,13 @@
 # Releasing Fabric for macOS
 
 The release is one DMG for Apple silicon: Developer ID signed, hardened runtime, notarized and
-stapled — the app inside and the DMG itself. It is built by [`scripts/release-mac.mjs`](../../scripts/release-mac.mjs)
-from [`apps/desktop/electron-builder.release.yml`](../../apps/desktop/electron-builder.release.yml), which
-extends the local packaging config; `pnpm --dir apps/desktop package` keeps building the unsigned folder.
+stapled — the app inside and the DMG itself. **It is built and signed only in CI**, by
+[`.github/workflows/release.yml`](../../.github/workflows/release.yml) in this repository's protected
+`release` environment ([ADR-0111](../adr/0111-fabric-is-released-from-ci.md); the organization's
+[release signing](https://github.com/passioncode-ai/.github/blob/main/release-signing/README.md)). The
+workflow runs [`scripts/release-mac.mjs`](../../scripts/release-mac.mjs) with
+[`apps/desktop/electron-builder.release.yml`](../../apps/desktop/electron-builder.release.yml), which extends
+the local packaging config; `pnpm --dir apps/desktop package` keeps building the unsigned folder.
 
 ## What the installed app needs
 
@@ -17,10 +21,15 @@ extends the local packaging config; `pnpm --dir apps/desktop package` keeps buil
 - **Schema upgrades are not automatic.** A newer build whose schema is ahead of an existing database stops
   with the exact command to run in that stack folder; Fabric never migrates a database on its own.
 
-## Cut a release
+## How a release is made
 
-0. **Land, then release.** The change lands on `main` first; `scripts/release-mac.mjs` refuses unless
-   HEAD is the freshly fetched `origin/main`.
+A **`vX.Y.Z` tag on main** launches a release. Nothing else does: no laptop holds the release key, and a
+build signed anywhere but the `release` environment is a debug build that is never published.
+
+1. **Land, then release.** The release pull request lands on `main` first: `version` in
+   [`apps/desktop/package.json`](../../apps/desktop/package.json) is `X.Y.Z`, the `## Unreleased` section of
+   [`CHANGELOG.md`](../../CHANGELOG.md) is renamed `## X.Y.Z` (it becomes the release notes), and
+   `bash scripts/ci.sh fast` is green.
    **The release gate.** [`docs/launch/release-gate.json`](release-gate.json) names the version and the
    verification ledger that clears it ([general plan](../evidence/backlog.md#general-development-plan),
    P-02). The script refuses a tree with any file flagged skip-worktree or assume-unchanged, takes the
@@ -29,31 +38,69 @@ extends the local packaging config; `pnpm --dir apps/desktop package` keeps buil
    defect, not recoverable, stopped), and each ending with its one line
    `Exit for iteration N: … Blocking findings open: none.` (`scripts/lib/release-gate.mjs`, tested by
    `scripts/test/release-gate.test.mjs`).
-1. Bump `version` in [`apps/desktop/package.json`](../../apps/desktop/package.json), commit, and run
-   `bash scripts/ci.sh fast`. The script refuses a dirty tree, so the build manifest names a real commit.
-2. Build, sign, notarize and verify — the notarization key comes from the secret store and is never printed:
-
-   ```bash
-   python3 ~/DATA/project-observatory/tools/use_secret.py run apple-publisher-kj35uyyl22 \
-     ASC_API_KEY_P8_B64,ASC_KEY_ID,ASC_ISSUER_ID -- node scripts/release-mac.mjs
-   ```
-
-   It fails unless `codesign --verify --deep --strict` passes on the app, Gatekeeper accepts the app and the
-   DMG, and the stapled tickets of both validate. It writes the receipt `docs/releases/fabric-<version>-mac.json`
-   (size, SHA-256, notarization id, the checks).
-3. Smoke the built app: `FABRIC_APP_EXECUTABLE=apps/desktop/dist/mac-arm64/Fabric.app/Contents/MacOS/Fabric
+2. **Push the tag** on the release commit: `git tag -a vX.Y.Z <commit on main> -m "Fabric X.Y.Z" && git push origin vX.Y.Z`.
+   A published release is never rewritten; a fix is a new tag.
+3. **`preflight`** runs without secrets: `node scripts/release-mac.mjs --check-only --tag vX.Y.Z` refuses
+   unless the commit is on `origin/main` (its tip, or a tag on main that main has moved past — ancestry,
+   not equality), the tag names the version the commit carries, and the release gate is clear.
+4. **Approval.** The `macos` job waits for the `release` environment. A member of `release-approvers`
+   other than the tag's author opens the run and approves ("Review deployments"); admins cannot bypass.
+5. **`macos`** builds on `macos-latest`: `passioncode-ai/.github/actions/apple-signing@v1` makes a throwaway
+   keychain with the CI Developer ID and names it; `release-mac.mjs --tag vX.Y.Z` gets that identity in
+   `FABRIC_SIGN_IDENTITY` and the keychain in `CSC_KEYCHAIN`, and the App Store Connect key as the
+   secrets `ASC_*` (written to a mode-600 temporary file, never printed or put in argv). electron-builder
+   signs the app, notarizes and staples it, and builds and signs the DMG; the script notarizes and staples
+   the DMG. It fails unless `codesign --verify --deep --strict` passes on the app and the signer read back
+   from it is a Developer ID Application with the hardened runtime, Gatekeeper accepts the app and the DMG,
+   and the stapled tickets of both validate. The DMG and its receipt `fabric-X.Y.Z-mac.json` (size,
+   SHA-256, notarization id, signer, team, the checks, the CI run) are uploaded as `release-macos`; the
+   keychain is deleted on every path.
+6. **`publish`** waits for a second approval (it holds the GPG key), then attests every file (Sigstore),
+   writes `SHA256SUMS` and `SHA256SUMS.asc`, and publishes the release **in this repository**, marked a
+   prerelease while Fabric is an early preview (`prerelease: "true"`, ADR-0111 §1):
+   `https://github.com/passioncode-ai/fabric/releases/tag/vX.Y.Z`. Verify a download with
+   `gpg --verify SHA256SUMS.asc SHA256SUMS`, `shasum -a 256 -c SHA256SUMS --ignore-missing` and
+   `gh attestation verify Fabric-X.Y.Z-arm64.dmg -R passioncode-ai/fabric`.
+7. Smoke the published DMG on this Mac: install it, then `FABRIC_APP_EXECUTABLE=/Applications/Fabric.app/Contents/MacOS/Fabric
    FABRIC_PLAYWRIGHT_MODULE=<playwright> node apps/desktop/test/chat-activation-native.test.mjs` — the packaged
    app starts from its own stack, the window is named Fabric, the chat saves and survives a cold restart.
-4. Publish the DMG as an asset of a **prerelease** in the public site repository
-   `passioncode-ai/passioncode-ai.github.io` (tag `fabric-v<version>`): the source repository is private, so
-   its own releases are not a public download. Download the asset anonymously and check its SHA-256 and
-   `spctl -a -t open --context context:primary-signature` before pointing anything at it.
-5. Take the site's screenshots from the packaged app on a **fresh English demo estate** —
+8. Take the site's screenshots from the packaged app on a **fresh English demo estate** —
    `psql "$DB_URL" -v ON_ERROR_STOP=1 -v estate=<new uuid> -v lang=en -f scripts/fixtures/launch-estate.sql`
    — never from an estate a walk has already written into.
-6. On the site: `fabric/release.json` (tag, asset URL, SHA-256), the screenshots, the brand facts row, then
-   PR → `main` → `npm run deploy`, and the live receipt ([site handoff](https://github.com/passioncode-ai/passioncode-ai.github.io/blob/main/docs/HANDOFF.md)).
-   The Worker serves `/fabric/download/macos` as a no-store, noindex redirect to the asset.
+9. **The website is the website's change.** `passioncode-ai/passioncode-ai.github.io` serves
+   `/fabric/download/macos` from its `fabric/release.json`, which still points at the 0.2.0 prerelease in
+   the website repository (valid). For the first CI release, the website's own pull request sets `tag`
+   `vX.Y.Z`, `repository` `passioncode-ai/fabric`, `releaseUrl`
+   `https://github.com/passioncode-ai/fabric/releases/tag/vX.Y.Z`, `downloads.macos`
+   `https://github.com/passioncode-ai/fabric/releases/download/vX.Y.Z/Fabric-X.Y.Z-arm64.dmg` and `sha256` from the
+   release's `SHA256SUMS`, plus the screenshots and the brand facts row; then `npm run deploy` and the live
+   receipt ([site handoff](https://github.com/passioncode-ai/passioncode-ai.github.io/blob/main/docs/HANDOFF.md)).
+   Download the asset anonymously and check its SHA-256 and `spctl -a -t open --context context:primary-signature`
+   before pointing anything at it. This repository does not write to the website.
+
+### Rehearsal
+
+Push `vX.Y.Z-rc.N` on a commit of main (the push trigger ignores `-rc` tags; never reuse or move a tag),
+then `gh workflow run release.yml --ref vX.Y.Z-rc.N -f publish=false`. Every job runs and waits for the same
+approvals; the signed, attested and summed set is kept as the workflow artifact
+`signed-release-vX.Y.Z-rc.N` for 14 days, and no release is created. The release gate applies to a
+rehearsal too: a version whose gate is not clear stops at `preflight`.
+
+### A local build is a debug build
+
+The same script runs on a Mac with a person's own Developer ID, to debug the build. The key comes from
+the secret store and is never printed:
+
+```bash
+python3 ~/DATA/project-observatory/tools/use_secret.py run apple-publisher-kj35uyyl22 \
+  ASC_API_KEY_P8_B64,ASC_KEY_ID,ASC_ISSUER_ID -- node scripts/release-mac.mjs --identity '<your Developer ID Application name, or its team id>'
+```
+
+Its receipt says `local debug build (never published)`. It is never published or attached to a release.
+
+**Before CI (0.2.0).** The steps above replaced a by-hand release: the operator built, signed and
+notarized on their Mac and published the DMG as a prerelease `fabric-v<version>` of the website repository,
+because this repository was private then.
 
 **0.2.0, 2026-09-29:** receipt [`docs/releases/fabric-0.2.0-mac.json`](../releases/fabric-0.2.0-mac.json)
 (commit `f356999`, SHA-256 `ae04aabd…9ae6`, DMG notarization Accepted); packaged smoke PASS; published as

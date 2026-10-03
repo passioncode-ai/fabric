@@ -22,8 +22,10 @@ product and CEO AI agent: it plans, coordinates agents, runs Projects and works 
 and it grows through its own tools — Fabric Inbox, Fabric Dashboards, Fabric Switchboard,
 Fabric VR — each of which also works on its own (names: [ADR-0090](docs/adr/0090-names-passioncode-is-the-organization-fabric-is-the-ceo-and-its-tools-carry-its-name.md)). **Fabric 0.2.0 is an early preview for macOS on
 Apple silicon**: a signed and notarized DMG, [downloadable from its product page](https://passioncode.ai/fabric/#download);
-its build receipt is [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json) and the
-procedure [`docs/launch/release-mac.md`](docs/launch/release-mac.md). This repository holds
+its build receipt is [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json). Releases are
+now built and signed only in CI, from a `vX.Y.Z` tag on main, and published here with their notes from
+[`CHANGELOG.md`](CHANGELOG.md) ([procedure](docs/launch/release-mac.md),
+[ADR-0111](docs/adr/0111-fabric-is-released-from-ci.md)). This repository holds
 Fabric and its agent-agnostic technical kernel: portable contracts, durable work, policy,
 admission, Evidence and projections.
 
@@ -204,8 +206,9 @@ The packaged app is `Fabric.app`. It carries the local stack's project (config, 
 migrations) in its resources and starts that stack itself when the database is down, so it
 needs Docker and the Supabase CLI but no checkout of this repository; `FABRIC_REPO` points
 it at a checkout instead. It keeps PTY sessions alive when the window closes (Cmd+Q is the
-real quit). The signed and notarized release is built by
-[`docs/launch/release-mac.md`](docs/launch/release-mac.md).
+real quit). The signed and notarized release is built in CI by
+[`.github/workflows/release.yml`](.github/workflows/release.yml) from a `vX.Y.Z` tag
+([`docs/launch/release-mac.md`](docs/launch/release-mac.md)); a build signed anywhere else is a debug build.
 
 **The walking skeleton of slice 1 runs** (ADR-0031; design in
 [`iteration-1-modules.md`](docs/architecture/iteration-1-modules.md)): migration 1

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-03 · `release-in-ci` · feat/release-in-ci → main
+- run: r-baa5dc8b4; base: 15335a0a; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
+- scope: `.github/workflows/release.yml` (preflight, macos in the `release` environment, the shared publish), `scripts/release-mac.mjs` with `scripts/lib/release-mac.mjs` and its test, `electron-builder.release.yml` without an identity, ADR-0111, `docs/launch/release-mac.md`, `CHANGELOG.md`, README, DOCMAP, living map
+- summary: a Fabric release is a `vX.Y.Z` tag on main, approved by release-approvers, signed and notarized in CI, attested, summed and published in this repository; a local build is a debug build.
+
 ### 2026-10-03 · `onboarding-and-plan` · claude/onboarding-and-plan → main
 - run: r-516254241; integration: fast-forward after `bash scripts/ci.sh fast` on the branch head (main merged into the branch first: ADR-0105 and the workspace pin)
 - scope: first run and the start paths (ADR-0100), the general development plan (ADR-0101), the write boundary (ADR-0103, migrations 70–75), three verification iterations (P-02), the product lifecycle contract (ADR-0106, CO-191 closed), the agent learning loop and Fix in Fabric designed (ADR-0109), the Fabric app icon, living map

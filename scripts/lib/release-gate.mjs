@@ -1,4 +1,4 @@
-// #region release-gate — docs: docs/launch/release-mac.md#cut-a-release
+// #region release-gate — docs: docs/launch/release-mac.md#how-a-release-is-made
 // The release gate the operator set on 2026-10-03 (plan row P-02): no release before three independent
 // verification iterations, each closed. `scripts/release-mac.mjs` reads `docs/launch/release-gate.json` —
 // the version it releases and the ledger that clears it — FROM THE COMMIT, and refuses unless the ledger

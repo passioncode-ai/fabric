@@ -327,6 +327,9 @@ fi
 # off the operator's live stack, and the residue report's read-only property. Pure: they start
 # nothing and connect to nothing; the full tier below is where the guard is used.
 node --test scripts/test/test-stack.test.mjs scripts/test/residue-report.test.mjs scripts/test/with-timeout.test.mjs scripts/test/run-test-chains.test.mjs scripts/test/walk-cleanup.test.mjs scripts/test/release-gate.test.mjs
+# ADR-0111: the inputs the release takes from CI — the identity, the tag, a commit on main (ancestry, so
+# a tag on main checks out), the signer read back — and electron-builder's own reading of the release config.
+node --test scripts/test/release-mac.test.mjs
 # Lifecycle contract (ADR-0106): a scheduled job can never wedge — deadlines, process groups, the
 # publication lock, status and rotation.
 node --test scripts/test/bounded-run.test.mjs
