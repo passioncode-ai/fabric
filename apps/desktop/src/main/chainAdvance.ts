@@ -26,6 +26,7 @@ import type { UnattendedAdmission } from '../shared/unattendedAdmission.ts'
 import type { AdmitOutcome } from '../shared/admission.ts'
 import type { LaunchInput } from './managedLaunch.ts'
 import type { ScopedStore } from './scopedStore.ts'
+import type { WindowState } from '../shared/cyclePort.ts'
 import { ops } from './opsSink.ts'
 
 export interface ChainDeps {
@@ -96,11 +97,50 @@ export function mergeHandoffs(
   return { ok: true, values }
 }
 
-export function createChainAdvance(deps: ChainDeps): () => Promise<void> {
+
+/**
+ * How many times one follower's launch may fail before the unattended advance
+ * stops trying it.
+ *
+ * MEASURED in the 2026-10-03 release review: a failing launch rethrew out of
+ * the tick, the managed coordinator's known failure released the generation —
+ * which is right, a known end permits the next attempt (HAR-R0-03) — and the
+ * next tick admitted the same follower again. Every minute, for ever, each time
+ * spending a quota reading and journalling another failed dispatch. Three is a
+ * judgement stated as one: enough for a transient cause to clear, few enough
+ * that a broken binary is reported in minutes rather than discovered in the
+ * journal next week. Counted from the journal, not held in memory, so a restart
+ * does not reset it. The operator's Run is not bound by it.
+ */
+export const MAX_CHAIN_LAUNCH_ATTEMPTS = 3
+
+/** What one pass did, in the estate's own window vocabulary (AX-08) — the same
+ *  shape the routine tick returns, so the cycle receipt can compose both. */
+export interface ChainTickResult {
+  state: WindowState
+  started: number
+  /** Why this state, in a sentence the receipt carries. */
+  says: string
+}
+
+export function createChainAdvance(deps: ChainDeps): () => Promise<ChainTickResult> {
   let running = false
-  return async (): Promise<void> => {
-    if (running) return
+  return async (): Promise<ChainTickResult> => {
+    // Not `completed`: the pass in flight will report for itself.
+    if (running) return { state: 'running', started: 0, says: 'a previous chain pass was still running' }
     running = true
+    // What this pass could not do, said in the receipt rather than only in the
+    // ops log. A follower held for a REASON (not ready, the bound, the quota)
+    // is a decision; one held because something could not be read or started
+    // is not, and the window must not be recorded as complete over it.
+    const problems: string[] = []
+    let startedCount = 0
+    const unknown = (op: string, says: string): ChainTickResult => {
+      // A tick that could not read is a tick that says so. Returning quietly
+      // is what made this invisible for as long as it was.
+      ops.failed(op, new Error(says))
+      return { state: 'outcome_unknown', started: startedCount, says }
+    }
     try {
       // NO RECONCILIATION PASS OVER `dispatching`, because there is no such
       // status and there never was. PF-07.02 wrote a backlog->dispatching CAS
@@ -118,11 +158,19 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<void> {
       // this card's own instructions forbid.
 
       // Followers still waiting: a `follows` link from a task in backlog.
-      const { data: links } = await deps.store
-        .select('task_links', 'task_id,target_id,needs')
-        .eq('rel', 'follows')
-        .eq('target_kind', 'task')
-      if (!links?.length) return
+      //
+      // EVERY LINK, AND THE ERROR IS READ (release review 2026-10-03). This was
+      // one request with its error dropped: past the gateway's 1000-row cap a
+      // follower's unfinished predecessor is not in the answer, and a refused
+      // read was "no chain is waiting".
+      const linkRead = await deps.store.selectAll('task_links', 'task_id,target_id,needs', {
+        eq: [['rel', 'follows'], ['target_kind', 'task']],
+        orderBy: ['task_id', 'target_id']
+      })
+      if (linkRead.failed)
+        return unknown('chain.links-unreadable', `the chain links could not be read, so nothing was advanced: ${linkRead.failed}`)
+      const links = linkRead.rows
+      if (!links.length) return { state: 'skipped_no_delta', started: 0, says: 'no chain is waiting' }
 
       const followerIds = [...new Set(links.map((l) => l.task_id as string))]
       const targetIds = [...new Set(links.map((l) => l.target_id as string))]
@@ -141,12 +189,11 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<void> {
         ),
         deps.store.selectIn('project_tasks', 'id,status', 'id', targetIds)
       ])
-      if (followers.failed || targets.failed) {
-        // A tick that could not read is a tick that says so. Returning quietly
-        // is what made this invisible for as long as it was.
-        ops.failed('chain.followers-unreadable', new Error(followers.failed ?? targets.failed ?? 'unknown'))
-        return
-      }
+      if (followers.failed || targets.failed)
+        return unknown(
+          'chain.followers-unreadable',
+          `the chain's tasks could not be read, so nothing was advanced: ${followers.failed ?? targets.failed ?? 'unknown'}`
+        )
 
       const outcomeOf = new Map(targets.rows.map((t) => [t.id as string, t.status as string]))
       const waiting = new Map(
@@ -171,6 +218,24 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<void> {
         byFollower.set(link.task_id as string, arr)
       }
 
+      // The provenance the loop bound walks, read ONCE per pass and only when a
+      // follower gets as far as needing it. It FAILS CLOSED: a refused read used
+      // to be an empty map, every chain then looked one link long, and the M68
+      // guard — the only thing between a hand-off and a runaway — was gone.
+      let spawnedFrom: Record<string, string | undefined> | null = null
+      const provenance = async (): Promise<Record<string, string | undefined> | string> => {
+        if (spawnedFrom) return spawnedFrom
+        const read = await deps.store.selectAll('task_links', 'task_id,target_id', {
+          eq: [['rel', 'spawned'], ['target_kind', 'task']],
+          orderBy: ['task_id', 'target_id']
+        })
+        if (read.failed) return read.failed
+        const from: Record<string, string | undefined> = {}
+        for (const l of read.rows) from[l.task_id as string] = l.target_id as string
+        spawnedFrom = from
+        return from
+      }
+
       for (const [followerId, incoming] of byFollower) {
         const follower = waiting.get(followerId)
         if (!follower) continue
@@ -187,14 +252,28 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<void> {
         // (PF-08.02): a bare name stays available only while unambiguous, two
         // different values under one name are an explicit error, and every
         // value is also reachable as `<producerId>.<name>`.
+        //
+        // A REFUSED READ IS NOT "NOTHING WAS HANDED OVER". `produced ?? []`
+        // made it so, and a follower then started with its inputs missing — or
+        // with the slots in its brief left unfilled.
         const rows: Array<{ producer: string; name: string; value: string }> = []
+        let handoffProblem: string | null = null
         for (const l of incoming) {
-          const { data: produced } = await deps.store
+          const { data: produced, error } = await deps.store
             .select('task_handoffs', 'name,value')
             .eq('task_id', l.target_id as string)
+          if (error) {
+            handoffProblem = `the hand-offs of ${l.target_id as string} could not be read: ${error.message}`
+            break
+          }
           for (const h of produced ?? [])
             rows.push({ producer: l.target_id as string,
                         name: h.name as string, value: h.value as string })
+        }
+        if (handoffProblem) {
+          ops.failed('chain.handoffs-unreadable', new Error(handoffProblem), { followerId })
+          problems.push(handoffProblem)
+          continue
         }
         const merged = mergeHandoffs(rows)
         if (!merged.ok) {
@@ -235,11 +314,52 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<void> {
           continue
         }
 
+        // The bound, counted from the predecessor exactly as a hand-off is —
+        // and asked BEFORE the quota, because a reading spent on a start the
+        // bound then refuses is a reading the next follower and the routine
+        // tick no longer have (one reading authorises one start, FA-03).
+        const from = await provenance()
+        if (typeof from === 'string')
+          return unknown(
+            'chain.spawn-links-unreadable',
+            `the spawn links the loop bound counts could not be read, so nothing more was advanced: ${from}`
+          )
+        // Every predecessor's chain counts against the bound — the longest one
+        // decides, because the follower continues all of them.
+        const bound = incoming
+          .map((l) => mayChain(from, l.target_id as string))
+          .find((b) => !b.ok) ?? { ok: true as const }
+        if (!bound.ok) {
+          await deps.journal.append({
+            estateId: deps.estateId,
+            type: 'routine.paused@1',
+            actor: { kind: 'system', id: 'chain' },
+            projectId: follower.project_id as string,
+            payload: { id: follower.id, reason: bound.reason, window: null }
+          })
+          continue
+        }
+
+        // A FOLLOWER WHOSE LAUNCH KEEPS FAILING IS REPORTED, NOT RETRIED FOR
+        // EVER. Counted from the journal's own failed dispatches, and the stop is
+        // said once: the pause names the cap, and a later pass that finds that
+        // pause already written says nothing more.
+        const capped = await launchesExhausted(follower.id as string, follower.project_id as string)
+        if (capped === 'unreadable') {
+          problems.push(`the launch history of ${follower.id as string} could not be read`)
+          continue
+        }
+        if (capped) continue
+
         // AND THE ACCOUNT (FA-03). Everything above answers "is this step
         // ready"; nothing answered "may an unattended session start at all".
         // Asked HERE, per follower, and through the same door the routine tick
         // uses: two gates would each authorise a start against one observation
-        // of the remainder, which is the defect one gate exists to close.
+        // of the remainder, which is the defect one gate exists to close. LAST
+        // among the in-process checks and still before the admission, on
+        // purpose: the admission takes a durable lease and bears a TaskRun, so
+        // asking the account after it would leave a run to unwind on every
+        // refusal, while a reading spent on a refused admission costs one pass.
         const allowed = deps.admission.claim(await deps.quota())
         if (!allowed.ok) {
           await deps.journal.append({
@@ -253,29 +373,6 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<void> {
               window: allowed.window ?? null,
               reason_code: allowed.reasonCode ?? null
             }
-          })
-          continue
-        }
-
-        // The bound, counted from the predecessor exactly as a hand-off is.
-        const { data: spawnLinks } = await deps.store
-          .select('task_links', 'task_id,target_id')
-          .eq('rel', 'spawned')
-          .eq('target_kind', 'task')
-        const from: Record<string, string | undefined> = {}
-        for (const l of spawnLinks ?? []) from[l.task_id as string] = l.target_id as string
-        // Every predecessor's chain counts against the bound — the longest one
-        // decides, because the follower continues all of them.
-        const bound = incoming
-          .map((l) => mayChain(from, l.target_id as string))
-          .find((b) => !b.ok) ?? { ok: true as const }
-        if (!bound.ok) {
-          await deps.journal.append({
-            estateId: deps.estateId,
-            type: 'routine.paused@1',
-            actor: { kind: 'system', id: 'chain' },
-            projectId: follower.project_id as string,
-            payload: { id: follower.id, reason: bound.reason, window: null }
           })
           continue
         }
@@ -357,6 +454,11 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<void> {
         } catch (spawnError) {
           // Only the shared coordinator knows whether begin was granted and
           // whether a process existed. The chain must never release its lease.
+          //
+          // AND THE PASS GOES ON. This rethrew, so one follower whose binary was
+          // missing took every follower after it in the same pass down too, and
+          // the receipt could not say which. The failure is journalled, counted
+          // against MAX_CHAIN_LAUNCH_ATTEMPTS, and carried into the result.
           await deps.journal.append({
             estateId: deps.estateId,
             type: 'chain.dispatch@1',
@@ -369,14 +471,76 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<void> {
               says: 'The launch did not complete. Inspect the run receipt before retrying.'
             }
           })
-          throw spawnError
+          ops.failed('chain.launch-failed', spawnError, { followerId: follower.id })
+          problems.push(`${follower.id as string} did not launch: ${String(spawnError)}`)
+          continue
         }
         dispatched.add(follower.id as string)
+        startedCount++
+      }
+
+      if (problems.length)
+        return {
+          // Something started and something could not: only the committed part
+          // advances. Nothing started and something failed: a SEEN failure.
+          state: startedCount > 0 ? 'partial' : 'failed_known',
+          started: startedCount,
+          says: `${problems.length} chain step(s) could not be advanced: ${problems.join('; ')}`
+        }
+      return {
+        state: 'completed',
+        started: startedCount,
+        says: startedCount ? `${startedCount} chain step(s) started` : 'every waiting chain step was judged'
       }
     } catch (e) {
       ops.failed('chainAdvance.a-chain-could-not-be-advanced', e, { note: 'a chain could not be advanced:' })
+      // SEEN, so `failed_known` — and it does not advance the watermark either.
+      return { state: 'failed_known', started: startedCount, says: `the chain pass failed: ${String(e)}` }
     } finally {
       running = false
     }
+  }
+
+  /**
+   * Whether this follower's unattended launches are used up — and, the first
+   * time they are, the pause that says so. `'unreadable'` fails closed: a
+   * history nobody could read does not authorise another attempt.
+   */
+  async function launchesExhausted(followerId: string, projectId: string): Promise<boolean | 'unreadable'> {
+    const failed = await deps.store
+      .select('journal', 'seq', { count: 'exact', head: true })
+      .eq('type', 'chain.dispatch@1')
+      .eq('payload->>id', followerId)
+      .eq('payload->>phase', 'failed')
+    if (failed.error || typeof failed.count !== 'number') {
+      ops.failed('chain.launch-history-unreadable', new Error(failed.error?.message ?? 'no count returned'), { followerId })
+      return 'unreadable'
+    }
+    if (failed.count < MAX_CHAIN_LAUNCH_ATTEMPTS) return false
+    const said = await deps.store
+      .select('journal', 'seq', { count: 'exact', head: true })
+      .eq('type', 'routine.paused@1')
+      .eq('payload->>id', followerId)
+      .eq('payload->>reason_code', 'launch-retries-exhausted')
+    if (said.error || typeof said.count !== 'number') {
+      ops.failed('chain.launch-history-unreadable', new Error(said.error?.message ?? 'no count returned'), { followerId })
+      return 'unreadable'
+    }
+    if (said.count === 0)
+      await deps.journal.append({
+        estateId: deps.estateId,
+        type: 'routine.paused@1',
+        actor: { kind: 'system', id: 'chain' },
+        projectId,
+        payload: {
+          id: followerId,
+          reason:
+            `its launch failed ${failed.count} times, so the chain stopped starting it unattended. ` +
+            'Read the failed run receipts, fix the cause, then start it yourself.',
+          window: null,
+          reason_code: 'launch-retries-exhausted'
+        }
+      })
+    return true
   }
 }

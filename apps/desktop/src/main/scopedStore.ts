@@ -92,6 +92,64 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       return { rows, failed: null }
     },
 
+    /**
+     * EVERY matching row, paged, or the reason it could not be read.
+     *
+     * The gateway answers at most `max_rows` rows (1000, `supabase/config.toml`)
+     * however many match, and says nothing about the rest — a capped answer and
+     * a complete one look identical to the caller. MEASURED in the 2026-10-03
+     * release review: the chain advance read `task_links` in one request, the
+     * probe estate already held 686 `follows` rows, and past the cap a
+     * follower's unfinished predecessor would simply not be in the answer — so
+     * the follower would start before it. `selectIn` bounds a FILTER that grows
+     * with the data; this bounds the ANSWER.
+     *
+     * Paged by `range` over a stable order the caller names (a page boundary on
+     * an unordered read can skip or repeat a row), with an exact count so a
+     * gateway whose cap is lower than `pageSize` is still read to the end. The
+     * same `{ rows, failed }` shape as `selectIn`: a refused page is `failed`,
+     * never a shorter list, and every caller of this is deciding whether to act.
+     */
+    async selectAll<Table extends string, Columns extends string>(
+      table: Table,
+      columns: Columns,
+      opts: {
+        eq?: ReadonlyArray<readonly [column: string, value: string | number | boolean]>
+        orderBy: readonly string[]
+        pageSize?: number
+        /** A ceiling on the whole read. Past it the read FAILS rather than
+         *  returning a partial list — a caller sized for thousands of rows that
+         *  is handed millions has a different problem than paging. */
+        maxRows?: number
+      }
+    ): Promise<{ rows: Record<string, unknown>[]; failed: string | null }> {
+      const pageSize = opts.pageSize ?? 1000
+      const maxRows = opts.maxRows ?? 50_000
+      if (!opts.orderBy.length) throw new Error(`a paged read of ${table} needs a stable order`)
+      const filters = scopeFilters(table, scope)
+      const rows: Record<string, unknown>[] = []
+      for (let from = 0; ; ) {
+        let q = db.from(table).select(columns, { count: 'exact' })
+        for (const [c, value] of filters) q = q.eq(c, value)
+        for (const [c, value] of opts.eq ?? []) q = q.eq(c, value)
+        for (const c of opts.orderBy) q = q.order(c, { ascending: true })
+        const { data, error, count } = await q.range(from, from + pageSize - 1)
+        if (error)
+          return {
+            rows: [],
+            failed: `${table} could not be read (${error.code ?? 'no code'}): ${error.message}`
+          }
+        const page = (data ?? []) as Record<string, unknown>[]
+        rows.push(...page)
+        from += page.length
+        if (rows.length > maxRows)
+          return { rows: [], failed: `${table} holds more than ${maxRows} matching rows; the read stopped rather than act on part of them` }
+        if (page.length === 0) break
+        if (typeof count === 'number' ? rows.length >= count : page.length < pageSize) break
+      }
+      return { rows, failed: null }
+    },
+
     /** Fills the scope columns rather than trusting the caller to. A row whose
      *  own values disagreed with the scope would be written and then invisible
      *  to every read — the empty-table failure, one layer down. */
