@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { INSTRUCTIONS_MIN, NAME_MAX, agentNameTakenAtWrite, nameTaken, readSpec, resolveServers } from './agentSpec.ts'
+import { INSTRUCTIONS_MIN, NAME_MAX, agentNameTakenAtWrite, nameKey, nameTaken, readSpec, resolveServers } from './agentSpec.ts'
 
 const ok = (over: Partial<Parameters<typeof readSpec>[0]> = {}) =>
   readSpec({
@@ -80,6 +80,19 @@ describe('one agent per name in a project', () => {
     expect(nameTaken('Reviewer 2', existing)).toBe(false)
     expect(nameTaken('   ', existing)).toBe(false)
     expect(nameTaken('Reviewer', [])).toBe(false)
+  })
+
+  // Release review iteration 3, finding 7: the database folds case with Unicode SIMPLE case mapping
+  // (`lower(… collate pg_c_utf8)`, migration 73). The same pairs are asserted against the database in
+  // apps/desktop/test/estate-identity-db.test.mjs and on the Supabase image in gateway-reads.test.mjs.
+  it('folds case beyond ASCII exactly as the database rule does (simple case mapping, no context)', () => {
+    expect(nameTaken('ärzt', [{ name: 'ÄRZT' }])).toBe(true)
+    // JS `toLowerCase` folds a word-final Σ to ς; simple mapping (and the database) gives σ.
+    expect(nameTaken('οδοσ', [{ name: 'ΟΔΟΣ' }])).toBe(true)
+    // JS `toLowerCase` turns İ into two code points; simple mapping gives i.
+    expect(nameTaken('i', [{ name: 'İ' }])).toBe(true)
+    expect(nameKey(' ΟΔΟΣ ')).toBe('οδοσ')
+    expect(nameKey('İSTANBUL')).toBe('istanbul')
   })
 })
 
