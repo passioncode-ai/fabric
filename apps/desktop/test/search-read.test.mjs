@@ -63,23 +63,29 @@ function fakeDb(answers) {
           or: (s) => { filters.push(['or', s, '']); return q },
           gt: () => q,
           lte: () => q,
-          in: () => q,
+          in: (c, v) => { filters.push(['in', c, v]); return q },
           textSearch: (c, t) => { filters.push(['textSearch', c, t]); return q },
           order: (c, o) => { filters.push(['order', c, o?.ascending === false ? 'desc' : 'asc']); return q },
           limit: (n) => { filters.push(['limit', String(n), '']); return q },
-          maybeSingle: () => Promise.resolve(next(table)),
-          then: (resolve) => Promise.resolve(next(table)).then(resolve)
+          maybeSingle: () => Promise.resolve(next(table, filters)),
+          then: (resolve) => Promise.resolve(next(table, filters)).then(resolve)
         }
         return q
       }
     })
   }
-  function next(table) {
+  function next(table, filters = []) {
     const list = answers[table]
     if (!list) return { data: [], error: null }
     const i = taken[table] ?? 0
     taken[table] = i + 1
-    return list[Math.min(i, list.length - 1)]
+    const answer = list[Math.min(i, list.length - 1)]
+    // An `in` filter narrows the rows the way PostgREST would, so a label read that asks for exactly the
+    // ids it needs gets exactly those rows back — however many projects the estate holds.
+    const within = filters.find(([op]) => op === 'in')
+    if (!Array.isArray(answer?.data)) return answer
+    if (!within) return answer.capAt ? { ...answer, data: answer.data.slice(0, answer.capAt) } : answer
+    return { ...answer, data: answer.data.filter((r) => within[2].includes(String(r[within[1]]))) }
   }
 }
 
@@ -270,6 +276,47 @@ const PROJECTS = [{ id: 'p1', name: 'Atlas ledger', purpose: 'keep the ledger' }
         : fail(`${table}: ${JSON.stringify(text)} became ${JSON.stringify(v)}`)
     }
   }
+}
+
+// ── PROJECT LABELS ARE READ FOR THE HITS, NOT CAPPED AT A PAGE (release review iteration 2, finding 4) ──
+//
+// The label map came from one unpaged `projects` read. Past 1000 projects the gateway answers the first
+// 1000 and says nothing about the rest, so a hit from project 1001 rendered with a blank project while
+// `labelProblem` stayed null. Labels are now asked for exactly the project ids the hits carry.
+{
+  const estate = Array.from({ length: 1500 }, (_, i) => ({ id: `p${i}`, name: `Project ${i}` }))
+  const hit = { id: 't1', project_id: 'p1400', title: 'ledger work', instruction: 'x', started_at: 'x' }
+  const { of, queries } = await drive({
+    // The projects search finds nothing; the estate's projects answer like the gateway: an unfiltered
+    // read gets the first 1000 (`capAt`), a read filtered by id gets exactly those ids.
+    projects: [rows([]), { data: estate, error: null, capAt: 1000 }],
+    project_tasks: [rows([hit])]
+  })
+  // The label read may only see what the gateway would return for the question it asked.
+  const labelQueries = queries.filter((q) => q.table === 'projects' && !q.filters.some(([op]) => op === 'limit'))
+  eq(labelQueries.length, 1, 'one label read')
+  const asked = labelQueries[0]?.filters.find(([op]) => op === 'in')
+  asked && asked[1] === 'id' && JSON.stringify(asked[2]) === JSON.stringify(['p1400'])
+    ? ok('the labels are asked for exactly the project ids in the hits')
+    : fail('the label read asked for ' + JSON.stringify(labelQueries[0]?.filters))
+  eq(of('tasks')?.hits[0]?.projectName, 'Project 1400', 'a hit from the 1400th project carries its name')
+  eq(of('tasks')?.labelProblem, null, 'and no label problem is claimed when every label was read')
+}
+{
+  const { of, queries } = await drive({ projects: [rows([])], project_tasks: [rows([])] })
+  eq(queries.filter((q) => q.table === 'projects').length, 1, 'no hits, no label read — only the projects search itself')
+  eq(of('tasks')?.labelProblem, null, 'and nothing to label is not a problem')
+}
+{
+  const hit = { id: 't1', project_id: 'p1', title: 'ledger work', instruction: 'x', started_at: 'x' }
+  const { of } = await drive({ projects: [rows([]), refused('projects refused')], project_tasks: [rows([hit])] })
+  const tasks = of('tasks')
+  tasks?.hits.length === 1 && tasks.problem === null
+    ? ok('a failed label read keeps the hits — the store answered')
+    : fail('the hits were lost with the labels: ' + JSON.stringify(tasks))
+  ;/project names could not be read/.test(tasks?.labelProblem ?? '') && /projects refused/.test(tasks?.labelProblem ?? '')
+    ? ok('and says the project names could not be read, with the reason')
+    : fail('labelProblem: ' + JSON.stringify(tasks?.labelProblem))
 }
 
 if (failures) {
