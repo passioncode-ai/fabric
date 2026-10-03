@@ -131,10 +131,11 @@ refuses('edited bytes without recompute', () => decode(mutate(a => { a.messages[
 refuses('edited header without recompute', () => decode(mutate(a => { a.archive_id = id(8999) }, false)), 'integrity_mismatch')
 refuses('wrong schema', () => decode(mutate(a => { a.schema = 'CeoPrivateArchive@2' })), 'unsupported_schema')
 refuses('wrong source schema', () => decode(mutate(a => { a.source_schema_version = 65 })), 'unsupported_schema')
-refuses('an unqualified later source schema', () => decode(mutate(a => { a.source_schema_version = 70 })), 'unsupported_schema')
+refuses('an unqualified later source schema', () => decode(mutate(a => { a.source_schema_version = 71 })), 'unsupported_schema')
 assert.equal(decode(mutate(a => { a.source_schema_version = 67 })).archive.source_schema_version, 67, 'schema 67 is a qualified source (migration 67)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 68 })).archive.source_schema_version, 68, 'schema 68 is a qualified source (migration 68)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 69 })).archive.source_schema_version, 69, 'schema 69 is a qualified source (migration 69)'); checks++
+assert.equal(decode(mutate(a => { a.source_schema_version = 70 })).archive.source_schema_version, 70, 'schema 70 is a qualified source (migration 70)'); checks++
 refuses('wrong preparation version', () => decode(mutate(a => { a.messages[0].envelope.preparation_version = 'har07' })), 'unsupported_schema')
 refuses('companion seq as a decimal string', () => decode(mutate(a => { a.messages[0].accepted_seq = String(a.messages[0].accepted_seq) })), 'invalid_archive')
 refuses('conversation seq as a decimal string', () => decode(mutate(a => { a.conversations[0].created_seq = String(a.conversations[0].created_seq) })), 'invalid_archive')
