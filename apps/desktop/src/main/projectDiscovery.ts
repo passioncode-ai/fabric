@@ -78,6 +78,30 @@ export interface InspectOptions {
   fs?: DiscoveryFs
 }
 
+/**
+ * Why a folder could not be inspected or scanned: a CODE, so each window says it in its own language
+ * (iteration 3, errors finding 9: these reached a Russian window as English sentences). The code leads the
+ * message — IPC carries only the message across — as `folder-refused:<code>: <path>`:
+ * `missing`, `not-a-folder`, `unreadable`, `timeout`, and `outside` (not one of the window's folders;
+ * mapped by `asFolderRefusal`).
+ */
+export type FolderRefusal = 'missing' | 'not-a-folder' | 'unreadable' | 'timeout' | 'outside'
+export class FolderRefused extends Error {
+  readonly code: FolderRefusal
+  readonly attempted: string
+  constructor(code: FolderRefusal, attempted: string) {
+    super(`folder-refused:${code}: ${attempted}`)
+    this.name = 'FolderRefused'
+    this.code = code
+    this.attempted = attempted
+  }
+}
+
+/** The boundary's refusal (`files.ts#OutsideRoots`) as a coded one; any other error passes through. */
+export function asFolderRefusal(e: unknown, attempted: string): unknown {
+  return e instanceof Error && e.name === 'OutsideRoots' ? new FolderRefused('outside', attempted) : e
+}
+
 const TIMED_OUT = Symbol('timed out')
 /** The call's answer, or TIMED_OUT once `ms` passes; a rejection passes through to the caller. */
 async function timed<T>(call: Promise<T>, ms: number): Promise<T | typeof TIMED_OUT> {
@@ -205,17 +229,17 @@ export async function inspectFolder(dir: string, opts: InspectOptions = {}): Pro
   const ms = opts.timeoutMs ?? 3000
   const abs = path.resolve(dir)
   const st = await probe(() => fs.stat(abs), ms)
-  if (st === TIMED_OUT) throw new Error(`folder did not answer in time: ${abs}`)
-  if (st === null) throw new Error(`folder does not exist: ${abs}`)
-  if (!st.isDirectory()) throw new Error(`not a folder: ${abs}`)
+  if (st === TIMED_OUT) throw new FolderRefused('timeout', abs)
+  if (st === null) throw new FolderRefused('missing', abs)
+  if (!st.isDirectory()) throw new FolderRefused('not-a-folder', abs)
   const entries = await probe(() => fs.readdir(abs), ms)
-  if (entries === TIMED_OUT) throw new Error(`folder did not answer in time: ${abs}`)
-  if (entries === null) throw new Error(`folder cannot be read: ${abs}`)
+  if (entries === TIMED_OUT) throw new FolderRefused('timeout', abs)
+  if (entries === null) throw new FolderRefused('unreadable', abs)
   let kind: FolderKind = 'folder'
   let parent: string | null = null
   if (entries.includes('.git')) {
     const k = await dotGitKind(path.join(abs, '.git'), fs, ms)
-    if (k === TIMED_OUT) throw new Error(`folder did not answer in time: ${abs}`)
+    if (k === TIMED_OUT) throw new FolderRefused('timeout', abs)
     ;({ kind, parent } = k)
   }
   const git = kind !== 'folder'
@@ -271,8 +295,9 @@ export async function scanFolder(root: string, opts: ScanOptions = {}): Promise<
   const inspectTimeoutMs = opts.inspectTimeoutMs ?? 3 * dirTimeoutMs + gitTimeoutMs + 1000
   const now = opts.now ?? Date.now
   const rootStat = await probe(() => fs.stat(abs), dirTimeoutMs)
-  if (rootStat === TIMED_OUT) throw new Error(`folder did not answer in time: ${abs}`)
-  if (!rootStat?.isDirectory()) throw new Error(`folder does not exist: ${abs}`)
+  if (rootStat === TIMED_OUT) throw new FolderRefused('timeout', abs)
+  if (rootStat === null) throw new FolderRefused('missing', abs)
+  if (!rootStat.isDirectory()) throw new FolderRefused('not-a-folder', abs)
   const started = now()
   const found: FolderFacts[] = []
   let visited = 0

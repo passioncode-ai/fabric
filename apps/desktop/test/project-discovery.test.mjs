@@ -60,7 +60,7 @@ assert.equal(worktree.kind, 'worktree')
 assert.equal(worktree.parent, path.join(root, 'alpha'), 'a worktree names the repository it belongs to')
 assert.equal(worktree.branch, 'fix')
 
-await assert.rejects(() => inspectFolder(path.join(root, 'missing')), /does not exist/)
+await assert.rejects(() => inspectFolder(path.join(root, 'missing')), /(^|: )folder-refused:missing: /)
 
 // ── scan the parent folder
 const scan = await scanFolder(root)
@@ -85,7 +85,7 @@ const cancelled = await scanFolder(root, { signal: ctl.signal })
 assert.equal(cancelled.cancelled, true)
 assert.equal(cancelled.candidates.length, 0)
 
-await assert.rejects(() => scanFolder(path.join(root, 'missing')), /does not exist/)
+await assert.rejects(() => scanFolder(path.join(root, 'missing')), /(^|: )folder-refused:missing: /)
 
 // ── V1 (iteration 1, errors-2/data-9/errors-4/errors-10): the scan only READS and says what it skipped
 // A repository's own config cannot make the scan run a program: a signed commit with
@@ -286,9 +286,26 @@ await assert.rejects(() => scanFolder(path.join(root, 'missing')), /does not exi
   // inspectFolder on a folder that never answers fails in time, and says why.
   {
     const [err, ms] = await timedRun(() => inspectFolder(root, { timeoutMs: 100, fs: fsWith({ stat: (p) => p === root }) }).then(() => null, (e) => e))
-    assert.match(String(err), /did not answer/)
+    assert.match(String(err), /folder-refused:timeout: /)
     assert.ok(ms < 1500)
   }
+}
+
+// ── iteration 3, errors finding 9: inspect and scan refusals reached a Russian window as English sentences.
+// Each is a CODE the renderer can match: `folder-refused:<code>: <path>`.
+{
+  const { FolderRefused, asFolderRefusal } = await import(SRC)
+  const { OutsideRoots } = await import(path.resolve(import.meta.dirname, '../src/main/files.ts'))
+  const file = path.join(root, 'notes', 'todo.md')
+  const codeOf = async (fn) => { try { await fn(); return 'resolved' } catch (e) { assert.ok(e instanceof FolderRefused, String(e)); return e.message } }
+  assert.equal(await codeOf(() => inspectFolder(path.join(root, 'missing'))), `folder-refused:missing: ${path.join(root, 'missing')}`)
+  assert.equal(await codeOf(() => inspectFolder(file)), `folder-refused:not-a-folder: ${file}`)
+  assert.equal(await codeOf(() => scanFolder(file)), `folder-refused:not-a-folder: ${file}`, 'a scan of a file says not-a-folder, not "does not exist"')
+  const out = asFolderRefusal(new OutsideRoots('/elsewhere'), '/elsewhere')
+  assert.ok(out instanceof FolderRefused)
+  assert.equal(out.message, 'folder-refused:outside: /elsewhere', "a folder outside the window's folders is a code")
+  const other = new Error('boom')
+  assert.equal(asFolderRefusal(other, '/x'), other, 'any other error passes through unchanged')
 }
 
 console.log('PASS project discovery: inspect (repository, folder, worktree, missing, no exec from repo config incl. partial clone, no credential, .git symlink), scan (grouping, noise, symlink boundary + count, bound, cancel, noise-named repo, unreadable counted, breadth first, no sync fs, stuck read/lstat/probe vs Stop, deadline, timeout)')

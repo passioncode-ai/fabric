@@ -99,7 +99,7 @@ import { createPrivateHistory, type PrivateHistory } from './privateHistory.ts'
 type Returns<T> = T extends (...args: never[]) => Promise<infer R> ? R : never
 import { hasSiblings, originDocument, sameDocument } from '../shared/origin.ts'
 import { researchBrief } from '../shared/idea.ts'
-import { agentNameTakenAtWrite, nameTaken, readSpec, resolveServers } from '../shared/agentSpec.ts'
+import { agentNameRefusal, agentNameTakenAtWrite, nameTaken, readSpec, resolveServers } from '../shared/agentSpec.ts'
 import { dueRoutines } from '../shared/routine.ts'
 import { automationStates } from '../shared/automations.ts'
 import { createRoutineTick } from './routineTick'
@@ -232,7 +232,7 @@ import { tenureFrom } from '../shared/tenure.ts'
 import { markFor, setMark } from './digestMark.ts'
 import { favourites, moveProject, projectOrder, replaceFavourite, toggleFavourite } from './favourites.ts'
 import { persona, savePersona } from './persona.ts'
-import { inspectFolder, scanFolder } from './projectDiscovery.ts'
+import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors } from './executorDetect.ts'
 import { keepScan, lastScan } from './startPaths.ts'
 import { createProjectFolder } from './projectFolder.ts'
@@ -1676,13 +1676,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         .select('agent_bindings', 'role').eq('project_id', input.projectId).not('instructions', 'is', null)
       if (nerr) throw new Error(`agents read failed: ${nerr.message}`)
       if (nameTaken(verdict.spec.name, (named ?? []).map((r) => ({ name: (r.role as string | null) ?? '' }))))
-        throw new Error(`this project already has an agent called ${verdict.spec.name}`)
+        throw new Error(agentNameRefusal(verdict.spec.name))
 
       const id = randomUUID()
       // #region one-agent-per-name — docs: docs/ux/scenarios.md#scn-130-start-a-new-agent-inside-a-project
       // The read above is the quick answer; the RULE is at the write boundary. Two creates of one name
       // could both pass that read, so `append_event` checks the name again under the estate's lock
-      // (migration 72) and refuses the second with the same sentence, which is mapped back here.
+      // (migration 72) and refuses the second; both answer with one code, `agentNameRefusal` (agent-name-refused:taken).
       try {
         await journal.append({
           estateId: ACTIVE_ESTATE,
@@ -1700,7 +1700,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           }
         })
       } catch (e) {
-        if (agentNameTakenAtWrite(e)) throw new Error(`this project already has an agent called ${verdict.spec.name}`)
+        if (agentNameTakenAtWrite(e)) throw new Error(agentNameRefusal(verdict.spec.name))
         throw e
       }
       // #endregion one-agent-per-name
@@ -2941,13 +2941,22 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     } else fileRoots.allow(result.filePaths[0], scope)
     return result.filePaths[0]
   })
+  // A folder outside this window's folders is refused by code (`folder-refused:outside: <path>`), like
+  // every other inspect and scan refusal (`projectDiscovery.ts#FolderRefused`, iteration 3).
+  const windowFolder = (event: Electron.IpcMainInvokeEvent, folder: string): string => {
+    try {
+      return fileRoots.resolve(folder, scopeOf(event))
+    } catch (e) {
+      throw asFolderRefusal(e, String(folder))
+    }
+  }
   handle(IPC.startInspect, async (event, folder: string): Promise<Returns<FabricApi['start']['inspect']>> => {
-    const facts = await inspectFolder(fileRoots.resolve(folder, scopeOf(event)))
+    const facts = await inspectFolder(windowFolder(event, folder))
     return (await withImported([facts]))[0]
   })
   handle(IPC.startScan, async (event, root: string): Promise<Returns<FabricApi['start']['scan']>> => {
     const scope = scopeOf(event)
-    const resolved = fileRoots.resolve(root, scope)
+    const resolved = windowFolder(event, root)
     scans.get(scope)?.abort()
     const ctl = new AbortController()
     scans.set(scope, ctl)
