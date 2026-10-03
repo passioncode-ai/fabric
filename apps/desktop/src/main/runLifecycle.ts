@@ -21,6 +21,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { outcomeOfExit, type Exit, type RunOutcome } from '../shared/runOutcome.ts'
 
+// #region run-lifecycle-refusals — docs: docs/evidence/backlog.md#work-m188
 /**
  * Every refusal `bind_task_run` can return, in the managed-launch contract.
  *
@@ -47,6 +48,7 @@ export const BIND_REFUSALS = [
 
 /** Every refusal `end_task_run` can return (migration 55, its current definition). */
 export const END_REFUSALS = ['unknown_outcome', 'not_found', 'already_ended'] as const
+// #endregion run-lifecycle-refusals
 
 export interface RunVerdict {
   ok: boolean

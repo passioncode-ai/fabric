@@ -197,6 +197,7 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
     problem
   })
 
+// #region quota-failed-first-read — docs: docs/evidence/backlog.md#work-m199-usage
   /**
    * A request that produced no reading, when there is no earlier one to fall
    * back to. No window, so no number is invented; the account is named because
@@ -213,6 +214,7 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
     problem,
     account
   })
+// #endregion quota-failed-first-read
 
   const readFor = async (slot: string, key: ObservationKey | undefined): Promise<Quota> => {
       const last = entries.get(slot) ?? null
