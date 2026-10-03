@@ -18,6 +18,7 @@ import type { AnswerReceipt } from '../../shared/types'
 import { summariseAnswer } from '../../shared/answerReceipt.ts'
 import { Banner, Button, EmptyState, Field, Panel, Row, StateChip, Toolbar } from './components'
 import { useT } from './i18n'
+import { titleOf } from './attentionTitle'
 import { since } from './duration'
 
 export function BoardPanel({
@@ -103,7 +104,7 @@ export function BoardPanel({
             tone="quiet"
             onClick={() => setOpen(open === item.ref ? null : item.ref)}
           >
-            {item.title}
+            {titleOf(item, t)}
           </Button>
           {item.detail && <span className="muted"> · {item.detail}</span>}
 

@@ -201,7 +201,14 @@ export const LAYOUT: Readonly<Record<string, string>> = {
   'chat-log': 'the conversation, the only growing area of the chat panel',
   'chat-message': 'one message in the conversation',
   'chat-composer': 'the chat panel\'s context, input and send band',
-  'visually-hidden': 'present for a screen reader, absent on screen'
+  'visually-hidden': 'present for a screen reader, absent on screen',
+  'access-card': 'one product, request or agent in Agent access (SCR-76)',
+  'access-name': 'the agent\'s name heading a card in Agent access',
+  'access-asks': 'what a request asks, one line per resource',
+  'access-url': 'a product server address that may break anywhere',
+  'access-problem': 'a failed connect attempt, in the warning ink',
+  'access-acts': 'a card\'s acts, on their own line under its text',
+  'access-detail': 'the machine\'s own words, under a localised line'
 }
 
 /** Every class the interface may name, from both kinds of entry. */

@@ -374,6 +374,31 @@ answer.commit → decision + delivery obligation
    }[k]
    return title('Личная история','Ваши разговоры с Fabric между установками. Только ваши, без доступа и без незавершённой работы.',link('К настройкам','project-settings'))+picker+body+what
   }
+  case 'agent-access': {
+   // SCR-76 · SCN-132/133 · ADR-0115: what registered agents may do through Fabric, requests waiting, products connected.
+   // Verification 0.3.1: one card per product, request and agent; acts on their own line under the text (UX-1).
+   const states=[['loading','Чтение'],['unreadable','Не прочитано'],['hub-off','Хаб выключен'],['read','Списки'],['waiting','Ждём продукт'],['connected','Подключён'],['declined','Отклонено'],['failed','Не удалось']]
+   const k=states.some(x=>x[0]===s.aaState)?s.aaState:'read'
+   const picker=`<nav class="cc-states" aria-label="Состояния доступа агентов">${states.map(([id,label])=>`<a class="chip" href="#view-agent-access?aaState=${id}"${id===k?' aria-current="true"':''}>${h(label)}</a>`).join('')}</nav>`
+   const acts=(...xs)=>`<div class="actions">${xs.join('')}</div>`
+   const product={
+    read:panel('Продукты','<p><b>Fabric Inbox</b> не подключён</p>'+acts(link('Подключить','agent-access',{aaState:'waiting'},true))),
+    waiting:panel('Продукты','<p><b>Fabric Inbox</b> не подключён</p><p class="meta">Ждём вашего ответа в Fabric Inbox.</p>'),
+    connected:panel('Продукты','<p><b>Fabric Inbox</b> подключён к <span>https://inbox.example.com</span> с 03.10.2026</p>'+acts(link('Переподключить','agent-access',{aaState:'waiting'}),link('Отключить','agent-access',{aaState:'read'}))+'<p class="meta">После «Отключить» или «Переподключить»: Fabric больше не использует прежний ключ; он действует в Fabric Inbox → «Доступ агентов», пока вы не отзовёте его там.</p>'),
+    declined:panel('Продукты','<p><b>Fabric Inbox</b> не подключён</p><p class="meta">Вы отклонили подключение в Fabric Inbox.</p>'+acts(link('Подключить','agent-access',{aaState:'waiting'},true))),
+    failed:panel('Продукты','<p><b>Fabric Inbox</b> не подключён</p><p>Последняя попытка не удалась: Хранилище Project Observatory не сохранило ключ, поэтому Fabric Inbox его отзывает.</p>'+acts(link('Попробовать снова','agent-access',{aaState:'waiting'},true)))
+   }
+   const request=panel('Ждут вашего ответа','<h4>Newsletter Digest</h4><p class="meta">Агент, зарегистрированный как example-agent.default (установил example-installer)</p><ul><li>читать почту в news@example.com</li></ul><p class="meta">Его причина, его словами: «собирать утреннюю сводку рассылки»</p><p class="meta">Fabric проверил, что агент с этим идентификатором установлен на этом Mac. Он не может доказать, какая программа прислала запрос.</p><p class="meta">Доступ действует год, если вы не отзовёте его в «Настройки → Доступ агентов». Истекает через 8 мин.</p>'+acts(link('Отказать','agent-access'),link('Разрешить и подключить Fabric Inbox','agent-access',{aaState:'waiting'},true)))
+   const agents=panel('Агенты с доступом','<h4>Newsletter Digest</h4>'+row('читать почту в news@example.com','до 03.10.2027',link('Отозвать','agent-access'))+acts(link('Отозвать всё','agent-access')))
+   const denials=panel('Отклонённые запросы','<p>Отклонённых запросов нет.</p>')
+   const body={
+    loading:'<p class="meta">Читаем доступ агентов…</p>',
+    unreadable:note('Не удалось прочитать доступ агентов','Это не пустой список.',link('Попробовать снова','agent-access',{aaState:'read'})),
+    'hub-off':note('Сейчас агенты не могут обратиться к Fabric','Сессии, которые запускает Fabric, это не затрагивает. Освободите порт, затем закройте и снова откройте Fabric. Что увидел Fabric: порт 47070 занят.')+product.read+request+agents+denials,
+    read:'<p class="meta">Агенты обращаются к Fabric по адресу http://127.0.0.1:47070.</p>'+product.read+request+agents+denials
+   }[k]??('<p class="meta">Агенты обращаются к Fabric по адресу http://127.0.0.1:47070.</p>'+product[k]+request+agents+denials)
+   return title('Доступ агентов','Агенты на этом Mac просят доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос.',link('К настройкам','estate-settings'))+picker+body
+  }
   case 'mcp-servers': {
    // SCR-66 · SCN-103/104: MCP servers are tools, not agents; the inventory is Project Observatory's.
    const srv=(name,where,transport,ok)=>row(name,`объявлен в: ${where} · ${transport}`,badge(ok?'✓ Отвечает':'✕ Не отвечает'))

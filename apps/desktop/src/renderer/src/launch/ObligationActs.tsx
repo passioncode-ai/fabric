@@ -11,7 +11,9 @@ import { useState } from 'react'
 import type { ProposalDecideResult } from '../../../shared/types'
 import type { EntityRef } from '../../../shared/entityRef'
 import { destinationOf } from '../../../shared/entityRef.ts'
-import type { AccessFacts } from '../../../shared/attention'
+import type { HubActResult, PendingRequestFacts } from '../../../shared/access'
+import { sayActRefusal, sayAllow, sayAsk, sayConnectProblem, sayFloor, sayIncremental, sayOrigin, shownName } from '../../../shared/accessWords'
+import { humaniseError } from '../../../shared/errorText'
 import { useT } from '../i18n'
 
 export interface ObligationLike {
@@ -20,7 +22,7 @@ export interface ObligationLike {
   grantable?: { floorClass: string; target: string }
   proposal?: { id: string; depth: number; bound: number }
   /** ADR-0115: an external agent waiting on consent; the act is Allow or Deny, right here, on the prompt's facts. */
-  access?: AccessFacts & { requestId: string; callee: string; expiresAt: string }
+  access?: PendingRequestFacts
 }
 
 /** Where an obligation opens, decided by the one resolver; null when nowhere exact. */
@@ -67,6 +69,8 @@ export function ObligationActs({ item, decisions, onOpen, onError }: {
   const at = opensAt(item)
   const { outcome, deciding, decide, stillDecidable } = decisions
   const p = item.proposal
+  // An access request is its own block: the prompt's facts above, its two buttons below (UX-8).
+  if (item.access) return <AccessActs access={item.access} onError={onError} />
   return (
     <div className="lp-actions">
       {p && (
@@ -94,7 +98,6 @@ export function ObligationActs({ item, decisions, onOpen, onError }: {
           )}
         </>
       )}
-      {item.access && <AccessActs access={item.access} onError={onError} />}
       {!p && item.grantable && (
         <button type="button" className="lp-button primary"
           onClick={() =>
@@ -116,32 +119,53 @@ export function ObligationActs({ item, decisions, onOpen, onError }: {
 
 /** Allow or Deny an external agent's request where it waits in the queue (SCN-132). The answer is kept,
  *  because the queue re-reads on its own schedule and the row must not offer the act twice meanwhile.
- *  Before either button it says what the native prompt says — the same decision, on the same facts. */
-function AccessActs({ access, onError }: { access: AccessFacts & { requestId: string }; onError: (m: string) => void }): React.JSX.Element {
+ *  Before either button it says what the native prompt says — the same decision, on the same facts, in
+ *  the operator's language (verification iteration 1 for 0.3.1: UX-2, UX-4, UX-5, UX-8). */
+function AccessActs({ access, onError }: { access: PendingRequestFacts; onError: (m: string) => void }): React.JSX.Element {
   const t = useT()
   const requestId = access.requestId
+  const name = shownName(access.agent)
   const [state, setState] = useState<'open' | 'deciding' | 'allowed' | 'denied'>('open')
+  const [connectProblem, setConnectProblem] = useState<string | null>(null)
   const decide = async (decision: 'allowed' | 'denied'): Promise<void> => {
     setState('deciding')
     try {
-      const r = await window.fabric.hub.decide(requestId, decision)
-      if (r.ok) setState(decision)
-      else { setState('open'); onError(r.reason) }
+      const r: HubActResult = await window.fabric.hub.decide(requestId, decision)
+      if (r.ok) {
+        // Allowed, but the product could not be opened: the Allow stands, and the row says so beside it.
+        if (r.connect) setConnectProblem(sayConnectProblem(t, r.connect.problem, access.product))
+        setState(decision)
+      } else {
+        setState('open')
+        onError(r.code ? sayActRefusal(t, r.code) : r.problem ? sayConnectProblem(t, r.problem, access.product) : humaniseError(r.reason).detail)
+      }
     } catch (e) {
       setState('open')
-      onError(String(e))
+      onError(humaniseError(e).detail)
     }
   }
   if (state === 'allowed' || state === 'denied')
-    return <span role="status" className="lp-meta">{t(state === 'allowed' ? 'access.allowedHere' : 'access.deniedHere')}</span>
+    return (
+      <div className="lp-actions">
+        <span role="status" className="lp-meta">
+          {connectProblem ? t('access.allowedConnect', { problem: connectProblem }) : t(state === 'allowed' ? 'access.allowedHere' : 'access.deniedHere')}
+        </span>
+      </div>
+    )
   return (
     <>
-      <span className="lp-meta">{access.origin}</span>
-      <span className="lp-meta">{t('access.pending.reason', { reason: access.reason })}</span>
-      <span className="lp-meta">{access.floor}</span>
-      {access.incremental && <span className="lp-meta">{access.incremental}</span>}
-      <button type="button" className="lp-button" disabled={state === 'deciding'} onClick={() => void decide('denied')}>{t('access.deny')}</button>
-      <button type="button" className="lp-button primary" disabled={state === 'deciding'} onClick={() => void decide('allowed')}>{t('access.allow')}</button>
+      <div className="lp-facts">
+        <p className="lp-meta">{sayOrigin(t, access.agent)}</p>
+        <ul className="lp-facts-asks">{access.ask.map((l, i) => <li key={i}>{sayAsk(t, l)}</li>)}</ul>
+        <p className="lp-meta">{t('access.pending.reason', { reason: access.reason })}</p>
+        <p className="lp-meta">{sayFloor(t)}</p>
+        {access.incremental && <p className="lp-meta">{sayIncremental(t)}</p>}
+        <p className="lp-meta">{t('access.lasts')}</p>
+      </div>
+      <div className="lp-actions">
+        <button type="button" className="lp-button" aria-label={t('access.denyFor', { name })} disabled={state === 'deciding'} onClick={() => void decide('denied')}>{t('access.deny')}</button>
+        <button type="button" className="lp-button primary" aria-label={t('access.allowFor', { name })} disabled={state === 'deciding'} onClick={() => void decide('allowed')}>{sayAllow(t, access)}</button>
+      </div>
     </>
   )
 }

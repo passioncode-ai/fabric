@@ -8,6 +8,7 @@ import type { ReadEnvelope } from '../../../shared/readEnvelope'
 import type { FeedEvent, ProjectRow, TerminalSession } from '../../../shared/types'
 import { liveIsFresh, liveRows, rhythmDays, rhythmTotals, RHYTHM_DAYS, type LiveRow } from '../../../shared/homeView.ts'
 import { describeEvent, useLocale, useT } from '../i18n'
+import { titleOf } from '../attentionTitle'
 import { since } from '../duration'
 
 const sameDay = (iso: string, now: Date): boolean => new Date(iso).toDateString() === now.toDateString()
@@ -92,7 +93,7 @@ export function HomeBoard({ feedMark, onBoard }: { feedMark: number; onBoard(): 
         <button key={item.ref} type="button" className="lp-topic" onClick={onBoard}>
           <span className="lp-topic-num">{String(i + 1).padStart(2, '0')}</span>
           <span>
-            <span className="lp-topic-title">{item.title}</span>
+            <span className="lp-topic-title">{titleOf(item, t)}</span>
             <span className="lp-meta">
               {[item.projectName, t(`needsYou.kind.${item.kind}` as 'needsYou.kind.question'), item.detail].filter(Boolean).join(' · ')}
             </span>

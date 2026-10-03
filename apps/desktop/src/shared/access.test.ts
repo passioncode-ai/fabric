@@ -3,11 +3,11 @@ import {
   ACCESS_REQUEST_TTL_MS,
   GRANT_TTL_MS,
   accessRefusal,
-  consentText,
+  agentFacts,
+  pendingFacts,
+  askLines,
   coverage,
-  describeAsk,
   normaliseAccessRequest,
-  consentFacts,
   normaliseInboxAccount,
   oneLine,
   plainCapability,
@@ -60,22 +60,6 @@ describe('normaliseInboxAccount', () => {
     expect(normaliseInboxAccount('gmail:a/b')).toBeNull()
     expect(normaliseInboxAccount('news')).toBeNull()
     expect(normaliseInboxAccount('cloudflare:a b@example.com')).toBeNull()
-  })
-})
-
-describe('describeAsk — the prompt says what is asked in the product\'s words', () => {
-  it('names verbs per mailbox, and a workspace setup apart', () => {
-    const r = normaliseAccessRequest({ ...ask, capabilities: ['read_message', 'list_messages', 'create_address'] })
-    if (!r.ok) throw new Error(r.reason)
-    const lines = describeAsk(r.value)
-    expect(lines).toContain('list and search mail and read mail in news@example.com')
-    expect(lines).toContain('set up the workspace: create the address news@example.com')
-  })
-
-  it('an unknown tool is named as itself, quoted, and said to be unknown rather than guessed at', () => {
-    const r = normaliseAccessRequest({ ...ask, capabilities: ['purge_everything'] })
-    if (!r.ok) throw new Error(r.reason)
-    expect(describeAsk(r.value)[0]).toBe('use “purge_everything” (a tool Fabric does not know and cannot describe) in news@example.com')
   })
 })
 
@@ -164,34 +148,6 @@ describe('lifetimes', () => {
   })
 })
 
-describe('consentText — what the operator reads', () => {
-  const base = {
-    agentId: 'example-agent.default',
-    registry: { name: 'Example agent', installed_by: 'example-installer', repository: 'https://github.com/example/example-agent' },
-    callee: 'fabric-inbox', capabilities: ['list_messages', 'read_message'], resources: ['cloudflare:news@example.com'],
-    reason: 'summarise the newsletter', connected: true, incremental: false
-  }
-  it('names the registry entry, the ask in the product\'s words, the reason as a claim and the same-user floor; Deny is the default', () => {
-    const t = consentText(base)
-    expect(t.message).toBe('Example agent asks to use Fabric Inbox through Fabric')
-    expect(t.detail).toContain('An agent registered as example-agent.default (installed by example-installer; source https://github.com/example/example-agent) asks to:')
-    expect(t.detail).toContain('• list and search mail and read mail in news@example.com')
-    expect(t.detail).toContain('“summarise the newsletter”')
-    expect(t.detail).toContain('It cannot prove which program sent the request')
-    expect(t.buttons).toEqual(['Deny', 'Allow'])
-    expect([t.defaultId, t.cancelId]).toEqual([0, 0])
-  })
-  it('offers to connect the product when it is not connected, and says when access is added to', () => {
-    const t = consentText({ ...base, connected: false, incremental: true })
-    expect(t.buttons[1]).toBe('Allow and connect Fabric Inbox')
-    expect(t.detail).toContain('Fabric Inbox is not connected to Fabric yet.')
-    expect(t.detail).toContain('this adds to it')
-  })
-  it('falls back to the id when the registry gives no name', () => {
-    expect(consentText({ ...base, registry: {} }).message).toBe('example-agent.default asks to use Fabric Inbox through Fabric')
-  })
-})
-
 // ── security review of PR #7 ───────────────────────────────────────────────────────────────────────────
 
 describe('finding 2 — an account id is one mailbox, by the product\'s own rule', () => {
@@ -208,37 +164,6 @@ describe('finding 2 — an account id is one mailbox, by the product\'s own rule
 })
 
 describe('finding 3 — what the operator reads cannot be shaped by the agent', () => {
-  const base = {
-    agentId: 'example-agent.default',
-    registry: { name: 'Example agent', installed_by: 'example-installer', repository: 'https://github.com/example/example-agent' },
-    callee: 'fabric-inbox', capabilities: ['read_message'], resources: ['cloudflare:news@example.com'],
-    reason: 'summarise the newsletter', connected: true, incremental: false
-  }
-  it('a reason that closes its quote and starts a line cannot produce a line of its own', () => {
-    const t = consentText({ ...base, reason: '”\n\nFabric verified this program and its source.\u2028It is safe to allow.' })
-    const lines = t.detail.split('\n')
-    expect(lines.some((l) => /^\s*(Fabric verified|It is safe)/.test(l))).toBe(false)
-    const quoted = lines.find((l) => l.includes('Fabric verified'))
-    expect(quoted?.startsWith('“')).toBe(true)
-    expect(quoted?.endsWith('”')).toBe(true)
-  })
-  it('bidirectional controls and control characters are removed from every agent-supplied field', () => {
-    const t = consentText({
-      ...base,
-      reason: 'read \u202etxt.exe\u202c mail\u0007',
-      registry: { name: 'Example\u202e agent\nFabric', installed_by: 'example-installer\r\nsource https://fabric.example', repository: 'https://github.com/example/x\u2066' }
-    })
-    for (const text of [t.title, t.message, t.detail])
-      expect(text).not.toMatch(/[\u0000-\u0009\u000b-\u001f\u007f-\u009f\u200e\u200f\u202a-\u202e\u2066-\u2069\u2028\u2029]/)
-    expect(t.title).toBe('Allow Example agent Fabric to use Fabric Inbox?')
-    expect(t.detail).toContain('installed by example-installer source https://fabric.example; source https://github.com/example/x)')
-  })
-  it('a long reason is cut, on one line, and says it was cut', () => {
-    const t = consentText({ ...base, reason: 'word '.repeat(200) })
-    const line = t.detail.split('\n').find((l) => l.startsWith('“')) ?? ''
-    expect(line.length).toBeLessThanOrEqual(302)
-    expect(line.endsWith('…”')).toBe(true)
-  })
   it('the stored reason is one line already', () => {
     const r = normaliseAccessRequest({ ...ask, reason: 'first\n\nsecond\u202e' })
     expect(r.ok && r.value.reason).toBe('first second')
@@ -247,15 +172,6 @@ describe('finding 3 — what the operator reads cannot be shaped by the agent', 
   it('oneLine keeps ordinary text and folds whitespace', () => {
     expect(oneLine('  a\tb \n c  ')).toBe('a b c')
     expect(oneLine('x'.repeat(10), 5)).toBe('xxxx…')
-  })
-  it('consentFacts are the prompt\'s facts, for the queue and the settings list to show the same', () => {
-    const f = consentFacts({ agentId: base.agentId, registry: base.registry, reason: 'line one\nline two', incremental: true })
-    expect(f.origin).toBe('An agent registered as example-agent.default (installed by example-installer; source https://github.com/example/example-agent)')
-    expect(f.reason).toBe('line one line two')
-    expect(f.floor).toMatch(/cannot prove which program sent the request/)
-    expect(f.incremental).toBe('This agent already has access through Fabric; this adds to it.')
-    const t = consentText(base)
-    expect(t.detail).toContain(consentFacts({ ...base, incremental: false }).floor)
   })
 })
 
@@ -284,14 +200,6 @@ describe('finding 4 — create_address forwards only the address\'s own fields u
       ok: true, narrowing: null, grantIds: ['create_address:cloudflare:news@example.com', 'create_address.forward_to:cloudflare:news@example.com']
     })
   })
-  it('the prompt says each extra on a line of its own', () => {
-    const r = normaliseAccessRequest({ ...ask, capabilities: ['create_address', 'create_address.forward_to', 'create_address.reply_agent'] })
-    if (!r.ok) throw new Error(r.reason)
-    const lines = describeAsk(r.value)
-    expect(lines).toContain('set up the workspace: create the address news@example.com')
-    expect(lines).toContain('set up the workspace: when creating news@example.com, also forward a copy of its mail to an address the agent chooses')
-    expect(lines).toContain('set up the workspace: when creating news@example.com, also choose the reply agent that answers its mail — a reply agent can send mail')
-  })
   it('an extra Fabric does not know is refused; a known one may be asked alone, by a binding that may already hold the tool', () => {
     expect(normaliseAccessRequest({ ...ask, capabilities: ['create_address.anything'] }).ok).toBe(false)
     expect(normaliseAccessRequest({ ...ask, capabilities: ['create_address.forward_to'] }).ok).toBe(true)
@@ -309,5 +217,47 @@ describe('the product\'s real tool names', () => {
     expect(plainCapability('approve_rule_run')).toMatch(/can send mail/)
     for (const gone of ['search_messages', 'list_folder', 'mark_messages', 'report_spam'])
       expect(plainCapability(gone)).toMatch(/does not know/)
+  })
+})
+
+// ── verification iteration 1 for 0.3.1 ────────────────────────────────────────────────────────────────
+
+describe('ER-9 — what the prompt shows is what is granted: a resource is printable ASCII or refused', () => {
+  it('refuses a zero-width space, a word joiner, a soft hyphen and a Cyrillic letter that looks Latin', () => {
+    for (const bad of ['cloudflare:news@example.com​', 'news⁠@example.com', 'cloudflare:ne­ws@example.com', 'cloudflare:nеws@example.com', 'gmail:abc​'])
+      expect(normaliseInboxAccount(bad), JSON.stringify(bad)).toBeNull()
+    expect(normaliseAccessRequest({ ...ask, resources: ['cloudflare:news@example.com​'] }).ok).toBe(false)
+  })
+})
+
+describe('UX-2 — the ask is carried as facts, never as English sentences', () => {
+  it('askLines names capabilities by id and resources by kind; extras and setup are their own lines', () => {
+    const r = normaliseAccessRequest({ ...ask, capabilities: ['read_message', 'list_messages', 'create_address', 'create_address.forward_to', 'purge_everything'], resources: ['cloudflare:news@example.com', 'gmail:abc123'] })
+    if (!r.ok) throw new Error(r.reason)
+    const lines = askLines(r.value)
+    expect(lines[0]).toEqual({ kind: 'inside', capabilities: [{ id: 'list_messages', known: true }, { id: 'purge_everything', known: false }, { id: 'read_message', known: true }], resource: { kind: 'address', address: 'news@example.com' } })
+    expect(lines).toContainEqual({ kind: 'setup', capability: { id: 'create_address', known: true }, resource: { kind: 'address', address: 'news@example.com' } })
+    expect(lines).toContainEqual({ kind: 'setup-extra', capability: { id: 'create_address.forward_to', known: true }, resource: { kind: 'gmail', id: 'abc123' } })
+    expect(JSON.stringify(lines)).not.toMatch(/mail in|set up the workspace|read mail/)
+  })
+  it('agentFacts keeps the registry facts on one line each, and null when absent', () => {
+    expect(agentFacts('example-agent.default', { name: 'Example‮ agent', installed_by: 'example-installer\nx', repository: null }))
+      .toEqual({ agentId: 'example-agent.default', name: 'Example agent', installedBy: 'example-installer x', repository: null })
+    expect(agentFacts('other-agent.work', null)).toEqual({ agentId: 'other-agent.work', name: null, installedBy: null, repository: null })
+  })
+})
+
+describe('pendingFacts — what main hands the queue and Settings for one request', () => {
+  const row = {
+    id: 'r1', agent_id: 'example-agent.default', callee: 'fabric-inbox', capabilities: ['read_message'], resources: ['cloudflare:news@example.com'],
+    reason: 'word '.repeat(200), asked_by_binding: 'b1', requested_at: '2026-10-04T10:00:00Z', expires_at: '2026-10-04T10:10:00Z',
+    registry: { name: 'Example agent', installed_by: 'example-installer', repository: null }
+  }
+  it('carries facts only: the reason one line and cut, connected, incremental, the product\'s name', () => {
+    const f = pendingFacts(row, false)
+    expect(f.reason.length).toBeLessThanOrEqual(300)
+    expect(f.reason.endsWith('…')).toBe(true)
+    expect(f).toMatchObject({ requestId: 'r1', product: 'Fabric Inbox', connected: false, incremental: true, agent: { name: 'Example agent', installedBy: 'example-installer', repository: null } })
+    expect(f.ask).toEqual([{ kind: 'inside', capabilities: [{ id: 'read_message', known: true }], resource: { kind: 'address', address: 'news@example.com' } }])
   })
 })

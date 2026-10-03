@@ -21,18 +21,19 @@ import { createNativeStopRuntime } from './nativeStopRuntime.ts'
 import { createTranscriptRecovery } from './transcriptRecovery.ts'
 import { createTranscriptReceipt } from './transcriptReceipt.ts'
 import { createStopHostIdentity } from './stopHostIdentity.ts'
-import { AgentSurface, HubPortUnavailable } from './agentSurface'
+import { AgentSurface } from './agentSurface'
 import { AgentRegistry, registryDirs } from './agentRegistry.ts'
 import { createAccessStore, type AccessStore } from './accessStore.ts'
 import { AccessService } from './accessService.ts'
-import { checkPortUnclaimed, hubPort, publishHub, withdrawHub } from './hub.ts'
+import { startHub, withdrawHub } from './hub.ts'
 import { hubServerFor } from './hubTools.ts'
 import { createAgentCall } from './hubCall.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
 import { FABRIC_INBOX, ProductConnector } from './productConnect.ts'
 import { forwardToProduct } from './productForwarder.ts'
 import { ConsentPresenter } from './consentPresenter.ts'
-import { CONNECTABLE_PRODUCTS, agentName, consentFacts, describeAsk, productName, type HubOverview } from '../shared/access.ts'
+import { CONNECTABLE_PRODUCTS, agentFacts, askLines, pendingFacts, productName, type ConnectProblem, type HubActResult, type HubOverview } from '../shared/access.ts'
+import { translator } from '../renderer/src/i18n/translate.ts'
 import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
 import { createBundleCompiler } from './sessionBundle'
 import { createTranscriptStore } from './transcripts'
@@ -531,6 +532,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   const connector = new ProductConnector({
     store: accessStore,
     vault,
+    // Each estate's connections keep their secrets in slots of their own (DA-6, verification 0.3.1).
+    estateId: ACTIVE_ESTATE,
     origin: () => (hubState.doorToken ? surface.origin : ''),
     openExternal: (url) => shell.openExternal(url),
     actor: () => OPERATOR_ACTOR
@@ -553,7 +556,9 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     },
     openWindow: () => { if (mainWindow === null) createWindow() },
     decide: (requestId, decision) => (access as AccessService).decide(requestId, decision, OPERATOR_ACTOR),
-    connect: async (product) => (product === FABRIC_INBOX.product ? connector.begin(FABRIC_INBOX) : { ok: false, reason: `${product} has no connect flow` }),
+    connect: async (product) => (product === FABRIC_INBOX.product ? connector.begin(FABRIC_INBOX) : { ok: false, problem: { code: 'no-flow' }, reason: `${product} has no connect flow` }),
+    // The prompt speaks the operator's language, read when it is made (UX-2).
+    say: () => translator(readSettings().locale),
     stillPending: async (requestId) => {
       const r = await accessStore.request(requestId)
       return !!r && r.status === 'pending' && Date.parse(r.expires_at) > Date.now()
@@ -580,31 +585,17 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // THE PORT IS STABLE OR THERE IS NO HUB (ADR-0115 §1). A port the configuration refuses, or one a
   // registered agent claims, or one another program holds, closes the hub with its reason (Settings →
   // Agent access shows it) — and the sessions Fabric starts keep their surface on an ephemeral port, as
-  // before the hub existed, with the external ingress closed: no hub.json, no door token.
-  const chosen = hubPort(process.env)
-  const unclaimed = chosen.ok ? checkPortUnclaimed(chosen.port, registry.claimedPorts()) : chosen
-  try {
-    if (!unclaimed.ok) throw new HubPortUnavailable(0, unclaimed.reason)
-    await surface.start({ port: unclaimed.port })
-    const published = publishHub({ root: dirs.root, port: unclaimed.port })
-    hubState.doorToken = published.doorToken
+  // before the hub existed, with the external ingress closed: no hub.json, no door token (`startHub`,
+  // driven by hub-door-db).
+  const started = await startHub({ surface, env: process.env, claimedPorts: registry.claimedPorts(), root: dirs.root })
+  if (started.open) {
+    hubState.doorToken = started.doorToken
     quit.onQuit(() => {
       hubState.doorToken = null
       const w = withdrawHub(dirs.root)
       if (!w.removed) ops.record({ op: 'hub.withdraw', outcome: 'ok', level: 'warn', detail: { reason: w.reason }, ctx: { correlationId: ops.correlate() } })
     })
-    ops.record({ op: 'hub.published', outcome: 'ok', detail: { origin: surface.origin, hub_file: published.hubFile }, ctx: { correlationId: ops.correlate() } })
-  } catch (e) {
-    hubState.down = e instanceof HubPortUnavailable ? e.message : `the hub could not start: ${(e as Error).message}`
-    ops.failed('index.hub-not-listening', e, { reason: hubState.down })
-    try {
-      if (!surface.origin) await surface.start()
-    } catch (e2) {
-      // A session must still start when the surface cannot: the agent simply has
-      // nothing to report through, and the launch says so rather than failing.
-      ops.failed('index.agent-surface-failed-to-start', e2, { note: 'agent surface failed to start:' })
-    }
-  }
+  } else hubState.down = started.down
   // #endregion hub-wiring
 
   // Every repository attached to any project in this estate. Rebuilt from the
@@ -2425,13 +2416,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     if (hub) {
       try {
         const now = Date.now()
-        accessRows = (await hub.accessStore.requests({ status: 'pending' }))
-          .filter((r) => Date.parse(r.expires_at) > now)
-          .map((r) => ({
-            id: r.id, agent_id: r.agent_id, name: agentName(r.agent_id, r.registry), callee: r.callee, lines: describeAsk(r), requested_at: r.requested_at, expires_at: r.expires_at,
-            // The native prompt's facts, so an Allow from the queue is given on the same words (consentFacts).
-            ...consentFacts({ agentId: r.agent_id, registry: r.registry, reason: r.reason, incremental: r.asked_by_binding !== null })
-          }))
+        // Live requests filtered by the database (DA-5): a page of the oldest rows went blank after 500 unanswered asks.
+        const waiting = (await hub.accessStore.requests({ status: 'pending', liveAt: new Date(now).toISOString() })).filter((r) => Date.parse(r.expires_at) > now)
+        const connected = new Map<string, boolean>()
+        for (const callee of new Set(waiting.map((r) => r.callee))) connected.set(callee, (await hub.accessStore.liveConnection(callee)) !== null)
+        // FACTS, never sentences: the queue phrases them in the operator's language (UX-2), on the prompt's facts.
+        accessRows = waiting.map((r) => pendingFacts(r, connected.get(r.callee) ?? false))
       } catch (e) {
         // Not silence: the receipt below names this source as failed, so the queue reads as partial.
         accessError = { message: (e as Error).message }
@@ -2990,41 +2980,51 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const h = hubReady()
     const ov = await h.access.overview()
     const products: HubOverview['products'] = []
+    const connected = new Map<string, boolean>()
     for (const product of CONNECTABLE_PRODUCTS) {
       const c = await h.accessStore.liveConnection(product)
+      connected.set(product, c !== null)
       const last = h.connector.lastOutcome(product)
       products.push({
         product,
         name: productName(product),
         connection: c ? { server: c.server, level: c.level, connectedAt: c.connected_at, keyExpiresAt: c.key_expires_at } : null,
-        lastAttempt: last ? { outcome: last.outcome, at: last.outcome === 'waiting' ? last.since : last.at, ...(last.outcome === 'failed' ? { reason: last.reason } : {}) } : null
+        lastAttempt: !last ? null
+          : last.outcome === 'waiting' ? { outcome: 'waiting', at: last.since, reconnect: last.reconnect }
+          : last.outcome === 'connected' ? { outcome: 'connected', at: last.at, reconnect: last.reconnect }
+          : last.outcome === 'failed' ? { outcome: 'failed', at: last.at, problem: last.problem }
+          : { outcome: 'denied', at: last.at }
       })
     }
+    // FACTS, never sentences (UX-2): the renderer phrases every line in the operator's language.
     return {
       hub: h.doorToken ? { listening: true, origin: surface.origin } : { listening: false, reason: h.down ?? 'the hub is not listening' },
       products,
-      pending: ov.pending.map((r) => ({
-        requestId: r.id, agentId: r.agent_id, name: agentName(r.agent_id, r.registry), callee: r.callee, lines: describeAsk(r), requestedAt: r.requested_at, expiresAt: r.expires_at,
-        ...consentFacts({ agentId: r.agent_id, registry: r.registry, reason: r.reason, incremental: r.asked_by_binding !== null })
-      })),
+      pending: ov.pending.map((r) => pendingFacts(r, connected.get(r.callee) ?? false)),
       agents: ov.bindings.map((b) => ({
         bindingId: b.id,
-        agentId: b.agent_id,
-        name: agentName(b.agent_id, b.registry),
+        agent: agentFacts(b.agent_id, b.registry),
         since: b.created_at,
-        grants: b.grants.map((g) => ({ grantId: g.id, callee: g.callee, capability: g.capability, resource: g.resource, line: describeAsk({ capabilities: [g.capability], resources: [g.resource] })[0] ?? g.capability, expiresAt: g.expires_at }))
+        grants: b.grants.map((g) => ({ grantId: g.id, callee: g.callee, capability: g.capability, resource: g.resource, line: askLines({ capabilities: [g.capability], resources: [g.resource] })[0], expiresAt: g.expires_at }))
       })),
-      denials: ov.denials.map((r) => ({ requestId: r.id, agentId: r.agent_id, name: agentName(r.agent_id, r.registry), callee: r.callee, lines: describeAsk(r), deniedAt: r.decided_at }))
+      denials: ov.denials.map((r) => ({ requestId: r.id, agent: agentFacts(r.agent_id, r.registry), callee: r.callee, ask: askLines(r), deniedAt: r.decided_at }))
     }
   })
+  /** The product's connect flow, by name; a product without one is a code, not a sentence. */
+  const beginConnect = async (h: NonNullable<typeof hub>, product: string, reconnect = false): Promise<{ ok: true } | { ok: false; problem: ConnectProblem; reason: string }> => {
+    if (product !== FABRIC_INBOX.product) return { ok: false, problem: { code: 'no-flow' }, reason: `${product} has no connect flow` }
+    const r = await h.connector.begin(FABRIC_INBOX, { reconnect })
+    return r.ok ? { ok: true } : r
+  }
   handle(IPC.hubDecide, async (_e, requestId: string, decision: 'allowed' | 'denied'): Promise<Returns<FabricApi['hub']['decide']>> => {
     const h = hubReady()
     if (decision !== 'allowed' && decision !== 'denied') return { ok: false, reason: 'a decision is allowed or denied' }
     const row = await h.accessStore.request(String(requestId))
-    const done = await h.access.decide(String(requestId), decision, OPERATOR_ACTOR)
+    const done: HubActResult = await h.access.decide(String(requestId), decision, OPERATOR_ACTOR)
     if (done.ok && decision === 'allowed' && row && !(await h.accessStore.liveConnection(row.callee))) {
-      const started = row.callee === FABRIC_INBOX.product ? await h.connector.begin(FABRIC_INBOX) : { ok: false as const, reason: `${row.callee} has no connect flow` }
-      if (!started.ok) return { ok: false, reason: `Allowed. ${productName(row.callee)} could not be opened to connect it: ${started.reason}` }
+      // The Allow is recorded either way; a product that could not be opened is said beside it (UX-5).
+      const started = await beginConnect(h, row.callee)
+      if (!started.ok) return { ok: true, connect: { problem: started.problem } }
     }
     return done
   })
@@ -3034,13 +3034,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     hubReady().access.revokeBinding(String(bindingId), OPERATOR_ACTOR))
   handle(IPC.hubClearDenial, async (_e, requestId: string): Promise<Returns<FabricApi['hub']['clearDenial']>> =>
     hubReady().access.clearDenial(String(requestId), OPERATOR_ACTOR))
-  handle(IPC.hubConnect, async (_e, product: string, opts?: { reconnect?: unknown }): Promise<Returns<FabricApi['hub']['connect']>> => {
-    const h = hubReady()
-    if (product !== FABRIC_INBOX.product) return { ok: false, reason: `${String(product)} has no connect flow` }
+  handle(IPC.hubConnect, async (_e, product: string, opts?: { reconnect?: unknown }): Promise<Returns<FabricApi['hub']['connect']>> =>
     // Replacing a live connection's key is the operator's explicit Reconnect, never a side effect of Connect.
-    const r = await h.connector.begin(FABRIC_INBOX, { reconnect: opts?.reconnect === true })
-    return r.ok ? { ok: true } : r
-  })
+    beginConnect(hubReady(), String(product), opts?.reconnect === true))
   handle(IPC.hubDisconnect, async (_e, product: string): Promise<Returns<FabricApi['hub']['disconnect']>> =>
     hubReady().connector.disconnect(String(product)))
   // #endregion hub-ipc
@@ -4117,6 +4113,9 @@ function createWindow(): void {
   // Read now, not in 'closed': by then webContents is destroyed, and the TypeError it threw raised
   // Electron's modal error box, so quitting the app hung on it (found in the C5 real-app run).
   const contentsId = mainWindow.webContents.id
+  // A request that waited while Fabric was in the background is shown when the window comes forward (UX-3).
+  mainWindow.on('focus', () => hub?.presenter.resume())
+  mainWindow.on('show', () => hub?.presenter.resume())
   mainWindow.on('closed', () => {
     // A folder this window was allowed to reach does not outlive it (S02.roots).
     revokeWindowRoots(contentsId)

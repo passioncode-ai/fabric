@@ -10,6 +10,7 @@ import type { ReadEnvelope } from '../../../shared/readEnvelope'
 import type { CreatedAgent, ProjectRow, TaskRow, TerminalSession } from '../../../shared/types'
 import { since } from '../duration'
 import { useLocale, useT } from '../i18n'
+import { titleOf } from '../attentionTitle'
 import { FabricAvatar } from './FabricAvatar'
 import { FabricName } from './persona'
 
@@ -128,7 +129,7 @@ export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt,
               <button key={item.ref} type="button" className="lp-topic" onClick={() => onBoard(item.ref)}>
                 <span className="lp-topic-num">{String(i + 1).padStart(2, '0')}</span>
                 <span>
-                  <span className="lp-topic-title">{item.title}</span>
+                  <span className="lp-topic-title">{titleOf(item, t)}</span>
                   <span className="lp-meta">{[item.projectName, kindOf(item.kind), item.detail].filter(Boolean).join(' · ')}</span>
                 </span>
                 <span className="lp-topic-end">
