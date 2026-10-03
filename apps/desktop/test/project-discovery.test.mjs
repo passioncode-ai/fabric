@@ -251,6 +251,38 @@ await assert.rejects(() => scanFolder(path.join(root, 'missing')), /does not exi
     assert.deepEqual(s.candidates.map((c) => c.name), ['ok'])
     assert.equal(s.unreadable, 1, 'a .git probe that never answered is counted, not taken as "no repository"')
   }
+  // Iteration 3 (docs finding 1, blocking): a repository the walk FOUND whose inspection throws or times
+  // out was swallowed — not listed, `unreadable` unchanged — while ADR-0100 §3 promises it is said.
+  {
+    const r = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-inspect-fail-')))
+    repo(path.join(r, 'ok'), 'package.json', 'ok')
+    repo(path.join(r, 'stuck'), 'package.json', 'stuck')
+    const s = await scanFolder(r, { dirTimeoutMs: 100, fs: fsWith({ stat: (p) => p === path.join(r, 'stuck') }) })
+    assert.deepEqual(s.candidates.map((c) => c.name), ['ok'], 'the repository that could not be inspected is not invented')
+    assert.equal(s.unreadable, 1, 'a repository whose inspection did not answer is COUNTED, never silently dropped')
+  }
+  // Iteration 3 (errors finding 5): eight repositories whose config includes a FIFO made each inspection
+  // hang for the driver probe's hard-coded 5 s, one at a time inside the walk — 30 s, truncated, and the
+  // healthy repository sorted after them never listed. Walk first, then inspect with bounded concurrency
+  // under the scan's own git timeout.
+  {
+    const r = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-slow-')))
+    for (let i = 0; i < 8; i++) {
+      const d = path.join(r, `slow-${i}`)
+      repo(d, 'package.json', `slow ${i}`)
+      const fifo = path.join(r, `.fifo-${i}`)
+      execFileSync('mkfifo', [fifo])
+      git(d, 'config', 'include.path', fifo)
+    }
+    repo(path.join(r, 'zz-healthy'), 'package.json', 'healthy')
+    const [s, ms] = await timedRun(() => scanFolder(r, { timeLimitMs: 8000, gitTimeoutMs: 300 }))
+    const healthy = s.candidates.find((c) => c.name === 'zz-healthy')
+    assert.ok(healthy, `the healthy repository was not listed (truncated: ${s.truncated}, ${ms} ms)`)
+    assert.equal(healthy.lastCommit?.subject, 'healthy', 'and its facts were read')
+    assert.equal(s.truncated, false, 'slow repositories did not exhaust the scan')
+    assert.equal(s.candidates.filter((c) => c.name.startsWith('slow-')).length + s.unreadable, 8, 'every slow repository is listed or counted')
+    assert.ok(ms < 6000, `the scan took ${ms} ms`)
+  }
   // inspectFolder on a folder that never answers fails in time, and says why.
   {
     const [err, ms] = await timedRun(() => inspectFolder(root, { timeoutMs: 100, fs: fsWith({ stat: (p) => p === root }) }).then(() => null, (e) => e))

@@ -122,13 +122,15 @@ const DRIVER_PROGRAM = /^(filter\..+\.(clean|smudge|process)|diff\..+\.(textconv
  * `.git/info/attributes` assigns a filter without a tracked file. Global and system drivers — git-lfs —
  * are the operator's and stay. Reading config runs nothing.
  */
-async function repositoryDrivers(repoPath: string, env: Record<string, string>, args: readonly string[]): Promise<string[]> {
+async function repositoryDrivers(repoPath: string, env: Record<string, string>, args: readonly string[], timeoutMs: number): Promise<string[]> {
   let out: string
   try {
     ;({ stdout: out } = await exec(
       'git',
       [...args, 'config', '-z', '--name-only', '--show-scope', '--includes', '--get-regexp', '^(filter|diff)\\.'],
-      { cwd: repoPath, timeout: 5_000, maxBuffer: 1_000_000, env }
+      // The caller's budget, not a fixed one: an `include.path` at a FIFO hung this probe for a hard-coded
+      // 5 s whatever the caller allowed, and eight such repositories starved a scan (iteration 3).
+      { cwd: repoPath, timeout: timeoutMs, maxBuffer: 1_000_000, env }
     ))
   } catch (e) {
     // Exit 1 is "no such key" — the ordinary case. Anything else (not a repository, a hung include) is
@@ -163,25 +165,31 @@ export function withSubmodulesIgnored(args: readonly string[]): string[] {
 }
 
 export interface GitRunOptions {
-  /** How long the command may take; the default suits the repo-state watcher. */
+  /**
+   * How long the whole read may take — the driver probe and the command share it; the default suits the
+   * repo-state watcher.
+   */
   timeoutMs?: number
 }
 
 export async function gitRun(repoPath: string, args: string[], opts: GitRunOptions = {}): Promise<string> {
   const timeout = opts.timeoutMs ?? 5_000
+  const deadline = Date.now() + timeout
   const lead = (await supportsNoLazyFetch()) ? ['--no-lazy-fetch', ...HARDENED_GIT_ARGS] : [...HARDENED_GIT_ARGS]
   const env = hardenedGitEnv()
   // Driver overrides travel as GIT_CONFIG_KEY_n / VALUE_n, not `-c k=v`: a driver name may itself contain
   // `=`, which `-c` would split at the wrong place. Both are command scope and outrank the repository.
-  const drivers = await repositoryDrivers(repoPath, env, lead)
+  const drivers = await repositoryDrivers(repoPath, env, lead, timeout)
   drivers.forEach((key, i) => {
     env[`GIT_CONFIG_KEY_${i}`] = key
     env[`GIT_CONFIG_VALUE_${i}`] = ''
   })
   if (drivers.length) env.GIT_CONFIG_COUNT = String(drivers.length)
+  const left = deadline - Date.now()
+  if (left <= 0) throw new Error(`git timed out after ${timeout} ms before running: ${args[0] ?? ''}`)
   const { stdout } = await exec('git', [...lead, ...withSubmodulesIgnored(args)], {
     cwd: repoPath,
-    timeout,
+    timeout: left,
     maxBuffer: 8_000_000,
     // A repository the operator is working in must not have its state read
     // through a pager or a hook that expects a terminal.

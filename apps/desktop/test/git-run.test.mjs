@@ -165,4 +165,19 @@ function plantPartialClone(dir, uploadpack) {
   assert.equal(runs(), 0, 'ignore=none in the tracked .gitmodules must not re-open the submodule')
 }
 
-console.log('PASS gitRun: partial-clone lazy fetch, repository filter drivers (global kept), core.fsmonitor, inherited GIT_DIR, submodule config — no program from a repository config runs')
+// ── 6. the caller's timeout bounds the WHOLE read, the driver probe included (iteration 3, errors finding
+// 5): an `include.path` at a FIFO hung the probe for a hard-coded 5 s whatever the caller allowed.
+{
+  const d = path.join(base, 'fifo')
+  mkdirSync(d)
+  git(d, 'init', '-q', '-b', 'main')
+  const fifo = path.join(base, 'fifo-config')
+  execFileSync('mkfifo', [fifo])
+  git(d, 'config', 'include.path', fifo)
+  const t0 = Date.now()
+  await assert.rejects(() => gitRun(d, ['log', '-1', '--format=%H'], { timeoutMs: 300 }))
+  const ms = Date.now() - t0
+  assert.ok(ms < 2000, `a 300 ms read of a repository whose config includes a FIFO took ${ms} ms`)
+}
+
+console.log('PASS gitRun: partial-clone lazy fetch, repository filter drivers (global kept), core.fsmonitor, inherited GIT_DIR, submodule config, one timeout for the whole read — no program from a repository config runs')
