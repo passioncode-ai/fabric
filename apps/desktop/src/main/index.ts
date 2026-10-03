@@ -32,7 +32,7 @@ import { createObservatoryVault } from './observatoryVault.ts'
 import { FABRIC_INBOX, ProductConnector } from './productConnect.ts'
 import { forwardToProduct } from './productForwarder.ts'
 import { ConsentPresenter } from './consentPresenter.ts'
-import { CONNECTABLE_PRODUCTS, describeAsk, productName, type HubOverview } from '../shared/access.ts'
+import { CONNECTABLE_PRODUCTS, agentName, consentFacts, describeAsk, productName, type HubOverview } from '../shared/access.ts'
 import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
 import { createBundleCompiler } from './sessionBundle'
 import { createTranscriptStore } from './transcripts'
@@ -2427,7 +2427,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         const now = Date.now()
         accessRows = (await hub.accessStore.requests({ status: 'pending' }))
           .filter((r) => Date.parse(r.expires_at) > now)
-          .map((r) => ({ id: r.id, agent_id: r.agent_id, name: r.registry?.name ?? r.agent_id, callee: r.callee, lines: describeAsk(r), requested_at: r.requested_at, expires_at: r.expires_at }))
+          .map((r) => ({
+            id: r.id, agent_id: r.agent_id, name: agentName(r.agent_id, r.registry), callee: r.callee, lines: describeAsk(r), requested_at: r.requested_at, expires_at: r.expires_at,
+            // The native prompt's facts, so an Allow from the queue is given on the same words (consentFacts).
+            ...consentFacts({ agentId: r.agent_id, registry: r.registry, reason: r.reason, incremental: r.asked_by_binding !== null })
+          }))
       } catch (e) {
         // Not silence: the receipt below names this source as failed, so the queue reads as partial.
         accessError = { message: (e as Error).message }
@@ -2999,15 +3003,18 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return {
       hub: h.doorToken ? { listening: true, origin: surface.origin } : { listening: false, reason: h.down ?? 'the hub is not listening' },
       products,
-      pending: ov.pending.map((r) => ({ requestId: r.id, agentId: r.agent_id, name: r.registry?.name ?? r.agent_id, callee: r.callee, lines: describeAsk(r), reason: r.reason, requestedAt: r.requested_at, expiresAt: r.expires_at })),
+      pending: ov.pending.map((r) => ({
+        requestId: r.id, agentId: r.agent_id, name: agentName(r.agent_id, r.registry), callee: r.callee, lines: describeAsk(r), requestedAt: r.requested_at, expiresAt: r.expires_at,
+        ...consentFacts({ agentId: r.agent_id, registry: r.registry, reason: r.reason, incremental: r.asked_by_binding !== null })
+      })),
       agents: ov.bindings.map((b) => ({
         bindingId: b.id,
         agentId: b.agent_id,
-        name: b.registry?.name ?? b.agent_id,
+        name: agentName(b.agent_id, b.registry),
         since: b.created_at,
         grants: b.grants.map((g) => ({ grantId: g.id, callee: g.callee, capability: g.capability, resource: g.resource, line: describeAsk({ capabilities: [g.capability], resources: [g.resource] })[0] ?? g.capability, expiresAt: g.expires_at }))
       })),
-      denials: ov.denials.map((r) => ({ requestId: r.id, agentId: r.agent_id, name: r.registry?.name ?? r.agent_id, callee: r.callee, lines: describeAsk(r), deniedAt: r.decided_at }))
+      denials: ov.denials.map((r) => ({ requestId: r.id, agentId: r.agent_id, name: agentName(r.agent_id, r.registry), callee: r.callee, lines: describeAsk(r), deniedAt: r.decided_at }))
     }
   })
   handle(IPC.hubDecide, async (_e, requestId: string, decision: 'allowed' | 'denied'): Promise<Returns<FabricApi['hub']['decide']>> => {

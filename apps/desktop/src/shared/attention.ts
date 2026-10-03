@@ -62,7 +62,19 @@ export interface AttentionItem {
    * item, and it carries the act: allow or deny that request. It leaves the queue when it is answered
    * or expires — derived, like everything here.
    */
-  access?: { requestId: string; callee: string; expiresAt: string }
+  access?: AccessFacts & { requestId: string; callee: string; expiresAt: string }
+}
+
+/**
+ * What the native consent prompt states, so an Allow given in the queue says the same (security review
+ * of PR #7): who the registry says is asking, its reason as its own one-line claim, the same-user floor,
+ * and — when it does — that this adds to access the agent already holds. Built by `consentFacts`.
+ */
+export interface AccessFacts {
+  origin: string
+  reason: string
+  floor: string
+  incremental: string | null
 }
 
 export interface AttentionSources {
@@ -100,7 +112,7 @@ export interface AttentionSources {
     created_at: string
   }[]
   /** Access requests from registered agents, waiting on the operator and not yet expired (ADR-0115). */
-  access?: {
+  access?: ({
     id: string
     agent_id: string
     name: string
@@ -108,7 +120,7 @@ export interface AttentionSources {
     lines: string[]
     requested_at: string
     expires_at: string
-  }[]
+  } & AccessFacts)[]
   names: Record<string, string>
 }
 
@@ -137,7 +149,7 @@ export function attentionOf(sources: AttentionSources): AttentionItem[] {
       title: `${row.name} asks to use ${row.callee === 'fabric-inbox' ? 'Fabric Inbox' : row.callee}`,
       detail: row.lines.join('; '),
       since: row.requested_at,
-      access: { requestId: row.id, callee: row.callee, expiresAt: row.expires_at }
+      access: { requestId: row.id, callee: row.callee, expiresAt: row.expires_at, origin: row.origin, reason: row.reason, floor: row.floor, incremental: row.incremental }
     })
   for (const row of sources.refusals)
     items.push({

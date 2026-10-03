@@ -89,8 +89,11 @@ export function AgentAccessPanel({ onClose }: { onClose: () => void }): React.JS
               : view.overview.pending.map((r) => (
                 <div key={r.requestId} className="widget-list">
                   <p><strong>{r.name}</strong> <span className="mono">{r.agentId}</span></p>
+                  <p className="muted">{r.origin}</p>
                   <ul>{r.lines.map((l) => <li key={l}>{l}</li>)}</ul>
                   <p className="muted">{t('access.pending.reason', { reason: r.reason })}</p>
+                  <p className="muted">{r.floor}</p>
+                  {r.incremental && <p className="muted">{r.incremental}</p>}
                   <Toolbar>
                     <Button tone="ghost" disabled={busy !== null} onClick={() => void act(`deny:${r.requestId}`, () => window.fabric.hub.decide(r.requestId, 'denied'))}>{t('access.deny')}</Button>
                     <Button disabled={busy !== null} onClick={() => void act(`allow:${r.requestId}`, () => window.fabric.hub.decide(r.requestId, 'allowed'))}>{t('access.allow')}</Button>

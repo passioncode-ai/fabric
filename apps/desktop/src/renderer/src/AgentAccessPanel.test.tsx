@@ -55,10 +55,15 @@ describe('SCR-76 agent access', () => {
   })
 
   it('a waiting request shows who asks, what in the product\'s words, its reason as a claim, and Allow / Deny', async () => {
-    const h = stub(overview({ pending: [{ requestId: 'r1', agentId: 'example-agent.default', name: 'Example agent', callee: 'fabric-inbox', lines: ['read mail in news@example.com'], reason: 'summarise the newsletter', requestedAt: '2026-10-03T10:00:00Z', expiresAt: '2026-10-03T10:10:00Z' }] }))
+    const h = stub(overview({ pending: [{ requestId: 'r1', agentId: 'example-agent.default', name: 'Example agent', callee: 'fabric-inbox', lines: ['read mail in news@example.com'], reason: 'summarise the newsletter', requestedAt: '2026-10-03T10:00:00Z', expiresAt: '2026-10-03T10:10:00Z',
+      origin: 'An agent registered as example-agent.default (installed by example-installer)', floor: 'It cannot prove which program sent the request.', incremental: 'This agent already has access through Fabric; this adds to it.' }] }))
     show()
     await screen.findByText('read mail in news@example.com')
     expect(screen.getByText(fill(en['access.pending.reason'], { reason: 'summarise the newsletter' }))).toBeTruthy()
+    // The prompt's facts, here too: an Allow from this list says what the native prompt says.
+    expect(screen.getByText('An agent registered as example-agent.default (installed by example-installer)')).toBeTruthy()
+    expect(screen.getByText('It cannot prove which program sent the request.')).toBeTruthy()
+    expect(screen.getByText('This agent already has access through Fabric; this adds to it.')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: en['access.allow'] }))
     await waitFor(() => expect(h.decide).toHaveBeenCalledWith('r1', 'allowed'))
   })
