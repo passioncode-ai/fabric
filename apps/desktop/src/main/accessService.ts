@@ -153,8 +153,9 @@ export class AccessService {
       try {
         connected = await this.deps.connected(ask.callee)
       } catch (e) {
-        // Shown as "not connected", which is the safe reading: the prompt then offers to connect,
-        // and the connect flow itself refuses if a connection already exists.
+        // Shown as "not connected", which is the safe reading: the prompt then offers to connect, and the
+        // connect flow itself refuses while a connection lives unless the operator chose Reconnect
+        // (`ProductConnector.begin`, `reconnect`), so this reading cannot replace a live key.
         ops.failed('hub.access.connection-read', e, { request_id: id })
       }
       ops.record({ op: 'hub.access.requested', outcome: 'ok', detail: { request_id: id, agent_id: entry.key, callee: ask.callee, capabilities: ask.capabilities, resources: ask.resources, incremental: bindingId !== null }, ctx: { correlationId: ops.correlate() } })

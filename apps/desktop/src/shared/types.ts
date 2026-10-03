@@ -1125,7 +1125,8 @@ export interface FabricApi {
     revokeGrant(grantId: string): Promise<HubActResult>
     revokeAgent(bindingId: string): Promise<HubActResult>
     clearDenial(requestId: string): Promise<HubActResult>
-    connect(product: string): Promise<HubActResult>
+    /** Opens the product's connect link. A connected product is connected again only with `reconnect: true`. */
+    connect(product: string, opts?: { reconnect?: boolean }): Promise<HubActResult>
     disconnect(product: string): Promise<HubActResult>
   }
   goals: {

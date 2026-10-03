@@ -3034,10 +3034,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     hubReady().access.revokeBinding(String(bindingId), OPERATOR_ACTOR))
   handle(IPC.hubClearDenial, async (_e, requestId: string): Promise<Returns<FabricApi['hub']['clearDenial']>> =>
     hubReady().access.clearDenial(String(requestId), OPERATOR_ACTOR))
-  handle(IPC.hubConnect, async (_e, product: string): Promise<Returns<FabricApi['hub']['connect']>> => {
+  handle(IPC.hubConnect, async (_e, product: string, opts?: { reconnect?: unknown }): Promise<Returns<FabricApi['hub']['connect']>> => {
     const h = hubReady()
     if (product !== FABRIC_INBOX.product) return { ok: false, reason: `${String(product)} has no connect flow` }
-    const r = await h.connector.begin(FABRIC_INBOX)
+    // Replacing a live connection's key is the operator's explicit Reconnect, never a side effect of Connect.
+    const r = await h.connector.begin(FABRIC_INBOX, { reconnect: opts?.reconnect === true })
     return r.ok ? { ok: true } : r
   })
   handle(IPC.hubDisconnect, async (_e, product: string): Promise<Returns<FabricApi['hub']['disconnect']>> =>

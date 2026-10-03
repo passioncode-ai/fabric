@@ -839,6 +839,7 @@ export const en = {
   'access.products.title': 'Connected products',
   'access.products.connect': 'Connect',
   'access.products.disconnect': 'Disconnect',
+  'access.products.reconnect': 'Reconnect',
   'access.products.connected': 'connected to {server} since {since}',
   'access.products.notConnected': 'not connected',
   'access.products.waiting': 'Waiting for your answer in {name}.',

@@ -82,6 +82,17 @@ describe('SCR-76 agent access', () => {
     await waitFor(() => expect(h.revokeAgent).toHaveBeenCalledWith('b1'))
   })
 
+  it('a connected product offers Reconnect as its own choice — the only way its key is replaced', async () => {
+    const h = stub(overview({
+      products: [{ product: 'fabric-inbox', name: 'Fabric Inbox', connection: { server: 'https://mail.example.com', level: 'admin', connectedAt: '2026-10-03T09:00:00Z', keyExpiresAt: null }, lastAttempt: null }]
+    }))
+    show()
+    await screen.findByRole('button', { name: en['access.products.reconnect'] })
+    expect(screen.queryByRole('button', { name: en['access.products.connect'] })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: en['access.products.reconnect'] }))
+    await waitFor(() => expect(h.connect).toHaveBeenCalledWith('fabric-inbox', { reconnect: true }))
+  })
+
   it('a closed hub says why, and Connect is not offered while nothing could take the answer', async () => {
     stub(overview({ hub: { listening: false, reason: 'port 47070 is in use' } }))
     show()

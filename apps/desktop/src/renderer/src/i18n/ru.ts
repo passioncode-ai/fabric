@@ -279,6 +279,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'access.products.title': 'Подключённые продукты',
   'access.products.connect': 'Подключить',
   'access.products.disconnect': 'Отключить',
+  'access.products.reconnect': 'Переподключить',
   'access.products.connected': 'подключён к {server} с {since}',
   'access.products.notConnected': 'не подключён',
   'access.products.waiting': 'Ждём вашего ответа в {name}.',

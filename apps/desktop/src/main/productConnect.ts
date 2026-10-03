@@ -14,10 +14,18 @@
 // use (spent before anything is awaited), dead after 10 minutes. A request carrying an `Origin`
 // header is a browser, not the product's app, and is refused before the body is read.
 //
-// THE SECRET goes to the vault (`observatoryVault.ts`) and nowhere else; only then is
-// `product.connected@1` journalled with the metadata and the vault slot, and only then is 200 answered.
-// Without Observatory the answer is 503 with the reason, so the product revokes the key it minted —
-// a key nobody can keep safely is a key that should not exist.
+// THE RECORD FIRST, THEN THE SECRET. `product.connected@1` (metadata and the vault slot) is journalled,
+// and only then is the secret switched in the vault (`observatoryVault.ts`, and nowhere else); only then
+// is 200 answered. The order is the point (security review of PR #7): the vault slot is one per product,
+// so switching the secret first and then failing to record would leave the LIVE connection's client id
+// beside the NEW key's secret. Recorded first, a failed record leaves the old pair whole (and answers
+// non-2xx, so the product revokes the new key); a vault that then refuses the secret has the new record
+// withdrawn (`product.disconnected@1`) and answers 503, so the product revokes it too — a key nobody can
+// keep safely is a key that should not exist. Until the vault answers, a call pairs the new client id
+// with the old secret, which the product refuses; nothing is widened.
+//
+// RECONNECT IS A CHOICE. A product already connected is connected again only when the operator chose
+// Reconnect (`begin(spec, { reconnect: true })`); every other caller is refused while a connection lives.
 
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { randomBytes, randomUUID } from 'node:crypto'
@@ -156,9 +164,23 @@ export class ProductConnector {
     return `${spec.scheme}://connect?${q.toString()}`
   }
 
-  /** Start connecting: mint a state, open the product's link. The answer arrives at the callback. */
-  async begin(spec: ProductSpec): Promise<{ ok: true; expiresAt: string } | { ok: false; reason: string }> {
+  /**
+   * Start connecting: mint a state, open the product's link. The answer arrives at the callback.
+   * A product that is already connected is refused unless the operator chose Reconnect.
+   */
+  async begin(spec: ProductSpec, opts: { reconnect?: boolean } = {}): Promise<{ ok: true; expiresAt: string } | { ok: false; reason: string }> {
     if (!this.deps.origin()) return { ok: false, reason: 'the hub is not listening, so the product would have nowhere to deliver its key' }
+    if (!opts.reconnect) {
+      let live: Awaited<ReturnType<AccessStore['liveConnection']>>
+      try {
+        live = await this.deps.store.liveConnection(spec.product)
+      } catch (e) {
+        // A read that fails is not "not connected": opening the product could replace a live key.
+        ops.failed('connect.live-read', e, { product: spec.product })
+        return { ok: false, reason: `whether ${spec.product} is already connected could not be read: ${(e as Error).message}` }
+      }
+      if (live) return { ok: false, reason: `${spec.product} is already connected; choose Reconnect to replace its key` }
+    }
     const now = this.now()
     for (const [s, p] of this.pending) if (now - p.createdAt > CONNECT_STATE_TTL_MS) this.pending.delete(s)
     if ([...this.pending.values()].filter((p) => p.spec.product === spec.product).length >= 3)
@@ -252,12 +274,6 @@ export class ProductConnector {
     }
     const k = key as { id: string; clientId: string; level: string; send: string; expiresAt?: string | null }
 
-    const stored = await this.deps.vault.put(pending.spec.secret, secret as string)
-    if (!stored.ok) {
-      this.settle({ product, outcome: 'failed', at, reason: `the key was not kept: ${stored.reason}` })
-      ops.record({ op: 'connect.callback', outcome: 'failed', level: 'error', detail: { product, stage: 'vault', reason: stored.reason, key_id: k.id }, ctx: { correlationId: ops.correlate() } })
-      return write(res, 503, { error: 'vault_unavailable', reason: stored.reason })
-    }
     const id = randomUUID()
     try {
       await this.deps.store.append('product.connected@1', this.deps.actor(), {
@@ -265,11 +281,26 @@ export class ProductConnector {
         level: k.level, send: k.send, key_expires_at: k.expiresAt ?? null, secret_ref: pending.spec.secret
       })
     } catch (e) {
-      // The secret is in the vault and Fabric could not record the connection: answering non-2xx makes
-      // the product revoke the key, so the stored value becomes inert and the next connect rotates it.
+      // Nothing was switched: the vault still holds the live connection's own secret. Answering non-2xx
+      // makes the product revoke the key it just minted.
       ops.failed('connect.record', e, { product, key_id: k.id })
       this.settle({ product, outcome: 'failed', at, reason: `the connection could not be recorded: ${(e as Error).message}` })
       return write(res, 500, { error: 'record_failed' })
+    }
+    const stored = await this.deps.vault.put(pending.spec.secret, secret as string)
+    if (!stored.ok) {
+      // The record names a key whose secret is not kept: withdraw it, so no call pairs this client id with
+      // the previous key's secret, and answer 503 so the product revokes the new key.
+      let withdrawn = true
+      try {
+        await this.deps.store.append('product.disconnected@1', this.deps.actor(), { id })
+      } catch (e) {
+        withdrawn = false
+        ops.failed('connect.withdraw', e, { product, connection_id: id, key_id: k.id })
+      }
+      this.settle({ product, outcome: 'failed', at, reason: `the key was not kept: ${stored.reason}${withdrawn ? '' : ' — and the connection could not be withdrawn; disconnect it in Settings → Agent access'}` })
+      ops.record({ op: 'connect.callback', outcome: 'failed', level: 'error', detail: { product, stage: 'vault', reason: stored.reason, key_id: k.id, connection_id: id, withdrawn }, ctx: { correlationId: ops.correlate() } })
+      return write(res, 503, { error: 'vault_unavailable', reason: stored.reason })
     }
     ops.record({ op: 'connect.callback', outcome: 'ok', detail: { product, outcome: 'connected', connection_id: id, key_id: k.id, level: k.level }, ctx: { correlationId: ops.correlate() } })
     this.settle({ product, outcome: 'connected', at })

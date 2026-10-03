@@ -220,7 +220,8 @@ test('connect: without the vault the callback answers 503, so the product revoke
   const r = await deliver(origin, { state, outcome: 'connected', server: 'https://mail.example.com', mcpUrl: 'https://mail.example.com/mcp', key: { id: 'k', clientId: 'c', level: 'admin', send: 'send', expiresAt: null }, clientSecret: SECRET })
   assert.equal(r.status, 503)
   assert.match((await r.json()).reason, /Project Observatory is not installed/)
-  assert.equal(store.events.length, 0)
+  // Recorded first, then withdrawn when the vault would not keep the secret: no connection is left live.
+  assert.deepEqual(store.events.map((e) => e.type), ['product.connected@1', 'product.disconnected@1'])
   assert.match(connector.lastOutcome('fabric-inbox').reason, /not kept/)
   await surface.stop()
 })
@@ -537,5 +538,58 @@ test('finding 5: the idempotency memory is per binding — one binding cannot ev
   const sameKeyOtherBinding = await call(b, args('mine'), undefined)
   assert.equal(forwarded, before + 1, 'a key is one binding\'s, not shared')
   assert.notDeepEqual(sameKeyOtherBinding.structuredContent.output, kept.structuredContent.output)
+})
+
+// ── the connect write order and an explicit reconnect (security review of PR #7, LOW)
+async function connectWith({ append, put, live = null }) {
+  const opened = []
+  const events = []
+  const puts = []
+  let origin = ''
+  const store = {
+    events,
+    append: async (type, actor, payload) => { await append?.(type, payload); events.push({ type, payload }); return events.length },
+    liveConnection: async () => live
+  }
+  const connector = new ProductConnector({ store, vault: { put: async (s, v) => { puts.push(v); return put ? put(v) : { ok: true } }, read: async () => ({ ok: false, reason: 'n/a' }) }, origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
+  const surface = await hubWith(connector)
+  origin = surface.origin
+  return { connector, surface, events, puts, opened, origin }
+}
+const delivery = (state) => ({ state, outcome: 'connected', server: 'https://mail.example.com', mcpUrl: 'https://mail.example.com/mcp', key: { id: 'key-2', clientId: 'new.access', level: 'admin', send: 'send', expiresAt: null }, clientSecret: SECRET + '-new' })
+
+test('connect: the record is written before the secret — a failed record leaves the vault (and the live connection\'s secret) untouched', async () => {
+  const c = await connectWith({ append: async () => { throw new Error('journal down') } })
+  try {
+    await c.connector.begin(FABRIC_INBOX, { reconnect: true })
+    const r = await deliver(c.origin, delivery(new URL(c.opened[0]).searchParams.get('state')))
+    assert.equal(r.status, 500)
+    assert.deepEqual(c.puts, [], 'the secret was switched although the connection naming it was never recorded')
+  } finally { await c.surface.stop() }
+})
+
+test('connect: a secret the vault would not keep withdraws the connection just recorded, so no client id is left beside another key\'s secret', async () => {
+  const c = await connectWith({ put: async () => ({ ok: false, reason: 'vault locked' }) })
+  try {
+    await c.connector.begin(FABRIC_INBOX)
+    const r = await deliver(c.origin, delivery(new URL(c.opened[0]).searchParams.get('state')))
+    assert.equal(r.status, 503)
+    assert.deepEqual(c.events.map((e) => e.type), ['product.connected@1', 'product.disconnected@1'])
+    assert.equal(c.events[1].payload.id, c.events[0].payload.id)
+    assert.match(c.connector.lastOutcome('fabric-inbox').reason, /not kept/)
+  } finally { await c.surface.stop() }
+})
+
+test('connect: a product already connected is reconnected only when the operator chose Reconnect', async () => {
+  const live = { id: 'c-1', product: 'fabric-inbox', server: 'https://mail.example.com', mcp_url: 'https://mail.example.com/mcp', key_id: 'key-1', client_id: 'abc.access', level: 'admin', send: 'send', key_expires_at: null, secret_ref: slot, connected_at: '', removed_at: null }
+  const c = await connectWith({ live })
+  try {
+    const refused = await c.connector.begin(FABRIC_INBOX)
+    assert.equal(refused.ok, false)
+    assert.match(refused.reason, /already connected.*Reconnect/)
+    assert.equal(c.opened.length, 0, 'the product was opened without the operator choosing to reconnect')
+    assert.equal((await c.connector.begin(FABRIC_INBOX, { reconnect: true })).ok, true)
+    assert.equal(c.opened.length, 1)
+  } finally { await c.surface.stop() }
 })
 // #endregion product-connect

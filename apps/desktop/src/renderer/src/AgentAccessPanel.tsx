@@ -70,7 +70,10 @@ export function AgentAccessPanel({ onClose }: { onClose: () => void }): React.JS
               <Row
                 key={p.product}
                 trail={p.connection
-                  ? <Button tone="ghost" disabled={busy !== null} onClick={() => void act(`disconnect:${p.product}`, () => window.fabric.hub.disconnect(p.product))}>{t('access.products.disconnect')}</Button>
+                  ? <Toolbar>
+                      <Button tone="ghost" disabled={busy !== null || !view.overview.hub.listening} onClick={() => void act(`reconnect:${p.product}`, () => window.fabric.hub.connect(p.product, { reconnect: true }))}>{t('access.products.reconnect')}</Button>
+                      <Button tone="ghost" disabled={busy !== null} onClick={() => void act(`disconnect:${p.product}`, () => window.fabric.hub.disconnect(p.product))}>{t('access.products.disconnect')}</Button>
+                    </Toolbar>
                   : <Button disabled={busy !== null || !view.overview.hub.listening} onClick={() => void act(`connect:${p.product}`, () => window.fabric.hub.connect(p.product))}>{t('access.products.connect')}</Button>}
               >
                 <strong>{p.name}</strong>{' '}

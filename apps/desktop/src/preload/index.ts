@@ -110,7 +110,7 @@ const api: FabricApi = {
     revokeGrant: (grantId) => ipcRenderer.invoke(IPC.hubRevokeGrant, grantId),
     revokeAgent: (bindingId) => ipcRenderer.invoke(IPC.hubRevokeAgent, bindingId),
     clearDenial: (requestId) => ipcRenderer.invoke(IPC.hubClearDenial, requestId),
-    connect: (product) => ipcRenderer.invoke(IPC.hubConnect, product),
+    connect: (product, opts) => ipcRenderer.invoke(IPC.hubConnect, product, opts),
     disconnect: (product) => ipcRenderer.invoke(IPC.hubDisconnect, product)
   },
   goals: {
