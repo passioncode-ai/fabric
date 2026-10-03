@@ -51,9 +51,26 @@ export const INSTRUCTIONS_MIN = 20
  * create form and the `agents:create` handler both ask this, so they cannot disagree.
  */
 export function nameTaken(name: string, existing: readonly { name: string }[]): boolean {
-  const n = name.trim().toLowerCase()
-  return n !== '' && existing.some((a) => a.name.trim().toLowerCase() === n)
+  const n = nameKey(name)
+  return n !== '' && existing.some((a) => nameKey(a.name) === n)
 }
+
+// #region agent-name-key — docs: docs/ux/scenarios.md#scn-130-start-a-new-agent-inside-a-project
+/**
+ * The form of a name two agents may not share: trimmed, then folded with Unicode SIMPLE case mapping,
+ * one code point at a time — the mapping the database rule uses (`lower(… collate pg_c_utf8)`,
+ * migration 73). `toLowerCase()` on the whole string is FULL, context-sensitive mapping: it folds a
+ * word-final Σ to ς and İ to two code points, so "ΟΔΟΣ" and "οδοσ" were two names to the form and one
+ * to the database (release review iteration 3, finding 7). Mapping each code point alone removes the
+ * context, and taking the first code point of the result is the simple mapping for the one character
+ * whose full lowercase is longer (U+0130 → "i" + U+0307).
+ */
+export function nameKey(name: string): string {
+  let out = ''
+  for (const ch of name.trim()) out += String.fromCodePoint(ch.toLowerCase().codePointAt(0) ?? 0)
+  return out
+}
+// #endregion agent-name-key
 
 /**
  * Whether a failed `agent.registered@1` append was the write boundary refusing a taken name (migration 72,

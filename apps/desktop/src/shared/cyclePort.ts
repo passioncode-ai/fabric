@@ -170,3 +170,64 @@ export function readCycleGap(input: {
       `nothing needed doing.`
   }
 }
+
+// #region cycle-passes — docs: docs/adr/0037-the-telegram-bot-answers-by-reply-and-fabric-has-no-always-on-process.md#decision
+/** What one step of a cycle reports. */
+export interface CyclePass { state: WindowState; says: string }
+export interface CycleSteps {
+  /** The routine tick. */
+  tick: () => Promise<CyclePass>
+  /** The chain pass. */
+  advanceChains: () => Promise<CyclePass>
+  /** The runtime observer; answers how many sessions it sampled. */
+  sample: () => Promise<number>
+}
+
+/**
+ * One pass of the cycle, as `index.ts#runCycle` records it in `cycle.ran@1`.
+ *
+ * EACH STEP IN ITS OWN TRY (release review 2026-10-03, iteration 3, finding 6). The three steps shared
+ * one `try`, so a throwing routine tick meant the chain pass and the observer did not run that cycle at
+ * all — a follower whose predecessor had finished waited for a tick that kept throwing. They are
+ * independent producers; a failure of one is a `failed_known` state in the composition, said in the
+ * receipt, and never a reason to skip the others.
+ *
+ * COMPOSED, never defaulted (AX-08): the state is the worst of the states the steps reported, and a
+ * throw contributes `failed_known`. A chain pass that completed or had nothing to do adds no words —
+ * the receipt names what did not go cleanly.
+ */
+export async function runCyclePasses(
+  steps: CycleSteps,
+  log: { failed: (step: string, e: unknown) => void }
+): Promise<{ state: WindowState; says: string; observed: number }> {
+  const states: WindowState[] = []
+  const said: string[] = []
+  try {
+    const pass = await steps.tick()
+    states.push(pass.state)
+    if (pass.says) said.push(pass.says)
+  } catch (e) {
+    states.push('failed_known')
+    said.push(`the routine tick failed: ${String(e)}`)
+    log.failed('cycle.tick', e)
+  }
+  try {
+    const chains = await steps.advanceChains()
+    states.push(chains.state)
+    if (chains.state !== 'completed' && chains.state !== 'skipped_no_delta' && chains.says) said.push(chains.says)
+  } catch (e) {
+    states.push('failed_known')
+    said.push(`the chain pass failed: ${String(e)}`)
+    log.failed('cycle.chains', e)
+  }
+  let observed = 0
+  try {
+    observed = await steps.sample()
+  } catch (e) {
+    states.push('failed_known')
+    said.push(`the observer failed: ${String(e)}`)
+    log.failed('cycle.observer', e)
+  }
+  return { state: worstOf(states), says: said.join('; '), observed }
+}
+// #endregion cycle-passes

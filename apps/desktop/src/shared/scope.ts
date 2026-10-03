@@ -76,6 +76,7 @@ export const TABLE_SCOPE: Record<string, TableScope> = {
   ceo_pending_requests: { private: 'private pending input, not execution authority; dedicated CEO commands only' },
   ceo_receipt_refs: { private: 'opaque replay projection; journal is the permitted public receipt surface' },
   ceo_write_authorizations: { private: 'transaction-only authorization; no generic reader or writer' },
+  declared_import_authorizations: { private: 'transaction-only exemption of import_declared_snapshot from the agent-name rule (migration 73); no generic reader or writer' },
   ceo_private_import_receipts: { private: 'one Person\'s private import receipt; dedicated owner-authorized receipt reader only' },
   ceo_content_provenance: { private: 'where one Person\'s imported text came from; written by the import command, read by the private export only' },
   agent_bindings: ESTATE_AND_PROJECT,

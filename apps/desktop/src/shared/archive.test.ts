@@ -134,7 +134,9 @@ describe('ADR-0075 private conversation recovery boundary', () => {
       expect(category?.reason).toMatch(/private/)
     }
     expect(inventory.find(c => c.name === 'ceo_receipt_refs')?.recovery).toBe('journal')
-    for (const name of ['ceo_pending_requests', 'ceo_write_authorizations'])
+    // Every transaction-only authorization table is excluded, never `journal`-recovered: no event
+    // rebuilds one (release review iteration 3 — the transcript one had fallen through to `journal`).
+    for (const name of ['ceo_pending_requests', 'ceo_write_authorizations', 'transcript_recovery_authorizations', 'declared_import_authorizations'])
       expect(inventory.find(c => c.name === name)?.recovery).toBe('excluded')
   })
   it('the private import receipt and content provenance are excluded, never journal-recovered (ADR-0079)', () => {

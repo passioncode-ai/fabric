@@ -275,18 +275,42 @@ node --experimental-strip-types apps/desktop/test/file-roots-refresh.test.mjs
 
 step "owned databases: the SQL contract and the reads, on a cluster this run creates and removes"
 # A disposable PostgreSQL (`initdb` into a temp dir, Unix socket only) with the
-# whole migration chain; it never touches the stack the desktop uses. Without
-# PostgreSQL binaries the runner exits 2 and this step says NOT_RUN out loud
-# rather than passing — set FABRIC_PG_BIN to run it. The eleven older
+# whole migration chain; it never touches the stack the desktop uses. The other
 # `run-*-db.mjs` runners run in the full tier (review finding 3).
+#
+# BOTH RUNNERS RUN, and the step fails once at the end naming each one that failed
+# (release review iteration 3, coordinator): this loop used to `exit` on the first
+# failure, so the second runner's verdict was never seen.
+#
+# WITHOUT POSTGRESQL THE FAST TIER PASSES, AND SAYS SO. A runner with no PostgreSQL
+# 17 binaries exits 2 (NOT_RUN). This is the tier that runs before every commit,
+# including on the hosted fast runner, which has no PostgreSQL; failing it there
+# would make the gate unusable rather than stricter. So NOT_RUN does not fail the
+# fast tier — it is printed here AND on the tier's last line, so a green fast tier
+# without the owned step cannot be read as one that ran it. The full tier fails on
+# NOT_RUN. Set FABRIC_PG_BIN to run it.
+owned_fast_failed=()
+owned_fast_not_run=()
 for runner in run-estate-identity-db run-read-schema-db; do
   set +e
   node "apps/desktop/test/$runner.mjs"
   code=$?
   set -e
-  if [ "$code" = "2" ]; then printf 'NOT_RUN %s: no PostgreSQL binaries (FABRIC_PG_BIN)\n' "$runner"
-  elif [ "$code" != "0" ]; then exit "$code"; fi
+  if [ "$code" = "2" ] && [ "$TIER" = "full" ]; then
+    # The full tier passes through this step too, and its own owned-cluster loop does not repeat
+    # these two: NOT_RUN fails there, as it does for every other runner in that tier.
+    owned_fast_failed+=("$runner (NOT_RUN: no PostgreSQL binaries, FABRIC_PG_BIN)")
+  elif [ "$code" = "2" ]; then
+    printf 'NOT_RUN %s: no PostgreSQL binaries (FABRIC_PG_BIN)\n' "$runner"
+    owned_fast_not_run+=("$runner")
+  elif [ "$code" != "0" ]; then
+    owned_fast_failed+=("$runner (exit $code)")
+  fi
 done
+if [ "${#owned_fast_failed[@]}" -gt 0 ]; then
+  printf 'FAIL: %s owned-cluster runner(s) did not pass: %s\n' "${#owned_fast_failed[@]}" "${owned_fast_failed[*]}"
+  exit 1
+fi
 # 2026-10-03 (release review iteration 1, finding 2). The guard that keeps every database probe
 # off the operator's live stack, and the residue report's read-only property. Pure: they start
 # nothing and connect to nothing; the full tier below is where the guard is used.
@@ -476,6 +500,9 @@ python3 test/audit_regressions/fix-pf-10.02.py
 
 if [ "$TIER" = "fast" ]; then
   printf '\n\033[1mfast tier green.\033[0m The stack-backed probes did not run — use `scripts/ci.sh full`.\n'
+  if [ "${#owned_fast_not_run[@]}" -gt 0 ]; then
+    printf 'NOT_RUN: the owned-database step did not run (%s) — this green does not cover it; set FABRIC_PG_BIN.\n' "${owned_fast_not_run[*]}"
+  fi
   exit 0
 fi
 
@@ -507,8 +534,10 @@ step "a disposable stack — never the operator's"
 # 2026-10-03 (release review iteration 1, finding 2). This step used to be `supabase start` and
 # `supabase migration up --local` at the repository root: the operator's LIVE stack (project
 # `fabric`, API 54321, DB 54322), the database the desktop app keeps their real estates in. The
-# probes then wrote into it — 768 estates, 3 540 projects and 996 persons of residue were measured
-# (`node scripts/residue-report.mjs` counts them, read-only).
+# probes then wrote into it. Two different numbers, not to be confused: the live database held
+# 768 estates, 3 541 projects and 996 persons IN TOTAL (the operator's own rows included), and
+# `node scripts/residue-report.mjs` (read-only) classes 716 estates, 3 475 projects and 994 persons
+# of them as probe RESIDUE it would remove (both counted 2026-10-03, release review iteration 3).
 #
 # Now: a copy of the root `supabase/` project with its own `fabric_test_<hex>` id and its own block
 # of ports, started fresh (so the whole migration chain and the seed are applied, as on a new

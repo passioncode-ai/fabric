@@ -254,6 +254,16 @@ from the environment, so a psql child cannot be moved through the service file e
 folder that carries the marker `up` wrote. It never runs `supabase stop --no-backup` for the live
 project.
 
+The probes that need only PostgreSQL, not the whole stack, run on clusters of their own: each
+`apps/desktop/test/run-*-db.mjs` runner (and `run-ceo-host-sql.mjs`) `initdb`s a temporary cluster
+on a Unix socket, applies the migration chain, runs its suite and removes the cluster. They need
+PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default Homebrew's `postgresql@17`); without them a runner
+exits 2, NOT_RUN. `ci.sh fast` runs two of them (`run-estate-identity-db`, `run-read-schema-db`):
+both run even when one fails, the step fails at the end naming each failure, and NOT_RUN does **not**
+fail the fast tier — the hosted fast runner has no PostgreSQL — but is printed beside the runner and
+again on the tier's last line, so that green does not claim the step ran. `ci.sh full` runs those two
+in the same step and every other runner after it, the same way, and fails on NOT_RUN.
+
 The full tier runs every package's test suites through
 [`scripts/run-test-chains.mjs`](scripts/run-test-chains.mjs): each `a && b && …` link of each
 package's `test` script runs on its own, and the tier fails at the end listing every suite that

@@ -138,7 +138,7 @@ import { deriveLiveness } from '../shared/liveness.ts'
 import { declaredCapabilities, isAvailable } from '../shared/capabilityReport.ts'
 import { AGENTS } from '../shared/agents.ts'
 import type { RunStatusView } from '../shared/runStatus.ts'
-import { advancesWatermark, worstOf, type WindowState } from '../shared/cyclePort.ts'
+import { advancesWatermark, runCyclePasses } from '../shared/cyclePort.ts'
 import type { OpsLevel } from '../shared/opsLog'
 
 /**
@@ -1839,6 +1839,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     host: hostWindow
   })
 
+  // #region cycle-run — docs: docs/adr/0037-the-telegram-bot-answers-by-reply-and-fabric-has-no-always-on-process.md#decision
   /**
    * One pass, and it leaves a receipt whether or not it did anything.
    *
@@ -1853,24 +1854,18 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // could not reach the receipt, and a refused routines read produced a row
     // saying the pass had completed. A window recorded complete is one the
     // watermark may step over.
-    const states: WindowState[] = []
-    let observed = 0
-    let says = ''
-    try {
-      const pass = await tick()
-      states.push(pass.state)
-      says = pass.says
-      // The chain pass reports too: a pass that could not read its links is not a completed window.
-      const chains = await advanceChains()
-      states.push(chains.state)
-      if (chains.state !== 'completed' && chains.state !== 'skipped_no_delta') says = says ? `${says}; ${chains.says}` : chains.says
-      observed = (await observer.sample()).length
-    } catch (e) {
-      states.push('failed_known')
-      says = says || `the pass failed: ${String(e)}`
-      ops.failed('cycle.run', e)
-    }
-    const state = worstOf(states)
+    //
+    // EACH STEP IN ITS OWN TRY (release review iteration 3, finding 6): a throwing routine tick no longer
+    // stops the chain pass or the observer for the cycle. `runCyclePasses` composes the states.
+    const { state, says, observed } = await runCyclePasses(
+      {
+        tick,
+        // The chain pass reports too: a pass that could not read its links is not a completed window.
+        advanceChains,
+        sample: async () => (await observer.sample()).length
+      },
+      { failed: (step, e) => ops.failed(step, e) }
+    )
     try {
       await journal.append({
         estateId: ACTIVE_ESTATE,
@@ -1896,6 +1891,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       ops.failed('cycle.receipt', e, { note: 'the pass ran but left no receipt; a reader will see a gap' })
     }
   }
+  // #endregion cycle-run
 
   const ticker = setInterval(() => {
     void runCycle()

@@ -6,7 +6,9 @@
 // repository root and took whatever it answered. That is the operator's LIVE stack — project
 // `fabric`, API 54321, DB 54322 — the same database the desktop app keeps their real estates
 // in. The probes wrote random-id estates, persons and projects into it and cleaned up only part
-// of them (768 estates, 3 540 projects and 996 persons of residue were measured), one revoked
+// of them (the live database held 768 estates, 3 541 projects and 996 persons in TOTAL;
+// `scripts/residue-report.mjs` classes 716, 3 475 and 994 of them as probe RESIDUE it would
+// remove — both counted 2026-10-03, release review iteration 3), one revoked
 // SELECT on `memory_facts` there for the length of a call, and `ci.sh full` ran
 // `supabase migration up` against it. An override could not help: the probes overwrote
 // `SUPABASE_URL` with the root's answer.
