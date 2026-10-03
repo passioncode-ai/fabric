@@ -294,6 +294,9 @@ step "owned databases: the SQL contract and the reads, on a cluster this run cre
 # (release review iteration 3, coordinator): this loop used to `exit` on the first
 # failure, so the second runner's verdict was never seen.
 #
+# run-hub-access-db (migration 76, ADR-0115) is here for the same reason: it holds the hub's standing
+# access — who may call a cloud product through Fabric — to its refusals and its privileges.
+#
 # run-function-privileges-db (migration 75) joins them here, not in the full tier: it is
 # the sweep that no projector and no host-only SECURITY DEFINER command is executable by
 # an API role, run with Supabase's default privileges in force — a security gate belongs
@@ -308,7 +311,7 @@ step "owned databases: the SQL contract and the reads, on a cluster this run cre
 # NOT_RUN. Set FABRIC_PG_BIN to run it.
 owned_fast_failed=()
 owned_fast_not_run=()
-for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db; do
+for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db; do
   set +e
   node "apps/desktop/test/$runner.mjs"
   code=$?

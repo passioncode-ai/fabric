@@ -100,6 +100,12 @@ export const TABLE_SCOPE: Record<string, TableScope> = {
   releases: ESTATE_AND_PROJECT,
   // The receipt of a recorded release or verification: estate-scoped, read by nothing but its command.
   release_commands: ESTATE_ONLY,
+  // ADR-0115: the hub's standing access and connected products. Estate-wide by nature — an external agent
+  // and a cloud product belong to the estate, not to one of its projects.
+  access_requests: ESTATE_ONLY,
+  access_bindings: ESTATE_ONLY,
+  access_grants: ESTATE_ONLY,
+  product_connections: ESTATE_ONLY,
   routines: ESTATE_AND_PROJECT,
   session_context_packs: ESTATE_AND_PROJECT,
   deliveries: ESTATE_AND_PROJECT,
