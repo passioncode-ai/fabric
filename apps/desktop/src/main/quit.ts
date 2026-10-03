@@ -39,6 +39,13 @@ export interface QuitOptions {
   setTimer?: (fn: () => void, ms: number) => { unref?: () => void }
   onDeadline?: () => void
   onSchedulerError?: (e: unknown) => void
+  /**
+   * A guard OUTSIDE this process, armed when quitting begins: it ends the pid `reaperMs` later whatever this
+   * process is doing. The in-process deadline is a timer, and a timer does not run once Electron's own
+   * teardown stalls after the last window and helper are gone — measured at load 55–138, an app exited
+   * after 12–27 s or was still alive after 60 s (third lifecycle review, 2026-10-03).
+   */
+  armReaper?: (afterMs: number) => void
 }
 
 export const QUIT_DEADLINE_MS = 10_000
@@ -47,6 +54,15 @@ export const QUIT_DEADLINE_MS = 10_000
  * a walk as graceful (lifecycle review 2026-10-03, finding 9). Supervisors and walks read this code.
  */
 export const QUIT_DEADLINE_EXIT_CODE = 3
+/** The outside guard fires this long after quitting begins: past the in-process deadline, with a margin. */
+export const QUIT_REAPER_MS = 15_000
+
+/** The default outside guard: a detached shell that kills this pid unless it has already exited. */
+export async function spawnQuitReaper(afterMs: number): Promise<void> {
+  const { spawn } = await import('node:child_process')
+  const seconds = Math.ceil(afterMs / 1000)
+  spawn('/bin/sh', ['-c', `sleep ${seconds}; kill -9 ${process.pid} 2>/dev/null`], { detached: true, stdio: 'ignore' }).unref()
+}
 
 export interface QuitCoordinator {
   /** True from the first quit request on. Schedulers read it before starting work. */
@@ -82,6 +98,10 @@ export function createQuitCoordinator(o: QuitOptions): QuitCoordinator {
     // otherwise finished process alive.
     const timer = setTimer(() => { o.onDeadline?.(); o.app.exit(QUIT_DEADLINE_EXIT_CODE) }, hardDeadlineMs)
     timer.unref?.()
+    try { o.armReaper?.(QUIT_REAPER_MS) } catch (e) {
+      // The outside guard is a second line; the in-process deadline above still stands.
+      o.onSchedulerError?.(e)
+    }
   }
 
   return {

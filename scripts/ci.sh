@@ -193,6 +193,8 @@ node --experimental-strip-types apps/desktop/test/quit.test.mjs
 node --experimental-strip-types apps/desktop/test/stack-services.test.mjs
 # ADR-0106 amendment: unsaved editor work is kept in a bounded, owner-only recovery store.
 node --experimental-strip-types apps/desktop/test/editor-recovery.test.mjs
+# CO-192: --background opens no window and takes no focus until the person activates the app.
+node --test apps/desktop/test/background-launch.test.mjs
 node --experimental-strip-types apps/desktop/test/transcripts.test.mjs
 node apps/desktop/test/file-roots.test.mjs
 # ADR-0100: the start paths' disk reads and executor detection, against a real git tree and real processes.

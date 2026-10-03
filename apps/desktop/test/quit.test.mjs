@@ -114,6 +114,24 @@ test('a shutdown that never settles is ended by the deadline', () => {
   assert.deepEqual(exits, [3], 'a deadline exit must not look like a clean one')
 })
 
+test('quitting arms the outside guard once, past the in-process deadline', () => {
+  const armed = []
+  const q = createQuitCoordinator({ app: { quit() {}, exit() {} }, ready: () => true, shutdown: () => new Promise(() => {}), setTimer: () => ({}), armReaper: (ms) => armed.push(ms) })
+  q.beforeQuit({ preventDefault() {} })
+  q.beforeQuit({ preventDefault() {} })
+  assert.deepEqual(armed, [15_000])
+})
+
+test('the outside guard ends a process whose event loop no longer runs', { skip: process.platform === 'win32' }, async () => {
+  // A child arms the real reaper with a short delay, then blocks its own event loop forever — the shape of
+  // a teardown that stalls after the last window is gone. Only something outside it can end it.
+  const quitTs = path.join(import.meta.dirname, '../src/main/quit.ts')
+  const child = spawn(process.execPath, ['--experimental-strip-types', '--input-type=module', '-e', `const { spawnQuitReaper } = await import(${JSON.stringify(quitTs)}); await spawnQuitReaper(1000); for (;;) {}`], { stdio: 'ignore' })
+  const ended = await new Promise((resolve) => { const t = setTimeout(() => resolve('alive'), 8000); child.on('exit', (code, signal) => { clearTimeout(t); resolve(signal) }) })
+  if (ended === 'alive') child.kill('SIGKILL')
+  assert.equal(ended, 'SIGKILL', 'a stalled process outlived the outside guard')
+})
+
 test('a failing shutdown still lets the quit through', async () => {
   const calls = []
   const q = createQuitCoordinator({ app: { quit: () => calls.push('quit'), exit() {} }, ready: () => true, shutdown: async () => { throw new Error('drain failed') }, setTimer: () => ({}) })

@@ -5,12 +5,14 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { I18nProvider } from './i18n'
 
 // Monaco cannot run in jsdom; a stand-in editor exposes exactly what the window uses.
-const editors: Array<{ value: string; listeners: Array<() => void>; getValue: () => string; setValue: (v: string) => void }> = []
+const editors: Array<{ value: string; readOnly: boolean; listeners: Array<() => void>; getValue: () => string; setValue: (v: string) => void }> = []
 vi.mock('monaco-editor', () => {
   const create = (_host: unknown, opts: { value: string }) => {
     const ed = {
       value: opts.value,
+      readOnly: false,
       listeners: [] as Array<() => void>,
+      updateOptions(o: { readOnly?: boolean }) { if (o.readOnly !== undefined) ed.readOnly = o.readOnly },
       getValue() { return ed.value },
       setValue(v: string) { ed.value = v; for (const l of ed.listeners) l() },
       onDidChangeModelContent(l: () => void) { ed.listeners.push(l); return { dispose() {} } },
@@ -65,6 +67,21 @@ describe('editor recovery', () => {
     await waitFor(() => expect(editors.length).toBe(1))
     fireEvent.click(screen.getByRole('button', { name: 'Restore them' }))
     expect(editors[0].getValue()).toBe('on disk')
+  })
+
+  it('the editor is read-only until the person chooses, so typing can never overwrite the kept buffer', async () => {
+    const files = bridge({ content: 'my unsaved work', baseHash: 'h-disk', at: '2026-10-03T12:00:00Z' })
+    mount()
+    await screen.findByText(/were kept/)
+    await waitFor(() => expect(editors.length).toBe(1))
+    await waitFor(() => expect(editors[0].readOnly).toBe(true))
+    vi.useFakeTimers()
+    act(() => editors[0].setValue('typed before choosing'))
+    act(() => { vi.advanceTimersByTime(800) })
+    expect(files.recoveryKeep).not.toHaveBeenCalled()
+    vi.useRealTimers()
+    fireEvent.click(screen.getByRole('button', { name: 'Discard them' }))
+    await waitFor(() => expect(editors[0].readOnly).toBe(false))
   })
 
   it('discarding the kept buffer removes it', async () => {

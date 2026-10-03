@@ -73,15 +73,22 @@ mkdir -p "$(dirname "$LOG")" && chmod 700 "$(dirname "$LOG")"
 chmod 600 "$LOG"
 rm -f "$OLD_LOG" "$OLD_LOG".[0-9]*
 NODE="$(command -v node)"
-# A minimal PATH built from the tools the job uses, never the interactive one: a captured shell PATH
-# carries plugin directories that later disappear (lifecycle audit, observatory F13).
-JOB_PATH="/usr/bin:/bin:/usr/sbin:/sbin"
-# Every tool the job and the fast gate it may run call (review m15): a tool that only happened to share a
-# directory with another would vanish from the job the day it moved.
+# A minimal PATH from the tools the job and the fast gate call, never the whole interactive one: a captured
+# shell PATH carries plugin directories that later disappear (lifecycle audit, observatory F13). It keeps the
+# interactive PATH's ORDER, so each tool resolves to the same binary as in the shell where the gate passes —
+# prepending each tool's directory put /usr/local/bin's python3 (no jsonschema) ahead of Homebrew's and the
+# scheduled gate failed where the interactive one passed (2026-10-03).
+NEEDED_DIRS=""
 for tool in node git heroku pnpm npm python3 rg docker supabase gh uv; do
-  d="$(dirname "$(command -v "$tool" 2>/dev/null || echo /usr/bin/true)")"
-  case ":$JOB_PATH:" in *":$d:"*) ;; *) JOB_PATH="$d:$JOB_PATH" ;; esac
+  p="$(command -v "$tool" 2>/dev/null)" || continue
+  NEEDED_DIRS="$NEEDED_DIRS:$(dirname "$p"):"
 done
+JOB_PATH=""
+IFS=: read -r -a PATH_PARTS <<< "$PATH"
+for d in "${PATH_PARTS[@]}"; do
+  case "$NEEDED_DIRS" in *":$d:"*) case ":$JOB_PATH:" in *":$d:"*) ;; *) JOB_PATH="${JOB_PATH:+$JOB_PATH:}$d" ;; esac ;; esac
+done
+for d in /usr/bin /bin /usr/sbin /sbin; do case ":$JOB_PATH:" in *":$d:"*) ;; *) JOB_PATH="$JOB_PATH:$d" ;; esac; done
 cat >"$PLIST" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

@@ -70,6 +70,11 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
    */
   const [recovered, setRecovered] = useState<{ content: string; baseHash: string; at: string } | null>(null)
   const keepTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const recoveredRef = useRef<typeof recovered>(null)
+  useEffect(() => {
+    recoveredRef.current = recovered
+    editor.current?.updateOptions({ readOnly: recovered !== null })
+  }, [recovered])
   const keepNow = (content: string | null, baseHash: string): void => {
     if (keepTimer.current) { clearTimeout(keepTimer.current); keepTimer.current = null }
     void window.fabric.files.recoveryKeep(filePath, content, baseHash).catch(() => {
@@ -106,6 +111,9 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
       scrollBeyondLastLine: false
     })
     editor.current = ed
+    // Read-only while a kept buffer waits for Restore or Discard (third lifecycle review): one keystroke
+    // before choosing used to overwrite the kept buffer on disk, and undoing it deleted it.
+    ed.updateOptions({ readOnly: recoveredRef.current !== null })
     ed.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => void save(false))
     ed.focus()
     const sub = ed.onDidChangeModelContent(() => {
@@ -114,6 +122,8 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
       setSaved(false)
       // Kept as the person types, a moment after they pause: a quit or a crash then loses nothing.
       if (keepTimer.current) clearTimeout(keepTimer.current)
+      // Never while a kept buffer is still being offered: that one is the person's until they choose.
+      if (recoveredRef.current) return
       keepTimer.current = setTimeout(() => keepNow(isDirty ? ed.getValue() : null, file.hash), 800)
     })
     return () => {
@@ -344,6 +354,8 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
                   setConflict(null)
                   setFile({ ...file, content: conflict.current, hash: conflict.currentHash })
                   setDirty(false)
+                  // The person chose the disk: a kept buffer of the other side is no longer theirs to recover.
+                  keepNow(null, conflict.currentHash)
                 }}
               >
                 {t('editor.takeDisk')}

@@ -6,7 +6,7 @@
 // interval because the job still counted as running — 5 h 27 min of silence. A manual publish and the
 // scheduled one also raced each other on the same remotes, and the log grew 20 MB in 2.4 days.
 import { execFileSync, spawn } from 'node:child_process'
-import { chmodSync, copyFileSync, existsSync, linkSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, truncateSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, linkSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, truncateSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
 const live = new Set()
@@ -110,10 +110,28 @@ function holderAlive(held) {
   if (!held || !Number.isInteger(held.pid) || held.pid <= 0) return false
   try { process.kill(held.pid, 0) } catch (e) { if (e.code !== 'EPERM') return false }
   // A pid alone is not an identity: a recycled pid kept a dead lock looking held (review finding 6).
-  return !held.started || startOf(held.pid) === held.started
+  if (!held.started) return true
+  const now = startOf(held.pid)
+  // `ps` failing to answer says nothing about the holder: a live pid is kept alive (third review).
+  return now === null || now === held.started
 }
+/** The holder record; `{ missing: true }` when the file is gone, `null` when it is there but unreadable. */
 function readHolder(file) {
-  try { return JSON.parse(readFileSync(file, 'utf8')) } catch { return null }
+  try { return JSON.parse(readFileSync(file, 'utf8')) } catch (e) { return e?.code === 'ENOENT' ? { missing: true } : null }
+}
+/** Remove our own stray temp files and dead claims older than `ageMs` (killed processes leave them behind). */
+function sweepLockDebris(file, ageMs = 10 * 60_000) {
+  const dir = path.dirname(file), base = path.basename(file)
+  let names = []
+  try { names = readdirSync(dir) } catch { return }
+  for (const n of names) {
+    if (!n.startsWith(base + '.') || n === base) continue
+    const full = path.join(dir, n)
+    let age = 0
+    try { age = Date.now() - statSync(full).mtimeMs } catch { continue }
+    if (age < ageMs) continue
+    if (n.endsWith('.tmp') || (n.includes('.takeover.') && !holderAlive(readHolder(full)))) rmSync(full, { force: true })
+  }
 }
 /** Create `file` with its content in one step: link a fully written temp file, which fails if it exists. */
 function createWithContent(file, record) {
@@ -146,8 +164,17 @@ export function acquireLock(file, { token, now = () => new Date().toISOString(),
     const held = readHolder(file)
     if (held && held.token === token) rmSync(file, { force: true })
   }
-  if (createWithContent(file, record)) return { release }
-  const held = readHolder(file)
+  sweepLockDebris(file)
+  let held
+  for (let attempt = 0; ; attempt++) {
+    if (createWithContent(file, record)) return { release }
+    held = readHolder(file)
+    // Gone between our create and our read — its holder released it. That is not a dead holder to take
+    // over: create again. Taking the vanished file for a dead holder let a run overwrite a fresh holder
+    // that created the lock in that instant (third lifecycle review).
+    if (held?.missing) { if (attempt < 5) continue; return null }
+    break
+  }
   if (held && token && held.token === token) return { release: () => {} }
   if (held && holderAlive(held)) return null
   const staleToken = String(held?.token ?? 'unreadable').replace(/[^\w.-]/g, '_').slice(0, 80)
@@ -158,7 +185,7 @@ export function acquireLock(file, { token, now = () => new Date().toISOString(),
       continue
     }
     const again = readHolder(file)
-    const sameStale = (again?.token ?? 'unreadable') === (held?.token ?? 'unreadable') && !holderAlive(again)
+    const sameStale = !again?.missing && (again?.token ?? 'unreadable') === (held?.token ?? 'unreadable') && !holderAlive(again)
     if (!sameStale) { rmSync(claim, { force: true }); return null }
     const tmp = `${file}.${process.pid}.${Date.now()}.win.tmp`
     writeFileSync(tmp, JSON.stringify(record), { mode: 0o600 })

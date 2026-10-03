@@ -5,7 +5,7 @@ import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, net, powe
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
@@ -32,7 +32,7 @@ import { createPowerKeeper, type PowerKeeper } from './power'
 import { createRepoStateReader } from './repoState'
 import { createCodeStatsReader } from './codeStats'
 import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota'
-import { createQuitCoordinator } from './quit.ts'
+import { createQuitCoordinator, spawnQuitReaper } from './quit.ts'
 import { createEditorRecovery } from './editorRecovery.ts'
 import { readGateway } from './gateway'
 import { classifyStartupFailure, startupDialog } from '../shared/startupFailure'
@@ -297,7 +297,9 @@ const quit = createQuitCoordinator({
   // durable; closing the host does not manufacture a successful Stop receipt.
   shutdown: () => stopRuntime.shutdown().then(() => surface?.stop()),
   onDeadline: () => ops.failed('app.quit-deadline', new Error('quit_deadline'), { note: 'the drain or teardown stalled; the process was ended at the deadline' }),
-  onSchedulerError: (e) => ops.failed('app.quit-scheduler-stop', e, { note: 'a scheduler failed to stop; the others were stopped and the quit continues' })
+  onSchedulerError: (e) => ops.failed('app.quit-scheduler-stop', e, { note: 'a scheduler failed to stop; the others were stopped and the quit continues' }),
+  // Outside the process: ends it 15 s after quitting began even when Electron's teardown stalls.
+  armReaper: (ms) => { void spawnQuitReaper(ms).catch((e) => ops.failed('app.quit-reaper', e, { note: 'the outside quit guard did not start; the in-process deadline stands' })) }
 })
 /** sessionId → taskId, so a session's exit can close the task that opened it. */
 const taskBySession = new Map<string, string>()
@@ -333,6 +335,20 @@ const WINDOW_CHROME = {
   trafficLightPosition: { x: 14, y: 14 },
   backgroundColor: '#0a0a0a'
 }
+
+// #region background-launch — docs: AGENTS.md#lifecycle
+/**
+ * `--background` (lifecycle LC-07/LC-09, agreed with the machine's lifecycle broker on 2026-10-03): start and
+ * do the normal startup work, but create no window and take no focus — no splash, no main window — until the
+ * person activates the app (Dock click, Cmd+Tab, an explicit open), which `activate` turns into the window.
+ * A non-activating launch (`activates=false`) without the flag still raised the splash and the main window
+ * and took focus. Only a fresh launch carries arguments; an open of a running Fabric leaves it as it is.
+ */
+const BACKGROUND_LAUNCH = process.argv.includes('--background')
+/** Set once startup has registered everything a window needs; an activation before that waits for it. */
+let windowReady = false
+let activatedDuringStartup = false
+// #endregion background-launch
 
 // The IDE opens with one click: if the local stack is down, start it ourselves
 // instead of sending the operator to a terminal.
@@ -372,7 +388,7 @@ async function resolveEnvStartingStackIfNeeded(): ReturnType<typeof resolveSupab
     // its own clock: against a six-second block the splash's script ran 59ms
     // AFTER the block ended, so its text was not late, it was never displayed.
     // A four-minute start showed a person a bare rectangle.
-    const splash = process.env.SMOKE ? null : splashWindow(splashProgress({ elapsedMs: 0, lastLine: null }))
+    const splash = process.env.SMOKE || BACKGROUND_LAUNCH ? null : splashWindow(splashProgress({ elapsedMs: 0, lastLine: null }))
     const startedAt = Date.now()
     let lastLine: string | null = null
     // The window is only worth updating once it can render — before
@@ -3868,12 +3884,18 @@ function openSessionWindow(sessionId: string): void {
 }
 
 
-function openFileWindow(filePath: string): void {
+function openFileWindow(requested: string): void {
+  // One window per FILE, not per spelling: two spellings of one path opened two editors over one kept
+  // buffer, and the last writer won (third lifecycle review). The real path is the key.
+  let filePath = requested
+  try { filePath = realpathSync.native(requested) } catch { /* not there (yet): the window says so itself */ }
   const existing = fileWindows.get(filePath)
-  if (existing && !existing.isDestroyed()) {
+  // A window whose renderer crashed is replaced, not focused: focusing a dead editor showed nothing.
+  if (existing && !existing.isDestroyed() && !existing.webContents.isCrashed()) {
     existing.focus()
     return
   }
+  if (existing && !existing.isDestroyed()) existing.destroy()
   const w = new BrowserWindow({
     ...WINDOW_CHROME,
     width: 1000,
@@ -3888,7 +3910,8 @@ function openFileWindow(filePath: string): void {
   const contentsId = w.webContents.id
   w.on('closed', () => {
     revokeWindowRoots(contentsId)
-    fileWindows.delete(filePath)
+    // Only this window's entry: a crashed window being replaced must not remove its replacement.
+    if (fileWindows.get(filePath) === w) fileWindows.delete(filePath)
   })
 }
 
@@ -4011,7 +4034,10 @@ async function startOrExplain(): Promise<void> {
       return
     }
 
-    createWindow()
+    // A background launch opens no window until the person activates the app (`activate` below); an
+    // activation that arrived while startup was still running opens it now.
+    windowReady = true
+    if (!BACKGROUND_LAUNCH || activatedDuringStartup) createWindow()
   } catch (e) {
     // `explainAndQuit` is the loudest path in the product: it classifies the
     // failure, shows the operator a dialog naming it, writes startup-failure.log
@@ -4126,5 +4152,8 @@ app.on('web-contents-created', (_e, contents) => {
 // the last window closing finishes it on macOS too (CO-191).
 app.on('window-all-closed', () => quit.windowAllClosed(process.platform))
 app.on('activate', () => {
-  if (mainWindow === null && !process.env.SMOKE) createWindow()
+  if (process.env.SMOKE) return
+  // Before startup has finished there is nothing a window could show yet: remember the activation.
+  if (!windowReady) { activatedDuringStartup = true; return }
+  if (mainWindow === null) createWindow()
 })

@@ -141,7 +141,9 @@ Fabric follows the organization's [lifecycle contract](https://github.com/passio
 | Local Supabase stack (Docker) | the app's first start (`supabase start -x …`) | — | **keeps running** between launches, by design: the operator's data lives in it and a cold start takes minutes. Only the services Fabric calls run (`src/main/stackServices.ts`) | `supabase stop`, by the operator |
 | `ai.passioncode.fabric-workspace-sync` (launchd) | `scripts/install-workspace-sync.sh` | every 2 h, 110 min watchdog (`superviseJob`), machine-wide publication lock | — | `scripts/install-workspace-sync.sh --uninstall [--purge]` |
 
-Fabric listens on one loopback port, the agent surface (`src/main/agentSurface.ts`, `127.0.0.1`, an ephemeral
+Fabric honours `--background` (CO-192): a fresh launch with it opens no splash and no window and takes no
+focus until the person activates the app — the machine's lifecycle broker passes it to targets enrolled with
+`backgroundLaunch: true`. Fabric listens on one loopback port, the agent surface (`src/main/agentSurface.ts`, `127.0.0.1`, an ephemeral
 port, a one-shot bearer per session it starts), and creates no Keychain item. It reads Claude Code's
 credential item for the quota once per token lifetime (held in memory until five minutes before it
 expires, or until the provider rejects it), with a 5 s deadline; a refused read waits for a screen unlock. Status of the last sync:
