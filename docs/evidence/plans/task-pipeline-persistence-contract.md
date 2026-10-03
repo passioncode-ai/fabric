@@ -25,7 +25,7 @@ identifiers and never renumbers, edits or reuses an applied artifact.
 |---|---|---|
 | migration | `20261003000076_pipeline_definitions.sql` | pipeline-as-data: definitions + versions, append-only |
 | migration | `20261003000077_graph_version_pins.sql` | the running graph pinned to a pipeline version |
-| ADR | `docs/adr/0104-task-pipeline-persistence-contract.md` | the contract itself, superseding nothing. Re-reserved from 0055 on 2026-09-10, from 0056 on 2026-09-12, from 0082 on 2026-09-29 (ADR-0084, releases, was written past it), from 0085 on 2026-09-29 (ADR-0086, positioning, was written past it), from 0087 on 2026-09-29 (ADR-0088, remote surfaces, was written past it), from 0089 on 2026-09-29 (ADR-0090, names, was written past it), from 0091 on 2026-09-30 (ADR-0092–0094, licence, knowledge base and MCP-first, were written past it), and from 0095 on 2026-09-30 (ADR-0096, publication redaction, was written past it): each time an ADR handed out by agent-sync passed this prose reservation (0055 was written; then ADR-0057 continued the sequence past 0056), because a reservation living in prose never reaches the register. The document's own collision rule owns both moves. Re-reserved again from 0099 on 2026-10-03 (ADR-0100 and ADR-0101, the start paths and the general plan, were written past it), and from 0102 later the same day (ADR-0103, the write-boundary rule, was written past it). |
+| ADR | `docs/adr/0107-task-pipeline-persistence-contract.md` | the contract itself, superseding nothing. Re-reserved from 0055 on 2026-09-10, from 0056 on 2026-09-12, from 0082 on 2026-09-29 (ADR-0084, releases, was written past it), from 0085 on 2026-09-29 (ADR-0086, positioning, was written past it), from 0087 on 2026-09-29 (ADR-0088, remote surfaces, was written past it), from 0089 on 2026-09-29 (ADR-0090, names, was written past it), from 0091 on 2026-09-30 (ADR-0092–0094, licence, knowledge base and MCP-first, were written past it), and from 0095 on 2026-09-30 (ADR-0096, publication redaction, was written past it): each time an ADR handed out by agent-sync passed this prose reservation (0055 was written; then ADR-0057 continued the sequence past 0056), because a reservation living in prose never reaches the register. The document's own collision rule owns both moves. Re-reserved again from 0099 on 2026-10-03 (ADR-0100 and ADR-0101, the start paths and the general plan, were written past it), from 0102 later the same day (ADR-0103, the write-boundary rule, was written past it), and from 0104 later still (ADR-0105, agent memory, and ADR-0106, the lifecycle contract, were written past it; 0107 was returned by key `pipeline-reservation-after-agent-memory-20261003`). |
 
 **The collision this document predicted happened, and the rule was applied.**
 The first reservation, written on `sherlock/impl-20260907`, took migrations
@@ -275,3 +275,16 @@ by public, anon, authenticated or the service role, and `decide_proposal`, `rele
 the unexecuted pipeline migration reservations move from 75/76 to **76/77** under the same ordering rule.
 The reserved ADR stays 0104. No pipeline file exists at either number (`ls supabase/migrations | grep -i
 pipeline` is empty). Checked by `python3 test/audit_regressions/fix-pf-06.03.py`.
+
+**2026-10-03 agent memory and the lifecycle contract (merge):** two branches moved this reservation
+independently on one day. On `main`, agent-sync returned ADR-0105 (key `adr-0105-agent-memory`) to
+[the agent-memory decision](../../adr/0105-agent-memory-lives-in-project-observatory.md), and the
+reservation moved to **0107** (key `pipeline-reservation-after-agent-memory-20261003`); on the
+onboarding branch, ADR-0106 (key `adr-0106-lifecycle`) went to
+[the lifecycle contract](../../adr/0106-fabric-adopts-the-product-lifecycle-contract.md) while the
+reservation still read 0104. Both passed 0104, so 0104 is superseded and never reused; the reserved ADR
+is **0107**, which continues past both. ADR-0108 (key `pipeline-reservation-after-lifecycle-20261003`)
+was returned to the lifecycle run before the merge showed 0107 already covering it; it is superseded
+and never reused. The migration reservations stay at 76/77, after the executed migrations 70–75 of this
+branch (main's text still read 70/71 because it predates them). No pipeline file exists at 0107 or at
+either migration number. Checked by `python3 test/audit_regressions/fix-pf-06.03.py`.
