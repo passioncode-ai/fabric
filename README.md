@@ -255,10 +255,13 @@ The full tier runs every package's test suites through
 [`scripts/run-test-chains.mjs`](scripts/run-test-chains.mjs): each `a && b && …` link of each
 package's `test` script runs on its own, and the tier fails at the end listing every suite that
 failed — one failure no longer hides the suites behind it (`node scripts/run-test-chains.mjs --list`
-prints them). It runs under [`scripts/with-timeout.mjs`](scripts/with-timeout.mjs)
-(`FABRIC_FULL_TIMEOUT_S`, default 2700): past the limit the whole process group is stopped and the
-tier fails with exit 124 and the command named, so a hung probe cannot keep the tier running forever.
-A command ended by a signal exits 128 plus that signal's number.
+prints them). Each suite runs in its own process group with its own limit (`FABRIC_SUITE_TIMEOUT_S`,
+default 900): past it the suite's group is stopped, the suite is listed as failed with exit 124, and
+the suites after it still run. The whole runner runs under [`scripts/with-timeout.mjs`](scripts/with-timeout.mjs)
+(`FABRIC_FULL_TIMEOUT_S`, default 2700) as a backstop: past that limit the runner stops the suite it
+is running, prints the list so far with the number of suites it never reached, and the tier fails
+with exit 124 and the command named, so a hung probe cannot keep the tier running forever. A command
+ended by a signal exits 128 plus that signal's number.
 
 Thirteen owned-cluster runners (`apps/desktop/test/run-*-db.mjs` and `run-ceo-host-sql.mjs`) each own a
 temporary PostgreSQL cluster. They need PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default
