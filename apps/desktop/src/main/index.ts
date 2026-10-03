@@ -25,7 +25,7 @@ import { AgentSurface } from './agentSurface'
 import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
 import { createBundleCompiler } from './sessionBundle'
 import { createTranscriptStore } from './transcripts'
-import { compileContextPack, contextDemandFor } from './contextPack'
+import { compileContextPack, contextDemandFor, type LaunchTrigger } from './contextPack'
 import { refreshFileRootsFrom } from './fileRootsRefresh.ts'
 import { readSettings, writeSettings } from './settings'
 import { createPowerKeeper, type PowerKeeper } from './power'
@@ -511,7 +511,9 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
         store,
         projectId,
         // An unattended start (chain, routine) requires its context sources; a missing one refuses it.
-        mandatory: await contextDemandFor(store, sessionId),
+        // The trigger is the one the launch admitted this session with (`launchTriggerBySession`, set
+        // by the managed launch around `ptys.open`); a terminal opened without a launch has none.
+        mandatory: contextDemandFor(launchTriggerBySession.get(sessionId)),
         taskInstruction: (task?.data?.instruction as string | undefined) ?? null,
         // The brief travels too. Found by auditing the layer against itself:
         // step 5 gave a task a brief and nothing carried it to the agent, so a
@@ -742,6 +744,9 @@ const scopeOf = (event: Electron.IpcMainInvokeEvent): string => `win:${event.sen
  *  does not outlive it. */
 /** A start-path parent chosen in a window, and that window's running scan (ADR-0100) — both end with it. */
 const parentChoices = new ParentChoices()
+/** How each session being opened by a managed launch was admitted, for the length of `ptys.open` — the
+ *  context pack's demand is decided by it (`contextPack.ts#contextDemandFor`). */
+const launchTriggerBySession = new Map<string, LaunchTrigger>()
 const startScans = new Map<string, AbortController>()
 
 export function revokeWindowRoots(webContentsId: number): void {
@@ -2425,11 +2430,20 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           servers: (data.mcp_servers as string[] | null) ?? [] }
       }
       return async (sessionId, validateLaunch) => {
-        const session = await ptys.open(receipt.project_id!, project.repo_path!, optionId,
-          input.taskId, input.permissionMode ?? null, agent, sessionId,
-          async () => (await identity.guard()).ok && await validateLaunch())
-        syncPower()
-        return session
+        // #region context-demand — docs: docs/evidence/backlog.md#work-s14
+        // The context pack is compiled inside `ptys.open`; it asks this map how the session was admitted
+        // instead of reading the journal back (release review iteration 2, memory finding 7).
+        launchTriggerBySession.set(sessionId, input.trigger)
+        try {
+          const session = await ptys.open(receipt.project_id!, project.repo_path!, optionId,
+            input.taskId, input.permissionMode ?? null, agent, sessionId,
+            async () => (await identity.guard()).ok && await validateLaunch())
+          syncPower()
+          return session
+        } finally {
+          launchTriggerBySession.delete(sessionId)
+        }
+        // #endregion context-demand
       }
     },
     track: (sessionId, taskId) => { taskBySession.set(sessionId, taskId) },

@@ -131,26 +131,25 @@ export class MandatoryContextUnmet extends Error {
   }
 }
 
+// #region context-demand — docs: docs/evidence/backlog.md#work-s14
+/** How a session's launch was admitted (`admit_task_launch`'s trigger), or nothing for a terminal a
+ *  person opened without a launch. */
+export type LaunchTrigger = 'operator' | 'chain' | 'routine' | 'answer'
+
 /**
- * Which sources a session's pack must carry, decided by how the session was
- * ADMITTED rather than by what the caller says about itself.
+ * Which sources a session's pack must carry, decided by the trigger the LAUNCH passes.
  *
- * `admit_task_launch` journals the trigger on `task.admitted@1` beside the
- * session id it admitted (migration 61). A chain or routine trigger is
- * unattended. No admission is a person's terminal. A read that FAILED cannot
- * prove a person is present, so it demands the unattended set — the closed
- * direction, and the one that costs a start rather than a blind run.
+ * It was read back from `task.admitted@1` beside the session id, and a read that failed demanded the
+ * unattended set — so a person's own session could be refused because a query failed (release review
+ * 2026-10-03, iteration 2, memory finding 7). The launch is what admitted the session and knows how;
+ * `index.ts` hands that trigger to the context callback, and nothing is guessed. A chain or routine
+ * trigger is unattended; an operator start, an answered question resuming work, and a terminal with no
+ * launch at all are a person's.
  */
-export async function contextDemandFor(store: ScopedStore, sessionId: string): Promise<readonly string[]> {
-  const { data, error } = await store
-    .select('journal', 'payload')
-    .eq('type', 'task.admitted@1')
-    .eq('payload->>session_id', sessionId)
-    .limit(1)
-  if (error) return UNATTENDED_CONTEXT_SOURCES
-  const trigger = (data?.[0]?.payload as { trigger?: unknown } | undefined)?.trigger
+export function contextDemandFor(trigger: LaunchTrigger | null | undefined): readonly string[] {
   return trigger === 'chain' || trigger === 'routine' ? UNATTENDED_CONTEXT_SOURCES : []
 }
+// #endregion context-demand
 
 const DEFAULT_BUDGET = 12_000
 const DEFAULT_SESSIONS = 12
@@ -204,7 +203,9 @@ export async function compileContextPack(input: ContextPackInput): Promise<Conte
       store.select('projects', 'name,purpose').eq('id', projectId).maybeSingle(),
       store.select('project_repos', 'path,is_primary').eq('project_id', projectId),
       store
-        .select('memory_facts', 'id,claim,source_ref,kind,actor_kind,actor_id,recorded_at,seq')
+        // An EXACT count beside the rows: the gateway returns at most one page, and the facts it did not
+        // return are omitted as surely as the ones the budget stopped (iteration 2, memory finding 7).
+        .select('memory_facts', 'id,claim,source_ref,kind,actor_kind,actor_id,recorded_at,seq', { count: 'exact' })
         // Only what is currently true (M48). A corrected fact is kept and
         // readable, and handing it to an agent as current would be the one thing
         // bi-temporality exists to prevent.
@@ -226,8 +227,13 @@ export async function compileContextPack(input: ContextPackInput): Promise<Conte
     r.error
       ? { name, status: 'error', asOf: null, errorCode: 'source_read_failed' }
       : { name, status: 'ok', asOf: now }
+  // The project source is MET by a row, not by an answer: an empty answer means the project is not
+  // there, and an unattended start must not run on a pack with no project in it (memory finding 7).
+  const projectReceipt: SourceReceipt = !projectRead.error && !projectRead.data
+    ? { name: 'project', status: 'error', asOf: now, errorCode: 'source_missing' }
+    : receipt('project', projectRead)
   const receipts = [
-    receipt('project', projectRead),
+    projectReceipt,
     receipt('repos', reposRead),
     receipt('facts', factsRead),
     receipt('transcripts', sessionsRead)
@@ -292,7 +298,9 @@ export async function compileContextPack(input: ContextPackInput): Promise<Conte
 
   const factIds: string[] = []
   const factSeqs: number[] = []
-  let omittedFacts = 0
+  // Facts that exist and never reached this compile: the read returns one page, the count says how many.
+  const beyondRead = typeof factsRead.count === 'number' ? Math.max(0, factsRead.count - (facts ?? []).length) : 0
+  let omittedFacts = beyondRead
 
   // Split by WHO wrote it, and it is not presentation. A fact the operator wrote
   // is a statement by the person who owns the project. A fact an AGENT wrote is
@@ -406,8 +414,11 @@ export async function compileContextPack(input: ContextPackInput): Promise<Conte
     data: null,
     sources: receipts,
     omitted: [
-      ...(omittedFacts > 0
-        ? [{ count: omittedFacts, reason: 'the budget stopped copying facts' }]
+      ...(omittedFacts - beyondRead > 0
+        ? [{ count: omittedFacts - beyondRead, reason: 'the budget stopped copying facts' }]
+        : []),
+      ...(beyondRead > 0
+        ? [{ count: beyondRead, reason: 'more current facts exist than one read returns' }]
         : []),
       ...(omittedTranscripts > 0
         ? [{ count: omittedTranscripts, reason: 'the budget stopped copying transcripts' }]
