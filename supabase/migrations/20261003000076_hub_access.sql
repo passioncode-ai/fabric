@@ -24,6 +24,9 @@
 -- never `now()` — and a replay of the same event (its seq already recorded) is a no-op, so
 -- `rebuild_estate_projections` replays the chain unchanged.
 --
+-- Each forwarded call is journalled as `hub.call.forwarded@1`, one span per hop, projected nowhere: the journal
+-- is the trace's record until AR-6 assembles spans.
+--
 -- The one-shot floor `grants` table (ADR-0028) is untouched: a standing grant here and a one-shot grant there
 -- are different things, and sharing a table would let one be read as the other.
 
@@ -37,7 +40,9 @@ insert into event_types (type, projects, note) values
   ('access.binding.revoked@1', true, 'the operator revoked an agent''s binding credential and every grant it held'),
   ('access.denial.cleared@1', true, 'the operator cleared a denial, so the same request may prompt again'),
   ('product.connected@1', true, 'a cloud product was connected by its own consent; its secret was stored in the vault and only its metadata is here'),
-  ('product.disconnected@1', true, 'the operator disconnected a cloud product; Fabric stops forwarding to it');
+  ('product.disconnected@1', true, 'the operator disconnected a cloud product; Fabric stops forwarding to it'),
+  -- One span per hop (ADR-0115 §5, fabric-interop/0.1 C3.4): the journal is its record, and nothing projects it.
+  ('hub.call.forwarded@1', false, 'one hop of agent.call through the hub: caller binding, callee and capability, a hash of the arguments, the grants that allowed it, the outcome, as a child span of the caller''s traceparent');
 
 create table access_requests (
   id                  uuid primary key,
@@ -342,7 +347,7 @@ revoke all on access_requests, access_bindings, access_grants, product_connectio
 -- ── schema 76 as a private-archive source ───────────────────────────────────
 --
 -- ADR-0079 decision 5, as migrations 67–75 did for their own numbers. Migration 76 changes no archived
--- table, but it registers eight event types, so an ordinary journal from schema 76 may carry them and only a
+-- table, but it registers nine event types, so an ordinary journal from schema 76 may carry them and only a
 -- schema that registers them can restore it; left unqualified, an export taken at 76 would say
 -- `source_schema_version: 75`. An export now names 76; import accepts 66 to 76. The bodies are migration
 -- 75's, changed only at those two points.

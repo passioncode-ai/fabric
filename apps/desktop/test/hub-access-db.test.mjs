@@ -35,8 +35,8 @@ const request = (id, extra = {}) => ({
   binding_id: null, expires_at: later(10), ...extra
 })
 
-test('the eight event types are registered and the four tables exist with RLS on', () => {
-  assert.equal(sql(`select count(*) from event_types where type in ('access.requested@1','access.decided@1','access.credential.claimed@1','access.grant.revoked@1','access.binding.revoked@1','access.denial.cleared@1','product.connected@1','product.disconnected@1')`), '8')
+test('the nine event types are registered and the four tables exist with RLS on', () => {
+  assert.equal(sql(`select count(*) from event_types where type in ('access.requested@1','access.decided@1','access.credential.claimed@1','access.grant.revoked@1','access.binding.revoked@1','access.denial.cleared@1','product.connected@1','product.disconnected@1','hub.call.forwarded@1')`), '9')
   assert.equal(sql(`select string_agg(relname || '=' || relrowsecurity, ',' order by relname) from pg_class where relname in ('access_requests','access_bindings','access_grants','product_connections')`),
     'access_bindings=true,access_grants=true,access_requests=true,product_connections=true')
   assert.equal(sql(`select schema_version()`), '76')

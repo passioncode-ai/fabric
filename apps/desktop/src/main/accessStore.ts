@@ -65,7 +65,7 @@ export interface ConnectionRow {
   level: string
   send: string
   key_expires_at: string | null
-  secret_ref: { project: string; env: string; name: string }
+  secret_ref: { project: string; env: 'local' | 'stage' | 'prod'; name: string }
   connected_at: string
   removed_at: string | null
 }

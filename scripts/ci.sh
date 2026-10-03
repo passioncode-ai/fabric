@@ -285,6 +285,7 @@ node --experimental-strip-types apps/desktop/test/file-roots-refresh.test.mjs
 # product connection — fakes under the real surface, a real MCP client and server on loopback.
 node --experimental-strip-types apps/desktop/test/agent-registry.test.mjs
 node --experimental-strip-types apps/desktop/test/hub-files.test.mjs
+node --experimental-strip-types --test-force-exit apps/desktop/test/hub-products.test.mjs
 
 step "owned databases: the SQL contract and the reads, on a cluster this run creates and removes"
 # A disposable PostgreSQL (`initdb` into a temp dir, Unix socket only) with the
