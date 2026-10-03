@@ -37,6 +37,7 @@ writeFileSync(path.join(root, 'notes', 'todo.md'), '- x\n')
 repo(path.join(root, 'node_modules', 'pkg'), 'package.json', 'never scanned') // noise
 repo(path.join(root, '.hidden'), 'package.json', 'never scanned')             // hidden
 symlinkSync(path.join(outside, 'secret'), path.join(root, 'escape'))          // leaves the root
+symlinkSync(path.join(root, 'notes', 'todo.md'), path.join(root, 'todo-link'))  // a link to a FILE: not a skipped folder
 
 // ── inspect one folder
 const alpha = await inspectFolder(path.join(root, 'alpha'))
@@ -71,6 +72,7 @@ assert.equal(byName['_worktrees/alpha-fix'].group, path.join(root, 'alpha'), 'a 
 assert.equal(byName['beta/vendor-lib'].group, path.join(root, 'beta'), 'a nested repository is grouped under its parent')
 assert.equal(byName['beta'].group, path.join(root, 'beta'))
 assert.equal(scan.truncated, false)
+assert.equal(scan.symlinks, 1, 'the symlinked folder the walk did not follow is counted; a link to a file is not a folder')
 assert.ok(!scan.candidates.some((c) => c.path.startsWith(outside)), 'nothing outside the scanned root is reported')
 
 // Bounds: a limit on visited folders stops the walk and SAYS so instead of returning a partial list as complete.
@@ -102,6 +104,30 @@ await assert.rejects(() => scanFolder(path.join(root, 'missing')), /does not exi
   assert.equal(f.lastCommit?.subject, 'signed')
   assert.equal(existsSync(mark), false, 'a repository config must never make the scan execute a program')
 }
+// Iteration 2, errors finding 1: a PARTIAL CLONE whose promisor remote names a program as its upload-pack,
+// HEAD at a commit missing from the object store. `git log -1` lazy-fetched the commit and ran the program
+// five times — while scanning and while adding. Inspecting it, and scanning a folder holding it, run nothing.
+{
+  const d = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-partial-')))
+  const mark = d + '.EXECUTED'
+  const evil = d + '.uploadpack.sh'
+  writeFileSync(evil, `#!/bin/sh\ntouch ${mark}\nexit 1\n`); chmodSync(evil, 0o755)
+  const r = path.join(d, 'clone')
+  mkdirSync(r)
+  git(r, 'init', '-q', '-b', 'main')
+  git(r, 'config', 'core.repositoryformatversion', '1')
+  git(r, 'config', 'extensions.partialClone', 'origin')
+  git(r, 'config', 'remote.origin.url', path.join(d, 'no-such-remote'))
+  git(r, 'config', 'remote.origin.promisor', 'true')
+  git(r, 'config', 'remote.origin.uploadpack', evil)
+  writeFileSync(path.join(r, '.git', 'refs', 'heads', 'main'), '1234567890123456789012345678901234567890\n')
+  const f = await inspectFolder(r)
+  assert.equal(f.kind, 'repository')
+  assert.equal(f.lastCommit, null, 'a commit that is not on disk is not fetched to answer')
+  const s = await scanFolder(d)
+  assert.deepEqual(s.candidates.map((c) => c.name), ['clone'])
+  assert.equal(existsSync(mark), false, "a partial clone's remote.origin.uploadpack must never run on a scan or an inspect")
+}
 // A remote URL carrying a credential is never shown or kept with it.
 {
   const d = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-cred-')))
@@ -109,6 +135,25 @@ await assert.rejects(() => scanFolder(path.join(root, 'missing')), /does not exi
   git(d, 'remote', 'add', 'origin', 'https://x-access-token:ghp_FAKEFAKEFAKE@github.com/example/x.git')
   const f = await inspectFolder(d)
   assert.equal(f.remote, 'https://github.com/example/x.git', 'userinfo is stripped from an http(s) remote')
+}
+// Iteration 2, docs finding 10: EVERY URL with a scheme loses its userinfo, not only http(s); the scp form
+// `git@host:path` carries no secret and is kept as written.
+{
+  const { shownRemote } = await import(SRC)
+  const cases = [
+    ['ssh://user:ghp_TOKEN@github.com/example/x.git', 'ssh://github.com/example/x.git'],
+    ['ssh://git@github.com:22/example/x.git', 'ssh://github.com:22/example/x.git'],
+    ['git+https://u:secret@host.example/r.git', 'git+https://host.example/r.git'],
+    ['git+ssh://u:secret@host.example/r.git', 'git+ssh://host.example/r.git'],
+    ['HTTPS://u:p@ss@host.example/r.git', 'HTTPS://host.example/r.git'],
+    ['ftp://anon:pw@host.example/r', 'ftp://host.example/r'],
+    ['git://host.example/r.git', 'git://host.example/r.git'],
+    ['https://host.example/path@not-userinfo/r.git', 'https://host.example/path@not-userinfo/r.git'],
+    ['git@github.com:example/x.git', 'git@github.com:example/x.git'],
+    ['/local/path/repo.git', '/local/path/repo.git']
+  ]
+  for (const [raw, shown] of cases) assert.equal(shownRemote(raw), shown, raw)
+  assert.equal(shownRemote(null), null)
 }
 // A repository living in a folder whose NAME is usually noise (build, vendor, …) is still found;
 // a folder the scan cannot read is COUNTED, so a partial list never reads as the whole folder.
@@ -135,4 +180,83 @@ await assert.rejects(() => scanFolder(path.join(root, 'missing')), /does not exi
   assert.equal(s.truncated, true)
 }
 
-console.log('PASS project discovery: inspect (repository, folder, worktree, missing, no exec from repo config, no credential), scan (grouping, noise, symlink boundary, bound, cancel, noise-named repo, unreadable counted, breadth first)')
+// ── iteration 2, errors finding 4 / 11: a hung filesystem cannot hang the scan, and a `.git` symlink is a repository
+// No synchronous filesystem call anywhere in the module: one stuck `existsSync` froze Electron's main process.
+{
+  const { readFileSync: rf } = await import('node:fs')
+  const src = rf(path.resolve(import.meta.dirname, '../src/main/projectDiscovery.ts'), 'utf8')
+  assert.deepEqual(src.match(/\b\w+Sync\b/g) ?? [], [], 'projectDiscovery.ts makes no synchronous filesystem call')
+}
+// A repository whose `.git` is a SYMLINK to its git directory (kept elsewhere) is a repository, not a plain folder.
+{
+  const { renameSync } = await import('node:fs')
+  const r = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-gitlink-')))
+  repo(path.join(r, 'linked'), 'package.json', 'linked first')
+  mkdirSync(path.join(r, '_store'))
+  renameSync(path.join(r, 'linked', '.git'), path.join(r, '_store', 'linked.git'))
+  symlinkSync(path.join(r, '_store', 'linked.git'), path.join(r, 'linked', '.git'))
+  const f = await inspectFolder(path.join(r, 'linked'))
+  assert.equal(f.kind, 'repository', 'a .git symlink to a git directory is a repository')
+  assert.equal(f.git, true)
+  assert.equal(f.lastCommit?.subject, 'linked first')
+  const s = await scanFolder(r)
+  assert.deepEqual(s.candidates.map((c) => c.name), ['linked'])
+  // A dangling `.git` link is not a repository.
+  mkdirSync(path.join(r, 'dangling'))
+  symlinkSync(path.join(r, 'no-such-gitdir'), path.join(r, 'dangling', '.git'))
+  assert.equal((await inspectFolder(path.join(r, 'dangling'))).kind, 'folder', 'a dangling .git link is not a repository')
+}
+// Injected filesystem calls that never answer (a hung network mount), so the timeouts are observed.
+{
+  const fsp = await import('node:fs/promises')
+  const never = () => new Promise(() => {})
+  const fsWith = (hang) => ({
+    readdir: (p) => (hang.readdir?.(p) ? never() : fsp.readdir(p)),
+    lstat: (p) => (hang.lstat?.(p) ? never() : fsp.lstat(p)),
+    stat: (p) => (hang.stat?.(p) ? never() : fsp.stat(p)),
+    readFile: (p, enc) => (hang.readFile?.(p) ? never() : fsp.readFile(p, enc))
+  })
+  const timedRun = async (fn) => { const t0 = Date.now(); const v = await fn(); return [v, Date.now() - t0] }
+
+  // Stop returns at once while a folder read is stuck — not after the per-folder timeout.
+  {
+    const ctl = new AbortController()
+    setTimeout(() => ctl.abort(), 100)
+    const [s, ms] = await timedRun(() => scanFolder(root, { signal: ctl.signal, dirTimeoutMs: 60000, fs: fsWith({ readdir: (p) => p === path.join(root, 'alpha') }) }))
+    assert.equal(s.cancelled, true, 'Stop during a stuck read is a cancelled scan')
+    assert.equal(s.candidates.length, 0, 'a cancelled scan lists nothing')
+    assert.ok(ms < 1500, `Stop returned in ${ms} ms while a read was stuck`)
+  }
+  // The deadline holds while a folder read is stuck: a truncated answer, on time.
+  {
+    const [s, ms] = await timedRun(() => scanFolder(root, { timeLimitMs: 200, dirTimeoutMs: 60000, fs: fsWith({ readdir: (p) => p === path.join(root, 'alpha') }) }))
+    assert.equal(s.truncated, true, 'a scan stopped by its deadline says so')
+    assert.equal(s.cancelled, false)
+    assert.ok(ms < 1500, `the deadline returned in ${ms} ms while a read was stuck`)
+  }
+  // A stuck lstat of one entry is abandoned after the per-folder timeout and counted; the rest is found.
+  {
+    const [s, ms] = await timedRun(() => scanFolder(root, { dirTimeoutMs: 100, fs: fsWith({ lstat: (p) => p === path.join(root, 'beta') }) }))
+    assert.ok(s.unreadable >= 1, 'an entry that could not be examined in time is counted')
+    assert.ok(s.candidates.some((c) => c.name === 'alpha'), 'the rest of the folder is still scanned')
+    assert.ok(!s.candidates.some((c) => c.path === path.join(root, 'beta')), 'the entry that never answered is not invented')
+    assert.ok(ms < 5000, `a stuck lstat cost ${ms} ms`)
+  }
+  // A stuck `.git` probe inside a noise-named folder is abandoned and counted.
+  {
+    const r = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-probe-')))
+    repo(path.join(r, 'build'), 'package.json', 'a repo called build')
+    repo(path.join(r, 'ok'), 'package.json', 'ok')
+    const s = await scanFolder(r, { dirTimeoutMs: 100, fs: fsWith({ lstat: (p) => p === path.join(r, 'build', '.git') }) })
+    assert.deepEqual(s.candidates.map((c) => c.name), ['ok'])
+    assert.equal(s.unreadable, 1, 'a .git probe that never answered is counted, not taken as "no repository"')
+  }
+  // inspectFolder on a folder that never answers fails in time, and says why.
+  {
+    const [err, ms] = await timedRun(() => inspectFolder(root, { timeoutMs: 100, fs: fsWith({ stat: (p) => p === root }) }).then(() => null, (e) => e))
+    assert.match(String(err), /did not answer/)
+    assert.ok(ms < 1500)
+  }
+}
+
+console.log('PASS project discovery: inspect (repository, folder, worktree, missing, no exec from repo config incl. partial clone, no credential, .git symlink), scan (grouping, noise, symlink boundary + count, bound, cancel, noise-named repo, unreadable counted, breadth first, no sync fs, stuck read/lstat/probe vs Stop, deadline, timeout)')

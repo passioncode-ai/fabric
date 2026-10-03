@@ -3,12 +3,15 @@
  * What a window chose in the start paths' folder picker (ADR-0100), kept apart from `index.ts` so it
  * is tested without Electron.
  *
- * A folder chosen as the PARENT of a new project is not opened: the window may create one folder in it
- * and nothing more (iteration 1 found the parent's whole tree had become readable and writable). The
+ * A folder chosen as the PARENT of a new project is not opened: the window may create new project
+ * folders directly in it, and nothing else — not read it, not list it, not write into anything already
+ * there (iteration 1 found the parent's whole tree had become readable and writable). The choice is
+ * REUSABLE while the window lives: the operator may make a folder, remove it from the form, and make
+ * another without picking the parent again; each folder made is granted to the window on its own. The
  * choice belongs to the window that made it and is revoked with that window, like its granted roots
  * (S02.roots); iteration 2 found the revocation was claimed in a comment and never done.
  */
-import { realpathSync } from 'node:fs'
+import { realpathSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { OutsideRoots } from './files.ts'
 
@@ -48,6 +51,101 @@ export class ParentChoices {
     this.byScope.delete(scope)
   }
 }
+
+// #region scan-candidates — docs: docs/ux/scenarios.md#scn-128-scan-a-projects-folder-and-tick-what-becomes-a-project
+/**
+ * The repositories main itself listed for a window: the candidates of its most recent scan, and of the
+ * kept scan it was shown (ADR-0100 §3: "adding from it later goes through the checked create"). Each
+ * slot is REPLACED by the next listing of its kind, and both end with the window, like its roots and its
+ * parent choices. Paths are held by their real path.
+ */
+export type CandidateSlot = 'scan' | 'kept'
+export class ScanCandidates {
+  private readonly byScope = new Map<string, Record<CandidateSlot, Set<string>>>()
+
+  record(scope: string, slot: CandidateSlot, paths: readonly string[]): void {
+    const set = new Set<string>()
+    for (const p of paths) {
+      try {
+        set.add(realpathSync(path.resolve(p)))
+      } catch {
+        // A candidate that vanished since the scan cannot be added anyway; it is simply not admitted.
+      }
+    }
+    const slots = this.byScope.get(scope) ?? { scan: new Set<string>(), kept: new Set<string>() }
+    slots[slot] = set
+    this.byScope.set(scope, slots)
+  }
+
+  has(scope: string, real: string): boolean {
+    const slots = this.byScope.get(scope)
+    return !!slots && (slots.scan.has(real) || slots.kept.has(real))
+  }
+
+  revoke(scope: string): void {
+    this.byScope.delete(scope)
+  }
+}
+
+/** Why a repository path was refused: a code, so each window can say it in its own language. */
+export type RepoPathRefusal = 'not-a-path' | 'missing' | 'not-a-folder' | 'not-chosen'
+export class RepoPathRefused extends Error {
+  readonly code: RepoPathRefusal
+  readonly attempted: string
+  constructor(code: RepoPathRefusal, attempted: string) {
+    // The code leads the message: IPC carries only the message across, and a renderer can match it.
+    super(`repo-path-refused:${code}: ${attempted}`)
+    this.name = 'RepoPathRefused'
+    this.code = code
+    this.attempted = attempted
+  }
+}
+
+/**
+ * The repository paths a window may hand to `projects.create` or `repos.attach`, by their real paths, or a
+ * refusal of the WHOLE call (iteration 2, errors finding 2: any existing folder was accepted, and the
+ * attach then exposed it to every window — `repoPaths: ['/']` opened the disk).
+ *
+ * A path is admitted when the calling window can already reach it — `granted` is that window's
+ * `fileRoots.resolve`: its picker, a folder it made (`createProjectFolder` grants it), the estate's own
+ * repositories — or when main itself listed it as a candidate of that window's scan or kept scan.
+ * Checked before anything is journalled; the caller does nothing with a refused call.
+ */
+export function admitRepoPaths(
+  paths: unknown,
+  scope: string,
+  reach: { granted: (p: string, scope: string) => string; candidates: ScanCandidates }
+): string[] {
+  if (paths === undefined || paths === null) return []
+  if (!Array.isArray(paths)) throw new RepoPathRefused('not-a-path', String(paths))
+  return paths.map((p) => {
+    if (typeof p !== 'string' || !path.isAbsolute(p)) throw new RepoPathRefused('not-a-path', String(p))
+    let real: string
+    try {
+      real = realpathSync(p)
+    } catch {
+      throw new RepoPathRefused('missing', p)
+    }
+    let folder = false
+    try {
+      folder = statSync(real).isDirectory()
+    } catch {
+      // Vanished between the two calls: the same answer as never there.
+      throw new RepoPathRefused('missing', p)
+    }
+    if (!folder) throw new RepoPathRefused('not-a-folder', p)
+    if (reach.candidates.has(scope, real)) return real
+    try {
+      reach.granted(real, scope)
+      return real
+    } catch {
+      // Outside every root this window may reach, and not a candidate main listed for it.
+      throw new RepoPathRefused('not-chosen', p)
+    }
+  })
+}
+
+// #endregion scan-candidates
 
 /**
  * The walk harness (scripts/walk/start-paths.mjs) cannot click a native dialog. In an UNPACKAGED run
