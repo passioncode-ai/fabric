@@ -350,7 +350,7 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<ChainTickResu
         // EVER. Counted from the journal's own failed dispatches, and the stop is
         // said once: the pause names the cap, and a later pass that finds that
         // pause already written says nothing more.
-        const capped = await launchesExhausted(follower.id as string, follower.project_id as string)
+        const capped = await launchesExhausted(follower.id as string, follower.project_id as string, problems)
         if (capped === 'unreadable') {
           problems.push(`the launch history of ${follower.id as string} could not be read`)
           continue
@@ -525,8 +525,15 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<ChainTickResu
    * Whether this follower's unattended launches are used up — and, the first
    * time they are, the pause that says so. `'unreadable'` fails closed: a
    * history nobody could read does not authorise another attempt.
+   *
+   * A PAUSE THAT CANNOT BE WRITTEN IS SAID, AND THE PASS GOES ON (release review
+   * 2026-10-03, iteration 3, finding 5) — the iteration-2 dispatch-receipt shape.
+   * A throw from that append escaped to the pass's outer catch, so every follower
+   * after this one went unjudged. Now it lands in the pass's `problems`, the
+   * follower is still treated as capped (it does not start), and the next pass
+   * finds no pause written and tries to say it again.
    */
-  async function launchesExhausted(followerId: string, projectId: string): Promise<boolean | 'unreadable'> {
+  async function launchesExhausted(followerId: string, projectId: string, problems: string[]): Promise<boolean | 'unreadable'> {
     const failed = await deps.store
       .select('journal', 'seq', { count: 'exact', head: true })
       .eq('type', 'chain.dispatch@1')
@@ -547,21 +554,29 @@ export function createChainAdvance(deps: ChainDeps): () => Promise<ChainTickResu
       ops.failed('chain.launch-history-unreadable', new Error(said.error?.message ?? 'no count returned'), { followerId })
       return 'unreadable'
     }
-    if (said.count === 0)
-      await deps.journal.append({
-        estateId: deps.estateId,
-        type: 'routine.paused@1',
-        actor: { kind: 'system', id: 'chain' },
-        projectId,
-        payload: {
-          id: followerId,
-          reason:
-            `its launch failed ${failures} times, so the chain stopped starting it unattended. ` +
-            'Read the failed run receipts, fix the cause, then start it yourself.',
-          window: null,
-          reason_code: 'launch-retries-exhausted'
-        }
-      })
+    if (said.count === 0) {
+      try {
+        await deps.journal.append({
+          estateId: deps.estateId,
+          type: 'routine.paused@1',
+          actor: { kind: 'system', id: 'chain' },
+          projectId,
+          payload: {
+            id: followerId,
+            reason:
+              `its launch failed ${failures} times, so the chain stopped starting it unattended. ` +
+              'Read the failed run receipts, fix the cause, then start it yourself.',
+            window: null,
+            reason_code: 'launch-retries-exhausted'
+          }
+        })
+      } catch (appendError) {
+        ops.failed('chain.launch-pause-unrecorded', appendError, { followerId })
+        problems.push(
+          `${followerId} reached its launch limit and was not started, but the pause that says so could not be recorded: ${String(appendError)}`
+        )
+      }
+    }
     return true
   }
 }
