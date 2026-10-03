@@ -1,4 +1,4 @@
-// #region executor-detect — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+// #region executor-detect — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
 /**
  * Which coding agents this machine can run, for the first run's second step
  * (ADR-0100, SCN-126). A program is FOUND when it is on PATH and answers
@@ -17,7 +17,7 @@
  */
 
 import { spawn } from 'node:child_process'
-import { accessSync, constants, statSync } from 'node:fs'
+import { accessSync, constants, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 
 /** `connected`: whether Fabric's own tools reach a session of this agent (`AgentDescriptor.connectsToSurface`). */
@@ -47,28 +47,135 @@ function onPath(program: string, envPath: string): string | null {
   return null
 }
 
+const isDir = (p: string): boolean => {
+  try {
+    return statSync(p).isDirectory()
+  } catch {
+    // Absent or unreadable: not a folder to probe.
+    return false
+  }
+}
+
+/** nvm's installed Node versions' bin folders, the `alias/default` version first, then newest first. */
+function nvmBins(nvmDir: string): string[] {
+  const versions = path.join(nvmDir, 'versions', 'node')
+  let names: string[]
+  try {
+    names = readdirSync(versions).filter((n) => /^v\d+/.test(n))
+  } catch {
+    // No nvm installation here.
+    return []
+  }
+  const parts = (n: string): number[] => n.slice(1).split('.').map((x) => Number.parseInt(x, 10) || 0)
+  names.sort((a, b) => {
+    const [pa, pb] = [parts(a), parts(b)]
+    for (let i = 0; i < 3; i++) if (pa[i] !== pb[i]) return (pb[i] ?? 0) - (pa[i] ?? 0)
+    return 0
+  })
+  let alias = ''
+  try {
+    alias = readFileSync(path.join(nvmDir, 'alias', 'default'), 'utf8').trim().replace(/^v/, '')
+  } catch {
+    // No default alias: newest first is the order.
+  }
+  // `20` matches v20.x.y, `20.1` matches v20.1.y; `node`/`lts/*` name no folder and leave newest first.
+  const isDefault = (n: string): boolean => !!alias && /^\d/.test(alias) && (n.slice(1) === alias || n.slice(1).startsWith(alias + '.'))
+  const ordered = [...names.filter(isDefault), ...names.filter((n) => !isDefault(n))]
+  return ordered.map((n) => path.join(versions, n, 'bin'))
+}
+
 /**
- * `--version`, in its own process GROUP: a program that spawns children and hangs is killed with all of
- * them on the timeout, never left running behind the first run. Output is read up to 64 KiB — a version
- * line is short, and a program that prints more is not answering the question.
+ * PATH for the probe: the PATH given, then the version managers' well-known folders that EXIST — nvm,
+ * volta, asdf, fnm. A Dock-launched app inherits launchd's minimal PATH (`env.ts#fixPath` adds only
+ * Homebrew and `~/.local/bin`), so an agent installed through one of them read as "not installed" and was
+ * offered an install command for what the operator already has (iteration 2, errors finding 8). Nothing is
+ * guessed: a folder that does not exist is not added, and without a HOME nothing is.
+ */
+export function widenProbePath(envPath: string, env: Record<string, string | undefined>): string {
+  const home = env.HOME
+  const parts = envPath.split(path.delimiter).filter(Boolean)
+  if (!home) return parts.join(path.delimiter)
+  const extra = [
+    ...nvmBins(env.NVM_DIR || path.join(home, '.nvm')),
+    path.join(env.VOLTA_HOME || path.join(home, '.volta'), 'bin'),
+    path.join(env.ASDF_DATA_DIR || path.join(home, '.asdf'), 'shims'),
+    // asdf's shims call `asdf` itself.
+    path.join(home, '.asdf', 'bin'),
+    ...(env.FNM_DIR ? [path.join(env.FNM_DIR, 'aliases', 'default', 'bin')] : []),
+    path.join(home, '.local', 'share', 'fnm', 'aliases', 'default', 'bin'),
+    path.join(home, 'Library', 'Application Support', 'fnm', 'aliases', 'default', 'bin')
+  ]
+  for (const d of extra) if (!parts.includes(d) && isDir(d)) parts.push(d)
+  return parts.join(path.delimiter)
+}
+
+const SEMVER = /\d+\.\d+(?:\.\d+)?(?:[-+][\w.]+)?/
+/** A line that announces something other than this program's version. */
+const NOTICE = /\b(update|upgrade|available|latest|newer|new version)\b/i
+
+/**
+ * The version in a `--version` answer: from a line that names the program, else the first version on the
+ * first line; notice lines ("update available 3.4.5") are never the answer. Null when there is no version —
+ * text that is not one is not shown as one (iteration 2, errors finding 8).
+ */
+export function versionFrom(out: string, program: string): string | null {
+  const all = out.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+  const lines = all.filter((l) => !NOTICE.test(l))
+  const name = path.basename(program).toLowerCase()
+  const named = lines.find((l) => l.toLowerCase().includes(name) && SEMVER.test(l))
+  const m = SEMVER.exec(named ?? lines[0] ?? '')
+  return m ? m[0] : null
+}
+
+const MAX_OUTPUT = 65536
+/** How long output may keep arriving after the program exited: its last write, not a child's. */
+const DRAIN_MS = 100
+
+/**
+ * `--version`, in its own process GROUP, killed when the answer is settled — timeout OR normal exit — so a
+ * program that hangs, or that exits leaving a background child, leaves nothing running behind the first
+ * run. The answer is settled at the program's EXIT (plus a short drain), not at end of output: a child
+ * still holding stdout made a program that had answered read as unresponsive. Output is read up to
+ * 64 KiB — a version line is short, and a program that prints more is not answering the question.
  */
 function versionOf(file: string, env: Record<string, string>, timeoutMs: number): Promise<string | null | 'timeout'> {
   return new Promise((resolve) => {
     const child = spawn(file, ['--version'], { env, detached: true, stdio: ['ignore', 'pipe', 'ignore'] })
     let out = ''
     let done = false
-    const finish = (v: string | null | 'timeout'): void => { if (!done) { done = true; clearTimeout(timer); resolve(v) } }
-    const timer = setTimeout(() => {
-      try { process.kill(-(child.pid as number), 'SIGKILL') } catch { /* already gone: nothing left to stop */ }
-      finish('timeout')
-    }, timeoutMs)
+    let drain: NodeJS.Timeout | undefined
+    const killGroup = (): void => {
+      try {
+        process.kill(-(child.pid as number), 'SIGKILL')
+      } catch {
+        // Already gone, the whole group: nothing left to stop.
+      }
+    }
+    const finish = (v: string | null | 'timeout'): void => {
+      if (done) return
+      done = true
+      clearTimeout(timer)
+      clearTimeout(drain)
+      killGroup()
+      child.stdout?.destroy()
+      resolve(v)
+    }
+    const timer = setTimeout(() => finish('timeout'), timeoutMs)
+    let closed = false
+    let exited = false
+    const settle = (): void => finish(versionFrom(out, file))
     child.stdout?.setEncoding('utf8')
-    child.stdout?.on('data', (d: string) => { if (out.length < 65536) out += d })
+    child.stdout?.on('data', (d: string) => { if (out.length < MAX_OUTPUT) out += d.slice(0, MAX_OUTPUT - out.length) })
+    // The output may close before or after the exit is reported; whichever is second settles at once.
+    child.stdout?.on('close', () => { closed = true; if (exited) settle() })
     child.on('error', () => finish('timeout')) // on PATH but could not be started: not usable, not missing
-    child.on('close', (code) => {
-      if (code !== 0) return finish('timeout') // on PATH but failed to answer: not usable, not missing
-      const m = /\d+\.\d+(?:\.\d+)?(?:[-+][\w.]+)?/.exec(out)
-      finish(m ? m[0] : out.trim().slice(0, 40) || null)
+    child.on('exit', (code) => {
+      exited = true
+      // On PATH but failed (or was killed) answering: not usable, not missing.
+      if (code !== 0) return finish('timeout')
+      if (closed) return settle()
+      // Still open after the exit: a child holds it. The drain window takes the program's last write.
+      drain = setTimeout(settle, DRAIN_MS)
     })
   })
 }
@@ -78,13 +185,15 @@ export async function detectExecutors(
   opts: { env: Record<string, string>; timeoutMs?: number }
 ): Promise<ExecutorRow[]> {
   const timeoutMs = opts.timeoutMs ?? 5000
+  const PATH = widenProbePath(opts.env.PATH ?? '', opts.env)
+  const env = { ...opts.env, PATH }
   return Promise.all(
     probes.map(async (p): Promise<ExecutorRow> => {
       const install = INSTALL[p.id] ?? null
-      const file = onPath(p.program, opts.env.PATH ?? '')
+      const file = onPath(p.program, PATH)
       const base = { id: p.id, label: p.label, connected: p.connected }
       if (!file) return { ...base, state: 'missing', version: null, path: null, install }
-      const v = await versionOf(file, opts.env, timeoutMs)
+      const v = await versionOf(file, env, timeoutMs)
       // Installed but not answering: telling the operator to INSTALL it is the wrong advice (no command).
       if (v === 'timeout') return { ...base, state: 'unresponsive', version: null, path: file, install: null }
       return { ...base, state: 'found', version: v, path: file, install: null }
