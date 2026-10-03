@@ -32,9 +32,14 @@ import type { Candidate, FolderFacts, FolderKind, ScanResult } from '../shared/s
 export type { Candidate, FolderFacts, ScanResult } from '../shared/startPaths.ts'
 
 export interface ScanOptions {
+  /** How deep below the scanned folder the walk looks for repositories. */
   maxDepth?: number
+  /** How deep below a FOUND repository it keeps looking, for nested repositories (monorepo packages). */
+  nestedDepth?: number
   maxDirs?: number
   timeLimitMs?: number
+  /** A single folder read that takes longer than this is abandoned and counted as unreadable (a hung mount). */
+  dirTimeoutMs?: number
   signal?: AbortSignal
   /** Injected clock for the deadline; tests only. */
   now?: () => number
@@ -64,11 +69,32 @@ const STACK_MARKERS: ReadonlyArray<[string, string]> = [
 
 const GIT_TIMEOUT_MS = 3000
 
+/**
+ * Configuration a repository's OWN `.git/config` could use to make a read run a program — a signature
+ * verifier, a filesystem monitor, a pager, an external diff, an ssh command. Each is switched off on the
+ * command line, which outranks the repository's config, so scanning a repository someone else prepared
+ * never executes what it names (iteration 1, errors finding 1: `log.showSignature` + `gpg.program` ran a
+ * planted script). The environment closes the same doors for config git reads from elsewhere.
+ */
+const SAFE_GIT = [
+  '-c', 'log.showSignature=false', '-c', 'gpg.program=false', '-c', 'gpg.ssh.program=false', '-c', 'gpg.x509.program=false',
+  '-c', 'core.fsmonitor=false', '-c', 'core.pager=cat', '-c', 'core.sshCommand=false', '-c', 'diff.external=',
+  '-c', 'core.hooksPath=/dev/null'
+]
+const SAFE_ENV: Record<string, string> = { GIT_TERMINAL_PROMPT: '0', GIT_PAGER: 'cat', GIT_OPTIONAL_LOCKS: '0', GIT_CONFIG_NOSYSTEM: '1' }
+
 /** Asynchronous on purpose: the caller is Electron's main process, and a scan of a hundred repositories must not freeze every window. */
 function gitOut(dir: string, args: string[]): Promise<string | null> {
   return new Promise((resolve) => {
-    execFile('git', ['-C', dir, ...args], { timeout: GIT_TIMEOUT_MS, encoding: 'utf8' }, (err, stdout) => resolve(err ? null : stdout.trim()))
+    execFile('git', [...SAFE_GIT, '-C', dir, ...args], { timeout: GIT_TIMEOUT_MS, encoding: 'utf8', env: { ...process.env, ...SAFE_ENV } }, (err, stdout) => resolve(err ? null : stdout.trim()))
   })
+}
+
+/** A remote as it may be shown and kept: an http(s) URL loses its user and password (a token lives there). */
+export function shownRemote(url: string | null): string | null {
+  if (!url) return null
+  const m = /^(https?:\/\/)[^/@]*@(.*)$/i.exec(url)
+  return m ? m[1] + m[2] : url
 }
 
 function stackOf(dir: string, entries: string[]): string[] {
@@ -119,7 +145,7 @@ export async function inspectFolder(dir: string): Promise<FolderFacts> {
   let remote: string | null = null
   if (git) {
     const [log, head, origin] = await Promise.all([
-      gitOut(abs, ['log', '-1', '--format=%cI%x00%s']),
+      gitOut(abs, ['log', '-1', '--no-show-signature', '--format=%cI%x00%s']),
       gitOut(abs, ['symbolic-ref', '--short', '-q', 'HEAD']), // the chosen folder's branch; empty when detached
       gitOut(abs, ['config', '--get', 'remote.origin.url'])
     ])
@@ -128,66 +154,103 @@ export async function inspectFolder(dir: string): Promise<FolderFacts> {
       lastCommit = { at, subject: subject ?? '' }
     }
     branch = head || null
-    remote = origin || null
+    remote = shownRemote(origin || null)
   }
   return { path: abs, name: path.basename(abs), git, kind, parent, branch, remote, lastCommit, stack: stackOf(abs, entries) }
 }
 
+/** One folder's entries, or null when it cannot be read in time (permission, a hung mount, gone). */
+async function readEntries(dir: string, timeoutMs: number): Promise<string[] | null> {
+  let timer: NodeJS.Timeout | undefined
+  try {
+    return await Promise.race([
+      readdir(dir),
+      new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), timeoutMs) })
+    ])
+  } catch {
+    // Unreadable is an answer, not an error: the caller counts it so the result can say so.
+    return null
+  } finally {
+    if (timer) clearTimeout(timer)
+  }
+}
+
 /**
  * Every repository under `root` (the root included), grouped by product.
- * Throws when `root` does not exist; returns `cancelled` when the signal is
- * already aborted or aborts mid-walk.
+ *
+ * BREADTH FIRST (iteration 1, errors finding 2): a depth-first walk spent its folder budget inside the
+ * first repositories it met and returned 34 of the operator's 130; level by level, every repository at
+ * one depth is found before anything deeper is entered. Inside a found repository the walk looks only
+ * `nestedDepth` levels further, for nested repositories. A folder named like noise (node_modules, build,
+ * vendor, …) is not ENTERED, but if it is itself a repository it is still reported; a hidden folder is
+ * skipped entirely. What the
+ * walk could not cover is counted — `unreadable`, `deep` (below the depth limit) — and a stop by the
+ * bound or the deadline is `truncated`, so a partial list never reads as the whole folder.
+ * Throws when `root` does not exist; returns `cancelled` when the signal aborts.
  */
 export async function scanFolder(root: string, opts: ScanOptions = {}): Promise<ScanResult> {
   const abs = path.resolve(root)
   if (!existsSync(abs) || !(await stat(abs)).isDirectory()) throw new Error(`folder does not exist: ${abs}`)
   const maxDepth = opts.maxDepth ?? 4
-  const maxDirs = opts.maxDirs ?? 5000
-  const timeLimitMs = opts.timeLimitMs ?? 15000
+  const nestedDepth = opts.nestedDepth ?? 2
+  const maxDirs = opts.maxDirs ?? 20000
+  const timeLimitMs = opts.timeLimitMs ?? 30000
+  const dirTimeoutMs = opts.dirTimeoutMs ?? 3000
   const now = opts.now ?? Date.now
   const started = now()
   const found: FolderFacts[] = []
   let visited = 0
+  let unreadable = 0
+  let deep = 0
   let truncated = false
   let cancelled = false
-
-  const walk = async (dir: string, depth: number): Promise<void> => {
-    if (truncated || cancelled) return
-    if (opts.signal?.aborted) { cancelled = true; return }
-    if (visited >= maxDirs || now() - started > timeLimitMs) { truncated = true; return }
-    visited++
-    let entries: string[]
+  const inspectInto = async (dir: string): Promise<void> => {
     try {
-      entries = await readdir(dir)
+      found.push(await inspectFolder(dir))
     } catch {
-      return // unreadable: skipped, not fatal
-    }
-    if (entries.includes('.git')) {
-      try {
-        found.push(await inspectFolder(dir))
-      } catch {
-        /* vanished mid-walk */
-      }
-    }
-    if (depth >= maxDepth) return
-    for (const name of entries.sort()) {
-      if (name.startsWith('.') || SKIP.has(name)) continue
-      const child = path.join(dir, name)
-      let st
-      try {
-        st = await lstat(child) // lstat: a symlink is never followed out of the root
-      } catch {
-        // Vanished or unreadable mid-walk: a folder the scan could not stat is not a candidate, and the walk goes on.
-        continue
-      }
-      if (!st.isDirectory()) continue
-      await walk(child, depth + 1)
-      if (truncated || cancelled) return
+      // Vanished between the listing and the read: it is not a candidate, and the walk goes on.
     }
   }
 
+  // Each entry: a folder, its depth below the root, and how deep below the nearest found repository it is (null: none).
+  let level: { dir: string; depth: number; inRepo: number | null }[] = [{ dir: abs, depth: 0, inRepo: null }]
+  while (level.length && !truncated && !cancelled) {
+    const next: typeof level = []
+    for (const { dir, depth, inRepo } of level) {
+      if (opts.signal?.aborted) { cancelled = true; break }
+      if (visited >= maxDirs || now() - started > timeLimitMs) { truncated = true; break }
+      visited++
+      const entries = await readEntries(dir, dirTimeoutMs)
+      if (opts.signal?.aborted) { cancelled = true; break }
+      if (!entries) { unreadable++; continue }
+      const isRepo = entries.includes('.git')
+      if (isRepo) await inspectInto(dir)
+      const below = isRepo ? 0 : inRepo === null ? null : inRepo + 1
+      for (const name of entries.sort()) {
+        const child = path.join(dir, name)
+        let st
+        try {
+          st = await lstat(child) // lstat: a symlink is never followed out of the root
+        } catch {
+          // Vanished or unreadable mid-walk: a folder the scan could not stat is not a candidate.
+          continue
+        }
+        if (!st.isDirectory() || name === '.git') continue
+        // A hidden folder is the operator's own "not this" and is never reported. A folder named like noise
+        // (node_modules, build, vendor, …) is not entered — but if it is itself a repository it is reported.
+        if (name.startsWith('.')) continue
+        if (SKIP.has(name)) {
+          if (existsSync(path.join(child, '.git'))) await inspectInto(child)
+          continue
+        }
+        const childBelow = below === null ? null : below + 1
+        if (depth + 1 > maxDepth || (childBelow !== null && childBelow > nestedDepth)) { deep++; continue }
+        next.push({ dir: child, depth: depth + 1, inRepo: below })
+      }
+    }
+    level = next
+  }
   if (opts.signal?.aborted) cancelled = true
-  else await walk(abs, 0)
 
   const repoPaths = found.filter((f) => f.kind === 'repository').map((f) => f.path)
   const enclosing = (p: string): string | null => {
@@ -195,10 +258,11 @@ export async function scanFolder(root: string, opts: ScanOptions = {}): Promise<
     for (const r of repoPaths) if (r !== p && p.startsWith(r + path.sep) && (!best || r.length > best.length)) best = r
     return best
   }
-  const candidates: Candidate[] = (cancelled ? [] : found).map((f) => ({
+  const unique = [...new Map(found.map((f) => [f.path, f])).values()].sort((a, b) => a.path.localeCompare(b.path))
+  const candidates: Candidate[] = (cancelled ? [] : unique).map((f) => ({
     ...f,
     group: f.kind === 'worktree' && f.parent ? f.parent : enclosing(f.path) ?? f.path
   }))
-  return { root: abs, candidates, visited, truncated, cancelled }
+  return { root: abs, candidates, visited, unreadable, deep, truncated, cancelled }
 }
 // #endregion project-discovery

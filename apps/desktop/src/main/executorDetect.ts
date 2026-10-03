@@ -16,17 +16,18 @@
  * install path; a program without one gets `null`, never a guessed command.
  */
 
-import { execFile } from 'node:child_process'
-import { accessSync, constants } from 'node:fs'
+import { spawn } from 'node:child_process'
+import { accessSync, constants, statSync } from 'node:fs'
 import path from 'node:path'
 
-export interface ExecutorProbe { id: string; label: string; program: string }
+/** `connected`: whether Fabric's own tools reach a session of this agent (`AgentDescriptor.connectsToSurface`). */
+export interface ExecutorProbe { id: string; label: string; program: string; connected: boolean }
 import type { ExecutorRow } from '../shared/startPaths.ts'
 export type { ExecutorRow } from '../shared/startPaths.ts'
 
-/** Published install commands (Anthropic and OpenAI documentation). */
+/** The vendors' published install commands: Anthropic's native installer, OpenAI's npm package. */
 const INSTALL: Readonly<Record<string, string>> = {
-  'claude-code': 'npm install -g @anthropic-ai/claude-code',
+  'claude-code': 'curl -fsSL https://claude.ai/install.sh | bash',
   codex: 'npm install -g @openai/codex'
 }
 
@@ -36,6 +37,8 @@ function onPath(program: string, envPath: string): string | null {
     const candidate = path.join(dir, program)
     try {
       accessSync(candidate, constants.X_OK)
+      // A DIRECTORY of that name is executable-bit "searchable", not a program; keep looking.
+      if (!statSync(candidate).isFile()) continue
       return candidate
     } catch {
       /* next */
@@ -44,13 +47,28 @@ function onPath(program: string, envPath: string): string | null {
   return null
 }
 
+/**
+ * `--version`, in its own process GROUP: a program that spawns children and hangs is killed with all of
+ * them on the timeout, never left running behind the first run. Output is read up to 64 KiB — a version
+ * line is short, and a program that prints more is not answering the question.
+ */
 function versionOf(file: string, env: Record<string, string>, timeoutMs: number): Promise<string | null | 'timeout'> {
   return new Promise((resolve) => {
-    execFile(file, ['--version'], { env, timeout: timeoutMs, killSignal: 'SIGKILL', encoding: 'utf8' }, (err, stdout) => {
-      if (err && (err as NodeJS.ErrnoException & { killed?: boolean }).killed) return resolve('timeout')
-      if (err) return resolve('timeout') // on PATH but failed to answer: not usable, not missing
-      const m = /\d+\.\d+(?:\.\d+)?(?:[-+][\w.]+)?/.exec(stdout)
-      resolve(m ? m[0] : stdout.trim() || null)
+    const child = spawn(file, ['--version'], { env, detached: true, stdio: ['ignore', 'pipe', 'ignore'] })
+    let out = ''
+    let done = false
+    const finish = (v: string | null | 'timeout'): void => { if (!done) { done = true; clearTimeout(timer); resolve(v) } }
+    const timer = setTimeout(() => {
+      try { process.kill(-(child.pid as number), 'SIGKILL') } catch { /* already gone: nothing left to stop */ }
+      finish('timeout')
+    }, timeoutMs)
+    child.stdout?.setEncoding('utf8')
+    child.stdout?.on('data', (d: string) => { if (out.length < 65536) out += d })
+    child.on('error', () => finish('timeout')) // on PATH but could not be started: not usable, not missing
+    child.on('close', (code) => {
+      if (code !== 0) return finish('timeout') // on PATH but failed to answer: not usable, not missing
+      const m = /\d+\.\d+(?:\.\d+)?(?:[-+][\w.]+)?/.exec(out)
+      finish(m ? m[0] : out.trim().slice(0, 40) || null)
     })
   })
 }
@@ -64,10 +82,12 @@ export async function detectExecutors(
     probes.map(async (p): Promise<ExecutorRow> => {
       const install = INSTALL[p.id] ?? null
       const file = onPath(p.program, opts.env.PATH ?? '')
-      if (!file) return { id: p.id, label: p.label, state: 'missing', version: null, path: null, install }
+      const base = { id: p.id, label: p.label, connected: p.connected }
+      if (!file) return { ...base, state: 'missing', version: null, path: null, install }
       const v = await versionOf(file, opts.env, timeoutMs)
-      if (v === 'timeout') return { id: p.id, label: p.label, state: 'unresponsive', version: null, path: file, install }
-      return { id: p.id, label: p.label, state: 'found', version: v, path: file, install }
+      // Installed but not answering: telling the operator to INSTALL it is the wrong advice (no command).
+      if (v === 'timeout') return { ...base, state: 'unresponsive', version: null, path: file, install: null }
+      return { ...base, state: 'found', version: v, path: file, install: null }
     })
   )
 }

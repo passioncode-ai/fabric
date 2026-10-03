@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// #region app-icon — docs: docs/adr/0100-first-run-and-start-paths.md#consequences
-// The Fabric app icon (ADR-0100 D5, operator's choice 2026-10-03): the PassionCode.ai mark from its
+// #region app-icon — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+// The Fabric app icon (ADR-0100 §8, operator's choice 2026-10-03): the PassionCode.ai mark from its
 // source SVG, composed on a graphite macOS tile — `assets/brand/app-icon/fabric-icon.svg`. Composed,
 // not generated: four Asset Foundry candidates (job_01M3ZC9B3DYDH7ECV6ECECD45T) did not keep the mark
 // and the operator chose the exact vector.

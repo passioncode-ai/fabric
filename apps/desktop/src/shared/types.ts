@@ -1236,8 +1236,11 @@ export interface FabricApi {
    * in this window's native picker (`chooseFolder`); anything else is refused as outside.
    */
   start: {
-    /** The native folder picker for ONE folder; grants it to this window. Null when cancelled. */
-    chooseFolder(purpose: 'project' | 'scan' | 'parent'): Promise<string | null>
+    /**
+     * The native folder picker for ONE folder. 'project' and 'scan' open it to this window; 'parent'
+     * only lets this window create one new folder inside it. Null when cancelled.
+     */
+    chooseFolder(purpose: 'project' | 'scan' | 'parent', defaultPath?: string): Promise<string | null>
     /** Facts about one chosen folder, with the projects that already hold it. */
     inspect(folder: string): Promise<import('./startPaths.ts').FolderView>
     /** Scan a chosen parent folder; bounded, cancellable, never creates anything. Kept as the last scan. */

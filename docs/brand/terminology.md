@@ -20,6 +20,7 @@ Contract: brand-contract v1
 | Fabric | fabric, Software Fabric when naming the current product or kernel |
 | Fabric Switchboard | Fabric Switcher, F Switchboard; use Switchboard as the short form |
 | Fabric Inbox | Fabric Mail; use Inbox as the short form |
+| Fabric Agent Adapter | Fabric Adapter, Fabric agent adapter; the published skills that adapt a project to the Fabric protocol |
 | Claude Code | Cloud Code, CloudCode |
 | Codex | CodeX |
 | AI-native team | AI team, autonomous company |

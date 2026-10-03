@@ -3,7 +3,7 @@
 // a model; the look changes no role and no authority, and it lives on this machine.
 
 import { useState } from 'react'
-import { PERSONA_STYLES, variantsOf, type Persona, type PersonaStyle } from '../../../shared/persona.ts'
+import { PERSONA_NAME_MAX, PERSONA_STYLES, personaName, variantsOf, type Persona, type PersonaStyle } from '../../../shared/persona.ts'
 import { useT } from '../i18n'
 import { FabricAvatar } from './FabricAvatar'
 import { usePersona } from './persona'
@@ -17,11 +17,14 @@ export function PersonaScreen({ onDone }: { onDone: () => void }): React.JSX.Ele
   const [said, setSaid] = useState<{ ok: boolean; reason?: string } | null>(null)
   const variants = variantsOf(generation)
 
+  const [name, setName] = useState(persona.name ?? '')
+  const tooLong = name.trim().length > PERSONA_NAME_MAX
   const keep = async (): Promise<void> => {
     setBusy(true)
     setSaid(null)
     try {
-      const r = await save(draft)
+      const n = personaName(name)
+      const r = await save(n ? { seed: draft.seed, style: draft.style, name: n } : { seed: draft.seed, style: draft.style })
       setSaid(r.saved ? { ok: true } : { ok: false, reason: r.reason })
       if (r.saved) onDone()
     } catch (e) {
@@ -47,11 +50,16 @@ export function PersonaScreen({ onDone }: { onDone: () => void }): React.JSX.Ele
         <section className="lp-panel fp-persona-stage" aria-label={t('launch.persona.preview')}>
           <FabricAvatar size="large" seed={draft.seed} style={draft.style} label={t('launch.avatar.label')} />
           <span className="lp-pill">{t('launch.persona.preview')}</span>
-          <h3>{t('launch.brand.product')}</h3>
+          <h3>{personaName(name) ?? t('launch.brand.product')}</h3>
           <p>{t('launch.persona.stageBody')}</p>
           <small>{t('launch.persona.noAuthority')}</small>
         </section>
         <section className="lp-panel">
+          <label className="lp-field">
+            {t('first.persona.name')}
+            <input value={name} maxLength={PERSONA_NAME_MAX + 10} placeholder={t('launch.brand.product')} onChange={(e) => setName(e.target.value)} aria-invalid={tooLong} />
+            <small>{tooLong ? t('first.persona.tooLong', { max: PERSONA_NAME_MAX }) : t('first.persona.nameHint')}</small>
+          </label>
           <p className="lp-kicker">{t('launch.persona.character')}</p>
           <div className="fp-style-options" role="group" aria-label={t('launch.persona.character')}>
             {PERSONA_STYLES.map((style: PersonaStyle) => (
@@ -78,7 +86,7 @@ export function PersonaScreen({ onDone }: { onDone: () => void }): React.JSX.Ele
           <div className="lp-divider" />
           {said && !said.ok && <div className="lp-callout" role="alert"><p>{t('launch.persona.notSaved', { reason: said.reason ?? '' })}</p></div>}
           <div className="lp-actions">
-            <button type="button" className="lp-button primary" disabled={busy} onClick={() => void keep()}>{t('launch.persona.save')}</button>
+            <button type="button" className="lp-button primary" disabled={busy || tooLong} onClick={() => void keep()}>{t('launch.persona.save')}</button>
             <button type="button" className="lp-button" onClick={onDone}>{t('launch.persona.skip')}</button>
           </div>
           <p className="lp-meta">{t('launch.persona.where')}</p>

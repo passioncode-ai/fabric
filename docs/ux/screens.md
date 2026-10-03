@@ -1661,12 +1661,16 @@ results always pair text with an icon — colour is never the only signal.
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
   | first-visit | empty estate, first run not finished | none | step 1 with defaults |
+  | saving | Continue on step 1 | none | Continue busy until the look is saved |
   | not-saved | look save refused | none | reason and Continue without saving |
   | checking | detection running | none | busy line |
-  | found | agent answered --version | none | ready pill and version |
-  | unresponsive | on PATH, no answer | none | needs-setup pill and install command |
-  | missing | not on PATH | none | not-installed pill and install command |
+  | found | agent answered --version and Fabric reaches its session | none | ready pill and version |
+  | found-unconnected | agent answered, Fabric does not reach its session | none | installed pill and a note that it runs in the folder as itself |
+  | unresponsive | on PATH, no answer | none | needs-setup pill and the run-once advice, no install command |
+  | missing | not on PATH | none | not-installed pill and install command with Copy |
+  | check-failed | detection itself failed | none | reason and Check again |
   | choose-path | step 3 | none | five cards |
+  | skipped | Skip or Later | none | first run marked finished; home, Help reopens it |
 - **Coverage:** apps/desktop/src/renderer/src/start/FirstRun.tsx
 - **Scenarios:** SCN-126
 - **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
@@ -1688,7 +1692,7 @@ results always pair text with an icon — colour is never the only signal.
 - **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx
 - **Scenarios:** SCN-127
 - **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
-- **Implementation tasks:** P-02
+- **Implementation tasks:** P-01
 
 ### SCR-72: Scan a projects folder
 - **Used by:** FLW-71
@@ -1697,38 +1701,48 @@ results always pair text with an icon — colour is never the only signal.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
+  | idle | path opened | none | choose prompt, read-only note |
+  | picker-cancel | picker closed without a folder | none | nothing changes |
   | scanning | walk running | none | busy line and Stop |
+  | cancelled | Stop pressed | none | back to the prompt with a stopped notice |
   | results | walk finished | none | grouped checklist |
   | empty | no repositories | none | says none were found |
   | truncated | walk stopped by its bound | none | says the list is not the whole folder |
+  | unreadable | folders could not be read | none | counts them as a gap |
+  | duplicate | candidate already in a project | none | no box; In <project> opens it |
+  | part-ticked | a worktree or nested repository ticked | none | warning that it becomes its own project |
   | importing | Add pressed | none | progress N of M |
-  | imported | all rows tried | none | summary; failed rows stay ticked |
+  | partial | some rows failed | none | added and not-added counts; failed rows keep their reason and stay ticked |
+  | imported | all rows added | none | summary and Open the first |
+  | failed | the scan itself failed | none | reason and the prompt again |
 - **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx
 - **Scenarios:** SCN-128
 - **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
-- **Implementation tasks:** P-03
+- **Implementation tasks:** P-01
 
 ### SCR-73: New project
 - **Used by:** FLW-72
 - **Purpose:** Start a project from nothing: in a new folder or as an idea.
-- **Elements:** the draft-backed form: name; purpose; repositories with Add repository and Create a new folder for it; git checkbox; folder problem line; memory backend; default agent; Save.
+- **Elements:** the draft-backed form: name; purpose; repositories with Add repository and Create a new folder for it (disabled until a name is typed); git checkbox; folder problem line; memory backend; default agent by its own name; Save.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
   | idle | path opened | none | empty form |
-  | no-parent | folder chosen without location | none | Create disabled; location prompt |
   | invalid-name | name cannot be a folder | none | the problem in words |
+  | no-parent | location picker closed without a folder | none | nothing changes; the form keeps what it had |
+  | creating | folder being made | none | Create a new folder busy |
   | exists | folder already there | none | refusal, no Project |
   | outside | location not granted | none | refusal, choose again |
-  | failed | mkdir/git/create failed | none | reason; retry reuses a made folder |
+  | failed | mkdir/git/create failed | none | reason; a half-made folder is removed, so retry creates it again |
+  | created | folder made | none | the folder joins the repositories; Save creates the Project |
 - **Coverage:** apps/desktop/src/renderer/src/Onboarding.tsx
 - **Scenarios:** SCN-129
 - **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
-- **Implementation tasks:** P-04
+- **Implementation tasks:** P-01
 
 ### SCR-74: New agent
 - **Used by:** FLW-73
-- **Purpose:** Route to the agent form of the project the agent belongs to.
+- **Purpose:** Route to the agent form of the project the agent belongs to; the form's own states (reading, unreadable, empty, invalid, saving, failed, created) are SCN-130 steps 2–4 on the project's team.
 - **Elements:** project list; no-project notice with Add a project and New project.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
@@ -1739,7 +1753,7 @@ results always pair text with an icon — colour is never the only signal.
 - **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx
 - **Scenarios:** SCN-130
 - **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
-- **Implementation tasks:** P-05
+- **Implementation tasks:** P-01
 
 ### SCR-75: Convert an agent
 - **Used by:** FLW-74

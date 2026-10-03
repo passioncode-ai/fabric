@@ -5,7 +5,7 @@
 // scan must not descend into. No model of git is used: every fact comes from git.
 
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync, realpathSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, symlinkSync, writeFileSync, realpathSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import assert from 'node:assert/strict'
@@ -85,4 +85,54 @@ assert.equal(cancelled.candidates.length, 0)
 
 await assert.rejects(() => scanFolder(path.join(root, 'missing')), /does not exist/)
 
-console.log('PASS project discovery: inspect (repository, folder, worktree, missing) and scan (grouping, noise, symlink boundary, bound, cancel)')
+// ── V1 (iteration 1, errors-2/data-9/errors-4/errors-10): the scan only READS and says what it skipped
+// A repository's own config cannot make the scan run a program: a signed commit with
+// log.showSignature and gpg.program set would run that program under a plain `git log`.
+{
+  const d = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-sig-')))
+  const mark = d + '.EXECUTED'
+  repo(d, 'a', 'c')
+  const tree = git(d, 'rev-parse', 'HEAD^{tree}').trim()
+  writeFileSync(d + '.commit', `tree ${tree}\nauthor t <t@e> 1700000000 +0000\ncommitter t <t@e> 1700000000 +0000\ngpgsig -----BEGIN PGP SIGNATURE-----\n \n AAAA\n -----END PGP SIGNATURE-----\n\nsigned\n`)
+  const sha = git(d, 'hash-object', '-t', 'commit', '-w', d + '.commit').trim()
+  git(d, 'update-ref', 'HEAD', sha)
+  const evil = path.join(d, 'evil.sh'); writeFileSync(evil, `#!/bin/sh\ntouch ${mark}\nexit 1\n`); chmodSync(evil, 0o755)
+  git(d, 'config', 'log.showSignature', 'true'); git(d, 'config', 'gpg.program', evil)
+  const f = await inspectFolder(d)
+  assert.equal(f.lastCommit?.subject, 'signed')
+  assert.equal(existsSync(mark), false, 'a repository config must never make the scan execute a program')
+}
+// A remote URL carrying a credential is never shown or kept with it.
+{
+  const d = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-cred-')))
+  repo(d, 'a', 'c')
+  git(d, 'remote', 'add', 'origin', 'https://x-access-token:ghp_FAKEFAKEFAKE@github.com/example/x.git')
+  const f = await inspectFolder(d)
+  assert.equal(f.remote, 'https://github.com/example/x.git', 'userinfo is stripped from an http(s) remote')
+}
+// A repository living in a folder whose NAME is usually noise (build, vendor, …) is still found;
+// a folder the scan cannot read is COUNTED, so a partial list never reads as the whole folder.
+{
+  const r = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-names-')))
+  repo(path.join(r, 'build'), 'package.json', 'a repo called build')
+  repo(path.join(r, 'locked', 'inner'), 'package.json', 'behind a locked folder')
+  chmodSync(path.join(r, 'locked'), 0o000)
+  try {
+    const s = await scanFolder(r)
+    assert.deepEqual(s.candidates.map((c) => path.relative(r, c.path)), ['build'], 'a repository named like noise is still a repository')
+    assert.equal(s.unreadable, 1, 'an unreadable folder is counted, not silently skipped')
+  } finally { chmodSync(path.join(r, 'locked'), 0o755) }
+}
+// Breadth first: a bound stops DEEP exploration, never the top-level repositories next to each other.
+{
+  const r = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-bfs-')))
+  for (const n of ['a', 'b', 'c']) {
+    repo(path.join(r, n), 'package.json', n)
+    for (let i = 0; i < 30; i++) mkdirSync(path.join(r, n, 'src', 'deep' + i), { recursive: true })
+  }
+  const s = await scanFolder(r, { maxDirs: 12 })
+  assert.deepEqual(s.candidates.map((c) => c.name).sort(), ['a', 'b', 'c'], 'every top-level repository is found before any deep folder is walked')
+  assert.equal(s.truncated, true)
+}
+
+console.log('PASS project discovery: inspect (repository, folder, worktree, missing, no exec from repo config, no credential), scan (grouping, noise, symlink boundary, bound, cancel, noise-named repo, unreadable counted, breadth first)')

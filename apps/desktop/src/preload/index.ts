@@ -148,7 +148,7 @@ const api: FabricApi = {
     move: (projectId, dir, rest) => ipcRenderer.invoke(IPC.favouritesMove, projectId, dir, rest)
   },
   start: {
-    chooseFolder: (purpose) => ipcRenderer.invoke(IPC.startChooseFolder, purpose),
+    chooseFolder: (purpose, defaultPath) => ipcRenderer.invoke(IPC.startChooseFolder, purpose, defaultPath),
     inspect: (folder) => ipcRenderer.invoke(IPC.startInspect, folder),
     scan: (root) => ipcRenderer.invoke(IPC.startScan, root),
     cancelScan: () => ipcRenderer.invoke(IPC.startCancelScan),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { INSTRUCTIONS_MIN, NAME_MAX, readSpec, resolveServers } from './agentSpec.ts'
+import { INSTRUCTIONS_MIN, NAME_MAX, nameTaken, readSpec, resolveServers } from './agentSpec.ts'
 
 const ok = (over: Partial<Parameters<typeof readSpec>[0]> = {}) =>
   readSpec({
@@ -69,5 +69,16 @@ describe('what an agent may actually reach', () => {
     // The ceiling is not a default. An agent that declared no servers reaches
     // Fabric and nothing else, in a project that grants three.
     expect(resolveServers([], ['linear', 'sentry', 'context7'])).toEqual({ ok: true, servers: [] })
+  })
+})
+
+describe('one agent per name in a project', () => {
+  it('a name is taken across case and surrounding space, and an empty name takes nothing', () => {
+    const existing = [{ name: 'Reviewer' }, { name: 'Planner ' }]
+    expect(nameTaken(' reviewer', existing)).toBe(true)
+    expect(nameTaken('PLANNER', existing)).toBe(true)
+    expect(nameTaken('Reviewer 2', existing)).toBe(false)
+    expect(nameTaken('   ', existing)).toBe(false)
+    expect(nameTaken('Reviewer', [])).toBe(false)
   })
 })

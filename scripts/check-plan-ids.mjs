@@ -8,4 +8,4 @@ const walk = (d) => { for (const e of readdirSync(d)) { const p = path.join(d, e
 walk(path.join(root, 'docs'))
 const problems = planProblems(files['docs/evidence/backlog.md'] ?? '', files)
 if (problems.length) { for (const p of problems) console.log('  FAIL ' + p); process.exit(1) }
-console.log('PASS general plan: every cited id resolves')
+console.log('PASS general plan: every cited id resolves, every lane names open work of a known form')

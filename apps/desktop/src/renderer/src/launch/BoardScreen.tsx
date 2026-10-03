@@ -20,6 +20,7 @@ import { AnswerForm, submitAnswer } from '../BoardPanel'
 import { since } from '../duration'
 import { useLocale, useT } from '../i18n'
 import { FabricAvatar } from './FabricAvatar'
+import { FabricName } from './persona'
 import { ObligationActs, useProposalDecisions } from './ObligationActs'
 
 type Filter = 'open' | 'later' | 'done' | 'all'
@@ -136,7 +137,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
       <div className="fp-strip">
         <FabricAvatar size="tiny" label={t('launch.avatar.label')} />
         <div>
-          <b>{t('launch.brand.product')}</b>
+          <b><FabricName /></b>
           <span>{observed ? t(scopeName ? 'launch.board.observedProject' : 'launch.board.observed', { time: observed, project: scopeName ?? '' }) : t('launch.board.reading')}</span>
         </div>
         {onPulse && <button type="button" className="lp-button" onClick={onPulse}>{t('launch.pulse.open')}</button>}

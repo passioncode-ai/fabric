@@ -5,6 +5,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { DEFAULT_PERSONA, type Persona } from '../../../shared/persona.ts'
 import type { PersonaWrite } from '../../../shared/types'
+import { useT } from '../i18n'
 
 interface PersonaState {
   persona: Persona
@@ -44,4 +45,18 @@ export function PersonaProvider({ children }: { children: React.ReactNode }): Re
 
 export function usePersona(): PersonaState {
   return useContext(PersonaContext)
+}
+
+/**
+ * What the operator calls their Fabric (ADR-0100): the name kept in the persona, or the product name
+ * when none was given. Shown wherever Fabric speaks as the agent; the product's own brand stays "Fabric".
+ */
+export function useFabricName(fallback: string): string {
+  return useContext(PersonaContext).persona.name ?? fallback
+}
+
+/** The agent's name as an element, for places that render inside the persona provider. */
+export function FabricName(): React.JSX.Element {
+  const t = useT()
+  return <>{useFabricName(t('launch.brand.product'))}</>
 }

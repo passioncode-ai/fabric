@@ -60,7 +60,13 @@ export function Onboarding({
   // project, optionally a git repository. The folder joins the draft's repositories like a chosen one.
   const [git, setGit] = useState(true)
   const [folderProblem, setFolderProblem] = useState<string | null>(null)
+  const [folderBusy, setFolderBusy] = useState(false)
   const newFolder = async (): Promise<void> => {
+    if (folderBusy) return
+    setFolderBusy(true)
+    try { await makeFolder() } finally { setFolderBusy(false) }
+  }
+  const makeFolder = async (): Promise<void> => {
     setFolderProblem(null)
     const bad = folderNameProblem(name)
     if (bad) { setFolderProblem(t('onboarding.newFolder.badName', { problem: bad })); return }
@@ -159,7 +165,7 @@ export function Onboarding({
             <Button tone="ghost" onClick={() => void choose()}>
               {t('onboarding.addRepo')}
             </Button>
-            <Button tone="ghost" disabled={!name.trim()} onClick={() => void newFolder()}>
+            <Button tone="ghost" disabled={!name.trim() || folderBusy} onClick={() => void newFolder()}>
               {t('onboarding.newFolder')}
             </Button>
             <label>
@@ -220,7 +226,8 @@ export function Onboarding({
             <select id={id} value={agent} onChange={(e) => patch({ agent: e.target.value })}>
               {agents.map((o) => (
                 <option key={o.id} value={o.id} disabled={!o.available}>
-                  {o.id === 'claude-code' ? t('agents.claudeCode') : t('agents.terminal')}
+                  {/* Each option by its own name (iteration 1: Codex was shown as "Terminal"); the shell has no program. */}
+                  {o.id === 'claude-code' ? t('agents.claudeCode') : o.program === null ? t('agents.terminal') : o.label}
                   {o.available ? '' : ` — ${t('onboarding.unavailable')}`}
                 </option>
               ))}

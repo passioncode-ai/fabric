@@ -11,6 +11,7 @@ does not duplicate the rules or claims stored at those addresses.
 | Decisions | [`docs/adr/`](adr/README.md) | `ADR-NNNN` | append-only; reserve the id and hold the project lease |
 | Deferred/open work | [`docs/evidence/specs/2026-08-16-software-fabric-carryover.md`](evidence/specs/2026-08-16-software-fabric-carryover.md) | `CO-NNN` | append-only; reserve the id and hold the project lease |
 | Delivery state | [`docs/evidence/backlog.md`](evidence/backlog.md) | `M*`, `BL-*`, `CL-*` | mutable state register under the project lease |
+| Direction | [general development plan](evidence/backlog.md#general-development-plan) | `P-*`, lanes | the lanes and their work by id ([ADR-0101](adr/0101-the-general-development-plan.md)); `scripts/check-plan-ids.mjs` |
 | Verification | [`docs/evidence/verification.md`](evidence/verification.md) | run-specific `REQ` ids | append after the named check or human verification |
 
 The decision home is the ADR set. `docs/DECISIONS.md` must not be introduced as a

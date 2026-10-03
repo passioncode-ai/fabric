@@ -168,6 +168,10 @@ const byBasename = (name) => {
       for (const e of readdirSync(dir, { withFileTypes: true })) {
         if (SKIP.has(e.name)) continue
         const abs = path.join(dir, e.name)
+        // A nested git root — an agent's worktree under .claude/worktrees, a submodule — is another
+        // tree, not this repository's files: counting its copies made every symbol ambiguous
+        // ("3 files carry that name") the moment two agent worktrees existed (2026-10-03).
+        if (e.isDirectory() && existsSync(path.join(abs, '.git'))) continue
         if (e.isDirectory()) walk(abs)
         else (basenames.get(e.name) ?? basenames.set(e.name, []).get(e.name)).push(abs)
       }

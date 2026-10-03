@@ -22,13 +22,13 @@ function bridge(over: Record<string, unknown> = {}) {
     start: {
       chooseFolder: vi.fn(async () => '/w'),
       inspect: vi.fn(async (): Promise<FolderView> => ({ ...repo({ path: '/w/alpha', name: 'alpha' }) })),
-      scan: vi.fn(async (): Promise<ScanView> => ({ root: '/w', candidates: [], visited: 1, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z' })),
+      scan: vi.fn(async (): Promise<ScanView> => ({ root: '/w', candidates: [], visited: 1, unreadable: 0, deep: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z' })),
       cancelScan: vi.fn(async () => undefined),
       lastScan: vi.fn(async () => null),
       createFolder: vi.fn(async () => ({ ok: true, path: '/w/new-thing' })),
       executors: vi.fn(async () => [
-        { id: 'claude-code', label: 'Claude Code', state: 'found', version: '2.1.288', path: '/bin/claude', install: 'npm install -g @anthropic-ai/claude-code' },
-        { id: 'codex', label: 'Codex', state: 'missing', version: null, path: null, install: 'npm install -g @openai/codex' }
+        { id: 'claude-code', label: 'Claude Code', connected: true, state: 'found', version: '2.1.288', path: '/bin/claude', install: null },
+        { id: 'codex', label: 'Codex', connected: false, state: 'missing', version: null, path: null, install: 'npm install -g @openai/codex' }
       ])
     },
     projects: { create: vi.fn(async (input: { id: string; name: string; repoPaths?: string[] }) => ({ id: input.id, name: input.name })) },
@@ -86,10 +86,11 @@ describe('the first run (SCN-126)', () => {
   })
 
   it('with no coding agent found, says so and still continues', async () => {
-    bridge({ start: { ...bridge().start, executors: vi.fn(async () => [{ id: 'claude-code', label: 'Claude Code', state: 'unresponsive', version: null, path: '/bin/claude', install: 'npm install -g @anthropic-ai/claude-code' }]) } })
+    bridge({ start: { ...bridge().start, executors: vi.fn(async () => [{ id: 'claude-code', label: 'Claude Code', connected: true, state: 'unresponsive', version: null, path: '/bin/claude', install: null }]) } })
     render(<I18nProvider locale="en"><PersonaProvider><FirstRun onFinish={vi.fn()} /></PersonaProvider></I18nProvider>)
     fireEvent.click(await screen.findByRole('button', { name: en['first.skip'] }))
-    await screen.findByText(en['first.exec.unresponsive'])
+    await screen.findByText(en['first.exec.unresponsive'].replaceAll('{program}', 'claude'))
+    expect(screen.queryByRole('button', { name: en['first.exec.copy'] }), 'an installed agent that did not answer is not told to install it').toBeNull()
     expect(screen.getByRole('button', { name: en['first.exec.continueWithout'] })).toBeTruthy()
   })
 })
@@ -132,7 +133,7 @@ describe('add a project (SCN-127)', () => {
 
 describe('scan a projects folder (SCN-128)', () => {
   const scan: ScanView = {
-    root: '/w', visited: 9, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z',
+    root: '/w', visited: 9, unreadable: 0, deep: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z',
     candidates: [
       repo({ path: '/w/a', name: 'a', group: '/w/a' }),
       repo({ path: '/w/_wt/a-fix', name: 'a-fix', kind: 'worktree', parent: '/w/a', group: '/w/a' }),
@@ -155,7 +156,7 @@ describe('scan a projects folder (SCN-128)', () => {
     await waitFor(() => expect(fabric.projects.create).toHaveBeenCalledTimes(2))
     expect(fabric.projects.create.mock.calls.map((c) => c[0].repoPaths)).toEqual([['/w/a'], ['/w/c']])
     await waitFor(() => expect(h.onProjectsChanged, 'the sidebar is told new projects exist').toHaveBeenCalled())
-    await screen.findByText(en['start.scan.importedSummary'].replace('{ok}', '2').replace('{failed}', '0'))
+    await screen.findByText(en['start.scan.importedAll'].replace('{ok}', '2'))
   })
 
   it('says when the walk was stopped by its bound', async () => {
@@ -173,7 +174,7 @@ describe('scan a projects folder (SCN-128)', () => {
     const row = async (name: string) => (await screen.findByText(name, { selector: 'b' })).closest('label') as HTMLElement
     fireEvent.click(within(await row('a')).getByRole('checkbox'))
     fireEvent.click(screen.getByRole('button', { name: en['start.scan.import'].replace('{count}', '1') }))
-    await screen.findByText(en['start.scan.importedSummary'].replace('{ok}', '0').replace('{failed}', '1'))
+    await screen.findByText(en['start.scan.importedSome'].replace('{ok}', '0').replace('{failed}', '1'))
     expect((within(await row('a')).getByRole('checkbox') as HTMLInputElement).checked).toBe(true)
   })
 })
@@ -193,6 +194,48 @@ describe('agent paths (SCN-130, SCN-131)', () => {
     bridge()
     start('convert')
     expect(screen.getByText(en['start.planned'])).toBeTruthy()
-    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual([en['start.back']])
+    // Back, and Copy for today's manual command — nothing that claims to convert.
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual([en['start.back'], en['first.exec.copy']])
+  })
+})
+
+describe('iteration 1 fixes', () => {
+  it('a found agent Fabric cannot drive is "installed", never "ready"', async () => {
+    bridge({ start: { ...bridge().start, executors: vi.fn(async () => [{ id: 'codex', label: 'Codex', connected: false, state: 'found', version: '0.159.3', path: '/bin/codex', install: null }]) } })
+    render(<I18nProvider locale="en"><PersonaProvider><FirstRun onFinish={vi.fn()} /></PersonaProvider></I18nProvider>)
+    fireEvent.click(await screen.findByRole('button', { name: en['first.skip'] }))
+    await screen.findByText(en['first.exec.unconnected'].replace('{name}', 'Codex'))
+    expect(screen.queryByText(en['first.exec.state.found'])).toBeNull()
+    expect(screen.getByRole('button', { name: en['first.exec.continueWithout'] }), 'no agent Fabric can drive: the continue says so').toBeTruthy()
+  })
+
+  it('"Tick all shown" ticks one Project per product, never a worktree; ticking a part warns', async () => {
+    const scan: ScanView = { root: '/w', visited: 3, unreadable: 2, deep: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [
+      repo({ path: '/w/a', name: 'a', group: '/w/a' }),
+      repo({ path: '/w/_wt/a-fix', name: 'a-fix', kind: 'worktree', parent: '/w/a', group: '/w/a' })
+    ] }
+    const fabric = bridge({ start: { ...bridge().start, scan: vi.fn(async () => scan) } })
+    start('scan')
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
+    await screen.findByText(en['start.scan.unreadable'].replace('{count}', '2'))
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.selectAll'] }))
+    const row = (name: string) => screen.getByText(name, { selector: 'b' }).closest('label') as HTMLElement
+    expect((within(row('a')).getByRole('checkbox') as HTMLInputElement).checked).toBe(true)
+    expect((within(row('a-fix')).getByRole('checkbox') as HTMLInputElement).checked, 'a worktree is not ticked by Tick all').toBe(false)
+    fireEvent.click(within(row('a-fix')).getByRole('checkbox'))
+    expect(screen.getByText(en['start.scan.partWarning'])).toBeTruthy()
+    void fabric
+  })
+
+  it('Scan again goes through the picker, offering the last folder; the error text loses Electron\'s wrapper', async () => {
+    const chooseFolder = vi.fn(async () => '/w')
+    const scanFn = vi.fn().mockResolvedValueOnce({ root: '/w', visited: 1, unreadable: 0, deep: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [repo({})] })
+      .mockRejectedValueOnce(new Error("Error invoking remote method 'start:scan': Error: that file is outside every folder open in Fabric: /x"))
+    bridge({ start: { ...bridge().start, chooseFolder, scan: scanFn } })
+    start('scan')
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
+    fireEvent.click(await screen.findByRole('button', { name: en['start.scan.again'] }))
+    await waitFor(() => expect(chooseFolder).toHaveBeenLastCalledWith('scan', '/w'))
+    await screen.findByText(en['start.scan.failed'].replace('{reason}', 'that file is outside every folder open in Fabric: /x'))
   })
 })

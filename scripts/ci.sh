@@ -185,6 +185,7 @@ node apps/desktop/test/file-roots.test.mjs
 # ADR-0100: the start paths' disk reads and executor detection, against a real git tree and real processes.
 node --experimental-strip-types apps/desktop/test/project-discovery.test.mjs
 node --experimental-strip-types apps/desktop/test/executor-detect.test.mjs
+node --experimental-strip-types apps/desktop/test/start-paths-main.test.mjs
 node --experimental-strip-types apps/desktop/test/delivery.test.mjs
 node --experimental-strip-types apps/desktop/test/pty-launch-failure.test.mjs
 node --experimental-strip-types apps/desktop/test/chain-launch-failure.test.mjs

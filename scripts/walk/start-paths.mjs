@@ -41,6 +41,7 @@ mkdirSync(path.join(projects, '_worktrees'))
 git(path.join(projects, 'billing-service'), 'worktree', 'add', '-q', path.join(projects, '_worktrees', 'billing-hotfix'), '-b', 'hotfix')
 repo(path.join(projects, 'node_modules', 'noise'), 'package.json', 'noise')
 const parent = path.join(fx, 'new'); mkdirSync(parent)
+const fresh = path.join(fx, 'fresh-service'); repo(fresh, 'go.mod', 'feat: first handler', 'https://x-access-token:ghp_FAKEFAKE@github.com/example/fresh.git')
 
 // ── a throwaway user-data folder on a new Estate
 const userData = mkdtempSync(path.join(tmpdir(), 'fabric-walk-ud-'))
@@ -49,7 +50,7 @@ writeFileSync(path.join(userData, 'settings.json'), JSON.stringify({ theme: THEM
 
 const electron = path.join(APP, 'node_modules/.bin/electron')
 const child = spawn(electron, [APP, `--user-data-dir=${userData}`, `--remote-debugging-port=${PORT}`], {
-  env: { ...process.env, FABRIC_WALK_PICK: [path.join(projects, 'billing-service'), projects, parent].join(path.delimiter) },
+  env: { ...process.env, FABRIC_WALK_PICK: [fresh, projects, parent].join(path.delimiter) },
   stdio: ['ignore', 'pipe', 'pipe']
 })
 let appLog = ''
@@ -98,8 +99,16 @@ const type = async (sel, value) => evaluate(`(() => { const el = document.queryS
 
 const steps = []
 let ticked = []
+// A step that "passes" with an error on screen has not passed (iteration 1: the first project page
+// carried a digest error while the walk reported PASS).
+const visibleError = () => evaluate(`(() => { const e = [...document.querySelectorAll('.banner, [role=alert]')].find(x => x.offsetParent !== null && x.textContent.trim()); return e ? e.textContent.trim().slice(0, 300) : null })()`)
 const step = async (name, fn) => {
-  try { await fn(); steps.push({ name, ok: true }); log('PASS ' + name) } catch (e) { steps.push({ name, ok: false, error: String(e.message ?? e) }); log('FAIL ' + name + ': ' + (e.message ?? e)); await capture('failure-' + name.replace(/\W+/g, '-')).catch(() => {}) }
+  try {
+    await fn()
+    const err = await visibleError()
+    if (err) throw new Error('an error is on screen: ' + err)
+    steps.push({ name, ok: true }); log('PASS ' + name)
+  } catch (e) { steps.push({ name, ok: false, error: String(e.message ?? e) }); log('FAIL ' + name + ': ' + (e.message ?? e)); await capture('failure-' + name.replace(/\W+/g, '-')).catch(() => {}) }
 }
 
 try {
@@ -121,20 +130,27 @@ try {
     await waitFor(`document.querySelectorAll('.st-candidate').length >= 4`, 'candidates', 30000)
     await capture('scan-2-results')
   })
-  await step('scan: tick two and add', async () => {
-    ticked = await evaluate(`(() => { const boxes = [...document.querySelectorAll('.st-candidate input[type=checkbox]:not(:disabled)')].slice(0, 2); boxes.forEach(c => c.click()); return boxes.map(c => c.closest('label').querySelector('b').textContent) })()`)
+  await step('scan: tick all shown ticks one per product, never the worktree, and adds them', async () => {
+    await click('.st-toolbar button', LOCALE === 'ru' ? 'Отметить все' : 'Tick all shown')
+    ticked = await evaluate(`[...document.querySelectorAll('.st-candidate input[type=checkbox]:checked:not(:disabled)')].map(c => c.closest('label').querySelector('b').textContent)`)
+    if (ticked.includes('billing-hotfix')) throw new Error('the worktree was ticked by Tick all shown')
+    if (!ticked.includes('billing-service')) throw new Error('the repository was not ticked')
     await capture('scan-3-ticked')
     await click('.st-foot button.primary', '')
-    await waitFor(`document.querySelector('[data-launch-view="start-scan"] [role=status]') && /2/.test(document.querySelector('[data-launch-view="start-scan"] [role=status]').textContent)`, 'import summary', 30000)
+    await waitFor(`[...document.querySelectorAll('[data-launch-view="start-scan"] [role=status]')].some(e => e.textContent.includes(${JSON.stringify(String(ticked.length))}))`, 'import summary', 30000)
     await capture('scan-4-imported')
   })
-  await step('add: facts, then the duplicate notice for an imported folder', async () => {
-    await evaluate(`location.hash = ''`)
+  await step('add: a fresh folder becomes a project, its remote shown without the credential', async () => {
     await click('button', LOCALE === 'ru' ? 'Назад' : 'Back')
     await click('.st-card', LOCALE === 'ru' ? 'Добавить проект' : 'Add a project')
     await click('button.primary', '')
     await waitFor(`document.querySelector('.st-facts')`, 'facts')
+    const facts = await evaluate(`document.querySelector('.st-facts').textContent`)
+    if (facts.includes('ghp_')) throw new Error('a credential from the remote URL is on screen')
     await capture('add-1-facts')
+    await click('[data-launch-view="start-add"] button.primary', '')
+    await waitFor(`!document.querySelector('[data-launch-view="start-add"]')`, 'the new project page', 30000)
+    await capture('add-2-project-page')
   })
   const toMenu = async () => {
     await evaluate(`[...document.querySelectorAll('nav.app-nav a, nav.app-nav button')].find(e => e.textContent.trim() === ${JSON.stringify(LOCALE === 'ru' ? '+ Проект' : '+ Project')})?.click()`)

@@ -118,7 +118,9 @@ new UI was shipped. User-facing behaviour still propagates through scenarios →
 
 For changes to scenarios, flows or screens, update the visual route model and affected mockups in the same iteration: `docs/ux/product-model.json`, `scripts/product/`, then `node scripts/sync-product-ux.mjs` and `node scripts/build-product-report.mjs`. `docs/reports/product.html` is generated target design, never a production coverage receipt; keep canonical UX status and prototype behaviour distinct.
 
-Choose subsequent work by [Build order by layer](docs/evidence/backlog.md#build-order-by-layer):
+The direction everyone works to is the [general development plan](docs/evidence/backlog.md#general-development-plan)
+([ADR-0101](docs/adr/0101-the-general-development-plan.md)): lanes of the product, each naming its work by id.
+Choose subsequent work inside a lane by [Build order by layer](docs/evidence/backlog.md#build-order-by-layer):
 actual prerequisites and integrity first; a long file alone does not block all features.
 Readiness is per capability, not a blanket waterfall across every item in a layer.
 [ADR-0044](docs/adr/0044-foundation-first-delivery-and-the-living-design-map.md) records

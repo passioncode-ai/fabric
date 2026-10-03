@@ -4,6 +4,7 @@
 // refused, failed, done — and nothing created without the operator's explicit act. The first run
 // (`FirstRun.tsx`) ends on the same menu, so the two never disagree about what the paths are.
 
+import { humaniseError } from '../../../shared/errorText'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { groupCandidates, type CandidateView, type FolderView, type ScanView } from '../../../shared/startPaths.ts'
 import type { ProjectRow } from '../../../shared/types'
@@ -23,7 +24,11 @@ export interface StartProps {
   onProjectsChanged(): void
 }
 
-const errorText = (e: unknown): string => (e instanceof Error ? e.message : String(e))
+/**
+ * An error as the operator reads it: the transport's wrapping removed by the app's one rule
+ * (`shared/errorText.ts`, M106c), so the sentence that remains is the main process's own.
+ */
+export const errorText = (e: unknown): string => humaniseError(e).detail
 
 /** A candidate's path as the checklist shows it: relative to the scanned folder, which the summary already names. */
 export function shownPath(path: string, root: string): string {
@@ -66,6 +71,17 @@ function Heading({ kicker, title, lede, back }: { kicker: string; title: string;
       </div>
       {back && <div className="lp-actions"><button type="button" className="lp-button" onClick={back.onClick}>{back.label}</button></div>}
     </header>
+  )
+}
+
+/** Copy a command; says Copied only when the clipboard took it. */
+export function CopyButton({ text }: { text: string }): React.JSX.Element {
+  const t = useT()
+  const [copied, setCopied] = useState(false)
+  return (
+    <button type="button" className="lp-button" onClick={() => { void navigator.clipboard.writeText(text).then(() => setCopied(true), () => setCopied(false)) }}>
+      {copied ? t('first.exec.copied') : t('first.exec.copy')}
+    </button>
   )
 }
 
@@ -196,10 +212,13 @@ function AddProject({ onPath, onCreated, onOpenProject }: StartProps): React.JSX
               </div>
             )}
             {!facts.git && <div className="lp-callout" role="status"><p>{t('start.add.notGit')}</p></div>}
-            <label className="lp-field">
-              {t('start.name.label')}
-              <input value={name} maxLength={80} disabled={busy} onChange={(e) => setS({ at: 'ready', facts, name: e.target.value })} aria-invalid={!!nameProblem} />
-            </label>
+            {/* A folder already in a project has nothing to name: the only act is to open that project. */}
+            {facts.importedBy.length === 0 && (
+              <label className="lp-field">
+                {t('start.name.label')}
+                <input value={name} maxLength={80} disabled={busy} onChange={(e) => setS({ at: 'ready', facts, name: e.target.value })} aria-invalid={!!nameProblem} />
+              </label>
+            )}
             <FolderFactsList f={facts} t={t} locale={locale} />
             <div className="lp-actions">
               {/* A folder already in a project offers that project, never a duplicate (ADR-0100 §2). */}
@@ -210,7 +229,7 @@ function AddProject({ onPath, onCreated, onOpenProject }: StartProps): React.JSX
               )}
               <button type="button" className="lp-button" disabled={busy} onClick={() => void choose()}>{t('start.add.other')}</button>
             </div>
-            <p className="lp-meta">{t('start.add.nothingWritten')}</p>
+            {facts.importedBy.length === 0 && <p className="lp-meta">{t('start.add.nothingWritten')}</p>}
           </section>
         )
       })()}
@@ -221,12 +240,15 @@ function AddProject({ onPath, onCreated, onOpenProject }: StartProps): React.JSX
 // ── Scan a projects folder (SCN-128) ────────────────────────────────────────
 
 type ScanState =
-  | { at: 'idle' }
+  | { at: 'idle'; stopped?: boolean }
   | { at: 'scanning'; root: string }
   | { at: 'results'; scan: ScanView }
   | { at: 'importing'; scan: ScanView; done: Record<string, 'ok' | string>; queue: string[] }
   | { at: 'imported'; scan: ScanView; done: Record<string, 'ok' | string>; created: string[] }
   | { at: 'failed'; reason: string }
+
+/** A part of a product (a worktree, a repository nested in another) — not ticked by "Tick all shown". */
+const isPart = (c: CandidateView): boolean => c.path !== c.group
 
 function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: StartProps): React.JSX.Element {
   const t = useT()
@@ -235,23 +257,37 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
   const [picked, setPicked] = useState<Set<string>>(new Set())
   const [query, setQuery] = useState('')
   const ids = useRef<Record<string, string>>({})
+  const scanning = useRef(false)
 
   useEffect(() => {
     let alive = true
-    window.fabric.start.lastScan().then((last) => { if (alive && last && last.candidates.length) setS({ at: 'results', scan: last }) }, () => undefined)
-    return () => { alive = false }
+    // The kept list fills the screen only while nothing else has started (iteration 1: a late read
+    // replaced a scan already in flight).
+    window.fabric.start.lastScan().then(
+      (last) => { if (alive && last && last.candidates.length) setS((cur) => (cur.at === 'idle' && !scanning.current ? { at: 'results', scan: last } : cur)) },
+      () => undefined
+    )
+    return () => {
+      alive = false
+      // Leaving the screen stops a scan nobody is waiting for.
+      if (scanning.current) void window.fabric.start.cancelScan()
+    }
   }, [])
 
-  const run = async (root?: string): Promise<void> => {
+  const run = async (defaultPath?: string): Promise<void> => {
     try {
-      const folder = root ?? (await window.fabric.start.chooseFolder('scan'))
+      // Always through the picker: a kept or earlier folder is a suggestion, never a grant (ADR-0100 §7).
+      const folder = await window.fabric.start.chooseFolder('scan', defaultPath)
       if (!folder) return
+      scanning.current = true
       setS({ at: 'scanning', root: folder })
       setPicked(new Set())
       const scan = await window.fabric.start.scan(folder)
-      setS(scan.cancelled ? { at: 'idle' } : { at: 'results', scan })
+      setS(scan.cancelled ? { at: 'idle', stopped: true } : { at: 'results', scan })
     } catch (e) {
       setS({ at: 'failed', reason: errorText(e) })
+    } finally {
+      scanning.current = false
     }
   }
 
@@ -285,8 +321,14 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
     const shown = q ? scan.candidates.filter((c) => c.name.toLowerCase().includes(q) || c.path.toLowerCase().includes(q)) : scan.candidates
     return groupCandidates(shown)
   }, [scan, query])
-  const tickable = groups.flatMap((g) => g.items).filter((c) => c.importedBy.length === 0)
+  const products = scan ? groupCandidates(scan.candidates).length : 0
+  // "Tick all shown" ticks one Project per product: the head of each group, never its worktrees or nested parts.
+  const tickable = groups.flatMap((g) => g.items).filter((c) => c.importedBy.length === 0 && !isPart(c))
   const busy = s.at === 'importing'
+  // Ticked rows the search hides are still added; the footer says how many, so the count is not a surprise.
+  const shownPaths = new Set(groups.flatMap((g) => g.items.map((c) => c.path)))
+  const hiddenTicked = [...picked].filter((p) => !shownPaths.has(p)).length
+  const failedCount = s.at === 'imported' ? Object.values(s.done).filter((v) => v !== 'ok').length : 0
 
   return (
     <div className="lp st" data-launch-view="start-scan">
@@ -294,6 +336,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
       {(s.at === 'idle' || s.at === 'failed') && (
         <section className="lp-panel st-step">
           {s.at === 'failed' && <div className="lp-callout" role="alert"><p>{t('start.scan.failed', { reason: s.reason })}</p></div>}
+          {s.at === 'idle' && s.stopped && <div className="lp-callout" role="status"><p>{t('start.scan.stopped')}</p></div>}
           <p>{t('start.scan.choose.body')}</p>
           <div className="lp-actions"><button type="button" className="lp-button primary" onClick={() => void run()}>{t('start.scan.choose')}</button></div>
           <p className="lp-meta">{t('start.scan.readOnly')}</p>
@@ -301,23 +344,24 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
       )}
       {s.at === 'scanning' && (
         <section className="lp-panel st-step" aria-busy="true">
-          <p>{t('start.scan.scanning', { folder: s.root })}</p>
+          <p role="status">{t('start.scan.scanning', { folder: s.root })}</p>
           <div className="lp-actions"><button type="button" className="lp-button" onClick={() => void window.fabric.start.cancelScan()}>{t('start.scan.stop')}</button></div>
         </section>
       )}
       {scan && (
-        <section className="lp-panel st-step">
+        <section className="lp-panel st-step st-scan">
           <div className="lp-panel-head">
             <p className="st-summary">
-              {t('start.scan.summary', { count: scan.candidates.length, groups: groupCandidates(scan.candidates).length, folder: scan.root })}
+              {t('start.scan.summary', { count: scan.candidates.length, products, folder: scan.root })}
               {' · '}{t('start.scan.when', { date: shortDate(scan.scannedAt, locale) })}
             </p>
             <button type="button" className="lp-button" disabled={busy} onClick={() => void run(scan.root)}>{t('start.scan.again')}</button>
           </div>
           {scan.truncated && <div className="lp-callout" role="status"><p>{t('start.scan.truncated', { visited: scan.visited })}</p></div>}
+          {scan.unreadable > 0 && <div className="lp-callout" role="status"><p>{t('start.scan.unreadable', { count: scan.unreadable })}</p></div>}
           {s.at === 'imported' && (
             <div className="lp-callout" role="status">
-              <p>{t('start.scan.importedSummary', { ok: s.created.length, failed: Object.values(s.done).filter((v) => v !== 'ok').length })}</p>
+              <p>{failedCount === 0 ? t('start.scan.importedAll', { ok: s.created.length }) : t('start.scan.importedSome', { ok: s.created.length, failed: failedCount })}</p>
               {s.created[0] && <button type="button" className="lp-button" onClick={() => onCreated(s.created[0])}>{t('start.scan.openFirst')}</button>}
             </div>
           )}
@@ -341,6 +385,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
                       {g.items.map((c) => {
                         const state = s.at === 'importing' || s.at === 'imported' ? s.done[c.path] : undefined
                         const imported = c.importedBy.length > 0
+                        const part = isPart(c)
                         return (
                           <li key={c.path} className={imported ? 'st-candidate imported' : 'st-candidate'}>
                             <label>
@@ -358,22 +403,23 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
                               <span className="st-candidate-main">
                                 <b>{c.name}</b>
                                 <small>
-                                  {c.kind !== 'repository' ? `${t(`start.kind.${c.kind}` as 'start.kind.worktree')} · ` : ''}
+                                  {c.kind === 'worktree' ? `${t('start.kind.worktree')} · ` : part ? `${t('start.scan.nested')} · ` : ''}
                                   {c.lastCommit ? `${shortDate(c.lastCommit.at, locale)} · ${c.lastCommit.subject}` : t('start.scan.noCommits')}
                                 </small>
                                 <code title={c.path}>{shownPath(c.path, scan.root)}</code>
-                              </span>
-                              <span className="st-candidate-end">
-                                {c.stack.slice(0, 2).map((x) => <span key={x} className="lp-pill">{x}</span>)}
-                                {imported && (
-                                  <button type="button" className="lp-button" onClick={(e) => { e.preventDefault(); onOpenProject(c.importedBy[0].id) }}>
-                                    {t('start.scan.inProject', { name: c.importedBy[0].name })}
-                                  </button>
-                                )}
-                                {state === 'ok' && !imported && <span className="lp-pill">{t('start.scan.added')}</span>}
-                                {state && state !== 'ok' && <span className="lp-pill attention" title={state}>{t('start.scan.notAdded')}</span>}
+                                {part && !imported && picked.has(c.path) && <small className="st-warn">{t('start.scan.partWarning')}</small>}
+                                {state && state !== 'ok' && <small className="st-warn" role="status">{t('start.scan.rowFailed', { reason: state })}</small>}
                               </span>
                             </label>
+                            <span className="st-candidate-end">
+                              {c.stack.slice(0, 2).map((x) => <span key={x} className="lp-pill">{x}</span>)}
+                              {imported && (
+                                <button type="button" className="lp-button" onClick={() => onOpenProject(c.importedBy[0].id)}>
+                                  {t('start.scan.inProject', { name: c.importedBy[0].name })}
+                                </button>
+                              )}
+                              {state === 'ok' && !imported && <span className="lp-pill">{t('start.scan.added')}</span>}
+                            </span>
                           </li>
                         )
                       })}
@@ -382,9 +428,11 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
                 ))}
               </ul>
               <div className="lp-panel-foot st-foot">
-                <span>{t('start.scan.later')}</span>
+                <span>{t('start.scan.later')}{hiddenTicked > 0 && <> {t('start.scan.hiddenTicked', { count: hiddenTicked })}</>}</span>
                 <button type="button" className="lp-button primary" disabled={busy || picked.size === 0} onClick={() => void importPicked(scan)}>
-                  {busy ? t('start.scan.importing', { done: Object.keys((s as { done: object }).done).length, count: (s as { queue: string[] }).queue.length }) : t('start.scan.import', { count: picked.size })}
+                  {busy
+                    ? t('start.scan.importing', { done: Object.keys((s as { done: object }).done).length, count: (s as { queue: string[] }).queue.length })
+                    : picked.size === 0 ? t('start.scan.tickToAdd') : t('start.scan.import', { count: picked.size })}
                 </button>
               </div>
             </>
@@ -449,7 +497,10 @@ function ConvertAgent({ onBack }: { onBack(): void }): React.JSX.Element {
             <li key={n}><b>{t(`start.convert.step${n}` as 'start.convert.step1')}</b><span>{t(`start.convert.step${n}.body` as 'start.convert.step1.body')}</span></li>
           ))}
         </ol>
-        <div className="lp-callout"><p>{t('start.convert.today')}</p><code>{t('start.convert.command')}</code></div>
+        <div className="lp-callout">
+          <p>{t('start.convert.today')}</p>
+          <div className="st-install"><code>{t('start.convert.command')}</code><CopyButton text={t('start.convert.command')} /></div>
+        </div>
       </section>
     </div>
   )

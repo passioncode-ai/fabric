@@ -5,7 +5,7 @@ import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, net, powe
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
@@ -98,7 +98,7 @@ import { createPrivateHistory, type PrivateHistory } from './privateHistory.ts'
 type Returns<T> = T extends (...args: never[]) => Promise<infer R> ? R : never
 import { hasSiblings, originDocument, sameDocument } from '../shared/origin.ts'
 import { researchBrief } from '../shared/idea.ts'
-import { readSpec, resolveServers } from '../shared/agentSpec.ts'
+import { nameTaken, readSpec, resolveServers } from '../shared/agentSpec.ts'
 import { dueRoutines } from '../shared/routine.ts'
 import { automationStates } from '../shared/automations.ts'
 import { createRoutineTick } from './routineTick'
@@ -233,7 +233,9 @@ import { favourites, moveProject, projectOrder, replaceFavourite, toggleFavourit
 import { persona, savePersona } from './persona.ts'
 import { inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors } from './executorDetect.ts'
-import { createProjectFolder, keepScan, lastScan } from './startPaths.ts'
+import { keepScan, lastScan } from './startPaths.ts'
+import { createProjectFolder } from './projectFolder.ts'
+import { ParentChoices, walkPickFor } from './startChoices.ts'
 import { sessionEnvironment } from './sessionEnv.ts'
 import type { CandidateView, FolderFacts, ScanView } from '../shared/startPaths.ts'
 import { livenessFor } from './livenessRead.ts'
@@ -735,8 +737,16 @@ const scopeOf = (event: Electron.IpcMainInvokeEvent): string => `win:${event.sen
 
 /** Called for every window as it closes, so a folder it was allowed to reach
  *  does not outlive it. */
+/** A start-path parent chosen in a window, and that window's running scan (ADR-0100) — both end with it. */
+const parentChoices = new ParentChoices()
+const startScans = new Map<string, AbortController>()
+
 export function revokeWindowRoots(webContentsId: number): void {
-  fileRoots.revoke(`win:${webContentsId}`)
+  const scope = `win:${webContentsId}`
+  fileRoots.revoke(scope)
+  parentChoices.revoke(scope)
+  startScans.get(scope)?.abort()
+  startScans.delete(scope)
 }
 
 async function refreshFileRoots(): Promise<void> {
@@ -896,9 +906,23 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // then failed attaching would otherwise be "already exists, nothing to do",
     // and the operator would be left with a project missing the repositories
     // they chose — a partial creation that looks complete.
-    const { data: already } = await store.select('projects', 'id').eq('id', id).maybeSingle()
+    // Every repository path the renderer names is checked here, not trusted (iteration 1): an absolute
+    // path to an existing folder, taken by its real path, or the create is refused before anything is
+    // journalled.
+    const repoPaths = (input.repoPaths ?? []).map((p) => {
+      if (typeof p !== 'string' || !path.isAbsolute(p)) throw new Error(`not a repository folder: ${String(p)}`)
+      let real: string
+      try { real = realpathSync(p) } catch { throw new Error(`repository folder does not exist: ${p}`) }
+      if (!statSync(real).isDirectory()) throw new Error(`not a repository folder: ${p}`)
+      return real
+    })
+    // A failed read is not "no such project" (iteration 1: it appended a second create that cleared the
+    // project's folder).
+    const { data: already, error: alreadyError } = await store.select('projects', 'id').eq('id', id).maybeSingle()
+    if (alreadyError) throw new Error(`project read failed: ${alreadyError.message}`)
     if (already) {
-      if (input.repoPaths?.length) await attachRepos(id, input.repoPaths)
+      if (repoPaths.length) await attachRepos(id, repoPaths)
+      await refreshFileRoots()
       return readProject(id)
     }
 
@@ -916,7 +940,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         default_agent: input.defaultAgent ?? 'claude-code'
       }
     })
-    if (input.repoPaths?.length) await attachRepos(id, input.repoPaths)
+    if (repoPaths.length) await attachRepos(id, repoPaths)
+    // The new project's folders join the estate's roots and the git watch now, not at the next restart.
+    await refreshFileRoots()
     mirrorNow()
     return readProject(id)
   })
@@ -1609,6 +1635,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         (project.mcp_servers as string[] | null) ?? []
       )
       if (!resolved.ok) throw new Error(resolved.reason)
+      // One agent per name in a project (`nameTaken`, the rule the form shows before the click).
+      const { data: named, error: nerr } = await store
+        .select('agent_bindings', 'role').eq('project_id', input.projectId).not('instructions', 'is', null)
+      if (nerr) throw new Error(`agents read failed: ${nerr.message}`)
+      if (nameTaken(verdict.spec.name, (named ?? []).map((r) => ({ name: (r.role as string | null) ?? '' }))))
+        throw new Error(`this project already has an agent called ${verdict.spec.name}`)
 
       const id = randomUUID()
       await journal.append({
@@ -2832,21 +2864,28 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     const index = await importedIndex()
     return rows.map((r) => ({ ...r, importedBy: index.get(r.path) ?? [] }))
   }
-  const scans = new Map<string, AbortController>()
-  handle(IPC.startChooseFolder, async (event, purpose: 'project' | 'scan' | 'parent'): Promise<Returns<FabricApi['start']['chooseFolder']>> => {
+  const scans = startScans
+  handle(IPC.startChooseFolder, async (event, purpose: 'project' | 'scan' | 'parent', defaultPath?: string): Promise<Returns<FabricApi['start']['chooseFolder']>> => {
     const message =
       purpose === 'scan' ? 'Choose the folder that holds your projects'
         : purpose === 'parent' ? 'Choose where the new project folder goes'
           : 'Choose a project folder'
-    // The walk harness (scripts/walk/start-paths.mjs) cannot click a native dialog. In an UNPACKAGED
-    // run only, `FABRIC_WALK_PICK` answers the picker with a folder; a packaged app ignores it, so no
-    // installed build can be made to grant a folder nobody chose.
-    const walkPick = !app.isPackaged ? process.env.FABRIC_WALK_PICK : undefined
+    // The walk harness answers the picker in an unpackaged run only (`walkPickFor`).
+    const walkPick = walkPickFor(purpose, process.env, app.isPackaged)
     const result = walkPick
-      ? { canceled: false, filePaths: [walkPick.split(path.delimiter)[purpose === 'scan' ? 1 : purpose === 'parent' ? 2 : 0] ?? walkPick] }
-      : await dialog.showOpenDialog({ properties: ['openDirectory', 'createDirectory'], message })
+      ? { canceled: false, filePaths: [walkPick] }
+      : await (() => {
+          // Modal to the asking window, so a second click cannot open a second picker behind the first.
+          const owner = BrowserWindow.fromWebContents(event.sender)
+          const options = { properties: ['openDirectory', 'createDirectory'] as Array<'openDirectory' | 'createDirectory'>, message, ...(typeof defaultPath === 'string' ? { defaultPath } : {}) }
+          return owner ? dialog.showOpenDialog(owner, options) : dialog.showOpenDialog(options)
+        })()
     if (result.canceled || !result.filePaths[0]) return null
-    fileRoots.allow(result.filePaths[0], scopeOf(event))
+    const scope = scopeOf(event)
+    if (purpose === 'parent') {
+      // A parent is recorded, not granted; one that vanished since the picker is not offered at all.
+      if (parentChoices.record(scope, result.filePaths[0]) === null) return null
+    } else fileRoots.allow(result.filePaths[0], scope)
     return result.filePaths[0]
   })
   handle(IPC.startInspect, async (event, folder: string): Promise<Returns<FabricApi['start']['inspect']>> => {
@@ -2863,7 +2902,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const result = await scanFolder(resolved, { signal: ctl.signal })
       const kept = keepScan(result)
       const view: ScanView = { ...result, scannedAt: kept?.scannedAt ?? new Date().toISOString(), candidates: (await withImported(result.candidates)) as CandidateView[] }
-      ops.record({ op: 'start.scan', outcome: 'ok', detail: { visited: result.visited, candidates: result.candidates.length, truncated: result.truncated, cancelled: result.cancelled }, ctx: { correlationId: ops.correlate() } })
+      ops.record({ op: 'start.scan', outcome: 'ok', detail: { visited: result.visited, candidates: result.candidates.length, unreadable: result.unreadable, deep: result.deep, truncated: result.truncated, cancelled: result.cancelled }, ctx: { correlationId: ops.correlate() } })
       return view
     } finally {
       if (scans.get(scope) === ctl) scans.delete(scope)
@@ -2873,23 +2912,24 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     scans.get(scopeOf(event))?.abort()
   })
   handle(IPC.startLastScan, async (event): Promise<Returns<FabricApi['start']['lastScan']>> => {
+    void event
     const kept = lastScan()
     if (!kept) return null
-    // The kept list is re-marked against today's projects, and its root is granted again only
-    // because the operator chose it in the picker once; a candidate is reachable only through it.
-    fileRoots.allow(kept.root, scopeOf(event))
+    // The kept list is re-marked against today's projects and shown — it is NOT a grant (iteration 1:
+    // re-granting its root gave any window a folder it never chose). Scanning it again goes through
+    // the picker; adding a listed candidate goes through `projects.create`, which checks each path.
     return { ...kept, candidates: (await withImported(kept.candidates)) as CandidateView[] }
   })
   handle(IPC.startCreateFolder, async (event, input): Promise<Returns<FabricApi['start']['createFolder']>> => {
     const scope = scopeOf(event)
-    const result = createProjectFolder(input, (p) => fileRoots.resolve(p, scope))
+    const result = await createProjectFolder(input, (p) => parentChoices.resolve(scope, p, (q) => fileRoots.resolve(q, scope)))
     if (result.ok) fileRoots.allow(result.path, scope)
     else ops.record({ op: 'start.create-folder', outcome: 'failed', level: 'warn', detail: { refused: result.reason }, ctx: { correlationId: ops.correlate() } })
     return result
   })
   handle(IPC.startExecutors, async (): Promise<Returns<FabricApi['start']['executors']>> =>
     detectExecutors(
-      AGENTS.filter((a) => (a.id === 'claude-code' || a.id === 'codex') && a.program).map((a) => ({ id: a.id, label: a.label, program: a.program as string })),
+      AGENTS.filter((a) => (a.id === 'claude-code' || a.id === 'codex') && a.program).map((a) => ({ id: a.id, label: a.label, program: a.program as string, connected: a.connectsToSurface })),
       { env: sessionEnvironment(process.env) }
     )
   )

@@ -4852,7 +4852,7 @@
           "scenario_verdicts": [
             {
               "id": "SCN-126",
-              "line": 3075,
+              "line": 3077,
               "status": "draft",
               "coverage": "apps/desktop/src/renderer/src/start/FirstRun.tsx; apps/desktop/src/renderer/src/start/StartPaths.test.tsx",
               "product": "unobserved"
@@ -4879,7 +4879,7 @@
           "scenario_verdicts": [
             {
               "id": "SCN-127",
-              "line": 3096,
+              "line": 3098,
               "status": "draft",
               "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/test/project-discovery.test.mjs",
               "product": "unobserved"
@@ -4906,7 +4906,7 @@
           "scenario_verdicts": [
             {
               "id": "SCN-128",
-              "line": 3117,
+              "line": 3119,
               "status": "draft",
               "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/src/main/startPaths.ts",
               "product": "unobserved"
@@ -4933,9 +4933,9 @@
           "scenario_verdicts": [
             {
               "id": "SCN-129",
-              "line": 3139,
+              "line": 3141,
               "status": "draft",
-              "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/startPaths.ts",
+              "coverage": "apps/desktop/src/renderer/src/Onboarding.tsx; apps/desktop/src/main/startPaths.ts",
               "product": "unobserved"
             }
           ]
@@ -4949,7 +4949,7 @@
           "canonical": [
             {
               "screen": "SCR-74",
-              "source": "docs/ux/screens.md:1729",
+              "source": "docs/ux/screens.md:1728",
               "explicit_scenarios": [
                 "SCN-130"
               ],
@@ -4960,7 +4960,7 @@
           "scenario_verdicts": [
             {
               "id": "SCN-130",
-              "line": 3160,
+              "line": 3162,
               "status": "draft",
               "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
               "product": "unobserved"
@@ -4976,7 +4976,7 @@
           "canonical": [
             {
               "screen": "SCR-75",
-              "source": "docs/ux/screens.md:1744",
+              "source": "docs/ux/screens.md:1743",
               "explicit_scenarios": [
                 "SCN-131"
               ],
@@ -4987,7 +4987,7 @@
           "scenario_verdicts": [
             {
               "id": "SCN-131",
-              "line": 3180,
+              "line": 3182,
               "status": "draft",
               "coverage": "none yet",
               "product": "unobserved"

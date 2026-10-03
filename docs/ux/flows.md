@@ -1694,6 +1694,7 @@ FLW-24: экран → открыть Fabric → текущая область �
 FLW-18/32: результат этапа записывает прогресс знакомства; выход и пропуск его не увеличивают. Archived duplicate → восстановление выбранного проекта; отказ и неизвестный исход не перенаправляют в чужую работу. Task/Run flows сохраняют ручные переходы и recovery, убирая повторные одинаковые кнопки; fault injection остаётся отдельной веткой просмотра макета.
 
 ### FLW-55: Configure CEO and discover the first project
+*(Amended 2026-10-03 by [ADR-0100](../adr/0100-first-run-and-start-paths.md): the first run is FLW-69 — name and look first, then coding agents, then the start paths; a parent folder is FLW-71's checklist, each ticked repository its own Project. The "one Project with related sources" and "no personalisation form" lines below are superseded where they differ.)*
 - **Traces:** ST-001, ST-022, ST-031; SCN-095, SCN-059 (JTBD-01, JTBD-02)
 - **Goal:** First useful sourced insight from the user's selected project, with minimal operator input.
 - **Before entry:** Verify exact build/schema compatibility before workspace services or recovery. Unknown/out-of-range → native startup error → fresh schema Retry, or reinstall/restart for an artifact failure. No automatic migration, no false read-only ahead mode.

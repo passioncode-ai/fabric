@@ -39,7 +39,7 @@ import { LaunchShell, PROJECT_SECTION_ANCHOR, type ProjectSection } from './laun
 import './launch/launch.css'
 import { Onboarding } from './Onboarding'
 import { FirstRun, firstRunDue } from './start/FirstRun'
-import { StartScreen } from './start/StartPaths'
+import { StartScreen, errorText } from './start/StartPaths'
 import './start/start.css'
 import { BootFailure, OperatorError } from './OperatorError'
 import { ProjectHome } from './ProjectHome'
@@ -676,9 +676,14 @@ function Shell({
           <FirstRun
             onFinish={async (next) => {
               // Finishing or skipping is the same act: the first run is not shown again, and Help reopens it.
-              const written = await window.fabric.settings.write({ firstRun: { completedAt: new Date().toISOString() } })
-              onSettings(written.settings)
-              if (!written.saved) setError(t('settings.notSaved', { reason: written.reason ?? '' }))
+              // A write that fails — refused or thrown — is said, and the operator still goes where they chose.
+              try {
+                const written = await window.fabric.settings.write({ firstRun: { completedAt: new Date().toISOString() } })
+                onSettings(written.settings)
+                if (!written.saved) setError(t('settings.notSaved', { reason: written.reason ?? '' }))
+              } catch (e) {
+                setError(t('settings.notSaved', { reason: errorText(e) }))
+              }
               if (next === 'new') newDraft()
               else goTo(next === 'home' ? { kind: 'home' } : { kind: 'start', path: next })
             }}

@@ -121,6 +121,7 @@ plan survives as org #1 and builds first.
 | [Interactive product walkthrough](docs/reports/product.html#journeys) | visual screen designs, product funnels, source findings and per-task UX handoff; fixture data, not production |
 | [System and engineering contracts](docs/reports/system.html#system) | proposed implementation contracts, data graph, cycles and dependency payloads; [developer entry](docs/architecture/system-contract.md) |
 | [Audit archive](docs/audit/README.md) | retained reports and evidence; [2026-09-07 merged report](docs/audit/2026-09-07-merged-execution-plan.html) |
+| [General development plan](docs/evidence/backlog.md#general-development-plan) | the lanes everyone works to, each naming its work by id ([ADR-0101](docs/adr/0101-the-general-development-plan.md)) |
 | [Current foundation-first queue](docs/evidence/backlog.md#build-order-by-layer) | dependencies, activation gates and all existing milestone references |
 | [`docs/vision.md`](docs/vision.md) | what this is, what would falsify each of its claims, and how it arrives |
 | [`docs/brand/`](docs/brand/) | canonical public facts, product terminology, voice and surface rules |

@@ -11,6 +11,7 @@ import type { CreatedAgent, ProjectRow, TaskRow, TerminalSession } from '../../.
 import { since } from '../duration'
 import { useLocale, useT } from '../i18n'
 import { FabricAvatar } from './FabricAvatar'
+import { FabricName } from './persona'
 
 export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt, onBoard, onPlan, onPulse, onOpenTask, onNewTask, onSection }: {
   /** This project's pulse (SCR-42). */
@@ -64,7 +65,7 @@ export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt,
       <div className="fp-strip">
         <FabricAvatar size="tiny" label={t('launch.avatar.label')} />
         <div>
-          <b>{t('launch.brand.product')}</b>
+          <b><FabricName /></b>
           <span>
             {lastEventAt
               ? t('launch.project.observed', { time: new Date(lastEventAt).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' }), project: project.name })

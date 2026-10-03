@@ -23,6 +23,13 @@ type Step = 1 | 2 | 3
 export function FirstRun({ onFinish }: FirstRunProps): React.JSX.Element {
   const t = useT()
   const [step, setStep] = useState<Step>(1)
+  // Each step announces itself: focus moves to its heading, so a keyboard or screen-reader user is told
+  // where they are rather than left on the body (iteration 1, accessibility).
+  const first = useRef(true)
+  useEffect(() => {
+    if (first.current) { first.current = false; return }
+    document.getElementById(['first-persona', 'first-exec', 'first-start'][step - 1])?.focus()
+  }, [step])
   return (
     <div className="lp st st-first" data-launch-view="first-run">
       <ol className="st-progress" aria-label={t('first.progress')}>
@@ -124,7 +131,7 @@ function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): R
     window.fabric.start.executors().then(setRows, (e: unknown) => setFailure(e instanceof Error ? e.message : String(e)))
   }
   useEffect(check, [])
-  const anyFound = rows?.some((r) => r.state === 'found') ?? false
+  const anyFound = rows?.some((r) => r.state === 'found' && r.connected) ?? false
   const copy = async (text: string): Promise<void> => {
     try { await navigator.clipboard.writeText(text); setCopied(text) } catch { setCopied(null) }
   }
@@ -145,13 +152,16 @@ function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): R
                   <b>{r.label}</b>
                   <small>
                     {r.state === 'found' && t('first.exec.found', { version: r.version ?? '?' })}
-                    {r.state === 'unresponsive' && t('first.exec.unresponsive')}
+                    {r.state === 'unresponsive' && t('first.exec.unresponsive', { program: r.path?.split('/').pop() ?? r.label })}
                     {r.state === 'missing' && t('first.exec.missing')}
                   </small>
                   {r.path && <code>{r.path}</code>}
                 </div>
-                <span className={r.state === 'found' ? 'lp-pill' : 'lp-pill attention'}>{t(`first.exec.state.${r.state}` as 'first.exec.state.found')}</span>
-                {r.state !== 'found' && r.install && (
+                <span className={r.state === 'found' && r.connected ? 'lp-pill' : 'lp-pill attention'}>
+                  {r.state === 'found' ? t(r.connected ? 'first.exec.state.found' : 'first.exec.state.foundUnconnected') : t(`first.exec.state.${r.state}` as 'first.exec.state.missing')}
+                </span>
+                {r.state === 'found' && !r.connected && <p className="st-exec-note">{t('first.exec.unconnected', { name: r.label })}</p>}
+                {r.state === 'missing' && r.install && (
                   <div className="st-install">
                     <code>{r.install}</code>
                     <button type="button" className="lp-button" onClick={() => void copy(r.install!)}>{copied === r.install ? t('first.exec.copied') : t('first.exec.copy')}</button>

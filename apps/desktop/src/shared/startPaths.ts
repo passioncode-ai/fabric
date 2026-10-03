@@ -35,6 +35,10 @@ export interface ScanResult {
   root: string
   candidates: Candidate[]
   visited: number
+  /** Folders that could not be read (permission, a hung mount): the list may miss what is under them. */
+  unreadable: number
+  /** Folders below the depth limit that were not entered. */
+  deep: number
   truncated: boolean
   cancelled: boolean
 }
@@ -48,6 +52,8 @@ export type ExecutorState = 'found' | 'unresponsive' | 'missing'
 export interface ExecutorRow {
   id: string
   label: string
+  /** Fabric's own tools reach a session of this agent. Found but not connected runs in the folder as itself. */
+  connected: boolean
   state: ExecutorState
   version: string | null
   path: string | null
@@ -64,13 +70,19 @@ export type NewFolderResult =
   | { ok: true; path: string }
   | { ok: false; reason: 'exists' | 'invalid-name' | 'outside' | 'failed'; detail?: string }
 
-/** A folder name the create path accepts: no separators, no leading dot, no control characters, ≤ 80. */
-export function folderNameProblem(name: string): string | null {
+/**
+ * A folder name the create path accepts: a string; no separators, no leading dot, ≤ 80 characters; no
+ * control characters and no bidirectional overrides (U+202A–U+202E, U+2066–U+2069), which make a name
+ * read differently from what it is (`evil\u202Etxt.exe`).
+ */
+export function folderNameProblem(name: unknown): string | null {
+  if (typeof name !== 'string') return 'not a name'
   const s = name.trim()
   if (!s) return 'empty'
   if (s.length > 80) return 'too long'
   if (s === '.' || s === '..' || s.startsWith('.')) return 'starts with a dot'
   if (/[/\\:\u0000-\u001f\u007f]/.test(s)) return 'contains a separator or control character'
+  if (/[\u202a-\u202e\u2066-\u2069]/.test(s)) return 'contains a text-direction control'
   return null
 }
 

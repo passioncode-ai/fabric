@@ -177,6 +177,24 @@ set, terminal/runtime, project grants and the node it currently holds. The proje
 binding is what makes it a member of one project. Agents are added, replaced and
 retired; project routines and history survive them.
 
+**Coding agent** — a program on the operator's machine that writes code in a project folder — Claude
+Code, Codex. The first run's word for what the code calls an executor (`AGENTS`, `shared/agents.ts`).
+It is *installed* when it answers `--version`, *connected* when Fabric's own tools reach its sessions,
+and becomes an Agent only when bound into a project. Detection never verifies its account (CO-176).
+[ADR-0100](docs/adr/0100-first-run-and-start-paths.md).
+
+**First run** — the three skippable steps an estate with no project meets once: Fabric's name and look
+(the persona, a preference that grants nothing), the coding agents on this machine, and the start
+paths. Finished or skipped, it is stamped in `settings.firstRun` and reopened from Help. ADR-0100.
+
+**Start path** — one way a project or an agent comes into Fabric: add a project (one folder), scan a
+projects folder, new project, new agent (inside a project), convert an agent (designed, not built).
+ADR-0100.
+
+**Candidate** — a repository a scan found and listed, not yet a Project. Only a tick turns it into
+one; a worktree or nested repository is a *part* of its product's candidate group. A kept scan lists
+candidates; it grants no access to them. ADR-0100 §3.
+
 **Agent Bootstrap Recipe** — a copyable, version-pinned onboarding instruction that a
 coding agent runs to inspect an existing repository or create a new provider, apply an
 adapter, validate it and emit a provider bundle. It is not the compatibility contract,

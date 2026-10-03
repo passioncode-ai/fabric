@@ -9,7 +9,6 @@ import {
 } from '../../shared/projectSettings.ts'
 import { markOf, type FeedMarks } from '../../shared/feedMarks.ts'
 import type {
-  CreatedAgent,
   RoutineRow,
   AutomationStateRow,
   AgentClaim,
@@ -39,6 +38,7 @@ import {
   type InsightCategory
 } from '../../shared/memoryContract.ts'
 import { Feed } from './Feed'
+import { CreatedAgents } from './CreatedAgents'
 import {
   Banner,
   Board,
@@ -1455,6 +1455,8 @@ export function AgentsSection({
 }): React.JSX.Element {
   const t = useT()
   const [options, setOptions] = useState<LaunchOption[]>([])
+  /** The create form must not call "no program available" before the options were read. */
+  const [optionsRead, setOptionsRead] = useState(false)
   const [choice, setChoice] = useState(project.default_agent)
   const [busy, setBusy] = useState(false)
   /** Where a launch will land, by the SAME rule the main process applies. */
@@ -1465,6 +1467,7 @@ export function AgentsSection({
       .options()
       .then((o) => {
         setOptions(o)
+        setOptionsRead(true)
         const wanted = o.find((x) => x.id === project.default_agent && x.available)
         setChoice(wanted ? wanted.id : (o.find((x) => x.available)?.id ?? project.default_agent))
       })
@@ -1522,7 +1525,7 @@ export function AgentsSection({
           ? t('agents.startsIn', { path: place.path })
           : t('agents.startsInHome')}
       </p>
-      <CreatedAgents project={project} onError={onError} />
+      <CreatedAgents project={project} options={optionsRead ? options : null} />
       {(sessions?.length ?? 0) === 0 && (
         <EmptyState read={sessions !== null} waiting={t('agents.reading')}>
           {t('agents.empty')}
@@ -1695,126 +1698,6 @@ function claimIsBehind(reportedAt: string, lastActivityAt: string): boolean {
  * because "no servers offered" and "this project grants none" are different
  * facts and only one of them is actionable.
  */
-function CreatedAgents({
-  project,
-  onError
-}: {
-  project: ProjectRow
-  onError: (m: string) => void
-}): React.JSX.Element {
-  const t = useT()
-  const [made, setMade] = useState<CreatedAgent[]>([])
-  const [open, setOpen] = useState(false)
-  const [name, setName] = useState('')
-  const [brief, setBrief] = useState('')
-  const [runner, setRunner] = useState(project.default_agent)
-  const [wants, setWants] = useState<string[]>([])
-  const [busy, setBusy] = useState(false)
-
-  const load = (): void => {
-    window.fabric.agents.list(project.id).then(setMade).catch((e) => onError(String(e)))
-  }
-  useEffect(load, [project.id])
-
-  const create = async (): Promise<void> => {
-    setBusy(true)
-    try {
-      await window.fabric.agents.create({
-        projectId: project.id,
-        name,
-        instructions: brief,
-        runnerId: runner,
-        servers: wants
-      })
-      setName('')
-      setBrief('')
-      setWants([])
-      setOpen(false)
-      load()
-    } catch (e) {
-      onError(String(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const grants = project.mcp_servers ?? []
-
-  return (
-    <>
-      {made.length === 0 && !open && <p className="muted">{t('agents.madeNone')}</p>}
-      {made.map((a) => (
-        <Row
-          key={a.id}
-          lead={<StateChip tone="quiet">{a.runner_id}</StateChip>}
-          trail={
-            <span className="muted">
-              {a.mcp_servers.length > 0
-                ? t('agents.reaches', { servers: a.mcp_servers.join(', ') })
-                : t('agents.reachesNothing')}
-            </span>
-          }
-        >
-          {a.name}
-        </Row>
-      ))}
-      {!open ? (
-        <Toolbar>
-          <Button tone="quiet" onClick={() => setOpen(true)}>
-            {t('agents.newTitle')}
-          </Button>
-        </Toolbar>
-      ) : (
-        <>
-          <p className="muted">{t('agents.newLede')}</p>
-          <Field label={t('agents.newName')}>
-            {(id) => <input id={id} value={name} onChange={(e) => setName(e.target.value)} />}
-          </Field>
-          <Field label={t('agents.newInstructions')}>
-            {(id) => (
-              <textarea id={id} rows={4} value={brief} onChange={(e) => setBrief(e.target.value)} />
-            )}
-          </Field>
-          <Field label={t('agents.newServers')}>
-            {(id) =>
-              grants.length === 0 ? (
-                <span id={id} className="muted">
-                  {t('agents.newServersNone')}
-                </span>
-              ) : (
-                <span id={id}>
-                  {grants.map((sv) => (
-                    <label key={sv}>
-                      <input
-                        type="checkbox"
-                        checked={wants.includes(sv)}
-                        onChange={(e) =>
-                          setWants((prev) =>
-                            e.target.checked ? [...prev, sv] : prev.filter((x) => x !== sv)
-                          )
-                        }
-                      />
-                      <span className="mono">{sv}</span>
-                    </label>
-                  ))}
-                </span>
-              )
-            }
-          </Field>
-          <Toolbar align="end">
-            <Button onClick={() => void create()} disabled={busy || !name.trim() || !brief.trim()}>
-              {t('agents.create')}
-            </Button>
-            <Button tone="ghost" onClick={() => setOpen(false)}>
-              {t('project.cancel')}
-            </Button>
-          </Toolbar>
-        </>
-      )}
-    </>
-  )
-}
-
 /**
  * Routines: work that starts without anybody asking (M13).
  *

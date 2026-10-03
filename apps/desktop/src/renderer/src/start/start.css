@@ -44,16 +44,18 @@
 .st-toolbar .st-search { flex: 1; min-width: 200px; margin: 0; }
 .st-groups, .st-groups ul, .st-pick, .st-exec { list-style: none; margin: 0; padding: 0; }
 .st-group { border-top: 1px solid var(--app-line); padding: var(--space-2) 0; }
-.st-group-head { margin: var(--space-2) 0 var(--space-1); font-size: var(--app-fs-label); letter-spacing: var(--app-track-label); text-transform: uppercase; color: var(--app-muted); }
-.st-candidate label { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: var(--space-3); padding: var(--space-2) 0; cursor: pointer; }
+.st-group-head { margin: var(--space-2) 0 var(--space-1); font-size: var(--app-fs-caption); color: var(--app-muted); }
+.st-candidate { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--space-3); }
+.st-candidate label { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: var(--space-3); padding: var(--space-2) 0; cursor: pointer; }
 .st-candidate.imported label { cursor: default; }
 .st-candidate.imported .st-candidate-main b { color: var(--app-muted); }
 .st-candidate input[type='checkbox'] { margin-top: var(--space-1); accent-color: var(--app-accent); }
 .st-candidate-main { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
 .st-candidate-main small { color: var(--app-muted); font-size: var(--app-fs-caption); }
 .st-candidate-main code { color: var(--app-muted); }
-.st-candidate-end { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: var(--space-1); }
-.st-foot { margin-top: var(--space-3); }
+.st-candidate-end { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: var(--space-1); padding-top: var(--space-2); }
+.st-warn { color: var(--app-ink); font-size: var(--app-fs-caption); }
+.st-foot { margin-top: var(--space-3); position: sticky; bottom: 0; background: var(--app-panel); padding-bottom: var(--space-3); z-index: 1; }
 .st-empty { color: var(--app-muted); padding: var(--space-4) 0; }
 .st-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
@@ -72,8 +74,10 @@
 .st-pick { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 
 /* ── the convert plan ── */
-.st-steps { margin: var(--space-4) 0; padding-left: var(--space-5); display: grid; gap: var(--space-3); }
-.st-steps li { display: flex; flex-direction: column; gap: var(--space-1); }
+.st-steps { margin: var(--space-4) 0; padding-left: var(--space-5); }
+.st-steps li { display: list-item; margin-bottom: var(--space-3); }
+.st-steps li b, .st-steps li span { display: block; }
+.st-steps li span { margin-top: var(--space-1); }
 .st-steps span { color: var(--app-muted); font-size: var(--app-fs-caption); }
 
 /* ── the first run ── */
@@ -94,6 +98,7 @@
 .st-exec-row > div { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
 .st-exec-row small { color: var(--app-muted); font-size: var(--app-fs-caption); }
 .st-exec-row code { color: var(--app-muted); }
+.st-exec-note { grid-column: 1 / -1; margin: 0; color: var(--app-muted); font-size: var(--app-fs-caption); }
 .st-install { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); background: var(--app-panel-quiet); border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-2) var(--space-3); }
 .st-install code { flex: 1; color: var(--app-ink); }
 

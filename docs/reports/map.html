@@ -2415,7 +2415,7 @@ CEO вычисляет <code>stalled</code> вычитанием, а не суж
 
 <!-- ─────────────────────────── SCREENS ─────────────────────────── -->
 <h2 id="screens"><span class="n">06</span>Экраны</h2>
-<p class="lead">В текущем реестре 61 запись экрана; ниже смешаны реализованные и спроектированные поверхности. Полный список
+<p class="lead">В текущем реестре 75 записей экрана (SCR-01…SCR-75); ниже смешаны реализованные и спроектированные поверхности. Полный список
 и их состояния — в <code>docs/ux/screens.md</code>.</p>
 
 <div class="cards">
@@ -2445,6 +2445,14 @@ CEO вычисляет <code>stalled</code> вычитанием, а не суж
   <div class="card"><h4>Плавающий CEO <span class="id">SCR-36</span></h4>
     <p>В целевом макете знак бренда или инициалы открывают разговор своего scope. Профиль показывает только прочитанные источники; неизвестные показатели не заменяются нулём.</p><div class="foot"><span class="chip wait">runtime чата открыт</span> M126 · M131 partial, персонаж: CO-109</div></div>
 <div class="card" id="screen-40"><h4>Графы истории и плана <span class="id">SCR-40</span></h4><p>Отдельные адреса agent DID, project DID, target SHOULD; общий доступный graph/outline/list.</p><div class="foot">designed · <a href="system.html#task-M190">контракт M190</a></div></div><div class="card" id="screen-41"><h4>Полная Board <span class="id">SCR-41</span></h4><p>Вопросы и производные обязательства; ответ отдельно от continuation.</p><div class="foot">designed · <a href="system.html#task-M151">контракт M151</a></div></div><div class="card" id="screen-42"><h4>Inbox <span class="id">SCR-42</span></h4><p>Needs you и Happened; прочтение не закрывает обязанность.</p><div class="foot">designed · <a href="system.html#task-M185">контракт M185</a></div></div><div class="card" id="screen-43"><h4>Циклы <span class="id">SCR-43</span></h4><p>Настройка, наблюдение и результат; guarded wake и точный tick.</p><div class="foot">designed · <a href="system.html#task-M186">контракт M186</a></div></div></div>
+<div class="cards" id="screens-start">
+  <div class="card"><h4>Первый запуск <span class="id">SCR-70</span></h4><p>Имя и вид Fabric, затем какие агенты для кода есть на этой машине: «готов», «установлен, но не подключён», «не отвечает», «не найден» с командой установки.</p><div class="foot">built · ADR-0100 · <a href="product.html#view-first-run">макет</a></div></div>
+  <div class="card"><h4>Добавить проект <span class="id">SCR-71</span></h4><p>Одна папка: факты о ней (ветка, remote без учётных данных, последний коммит, стек) до создания проекта.</p><div class="foot">built · <a href="product.html#view-start-add">макет</a></div></div>
+  <div class="card"><h4>Просканировать папку <span class="id">SCR-72</span></h4><p>Список с галочками по продуктам; worktree и вложенные — части, а не отдельные проекты; честный итог при недоступных или слишком глубоких папках.</p><div class="foot">built · <a href="product.html#view-start-scan">макет</a></div></div>
+  <div class="card"><h4>Новый проект <span class="id">SCR-73</span></h4><p>Форма на черновике; «Создать для него новую папку» с git init, без полузаконченной папки при отказе.</p><div class="foot">built · CO-179 стиль формы · <a href="product.html#view-start-new">макет</a></div></div>
+  <div class="card"><h4>Новый агент <span class="id">SCR-74</span></h4><p>Вход ведёт в команду выбранного проекта.</p><div class="foot">built · <a href="product.html#view-start-agent">макет</a></div></div>
+  <div class="card"><h4>Конвертировать агента <span class="id">SCR-75</span></h4><p>План, ветка и проба соответствия — показаны честно как запланированные.</p><div class="foot">designed · AR-11 · <a href="product.html#view-start-convert">макет</a></div></div>
+</div>
 
 <!-- ─────────────────────────── DATA ─────────────────────────── -->
 <h2 id="data"><span class="n">07</span>Схема данных — журнал как хребет</h2>

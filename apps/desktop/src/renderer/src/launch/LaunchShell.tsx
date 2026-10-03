@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import type { ProjectRow } from '../../../shared/types'
 import { useT } from '../i18n'
 import { FabricAvatar } from './FabricAvatar'
+import { FabricName } from './persona'
 import brandMark from '../../../../../../assets/brand/favicon/transparent/passioncode-favicon-64.svg?url'
 
 export type ProjectSection = 'overview' | 'team' | 'cycles' | 'goals' | 'memory' | 'settings'
@@ -91,7 +92,7 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
         <button type="button" className="fabric-launcher" aria-expanded={props.chatOpen} onClick={props.onChat}
           aria-label={`${t('chat.open')} · ${chatActive === null ? t('launch.launcher.unknown') : chatActive ? t('launch.launcher.ready') : t('launch.launcher.closed')}`}>
           <FabricAvatar size="tiny" label={t('launch.avatar.label')} />
-          <span><strong>{t('launch.brand.product')}</strong><small>{chatActive === null ? t('launch.launcher.unknown') : chatActive ? t('launch.launcher.ready') : t('launch.launcher.closed')}</small></span>
+          <span><strong><FabricName /></strong><small>{chatActive === null ? t('launch.launcher.unknown') : chatActive ? t('launch.launcher.ready') : t('launch.launcher.closed')}</small></span>
           <span aria-hidden="true">{t('glyph.open')}</span>
         </button>
       </aside>

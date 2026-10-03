@@ -37,6 +37,16 @@ export type SpecVerdict = { ok: true; spec: AgentSpec } | { ok: false; reason: s
 export const NAME_MAX = 60
 export const INSTRUCTIONS_MIN = 20
 
+/**
+ * An agent is picked by its name, so a project holds one agent per name: trimmed and compared without
+ * case, because "Reviewer" and "reviewer " are the same word to the person choosing between them. The
+ * create form and the `agents:create` handler both ask this, so they cannot disagree.
+ */
+export function nameTaken(name: string, existing: readonly { name: string }[]): boolean {
+  const n = name.trim().toLowerCase()
+  return n !== '' && existing.some((a) => a.name.trim().toLowerCase() === n)
+}
+
 export function readSpec(draft: {
   name: string
   instructions: string
