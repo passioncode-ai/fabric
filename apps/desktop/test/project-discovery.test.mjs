@@ -102,6 +102,30 @@ await assert.rejects(() => scanFolder(path.join(root, 'missing')), /does not exi
   assert.equal(f.lastCommit?.subject, 'signed')
   assert.equal(existsSync(mark), false, 'a repository config must never make the scan execute a program')
 }
+// Iteration 2, errors finding 1: a PARTIAL CLONE whose promisor remote names a program as its upload-pack,
+// HEAD at a commit missing from the object store. `git log -1` lazy-fetched the commit and ran the program
+// five times — while scanning and while adding. Inspecting it, and scanning a folder holding it, run nothing.
+{
+  const d = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-partial-')))
+  const mark = d + '.EXECUTED'
+  const evil = d + '.uploadpack.sh'
+  writeFileSync(evil, `#!/bin/sh\ntouch ${mark}\nexit 1\n`); chmodSync(evil, 0o755)
+  const r = path.join(d, 'clone')
+  mkdirSync(r)
+  git(r, 'init', '-q', '-b', 'main')
+  git(r, 'config', 'core.repositoryformatversion', '1')
+  git(r, 'config', 'extensions.partialClone', 'origin')
+  git(r, 'config', 'remote.origin.url', path.join(d, 'no-such-remote'))
+  git(r, 'config', 'remote.origin.promisor', 'true')
+  git(r, 'config', 'remote.origin.uploadpack', evil)
+  writeFileSync(path.join(r, '.git', 'refs', 'heads', 'main'), '1234567890123456789012345678901234567890\n')
+  const f = await inspectFolder(r)
+  assert.equal(f.kind, 'repository')
+  assert.equal(f.lastCommit, null, 'a commit that is not on disk is not fetched to answer')
+  const s = await scanFolder(d)
+  assert.deepEqual(s.candidates.map((c) => c.name), ['clone'])
+  assert.equal(existsSync(mark), false, "a partial clone's remote.origin.uploadpack must never run on a scan or an inspect")
+}
 // A remote URL carrying a credential is never shown or kept with it.
 {
   const d = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-cred-')))

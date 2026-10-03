@@ -1,4 +1,4 @@
-// #region project-discovery — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+// #region project-discovery — docs: docs/ux/scenarios.md#scn-128-scan-a-projects-folder-and-tick-what-becomes-a-project
 /**
  * Finding projects on disk: one folder inspected, or a parent folder scanned
  * (ADR-0100, SCN-127 add an existing project, SCN-128 scan a projects folder).
@@ -23,10 +23,11 @@
  * read what the operator did not open.
  */
 
-import { execFile } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { lstat, readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
+
+import { gitRun } from './gitRun.ts'
 
 import type { Candidate, FolderFacts, FolderKind, ScanResult } from '../shared/startPaths.ts'
 export type { Candidate, FolderFacts, ScanResult } from '../shared/startPaths.ts'
@@ -70,24 +71,17 @@ const STACK_MARKERS: ReadonlyArray<[string, string]> = [
 const GIT_TIMEOUT_MS = 3000
 
 /**
- * Configuration a repository's OWN `.git/config` could use to make a read run a program — a signature
- * verifier, a filesystem monitor, a pager, an external diff, an ssh command. Each is switched off on the
- * command line, which outranks the repository's config, so scanning a repository someone else prepared
- * never executes what it names (iteration 1, errors finding 1: `log.showSignature` + `gpg.program` ran a
- * planted script). The environment closes the same doors for config git reads from elsewhere.
+ * Git through the ONE hardened runner (`gitRun.ts`): a repository's own config cannot make a read run a
+ * program — a signature verifier, a filesystem monitor, a filter, a lazy fetch through a partial clone's
+ * upload-pack (iteration 1 errors finding 1; iteration 2 errors finding 1, where this file's private copy
+ * of the hardening had drifted from the runner's). Null when git fails or times out: the fact is unknown,
+ * not invented. Asynchronous on purpose: the caller is Electron's main process.
  */
-const SAFE_GIT = [
-  '-c', 'log.showSignature=false', '-c', 'gpg.program=false', '-c', 'gpg.ssh.program=false', '-c', 'gpg.x509.program=false',
-  '-c', 'core.fsmonitor=false', '-c', 'core.pager=cat', '-c', 'core.sshCommand=false', '-c', 'diff.external=',
-  '-c', 'core.hooksPath=/dev/null'
-]
-const SAFE_ENV: Record<string, string> = { GIT_TERMINAL_PROMPT: '0', GIT_PAGER: 'cat', GIT_OPTIONAL_LOCKS: '0', GIT_CONFIG_NOSYSTEM: '1' }
-
-/** Asynchronous on purpose: the caller is Electron's main process, and a scan of a hundred repositories must not freeze every window. */
 function gitOut(dir: string, args: string[]): Promise<string | null> {
-  return new Promise((resolve) => {
-    execFile('git', [...SAFE_GIT, '-C', dir, ...args], { timeout: GIT_TIMEOUT_MS, encoding: 'utf8', env: { ...process.env, ...SAFE_ENV } }, (err, stdout) => resolve(err ? null : stdout.trim()))
-  })
+  return gitRun(dir, args, { timeoutMs: GIT_TIMEOUT_MS }).then(
+    (out) => out.trim(),
+    () => null
+  )
 }
 
 /** A remote as it may be shown and kept: an http(s) URL loses its user and password (a token lives there). */
