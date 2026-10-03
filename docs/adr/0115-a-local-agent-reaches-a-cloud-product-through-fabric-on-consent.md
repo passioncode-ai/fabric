@@ -1,0 +1,195 @@
+# ADR-0115 — A local agent reaches a cloud product through Fabric, on the operator's consent
+
+**Status:** accepted · 2026-10-03 · supersedes ADR-0034's route (the machine gateway) · extends ADR-0026 (the binding) · AR-3.1, AR-3.4 · operator decision 2026-10-03 ("through Fabric, in slices"; "the product connects without copying")
+
+## Context
+
+The operator, on 2026-10-03, said what a local agent reaching a cloud product should feel like:
+**"something pops up, you authorise, and it goes on"**. There should be no key made in one app and
+pasted into a third.
+
+The first case is a local research service that must read one mailbox in Fabric Inbox. Fabric
+Inbox's server is a Cloudflare Worker behind Access. Today that takes four manual steps: make a key
+in Fabric Inbox → Agent access, copy two values, and store them. The key that comes out reads every
+mailbox on every domain.
+
+ADR-0034 routed cross-agent MCP traffic through the machine's agentgateway. That gateway was
+switched off on 2026-09-14. Every project that declares `mcp_servers` has been refused since. ADR-0034's
+own table already names the right long answer: *"Through Fabric — proxied by our own surface: every
+call seen, meterable and refusable … not built."*
+
+What makes it buildable now:
+
+- **Fabric Inbox can scope a key to mailboxes** (AP-11, `passioncode-ai/fabric-inbox#16`). A key
+  limited to mailboxes sees only tools that stay inside a mailbox, and every route call it makes is
+  checked against its accounts.
+- **The contract defines the hub call.** `fabric-interop/0.1` C3.5 is `agent.call {agentId,
+  capability, input, idempotencyKey?}`. Fabric enforces the caller's binding and holds the callee's
+  credential, which travels in headers only.
+- **Fabric already has a door toward agents.** `apps/desktop/src/main/agentSurface.ts` is a
+  Streamable HTTP server whose credential resolves to a scope. Today it opens only for sessions Fabric
+  started itself.
+
+## Decision
+
+### 1. One door, a second way in
+
+`AgentSurface` gains an **external ingress** for agents registered on this machine. "Registered"
+means listed as `fabric-service/0.1` descriptors in `services/` or as `fabric-provider/0.1` entries
+in `providers/`. The ingress is AR-2.2, the reader only.
+
+It stays one server, as the surface's header requires. The only difference is where the credential
+came from.
+
+**Discovery.** Fabric is an app, not a launchd service, so it does not publish a `fabric-service`
+descriptor. While running it keeps a stable loopback port and writes
+`~/Library/Application Support/ai.passioncode.fabric/hub.json` (mode 0600):
+
+```json
+{ "protocol": "fabric-hub/0.1", "origin": "http://127.0.0.1:<port>", "mcp": "/mcp",
+  "doorTokenFile": "<path, 0600>", "pid": 0, "startedAt": "<iso>" }
+```
+
+It removes the file on quit. An agent that finds no live hub asks the local lifecycle broker to
+`ensure_running` Fabric, which is already enrolled on demand.
+
+### 2. An agent is admitted by device-style consent, not by a pasted key
+
+This adapts RFC 8628 (device authorization) to loopback.
+
+1. **The agent asks.** It calls the MCP tool `fabric.access.request {agentId, callee, capabilities[],
+   resources[], reason}`, carrying the **door token** as its bearer. The door token allows asking and
+   nothing else. It may be reused, and it is never spent.
+2. **Fabric checks the agent is registered.** `agentId` must resolve in the registry. If it does not,
+   the request is refused before any prompt.
+3. **The operator sees one prompt.** It is a native dialog, asynchronous, with a parent window
+   (lesson at `index.ts:4100-4108`). When Fabric is in the background, an OS notification is shown
+   and the request is placed in the attention queue (SCR-24). The prompt states:
+   - the agent's **registry** name and id, and where it came from (`installedBy`,
+     `source.repository`);
+   - what it asks, in the product's words (for example "read mail in news@example.com");
+   - why, quoting the agent's `reason` as its own claim;
+   - **Allow** / **Deny**.
+4. **The agent polls.** `fabric.access.status {requestId}` returns `pending`, `allowed`, `denied` or
+   `expired`. A request expires after 10 minutes. On Allow, the first status read returns the
+   **binding credential exactly once**.
+5. **Storage.** The agent stores the credential the way it stores every secret: in Project
+   Observatory's vault. Fabric keeps only a verifier (ADR-0026 §3).
+
+**What the prompt cannot prove.** Every local process runs as the same user. Fabric can show that
+the request names a registered agent; it cannot prove which process sent it. The prompt therefore
+says *"an agent registered as example-agent"*. This is the same-user floor stated in the surface's
+header, now stated to the operator.
+
+### 3. Grants are standing, narrow and revocable
+
+**Allow** writes an **access grant** with these fields: binding, callee, capability, resource
+pattern (e.g. `cloudflare:news@example.com`), decided by, decided at, expiry (default 1 year), and
+revoked at.
+
+**Deny** writes a refusal. The same request is then answered `denied` until the operator clears it.
+
+A new capability or a new resource needs a new request and a new prompt (incremental consent).
+Nothing widens silently.
+
+Revoking stops the next call (ADR-0026 §9). The grants are listed with a Revoke action.
+
+### 4. A product is connected once, by the product's own consent
+
+Fabric holds **one credential per connected product**. It obtains it without the operator copying
+anything. The first product is Fabric Inbox.
+
+1. **Fabric opens the product's connect link.** For Fabric Inbox:
+   `fabric-inbox://connect?client=Fabric&client_id=fabric&level=admin&callback=http://127.0.0.1:<port>/fabric/v1/connect/fabric-inbox&state=<nonce>`.
+   - `callback` must be a loopback `http` URL.
+   - `state` is 22–128 characters, single use, and expires in 10 minutes.
+2. **The product's app asks the operator.** The Fabric Inbox desktop app shows its own native
+   prompt: "Connect Fabric to Fabric Inbox? — Admin: …" with **Allow** / **Deny**.
+3. **On Allow, the app mints the key.** It creates the key through the owner's existing signed-in
+   session: `POST /api/agent-keys`, the same route a person uses in Agent access. A person clicked
+   Allow in the app, so "keys are issued by a person in the app" still holds.
+4. **The app delivers the key.** It POSTs `{state, outcome, server, mcpUrl, key:{id, clientId,
+   level, send, expiresAt}, clientSecret}` to the callback.
+   - If the callback does not answer 2xx within 10 s, the app revokes the key and says so.
+   - Deny is delivered as `{state, outcome:"denied"}`.
+5. **Fabric stores it.** Fabric checks `state`, then stores the secret through Project Observatory's
+   door: `vault.py put fabric <env> FABRIC_INBOX_CLIENT_SECRET`, value on stdin. Non-secret
+   metadata goes to Fabric's own store. In memory the value lives only for the duration of a call.
+   - Without Observatory installed, the connection is refused with that reason; it is not kept
+     anywhere weaker.
+   - AGENTS' "creates no Keychain item" still holds.
+
+### 5. Every forwarded call is narrowed twice
+
+`agent.call {agentId: <callee>, capability, input, idempotencyKey}`, made with a binding
+credential, works as follows:
+
+1. **Resolve.** Fabric resolves the callee among its connected products.
+2. **Check the grant.** Fabric checks that the caller's grant covers the capability, and that the
+   input's resource arguments fit the grant's resource pattern.
+3. **Narrow at the product too.** Fabric sends the grant's resources in a **narrowing header** that
+   the product intersects with the key's own scope. Fabric Inbox's header is `X-Fabric-Accounts`;
+   it can narrow, never widen.
+4. **Journal.** Each hop writes one journal span, a child of the caller's `traceparent` (C3.4). The
+   span records:
+   - caller binding id;
+   - callee and capability;
+   - redacted argument hash;
+   - the grant that allowed it;
+   - outcome.
+
+**Product setup asked for in the same consent.** An action like "create the mailbox you asked to
+read" runs **without** the narrowing header, because it acts on the workspace. It runs only when
+the caller's grant names it as a capability of its own, which the operator saw in the prompt.
+
+### 6. Refused
+
+- **A call with no grant.** The answer is `access-required` together with the
+  `fabric.access.request` arguments that would ask for access. It is not passed through.
+- **Handing the callee's credential to the agent.** Direct stays refused; ADR-0034 consequence 1
+  carries over.
+- **A prompt for an unregistered `agentId`.**
+- **A grant without an expiry.**
+- **A connect callback that is not loopback.**
+- **A product secret kept outside the vault.**
+
+## Consequences
+
+- The paste disappears. A product is connected once, with one click in the product's own app.
+  Each agent then needs one click in Fabric.
+- `ServerSource 'fabric'` becomes the implemented route. Today it is "declared and unimplemented →
+  REFUSES". `'gateway'` is retired with this record.
+- **Storage.** Fabric gains standing grants and long-lived binding credentials:
+  `access_bindings`, `access_grants`, `access_requests` and `product_connections`. The one-shot floor
+  `grants` table is untouched.
+- **Credential lifetime.** The surface's rule 3 ("a handshake, not a password") is narrowed, not
+  dropped:
+  - sessions Fabric starts keep their one-shot bearer;
+  - an external binding is long-lived and revocable, which is the only way a service that restarts
+    keeps working;
+  - its floor is the same-user floor, written into the prompt.
+- Fabric Inbox gains a connect link with its own consent, and the `X-Fabric-Accounts` narrowing
+  header. Both are in its repository.
+
+## Rejected alternatives
+
+| Alternative | Why rejected |
+|---|---|
+| Each product prompts and hands the agent a key | Every product would reinvent consent, and the agent would hold a product key. |
+| The agent's descriptor token as its identity | That token authenticates calls *into* the agent, and any same-user process can read it. |
+| A prompt on every call | Fatigue makes Allow reflexive. |
+| The operator makes the product key by hand | That is the paste this record removes. It stays possible as a manual fallback, and is never the path. |
+| A Fabric `fabric-service` descriptor for discovery | Fabric is an app, not a launchd service. A descriptor would claim a lifecycle it does not have. |
+
+## Slices
+
+| Slice | Scope |
+|---|---|
+| S1 | AR-2.2: registry reader |
+| S2 | AR-3.1: stable port and `hub.json`; external ingress; migration; `agent.call` |
+| S3 | AR-3.4: access request/status, native prompt plus attention fallback, grants, revoke |
+| S4 | Product connections: connect link, callback, vault store, forwarder with narrowing |
+| S5 | First consumer, in its own private repository |
+
+Fabric Inbox's half (AP-11 scope, the narrowing header, the connect link) lands in
+`passioncode-ai/fabric-inbox`.

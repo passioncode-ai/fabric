@@ -70,10 +70,10 @@ Partial delivery in a dependent tool does not complete Fabric's module.
 
 | Task | Does | Implements | Check | Status |
 |---|---|---|---|---|
-| AR-3.1 | Northbound MCP (ADR-0026) extended with `agent.call`, `fabric.job.get/cancel` routing, grants, spans; ADR superseding ADR-0034 | REQ-04, REQ-24 | contract probe against Fabric; refusal tests | not recorded |
+| AR-3.1 | Northbound MCP (ADR-0026) extended with `agent.call`, `fabric.job.get/cancel` routing, grants, spans; ADR superseding ADR-0034 | REQ-04, REQ-24 | contract probe against Fabric; refusal tests | in progress — decided by [ADR-0115](../../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md) (supersedes ADR-0034); branch `agent/ar-3-local-agent-consent` |
 | AR-3.2 | Fabric's MCP entry written into each catalogued runner's config (header credential), removed on disconnect | REQ-04 | config-writer tests per format; no credential in URL/argv | not recorded |
 | AR-3.3 | CEO tools `agent_call`, `create_task`, `pipeline_run` on the ADR-0039 loop; plan-before-effect in the conversation — SCN-105 | REQ-06 | CEO tool tests | not recorded |
-| AR-3.4 | First-use admission + binding in one confirmation — SCN-106 | REQ-07 | probe-failure scenario test | not recorded |
+| AR-3.4 | First-use admission + binding in one confirmation — SCN-106 | REQ-07 | probe-failure scenario test | in progress — device-style consent per ADR-0115 §2–3; branch `agent/ar-3-local-agent-consent` |
 | AR-3.5 | Jobs, interaction points from elicitation, delegation, unknown outcomes — SCN-107/108/109 | REQ-05, REQ-06 | job-state tests; no blind retry | not recorded |
 | AR-3.6 | Walking-skeleton acceptance: the registry sees all four sources on this Mac and the CEO gives one agent one job whose trace has a line per hop | REQ-01, REQ-06, REQ-11 | recorded run on the operator's Mac | not recorded |
 
