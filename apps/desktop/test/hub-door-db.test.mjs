@@ -33,6 +33,7 @@ const { AgentRegistry } = await import(path.join(SRC, 'agentRegistry.ts'))
 const { createAccessStore } = await import(path.join(SRC, 'accessStore.ts'))
 const { AccessService } = await import(path.join(SRC, 'accessService.ts'))
 const { hubServerFor, HUB_TOOLS } = await import(path.join(SRC, 'hubTools.ts'))
+const { startHub } = await import(path.join(SRC, 'hub.ts'))
 
 let count = 0; const failed = []
 const test = async (name, fn) => {
@@ -78,6 +79,7 @@ const ask = (extra = {}) => ({ agentId: 'example-agent', callee: 'fabric-inbox',
 
 let credential = null
 let firstRequest = null
+let firstSecret = null
 
 await test('the door token reaches exactly the two asking tools, and nothing of a session', async () => {
   const door = await connect(DOOR)
@@ -112,6 +114,8 @@ await test('a request reaches the operator once, naming the agent as the registr
   assert.equal(r.isError, false)
   assert.equal(r.value.status, 'pending')
   firstRequest = r.value.requestId
+  firstSecret = r.value.pollSecret
+  assert.match(firstSecret, /^[A-Za-z0-9_-]{43}$/, 'the creating answer carries a poll secret')
   assert.equal(shown.length, 1)
   assert.equal(shown[0].row.agent_id, 'example-agent.default', 'a bare service id is its .default instance')
   assert.equal(shown[0].row.registry.name, 'Example agent')
@@ -120,27 +124,33 @@ await test('a request reaches the operator once, naming the agent as the registr
   assert.deepEqual(shown[0].row.resources, ['cloudflare:news@example.com'])
   const again = await call(door, 'fabric.access.request', ask())
   assert.equal(again.value.requestId, firstRequest)
+  assert.equal(again.value.pollSecret, undefined, 'a retry was handed the poll secret')
   assert.equal(shown.length, 1, 'a retry prompted twice')
-  assert.equal((await call(door, 'fabric.access.status', { requestId: firstRequest })).value.status, 'pending')
+  assert.equal((await call(door, 'fabric.access.status', { requestId: firstRequest, pollSecret: firstSecret })).value.status, 'pending')
   await door.close()
 })
 
 await test('Allow: the first status read carries the credential once; the second does not', async () => {
   assert.deepEqual(await access.decide(firstRequest, 'allowed', OPERATOR), { ok: true })
   const door = await connect(DOOR)
-  const first = await call(door, 'fabric.access.status', { requestId: firstRequest })
+  // ER-2: the door token alone, or another request's secret, reads nothing — not even "allowed".
+  const bare = await door.callTool({ name: 'fabric.access.status', arguments: { requestId: firstRequest } })
+  assert.equal(bare.isError, true, 'a status read without the poll secret was answered')
+  const wrong = await call(door, 'fabric.access.status', { requestId: firstRequest, pollSecret: 'w'.repeat(43) })
+  assert.equal(wrong.value.error.code, 'unknown-request')
+  const first = await call(door, 'fabric.access.status', { requestId: firstRequest, pollSecret: firstSecret })
   assert.equal(first.value.status, 'allowed')
   assert.match(first.value.credential, /^[A-Za-z0-9_-]{43}$/)
   assert.deepEqual(first.value.grants.map((g) => [g.capability, g.resource]), [['read_message', 'cloudflare:news@example.com']])
   credential = first.value.credential
-  const second = await call(door, 'fabric.access.status', { requestId: firstRequest })
+  const second = await call(door, 'fabric.access.status', { requestId: firstRequest, pollSecret: firstSecret })
   assert.equal(second.value.status, 'allowed')
   assert.equal(second.value.credential, undefined)
   assert.match(second.value.note, /handed over once/)
   const stored = await store.binding(first.value.bindingId)
   assert.match(stored.verifier, /^[0-9a-f]{64}$/)
   assert.notEqual(stored.verifier, credential, 'Fabric kept the credential, not its hash')
-  assert.deepEqual(await access.decide(firstRequest, 'denied', OPERATOR), { ok: false, reason: 'that request was already allowed' })
+  assert.deepEqual(await access.decide(firstRequest, 'denied', OPERATOR), { ok: false, code: 'already-decided', reason: 'that request was already allowed' })
   await door.close()
 })
 
@@ -200,7 +210,7 @@ await test('Deny stands until cleared: the same request answers denied without p
   const r = await call(door, 'fabric.access.request', ask({ resources: ['other@example.com'] }))
   const before = shown.length
   await access.decide(r.value.requestId, 'denied', OPERATOR)
-  assert.equal((await call(door, 'fabric.access.status', { requestId: r.value.requestId })).value.status, 'denied')
+  assert.equal((await call(door, 'fabric.access.status', { requestId: r.value.requestId, pollSecret: r.value.pollSecret })).value.status, 'denied')
   const again = await call(door, 'fabric.access.request', ask({ resources: ['OTHER@example.com'] }))
   assert.equal(again.value.status, 'denied')
   assert.equal(shown.length, before)
@@ -215,9 +225,10 @@ await test('a request nobody answered expires after ten minutes and can no longe
   const door = await connect(DOOR)
   const r = await call(door, 'fabric.access.request', ask({ resources: ['late@example.com'] }))
   clock += 11 * 60_000
-  assert.equal((await call(door, 'fabric.access.status', { requestId: r.value.requestId })).value.status, 'expired')
+  assert.equal((await call(door, 'fabric.access.status', { requestId: r.value.requestId, pollSecret: r.value.pollSecret })).value.status, 'expired')
   const d = await access.decide(r.value.requestId, 'allowed', OPERATOR)
   assert.equal(d.ok, false)
+  assert.equal(d.code, 'expired')
   assert.match(d.reason, /expired/)
   clock = Date.now()
   await door.close()
@@ -261,6 +272,56 @@ await test('a port in use is an error naming it, never a quiet move to another p
   const other = new AgentSurface({ db, journal, ptys: () => undefined, estateId: E })
   await assert.rejects(other.start({ port }), (e) => e instanceof HubPortUnavailable && e.port === port && /already in use/.test(e.message))
   assert.equal(other.origin, '')
+  blocker.close()
+})
+
+// ── DA-5 (verification iteration 1 for 0.3.1): expiry is never written, so unanswered requests stay
+// `pending` for ever. The live ones are read and COUNTED by the database, newest first — a page of the
+// 500 oldest filtered afterwards let the caps lapse and blanked the operator's list.
+await test('500 unanswered expired requests: the caps still hold and the live requests are still listed', async () => {
+  const { execFileSync } = await import('node:child_process')
+  const E2 = randomUUID()
+  const psql = (input) => execFileSync('psql', [url, '-X', '-q', '-t', '-A', '-v', 'ON_ERROR_STOP=1'], { input, encoding: 'utf8' }).trim()
+  psql(`set role service_role; do $$ begin for i in 1..501 loop perform append_event('${E2}','access.requested@1','{"kind":"system","id":"fabric-hub"}'::jsonb,
+    jsonb_build_object('id',gen_random_uuid(),'agent_id','example-agent.default','callee','fabric-inbox','capabilities',jsonb_build_array('list_messages'),
+      'resources',jsonb_build_array('cloudflare:n'||i||'@example.com'),'reason','r','registry','{}'::jsonb,'binding_id',null,
+      'poll_verifier',repeat('a',64),'expires_at',(now()+interval '1 second')::text)); end loop; end $$;`)
+  await new Promise((r) => setTimeout(r, 1500)) // every one of the 501 has now expired
+  const prompts = []
+  const service = new AccessService({ store: createAccessStore({ db, journal, estateId: E2 }), registry, present: (p) => prompts.push(p.row.id), connected: async () => true })
+  const asks = []
+  for (let i = 0; i < 5; i++) asks.push(await service.request({ kind: 'door' }, ask({ capabilities: ['list_messages'], resources: [`new${i}@example.com`] })))
+  assert.deepEqual(asks.map((a) => a.ok), [true, true, true, false, false], 'the per-agent cap of 3 did not hold past 500 stale rows')
+  assert.equal(prompts.length, 3)
+  const ov = await service.overview()
+  assert.equal(ov.pending.length, 3, 'the live requests were not listed for the operator')
+})
+
+// ── DA-9: the port-taken fallback, driven: the hub port held by another program closes the hub with its
+// reason, and the sessions Fabric starts still work on an ephemeral port with the door closed.
+await test('a hub port another program holds: the hub is down with its reason, sessions still initialise, the door stays closed', async () => {
+  const blocker = createServer()
+  await new Promise((r) => blocker.listen(0, '127.0.0.1', r))
+  const port = blocker.address().port
+  const state = { door: null }
+  const fallback = new AgentSurface({
+    db, journal, ptys: () => undefined, estateId: E, limits: { budgetCalls: 200 },
+    hub: { doorToken: () => state.door, access, tools: (p) => hubServerFor(p, { access }) }
+  })
+  const published = []
+  const started = await startHub({ surface: fallback, env: { FABRIC_HUB_PORT: String(port) }, claimedPorts: new Map(), root: mkdtempSync(path.join(tmpdir(), 'fabric-hub-root-')), publish: (o) => { published.push(o); throw new Error('nothing may be published for a hub that is down') } })
+  assert.equal(started.open, false)
+  assert.match(started.down, new RegExp(`port ${port} on 127\\.0\\.0\\.1 is already in use.*quit and reopen Fabric`))
+  assert.equal(published.length, 0, 'hub.json was published for a hub that did not open')
+  assert.ok(fallback.origin && !fallback.origin.endsWith(`:${port}`), 'the sessions surface did not move to an ephemeral port')
+  const scope = fallback.mint(randomUUID(), randomUUID(), null)
+  const session = new Client({ name: 'session', version: '0' })
+  await session.connect(new StreamableHTTPClientTransport(new URL(fallback.endpoint), { requestInit: { headers: { Authorization: `Bearer ${scope.token}` } } }))
+  assert.ok((await session.listTools()).tools.some((t) => t.name === 'fabric_whoami'))
+  await session.close()
+  const r = await fetch(fallback.endpoint, { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', authorization: `Bearer ${DOOR}` }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }) })
+  assert.equal(r.status, 401, 'the external door answered on a hub that is down')
+  await fallback.stop()
   blocker.close()
 })
 

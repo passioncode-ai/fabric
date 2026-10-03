@@ -43,7 +43,7 @@ import { closeHttpServer } from './closeHttpServer.ts'
 // session tools. The floor is the same-user floor, now written into the consent prompt.
 
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
-import { randomBytes, randomUUID } from 'node:crypto'
+import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import { cleanOriginalText, prepareAgentPayload, prepareRetrievalText } from './desktopIngress.ts'
 import { checkAuthorityTarget } from '../shared/authorityIngress.ts'
 import { CommandIngressError } from './commandIngressAdapters.ts'
@@ -266,6 +266,20 @@ interface ScopeState {
   callsInWindow: number
 }
 
+/**
+ * Which door bucket a JSON-RPC body spends (ER-7): a status poll its request, an ask its agent, anything
+ * else (initialize, tools/list) one shared bucket. The values are only a budget key, never trusted.
+ */
+function doorBucket(body: unknown): string {
+  const first = Array.isArray(body) ? body[0] : body
+  const params = (first as { method?: unknown; params?: { name?: unknown; arguments?: Record<string, unknown> } } | null)?.params
+  const args = (first as { method?: unknown })?.method === 'tools/call' && params && typeof params.arguments === 'object' && params.arguments ? params.arguments : null
+  const id = (v: unknown): string | null => (typeof v === 'string' && v.length <= 128 ? v : null)
+  if (args && params?.name === 'fabric.access.status' && id(args.requestId)) return `request:${id(args.requestId)}`
+  if (args && params?.name === 'fabric.access.request' && id(args.agentId)) return `agent:${id(args.agentId)}`
+  return 'other'
+}
+
 export class AgentSurface {
   private states = new Map<string, ScopeState>()
   /** Sessions that have already been recorded as oriented. In memory on
@@ -273,9 +287,19 @@ export class AgentSurface {
    *  its rules", so a restart appending a second row costs nothing, while a
    *  table to prevent it would be state kept for tidiness. */
   private oriented = new Set<string>()
-  /** Calls per external principal per window — the door token is one principal, each binding another. */
+  /**
+   * Calls per external principal per window. The door token is shared by every agent on this Mac, so its
+   * calls are budgeted per request (a status poll) or per agent (an ask), never in one bucket that one
+   * agent polling in a loop spends for all of them (ER-7, verification iteration 1 for 0.3.1); a door-wide
+   * ceiling of five budgets still bounds the whole door. Bearers that turned out to be nobody's share one
+   * small budget checked BEFORE the credential lookup, so they cannot each cost a database read.
+   */
   private externalBudget = new Map<string, { windowStart: number; calls: number }>()
+  /** sha256 of bearers that authenticated recently: still looked up (revocation is checked every time), but never budgeted as unknown. */
+  private knownBearers = new Set<string>()
   private http: Server | null = null
+  /** The hub port held on [::1] as well (ER-8); null for an ephemeral session port. */
+  private http6: Server | null = null
   private port = 0
 
   private deps: AgentSurfaceDeps
@@ -324,18 +348,44 @@ export class AgentSurface {
       })
     })
     const wanted = opts.port ?? 0
+    const taken = (host: string, e: NodeJS.ErrnoException): Error =>
+      wanted && (e.code === 'EADDRINUSE' || e.code === 'EACCES')
+        ? new HubPortUnavailable(
+            wanted,
+            `port ${wanted} on ${host} is ${e.code === 'EADDRINUSE' ? 'already in use by another program' : 'not available to this user'}, so agents outside Fabric cannot reach it. ` +
+              `Close that program (or choose a free port with FABRIC_HUB_PORT), then quit and reopen Fabric`
+          )
+        : e
     await new Promise<void>((resolve, reject) => {
-      server.once('error', (e: NodeJS.ErrnoException) =>
-        reject(
-          wanted && (e.code === 'EADDRINUSE' || e.code === 'EACCES')
-            ? new HubPortUnavailable(wanted, `port ${wanted} on 127.0.0.1 is ${e.code === 'EADDRINUSE' ? 'already in use by another program' : 'not available to this user'}; set FABRIC_HUB_PORT to a free port`)
-            : e
-        )
-      )
+      server.once('error', (e: NodeJS.ErrnoException) => reject(taken('127.0.0.1', e)))
       // Loopback only: this door is for processes on this machine, and binding
       // wider would put the estate on the network without anyone deciding to.
       server.listen(wanted, '127.0.0.1', () => resolve())
     })
+    // THE HUB PORT IS FABRIC'S ON BOTH LOOPBACKS (ER-8). Holding only 127.0.0.1 let another program bind
+    // the same port on [::1] (libuv sets SO_REUSEADDR), and an agent dialling `localhost` reached it while
+    // hub.json's pid — Fabric's — was alive. A [::1] the system does not have is no risk and is skipped;
+    // one another program holds refuses the hub port exactly as 127.0.0.1 taken does.
+    if (wanted) {
+      const server6 = createServer((req, res) => {
+        void this.handle(req, res).catch((e) => {
+          ops.failed('agentSurface.agent-surface-the-request-handler-threw', e, { note: 'agent surface ([::1]): the request handler threw:' })
+          if (res.headersSent) res.destroy()
+          else AgentSurface.refuse(res, 500, 'the surface failed to handle this request')
+        })
+      })
+      const bound6 = await new Promise<Error | 'bound' | 'absent'>((resolve) => {
+        server6.once('error', (e: NodeJS.ErrnoException) =>
+          resolve(e.code === 'EADDRNOTAVAIL' || e.code === 'EAFNOSUPPORT' ? 'absent' : taken('[::1]', e)))
+        server6.listen({ port: wanted, host: '::1', ipv6Only: true }, () => resolve('bound'))
+      })
+      if (bound6 instanceof Error) {
+        await closeHttpServer(server)
+        throw bound6
+      }
+      if (bound6 === 'bound') this.http6 = server6
+      else ops.record({ op: 'agentSurface.ipv6-loopback-absent', outcome: 'ok', detail: { port: wanted }, ctx: { correlationId: ops.correlate() } })
+    }
     const address = server.address()
     this.port = typeof address === 'object' && address ? address.port : 0
     this.http = server
@@ -344,9 +394,12 @@ export class AgentSurface {
   async stop(): Promise<void> {
     for (const token of [...this.states.keys()]) this.drop(token)
     const server = this.http
+    const server6 = this.http6
     this.http = null
+    this.http6 = null
     this.port = 0
     if (server) await closeHttpServer(server)
+    if (server6) await closeHttpServer(server6)
   }
 
   mint(projectId: string, sessionId: string, taskId: string | null): AgentScope {
@@ -582,6 +635,26 @@ export class AgentSurface {
     await st.transport.handleRequest(req, res, body)
   }
 
+  /** Spend one call from `key`'s window; false when the window's `limit` is already spent. */
+  private spend(key: string, limit: number): boolean {
+    const now = this.now()
+    const budget = this.externalBudget.get(key) ?? { windowStart: now, calls: 0 }
+    if (now - budget.windowStart >= this.limits.budgetWindowMs) {
+      budget.windowStart = now
+      budget.calls = 0
+    }
+    if (budget.calls >= limit) {
+      this.externalBudget.set(key, budget)
+      return false
+    }
+    budget.calls++
+    this.externalBudget.set(key, budget)
+    // Bounded: a window's buckets are forgotten once they are old, so request ids cannot grow the map for ever.
+    if (this.externalBudget.size > 4096)
+      for (const [k, v] of this.externalBudget) if (now - v.windowStart >= this.limits.budgetWindowMs) this.externalBudget.delete(k)
+    return true
+  }
+
   /**
    * An external principal (ADR-0115): the door token, or a binding credential. Returns false when the
    * bearer is neither, so the caller refuses it exactly as it refuses any unknown bearer.
@@ -602,9 +675,20 @@ export class AgentSurface {
     const door = hub.doorToken()
     if (door && sameToken(token, door)) principal = { kind: 'door' }
     else {
+      const bearerHash = createHash('sha256').update(token, 'utf8').digest('hex')
+      // Unknown bearers share one small budget, spent BEFORE the lookup: each would otherwise cost a
+      // database read with no budget at all (ER-7). A bearer that authenticated before is not held back.
+      if (!this.knownBearers.has(bearerHash) && !this.spend('unknown-bearers', Math.max(1, Math.ceil(this.limits.budgetCalls / 4)))) {
+        AgentSurface.refuse(res, 429, 'too many unknown credentials; try again later', { 'retry-after': String(Math.max(1, Math.ceil(this.limits.budgetWindowMs / 1000))) }, attempt)
+        return true
+      }
       try {
         const binding = await hub.access.authenticate(token)
-        if (binding) principal = { kind: 'binding', binding }
+        if (binding) {
+          principal = { kind: 'binding', binding }
+          if (this.knownBearers.size >= 1024) this.knownBearers.clear()
+          this.knownBearers.add(bearerHash)
+        } else this.knownBearers.delete(bearerHash)
       } catch (e) {
         // Not "unknown credential": the credential could not be CHECKED, and an agent told it is
         // unknown would discard a valid one. 503 says try again.
@@ -614,23 +698,6 @@ export class AgentSurface {
       }
     }
     if (!principal) return false
-    const key = principal.kind === 'door' ? 'door' : `binding:${principal.binding.id}`
-    ctx.sessionId = key
-
-    const now = this.now()
-    const budget = this.externalBudget.get(key) ?? { windowStart: now, calls: 0 }
-    if (now - budget.windowStart >= this.limits.budgetWindowMs) {
-      budget.windowStart = now
-      budget.calls = 0
-    }
-    if (budget.calls >= this.limits.budgetCalls) {
-      const retryIn = Math.ceil((budget.windowStart + this.limits.budgetWindowMs - now) / 1000)
-      ops.record({ op: 'agentSurface.budgetExhausted', outcome: 'ok', level: 'warn', detail: { principal: key, calls: this.limits.budgetCalls, retry_in_s: retryIn }, ctx: { correlationId: ctx.correlationId, estateId: this.deps.estateId } })
-      AgentSurface.refuse(res, 429, `call budget exhausted: ${this.limits.budgetCalls} calls per ${this.limits.budgetWindowMs / 1000}s. Retry in ${retryIn}s.`, { 'retry-after': String(Math.max(1, retryIn)) }, attempt)
-      return true
-    }
-    budget.calls++
-    this.externalBudget.set(key, budget)
 
     let body: unknown
     try {
@@ -643,6 +710,19 @@ export class AgentSurface {
       throw e
     }
     attempt.saw(body)
+
+    // The door's bucket is the request being polled, or the agent asking — never the whole door (ER-7).
+    const key = principal.kind === 'door' ? `door:${doorBucket(body)}` : `binding:${principal.binding.id}`
+    ctx.sessionId = principal.kind === 'door' ? 'door' : key
+    const overDoor = principal.kind === 'door' && !this.spend('door', this.limits.budgetCalls * 5)
+    if (overDoor || !this.spend(key, this.limits.budgetCalls)) {
+      const now = this.now()
+      const bucket = this.externalBudget.get(overDoor ? 'door' : key)
+      const retryIn = bucket ? Math.ceil((bucket.windowStart + this.limits.budgetWindowMs - now) / 1000) : 1
+      ops.record({ op: 'agentSurface.budgetExhausted', outcome: 'ok', level: 'warn', detail: { principal: overDoor ? 'door' : key, calls: this.limits.budgetCalls, retry_in_s: retryIn }, ctx: { correlationId: ctx.correlationId, estateId: this.deps.estateId } })
+      AgentSurface.refuse(res, 429, `call budget exhausted: ${this.limits.budgetCalls} calls per ${this.limits.budgetWindowMs / 1000}s. Retry in ${retryIn}s.`, { 'retry-after': String(Math.max(1, retryIn)) }, attempt)
+      return true
+    }
     const server = hub.tools(principal)
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })
     res.on('close', () => {

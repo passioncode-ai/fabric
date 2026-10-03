@@ -12,8 +12,10 @@
 // the hub's port and pose as it, so the descriptions below tell an agent what `hub.ts` says of hub.json:
 // re-read it before sending a binding credential, and send only when its pid is alive (port squatting,
 // security review of PR #7). The door token alone is worth little to a squatter; a binding credential is not.
+// And the origin is used EXACTLY as hub.json writes it (`http://127.0.0.1:<port>`): a `localhost` that
+// resolves to another loopback address could reach another program (ER-8, verification iteration 1 for 0.3.1).
 const VERIFY_HUB =
-  ' Before you send a binding credential, re-read hub.json and check that the pid it names is alive (and is Fabric); if it is not, Fabric is not running — do not send the credential to whatever answers on that port.'
+  ' Connect to the origin exactly as hub.json writes it (http://127.0.0.1:<port>), never through localhost or another name. Before you send a binding credential, re-read hub.json and check that the pid it names is alive (and is Fabric); if it is not, Fabric is not running — do not send the credential to whatever answers on that port.'
 
 // Every answer carries `structuredContent`, and a refusal is `isError: true` with
 // `{error: {code, message, data?}}` — the `fabric-interop/0.1` error shape — never a thrown 500.
@@ -50,7 +52,7 @@ export interface AgentCallArgs {
 export interface HubToolDeps {
   access: AccessService
   /** `agent.call` itself (S4). Absent, the tool refuses rather than pretending to route. */
-  call?: (binding: BindingRow, args: AgentCallArgs, meta: Record<string, unknown> | undefined) => Promise<ToolAnswer>
+  call?: (binding: BindingRow, args: AgentCallArgs, meta: Record<string, unknown> | undefined, signal?: AbortSignal) => Promise<ToolAnswer>
 }
 
 /** The tool names each principal is given — written down so a test can compare it with what is served. */
@@ -69,14 +71,18 @@ const requestSchema = z
   })
   .strict()
 
-const statusSchema = z.object({ requestId: z.string().min(1).max(64) }).strict()
+// The poll secret (ER-2, RFC 8628's device_code): returned only by the answer that CREATED a request, and
+// required to read it through the door, whose token every agent on this Mac shares.
+const POLL_SECRET_TEXT = 'The pollSecret from the fabric.access.request answer that created this request (shown there only)'
+const doorStatusSchema = z.object({ requestId: z.string().min(1).max(64), pollSecret: z.string().regex(/^[A-Za-z0-9_-]{43}$/).describe(POLL_SECRET_TEXT) }).strict()
+const bindingStatusSchema = z.object({ requestId: z.string().min(1).max(64), pollSecret: z.string().max(64).optional().describe(`${POLL_SECRET_TEXT}; not needed with a binding credential`) }).strict()
 
 const callSchema = z
   .object({
     agentId: z.string().regex(AGENT_ID_PATTERN).describe('The callee: a connected product, e.g. fabric-inbox'),
     capability: z.string().regex(CAPABILITY_PATTERN).describe('The product tool to call'),
     input: z.record(z.string(), z.unknown()).describe('The tool arguments, exactly as the product takes them'),
-    idempotencyKey: z.string().min(1).max(256).optional().describe('Your own id for this call; a retry with the same key returns the same answer')
+    idempotencyKey: z.string().min(1).max(256).optional().describe('Your own id for this call; a retry with the same key returns the same answer while your grant still covers it. If you gave up on a call (a timeout, a cancel), retry it with the SAME key: it may already have reached the product, and a new key would act twice')
   })
   .strict()
 
@@ -99,14 +105,16 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
       title: 'Ask the operator for access',
       description:
         principal.kind === 'door'
-          ? 'Ask, once, for standing access to a product through Fabric. The operator sees one prompt naming you as the registry knows you, what you ask in the product\'s words and your reason. Poll fabric.access.status; on Allow its first answer carries your credential, once.' + VERIFY_HUB
+          ? 'Ask, once, for standing access to a product through Fabric. The operator sees one prompt naming you as the registry knows you, what you ask in the product\'s words and your reason. The answer that creates the request carries a pollSecret, shown only there: poll fabric.access.status with the requestId and that pollSecret; on Allow its first answer carries your credential, once. Asking the same thing again while it waits returns the same requestId and no pollSecret.' + VERIFY_HUB
           : 'Ask for more access for your own agent (a new capability or mailbox). The operator is prompted again; on Allow the grants are added to the credential you already hold.' + VERIFY_HUB,
       inputSchema: requestSchema
     },
     async (args) =>
       guard('access.request', async () => {
         const r = await deps.access.request(principal, args as Record<string, unknown>)
-        return r.ok ? answer({ requestId: r.requestId, status: r.status, expiresAt: r.expiresAt, note: r.note }) : refusal('refused', r.refused)
+        return r.ok
+          ? answer({ requestId: r.requestId, status: r.status, expiresAt: r.expiresAt, ...(r.pollSecret ? { pollSecret: r.pollSecret } : {}), note: r.note })
+          : refusal('refused', r.refused)
       })
   )
 
@@ -114,12 +122,14 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
     'fabric.access.status',
     {
       title: 'Read an access request',
-      description: 'pending, allowed, denied or expired. The first read after Allow carries the binding credential exactly once; store it in your vault.' + VERIFY_HUB,
-      inputSchema: statusSchema
+      description:
+        'pending, allowed, denied or expired. Through the door, send the requestId with the pollSecret of the answer that created it; a wrong or missing pollSecret reads as an unknown request. The first read after Allow carries the binding credential exactly once, and only within 10 minutes of the decision; store it in your vault.' + VERIFY_HUB,
+      inputSchema: principal.kind === 'door' ? doorStatusSchema : bindingStatusSchema
     },
-    async ({ requestId }) =>
+    async (args: Record<string, unknown>) =>
       guard('access.status', async () => {
-        const r = await deps.access.status(principal, requestId)
+        const { requestId, pollSecret } = args as { requestId: string; pollSecret?: string }
+        const r = await deps.access.status(principal, requestId, pollSecret)
         if (!r.ok) return refusal('unknown-request', r.refused)
         const { ok: _ok, ...rest } = r
         return answer(rest as Record<string, unknown>)
@@ -150,13 +160,13 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
       {
         title: 'Call a connected product through Fabric',
         description:
-          'fabric-interop/0.1 C3.5. Fabric checks your grant, narrows the call to the mailboxes you were granted, forwards it with the product\'s own credential (which you never see) and journals the hop. Without a grant the answer is access-required, carrying the fabric.access.request arguments to ask with.',
+          'fabric-interop/0.1 C3.5. Fabric checks your grant, narrows the call to the mailboxes you were granted, forwards it with the product\'s own credential (which you never see) and journals the hop. Without a grant the answer is access-required, carrying the fabric.access.request arguments to ask with. Cancelling your request stops the call if it has not reached the product yet; a call you gave up on may have reached it, so retry it with the same idempotencyKey, never a new one.',
         inputSchema: callSchema
       },
       async (args, extra) =>
         guard('agent.call', async () => {
           if (!deps.call) return refusal('hub-unavailable', 'this hub forwards no calls yet')
-          return deps.call(binding, args as AgentCallArgs, (extra as { _meta?: Record<string, unknown> })._meta)
+          return deps.call(binding, args as AgentCallArgs, (extra as { _meta?: Record<string, unknown> })._meta, (extra as { signal?: AbortSignal }).signal)
         })
     )
   }

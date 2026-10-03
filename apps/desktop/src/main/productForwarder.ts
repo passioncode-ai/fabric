@@ -33,6 +33,8 @@ export interface ForwardRequest {
   input: Record<string, unknown>
   traceparent: string
   timeoutMs?: number
+  /** The caller's own signal (the agent's MCP request): when it fires, the exchange is abandoned (ER-13). */
+  signal?: AbortSignal
 }
 
 export interface ForwardedResult {
@@ -43,7 +45,7 @@ export interface ForwardedResult {
 
 export type ForwardAnswer =
   | { ok: true; result: ForwardedResult; wallMs: number }
-  | { ok: false; code: 'product-unreachable' | 'product-refused' | 'product-error'; message: string; wallMs: number }
+  | { ok: false; code: 'product-unreachable' | 'product-refused' | 'product-error' | 'cancelled'; message: string; wallMs: number }
 
 /** A narrowing entry the product reads as exactly one account: no list separator, no line break. */
 const UNSAFE_IN_HEADER = /[,\r\n\0]/
@@ -68,6 +70,13 @@ export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnsw
   const controller = new AbortController()
   let redirected: string | null = null
   let timedOut = false
+  let hungUp = false
+  if (req.signal?.aborted) return { ok: false, code: 'cancelled', message: 'the caller hung up before anything was sent', wallMs: 0 }
+  const onHangUp = (): void => {
+    hungUp = true
+    controller.abort()
+  }
+  req.signal?.addEventListener('abort', onHangUp, { once: true })
   const inflight = new Set<Promise<Response>>()
 
   const guardedFetch = (url: string | URL, init?: RequestInit): Promise<Response> => {
@@ -95,6 +104,8 @@ export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnsw
       controller.abort()
       reject(new Error('deadline'))
     }, timeout)
+    // The caller hanging up ends the race at once, as the deadline does.
+    req.signal?.addEventListener('abort', () => reject(new Error('cancelled')), { once: true })
   })
   const client = new Client({ name: 'fabric-hub', version: '0.1.0' })
   const transport = new StreamableHTTPClientTransport(new URL(req.mcpUrl), {
@@ -119,6 +130,7 @@ export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnsw
     const result = await Promise.race([exchange, deadline])
     return { ok: true, result, wallMs: Date.now() - started }
   } catch (e) {
+    if (hungUp) return { ok: false, code: 'cancelled', message: 'the caller hung up; the exchange was abandoned', wallMs: Date.now() - started }
     if (redirected) return { ok: false, code: 'product-refused', message: scrub(redirected), wallMs: Date.now() - started }
     if (timedOut) return { ok: false, code: 'product-unreachable', message: `the product did not answer within ${timeout / 1000}s`, wallMs: Date.now() - started }
     const message = scrub(String((e as Error).message ?? e))
@@ -133,6 +145,7 @@ export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnsw
     }
   } finally {
     clearTimeout(timer)
+    req.signal?.removeEventListener('abort', onHangUp)
     controller.abort() // ends the GET stream and anything still open
     // Closing ends the product-side session; a failure to close changes nothing about the answer.
     await client.close().catch(() => undefined)

@@ -287,6 +287,11 @@ node --experimental-strip-types apps/desktop/test/agent-registry.test.mjs
 node --experimental-strip-types apps/desktop/test/hub-files.test.mjs
 node --experimental-strip-types --test-force-exit apps/desktop/test/hub-products.test.mjs
 node --experimental-strip-types apps/desktop/test/consent-presenter.test.mjs
+# Verification iteration 1 for 0.3.1: the consent rules without a database (poll secret, caps, act codes),
+# agent.call past its happy path (replay after revoke, a throw, a hang-up), the door's budgets and ports.
+node --experimental-strip-types apps/desktop/test/hub-access-service.test.mjs
+node --experimental-strip-types apps/desktop/test/hub-call.test.mjs
+node --experimental-strip-types --test-force-exit apps/desktop/test/hub-surface.test.mjs
 
 step "owned databases: the SQL contract and the reads, on a cluster this run creates and removes"
 # A disposable PostgreSQL (`initdb` into a temp dir, Unix socket only) with the
