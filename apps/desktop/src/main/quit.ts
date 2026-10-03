@@ -34,7 +34,7 @@ export interface QuitOptions {
   /** False until the runtime that needs a drain exists; before that a quit proceeds at once. */
   ready: () => boolean
   /** Upper bound from the first quit request to process exit. */
-  deadlineMs?: number
+  hardDeadlineMs?: number
   schedule?: (fn: () => void) => void
   setTimer?: (fn: () => void, ms: number) => { unref?: () => void }
   onDeadline?: () => void
@@ -55,13 +55,17 @@ export interface QuitCoordinator {
 export function createQuitCoordinator(o: QuitOptions): QuitCoordinator {
   const schedule = o.schedule ?? ((fn: () => void) => { setImmediate(fn) })
   const setTimer = o.setTimer ?? ((fn: () => void, ms: number) => setTimeout(fn, ms))
-  const deadlineMs = o.deadlineMs ?? QUIT_DEADLINE_MS
+  const hardDeadlineMs = o.hardDeadlineMs ?? QUIT_DEADLINE_MS
   let quitting = false
   let drained = false
   const stops: Array<() => void> = []
 
   const runStop = (stop: () => void): void => {
-    try { stop() } catch (e) { o.onSchedulerError?.(e) }
+    try { stop() } catch (e) {
+      // Recorded by the caller's `onSchedulerError` (index.ts → ops.failed); one broken stop must not keep
+      // the other schedulers running or the quit from proceeding.
+      o.onSchedulerError?.(e)
+    }
   }
 
   const begin = (): void => {
@@ -71,7 +75,7 @@ export function createQuitCoordinator(o: QuitOptions): QuitCoordinator {
     // The deadline is the promise LC-01 makes: whatever stalls — a drain, a renderer that
     // cancels unload, Electron's teardown — the process ends. Unref'd so it never keeps an
     // otherwise finished process alive.
-    const timer = setTimer(() => { o.onDeadline?.(); o.app.exit(0) }, deadlineMs)
+    const timer = setTimer(() => { o.onDeadline?.(); o.app.exit(0) }, hardDeadlineMs)
     timer.unref?.()
   }
 

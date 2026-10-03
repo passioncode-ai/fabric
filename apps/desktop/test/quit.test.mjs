@@ -105,7 +105,7 @@ test('a shutdown that never settles is ended by the deadline', () => {
     app: { quit() {}, exit: (c) => exits.push(c) },
     ready: () => true,
     shutdown: () => new Promise(() => {}),
-    deadlineMs: 10_000,
+    hardDeadlineMs: 10_000,
     setTimer: (fn, ms) => { assert.equal(ms, 10_000); fire = fn; return { unref() {} } }
   })
   q.beforeQuit({ preventDefault() {} })

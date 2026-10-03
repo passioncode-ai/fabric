@@ -98,47 +98,11 @@ export const CREDENTIAL_HOLD_MS = 10 * 60_000
 export const FAILURE_HOLD_MS = 60_000
 export const FAILURE_HOLD_CAP_MS = 15 * 60_000
 
-// #region quota-credential-read — docs: docs/adr/0106-fabric-adopts-the-product-lifecycle-contract.md#2-credentials-are-read-once-and-the-outcome-is-kept
-/** What one Keychain read found. Every outcome is kept by the reader (lifecycle LC-04). */
-export type KeychainOutcome = 'found' | 'absent' | 'denied' | 'timeout'
 
-type Exec = (file: string, args: string[], opts: { timeout: number; killSignal: NodeJS.Signals }) => Promise<{ stdout: string }>
-
-/** Bounded: a `security` call that waits on a dialog or a locked keychain is ended, not awaited. */
-export const KEYCHAIN_TIMEOUT_MS = 5_000
-
-/**
- * Reads Claude Code's credential item ONCE per call, with a deadline. `security` exits 44
- * when the item does not exist; any other failure — a refused or dismissed dialog, a locked
- * keychain — is `denied`, and a kill at the deadline is `timeout`. The caller keeps the
- * outcome and does not ask again until the person acts: a 3 s poll that re-asked on every
- * failure was a prompt loop waiting for a locked keychain (lifecycle audit, fabric F4).
- */
-export async function readKeychainToken(exec: Exec = run as unknown as Exec): Promise<{ token: string | null; outcome: KeychainOutcome }> {
-  try {
-    const { stdout } = await exec('security', ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-w'], {
-      timeout: KEYCHAIN_TIMEOUT_MS,
-      killSignal: 'SIGKILL'
-    })
-    const oauth = JSON.parse(stdout.trim())?.claudeAiOauth
-    return typeof oauth?.accessToken === 'string' ? { token: oauth.accessToken, outcome: 'found' } : { token: null, outcome: 'absent' }
-  } catch (e) {
-    const err = e as { code?: unknown; killed?: boolean; signal?: unknown }
-    if (err.killed || err.signal === 'SIGKILL') return { token: null, outcome: 'timeout' }
-    if (err.code === 44) return { token: null, outcome: 'absent' }
-    return { token: null, outcome: 'denied' }
-  }
-}
-// #endregion quota-credential-read
-
-/**
- * A refused or stalled Keychain read is not retried by a timer at all: the next read waits
- * for the person — unlocking the screen, which is when a locked keychain opens
- * (`resetKeychainRefusal`, wired to `powerMonitor` 'unlock-screen'), or the next launch.
- */
-let keychainRefused: KeychainOutcome | null = null
-export function resetKeychainRefusal(): void { keychainRefused = null }
-
+// ORDER MATTERS: the token reader comes first and its Keychain helpers after it, inside the span a
+// dated probe (docs/audit/2026-09-09-provider-accounts.probe.mjs) cuts out — from the token reader's
+// declaration to the usage fetcher's — and runs alone as a plain script. That is why the helpers are
+// exported at the end of this file rather than where they are declared.
 /** The bearer, from the Keychain on macOS and the JSON file elsewhere. Never logged. */
 async function readToken(): Promise<string | null> {
   if (process.platform === 'darwin' && !keychainRefused) {
@@ -172,6 +136,47 @@ async function readToken(): Promise<string | null> {
     return null
   }
 }
+
+/**
+ * A refused or stalled Keychain read is not retried by a timer at all: the next read waits
+ * for the person — unlocking the screen, which is when a locked keychain opens
+ * (`resetKeychainRefusal`, wired to `powerMonitor` 'unlock-screen'), or the next launch.
+ */
+let keychainRefused: KeychainOutcome | null = null
+function resetKeychainRefusal(): void { keychainRefused = null }
+
+// #region quota-credential-read — docs: docs/adr/0106-fabric-adopts-the-product-lifecycle-contract.md#2-credentials-are-read-once-and-the-outcome-is-kept
+/** What one Keychain read found. Every outcome is kept by the reader (lifecycle LC-04). */
+type KeychainOutcome = 'found' | 'absent' | 'denied' | 'timeout'
+
+type Exec = (file: string, args: string[], opts: { timeout: number; killSignal: NodeJS.Signals }) => Promise<{ stdout: string }>
+
+/** Bounded: a `security` call that waits on a dialog or a locked keychain is ended, not awaited. */
+const KEYCHAIN_TIMEOUT_MS = 5_000
+
+/**
+ * Reads Claude Code's credential item ONCE per call, with a deadline. `security` exits 44
+ * when the item does not exist; any other failure — a refused or dismissed dialog, a locked
+ * keychain — is `denied`, and a kill at the deadline is `timeout`. The caller keeps the
+ * outcome and does not ask again until the person acts: a 3 s poll that re-asked on every
+ * failure was a prompt loop waiting for a locked keychain (lifecycle audit, fabric F4).
+ */
+async function readKeychainToken(exec: Exec = run as unknown as Exec): Promise<{ token: string | null; outcome: KeychainOutcome }> {
+  try {
+    const { stdout } = await exec('security', ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-w'], {
+      timeout: KEYCHAIN_TIMEOUT_MS,
+      killSignal: 'SIGKILL'
+    })
+    const oauth = JSON.parse(stdout.trim())?.claudeAiOauth
+    return typeof oauth?.accessToken === 'string' ? { token: oauth.accessToken, outcome: 'found' } : { token: null, outcome: 'absent' }
+  } catch (e) {
+    const err = e as { code?: unknown; killed?: boolean; signal?: unknown }
+    if (err.killed || err.signal === 'SIGKILL') return { token: null, outcome: 'timeout' }
+    if (err.code === 44) return { token: null, outcome: 'absent' }
+    return { token: null, outcome: 'denied' }
+  }
+}
+// #endregion quota-credential-read
 
 async function realFetch(
   token: string
@@ -390,3 +395,6 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
     }
   }
 }
+
+export { readKeychainToken, resetKeychainRefusal, KEYCHAIN_TIMEOUT_MS }
+export type { KeychainOutcome }

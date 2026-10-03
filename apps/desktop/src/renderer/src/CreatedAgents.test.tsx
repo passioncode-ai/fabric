@@ -39,8 +39,14 @@ function mount(options: LaunchOption[] | null = OPTIONS, servers: string[] = [])
   )
 }
 
+// The button exists while the list is still being read, disabled; a click then does nothing and the
+// form never opens. Wait for it to be enabled, click, and wait for the form itself — under load the
+// two steps were a race (failed once in `ci.sh fast`, 2026-10-03; 10/10 in isolation).
 async function openForm() {
-  fireEvent.click(await screen.findByRole('button', { name: 'Create an agent' }))
+  const button = await screen.findByRole('button', { name: 'Create an agent' })
+  await waitFor(() => expect((button as HTMLButtonElement).disabled).toBe(false))
+  fireEvent.click(button)
+  await screen.findByLabelText('Name')
 }
 
 describe('creating an agent (M125)', () => {
