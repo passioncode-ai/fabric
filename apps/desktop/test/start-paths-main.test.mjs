@@ -100,6 +100,23 @@ console.log('PASS project folder: made with git, exists/invalid/outside refused,
 }
 console.log('PASS kept scan: counts validated (symlinks like deep), unknown truncation reads as cut')
 
+// ── the scan tells the window whether it was kept (iteration 3, docs finding 2): `keepScan` returning null
+// was ignored, and the screen could later re-read another folder's kept list as if it were this one.
+{
+  const { scanViewOf } = await import(path.resolve(import.meta.dirname, '../src/shared/startPaths.ts'))
+  const r = { root: '/w', visited: 3, unreadable: 0, deep: 0, symlinks: 0, truncated: false, cancelled: false }
+  const now = () => '2026-10-03T09:00:00.000Z'
+  const kept = scanViewOf(r, [], '2026-10-03T08:00:00.000Z', now)
+  assert.equal(kept.kept, true)
+  assert.equal(kept.scannedAt, '2026-10-03T08:00:00.000Z', 'a kept scan carries the time it was kept')
+  const lost = scanViewOf(r, [], null, now)
+  assert.equal(lost.kept, false, 'a save that did not commit is said: kept false')
+  assert.equal(lost.scannedAt, now())
+  assert.equal(scanViewOf({ ...r, cancelled: true }, [], '2026-10-03T08:00:00.000Z', now).kept, false, 'a cancelled scan is never kept')
+  assert.equal(scanViewOf(r, [], '', now).kept, false, 'an empty time is not a kept scan')
+}
+console.log('PASS scan view: kept says whether the save committed')
+
 // ── the window's choices (iteration 1 → 2): a parent folder is remembered per window and forgotten with
 // it; only an unpackaged run answers the picker from FABRIC_WALK_PICK.
 const { ParentChoices, walkPickFor } = await import(path.resolve(import.meta.dirname, '../src/main/startChoices.ts'))

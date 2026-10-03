@@ -49,6 +49,27 @@ export interface ScanResult {
 export interface ScanView extends Omit<ScanResult, 'candidates'> {
   candidates: CandidateView[]
   scannedAt: string
+  /**
+   * Whether this scan is the one kept on disk (iteration 3, docs finding 2: a failed save was never said,
+   * and after an import the screen could re-read ANOTHER folder's kept list). Main always sets it
+   * (`scanViewOf`); optional in this shape only so older renderer fixtures still type-check.
+   */
+  kept?: boolean
+}
+
+/**
+ * The scan as the renderer sees it. `keptAt` is when the save committed — null when it did not (a cancelled
+ * scan is never kept; a write that lost its revision race or failed is not either) — so `kept` says which,
+ * and `scannedAt` is the kept time or, unkept, `now`.
+ */
+export function scanViewOf(
+  result: Omit<ScanResult, 'candidates'>,
+  candidates: CandidateView[],
+  keptAt: string | null,
+  now: () => string = () => new Date().toISOString()
+): ScanView & { kept: boolean } {
+  const kept = typeof keptAt === 'string' && keptAt !== '' && !result.cancelled
+  return { ...result, candidates, scannedAt: kept ? (keptAt as string) : now(), kept }
 }
 
 /**

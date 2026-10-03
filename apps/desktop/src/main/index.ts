@@ -238,7 +238,7 @@ import { keepScan, lastScan } from './startPaths.ts'
 import { createProjectFolder } from './projectFolder.ts'
 import { ParentChoices, ScanCandidates, admitRepoPaths, indexImported, realOrResolved, refuseHeldByOther, walkPickFor } from './startChoices.ts'
 import { sessionEnvironment } from './sessionEnv.ts'
-import { projectNameProblem, type CandidateView, type FolderFacts, type ScanView } from '../shared/startPaths.ts'
+import { projectNameProblem, scanViewOf, type CandidateView, type FolderFacts, type ScanView } from '../shared/startPaths.ts'
 import { livenessFor } from './livenessRead.ts'
 import { classifyObservationGap, type HostWindow } from '../shared/harnessBreak.ts'
 import { createDrafts } from './onboardingDrafts.ts'
@@ -2965,8 +2965,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       // What main found is what this window may add without the picker; a stopped scan lists nothing.
       // Held as the walk wrote them, tied to the root they were found under (`ScanCandidates#record`).
       if (!result.cancelled) scanCandidates.record(scope, 'scan', result.root, result.candidates.map((c) => c.path))
+      // A save that did not commit is SAID (`kept: false`), never ignored (iteration 3, docs finding 2).
       const kept = keepScan(result)
-      const view: ScanView = { ...result, scannedAt: kept?.scannedAt ?? new Date().toISOString(), candidates: (await withImported(result.candidates)) as CandidateView[] }
+      if (!kept && !result.cancelled) ops.record({ op: 'start.scan.keep', outcome: 'failed', level: 'warn', detail: { candidates: result.candidates.length }, ctx: { correlationId: ops.correlate() } })
+      const view: ScanView = scanViewOf(result, (await withImported(result.candidates)) as CandidateView[], kept?.scannedAt ?? null)
       ops.record({ op: 'start.scan', outcome: 'ok', detail: { visited: result.visited, candidates: result.candidates.length, unreadable: result.unreadable, deep: result.deep, symlinks: result.symlinks, truncated: result.truncated, cancelled: result.cancelled }, ctx: { correlationId: ops.correlate() } })
       return view
     } finally {
@@ -2985,7 +2987,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // are what this window may add from it (ADR-0100 §3), through `projects.create`'s admission; the
     // root and everything else under it stay unreachable.
     scanCandidates.record(scopeOf(event), 'kept', kept.root, kept.candidates.map((c) => c.path))
-    return { ...kept, candidates: (await withImported(kept.candidates)) as CandidateView[] }
+    return scanViewOf(kept, (await withImported(kept.candidates)) as CandidateView[], kept.scannedAt)
   })
   handle(IPC.startCreateFolder, async (event, input): Promise<Returns<FabricApi['start']['createFolder']>> => {
     const scope = scopeOf(event)
