@@ -74,13 +74,49 @@ async function blockFree(base) {
   return true
 }
 
-async function chooseBase(live) {
-  if (process.env.FABRIC_TEST_STACK_BASE) return Number(process.env.FABRIC_TEST_STACK_BASE)
+/** Where port-block claims live: one directory per machine, shared by every concurrent run. */
+const CLAIM_DIR = path.join(realpathSync(tmpdir()), 'fabric-test-stack-claims')
+
+function pidAlive(pid) {
+  try { process.kill(pid, 0); return true } catch (e) { return e.code === 'EPERM' }
+}
+
+/**
+ * Claim the block at `base` for this run, from the choice until `supabase start` has bound its ports
+ * (release review 2026-10-03, iteration 2: two concurrent `up`s both found 55420 free and the second
+ * start failed on a taken port). An exclusive-create lock file holds the claimant's pid; a claim whose
+ * holder is no longer alive is taken over. Returns the release function, or null when another live run
+ * holds the block.
+ */
+export function claimBlock(base, { dir = CLAIM_DIR, pid = process.pid, alive = pidAlive } = {}) {
+  mkdirSync(dir, { recursive: true })
+  const file = path.join(dir, `block-${base}.lock`)
+  const release = () => { try { if (readFileSync(file, 'utf8').trim() === String(pid)) rmSync(file, { force: true }) } catch { /* already gone */ } }
+  const take = () => { try { writeFileSync(file, String(pid), { flag: 'wx' }); return true } catch (e) { if (e.code === 'EEXIST') return false; throw e } }
+  if (take()) return release
+  let holder = NaN
+  try { holder = Number(readFileSync(file, 'utf8').trim()) } catch { /* vanished between the two calls */ }
+  if (Number.isInteger(holder) && holder > 0 && alive(holder)) return null
+  // A stale claim: its run died before releasing. Remove it and try once; a concurrent taker may win.
+  rmSync(file, { force: true })
+  return take() ? release : null
+}
+
+/** The first block that is free AND unclaimed, claimed for this run: `{ base, release }`. */
+export async function chooseBase(live, { dir = CLAIM_DIR, free = blockFree, alive = pidAlive, pinned = process.env.FABRIC_TEST_STACK_BASE } = {}) {
+  if (pinned) {
+    const base = Number(pinned)
+    const release = claimBlock(base, { dir, alive })
+    if (!release) throw new Error(`the pinned block ${base} (FABRIC_TEST_STACK_BASE) is claimed by another running test stack`)
+    return { base, release }
+  }
   for (let base = 55420; base < 56420; base += PORT_BLOCK) {
     if ([...live.ports].some(p => p >= base && p < base + PORT_BLOCK)) continue
-    if (await blockFree(base)) return base
+    if (!(await free(base))) continue
+    const release = claimBlock(base, { dir, alive })
+    if (release) return { base, release }
   }
-  throw new Error('no free block of ten ports between 55420 and 56420')
+  throw new Error('no free, unclaimed block of ten ports between 55420 and 56420')
 }
 
 function supabase(args, { log, timeout = 600_000 } = {}) {
@@ -102,42 +138,48 @@ export async function up(dir) {
   mkdirSync(abs, { recursive: true })
   if (readdirSync(abs).length) throw new Error(`refusing: ${abs} is not empty`)
   const projectId = `fabric_test_${randomBytes(4).toString('hex')}`
-  const base = await chooseBase(live)
-  // The guard runs on the PLAN, before a single container exists.
-  const plan = stackPlan({ base, projectId, live })
-  for (const p of Object.values(plan.ports)) if (!(await portFree(p))) throw new Error(`port ${p} is in use; pick another block with FABRIC_TEST_STACK_BASE`)
-  writeFileSync(path.join(abs, MARKER), JSON.stringify({ projectId, base, createdAt: new Date().toISOString(), source: REPO_ROOT }, null, 2) + '\n')
-  const sb = path.join(abs, 'supabase')
-  mkdirSync(sb)
-  cpSync(path.join(REPO_ROOT, 'supabase', 'migrations'), path.join(sb, 'migrations'), { recursive: true })
-  for (const f of ['seed.sql']) if (existsSync(path.join(REPO_ROOT, 'supabase', f))) cpSync(path.join(REPO_ROOT, 'supabase', f), path.join(sb, f))
-  writeFileSync(path.join(sb, 'config.toml'), plan.config)
-  const log = path.join(abs, 'stack.log')
-  say(`starting ${projectId} on API ${plan.apiPort}, DB ${plan.dbPort} (live stack: API ${live.apiPort}, DB ${live.dbPort}, untouched); log ${log}`)
-  const started = Date.now()
-  const start = supabase(['start', '--workdir', abs, '-x', EXCLUDE.join(',')], { log })
-  if (start.status !== 0) throw new Error(`supabase start failed (${start.status ?? start.signal}); last lines:\n${(start.stderr || start.stdout || '').trim().split('\n').slice(-15).join('\n')}`)
-  const status = supabase(['status', '-o', 'env', '--workdir', abs], { timeout: 60_000 })
-  if (status.status !== 0) throw new Error(`supabase status failed: ${(status.stderr || '').trim()}`)
-  const vars = {}
-  for (const line of status.stdout.split('\n')) {
-    const m = line.match(/^([A-Z0-9_]+)="?([^"]*)"?\s*$/)
-    if (m) vars[m[1]] = m[2]
+  const { base, release } = await chooseBase(live)
+  try {
+    // The guard runs on the PLAN, before a single container exists.
+    const plan = stackPlan({ base, projectId, live })
+    for (const p of Object.values(plan.ports)) if (!(await portFree(p))) throw new Error(`port ${p} is in use; pick another block with FABRIC_TEST_STACK_BASE`)
+    writeFileSync(path.join(abs, MARKER), JSON.stringify({ projectId, base, createdAt: new Date().toISOString(), source: REPO_ROOT }, null, 2) + '\n')
+    const sb = path.join(abs, 'supabase')
+    mkdirSync(sb)
+    cpSync(path.join(REPO_ROOT, 'supabase', 'migrations'), path.join(sb, 'migrations'), { recursive: true })
+    for (const f of ['seed.sql']) if (existsSync(path.join(REPO_ROOT, 'supabase', f))) cpSync(path.join(REPO_ROOT, 'supabase', f), path.join(sb, f))
+    writeFileSync(path.join(sb, 'config.toml'), plan.config)
+    const log = path.join(abs, 'stack.log')
+    say(`starting ${projectId} on API ${plan.apiPort}, DB ${plan.dbPort} (live stack: API ${live.apiPort}, DB ${live.dbPort}, untouched); log ${log}`)
+    const started = Date.now()
+    const start = supabase(['start', '--workdir', abs, '-x', EXCLUDE.join(',')], { log })
+    // The ports are bound (or the start failed): the claim has done its job either way.
+    release()
+    if (start.status !== 0) throw new Error(`supabase start failed (${start.status ?? start.signal}); last lines:\n${(start.stderr || start.stdout || '').trim().split('\n').slice(-15).join('\n')}`)
+    const status = supabase(['status', '-o', 'env', '--workdir', abs], { timeout: 60_000 })
+    if (status.status !== 0) throw new Error(`supabase status failed: ${(status.stderr || '').trim()}`)
+    const vars = {}
+    for (const line of status.stdout.split('\n')) {
+      const m = line.match(/^([A-Z0-9_]+)="?([^"]*)"?\s*$/)
+      if (m) vars[m[1]] = m[2]
+    }
+    const env = {
+      SUPABASE_URL: vars.API_URL,
+      SUPABASE_SERVICE_ROLE_KEY: vars.SERVICE_ROLE_KEY,
+      DATABASE_URL: vars.DB_URL,
+      FABRIC_TEST_STACK: projectId
+    }
+    // And again on what the CLI actually reports, because a plan is not a measurement.
+    const reasons = checkTestStack(env, live)
+    if (reasons.length) throw new Error(`refusing the started stack:\n  ${reasons.join('\n  ')}`)
+    if (new URL(env.SUPABASE_URL).port !== String(plan.apiPort) || new URL(env.DATABASE_URL).port !== String(plan.dbPort))
+      throw new Error(`the started stack is not on the planned ports (API ${env.SUPABASE_URL}, DB port ${new URL(env.DATABASE_URL).port})`)
+    writeFileSync(path.join(abs, 'stack.env'), Object.entries(env).map(([k, v]) => `${k}=${shQuote(v)}`).join('\n') + '\n', { mode: 0o600 })
+    say(`ready in ${Math.round((Date.now() - started) / 1000)} s: ${projectId}, API ${plan.apiPort}, DB ${plan.dbPort}, migrations ${readdirSync(path.join(sb, 'migrations')).filter(f => f.endsWith('.sql')).length} + seed`)
+    return { dir: abs, projectId, env }
+  } finally {
+    release()
   }
-  const env = {
-    SUPABASE_URL: vars.API_URL,
-    SUPABASE_SERVICE_ROLE_KEY: vars.SERVICE_ROLE_KEY,
-    DATABASE_URL: vars.DB_URL,
-    FABRIC_TEST_STACK: projectId
-  }
-  // And again on what the CLI actually reports, because a plan is not a measurement.
-  const reasons = checkTestStack(env, live)
-  if (reasons.length) throw new Error(`refusing the started stack:\n  ${reasons.join('\n  ')}`)
-  if (new URL(env.SUPABASE_URL).port !== String(plan.apiPort) || new URL(env.DATABASE_URL).port !== String(plan.dbPort))
-    throw new Error(`the started stack is not on the planned ports (API ${env.SUPABASE_URL}, DB port ${new URL(env.DATABASE_URL).port})`)
-  writeFileSync(path.join(abs, 'stack.env'), Object.entries(env).map(([k, v]) => `${k}=${shQuote(v)}`).join('\n') + '\n', { mode: 0o600 })
-  say(`ready in ${Math.round((Date.now() - started) / 1000)} s: ${projectId}, API ${plan.apiPort}, DB ${plan.dbPort}, migrations ${readdirSync(path.join(sb, 'migrations')).filter(f => f.endsWith('.sql')).length} + seed`)
-  return { dir: abs, projectId, env }
 }
 
 export function down(dir) {

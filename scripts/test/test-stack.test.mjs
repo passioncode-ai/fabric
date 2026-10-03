@@ -116,3 +116,55 @@ test('the plan for a base on the live ports is refused before anything starts', 
   assert.equal(ok.apiPort, 55421)
   assert.equal(ok.dbPort, 55422)
 })
+
+// ── the database address as the pg client reads it (release review 2026-10-03, iteration 2) ──
+//
+// The guard read DATABASE_URL with `new URL`, while the probes connect with `pg`, which reads it with
+// pg-connection-string and the libpq variables. Three addresses passed the guard and reached the live
+// database: a port in the query string (`?port=54322` overrides the URL's port), a host in the query
+// string, and a URL with no port at all — pg then takes PGPORT, which may be 54322.
+test('REFUSED: a host or port in the query string, whatever the URL itself says', () => {
+  for (const q of ['port=54322', 'host=127.0.0.1', 'host=/tmp', 'hostaddr=127.0.0.1'])
+    assert.ok(checkTestStack({ ...disposable, DATABASE_URL: `postgresql://postgres:postgres@127.0.0.1:55422/postgres?${q}` }, live)
+      .some(r => /query string/.test(r)), q)
+})
+
+test('REFUSED: no port in the URL while PGPORT names the live database — pg would use it', () => {
+  const env = { ...disposable, DATABASE_URL: 'postgresql://postgres:postgres@127.0.0.1/postgres', PGPORT: String(live.dbPort) }
+  assert.ok(checkTestStack(env, live).some(r => new RegExp(`port ${live.dbPort}`).test(r)), 'PGPORT reached the live database')
+  // And without PGPORT the address is pg's default, 5432 — not the live stack's, so not refused for that.
+  assert.ok(!checkTestStack({ ...env, PGPORT: undefined }, live).some(r => /LIVE/.test(r)))
+})
+
+test('REFUSED: no host in the URL while PGHOST names another machine — pg would use it', () => {
+  const env = { ...disposable, DATABASE_URL: 'postgresql:///postgres', PGHOST: 'db.example.com', PGPORT: '55422' }
+  assert.ok(checkTestStack(env, live).some(r => /db\.example\.com.*not loopback/.test(r)))
+})
+
+// ── two runs started at once do not pick the same block (release review 2026-10-03, iteration 2) ──
+//
+// `chooseBase` asked whether a block's ports were free, and `supabase start` bound them tens of seconds
+// later; two concurrent `up`s both found 55420 free and the second start failed on a taken port. A block
+// is now CLAIMED (an exclusive lock file holding the claimant's pid) from the choice until the start
+// has bound its ports; a claim whose holder is gone is taken over.
+test('a block another live run has claimed is skipped; a dead claimant\'s block is taken over', async () => {
+  const { claimBlock, chooseBase } = await import('../test-stack.mjs')
+  const { mkdtempSync, rmSync } = await import('node:fs')
+  const { tmpdir } = await import('node:os')
+  const dir = mkdtempSync(path.join(tmpdir(), 'fabric-port-claims-'))
+  try {
+    const release = claimBlock(55420, { dir, pid: 111, alive: () => true })
+    assert.equal(typeof release, 'function', 'the first claim was refused')
+    assert.equal(claimBlock(55420, { dir, pid: 222, alive: () => true }), null, 'two runs claimed one block')
+    const chosen = await chooseBase(live, { dir, free: async () => true, alive: () => true })
+    assert.equal(chosen.base, 55430, `a second run chose ${chosen.base}, the block the first one holds`)
+    chosen.release()
+    // The holder of 55420 died without releasing: its claim is stale and is taken over.
+    const taken = claimBlock(55420, { dir, pid: 333, alive: (pid) => pid !== 111 })
+    assert.equal(typeof taken, 'function', 'a dead claimant\'s block stayed claimed forever')
+    taken()
+    assert.equal(typeof claimBlock(55420, { dir, pid: 444, alive: () => true }), 'function', 'release did not free the block')
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
