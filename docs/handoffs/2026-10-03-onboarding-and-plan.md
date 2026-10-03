@@ -75,15 +75,23 @@ The plan everyone works to: [general development plan](../evidence/backlog.md#ge
    then `node scripts/workspace.mjs sync` and the fabric-workspace PR for `knowledge/plans.md` (AR-1
    partial, AR-2 in lane 6, a link to the general plan and its Now/Next) and, after publication,
    `knowledge/products.md` (Fabric 0.3.0).
-2. **P-03**: bump `apps/desktop/package.json` to 0.3.0, then
-   `python3 ~/DATA/project-observatory/tools/use_secret.py run apple-publisher-kj35uyyl22 ASC_API_KEY_P8_B64,ASC_KEY_ID,ASC_ISSUER_ID -- node scripts/release-mac.mjs`
-   — it refuses unless HEAD is `origin/main` and the ledger is clear (`docs/launch/release-gate.json`);
-   install in /Applications and walk; publish on passioncode.ai (authorized by the operator on 2026-10-03).
-   CO-191 is closed (ADR-0106); before the DMG, one independent reviewer reads the lifecycle diff
-   (`git diff 84209c61^1..` limited to the lifecycle files) and the packaged app is walked with the
-   graceful-quit step.
+2. **P-03 — Fabric 0.3.0, released from CI** ([ADR-0111](../adr/0111-fabric-is-released-from-ci.md),
+   [runbook](../launch/release-mac.md)). `apps/desktop/package.json` is 0.3.0 and `docs/launch/release-gate.json`
+   names 0.3.0 and the verification ledger. Rehearse first, on a commit of `main`:
+   `git tag -a v0.3.0-rc.1 <commit> -m … && git push origin v0.3.0-rc.1`, then
+   `gh workflow run release.yml --ref v0.3.0-rc.1 -f publish=false` (preflight: the commit is on `origin/main`,
+   the tag equals the version, the gate is clear). Then the annotated tag `v0.3.0` on the same commit; the
+   `macos` and `publish` jobs each wait for a release approver who is not the tag's author (khurss or
+   svlab93 when the tag is pushed from the operator's account). It publishes a prerelease in
+   passioncode-ai/fabric with the DMG, `SHA256SUMS` + `.asc` and Sigstore attestations. Then install it in
+   /Applications, walk it, and point `fabric/release.json` in passioncode-ai.github.io at
+   `https://github.com/passioncode-ai/fabric/releases/download/v0.3.0/Fabric-0.3.0-arm64.dmg` with the
+   SHA-256 from `SHA256SUMS`. Signing never happens on this machine (rules §11).
+3. After 0.3.0 is on main and released: tell the lifecycle broker's owner (sshlg-personal-os, BL-1076) so
+   it enrols fabric.desktop with `backgroundLaunch: true` (CO-192).
 
 ## Human steps
+- Approve the 0.3.0 release jobs in the protected `release` environment: khurss or svlab93 (not the tag's author).
 - CO-181: whether to remove the test residue from the live local database
   (`node scripts/residue-report.mjs` counts it read-only; nothing has been deleted).
 
