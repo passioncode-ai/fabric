@@ -128,9 +128,10 @@ const P = await project()
   await runs.bind(runId, first)
   const second = await runs.bind(runId, randomUUID())
   const row = await rowOf(runId)
-  // `session_conflict`, the managed-launch contract (migration 61/62, HAR-R0-03).
-  // This expected migration 55's `already_bound` long after the command stopped
-  // returning it; `run-lifecycle-contract.test.mjs` now keeps the two in step.
+  // session_conflict, the managed-launch contract (migration 61/62, HAR-R0-03).
+  // This expected migration 55's already_bound long after the command stopped
+  // returning it; run-lifecycle-contract.test.mjs now keeps the two in step.
+  // (No backticks: this line sits inside the probe's script template.)
   !second.ok && second.reasonCode === 'session_conflict' && row.session_id === first
     ? ok('a run already attached to a live session refuses a second process')
     : fail('second generation: ' + JSON.stringify(second) + ' / ' + JSON.stringify(row))
