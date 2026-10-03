@@ -61,10 +61,21 @@ export function nameTaken(name: string, existing: readonly { name: string }[]): 
  * its own sentence, so the sentence is matched rather than the code it does not carry. Anything else is
  * a different failure and is never dressed up as this one.
  */
+// #region agent-name-refusal — docs: docs/ux/scenarios.md#scn-130-start-a-new-agent-inside-a-project
+/**
+ * The refusal `agents:create` throws for a taken name — at the quick read and at the write boundary alike —
+ * as a CODE a window translates (`agent-name-refused:taken: <name>`; iteration 3, errors finding 9: it
+ * reached a Russian window as an English sentence).
+ */
+export function agentNameRefusal(name: string): string {
+  return `agent-name-refused:taken: ${name}`
+}
+
 export function agentNameTakenAtWrite(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error ?? '')
   return /append_event\(agent\.registered@1\) failed: this project already has an agent called /.test(message)
 }
+// #endregion agent-name-refusal
 
 export function readSpec(draft: {
   name: string

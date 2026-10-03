@@ -1,4 +1,4 @@
-// #region git-run — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+// #region git-run — docs: docs/adr/0100-first-run-and-start-paths.md#scan
 // One hardened way to run git, used by everything that reads a repository:
 // the repo-state watcher, the code statistics, and the start paths' folder
 // inspection and scan (ADR-0100 §3: "the walk runs git with every
@@ -52,6 +52,13 @@ export const HARDENED_GIT_ARGS: readonly string[] = [
   '-c', 'gpg.ssh.program=false',
   '-c', 'gpg.x509.program=false',
   '-c', 'diff.external=',
+  // A submodule is another repository with its own config (`.git/modules/<name>/config`), which the
+  // driver neutralisation below never reads: `git status` spawns a child status per submodule, and that
+  // child ran the submodule's own clean filter (iteration 3). These are the defaults; the per-command
+  // `--ignore-submodules=all` (SUBMODULE_FLAG_COMMANDS) is what outranks `submodule.<name>.ignore`.
+  '-c', 'diff.ignoreSubmodules=all',
+  '-c', 'submodule.recurse=false',
+  '-c', 'status.submoduleSummary=false',
   // No read touches a remote: every transport is refused, which also closes `ext::` URLs and the
   // local-path fetch a partial clone's lazy fetch would make.
   '-c', 'protocol.allow=never',
@@ -110,18 +117,20 @@ const DRIVER_PROGRAM = /^(filter\..+\.(clean|smudge|process)|diff\..+\.(textconv
 
 /**
  * Driver programs the REPOSITORY defines (local or worktree scope, includes followed), each to be
- * overridden with an empty value. A driver name is the repository's choice and can be anything, so no
+ * overridden with an empty value, and every filter it defines made optional (`required=false`). A driver name is the repository's choice and can be anything, so no
  * fixed `-c` list closes this: `git status` re-hashes a stat-dirty file through its clean filter, and
  * `.git/info/attributes` assigns a filter without a tracked file. Global and system drivers — git-lfs —
  * are the operator's and stay. Reading config runs nothing.
  */
-async function repositoryDrivers(repoPath: string, env: Record<string, string>, args: readonly string[]): Promise<string[]> {
+async function repositoryDrivers(repoPath: string, env: Record<string, string>, args: readonly string[], timeoutMs: number): Promise<{ key: string; value: string }[]> {
   let out: string
   try {
     ;({ stdout: out } = await exec(
       'git',
       [...args, 'config', '-z', '--name-only', '--show-scope', '--includes', '--get-regexp', '^(filter|diff)\\.'],
-      { cwd: repoPath, timeout: 5_000, maxBuffer: 1_000_000, env }
+      // The caller's budget, not a fixed one: an `include.path` at a FIFO hung this probe for a hard-coded
+      // 5 s whatever the caller allowed, and eight such repositories starved a scan (iteration 3).
+      { cwd: repoPath, timeout: timeoutMs, maxBuffer: 1_000_000, env }
     ))
   } catch (e) {
     // Exit 1 is "no such key" — the ordinary case. Anything else (not a repository, a hung include) is
@@ -130,37 +139,66 @@ async function repositoryDrivers(repoPath: string, env: Record<string, string>, 
     if (code === 1) return []
     throw e
   }
-  const keys: string[] = []
+  const overrides: { key: string; value: string }[] = []
+  const add = (key: string, value: string): void => {
+    if (!overrides.some((o) => o.key === key)) overrides.push({ key, value })
+  }
   // `-z --show-scope --name-only`: scope NUL key NUL, repeated.
   const parts = out.split('\0')
   for (let i = 0; i + 1 < parts.length; i += 2) {
     const scope = parts[i]
     const key = parts[i + 1]
-    if ((scope === 'local' || scope === 'worktree') && DRIVER_PROGRAM.test(key) && !keys.includes(key)) keys.push(key)
+    if (scope !== 'local' && scope !== 'worktree') continue
+    if (DRIVER_PROGRAM.test(key)) add(key, '')
+    // A filter the repository marks `required` fails the whole read once its program is blanked — and a
+    // failing status was shown as a clean tree (iteration 3, errors finding 7). Every filter the repository
+    // defines is made optional: an optional filter with no program passes the content through unchanged.
+    const filter = /^filter\.(.+)\.[^.]+$/i.exec(key)
+    if (filter) add(`filter.${filter[1]}.required`, 'false')
   }
-  return keys
+  return overrides
+}
+
+/**
+ * Subcommands that look into a submodule's working tree, and so would run the submodule's own config.
+ * `diff.ignoreSubmodules` is only their default — `submodule.<name>.ignore=none` in the repository's
+ * config or its tracked `.gitmodules` outranks it (probed 2026-10-03) — so the flag goes on the command
+ * line, right after the subcommand, where nothing the repository writes can override it.
+ */
+const SUBMODULE_FLAG_COMMANDS = new Set(['status', 'diff', 'diff-index', 'diff-files'])
+
+/** The arguments with `--ignore-submodules=all` placed after any subcommand that would recurse. */
+export function withSubmodulesIgnored(args: readonly string[]): string[] {
+  if (args.length && SUBMODULE_FLAG_COMMANDS.has(args[0])) return [args[0], '--ignore-submodules=all', ...args.slice(1)]
+  return [...args]
 }
 
 export interface GitRunOptions {
-  /** How long the command may take; the default suits the repo-state watcher. */
+  /**
+   * How long the whole read may take — the driver probe and the command share it; the default suits the
+   * repo-state watcher.
+   */
   timeoutMs?: number
 }
 
 export async function gitRun(repoPath: string, args: string[], opts: GitRunOptions = {}): Promise<string> {
   const timeout = opts.timeoutMs ?? 5_000
+  const deadline = Date.now() + timeout
   const lead = (await supportsNoLazyFetch()) ? ['--no-lazy-fetch', ...HARDENED_GIT_ARGS] : [...HARDENED_GIT_ARGS]
   const env = hardenedGitEnv()
   // Driver overrides travel as GIT_CONFIG_KEY_n / VALUE_n, not `-c k=v`: a driver name may itself contain
   // `=`, which `-c` would split at the wrong place. Both are command scope and outrank the repository.
-  const drivers = await repositoryDrivers(repoPath, env, lead)
-  drivers.forEach((key, i) => {
+  const overrides = await repositoryDrivers(repoPath, env, lead, timeout)
+  overrides.forEach(({ key, value }, i) => {
     env[`GIT_CONFIG_KEY_${i}`] = key
-    env[`GIT_CONFIG_VALUE_${i}`] = ''
+    env[`GIT_CONFIG_VALUE_${i}`] = value
   })
-  if (drivers.length) env.GIT_CONFIG_COUNT = String(drivers.length)
-  const { stdout } = await exec('git', [...lead, ...args], {
+  if (overrides.length) env.GIT_CONFIG_COUNT = String(overrides.length)
+  const left = deadline - Date.now()
+  if (left <= 0) throw new Error(`git timed out after ${timeout} ms before running: ${args[0] ?? ''}`)
+  const { stdout } = await exec('git', [...lead, ...withSubmodulesIgnored(args)], {
     cwd: repoPath,
-    timeout,
+    timeout: left,
     maxBuffer: 8_000_000,
     // A repository the operator is working in must not have its state read
     // through a pager or a hook that expects a terminal.

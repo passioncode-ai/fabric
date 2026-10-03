@@ -1,4 +1,4 @@
-// #region start-choices — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+// #region start-choices — docs: docs/adr/0100-first-run-and-start-paths.md#boundary
 /**
  * What a window chose in the start paths' folder picker (ADR-0100), kept apart from `index.ts` so it
  * is tested without Electron.
@@ -11,7 +11,8 @@
  * choice belongs to the window that made it and is revoked with that window, like its granted roots
  * (S02.roots); iteration 2 found the revocation was claimed in a comment and never done.
  */
-import { realpathSync, statSync } from 'node:fs'
+import { lstatSync, realpathSync, statSync } from 'node:fs'
+import { homedir } from 'node:os'
 import path from 'node:path'
 import { OutsideRoots } from './files.ts'
 
@@ -52,34 +53,63 @@ export class ParentChoices {
   }
 }
 
-// #region scan-candidates — docs: docs/ux/scenarios.md#scn-128-scan-a-projects-folder-and-tick-what-becomes-a-project
+// #region scan-candidates — docs: docs/adr/0100-first-run-and-start-paths.md#boundary
 /**
  * The repositories main itself listed for a window: the candidates of its most recent scan, and of the
  * kept scan it was shown (ADR-0100 §3: "adding from it later goes through the checked create"). Each
  * slot is REPLACED by the next listing of its kind, and both end with the window, like its roots and its
- * parent choices. Paths are held by their real path.
+ * parent choices.
+ *
+ * A candidate is held as the WALK wrote it — the walk's canonical path, never re-resolved — together with
+ * the root it was found under (iteration 3, errors finding 2, blocking). Re-running `realpath` on a stored
+ * string at record time followed whatever the folder had since become: a kept candidate replaced by a
+ * symlink to `/` was recorded as `/`, and `/` was then admitted into every window's roots. A string that
+ * is not absolute and normal, not under its root, or names a filesystem root or the home folder is not
+ * recorded at all.
  */
 export type CandidateSlot = 'scan' | 'kept'
+interface CandidateList { root: string; paths: Set<string> }
 export class ScanCandidates {
-  private readonly byScope = new Map<string, Record<CandidateSlot, Set<string>>>()
+  private readonly byScope = new Map<string, Partial<Record<CandidateSlot, CandidateList>>>()
+  private readonly home: string
 
-  record(scope: string, slot: CandidateSlot, paths: readonly string[]): void {
-    const set = new Set<string>()
-    for (const p of paths) {
-      try {
-        set.add(realpathSync(path.resolve(p)))
-      } catch {
-        // A candidate that vanished since the scan cannot be added anyway; it is simply not admitted.
+  /** `home` is injectable for tests; by default the operator's real home folder. */
+  constructor(opts: { home?: string } = {}) {
+    this.home = opts.home ?? realHome()
+  }
+
+  record(scope: string, slot: CandidateSlot, root: string, paths: readonly string[]): void {
+    const slots = this.byScope.get(scope) ?? {}
+    const list: CandidateList = { root, paths: new Set<string>() }
+    if (typeof root === 'string' && isNormalAbsolute(root)) {
+      for (const p of paths) {
+        if (typeof p === 'string' && isNormalAbsolute(p) && within(p, root) && !tooBroad(p, this.home)) list.paths.add(p)
       }
     }
-    const slots = this.byScope.get(scope) ?? { scan: new Set<string>(), kept: new Set<string>() }
-    slots[slot] = set
+    slots[slot] = list
     this.byScope.set(scope, slots)
   }
 
-  has(scope: string, real: string): boolean {
+  /**
+   * Whether `real` — a path already taken by its real path — is a candidate this window may add NOW: the
+   * very string the walk recorded (so the folder still resolves to itself: no component became a link
+   * since), not itself a symlink, still a repository (`.git` present), under the root it was found in, and
+   * not a filesystem root or the home folder.
+   */
+  admits(scope: string, real: string): boolean {
     const slots = this.byScope.get(scope)
-    return !!slots && (slots.scan.has(real) || slots.kept.has(real))
+    if (!slots || tooBroad(real, this.home)) return false
+    const listed = [slots.scan, slots.kept].some((l) => !!l && l.paths.has(real) && within(real, l.root))
+    if (!listed) return false
+    try {
+      if (realpathSync(real) !== real) return false
+      if (lstatSync(real).isSymbolicLink()) return false
+      lstatSync(path.join(real, '.git'))
+      return true
+    } catch {
+      // Gone, or no longer a repository: not a candidate any more.
+      return false
+    }
   }
 
   revoke(scope: string): void {
@@ -87,8 +117,38 @@ export class ScanCandidates {
   }
 }
 
-/** Why a repository path was refused: a code, so each window can say it in its own language. */
-export type RepoPathRefusal = 'not-a-path' | 'missing' | 'not-a-folder' | 'not-chosen'
+/** The operator's home folder by its real path (or as given when it cannot be resolved). */
+function realHome(): string {
+  const h = homedir()
+  try {
+    return realpathSync(h)
+  } catch {
+    // An unresolvable home is still the home: compared as given.
+    return path.resolve(h)
+  }
+}
+
+/** Absolute and already normal: no `.`/`..` segment, no doubled or trailing separator. */
+function isNormalAbsolute(p: string): boolean {
+  return path.isAbsolute(p) && path.normalize(p) === p && (p === path.parse(p).root || !p.endsWith(path.sep))
+}
+
+/** `p` is `root` itself or lies below it. */
+function within(p: string, root: string): boolean {
+  return p === root || p.startsWith(root.endsWith(path.sep) ? root : root + path.sep)
+}
+
+/** A filesystem root (`/`) or the home folder: never a repository path a window may add. */
+export function tooBroad(real: string, home: string = realHome()): boolean {
+  return real === path.parse(real).root || real === home
+}
+
+/**
+ * Why a repository path was refused: a code, so each window can say it in its own language.
+ * `too-broad`: a filesystem root or the home folder (iteration 3, errors finding 2); `held-by-other`: a
+ * repository another project already holds (REQ-04; iteration 3, docs finding 10).
+ */
+export type RepoPathRefusal = 'not-a-path' | 'missing' | 'not-a-folder' | 'not-chosen' | 'too-broad' | 'held-by-other'
 export class RepoPathRefused extends Error {
   readonly code: RepoPathRefusal
   readonly attempted: string
@@ -108,16 +168,18 @@ export class RepoPathRefused extends Error {
  *
  * A path is admitted when the calling window can already reach it — `granted` is that window's
  * `fileRoots.resolve`: its picker, a folder it made (`createProjectFolder` grants it), the estate's own
- * repositories — or when main itself listed it as a candidate of that window's scan or kept scan.
+ * repositories — or when main itself listed it as a candidate of that window's scan or kept scan
+ * (`ScanCandidates#admits`). A filesystem root or the home folder is refused whatever reaches it.
  * Checked before anything is journalled; the caller does nothing with a refused call.
  */
 export function admitRepoPaths(
   paths: unknown,
   scope: string,
-  reach: { granted: (p: string, scope: string) => string; candidates: ScanCandidates }
+  reach: { granted: (p: string, scope: string) => string; candidates: ScanCandidates; home?: string }
 ): string[] {
   if (paths === undefined || paths === null) return []
   if (!Array.isArray(paths)) throw new RepoPathRefused('not-a-path', String(paths))
+  const home = reach.home ?? realHome()
   return paths.map((p) => {
     if (typeof p !== 'string' || !path.isAbsolute(p)) throw new RepoPathRefused('not-a-path', String(p))
     let real: string
@@ -126,6 +188,7 @@ export function admitRepoPaths(
     } catch {
       throw new RepoPathRefused('missing', p)
     }
+    if (tooBroad(real, home)) throw new RepoPathRefused('too-broad', p)
     let folder = false
     try {
       folder = statSync(real).isDirectory()
@@ -134,7 +197,7 @@ export function admitRepoPaths(
       throw new RepoPathRefused('missing', p)
     }
     if (!folder) throw new RepoPathRefused('not-a-folder', p)
-    if (reach.candidates.has(scope, real)) return real
+    if (reach.candidates.admits(scope, real)) return real
     try {
       reach.granted(real, scope)
       return real
@@ -143,6 +206,17 @@ export function admitRepoPaths(
       throw new RepoPathRefused('not-chosen', p)
     }
   })
+}
+
+/**
+ * Refuses the whole call when a repository path is already held by a project OTHER than `projectId`
+ * (REQ-04: a repository is never duplicated; iteration 3, docs finding 10 — only the renderer prevented
+ * it). `held` is keyed by real path (`indexImported`); `paths` are admitted real paths.
+ */
+export function refuseHeldByOther(paths: readonly string[], projectId: string, held: ReadonlyMap<string, readonly { id: string }[]>): void {
+  for (const p of paths) {
+    if ((held.get(p) ?? []).some((h) => h.id !== projectId)) throw new RepoPathRefused('held-by-other', p)
+  }
 }
 
 // #endregion scan-candidates

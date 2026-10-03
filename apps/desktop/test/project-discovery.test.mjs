@@ -60,7 +60,7 @@ assert.equal(worktree.kind, 'worktree')
 assert.equal(worktree.parent, path.join(root, 'alpha'), 'a worktree names the repository it belongs to')
 assert.equal(worktree.branch, 'fix')
 
-await assert.rejects(() => inspectFolder(path.join(root, 'missing')), /does not exist/)
+await assert.rejects(() => inspectFolder(path.join(root, 'missing')), /(^|: )folder-refused:missing: /)
 
 // ── scan the parent folder
 const scan = await scanFolder(root)
@@ -85,7 +85,7 @@ const cancelled = await scanFolder(root, { signal: ctl.signal })
 assert.equal(cancelled.cancelled, true)
 assert.equal(cancelled.candidates.length, 0)
 
-await assert.rejects(() => scanFolder(path.join(root, 'missing')), /does not exist/)
+await assert.rejects(() => scanFolder(path.join(root, 'missing')), /(^|: )folder-refused:missing: /)
 
 // ── V1 (iteration 1, errors-2/data-9/errors-4/errors-10): the scan only READS and says what it skipped
 // A repository's own config cannot make the scan run a program: a signed commit with
@@ -251,12 +251,61 @@ await assert.rejects(() => scanFolder(path.join(root, 'missing')), /does not exi
     assert.deepEqual(s.candidates.map((c) => c.name), ['ok'])
     assert.equal(s.unreadable, 1, 'a .git probe that never answered is counted, not taken as "no repository"')
   }
+  // Iteration 3 (docs finding 1, blocking): a repository the walk FOUND whose inspection throws or times
+  // out was swallowed — not listed, `unreadable` unchanged — while ADR-0100 §3 promises it is said.
+  {
+    const r = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-inspect-fail-')))
+    repo(path.join(r, 'ok'), 'package.json', 'ok')
+    repo(path.join(r, 'stuck'), 'package.json', 'stuck')
+    const s = await scanFolder(r, { dirTimeoutMs: 100, fs: fsWith({ stat: (p) => p === path.join(r, 'stuck') }) })
+    assert.deepEqual(s.candidates.map((c) => c.name), ['ok'], 'the repository that could not be inspected is not invented')
+    assert.equal(s.unreadable, 1, 'a repository whose inspection did not answer is COUNTED, never silently dropped')
+  }
+  // Iteration 3 (errors finding 5): eight repositories whose config includes a FIFO made each inspection
+  // hang for the driver probe's hard-coded 5 s, one at a time inside the walk — 30 s, truncated, and the
+  // healthy repository sorted after them never listed. Walk first, then inspect with bounded concurrency
+  // under the scan's own git timeout.
+  {
+    const r = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-slow-')))
+    for (let i = 0; i < 8; i++) {
+      const d = path.join(r, `slow-${i}`)
+      repo(d, 'package.json', `slow ${i}`)
+      const fifo = path.join(r, `.fifo-${i}`)
+      execFileSync('mkfifo', [fifo])
+      git(d, 'config', 'include.path', fifo)
+    }
+    repo(path.join(r, 'zz-healthy'), 'package.json', 'healthy')
+    const [s, ms] = await timedRun(() => scanFolder(r, { timeLimitMs: 8000, gitTimeoutMs: 300 }))
+    const healthy = s.candidates.find((c) => c.name === 'zz-healthy')
+    assert.ok(healthy, `the healthy repository was not listed (truncated: ${s.truncated}, ${ms} ms)`)
+    assert.equal(healthy.lastCommit?.subject, 'healthy', 'and its facts were read')
+    assert.equal(s.truncated, false, 'slow repositories did not exhaust the scan')
+    assert.equal(s.candidates.filter((c) => c.name.startsWith('slow-')).length + s.unreadable, 8, 'every slow repository is listed or counted')
+    assert.ok(ms < 6000, `the scan took ${ms} ms`)
+  }
   // inspectFolder on a folder that never answers fails in time, and says why.
   {
     const [err, ms] = await timedRun(() => inspectFolder(root, { timeoutMs: 100, fs: fsWith({ stat: (p) => p === root }) }).then(() => null, (e) => e))
-    assert.match(String(err), /did not answer/)
+    assert.match(String(err), /folder-refused:timeout: /)
     assert.ok(ms < 1500)
   }
+}
+
+// ── iteration 3, errors finding 9: inspect and scan refusals reached a Russian window as English sentences.
+// Each is a CODE the renderer can match: `folder-refused:<code>: <path>`.
+{
+  const { FolderRefused, asFolderRefusal } = await import(SRC)
+  const { OutsideRoots } = await import(path.resolve(import.meta.dirname, '../src/main/files.ts'))
+  const file = path.join(root, 'notes', 'todo.md')
+  const codeOf = async (fn) => { try { await fn(); return 'resolved' } catch (e) { assert.ok(e instanceof FolderRefused, String(e)); return e.message } }
+  assert.equal(await codeOf(() => inspectFolder(path.join(root, 'missing'))), `folder-refused:missing: ${path.join(root, 'missing')}`)
+  assert.equal(await codeOf(() => inspectFolder(file)), `folder-refused:not-a-folder: ${file}`)
+  assert.equal(await codeOf(() => scanFolder(file)), `folder-refused:not-a-folder: ${file}`, 'a scan of a file says not-a-folder, not "does not exist"')
+  const out = asFolderRefusal(new OutsideRoots('/elsewhere'), '/elsewhere')
+  assert.ok(out instanceof FolderRefused)
+  assert.equal(out.message, 'folder-refused:outside: /elsewhere', "a folder outside the window's folders is a code")
+  const other = new Error('boom')
+  assert.equal(asFolderRefusal(other, '/x'), other, 'any other error passes through unchanged')
 }
 
 console.log('PASS project discovery: inspect (repository, folder, worktree, missing, no exec from repo config incl. partial clone, no credential, .git symlink), scan (grouping, noise, symlink boundary + count, bound, cancel, noise-named repo, unreadable counted, breadth first, no sync fs, stuck read/lstat/probe vs Stop, deadline, timeout)')

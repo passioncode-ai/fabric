@@ -150,14 +150,26 @@ function pgConnectionParse() {
   return pgParse
 }
 
-/** Query parameters through which libpq and pg move a connection somewhere the URL does not say. */
-const ADDRESS_PARAMS = ['host', 'hostaddr', 'port']
+/**
+ * Query parameters through which libpq and pg move a connection somewhere the URL does not say. `service`
+ * (iteration 3): libpq then reads host and port from the connection service file, which can name anything.
+ */
+const ADDRESS_PARAMS = ['host', 'hostaddr', 'port', 'service']
+
+/**
+ * libpq variables that move a psql-based probe's connection somewhere DATABASE_URL does not say (iteration
+ * 3, errors finding 11): a service read from the service file, the file itself, and a numeric address that
+ * outranks the host. `probeEnv` removes them; nothing in a probe needs them.
+ */
+export const REDIRECTING_PG_ENV = Object.freeze(['PGSERVICE', 'PGSERVICEFILE', 'PGHOSTADDR'])
 
 /**
  * Where `pg` will actually connect for this DATABASE_URL and environment (release review 2026-10-03,
  * iteration 2): pg-connection-string's host and port — a `?host=` or `?port=` in the query overrides the
- * URL's own — then PGHOST / PGPORT when the string names none, then localhost:5432. A host or port in the
- * query string is refused outright: the address must be the one a person reads in the URL.
+ * URL's own — then PGHOST / PGPORT when the string names none, then localhost:5432. A host, port or
+ * service in the query string is refused outright: the address must be the one a person reads in the URL.
+ * `missingPort` is set when the URL names no port of its own (iteration 3: refused by `checkTestStack`,
+ * which still reports where pg would have gone).
  */
 export function pgTarget(value, env = process.env) {
   let url
@@ -169,7 +181,7 @@ export function pgTarget(value, env = process.env) {
   const parsed = parse(value)
   const host = parsed.host || env.PGHOST || 'localhost'
   const port = Number(parsed.port || env.PGPORT || 5432)
-  return { host: host.replace(/^\[(.*)\]$/, '$1'), port }
+  return { host: host.replace(/^\[(.*)\]$/, '$1'), port, missingPort: !parsed.port }
 }
 
 /**
@@ -195,6 +207,8 @@ export function checkTestStack(env, live = liveStack()) {
     try { at = read(value) } catch { at = null }
     if (!at) { reasons.push(`${name} is not a URL`); continue }
     if (at.error) { reasons.push(`${name} ${at.error}`); continue }
+    if (at.missingPort)
+      reasons.push(`${name} names no port; pg would connect to port ${at.port} (from PGPORT or its default) — an explicit port is required`)
     if (live.ports.has(at.port))
       reasons.push(`${name} points at port ${at.port}, which is the LIVE stack's (API ${live.apiPort}, DB ${live.dbPort}) — the operator's database`)
     if (!LOOPBACK.has(at.host)) reasons.push(`${name} host ${at.host} is not loopback — a disposable stack is local by construction`)
@@ -205,7 +219,9 @@ export function checkTestStack(env, live = liveStack()) {
 /**
  * The environment a database-backed probe runs with, or a refusal and exit 1 BEFORE any client
  * exists. A refusal is a FAIL, not a skip: a probe that asserts nothing must not read as green
- * (M110). Returns a copy of `process.env`, ready to hand to a child.
+ * (M110). Returns a copy of `process.env`, ready to hand to a child, without the libpq variables that
+ * would redirect a psql child (`REDIRECTING_PG_ENV`) — removed from `env` itself too, so a probe that
+ * spawns from its own environment is covered as well.
  */
 export function probeEnv({ env = process.env, live = liveStack(), exit = code => process.exit(code), log = console.log } = {}) {
   const reasons = checkTestStack(env, live)
@@ -215,6 +231,7 @@ export function probeEnv({ env = process.env, live = liveStack(), exit = code =>
     exit(1)
     return null
   }
+  for (const k of REDIRECTING_PG_ENV) delete env[k]
   return { ...env }
 }
 // #endregion test-stack

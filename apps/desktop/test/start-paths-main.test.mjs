@@ -2,7 +2,7 @@
 // Iteration 1 found: a failed `git init` left the folder behind and every retry answered "exists";
 // the call blocked the main process; the name rule accepted right-to-left overrides and threw on a
 // non-string. Each case below is one of those, watched failing first.
-import { existsSync, mkdtempSync, readdirSync, realpathSync } from 'node:fs'
+import { existsSync, mkdtempSync, readdirSync, realpathSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import assert from 'node:assert/strict'
@@ -55,11 +55,29 @@ assert.ok(ticks > 0, 'the event loop ran while the folder was being made')
   assert.equal(out.detail, 'parent-not-chosen', 'the outside refusal carries a code, not English text')
 }
 
+// iteration 3, errors finding 6: `git init` ran with the inherited environment, so a Fabric started with
+// GIT_DIR set (from a git hook, say) initialised THAT repository and reported success for an empty folder.
+{
+  const elsewhere = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-gitdir-')))
+  const saved = { GIT_DIR: process.env.GIT_DIR, GIT_WORK_TREE: process.env.GIT_WORK_TREE }
+  process.env.GIT_DIR = path.join(elsewhere, 'other.git')
+  process.env.GIT_WORK_TREE = elsewhere
+  let made
+  try {
+    made = await createProjectFolder({ parent, name: 'zeta', git: true }, inParent)
+  } finally {
+    for (const [k, v] of Object.entries(saved)) if (v === undefined) delete process.env[k]; else process.env[k] = v
+  }
+  assert.equal(made.ok, true)
+  assert.ok(existsSync(path.join(parent, 'zeta', '.git', 'HEAD')), 'the new folder itself is the repository, whatever GIT_DIR said')
+  assert.equal(existsSync(path.join(elsewhere, 'other.git')), false, 'no repository was initialised where an inherited GIT_DIR pointed')
+}
+
 // the name rule
 for (const bad of ['', '  ', '.hidden', 'a/b', 'a\\b', 'a:b', 'x'.repeat(81), 'evil‮txt.exe', 'a⁦b', 'a\u0007b']) assert.ok(folderNameProblem(bad), JSON.stringify(bad))
 for (const bad of [42, null, undefined, {}]) assert.ok(folderNameProblem(bad), String(bad))
 assert.equal(folderNameProblem('billing-service'), null)
-assert.deepEqual(readdirSync(parent).sort(), ['alpha', 'beta', 'delta', 'gamma'])
+assert.deepEqual(readdirSync(parent).sort(), ['alpha', 'beta', 'delta', 'gamma', 'zeta'])
 console.log('PASS project folder: made with git, exists/invalid/outside refused, failed git leaves nothing, non-blocking, name rule')
 
 // ── a kept scan read back (main/startPaths.ts validateScan → shared parseStoredScan): every count validated,
@@ -81,6 +99,23 @@ console.log('PASS project folder: made with git, exists/invalid/outside refused,
   assert.equal(parseStoredScan([]), null)
 }
 console.log('PASS kept scan: counts validated (symlinks like deep), unknown truncation reads as cut')
+
+// ── the scan tells the window whether it was kept (iteration 3, docs finding 2): `keepScan` returning null
+// was ignored, and the screen could later re-read another folder's kept list as if it were this one.
+{
+  const { scanViewOf } = await import(path.resolve(import.meta.dirname, '../src/shared/startPaths.ts'))
+  const r = { root: '/w', visited: 3, unreadable: 0, deep: 0, symlinks: 0, truncated: false, cancelled: false }
+  const now = () => '2026-10-03T09:00:00.000Z'
+  const kept = scanViewOf(r, [], '2026-10-03T08:00:00.000Z', now)
+  assert.equal(kept.kept, true)
+  assert.equal(kept.scannedAt, '2026-10-03T08:00:00.000Z', 'a kept scan carries the time it was kept')
+  const lost = scanViewOf(r, [], null, now)
+  assert.equal(lost.kept, false, 'a save that did not commit is said: kept false')
+  assert.equal(lost.scannedAt, now())
+  assert.equal(scanViewOf({ ...r, cancelled: true }, [], '2026-10-03T08:00:00.000Z', now).kept, false, 'a cancelled scan is never kept')
+  assert.equal(scanViewOf(r, [], '', now).kept, false, 'an empty time is not a kept scan')
+}
+console.log('PASS scan view: kept says whether the save committed')
 
 // ── the window's choices (iteration 1 → 2): a parent folder is remembered per window and forgotten with
 // it; only an unpackaged run answers the picker from FABRIC_WALK_PICK.
@@ -136,11 +171,13 @@ const { FileRoots } = await import(path.resolve(import.meta.dirname, '../src/mai
 {
   const { mkdirSync, writeFileSync, symlinkSync } = await import('node:fs')
   const home = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-admit-')))
+  const repo = (p) => { mkdirSync(path.join(p, '.git'), { recursive: true }); return p }
   const picked = path.join(home, 'picked'); mkdirSync(picked)
   const scanned = path.join(home, 'scanned'); mkdirSync(scanned)
-  const found = path.join(scanned, 'repo-a'); mkdirSync(found)
-  const found2 = path.join(scanned, 'repo-b'); mkdirSync(found2)
-  const kept = path.join(home, 'kept-repo'); mkdirSync(kept)
+  const found = repo(path.join(scanned, 'repo-a'))
+  const found2 = repo(path.join(scanned, 'repo-b'))
+  const keptRoot = path.join(home, 'kept-root'); mkdirSync(keptRoot)
+  const kept = repo(path.join(keptRoot, 'kept-repo'))
   const estate = path.join(home, 'estate-repo'); mkdirSync(estate)
   const elsewhere = path.join(home, 'elsewhere'); mkdirSync(elsewhere)
   const file = path.join(home, 'file.txt'); writeFileSync(file, 'x')
@@ -149,9 +186,9 @@ const { FileRoots } = await import(path.resolve(import.meta.dirname, '../src/mai
   const roots = new FileRoots()
   roots.reset([estate])
   roots.allow(picked, 'win:1')
-  const candidates = new ScanCandidates()
-  candidates.record('win:1', 'scan', [found])
-  candidates.record('win:1', 'kept', [kept])
+  const candidates = new ScanCandidates({ home: path.join(home, 'no-such-home') })
+  candidates.record('win:1', 'scan', scanned, [found])
+  candidates.record('win:1', 'kept', keptRoot, [kept])
   const reach = { granted: (p, scope) => roots.resolve(p, scope), candidates }
   const admit = (paths, scope = 'win:1') => admitRepoPaths(paths, scope, reach)
   const refusal = (paths, scope = 'win:1') => {
@@ -165,7 +202,7 @@ const { FileRoots } = await import(path.resolve(import.meta.dirname, '../src/mai
   assert.deepEqual(admit([estate], 'win:2'), [estate], "the estate's own repository is reachable from every window already")
   assert.deepEqual(admit(undefined), [], 'no paths is no paths')
 
-  assert.equal(refusal(['/']), 'not-chosen', 'the disk root is refused: no window chose it')
+  assert.equal(refusal(['/']), 'too-broad', 'the disk root is refused whatever reaches it')
   assert.equal(refusal([elsewhere]), 'not-chosen', 'an existing folder nobody chose is refused')
   assert.equal(refusal([picked], 'win:2'), 'not-chosen', "another window's choice is not this window's")
   assert.equal(refusal([found], 'win:2'), 'not-chosen', "another window's scan candidate is not this window's")
@@ -177,7 +214,7 @@ const { FileRoots } = await import(path.resolve(import.meta.dirname, '../src/mai
   assert.equal(refusal([file]), 'not-a-folder')
 
   // The scan slot is the window's MOST RECENT scan: a new scan replaces the old candidates.
-  candidates.record('win:1', 'scan', [found2])
+  candidates.record('win:1', 'scan', scanned, [found2])
   assert.equal(refusal([found]), 'not-chosen', 'a candidate of an earlier scan is not admitted after a new scan')
   assert.deepEqual(admit([found2, kept]), [found2, kept], 'the new scan and the kept list each keep their own slot')
   // Closing the window revokes its candidates, like its roots and its parent choices.
@@ -186,3 +223,90 @@ const { FileRoots } = await import(path.resolve(import.meta.dirname, '../src/mai
   assert.equal(refusal([kept]), 'not-chosen')
 }
 console.log('PASS repo path admission: picker, folder made, scan candidates, kept scan, estate — per window; anything else refused before journalling')
+
+// ── a candidate is the walk's own canonical path, tied to its root (iteration 3, errors finding 2,
+// blocking): a kept candidate replaced by a symlink to `/` was re-resolved at record time and `/` was then
+// admitted into every window's roots; `admitRepoPaths(['/'])` itself returned `['/']`.
+{
+  const { mkdirSync, renameSync, symlinkSync } = await import('node:fs')
+  const home = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-swap-')))
+  const fakeHome = path.join(home, 'home'); mkdirSync(path.join(fakeHome, '.git'), { recursive: true })
+  const root = path.join(home, 'root'); mkdirSync(root)
+  const repo = (name) => { const p = path.join(root, name); mkdirSync(path.join(p, '.git'), { recursive: true }); return p }
+  const foo = repo('foo')
+  const bar = repo('bar')
+  const plain = path.join(root, 'plain'); mkdirSync(plain)
+  const outside = path.join(home, 'outside'); mkdirSync(path.join(outside, '.git'), { recursive: true })
+  const nowhere = { granted: () => { throw new Error('outside') } }
+  const tryAdmit = (c, paths, h = fakeHome) => {
+    try { return admitRepoPaths(paths, 'win:1', { ...nowhere, candidates: c, home: h }) } catch (e) { assert.ok(e instanceof RepoPathRefused, String(e)); return e.code }
+  }
+
+  // Swapped BEFORE the kept list is recorded (the reviewer's case): the stored string is kept as written,
+  // and the folder no longer resolves to it.
+  {
+    renameSync(foo, `${foo}.moved`); symlinkSync('/', foo)
+    const c = new ScanCandidates({ home: fakeHome })
+    c.record('win:1', 'kept', root, [foo, bar])
+    assert.equal(tryAdmit(c, [foo]), 'too-broad', 'a candidate that became a link to / is refused, never admitted as /')
+    assert.equal(tryAdmit(c, ['/']), 'too-broad', '/ is never admitted, candidate or not')
+    assert.deepEqual(tryAdmit(c, [bar]), [bar], 'an untouched candidate of the same list still is')
+    rmSync(foo); renameSync(`${foo}.moved`, foo)
+  }
+  // Swapped AFTER it was recorded: admission re-checks the folder now.
+  {
+    const c = new ScanCandidates({ home: fakeHome })
+    c.record('win:1', 'scan', root, [foo, bar])
+    renameSync(foo, `${foo}.moved`); symlinkSync(outside, foo)
+    assert.equal(tryAdmit(c, [foo]), 'not-chosen', 'a candidate swapped for a link to another repository is refused')
+    rmSync(foo); renameSync(`${foo}.moved`, foo)
+    assert.deepEqual(tryAdmit(c, [foo]), [foo], 'restored, it is admitted again')
+    rmSync(path.join(bar, '.git'), { recursive: true })
+    assert.equal(tryAdmit(c, [bar]), 'not-chosen', 'a candidate that is no longer a repository is refused')
+    mkdirSync(path.join(bar, '.git'))
+  }
+  // Tied to the root: a stored path outside its root, the root `/` as a candidate, the home folder, a path
+  // that is not normal — none is recorded.
+  {
+    const c = new ScanCandidates({ home: fakeHome })
+    c.record('win:1', 'kept', root, [outside, '/', `${root}/../outside`, `${foo}/`, plain])
+    assert.equal(tryAdmit(c, [outside]), 'not-chosen', 'a kept candidate outside its root is not admitted')
+    assert.equal(tryAdmit(c, [plain]), 'not-chosen', 'a folder without .git is not a candidate')
+    const h = new ScanCandidates({ home: fakeHome })
+    h.record('win:1', 'kept', home, [fakeHome])
+    assert.equal(tryAdmit(h, [fakeHome]), 'too-broad', 'the home folder is refused even as a listed candidate')
+    const g = new FileRoots(); g.allow(fakeHome, 'win:1')
+    assert.throws(() => admitRepoPaths([fakeHome], 'win:1', { granted: (p, s) => g.resolve(p, s), candidates: h, home: fakeHome }), /repo-path-refused:too-broad:/, 'and when the window picked it')
+    const r = new ScanCandidates({ home: fakeHome })
+    r.record('win:1', 'kept', '/', ['/'])
+    assert.equal(tryAdmit(r, ['/']), 'too-broad', 'a scan of / never lists / itself')
+  }
+  // The kept file read back is tied to its root before anything is recorded from it.
+  {
+    const { parseStoredScan } = await import(path.resolve(import.meta.dirname, '../src/shared/startPaths.ts'))
+    const c = (p) => ({ path: p, group: p, name: 'x' })
+    const s = parseStoredScan({ root: '/w', scannedAt: 't', candidates: [c('/w/a'), c('/'), c('/etc'), c('/w/../etc'), c('/wx/a'), c('/w/a/'), c('w/a'), c('/w')] })
+    assert.deepEqual(s.candidates.map((x) => x.path), ['/w/a', '/w'], 'only normal paths under the kept root survive the read')
+    assert.equal(parseStoredScan({ root: 'relative', scannedAt: 't', candidates: [] }), null, 'a kept scan whose root is not absolute is not a kept scan')
+    assert.equal(parseStoredScan({ root: '/w/../x', scannedAt: 't', candidates: [] }), null, 'nor one whose root is not normal')
+  }
+}
+console.log('PASS candidates: the walk path kept as written and tied to its root; a symlink swap, /, the home folder refused')
+
+// ── projects.create (iteration 3, errors finding 10 / docs finding 10): a project NAME taken from a folder
+// on disk skipped the folder-name rule, so U+202E became a project name; and a repository one project holds
+// was attached to another when the renderer did not stop it (REQ-04 "never duplicated").
+{
+  const { projectNameProblem } = await import(path.resolve(import.meta.dirname, '../src/shared/startPaths.ts'))
+  const { refuseHeldByOther } = await import(path.resolve(import.meta.dirname, '../src/main/startChoices.ts'))
+  for (const [bad, code] of [['evil‮txt', 'text-direction'], ['a⁦b', 'text-direction'], ['a\u0007b', 'control'], ['line\nbreak', 'control'], ['', 'empty'], ['   ', 'empty'], [42, 'not-a-name']])
+    assert.equal(projectNameProblem(bad), code, JSON.stringify(bad))
+  // A project name is not a folder name: separators, a leading dot, colons and length stay legal.
+  for (const ok of ['Billing / API', '.dotfiles', 'Q3: launch', 'x'.repeat(200), 'Проект «Альфа»']) assert.equal(projectNameProblem(ok), null, ok)
+
+  const index = new Map([['/w/a', [{ id: 'p1', name: 'One' }]], ['/w/b', [{ id: 'p2', name: 'Two' }, { id: 'p3', name: 'Three' }]]])
+  assert.doesNotThrow(() => refuseHeldByOther(['/w/a', '/w/new'], 'p1', index), 'a repository the same project holds, or nobody holds, passes')
+  assert.throws(() => refuseHeldByOther(['/w/new', '/w/a'], 'p9', index), (e) => e instanceof RepoPathRefused && e.code === 'held-by-other' && /^repo-path-refused:held-by-other: \/w\/a$/.test(e.message), 'a repository another project holds is refused with a code')
+  assert.throws(() => refuseHeldByOther(['/w/b'], 'p2', index), /held-by-other/, 'held by this project AND another is still held by another')
+}
+console.log('PASS projects.create: bidi/control project names refused by code, other names legal; a repository another project holds refused (held-by-other)')

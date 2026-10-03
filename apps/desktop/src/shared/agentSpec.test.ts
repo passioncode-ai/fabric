@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { INSTRUCTIONS_MIN, NAME_MAX, agentNameTakenAtWrite, nameTaken, readSpec, resolveServers } from './agentSpec.ts'
+import { INSTRUCTIONS_MIN, NAME_MAX, agentNameRefusal, agentNameTakenAtWrite, nameTaken, readSpec, resolveServers } from './agentSpec.ts'
 
 const ok = (over: Partial<Parameters<typeof readSpec>[0]> = {}) =>
   readSpec({
@@ -100,5 +100,14 @@ describe('a created agent runs in a coding agent', () => {
     expect(ok({ runnerId: 'aider' }).ok).toBe(false)
     expect(ok({ runnerId: 'claude-code' }).ok).toBe(true)
     expect(ok({ runnerId: 'codex' }).ok).toBe(true)
+  })
+})
+
+// Iteration 3, errors finding 9: the refusal reached a Russian window as an English sentence. It is a code
+// now, the same one for the quick read and for the race the write boundary decides.
+describe('the taken-name refusal is a code a window can translate', () => {
+  it('leads with agent-name-refused:taken and carries the name', () => {
+    expect(agentNameRefusal('Scout')).toBe('agent-name-refused:taken: Scout')
+    expect(/^agent-name-refused:taken: (.*)$/.exec(agentNameRefusal('Ревьюер'))?.[1]).toBe('Ревьюер')
   })
 })

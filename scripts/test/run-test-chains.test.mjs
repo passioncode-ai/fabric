@@ -8,7 +8,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, existsSync
 import { spawnSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { splitChain, workspaceChains, runChains, summarise } from '../run-test-chains.mjs'
+import { splitChain, workspaceChains, runChains, summarise, suiteTimeoutS } from '../run-test-chains.mjs'
 
 const tool = path.resolve(import.meta.dirname, '../run-test-chains.mjs')
 
@@ -34,7 +34,7 @@ test('a plain chain splits into its links; shell control that splitting would ch
   assert.throws(() => splitChain(`node -e "a && b"`, '@t/x'), /quote open/)
 })
 
-test('every link runs even after one fails, and the verdict names every failure', () => {
+test('every link runs even after one fails, and the verdict names every failure', async () => {
   const root = workspace({
     'packages/lib': 'node -e "process.exit(0)" && node -e "process.exit(3)" && node -e "process.exit(0)"',
     'apps/app': 'node -e "process.exit(5)" && node -e "process.exit(0)"'
@@ -44,7 +44,7 @@ test('every link runs even after one fails, and the verdict names every failure'
     const chains = workspaceChains(root).map((c) => ({
       ...c, links: c.links.map((l, i) => l.replace('node -e "', `node -e "require('fs').writeFileSync('ran-${i}','');`))
     }))
-    const results = runChains(chains, { log: () => {} })
+    const results = await runChains(chains, { log: () => {} })
     assert.equal(results.length, 5, 'a link after a failure did not run')
     for (const c of chains) c.links.forEach((_, i) => assert.ok(existsSync(path.join(c.dir, `ran-${i}`)), `${c.name} link ${i + 1} never ran`))
     const { text, failed } = summarise(results)
@@ -64,7 +64,7 @@ test('the CLI exits 1 at the end when anything failed and 0 when nothing did', (
   const root = workspace({ 'packages/a': 'node -e "process.exit(1)" && node -e "process.exit(0)"' })
   const ok = workspace({ 'packages/a': 'node -e "process.exit(0)"' })
   const wrapper = (r) => `import { workspaceChains, runChains, summarise } from ${JSON.stringify(tool)}
-const { text, failed } = summarise(runChains(workspaceChains(${JSON.stringify(r)}), { log: () => {} }))
+const { text, failed } = summarise(await runChains(workspaceChains(${JSON.stringify(r)}), { log: () => {} }))
 console.log(text); process.exit(failed ? 1 : 0)`
   try {
     const bad = spawnSync(process.execPath, ['--input-type=module', '-e', wrapper(root)], { encoding: 'utf8' })
@@ -76,6 +76,54 @@ console.log(text); process.exit(failed ? 1 : 0)`
     rmSync(root, { recursive: true, force: true })
     rmSync(ok, { recursive: true, force: true })
   }
+})
+
+// Iteration 3, errors finding 4 (major): no link had a limit of its own, so one hung suite ran until the
+// outer with-timeout killed the whole group — and the verdict list, never printed, went with it.
+test('a hung suite is stopped at its own limit as exit 124, its whole group killed, and the rest still run', () => {
+  const root = workspace({
+    // The first link leaves a grandchild in its group and then hangs; the second must still run.
+    'packages/a': `node -e "const c=require('child_process').spawn('sleep',['30'],{stdio:'ignore'});c.unref();require('fs').writeFileSync('gc-pid',''+c.pid);setInterval(()=>{},1000)" && node -e "require('fs').writeFileSync('second','')"`
+  })
+  try {
+    const started = Date.now()
+    const r = spawnSync(process.execPath, [tool, '--root', root], { encoding: 'utf8', env: { ...process.env, FABRIC_SUITE_TIMEOUT_S: '1' }, timeout: 30_000 })
+    assert.ok(Date.now() - started < 20_000, 'the hung suite was not stopped at its own limit')
+    assert.equal(r.status, 1, r.stderr)
+    assert.match(r.stdout, /2 suite\(s\) ran across 1 package\(s\); 1 passed, 1 failed/, r.stdout)
+    assert.match(r.stdout, /FAIL \(exit 124\) @t\/a :: node -e/, 'the hung suite is recorded as exit 124')
+    assert.match(r.stdout + r.stderr, /TIMEOUT after 1 s/, 'the timeout is said')
+    assert.ok(existsSync(path.join(root, 'packages/a/second')), 'the suite after the hung one never ran')
+    // The grandchild the hung suite left in its group must not survive it.
+    const grand = Number(readFileSync(path.join(root, 'packages/a/gc-pid'), 'utf8'))
+    assert.ok(grand > 0, 'the grandchild reported its pid')
+    const alive = (() => { try { process.kill(grand, 0); return true } catch { return false } })()
+    assert.equal(alive, false, 'the grandchild of the hung suite survived its limit')
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('stopped from outside (the outer with-timeout), the runner still prints the verdict and names what never ran', () => {
+  const root = workspace({
+    'packages/a': `node -e "process.exit(3)" && node -e "setInterval(()=>{},1000)" && node -e "process.exit(0)"`
+  })
+  try {
+    const r = spawnSync(process.execPath, [path.resolve(import.meta.dirname, '../with-timeout.mjs'), '3', '--', process.execPath, tool, '--root', root], { encoding: 'utf8', timeout: 30_000 })
+    assert.equal(r.status, 124, r.stderr)
+    assert.match(r.stdout, /FAIL \(exit 3\) @t\/a/, 'the failure before the stop is still named')
+    assert.match(r.stdout, /FAIL \(exit 143\) @t\/a :: node -e "setInterval/, 'the interrupted suite is named with its signal')
+    assert.match(r.stdout, /1 suite\(s\) not run/, 'what never ran is counted')
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('the per-suite limit is read from FABRIC_SUITE_TIMEOUT_S, 900 s by default, and a bad value is refused', () => {
+  assert.equal(suiteTimeoutS({}), 900)
+  assert.equal(suiteTimeoutS({ FABRIC_SUITE_TIMEOUT_S: '30' }), 30)
+  for (const bad of ['0', '-1', 'x', ''])
+    assert.throws(() => suiteTimeoutS({ FABRIC_SUITE_TIMEOUT_S: bad }), /FABRIC_SUITE_TIMEOUT_S/, bad)
 })
 
 test('the real workspace splits cleanly, and the full tier runs it instead of `pnpm -r test`', () => {

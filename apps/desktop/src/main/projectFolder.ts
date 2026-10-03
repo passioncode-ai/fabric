@@ -17,12 +17,15 @@ import { execFile } from 'node:child_process'
 import { mkdir, rm } from 'node:fs/promises'
 import path from 'node:path'
 import { folderNameProblem, type NewFolderInput, type NewFolderResult } from '../shared/startPaths.ts'
+import { hardenedGitEnv } from './gitRun.ts'
 
 const GIT_INIT_TIMEOUT_MS = 10000
 
 function gitInit(dir: string, gitBinary: string, timeoutMs: number): Promise<void> {
   return new Promise((resolve, reject) => {
-    execFile(gitBinary, ['init', '-q', '-b', 'main'], { cwd: dir, timeout: timeoutMs, env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } }, (err) => {
+    // The hardened environment (`gitRun.ts#hardenedGitEnv`): an inherited GIT_DIR / GIT_WORK_TREE made
+    // `git init` initialise ANOTHER repository and report success for an empty folder (iteration 3).
+    execFile(gitBinary, ['init', '-q', '-b', 'main'], { cwd: dir, timeout: timeoutMs, env: hardenedGitEnv() }, (err) => {
       if (!err) return resolve()
       // `execFile` kills the child on its timeout and reports `killed`; that is a timeout, not a crash.
       if ((err as { killed?: boolean }).killed) return reject(new Error(`git init timed out after ${timeoutMs / 1000} s`))

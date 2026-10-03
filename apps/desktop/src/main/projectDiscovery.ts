@@ -48,6 +48,12 @@ export interface ScanOptions {
   timeLimitMs?: number
   /** A single folder read that takes longer than this is abandoned and counted as unreadable (a hung mount). */
   dirTimeoutMs?: number
+  /** How long each git read of a found repository may take, its driver probe included. */
+  gitTimeoutMs?: number
+  /** How many found repositories are inspected at once, after the walk. */
+  inspectConcurrency?: number
+  /** One repository's whole inspection; past it the repository is counted as unreadable. */
+  inspectTimeoutMs?: number
   signal?: AbortSignal
   /** Injected clock for the deadline; tests only. */
   now?: () => number
@@ -67,7 +73,33 @@ const REAL_FS: DiscoveryFs = { readdir: (p) => readdir(p), lstat, stat, readFile
 /** One folder inspected: how long each filesystem call may take, and which calls to make. */
 export interface InspectOptions {
   timeoutMs?: number
+  /** How long each git read may take, the hardened runner's driver probe included. */
+  gitTimeoutMs?: number
   fs?: DiscoveryFs
+}
+
+/**
+ * Why a folder could not be inspected or scanned: a CODE, so each window says it in its own language
+ * (iteration 3, errors finding 9: these reached a Russian window as English sentences). The code leads the
+ * message — IPC carries only the message across — as `folder-refused:<code>: <path>`:
+ * `missing`, `not-a-folder`, `unreadable`, `timeout`, and `outside` (not one of the window's folders;
+ * mapped by `asFolderRefusal`).
+ */
+export type FolderRefusal = 'missing' | 'not-a-folder' | 'unreadable' | 'timeout' | 'outside'
+export class FolderRefused extends Error {
+  readonly code: FolderRefusal
+  readonly attempted: string
+  constructor(code: FolderRefusal, attempted: string) {
+    super(`folder-refused:${code}: ${attempted}`)
+    this.name = 'FolderRefused'
+    this.code = code
+    this.attempted = attempted
+  }
+}
+
+/** The boundary's refusal (`files.ts#OutsideRoots`) as a coded one; any other error passes through. */
+export function asFolderRefusal(e: unknown, attempted: string): unknown {
+  return e instanceof Error && e.name === 'OutsideRoots' ? new FolderRefused('outside', attempted) : e
 }
 
 const TIMED_OUT = Symbol('timed out')
@@ -121,8 +153,8 @@ const GIT_TIMEOUT_MS = 3000
  * of the hardening had drifted from the runner's). Null when git fails or times out: the fact is unknown,
  * not invented. Asynchronous on purpose: the caller is Electron's main process.
  */
-function gitOut(dir: string, args: string[]): Promise<string | null> {
-  return gitRun(dir, args, { timeoutMs: GIT_TIMEOUT_MS }).then(
+function gitOut(dir: string, args: string[], timeoutMs: number = GIT_TIMEOUT_MS): Promise<string | null> {
+  return gitRun(dir, args, { timeoutMs }).then(
     (out) => out.trim(),
     () => null
   )
@@ -197,17 +229,17 @@ export async function inspectFolder(dir: string, opts: InspectOptions = {}): Pro
   const ms = opts.timeoutMs ?? 3000
   const abs = path.resolve(dir)
   const st = await probe(() => fs.stat(abs), ms)
-  if (st === TIMED_OUT) throw new Error(`folder did not answer in time: ${abs}`)
-  if (st === null) throw new Error(`folder does not exist: ${abs}`)
-  if (!st.isDirectory()) throw new Error(`not a folder: ${abs}`)
+  if (st === TIMED_OUT) throw new FolderRefused('timeout', abs)
+  if (st === null) throw new FolderRefused('missing', abs)
+  if (!st.isDirectory()) throw new FolderRefused('not-a-folder', abs)
   const entries = await probe(() => fs.readdir(abs), ms)
-  if (entries === TIMED_OUT) throw new Error(`folder did not answer in time: ${abs}`)
-  if (entries === null) throw new Error(`folder cannot be read: ${abs}`)
+  if (entries === TIMED_OUT) throw new FolderRefused('timeout', abs)
+  if (entries === null) throw new FolderRefused('unreadable', abs)
   let kind: FolderKind = 'folder'
   let parent: string | null = null
   if (entries.includes('.git')) {
     const k = await dotGitKind(path.join(abs, '.git'), fs, ms)
-    if (k === TIMED_OUT) throw new Error(`folder did not answer in time: ${abs}`)
+    if (k === TIMED_OUT) throw new FolderRefused('timeout', abs)
     ;({ kind, parent } = k)
   }
   const git = kind !== 'folder'
@@ -215,10 +247,11 @@ export async function inspectFolder(dir: string, opts: InspectOptions = {}): Pro
   let branch: string | null = null
   let remote: string | null = null
   if (git) {
+    const gms = opts.gitTimeoutMs ?? GIT_TIMEOUT_MS
     const [log, head, origin] = await Promise.all([
-      gitOut(abs, ['log', '-1', '--no-show-signature', '--format=%cI%x00%s']),
-      gitOut(abs, ['symbolic-ref', '--short', '-q', 'HEAD']), // the chosen folder's branch; empty when detached
-      gitOut(abs, ['config', '--get', 'remote.origin.url'])
+      gitOut(abs, ['log', '-1', '--no-show-signature', '--format=%cI%x00%s'], gms),
+      gitOut(abs, ['symbolic-ref', '--short', '-q', 'HEAD'], gms), // the chosen folder's branch; empty when detached
+      gitOut(abs, ['config', '--get', 'remote.origin.url'], gms)
     ])
     if (log) {
       const [at, subject] = log.split('\u0000')
@@ -242,6 +275,8 @@ export async function inspectFolder(dir: string, opts: InspectOptions = {}): Pro
  * walk could not cover is counted — `unreadable` (a folder or entry that could not be read, or did not
  * answer in time), `deep` (below the depth limit), `symlinks` (symlinked folders, never followed) — and a
  * stop by the bound or the deadline is `truncated`, so a partial list never reads as the whole folder.
+ * The walk only FINDS repositories; they are inspected after it, a few at a time, on the budget left, and
+ * one whose inspection fails or times out is counted in `unreadable` (iteration 3).
  * Throws when `root` does not exist; returns `cancelled` when the signal aborts — at once, even while a
  * filesystem call is stuck.
  */
@@ -253,10 +288,16 @@ export async function scanFolder(root: string, opts: ScanOptions = {}): Promise<
   const maxDirs = opts.maxDirs ?? 20000
   const timeLimitMs = opts.timeLimitMs ?? 30000
   const dirTimeoutMs = opts.dirTimeoutMs ?? 3000
+  const gitTimeoutMs = opts.gitTimeoutMs ?? GIT_TIMEOUT_MS
+  const inspectConcurrency = Math.max(1, opts.inspectConcurrency ?? 4)
+  // Three filesystem probes in a row, then three git reads at once (each a driver probe plus the command
+  // sharing one budget), with a little slack.
+  const inspectTimeoutMs = opts.inspectTimeoutMs ?? 3 * dirTimeoutMs + gitTimeoutMs + 1000
   const now = opts.now ?? Date.now
   const rootStat = await probe(() => fs.stat(abs), dirTimeoutMs)
-  if (rootStat === TIMED_OUT) throw new Error(`folder did not answer in time: ${abs}`)
-  if (!rootStat?.isDirectory()) throw new Error(`folder does not exist: ${abs}`)
+  if (rootStat === TIMED_OUT) throw new FolderRefused('timeout', abs)
+  if (rootStat === null) throw new FolderRefused('missing', abs)
+  if (!rootStat.isDirectory()) throw new FolderRefused('not-a-folder', abs)
   const started = now()
   const found: FolderFacts[] = []
   let visited = 0
@@ -268,13 +309,40 @@ export async function scanFolder(root: string, opts: ScanOptions = {}): Promise<
   // Set when the race below is decided: a walk still awaiting a stuck call must not touch the answer.
   let settled = false
   const over = (): boolean => settled || truncated || cancelled
-  const inspectInto = async (dir: string): Promise<void> => {
-    try {
-      const facts = await inspectFolder(dir, { fs, timeoutMs: dirTimeoutMs })
-      if (!settled) found.push(facts)
-    } catch {
-      // Vanished between the listing and the read, or stopped answering: not a candidate, and the walk goes on.
+  // Repositories the walk found, inspected only once the walk is done (iteration 3, errors finding 5): an
+  // inspection inside the walk, one at a time, let a few slow repositories spend the whole budget before
+  // a healthy one was ever reached.
+  const toInspect: string[] = []
+  const inspectInto = (dir: string): void => {
+    if (!toInspect.includes(dir)) toInspect.push(dir)
+  }
+
+  /**
+   * Inspect what the walk found, `inspectConcurrency` at a time, on the budget the walk left. A repository
+   * whose inspection throws or does not answer in time is COUNTED in `unreadable` — never silently dropped
+   * (iteration 3, docs finding 1). Running out of budget is `truncated`, like the walk's own bound.
+   */
+  const inspectAll = async (): Promise<void> => {
+    let next = 0
+    const worker = async (): Promise<void> => {
+      while (next < toInspect.length && !settled && !cancelled) {
+        if (opts.signal?.aborted) { cancelled = true; return }
+        const left = timeLimitMs - (now() - started)
+        if (left <= 0) { truncated = true; return }
+        const dir = toInspect[next++]
+        let facts: FolderFacts | typeof TIMED_OUT | null
+        try {
+          facts = await timed(inspectFolder(dir, { fs, timeoutMs: dirTimeoutMs, gitTimeoutMs }), Math.min(inspectTimeoutMs, left))
+        } catch {
+          // Vanished between the listing and the read, or not readable: counted below, and the rest go on.
+          facts = null
+        }
+        if (settled) return
+        if (facts === null || facts === TIMED_OUT) unreadable++
+        else found.push(facts)
+      }
     }
+    await Promise.all(Array.from({ length: Math.min(inspectConcurrency, toInspect.length) }, worker))
   }
 
   const walk = async (): Promise<void> => {
@@ -292,7 +360,7 @@ export async function scanFolder(root: string, opts: ScanOptions = {}): Promise<
         // Unreadable is an answer, not an error: counted so the result can say so.
         if (entries === null || entries === TIMED_OUT) { unreadable++; continue }
         const isRepo = entries.includes('.git')
-        if (isRepo) await inspectInto(dir)
+        if (isRepo) inspectInto(dir)
         const below = isRepo ? 0 : inRepo === null ? null : inRepo + 1
         for (const name of entries.sort()) {
           if (over()) return
@@ -320,7 +388,7 @@ export async function scanFolder(root: string, opts: ScanOptions = {}): Promise<
             const git = await probe(() => fs.lstat(path.join(child, '.git')), dirTimeoutMs)
             if (settled) return
             if (git === TIMED_OUT) unreadable++
-            else if (git !== null) await inspectInto(child)
+            else if (git !== null) inspectInto(child)
             continue
           }
           const childBelow = below === null ? null : below + 1
@@ -336,8 +404,13 @@ export async function scanFolder(root: string, opts: ScanOptions = {}): Promise<
   // is waiting on. The injected clock still bounds the walk between folders (tests drive it).
   let timer: NodeJS.Timeout | undefined
   let onAbort: (() => void) | undefined
+  const work = async (): Promise<void> => {
+    await walk()
+    // A walk stopped by its folder bound still has its finds inspected; a stopped or settled one does not.
+    if (!settled && !cancelled) await inspectAll()
+  }
   const outcome = await Promise.race([
-    walk().then(() => 'done' as const),
+    work().then(() => 'done' as const),
     new Promise<'deadline'>((resolve) => { timer = setTimeout(() => resolve('deadline'), timeLimitMs) }),
     new Promise<'aborted'>((resolve) => {
       if (opts.signal?.aborted) return resolve('aborted')
