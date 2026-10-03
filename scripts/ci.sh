@@ -281,6 +281,9 @@ node --experimental-strip-types apps/desktop/test/search-read.test.mjs
 node --experimental-strip-types apps/desktop/test/run-lifecycle-contract.test.mjs
 # Release review iteration 2: the file roots read every page or keep what they had.
 node --experimental-strip-types apps/desktop/test/file-roots-refresh.test.mjs
+# ADR-0115 (the hub): the registry reader over real directories, then the hub's door, consent and
+# product connection — fakes under the real surface, a real MCP client and server on loopback.
+node --experimental-strip-types apps/desktop/test/agent-registry.test.mjs
 
 step "owned databases: the SQL contract and the reads, on a cluster this run creates and removes"
 # A disposable PostgreSQL (`initdb` into a temp dir, Unix socket only) with the
