@@ -259,20 +259,24 @@ const PROJECTS = [{ id: 'p1', name: 'Atlas ledger', purpose: 'keep the ledger' }
     return out
   }
   const valueOf = (term) => {
-    const m = term.match(/^([a-z_]+)\.ilike\.(".*")$/s)
+    // `imatch` since release review iteration 3: PostgREST rewrites `*` to `%` in a LIKE value, so a
+    // search for `*` matched every row (measured by gateway-reads.test.mjs on the disposable stack).
+    const m = term.match(/^([a-z_]+)\.imatch\.(".*")$/s)
     if (!m) return null
     return { column: m[1], value: m[2].slice(1, -1).replace(/\\(.)/g, '$1') }
   }
-  for (const text of ['auth, billing', 'x%,id.not.is.null', 'a"b\\c', '50%_off', 'f(x).y:z']) {
+  for (const text of ['auth, billing', 'x%,id.not.is.null', 'a"b\\c', '50%_off', 'f(x).y:z', '*', '[x]+?^$']) {
     const { queries } = await drive({ projects: [rows(PROJECTS), rows([])] }, text)
     const ors = queries.flatMap((q) => q.filters.filter(([op]) => op === 'or').map(([, v]) => ({ table: q.table, v })))
     eq(ors.length, 2, `two substring groups ask an or() for ${JSON.stringify(text)}`)
     for (const { table, v } of ors) {
       const parsed = terms(v).map(valueOf)
       const columns = table === 'projects' ? ['name', 'purpose'] : ['title', 'instruction']
-      const like = '%' + text.replace(/[\\%_]/g, '\\$&') + '%'
-      parsed.length === 2 && parsed.every((p, i) => p && p.column === columns[i] && p.value === like)
-        ? ok(`${table}: ${JSON.stringify(text)} stays one quoted value per column, wildcards escaped`)
+      // The decoded pattern, read as the regular expression the database will read, matches the text
+      // itself and nothing a wildcard would let in.
+      const exact = (p) => { const r = new RegExp(p.value, 'i'); return r.test(`before ${text} after`) && !r.test('plain name') && !r.test('') }
+      parsed.length === 2 && parsed.every((p, i) => p && p.column === columns[i] && exact(p))
+        ? ok(`${table}: ${JSON.stringify(text)} stays one quoted value per column, every metacharacter escaped`)
         : fail(`${table}: ${JSON.stringify(text)} became ${JSON.stringify(v)}`)
     }
   }

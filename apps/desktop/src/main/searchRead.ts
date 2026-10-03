@@ -98,18 +98,24 @@ function groupOf(input: {
  * outside the `or()`, but no longer the search that was asked). Release review
  * 2026-10-03.
  *
- * Two escapes, in this order. LIKE first: `%`, `_` and `\` are wildcards or the
- * escape character in a PostgreSQL LIKE pattern, so a literal "50%_off" must
- * not match "50 anything off". Then the value is double-quoted, which is
- * PostgREST's documented way to carry reserved characters, with `"` and `\`
- * escaped by a backslash. `*` is left alone: PostgREST also reads it as a LIKE
- * wildcard and documents no escape for it, so a `*` widens the match — it can
- * no longer change the filter.
+ * Two escapes, in this order. The PATTERN first, then the value is double-quoted,
+ * which is PostgREST's documented way to carry reserved characters, with `"` and
+ * `\` escaped by a backslash.
+ *
+ * THE PATTERN IS A REGULAR EXPRESSION, NOT A LIKE (release review iteration 3,
+ * harness finding 4). It was `ilike` with `%`, `_` and `\` escaped, and `*` left
+ * alone because PostgREST rewrites `*` to `%` in a LIKE value and documents no
+ * escape for it — "a `*` widens the match". MEASURED on the disposable stack by
+ * `apps/desktop/test/gateway-reads.test.mjs`: a search for `*` returned EVERY
+ * project of the estate. `imatch` (`~*`, case-insensitive POSIX regex) has no
+ * such rewrite, so every regex metacharacter is escaped with a backslash and the
+ * pattern means exactly the text, anywhere in the value: "50%_off" matches only
+ * "50%_off", `*` only a `*`. Case folding is the database's, as it was for `ilike`.
  */
 export function substringFilter(columns: readonly string[], text: string): string {
-  const like = `%${text.replace(/[\\%_]/g, '\\$&')}%`
-  const quoted = `"${like.replace(/["\\]/g, '\\$&')}"`
-  return columns.map((c) => `${c}.ilike.${quoted}`).join(',')
+  const pattern = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const quoted = `"${pattern.replace(/["\\]/g, '\\$&')}"`
+  return columns.map((c) => `${c}.imatch.${quoted}`).join(',')
 }
 
 /**
