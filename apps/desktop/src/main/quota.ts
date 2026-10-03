@@ -52,8 +52,14 @@ export interface QuotaReader {
   /**
    * The reading for one account, or for the system default when no account is
    * named — which is what every existing caller does and what it still means.
+   *
+   * NEVER NULL (release review 2026-10-03). A failed first read used to answer
+   * null, and the panel renders null as "Claude Code is not signed in" — so our
+   * own unreachable request was reported as the operator's signed-out account.
+   * Every path now answers a reading whose `problem` names what happened; one
+   * with no window authorises nothing, which the gate already enforces.
    */
-  read(key?: ObservationKey): Promise<Quota | null>
+  read(key?: ObservationKey): Promise<Quota>
   /** Forget one account's cache and backoff, or all of them. Removing an
    *  account must not clear another's backoff (M199.usage). */
   forget(key?: ObservationKey): void
@@ -182,7 +188,7 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
   const entries = new Map<string, { at: number; quota: Quota }>()
   const backoffs = new Map<string, number>()
   /** One in-flight read per account, so two callers do not both ask. */
-  const inFlight = new Map<string, Promise<Quota | null>>()
+  const inFlight = new Map<string, Promise<Quota>>()
   const SYSTEM_DEFAULT = 'system-default'
 
   const withAge = (q: Quota, at: number, problem: Quota['problem']): Quota => ({
@@ -191,12 +197,30 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
     problem
   })
 
-  const readFor = async (slot: string, key: ObservationKey | undefined): Promise<Quota | null> => {
+  /**
+   * A request that produced no reading, when there is no earlier one to fall
+   * back to. No window, so no number is invented; the account is named because
+   * a credential WAS found and asked with — this is a fact about the request,
+   * and saying "not signed in" here would be a diagnosis of the operator's
+   * machine produced by our own failure.
+   */
+  const noReading = (problem: NonNullable<Quota['problem']>, account: string | null): Quota => ({
+    fiveHour: null,
+    sevenDay: null,
+    byModel: {},
+    readAt: new Date(now()).toISOString(),
+    ageSeconds: 0,
+    problem,
+    account
+  })
+
+  const readFor = async (slot: string, key: ObservationKey | undefined): Promise<Quota> => {
       const last = entries.get(slot) ?? null
       const backoffUntil = backoffs.get(slot) ?? 0
       if (last && now() - last.at < ttl) return withAge(last.quota, last.at, last.quota.problem)
       if (now() < backoffUntil)
-        return last ? withAge(last.quota, last.at, 'throttled') : null
+        // No credential has been read yet on this path, so no account is named.
+        return last ? withAge(last.quota, last.at, 'throttled') : noReading('throttled', null)
 
       // WITH AN ACCOUNT CHOSEN, the system default is not an answer. Reading it
       // is the first defect the dated probe reproduces, and answering from it
@@ -209,19 +233,9 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
       if (!bearer) {
         // Not signed in. A real state, not a failure — and the only one where
         // there is nothing to fall back to.
-        return last
-          ? withAge(last.quota, last.at, 'no-credential')
-          : {
-              fiveHour: null,
-              sevenDay: null,
-              byModel: {},
-              readAt: new Date(now()).toISOString(),
-              ageSeconds: 0,
-              problem: 'no-credential',
-              // Not signed in: there is no account to name, and naming one
-              // would be inventing the thing the reading is about.
-              account: null
-            }
+        // Not signed in: there is no account to name, and naming one would be
+        // inventing the thing the reading is about.
+        return last ? withAge(last.quota, last.at, 'no-credential') : noReading('no-credential', null)
       }
 
       let result: { status: number; retryAfter?: number; body?: unknown }
@@ -229,15 +243,15 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
         result = await fetchUsage(bearer)
       } catch (e) {
       ops.failed('quota.snapshot', e)
-        return last ? withAge(last.quota, last.at, 'unreachable') : null
+        return last ? withAge(last.quota, last.at, 'unreachable') : noReading('unreachable', accountOf(bearer))
       }
 
       if (result.status === 429) {
         backoffs.set(slot, now() + (result.retryAfter ?? 60) * 1000)
-        return last ? withAge(last.quota, last.at, 'throttled') : null
+        return last ? withAge(last.quota, last.at, 'throttled') : noReading('throttled', accountOf(bearer))
       }
       if (result.status !== 200 || !result.body) {
-        return last ? withAge(last.quota, last.at, 'rejected') : null
+        return last ? withAge(last.quota, last.at, 'rejected') : noReading('rejected', accountOf(bearer))
       }
 
       const body = result.body as Record<string, unknown>
@@ -262,17 +276,7 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
       // because the producer is the only place that knows the body was empty
       // rather than the plan being narrow.
       if (!fiveHour && !sevenDay)
-        return last
-          ? withAge(last.quota, last.at, 'empty')
-          : {
-              fiveHour: null,
-              sevenDay: null,
-              byModel: {},
-              readAt: new Date(at).toISOString(),
-              ageSeconds: 0,
-              problem: 'empty',
-              account: accountOf(bearer)
-            }
+        return last ? withAge(last.quota, last.at, 'empty') : noReading('empty', accountOf(bearer))
       const quota: Quota = {
         fiveHour,
         sevenDay,
@@ -290,7 +294,7 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
   }
 
   return {
-    async read(key?: ObservationKey): Promise<Quota | null> {
+    async read(key?: ObservationKey): Promise<Quota> {
       const slot = key ? keyOf(key) : SYSTEM_DEFAULT
       const running = inFlight.get(slot)
       if (running) return running

@@ -14,6 +14,7 @@
 // credential is read, and nothing is written.
 
 import { createQuotaReader } from '../src/main/quota.ts'
+import { mayStart } from '../src/shared/quotaGate.ts'
 
 let failures = 0
 const ok = (m) => console.log('  ok   ' + m)
@@ -63,13 +64,32 @@ const reader = (body, status = 200) =>
     : fail('signed out produced: ' + JSON.stringify(q))
 }
 
-// ── a non-200 is still a rejection ───────────────────────────────────────────
-{
-  const q = await reader({ five_hour: { utilization: 1, resets_at: null } }, 500).read()
-  q === null
-    ? ok('a 500 with no previous reading answers null rather than a number nobody has')
-    : fail('500 produced: ' + JSON.stringify(q))
+// ── a failed FIRST read is a failed read, not a signed-out account ───────────
+//
+// MEASURED in the 2026-10-03 release review (data finding 10): with nothing
+// cached, an unreachable service, a 429 and a 500 each answered NULL, and the
+// quota panel renders null as "Claude Code is not signed in on this machine".
+// The operator was told their account was signed out because our own request
+// failed. A credential WAS found on each of these paths, so the reading says
+// what happened to the request and names no number — and the gate still
+// refuses it, because a reading with no windows authorises nothing.
+const failedFirst = async (name, make, problem) => {
+  const q = await make().read()
+  q !== null && q.problem === problem && q.fiveHour === null && q.sevenDay === null &&
+  Object.keys(q.byModel).length === 0 && typeof q.account === 'string' && q.account.length > 0
+    ? ok(`${name} with no previous reading answers '${problem}', no number, and the account it asked about`)
+    : fail(`${name} produced: ` + JSON.stringify(q))
+  mayStart(q, 'unattended').ok === false
+    ? ok(`and that reading starts nothing unattended (${name})`)
+    : fail(`the gate admitted unattended work on a failed first read (${name})`)
 }
+await failedFirst('a 500', () => reader({ five_hour: { utilization: 1, resets_at: null } }, 500), 'rejected')
+await failedFirst('a 429', () => reader({}, 429), 'throttled')
+await failedFirst('an unreachable service', () => createQuotaReader({
+  token: async () => 'test-token',
+  fetchUsage: async () => { throw new Error('getaddrinfo ENOTFOUND') },
+  now: () => 1_757_000_000_000
+}), 'unreachable')
 
 console.log(failures ? '\n  FAIL ' + failures + ' failure(s)' : '\nall green')
 process.exit(failures ? 1 : 0)

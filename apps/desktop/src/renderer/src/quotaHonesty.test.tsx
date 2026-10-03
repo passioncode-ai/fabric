@@ -90,9 +90,39 @@ describe('the quota panel says which question it is answering', () => {
 
   it('but still says "not signed in" when that is what the reader answered', async () => {
     // The other direction, and it is what keeps the sentence worth printing.
+    // The reader says it with `no-credential` — never with null, which since the
+    // 2026-10-03 release review it no longer answers at all.
+    stub()
+    show({ read: true, quota: quota({ fiveHour: null, problem: 'no-credential', account: null }) })
+    await waitFor(() => expect(screen.getByText(/not signed in/i)).toBeTruthy())
+  })
+
+  it('does not call a failed FIRST read a signed-out account', async () => {
+    // Release review 2026-10-03, data finding 10: an unreachable service with
+    // nothing cached answered null, and null rendered as "Claude Code is not
+    // signed in on this machine". Our failed request was reported as the
+    // operator's account. Each cause is now said as itself, and none claims a
+    // number it does not have.
+    for (const [problem, said] of [
+      ['unreachable', /could not be reached/i],
+      ['rejected', /refused/i],
+      ['throttled', /rate.limited/i],
+      ['empty', /answered with nothing/i]
+    ] as const) {
+      stub()
+      show({ read: true, quota: quota({ fiveHour: null, problem }) })
+      await waitFor(() => expect(screen.getByText(said)).toBeTruthy())
+      expect(screen.queryByText(/not signed in/i), problem).toBeNull()
+      expect(screen.queryByText(/last ones read/i), `${problem}: a reading with no numbers spoke of "the last ones read"`).toBeNull()
+      cleanup()
+    }
+  })
+
+  it('and an absent reading diagnoses nothing either', async () => {
     stub()
     show({ read: true, quota: null })
-    await waitFor(() => expect(screen.getByText(/not signed in/i)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/Account quota/)).toBeTruthy())
+    expect(screen.queryByText(/not signed in/i)).toBeNull()
   })
 
   it('and names the CAUSE of a partial reading, not its age', async () => {

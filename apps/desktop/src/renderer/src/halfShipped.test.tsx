@@ -71,8 +71,9 @@ describe('M83 — the quota on the HOME, not only on a project', () => {
   })
 
   it('no quota is a state with a sentence, not an empty panel', () => {
-    // Claude Code not signed in on this machine is an ANSWER.
-    wrap(<QuotaPanel quota={{ read: true, quota: null }} />)
+    // Claude Code not signed in on this machine is an ANSWER — the reader's
+    // `no-credential`, not a null (release review 2026-10-03).
+    wrap(<QuotaPanel quota={{ read: true, quota: { ...quota, fiveHour: null, sevenDay: null, byModel: {}, problem: 'no-credential', account: null } }} />)
     expect(screen.getByText(/not signed in/i)).toBeTruthy()
   })
 })

@@ -55,6 +55,10 @@ export const ru: Partial<Record<StringKey, string>> = {
   'estate.quotaRejected': 'Сервис отклонил запрос, поэтому это последние прочитанные числа, {age} назад.',
   'estate.quotaEmpty': 'Сервис ответил пустотой, поэтому это последние прочитанные числа, {age} назад.',
   'estate.quotaThrottled': 'Ограничены за частые запросы — это последние прочитанные числа, {age} назад.',
+  'estate.quotaUnreachableUnread': 'До сервиса не достучались, и ни одного показания ещё нет. Залогинен ли Claude Code, из этого не следует.',
+  'estate.quotaRejectedUnread': 'Сервис отклонил запрос, и ни одного показания ещё нет. Залогинен ли Claude Code, из этого не следует.',
+  'estate.quotaEmptyUnread': 'Сервис ответил пустотой, так что чисел пока нет.',
+  'estate.quotaThrottledUnread': 'Ограничены за частые запросы ещё до первого показания, так что чисел пока нет.',
   // Четыре ответа об улике — четыре акта, и `null` один из них (AX-11).
   'retro.locateSource': 'Где он?',
   'retro.retrySource': 'Повторить',
@@ -152,7 +156,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'estate.quotaByModel': 'По моделям, 7 дней',
   'estate.quotaResets': 'сброс через {time}',
   'estate.quotaStale': 'прочитано {age} назад',
-  'estate.quotaNone': 'Квоты нет — Claude Code на этой машине не авторизован.',
+  'estate.quotaNone': 'Показание не пришло, показать нечего. Про сам аккаунт это не говорит ничего.',
 
   'onboarding.title': 'Новый проект',
   'onboarding.lede':
