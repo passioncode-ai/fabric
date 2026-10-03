@@ -77,4 +77,6 @@ test('the walk spawns the Electron binary in its own process group, and fails on
   assert.match(walk, /ok: ended === 'terminated'/, 'the walk passes an app that had to be killed')
   assert.match(walk, /FABRIC_NO_KEYCHAIN: '1'/, 'the walk lets the app read the operator\'s real Keychain')
   assert.match(walk, /'--use-mock-keychain'/)
+  assert.match(walk, /CLAUDE_CONFIG_DIR: path\.join\(userData/, 'the walk lets the app read the real Claude config home')
+  assert.ok(walk.indexOf("name: 'app-quits-gracefully'") < walk.indexOf("writeFileSync(path.join(OUT, 'walk.json')"), 'walk.json is written before the quit verdict')
 })

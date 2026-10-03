@@ -29,7 +29,7 @@ export function sourcePins(config){
  */
 export function fetchTip(src,env=process.env){
  const dir=sourceDir(src.id,env)
- const run=(args,cwd)=>execFileSync('git',args,{cwd,timeout:120000,stdio:['ignore','pipe','pipe'],env:{...process.env,GIT_TERMINAL_PROMPT:'0'}})
+ const run=(args,cwd)=>execFileSync('git',args,{cwd,timeout:120000,killSignal:'SIGKILL',stdio:['ignore','pipe','pipe'],env:{...process.env,GIT_TERMINAL_PROMPT:'0',GIT_SSH_COMMAND:process.env.GIT_SSH_COMMAND??'ssh -o BatchMode=yes -o ConnectTimeout=15'}})
  try{
   if(!existsSync(dir)){mkdirSync(path.dirname(dir),{recursive:true});run(['clone','-q','--bare',src.repository,dir])}
   run(['fetch','-q','--prune',src.repository,'+HEAD:'+tipRef],dir)

@@ -81,14 +81,55 @@ test('git is run so that it can never wait on a person', () => {
 })
 
 // The scheduled sync is the job that wedged; its source keeps every guarantee in place.
-test('workspace.mjs runs no command without a deadline, and the sync is locked, watched and recorded', () => {
+test('workspace.mjs runs no command without a deadline, and the sync runs under superviseJob with its guard first', () => {
   const src = readFileSync(path.resolve(import.meta.dirname, '../workspace.mjs'), 'utf8')
   assert.doesNotMatch(src, /import\s*\{[^}]*\b(execFileSync|spawnSync|execSync)\b/, 'an unbounded child-process call is back in workspace.mjs')
   assert.match(src, /boundedRun\(/)
-  assert.match(src, /holdPublication\(\)[\s\S]*if\(!process\.env\.FABRIC_WORKSPACE_SYNC_CHECKOUT/, 'the sync takes the publication lock before it moves its checkout')
+  assert.match(src, /await superviseJob\(\{[\s\S]*guard:[\s\S]*FABRIC_WORKSPACE_SYNC_CHECKOUT[\s\S]*holdPublication\(\)/, 'the sync must guard its checkout before the status record and the lock')
   assert.match(src, /FABRIC_WORKSPACE_SYNC_DEADLINE_MS/, 'the sync has no watchdog')
-  assert.match(src, /writeStatus\(statusFile/, 'the sync writes no status record')
-  assert.match(src, /rotateLog\(log\)/, 'the sync log is never rotated')
+})
+
+// Review m10: the contract's own check — a hung step ends the job inside its watchdog, non-zero, with its
+// status record saying why, and nothing it started survives.
+test('a supervised job whose step hangs ends at its watchdog with a timeout record and no survivor', async () => {
+  const lib = path.resolve(import.meta.dirname, '../lib/bounded-run.mjs')
+  const dir = tmp()
+  const statusFile = path.join(dir, 'status.json'), mark = path.join(dir, 'step.pid'), log = path.join(dir, 'job.log')
+  writeFileSync(log, 'x'.repeat(64))
+  const step = `require('fs').writeFileSync(${JSON.stringify(mark)}, String(process.pid)); process.on('SIGTERM',()=>{}); setInterval(()=>{},1000)`
+  const job = `import { superviseJob, boundedRun } from ${JSON.stringify(lib)}; await superviseJob({ name: 'probe', statusFile: ${JSON.stringify(statusFile)}, watchdogMs: 1500, log: ${JSON.stringify(log)} }, async () => { await boundedRun(process.execPath, ['-e', ${JSON.stringify(step)}], { timeoutMs: 600000, stdio: 'ignore' }); return { outcome: 'done' } })`
+  const started = Date.now()
+  const code = await new Promise((resolve) => { const c = spawn(process.execPath, ['--input-type=module', '-e', job], { stdio: 'ignore' }); c.on('exit', (code) => resolve(code)) })
+  assert.ok(Date.now() - started < 10_000, 'the watchdog did not end the job')
+  assert.equal(code, 124)
+  const record = JSON.parse(readFileSync(statusFile, 'utf8'))
+  assert.equal(record.outcome, 'timeout'); assert.ok(record.ended_at)
+  await new Promise((r) => setTimeout(r, 300))
+  assert.equal(alive(Number(readFileSync(mark, 'utf8'))), false, 'the hung step survived the watchdog')
+  assert.equal(statSync(log).mode & 0o777, 0o600, 'the job log is readable by others')
+  rmSync(dir, { recursive: true, force: true })
+})
+
+test('a supervised job that refuses to start leaves the existing status record alone', async () => {
+  const lib = path.resolve(import.meta.dirname, '../lib/bounded-run.mjs')
+  const dir = tmp()
+  const statusFile = path.join(dir, 'status.json')
+  writeFileSync(statusFile, JSON.stringify({ outcome: 'published', job: 'sync' }))
+  const job = `import { superviseJob } from ${JSON.stringify(lib)}; await superviseJob({ name: 'probe', statusFile: ${JSON.stringify(statusFile)}, watchdogMs: 60000, guard: () => { throw new Error('wrong checkout') } }, async () => ({ outcome: 'done' }))`
+  const code = await new Promise((resolve) => { const c = spawn(process.execPath, ['--input-type=module', '-e', job], { stdio: 'ignore' }); c.on('exit', (code) => resolve(code)) })
+  assert.equal(code, 1)
+  assert.equal(JSON.parse(readFileSync(statusFile, 'utf8')).outcome, 'published', 'a refused run overwrote the job\'s record')
+  rmSync(dir, { recursive: true, force: true })
+})
+
+test('copy-truncate rotation keeps the live file for its writer and bounds every generation', () => {
+  const dir = tmp()
+  const file = path.join(dir, 'sync.log')
+  writeFileSync(file, 'y'.repeat(200))
+  assert.equal(rotateLog(file, { maxBytes: 100, keep: 2, copyTruncate: true }), true)
+  assert.equal(statSync(file).size, 0, 'the live file was not truncated in place')
+  assert.equal(statSync(`${file}.1`).size, 200)
+  rmSync(dir, { recursive: true, force: true })
 })
 
 // Review finding 6: two processes starting together both held the lock in 20 of 20 rounds.
@@ -146,5 +187,54 @@ test('a timed-out run ends the nested runs it started too, not only its own grou
   await new Promise((r) => setTimeout(r, 300))
   assert.ok(existsSync(mark), 'the nested step never started')
   assert.equal(alive(Number(readFileSync(mark, 'utf8'))), false, 'the nested step survived its outer run')
+  rmSync(dir, { recursive: true, force: true })
+})
+
+// Confirmation review L1: a taker that died mid-takeover left its claim; a winner was then recorded under
+// another token, and a later run got the lock while the winner still held it.
+test('after a taker died mid-takeover: one winner, the lock names it, and a later run is refused', async () => {
+  const lib = path.resolve(import.meta.dirname, '../lib/bounded-run.mjs')
+  const racer = `import { acquireLock } from ${JSON.stringify(lib)}; import { readFileSync } from 'node:fs'; const [file, hold] = process.argv.slice(-2); const token = 'r' + process.pid; let l; try { l = acquireLock(file, { token }) } catch (e) { process.stdout.write(JSON.stringify({ threw: e.code })); process.exit(0) } let owns = false; try { owns = JSON.parse(readFileSync(file, 'utf8')).token === token } catch {} process.stdout.write(JSON.stringify({ won: !!l, owns })); setTimeout(() => { l?.release(); process.exit(0) }, Number(hold))`
+  const run = (file, hold) => new Promise((resolve) => {
+    const c = spawn(process.execPath, ['--input-type=module', '-e', racer, file, String(hold)], { stdio: ['ignore', 'pipe', 'inherit'] })
+    let o = ''; c.stdout.on('data', (b) => { o += b }); c.on('exit', () => { try { resolve(JSON.parse(o)) } catch { resolve({ parse: o }) } })
+  })
+  const deadPid = async () => { const c = spawn(process.execPath, ['-e', '0']); await new Promise((r) => c.once('exit', r)); return c.pid }
+  for (let round = 0; round < 4; round++) {
+    const dir = tmp()
+    const file = path.join(dir, 'publish.lock')
+    writeFileSync(file, JSON.stringify({ pid: await deadPid(), token: 'crashed', at: 'x' }))
+    // The claim a taker leaves when it dies mid-takeover, in both the old and the current shape.
+    writeFileSync(`${file}.takeover`, JSON.stringify({ pid: await deadPid(), token: 'mid', at: 'x' }))
+    writeFileSync(`${file}.takeover.crashed.0`, JSON.stringify({ pid: await deadPid(), token: 'mid', at: 'x' }))
+    const first = Array.from({ length: 6 }, () => run(file, 2500))
+    await new Promise((r) => setTimeout(r, 1000))
+    const late = await run(file, 0)
+    const outs = await Promise.all(first)
+    const winners = outs.filter((o) => o.won)
+    assert.equal(outs.filter((o) => o.threw).length + (late.threw ? 1 : 0), 0, `round ${round}: a contender threw ${JSON.stringify([...outs, late])}`)
+    assert.equal(winners.length, 1, `round ${round}: ${JSON.stringify(outs)}`)
+    assert.equal(winners[0].owns, true, `round ${round}: the winner is not the holder the lock names`)
+    assert.equal(late.won, false, `round ${round}: a later run got the lock while the winner held it`)
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+// Confirmation review L2: the holder's start time was read as locale- and zone-dependent text.
+test('a live holder is not taken over by a contender running under another locale or time zone', async () => {
+  const lib = path.resolve(import.meta.dirname, '../lib/bounded-run.mjs')
+  const dir = tmp()
+  const file = path.join(dir, 'publish.lock')
+  const held = acquireLock(file, { token: 'holder' })
+  assert.ok(held)
+  const contender = `import { acquireLock } from ${JSON.stringify(lib)}; process.stdout.write(acquireLock(${JSON.stringify(file)}, { token: 'other' }) ? 'WON' : 'LOST')`
+  for (const env of [{ LC_ALL: 'ru_RU.UTF-8', LANG: 'ru_RU.UTF-8' }, { TZ: 'Asia/Tokyo' }, { LC_ALL: 'C', TZ: 'UTC' }]) {
+    const out = await new Promise((resolve) => {
+      const c = spawn(process.execPath, ['--input-type=module', '-e', contender], { stdio: ['ignore', 'pipe', 'inherit'], env: { ...process.env, ...env } })
+      let o = ''; c.stdout.on('data', (b) => { o += b }); c.on('exit', () => resolve(o))
+    })
+    assert.equal(out, 'LOST', `a live holder was taken over under ${JSON.stringify(env)}`)
+  }
+  held.release()
   rmSync(dir, { recursive: true, force: true })
 })

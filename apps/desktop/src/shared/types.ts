@@ -1139,12 +1139,13 @@ export interface FabricApi {
      */
     requestOverwrite(file: string): Promise<{ grantId: string; expiresAt: string }>
     /**
-     * Lifecycle (ADR-0106 §1): an editor tells main whether closing it now would lose work, so a quit
-     * can stop before anything is shut down and let the person choose (lifecycle review finding 7).
+     * Editor recovery (ADR-0106 amendment): the editor keeps its unsaved buffer in a recovery store as the
+     * person types — `null` content discards it — so a quit, a signal or a crash never loses the work and
+     * never has to wait for it. `recoveryFlush` is the fire-and-forget form used from `beforeunload`.
      */
-    reportUnsaved(unsaved: boolean): void
-    /** Main asks this editor to show its "unsaved changes" choice because a quit was requested. */
-    onQuitRequested(handler: () => void): () => void
+    recoveryKeep(file: string, content: string | null, baseHash: string): Promise<{ kept: boolean; reason?: string }>
+    recoveryFlush(file: string, content: string | null, baseHash: string): void
+    recoveryRead(file: string): Promise<{ content: string; baseHash: string; at: string } | null>
     /**
      * Open a file in whatever the machine uses for it.
      *
@@ -1520,8 +1521,9 @@ export const IPC = {
   filesWrite: 'files:write',
   filesRequestOverwrite: 'files:request-overwrite',
   filesOpenExternally: 'files:open-externally',
-  filesUnsaved: 'files:unsaved',
-  filesQuitRequested: 'files:quit-requested',
+  filesRecoveryKeep: 'files:recovery-keep',
+  filesRecoveryFlush: 'files:recovery-flush',
+  filesRecoveryRead: 'files:recovery-read',
   windowsOpenFile: 'windows:open-file',
   settingsRead: 'settings:read',
   settingsWrite: 'settings:write',

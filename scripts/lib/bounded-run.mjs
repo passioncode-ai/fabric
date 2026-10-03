@@ -6,7 +6,7 @@
 // interval because the job still counted as running — 5 h 27 min of silence. A manual publish and the
 // scheduled one also raced each other on the same remotes, and the log grew 20 MB in 2.4 days.
 import { execFileSync, spawn } from 'node:child_process'
-import { existsSync, linkSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, linkSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, truncateSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
 const live = new Set()
@@ -96,9 +96,15 @@ export function nonInteractiveGitEnv(base = process.env) {
   }
 }
 
-/** When a process started, as the kernel reports it — a recycled pid has a different start. */
+/**
+ * When a process started, as the kernel reports it — a recycled pid has a different start. Read with a
+ * fixed locale and zone: `ps lstart` is text, and the same instant read under another LC_ALL or TZ looked
+ * like a different process, so a live holder could be taken over (confirmation review, L2).
+ */
 function startOf(pid) {
-  try { return execFileSync('ps', ['-o', 'lstart=', '-p', String(pid)], { encoding: 'utf8', timeout: 5000 }).trim() || null } catch { return null }
+  try {
+    return execFileSync('ps', ['-o', 'lstart=', '-p', String(pid)], { encoding: 'utf8', timeout: 5000, env: { ...process.env, LC_ALL: 'C', LANG: 'C', TZ: 'UTC' } }).trim() || null
+  } catch { return null }
 }
 function holderAlive(held) {
   if (!held || !Number.isInteger(held.pid) || held.pid <= 0) return false
@@ -111,46 +117,57 @@ function readHolder(file) {
 }
 /** Create `file` with its content in one step: link a fully written temp file, which fails if it exists. */
 function createWithContent(file, record) {
-  const tmp = `${file}.${process.pid}.${Date.now()}.tmp`
+  const tmp = `${file}.${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`
   writeFileSync(tmp, JSON.stringify(record), { mode: 0o600 })
   try { linkSync(tmp, file); return true } catch (e) { if (e.code === 'EEXIST') return false; throw e } finally { rmSync(tmp, { force: true }) }
 }
+const GENERATIONS = 16
 
 /**
  * One holder at a time, across every checkout on this machine.
  *
- * The lock file appears with its holder already written (a link of a complete temp file), so a reader
- * never sees it empty: the old open-then-write let a second process read an empty file, call it stale and
- * take it — both held the lock in 20 of 20 simultaneous starts (review finding 6). A dead holder is
- * replaced only through a second exclusive file, `<lock>.takeover`, so two processes cannot both replace
- * it; the holder is identified by pid AND process start time. A child of the holder passes the token
- * (env) and is admitted as the holder itself. Returns `{ release }` or `null` when someone else holds it.
+ * - The lock file appears with its holder already written (a link of a complete temp file), so a reader
+ *   never sees it empty: open-then-write let a second process read an empty file, call it stale and take
+ *   it — both held the lock in 20 of 20 simultaneous starts (review finding 6).
+ * - A dead holder is replaced through a TAKEOVER claim named after that holder's token, in generations:
+ *   `<lock>.takeover.<token>.<n>`. Exactly one contender creates generation n; a contender that finds n
+ *   taken by a live claimer stops, one that finds a dead claimer moves to n+1. No contender ever deletes
+ *   another's claim — deleting a claim someone had just made let two contenders both proceed when a
+ *   previous taker had died mid-takeover (confirmation review, L1).
+ * - The winner re-reads the lock: if it still names the dead holder, it replaces it with one atomic
+ *   rename; if it does not, someone completed a takeover first and theirs stands.
+ * - Holder identity is pid + start time (read locale-free). A child of the holder passes the token (env)
+ *   and is admitted as the holder itself. Returns `{ release }` or `null`.
  */
 export function acquireLock(file, { token, now = () => new Date().toISOString(), pid = process.pid } = {}) {
   mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 })
   const record = { pid, token, started: startOf(pid), at: now() }
-  const release = () => { const held = readHolder(file); if (held && held.token === token) rmSync(file, { force: true }) }
+  const release = () => {
+    const held = readHolder(file)
+    if (held && held.token === token) rmSync(file, { force: true })
+  }
   if (createWithContent(file, record)) return { release }
   const held = readHolder(file)
   if (held && token && held.token === token) return { release: () => {} }
   if (held && holderAlive(held)) return null
-  // The holder is gone (or the file is unreadable). Take it over exclusively.
-  const takeover = `${file}.takeover`
-  if (!createWithContent(takeover, record)) {
-    if (holderAlive(readHolder(takeover))) return null
-    rmSync(takeover, { force: true })
-    if (!createWithContent(takeover, record)) return null
-  }
-  try {
+  const staleToken = String(held?.token ?? 'unreadable').replace(/[^\w.-]/g, '_').slice(0, 80)
+  for (let n = 0; n < GENERATIONS; n++) {
+    const claim = `${file}.takeover.${staleToken}.${n}`
+    if (!createWithContent(claim, record)) {
+      if (holderAlive(readHolder(claim))) return null
+      continue
+    }
     const again = readHolder(file)
-    // Someone else completed a takeover between our read and our claim: theirs stands.
-    if (again && holderAlive(again)) return null
-    renameSync(takeover, file)
+    const sameStale = (again?.token ?? 'unreadable') === (held?.token ?? 'unreadable') && !holderAlive(again)
+    if (!sameStale) { rmSync(claim, { force: true }); return null }
+    const tmp = `${file}.${process.pid}.${Date.now()}.win.tmp`
+    writeFileSync(tmp, JSON.stringify(record), { mode: 0o600 })
+    renameSync(tmp, file)
+    // The lock now names us; claims for the old holder are spent and can go.
+    for (let k = 0; k < GENERATIONS; k++) rmSync(`${file}.takeover.${staleToken}.${k}`, { force: true })
     return { release }
-  } finally {
-    const left = readHolder(takeover)
-    if (left && left.token === token) rmSync(takeover, { force: true })
   }
+  return null
 }
 
 /** Write a small JSON record atomically (temp + rename), owner-only. */
@@ -161,12 +178,56 @@ export function writeStatus(file, record) {
   renameSync(tmp, file)
 }
 
-/** Rotate by size: file → file.1 → … → file.<keep>, the oldest dropped. A missing file is fine. */
-export function rotateLog(file, { maxBytes = 5 * 1024 * 1024, keep = 5 } = {}) {
-  if (!existsSync(file) || statSync(file).size <= maxBytes) return false
+/**
+ * Rotate by size: file → file.1 → … → file.<keep>, the oldest dropped. A missing file is fine.
+ * `copyTruncate` is for a file another process holds open for appending (launchd's StandardOutPath): the
+ * content is copied to `.1` and the file truncated in place, so the writer keeps writing into the live file
+ * and every generation stays bounded — renaming it moved the writer, unbounded, into `.1` (review m7).
+ * Every generation is owner-only.
+ */
+export function rotateLog(file, { maxBytes = 5 * 1024 * 1024, keep = 5, copyTruncate = false } = {}) {
+  if (!existsSync(file)) return false
+  try { chmodSync(file, 0o600) } catch { /* not ours to change */ }
+  if (statSync(file).size <= maxBytes) return false
   rmSync(`${file}.${keep}`, { force: true })
   for (let i = keep - 1; i >= 1; i--) if (existsSync(`${file}.${i}`)) renameSync(`${file}.${i}`, `${file}.${i + 1}`)
-  renameSync(file, `${file}.1`)
+  if (copyTruncate) { copyFileSync(file, `${file}.1`); truncateSync(file, 0) } else renameSync(file, `${file}.1`)
+  try { chmodSync(`${file}.1`, 0o600) } catch { /* gone */ }
   return true
+}
+
+/**
+ * Supervise one run of a scheduled job (lifecycle LC-03): a status record from start to end, a watchdog
+ * below the job's interval, signals and errors each ending as a named outcome, and an exit that really
+ * ends the process. `body` returns `{ outcome, reason }`; an error with code ELOCKED is "locked" (exit 0:
+ * another run is doing the work), any other error "failed" (exit 1), the watchdog "timeout" (exit 124), a
+ * signal "stopped" (exit 143). `guard` runs before the first status write, so a run that refuses to start
+ * (a wrong checkout) never overwrites the record of the job that owns it (review m6).
+ */
+export async function superviseJob({ name, statusFile, watchdogMs, log, guard = () => {} }, body) {
+  const startedAt = new Date().toISOString()
+  const say = (m) => console.log(`== ${name} ${m} · ${new Date().toISOString()}`)
+  try { guard() } catch (e) { console.error(String(e?.message || e)); exitWithin(1); return }
+  if (log) rotateLog(log, { copyTruncate: true })
+  const status = (outcome, reason) => writeStatus(statusFile, { schema: 'JobRun@1', job: name, pid: process.pid, started_at: startedAt, ended_at: outcome === 'running' ? null : new Date().toISOString(), outcome, reason: reason ?? null })
+  let ended = false
+  const finish = (outcome, reason, code) => {
+    if (ended) return
+    ended = true
+    try { status(outcome, reason) } catch (e) { console.error('status not written: ' + (e?.message || e)) }
+    say(outcome + (reason ? ': ' + reason : ''))
+    exitWithin(code)
+  }
+  const fail = (e) => { killAll(); const locked = e?.code === 'ELOCKED'; finish(locked ? 'locked' : 'failed', String(e?.message || e).split('\n')[0], locked ? 0 : 1) }
+  setTimeout(() => { killAll(); finish('timeout', `the run passed its ${Math.round(watchdogMs / 60000)} min watchdog; every step it started was ended`, 124) }, watchdogMs).unref()
+  for (const sig of ['SIGTERM', 'SIGINT']) process.once(sig, () => { killAll(); finish('stopped', 'received ' + sig, 143) })
+  process.on('uncaughtException', fail)
+  process.on('unhandledRejection', fail)
+  say('start · pid ' + process.pid)
+  status('running')
+  try {
+    const { outcome, reason } = await body()
+    finish(outcome, reason, 0)
+  } catch (e) { fail(e) }
 }
 // #endregion bounded-run

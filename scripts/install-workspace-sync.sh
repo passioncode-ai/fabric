@@ -18,7 +18,8 @@ LABEL="ai.passioncode.fabric-workspace-sync"
 REPO="$(cd "$(dirname "$0")/.." && pwd -P)"
 CHECKOUT="${FABRIC_WORKSPACE_SYNC_DIR:-$HOME/.cache/fabric-workspace/sync-checkout}"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
-LOG="$HOME/Library/Logs/fabric-workspace-sync.log"
+LOG="$HOME/Library/Logs/Fabric/workspace-sync.log"
+OLD_LOG="$HOME/Library/Logs/fabric-workspace-sync.log"
 STATE="${FABRIC_WORKSPACE_STATE_DIR:-$HOME/.cache/fabric-workspace}"
 INTERVAL="${FABRIC_WORKSPACE_SYNC_INTERVAL:-7200}"
 
@@ -36,7 +37,10 @@ case "${1:-install}" in
     rm -f "$PLIST"
     if [ "${2:-}" = "--purge" ]; then
       [ -e "$CHECKOUT" ] && { git -C "$REPO" worktree remove --force "$CHECKOUT" 2>/dev/null || rm -rf "$CHECKOUT"; git -C "$REPO" worktree prune; }
-      rm -rf "$STATE" "$LOG" "$LOG".[0-9]*
+      # Only a state directory under ~/.cache is ever removed by --purge (review m14): a variable that
+      # pointed anywhere else would otherwise be deleted wholesale.
+      case "$STATE" in "$HOME"/.cache/?*) rm -rf "$STATE" ;; *) echo "refusing to purge $STATE: not under $HOME/.cache" >&2 ;; esac
+      rm -f "$LOG" "$LOG".[0-9]* "$OLD_LOG" "$OLD_LOG".[0-9]*
       echo "removed $LABEL, its checkout, state and logs"
     else
       echo "removed $LABEL; the checkout $CHECKOUT is left for inspection (--uninstall --purge removes it)"
@@ -61,12 +65,20 @@ git -C "$CHECKOUT/workspace" remote get-url heroku >/dev/null 2>&1 \
   || git -C "$CHECKOUT/workspace" remote add heroku "https://git.heroku.com/$HEROKU_APP.git"
 [ -d "$CHECKOUT/workspace/node_modules" ] || (cd "$CHECKOUT/workspace" && npm ci --silent)
 
-mkdir -p "$(dirname "$PLIST")" "$(dirname "$LOG")"
+mkdir -p "$(dirname "$PLIST")"
+# The log lives in the product's own directory, owner-only (LC-12); launchd appends to it and the job
+# rotates it by copy-truncate. The old root-level log is retired.
+mkdir -p "$(dirname "$LOG")" && chmod 700 "$(dirname "$LOG")"
+[ -f "$LOG" ] || : > "$LOG"
+chmod 600 "$LOG"
+rm -f "$OLD_LOG" "$OLD_LOG".[0-9]*
 NODE="$(command -v node)"
 # A minimal PATH built from the tools the job uses, never the interactive one: a captured shell PATH
 # carries plugin directories that later disappear (lifecycle audit, observatory F13).
 JOB_PATH="/usr/bin:/bin:/usr/sbin:/sbin"
-for tool in node git heroku pnpm npm; do
+# Every tool the job and the fast gate it may run call (review m15): a tool that only happened to share a
+# directory with another would vanish from the job the day it moved.
+for tool in node git heroku pnpm npm python3 rg docker supabase gh uv; do
   d="$(dirname "$(command -v "$tool" 2>/dev/null || echo /usr/bin/true)")"
   case ":$JOB_PATH:" in *":$d:"*) ;; *) JOB_PATH="$d:$JOB_PATH" ;; esac
 done

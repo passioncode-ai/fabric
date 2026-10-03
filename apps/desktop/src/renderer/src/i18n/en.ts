@@ -656,6 +656,10 @@ export const en = {
     'This file has changes that are not on disk. Closing now loses them.',
   'editor.keepEditing': 'Keep editing',
   'editor.discardAndClose': 'Discard and close',
+  'editor.keptBuffer': 'Unsaved changes from {time} were kept when this file was last open. Restore them?',
+  'editor.keptBufferChanged': 'Unsaved changes from {time} were kept when this file was last open, and the file has changed on disk since. Restoring shows both versions side by side.',
+  'editor.restoreKept': 'Restore them',
+  'editor.discardKept': 'Discard them',
   'editor.unsaved': 'unsaved',
   // M109 — what the machine said when it would not open the file. Without it a
   // press that does nothing is indistinguishable from one that worked.

@@ -8,7 +8,8 @@ import { createQuitCoordinator } from '../../../src/main/quit.ts'
 
 const [userData, mode] = process.argv.slice(process.argv.findIndex((a) => a.endsWith('main.mjs')) + 1)
 app.setPath('userData', userData)
-app.dock?.hide()
+// The dialog modes keep the Dock icon, as Fabric does: a hidden Dock changes how macOS runs the box.
+if (!String(mode).startsWith('dialog')) app.dock?.hide()
 const say = (what) => process.stdout.write(`quit-app: ${what}\n`)
 
 let ticks = 0
@@ -38,6 +39,23 @@ process.on('exit', (code) => say(`exit ${code}`))
 // Not a top-level await: Electron emits `ready` only once the main module has finished
 // evaluating, so awaiting it at the top level would wait forever.
 void app.whenReady().then(async () => {
+  if (mode === 'dialog-orphan') {
+    // The shape Fabric had before the fix — no window at all, a free-standing message box. Kept so the
+    // planted defect can be watched: on macOS it holds the main thread and SIGTERM goes unanswered.
+    const { dialog } = await import('electron')
+    say('ready')
+    void dialog.showMessageBox({ type: 'error', message: 'quit-app could not start', buttons: ['Quit'] })
+    return
+  }
+  if (mode === 'dialog') {
+    // Fabric's startup-failure shape: a message box waiting on the person, as a sheet on its own window.
+    const { dialog } = await import('electron')
+    const parent = new BrowserWindow({ show: true, width: 300, height: 120 })
+    await parent.loadURL('data:text/html,<p>quit-app</p>')
+    say('ready')
+    void dialog.showMessageBox(parent, { type: 'error', message: 'quit-app could not start', buttons: ['Quit'] })
+    return
+  }
   const win = new BrowserWindow({ show: false, width: 200, height: 120 })
   await win.loadURL('data:text/html,<p>quit-app</p>')
   say('ready')

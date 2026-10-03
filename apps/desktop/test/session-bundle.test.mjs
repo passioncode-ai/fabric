@@ -23,7 +23,7 @@ import { createBundleCompiler } from ${JSON.stringify(path.join(HERE, '../src/ma
 import { PtyManager } from ${JSON.stringify(path.join(HERE, '../src/main/pty.ts'))}
 import { useOps } from ${JSON.stringify(path.join(HERE, '../src/main/opsSink.ts'))}
 import { MandatoryContextUnmet } from ${JSON.stringify(path.join(HERE, '../src/main/contextPack.ts'))}
-import fs, { existsSync, mkdtempSync, readFileSync, statSync } from 'node:fs'
+import fs, { existsSync, mkdtempSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { syncBuiltinESMExports } from 'node:module'
 import assert from 'node:assert/strict'
 import { tmpdir } from 'node:os'
@@ -161,6 +161,13 @@ else ok('discard revokes the credential, not just the file')
 // availability check, and a missing cwd does not throw — measured, it returns a
 // session that exits 1 about a second later, which the exit path reclaims. The
 // branch under test is the one where the process never exists at all.
+// The launch option is available only where its program is on PATH, and the hosted Linux runner has no
+// claude binary: there the open was refused BEFORE the spawn this block injects, and the check failed for
+// the wrong reason. A stand-in claude on PATH makes the option available everywhere; the injected spawn
+// below still throws before any process exists, so the stand-in is never run.
+const standIn = mkdtempSync(path.join(tmpdir(), 'fabric-claude-standin-'))
+writeFileSync(path.join(standIn, 'claude'), ['#!/bin/sh', 'exit 0', ''].join(String.fromCharCode(10)), { mode: 0o755 })
+process.env.PATH = standIn + path.delimiter + (process.env.PATH ?? '')
 const before = revoked.length
 const ptys = new PtyManager(
   { append: async () => ({ seq: 1 }) },

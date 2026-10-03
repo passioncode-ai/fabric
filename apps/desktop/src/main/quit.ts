@@ -39,18 +39,6 @@ export interface QuitOptions {
   setTimer?: (fn: () => void, ms: number) => { unref?: () => void }
   onDeadline?: () => void
   onSchedulerError?: (e: unknown) => void
-  /**
-   * Windows holding work a quit would lose (an editor with unsaved changes). The FIRST quit request
-   * while any exists stops nothing: it hands them to `onBlocked` so the person sees the editor's own
-   * "unsaved changes" choice. A further request is "quit anyway". Before this, the quit began, the
-   * editor cancelled its unload, and the hard deadline then ended the process — losing the work
-   * (lifecycle review 2026-10-03, finding 7).
-   */
-  blockers?: () => number[]
-  onBlocked?: (ids: number[]) => void
-  /** A second request within this window after the question is "quit anyway"; later, it asks again. */
-  confirmWindowMs?: number
-  now?: () => number
 }
 
 export const QUIT_DEADLINE_MS = 10_000
@@ -75,9 +63,6 @@ export function createQuitCoordinator(o: QuitOptions): QuitCoordinator {
   const hardDeadlineMs = o.hardDeadlineMs ?? QUIT_DEADLINE_MS
   let quitting = false
   let drained = false
-  let askedAt = -Infinity
-  const confirmWindowMs = o.confirmWindowMs ?? 60_000
-  const now = o.now ?? Date.now
   const stops: Array<() => void> = []
 
   const runStop = (stop: () => void): void => {
@@ -107,13 +92,6 @@ export function createQuitCoordinator(o: QuitOptions): QuitCoordinator {
     },
     beforeQuit(e) {
       if (drained) return
-      const held = quitting ? [] : (o.blockers?.() ?? [])
-      if (held.length && now() - askedAt > confirmWindowMs) {
-        e.preventDefault()
-        askedAt = now()
-        o.onBlocked?.(held)
-        return
-      }
       if (!o.ready()) { begin(); return }
       e.preventDefault()
       if (quitting) return

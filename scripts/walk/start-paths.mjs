@@ -62,7 +62,7 @@ const electron = createRequire(path.join(APP, 'package.json'))('electron')
 // The walk never touches the operator's own credentials (lifecycle LC-14, review finding 11): no real
 // Keychain read for the quota (FABRIC_NO_KEYCHAIN) and Chromium's mock keychain for anything else.
 const child = spawn(electron, ['--use-mock-keychain', APP, `--user-data-dir=${userData}`, `--remote-debugging-port=${PORT}`], {
-  env: { ...stackEnv, FABRIC_NO_KEYCHAIN: '1', FABRIC_WALK_PICK: [fresh, projects, parent].join(path.delimiter) },
+  env: { ...stackEnv, FABRIC_NO_KEYCHAIN: '1', CLAUDE_CONFIG_DIR: path.join(userData, 'no-claude-config'), FABRIC_WALK_PICK: [fresh, projects, parent].join(path.delimiter) },
   stdio: ['ignore', 'pipe', 'pipe'],
   // Its own process group: anything the app started is reaped once the app itself has exited.
   detached: true
@@ -208,8 +208,6 @@ try {
   steps.push({ name: 'harness', ok: false, error: String(e.message ?? e) })
   log('FAIL harness: ' + (e.message ?? e))
 } finally {
-  writeFileSync(path.join(OUT, 'walk.json'), JSON.stringify({ theme: THEME, locale: LOCALE, steps, fixtures: fx, userData }, null, 2))
-  writeFileSync(path.join(OUT, 'app.log'), appLog)
   // The app has EXITED before the walk ends, and its temp folders are removed (they were left behind on
   // every run, and the app could still hold the user-data folder and the port when the next walk began).
   const ended = await endApp(child)
@@ -217,6 +215,9 @@ try {
   log(`app ${ended}; temp folders ${left.length ? `left behind: ${left.join(', ')}` : 'removed'}`)
   // An app that had to be killed did not quit: that is CO-191, and the walk says so (lifecycle LC-01).
   steps.push({ name: 'app-quits-gracefully', ok: ended === 'terminated', error: ended === 'terminated' ? undefined : `the app was ${ended}, not terminated` })
+  // Written after the quit verdict, so the receipt holds every step the exit code counts (review m12).
+  writeFileSync(path.join(OUT, 'walk.json'), JSON.stringify({ theme: THEME, locale: LOCALE, steps, fixtures: fx, userData }, null, 2))
+  writeFileSync(path.join(OUT, 'app.log'), appLog)
   const failed = steps.filter((s) => !s.ok).length
   log(`${steps.length - failed}/${steps.length} walk steps passed → ${OUT}`)
   process.exit(failed ? 1 : 0)

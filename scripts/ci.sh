@@ -191,6 +191,8 @@ node --experimental-strip-types apps/desktop/test/quota-reader.test.mjs
 node --experimental-strip-types apps/desktop/test/quit.test.mjs
 # ADR-0106 §4: the app's stack excludes exactly what the disposable stack excludes.
 node --experimental-strip-types apps/desktop/test/stack-services.test.mjs
+# ADR-0106 amendment: unsaved editor work is kept in a bounded, owner-only recovery store.
+node --experimental-strip-types apps/desktop/test/editor-recovery.test.mjs
 node --experimental-strip-types apps/desktop/test/transcripts.test.mjs
 node apps/desktop/test/file-roots.test.mjs
 # ADR-0100: the start paths' disk reads and executor detection, against a real git tree and real processes.

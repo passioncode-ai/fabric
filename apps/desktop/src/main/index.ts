@@ -1,7 +1,7 @@
 // The v1 control plane (ADR-0031 §2): the only Supabase client, the journal
 // writer, the PTY host and the IPC surface — all here, never in the renderer.
 
-import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, net, powerMonitor, shell, webContents } from 'electron'
+import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, net, powerMonitor, shell } from 'electron'
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
@@ -11,7 +11,7 @@ import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
 import { commitBoardCommand, commitPreparedAnswer, commitPreparedImport, commitReleaseCommand } from './commandIngressAdapters.ts'
 import { createHash, randomUUID } from 'node:crypto'
-import { fixPath, resolveSupabaseEnv, startStack } from './env'
+import { fixPath, resolveSupabaseEnv, startStack, stopStartingStack } from './env'
 import { applyAppIcon, windowIcon } from './appIcon'
 import { Policy } from './policy'
 import { launchOptions, PtyManager } from './pty'
@@ -31,8 +31,9 @@ import { readSettings, writeSettings } from './settings'
 import { createPowerKeeper, type PowerKeeper } from './power'
 import { createRepoStateReader } from './repoState'
 import { createCodeStatsReader } from './codeStats'
-import { createQuotaReader, resetKeychainRefusal } from './quota'
+import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota'
 import { createQuitCoordinator } from './quit.ts'
+import { createEditorRecovery } from './editorRecovery.ts'
 import { readGateway } from './gateway'
 import { classifyStartupFailure, startupDialog } from '../shared/startupFailure'
 import { readBuildManifestCandidates, withSchemaReadiness } from './schemaReadiness.ts'
@@ -286,8 +287,6 @@ let ptys: PtyManager
 let stopRuntime: ReturnType<typeof createNativeStopRuntime>
 let surface: AgentSurface
 let mainWindow: BrowserWindow | null = null
-/** Editor windows whose close would lose work right now (reported by the editor itself). */
-const unsavedEditors = new Set<number>()
 // One owner for quitting (CO-191, lifecycle LC-01): the re-quit after the drain runs on a
 // macrotask, `window-all-closed` quits once quitting, every scheduler stops first, and a
 // hard deadline ends the process if anything stalls.
@@ -298,18 +297,6 @@ const quit = createQuitCoordinator({
   // durable; closing the host does not manufacture a successful Stop receipt.
   shutdown: () => stopRuntime.shutdown().then(() => surface?.stop()),
   onDeadline: () => ops.failed('app.quit-deadline', new Error('quit_deadline'), { note: 'the drain or teardown stalled; the process was ended at the deadline' }),
-  // Editors with unsaved work stop the first quit before anything is shut down (ADR-0106 §1).
-  blockers: () => [...unsavedEditors],
-  onBlocked: (ids) => {
-    for (const id of ids) {
-      const contents = webContents.fromId(id)
-      if (!contents || contents.isDestroyed()) { unsavedEditors.delete(id); continue }
-      const win = BrowserWindow.fromWebContents(contents)
-      win?.show()
-      win?.focus()
-      contents.send(IPC.filesQuitRequested)
-    }
-  },
   onSchedulerError: (e) => ops.failed('app.quit-scheduler-stop', e, { note: 'a scheduler failed to stop; the others were stopped and the quit continues' })
 })
 /** sessionId → taskId, so a session's exit can close the task that opened it. */
@@ -713,6 +700,8 @@ function startTranscriptRecovery(): void {
   void tick()
 }
 quit.onQuit(() => { recoveryGeneration++; if (recoveryTimer) clearTimeout(recoveryTimer) })
+// A quit during the splash ends the `supabase start` it launched (review m13).
+quit.onQuit(stopStartingStack)
 
 function toTranscript(row: Record<string, unknown>): SessionTranscript {
   return {
@@ -746,9 +735,14 @@ const codeStats = createCodeStatsReader()
 const STATS_WINDOW_DAYS = 7
 /** M83 — the account's quota, cached with its age. */
 const quota = createQuotaReader()
+// Unsaved editor buffers, kept as the person types so no quit waits for an editor (ADR-0106 amendment).
+const editorRecovery = createEditorRecovery({ dir: path.join(app.getPath('userData'), 'editor-recovery') })
+try { editorRecovery.sweep() } catch (e) { ops.failed('editor.recovery-sweep', e, { note: 'old recovery records were not swept this start' }) }
 // The person unlocking the screen is the action a held credential read waits for: a locked
 // keychain is the usual reason a read was refused (lifecycle LC-04).
 void app.whenReady().then(() => powerMonitor.on('unlock-screen', () => { resetKeychainRefusal(); quota.retryCredential() }))
+// The person returning to Fabric re-checks a long-held token, so an account switch shows when they look.
+app.on('browser-window-focus', () => personReturned())
 
 /** M73 — holds the machine awake while agents work, per the operator's policy. */
 let power: PowerKeeper | null = null
@@ -3456,6 +3450,20 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   )
 
   handle(IPC.filesRead, (event, file: string): Returns<FabricApi['files']['read']> => readFile(file, fileRoots, scopeOf(event)))
+  // Editor recovery (ADR-0106 amendment): the unsaved buffer of a file this window may open, keyed by its
+  // resolved path. A path outside the window's roots is refused exactly as a read would be.
+  handle(IPC.filesRecoveryKeep, (event, file: string, content: string | null, baseHash: string): Returns<FabricApi['files']['recoveryKeep']> =>
+    editorRecovery.keep(fileRoots.resolve(file, scopeOf(event)), content, baseHash))
+  handle(IPC.filesRecoveryRead, (event, file: string): Returns<FabricApi['files']['recoveryRead']> => {
+    const r = editorRecovery.read(fileRoots.resolve(file, scopeOf(event)))
+    return r ? { content: r.content, baseHash: r.baseHash, at: r.at } : null
+  })
+  // Fire-and-forget from beforeunload: the last keystrokes before a quit land before the window goes.
+  ipcMain.on(IPC.filesRecoveryFlush, (event, file: string, content: string | null, baseHash: string) => {
+    try { editorRecovery.keep(fileRoots.resolve(file, `win:${event.sender.id}`), content, baseHash) } catch (e) {
+      ops.failed('editor.recovery-flush', e, { note: 'the last unsaved keystrokes were not kept; the debounced copy stands' })
+    }
+  })
   handle(
     IPC.filesWrite,
     async (event, file: string, content: string, expectedHash: string, grantId?: string): Promise<Returns<FabricApi['files']['write']>> => {
@@ -4065,9 +4073,15 @@ async function explainAndQuit(e: unknown): Promise<void> {
   // the main thread, so a SIGTERM or a logout while it was open went unanswered — the process was still
   // alive 25 s later and the quit deadline was never armed. With the dialog awaited, a quit proceeds and
   // the loop stops asking.
+  // A PARENT WINDOW, not a free-standing dialog (confirmation review 2026-10-03): on macOS a message box
+  // with no parent runs a modal loop that blocks the main thread even through the async API — no timer
+  // fired and SIGTERM went unanswered for 20 s — while the same box as a sheet on a window let the quit
+  // finish in 410 ms. The window carries the failure's title, so it reads as part of the message.
+  const parent = new BrowserWindow({ width: 480, height: 160, resizable: false, minimizable: false, maximizable: false, fullscreenable: false, title: 'Fabric could not start', show: true, webPreferences: { sandbox: true, contextIsolation: true } })
+  void parent.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent('<!doctype html><title>Fabric could not start</title><body style="font:13px -apple-system,sans-serif;margin:24px">Fabric could not start.</body>'))
   while (!quit.quitting) {
     const plan = startupDialog(failure, { retryable: !pastRetryPoint, logPath })
-    const { response: choice } = await dialog.showMessageBox({
+    const { response: choice } = await dialog.showMessageBox(parent, {
       type: 'error',
       title: 'Fabric could not start',
       message: plan.message,
@@ -4081,6 +4095,7 @@ async function explainAndQuit(e: unknown): Promise<void> {
     if (quit.quitting) return
     const pressed = plan.buttons[choice]
     if (pressed === 'Retry') {
+      if (!parent.isDestroyed()) parent.destroy()
       void startOrExplain()
       return
     }
@@ -4098,18 +4113,10 @@ async function explainAndQuit(e: unknown): Promise<void> {
 }
 
 app.on('before-quit', (e) => quit.beforeQuit(e))
-const watchedEditors = new Set<number>()
-ipcMain.on(IPC.filesUnsaved, (e, unsaved: boolean) => {
-  const id = e.sender.id
-  if (!watchedEditors.has(id)) {
-    watchedEditors.add(id)
-    e.sender.once('destroyed', () => { unsavedEditors.delete(id); watchedEditors.delete(id) })
-  }
-  if (unsaved === true) unsavedEditors.add(id)
-  else unsavedEditors.delete(id)
-})
-// Once the person has chosen to quit anyway, an editor's beforeunload no longer cancels the quit: a
-// cancelled unload during a quit would only leave the deadline to end the process (finding 7).
+// A quit is never stopped by an editor's beforeunload: its unsaved buffer is already in the editor
+// recovery store (kept as the person types, flushed on unload), so the quit proceeds and the next open of
+// that file offers it back (ADR-0106 amendment). A cancelled unload during a quit would only leave the
+// deadline to end the process.
 app.on('web-contents-created', (_e, contents) => {
   contents.on('will-prevent-unload', (event) => { if (quit.quitting) event.preventDefault() })
 })

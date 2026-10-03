@@ -976,7 +976,11 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **Expected result:** a file can be edited beside working agents without either side losing
   work by surprise.
 - **Alt paths:** the file can be opened in the system editor instead; a file too large to
-  open says so rather than hanging.
+  open says so rather than hanging. Fabric quits, is stopped or crashes while the file has unsaved
+  changes -> nothing waits and nothing is lost: the unsaved buffer was kept as the operator typed
+  (ADR-0106), and the next time the file opens a banner says "Unsaved changes from {time} were kept"
+  with Restore them / Discard them. When the file changed on disk since, restoring opens the same
+  side-by-side diff as step 4, so the version on disk is never overwritten silently.
 - **Boundary:** Fabric reads and writes only inside the folders the operator has opened —
   the repositories attached to a project, and anything chosen through the folder picker,
   because choosing a folder is the operator saying yes to it. A path outside all of them
@@ -984,15 +988,16 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
   it. Detaching a repository closes it again. This is invisible in normal use: the tree
   only offers what is already open.
 - **UI elements:** file rows in the tree; editor window with Save and Open in system editor;
-  conflict banner with Take the version on disk / Keep mine and save; diff view.
-- **States covered:** loading, success, unsaved, conflict, error, refused-outside-project
+  conflict banner with Take the version on disk / Keep mine and save; diff view; kept-changes banner
+  with Restore them / Discard them.
+- **States covered:** loading, success, unsaved, conflict, error, refused-outside-project, kept-changes
 - **Errors & recovery:** an unreadable or oversized file reports why and the window can be
   closed; a failed write leaves the buffer intact and the file untouched; a path outside
   every open folder names the boundary rather than reporting a missing file, so the
   operator can attach the repository instead of hunting a phantom.
 - **Telemetry:** `file_saved` with language, conflict:boolean, resolution — never file content
 - **Status:** draft
-- **Coverage:** `apps/desktop/src/main/files.ts`, `apps/desktop/src/renderer/src/EditorWindow.tsx`, `apps/desktop/test/files.test.mjs`
+- **Coverage:** `apps/desktop/src/main/files.ts`, `apps/desktop/src/renderer/src/EditorWindow.tsx`, `apps/desktop/test/files.test.mjs`, `apps/desktop/src/main/editorRecovery.ts`, `apps/desktop/test/editor-recovery.test.mjs`, `apps/desktop/src/renderer/src/EditorWindow.recovery.test.tsx`
 - **Product:** unobserved
 
 

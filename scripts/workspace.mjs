@@ -6,7 +6,7 @@ import path from 'node:path'
 import {snapshot,writeSnapshot,checkReceipt,git,receiptPath,publicationOnly,verifyCommittedSnapshot,receiptFor} from './workspace-snapshot.mjs'
 import {resolveSources,pinnedSources,localSourceDirs,sourcesMatch,sourcePins,fetchTip,lagReport,syncReasons,syncLeftovers} from './workspace-sources.mjs'
 import {completedPublication,verifyDeployment,publicationSource,publicationHazards,sourceChangedSince} from './workspace-release.mjs'
-import {boundedRun,nonInteractiveGitEnv,acquireLock,writeStatus,rotateLog,killAll,exitWithin} from './lib/bounded-run.mjs'
+import {boundedRun,nonInteractiveGitEnv,acquireLock,superviseJob,killAll,exitWithin} from './lib/bounded-run.mjs'
 const root=path.resolve(import.meta.dirname,'..'),child=path.join(root,'workspace')
 const config=()=>JSON.parse(readFileSync(path.join(root,'workspace.config.json'),'utf8'))
 // #region workspace-bounded — docs: docs/adr/0106-fabric-adopts-the-product-lifecycle-contract.md#3-a-scheduled-job-is-bounded-exclusive-and-observable
@@ -14,7 +14,10 @@ const config=()=>JSON.parse(readFileSync(path.join(root,'workspace.config.json')
 // `execFileSync` with no timeout left the scheduled sync waiting 5 h 27 min on a publish child that
 // had deadlocked while exiting, and launchd skipped every interval behind it.
 const MIN=60_000
-const LIMIT={git:3*MIN,gate:40*MIN,test:10*MIN,publish:75*MIN}
+// Consistent by construction (review m8): a publish holds at most two gates, two workspace checks and its
+// git, so its limit covers them; the sync's 110 min watchdog covers a publish and stays under the 2 h interval.
+const LIMIT={git:3*MIN,gate:30*MIN,test:10*MIN}
+LIMIT.publish=2*LIMIT.gate+2*LIMIT.test+6*LIMIT.git
 const run=(bin,args,cwd=root,timeoutMs=bin==='git'?LIMIT.git:LIMIT.test)=>boundedRun(bin,args,{cwd,timeoutMs,env:bin==='git'?nonInteractiveGitEnv():process.env})
 const state=process.env.FABRIC_WORKSPACE_STATE_DIR||path.join(homedir(),'.cache','fabric-workspace')
 const lockFile=path.join(state,'publish.lock'),statusFile=path.join(state,'sync-status.json')
@@ -115,22 +118,15 @@ if(cmd==='status'){
  // Fabric ADR-0093: publish when something is behind, never on a schedule alone. Runs on a clean
  // checkout of main (the scheduled job keeps its own); refuses anything else rather than guess.
  const c=config()
- // Bounded, exclusive and observable (lifecycle LC-03): a watchdog below the 2 h interval, the
- // machine-wide publication lock, a status record a host can read, and a rotated log.
- const startedAt=new Date().toISOString(),log=process.env.FABRIC_WORKSPACE_SYNC_LOG
- if(log)rotateLog(log)
- const status=(outcome,reason)=>writeStatus(statusFile,{schema:'WorkspaceSync@1',pid:process.pid,started_at:startedAt,ended_at:outcome==='running'?null:new Date().toISOString(),outcome,reason:reason??null})
- const finish=(outcome,reason,code)=>{status(outcome,reason);console.log('== sync '+outcome+(reason?': '+reason:'')+' · '+new Date().toISOString());exitWithin(code)}
- const watchdogMs=Number(process.env.FABRIC_WORKSPACE_SYNC_DEADLINE_MS)||100*MIN
- setTimeout(()=>{killAll();finish('timeout','the run passed its '+Math.round(watchdogMs/MIN)+' min watchdog; every step it started was ended',124)},watchdogMs).unref()
- for(const sig of ['SIGTERM','SIGINT'])process.once(sig,()=>{killAll();finish('stopped','received '+sig,143)})
- // A run that finds another publication in progress is not a failure: it steps aside (exit 0).
- const fail=e=>{killAll();const locked=e?.code==='ELOCKED';finish(locked?'locked':'failed',String(e?.message||e).split('\n')[0],locked?0:1)}
- process.on('uncaughtException',fail);process.on('unhandledRejection',fail)
- console.log('== sync start · '+startedAt+' · pid '+process.pid)
- status('running')
+ // Bounded, exclusive and observable (lifecycle LC-03): superviseJob owns the status record, the watchdog
+ // below the 2 h interval, signals, errors and the exit; the checkout guard runs before the record is
+ // touched, so a refused manual run never overwrites the scheduled job's status (review m6).
+ await superviseJob({
+  name:'sync',statusFile,log:process.env.FABRIC_WORKSPACE_SYNC_LOG,
+  watchdogMs:Number(process.env.FABRIC_WORKSPACE_SYNC_DEADLINE_MS)||110*MIN,
+  guard:()=>{if(!process.env.FABRIC_WORKSPACE_SYNC_CHECKOUT||path.resolve(process.env.FABRIC_WORKSPACE_SYNC_CHECKOUT)!==root)throw Error('sync moves its checkout to origin/main, so it runs only in the checkout FABRIC_WORKSPACE_SYNC_CHECKOUT names (scripts/install-workspace-sync.sh makes it)')}
+ },async()=>{
  holdPublication()
- if(!process.env.FABRIC_WORKSPACE_SYNC_CHECKOUT||path.resolve(process.env.FABRIC_WORKSPACE_SYNC_CHECKOUT)!==root)throw Error('sync moves its checkout to origin/main, so it runs only in the checkout FABRIC_WORKSPACE_SYNC_CHECKOUT names (scripts/install-workspace-sync.sh makes it)')
  const left=syncLeftovers(git(root,'status','--porcelain','--untracked-files=no').toString())
  if(left.refuse.length)throw Error('sync runs on a clean checkout of main; this one has changes: '+left.refuse.slice(0,5).join(', '))
  // A previous run's unfinished publication (receipt + gitlink) is this checkout's own leftover.
@@ -155,14 +151,15 @@ if(cmd==='status'){
   try{return fetchTip(configured.find(x=>x.id===id))}catch(e){console.log('UNREADABLE '+e.message);return {tip:null}}
  }})
  const reasons=syncReasons({lag,hostAhead,sourceChanged})
- if(!reasons.length)finish('current','nothing to publish',0)
+ if(!reasons.length)return {outcome:'current',reason:'nothing to publish'}
  console.log('Publishing because: '+reasons.join('; '))
  // The host's main is exactly origin/main. This checkout is the sync's own, so a snapshot commit a
  // previous run left unpushed (it lost a push race) is dropped here rather than wedging every
  // later run on a fast-forward that can no longer succeed; the next export recreates it.
  await run('git',['checkout','-q','-B','main','origin/main'],child)
  await run(process.execPath,['scripts/workspace.mjs','publish'],root,LIMIT.publish)
- finish('published',reasons.join('; '),0)
+ return {outcome:'published',reason:reasons.join('; ')}
+ })
  // #endregion workspace-sync
 }else if(cmd==='lag'){
  // How far each tool repository's published pin trails its default branch. Reads the network;

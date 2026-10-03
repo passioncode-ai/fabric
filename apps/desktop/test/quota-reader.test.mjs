@@ -13,7 +13,7 @@
 // Pure: it injects its fetch and its clock. Nothing reaches the network, no
 // credential is read, and nothing is written.
 
-import { createQuotaReader, readKeychainToken, readToken, forgetCachedToken, KEYCHAIN_TIMEOUT_MS, CREDENTIAL_HOLD_MS, FAILURE_HOLD_MS } from '../src/main/quota.ts'
+import { createQuotaReader, readKeychainToken, readToken, forgetCachedToken, personReturned, KEYCHAIN_TIMEOUT_MS, CREDENTIAL_HOLD_MS, FAILURE_HOLD_MS } from '../src/main/quota.ts'
 import { mayStart } from '../src/shared/quotaGate.ts'
 
 let failures = 0
@@ -165,6 +165,27 @@ if (process.platform === 'darwin') {
   reads2 === 2 ? ok('a token within five minutes of expiry is not served from memory') : fail(`an expiring token was cached: ${reads2}`)
   forgetCachedToken()
 } else ok('NOT_RUN: the Keychain token cache is macOS-only')
+
+// ── confirmation review: unreadable is not a refusal; seconds are seconds; the person returning re-checks ──
+{
+  const spawnFailed = await readKeychainToken(async () => { throw Object.assign(new Error('spawn security ENOENT'), { code: 'ENOENT' }) })
+  const notJson = await readKeychainToken(async () => ({ stdout: 'not json' }))
+  spawnFailed.outcome === 'unreadable' && notJson.outcome === 'unreadable'
+    ? ok('a spawn error or an item that is not JSON is unreadable, not a refusal')
+    : fail(`spawn/parse outcomes: ${spawnFailed.outcome} ${notJson.outcome}`)
+  const secs = await readKeychainToken(async () => ({ stdout: JSON.stringify({ claudeAiOauth: { accessToken: 't', expiresAt: 1_900_000_000 } }) }))
+  secs.expiresAt === 1_900_000_000_000 ? ok('an expiry in seconds is read as seconds') : fail(`expiresAt in seconds read as ${secs.expiresAt}`)
+}
+if (process.platform === 'darwin') {
+  forgetCachedToken()
+  let reads = 0
+  const exec = async () => { reads++; return { stdout: JSON.stringify({ claudeAiOauth: { accessToken: 'tok', expiresAt: Date.now() + 3_600_000 } }) } }
+  await readToken(exec)
+  personReturned(Date.now() + 60_000); await readToken(exec)
+  personReturned(Date.now() + 11 * 60_000); await readToken(exec)
+  reads === 2 ? ok('the person returning after ten minutes re-reads the token (an account switch shows)') : fail(`reads after personReturned: ${reads}`)
+  forgetCachedToken()
+}
 
 console.log(failures ? '\n  FAIL ' + failures + ' failure(s)' : '\nall green')
 process.exit(failures ? 1 : 0)

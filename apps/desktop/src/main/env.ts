@@ -82,6 +82,18 @@ export async function stackStatusEnv(): Promise<Record<string, string>> {
  * what is happening instead of holding one sentence for four minutes. It is
  * optional: nothing here depends on being watched.
  */
+/** The `supabase start` in flight, if any — so a quit during the splash ends it (review m13, LC-02). */
+let starting: { kill(signal?: NodeJS.Signals): boolean } | null = null
+/**
+ * A quit during startup ends the `supabase start` it launched, instead of leaving it running with ppid 1
+ * for up to its 240 s limit. Containers it had already started stay, as they would after any start; the
+ * next launch's start picks them up.
+ */
+export function stopStartingStack(): void {
+  try { starting?.kill('SIGTERM') } catch { /* already gone */ }
+  starting = null
+}
+
 export async function startStack(onLine?: (line: string) => void): Promise<void> {
   // Only the services Fabric calls (lifecycle LC-09): the rest cost ~1.4 GiB at idle for nothing.
   const child = run('supabase', ['start', '-x', STACK_EXCLUDED_SERVICES.join(',')], {
@@ -105,7 +117,12 @@ export async function startStack(onLine?: (line: string) => void): Promise<void>
     child.child.stdout?.on('data', (c: Buffer | string) => feed(String(c)))
     child.child.stderr?.on('data', (c: Buffer | string) => feed(String(c)))
   }
-  await child
+  starting = child.child
+  try {
+    await child
+  } finally {
+    starting = null
+  }
 }
 
 export async function resolveSupabaseEnv(): Promise<SupabaseEnv> {

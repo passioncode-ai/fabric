@@ -64,9 +64,30 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
   const [closing, setClosing] = useState(false)
   /** The operator has said discard; the next close must go through. */
   const leaving = useRef(false)
+  /**
+   * Editor recovery (ADR-0106 amendment): a buffer kept the last time this file was open and not saved —
+   * a quit, a signal or a crash. Offered back, never applied without the person.
+   */
+  const [recovered, setRecovered] = useState<{ content: string; baseHash: string; at: string } | null>(null)
+  const keepTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const keepNow = (content: string | null, baseHash: string): void => {
+    if (keepTimer.current) { clearTimeout(keepTimer.current); keepTimer.current = null }
+    void window.fabric.files.recoveryKeep(filePath, content, baseHash).catch(() => {
+      /* Keeping is a safety net; a failed keep leaves the editor exactly as it was. */
+    })
+  }
 
   useEffect(() => {
-    window.fabric.files.read(filePath).then(setFile).catch((e) => setLoadError(String(e)))
+    window.fabric.files
+      .read(filePath)
+      .then(async (f) => {
+        setFile(f)
+        const kept = await window.fabric.files.recoveryRead(filePath).catch(() => null)
+        // Only a buffer that differs from the file is worth offering; an identical one is just tidied away.
+        if (kept && kept.content !== f.content) setRecovered(kept)
+        else if (kept) void window.fabric.files.recoveryKeep(filePath, null, f.hash).catch(() => {})
+      })
+      .catch((e) => setLoadError(String(e)))
   }, [filePath])
 
   // The plain editor.
@@ -88,10 +109,15 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
     ed.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => void save(false))
     ed.focus()
     const sub = ed.onDidChangeModelContent(() => {
-      setDirty(ed.getValue() !== file.content)
+      const isDirty = ed.getValue() !== file.content
+      setDirty(isDirty)
       setSaved(false)
+      // Kept as the person types, a moment after they pause: a quit or a crash then loses nothing.
+      if (keepTimer.current) clearTimeout(keepTimer.current)
+      keepTimer.current = setTimeout(() => keepNow(isDirty ? ed.getValue() : null, file.hash), 800)
     })
     return () => {
+      if (keepTimer.current) clearTimeout(keepTimer.current)
       sub.dispose()
       ed.dispose()
       editor.current = null
@@ -158,6 +184,8 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
         // The save succeeded for `content`. Whether the BUFFER is clean is a
         // different question, and it is answered by reading it now.
         const state = afterSave(content, editor.current?.getValue() ?? content)
+        // Saved and clean: nothing left to recover. Still dirty: keep what is beyond the save.
+        keepNow(state.dirty ? (editor.current?.getValue() ?? null) : null, result.hash)
         setFile({ ...file, content, hash: result.hash })
         setConflict(null)
         setDirty(state.dirty)
@@ -184,6 +212,8 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
   // window an agent may also be driving.
   useEffect(() => {
     const onBeforeUnload = (e: BeforeUnloadEvent): void => {
+      // Whatever happens next — the person's choice, a quit, a signal — the last keystrokes are kept.
+      if (dirty && !leaving.current && file && editor.current) window.fabric.files.recoveryFlush(filePath, editor.current.getValue(), file.hash)
       if (!closeWouldLoseWork({ dirty, saved }, leaving.current)) return
       e.preventDefault()
       e.returnValue = false
@@ -191,15 +221,8 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
     }
     window.addEventListener('beforeunload', onBeforeUnload)
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
-  }, [dirty, saved])
+  }, [dirty, saved, file])
 
-  // A quit asks the same question (ADR-0106 §1): main learns whether closing would lose work, and when
-  // the person quits with unsaved changes, main shows this window and asks it to raise its own choice
-  // before anything is shut down — instead of the quit's deadline ending the process under it.
-  useEffect(() => {
-    window.fabric.files.reportUnsaved(closeWouldLoseWork({ dirty, saved }, leaving.current))
-  }, [dirty, saved])
-  useEffect(() => window.fabric.files.onQuitRequested(() => setClosing(true)), [])
 
   // A load failure has no editor to keep; a write failure must never take one away.
   if (loadError)
@@ -210,8 +233,35 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
     )
   if (!file) return <div className="booting" />
 
+  const restore = (): void => {
+    if (!recovered) return
+    if (recovered.baseHash === file.hash) editor.current?.setValue(recovered.content)
+    else {
+      // The file changed on disk since the buffer was kept: show both, exactly as a save conflict does,
+      // so restoring can never silently overwrite what is on disk now.
+      pendingContent.current = recovered.content
+      setConflict({ current: file.content, currentHash: file.hash })
+    }
+    setRecovered(null)
+  }
+
   return (
     <div className="editor-window">
+      {recovered && !closing && (
+        <Banner
+          tone="warn"
+          actions={
+            <>
+              <Button onClick={restore}>{t('editor.restoreKept')}</Button>
+              <Button tone="ghost" onClick={() => { keepNow(null, file.hash); setRecovered(null) }}>
+                {t('editor.discardKept')}
+              </Button>
+            </>
+          }
+        >
+          {t(recovered.baseHash === file.hash ? 'editor.keptBuffer' : 'editor.keptBufferChanged', { time: new Date(recovered.at).toLocaleString() })}
+        </Banner>
+      )}
       {closing && (
         <Banner
           tone="warn"
@@ -224,6 +274,7 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
                 tone="danger"
                 onClick={() => {
                   leaving.current = true
+                  if (file) keepNow(null, file.hash)
                   window.close()
                 }}
               >

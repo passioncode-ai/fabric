@@ -134,18 +134,18 @@ Fabric follows the organization's [lifecycle contract](https://github.com/passio
 
 | What | Started by | Cadence | With no window | Stopped by |
 |---|---|---|---|---|
-| Fabric.app (main + renderer + helpers) | the person | — | closing the last window keeps the main process on macOS, so live PTY sessions survive; Cmd+Q / SIGTERM ends it within 10 s (`src/main/quit.ts`), exit code 3 when the deadline had to end it. With an editor holding unsaved changes the first quit stops nothing and shows the editor's choice; a second within a minute quits anyway | quit, SIGTERM, logout |
+| Fabric.app (main + renderer + helpers) | the person | — | closing the last window keeps the main process on macOS, so live PTY sessions survive; Cmd+Q / SIGTERM ends it within 10 s (`src/main/quit.ts`), exit code 3 when the deadline had to end it. A quit never waits for an editor: unsaved buffers are kept in `userData/editor-recovery` as the person types and offered back on the next open | quit, SIGTERM, logout |
 | PTY sessions and coding-agent runners | the person or a routine / chain step | per task | keep running until they end or the app quits | the app's drain on quit (8 s per attempt), then the 10 s hard deadline |
 | The routine/chain cycle and the notifier | the app | 60 s each (`TICK_MS`, `NOTIFY_MS`) | run while the main process runs; start nothing once quitting | quitting (`quit.onQuit`) |
 | Quota reading | the renderer | every 60 s, served from a 2 min reading; a missing or refused credential is held (10 min, or until the screen is unlocked) | — | the app |
 | Local Supabase stack (Docker) | the app's first start (`supabase start -x …`) | — | **keeps running** between launches, by design: the operator's data lives in it and a cold start takes minutes. Only the services Fabric calls run (`src/main/stackServices.ts`) | `supabase stop`, by the operator |
-| `ai.passioncode.fabric-workspace-sync` (launchd) | `scripts/install-workspace-sync.sh` | every 2 h, 100 min watchdog, machine-wide publication lock | — | `scripts/install-workspace-sync.sh --uninstall [--purge]` |
+| `ai.passioncode.fabric-workspace-sync` (launchd) | `scripts/install-workspace-sync.sh` | every 2 h, 110 min watchdog (`superviseJob`), machine-wide publication lock | — | `scripts/install-workspace-sync.sh --uninstall [--purge]` |
 
 Fabric listens on one loopback port, the agent surface (`src/main/agentSurface.ts`, `127.0.0.1`, an ephemeral
 port, a one-shot bearer per session it starts), and creates no Keychain item. It reads Claude Code's
 credential item for the quota once per token lifetime (held in memory until five minutes before it
 expires, or until the provider rejects it), with a 5 s deadline; a refused read waits for a screen unlock. Status of the last sync:
-`~/.cache/fabric-workspace/sync-status.json`; its log rotates at 5 MB × 5.
+`~/.cache/fabric-workspace/sync-status.json`; its log is `~/Library/Logs/Fabric/workspace-sync.log` (0600, copy-truncate at 5 MB × 5).
 
 **Builds clean up after themselves (LC-15).** Outputs: `apps/desktop/out/` (electron-vite, ~30 MB),
 `apps/desktop/dist/` (electron-builder: the DMG and `mac-arm64/Fabric.app`, ~600 MB). `scripts/release-mac.mjs`

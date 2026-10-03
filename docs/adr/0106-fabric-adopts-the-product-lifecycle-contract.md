@@ -119,3 +119,39 @@ changed the implementation, not the decision; recorded here rather than by editi
   process at once; the drain's own limits (8 s + 2 s) meet the 10 s deadline with no margin, and the
   deadline's exit code 3 makes that case visible rather than hidden.
 
+## Second amendment — after the confirmation review (2026-10-03, same day)
+
+A second, fresh reviewer confirmed eight of the first review's findings fixed and showed three were not,
+plus two new defects in the unsaved-work answer. What changed, again in the implementation only:
+
+- **Unsaved work is kept, not guarded.** Stopping the first quit could not hold: Chromium consumes `SIGTERM`
+  before any Node handler (measured: a Node `SIGTERM` listener never ran; the app quit at once), so a quit
+  cannot tell a person's Cmd+Q from a supervisor's signal; a stopped quit ignored `SIGTERM` with no deadline,
+  and a quit soon after "Keep editing" discarded the work without asking. Now a quit never waits for an
+  editor. The editor keeps its unsaved buffer in a recovery store as the person types (`editorRecovery.ts`,
+  0600, bounded by size, count and age) and flushes it on unload; the next open of that file offers
+  "Restore them / Discard them", and when the file changed on disk since, restoring opens the side-by-side
+  comparison a save conflict uses, so nothing on disk is overwritten silently. §1 holds without exception.
+- **The startup-failure dialog has a parent window.** On macOS a message box with no parent runs a modal
+  loop that blocks the main thread even through the async API; with the Dock icon visible (as Fabric has
+  it) the process was alive 15 s after `SIGTERM` and even the deadline's `app.exit` could not end it. As a
+  sheet on its own window it quits in about 1.6 s. A real-Electron test drives both shapes.
+- **The lock:** a dead holder is replaced through claims named after that holder, in generations, and no
+  contender deletes another's claim; the holder's start time is read with a fixed locale and zone.
+- **§2:** a spawn error or an item that is not JSON is `unreadable`, not a refusal, and does not lock the
+  keychain out; an expiry given in seconds is read as seconds; the person returning to a Fabric window
+  re-reads a token held longer than ten minutes, so an account switch shows when they look.
+- **§3:** `superviseJob` owns a scheduled job's run (status, watchdog, signals, outcomes, exit) and is tested
+  with a step that hangs; the checkout guard runs before the status record, so a refused manual `sync` never
+  overwrites the scheduled job's record; the limits are consistent (a publish's limit covers its two gates,
+  two checks and its git; the sync's 110 min watchdog covers a publish and stays under the 2 h interval); the
+  log lives in `~/Library/Logs/Fabric/`, owner-only, rotated by copy-truncate so launchd keeps writing into
+  a bounded live file; local and source git helpers are bounded and non-interactive; `--purge` removes
+  state only under `~/.cache`; the job's PATH includes every tool the fast gate calls.
+- **Startup:** a quit during the splash ends the `supabase start` it launched.
+- **Walks** record the quit verdict in `walk.json` and run the app with a throwaway `CLAUDE_CONFIG_DIR`.
+- **Hosted CI:** `session-bundle.test.mjs` no longer depends on `claude` being installed; the new tests are
+  in `apps/desktop` `pnpm test` as well as `scripts/ci.sh`.
+- **Not reproduced, fixed by construction:** the stale-claim race (L1) was rare in the reviewer's runs (one
+  double holder in 60 rounds); a regression test keeps the shape, but it passes on the old code too.
+

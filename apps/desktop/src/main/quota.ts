@@ -120,9 +120,10 @@ async function readToken(exec?: Exec): Promise<string | null> {
     const read = await readKeychainToken(exec)
     if (read.token) {
       cachedToken = { token: read.token, until: read.expiresAt ? read.expiresAt - TOKEN_EARLY_MS : Date.now() + TOKEN_UNDATED_MS }
+      cachedAt = Date.now()
       return read.token
     }
-    if (read.outcome !== 'absent') {
+    if (read.outcome === 'denied' || read.outcome === 'timeout') {
       keychainRefused = read.outcome
       // Said once, as a code; never the value, never again until the person acts.
       ops.failed('quota.keychain', new Error(`keychain_${read.outcome}`), { note: 'the credential was not read; no further Keychain read until the screen is unlocked or the app restarts' })
@@ -164,10 +165,19 @@ const TOKEN_EARLY_MS = 5 * 60_000
 const TOKEN_UNDATED_MS = 60 * 60_000
 /** The provider rejected the token: the next reading reads the Keychain again. */
 function forgetCachedToken(): void { cachedToken = null }
+const ACCOUNT_RECHECK_MS = 10 * 60_000
+let cachedAt = 0
+/**
+ * The person came back to Fabric (a window gained focus): a token held longer than ten minutes is read
+ * again on the next reading, so switching Claude accounts in a terminal (`claude /login`) shows the new
+ * account's headroom when the person looks, not hours later (confirmation review Q1). An event the person
+ * causes, not a timer (LC-04).
+ */
+function personReturned(now: number = Date.now()): void { if (cachedToken && now - cachedAt > ACCOUNT_RECHECK_MS) cachedToken = null }
 
 // #region quota-credential-read — docs: docs/adr/0106-fabric-adopts-the-product-lifecycle-contract.md#2-credentials-are-read-once-and-the-outcome-is-kept
 /** What one Keychain read found. Every outcome is kept by the reader (lifecycle LC-04). */
-type KeychainOutcome = 'found' | 'absent' | 'denied' | 'timeout'
+type KeychainOutcome = 'found' | 'absent' | 'denied' | 'timeout' | 'unreadable'
 
 type Exec = (file: string, args: string[], opts: { timeout: number; killSignal: NodeJS.Signals }) => Promise<{ stdout: string }>
 
@@ -189,12 +199,19 @@ async function readKeychainToken(exec: Exec = run as unknown as Exec): Promise<{
     })
     const oauth = JSON.parse(stdout.trim())?.claudeAiOauth
     if (typeof oauth?.accessToken !== 'string') return { token: null, outcome: 'absent' }
-    return { token: oauth.accessToken, outcome: 'found', expiresAt: typeof oauth.expiresAt === 'number' ? oauth.expiresAt : undefined }
+    // The unit is not documented anywhere we can cite: a value below 1e12 can only be seconds (it would be
+    // 1970 in milliseconds), so it is read as seconds rather than caching nothing (confirmation review Q2).
+    const raw = typeof oauth.expiresAt === 'number' && Number.isFinite(oauth.expiresAt) ? oauth.expiresAt : undefined
+    return { token: oauth.accessToken, outcome: 'found', expiresAt: raw === undefined ? undefined : raw < 1e12 ? raw * 1000 : raw }
   } catch (e) {
     const err = e as { code?: unknown; killed?: boolean; signal?: unknown }
     if (err.killed || err.signal === 'SIGKILL') return { token: null, outcome: 'timeout' }
     if (err.code === 44) return { token: null, outcome: 'absent' }
-    return { token: null, outcome: 'denied' }
+    // Only a non-zero exit of `security` itself is a refusal. A spawn error (ENOENT…) or an item that is not
+    // the JSON we expect is unreadable — it says nothing about the person's keychain, so it must not lock
+    // the keychain out until an unlock (confirmation review m5).
+    if (typeof err.code === 'number') return { token: null, outcome: 'denied' }
+    return { token: null, outcome: 'unreadable' }
   }
 }
 // #endregion quota-credential-read
@@ -425,5 +442,5 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
   }
 }
 
-export { readKeychainToken, resetKeychainRefusal, forgetCachedToken, readToken, KEYCHAIN_TIMEOUT_MS }
+export { readKeychainToken, resetKeychainRefusal, forgetCachedToken, personReturned, readToken, KEYCHAIN_TIMEOUT_MS }
 export type { KeychainOutcome }
