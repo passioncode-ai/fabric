@@ -87,7 +87,7 @@ describe('SCR-76 agent access', () => {
     const allow = await screen.findByRole('button', { name: 'Allow Example agent' })
     expect(allow.textContent).toBe('Allow and connect Fabric Inbox')
     fireEvent.click(allow)
-    await screen.findByText(/^Allowed\. Fabric Inbox could not be opened\. Is its app installed\? no handler Connect it from Settings → Agent access\.$/)
+    await screen.findByText(/^Allowed\. To connect it, open Agent access in settings\. It did not connect: Fabric Inbox could not be opened\. Is its app installed\? no handler$/)
     expect(screen.queryByText(/^Not done/)).toBeNull()
   })
 

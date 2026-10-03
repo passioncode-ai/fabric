@@ -143,11 +143,11 @@ Fabric follows the organization's [lifecycle contract](https://github.com/passio
 
 Fabric honours `--background` (CO-192): a fresh launch with it opens no splash and no window and takes no
 focus until the person activates the app — the machine's lifecycle broker passes it to targets enrolled with
-`backgroundLaunch: true`. Fabric listens on one loopback port, the agent surface (`src/main/agentSurface.ts`, `127.0.0.1`): the hub's stable
+`backgroundLaunch: true`. Fabric listens on one loopback port, the agent surface (`src/main/agentSurface.ts`, `127.0.0.1`, and `[::1]` for the hub's port so no other program can hold it there): the hub's stable
 port (`FABRIC_HUB_PORT`, default 47070, published in `~/Library/Application Support/ai.passioncode.fabric/hub.json` beside a
 0600 door token, both rewritten on start and removed on quit) — or, when that port cannot be taken, an ephemeral one with
 the external ingress closed and the reason in Settings → Agent access. The port alone does not prove Fabric holds it: while
-Fabric is down any program can listen there, so an agent re-reads `hub.json` and checks that its `pid` is alive before it
+Fabric is down any program can listen there, so an agent uses `hub.json`'s origin exactly as written (never `localhost`), re-reads it and checks that its `pid` is alive before it
 sends a binding credential (the hub's `fabric.access.*` tool descriptions say so; `src/main/hub.ts`). Sessions it starts get a one-shot bearer; agents
 registered on this Mac get a door token that may only ask and, on the operator's Allow, a revocable binding credential
 ([ADR-0115](docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)). It creates no Keychain item:

@@ -79,9 +79,6 @@
 .lp button:disabled{opacity:.4;cursor:not-allowed}
 .lp :is(a,button,input,textarea,summary):focus-visible{outline:2px solid var(--app-focus);outline-offset:3px}
 .lp-actions{display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap}
-.lp-facts{display:flex;flex-direction:column;gap:var(--space-1);margin-bottom:var(--space-2)}
-.lp-facts p{margin:0}
-.lp-facts-asks{margin:0;padding-left:var(--space-3);font-size:12px}
 .lp-tabs{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-1);border-bottom:1px solid var(--app-line);padding:var(--space-2) 0;margin-bottom:var(--space-5)}
 .lp-tabs a{padding:var(--space-2) var(--space-3);text-decoration:none;border-radius:var(--app-radius-control);font-size:12px;color:var(--app-muted)}
 .lp-tabs [aria-current=page],.lp-tabs [aria-pressed=true]{background:var(--app-panel-quiet);color:var(--app-ink);font-weight:600}
@@ -414,6 +411,11 @@
 .app-sidebar{padding-bottom:6rem}
 @media(max-width:768px){.app-nav>.mobile-app-nav select{width:100%}.app-nav>a,.app-nav>p,.app-nav>details{display:none}.app-sidebar{padding:1rem}.app-nav{width:100%}.scope-bar{margin-bottom:.75rem}}
 /* ── adaptations to the app window ── */
+/* An access request's facts sit as a block above its two buttons (SCR-41, verification iteration 1 for
+   0.3.1, UX-8); the prototype has no access row, so these are the app's own. */
+.lp-facts{display:flex;flex-direction:column;gap:var(--space-1);margin-bottom:var(--space-2)}
+.lp-facts p{margin:0}
+.lp-facts-asks{margin:0;padding-left:var(--space-3);font-size:12px}
 /* The prototype draws the product inside a report frame; here it IS the window. */
 .launch-root .workbench { flex: 1; min-height: 0; }
 .launch-root .app-sidebar { position: relative; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; }

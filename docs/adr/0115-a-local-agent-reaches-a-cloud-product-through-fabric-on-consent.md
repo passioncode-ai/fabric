@@ -245,3 +245,70 @@ found sentences above that do not describe what was built. They are corrected he
     `denied`, the product may deliver `{state, outcome:"failed", error}` (`no_server`, `sign_in_required`,
     `mint_failed`); Fabric records it as the last attempt and keeps no key. The vault is written with
     `vault.py put` for a new slot and `vault.py rotate` when the slot already exists, value on stdin in both.
+
+## Amendments — release verification of 0.3.1, iteration 1: what the code now does (2026-10-04)
+
+The decision stands. These are the behaviours iteration 1 found missing or unsafe and the branch
+`agent/hub-0.3.1-verification` changed; each is enforced in code and named with its test in the
+[ledger](../evidence/plans/2026-10-04-hub-verification.md) (V1 rows). The text above is not edited.
+
+11. **§2.2 — a poll secret per request (RFC 8628's device code).** The answer that CREATES a request carries
+    `pollSecret` (32 random bytes, base64url); Fabric journals only its sha256 (`access_requests.poll_verifier`,
+    migration 77). Through the door, `fabric.access.status` takes `{requestId, pollSecret}`, compares in constant
+    time, and answers a wrong or missing secret exactly as an unknown id (`unknown-request`). Asking the same thing
+    again while it waits returns the same `requestId` and **no** secret, so another holder of the door token cannot
+    read the answer or collect the credential the operator granted on someone else's prompt. A binding reading its
+    own incremental request needs no secret. Requests written before migration 77 carry no verifier and cannot be
+    read through the door; their agents ask again.
+12. **§2.4 — the credential is collected within 10 minutes of the decision, or never.** The first door read after
+    Allow carries the binding credential only within `CREDENTIAL_CLAIM_WINDOW_MS` (10 minutes,
+    `apps/desktop/src/shared/access.ts`); after it the status says so and the agent asks again. Migration 76's
+    header ("a restart between Allow and that read loses nothing") holds inside that window only. A binding whose
+    credential can no longer be collected is not listed as an agent with access in Settings → Agent access.
+13. **§4.4 — the callback keeps the product's 10 s, or keeps nothing.** One deadline, `CALLBACK_DEADLINE_MS` = 8 s
+    (`productConnect.ts`), covers reading the body, the vault write and the record. The order is now **secret first,
+    record second**: the secret is stored, then `product.connected@1` is appended only while the deadline holds and
+    the product is still waiting, then 200. Past the deadline, or when the product hangs up, nothing is recorded and
+    the answer is not 2xx, so the product revokes its key; a record that itself lands late is withdrawn at once
+    (`product.disconnected@1`). This replaces amendment 4's record-first order. **Reconnect:** a failed or slow vault
+    leaves the previous connection live; only a record that lands late on a Reconnect has already superseded it, and
+    the outcome then says the previous connection was lost (`withdrawn`, `previousLost`) and asks to connect again.
+14. **§4.5 — a secret slot per estate and per connection.** The vault slot is
+    `FABRIC_INBOX_CLIENT_SECRET_<ESTATE HEX>_<CONNECTION HEX>` (project `fabric`, env `local`): connecting in one estate
+    never overwrites another's, and a Reconnect never overwrites the key the live connection still uses. A slot no
+    record names is inert; superseded slots stay in the vault until removed there (`vault.py remove`). Migration 77
+    refuses a `secret_ref` that is not exactly `{project, env, name}`, so no value can be journalled.
+15. **§4.6 — Disconnect does not revoke the key.** Disconnect stops Fabric using the connection at once; Fabric does
+    not call the product. Settings → Agent access says the key stays valid in Fabric Inbox → Agent access until the
+    operator revokes it there. The product's own Deny or failure is journalled as `product.connect.refused@1`.
+16. **§3 — restored history is not authority (ADR-0077's rule, applied here).** An archive restored into an estate
+    brings its hub history as history: a binding it created is projected revoked (`restore-boundary`) and never gets a
+    verifier, its grants are revoked, a restored connection is removed; the operator consents and reconnects again.
+    The four hub tables are guarded at the door like every other global id (ADR-0103; migration 77).
+17. **§2.3 — the operator's language.** The prompt, the queue row and Settings → Agent access receive facts, never
+    English sentences, and phrase them from `en.ts`/`ru.ts` (`apps/desktop/src/shared/accessWords.ts`); the native
+    prompt reads the operator's language from settings when it opens. An account id that is not printable ASCII is
+    refused, so what the prompt shows is byte-for-byte what is granted.
+18. **§1 — the port on both loopbacks, and the origin as written.** The hub's port is also held on `[::1]` (a Mac
+    without IPv6 skips it), and every tool description says to use `hub.json`'s origin exactly as written, never
+    `localhost`. The door's budget is per request (status) or per agent (request) under a door-wide ceiling of five
+    budgets; unknown bearers spend a quarter-budget before any database read.
+19. **§5 — the contract on the wire.** What an agent can rely on, in one place:
+
+    | Tool (principal) | Input | Answer |
+    |---|---|---|
+    | `fabric.access.request` (door, binding) | `{agentId, callee, capabilities[], resources[], reason}` | `{requestId, status: pending\|denied, expiresAt, pollSecret?, note}` |
+    | `fabric.access.status` (door: + `pollSecret`; binding) | `{requestId, pollSecret}` | `{requestId, status: pending\|allowed\|denied\|expired, expiresAt, credential?, bindingId?, grants?, note}` |
+    | `fabric.access.grants` (binding) | `{}` | `{agentId, grants: [{callee, capability, resource, expiresAt}]}` |
+    | `agent.call` (binding) | `{agentId, capability, input, idempotencyKey?}` | the product's own answer, or a refusal |
+
+    A refusal is `isError: true` with `{error: {code, message, data?}}`. Codes: `refused` (the request was not
+    accepted; read the message), `unknown-request` (no such request, or a wrong poll secret), `hub-unavailable`
+    (Fabric could not complete it; retry later), `unknown-callee`, `invalid-arguments`, `access-required` (`data`
+    carries the `fabric.access.request` arguments to ask with), `product-not-connected`,
+    `product-credential-unavailable`, `idempotency-conflict` (the key was used with other arguments), `cancelled`
+    (the caller hung up before the product was reached), `product-unreachable`, `product-refused`, `product-error`.
+    Retrying can succeed after `hub-unavailable`, `product-credential-unavailable`, `product-unreachable` and
+    `cancelled` (with the same `idempotencyKey`); the others need the operator or a different request. HTTP: 401 for
+    an unknown or revoked credential, 429 with `retry-after` when a budget is spent, 503 with `retry-after` when the
+    hub cannot check credentials.

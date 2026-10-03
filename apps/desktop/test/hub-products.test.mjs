@@ -597,7 +597,7 @@ test('connect: a product already connected is reconnected only when the operator
     const refused = await c.connector.begin(FABRIC_INBOX)
     assert.equal(refused.ok, false)
     assert.equal(refused.problem.code, 'already-connected')
-    assert.match(refused.reason, /already connected.*Reconnect/)
+    assert.match(refused.reason, /already connected.*reconnect it/)
     assert.equal(c.opened.length, 0, 'the product was opened without the operator choosing to reconnect')
     assert.equal((await c.connector.begin(FABRIC_INBOX, { reconnect: true })).ok, true)
     assert.equal(c.opened.length, 1)

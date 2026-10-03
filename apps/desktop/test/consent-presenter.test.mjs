@@ -101,7 +101,7 @@ test('UX-5: an Allow whose product could not be opened is followed by a message 
   const follow = h.log.filter((e) => e[0] === 'box')[1]
   assert.ok(follow, 'the operator was told nothing')
   assert.equal(follow[6], 'warning')
-  assert.match(follow[5], /^Allowed\. Fabric Inbox could not be opened/)
+  assert.match(follow[5], /^Allowed\. To connect it, open Agent access in settings\. It did not connect: Fabric Inbox could not be opened/)
 })
 
 test('UX-11: an answer that was not recorded is a warning, phrased from its code', async () => {

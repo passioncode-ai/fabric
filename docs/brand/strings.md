@@ -435,3 +435,144 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.projectNameRefused.text-direction` | The project name contains a character that reverses the reading direction. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.projectNameRefused.control` | The project name contains a control character. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.scan.notKept` | This list was not saved, so it will not be here next time. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+
+## Agent access (the hub) · 2026-10-04 (ADR-0115)
+
+The consent prompt, the attention-queue row and Settings → Agent access, phrased from facts in
+the operator's language (verification of 0.3.1, iteration 1, UX-2).
+
+| Key | Text (primary) | Location | Scenario | Status |
+|---|---|---|---|---|
+| `event.access.requested@1` | an agent asked for access to a product through Fabric | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `event.access.decided@1` | an access request was answered | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `event.access.credential.claimed@1` | an agent collected its binding credential | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `event.access.grant.revoked@1` | an agent’s access was revoked | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `event.access.binding.revoked@1` | all of an agent’s access was revoked | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `event.access.denial.cleared@1` | a denied access request was cleared | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `event.product.connected@1` | a product was connected to Fabric | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `event.product.connect.refused@1` | a product declined or failed to connect to Fabric | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `event.product.disconnected@1` | a product was disconnected from Fabric | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `needsYou.kind.access` | Access request | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `settings.agentAccess` | Agent access | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.title` | Agent access | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.close` | Close | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.what` | Agents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.loading` | Reading agent access… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.unreadable` | Agent access could not be read: {reason}. This is not a list with nothing in it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.retry` | Try again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.notDone` | Not done: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.hub.on` | Agents reach Fabric at {origin}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.products.connect` | Connect | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.products.disconnect` | Disconnect | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.products.reconnect` | Reconnect | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.products.connectedTo` | connected to | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.products.since` | since {since} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.products.notConnected` | not connected | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.products.waiting` | Waiting for your answer in {name}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.products.denied` | You declined the connection in {name}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.products.failed` | The last attempt failed: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.pending.title` | Waiting for your answer | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.pending.none` | No agent is waiting for an answer. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.pending.reason` | Its reason, in its own words: “{reason}” | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.agents.title` | Agents with access | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.agents.none` | No agent has access through Fabric. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.agents.until` | until {date} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.agents.revokeAll` | Revoke all | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.revoke` | Revoke | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.allow` | Allow | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.deny` | Deny | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.allowedHere` | Allowed | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.deniedHere` | Denied | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.denials.title` | Denied requests | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.denials.clear` | Clear the denial | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.hub.off` | Agents cannot reach Fabric right now. Sessions Fabric starts are not affected. Free the port, then quit and reopen Fabric. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.hub.offDetail` | What Fabric saw: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.products.title` | Products | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.products.keyStays` | Fabric no longer uses the previous key. It stays valid in {name} → Agent access until you revoke it there. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.products.tryAgain` | Try again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.agents.noGrants` | Nothing is allowed any more; its binding credential still identifies the agent. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.denials.none` | No request is denied. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.pending.expires` | expires in {minutes} min | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.pending.expiresSoon` | expires in under a minute | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.allowConnect` | Allow and connect {product} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.allowFor` | Allow {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.denyFor` | Deny {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.revokeFor` | Revoke for {name}: {line} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.revokeAllFor` | Revoke all for {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.clearFor` | Clear the denial for {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.allowedConnect` | Allowed. To connect it, open Agent access in settings. It did not connect: {problem} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.lasts` | Access lasts a year unless you revoke it under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.floor` | Fabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.incremental` | This agent already has access through Fabric; this adds to it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.origin.plain` | An agent registered as {id} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.origin.by` | An agent registered as {id} (installed by {by}) | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.origin.repo` | An agent registered as {id} (source {repo}) | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.origin.both` | An agent registered as {id} (installed by {by}; source {repo}) | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.queue.title` | {name} asks to use {product} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.list.and` | {items} and {last} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.ask.inside` | {verbs} in {resource} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.ask.setup` | set up the workspace: {verb} {resource} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.ask.setupExtra` | set up the workspace: when creating {resource}, also {verb} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.res.gmail` | the Gmail account {id} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.unknown` | use “{name}” (a tool Fabric does not know and cannot describe) | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.list_accounts` | see which mailboxes exist | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.list_messages` | list and search mail | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.search_mailbox` | search mail | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.list_mailbox_messages` | list a folder | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.read_message` | read mail | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.read_thread` | read conversations | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.get_attachment` | open attachments | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.list_folders` | see folders | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.get_send_status` | check what was sent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.save_draft` | save drafts | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.send_email` | send mail | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.reply` | reply to mail, which sends it | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.forward` | forward mail, which sends it | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.update_messages` | mark mail read or starred | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.move_messages` | move mail | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.mark_spam` | report mail as spam or not spam | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.delete_message` | delete mail for good | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.sync_account` | sync a Gmail account | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.manage_folder` | create, rename or remove folders | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.approve_rule_run` | approve what a rule is about to do, which can send mail | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.dismiss_rule_run` | dismiss what a rule was about to do | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.create_address` | create the address | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.send_test_message` | send a test message | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.create_address.forward_to` | forward a copy of its mail to an address the agent chooses | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.cap.create_address.reply_agent` | choose the reply agent that answers its mail; a reply agent can send mail | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.prompt.title` | Allow {name} to use {product}? | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.prompt.message` | {name} asks to use {product} through Fabric | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.prompt.asks` | {origin} asks to: | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.prompt.reasonLead` | Its reason, in its own words: | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.prompt.credential` | If you allow, the agent gets its own credential for {product} through Fabric. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.prompt.notConnected` | {product} is not connected to Fabric yet. Allow also opens {product}, which asks you to connect it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.prompt.notify` | Open Fabric to allow or deny. It also waits in your queue. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.prompt.notRecordedTitle` | Not recorded | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.prompt.notRecorded` | Your answer was not recorded | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.prompt.connectTitle` | Allowed, not connected | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.prompt.ok` | OK | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.refused.not-found` | Fabric has nothing with that id any more; the list has been read again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.refused.already-decided` | That request was already answered. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.refused.expired` | That request expired before it was answered; the agent must ask again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.refused.asking-binding-revoked` | The access that asked for more has been revoked; the agent must ask again from the start. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.refused.not-live` | That access is not live any more; it was already revoked. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.refused.unavailable` | Fabric could not read or write agent access just now. Try again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.hub-off` | Fabric’s hub is not listening, so {name} would have nowhere to deliver its key. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.already-connected` | {name} is already connected; reconnect it to replace its key. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.busy` | A connection to {name} is already waiting for your answer there. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.live-unreadable` | Fabric could not read whether {name} is already connected. {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.not-installed` | {name} could not be opened. Is its app installed? {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.no-flow` | Fabric has no way to connect {name} yet. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.late` | {name} answered after the 10-minute window. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.no-answer` | No answer came from {name} within 10 minutes. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.no_server` | {name} has no server set up yet. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.sign_in_required` | {name} needs you to sign in again; it has opened its sign-in. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.mint_failed` | {name} could not make the key. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.unknown` | {name} reported a failure Fabric does not recognise. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.invalid-delivery` | {name} delivered a key Fabric cannot use. {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.record-failed` | Fabric could not record the connection, so {name} revokes the key. {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.vault` | The vault of Project Observatory did not keep the key, so {name} revokes it. {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.deadline` | Fabric could not keep the key within the 10 seconds {name} waits, so {name} revokes it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.withdrawn` | Fabric recorded the key after {name} had stopped waiting, so it was withdrawn and {name} revokes it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.not-connected` | {name} is not connected. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.previousLost` | The previous connection was already replaced, so {name} is not connected now; connect it again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |

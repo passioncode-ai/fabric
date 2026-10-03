@@ -58,7 +58,7 @@ const WORKSPACE_SETUP: Record<string, SetupSpec> = {
     own: ['localPart', 'domain', 'name', 'createRoute'],
     extras: {
       forwardTo: { suffix: 'forward_to', plain: 'forward a copy of its mail to an address the agent chooses' },
-      agent: { suffix: 'reply_agent', plain: 'choose the reply agent that answers its mail — a reply agent can send mail' }
+      agent: { suffix: 'reply_agent', plain: 'choose the reply agent that answers its mail; a reply agent can send mail' }
     }
   }
 }
@@ -101,8 +101,8 @@ const PLAIN: Record<string, string> = {
   delete_message: 'delete mail for good',
   sync_account: 'sync a Gmail account',
   manage_folder: 'create, rename or remove folders',
-  approve_rule_run: 'approve a rule’s action, which can send mail',
-  dismiss_rule_run: 'dismiss a rule’s action',
+  approve_rule_run: 'approve what a rule is about to do, which can send mail',
+  dismiss_rule_run: 'dismiss what a rule was about to do',
   // level admin — the one setup Fabric runs, and the admin tool that sends
   create_address: 'create the address',
   send_test_message: 'send a test message'

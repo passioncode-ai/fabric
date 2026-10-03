@@ -232,7 +232,7 @@ export class ProductConnector {
         ops.failed('connect.live-read', e, { product: spec.product })
         return refuse('live-unreadable', `whether ${name} is already connected could not be read: ${(e as Error).message}`, (e as Error).message)
       }
-      if (live) return refuse('already-connected', `${name} is already connected; choose Reconnect to replace its key`)
+      if (live) return refuse('already-connected', `${name} is already connected; reconnect it to replace its key`)
     }
     const now = this.now()
     this.prune(now)

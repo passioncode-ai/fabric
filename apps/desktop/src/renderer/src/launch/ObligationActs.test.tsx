@@ -62,7 +62,7 @@ describe('an access request in the queue', () => {
     vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { hub: { decide } } }))
     render(<I18nProvider locale="en"><Harness item={itemOf(false)} onError={onError} /></I18nProvider>)
     fireEvent.click(screen.getByRole('button', { name: 'Allow Example agent' }))
-    await waitFor(() => expect(screen.getByText(/^Allowed\. Fabric Inbox could not be opened/)).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/^Allowed\. To connect it, open Agent access in settings\. It did not connect: Fabric Inbox could not be opened/)).toBeTruthy())
     expect(screen.queryByRole('button', { name: 'Allow Example agent' })).toBeNull()
     expect(onError).not.toHaveBeenCalled()
   })
