@@ -24,7 +24,7 @@
 //   in keeping with ADR-0032 §2 — the pack is a selection, never a retelling.
 
 import type { ScopedStore } from './scopedStore.ts'
-import { envelope, type ReadEnvelope, type SourceReceipt } from '../shared/readEnvelope.ts'
+import { envelope, unmetMandatory, type ReadEnvelope, type SourceReceipt } from '../shared/readEnvelope.ts'
 import { createHash } from 'node:crypto'
 import { redact } from '../shared/redact.ts'
 
@@ -100,7 +100,56 @@ export interface ContextPackInput {
    * `unmetMandatory` on the result is what the caller checks before admitting
    * the work (the purpose distinction in the S14 card).
    */
-  mandatory?: string[]
+  mandatory?: readonly string[]
+}
+
+/**
+ * The sources an UNATTENDED start may not be missing (S14).
+ *
+ * `mandatory` was declared on the input, documented as what an unattended start
+ * checks, and read by nothing: no caller passed it and `compileContextPack`
+ * never looked at it (release review 2026-10-03). So a routine or a chain step
+ * whose memory read was refused started anyway, on a pack whose head said the
+ * memory could not be read — with nobody there to read the head. The project
+ * (what this is) and its facts (what is known) are the two an agent cannot
+ * safely proceed without; repositories and past sessions are context, and a
+ * pack that lacks them says so.
+ */
+export const UNATTENDED_CONTEXT_SOURCES: readonly string[] = ['project', 'facts']
+
+/** A pack that may not be handed to an unattended session. Thrown, so the
+ *  session bundle refuses the start instead of starting without context. */
+export class MandatoryContextUnmet extends Error {
+  readonly unmet: string[]
+  constructor(unmet: string[]) {
+    super(
+      `the context this unattended start requires could not be read (${unmet.join(', ')}), ` +
+        'so it was not started. Nobody is present to notice a partial pack; start it yourself to work without them.'
+    )
+    this.name = 'MandatoryContextUnmet'
+    this.unmet = unmet
+  }
+}
+
+/**
+ * Which sources a session's pack must carry, decided by how the session was
+ * ADMITTED rather than by what the caller says about itself.
+ *
+ * `admit_task_launch` journals the trigger on `task.admitted@1` beside the
+ * session id it admitted (migration 61). A chain or routine trigger is
+ * unattended. No admission is a person's terminal. A read that FAILED cannot
+ * prove a person is present, so it demands the unattended set — the closed
+ * direction, and the one that costs a start rather than a blind run.
+ */
+export async function contextDemandFor(store: ScopedStore, sessionId: string): Promise<readonly string[]> {
+  const { data, error } = await store
+    .select('journal', 'payload')
+    .eq('type', 'task.admitted@1')
+    .eq('payload->>session_id', sessionId)
+    .limit(1)
+  if (error) return UNATTENDED_CONTEXT_SOURCES
+  const trigger = (data?.[0]?.payload as { trigger?: unknown } | undefined)?.trigger
+  return trigger === 'chain' || trigger === 'routine' ? UNATTENDED_CONTEXT_SOURCES : []
 }
 
 const DEFAULT_BUDGET = 12_000
@@ -177,6 +226,16 @@ export async function compileContextPack(input: ContextPackInput): Promise<Conte
     r.error
       ? { name, status: 'error', asOf: null, errorCode: 'source_read_failed' }
       : { name, status: 'ok', asOf: now }
+  const receipts = [
+    receipt('project', projectRead),
+    receipt('repos', reposRead),
+    receipt('facts', factsRead),
+    receipt('transcripts', sessionsRead)
+  ]
+  // ENFORCED HERE, before a byte of the pack exists: an unattended start whose
+  // required sources did not answer gets no pack to start on.
+  const unmet = unmetMandatory({ sources: receipts } as ReadEnvelope<null>, [...(input.mandatory ?? [])])
+  if (unmet.length) throw new MandatoryContextUnmet(unmet)
   const project = projectRead.data
   const repos = reposRead.data
   const facts = factsRead.data
@@ -345,12 +404,7 @@ export async function compileContextPack(input: ContextPackInput): Promise<Conte
   const markdown = lines.join('\n') + '\n'
   const read = envelope<null>({
     data: null,
-    sources: [
-      receipt('project', projectRead),
-      receipt('repos', reposRead),
-      receipt('facts', factsRead),
-      receipt('transcripts', sessionsRead)
-    ],
+    sources: receipts,
     omitted: [
       ...(omittedFacts > 0
         ? [{ count: omittedFacts, reason: 'the budget stopped copying facts' }]

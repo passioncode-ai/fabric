@@ -219,6 +219,51 @@ const PROJECTS = [{ id: 'p1', name: 'Atlas ledger', purpose: 'keep the ledger' }
     : fail('a full page claimed to be complete')
 }
 
+// ── THE TEXT IS A VALUE, NOT A FILTER (release review 2026-10-03) ──────────
+//
+// The substring groups built `or(name.ilike.%TEXT%,purpose.ilike.%TEXT%)` by
+// interpolation. `,` `(` `)` `.` and `:` are PostgREST's own grammar inside
+// `or()`, so "auth, billing" split into a malformed second term and the group
+// came back refused, and `x%,id.not.is.null` added a disjunct of the caller's
+// choosing. PostgREST's documented remedy is a double-quoted value with `"` and
+// `\` escaped by a backslash; `%` and `_` are LIKE wildcards and are escaped for
+// LIKE first. The parser below is a MODEL of that grammar (R-007 applies: it
+// proves the string matches the documented shape, not what the gateway does).
+{
+  /** Split an or() list at top-level commas, honouring double quotes and escapes. */
+  const terms = (list) => {
+    const out = []
+    let cur = '', quoted = false
+    for (let i = 0; i < list.length; i++) {
+      const ch = list[i]
+      if (quoted && ch === '\\') { cur += ch + list[++i]; continue }
+      if (ch === '"') quoted = !quoted
+      if (ch === ',' && !quoted) { out.push(cur); cur = ''; continue }
+      cur += ch
+    }
+    out.push(cur)
+    return out
+  }
+  const valueOf = (term) => {
+    const m = term.match(/^([a-z_]+)\.ilike\.(".*")$/s)
+    if (!m) return null
+    return { column: m[1], value: m[2].slice(1, -1).replace(/\\(.)/g, '$1') }
+  }
+  for (const text of ['auth, billing', 'x%,id.not.is.null', 'a"b\\c', '50%_off', 'f(x).y:z']) {
+    const { queries } = await drive({ projects: [rows(PROJECTS), rows([])] }, text)
+    const ors = queries.flatMap((q) => q.filters.filter(([op]) => op === 'or').map(([, v]) => ({ table: q.table, v })))
+    eq(ors.length, 2, `two substring groups ask an or() for ${JSON.stringify(text)}`)
+    for (const { table, v } of ors) {
+      const parsed = terms(v).map(valueOf)
+      const columns = table === 'projects' ? ['name', 'purpose'] : ['title', 'instruction']
+      const like = '%' + text.replace(/[\\%_]/g, '\\$&') + '%'
+      parsed.length === 2 && parsed.every((p, i) => p && p.column === columns[i] && p.value === like)
+        ? ok(`${table}: ${JSON.stringify(text)} stays one quoted value per column, wildcards escaped`)
+        : fail(`${table}: ${JSON.stringify(text)} became ${JSON.stringify(v)}`)
+    }
+  }
+}
+
 if (failures) {
   console.log('\n' + failures + ' failure(s)')
   process.exit(1)

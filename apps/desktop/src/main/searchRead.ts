@@ -88,6 +88,31 @@ function groupOf(input: {
 }
 
 /**
+ * A substring match on several columns, as ONE `or()` the gateway cannot misread.
+ *
+ * The text was interpolated: `or(name.ilike.%TEXT%,…)`. Inside `or()` the
+ * characters `,` `.` `:` `(` `)` are PostgREST's own grammar, so a query as
+ * ordinary as "auth, billing" split into a malformed second term and the whole
+ * group came back refused — and `x%,id.not.is.null` appended a disjunct of the
+ * caller's choosing (still inside the estate, because the scope is ANDed
+ * outside the `or()`, but no longer the search that was asked). Release review
+ * 2026-10-03.
+ *
+ * Two escapes, in this order. LIKE first: `%`, `_` and `\` are wildcards or the
+ * escape character in a PostgreSQL LIKE pattern, so a literal "50%_off" must
+ * not match "50 anything off". Then the value is double-quoted, which is
+ * PostgREST's documented way to carry reserved characters, with `"` and `\`
+ * escaped by a backslash. `*` is left alone: PostgREST also reads it as a LIKE
+ * wildcard and documents no escape for it, so a `*` widens the match — it can
+ * no longer change the filter.
+ */
+export function substringFilter(columns: readonly string[], text: string): string {
+  const like = `%${text.replace(/[\\%_]/g, '\\$&')}%`
+  const quoted = `"${like.replace(/["\\]/g, '\\$&')}"`
+  return columns.map((c) => `${c}.ilike.${quoted}`).join(',')
+}
+
+/**
  * Search every declared store.
  *
  * The groups come back in `SEARCH_STORES` order, so the surface's headings and
@@ -111,17 +136,16 @@ export async function searchFor(store: ScopedStore, query: string): Promise<Sear
     ? `project names could not be read: ${projectRead.error.message}`
     : null
 
-  const like = `%${text}%`
   const [projects, tasks, facts, decisions, transcripts] = (await Promise.all([
     // Substring, because `projects` carries no tsvector. The method travels
     // with the group so the reader knows what kind of promise "found" is.
     store
       .select('projects', 'id,name,purpose,created_at')
-      .or(`name.ilike.${like},purpose.ilike.${like}`)
+      .or(substringFilter(['name', 'purpose'], text))
       .limit(SEARCH_CAP),
     store
       .select('project_tasks', 'id,project_id,title,instruction,started_at')
-      .or(`title.ilike.${like},instruction.ilike.${like}`)
+      .or(substringFilter(['title', 'instruction'], text))
       .limit(SEARCH_CAP),
     // REMEMBERED AND NOT A DECISION. Without `neq` a decision comes back here
     // AND in its own group below, and a reader counting "found" counts it
