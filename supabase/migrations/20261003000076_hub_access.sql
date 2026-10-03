@@ -124,6 +124,10 @@ create table access_grants (
   check ((revoked_at is null) = (revoked_seq is null))
 );
 create index access_grants_binding on access_grants (estate_id, binding_id) where revoked_at is null;
+-- One live grant per binding, callee, capability and resource. A second Allow of the same thing extends the
+-- grant it already has (the projector's `on conflict` below); two live rows would make Revoke on one leave
+-- the other standing, which reads to the operator as a revoke that did not take.
+create unique index access_grants_one_live on access_grants (estate_id, binding_id, callee, capability, resource) where revoked_at is null;
 comment on table access_grants is
   'Standing access grants: one capability on one resource of one callee for one binding, with an expiry, revocable (ADR-0115 §3). Distinct from the one-shot floor grants table.';
 
@@ -221,10 +225,15 @@ begin
         if not ((g->>'resource') = any (v_req.resources)) then
           raise exception 'grant resource % was not asked for', g->>'resource' using errcode = 'check_violation';
         end if;
+        -- Already held (live, or expired and never revoked): this decision extends that grant and becomes its
+        -- latest decision; it never writes a second live row. The journal keeps every decision.
         insert into access_grants (id, estate_id, binding_id, request_id, agent_id, callee, capability, resource,
                                    decided_by, decided_at, expires_at, decided_seq)
         values ((g->>'id')::uuid, e.estate_id, v_binding, v_req.id, v_req.agent_id, v_req.callee, g->>'capability',
-                g->>'resource', e.actor->>'id', e.occurred_at, (g->>'expires_at')::timestamptz, e.seq);
+                g->>'resource', e.actor->>'id', e.occurred_at, (g->>'expires_at')::timestamptz, e.seq)
+        on conflict (estate_id, binding_id, callee, capability, resource) where revoked_at is null do update
+          set request_id = excluded.request_id, decided_by = excluded.decided_by, decided_at = excluded.decided_at,
+              decided_seq = excluded.decided_seq, expires_at = greatest(access_grants.expires_at, excluded.expires_at);
       end loop;
 
     when 'access.credential.claimed@1' then

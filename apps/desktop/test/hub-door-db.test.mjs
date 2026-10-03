@@ -174,6 +174,23 @@ await test('incremental consent: the binding asks for more, the operator is aske
   await agent.close()
 })
 
+await test('asking again for what the binding already holds extends that grant: one live grant, a later expiry, no duplicate', async () => {
+  const agent = await connect(credential)
+  const before = (await call(agent, 'fabric.access.grants', {})).value.grants.filter((g) => g.capability === 'read_message')
+  assert.equal(before.length, 1)
+  clock += 60_000
+  const again = await call(agent, 'fabric.access.request', ask({ capabilities: ['read_message'] }))
+  assert.equal(again.value.status, 'pending')
+  assert.deepEqual(await access.decide(again.value.requestId, 'allowed', OPERATOR), { ok: true })
+  const after = (await call(agent, 'fabric.access.grants', {})).value.grants.filter((g) => g.capability === 'read_message')
+  assert.equal(after.length, 1, 'a second live grant for the same capability and mailbox was written')
+  assert.ok(Date.parse(after[0].expiresAt) > Date.parse(before[0].expiresAt), 'the allow did not extend the grant')
+  const status = await call(agent, 'fabric.access.status', { requestId: again.value.requestId })
+  assert.deepEqual(status.value.grants.map((g) => [g.capability, g.resource]), [['read_message', 'cloudflare:news@example.com']])
+  clock = Date.now()
+  await agent.close()
+})
+
 await test('Deny stands until cleared: the same request answers denied without prompting; cleared, it prompts again', async () => {
   const door = await connect(DOOR)
   const r = await call(door, 'fabric.access.request', ask({ resources: ['other@example.com'] }))

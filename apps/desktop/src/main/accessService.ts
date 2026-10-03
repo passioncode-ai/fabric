@@ -223,7 +223,16 @@ export class AccessService {
         bindingId = asking.id
       }
       const expiresAt = new Date(now + GRANT_TTL_MS).toISOString()
-      const grants = row.capabilities.flatMap((capability) => row.resources.map((resource) => ({ id: randomUUID(), capability, resource, expires_at: expiresAt })))
+      // A grant this binding already holds (not revoked) is EXTENDED under its own id, never written twice:
+      // two live rows for one thing would let a Revoke of one leave the other standing (migration 76's
+      // `access_grants_one_live` holds the same rule in the database).
+      const held = new Map<string, string>()
+      if (!newBinding)
+        for (const g of await this.deps.store.grantsOf(bindingId))
+          if (g.revoked_at === null && g.callee === row.callee) held.set(`${g.capability}\u0000${g.resource}`, g.id)
+      const grants = row.capabilities.flatMap((capability) => row.resources.map((resource) => ({
+        id: held.get(`${capability}\u0000${resource}`) ?? randomUUID(), capability, resource, expires_at: expiresAt
+      })))
       await this.deps.store.append('access.decided@1', actor, { request_id: row.id, decision: 'allowed', binding_id: bindingId, new_binding: newBinding, grants })
       ops.record({ op: 'hub.access.decided', outcome: 'ok', detail: { request_id: row.id, decision, agent_id: row.agent_id, binding_id: bindingId, grants: grants.length }, ctx: { correlationId: ops.correlate() } })
       return { ok: true }

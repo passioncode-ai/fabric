@@ -140,6 +140,22 @@ test('a product connection keeps metadata and the vault slot only; a reconnect s
   assert.equal(sql(`select count(*) from product_connections where estate_id='${E}' and removed_at is null`), '0')
 })
 
+test('one live grant per binding, callee, capability and resource: a second allow of the same extends it, never duplicates it', () => {
+  const R4 = '76000000-0000-4000-8000-000000000014', R5 = '76000000-0000-4000-8000-000000000015'
+  const B3 = '76000000-0000-4000-8000-000000000023'
+  const G4 = '76000000-0000-4000-8000-000000000035', G5 = '76000000-0000-4000-8000-000000000036'
+  assert.equal(sql(`select count(*) from pg_indexes where indexname = 'access_grants_one_live'`), '1')
+  append(E, 'access.requested@1', hub, request(R4, { capabilities: ['read_message'] }))
+  append(E, 'access.decided@1', person, { request_id: R4, decision: 'allowed', binding_id: B3, new_binding: true,
+    grants: [{ id: G4, capability: 'read_message', resource: 'cloudflare:news@example.com', expires_at: later(60) }] })
+  append(E, 'access.requested@1', hub, request(R5, { capabilities: ['read_message'], binding_id: B3 }))
+  // A writer that did not reuse the live grant's id still cannot make a second live row.
+  append(E, 'access.decided@1', person, { request_id: R5, decision: 'allowed', binding_id: B3, new_binding: false,
+    grants: [{ id: G5, capability: 'read_message', resource: 'cloudflare:news@example.com', expires_at: later(525600) }] })
+  assert.equal(sql(`select count(*) from access_grants where binding_id='${B3}' and revoked_at is null`), '1')
+  assert.equal(sql(`select id || '|' || request_id || '|' || (expires_at > now() + interval '300 days') from access_grants where binding_id='${B3}'`), `${G4}|${R5}|true`)
+})
+
 test('a replay of the chain leaves every row as it was (rebuild is idempotent)', () => {
   const snapshot = () => sql(`select md5(string_agg(t::text, '|' order by t::text)) from (
     select row(r.*)::text t from access_requests r where estate_id='${E}' union all
