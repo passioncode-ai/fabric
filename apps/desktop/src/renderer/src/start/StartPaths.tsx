@@ -36,8 +36,15 @@ export const errorText = (e: unknown): string => humaniseError(e).detail
  */
 export function explainError(e: unknown, t: Translate): string {
   const text = errorText(e)
-  const m = /(?:^|: )repo-path-refused:(not-a-path|missing|not-a-folder|not-chosen): ([\s\S]*)$/.exec(text)
-  return m ? t(`start.repoRefused.${m[1]}` as 'start.repoRefused.not-chosen', { path: m[2] }) : text
+  const repo = /(?:^|: )repo-path-refused:(not-a-path|missing|not-a-folder|not-chosen|too-broad|held-by-other): ([\s\S]*)$/.exec(text)
+  if (repo) return t(`start.repoRefused.${repo[1]}` as 'start.repoRefused.not-chosen', { path: repo[2] })
+  const folder = /(?:^|: )folder-refused:(missing|not-a-folder|unreadable|timeout|outside): ([\s\S]*)$/.exec(text)
+  if (folder) return t(`start.folderRefused.${folder[1]}` as 'start.folderRefused.missing', { path: folder[2] })
+  const name = /(?:^|: )project-name-refused:(not-a-name|empty|text-direction|control)\b/.exec(text)
+  if (name) return t(`start.projectNameRefused.${name[1]}` as 'start.projectNameRefused.empty')
+  const agent = /(?:^|: )agent-name-refused:taken: ([\s\S]*)$/.exec(text)
+  if (agent) return t('agents.nameTaken', { name: agent[1] })
+  return text
 }
 
 /** A candidate's path as the checklist shows it: relative to the scanned folder, which the summary already names. */
@@ -191,7 +198,7 @@ function AddProject({ onPath, onCreated, onOpenProject }: StartProps): React.JSX
       id.current = newId()
       setS({ at: 'ready', facts, name: facts.name })
     } catch (e) {
-      setS({ at: 'failed', reason: errorText(e) })
+      setS({ at: 'failed', reason: explainError(e, t) })
     }
   }
   const create = async (facts: FolderView, name: string): Promise<void> => {
@@ -288,7 +295,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
     // replaced a scan already in flight). A kept list that cannot be read is said, not dropped.
     window.fabric.start.lastScan().then(
       (last) => { if (alive && last && last.candidates.length) setS((cur) => (cur.at === 'idle' && !scanning.current ? { at: 'results', scan: last } : cur)) },
-      (e: unknown) => { if (alive) setKeptProblem(errorText(e)) }
+      (e: unknown) => { if (alive) setKeptProblem(explainError(e, t)) }
     )
     return () => {
       alive = false
@@ -311,12 +318,12 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
         if (n !== runs.current) return
         setS(scan.cancelled ? { at: 'idle', stopped: true } : { at: 'results', scan })
       } catch (e) {
-        if (n === runs.current) setS({ at: 'failed', reason: errorText(e) })
+        if (n === runs.current) setS({ at: 'failed', reason: explainError(e, t) })
       } finally {
         if (n === runs.current) scanning.current = false
       }
     } catch (e) {
-      setS({ at: 'failed', reason: errorText(e) })
+      setS({ at: 'failed', reason: explainError(e, t) })
     }
   }
   const stop = (): void => {
@@ -344,9 +351,11 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
       setS({ at: 'importing', scan, done: { ...done }, queue })
     }
     if (created.length) onProjectsChanged()
-    const after = await window.fabric.start.lastScan().catch(() => null)
+    // Re-marked from the kept list only when it IS this scan (same folder, kept); otherwise the screen would
+    // switch to another folder's list (iteration 3). A failed re-read keeps this scan; its marks may lag.
+    const after = scan.kept ? await window.fabric.start.lastScan().catch(() => null) : null
     setPicked(new Set(queue.filter((p) => done[p] !== 'ok')))
-    setS({ at: 'imported', scan: after ?? scan, done, created })
+    setS({ at: 'imported', scan: after && after.root === scan.root ? after : scan, done, created })
   }
 
   const scan = s.at === 'results' || s.at === 'importing' || s.at === 'imported' ? s.scan : null
@@ -394,6 +403,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
             </p>
             <button type="button" className="lp-button" disabled={busy} onClick={() => void run(scan.root)}>{t('start.scan.again')}</button>
           </div>
+          {!scan.kept && !busy && <div className="lp-callout" role="status"><p>{t('start.scan.notKept')}</p></div>}
           {scan.truncated && <div className="lp-callout" role="status"><p>{t('start.scan.truncated', { visited: scan.visited })}</p></div>}
           {scan.unreadable > 0 && <div className="lp-callout" role="status"><p>{t('start.scan.unreadable', { count: scan.unreadable })}</p></div>}
           {scan.deep > 0 && <div className="lp-callout" role="status"><p>{t('start.scan.deep', { count: scan.deep })}</p></div>}

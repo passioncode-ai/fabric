@@ -9591,6 +9591,11 @@
           "behavior": "says so with the reason, and the prompt to scan"
         },
         {
+          "state": "not-kept",
+          "trigger": "the scan's list could not be saved",
+          "behavior": "says it will not be here next time; an import is re-marked only from a kept list of the same folder"
+        },
+        {
           "state": "no-match",
           "trigger": "the search hides every row",
           "behavior": "says nothing matches and how to see every repository"
@@ -9668,7 +9673,7 @@
       "view": "start-new",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1730,
+        "line": 1731,
         "coverage_claim": "apps/desktop/src/renderer/src/Onboarding.tsx",
         "status_claim": "designed"
       },
@@ -9761,7 +9766,7 @@
       "view": "start-agent",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1751,
+        "line": 1752,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9824,7 +9829,7 @@
       "view": "start-convert",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1766,
+        "line": 1767,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx (the planned state; the conversion itself is AR-7/AR-11)",
         "status_claim": "designed"
       },
@@ -31787,7 +31792,7 @@
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "One Project per ticked repository; nothing created for an unticked one; the last scan is kept so unticked candidates can be imported later.",
-      "errors_recovery": "A walk stopped by its bound says the list is not the whole folder; folders that could not be read are counted as a gap. Folders deeper than the scan goes, and linked folders it does not follow, are counted and said, with how to reach a repository there; Stop leaves the scanning state at once and a late answer is ignored; a kept list that cannot be read is said. A row that failed to import shows its reason, stays ticked, and Add retries it with the same id. A scan error says why and offers to choose again.",
+      "errors_recovery": "A walk stopped by its bound says the list is not the whole folder; folders that could not be read — and repositories whose inspection failed — are counted as a gap. Folders deeper than the scan goes, and linked folders it does not follow, are counted and said, with how to reach a repository there; Stop leaves the scanning state at once and a late answer is ignored; a kept list that cannot be read is said. A row that failed to import shows its reason, stays ticked, and Add retries it with the same id. A scan error says why and offers to choose again.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 3119

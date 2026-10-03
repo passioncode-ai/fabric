@@ -10,15 +10,15 @@ import { Banner, Button, EmptyState, Field, FieldGroup, Row, StateChip, Toolbar 
 import { useT } from './i18n'
 import { runnerLabel } from './runnerLabel'
 import { errorText } from './start/StartPaths'
-import { INSTRUCTIONS_MIN, NAME_MAX } from '../../shared/agentSpec.ts'
+import { INSTRUCTIONS_MIN, NAME_MAX, nameKey } from '../../shared/agentSpec.ts'
 import type { CreatedAgent, LaunchOption } from '../../shared/types'
 
 type Read = { state: 'reading' } | { state: 'ready'; agents: CreatedAgent[] } | { state: 'failed'; reason: string }
 
 /** The existing agent a name collides with (trimmed, case-insensitive) — the same rule as `nameTaken`. */
 function holderOf(name: string, agents: readonly CreatedAgent[]): CreatedAgent | undefined {
-  const n = name.trim().toLowerCase()
-  return n ? agents.find((a) => a.name.trim().toLowerCase() === n) : undefined
+  const n = nameKey(name)
+  return n ? agents.find((a) => nameKey(a.name) === n) : undefined
 }
 
 export function CreatedAgents({

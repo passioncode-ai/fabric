@@ -56,8 +56,11 @@ it). The operator settled each one.
    repository-defined filter and diff drivers — lazy fetch off and every transport refused, so a
    repository's own config cannot make the scan execute anything (amended after verification
    iteration 2, which ran a planted uploadpack through a partial clone); a remote URL loses its credentials before it is shown or kept. What the walk could not
-   cover is said: stopped by its bound, folders that could not be read, a folder read abandoned after
-   its timeout. Re-scanning on a schedule is not built (CO-177).
+   cover is said: stopped by its bound, folders that could not be read (a folder read abandoned after
+   its timeout, and a repository whose inspection failed, count here), folders past the depth limit,
+   linked folders not followed, and a scan whose list could not be kept. The walk finds repositories
+   first and inspects them afterwards, a few at a time, so slow ones cannot starve the rest.
+   Re-scanning on a schedule is not built (CO-177).
 <a id="new-project"></a>
 4. **Creating a project** (SCN-129, SCR-73): a name, an optional purpose, and a home — a new folder
    under a chosen parent (optionally `git init`) or only an idea with no folder yet.
@@ -79,7 +82,10 @@ it). The operator settled each one.
    write anything else there. A kept scan is shown, never granted. `projects.create` and `repos.attach`
    admit a repository path only when it is absolute, an existing folder taken by its real path, and
    either reachable from the calling window or a candidate main listed for that window's latest or kept
-   scan; anything else is refused before it is journalled (`startChoices.ts#admitRepoPaths`). An
+   scan, pinned to the path the walk itself recorded and lying under that scan's folder; the filesystem
+   root and the home folder are always refused, and so is a repository another project already holds;
+   anything else is refused before it is journalled, with a code the window translates
+   (`startChoices.ts#admitRepoPaths`, `repo-path-refused:<code>`). An
    admitted project's folders join the estate's roots and the git watch at once. The only exception is the walk harness's `FABRIC_WALK_PICK`, which answers the
    picker in an UNPACKAGED run and is ignored by a packaged app.
 <a id="app-icon"></a>

@@ -6,7 +6,7 @@ import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 import { PersonaProvider } from '../launch/persona'
 import { FirstRun, firstRunDue } from './FirstRun'
-import { StartScreen, type StartPath } from './StartPaths'
+import { StartScreen, explainError, type StartPath } from './StartPaths'
 import type { CandidateView, FolderView, ScanView } from '../../../shared/startPaths.ts'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
@@ -22,7 +22,7 @@ function bridge(over: Record<string, unknown> = {}) {
     start: {
       chooseFolder: vi.fn(async () => '/w'),
       inspect: vi.fn(async (): Promise<FolderView> => ({ ...repo({ path: '/w/alpha', name: 'alpha' }) })),
-      scan: vi.fn(async (): Promise<ScanView> => ({ root: '/w', candidates: [], visited: 1, unreadable: 0, deep: 0, symlinks: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z' })),
+      scan: vi.fn(async (): Promise<ScanView> => ({ root: '/w', candidates: [], visited: 1, unreadable: 0, deep: 0, symlinks: 0, kept: true, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z' })),
       cancelScan: vi.fn(async () => undefined),
       lastScan: vi.fn(async () => null),
       createFolder: vi.fn(async () => ({ ok: true, path: '/w/new-thing' })),
@@ -133,7 +133,7 @@ describe('add a project (SCN-127)', () => {
 
 describe('scan a projects folder (SCN-128)', () => {
   const scan: ScanView = {
-    root: '/w', visited: 9, unreadable: 0, deep: 0, symlinks: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z',
+    root: '/w', visited: 9, unreadable: 0, deep: 0, symlinks: 0, kept: true, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z',
     candidates: [
       repo({ path: '/w/a', name: 'a', group: '/w/a' }),
       repo({ path: '/w/_wt/a-fix', name: 'a-fix', kind: 'worktree', parent: '/w/a', group: '/w/a' }),
@@ -210,7 +210,7 @@ describe('iteration 1 fixes', () => {
   })
 
   it('"Tick all shown" ticks one Project per product, never a worktree; ticking a part warns', async () => {
-    const scan: ScanView = { root: '/w', visited: 3, unreadable: 2, deep: 0, symlinks: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [
+    const scan: ScanView = { root: '/w', visited: 3, unreadable: 2, deep: 0, symlinks: 0, kept: true, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [
       repo({ path: '/w/a', name: 'a', group: '/w/a' }),
       repo({ path: '/w/_wt/a-fix', name: 'a-fix', kind: 'worktree', parent: '/w/a', group: '/w/a' })
     ] }
@@ -229,7 +229,7 @@ describe('iteration 1 fixes', () => {
 
   it('Scan again goes through the picker, offering the last folder; the error text loses Electron\'s wrapper', async () => {
     const chooseFolder = vi.fn(async () => '/w')
-    const scanFn = vi.fn().mockResolvedValueOnce({ root: '/w', visited: 1, unreadable: 0, deep: 0, symlinks: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [repo({})] })
+    const scanFn = vi.fn().mockResolvedValueOnce({ root: '/w', visited: 1, unreadable: 0, deep: 0, symlinks: 0, kept: true, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [repo({})] })
       .mockRejectedValueOnce(new Error("Error invoking remote method 'start:scan': Error: that file is outside every folder open in Fabric: /x"))
     bridge({ start: { ...bridge().start, chooseFolder, scan: scanFn } })
     start('scan')
@@ -241,7 +241,7 @@ describe('iteration 1 fixes', () => {
 })
 
 describe('iteration 2 fixes', () => {
-  const scanOf = (over: Partial<ScanView>): ScanView => ({ root: '/w', visited: 3, unreadable: 0, deep: 0, symlinks: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [], ...over })
+  const scanOf = (over: Partial<ScanView>): ScanView => ({ root: '/w', visited: 3, unreadable: 0, deep: 0, symlinks: 0, kept: true, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [], ...over })
 
   it('arriving on a path moves focus to its heading', async () => {
     bridge()
@@ -298,7 +298,7 @@ describe('iteration 2 fixes', () => {
 
 describe('iteration 2 fixes, after the boundary branch', () => {
   it('linked folders the scan did not follow are counted and said', async () => {
-    bridge({ start: { ...bridge().start, scan: vi.fn(async (): Promise<ScanView> => ({ root: '/w', visited: 3, unreadable: 0, deep: 0, symlinks: 2, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [] })) } })
+    bridge({ start: { ...bridge().start, scan: vi.fn(async (): Promise<ScanView> => ({ root: '/w', visited: 3, unreadable: 0, deep: 0, symlinks: 2, kept: true, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [] })) } })
     start('scan')
     fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
     expect(await screen.findByText(en['start.scan.symlinks'].replace('{count}', '2'))).toBeTruthy()
@@ -316,7 +316,7 @@ describe('iteration 2 fixes, after the boundary branch', () => {
 })
 
 describe('iteration 3 fixes', () => {
-  const scanOf = (over: Partial<ScanView>): ScanView => ({ root: '/w', visited: 3, unreadable: 0, deep: 0, symlinks: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [], ...over })
+  const scanOf = (over: Partial<ScanView>): ScanView => ({ root: '/w', visited: 3, unreadable: 0, deep: 0, symlinks: 0, kept: true, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [], ...over })
 
   it('a search with no match says so; the summary names parts only when there are some', async () => {
     bridge({ start: { ...bridge().start, scan: vi.fn(async () => scanOf({ candidates: [repo({ path: '/w/a', name: 'a', group: '/w/a' })] })) } })
@@ -351,5 +351,32 @@ describe('iteration 3 fixes', () => {
     expect((await screen.findByRole('button', { name: en['start.back'] }) as HTMLButtonElement).disabled).toBe(true)
     finish()
     await waitFor(() => expect((screen.getByRole('button', { name: en['start.back'] }) as HTMLButtonElement).disabled).toBe(false))
+  })
+})
+
+describe('iteration 3: every refusal main sends as a code is said in the window language', () => {
+  const tr = ((k: string, v?: Record<string, string | number>) => Object.entries(v ?? {}).reduce((s, [a, b]) => s.replace(`{${a}}`, String(b)), (en as Record<string, string>)[k] ?? k)) as Parameters<typeof explainError>[1]
+  it.each([
+    ["Error invoking remote method 'start:inspect': FolderRefused: folder-refused:missing: /w/gone", en['start.folderRefused.missing'].replace('{path}', '/w/gone')],
+    ["Error invoking remote method 'projects:create': Error: repo-path-refused:held-by-other: /w/a", en['start.repoRefused.held-by-other'].replace('{path}', '/w/a')],
+    ["Error invoking remote method 'projects:create': Error: repo-path-refused:too-broad: /", en['start.repoRefused.too-broad'].replace('{path}', '/')],
+    ["Error invoking remote method 'projects:create': Error: project-name-refused:text-direction", en['start.projectNameRefused.text-direction']],
+    ["Error invoking remote method 'agents:create': Error: agent-name-refused:taken: Scout", en['agents.nameTaken'].replace('{name}', 'Scout')]
+  ])('%s', (raw, said) => {
+    expect(explainError(new Error(raw), tr)).toBe(said)
+  })
+
+  it('a scan that was not kept says so, and the import does not switch to another folder\'s list', async () => {
+    const other = { root: '/elsewhere', visited: 1, unreadable: 0, deep: 0, symlinks: 0, kept: true, truncated: false, cancelled: false, scannedAt: '2026-10-02T00:00:00Z', candidates: [repo({ path: '/elsewhere/z', name: 'zzz', group: '/elsewhere/z' })] }
+    bridge({ start: { ...bridge().start,
+      lastScan: vi.fn().mockResolvedValueOnce(null).mockResolvedValue(other),
+      scan: vi.fn(async (): Promise<ScanView> => ({ root: '/w', visited: 1, unreadable: 0, deep: 0, symlinks: 0, kept: false, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [repo({ path: '/w/a', name: 'a', group: '/w/a' })] })) } })
+    start('scan')
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
+    expect(await screen.findByText(en['start.scan.notKept'])).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.selectAll'] }))
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.import'].replace('{count}', '1') }))
+    await screen.findByText(en['start.scan.importedAll'].replace('{ok}', '1'))
+    expect(screen.queryByText('zzz', { selector: 'b' }), 'another folder\'s kept list never replaces this scan').toBeNull()
   })
 })

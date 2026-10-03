@@ -183,4 +183,72 @@ Exit for iteration 2: every finding above is fixed or ruled with a register id. 
 
 ## Iteration 3
 
-_Not started._
+Five fresh reviewers, 2026-10-03, against `0ca25630..c8debcaa`. Reports, kept as written:
+[scenarios/UX/UI](2026-10-03-verification/iteration-3/2026-10-03-ux.md) (UX-n), [errors and boundaries](2026-10-03-verification/iteration-3/2026-10-03-errors.md) (ER-n),
+[code ↔ documents](2026-10-03-verification/iteration-3/2026-10-03-docs.md) (DO-n), [data, memory, orchestration, harness](2026-10-03-verification/iteration-3/2026-10-03-data.md)
+(DA-n), [plan and workspace](2026-10-03-verification/iteration-3/2026-10-03-plan.md) (PL-n). Each wrote its findings before opening this ledger.
+Fixes: `edaca6cf`, `b655128c` and the commit carrying this section, the merged `claude/iter3-boundary-fixes`
+(`362514c4`…`887ed3ee`) and `claude/iter3-data-fixes` (`83bed0dd`…`dae92af3`, migration 73).
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V3-1 | DA-1 | Another estate could take over a session started by managed launch (heartbeat, stage) | fixed `83bed0dd` (migration 73: a session held in any of six tables belongs to its estate; `admit_task_launch` cases watched failing without 73). Corrects V2-1, V2-6 |
+| V3-2 | DA-2 | A declared import with case-duplicate agent names failed whole | fixed `83bed0dd` (`declared_import_authorizations` exempts the import; watched "refused whole"); migration 72's false sentence corrected in 73's header |
+| V3-3 | DA-3 | Heartbeat rows the old projector moved could never come back | fixed `83bed0dd` (`repair_foreign_heartbeats()`; a rebuild does not take the row back) |
+| V3-4 | DA-4 | Search escaping and paging never ran against the real gateway | fixed `74845b58` (`gateway-reads.test.mjs` in the full tier); it found `*` matching every project — `substringFilter` now uses escaped `imatch` |
+| V3-5 | DA-5 | A failed pause receipt aborted the chain pass | fixed `5b650fb7` |
+| V3-6 | DA-6 | A throwing routine tick starved the chain pass | fixed `6e37d1da` (`cyclePort.ts#runCyclePasses`) |
+| V3-7 | DA-7 | The database and the form folded names differently | fixed `f63680a0` (`pg_c_utf8`; `agentSpec.ts#nameKey`, used by the form too) |
+| V3-8 | DO-15 | Two estates creating one id at once were not serialised | fixed `83bed0dd` (an advisory lock per id after the estate lock; two concurrent-session tests watched failing) |
+| V3-9 | PL-1, DO-7 | Lane 12 claimed the leftover carry-over while 132 open rows were in no lane | fixed `edaca6cf`: every open CO row is in a lane, and `check-plan-ids.mjs` fails one that is not (watched). Corrects V2-51; the map's iteration-2 entry is corrected by the iteration-3 entry |
+| V3-10 | PL-2 | The gate's closing words disagreed with the workspace reader | fixed `edaca6cf`: a status column is read by its header with the workspace's prefix rule ("closed … by", "shipped on", "done in PR" watched). Corrects V2-45 |
+| V3-11 | PL-3, DO-6 | P-02, Now and the handoff were stale | fixed: P-02, Now/Next, the handoff (twelve lanes, 73 migrations, exit codes) |
+| V3-12 | PL-4 | "From the final main" was not enforced; the handoff released before landing | fixed: `release-mac.mjs` refuses unless HEAD is the fetched `origin/main`; the handoff and runbook land first |
+| V3-13 | PL-5, ER-3, DO-13 | The release gate trusted a typed sentence | fixed: the verdict is computed from the rows (one heading per iteration, reports linked, every row disposed, the exit line last and alone), both files read from the commit, the ledger confined to `docs/` (`release-gate.test.mjs`, watched). Corrects V2-53 |
+| V3-14 | PL-6 | The board could not show several lanes; 13 ids showed `unknown` | fixed the 13 (their work cards now lead with a status); AD packets, MEM-P and L3c ruled CO-189. Corrects V2-52 in part |
+| V3-15 | PL-7 | 0.3.0 ships the draft form before AD02's acceptance | ruled CO-187 — stated in P-03; FR-A waits for it |
+| V3-16 | PL-8 | CO-118 was stale | fixed: closed by `node scripts/test-stack.mjs run -- node apps/desktop/test/chain.test.mjs` exit 0; the test's comment corrected |
+| V3-17 | PL-9 | Entry rules did not match their registers | fixed: lanes 3, 4, 6 |
+| V3-18 | PL-10 | Smaller plan drift | fixed: ADR-0101 numbering, AGENTS.md in-lane order, the strategy's next-task note, the M199 parent row, lane 5's date. Corrects V2-49, V2-50 |
+| V3-19 | PL-11 | Knowledge-base pages at landing | ruled: the fabric-workspace PR is part of landing, before the release (P-03) |
+| V3-20 | DO-1 | A repository whose inspection timed out vanished uncounted | fixed `af9e1359` (counted in `unreadable`). Corrects V1-25, V2-28 |
+| V3-21 | DO-2 | A failed save of the kept scan was never said | fixed `f13b7c4c` (`kept` on the scan) and the renderer says it and re-marks only from a kept list of the same folder (watched). Corrects V2-15 |
+| V3-22 | DO-3 | The interface still said "runner" | fixed: English and Russian strings; terminology's wrong forms are literal. Corrects V2-13 |
+| V3-23 | DO-4 | The fast tier's database step and its README | fixed `e3dcbcc1` (both runners run; NOT_RUN said and allowed in the fast tier only) |
+| V3-24 | DO-5 | REQ-07 marked met with only the planned state designed | ruled CO-188 — REQ-07 corrected to partly met |
+| V3-25 | DO-8 | Region markers off target or missing | fixed: 61 markers, each at its specifying text. Corrects V2-37, V2-43 |
+| V3-26 | DO-9 | The chain launch bound was specified nowhere | fixed: `harness-r0/checks.md#chain-launch-bound`, the region points there |
+| V3-27 | DO-10 | Main did not refuse a repository another project holds | fixed `f8b4c4ed` (`repo-path-refused:held-by-other`) |
+| V3-28 | DO-11 | Residue counts quoted as totals | fixed: CO-181 and the comments distinguish totals from residue |
+| V3-29 | DO-12, UX-12 | UX documents trailed the code | fixed: symlinks, kept-unreadable, not-kept, no-match, left-on-disk states; SCR-27, SCR-74, SCN-130 wording. Corrects V2-22 |
+| V3-30 | DO-14 | ADR-0101 numbering and wording | fixed |
+| V3-31 | DO-15 | "Connected" read as measured; README on `handshake-e2e`; "RANKED" | fixed: CONTEXT and ADR-0100 say it is the catalogue's flag; README and `search.ts` corrected |
+| V3-32 | ER-1 | A submodule's own filter driver ran on `git status` | fixed `362514c4` (`--ignore-submodules=all` and the config switches; watched). Corrects V2-27 |
+| V3-33 | ER-2 | A kept candidate swapped for a link to `/` admitted the disk root | fixed `08941419` (candidates pinned to the walk's path under its root; `/` and the home folder refused). Corrects V2-10 |
+| V3-34 | ER-4 | One hung suite erased the full tier's verdicts | fixed `6249b686` (a per-suite limit; the summary always prints). Corrects V2-2 |
+| V3-35 | ER-5 | Slow repositories starved healthy ones | fixed `af9e1359` (walk first, inspect four at a time on the remaining budget) |
+| V3-36 | ER-6 | `git init` followed an inherited `GIT_DIR` | fixed `8704e357` |
+| V3-37 | ER-7 | A `required` filter made the repo panel show a clean tree | fixed `0314bd9b` |
+| V3-38 | ER-8 | Detection used synchronous fs calls | fixed `c0ca46ce` |
+| V3-39 | ER-9, UX-11 | Refusals reached the Russian window as English | fixed `a9f73d3d` and the renderer: `folder-refused`, `project-name-refused`, `agent-name-refused`, every `repo-path-refused` code translated (tests) |
+| V3-40 | ER-10 | Names from disk skipped the name rule | fixed `f8b4c4ed` (bidi and control characters refused) |
+| V3-41 | ER-11 | Two ways past the test-stack guard for psql probes | fixed `887ed3ee` |
+| V3-42 | UX-1 | "Add N as projects" was not sticky; the window could scroll past the tab bar | fixed `b655128c` (one scroller; the walk asserts it on a list taller than the window). Corrects V1-9 |
+| V3-43 | UX-2 | The agent form offered the login shell as a coding agent | fixed: only coding agents offered, `readSpec` refuses the shell (tests) |
+| V3-44 | UX-3 | The primary pill covered the path | fixed: rows wrap long paths |
+| V3-45 | UX-4 | The deep notice claimed a missing repository | fixed: the copy says most are folders inside repositories |
+| V3-46 | UX-5 | Russian «агент» alone | fixed |
+| V3-47 | UX-6 | An empty name greyed Add with no reason; the first-run hint unbound | fixed (tests) |
+| V3-48 | UX-7 | A search with no match said nothing; "Clear" cleared ticks | fixed: a no-match line; "Untick all" (tests) |
+| V3-49 | UX-8 | "Project" casing | fixed. Corrects V2-19 |
+| V3-50 | UX-9 | Cancel did not say a made folder stays | fixed: the discard confirm says so. Corrects V2-26 |
+| V3-51 | UX-10 | A noisy summary | fixed: parts named only when there are some |
+| V3-52 | UX-13 | The weaker coding-agent state looked stronger | fixed: Ready strongest, Installed neutral, rows say the version only |
+| V3-53 | UX-14 | The rail widened; "Create an agent" looked like text | fixed: the rail reserves its scrollbar (`scrollbar-gutter: stable`); the button is a primary button |
+| V3-54 | UX-15 | Back during an import lost the per-row results | fixed: Back waits (tests) |
+| V3-55 | UX-16 | "reaches Fabric only" overclaimed | fixed: "no MCP servers beyond Fabric" |
+| V3-56 | UX-17 | The estate-folder question: raw table names, "a persistent workspace" | fixed the workspace wording; raw table names ruled CO-190 |
+| V3-57 | UX (harness) | The app was killed after 10 s of SIGTERM at the end of each walk | ruled CO-191 — the quit waits for the scoped runtime shutdown; measured before P-03 |
+| V3-58 | DO (method) | A reviewer's helper ran `scripts/residue-report.mjs` against the live stack (read-only session, rolled-back transaction), breaking the brief | not a defect of the product: a process breach of the reviewer brief, recorded; nothing was written |
+
+Exit for iteration 3: every finding above is fixed or ruled with a register id. Blocking findings open: none.

@@ -123,7 +123,7 @@ export interface ChainTickResult {
   says: string
 }
 
-// #region chain-launch — docs: docs/launch/harness-r0/checks.md#har-r0-03--единый-managed-launch-2026-09-27
+// #region chain-launch — docs: docs/launch/harness-r0/checks.md#chain-launch-bound
 export function createChainAdvance(deps: ChainDeps): () => Promise<ChainTickResult> {
   let running = false
   // Launch failures whose `chain.dispatch@1 phase=failed` receipt could NOT be journalled, per follower,

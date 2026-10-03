@@ -12,7 +12,7 @@ The plan everyone works to: [general development plan](../evidence/backlog.md#ge
   checklist, new project through the draft form with "Create a new folder for it", the new-agent entry
   and the agent form with every state (`CreatedAgents.tsx`), the planned convert screen; SCN-126…131,
   FLW-69…74, SCR-70…75; the Fabric app icon (`assets/brand/app-icon/`, `scripts/build-app-icon.mjs`).
-- The general plan: eleven lanes citing only open work; `scripts/check-plan-ids.mjs` refuses unknown
+- The general plan: twelve lanes citing only open work, every open carry-over row in one of them; `scripts/check-plan-ids.mjs` refuses unknown
   id forms, empty lanes and finished work.
 - **Verification iteration 1** (five independent reviewers): 68 findings, each fixed or ruled with a
   register id — [ledger §Iteration 1](../evidence/plans/2026-10-03-verification.md#iteration-1).
@@ -20,6 +20,12 @@ The plan everyone works to: [general development plan](../evidence/backlog.md#ge
   quota, search, context; `90b012dc`…`745ba358`) and `claude/ci-full-disposable-stack` (`c0f7339f`:
   `ci.sh full` on a disposable stack, a guard against the live ports, `scripts/residue-report.mjs`).
   Migration 71 restores `append_event`'s lock timeout and event-type check (lost in 63/64).
+- **Verification iteration 3** (five fresh reviewers): 58 findings, each fixed or ruled, none blocking open —
+  [ledger §Iteration 3](../evidence/plans/2026-10-03-verification.md#iteration-3). Merged
+  `claude/iter3-data-fixes` (migration 73: a session belongs to one estate at the door, ids locked, the
+  import exemption, casefolded names, gateway probes) and `claude/iter3-boundary-fixes` (no submodule
+  driver, candidates pinned to the walk, a per-suite limit, refusals as codes). P-02 is done; the release
+  gate reads the ledger clear.
 - **Verification iteration 2** (five fresh reviewers): 55 findings, each fixed or ruled —
   [ledger §Iteration 2](../evidence/plans/2026-10-03-verification.md#iteration-2). Merged
   `claude/iter2-data-fixes` (migration 72, the full tier runs every suite through
@@ -29,24 +35,25 @@ The plan everyone works to: [general development plan](../evidence/backlog.md#ge
 - Separately on `main` (`afb62b82`): Claude Code 2.1.288 re-pin and `scripts/repin-provider-builds.mjs`.
 
 ## Checks run for this state
-- `VITEST_MAX_WORKERS=4 bash scripts/ci.sh fast` with `FABRIC_PLAYWRIGHT_MODULE` and `FABRIC_CHROME`
-  set (see the commit message for the exit code of the run that preceded it).
-- All 13 owned-cluster runners (`apps/desktop/test/run-*-db.mjs`, `run-ceo-host-sql.mjs`) on 71
-  migrations: exit 0.
+- `VITEST_MAX_WORKERS=4 bash scripts/ci.sh full` with `FABRIC_PLAYWRIGHT_MODULE` and `FABRIC_CHROME` set:
+  exit 0 — the fast tier (browser suites 15 of 15), the 13 owned-cluster runners on 73 migrations, and a
+  disposable stack (73 migrations + seed) where 96 suites ran and 96 passed; the stack was removed.
+- Walk ×3 on a disposable stack (`node scripts/test-stack.mjs run -- node scripts/walk/start-paths.mjs …`,
+  dark/en, light/ru, dark/ru): 10/10 each, including the sticky-footer assertion on 29 repositories.
+- The release gate on the ledger: `releaseGateProblems` returns no problem for version 0.3.0.
 - Planted defects watched failing for every new test (listed per finding in the ledger).
 
 ## Open — exact next task
-1. **Iteration 3** of P-02: five fresh reviewers who have seen neither earlier iteration (protocol in
-   the ledger). Diff to review: `0ca25630..HEAD`. Fix everything, record `V3-n`, and end the section with
-   `Exit for iteration 3: … Blocking findings open: none.` — the release gate reads that line.
-2. Before the release: `bash scripts/ci.sh full` (disposable stack, every suite), the live walk ×3
-   (`pnpm --filter @fabric/desktop exec electron-vite build`, then
-   `node scripts/test-stack.mjs run -- node scripts/walk/start-paths.mjs <out> [--theme light] [--locale ru]`
-   — the walk refuses any other stack).
-3. **P-03**: `scripts/release-mac.mjs` 0.3.0 (notarized DMG; the App Store Connect key through
-   `use_secret.py`), install and walk on this Mac, publish on passioncode.ai (authorized by the operator
-   on 2026-10-03), the merge-log entry, land by fast-forward, `node scripts/workspace.mjs sync`, and the
-   knowledge-base pages (`workspace/knowledge/products.md`, `plans.md` — AR-1 is partial, not done).
+1. **Land on `main`** by fast-forward after `bash scripts/ci.sh fast` on the branch head: write the
+   `docs/MERGES.md` entry inside the change (AGENTS.md iteration contract), refresh the map, push `main`,
+   then `node scripts/workspace.mjs sync` and the fabric-workspace PR for `knowledge/plans.md` (AR-1
+   partial, AR-2 in lane 6, a link to the general plan and its Now/Next) and, after publication,
+   `knowledge/products.md` (Fabric 0.3.0).
+2. **P-03**: bump `apps/desktop/package.json` to 0.3.0, then
+   `python3 ~/DATA/project-observatory/tools/use_secret.py run apple-publisher-kj35uyyl22 ASC_API_KEY_P8_B64,ASC_KEY_ID,ASC_ISSUER_ID -- node scripts/release-mac.mjs`
+   — it refuses unless HEAD is `origin/main` and the ledger is clear (`docs/launch/release-gate.json`);
+   install in /Applications and walk; publish on passioncode.ai (authorized by the operator on 2026-10-03).
+   Measure CO-191 (quit on SIGTERM) before walking the packaged app.
 
 ## Human steps
 - CO-181: whether to remove the test residue from the live local database

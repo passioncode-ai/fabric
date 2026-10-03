@@ -423,3 +423,15 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.repoRefused.not-chosen` | The folder {path} was not chosen in this window. Choose it with the folder picker or scan the folder that holds it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.scan.summaryParts` | Repositories: {count}, of them parts of another (worktrees, nested): {parts} · in {folder} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.noMatch` | Nothing matches the search. Clear it to see every repository. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.repoRefused.too-broad` | {path} is too broad to be a repository folder: choose the repository itself. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
+| `start.repoRefused.held-by-other` | {path} already belongs to another project; one repository has one project. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
+| `start.folderRefused.missing` | The folder {path} does not exist. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.folderRefused.not-a-folder` | {path} is a file, not a folder. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.folderRefused.unreadable` | The folder {path} could not be read (permissions or an unavailable disk). | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.folderRefused.timeout` | Reading the folder {path} took too long; the disk may be unavailable. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.folderRefused.outside` | The folder {path} was not chosen in this window. Choose it with the folder picker. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.projectNameRefused.not-a-name` | The project name is not text. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
+| `start.projectNameRefused.empty` | A project needs a name. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
+| `start.projectNameRefused.text-direction` | The project name contains a character that reverses the reading direction. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
+| `start.projectNameRefused.control` | The project name contains a control character. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
+| `start.scan.notKept` | This list was not saved, so it will not be here next time. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |

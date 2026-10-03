@@ -141,3 +141,15 @@ form fixes (StrictMode, focus, field problems). REQ-11 is **met**: every new key
 0 errors, 1457 warnings against 1468 at the base. REQ-12 is **met**: 40 region markers, migrations 70–72
 pointing at ADR-0103 (V2-37). REQ-15: iterations 1 and 2 closed with no blocking finding open;
 iteration 3 next. REQ-16 and REQ-17 are gated by `scripts/release-mac.mjs` (V2-53).
+
+## REQ status after iteration 3 (appended 2026-10-03)
+
+Changes from the sections above ([ledger §Iteration 3](2026-10-03-verification.md#iteration-3)):
+REQ-04 is **met** with main itself refusing a repository another project holds (V3-27). REQ-07 is
+**partly met**: SCN-131, FLW-74 and SCR-75 design the planned state only; the dry-run plan, branch, probe
+and admission states belong with AR-11 (CO-188). REQ-12 is **met**: 61 region markers, each at the text
+that specifies its code (V3-25). REQ-15 is **met**: three independent iterations, each closed with no
+blocking finding open, as the release gate reads them (`scripts/lib/release-gate.mjs`). REQ-16 and
+REQ-17: the release runs from `main` after landing (`scripts/release-mac.mjs` refuses otherwise);
+0.3.0 ships the draft form before AD02's native acceptance (CO-187) and coding-agent detection before
+N1's real-provider acceptance, and says so in P-03.

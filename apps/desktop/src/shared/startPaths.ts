@@ -52,9 +52,9 @@ export interface ScanView extends Omit<ScanResult, 'candidates'> {
   /**
    * Whether this scan is the one kept on disk (iteration 3, docs finding 2: a failed save was never said,
    * and after an import the screen could re-read ANOTHER folder's kept list). Main always sets it
-   * (`scanViewOf`); optional in this shape only so older renderer fixtures still type-check.
+   * (`scanViewOf`).
    */
-  kept?: boolean
+  kept: boolean
 }
 
 /**
