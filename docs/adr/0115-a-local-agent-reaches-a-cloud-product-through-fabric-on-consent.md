@@ -219,3 +219,29 @@ made five points explicit. Each is enforced in code and covered by a test.
    their own, `create_address.forward_to` and `create_address.reply_agent`, granted per address. No request to
    a product follows a redirect. The forwarder's deadline bounds the whole exchange. An idempotency key replays
    only answers the product produced, kept per binding.
+
+## Amendments — release verification of 0.3.1, iteration 1: what the record says (2026-10-04)
+
+The decision stands. Independent verification of `67a5dc42` ([ledger](../evidence/plans/2026-10-04-hub-verification.md))
+found sentences above that do not describe what was built. They are corrected here; the text above is not edited.
+
+6. **Consequences — the routes.** `ServerSource 'fabric'` is implemented for **external registered agents only**: an
+   agent registered in `services/` or `providers/` reaches a product through the hub. For a session Fabric starts,
+   `'fabric'` still refuses (`apps/desktop/src/shared/servers.ts`, `planServers`, "no grant model for a product yet",
+   CO-194). `'gateway'` is **not** removed from the code: it stays in `ServerSource` and `planServers`, and is
+   unreachable because the machine gateway has been switched off since 2026-09-14. "Retired with this record" means
+   retired as a route, not deleted.
+7. **§1 — which slice is the ingress.** AR-2.2 is the registry **reader** (S1). The ingress, the stable port and
+   `hub.json` are AR-3.1 (S2), as the Slices table says.
+8. **§2.3 — where the parent-window lesson lives, and where the request is queued.** The lesson is cited by
+   symbol, not by line: the startup-failure dialog in `apps/desktop/src/main/index.ts`, the comment that begins
+   "A PARENT WINDOW, not a free-standing dialog". A request shown while Fabric is in the background is an `access`
+   row in the attention queue of **SCR-41** (FLW-75), not SCR-24: SCR-24, the approval queue, is designed only.
+9. **§3, §5 — no resource pattern exists.** A grant names **one exact resource**, normalised the way the product
+   reads it (`cloudflare:news@example.com`), and a call is covered only when every resource it names equals a
+   granted one (`coverage` in `apps/desktop/src/shared/access.ts`). "Resource pattern" above means that exact,
+   normalised resource; there is no wildcard or pattern syntax.
+10. **§4.4, §4.5 — what the product may deliver, and how the vault is written.** Besides `connected` and
+    `denied`, the product may deliver `{state, outcome:"failed", error}` (`no_server`, `sign_in_required`,
+    `mint_failed`); Fabric records it as the last attempt and keeps no key. The vault is written with
+    `vault.py put` for a new slot and `vault.py rotate` when the slot already exists, value on stdin in both.

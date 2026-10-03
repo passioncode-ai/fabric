@@ -136,7 +136,7 @@ Four rules that are the compiler's, not the prompt's:
 | Transport | Use it when | Auth |
 |---|---|---|
 | `inproc` | it is one of our own departments | none — same process |
-| `mcp` | a capability whose shape we control, with a schema | through the gateway, role key per node |
+| `mcp` | a capability whose shape we control, with a schema | ~~through the gateway, role key per node~~ — **superseded by [ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)** (noted 2026-10-04): the machine gateway is off since 2026-09-14; an agent registered on this Mac reaches a product through Fabric's hub with a binding credential and standing grants; a session's declared server through Fabric still refuses (CO-194) |
 | `cli` | an existing agent that only speaks argv, stdin and stdout — Cursor, OpenClaw, Codex | process env, scoped |
 | `http` | a service with a key and a request/response shape | header key from the secret store |
 | `a2a` | a **peer agent** whose insides we deliberately cannot see, and whose work has a task lifecycle | agent card, per-hop authorization |
