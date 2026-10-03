@@ -98,7 +98,7 @@ import { createPrivateHistory, type PrivateHistory } from './privateHistory.ts'
 type Returns<T> = T extends (...args: never[]) => Promise<infer R> ? R : never
 import { hasSiblings, originDocument, sameDocument } from '../shared/origin.ts'
 import { researchBrief } from '../shared/idea.ts'
-import { nameTaken, readSpec, resolveServers } from '../shared/agentSpec.ts'
+import { agentNameTakenAtWrite, nameTaken, readSpec, resolveServers } from '../shared/agentSpec.ts'
 import { dueRoutines } from '../shared/routine.ts'
 import { automationStates } from '../shared/automations.ts'
 import { createRoutineTick } from './routineTick'
@@ -1645,21 +1645,31 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         throw new Error(`this project already has an agent called ${verdict.spec.name}`)
 
       const id = randomUUID()
-      await journal.append({
-        estateId: ACTIVE_ESTATE,
-        type: 'agent.registered@1',
-        actor: OPERATOR_ACTOR,
-        projectId: input.projectId,
-        payload: {
-          id,
-          project_id: input.projectId,
-          name: verdict.spec.name,
-          runner_id: verdict.spec.runnerId,
-          instructions: verdict.spec.instructions,
-          mcp_servers: resolved.servers,
-          permission_mode: input.permissionMode ?? null
-        }
-      })
+      // #region one-agent-per-name — docs: docs/ux/scenarios.md#scn-130-start-a-new-agent-inside-a-project
+      // The read above is the quick answer; the RULE is at the write boundary. Two creates of one name
+      // could both pass that read, so `append_event` checks the name again under the estate's lock
+      // (migration 72) and refuses the second with the same sentence, which is mapped back here.
+      try {
+        await journal.append({
+          estateId: ACTIVE_ESTATE,
+          type: 'agent.registered@1',
+          actor: OPERATOR_ACTOR,
+          projectId: input.projectId,
+          payload: {
+            id,
+            project_id: input.projectId,
+            name: verdict.spec.name,
+            runner_id: verdict.spec.runnerId,
+            instructions: verdict.spec.instructions,
+            mcp_servers: resolved.servers,
+            permission_mode: input.permissionMode ?? null
+          }
+        })
+      } catch (e) {
+        if (agentNameTakenAtWrite(e)) throw new Error(`this project already has an agent called ${verdict.spec.name}`)
+        throw e
+      }
+      // #endregion one-agent-per-name
       const { data, error } = await store
         .select('agent_bindings', '*').eq('id', id).single()
       if (error) throw new Error(`agent read-back failed: ${error.message}`)

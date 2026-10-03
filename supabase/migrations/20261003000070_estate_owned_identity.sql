@@ -68,6 +68,7 @@
 -- functions keep their signatures, so their existing grants and revokes stand;
 -- the one new function is revoked from every API role.
 
+-- #region estate-owned-identity — docs: docs/adr/0103-an-id-belongs-to-one-estate-at-the-write-boundary.md#decision
 -- ── the door ────────────────────────────────────────────────────────────────
 
 create function refuse_foreign_identity(
@@ -739,3 +740,5 @@ begin
    then sqlerrm else 'unavailable' end);
  end;
 end $$;
+
+-- #endregion estate-owned-identity

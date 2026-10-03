@@ -131,7 +131,8 @@ refuses('edited bytes without recompute', () => decode(mutate(a => { a.messages[
 refuses('edited header without recompute', () => decode(mutate(a => { a.archive_id = id(8999) }, false)), 'integrity_mismatch')
 refuses('wrong schema', () => decode(mutate(a => { a.schema = 'CeoPrivateArchive@2' })), 'unsupported_schema')
 refuses('wrong source schema', () => decode(mutate(a => { a.source_schema_version = 65 })), 'unsupported_schema')
-refuses('an unqualified later source schema', () => decode(mutate(a => { a.source_schema_version = 72 })), 'unsupported_schema')
+refuses('an unqualified later source schema', () => decode(mutate(a => { a.source_schema_version = 73 })), 'unsupported_schema')
+assert.equal(decode(mutate(a => { a.source_schema_version = 72 })).archive.source_schema_version, 72, 'schema 72 is a qualified source (migration 72)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 71 })).archive.source_schema_version, 71, 'schema 71 is a qualified source (migration 71)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 67 })).archive.source_schema_version, 67, 'schema 67 is a qualified source (migration 67)'); checks++
 assert.equal(decode(mutate(a => { a.source_schema_version = 68 })).archive.source_schema_version, 68, 'schema 68 is a qualified source (migration 68)'); checks++

@@ -47,6 +47,17 @@ export function nameTaken(name: string, existing: readonly { name: string }[]): 
   return n !== '' && existing.some((a) => a.name.trim().toLowerCase() === n)
 }
 
+/**
+ * Whether a failed `agent.registered@1` append was the write boundary refusing a taken name (migration 72,
+ * `refuse_taken_agent_name`, under the estate's lock). The journal reports the database's message inside
+ * its own sentence, so the sentence is matched rather than the code it does not carry. Anything else is
+ * a different failure and is never dressed up as this one.
+ */
+export function agentNameTakenAtWrite(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error ?? '')
+  return /append_event\(agent\.registered@1\) failed: this project already has an agent called /.test(message)
+}
+
 export function readSpec(draft: {
   name: string
   instructions: string

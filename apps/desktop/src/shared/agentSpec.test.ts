@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { INSTRUCTIONS_MIN, NAME_MAX, nameTaken, readSpec, resolveServers } from './agentSpec.ts'
+import { INSTRUCTIONS_MIN, NAME_MAX, agentNameTakenAtWrite, nameTaken, readSpec, resolveServers } from './agentSpec.ts'
 
 const ok = (over: Partial<Parameters<typeof readSpec>[0]> = {}) =>
   readSpec({
@@ -80,5 +80,16 @@ describe('one agent per name in a project', () => {
     expect(nameTaken('Reviewer 2', existing)).toBe(false)
     expect(nameTaken('   ', existing)).toBe(false)
     expect(nameTaken('Reviewer', [])).toBe(false)
+  })
+})
+
+describe('a name taken between the read and the write (migration 72)', () => {
+  it('recognises the write boundary refusing a taken name, in the journal\'s sentence', () => {
+    expect(agentNameTakenAtWrite(new Error('append_event(agent.registered@1) failed: this project already has an agent called Scout'))).toBe(true)
+  })
+  it('never mistakes another failure for it', () => {
+    expect(agentNameTakenAtWrite(new Error('append_event(agent.registered@1) failed: permission denied'))).toBe(false)
+    expect(agentNameTakenAtWrite(new Error('append_event(task.created@1) failed: this project already has an agent called Scout'))).toBe(false)
+    expect(agentNameTakenAtWrite(null)).toBe(false)
   })
 })

@@ -11,6 +11,7 @@
 -- refusal costs no lock), then the CEO and transcript authorisations, the foreign-identity refusal,
 -- and the lock. Nothing else changes.
 
+-- #region append-event-boundary — docs: docs/adr/0027-the-event-journal-orders-per-estate-and-replays-from-the-table.md#decision
 create or replace function append_event(
   p_estate_id uuid,
   p_type      text,
@@ -59,6 +60,8 @@ end $$;
 revoke execute on function append_event(uuid, text, jsonb, jsonb, text, uuid, uuid, uuid) from public;
 revoke execute on function append_event(uuid, text, jsonb, jsonb, text, uuid, uuid, uuid) from anon, authenticated;
 grant  execute on function append_event(uuid, text, jsonb, jsonb, text, uuid, uuid, uuid) to service_role;
+
+-- #endregion append-event-boundary
 
 -- ── schema 71 as a private-archive source ───────────────────────────────────
 --
