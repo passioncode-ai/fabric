@@ -25,7 +25,7 @@ identifiers and never renumbers, edits or reuses an applied artifact.
 |---|---|---|
 | migration | `20260929000070_pipeline_definitions.sql` | pipeline-as-data: definitions + versions, append-only |
 | migration | `20260929000071_graph_version_pins.sql` | the running graph pinned to a pipeline version |
-| ADR | `docs/adr/0099-task-pipeline-persistence-contract.md` | the contract itself, superseding nothing. Re-reserved from 0055 on 2026-09-10, from 0056 on 2026-09-12, from 0082 on 2026-09-29 (ADR-0084, releases, was written past it), from 0085 on 2026-09-29 (ADR-0086, positioning, was written past it), from 0087 on 2026-09-29 (ADR-0088, remote surfaces, was written past it), from 0089 on 2026-09-29 (ADR-0090, names, was written past it), from 0091 on 2026-09-30 (ADR-0092–0094, licence, knowledge base and MCP-first, were written past it), and from 0095 on 2026-09-30 (ADR-0096, publication redaction, was written past it): each time an ADR handed out by agent-sync passed this prose reservation (0055 was written; then ADR-0057 continued the sequence past 0056), because a reservation living in prose never reaches the register. The document's own collision rule owns both moves. |
+| ADR | `docs/adr/0102-task-pipeline-persistence-contract.md` | the contract itself, superseding nothing. Re-reserved from 0055 on 2026-09-10, from 0056 on 2026-09-12, from 0082 on 2026-09-29 (ADR-0084, releases, was written past it), from 0085 on 2026-09-29 (ADR-0086, positioning, was written past it), from 0087 on 2026-09-29 (ADR-0088, remote surfaces, was written past it), from 0089 on 2026-09-29 (ADR-0090, names, was written past it), from 0091 on 2026-09-30 (ADR-0092–0094, licence, knowledge base and MCP-first, were written past it), and from 0095 on 2026-09-30 (ADR-0096, publication redaction, was written past it): each time an ADR handed out by agent-sync passed this prose reservation (0055 was written; then ADR-0057 continued the sequence past 0056), because a reservation living in prose never reaches the register. The document's own collision rule owns both moves. Re-reserved again from 0099 on 2026-10-03 (ADR-0100 and ADR-0101, the start paths and the general plan, were written past it). |
 
 **The collision this document predicted happened, and the rule was applied.**
 The first reservation, written on `sherlock/impl-20260907`, took migrations
@@ -222,3 +222,10 @@ which passed reservation 0097. Under this document's existing collision rule the
 moves to **0099**, returned by `agent_sync.py reserve ADR --key pipeline-reservation-after-common-backlog-20261001`.
 0097 is superseded and never reused. Migrations 70/71 remain unchanged; no pipeline ADR file
 exists at 0099. `python3 test/audit_regressions/fix-pf-06.03.py` checks the sequence.
+
+**2026-10-03 start paths and general plan:** agent-sync returned ADR-0100 and ADR-0101 to
+[the first run and start paths](../../adr/0100-first-run-and-start-paths.md) and
+[the general development plan](../../adr/0101-the-general-development-plan.md), which passed
+reservation 0099. Under the same collision rule the reserved ADR moves to **0102**, returned by
+`agent_sync.py reserve ADR --key pipeline-reservation-after-start-paths-20261003`. 0099 is superseded
+and never reused. Migrations 70/71 remain unchanged; no pipeline ADR file exists at 0102.

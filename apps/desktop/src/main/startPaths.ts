@@ -32,7 +32,9 @@ function validateScan(v: unknown): StoredScan | null {
     scannedAt: r.scannedAt,
     candidates,
     visited: typeof r.visited === 'number' ? r.visited : 0,
-    truncated: r.truncated === true,
+    // A kept scan that does not say whether it was cut is read as cut: "nobody recorded it" must never
+    // read as "this is the whole folder".
+    truncated: typeof r.truncated === 'boolean' ? r.truncated : true,
     cancelled: false
   }
 }
