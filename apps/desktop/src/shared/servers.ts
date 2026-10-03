@@ -15,8 +15,10 @@
 //     A refusal by design says so, so nobody implements it later thinking the
 //     gap was an oversight.
 //   * FABRIC — proxied through our own surface, so every call is seen, meterable
-//     and refusable. It is the right long answer and it is not built; declared
-//     and unimplemented REFUSES, the same shape as an unknown surface adapter.
+//     and refusable. ADR-0115 built it for EXTERNAL registered agents (the hub's
+//     `agent.call`, with operator-approved grants); for a session's declared server
+//     it is still not built, and declared-and-unimplemented REFUSES, the same shape
+//     as an unknown surface adapter (CO-194).
 //   * GATEWAY — the machine's agentgateway, which already holds upstream keys at
 //     mode 600 and applies a role key per hop. `agent-composition.md` already
 //     settled this: "the fabric's mcp transport is a client of it, not a
@@ -106,8 +108,9 @@ export function planServers(declared: readonly DeclaredServer[], gateway: Gatewa
         refusals.push({
           name: d.name,
           reason:
-            'proxied through Fabric, which nobody has built. It is the right answer and it ' +
-            'is not here yet; the gateway is what works today.'
+            'proxied through Fabric for a session, which is not built: the hub (ADR-0115) routes ' +
+            'agent.call only for registered agents holding an operator-approved grant, and a ' +
+            'session has no grant model for a product yet (CO-194). Nothing was forwarded.'
         })
         break
       case 'gateway':

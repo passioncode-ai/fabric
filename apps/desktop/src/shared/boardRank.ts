@@ -64,9 +64,12 @@ export function questionPriority(i: RankInput): Priority {
 
 // ── derived obligations enter the same scale (ADR-0035 §4.2) ──────────────────
 
-export type ObligationKind = 'refused' | 'proposal' | 'review' | 'abandoned'
+export type ObligationKind = 'access' | 'refused' | 'proposal' | 'review' | 'abandoned'
 
 const OBLIGATION_BASE: Record<ObligationKind, number> = {
+  // ADR-0115: an external agent waiting on consent is blocked right now and its request expires in ten
+  // minutes — the same weight as a refusal, which is the same shape of thing.
+  access: 40 + KIND_WEIGHT.access,
   refused: 40 + KIND_WEIGHT.access, // by construction blocking, and access-shaped
   proposal: 35,
   review: 25,
@@ -87,7 +90,7 @@ export interface BoardItem {
   id: string
   priority: number
   ageDays: number
-  kind: 'question' | 'refused' | 'proposal' | 'review' | 'abandoned'
+  kind: 'question' | 'access' | 'refused' | 'proposal' | 'review' | 'abandoned'
 }
 
 /**

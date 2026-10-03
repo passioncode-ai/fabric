@@ -156,7 +156,9 @@ test('refresh picks up a new file; watch() notices it without being asked', asyn
   let changed = 0
   const stop = reg.watch(() => { changed++ })
   put(h.providers, 'late.json', provider('late'))
-  for (let i = 0; i < 100 && !reg.resolve('late').ok; i++) await new Promise((r) => setTimeout(r, 20))
+  // fs.watch on macOS is FSEvents, delivered late under load: wait up to 15 s, polling the registry
+  // the watcher refreshes — never calling refresh() here, which would prove nothing about the watch.
+  for (let i = 0; i < 300 && !reg.resolve('late').ok; i++) await new Promise((r) => setTimeout(r, 50))
   stop()
   assert.equal(reg.resolve('late').ok, true)
   assert.ok(changed >= 1)

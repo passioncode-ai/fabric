@@ -89,6 +89,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-73 | New project | FLW-72 | none — text spec | built | apps/desktop/src/renderer/src/Onboarding.tsx |
 | SCR-74 | New agent | FLW-73 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
 | SCR-75 | Convert an agent | FLW-74 | none — text spec | built | apps/desktop/src/renderer/src/start/StartPaths.tsx |
+| SCR-76 | Agent access | FLW-75, FLW-76 | none — text spec | built | apps/desktop/src/renderer/src/AgentAccessPanel.tsx |
 
 ## Design system
 
@@ -1776,3 +1777,23 @@ results always pair text with an icon — colour is never the only signal.
 - **Scenarios:** SCN-131
 - **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
 - **Implementation tasks:** AR-7, AR-11
+
+### SCR-76: Agent access
+- **Used by:** FLW-75, FLW-76
+- **Purpose:** What registered agents on this Mac may do through Fabric, what is waiting for an answer, and which products are connected — opened from Settings ([ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)).
+- **Elements:** where agents reach Fabric, or why they cannot; products with Connect or Disconnect and the last connect outcome; waiting requests with the agent, what it asks in plain words, its reason as its claim, Deny and Allow; agents with access, each grant in plain words with its expiry and Revoke, and Revoke all; denied requests with Clear the denial.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | loading | first read | none | busy line |
+  | unreadable | the overview could not be read | none | says so with Try again; never "no agent has access" |
+  | hub-off | the hub's port could not be taken | none | warning with the reason; Connect disabled; sessions unaffected |
+  | read | overview read | none | the four lists; an empty list says so in words |
+  | waiting | a connect link was opened | none | waiting for the answer in the product |
+  | connected | the product delivered its key and the vault kept it | none | server and date, Disconnect |
+  | declined | the operator denied in the product | none | says it was declined |
+  | failed | the product reported a failure, or the vault refused | none | the reason |
+- **Coverage:** apps/desktop/src/renderer/src/AgentAccessPanel.tsx
+- **Scenarios:** SCN-132, SCN-133
+- **Resources:** [ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md).
+- **Implementation tasks:** AR-3.1, AR-3.4

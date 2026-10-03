@@ -59,6 +59,11 @@ describe('where a ref opens, and the three answers that are not a click', () => 
       at: 'here',
       act: 'decide'
     })
+    // ADR-0115: an external agent's request is allowed or denied on the row that shows it.
+    expect(destinationOf({ ref: { kind: 'access-request', id: 'r1' }, projectId: null })).toMatchObject({
+      at: 'here',
+      act: 'consent'
+    })
   })
 
   it('says WHY it is only opening the project', () => {

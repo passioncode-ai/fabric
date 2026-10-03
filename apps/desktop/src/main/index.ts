@@ -21,7 +21,18 @@ import { createNativeStopRuntime } from './nativeStopRuntime.ts'
 import { createTranscriptRecovery } from './transcriptRecovery.ts'
 import { createTranscriptReceipt } from './transcriptReceipt.ts'
 import { createStopHostIdentity } from './stopHostIdentity.ts'
-import { AgentSurface } from './agentSurface'
+import { AgentSurface, HubPortUnavailable } from './agentSurface'
+import { AgentRegistry, registryDirs } from './agentRegistry.ts'
+import { createAccessStore, type AccessStore } from './accessStore.ts'
+import { AccessService } from './accessService.ts'
+import { checkPortUnclaimed, hubPort, publishHub, withdrawHub } from './hub.ts'
+import { hubServerFor } from './hubTools.ts'
+import { createAgentCall } from './hubCall.ts'
+import { createObservatoryVault } from './observatoryVault.ts'
+import { FABRIC_INBOX, ProductConnector } from './productConnect.ts'
+import { forwardToProduct } from './productForwarder.ts'
+import { ConsentPresenter } from './consentPresenter.ts'
+import { CONNECTABLE_PRODUCTS, describeAsk, productName, type HubOverview } from '../shared/access.ts'
 import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
 import { createBundleCompiler } from './sessionBundle'
 import { createTranscriptStore } from './transcripts'
@@ -286,6 +297,18 @@ let policy: Policy
 let ptys: PtyManager
 let stopRuntime: ReturnType<typeof createNativeStopRuntime>
 let surface: AgentSurface
+/** ADR-0115: the hub's moving parts, built with the surface. Null until bootstrap reaches them. */
+let hub: {
+  registry: AgentRegistry
+  access: AccessService
+  accessStore: AccessStore
+  connector: ProductConnector
+  presenter: ConsentPresenter
+  /** The door token while the hub is published; null when it is not. */
+  doorToken: string | null
+  /** Why the hub is not listening, when it is not. */
+  down: string | null
+} | null = null
 let mainWindow: BrowserWindow | null = null
 // One owner for quitting (CO-191, lifecycle LC-01): the re-quit after the drain runs on a
 // macrotask, `window-all-closed` quits once quitting, every scheduler stops first, and a
@@ -493,14 +516,96 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // would open a second listener and register every IPC handler twice, and a
   // failure we cannot place is a failure we must not offer to repeat.
   pastRetryPoint = true
-  surface = new AgentSurface({ db, journal, ptys: () => ptys, policy, estateId: ACTIVE_ESTATE })
+  // #region hub-wiring — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#decision
+  // ADR-0115: the same surface is the hub. The registry is read from the contract's directories, the
+  // standing access lives in migration 76's projections, a product's secret lives in Project
+  // Observatory's vault, and the operator answers in a native prompt (or the queue).
+  const dirs = registryDirs()
+  const registry = new AgentRegistry({ servicesDir: dirs.services, providersDir: dirs.providers })
+  registry.refresh()
+  const stopWatching = registry.watch()
+  quit.onQuit(stopWatching)
+  const accessStore = createAccessStore({ db, journal, estateId: ACTIVE_ESTATE })
+  const vault = createObservatoryVault()
+  const hubState = { doorToken: null as string | null, down: null as string | null }
+  const connector = new ProductConnector({
+    store: accessStore,
+    vault,
+    origin: () => (hubState.doorToken ? surface.origin : ''),
+    openExternal: (url) => shell.openExternal(url),
+    actor: () => OPERATOR_ACTOR
+  })
+  let access: AccessService | null = null
+  const presenter = new ConsentPresenter({
+    window: () => mainWindow,
+    showMessageBox: (parent, options) => dialog.showMessageBox(parent as BrowserWindow, options),
+    notify: (title, body, onClick) => {
+      if (!Notification.isSupported()) return false
+      try {
+        const n = new Notification({ title, body })
+        n.on('click', onClick)
+        n.show()
+        return true
+      } catch (e) {
+        ops.failed('hub.consent.notify', e)
+        return false
+      }
+    },
+    openWindow: () => { if (mainWindow === null) createWindow() },
+    decide: (requestId, decision) => (access as AccessService).decide(requestId, decision, OPERATOR_ACTOR),
+    connect: async (product) => (product === FABRIC_INBOX.product ? connector.begin(FABRIC_INBOX) : { ok: false, reason: `${product} has no connect flow` }),
+    stillPending: async (requestId) => {
+      const r = await accessStore.request(requestId)
+      return !!r && r.status === 'pending' && Date.parse(r.expires_at) > Date.now()
+    }
+  })
+  access = new AccessService({
+    store: accessStore,
+    registry,
+    present: (request) => presenter.present(request),
+    connected: async (product) => (await accessStore.liveConnection(product)) !== null
+  })
+  const agentCall = createAgentCall({ access, store: accessStore, vault, forward: forwardToProduct, estateId: ACTIVE_ESTATE })
+  hub = { registry, access, accessStore, connector, presenter, get doorToken() { return hubState.doorToken }, get down() { return hubState.down } }
+  const hubAccess = access
+  surface = new AgentSurface({
+    db, journal, ptys: () => ptys, policy, estateId: ACTIVE_ESTATE,
+    hub: {
+      doorToken: () => hubState.doorToken,
+      access: hubAccess,
+      tools: (principal) => hubServerFor(principal, { access: hubAccess, call: agentCall }),
+      callback: (product, req, res) => connector.callback(product, req, res)
+    }
+  })
+  // THE PORT IS STABLE OR THERE IS NO HUB (ADR-0115 §1). A port the configuration refuses, or one a
+  // registered agent claims, or one another program holds, closes the hub with its reason (Settings →
+  // Agent access shows it) — and the sessions Fabric starts keep their surface on an ephemeral port, as
+  // before the hub existed, with the external ingress closed: no hub.json, no door token.
+  const chosen = hubPort(process.env)
+  const unclaimed = chosen.ok ? checkPortUnclaimed(chosen.port, registry.claimedPorts()) : chosen
   try {
-    await surface.start()
+    if (!unclaimed.ok) throw new HubPortUnavailable(0, unclaimed.reason)
+    await surface.start({ port: unclaimed.port })
+    const published = publishHub({ root: dirs.root, port: unclaimed.port })
+    hubState.doorToken = published.doorToken
+    quit.onQuit(() => {
+      hubState.doorToken = null
+      const w = withdrawHub(dirs.root)
+      if (!w.removed) ops.record({ op: 'hub.withdraw', outcome: 'ok', level: 'warn', detail: { reason: w.reason }, ctx: { correlationId: ops.correlate() } })
+    })
+    ops.record({ op: 'hub.published', outcome: 'ok', detail: { origin: surface.origin, hub_file: published.hubFile }, ctx: { correlationId: ops.correlate() } })
   } catch (e) {
-    // A session must still start when the surface cannot: the agent simply has
-    // nothing to report through, and the launch says so rather than failing.
-    ops.failed('index.agent-surface-failed-to-start', e, { note: 'agent surface failed to start:' })
+    hubState.down = e instanceof HubPortUnavailable ? e.message : `the hub could not start: ${(e as Error).message}`
+    ops.failed('index.hub-not-listening', e, { reason: hubState.down })
+    try {
+      if (!surface.origin) await surface.start()
+    } catch (e2) {
+      // A session must still start when the surface cannot: the agent simply has
+      // nothing to report through, and the launch says so rather than failing.
+      ops.failed('index.agent-surface-failed-to-start', e2, { note: 'agent surface failed to start:' })
+    }
   }
+  // #endregion hub-wiring
 
   // Every repository attached to any project in this estate. Rebuilt from the
   // projection rather than remembered, so a detach actually closes the door.
@@ -2314,8 +2419,23 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       ])
     )
     const isTask = new Set(taskRead.rows.map((row) => row.id as string))
+    // ADR-0115: an external agent waiting on consent is in the same queue, until answered or expired.
+    let accessRows: NonNullable<AttentionSources['access']> = []
+    let accessError: { message: string } | null = null
+    if (hub) {
+      try {
+        const now = Date.now()
+        accessRows = (await hub.accessStore.requests({ status: 'pending' }))
+          .filter((r) => Date.parse(r.expires_at) > now)
+          .map((r) => ({ id: r.id, agent_id: r.agent_id, name: r.registry?.name ?? r.agent_id, callee: r.callee, lines: describeAsk(r), requested_at: r.requested_at, expires_at: r.expires_at }))
+      } catch (e) {
+        // Not silence: the receipt below names this source as failed, so the queue reads as partial.
+        accessError = { message: (e as Error).message }
+      }
+    }
     const sources = obligationReceipts(
       [
+        { source: 'access-requests', error: accessError },
         { source: 'reviews', error: reviews.error },
         { source: 'leases', error: expired.error },
         { source: 'refusals', error: refusals.error },
@@ -2331,6 +2451,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     )
 
     const items = attentionOf({
+      access: accessRows,
       proposals: (proposals.data ?? []) as AttentionSources['proposals'],
       reviews: (reviews.data ?? []) as AttentionSources['reviews'],
       expired: (expired.data ?? []).map((l) => ({
@@ -2854,6 +2975,67 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       })
     }
   )
+
+  // #region hub-ipc — docs: docs/ux/scenarios.md#scn-132-an-external-agent-asks-for-access-and-the-operator-decides
+  /** Agent access (ADR-0115, SCR-52 → Agent access): what is waiting, what is granted, what is connected. */
+  const hubReady = (): NonNullable<typeof hub> => {
+    if (!hub) throw new Error('agent access is not ready yet')
+    return hub
+  }
+  handle(IPC.hubOverview, async (): Promise<Returns<FabricApi['hub']['overview']>> => {
+    const h = hubReady()
+    const ov = await h.access.overview()
+    const products: HubOverview['products'] = []
+    for (const product of CONNECTABLE_PRODUCTS) {
+      const c = await h.accessStore.liveConnection(product)
+      const last = h.connector.lastOutcome(product)
+      products.push({
+        product,
+        name: productName(product),
+        connection: c ? { server: c.server, level: c.level, connectedAt: c.connected_at, keyExpiresAt: c.key_expires_at } : null,
+        lastAttempt: last ? { outcome: last.outcome, at: last.outcome === 'waiting' ? last.since : last.at, ...(last.outcome === 'failed' ? { reason: last.reason } : {}) } : null
+      })
+    }
+    return {
+      hub: h.doorToken ? { listening: true, origin: surface.origin } : { listening: false, reason: h.down ?? 'the hub is not listening' },
+      products,
+      pending: ov.pending.map((r) => ({ requestId: r.id, agentId: r.agent_id, name: r.registry?.name ?? r.agent_id, callee: r.callee, lines: describeAsk(r), reason: r.reason, requestedAt: r.requested_at, expiresAt: r.expires_at })),
+      agents: ov.bindings.map((b) => ({
+        bindingId: b.id,
+        agentId: b.agent_id,
+        name: b.registry?.name ?? b.agent_id,
+        since: b.created_at,
+        grants: b.grants.map((g) => ({ grantId: g.id, callee: g.callee, capability: g.capability, resource: g.resource, line: describeAsk({ capabilities: [g.capability], resources: [g.resource] })[0] ?? g.capability, expiresAt: g.expires_at }))
+      })),
+      denials: ov.denials.map((r) => ({ requestId: r.id, agentId: r.agent_id, name: r.registry?.name ?? r.agent_id, callee: r.callee, lines: describeAsk(r), deniedAt: r.decided_at }))
+    }
+  })
+  handle(IPC.hubDecide, async (_e, requestId: string, decision: 'allowed' | 'denied'): Promise<Returns<FabricApi['hub']['decide']>> => {
+    const h = hubReady()
+    if (decision !== 'allowed' && decision !== 'denied') return { ok: false, reason: 'a decision is allowed or denied' }
+    const row = await h.accessStore.request(String(requestId))
+    const done = await h.access.decide(String(requestId), decision, OPERATOR_ACTOR)
+    if (done.ok && decision === 'allowed' && row && !(await h.accessStore.liveConnection(row.callee))) {
+      const started = row.callee === FABRIC_INBOX.product ? await h.connector.begin(FABRIC_INBOX) : { ok: false as const, reason: `${row.callee} has no connect flow` }
+      if (!started.ok) return { ok: false, reason: `Allowed. ${productName(row.callee)} could not be opened to connect it: ${started.reason}` }
+    }
+    return done
+  })
+  handle(IPC.hubRevokeGrant, async (_e, grantId: string): Promise<Returns<FabricApi['hub']['revokeGrant']>> =>
+    hubReady().access.revokeGrant(String(grantId), OPERATOR_ACTOR))
+  handle(IPC.hubRevokeAgent, async (_e, bindingId: string): Promise<Returns<FabricApi['hub']['revokeAgent']>> =>
+    hubReady().access.revokeBinding(String(bindingId), OPERATOR_ACTOR))
+  handle(IPC.hubClearDenial, async (_e, requestId: string): Promise<Returns<FabricApi['hub']['clearDenial']>> =>
+    hubReady().access.clearDenial(String(requestId), OPERATOR_ACTOR))
+  handle(IPC.hubConnect, async (_e, product: string): Promise<Returns<FabricApi['hub']['connect']>> => {
+    const h = hubReady()
+    if (product !== FABRIC_INBOX.product) return { ok: false, reason: `${String(product)} has no connect flow` }
+    const r = await h.connector.begin(FABRIC_INBOX)
+    return r.ok ? { ok: true } : r
+  })
+  handle(IPC.hubDisconnect, async (_e, product: string): Promise<Returns<FabricApi['hub']['disconnect']>> =>
+    hubReady().connector.disconnect(String(product)))
+  // #endregion hub-ipc
 
   /**
    * The onboarding drafts, and how the read went (AX-05).

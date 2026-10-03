@@ -256,4 +256,75 @@ export function accessRefusal(input: { agentId: string; callee: string; capabili
     }
   }
 }
+
+export const PRODUCT_NAMES: Record<string, string> = { 'fabric-inbox': 'Fabric Inbox' }
+export const productName = (id: string): string => PRODUCT_NAMES[id] ?? id
+
+/**
+ * The words of the native prompt (ADR-0115 §2). The agent is named as the REGISTRY knows it, with
+ * where it came from; what it asks is said in the product's words; its reason is quoted as its own
+ * claim; and the same-user floor is said, not implied. Deny is the default and the cancel answer.
+ */
+export function consentText(input: {
+  agentId: string
+  registry: { name?: string; installed_by?: string; repository?: string | null }
+  callee: string
+  capabilities: string[]
+  resources: string[]
+  reason: string
+  connected: boolean
+  incremental: boolean
+}): { title: string; message: string; detail: string; buttons: [string, string]; defaultId: 0; cancelId: 0 } {
+  const product = productName(input.callee)
+  const name = input.registry.name?.trim() || input.agentId
+  const origin = [
+    input.registry.installed_by ? `installed by ${input.registry.installed_by}` : null,
+    input.registry.repository ? `source ${input.registry.repository}` : null
+  ].filter(Boolean).join('; ')
+  const detail = [
+    `An agent registered as ${input.agentId}${origin ? ` (${origin})` : ''} asks to:`,
+    ...describeAsk(input).map((l) => `• ${l}`),
+    '',
+    'Its reason, in its own words:',
+    `“${input.reason}”`,
+    '',
+    'Fabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id.',
+    '',
+    input.incremental
+      ? 'This agent already has access through Fabric; this adds to it.'
+      : `If you allow, the agent gets its own credential for ${product} through Fabric.`,
+    'Access lasts a year unless you revoke it in Settings → Agent access.',
+    ...(input.connected ? [] : ['', `${product} is not connected to Fabric yet. Allow also opens ${product}, which asks you to connect it.`])
+  ].join('\n')
+  return {
+    title: `Allow ${name} to use ${product}?`,
+    message: `${name} asks to use ${product} through Fabric`,
+    detail,
+    buttons: ['Deny', input.connected ? 'Allow' : `Allow and connect ${product}`],
+    defaultId: 0,
+    cancelId: 0
+  }
+}
+
+/** What the operator's Agent access list shows (Settings → Agent access). */
+export interface HubOverview {
+  hub: { listening: true; origin: string } | { listening: false; reason: string }
+  products: Array<{
+    product: string
+    name: string
+    connection: { server: string; level: string; connectedAt: string; keyExpiresAt: string | null } | null
+    lastAttempt: { outcome: 'waiting' | 'connected' | 'denied' | 'failed'; at: string; reason?: string } | null
+  }>
+  pending: Array<{ requestId: string; agentId: string; name: string; callee: string; lines: string[]; reason: string; requestedAt: string; expiresAt: string }>
+  agents: Array<{
+    bindingId: string
+    agentId: string
+    name: string
+    since: string
+    grants: Array<{ grantId: string; callee: string; capability: string; resource: string; line: string; expiresAt: string }>
+  }>
+  denials: Array<{ requestId: string; agentId: string; name: string; callee: string; lines: string[]; deniedAt: string | null }>
+}
+
+export type HubActResult = { ok: true } | { ok: false; reason: string }
 // #endregion hub-access

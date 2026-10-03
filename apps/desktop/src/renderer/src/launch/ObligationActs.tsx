@@ -18,6 +18,8 @@ export interface ObligationLike {
   projectId: string | null
   grantable?: { floorClass: string; target: string }
   proposal?: { id: string; depth: number; bound: number }
+  /** ADR-0115: an external agent waiting on consent; the act is Allow or Deny, right here. */
+  access?: { requestId: string; callee: string; expiresAt: string }
 }
 
 /** Where an obligation opens, decided by the one resolver; null when nowhere exact. */
@@ -91,6 +93,7 @@ export function ObligationActs({ item, decisions, onOpen, onError }: {
           )}
         </>
       )}
+      {item.access && <AccessActs requestId={item.access.requestId} onError={onError} />}
       {!p && item.grantable && (
         <button type="button" className="lp-button primary"
           onClick={() =>
@@ -107,5 +110,31 @@ export function ObligationActs({ item, decisions, onOpen, onError }: {
         </button>
       )}
     </div>
+  )
+}
+
+/** Allow or Deny an external agent's request where it waits in the queue (SCN-132). The answer is kept,
+ *  because the queue re-reads on its own schedule and the row must not offer the act twice meanwhile. */
+function AccessActs({ requestId, onError }: { requestId: string; onError: (m: string) => void }): React.JSX.Element {
+  const t = useT()
+  const [state, setState] = useState<'open' | 'deciding' | 'allowed' | 'denied'>('open')
+  const decide = async (decision: 'allowed' | 'denied'): Promise<void> => {
+    setState('deciding')
+    try {
+      const r = await window.fabric.hub.decide(requestId, decision)
+      if (r.ok) setState(decision)
+      else { setState('open'); onError(r.reason) }
+    } catch (e) {
+      setState('open')
+      onError(String(e))
+    }
+  }
+  if (state === 'allowed' || state === 'denied')
+    return <span role="status" className="lp-meta">{t(state === 'allowed' ? 'access.allowedHere' : 'access.deniedHere')}</span>
+  return (
+    <>
+      <button type="button" className="lp-button" disabled={state === 'deciding'} onClick={() => void decide('denied')}>{t('access.deny')}</button>
+      <button type="button" className="lp-button primary" disabled={state === 'deciding'} onClick={() => void decide('allowed')}>{t('access.allow')}</button>
+    </>
   )
 }

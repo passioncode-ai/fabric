@@ -129,7 +129,7 @@ test('connect: the link is exactly what Fabric Inbox parses, and the state is si
   const o = fakeObservatory()
   const store = recordingStore()
   let origin = ''
-  const connector = new ProductConnector({ store, vault: createObservatoryVault({ launcher: o.launcher, env: o.env }), origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: { kind: 'person', id: 'operator' } })
+  const connector = new ProductConnector({ store, vault: createObservatoryVault({ launcher: o.launcher, env: o.env }), origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
   const surface = await hubWith(connector)
   origin = surface.origin
   assert.equal((await connector.begin(FABRIC_INBOX)).ok, true)
@@ -165,7 +165,7 @@ test('connect: denied and failed are recorded; a browser, a wrong state, an expi
   const store = recordingStore()
   const puts = []
   let origin = ''
-  const connector = new ProductConnector({ store, vault: { put: async (s, v) => { puts.push(v); return { ok: true } }, read: async () => ({ ok: false, reason: 'n/a' }) }, origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: { kind: 'person', id: 'operator' }, now: () => clock })
+  const connector = new ProductConnector({ store, vault: { put: async (s, v) => { puts.push(v); return { ok: true } }, read: async () => ({ ok: false, reason: 'n/a' }) }, origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }), now: () => clock })
   const surface = await hubWith(connector)
   origin = surface.origin
   const stateOf = async () => { await connector.begin(FABRIC_INBOX); return new URL(opened.at(-1)).searchParams.get('state') }
@@ -194,7 +194,7 @@ test('connect: without the vault the callback answers 503, so the product revoke
   const opened = []
   const store = recordingStore()
   let origin = ''
-  const connector = new ProductConnector({ store, vault: createObservatoryVault({ launcher: 'project-observatory-not-installed-here' }), origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: { kind: 'person', id: 'operator' } })
+  const connector = new ProductConnector({ store, vault: createObservatoryVault({ launcher: 'project-observatory-not-installed-here' }), origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
   const surface = await hubWith(connector)
   origin = surface.origin
   await connector.begin(FABRIC_INBOX)

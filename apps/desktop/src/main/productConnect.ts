@@ -63,7 +63,8 @@ export interface ProductConnectorDeps {
   /** The hub's origin, `http://127.0.0.1:<port>`; empty while the hub is not listening. */
   origin: () => string
   openExternal: (url: string) => Promise<void>
-  actor: AccessActor
+  /** Read when it is needed: the operator is established after the hub is built. */
+  actor: () => AccessActor
   now?: () => number
   random?: (n: number) => Buffer
   /** Told whenever an attempt changes, so the screen does not poll. */
@@ -226,7 +227,7 @@ export class ProductConnector {
     }
     const id = randomUUID()
     try {
-      await this.deps.store.append('product.connected@1', this.deps.actor, {
+      await this.deps.store.append('product.connected@1', this.deps.actor(), {
         id, product, server: body.server, mcp_url: body.mcpUrl, key_id: k.id, client_id: k.clientId,
         level: k.level, send: k.send, key_expires_at: k.expiresAt ?? null, secret_ref: pending.spec.secret
       })
@@ -246,7 +247,7 @@ export class ProductConnector {
   async disconnect(product: string): Promise<{ ok: true } | { ok: false; reason: string }> {
     const live = await this.deps.store.liveConnection(product)
     if (!live) return { ok: false, reason: `${product} is not connected` }
-    await this.deps.store.append('product.disconnected@1', this.deps.actor, { id: live.id })
+    await this.deps.store.append('product.disconnected@1', this.deps.actor(), { id: live.id })
     ops.record({ op: 'connect.disconnect', outcome: 'ok', detail: { product, connection_id: live.id }, ctx: { correlationId: ops.correlate() } })
     return { ok: true }
   }

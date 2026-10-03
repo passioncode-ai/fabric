@@ -3,6 +3,7 @@ import {
   ACCESS_REQUEST_TTL_MS,
   GRANT_TTL_MS,
   accessRefusal,
+  consentText,
   coverage,
   describeAsk,
   normaliseAccessRequest,
@@ -157,5 +158,33 @@ describe('lifetimes', () => {
   it('a request lives ten minutes and a grant a year by default', () => {
     expect(ACCESS_REQUEST_TTL_MS).toBe(600_000)
     expect(GRANT_TTL_MS).toBe(365 * 24 * 3600 * 1000)
+  })
+})
+
+describe('consentText — what the operator reads', () => {
+  const base = {
+    agentId: 'example-agent.default',
+    registry: { name: 'Example agent', installed_by: 'example-installer', repository: 'https://github.com/example/example-agent' },
+    callee: 'fabric-inbox', capabilities: ['list_messages', 'read_message'], resources: ['cloudflare:news@example.com'],
+    reason: 'summarise the newsletter', connected: true, incremental: false
+  }
+  it('names the registry entry, the ask in the product\'s words, the reason as a claim and the same-user floor; Deny is the default', () => {
+    const t = consentText(base)
+    expect(t.message).toBe('Example agent asks to use Fabric Inbox through Fabric')
+    expect(t.detail).toContain('An agent registered as example-agent.default (installed by example-installer; source https://github.com/example/example-agent) asks to:')
+    expect(t.detail).toContain('• list mail and read mail in news@example.com')
+    expect(t.detail).toContain('“summarise the newsletter”')
+    expect(t.detail).toContain('It cannot prove which program sent the request')
+    expect(t.buttons).toEqual(['Deny', 'Allow'])
+    expect([t.defaultId, t.cancelId]).toEqual([0, 0])
+  })
+  it('offers to connect the product when it is not connected, and says when access is added to', () => {
+    const t = consentText({ ...base, connected: false, incremental: true })
+    expect(t.buttons[1]).toBe('Allow and connect Fabric Inbox')
+    expect(t.detail).toContain('Fabric Inbox is not connected to Fabric yet.')
+    expect(t.detail).toContain('this adds to it')
+  })
+  it('falls back to the id when the registry gives no name', () => {
+    expect(consentText({ ...base, registry: {} }).message).toBe('example-agent.default asks to use Fabric Inbox through Fabric')
   })
 })
