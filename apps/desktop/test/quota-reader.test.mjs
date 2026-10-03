@@ -187,5 +187,17 @@ if (process.platform === 'darwin') {
   forgetCachedToken()
 }
 
+// ── third review: an unreadable item is not re-read on a timer; the person returning releases it ──
+if (process.platform === 'darwin') {
+  forgetCachedToken(); personReturned()
+  let reads = 0
+  const bad = async () => { reads++; return { stdout: 'not json' } }
+  await readToken(bad); await readToken(bad)
+  reads === 1 ? ok('an unreadable item is read once, not again on the next reading') : fail(`an unreadable item was read ${reads} times`)
+  personReturned(); await readToken(bad)
+  reads === 2 ? ok('and read again once the person comes back') : fail(`personReturned did not release the unreadable hold: ${reads}`)
+  personReturned(); forgetCachedToken()
+}
+
 console.log(failures ? '\n  FAIL ' + failures + ' failure(s)' : '\nall green')
 process.exit(failures ? 1 : 0)

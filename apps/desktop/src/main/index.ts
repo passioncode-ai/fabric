@@ -4042,6 +4042,9 @@ async function startOrExplain(): Promise<void> {
     // `explainAndQuit` is the loudest path in the product: it classifies the
     // failure, shows the operator a dialog naming it, writes startup-failure.log
     // and records it below. Silence is the one thing this is not.
+    // A quit during the splash ends `supabase start` on purpose; that is not a startup failure to explain
+    // or to log as one (third review: it wrote a false stack-start-timed-out failure log).
+    if (quit.quitting) { ops.failed('startup.interrupted', e, { note: 'startup was ended by a quit; nothing to explain' }); return }
     ops.failed('startup.bootstrap', e)
     void explainAndQuit(e)
   }

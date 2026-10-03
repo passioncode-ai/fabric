@@ -238,3 +238,22 @@ test('a live holder is not taken over by a contender running under another local
   held.release()
   rmSync(dir, { recursive: true, force: true })
 })
+
+// Third review: two quick SIGTERMs used to fall through to the default action mid-finish — the step was
+// orphaned and the record stayed at running.
+test('a second signal while a supervised job is finishing still ends it as stopped, with nothing left running', async () => {
+  const lib = path.resolve(import.meta.dirname, '../lib/bounded-run.mjs')
+  const dir = tmp()
+  const statusFile = path.join(dir, 'status.json'), mark = path.join(dir, 'step.pid')
+  const step = `require('fs').writeFileSync(${JSON.stringify(mark)}, String(process.pid)); process.on('SIGTERM',()=>{}); setInterval(()=>{},1000)`
+  const job = `import { superviseJob, boundedRun } from ${JSON.stringify(lib)}; await superviseJob({ name: 'probe', statusFile: ${JSON.stringify(statusFile)}, watchdogMs: 60000 }, async () => { await boundedRun(process.execPath, ['-e', ${JSON.stringify(step)}], { timeoutMs: 600000, stdio: 'ignore' }); return { outcome: 'done' } })`
+  const c = spawn(process.execPath, ['--input-type=module', '-e', job], { stdio: 'ignore' })
+  for (let i = 0; i < 100 && !existsSync(mark); i++) await new Promise((r) => setTimeout(r, 50))
+  c.kill('SIGTERM'); c.kill('SIGTERM')
+  const code = await new Promise((resolve) => c.on('exit', (code, signal) => resolve(code ?? signal)))
+  assert.equal(code, 143)
+  assert.equal(JSON.parse(readFileSync(statusFile, 'utf8')).outcome, 'stopped')
+  await new Promise((r) => setTimeout(r, 300))
+  assert.equal(alive(Number(readFileSync(mark, 'utf8'))), false, 'the step survived a double SIGTERM')
+  rmSync(dir, { recursive: true, force: true })
+})

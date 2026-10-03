@@ -125,7 +125,7 @@ if(cmd==='status'){
   name:'sync',statusFile,log:process.env.FABRIC_WORKSPACE_SYNC_LOG,
   watchdogMs:Number(process.env.FABRIC_WORKSPACE_SYNC_DEADLINE_MS)||110*MIN,
   guard:()=>{if(!process.env.FABRIC_WORKSPACE_SYNC_CHECKOUT||path.resolve(process.env.FABRIC_WORKSPACE_SYNC_CHECKOUT)!==root)throw Error('sync moves its checkout to origin/main, so it runs only in the checkout FABRIC_WORKSPACE_SYNC_CHECKOUT names (scripts/install-workspace-sync.sh makes it)')}
- },async()=>{
+ },async({remainingMs})=>{
  holdPublication()
  const left=syncLeftovers(git(root,'status','--porcelain','--untracked-files=no').toString())
  if(left.refuse.length)throw Error('sync runs on a clean checkout of main; this one has changes: '+left.refuse.slice(0,5).join(', '))
@@ -157,7 +157,8 @@ if(cmd==='status'){
  // previous run left unpushed (it lost a push race) is dropped here rather than wedging every
  // later run on a fast-forward that can no longer succeed; the next export recreates it.
  await run('git',['checkout','-q','-B','main','origin/main'],child)
- await run(process.execPath,['scripts/workspace.mjs','publish'],root,LIMIT.publish)
+ // Bounded by what is left of the watchdog, a minute short, so the record is written before it fires.
+ await run(process.execPath,['scripts/workspace.mjs','publish'],root,Math.max(60_000,remainingMs()-60_000))
  return {outcome:'published',reason:reasons.join('; ')}
  })
  // #endregion workspace-sync

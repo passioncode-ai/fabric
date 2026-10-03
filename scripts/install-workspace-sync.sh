@@ -36,10 +36,16 @@ case "${1:-install}" in
     for _ in 1 2 3 4 5 6 7 8 9 10; do launchctl print "gui/$(id -u)/$LABEL" >/dev/null 2>&1 || break; sleep 0.5; done
     rm -f "$PLIST"
     if [ "${2:-}" = "--purge" ]; then
-      [ -e "$CHECKOUT" ] && { git -C "$REPO" worktree remove --force "$CHECKOUT" 2>/dev/null || rm -rf "$CHECKOUT"; git -C "$REPO" worktree prune; }
-      # Only a state directory under ~/.cache is ever removed by --purge (review m14): a variable that
-      # pointed anywhere else would otherwise be deleted wholesale.
-      case "$STATE" in "$HOME"/.cache/?*) rm -rf "$STATE" ;; *) echo "refusing to purge $STATE: not under $HOME/.cache" >&2 ;; esac
+      # Only directories under ~/.cache are ever removed by --purge, judged by their REAL path, so neither a
+      # variable pointing elsewhere nor "~/.cache/.." can widen it to the home folder (third review).
+      under_cache() { local real; real="$(cd "$1" 2>/dev/null && pwd -P)" || return 1; case "$real" in "$(cd "$HOME/.cache" && pwd -P)"/?*) return 0 ;; *) return 1 ;; esac; }
+      if [ -e "$CHECKOUT" ]; then
+        if under_cache "$CHECKOUT"; then git -C "$REPO" worktree remove --force "$CHECKOUT" 2>/dev/null || rm -rf "$CHECKOUT"; git -C "$REPO" worktree prune
+        else echo "refusing to purge $CHECKOUT: not under $HOME/.cache" >&2; fi
+      fi
+      if [ -e "$STATE" ]; then
+        if under_cache "$STATE"; then rm -rf "$STATE"; else echo "refusing to purge $STATE: not under $HOME/.cache" >&2; fi
+      fi
       rm -f "$LOG" "$LOG".[0-9]* "$OLD_LOG" "$OLD_LOG".[0-9]*
       echo "removed $LABEL, its checkout, state and logs"
     else

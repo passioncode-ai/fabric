@@ -246,14 +246,19 @@ export async function superviseJob({ name, statusFile, watchdogMs, log, guard = 
     exitWithin(code)
   }
   const fail = (e) => { killAll(); const locked = e?.code === 'ELOCKED'; finish(locked ? 'locked' : 'failed', String(e?.message || e).split('\n')[0], locked ? 0 : 1) }
+  const deadlineAt = Date.now() + watchdogMs
   setTimeout(() => { killAll(); finish('timeout', `the run passed its ${Math.round(watchdogMs / 60000)} min watchdog; every step it started was ended`, 124) }, watchdogMs).unref()
-  for (const sig of ['SIGTERM', 'SIGINT']) process.once(sig, () => { killAll(); finish('stopped', 'received ' + sig, 143) })
+  // `on`, not `once`: a second signal while finishing must not fall through to the default action, which
+  // killed the job mid-finish, orphaned its step and left the record at running (third review).
+  for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => { killAll(); finish('stopped', 'received ' + sig, 143) })
   process.on('uncaughtException', fail)
   process.on('unhandledRejection', fail)
   say('start · pid ' + process.pid)
   status('running')
   try {
-    const { outcome, reason } = await body()
+    // The body learns its remaining budget, so a long last step (a publish) is bounded by what is LEFT of
+    // the watchdog rather than by a sum of guesses (third review: the fixed sum undercounted).
+    const { outcome, reason } = await body({ remainingMs: () => Math.max(0, deadlineAt - Date.now()) })
     finish(outcome, reason, 0)
   } catch (e) { fail(e) }
 }

@@ -111,7 +111,7 @@ export const FAILURE_HOLD_CAP_MS = 15 * 60_000
 /** The bearer, from the Keychain on macOS and the JSON file elsewhere. Never logged. */
 async function readToken(exec?: Exec): Promise<string | null> {
   // A walk or test sets FABRIC_NO_KEYCHAIN=1 so it never reads the operator's real credential (LC-14).
-  if (process.platform === 'darwin' && !keychainRefused && process.env.FABRIC_NO_KEYCHAIN !== '1') {
+  if (process.platform === 'darwin' && !keychainRefused && !keychainUnreadable && process.env.FABRIC_NO_KEYCHAIN !== '1') {
     // HELD UNTIL IT EXPIRES (lifecycle review 2026-10-03, finding 10): re-reading the item on every
     // two-minute reading was ~31 Keychain reads an hour while signed in — a read on a timer, which
     // LC-04 forbids. The token is kept in memory until five minutes before its own expiry, or until
@@ -123,6 +123,7 @@ async function readToken(exec?: Exec): Promise<string | null> {
       cachedAt = Date.now()
       return read.token
     }
+    if (read.outcome === 'unreadable') keychainUnreadable = true
     if (read.outcome === 'denied' || read.outcome === 'timeout') {
       keychainRefused = read.outcome
       // Said once, as a code; never the value, never again until the person acts.
@@ -158,7 +159,7 @@ async function readToken(exec?: Exec): Promise<string | null> {
  * (`resetKeychainRefusal`, wired to `powerMonitor` 'unlock-screen'), or the next launch.
  */
 let keychainRefused: KeychainOutcome | null = null
-function resetKeychainRefusal(): void { keychainRefused = null }
+function resetKeychainRefusal(): void { keychainRefused = null; keychainUnreadable = false }
 /** The bearer read from the Keychain, kept until shortly before it expires (finding 10). */
 let cachedToken: { token: string; until: number } | null = null
 const TOKEN_EARLY_MS = 5 * 60_000
@@ -173,7 +174,16 @@ let cachedAt = 0
  * account's headroom when the person looks, not hours later (confirmation review Q1). An event the person
  * causes, not a timer (LC-04).
  */
-function personReturned(now: number = Date.now()): void { if (cachedToken && now - cachedAt > ACCOUNT_RECHECK_MS) cachedToken = null }
+function personReturned(now: number = Date.now()): void {
+  if (cachedToken && now - cachedAt > ACCOUNT_RECHECK_MS) cachedToken = null
+  keychainUnreadable = false
+}
+/**
+ * An item that is there but not readable as the credential we expect is not re-read on a timer either
+ * (third review: every 10-minute hold re-read it): it waits for the person to come back to Fabric or to
+ * unlock the screen, which is when a fixed item would be worth reading again.
+ */
+let keychainUnreadable = false
 
 // #region quota-credential-read — docs: docs/adr/0106-fabric-adopts-the-product-lifecycle-contract.md#2-credentials-are-read-once-and-the-outcome-is-kept
 /** What one Keychain read found. Every outcome is kept by the reader (lifecycle LC-04). */

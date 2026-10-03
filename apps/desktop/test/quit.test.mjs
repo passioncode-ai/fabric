@@ -166,7 +166,9 @@ async function runFixture(mode) {
     const sentAt = Date.now()
     child.kill('SIGTERM')
     const result = await new Promise((resolve) => {
-      const t = setTimeout(() => resolve({ alive: true }), 20_000)
+      // 45 s, not 10: this asserts a GRACEFUL exit; at load 55–138 Electron's own teardown measured 12–27 s
+      // (third lifecycle review). The product's bound under such load is the outside reaper (15 s), tested above.
+      const t = setTimeout(() => resolve({ alive: true }), 45_000)
       child.on('exit', (code, signal) => { clearTimeout(t); resolve({ code, signal, ms: Date.now() - sentAt }) })
     })
     return { result, out }
@@ -176,15 +178,15 @@ async function runFixture(mode) {
   }
 }
 
-test('a real Electron main process with a startup-failure dialog open still quits on SIGTERM', { timeout: 60_000, skip: noDisplay ? 'NOT_RUN: a real Electron window needs macOS or a DISPLAY' : false }, async () => {
+test('a real Electron main process with a startup-failure dialog open still quits on SIGTERM', { timeout: 120_000, skip: noDisplay ? 'NOT_RUN: a real Electron window needs macOS or a DISPLAY' : false }, async () => {
   const { result, out } = await runFixture('dialog')
-  assert.equal(result.alive, undefined, 'still alive 20 s after SIGTERM with the dialog open:\n' + out)
+  assert.equal(result.alive, undefined, 'still alive 45 s after SIGTERM with the dialog open:\n' + out)
   assert.equal(result.signal, null, out)
   assert.equal(result.code, 0, out)
   assert.match(out, /quit-app: will-quit/)
 })
 
-test('a real Electron main process exits gracefully on SIGTERM', { timeout: 60_000, skip: noDisplay ? 'NOT_RUN: a real Electron window needs macOS or a DISPLAY' : false }, async () => {
+test('a real Electron main process exits gracefully on SIGTERM', { timeout: 120_000, skip: noDisplay ? 'NOT_RUN: a real Electron window needs macOS or a DISPLAY' : false }, async () => {
   const electron = createRequire(import.meta.url)('electron')
   const dir = mkdtempSync(path.join(tmpdir(), 'fabric-quit-'))
   const main = path.join(import.meta.dirname, 'fixtures/quit-app/main.mjs')
@@ -203,10 +205,12 @@ test('a real Electron main process exits gracefully on SIGTERM', { timeout: 60_0
     const sentAt = Date.now()
     child.kill('SIGTERM')
     const result = await new Promise((resolve) => {
-      const t = setTimeout(() => resolve({ alive: true }), 20_000)
+      // 45 s, not 10: this asserts a GRACEFUL exit; at load 55–138 Electron's own teardown measured 12–27 s
+      // (third lifecycle review). The product's bound under such load is the outside reaper (15 s), tested above.
+      const t = setTimeout(() => resolve({ alive: true }), 45_000)
       child.on('exit', (code, signal) => { clearTimeout(t); resolve({ code, signal, ms: Date.now() - sentAt }) })
     })
-    assert.equal(result.alive, undefined, 'still alive 20 s after SIGTERM (CO-191; the native teardown alone can take seconds on a loaded machine, never this long):\n' + out)
+    assert.equal(result.alive, undefined, 'still alive 45 s after SIGTERM (CO-191; the native teardown alone can take seconds on a loaded machine, never this long):\n' + out)
     assert.equal(result.signal, null, 'killed rather than exited:\n' + out)
     assert.equal(result.code, 0, out)
     assert.match(out, /quit-app: schedulers-stopped/)
