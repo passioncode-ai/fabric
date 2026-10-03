@@ -26,6 +26,7 @@
 import { readFileSync, readdirSync, statSync, watch, type FSWatcher } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { oneLine } from '../shared/access.ts'
 import { ops } from './opsSink.ts'
 
 export const SERVICE_PROTOCOL = 'fabric-service/0.1'
@@ -122,6 +123,16 @@ export function registryDirs(
     services: env.FABRIC_SERVICES_DIR ? expand(env.FABRIC_SERVICES_DIR, home) : path.join(root, 'services'),
     providers: env.FABRIC_PROVIDERS_DIR ? expand(env.FABRIC_PROVIDERS_DIR, home) : path.join(root, 'providers')
   }
+}
+
+/**
+ * A descriptor's words as an entry carries them: one line, no control, line-break or bidirectional
+ * character. These fields reach the operator's consent prompt (ADR-0115 §2), where a line break or an
+ * override could pass for Fabric's own words (security review of PR #7, finding 3). The file is left as
+ * it is; only what Fabric shows is cleaned. An entry whose name cleans to nothing keeps its id instead.
+ */
+function shown(text: string, max: number): string {
+  return oneLine(text, max)
 }
 
 function unknownFields(d: Record<string, unknown>, allowed: Set<string>): string[] {
@@ -276,15 +287,15 @@ function readDir(
       problems.push({ file, key, code: foreign ? 'foreign' : 'manifest-invalid', reason: reasons.join('; ') })
       continue
     }
-    const source = isObj(d.source) && isStr(d.source.repository) ? d.source.repository : null
+    const source = isObj(d.source) && isStr(d.source.repository) ? shown(d.source.repository, 300) || null : null
     if (kind === 'service') {
       const placement = d.placement === 'remote' ? 'remote' : 'local'
       const m = LOCAL_ORIGIN.exec(d.origin as string)
       out.push({
         entry: {
-          key, kind, id: d.id as string, instance: d.instance as string, name: d.name as string,
-          summary: (d.summary as string | undefined) ?? null, placement, origin: d.origin as string, mcp: null,
-          installedBy: d.installedBy as string, installedAt: d.installedAt as string, repository: source, file
+          key, kind, id: d.id as string, instance: d.instance as string, name: shown(d.name as string, 80) || (d.id as string),
+          summary: d.summary === undefined ? null : shown(d.summary as string, 200), placement, origin: d.origin as string, mcp: null,
+          installedBy: shown(d.installedBy as string, 200), installedAt: d.installedAt as string, repository: source, file
         },
         port: placement === 'local' && m ? Number(m[1]) : null
       })
@@ -293,10 +304,10 @@ function readDir(
       const url = run.url ?? null
       out.push({
         entry: {
-          key, kind, id: d.id as string, instance: null, name: d.name as string,
-          summary: (d.summary as string | undefined) ?? null, placement: 'local', origin: null,
+          key, kind, id: d.id as string, instance: null, name: shown(d.name as string, 80) || (d.id as string),
+          summary: d.summary === undefined ? null : shown(d.summary as string, 200), placement: 'local', origin: null,
           mcp: url ? { transport: 'streamable-http', url, path: '/mcp' } : { transport: 'stdio' },
-          installedBy: d.installedBy as string, installedAt: d.installedAt as string, repository: source, file
+          installedBy: shown(d.installedBy as string, 200), installedAt: d.installedAt as string, repository: source, file
         },
         port: url ? Number(PROVIDER_URL.exec(url)?.[1]) : null
       })

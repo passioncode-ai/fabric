@@ -242,7 +242,7 @@ async function fakeInbox() {
         ? { content: [{ type: 'text', text: '{"error":"forbidden"}' }], isError: true }
         : { content: [{ type: 'text', text: 'ok' }], structuredContent: { subject: 'Weekly news', accountId: a.accountId } })
     server.registerTool('list_messages', { inputSchema: { accountId: z.string().optional() } }, async () => ({ content: [{ type: 'text', text: 'ok' }], structuredContent: { messages: [], scope: narrowed } }))
-    server.registerTool('create_address', { inputSchema: { localPart: z.string(), domain: z.string() } }, async (a) => ({ content: [{ type: 'text', text: 'ok' }], structuredContent: { created: `${a.localPart}@${a.domain}`, narrowed: narrowed !== null } }))
+    server.registerTool('create_address', { inputSchema: { localPart: z.string(), domain: z.string(), forwardTo: z.string().optional() } }, async (a) => ({ content: [{ type: 'text', text: 'ok' }], structuredContent: { created: `${a.localPart}@${a.domain}`, narrowed: narrowed !== null, ...(a.forwardTo ? { forwardTo: a.forwardTo } : {}) } }))
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })
     res.on('close', () => { void transport.close(); void server.close() })
     await server.connect(transport)
@@ -478,5 +478,26 @@ test('connect: a callback whose body does not arrive in time is answered 408, an
     assert.match(answer, /^HTTP\/1\.1 408/, `answered ${JSON.stringify(answer.slice(0, 40))}`)
     assert.ok(Date.now() - started < 3000)
   } finally { await surface.stop() }
+})
+
+test('finding 4: create_address forwards only the address\'s own fields; forwardTo needs its own grant for that address; anything else is refused', async () => {
+  const h = await hubCall([grant('create_address', 'cloudflare:news@example.com')])
+  const input = { localPart: 'news', domain: 'example.com', forwardTo: 'copy@elsewhere.example' }
+  const without = await h.call(binding, { agentId: 'fabric-inbox', capability: 'create_address', input }, undefined)
+  assert.equal(without.structuredContent.error.code, 'access-required')
+  assert.deepEqual(without.structuredContent.error.data.request.capabilities, ['create_address.forward_to'])
+  assert.deepEqual(without.structuredContent.error.data.request.resources, ['cloudflare:news@example.com'])
+  const odd = await h.call(binding, { agentId: 'fabric-inbox', capability: 'create_address', input: { localPart: 'news', domain: 'example.com', routeAll: true } }, undefined)
+  assert.equal(odd.structuredContent.error.code, 'invalid-arguments')
+  const direct = await h.call(binding, { agentId: 'fabric-inbox', capability: 'create_address.forward_to', input: { localPart: 'news', domain: 'example.com' } }, undefined)
+  assert.equal(direct.structuredContent.error.code, 'invalid-arguments')
+  assert.equal(h.inbox.seen.length, 0, 'an ungranted extra reached the product')
+  h.inbox.close()
+
+  const g = await hubCall([grant('create_address', 'cloudflare:news@example.com'), grant('create_address.forward_to', 'cloudflare:news@example.com')])
+  const ok = await g.call(binding, { agentId: 'fabric-inbox', capability: 'create_address', input }, { traceparent: TRACE })
+  assert.deepEqual(ok.structuredContent.output, { created: 'news@example.com', narrowed: false, forwardTo: 'copy@elsewhere.example' })
+  assert.deepEqual(g.events[0].payload.grant_ids, ['create_address@cloudflare:news@example.com', 'create_address.forward_to@cloudflare:news@example.com'])
+  g.inbox.close()
 })
 // #endregion product-connect

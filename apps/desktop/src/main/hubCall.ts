@@ -9,7 +9,8 @@
 //      `access-required`, carrying the fabric.access.request arguments that would ask for it;
 //   4. the product is connected, and its secret comes out of the vault for this call only;
 //   5. the call is forwarded narrowed to the granted mailboxes (`X-Fabric-Accounts`), or — a workspace
-//      setup the grant names as its own capability — without the header;
+//      setup the grant names as its own capability — without the header, carrying only the created
+//      thing's own fields plus each extra (`create_address.forward_to`, …) granted for that address;
 //   6. one journal span per hop (`hub.call.forwarded@1`), a child of the caller's `_meta.traceparent`,
 //      with the caller's binding, the callee and capability, a hash of the arguments (never the
 //      arguments), the grants that allowed it and the outcome — refusals included;
@@ -127,10 +128,10 @@ export function createAgentCall(deps: HubCallDeps) {
       return refusal('invalid-arguments', read.reason)
     }
     const grants = await deps.access.liveGrantsOf(binding)
-    const cover = coverage({ callee: args.agentId, capability: args.capability, resources: read.resources, workspace: read.workspace }, grants, now())
+    const cover = coverage({ callee: args.agentId, capability: args.capability, resources: read.resources, workspace: read.workspace, requires: read.requires }, grants, now())
     if (!cover.ok) {
       await span({ ...base, outcome: 'refused', error_code: 'access-required', grant_ids: [], wall_ms: 0 })
-      const r = accessRefusal({ agentId: binding.agent_id, callee: args.agentId, capability: args.capability, resources: cover.missing, why: cover.reason })
+      const r = accessRefusal({ agentId: binding.agent_id, callee: args.agentId, capability: args.capability, capabilities: cover.ask, resources: cover.missing, why: cover.reason })
       return answer(r, true)
     }
     let connection: ConnectionRow | null
