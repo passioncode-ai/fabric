@@ -9918,7 +9918,7 @@
         {
           "state": "connected",
           "trigger": "the product delivered its key and the vault kept it",
-          "behavior": "server and date, Disconnect"
+          "behavior": "server and date, Reconnect, Disconnect"
         },
         {
           "state": "declined",
@@ -31999,7 +31999,7 @@
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "The product is connected once, with nothing copied by a person; agents with grants reach it through Fabric.",
-      "errors_recovery": "Without Project Observatory the key is refused with that reason and the product revokes it; nothing is kept anywhere weaker. A hub that is not listening disables Connect and says why.",
+      "errors_recovery": "Without Project Observatory the key is refused with that reason and the product revokes it; nothing is kept anywhere weaker. The connection is recorded before its secret is stored: a record that fails leaves the previous connection and its secret as they were, and a secret the vault will not keep withdraws the record just made — no client id is ever left beside another key's secret. A hub that is not listening disables Connect and Reconnect and says why.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 3236
@@ -33662,7 +33662,7 @@
       "id": "FLW-76",
       "title": "Connect a product",
       "goal": "Connect a product once, by its own consent, with nothing copied.",
-      "entry_points": "SCR-76 Connect; Allow and connect in FLW-75's prompt.",
+      "entry_points": "SCR-76 Connect, or Reconnect for a connected product; Allow and connect in FLW-75's prompt.",
       "success_exit": "SCR-76 shows the product connected.",
       "screen_refs": [
         "SCR-76"
@@ -33671,7 +33671,7 @@
         "file": "docs/ux/flows.md",
         "line": 2263
       },
-      "mermaid_source": "flowchart TD\n C[SCR-76 Agent access: Connect] --> L[Product's app asks]\n L -->|Allow| K[Key delivered to Fabric, stored in the vault]\n L -->|Deny| N[SCR-76 says declined]\n K -->|vault missing| F[Refused; the product revokes the key]\n K --> S[SCR-76 shows connected]",
+      "mermaid_source": "flowchart TD\n C[SCR-76 Agent access: Connect or Reconnect] --> L[Product's app asks]\n L -->|Allow| K[Key delivered to Fabric, stored in the vault]\n L -->|Deny| N[SCR-76 says declined]\n K -->|vault missing| F[Record withdrawn; the product revokes the key]\n K --> S[SCR-76 shows connected]",
       "status": "target_or_mixed_not_coverage_claim",
       "scenario_ids": [
         "SCN-133"

@@ -1781,7 +1781,7 @@ results always pair text with an icon — colour is never the only signal.
 ### SCR-76: Agent access
 - **Used by:** FLW-75, FLW-76
 - **Purpose:** What registered agents on this Mac may do through Fabric, what is waiting for an answer, and which products are connected — opened from Settings ([ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)).
-- **Elements:** where agents reach Fabric, or why they cannot; products with Connect or Disconnect and the last connect outcome; waiting requests with the agent, what it asks in plain words, its reason as its claim, Deny and Allow; agents with access, each grant in plain words with its expiry and Revoke, and Revoke all; denied requests with Clear the denial.
+- **Elements:** where agents reach Fabric, or why they cannot; products with Connect, or Reconnect and Disconnect once connected, and the last connect outcome; waiting requests with the agent, who installed it and where it came from, what it asks in plain words, its reason as its claim, the same-user floor, whether it adds to existing access, Deny and Allow; agents with access, each grant in plain words with its expiry and Revoke, and Revoke all; denied requests with Clear the denial.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
@@ -1790,7 +1790,7 @@ results always pair text with an icon — colour is never the only signal.
   | hub-off | the hub's port could not be taken | none | warning with the reason; Connect disabled; sessions unaffected |
   | read | overview read | none | the four lists; an empty list says so in words |
   | waiting | a connect link was opened | none | waiting for the answer in the product |
-  | connected | the product delivered its key and the vault kept it | none | server and date, Disconnect |
+  | connected | the product delivered its key and the vault kept it | none | server and date, Reconnect, Disconnect |
   | declined | the operator denied in the product | none | says it was declined |
   | failed | the product reported a failure, or the vault refused | none | the reason |
 - **Coverage:** apps/desktop/src/renderer/src/AgentAccessPanel.tsx

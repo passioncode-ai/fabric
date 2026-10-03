@@ -2257,23 +2257,23 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-41 Ranked Board and question detail | access row with Allow and Deny |
+  | SCR-41 Ranked Board and question detail | access row with the prompt's facts, Allow and Deny |
   | SCR-76 Agent access | loading, unreadable, hub-off, waiting, read |
 
 ### FLW-76: Connect a product
 - **Traces:** ST-045; SCN-133 (JTBD-08)
 - **Goal:** Connect a product once, by its own consent, with nothing copied.
-- **Entry points:** SCR-76 Connect; Allow and connect in FLW-75's prompt.
+- **Entry points:** SCR-76 Connect, or Reconnect for a connected product; Allow and connect in FLW-75's prompt.
 - **Success exit:** SCR-76 shows the product connected.
 - **Task analysis:** Choose Connect; allow in the product's app.
 - **Flow:**
 
 ```mermaid
 flowchart TD
- C[SCR-76 Agent access: Connect] --> L[Product's app asks]
+ C[SCR-76 Agent access: Connect or Reconnect] --> L[Product's app asks]
  L -->|Allow| K[Key delivered to Fabric, stored in the vault]
  L -->|Deny| N[SCR-76 says declined]
- K -->|vault missing| F[Refused; the product revokes the key]
+ K -->|vault missing| F[Record withdrawn; the product revokes the key]
  K --> S[SCR-76 shows connected]
 ```
 

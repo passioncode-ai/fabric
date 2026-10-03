@@ -193,3 +193,29 @@ the caller's grant names it as a capability of its own, which the operator saw i
 
 Fabric Inbox's half (AP-11 scope, the narrowing header, the connect link) lands in
 `passioncode-ai/fabric-inbox`.
+
+## Amendments — security review of PR #7 (2026-10-03)
+
+The decision stands. An adversarial review of the S2–S4 implementation found ways around it, and closing them
+made five points explicit. Each is enforced in code and covered by a test.
+
+1. **§1 — `hub.json` does not prove who holds the port.** While Fabric is down, any program can listen on the
+   hub's port. An agent must re-read `hub.json` and check that its `pid` is alive before sending a binding
+   credential. If the file is absent, or its pid is dead, there is no hub, whatever answers on the port. The
+   hub's `fabric.access.*` tool descriptions say this to the agent (`apps/desktop/src/main/hubTools.ts`).
+2. **§2 — the prompt is the operator's words.** Text that came from outside Fabric is shown on one line, with
+   control, line-break, zero-width and bidirectional characters removed. This covers the reason, the registry's
+   name, `installedBy` and `source.repository`, and the resources. The reason is quoted and cut at 300
+   characters. The attention queue and Settings → Agent access show the same facts as the prompt before their
+   Allow (`consentFacts` in `apps/desktop/src/shared/access.ts`).
+3. **§3 — one live grant per binding, callee, capability and resource.** A second Allow of the same thing
+   extends that grant. Migration 76 enforces it with the index `access_grants_one_live`.
+4. **§4 — record first, then the secret; reconnect is explicit.** `product.connected@1` is journalled before
+   the vault slot is switched. A vault that refuses the secret has that record withdrawn. A connected product
+   is connected again only by the operator's Reconnect.
+5. **§5 — narrowing and setup carry only what was shown.** An account id follows the product's own rule, with
+   no `,`, `:` or `%` and a dot in the domain. A narrowing entry containing a separator or a line break is not
+   sent. `create_address` forwards only the address's own fields. `forwardTo` and `agent` are capabilities of
+   their own, `create_address.forward_to` and `create_address.reply_agent`, granted per address. No request to
+   a product follows a redirect. The forwarder's deadline bounds the whole exchange. An idempotency key replays
+   only answers the product produced, kept per binding.

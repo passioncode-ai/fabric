@@ -81,8 +81,12 @@ let firstRequest = null
 
 await test('the door token reaches exactly the two asking tools, and nothing of a session', async () => {
   const door = await connect(DOOR)
-  const names = (await door.listTools()).tools.map((t) => t.name).sort()
-  assert.deepEqual(names, [...HUB_TOOLS.door].sort())
+  const tools = (await door.listTools()).tools
+  assert.deepEqual(tools.map((t) => t.name).sort(), [...HUB_TOOLS.door].sort())
+  // Port squatting while Fabric is down: the agent-facing instructions say to check the hub is Fabric
+  // (hub.json re-read, its pid alive) before a binding credential is sent to it.
+  for (const name of ['fabric.access.request', 'fabric.access.status'])
+    assert.match(tools.find((t) => t.name === name).description, /re-read hub\.json.*pid.*alive/i, `${name} does not tell the agent to check the hub's pid`)
   await door.close()
 })
 

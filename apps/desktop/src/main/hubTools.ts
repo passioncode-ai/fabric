@@ -8,6 +8,13 @@
 //   binding     → fabric.access.request (more, for its own agent), fabric.access.status,
 //                 fabric.access.grants, agent.call
 //
+// WHICH PROCESS HOLDS THE PORT is not proven by the port. While Fabric is down, any program can listen on
+// the hub's port and pose as it, so the descriptions below tell an agent what `hub.ts` says of hub.json:
+// re-read it before sending a binding credential, and send only when its pid is alive (port squatting,
+// security review of PR #7). The door token alone is worth little to a squatter; a binding credential is not.
+const VERIFY_HUB =
+  ' Before you send a binding credential, re-read hub.json and check that the pid it names is alive (and is Fabric); if it is not, Fabric is not running — do not send the credential to whatever answers on that port.'
+
 // Every answer carries `structuredContent`, and a refusal is `isError: true` with
 // `{error: {code, message, data?}}` — the `fabric-interop/0.1` error shape — never a thrown 500.
 
@@ -92,8 +99,8 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
       title: 'Ask the operator for access',
       description:
         principal.kind === 'door'
-          ? 'Ask, once, for standing access to a product through Fabric. The operator sees one prompt naming you as the registry knows you, what you ask in the product\'s words and your reason. Poll fabric.access.status; on Allow its first answer carries your credential, once.'
-          : 'Ask for more access for your own agent (a new capability or mailbox). The operator is prompted again; on Allow the grants are added to the credential you already hold.',
+          ? 'Ask, once, for standing access to a product through Fabric. The operator sees one prompt naming you as the registry knows you, what you ask in the product\'s words and your reason. Poll fabric.access.status; on Allow its first answer carries your credential, once.' + VERIFY_HUB
+          : 'Ask for more access for your own agent (a new capability or mailbox). The operator is prompted again; on Allow the grants are added to the credential you already hold.' + VERIFY_HUB,
       inputSchema: requestSchema
     },
     async (args) =>
@@ -107,7 +114,7 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
     'fabric.access.status',
     {
       title: 'Read an access request',
-      description: 'pending, allowed, denied or expired. The first read after Allow carries the binding credential exactly once; store it in your vault.',
+      description: 'pending, allowed, denied or expired. The first read after Allow carries the binding credential exactly once; store it in your vault.' + VERIFY_HUB,
       inputSchema: statusSchema
     },
     async ({ requestId }) =>

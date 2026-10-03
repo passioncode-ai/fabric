@@ -146,7 +146,9 @@ focus until the person activates the app — the machine's lifecycle broker pass
 `backgroundLaunch: true`. Fabric listens on one loopback port, the agent surface (`src/main/agentSurface.ts`, `127.0.0.1`): the hub's stable
 port (`FABRIC_HUB_PORT`, default 47070, published in `~/Library/Application Support/ai.passioncode.fabric/hub.json` beside a
 0600 door token, both rewritten on start and removed on quit) — or, when that port cannot be taken, an ephemeral one with
-the external ingress closed and the reason in Settings → Agent access. Sessions it starts get a one-shot bearer; agents
+the external ingress closed and the reason in Settings → Agent access. The port alone does not prove Fabric holds it: while
+Fabric is down any program can listen there, so an agent re-reads `hub.json` and checks that its `pid` is alive before it
+sends a binding credential (the hub's `fabric.access.*` tool descriptions say so; `src/main/hub.ts`). Sessions it starts get a one-shot bearer; agents
 registered on this Mac get a door token that may only ask and, on the operator's Allow, a revocable binding credential
 ([ADR-0115](docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)). It creates no Keychain item:
 a connected product's secret goes to Project Observatory's vault, value on stdin, and is read for one call at a time. It reads Claude Code's

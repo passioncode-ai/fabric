@@ -10,6 +10,12 @@
 // and removed on quit — only by the process that wrote them, so a second Fabric that failed to start
 // cannot delete the first one's door.
 //
+// THE PORT DOES NOT PROVE WHO HOLDS IT. While Fabric is down, any program running as this user can listen on
+// the hub's port and answer like a hub (port squatting). So the contract for an agent is: re-read hub.json
+// before sending a binding credential, and send it only when the `pid` hub.json names is alive (and is
+// Fabric); hub.json is removed on quit, so no file or a dead pid means no hub, whatever answers on the port.
+// The hub's own tool descriptions say this to the agent (`hubTools.ts`, VERIFY_HUB).
+//
 // THE PORT IS STABLE OR THERE IS NO HUB. An agent stores the origin; a random fallback port would make
 // every stored origin wrong without anyone being told. A port another registered agent claims is
 // refused before listening, and a port in use is an error with its reason — never a quiet move.
