@@ -136,6 +136,16 @@ const routed = (table) => async (_p, args) => {
   else ok('with a fresh timestamp, so its age is visible')
 }
 
+// ───── a failing `git status` is an error, never a clean tree (iteration 3, errors finding 7) ─────
+{
+  const r = createRepoStateReader({ git: routed({ ...GOOD, status: new Error('fatal: f.txt: clean filter \'evil\' failed') }) })
+  const s = await r.read('/repo')
+  if (!s.error || !/status/.test(s.error)) fail(`a failed git status read as a clean tree (error: ${s.error}, changed ${s.changed})`)
+  else ok('a failed git status is carried in error, so zero changes is not shown as a clean tree')
+  if (s.branch !== 'main' || s.lastCommit === null) fail('the parts that could be read were lost with the status')
+  else ok('and the branch and last commit are still there')
+}
+
 // ───────────────────────────── quota ─────────────────────────────
 const USAGE = {
   five_hour: { utilization: 46, resets_at: '2026-09-01T04:39:59Z', limit_dollars: null },
@@ -276,6 +286,19 @@ const USAGE = {
     if (state.branch === null)
       fail(`hardening broke the reading itself: ${state.error}`)
     else ok(`and the repository is still read correctly (branch ${state.branch})`)
+
+    // Iteration 3, errors finding 7: a filter marked `required` whose program the hardening blanked made
+    // `git status` fail, and the failure was swallowed — zero changes, `error: null`, a clean tree shown.
+    git('config', '--unset', 'core.fsmonitor')
+    git('config', 'filter.evil.clean', payload)
+    git('config', 'filter.evil.required', 'true')
+    writeFileSync(pathMod.join(repo, '.git', 'info', 'attributes'), '* filter=evil\n')
+    writeFileSync(pathMod.join(repo, 'f.txt'), 'y\n')
+    const req = await createRepoStateReader().read(repo)
+    if (existsSync(proof)) fail('a required clean filter executed on a read')
+    else ok('a required clean filter does NOT execute')
+    if (req.changed !== 1 || req.error) fail(`a required filter hid the change: changed ${req.changed}, error ${req.error}`)
+    else ok('and the changed file is still counted — the neutralised filter is not required')
   } finally {
     rmSync(base, { recursive: true, force: true })
   }

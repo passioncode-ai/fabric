@@ -88,6 +88,8 @@ export function createRepoStateReader(deps: RepoStateDeps = {}): RepoStateReader
   const watchers = new Map<string, FSWatcher>()
   const timers = new Map<string, NodeJS.Timeout>()
 
+  // #region repo-state-measure — docs: docs/adr/0100-first-run-and-start-paths.md#scan
+  // Every read goes through the hardened runner (`gitRun.ts`, ADR-0100 §3); what it cannot read is said.
   async function measure(repoPath: string): Promise<RepoState> {
     const base: RepoState = {
       path: repoPath,
@@ -117,7 +119,12 @@ export function createRepoStateReader(deps: RepoStateDeps = {}): RepoStateReader
     await Promise.all([
       git(repoPath, ['status', '--porcelain=v1'])
         .then((out) => Object.assign(base, parseStatus(out)))
-        .catch(() => {}),
+        .catch((e) => {
+          // Unlike a missing upstream or an empty history, a failing status is not a fact about the
+          // repository: zero changes with `error: null` would show a clean tree nobody saw (iteration 3,
+          // errors finding 7). Recorded, so the last good counts are kept and the failure is said.
+          base.error = `git status failed: ${e instanceof Error ? e.message.split('\n')[0] : String(e)}`
+        }),
       git(repoPath, ['rev-list', '--left-right', '--count', '@{u}...HEAD'])
         .then((out) => {
           const ab = parseAheadBehind(out)
@@ -133,6 +140,7 @@ export function createRepoStateReader(deps: RepoStateDeps = {}): RepoStateReader
     ])
     return base
   }
+  // #endregion repo-state-measure
 
   return {
     async read(repoPath: string): Promise<RepoState> {

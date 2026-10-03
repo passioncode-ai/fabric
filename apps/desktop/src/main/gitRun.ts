@@ -117,12 +117,12 @@ const DRIVER_PROGRAM = /^(filter\..+\.(clean|smudge|process)|diff\..+\.(textconv
 
 /**
  * Driver programs the REPOSITORY defines (local or worktree scope, includes followed), each to be
- * overridden with an empty value. A driver name is the repository's choice and can be anything, so no
+ * overridden with an empty value, and every filter it defines made optional (`required=false`). A driver name is the repository's choice and can be anything, so no
  * fixed `-c` list closes this: `git status` re-hashes a stat-dirty file through its clean filter, and
  * `.git/info/attributes` assigns a filter without a tracked file. Global and system drivers — git-lfs —
  * are the operator's and stay. Reading config runs nothing.
  */
-async function repositoryDrivers(repoPath: string, env: Record<string, string>, args: readonly string[], timeoutMs: number): Promise<string[]> {
+async function repositoryDrivers(repoPath: string, env: Record<string, string>, args: readonly string[], timeoutMs: number): Promise<{ key: string; value: string }[]> {
   let out: string
   try {
     ;({ stdout: out } = await exec(
@@ -139,15 +139,24 @@ async function repositoryDrivers(repoPath: string, env: Record<string, string>, 
     if (code === 1) return []
     throw e
   }
-  const keys: string[] = []
+  const overrides: { key: string; value: string }[] = []
+  const add = (key: string, value: string): void => {
+    if (!overrides.some((o) => o.key === key)) overrides.push({ key, value })
+  }
   // `-z --show-scope --name-only`: scope NUL key NUL, repeated.
   const parts = out.split('\0')
   for (let i = 0; i + 1 < parts.length; i += 2) {
     const scope = parts[i]
     const key = parts[i + 1]
-    if ((scope === 'local' || scope === 'worktree') && DRIVER_PROGRAM.test(key) && !keys.includes(key)) keys.push(key)
+    if (scope !== 'local' && scope !== 'worktree') continue
+    if (DRIVER_PROGRAM.test(key)) add(key, '')
+    // A filter the repository marks `required` fails the whole read once its program is blanked — and a
+    // failing status was shown as a clean tree (iteration 3, errors finding 7). Every filter the repository
+    // defines is made optional: an optional filter with no program passes the content through unchanged.
+    const filter = /^filter\.(.+)\.[^.]+$/i.exec(key)
+    if (filter) add(`filter.${filter[1]}.required`, 'false')
   }
-  return keys
+  return overrides
 }
 
 /**
@@ -179,12 +188,12 @@ export async function gitRun(repoPath: string, args: string[], opts: GitRunOptio
   const env = hardenedGitEnv()
   // Driver overrides travel as GIT_CONFIG_KEY_n / VALUE_n, not `-c k=v`: a driver name may itself contain
   // `=`, which `-c` would split at the wrong place. Both are command scope and outrank the repository.
-  const drivers = await repositoryDrivers(repoPath, env, lead, timeout)
-  drivers.forEach((key, i) => {
+  const overrides = await repositoryDrivers(repoPath, env, lead, timeout)
+  overrides.forEach(({ key, value }, i) => {
     env[`GIT_CONFIG_KEY_${i}`] = key
-    env[`GIT_CONFIG_VALUE_${i}`] = ''
+    env[`GIT_CONFIG_VALUE_${i}`] = value
   })
-  if (drivers.length) env.GIT_CONFIG_COUNT = String(drivers.length)
+  if (overrides.length) env.GIT_CONFIG_COUNT = String(overrides.length)
   const left = deadline - Date.now()
   if (left <= 0) throw new Error(`git timed out after ${timeout} ms before running: ${args[0] ?? ''}`)
   const { stdout } = await exec('git', [...lead, ...withSubmodulesIgnored(args)], {
