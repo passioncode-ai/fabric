@@ -141,6 +141,29 @@ test('REFUSED: no host in the URL while PGHOST names another machine — pg woul
   assert.ok(checkTestStack(env, live).some(r => /db\.example\.com.*not loopback/.test(r)))
 })
 
+// ── iteration 3, errors finding 11: two more ways past the guard for psql-based probes. libpq honours a
+// connection SERVICE — `?service=live` in the URL, or PGSERVICE in the environment — read from the
+// service file, which can name any host and port; and a URL with no port took PGPORT or the default.
+test('REFUSED: a service in the query string — libpq would read the address from the service file', () => {
+  const r = checkTestStack({ ...disposable, DATABASE_URL: 'postgresql://postgres:postgres@127.0.0.1:55422/postgres?service=live' }, live)
+  assert.ok(r.some((x) => /service/.test(x) && /query string/.test(x)), r.join('; '))
+})
+
+test('REFUSED: a DATABASE_URL with no explicit port, even when nothing else names one', () => {
+  const r = checkTestStack({ ...disposable, DATABASE_URL: 'postgresql://postgres:postgres@127.0.0.1/postgres' }, live)
+  assert.ok(r.some((x) => /names no port/.test(x)), r.join('; '))
+})
+
+test('probeEnv hands a child no PGSERVICE, PGSERVICEFILE or PGHOSTADDR', () => {
+  const env = { ...disposable, PGSERVICE: 'live', PGSERVICEFILE: '/tmp/x.conf', PGHOSTADDR: '10.0.0.1' }
+  const out = probeEnv({ env, live, exit: () => assert.fail('exited') })
+  for (const k of ['PGSERVICE', 'PGSERVICEFILE', 'PGHOSTADDR']) {
+    assert.equal(k in out, false, `${k} reached the probe's child`)
+    assert.equal(k in env, false, `${k} stayed in the environment the probe itself spawns from`)
+  }
+  assert.equal(out.DATABASE_URL, disposable.DATABASE_URL, 'the rest is handed over unchanged')
+})
+
 // ── two runs started at once do not pick the same block (release review 2026-10-03, iteration 2) ──
 //
 // `chooseBase` asked whether a block's ports were free, and `supabase start` bound them tens of seconds

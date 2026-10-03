@@ -246,8 +246,10 @@ and each probe itself. The live ports are whatever the root `supabase/config.tom
 plus 54321 and 54322 in every case. A refusal is a FAIL with exit 1, and nothing connects
 first. Two other things are refused as well: the live project id, and an address that is not
 loopback. `DATABASE_URL` is read the way the probes' `pg` client reads it — pg-connection-string,
-then `PGHOST` / `PGPORT` when the URL names no host or port — and a `host`, `hostaddr` or `port` in
-its query string is refused, because it overrides the address the URL shows. `down` acts only on a
+then `PGHOST` / `PGPORT` when the URL names no host or port — and a `host`, `hostaddr`, `port` or
+`service` in its query string is refused, because it overrides the address the URL shows. The URL
+must name its port explicitly. `probeEnv()` removes `PGSERVICE`, `PGSERVICEFILE` and `PGHOSTADDR`
+from the environment, so a psql child cannot be moved through the service file either. `down` acts only on a
 folder that carries the marker `up` wrote. It never runs `supabase stop --no-backup` for the live
 project.
 
