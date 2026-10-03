@@ -5,8 +5,58 @@ import {
   advancesWatermark,
   planCycle,
   readCycleGap,
+  runCyclePasses,
   worstOf
 } from './cyclePort.ts'
+
+// Release review 2026-10-03, iteration 3, orchestration finding 6. `index.ts#runCycle` ran the routine
+// tick, the chain pass and the observer in ONE `try`, so a throwing tick meant the chain pass never ran
+// that cycle — a follower whose predecessor had finished waited for a tick that would also throw.
+describe('one pass of the cycle: each step in its own try, the states still composed', () => {
+  const failed: unknown[] = []
+  const log = { failed: (step: string, e: unknown) => failed.push([step, e]) }
+  it('a throwing tick does not stop the chain pass, and the receipt says both', async () => {
+    let chainsRan = false
+    const got = await runCyclePasses({
+      tick: async () => { throw new Error('routines unreadable') },
+      advanceChains: async () => { chainsRan = true; return { state: 'completed', says: 'every waiting chain step was judged' } },
+      sample: async () => 2
+    }, log)
+    expect(chainsRan).toBe(true)
+    expect(got.state).toBe('failed_known')
+    expect(got.observed).toBe(2)
+    expect(got.says).toMatch(/routine tick failed: Error: routines unreadable/)
+  })
+  it('a throwing chain pass is composed with the tick it followed, and the observer still samples', async () => {
+    const got = await runCyclePasses({
+      tick: async () => ({ state: 'partial', says: '1 routine deferred' }),
+      advanceChains: async () => { throw new Error('links unreadable') },
+      sample: async () => 1
+    }, log)
+    expect(got.state).toBe('failed_known')
+    expect(got.says).toBe('1 routine deferred; the chain pass failed: Error: links unreadable')
+    expect(got.observed).toBe(1)
+  })
+  it('a quiet cycle stays quiet, and a chain that did nothing adds no words', async () => {
+    const got = await runCyclePasses({
+      tick: async () => ({ state: 'skipped_no_delta', says: '' }),
+      advanceChains: async () => ({ state: 'skipped_no_delta', says: 'nothing waiting' }),
+      sample: async () => { throw new Error('ptys gone') }
+    }, log)
+    expect(got.state).toBe('failed_known')
+    expect(got.says).toBe('the observer failed: Error: ptys gone')
+    expect(got.observed).toBe(0)
+  })
+  it('two clean steps compose to the worse of them', async () => {
+    const got = await runCyclePasses({
+      tick: async () => ({ state: 'completed', says: '1 routine started' }),
+      advanceChains: async () => ({ state: 'partial', says: '1 chain step could not be advanced' }),
+      sample: async () => 0
+    }, log)
+    expect(got.state).toBe('partial')
+    expect(got.says).toBe('1 routine started; 1 chain step could not be advanced')
+  })
+})
 
 describe('a poll is bounded, and it says what it deferred', () => {
   it('starts everything when everything fits', () => {
