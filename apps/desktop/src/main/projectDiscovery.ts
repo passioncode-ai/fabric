@@ -128,11 +128,19 @@ function gitOut(dir: string, args: string[]): Promise<string | null> {
   )
 }
 
-/** A remote as it may be shown and kept: an http(s) URL loses its user and password (a token lives there). */
+/**
+ * A remote as it may be shown and kept: ANY URL with a scheme loses its userinfo — `ssh://user:token@`,
+ * `git+https://u:p@`, `https://x-access-token:…@` — because a token lives there (iteration 2, docs finding
+ * 10: only http(s) was stripped). The userinfo is everything before the LAST `@` of the authority, so a
+ * password holding a raw `@` goes too; an `@` later in the path is not userinfo. The scp form
+ * `git@host:path` has no scheme and no secret, and is kept as written.
+ */
 export function shownRemote(url: string | null): string | null {
   if (!url) return null
-  const m = /^(https?:\/\/)[^/@]*@(.*)$/i.exec(url)
-  return m ? m[1] + m[2] : url
+  const m = /^([a-z][a-z0-9+.-]*:\/\/)([^/?#]*)(.*)$/is.exec(url)
+  if (!m) return url
+  const at = m[2].lastIndexOf('@')
+  return at < 0 ? url : m[1] + m[2].slice(at + 1) + m[3]
 }
 
 function stackOf(dir: string, entries: string[]): string[] {

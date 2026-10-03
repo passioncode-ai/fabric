@@ -136,6 +136,25 @@ await assert.rejects(() => scanFolder(path.join(root, 'missing')), /does not exi
   const f = await inspectFolder(d)
   assert.equal(f.remote, 'https://github.com/example/x.git', 'userinfo is stripped from an http(s) remote')
 }
+// Iteration 2, docs finding 10: EVERY URL with a scheme loses its userinfo, not only http(s); the scp form
+// `git@host:path` carries no secret and is kept as written.
+{
+  const { shownRemote } = await import(SRC)
+  const cases = [
+    ['ssh://user:ghp_TOKEN@github.com/example/x.git', 'ssh://github.com/example/x.git'],
+    ['ssh://git@github.com:22/example/x.git', 'ssh://github.com:22/example/x.git'],
+    ['git+https://u:secret@host.example/r.git', 'git+https://host.example/r.git'],
+    ['git+ssh://u:secret@host.example/r.git', 'git+ssh://host.example/r.git'],
+    ['HTTPS://u:p@ss@host.example/r.git', 'HTTPS://host.example/r.git'],
+    ['ftp://anon:pw@host.example/r', 'ftp://host.example/r'],
+    ['git://host.example/r.git', 'git://host.example/r.git'],
+    ['https://host.example/path@not-userinfo/r.git', 'https://host.example/path@not-userinfo/r.git'],
+    ['git@github.com:example/x.git', 'git@github.com:example/x.git'],
+    ['/local/path/repo.git', '/local/path/repo.git']
+  ]
+  for (const [raw, shown] of cases) assert.equal(shownRemote(raw), shown, raw)
+  assert.equal(shownRemote(null), null)
+}
 // A repository living in a folder whose NAME is usually noise (build, vendor, …) is still found;
 // a folder the scan cannot read is COUNTED, so a partial list never reads as the whole folder.
 {
