@@ -19,10 +19,23 @@
 // editor is read-only nearly always.
 
 import { createHash } from 'node:crypto'
-import { existsSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs'
+import { homedir } from 'node:os'
 import path from 'node:path'
 import type { FileNode, FilePayload, WriteResult } from '../shared/types'
 import { ops } from './opsSink.ts'
+
+/**
+ * A folder too broad to be a repository root: a filesystem root, the home folder, or any folder that holds
+ * the home folder (`/Users`). Real paths only. One rule for repository roots here and for repository paths
+ * admitted from a window (`startChoices.ts#admitRepoPaths`).
+ */
+export function isTooBroad(real: string, home: string = realHomeOrSelf()): boolean {
+  return real === path.parse(real).root || real === home || home.startsWith(real.endsWith(path.sep) ? real : real + path.sep)
+}
+function realHomeOrSelf(): string {
+  try { return realpathSync(homedir()) } catch { return path.resolve(homedir()) }
+}
 
 /** Refused because the path is not under anything the operator opened. */
 export class OutsideRoots extends Error {
@@ -65,12 +78,26 @@ export class FileRoots {
   }
 
   private addRepo(p: string): void {
+    // A repository was attached by its real path. If that path has since BECOME a link, or resolves to a
+    // folder too broad to be a repository, it grants nothing — a refresh must not turn a swapped folder into
+    // a root (confirmation pass after iteration 3: a repo replaced by a link to / made the roots ['/']).
+    let real: string
     try {
-      this.repos.add(realpathSync(p))
+      if (lstatSync(p).isSymbolicLink()) {
+        ops.failed('files.repo-became-link', new Error('an attached repository path is now a link; it grants nothing'), { detail: { path: p } })
+        return
+      }
+      real = realpathSync(p)
     } catch {
       // A configured repository that no longer exists is not a reason to fail
       // the whole set; it simply grants nothing.
+      return
     }
+    if (isTooBroad(real)) {
+      ops.failed('files.repo-too-broad', new Error('an attached repository resolves to a folder too broad to be a root'), { detail: { path: real } })
+      return
+    }
+    this.repos.add(real)
   }
 
   /**

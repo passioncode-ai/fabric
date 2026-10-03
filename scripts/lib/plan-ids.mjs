@@ -36,19 +36,24 @@ export const isFinishedStatus = (cell) => CLOSING_PREFIX.test(plain(cell).toLowe
 const STATUS_HEADER = /^(status|статус|work card \/ acceptance)$/i
 
 /** Each table row with its cells and the index of its status column (by header), or -1. */
+/** Cells of a row, split on unescaped pipes (`a \\| b` is one cell), with leading indentation allowed. */
+const cellsOf = (line) => line.trim().replace(/^\|/, '').replace(/\|$/, '').split(/(?<!\\)\|/).map((c) => c.trim())
+const isDelimiter = (line) => /^\s*\|\s*:?-/.test(line ?? '')
+
 function tableRows(text) {
   const rows = []
   const lines = text.split('\n')
   let statusAt = -1
   let inTable = false
+  let headed = false
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
-    if (!line.startsWith('|')) { inTable = false; statusAt = -1; continue }
-    const cells = line.split('|').slice(1, -1).map((c) => c.trim())
-    if (/^\|\s*:?-/.test(line)) continue
-    if (!inTable && /^\|\s*:?-/.test(lines[i + 1] ?? '')) { statusAt = cells.findIndex((c) => STATUS_HEADER.test(plain(c))); inTable = true; continue }
+    if (!line.trimStart().startsWith('|')) { inTable = false; headed = false; statusAt = -1; continue }
+    if (isDelimiter(line)) continue
+    const cells = cellsOf(line)
+    if (!inTable && isDelimiter(lines[i + 1])) { statusAt = cells.findIndex((c) => STATUS_HEADER.test(plain(c))); inTable = true; headed = true; continue }
     inTable = true
-    rows.push({ cells, statusAt })
+    rows.push({ cells, statusAt, headed })
   }
   return rows
 }
@@ -158,12 +163,16 @@ export function planProblems(backlog, files) {
   }
   if (citedIds(block).size === 0) problems.push('the plan cites no work at all')
   // Every open carry-over row has a lane (iteration 3: lane 12 claimed the leftovers while 132 were in none).
-  const ledger = files['docs/evidence/specs/2026-08-16-software-fabric-carryover.md']
-  if (ledger) {
+  const ledgerPath = 'docs/evidence/specs/2026-08-16-software-fabric-carryover.md'
+  const ledger = files[ledgerPath]
+  if (ledger === undefined) problems.push(`the carry-over ledger ${ledgerPath} is missing, so open rows cannot be checked against the lanes`)
+  else {
     const inLanes = new Set(laneEntries(block).flatMap((l) => l.entries))
-    for (const { cells, statusAt } of tableRows(ledger)) {
-      const id = /^CO-\d+$/.test(cells[0] ?? '') ? cells[0] : null
-      if (!id || statusAt < 0 || isFinishedStatus(cells[statusAt] ?? '')) continue
+    for (const { cells, statusAt, headed } of tableRows(ledger)) {
+      const id = plain(cells[0] ?? '')
+      if (!/^CO-\d+$/.test(id)) continue
+      if (!headed || statusAt < 0) { problems.push(`carry-over ${id} sits in a table with no Status column, so whether it is open cannot be read`); continue }
+      if (isFinishedStatus(cells[statusAt] ?? '')) continue
       if (!inLanes.has(id)) problems.push(`carry-over ${id} is open and cited by no lane`)
     }
   }

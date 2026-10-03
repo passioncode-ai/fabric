@@ -12,7 +12,10 @@
 // Pure over the texts, so the gate and its test read one rule.
 
 export const ITERATIONS = 3
-const DISPOSED = /^(?:fixed|ruled|not a defect|not recoverable|stopped)\b/i
+const DISPOSED = /^(?:fixed|ruled|not a defect|not recoverable|stopped)(?=$|[\s:;,.(`—–-])/i
+const plain = (cell) => cell.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*`_]/g, '').trim()
+/** Cells of a table row, split on unescaped pipes. */
+const cellsOf = (row) => row.trim().replace(/^\|/, '').replace(/\|$/, '').split(/(?<!\\)\|/).map((c) => c.trim())
 
 /** Problems that block releasing `version`; empty means clear. */
 export function releaseGateProblems({ version, gateText, ledgerText }) {
@@ -34,10 +37,11 @@ export function releaseGateProblems({ version, gateText, ledgerText }) {
     if (/_Not started\._/.test(text)) { problems.push(`iteration ${n} has not started`); continue }
     if (!new RegExp(String.raw`\]\([^)]*iteration-${n}/[^)]+\)`).test(text)) problems.push(`iteration ${n} links no reviewer report (…/iteration-${n}/…)`)
     for (const row of body) {
-      const m = new RegExp(String.raw`^\| (V${n}-\d+) \|`).exec(row)
-      if (!m) continue
-      const cells = row.split('|').slice(1, -1).map((c) => c.trim())
-      if (!DISPOSED.test(cells.at(-1) ?? '')) problems.push(`${m[1]} has no disposition (fixed, ruled, not a defect, not recoverable, stopped)`)
+      if (!row.trim().startsWith('|')) continue
+      const cells = cellsOf(row)
+      const id = plain(cells[0] ?? '')
+      if (!new RegExp(String.raw`^V${n}-\d+$`).test(id)) continue
+      if (!DISPOSED.test(plain(cells.at(-1) ?? ''))) problems.push(`${id} has no disposition (fixed, ruled, not a defect, not recoverable, stopped)`)
     }
     const meaningful = body.filter((l) => l.trim() !== '')
     const last = meaningful.at(-1) ?? ''

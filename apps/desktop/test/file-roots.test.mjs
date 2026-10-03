@@ -206,6 +206,23 @@ try {
     : fail('a symlink carried the OS outside the roots')
 }
 
+// 5 — an attached repository that later became a LINK, and a root too broad to be a repository
+// (confirmation pass after iteration 3: a repo swapped for a link to / made the roots ['/'] on refresh).
+{
+  const { rmSync } = await import('node:fs')
+  const victim = path.join(base, 'victim'); mkdirSync(victim)
+  const swapped = new FileRoots()
+  swapped.reset([victim])
+  rmSync(victim, { recursive: true }); symlinkSync('/', victim)
+  swapped.reset([victim])
+  swapped.list().includes(path.parse(realpathSync(victim)).root) || swapped.list().includes('/')
+    ? fail('a repository swapped for a link to / became a root')
+    : ok('a repository that became a link is not a root after a refresh')
+  const broad = new FileRoots()
+  broad.reset(['/', path.dirname(realpathSync(process.env.HOME))])
+  broad.list().length === 0 ? ok('the filesystem root and the folder holding the home folder are never roots') : fail('a too-broad root was kept: ' + broad.list().join(', '))
+}
+
 if (failures > 0) {
   console.error('\\n' + failures + ' check(s) FAILED — the filesystem boundary does not hold')
   process.exit(1)

@@ -310,3 +310,14 @@ console.log('PASS candidates: the walk path kept as written and tied to its root
   assert.throws(() => refuseHeldByOther(['/w/b'], 'p2', index), /held-by-other/, 'held by this project AND another is still held by another')
 }
 console.log('PASS projects.create: bidi/control project names refused by code, other names legal; a repository another project holds refused (held-by-other)')
+
+// ── confirmation pass after iteration 3: a folder that HOLDS the home folder is as broad as home itself
+{
+  const { tooBroad } = await import(path.resolve(import.meta.dirname, '../src/main/startChoices.ts'))
+  assert.equal(tooBroad('/Users', '/Users/someone'), true, 'the folder holding the home folder is too broad')
+  assert.equal(tooBroad('/Users/someone', '/Users/someone'), true)
+  assert.equal(tooBroad('/', '/Users/someone'), true)
+  assert.equal(tooBroad('/Users/someone/DATA/app', '/Users/someone'), false, 'a folder inside home is fine')
+  assert.equal(tooBroad('/Users/some', '/Users/someone'), false, 'a sibling whose name prefixes home is not an ancestor')
+}
+console.log('PASS too broad: root, home and any folder holding home')

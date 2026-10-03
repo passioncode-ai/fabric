@@ -2,7 +2,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { planProblems, PLAN_BEGIN, PLAN_END } from '../lib/plan-ids.mjs'
 const plan = (rows) => `# Backlog\n${PLAN_BEGIN}\n| Lane | Outcome | Delivers |\n|---|---|---|\n${rows}\n${PLAN_END}\n`
-const docs = { 'docs/evidence/plans/x.md': '| AR-7 | conversion |\n### N1 · real providers\n', 'docs/launch/adoption/packets/AD00.md': '# AD00' }
+const LEDGER = { 'docs/evidence/specs/2026-08-16-software-fabric-carryover.md': '| # | What | Status |\n|---|---|---|\n' }
+const docs = { ...LEDGER, 'docs/evidence/plans/x.md': '| AR-7 | conversion |\n### N1 · real providers\n', 'docs/launch/adoption/packets/AD00.md': '# AD00' }
 test('resolves ids defined by a row, a heading and a file, and the plan\'s own P-rows', () => {
   const b = plan('| P-01 | first run | AR-7, N1, AD00 |')
   assert.deepEqual(planProblems(b, { ...docs, 'docs/evidence/backlog.md': b }), [])
@@ -37,7 +38,7 @@ test('a lane that schedules finished work is a problem', () => {
   assert.ok(!p.some((x) => x.includes('AD02')), 'open work is fine')
 })
 test('knows the plan ids the repository uses: FR-A, MEM-P1, F7, OX-03', () => {
-  const files = { 'docs/a.md': '| FR-A extension | x |\n## MEM-P1 · capture\n| **F7 — remainder** | M98 |\n| OX-03 | x | open |\n| M98 | y | open |' }
+  const files = { ...LEDGER, 'docs/a.md': '| FR-A extension | x |\n## MEM-P1 · capture\n| **F7 — remainder** | M98 |\n| OX-03 | x | open |\n| M98 | y | open |' }
   const b = plan('| 7 · rest | y | z | FR-A, MEM-P1, F7, OX-03, M98 |')
   assert.deepEqual(planProblems(b, { ...files, 'docs/evidence/backlog.md': b }), [])
 })
@@ -115,4 +116,16 @@ test('every open carry-over row is cited by some lane', () => {
   const p = planProblems(b, { ...files, 'docs/evidence/backlog.md': b })
   assert.ok(p.some((x) => x.includes('CO-003') && x.includes('no lane')), p.join('\n'))
   assert.ok(!p.some((x) => x.includes('CO-002')), p.join('\n'))
+})
+
+// ── confirmation pass after iteration 3: the planted gaps that still passed ──
+test('a missing ledger, a ledger without a status column, a bold id, an indented row and escaped pipes all count', () => {
+  const L = 'docs/evidence/specs/2026-08-16-software-fabric-carryover.md'
+  const b = plan('| 12 · rest | y | z | CO-001 |')
+  assert.ok(planProblems(b, { 'docs/evidence/backlog.md': b }).some((x) => x.includes('carry-over ledger') && x.includes('missing')), 'missing ledger')
+  const noStatus = ['| # | What | State |', '|---|---|---|', '| CO-001 | a | open |'].join('\n')
+  assert.ok(planProblems(b, { [L]: noStatus, 'docs/evidence/backlog.md': b }).some((x) => x.includes('no Status column')), 'renamed header')
+  const tricky = ['| # | What | Status |', '|---|---|---|', '| CO-001 | a | open |', '| **CO-998** | bold | open |', ' | CO-997 | indented | open |', '| CO-996 | a \\| b | open |'].join('\n')
+  const p = planProblems(b, { [L]: tricky, 'docs/evidence/backlog.md': b })
+  for (const id of ['CO-998', 'CO-997', 'CO-996']) assert.ok(p.some((x) => x.includes(id) && x.includes('no lane')), id + '\n' + p.join('\n'))
 })

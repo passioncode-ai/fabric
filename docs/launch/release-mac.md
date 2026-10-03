@@ -23,7 +23,8 @@ extends the local packaging config; `pnpm --dir apps/desktop package` keeps buil
    HEAD is the freshly fetched `origin/main`.
    **The release gate.** [`docs/launch/release-gate.json`](release-gate.json) names the version and the
    verification ledger that clears it ([general plan](../evidence/backlog.md#general-development-plan),
-   P-02). The script reads both from the commit and refuses unless the ledger has exactly one section per
+   P-02). The script refuses a tree with any file flagged skip-worktree or assume-unchanged, takes the
+   version from the commit, and reads both files from the commit; it refuses unless the ledger has exactly one section per
    iteration (three), each linking its reviewer reports, every finding row disposed (fixed, ruled, not a
    defect, not recoverable, stopped), and each ending with its one line
    `Exit for iteration N: … Blocking findings open: none.` (`scripts/lib/release-gate.mjs`, tested by

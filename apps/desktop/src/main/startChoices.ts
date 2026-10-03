@@ -14,7 +14,7 @@
 import { lstatSync, realpathSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
 import path from 'node:path'
-import { OutsideRoots } from './files.ts'
+import { OutsideRoots, isTooBroad } from './files.ts'
 
 export type PickPurpose = 'project' | 'scan' | 'parent'
 
@@ -140,7 +140,7 @@ function within(p: string, root: string): boolean {
 
 /** A filesystem root (`/`) or the home folder: never a repository path a window may add. */
 export function tooBroad(real: string, home: string = realHome()): boolean {
-  return real === path.parse(real).root || real === home
+  return isTooBroad(real, home)
 }
 
 /**

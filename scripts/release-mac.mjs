@@ -26,7 +26,14 @@ const assess = (args, what) => { const r = spawnSync('spctl', args, { encoding: 
 
 for (const v of ['ASC_API_KEY_P8_B64', 'ASC_KEY_ID', 'ASC_ISSUER_ID']) if (!process.env[v]) fail(`${v} missing — run through use_secret.py (see the header)`)
 if (out('git', ['status', '--porcelain'], { cwd: root })) fail('the tree is not clean; commit first so the build names its commit')
-const version = JSON.parse(readFileSync(path.join(desktop, 'package.json'), 'utf8')).version
+// A clean `git status` can hide an edit: a file flagged skip-worktree or assume-unchanged is not compared
+// (confirmation pass after iteration 3). None may exist, so what is built is what is committed.
+{
+  const hidden = out('git', ['ls-files', '-v'], { cwd: root }).split('\n').filter((l) => /^(?:S|[a-z]) /.test(l))
+  if (hidden.length) fail(`files are flagged skip-worktree or assume-unchanged, so the tree may differ from the commit:\n  ${hidden.slice(0, 10).join('\n  ')}`)
+}
+const version = JSON.parse(out('git', ['show', 'HEAD:apps/desktop/package.json'], { cwd: root })).version
+if (JSON.parse(readFileSync(path.join(desktop, 'package.json'), 'utf8')).version !== version) fail('apps/desktop/package.json on disk differs from the commit')
 // A release is built from `main` as it is on the remote (plan row P-03), and only when the release gate
 // is clear (P-02, scripts/lib/release-gate.mjs). Both files are read FROM THE COMMIT, not the working tree:
 // a clean `git status` can hide a skip-worktree edit (iteration 3).

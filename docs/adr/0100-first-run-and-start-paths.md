@@ -85,7 +85,10 @@ it). The operator settled each one.
    scan, pinned to the path the walk itself recorded and lying under that scan's folder; the filesystem
    root and the home folder are always refused, and so is a repository another project already holds;
    anything else is refused before it is journalled, with a code the window translates
-   (`startChoices.ts#admitRepoPaths`, `repo-path-refused:<code>`). An
+   (`startChoices.ts#admitRepoPaths`, `repo-path-refused:<code>`). "Too broad" is a filesystem root, the
+   home folder, or any folder that holds it (`files.ts#isTooBroad`), and the estate's roots apply the same
+   rule on every refresh: an attached repository whose path has since become a link, or resolves too
+   broad, grants nothing (`FileRoots.addRepo`). An
    admitted project's folders join the estate's roots and the git watch at once. The only exception is the walk harness's `FABRIC_WALK_PICK`, which answers the
    picker in an UNPACKAGED run and is ignored by a packaged app.
 <a id="app-icon"></a>

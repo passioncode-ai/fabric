@@ -41,3 +41,10 @@ test('the verdict is computed: an open row, a second heading, a hidden blocking 
   assert.ok(releaseGateProblems({ version: '0.3.0', gateText, ledgerText: ledger(...ok, nolink) }).some((x) => x.includes('links no reviewer report')))
   assert.match(releaseGateProblems({ version: '0.3.0', gateText: JSON.stringify({ version: '0.3.0', ledger: '../../etc/x.md' }), ledgerText: 'x' })[0], /under docs\//)
 })
+test('a finding row in any spelling is read, and "fixed?" is not a disposition (confirmation pass)', () => {
+  const ok = [iteration(1), iteration(2)]
+  for (const row of ['|V3-41| x | open |', '|  V3-41 | x | open |', '| **V3-41** | x | open |', ' | V3-41 | x | open |', '| V3-41 | x | fixed? no — still open |']) {
+    const third = `## Iteration 3\n\n[r](x/iteration-3/r.md)\n\n${row}\n\nExit for iteration 3: x. Blocking findings open: none.\n`
+    assert.ok(releaseGateProblems({ version: '0.3.0', gateText, ledgerText: ledger(...ok, third) }).some((x) => x.includes('V3-41 has no disposition')), row)
+  }
+})
