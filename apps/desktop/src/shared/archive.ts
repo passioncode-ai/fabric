@@ -81,6 +81,10 @@ const EXCLUDED: Readonly<Record<string, string>> = {
   estate_restore_boundaries: 'protected local restore provenance created before projection; never transferred from an archive or reconstructed from its journal',
   ceo_pending_requests: 'private pending work is not dispatch authority and is not reconstructed by Estate journal restore',
   ceo_write_authorizations: 'transaction-only command authority must never survive in a portable archive',
+  // Release review iteration 3: these two are transaction-only too, and an unlisted table falls through
+  // to `journal` recovery, which no journal event rebuilds them from.
+  transcript_recovery_authorizations: 'transaction-only recovery authority must never survive in a portable archive',
+  declared_import_authorizations: 'transaction-only import exemption (migration 73) must never survive in a portable archive',
   ceo_private_import_receipts: 'a private import receipt is local evidence of one command in one Estate; the owner-private companion carries history, never this receipt (ADR-0079)',
   ceo_content_provenance: 'private provenance of imported text travels only inside the owner-private companion, as its origin fields; an Estate archive never carries it (ADR-0079)',
 

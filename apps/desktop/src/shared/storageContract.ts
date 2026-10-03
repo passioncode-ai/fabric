@@ -78,6 +78,7 @@ export const NOT_MIRRORED: Readonly<Record<string, string>> = {
   ceo_pending_requests: 'private pending input; mirror/replay cannot create permission to dispatch',
   ceo_receipt_refs: 'opaque receipt projection rebuilt from the journal, never private text or dispatch authority',
   ceo_write_authorizations: 'private transaction authorization, never mirrored or restored',
+  declared_import_authorizations: 'private transaction authorization of one import (migration 73), never mirrored or restored',
   ceo_private_import_receipts: 'a local private import receipt; mirroring it would let a copy claim an import it never ran',
   ceo_content_provenance: 'private origin of imported text, bound to one Person and target Estate; never workspace content',
 
