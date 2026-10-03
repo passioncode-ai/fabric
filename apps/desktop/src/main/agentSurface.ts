@@ -408,9 +408,13 @@ export class AgentSurface {
   private async handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
     // ADR-0115 §4: a product delivering its key to the callback this hub put in its connect link.
     // Not an MCP route and not bearer-authenticated: the single-use state in the body is the proof.
+    // A hub with no published door token is CLOSED: no callback and no external principal, so the
+    // surface is exactly the session door it was before ADR-0115 (the app falls back to that when the
+    // hub's port could not be taken).
+    const hub = this.deps.hub && this.deps.hub.doorToken() !== null ? this.deps.hub : null
     const connect = req.method === 'POST' ? /^\/fabric\/v1\/connect\/([a-z][a-z0-9-]{1,62})$/.exec((req.url ?? '').split('?')[0]) : null
-    if (connect && this.deps.hub?.callback) {
-      await this.deps.hub.callback(connect[1], req, res)
+    if (connect && hub?.callback) {
+      await hub.callback(connect[1], req, res)
       return
     }
     if (req.method !== 'POST' || !req.url?.startsWith('/mcp')) {
@@ -430,7 +434,7 @@ export class AgentSurface {
     if (!st) {
       // A session's bearer is looked up FIRST and is never confused with an external credential:
       // only a bearer that is not a session's reaches the hub's door (ADR-0115).
-      if (token && this.deps.hub && (await this.handleExternal(token, req, res, ctx, attempt))) return
+      if (token && hub && (await this.handleExternal(token, hub, req, res, ctx, attempt))) return
       // No credential, no scope, no surface. The absence of a token is not a
       // reason to fall back to something broader.
       AgentSurface.refuse(res, 401, 'unknown or revoked credential', {}, attempt)
@@ -588,12 +592,12 @@ export class AgentSurface {
    */
   private async handleExternal(
     token: string,
+    hub: HubIngress,
     req: IncomingMessage,
     res: ServerResponse,
     ctx: AttemptContext,
     attempt: { refused(reason: string): void; saw(body: unknown): void }
   ): Promise<boolean> {
-    const hub = this.deps.hub as HubIngress
     let principal: HubPrincipal | null = null
     const door = hub.doorToken()
     if (door && sameToken(token, door)) principal = { kind: 'door' }

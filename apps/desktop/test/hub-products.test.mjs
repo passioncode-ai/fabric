@@ -110,10 +110,11 @@ test('vault: without Project Observatory the answer is a refusal with that reaso
 })
 
 // ── the connect flow, through the real surface route
+const open = { closed: false }
 async function hubWith(connector) {
   const surface = new AgentSurface({
     db: null, journal: null, ptys: () => undefined, estateId: 'e',
-    hub: { doorToken: () => null, access: { authenticate: async () => null }, tools: () => { throw new Error('no tools here') }, callback: (p, req, res) => connector.callback(p, req, res) }
+    hub: { doorToken: () => (open.closed ? null : 'd'.repeat(43)), access: { authenticate: async () => null }, tools: () => { throw new Error('no tools here') }, callback: (p, req, res) => connector.callback(p, req, res) }
   })
   await surface.start()
   return surface
@@ -188,6 +189,23 @@ test('connect: denied and failed are recorded; a browser, a wrong state, an expi
   assert.equal(puts.length, 0, 'an unusable delivery reached the vault')
   assert.equal(store.events.length, 0)
   await surface.stop()
+})
+
+test('a closed hub (no published door token) opens neither the callback nor any external door', async () => {
+  const opened = []
+  let origin = ''
+  const connector = new ProductConnector({ store: recordingStore(), vault: { put: async () => ({ ok: true }), read: async () => ({ ok: false, reason: 'n/a' }) }, origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
+  const surface = await hubWith(connector)
+  origin = surface.origin
+  await connector.begin(FABRIC_INBOX)
+  const state = new URL(opened[0]).searchParams.get('state')
+  open.closed = true
+  try {
+    assert.equal((await deliver(origin, { state, outcome: 'denied' })).status, 404)
+  } finally {
+    open.closed = false
+    await surface.stop()
+  }
 })
 
 test('connect: without the vault the callback answers 503, so the product revokes the key', async () => {
