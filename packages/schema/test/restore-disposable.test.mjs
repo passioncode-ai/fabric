@@ -24,6 +24,7 @@ import { readdirSync } from 'node:fs'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
 import pg from 'pg'
+import { probeEnv } from '../../../scripts/lib/test-stack.mjs'
 
 // Read from the scope map rather than listed here: a table added tomorrow joins
 // the comparison without anyone remembering to add it (the same rule
@@ -34,7 +35,8 @@ const TABLES = Object.keys(
 
 let SCOPED = []
 
-const ADMIN = process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+// The disposable stack the tier started; probeEnv() refuses the live one (54322) before connecting.
+const ADMIN = probeEnv().DATABASE_URL
 const MIGRATIONS = path.resolve(import.meta.dirname, '../../../supabase/migrations')
 const nameFor = () => 'fabric_restore_probe_' + randomUUID().replace(/-/g, '').slice(0, 12)
 const DISPOSABLE = nameFor()

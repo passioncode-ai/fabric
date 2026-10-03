@@ -11,9 +11,15 @@
 # types, the design and documentation gates, the register arithmetic, and every
 # test that is pure. Run it locally before the source commit; hosted execution
 # follows the repository nightly policy, not a new push/PR dispatch. The full
-# tier brings up the local stack and runs the probes that talk to it.
+# tier runs the eleven owned-cluster suites, then starts a DISPOSABLE Supabase
+# stack (its own project id, ports and volumes — scripts/test-stack.mjs), runs
+# every probe that talks to a database against it, and removes it on exit. It
+# never starts, migrates, reads or writes the operator's live stack (project
+# `fabric`, API 54321, DB 54322) and refuses to run if it would (2026-10-03).
 #
 # Usage: scripts/ci.sh [fast|full]   (default: fast)
+#   full needs Docker, the Supabase CLI and PostgreSQL 17 binaries (FABRIC_PG_BIN);
+#   FABRIC_TEST_STACK_BASE pins the disposable stack's block of ten ports.
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -269,7 +275,7 @@ step "owned databases: the SQL contract and the reads, on a cluster this run cre
 # whole migration chain; it never touches the stack the desktop uses. Without
 # PostgreSQL binaries the runner exits 2 and this step says NOT_RUN out loud
 # rather than passing — set FABRIC_PG_BIN to run it. The eleven older
-# `run-*-db.mjs` runners are still package scripts only (review finding 3).
+# `run-*-db.mjs` runners run in the full tier (review finding 3).
 for runner in run-estate-identity-db run-read-schema-db; do
   set +e
   node "apps/desktop/test/$runner.mjs"
@@ -278,6 +284,10 @@ for runner in run-estate-identity-db run-read-schema-db; do
   if [ "$code" = "2" ]; then printf 'NOT_RUN %s: no PostgreSQL binaries (FABRIC_PG_BIN)\n' "$runner"
   elif [ "$code" != "0" ]; then exit "$code"; fi
 done
+# 2026-10-03 (release review iteration 1, finding 2). The guard that keeps every database probe
+# off the operator's live stack, and the residue report's read-only property. Pure: they start
+# nothing and connect to nothing; the full tier below is where the guard is used.
+node --test scripts/test/test-stack.test.mjs scripts/test/residue-report.test.mjs
 
 step "measured runtimes: the private pipe adapters under Node and inside Electron main (E0, B1, B2a, B2b-1, B4)"
 # The registry and the native view host read a private Node pipe field and rely on libuv's
@@ -466,11 +476,56 @@ if [ "$TIER" = "fast" ]; then
   exit 0
 fi
 
-step "the local stack"
-supabase start >/dev/null
-supabase migration up --local >/dev/null
+step "owned-cluster suites: each starts its own PostgreSQL and touches no other database"
+# 2026-10-03 (release review iteration 1, finding 3). Eleven runners apply the whole migration
+# chain to a temporary cluster of their own (initdb, unix socket only, listen_addresses='') and
+# run their suite there; NO tier ran them. They are here, not in the fast tier, for two measured
+# reasons: they need PostgreSQL 17 binaries (FABRIC_PG_BIN, default Homebrew's postgresql@17),
+# which the hosted fast runner does not have, and together they take ~94 s on this Mac
+# (2026-10-03: 3–32 s each, 11 of 11 exit 0). In this tier a runner that cannot run (exit 2,
+# NOT_RUN) fails it: the full tier is the one whose job is the database.
+for suite in run-board-deferral-db run-ceo-conversation-db run-ceo-host-sql run-ceo-private-archive-db \
+  run-command-ingress-db run-dispatch-db run-managed-launch-db run-managed-stop-db run-releases-db \
+  run-restore-authority-db run-transcript-recovery-db; do
+  if ! node "apps/desktop/test/$suite.mjs"; then
+    echo "FAIL: $suite (exit non-zero; exit 2 is NOT_RUN — set FABRIC_PG_BIN to PostgreSQL 17 binaries)"
+    exit 1
+  fi
+done
+
+step "a disposable stack — never the operator's"
+# 2026-10-03 (release review iteration 1, finding 2). This step used to be `supabase start` and
+# `supabase migration up --local` at the repository root: the operator's LIVE stack (project
+# `fabric`, API 54321, DB 54322), the database the desktop app keeps their real estates in. The
+# probes then wrote into it — 768 estates, 3 540 projects and 996 persons of residue were measured
+# (`node scripts/residue-report.mjs` counts them, read-only).
+#
+# Now: a copy of the root `supabase/` project with its own `fabric_test_<hex>` id and its own block
+# of ports, started fresh (so the whole migration chain and the seed are applied, as on a new
+# install), used, then stopped with its volumes deleted. The teardown is a trap, so it runs on
+# every exit path — success, a failing probe, Ctrl-C. `up` refuses a plan that would use a live
+# port before any container exists, and `guard` refuses again on the addresses the probes will
+# actually be handed; every probe checks them a third time itself (scripts/lib/test-stack.mjs).
+stack_dir="$(mktemp -d "${TMPDIR:-/tmp}/fabric-test-stack.XXXXXX")"
+cleanup_stack() { node scripts/test-stack.mjs down "$stack_dir" || echo "WARN: the disposable stack in $stack_dir was not removed; run: node scripts/test-stack.mjs down $stack_dir"; }
+trap cleanup_stack EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+node scripts/test-stack.mjs up "$stack_dir"
+# The probes take their connection from these four variables and from nowhere else; an
+# operator's own SUPABASE_URL or DATABASE_URL is overwritten here, never inherited.
+set -a
+# shellcheck disable=SC1091
+. "$stack_dir/stack.env"
+set +a
+node scripts/test-stack.mjs guard
 
 step "every probe, including the ones that need the database"
 pnpm -r test
 
-printf '\n\033[1mfull tier green.\033[0m\n'
+step "residue the probes left — in the disposable stack, read-only"
+# Informational: the same report the operator can run against the live database, here showing
+# what one full run writes and does not clean up. It is deleted with the stack a moment later.
+node scripts/residue-report.mjs --db-url "$DATABASE_URL" | sed -n '1,9p'
+
+printf '\n\033[1mfull tier green.\033[0m The live stack was not addressed; the disposable one is removed on exit.\n'

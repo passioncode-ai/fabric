@@ -16,6 +16,7 @@
 // the one thing faked, because the question is what the RECORD says.
 import { execFileSync } from 'node:child_process'
 import path from 'node:path'
+import { probeEnv } from '../../../scripts/lib/test-stack.mjs'
 
 const HERE = import.meta.dirname
 const script = `
@@ -245,19 +246,9 @@ console.log(failures ? '  FAIL ' + failures + ' failure(s)' : '\\nall green')
 process.exit(failures ? 1 : 0)
 `
 
-const env = { ...process.env }
-try {
-  const out = execFileSync('supabase', ['status', '-o', 'env'], { encoding: 'utf8', cwd: path.resolve(HERE, '../../..') })
-  for (const line of out.split('\n')) {
-    const m = line.match(/^([A-Z0-9_]+)="?([^"]*)"?\s*$/)
-    if (!m) continue
-    if (m[1] === 'API_URL') env.SUPABASE_URL = m[2]
-    if (m[1] === 'SERVICE_ROLE_KEY') env.SUPABASE_SERVICE_ROLE_KEY = m[2]
-  }
-} catch {
-  console.log('  FAIL the local stack is not running — this probe asserts nothing without it (no skip, M110).')
-  process.exit(1)
-}
+// The disposable stack the tier started — never `supabase status` at the root, which is the
+// operator's live stack. probeEnv() refuses (FAIL, exit 1) before anything connects otherwise.
+const env = probeEnv()
 try {
   const out = execFileSync(process.execPath, ['--experimental-strip-types', '--input-type=module', '-e', script],
     { encoding: 'utf8', env, cwd: path.resolve(HERE, '..') })

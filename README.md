@@ -108,8 +108,8 @@ plan survives as org #1 and builds first.
   nothing is registered by hand. Fabric's own entry for agents outside it — its northbound MCP
   with `agent.call`, which `claude mcp add` would register — arrives with plan AR-3 ([plans](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/plans.md)); until then you work with Fabric in the app, and Fabric
   drives the other products over their MCP servers ([products](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/products.md)).
-- **Develop:** `pnpm install`, then `bash scripts/ci.sh fast` (no database) or `full` (with the
-  local stack) — [Local development](#local-development) below.
+- **Develop:** `pnpm install`, then `bash scripts/ci.sh fast` (no database) or `full` (with a
+  disposable stack, never your live one) — [Local development](#local-development) below.
 
 ## Where things are
 
@@ -194,9 +194,8 @@ everything ([ADR-0008](docs/adr/0008-the-fabric-is-standalone-and-the-terminal-r
 
 ```bash
 pnpm install            # workspace: apps/desktop + packages/*; postinstall fixes node-pty's spawn-helper exec bit
-supabase start          # local stack: API 54321, DB 54322, Studio 54323 (requires Docker)
-supabase db reset       # migration 1 + seed (org #1), from empty
-pnpm test               # planted-defect suite (schema) + live PTY probe (desktop)
+supabase start          # local stack: API 54321, DB 54322, Studio 54323 (requires Docker) — the app's, holding your estates
+bash scripts/ci.sh full # every probe, against a disposable stack (below) — never the one above
 pnpm dev                # the macOS desktop app: projects, journal feed, hosted terminals
 pnpm --filter @fabric/desktop package   # → apps/desktop/dist/mac-arm64/Fabric.app (unsigned, local)
 ```
@@ -214,6 +213,60 @@ real quit). The signed and notarized release is built by
 single door — ADR-0004/0013/0014/0016/0027), a journal-fed project list, and live
 Claude Code terminals hosted per project. Agents, routines and chains arrive with
 slice 3; collectors with slice 4.
+
+### The disposable test stack
+
+The probes that need a database never use the stack above. That stack is the one the desktop
+app keeps your real estates in, and until 2026-10-03 the probes wrote into it. Now
+[`scripts/test-stack.mjs`](scripts/test-stack.mjs) copies the root `supabase/` project into a
+temporary folder. The copy gets its own `fabric_test_<hex>` project id and its own block of ten
+ports (from 55420 up; `FABRIC_TEST_STACK_BASE` pins the block). It starts fresh, so the whole
+migration chain and the seed are applied. It runs only db, auth, rest and kong. It is stopped,
+with its volumes deleted, when the work is done.
+
+```bash
+bash scripts/ci.sh full                                   # starts it, runs every probe, removes it (trap)
+node scripts/test-stack.mjs run -- pnpm test              # the same, around any command
+node scripts/test-stack.mjs up <dir>                      # keep one up and rerun single probes:
+node scripts/test-stack.mjs with <dir> -- node apps/desktop/test/identity.test.mjs
+node scripts/test-stack.mjs down <dir>
+```
+
+A probe reads its connection only from `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`,
+`DATABASE_URL` and `FABRIC_TEST_STACK`, through `probeEnv()` in
+[`scripts/lib/test-stack.mjs`](scripts/lib/test-stack.mjs). Nothing falls back to
+`supabase status` at the root. Three things refuse an address on a live port: `up`, `guard`
+and each probe itself. The live ports are whatever the root `supabase/config.toml` declares,
+plus 54321 and 54322 in every case. A refusal is a FAIL with exit 1, and nothing connects
+first. Two other things are refused as well: the live project id, and an address that is not
+loopback. `down` acts only on a folder that carries the marker `up` wrote. It never runs
+`supabase stop --no-backup` for the live project.
+
+The eleven `apps/desktop/test/run-*-db.mjs` suites own a temporary PostgreSQL cluster each.
+They need PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default `/opt/homebrew/opt/postgresql@17/bin`)
+and run first in the full tier.
+
+### Test residue in the live database
+
+[`scripts/residue-report.mjs`](scripts/residue-report.mjs) counts what earlier probe runs left
+in the live database. It is read-only twice over: the session sets
+`default_transaction_read_only=on`, and the query runs in a read-only transaction that is
+rolled back. It removes nothing and prints no `DELETE`.
+
+A row is classed only by a marker that a probe in this repository writes:
+- the system actor that founded an estate;
+- a probe's literal estate or person name, on a row that has no journal;
+- a restore whose source estate is residue or gone;
+- a project whose estate is gone.
+
+Rows made by a path a person also takes are listed as **review** and are never counted as
+removable: the desktop bootstrap's "org #1", the launch fixture, and a restore whose source
+still exists.
+
+```bash
+node scripts/residue-report.mjs            # the live stack, from supabase/config.toml
+node scripts/residue-report.mjs --json     # machine-readable
+```
 
 ## License
 

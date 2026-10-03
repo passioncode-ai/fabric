@@ -15,9 +15,11 @@
 // answer, and appends an event the projector then drops with a warning —
 // leaving the journal holding something the board does not contain.
 import pg from 'pg'
+import { probeEnv } from '../../../scripts/lib/test-stack.mjs'
 import { randomUUID } from 'node:crypto'
 
-const DB_URL = process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+// The disposable stack the tier started; probeEnv() refuses the live one (54322) before connecting.
+const DB_URL = probeEnv().DATABASE_URL
 const ESTATE = randomUUID()
 const ACTOR = JSON.stringify({ kind: 'system', id: 'link-race' })
 

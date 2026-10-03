@@ -4,13 +4,16 @@
 // would be theater, so every probe also carries a positive control proving
 // the harness (role + JWT claims) is actually engaged.
 //
-// Runs against the local stack: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+// Runs against the DISPOSABLE stack `scripts/ci.sh full` starts (scripts/test-stack.mjs), never
+// the operator's live one at 54322: it creates estates, a table and a transaction-level lock,
+// and P24 hashes whole tables, which a running app would also be writing.
 
 import pg from 'pg'
+import { probeEnv } from '../../../scripts/lib/test-stack.mjs'
 import { randomUUID } from 'node:crypto'
 
-const DB_URL =
-  process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+// The disposable stack the tier started; probeEnv() refuses the live one (54322) before connecting.
+const DB_URL = probeEnv().DATABASE_URL
 
 const client = new pg.Client({ connectionString: DB_URL })
 let failures = 0
@@ -380,11 +383,20 @@ async function p19_noTruncate() {
   // creator's default privileges, so revoking on today's tables fixes today
   // only. A probe that checks the existing tables and not the default would go
   // green while the next migration reintroduced the hole.
-  await client.query('create table _p19_probe(id int)')
-  const { rows: fresh } = await client.query(`
-    select has_table_privilege('authenticated', '_p19_probe', 'TRUNCATE') as auth,
-           has_table_privilege('service_role', '_p19_probe', 'TRUNCATE') as service`)
-  await client.query('drop table _p19_probe')
+  //
+  // Inside a transaction that is always rolled back: the table exists only for the
+  // two reads below, so an interrupted run leaves nothing in `public` either (it
+  // used to be create, read, drop — and the drop is the step an interruption skips).
+  let fresh
+  await client.query('begin')
+  try {
+    await client.query('create table public._p19_probe(id int)')
+    ;({ rows: fresh } = await client.query(`
+      select has_table_privilege('authenticated', 'public._p19_probe', 'TRUNCATE') as auth,
+             has_table_privilege('service_role', 'public._p19_probe', 'TRUNCATE') as service`))
+  } finally {
+    await client.query('rollback')
+  }
   if (fresh[0].auth || fresh[0].service)
     fail('P19 a NEW table still grants TRUNCATE — the default privileges were not changed')
   else ok('P19 a table created now inherits no TRUNCATE, so the next append-only table is one too')
