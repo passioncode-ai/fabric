@@ -173,6 +173,69 @@ await test('pre65 restored Estates are NOT_MIGRATED: no guessed backfill, status
  assert.equal(member(OLD,OLDV),1,'known historical gap must remain explicit, not a claimed retrospective repair')
  console.log('NOT_MIGRATED: pre65 restored fixture has no reliable marker; old replay still creates archived owner')
 })
+// Migration 77 (verification 0.3.1, DA-2 and DA-3). Before it, a restored archive brought back live hub
+// authority — a claimed credential, standing grants, a product connection — that nobody in the target
+// consented to, and a restore beside its source failed with "names no request of this estate".
+// To WATCH: remove 20261004000077_hub_access_at_the_door.sql from the chain (this runner applies every file).
+const T0=Date.parse('2026-09-27T00:00:00.000Z'),at=m=>new Date(T0+m*60000).toISOString()
+const hubArchive=(R,B,G,C,R2,G2)=>{
+ const ev=(seq,type,payload,m,who={kind:'system',id:'fabric-hub'})=>({seq,type,schema_rev:'1',actor:who,project_id:null,run_id:null,node_id:null,payload,occurred_at:at(m)})
+ const op=actor(V),grant=(id,capability)=>({id,capability,resource:'cloudflare:news@example.com',expires_at:at(525600)})
+ const req=(id,capabilities,binding_id)=>({id,agent_id:'example-agent',callee:'fabric-inbox',capabilities,resources:['cloudflare:news@example.com'],reason:'archived',registry:{},binding_id,expires_at:at(10)})
+ return [archive()[0],
+  ev(2,'access.requested@1',req(R,['list_messages'],null),0),
+  ev(3,'access.decided@1',{request_id:R,decision:'allowed',binding_id:B,new_binding:true,grants:[grant(G,'list_messages')]},1,op),
+  ev(4,'access.credential.claimed@1',{binding_id:B,request_id:R,verifier:'e'.repeat(64)},2),
+  ev(5,'product.connected@1',{id:C,product:'fabric-inbox',server:'https://mail.example.com',mcp_url:'https://mail.example.com/mcp',key_id:'k',client_id:'c',level:'admin',send:'send',key_expires_at:null,secret_ref:{project:'fabric',env:'local',name:'FABRIC_INBOX_CLIENT_SECRET'}},3,op),
+  ev(6,'access.requested@1',req(R2,['read_message'],B),4),
+  ev(7,'access.decided@1',{request_id:R2,decision:'allowed',binding_id:B,new_binding:false,grants:[grant(G2,'read_message')]},5,op),
+  ev(8,'access.grant.revoked@1',{grant_id:G},6,op),
+  ev(9,'access.binding.revoked@1',{binding_id:B},7,op),
+  ev(10,'product.disconnected@1',{id:C},8,op)]
+}
+const hubRows=E=>sql(`select md5(string_agg(r,',' order by r)) from (
+ select row(q.*)::text r from access_requests q where estate_id=${uuid(E)} union all
+ select row(b.*)::text from access_bindings b where estate_id=${uuid(E)} union all
+ select row(g.*)::text from access_grants g where estate_id=${uuid(E)} union all
+ select row(c.*)::text from product_connections c where estate_id=${uuid(E)}) u`)
+await test('restored hub history is history only: no live credential, grant or connection crosses the boundary, and a rebuild keeps it so (DA-2)',()=>{
+ const E=id(110),R=id(111),B=id(112),G=id(113),C=id(114),R2=id(115),G2=id(116)
+ // Stop before the source's own revocations: the archive's last word is a live binding, two grants and a connection.
+ assert.equal(restore(E,hubArchive(R,B,G,C,R2,G2).slice(0,7),id(119)).restored,true)
+ assert.equal(sql(`select count(*) from access_bindings where estate_id=${uuid(E)} and revoked_at is null`),'0','a restored binding is live in the target')
+ assert.equal(sql(`select count(*) from access_bindings where estate_id=${uuid(E)} and verifier is not null`),'0','a restored verifier would authenticate a credential nobody here issued')
+ assert.equal(sql(`select count(*) from access_grants where estate_id=${uuid(E)} and revoked_at is null`),'0','a restored grant is live in the target')
+ assert.equal(sql(`select count(*) from product_connections where estate_id=${uuid(E)} and removed_at is null`),'0','a restored product connection is live in the target')
+ assert.equal(sql(`select string_agg(distinct revoked_by,',') from access_bindings where estate_id=${uuid(E)}`),'restore-boundary')
+ assert.equal(sql(`select string_agg(status,',' order by requested_at) from access_requests where estate_id=${uuid(E)}`),'allowed,allowed','the history of what was asked and decided is kept')
+ const restored=hubRows(E)
+ sql(`set role service_role;select rebuild_estate_projections(${uuid(E)})`)
+ assert.equal(hubRows(E),restored,'a rebuild changed the restored hub rows')
+ // The operator consents again in the target, and that consent is live (the boundary is not a freeze).
+ const NR=id(117),NB=id(118)
+ sql(`set role service_role;select append_event(${uuid(E)},'access.requested@1','{"kind":"system","id":"fabric-hub"}'::jsonb,${json({id:NR,agent_id:'example-agent',callee:'fabric-inbox',capabilities:['list_messages'],resources:['cloudflare:news@example.com'],reason:'again',registry:{},binding_id:null,expires_at:new Date(Date.now()+600000).toISOString()})})`)
+ sql(`set role service_role;select append_event(${uuid(E)},'access.decided@1',${json(actor(U))},${json({request_id:NR,decision:'allowed',binding_id:NB,new_binding:true,grants:[{id:id(120),capability:'list_messages',resource:'cloudflare:news@example.com',expires_at:new Date(Date.now()+86400000).toISOString()}]})})`)
+ assert.equal(sql(`select count(*) from access_grants where estate_id=${uuid(E)} and revoked_at is null`),'1')
+})
+await test('a restored archive whose source had already revoked everything replays its own revocations without refusing (DA-2)',()=>{
+ const E=id(130)
+ assert.equal(restore(E,hubArchive(id(131),id(132),id(133),id(134),id(135),id(136)),id(139)).restored,true)
+ assert.equal(sql(`select count(*) from journal where estate_id=${uuid(E)}`),'10')
+ const restored=hubRows(E)
+ sql(`set role service_role;select rebuild_estate_projections(${uuid(E)})`)
+ assert.equal(hubRows(E),restored)
+})
+await test('a hub-using estate restored beside its source is refused with the designed "restore collided" sentence (DA-3)',()=>{
+ const SRC=id(140),E=id(141),R=id(142),B=id(143),G=id(144)
+ const later=m=>new Date(Date.now()+m*60000).toISOString()
+ const app=(type,p,who={kind:'system',id:'fabric-hub'})=>sql(`set role service_role;select seq from append_event(${uuid(SRC)},'${type}',${json(who)},${json(p)})`)
+ app('access.requested@1',{id:R,agent_id:'example-agent',callee:'fabric-inbox',capabilities:['list_messages'],resources:['cloudflare:news@example.com'],reason:'r',registry:{},binding_id:null,expires_at:later(10)})
+ app('access.decided@1',{request_id:R,decision:'allowed',binding_id:B,new_binding:true,grants:[{id:G,capability:'list_messages',resource:'cloudflare:news@example.com',expires_at:later(60)}]},actor(U))
+ const events=JSON.parse(sql(`select coalesce(jsonb_agg(jsonb_build_object('seq',seq,'type',type,'schema_rev',schema_rev,'actor',actor,'payload',payload,'occurred_at',occurred_at) order by seq),'[]') from journal where estate_id=${uuid(SRC)}`))
+ assert.throws(()=>sql(`set role service_role;select restore_estate(${uuid(E)},${uuid(SRC)},'beside',${json(events)})`),e=>/restore collided/.test(String(e.stderr))&&/Restore into a database that does not already hold this estate/.test(String(e.stderr)))
+ assert.equal(sql(`select count(*) from journal where estate_id=${uuid(E)}`),'0')
+ assert.equal(sql(`select count(*) from estate_restore_boundaries where target_estate_id=${uuid(E)}`),'0')
+})
 await test('concern projector preserves latest59 body exactly apart from the reviewed owner predicate',()=>{
  const source=readFileSync(new URL('../../../supabase/migrations/20260910000059_project_configured.sql',import.meta.url),'utf8')
  const baseline=source.slice(source.indexOf('create or replace function apply_estate_and_projects'),source.indexOf('create or replace function apply_project_servers')).trim()

@@ -23,8 +23,8 @@ identifiers and never renumbers, edits or reuses an applied artifact.
 
 | Kind | Reserved ID | Purpose |
 |---|---|---|
-| migration | `20261003000077_pipeline_definitions.sql` | pipeline-as-data: definitions + versions, append-only |
-| migration | `20261003000078_graph_version_pins.sql` | the running graph pinned to a pipeline version |
+| migration | `20261004000078_pipeline_definitions.sql` | pipeline-as-data: definitions + versions, append-only |
+| migration | `20261004000079_graph_version_pins.sql` | the running graph pinned to a pipeline version |
 | ADR | `docs/adr/0116-task-pipeline-persistence-contract.md` | the contract itself, superseding nothing. Re-reserved from 0055 on 2026-09-10, from 0056 on 2026-09-12, from 0082 on 2026-09-29 (ADR-0084, releases, was written past it), from 0085 on 2026-09-29 (ADR-0086, positioning, was written past it), from 0087 on 2026-09-29 (ADR-0088, remote surfaces, was written past it), from 0089 on 2026-09-29 (ADR-0090, names, was written past it), from 0091 on 2026-09-30 (ADR-0092–0094, licence, knowledge base and MCP-first, were written past it), and from 0095 on 2026-09-30 (ADR-0096, publication redaction, was written past it): each time an ADR handed out by agent-sync passed this prose reservation (0055 was written; then ADR-0057 continued the sequence past 0056), because a reservation living in prose never reaches the register. The document's own collision rule owns both moves. Re-reserved again from 0099 on 2026-10-03 (ADR-0100 and ADR-0101, the start paths and the general plan, were written past it), from 0102 later the same day (ADR-0103, the write-boundary rule, was written past it), and from 0104 later still (ADR-0105, agent memory, and ADR-0106, the lifecycle contract, were written past it; 0107 was returned by key `pipeline-reservation-after-agent-memory-20261003`), and from 0107 the same evening (ADR-0109, the agent learning loop, was written past it; 0110 returned by key `pipeline-reservation-after-learning-loop-20261003`), and from 0110 later that day (ADR-0111, Fabric released from CI, was written past it; 0112 returned by key `pipeline-reservation-after-release-in-ci-20261003`), and from 0112 the same day (ADR-0113, the amended release approval, was written past it; 0114 returned by key `pipeline-reservation-after-release-approval-20261003`), and from 0114 the same day (ADR-0115, a local agent reaches a cloud product through Fabric, was written past it; 0116 returned by key `pipeline-reservation-after-hub-consent-20261003`). |
 
 **The collision this document predicted happened, and the rule was applied.**
@@ -318,3 +318,13 @@ same collision rule the reserved ADR moves to **0116**, returned by
 `agent_sync.py reserve ADR --key pipeline-reservation-after-hub-consent-20261003`; 0114 is superseded and
 never reused. No pipeline file exists at 0116 or at either migration number (`ls supabase/migrations |
 grep -i pipeline` is empty). Checked by `python3 test/audit_regressions/fix-pf-06.03.py`.
+
+**2026-10-04 the hub at the door (verification of Fabric 0.3.1, iteration 1):** slot 77 is taken by the
+executed migration `20261004000077_hub_access_at_the_door.sql` (the hub's four creates at the write
+boundary, restored hub history projected revoked, the writer's expiry and secret-slot rules in the
+projector, the poll verifier, `product.connect.refused@1`), so the unexecuted pipeline migration
+reservations move from 77/78 to **78/79** (`20261004000078_pipeline_definitions.sql`,
+`20261004000079_graph_version_pins.sql`) under the same ordering rule. No ADR was written past 0116, so the
+reserved ADR stays at **0116**. No pipeline file exists at 0116 or at either migration number
+(`ls supabase/migrations | grep -i pipeline` is empty). Checked by
+`python3 test/audit_regressions/fix-pf-06.03.py`.

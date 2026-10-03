@@ -541,11 +541,64 @@ test('the name rule trims exactly the whitespace the form trims (JS String#trim)
 })
 // #endregion canonical-ids-at-the-door
 
+// #region hub-access-at-the-door — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#3-grants-are-standing-narrow-and-revocable
+// Migration 77 (verification 0.3.1, DA-1): the hub's four creates are keyed on a global id like every
+// create above. Before 77, B's `access.requested@1` with A's id was ACCEPTED and journalled a fact no
+// projection of B shows (`on conflict (id) do nothing`), and the binding, grant and connection creates
+// answered with a raw unique_violation naming the id — a yes/no read of another estate's row.
+// To WATCH it fail, run the runner with FABRIC_SKIP_MIGRATION=20261004000077_hub_access_at_the_door.sql.
+test('the hub\'s creates refuse another estate\'s id, and a request names only a live binding of its own estate (migration 77)', () => {
+  const HR = uuid(60), HB = uuid(61), HG = uuid(62), HC = uuid(63), HR2 = uuid(64), HR3 = uuid(65)
+  const later = (m) => new Date(Date.now() + m * 60000).toISOString()
+  const req = (id, extra = {}) => ({ id, agent_id: 'example-agent', callee: 'fabric-inbox', capabilities: ['list_messages'],
+    resources: ['cloudflare:news@example.com'], reason: 'summarise', registry: {}, binding_id: null, expires_at: later(10), ...extra })
+  const grant = (id) => ({ id, capability: 'list_messages', resource: 'cloudflare:news@example.com', expires_at: later(60) })
+  const conn = (id) => ({ id, product: 'fabric-inbox', server: 'https://mail.example.com', mcp_url: 'https://mail.example.com/mcp',
+    key_id: 'k', client_id: 'c', level: 'admin', send: 'send', key_expires_at: null,
+    secret_ref: { project: 'fabric', env: 'local', name: 'FABRIC_INBOX_CLIENT_SECRET' } })
+  sql(append(A, 'access.requested@1', req(HR)))
+  sql(append(A, 'access.decided@1', { request_id: HR, decision: 'allowed', binding_id: HB, new_binding: true, grants: [grant(HG)] }))
+  sql(append(A, 'product.connected@1', conn(HC)))
+  sql(append(B, 'access.requested@1', req(HR2)))
+  const rowsOfA = () => sql(`select md5(string_agg(r, ',' order by r)) from (
+    select row(q.*)::text r from access_requests q where estate_id='${A}' union all
+    select row(b.*)::text from access_bindings b where estate_id='${A}' union all
+    select row(g.*)::text from access_grants g where estate_id='${A}' union all
+    select row(c.*)::text from product_connections c where estate_id='${A}') u`)
+  const beforeA = rowsOfA()
+  const seqB = journalOf(B)
+  const refused = [
+    [append(B, 'access.requested@1', req(HR)), /access_requests id that belongs to another estate/],
+    [append(B, 'access.decided@1', { request_id: HR2, decision: 'allowed', binding_id: HB, new_binding: true, grants: [grant(uuid(66))] }), /access_bindings id that belongs to another estate/],
+    [append(B, 'access.decided@1', { request_id: HR2, decision: 'allowed', binding_id: uuid(67), new_binding: true, grants: [grant(HG)] }), /access_grants id that belongs to another estate/],
+    [append(B, 'product.connected@1', conn(HC)), /product_connections id that belongs to another estate/]
+  ]
+  for (const [q, pattern] of refused) {
+    const said = refusal(q)
+    assert.ok(said, `ACCEPTED: ${q.slice(0, 80)}`)
+    assert.match(said, pattern)
+    assert.doesNotMatch(said, /duplicate key|DETAIL/, 'the refusal is the door\'s sentence, not a constraint naming the id')
+    assert.doesNotMatch(said, new RegExp(A), 'the refusal names the estate that owns the id')
+  }
+  // A binding of another estate, and one that exists nowhere, are refused in the same words: no yes/no.
+  const foreign = refusal(append(B, 'access.requested@1', req(HR3, { binding_id: HB })))
+  const none = refusal(append(B, 'access.requested@1', req(HR3, { binding_id: uuid(68) })))
+  assert.ok(foreign && none, 'a request naming a binding that is not B\'s was ACCEPTED')
+  assert.match(foreign, /names no live binding of this estate/)
+  assert.equal(foreign.split('\n')[0], none.split('\n')[0])
+  assert.equal(journalOf(B), seqB, 'a refused hub event reached B\'s journal')
+  assert.equal(sql(`select count(*) from access_requests where estate_id='${B}'`), '1')
+  assert.equal(rowsOfA(), beforeA, 'A\'s hub rows changed')
+  // A's own incremental request naming its own live binding is still admitted (the rule is not a freeze).
+  sql(append(A, 'access.requested@1', req(uuid(69), { binding_id: HB })))
+})
+// #endregion hub-access-at-the-door
+
 test('the door is not an API: no role may call the guard directly', () => {
   for (const role of ['anon', 'authenticated', 'service_role'])
     for (const fn of ['refuse_foreign_identity(uuid,text,jsonb,uuid)', 'refuse_taken_agent_name(uuid,text,jsonb)', 'identity_uuid(text)',
                       'lock_global_identity(uuid)', 'session_held_elsewhere(uuid,uuid)', 'repair_foreign_heartbeats()',
-                      'refuse_noncanonical_identity(text,jsonb)', 'agent_name_trim(text)'])
+                      'refuse_noncanonical_identity(text,jsonb)', 'agent_name_trim(text)', 'refuse_foreign_hub_identity(uuid,text,jsonb)'])
       assert.equal(sql(`select coalesce(has_function_privilege('${role}',to_regprocedure('${fn}'),'execute'),false)`), 'f', `${role} ${fn}`)
   for (const role of ['anon', 'authenticated', 'service_role'])
     assert.equal(sql(`select coalesce(has_table_privilege('${role}',to_regclass('declared_import_authorizations'),'insert'),false)`), 'f', role)

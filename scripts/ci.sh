@@ -297,7 +297,7 @@ step "owned databases: the SQL contract and the reads, on a cluster this run cre
 # (release review iteration 3, coordinator): this loop used to `exit` on the first
 # failure, so the second runner's verdict was never seen.
 #
-# run-hub-access-db (migration 76, ADR-0115) is here for the same reason: it holds the hub's standing
+# run-hub-access-db (migrations 76 and 77, ADR-0115) is here for the same reason: it holds the hub's standing
 # access — who may call a cloud product through Fabric — to its refusals and its privileges.
 #
 # run-function-privileges-db (migration 75) joins them here, not in the full tier: it is
