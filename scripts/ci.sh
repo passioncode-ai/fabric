@@ -289,7 +289,7 @@ done
 # 2026-10-03 (release review iteration 1, finding 2). The guard that keeps every database probe
 # off the operator's live stack, and the residue report's read-only property. Pure: they start
 # nothing and connect to nothing; the full tier below is where the guard is used.
-node --test scripts/test/test-stack.test.mjs scripts/test/residue-report.test.mjs scripts/test/with-timeout.test.mjs scripts/test/run-test-chains.test.mjs
+node --test scripts/test/test-stack.test.mjs scripts/test/residue-report.test.mjs scripts/test/with-timeout.test.mjs scripts/test/run-test-chains.test.mjs scripts/test/walk-cleanup.test.mjs
 
 step "measured runtimes: the private pipe adapters under Node and inside Electron main (E0, B1, B2a, B2b-1, B4)"
 # The registry and the native view host read a private Node pipe field and rely on libuv's
