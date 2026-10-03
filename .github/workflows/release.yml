@@ -1,8 +1,9 @@
 # The release: Fabric for macOS as one DMG for Apple silicon, signed with the organization's CI
 # Developer ID, notarized and stapled (the app and the DMG); then attested (Sigstore), summed and
 # GPG-signed, and published as a release of this repository. Signing happens only here, in the
-# protected `release` environment: approved by release-approvers, never by whoever pushed the tag
-# (passioncode-ai/.github release-signing/README.md, ADR-0111). A published release is never
+# protected `release` environment: approved by a person from release-approvers, who may be whoever
+# pushed the tag; an agent never approves (passioncode-ai/.github release-signing/README.md, ADR-0111,
+# ADR-0113). A published release is never
 # rewritten: a fix is a new tag. How to cut one: docs/launch/release-mac.md.
 #
 # Release:    push an annotated vX.Y.Z tag on a commit of main whose apps/desktop/package.json says

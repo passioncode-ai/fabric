@@ -71,7 +71,7 @@ facts stay here; the `workspace` submodule owns the host and maintenance skill. 
 | Provider accounts proposal | [`docs/architecture/provider-accounts.md`](architecture/provider-accounts.md) | M199 account/runtime ownership, native conversation continuity and proposed ADR-0051; [packets and handoff](evidence/plans/2026-09-09-provider-accounts.md) |
 | Provider accounts execution tasks | [`docs/evidence/plans/2026-09-09-provider-accounts-backlog.md`](evidence/plans/2026-09-09-provider-accounts-backlog.md) | current M199 child cards, cswap auto sources, requirement extension and handoff |
 | Agent iteration contract | [`AGENTS.md`](../AGENTS.md#iteration-contract) | `CLAUDE.md` and other agent entries link to it, without duplicating the policy |
-| How Fabric is released, and its release notes | [`launch/release-mac.md`](launch/release-mac.md#how-a-release-is-made) ([ADR-0111](adr/0111-fabric-is-released-from-ci.md)); notes in [`CHANGELOG.md`](../CHANGELOG.md) | a release is a `vX.Y.Z` tag built and signed by `.github/workflows/release.yml`; the README and the website link the procedure and the release, never restate it |
+| How Fabric is released, and its release notes | [`launch/release-mac.md`](launch/release-mac.md#how-a-release-is-made) ([ADR-0111](adr/0111-fabric-is-released-from-ci.md), approval amended by [ADR-0113](adr/0113-any-release-approver-may-approve-the-tag-pusher-included.md)); notes in [`CHANGELOG.md`](../CHANGELOG.md) | a release is a `vX.Y.Z` tag built and signed by `.github/workflows/release.yml`; the README and the website link the procedure and the release, never restate it |
 
 ## Propagation matrix
 

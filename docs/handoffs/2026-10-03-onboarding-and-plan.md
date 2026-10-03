@@ -1,5 +1,7 @@
 # Handoff — onboarding, start paths, icon, general plan (2026-10-03)
 
+> **Note, 2026-10-03 (later the same day):** the release-approval rule below was amended by [ADR-0113](../adr/0113-any-release-approver-may-approve-the-tag-pusher-included.md): any member of `release-approvers` may approve, the person who pushed the tag included; an agent never approves.
+
 Branch `claude/onboarding-and-plan` (pushed; not on `main`). The branch head is the commit that carries
 this file; `git log origin/claude/onboarding-and-plan -1` names it. Brief, REQ table and REQ status:
 [docs/evidence/plans/2026-10-03-onboarding-and-plan.md](../evidence/plans/2026-10-03-onboarding-and-plan.md#req-status-after-iteration-1).
