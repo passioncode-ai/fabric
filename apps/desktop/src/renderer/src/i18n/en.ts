@@ -179,6 +179,10 @@ export const en = {
   'estate.quotaRejected': 'The service refused the request, so these numbers are the last ones read {age} ago.',
   'estate.quotaEmpty': 'The service answered with nothing, so these numbers are the last ones read {age} ago.',
   'estate.quotaThrottled': 'Rate-limited for asking — these numbers are the last ones read {age} ago.',
+  'estate.quotaUnreachableUnread': 'The service could not be reached, and no reading has come back yet. This says nothing about whether Claude Code is signed in.',
+  'estate.quotaRejectedUnread': 'The service refused the request, and no reading has come back yet. This says nothing about whether Claude Code is signed in.',
+  'estate.quotaEmptyUnread': 'The service answered with nothing, so there are no numbers to show yet.',
+  'estate.quotaThrottledUnread': 'Rate-limited before the first reading came back, so there are no numbers yet.',
   // Four evidence answers, four acts — and `null` is one of them (AX-11).
   'retro.locateSource': 'Where is it?',
   'retro.retrySource': 'Try again',
@@ -242,7 +246,7 @@ export const en = {
   'estate.quotaByModel': 'Per model, 7-day',
   'estate.quotaResets': 'resets in {time}',
   'estate.quotaStale': 'last read {age} ago',
-  'estate.quotaNone': 'No quota to show — Claude Code is not signed in on this machine.',
+  'estate.quotaNone': 'No reading came back, so there is nothing to show. This says nothing about the account itself.',
   // M106 — what a failure is CALLED, in our words, with the machine's own
   // words kept beside it rather than instead of it.
   'error.title': 'Something did not work',

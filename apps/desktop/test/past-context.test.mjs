@@ -122,6 +122,27 @@ try {
     const got = past.read('s-4')
     eq(got.why, 'unreadable', 'a packet written by a newer build is unreadable rather than guessed at')
   }
+
+  // ── a session id is a name, never a path (release review 2026-10-03) ──────
+  //
+  // The id arrives over IPC from the renderer and went straight into
+  // `path.join(root, 'packet-' + id + '.json')`. `x/../../secret` resolves OUT
+  // of the packet store, the file is read, and a JSON parse error quotes its
+  // first bytes back in `says` — a read of any `.json` the app can reach,
+  // delivered to the window as an error message.
+  {
+    writeFileSync(path.join(root, 'secret.json'), 'top secret, not a packet')
+    const reads = []
+    const probe = createPastContext({ root, readFile: (p) => { reads.push(p); return readFileSync(p, 'utf8') } })
+    for (const id of ['x/../../secret', '../secret', 'a\\..\\b', '', '.', '..', 's-1/../s-1']) {
+      const got = probe.read(id)
+      got.held === false && got.why === 'no_packet' && !/top secret/.test(got.says)
+        ? ok(`${JSON.stringify(id)} is refused as a session id before any file is looked for`)
+        : fail(`${JSON.stringify(id)} answered ${JSON.stringify(got)}`)
+    }
+    eq(reads.length, 0, 'and no file outside the packet store was opened')
+    eq(probe.read('s-1').held, true, 'while a real session id still reads its packet')
+  }
 } finally {
   rmSync(root, { recursive: true, force: true })
 }

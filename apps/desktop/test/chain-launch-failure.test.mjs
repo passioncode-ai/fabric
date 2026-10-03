@@ -10,8 +10,13 @@ for (const processStarted of [false, true]) {
     select(table) {
       let rel
       const q = { eq(k,v) { if(k==='rel') rel=v; return q }, then(resolve) {
-        return Promise.resolve({data:table==='task_links' && rel==='follows' ? [{task_id:'follower',target_id:'parent',needs:[]}] : [],error:null}).then(resolve)
+        return Promise.resolve({data:table==='task_links' && rel==='follows' ? [{task_id:'follower',target_id:'parent',needs:[]}] : [],error:null,count:0}).then(resolve)
       } }; return q
+    },
+    // The paged read the advance now uses for every link (release review 2026-10-03).
+    async selectAll(table, columns, { eq = [] } = {}) {
+      const rel = eq.find(([k]) => k === 'rel')?.[1]
+      return { rows: table==='task_links' && rel==='follows' ? [{task_id:'follower',target_id:'parent',needs:[]}] : [], failed: null }
     },
     async selectIn(table, columns, field, ids) {
       return { rows: ids.includes('follower') ? [{id:'follower',project_id:'project',status:'backlog',instruction:'do work',option_id:'shell'}] : [{id:'parent',status:'done'}] }

@@ -49,6 +49,27 @@ export const QUOTA_PROBLEM_KEYS = {
   throttled: 'estate.quotaThrottled'
 } as const
 
-export function quotaProblemKey(problem: NonNullable<Quota['problem']>): string {
-  return QUOTA_PROBLEM_KEYS[problem]
+/**
+ * The same causes, for a reading that carries NO number (release review
+ * 2026-10-03). Every key above ends "these numbers are the last ones read {age}
+ * ago", which is false when nothing was ever read — and before the reader was
+ * fixed, this case did not reach the panel at all: it arrived as null and was
+ * rendered as "not signed in". `no-credential` has no numbers either way, so it
+ * keeps its one sentence.
+ */
+export const QUOTA_PROBLEM_UNREAD_KEYS = {
+  'no-credential': 'estate.quotaNoCredential',
+  unreachable: 'estate.quotaUnreachableUnread',
+  rejected: 'estate.quotaRejectedUnread',
+  empty: 'estate.quotaEmptyUnread',
+  throttled: 'estate.quotaThrottledUnread'
+} as const
+
+/** Whether a reading has any number on it to call stale. */
+export function quotaHasNumbers(q: Quota): boolean {
+  return !!q.fiveHour || !!q.sevenDay || Object.keys(q.byModel).length > 0
+}
+
+export function quotaProblemKey(problem: NonNullable<Quota['problem']>, hasNumbers = true): string {
+  return (hasNumbers ? QUOTA_PROBLEM_KEYS : QUOTA_PROBLEM_UNREAD_KEYS)[problem]
 }

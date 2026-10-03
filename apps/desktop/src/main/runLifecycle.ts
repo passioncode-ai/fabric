@@ -21,6 +21,33 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { outcomeOfExit, type Exit, type RunOutcome } from '../shared/runOutcome.ts'
 
+/**
+ * Every refusal `bind_task_run` can return, in the managed-launch contract.
+ *
+ * Migration 55 refused a second session with `already_bound`; migration 61
+ * replaced the command for HAR-R0-03's single coordinator ("exact bind",
+ * `docs/launch/harness-r0/checks.md`), and migration 62 is its current
+ * definition. Since then a second session on a launching or active run is
+ * `session_conflict` — `managed-launch-db.test.mjs` asserts it on an owned
+ * cluster. `run-lifecycle-contract.test.mjs` holds this list equal to what the
+ * latest SQL returns, so the next replacement of the command cannot leave the
+ * module and its probes speaking the old words (release review 2026-10-03).
+ */
+export const BIND_REFUSALS = [
+  'not_found',
+  'ended',
+  'ending',
+  'generation_changed',
+  'run_unresolved',
+  'lease_changed',
+  'launch_not_begun',
+  'session_conflict',
+  'task_changed'
+] as const
+
+/** Every refusal `end_task_run` can return (migration 55, its current definition). */
+export const END_REFUSALS = ['unknown_outcome', 'not_found', 'already_ended'] as const
+
 export interface RunVerdict {
   ok: boolean
   reasonCode?: string

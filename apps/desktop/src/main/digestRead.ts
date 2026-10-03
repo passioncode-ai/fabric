@@ -79,10 +79,18 @@ export async function digestFor(
       .eq('project_id', projectId)
       .eq('kind', 'decision')
       .gt('seq', since),
+    // A CORRECTION THAT LANDED. There is no `supersedes` column, and this read
+    // selected one until the release review of 2026-10-03 found it as the
+    // banner on the operator's first project: migration 50 keeps what was
+    // ASKED (`supersedes_requested`) apart from what HAPPENED
+    // (`correction_outcome`), and only `superseded` means the earlier fact was
+    // closed. A refused burial is a conflict standing beside the fact, not a
+    // correction of it. `read-schema-db.test.mjs` runs this query against the
+    // migrated schema so the column list cannot drift from it again.
     store
-      .select('memory_facts', 'id,claim,recorded_at,seq,supersedes')
+      .select('memory_facts', 'id,claim,recorded_at,seq,supersedes:supersedes_requested')
       .eq('project_id', projectId)
-      .not('supersedes', 'is', null)
+      .eq('correction_outcome', 'superseded')
       .gt('seq', since),
     store
       .select('project_tasks', 'id,title,instruction,started_at,seq')

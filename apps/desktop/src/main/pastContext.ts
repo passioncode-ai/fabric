@@ -37,6 +37,18 @@ export interface PastContextDeps {
   exists?: (p: string) => boolean
 }
 
+/**
+ * What a session id may look like before it becomes part of a file name.
+ *
+ * Ids are minted by `randomUUID` and the probes use short names like `s-1`;
+ * both are letters, digits, `-` and `_`. Nothing else is accepted — no `.`, no
+ * separator — so the name cannot step out of the packet store. Release review
+ * 2026-10-03: the renderer's id went straight into the path, `x/../../secret`
+ * reached a file outside the store, and the JSON parse error quoted its first
+ * bytes back to the window.
+ */
+const SESSION_ID = /^[A-Za-z0-9_-]{1,128}$/
+
 export function createPastContext(deps: PastContextDeps) {
   const root = path.join(deps.root, 'packets')
   const readFile = deps.readFile ?? ((p: string): string => readFileSync(p, 'utf8'))
@@ -51,6 +63,14 @@ export function createPastContext(deps: PastContextDeps) {
      * record. A record that can be edited without saying so is not a record.
      */
     read(sessionId: string): PastContext {
+      // `no_packet`, truthfully: no packet can exist under a name that is not a
+      // session id, and nothing is looked up to find that out.
+      if (typeof sessionId !== 'string' || !SESSION_ID.test(sessionId))
+        return {
+          held: false,
+          why: 'no_packet',
+          says: 'that is not a session id, so no execution packet was looked up for it.'
+        }
       const packetPath = path.join(root, `packet-${sessionId}.json`)
       if (!exists(packetPath))
         return {

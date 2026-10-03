@@ -127,12 +127,18 @@ const eq = (got, want, m) =>
       }
       return q
     },
+    // The links answer through the paged read (release review 2026-10-03); the
+    // follower read behind them still refuses, which is the case under test.
+    selectAll: async () => ({
+      rows: [{ task_id: 'b', target_id: 'a', needs: ['report'], rel: 'follows', target_kind: 'task' }],
+      failed: null
+    }),
     selectIn: async () => ({ rows: [], failed: 'project_tasks.id could not be read (414): URI too long' }),
     insert: () => ({ then: (r) => r({ data: null, error: null }) }),
     update: () => ({ then: (r) => r({ data: null, error: null }) })
   }
   // The FACTORY RETURNS THE TICK ITSELF — `createChainAdvance(deps)` is
-  // `() => Promise<void>`. The first version of this block called
+  // `() => Promise<ChainTickResult>`. The first version of this block called
   // `advance.tick()`, which threw immediately, and the assertion passed anyway
   // because my own catch filled the list it was reading. The whole case proved
   // nothing until the assertion asked for the failure BY NAME.

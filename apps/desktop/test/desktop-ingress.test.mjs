@@ -52,9 +52,10 @@ const store = {
   select(table) {
     let rel
     const q={eq(k,v){if(k==='rel')rel=v;return q},then(resolve){
-      return Promise.resolve({data:table==='task_links'&&rel==='follows'?[{task_id:id,target_id:other,needs:[]}]:[],error:null}).then(resolve)
+      return Promise.resolve({data:table==='task_links'&&rel==='follows'?[{task_id:id,target_id:other,needs:[]}]:[],error:null,count:0}).then(resolve)
     }};return q
   },
+  async selectAll(table,_columns,{eq=[]}={}){const rel=eq.find(([k])=>k==='rel')?.[1];return {rows:table==='task_links'&&rel==='follows'?[{task_id:id,target_id:other,needs:[]}]:[],failed:null}},
   async selectIn(_table,_columns,_field,ids){return {rows:ids.includes(id)?[{id,project_id:other,status:'backlog',instruction:`Read ${secret}`,option_id:'shell'}]:[{id:other,status:'done'}]}}
 }
 await createChainAdvance({store,estateId:id,quota:async()=>null,admission:{claim:()=>({ok:true})},

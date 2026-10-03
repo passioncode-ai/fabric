@@ -22,6 +22,7 @@ const script = `
 import { createBundleCompiler } from ${JSON.stringify(path.join(HERE, '../src/main/sessionBundle.ts'))}
 import { PtyManager } from ${JSON.stringify(path.join(HERE, '../src/main/pty.ts'))}
 import { useOps } from ${JSON.stringify(path.join(HERE, '../src/main/opsSink.ts'))}
+import { MandatoryContextUnmet } from ${JSON.stringify(path.join(HERE, '../src/main/contextPack.ts'))}
 import fs, { existsSync, mkdtempSync, readFileSync, statSync } from 'node:fs'
 import { syncBuiltinESMExports } from 'node:module'
 import assert from 'node:assert/strict'
@@ -122,6 +123,29 @@ else ok('the session is launched with --strict-mcp-config')
   if (!existsSync(path.join(root, 'sessions', sid2, 'mcp.json')))
     fail('the credential was not written when the pack failed')
   else ok('the credential is still written — the surface is what the session needs to work at all')
+}
+
+// 1d — but an UNATTENDED start whose required context did not answer is refused,
+// and its credential with it (S14; release review 2026-10-03). The compiler
+// throws only when the caller demanded sources, which a person's terminal never does.
+{
+  const blind = createBundleCompiler({
+    root,
+    surface,
+    context: async () => { throw new MandatoryContextUnmet(['facts']) }
+  })
+  const sid4 = randomUUID()
+  let refused = null
+  try {
+    await blind.compile(sid4, randomUUID(), null, 'claude-code', 'mcp-config-flag')
+  } catch (e) {
+    refused = e
+  }
+  if (!(refused instanceof MandatoryContextUnmet)) fail('an unattended start with unread memory was bundled anyway')
+  else ok('an unattended start whose required context could not be read is refused, not started blind')
+  if (existsSync(path.join(root, 'sessions', sid4))) fail('the refused start left its session directory behind')
+  else if (!revoked.includes(sid4)) fail('the refused start left its credential live')
+  else ok('and its credential is revoked and its directory removed')
 }
 
 // 2 — discard removes the file and revokes the credential

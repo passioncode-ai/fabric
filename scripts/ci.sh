@@ -253,6 +253,31 @@ node --test scripts/test/build-identity.test.mjs scripts/test/toolchain.test.mjs
 # aliases — the register held 101 open rows while every number quoted about it
 # said 99, and a report named a task by an anchor nobody could search for.
 node --test scripts/test/markdown-table.test.mjs scripts/test/canonical-id.test.mjs
+# Release review 2026-10-03. Each fix lands with the probe that watched it fail,
+# and these are pure — fakes under the REAL scoped store, or source files read —
+# so the tier that runs before every commit runs them, not only `pnpm -r test`.
+node --experimental-strip-types apps/desktop/test/chain-advance-reads.test.mjs
+node --experimental-strip-types apps/desktop/test/list-reads.test.mjs
+node --experimental-strip-types apps/desktop/test/context-mandatory.test.mjs
+node apps/desktop/test/session-bundle.test.mjs
+node --experimental-strip-types apps/desktop/test/digest-boundary.test.mjs
+node --experimental-strip-types apps/desktop/test/search-read.test.mjs
+node --experimental-strip-types apps/desktop/test/run-lifecycle-contract.test.mjs
+
+step "owned databases: the SQL contract and the reads, on a cluster this run creates and removes"
+# A disposable PostgreSQL (`initdb` into a temp dir, Unix socket only) with the
+# whole migration chain; it never touches the stack the desktop uses. Without
+# PostgreSQL binaries the runner exits 2 and this step says NOT_RUN out loud
+# rather than passing — set FABRIC_PG_BIN to run it. The eleven older
+# `run-*-db.mjs` runners are still package scripts only (review finding 3).
+for runner in run-estate-identity-db run-read-schema-db; do
+  set +e
+  node "apps/desktop/test/$runner.mjs"
+  code=$?
+  set -e
+  if [ "$code" = "2" ]; then printf 'NOT_RUN %s: no PostgreSQL binaries (FABRIC_PG_BIN)\n' "$runner"
+  elif [ "$code" != "0" ]; then exit "$code"; fi
+done
 
 step "measured runtimes: the private pipe adapters under Node and inside Electron main (E0, B1, B2a, B2b-1, B4)"
 # The registry and the native view host read a private Node pipe field and rely on libuv's

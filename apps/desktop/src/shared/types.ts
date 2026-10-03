@@ -836,9 +836,10 @@ export interface FabricApi {
      */
     onRepoChanged(cb: (repoPath: string) => void): () => void
   }
-  /** M83 — account quota. Null when there is nothing to say at all. */
+  /** M83 — account quota. Never null: a read that produced nothing is a
+   *  reading whose `problem` says why (release review 2026-10-03). */
   quota: {
-    read(): Promise<Quota | null>
+    read(): Promise<Quota>
   }
   transcripts: {
     list(projectId: string): Promise<SessionTranscript[]>

@@ -24,6 +24,7 @@ import { resolveServers } from '../shared/agentSpec.ts'
 import type { BundleCompiler, SessionBundle } from './pty'
 import { ops } from './opsSink.ts'
 import { materialize, verify } from './executionPacket.ts'
+import { MandatoryContextUnmet } from './contextPack.ts'
 
 export interface BundleSurface {
   readonly endpoint: string
@@ -203,6 +204,11 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
             // different: that store is lying, and the error above escapes this
             // catch by name.
             if (e instanceof Error && e.message.startsWith('execution packet does not verify')) throw e
+            // And an UNATTENDED start whose required context did not answer is
+            // refused, not started blind (S14; release review 2026-10-03). A
+            // person's terminal never demands sources, so this cannot fire for
+            // the session a person is watching.
+            if (e instanceof MandatoryContextUnmet) throw e
             ops.failed('sessionBundle.failure', e, { note: `context pack failed for session ${sessionId}:` })
           }
         }

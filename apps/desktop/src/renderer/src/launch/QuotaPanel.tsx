@@ -2,7 +2,7 @@
 // «Управление» group (the launch shell, L11). THREE STATES (AX-14): nobody looked, the read
 // failed, or a reading — and a reading names the CAUSE of a partial answer, not only its age.
 
-import { quotaOf, quotaProblemKey, type QuotaReading } from '../../../shared/quotaReading.ts'
+import { quotaHasNumbers, quotaOf, quotaProblemKey, type QuotaReading } from '../../../shared/quotaReading.ts'
 import { EmptyState, Panel, Row, StateChip } from '../components'
 import { until } from '../duration'
 import { useT } from '../i18n'
@@ -23,6 +23,10 @@ export function QuotaPanel({ quota }: { quota: QuotaReading }): React.JSX.Elemen
       ) : 'failed' in quota ? (
         <EmptyState read>{t('estate.quotaUnavailable', { reason: quota.failed })}</EmptyState>
       ) : !reading ? (
+        // NOT "not signed in". The reader never answers null since the
+        // 2026-10-03 release review — a signed-out account is `no-credential`
+        // below — so an absent reading is something this screen cannot
+        // explain, and it says only that.
         <EmptyState read>{t('estate.quotaNone')}</EmptyState>
       ) : (
         <>
@@ -31,7 +35,7 @@ export function QuotaPanel({ quota }: { quota: QuotaReading }): React.JSX.Elemen
               and a missing credential alike (AX-14). */}
           {reading.problem && (
             <p className="muted">
-              {t(quotaProblemKey(reading.problem) as 'estate.quotaThrottled', {
+              {t(quotaProblemKey(reading.problem, quotaHasNumbers(reading)) as 'estate.quotaThrottled', {
                 age: `${reading.ageSeconds}s`
               })}
             </p>
