@@ -21,7 +21,11 @@ ever show. A declared import into an empty estate C reported success while creat
 
 1. **The door refuses.** `append_event` calls `refuse_foreign_identity` after the estate lock, and the
    check first takes an advisory lock on each id it reads, so two estates creating one id are serialised
-   (migration 73; lock order estate, then id): an event whose project, or whose created entity id, already
+   (migration 73; lock order estate, then id). Ids are read through `identity_uuid`, which since migration
+   74 is the projector's own `::uuid` cast (null only where the cast fails), and `append_event` first
+   refuses any payload id the door reads (`id`, `project_id`, `session_id`, `task_id`, `note_id`,
+   `task_run_id`, `delivery_id`) that is not canonical lower-case hyphenated text, so the journal holds one
+   spelling (a no-hyphen or braced id slipped past the door until then). An event whose project, or whose created entity id, already
    belongs to another estate raises `check_violation` and nothing is journalled. This covers every create
    keyed on a global id (migration 70: projects, repositories, memory facts, tasks, stages, transcripts,
    context packs; migration 72: hand-offs, heartbeats and the eleven `do nothing` creates) and, since
@@ -34,14 +38,15 @@ ever show. A declared import into an empty estate C reported success while creat
    refuse what the journal already holds (migration 50).
 3. **One agent per name** in a project is decided under the estate lock in `append_event`
    (`refuse_taken_agent_name`, migration 72), not by a read before the append; names compare casefolded
-   under `pg_c_utf8`, the same fold as `agentSpec.ts#nameKey` (migration 73), and the desktop handler maps
+   under `pg_c_utf8`, the same fold as `agentSpec.ts#nameKey` (migration 73), after trimming the
+   whitespace JavaScript `String#trim` trims (`agent_name_trim`, migration 74), and the desktop handler maps
    the refusal to the code `agent-name-refused:taken`. A unique index was rejected: a database already
    holding two agents of one name would fail the migration, and its journal could never be replayed. A
    declared import is exempt through a transaction-local authorisation (`declared_import_authorizations`),
    so a workspace that legally held such a pair before this rule still imports whole.
 4. **Tests own the rule.** `apps/desktop/test/estate-identity-db.test.mjs` runs each case on an owned
    cluster, including two concurrent sessions creating one id, and was watched failing with migrations 70,
-   72 and 73 left out (`FABRIC_SKIP_MIGRATION`). Heartbeat rows the pre-70 projector moved between estates
+   72, 73 and 74 left out (`FABRIC_SKIP_MIGRATION`). Heartbeat rows the pre-70 projector moved between estates
    are repaired once by `repair_foreign_heartbeats()` (migration 73).
 
 ## Consequences
@@ -50,7 +55,8 @@ ever show. A declared import into an empty estate C reported success while creat
   mint new ids.
 - Every new event type that creates a row keyed on a global id must be added to
   `refuse_foreign_identity` in the same migration that registers it; an event that names a `session_id`
-  is covered automatically.
+  is covered automatically; a new id key the door reads must be added to `refuse_noncanonical_identity`'s
+  list. Command ingress refuses a non-canonical id itself (`invalid_identifier`) rather than passing it on.
 - Each create takes one advisory lock per distinct id for its transaction, so a single import of many
   thousands of ids weighs on the lock table (migration 73's header).
 - Migration 70's header overstated its coverage; migration 72's header records the correction, since

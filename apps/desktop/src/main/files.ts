@@ -34,7 +34,12 @@ export function isTooBroad(real: string, home: string = realHomeOrSelf()): boole
   return real === path.parse(real).root || real === home || home.startsWith(real.endsWith(path.sep) ? real : real + path.sep)
 }
 function realHomeOrSelf(): string {
-  try { return realpathSync(homedir()) } catch { return path.resolve(homedir()) }
+  try {
+    return realpathSync(homedir())
+  } catch {
+    // Not silence: a home folder that cannot be resolved is compared by its resolved path instead.
+    return path.resolve(homedir())
+  }
 }
 
 /** Refused because the path is not under anything the operator opened. */

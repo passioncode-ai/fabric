@@ -20,6 +20,11 @@ The plan everyone works to: [general development plan](../evidence/backlog.md#ge
   quota, search, context; `90b012dc`…`745ba358`) and `claude/ci-full-disposable-stack` (`c0f7339f`:
   `ci.sh full` on a disposable stack, a guard against the live ports, `scripts/residue-report.mjs`).
   Migration 71 restores `append_event`'s lock timeout and event-type check (lost in 63/64).
+- **Confirmation pass after iteration 3** (one more independent verifier of the iteration-3 fixes): two
+  further holes closed — migration 74 (one canonical id spelling at the door and in the journal; command
+  ingress now refuses an upper-case or non-hyphenated id with `invalid_identifier`, a contract change) and
+  file roots that refuse a repository path which became a link or resolves too broad — recorded as
+  V3-59…V3-65.
 - **Verification iteration 3** (five fresh reviewers): 58 findings, each fixed or ruled, none blocking open —
   [ledger §Iteration 3](../evidence/plans/2026-10-03-verification.md#iteration-3). Merged
   `claude/iter3-data-fixes` (migration 73: a session belongs to one estate at the door, ids locked, the
@@ -36,8 +41,8 @@ The plan everyone works to: [general development plan](../evidence/backlog.md#ge
 
 ## Checks run for this state
 - `VITEST_MAX_WORKERS=4 bash scripts/ci.sh full` with `FABRIC_PLAYWRIGHT_MODULE` and `FABRIC_CHROME` set:
-  exit 0 — the fast tier (browser suites 15 of 15), the 13 owned-cluster runners on 73 migrations, and a
-  disposable stack (73 migrations + seed) where 96 suites ran and 96 passed; the stack was removed.
+  exit 0 — the fast tier (browser suites 15 of 15), the 13 owned-cluster runners, and a
+  disposable stack (migrations + seed) where 96 suites ran and 96 passed; the stack was removed.
 - Walk ×3 on a disposable stack (`node scripts/test-stack.mjs run -- node scripts/walk/start-paths.mjs …`,
   dark/en, light/ru, dark/ru): 10/10 each, including the sticky-footer assertion on 29 repositories.
 - The release gate on the ledger: `releaseGateProblems` returns no problem for version 0.3.0.
