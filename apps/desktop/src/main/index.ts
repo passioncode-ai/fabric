@@ -410,7 +410,7 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
   // FIRST, before anything that can fail. A monitor initialised after the thing
   // it is supposed to explain is a monitor that misses the startup.
   useOps(createOps({ dir: path.join(app.getPath('userData'), 'logs') }))
-  fixPath()
+  await fixPath()
   // Which Estate: the recorded choice, or the default. An unreadable choice stops here with its
   // reason; Fabric never opens another Estate in its place.
   const active = readActiveEstate(app.getPath('userData'))

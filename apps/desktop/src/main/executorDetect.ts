@@ -17,8 +17,39 @@
  */
 
 import { spawn } from 'node:child_process'
-import { accessSync, constants, readdirSync, readFileSync, statSync } from 'node:fs'
+import { constants, type Stats } from 'node:fs'
+import { access, readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
+
+/**
+ * The filesystem calls detection makes — every one asynchronous and bounded (iteration 3, errors finding 8:
+ * `accessSync`/`statSync`/`readdirSync`/`readFileSync` ran on Electron's main process, so a PATH folder on
+ * a hung mount froze every window). Injectable for tests.
+ */
+export interface ExecutorFs {
+  access(p: string, mode: number): Promise<void>
+  stat(p: string): Promise<Stats>
+  readdir(p: string): Promise<string[]>
+  readFile(p: string, encoding: 'utf8'): Promise<string>
+}
+const REAL_FS: ExecutorFs = { access, stat, readdir: (p) => readdir(p), readFile: (p, e) => readFile(p, e) }
+/** How long one filesystem call may take before its folder is passed over. */
+const FS_TIMEOUT_MS = 2000
+
+interface FsCtx { fs: ExecutorFs; ms: number }
+
+/** The call's answer, or null when it fails or does not answer within `ms` (the stuck call is abandoned). */
+async function bounded<T>(call: () => Promise<T>, ms: number): Promise<T | null> {
+  let timer: NodeJS.Timeout | undefined
+  try {
+    return await Promise.race([call(), new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), ms) })])
+  } catch {
+    // Absent, unreadable or not executable: the same answer as "not here".
+    return null
+  } finally {
+    clearTimeout(timer)
+  }
+}
 
 /** `connected`: whether Fabric's own tools reach a session of this agent (`AgentDescriptor.connectsToSurface`). */
 export interface ExecutorProbe { id: string; label: string; program: string; connected: boolean }
@@ -31,53 +62,37 @@ const INSTALL: Readonly<Record<string, string>> = {
   codex: 'npm install -g @openai/codex'
 }
 
-function onPath(program: string, envPath: string): string | null {
+async function onPath(program: string, envPath: string, { fs, ms }: FsCtx): Promise<string | null> {
   for (const dir of envPath.split(path.delimiter)) {
     if (!dir) continue
     const candidate = path.join(dir, program)
-    try {
-      accessSync(candidate, constants.X_OK)
-      // A DIRECTORY of that name is executable-bit "searchable", not a program; keep looking.
-      if (!statSync(candidate).isFile()) continue
-      return candidate
-    } catch {
-      /* next */
-    }
+    // `access` resolves to undefined: map it to a flag so "answered yes" differs from "failed or timed out".
+    const executable = await bounded(() => fs.access(candidate, constants.X_OK).then(() => true), ms)
+    if (!executable) continue
+    // A DIRECTORY of that name is executable-bit "searchable", not a program; keep looking.
+    const st = await bounded(() => fs.stat(candidate), ms)
+    if (st?.isFile()) return candidate
   }
   return null
 }
 
-const isDir = (p: string): boolean => {
-  try {
-    return statSync(p).isDirectory()
-  } catch {
-    // Absent or unreadable: not a folder to probe.
-    return false
-  }
-}
+const isDir = async (p: string, { fs, ms }: FsCtx): Promise<boolean> => (await bounded(() => fs.stat(p), ms))?.isDirectory() ?? false
 
 /** nvm's installed Node versions' bin folders, the `alias/default` version first, then newest first. */
-function nvmBins(nvmDir: string): string[] {
+async function nvmBins(nvmDir: string, ctx: FsCtx): Promise<string[]> {
   const versions = path.join(nvmDir, 'versions', 'node')
-  let names: string[]
-  try {
-    names = readdirSync(versions).filter((n) => /^v\d+/.test(n))
-  } catch {
-    // No nvm installation here.
-    return []
-  }
+  // No nvm installation here (or it did not answer): nothing to add.
+  const listed = await bounded(() => ctx.fs.readdir(versions), ctx.ms)
+  if (!listed) return []
+  const names = listed.filter((n) => /^v\d+/.test(n))
   const parts = (n: string): number[] => n.slice(1).split('.').map((x) => Number.parseInt(x, 10) || 0)
   names.sort((a, b) => {
     const [pa, pb] = [parts(a), parts(b)]
     for (let i = 0; i < 3; i++) if (pa[i] !== pb[i]) return (pb[i] ?? 0) - (pa[i] ?? 0)
     return 0
   })
-  let alias = ''
-  try {
-    alias = readFileSync(path.join(nvmDir, 'alias', 'default'), 'utf8').trim().replace(/^v/, '')
-  } catch {
-    // No default alias: newest first is the order.
-  }
+  // No default alias: newest first is the order.
+  const alias = ((await bounded(() => ctx.fs.readFile(path.join(nvmDir, 'alias', 'default'), 'utf8'), ctx.ms)) ?? '').trim().replace(/^v/, '')
   // `20` matches v20.x.y, `20.1` matches v20.1.y; `node`/`lts/*` name no folder and leave newest first.
   const isDefault = (n: string): boolean => !!alias && /^\d/.test(alias) && (n.slice(1) === alias || n.slice(1).startsWith(alias + '.'))
   const ordered = [...names.filter(isDefault), ...names.filter((n) => !isDefault(n))]
@@ -89,14 +104,20 @@ function nvmBins(nvmDir: string): string[] {
  * volta, asdf, fnm. A Dock-launched app inherits launchd's minimal PATH (`env.ts#fixPath` adds only
  * Homebrew and `~/.local/bin`), so an agent installed through one of them read as "not installed" and was
  * offered an install command for what the operator already has (iteration 2, errors finding 8). Nothing is
- * guessed: a folder that does not exist is not added, and without a HOME nothing is.
+ * guessed: a folder that does not exist (or does not answer in time) is not added, and without a HOME
+ * nothing is.
  */
-export function widenProbePath(envPath: string, env: Record<string, string | undefined>): string {
+export async function widenProbePath(
+  envPath: string,
+  env: Record<string, string | undefined>,
+  opts: { fs?: ExecutorFs; fsTimeoutMs?: number } = {}
+): Promise<string> {
+  const ctx: FsCtx = { fs: opts.fs ?? REAL_FS, ms: opts.fsTimeoutMs ?? FS_TIMEOUT_MS }
   const home = env.HOME
   const parts = envPath.split(path.delimiter).filter(Boolean)
   if (!home) return parts.join(path.delimiter)
   const extra = [
-    ...nvmBins(env.NVM_DIR || path.join(home, '.nvm')),
+    ...(await nvmBins(env.NVM_DIR || path.join(home, '.nvm'), ctx)),
     path.join(env.VOLTA_HOME || path.join(home, '.volta'), 'bin'),
     path.join(env.ASDF_DATA_DIR || path.join(home, '.asdf'), 'shims'),
     // asdf's shims call `asdf` itself.
@@ -105,7 +126,10 @@ export function widenProbePath(envPath: string, env: Record<string, string | und
     path.join(home, '.local', 'share', 'fnm', 'aliases', 'default', 'bin'),
     path.join(home, 'Library', 'Application Support', 'fnm', 'aliases', 'default', 'bin')
   ]
-  for (const d of extra) if (!parts.includes(d) && isDir(d)) parts.push(d)
+  const fresh = extra.filter((d, i) => !parts.includes(d) && extra.indexOf(d) === i)
+  // Asked at once, added in the declared order.
+  const present = await Promise.all(fresh.map((d) => isDir(d, ctx)))
+  fresh.forEach((d, i) => { if (present[i]) parts.push(d) })
   return parts.join(path.delimiter)
 }
 
@@ -182,15 +206,16 @@ function versionOf(file: string, env: Record<string, string>, timeoutMs: number)
 
 export async function detectExecutors(
   probes: readonly ExecutorProbe[],
-  opts: { env: Record<string, string>; timeoutMs?: number }
+  opts: { env: Record<string, string>; timeoutMs?: number; fs?: ExecutorFs; fsTimeoutMs?: number }
 ): Promise<ExecutorRow[]> {
   const timeoutMs = opts.timeoutMs ?? 5000
-  const PATH = widenProbePath(opts.env.PATH ?? '', opts.env)
+  const ctx: FsCtx = { fs: opts.fs ?? REAL_FS, ms: opts.fsTimeoutMs ?? FS_TIMEOUT_MS }
+  const PATH = await widenProbePath(opts.env.PATH ?? '', opts.env, { fs: ctx.fs, fsTimeoutMs: ctx.ms })
   const env = { ...opts.env, PATH }
   return Promise.all(
     probes.map(async (p): Promise<ExecutorRow> => {
       const install = INSTALL[p.id] ?? null
-      const file = onPath(p.program, PATH)
+      const file = await onPath(p.program, PATH, ctx)
       const base = { id: p.id, label: p.label, connected: p.connected }
       if (!file) return { ...base, state: 'missing', version: null, path: null, install }
       const v = await versionOf(file, env, timeoutMs)

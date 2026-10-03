@@ -22,12 +22,15 @@ export interface SupabaseEnv {
 // `supabase` and `claude` both live there. Appended once at startup, then the version managers' folders
 // that exist (`widenProbePath`), so a coding agent the first run finds is one a session can also launch
 // (iteration 2: a volta-only Codex was found by detection and missing from the session's PATH).
-export function fixPath(): void {
+// Asynchronous since iteration 3: the folder probes are bounded filesystem calls (errors finding 8).
+// #region fix-path — docs: docs/adr/0100-first-run-and-start-paths.md#first-run
+export async function fixPath(): Promise<void> {
   const extra = ['/opt/homebrew/bin', '/usr/local/bin', `${process.env.HOME}/.local/bin`]
   const parts = (process.env.PATH ?? '').split(':')
   for (const p of extra) if (!parts.includes(p)) parts.push(p)
-  process.env.PATH = widenProbePath(parts.join(':'), process.env)
+  process.env.PATH = await widenProbePath(parts.join(':'), process.env)
 }
+// #endregion fix-path
 
 let bundledRoot: string | null | undefined
 /** The shipped stack project, materialized once per launch into the app's data folder. */
