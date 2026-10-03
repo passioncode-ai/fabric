@@ -346,13 +346,15 @@ export function readRegistry(dirs: { servicesDir: string; providersDir: string }
 export class AgentRegistry {
   private dirs: { servicesDir: string; providersDir: string }
   private debounceMs: number
+  private pollMs: number
   private current: RegistrySnapshot = { entries: [], problems: [], readAt: new Date(0).toISOString() }
   private lastProblemDigest = ''
 
   // Assigned in the body: Node's type-stripping loader rejects parameter properties.
-  constructor(opts: { servicesDir: string; providersDir: string; debounceMs?: number }) {
+  constructor(opts: { servicesDir: string; providersDir: string; debounceMs?: number; pollMs?: number }) {
     this.dirs = { servicesDir: opts.servicesDir, providersDir: opts.providersDir }
     this.debounceMs = opts.debounceMs ?? 250
+    this.pollMs = opts.pollMs ?? 30_000
   }
 
   /** Read the disk now. Cheap (a few small files), so the consent path calls it before resolving. */
@@ -413,7 +415,9 @@ export class AgentRegistry {
 
   /**
    * Re-read on change. A directory that does not exist yet is not watched (fs.watch needs it);
-   * the on-demand refresh before every resolve covers it. Returns the function that stops.
+   * the on-demand refresh before every resolve covers it. fs.watch on macOS is FSEvents, which can
+   * deliver late or drop an event under load (measured: no event within 15 s on a loaded Mac), so a
+   * slow poll (`pollMs`, 30 s) backs it up. Returns the function that stops both.
    */
   watch(onChange?: (snap: RegistrySnapshot) => void): () => void {
     const watchers: FSWatcher[] = []
@@ -422,7 +426,10 @@ export class AgentRegistry {
       if (timer) clearTimeout(timer)
       timer = setTimeout(() => {
         timer = null
-        onChange?.(this.refresh())
+        // Refreshed whether or not anyone listens: `onChange?.(this.refresh())` would skip the
+        // refresh itself when there is no listener, and the app watches without one.
+        const snap = this.refresh()
+        onChange?.(snap)
       }, this.debounceMs)
     }
     for (const dir of [this.dirs.servicesDir, this.dirs.providersDir]) {
@@ -435,8 +442,14 @@ export class AgentRegistry {
         // ENOENT: nothing is installed there yet; the on-demand refresh reads it when it appears.
       }
     }
+    const poll = setInterval(() => {
+      const snap = this.refresh()
+      onChange?.(snap)
+    }, this.pollMs)
+    poll.unref()
     return () => {
       if (timer) clearTimeout(timer)
+      clearInterval(poll)
       for (const w of watchers) w.close()
     }
   }

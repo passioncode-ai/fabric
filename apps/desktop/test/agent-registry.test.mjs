@@ -148,16 +148,16 @@ test('resolve: a provider id, a service id.instance, a bare service id meaning .
   rmSync(h.root, { recursive: true, force: true })
 })
 
-test('refresh picks up a new file; watch() notices it without being asked', async () => {
+test('refresh picks up a new file; watch() notices it without being asked (fs.watch, or its poll when FSEvents is late)', async () => {
   const h = home()
-  const reg = new AgentRegistry({ servicesDir: h.services, providersDir: h.providers, debounceMs: 20 })
+  const reg = new AgentRegistry({ servicesDir: h.services, providersDir: h.providers, debounceMs: 20, pollMs: 500 })
   reg.refresh()
   assert.equal(reg.resolve('late').ok, false)
   let changed = 0
   const stop = reg.watch(() => { changed++ })
   put(h.providers, 'late.json', provider('late'))
-  // fs.watch on macOS is FSEvents, delivered late under load: wait up to 15 s, polling the registry
-  // the watcher refreshes — never calling refresh() here, which would prove nothing about the watch.
+  // Never calling refresh() here, which would prove nothing about the watch: either fs.watch or the
+  // 500 ms poll behind it must bring the new file in.
   for (let i = 0; i < 300 && !reg.resolve('late').ok; i++) await new Promise((r) => setTimeout(r, 50))
   stop()
   assert.equal(reg.resolve('late').ok, true)
@@ -172,4 +172,16 @@ test('remote placement: an https origin with lifecycle none is valid; an IP lite
   assert.notDeepEqual(validateServiceDescriptor({ ...remote, origin: 'https://10.0.0.1' }), [])
   assert.notDeepEqual(validateServiceDescriptor({ ...remote, lifecycle: { manager: 'launchd', label: 'a.b.c', plist: '/x.plist' } }), [])
   assert.deepEqual(validateProviderEntry(provider('ok-provider')), [])
+})
+
+test('the poll refreshes even with no listener — the app watches without a callback', async () => {
+  const h = home()
+  const reg = new AgentRegistry({ servicesDir: path.join(h.root, 'absent'), providersDir: h.providers, pollMs: 2000 })
+  reg.refresh()
+  const stop = reg.watch()
+  writeFileSync(path.join(h.providers, 'quiet.json'), JSON.stringify(provider('quiet')))
+  for (let i = 0; i < 100 && !reg.resolve('quiet').ok; i++) await new Promise((r) => setTimeout(r, 50))
+  stop()
+  assert.equal(reg.resolve('quiet').ok, true)
+  rmSync(h.root, { recursive: true, force: true })
 })

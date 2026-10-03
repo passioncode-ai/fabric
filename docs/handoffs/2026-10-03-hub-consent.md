@@ -41,7 +41,7 @@ header — while the product's key stays in Project Observatory's vault.
 - `node apps/desktop/test/run-hub-access-db.mjs` — owned PostgreSQL with Supabase defaults:
   `hub-access-db.test.mjs` 11/11, `hub-door-db.test.mjs` 14/14; watched failing with
   `FABRIC_SKIP_MIGRATION=20261003000076_hub_access.sql` (11 FAIL) and on planted defects.
-- `node --experimental-strip-types` on `agent-registry` 9, `hub-files` 5, `hub-products` 13,
+- `node --experimental-strip-types` on `agent-registry` 10, `hub-files` 5, `hub-products` 14,
   `consent-presenter` 5; vitest 1617/1617 (incl. `shared/access.test.ts` 17, `AgentAccessPanel.test.tsx` 6).
 - `bash scripts/ci.sh fast` — see the pull request for the last run's exact outcome.
 
