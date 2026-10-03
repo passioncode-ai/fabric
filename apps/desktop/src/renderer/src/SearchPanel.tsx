@@ -1,9 +1,9 @@
 // One field across every project (M141 · SCR-37).
 //
-// GROUPED, NEVER MERGED. Two of the three stores carry a tsvector and come back
-// ranked; tasks have no index and are matched by substring. A single list would
-// imply an ordering across incomparable scorers, and the reader would take its
-// top as the best answer. Each group says how it was searched instead.
+// GROUPED, NEVER MERGED. Facts, decisions and transcripts carry a tsvector and are matched by
+// words; projects and tasks have no index and are matched by substring. Each store returns its
+// newest matches. A single list would imply one ordering across different matchers, and the reader
+// would take its top as the best answer. Each group says how it was searched instead.
 //
 // AND "NOTHING MATCHES" IS A CLAIM. It is only made when every store answered.
 // Where one stayed silent the panel says the question is not settled, which is

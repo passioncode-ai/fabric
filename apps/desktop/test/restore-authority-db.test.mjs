@@ -114,7 +114,9 @@ await test('table mutations, internal helpers, raw events and caller flags canno
   denied(`set role ${role};select restore_estate(${uuid(id(40))},${uuid(SOURCE)},'not allowed',${json(archive())})`)
   denied(`set role ${role};select read_estate_restore_boundary(${uuid(TARGET)},${uuid(U)},1)`)
  }
- sql(`set role service_role;select append_event(${uuid(TARGET)},'estate.restore.boundary@1',${json(actor(U))},${json({target_estate_id:TARGET,owner_event_seqs:[1]})})`)
+ // A forged boundary event is refused at the door (migration 71 restored the event-type registry check
+ // that 63/64 had dropped); before that it was journalled as a no-op. Either way the boundary is unchanged.
+ assert.throws(()=>sql(`set role service_role;select append_event(${uuid(TARGET)},'estate.restore.boundary@1',${json(actor(U))},${json({target_estate_id:TARGET,owner_event_seqs:[1]})})`),/unregistered event type estate\.restore\.boundary@1/)
  assert.equal(sql(`select count(*) from estate_restore_boundaries where target_estate_id=${uuid(TARGET)}`),'1')
  assert.equal(sql(`select owner_event_seqs::text from estate_restore_boundaries where target_estate_id=${uuid(TARGET)}`),'{1}')
  denied(`update estate_restore_boundaries set mode='verified' where target_estate_id=${uuid(TARGET)}`)

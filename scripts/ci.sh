@@ -287,7 +287,7 @@ done
 # 2026-10-03 (release review iteration 1, finding 2). The guard that keeps every database probe
 # off the operator's live stack, and the residue report's read-only property. Pure: they start
 # nothing and connect to nothing; the full tier below is where the guard is used.
-node --test scripts/test/test-stack.test.mjs scripts/test/residue-report.test.mjs
+node --test scripts/test/test-stack.test.mjs scripts/test/residue-report.test.mjs scripts/test/with-timeout.test.mjs
 
 step "measured runtimes: the private pipe adapters under Node and inside Electron main (E0, B1, B2a, B2b-1, B4)"
 # The registry and the native view host read a private Node pipe field and rely on libuv's
@@ -521,7 +521,9 @@ set +a
 node scripts/test-stack.mjs guard
 
 step "every probe, including the ones that need the database"
-pnpm -r test
+# A wall-clock limit (FABRIC_FULL_TIMEOUT_S, default 45 min): a probe that hangs — planted P14 waited
+# on a lock with no limit on 2026-10-03 — fails the tier with its command named instead of never ending.
+node scripts/with-timeout.mjs "${FABRIC_FULL_TIMEOUT_S:-2700}" -- pnpm -r test
 
 step "residue the probes left — in the disposable stack, read-only"
 # Informational: the same report the operator can run against the live database, here showing

@@ -26,7 +26,7 @@ afterEach(() => {
 /** A group built the way the reader builds one, so a fixture cannot express a
  *  coverage the product does not produce. */
 const group = (over: Partial<SearchGroup> & Pick<SearchGroup, 'store'>): SearchGroup => ({
-  method: 'ranked',
+  method: 'words',
   hits: [],
   problem: null,
   labelProblem: null,

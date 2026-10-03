@@ -93,3 +93,41 @@ are in that order.
 6. **Reach last.** Connectors and the S4–S6 slices multiply whatever the loop does — they go after the
    loop produces receipts, so they multiply something verified.
 7. **V1 rows keep their own order** inside their table; the plan does not re-sequence them.
+
+<a id="req-status-after-iteration-1"></a>
+## REQ status after iteration 1 (appended 2026-10-03)
+
+The table above is the run's frozen contract; this is where each row stands after the first
+verification iteration ([ledger](2026-10-03-verification.md#iteration-1)). A row is **met** only with
+its receipt; the release (REQ-16, REQ-17) waits for P-02.
+
+| REQ | Status | Receipt or reason |
+|---|---|---|
+| REQ-01 | met | `ci.sh fast` green on `origin/main` before the run (handoff, checks run) |
+| REQ-02 | partly met | built: persona, executor detection (found / installed but not connected / not responding / missing, install command), five paths, re-entrant from Help. Not built: sign-in verification of a detected agent — CO-176. Main IPC logic tested through `startChoices.ts` and `projectFolder.ts` (`start-paths-main.test.mjs`) |
+| REQ-03 | met, pending walk ×3 | `StartPaths.test.tsx`; `scripts/walk/start-paths.mjs` add step |
+| REQ-04 | met, pending walk ×3 | `project-discovery.test.mjs`, `StartPaths.test.tsx`; walk scan and tick steps |
+| REQ-05 | met, pending walk ×3 | `start-paths-main.test.mjs`, `Onboarding.test.tsx`; form restyle CO-179 |
+| REQ-06 | met | `CreatedAgents.tsx` and `CreatedAgents.test.tsx` (V1-68) |
+| REQ-07 | met | SCN-131, FLW-74, SCR-75, the planned convert screen |
+| REQ-08 | met | `docs/ux/lint.py`, `sync-product-ux.mjs`, ADR-0100 with its amendments to ADR-0063 and ADR-0065 |
+| REQ-09 | pending | screenshots light and dark from the walk ×3 at the end of iteration 3 |
+| REQ-10 | partly met | staged in dev and in the build; the .app and DMG check is REQ-16's |
+| REQ-11 | met | 159 registry rows; brand lint 0 errors, 1464 warnings against 1468 at the base |
+| REQ-12 | met | `check-regions.mjs`: 22 markers, every reference resolves |
+| REQ-13 | met | `check-plan-ids.mjs` with unknown-form, empty-lane and finished-work rules, watched on plants |
+| REQ-14 | pending | map entry written each iteration; MERGES and the workspace publication at landing (P-03) |
+| REQ-15 | in progress | iteration 1 closed with no blocking finding open; iterations 2 and 3 next |
+| REQ-16 | open | blocked by REQ-15 |
+| REQ-17 | open | blocked by REQ-16 |
+| REQ-18 | met | the handoff rewritten for this state |
+| REQ-19 | met | `repin-provider-builds.mjs`, its test and the gate message |
+
+## Lane order, revised after iteration 1 (appended 2026-10-03)
+
+The plan reviewer found that the order above added gates the dependency map does not have: the
+registry (AR-2) waited for N1 although its rows do not, and lane 5 scheduled finished work (AD00,
+AD01). The lanes now cite only open work, and each entry rule is the register's own prerequisite —
+see [the plan](../backlog.md#general-development-plan). What survives of the reasoning above: Start
+first, the release gate before more features, and V1 rows in their own order. Erratum: D9 above
+names "the rule in ADR-0100"; the general plan's rule is ADR-0101.

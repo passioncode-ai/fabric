@@ -25,7 +25,7 @@ import { AgentSurface } from './agentSurface'
 import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
 import { createBundleCompiler } from './sessionBundle'
 import { createTranscriptStore } from './transcripts'
-import { compileContextPack } from './contextPack'
+import { compileContextPack, contextDemandFor } from './contextPack'
 import { readSettings, writeSettings } from './settings'
 import { createPowerKeeper, type PowerKeeper } from './power'
 import { createRepoStateReader } from './repoState'
@@ -235,7 +235,7 @@ import { inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors } from './executorDetect.ts'
 import { keepScan, lastScan } from './startPaths.ts'
 import { createProjectFolder } from './projectFolder.ts'
-import { ParentChoices, walkPickFor } from './startChoices.ts'
+import { ParentChoices, indexImported, realOrResolved, walkPickFor } from './startChoices.ts'
 import { sessionEnvironment } from './sessionEnv.ts'
 import type { CandidateView, FolderFacts, ScanView } from '../shared/startPaths.ts'
 import { livenessFor } from './livenessRead.ts'
@@ -509,6 +509,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
       const pack = await compileContextPack({
         store,
         projectId,
+        // An unattended start (chain, routine) requires its context sources; a missing one refuses it.
+        mandatory: await contextDemandFor(store, sessionId),
         taskInstruction: (task?.data?.instruction as string | undefined) ?? null,
         // The brief travels too. Found by auditing the layer against itself:
         // step 5 gave a task a brief and nothing carried it to the agent, so a
@@ -1735,6 +1737,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     actor: OPERATOR_ACTOR,
     onFailure: (op, says) => ops.failed(op, new Error(says))
   })
+  // Runs this process cannot see a session for are COUNTED, never ended: absence on this host is not
+  // proof of exit (managed stop owns endings). The count makes an orphaned run visible in the ops log.
+  void runs.reconcile(ptys.list().map((s) => s.sessionId)).then((r) => {
+    if (r.unobserved !== null) ops.record({ op: 'run.reconcile', outcome: 'ok', detail: { unobserved: r.unobserved }, ctx: { correlationId: ops.correlate() } })
+  }, (e) => ops.failed('run.reconcile', e))
   const tick = createRoutineTick({
     store,
     journal,
@@ -1809,7 +1816,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const pass = await tick()
       states.push(pass.state)
       says = pass.says
-      await advanceChains()
+      // The chain pass reports too: a pass that could not read its links is not a completed window.
+      const chains = await advanceChains()
+      states.push(chains.state)
+      if (chains.state !== 'completed' && chains.state !== 'skipped_no_delta') says = says ? `${says}; ${chains.says}` : chains.says
       observed = (await observer.sample()).length
     } catch (e) {
       states.push('failed_known')
@@ -2846,23 +2856,20 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // #region start-paths-ipc — docs: docs/adr/0100-first-run-and-start-paths.md#decision
   // The first run and the start paths (ADR-0100). Every folder here goes through the window's
   // granted roots (S02.roots): the picker grants, `fileRoots.resolve` refuses anything else.
+  // Which projects already hold a folder. Every page is read (iteration 1: past PostgREST's 1000-row cap
+  // an imported folder looked new), and paths are compared by their REAL path on both sides, so a folder
+  // attached through a symlink or with a trailing slash is still recognised.
   const importedIndex = async (): Promise<Map<string, { id: string; name: string }[]>> => {
-    const [{ data: repos, error: e1 }, { data: projects, error: e2 }] = await Promise.all([
-      store.select('project_repos', 'path,project_id'),
-      store.select('projects', 'id,name')
+    const [repos, projects] = await Promise.all([
+      store.selectAll('project_repos', 'path,project_id', { orderBy: ['project_id', 'path'] }),
+      store.selectAll('projects', 'id,name', { orderBy: ['id'] })
     ])
-    if (e1 || e2) throw new Error(`projects read failed: ${(e1 ?? e2)?.message}`)
-    const names = new Map((projects ?? []).map((r) => [r.id as string, r.name as string]))
-    const out = new Map<string, { id: string; name: string }[]>()
-    for (const r of repos ?? []) {
-      const key = r.path as string
-      out.set(key, [...(out.get(key) ?? []), { id: r.project_id as string, name: names.get(r.project_id as string) ?? (r.project_id as string) }])
-    }
-    return out
+    if (repos.failed || projects.failed) throw new Error(`projects read failed: ${repos.failed ?? projects.failed}`)
+    return indexImported(repos.rows, projects.rows)
   }
   const withImported = async <T extends FolderFacts>(rows: T[]): Promise<(T & { importedBy: { id: string; name: string }[] })[]> => {
     const index = await importedIndex()
-    return rows.map((r) => ({ ...r, importedBy: index.get(r.path) ?? [] }))
+    return rows.map((r) => ({ ...r, importedBy: index.get(realOrResolved(r.path)) ?? [] }))
   }
   const scans = startScans
   handle(IPC.startChooseFolder, async (event, purpose: 'project' | 'scan' | 'parent', defaultPath?: string): Promise<Returns<FabricApi['start']['chooseFolder']>> => {

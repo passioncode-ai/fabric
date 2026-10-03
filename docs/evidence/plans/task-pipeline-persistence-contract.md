@@ -23,8 +23,8 @@ identifiers and never renumbers, edits or reuses an applied artifact.
 
 | Kind | Reserved ID | Purpose |
 |---|---|---|
-| migration | `20260929000070_pipeline_definitions.sql` | pipeline-as-data: definitions + versions, append-only |
-| migration | `20260929000071_graph_version_pins.sql` | the running graph pinned to a pipeline version |
+| migration | `20261003000072_pipeline_definitions.sql` | pipeline-as-data: definitions + versions, append-only |
+| migration | `20261003000073_graph_version_pins.sql` | the running graph pinned to a pipeline version |
 | ADR | `docs/adr/0102-task-pipeline-persistence-contract.md` | the contract itself, superseding nothing. Re-reserved from 0055 on 2026-09-10, from 0056 on 2026-09-12, from 0082 on 2026-09-29 (ADR-0084, releases, was written past it), from 0085 on 2026-09-29 (ADR-0086, positioning, was written past it), from 0087 on 2026-09-29 (ADR-0088, remote surfaces, was written past it), from 0089 on 2026-09-29 (ADR-0090, names, was written past it), from 0091 on 2026-09-30 (ADR-0092–0094, licence, knowledge base and MCP-first, were written past it), and from 0095 on 2026-09-30 (ADR-0096, publication redaction, was written past it): each time an ADR handed out by agent-sync passed this prose reservation (0055 was written; then ADR-0057 continued the sequence past 0056), because a reservation living in prose never reaches the register. The document's own collision rule owns both moves. Re-reserved again from 0099 on 2026-10-03 (ADR-0100 and ADR-0101, the start paths and the general plan, were written past it). |
 
 **The collision this document predicted happened, and the rule was applied.**
@@ -229,3 +229,10 @@ exists at 0099. `python3 test/audit_regressions/fix-pf-06.03.py` checks the sequ
 reservation 0099. Under the same collision rule the reserved ADR moves to **0102**, returned by
 `agent_sync.py reserve ADR --key pipeline-reservation-after-start-paths-20261003`. 0099 is superseded
 and never reused. Migrations 70/71 remain unchanged; no pipeline ADR file exists at 0102.
+
+**2026-10-03 release review:** slots 70 and 71 are taken by the executed migrations
+`20261003000070_estate_owned_identity.sql` (an id names one estate's row; release review data
+finding 1) and `20261003000071_append_event_boundary_restored.sql` (the write boundary migrations
+63/64 had dropped), so the unexecuted pipeline migration reservations move from 70/71 to **72/73**
+under the same ordering rule. The reserved ADR stays 0102. No pipeline file exists at either number
+(`ls supabase/migrations | grep -i pipeline` is empty). Checked by `python3 test/audit_regressions/fix-pf-06.03.py`.

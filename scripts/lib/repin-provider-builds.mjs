@@ -1,4 +1,4 @@
-// #region repin-provider-builds — docs: docs/reports/map.html#iteration-2026-10-03-claude-repin
+// #region repin-provider-builds — docs: docs/evidence/plans/2026-10-03-onboarding-and-plan.md#req-table
 // The mechanical half of a provider re-pin (REQ-19 of the 2026-10-03 run).
 //
 // `check-provider-capability.mjs` fails when an installed CLI's build differs from the pinned one,

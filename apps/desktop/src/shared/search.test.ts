@@ -10,7 +10,7 @@ const hit = (id: string): SearchHit => ({
 })
 const group = (store: SearchGroup['store'], hits: SearchHit[]): SearchGroup => ({
   store,
-  method: store === 'tasks' ? 'substring' : 'ranked',
+  method: store === 'tasks' ? 'substring' : 'words',
   hits,
   problem: null,
   // Built the way the reader builds it, from the row count — a hand-written
@@ -20,7 +20,7 @@ const group = (store: SearchGroup['store'], hits: SearchHit[]): SearchGroup => (
 })
 const failed = (store: SearchGroup['store']): SearchGroup => ({
   store,
-  method: 'ranked',
+  method: 'words',
   hits: [],
   problem: 'permission denied',
   coverage: coverageOfStore(0),
@@ -60,7 +60,7 @@ describe('the outcome of a search', () => {
     // page with an error must not have that page counted as an answer.
     const halfRead: SearchGroup = {
       store: 'transcripts',
-      method: 'ranked',
+      method: 'words',
       hits: [hit('partial')],
       problem: 'connection reset mid-page',
       coverage: coverageOfStore(1),
@@ -123,6 +123,6 @@ describe('the outcome of a search', () => {
 
   it('keeps the search METHOD with its group — a ranked hit and a substring hit are different promises', () => {
     const groups = [group('facts', [hit('a')]), group('tasks', [hit('b')])]
-    expect(groups.map((g) => g.method)).toEqual(['ranked', 'substring'])
+    expect(groups.map((g) => g.method)).toEqual(['words', 'substring'])
   })
 })

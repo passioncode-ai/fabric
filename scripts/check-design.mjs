@@ -350,6 +350,23 @@ if (literals === 0) ok('strings: no literal interface text in components')
     if (orphans.length)
       fail(`${orphans.length} event sentence(s) describe a type nobody registers — ${orphans.join(', ')}`)
     else ok('strings: and no sentence describes an event that cannot happen')
+
+    // And every type the code APPENDS is registered. Since migration 71 `append_event` refuses an
+    // unregistered type at runtime (63/64 had dropped the check, and nothing noticed for a week); this
+    // finds the same refusal at commit, for every literal type a write names in source or SQL.
+    const appended = new Map() // type -> where
+    for (const f of files.filter((x) => /\.(ts|tsx)$/.test(x) && !/\.test\.tsx?$/.test(x))) {
+      for (const m of readFileSync(f, 'utf8').matchAll(/type:\s*'([a-z][a-z0-9._]*@\d+)'/g)) if (!appended.has(m[1])) appended.set(m[1], rel(f))
+    }
+    for (const name of readdirSync(migrations).filter((n) => n.endsWith('.sql'))) {
+      const sql = readFileSync(path.join(migrations, name), 'utf8')
+      for (const m of sql.matchAll(/(?:append_event|ceo_append)\(\s*[^,()]+,\s*'([a-z][a-z0-9._]*@\d+)'/g)) if (!appended.has(m[1])) appended.set(m[1], name)
+    }
+    const unregistered = [...appended].filter(([tp]) => !registered.has(tp))
+    if (appended.size === 0) fail('no appended event types were found — the parser has drifted')
+    else if (unregistered.length)
+      fail(`${unregistered.length} appended event type(s) are not registered, and append_event refuses them — ` + unregistered.map(([tp, at]) => `${tp} (${at})`).join(', '))
+    else ok(`strings: all ${appended.size} event types the code appends are registered`)
   }
 }
 

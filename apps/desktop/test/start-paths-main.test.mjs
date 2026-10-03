@@ -68,3 +68,20 @@ const { ParentChoices, walkPickFor } = await import(path.resolve(import.meta.dir
   assert.equal(walkPickFor('parent', { FABRIC_WALK_PICK: '/only' }, false), '/only', 'one folder answers every purpose')
 }
 console.log('PASS start choices: parent per window, revoked on close; walk pick only unpackaged')
+
+// ── "already in a project" (iteration 1 errors #11, data #12): matched by real path, every holder named once
+const { indexImported } = await import(path.resolve(import.meta.dirname, '../src/main/startChoices.ts'))
+{
+  const { symlinkSync, mkdirSync } = await import('node:fs')
+  const real = path.join(parent, 'held')
+  mkdirSync(real)
+  const link = path.join(parent, 'held-link')
+  symlinkSync(real, link)
+  const index = indexImported(
+    [{ path: link, project_id: 'p1' }, { path: real + '/', project_id: 'p1' }, { path: real, project_id: 'p2' }, { path: path.join(parent, 'gone'), project_id: 'p3' }],
+    [{ id: 'p1', name: 'One' }, { id: 'p2', name: 'Two' }]
+  )
+  assert.deepEqual(index.get(real), [{ id: 'p1', name: 'One' }, { id: 'p2', name: 'Two' }], 'a symlink and a trailing slash are the same folder; one project is named once')
+  assert.deepEqual(index.get(path.join(parent, 'gone')), [{ id: 'p3', name: 'p3' }], 'a removed folder still names its project, by id when the name is unknown')
+}
+console.log('PASS imported index: real paths, each holder once')

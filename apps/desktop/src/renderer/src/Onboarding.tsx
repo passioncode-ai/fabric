@@ -14,7 +14,7 @@ import type {
 import { Button, EmptyState, Field, FieldGroup, Row, StateChip, Toolbar } from './components'
 import { memoryChoice } from '../../shared/memoryChoice.ts'
 import { useT } from './i18n'
-import { folderNameProblem } from '../../shared/startPaths.ts'
+import { folderNameProblem, type FolderNameProblem } from '../../shared/startPaths.ts'
 
 export function Onboarding({
   draft,
@@ -69,12 +69,17 @@ export function Onboarding({
   const makeFolder = async (): Promise<void> => {
     setFolderProblem(null)
     const bad = folderNameProblem(name)
-    if (bad) { setFolderProblem(t('onboarding.newFolder.badName', { problem: bad })); return }
+    if (bad) { setFolderProblem(t('onboarding.newFolder.badName', { problem: t(`onboarding.newFolder.problem.${bad}`) })); return }
     try {
       const parent = await window.fabric.start.chooseFolder('parent')
       if (!parent) return
       const made = await window.fabric.start.createFolder({ parent, name: name.trim(), git })
-      if (!made.ok) { setFolderProblem(t(`start.new.refused.${made.reason}` as 'start.new.refused.exists', { detail: made.detail ?? '' })); return }
+      if (!made.ok) {
+        // An invalid name comes back as the same code the form checks with; it is said in this window's language.
+        const detail = made.reason === 'invalid-name' && made.detail ? t(`onboarding.newFolder.problem.${made.detail as FolderNameProblem}`) : made.detail ?? ''
+        setFolderProblem(t(`start.new.refused.${made.reason}` as 'start.new.refused.exists', { detail }))
+        return
+      }
       patch({ repoPaths: [...new Set([...repoPaths, made.path])] })
     } catch (e) {
       setFolderProblem(t('start.new.refused.failed', { detail: e instanceof Error ? e.message : String(e) }))

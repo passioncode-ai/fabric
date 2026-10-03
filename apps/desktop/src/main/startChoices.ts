@@ -23,6 +23,7 @@ export class ParentChoices {
     try {
       real = realpathSync(path.resolve(picked))
     } catch {
+      // Not silence: the caller treats null as "not offered as a parent" and the picker simply returns.
       return null
     }
     const set = this.byScope.get(scope) ?? new Set<string>()
@@ -58,5 +59,35 @@ export function walkPickFor(purpose: PickPurpose, env: NodeJS.ProcessEnv, packag
   if (!raw) return null
   const parts = raw.split(path.delimiter)
   return parts[purpose === 'scan' ? 1 : purpose === 'parent' ? 2 : 0] || parts[0] || null
+}
+/**
+ * Which projects hold each folder, keyed by the folder's REAL path, so a folder attached through a symlink
+ * or with a trailing slash is recognised when the same folder is scanned again (iteration 1 compared the
+ * stored string exactly). A project whose name cannot be read is still named by its id.
+ */
+export function indexImported(
+  repos: readonly Record<string, unknown>[],
+  projects: readonly Record<string, unknown>[],
+  real: (p: string) => string = realOrResolved
+): Map<string, { id: string; name: string }[]> {
+  const names = new Map(projects.map((r) => [String(r.id), String(r.name)]))
+  const out = new Map<string, { id: string; name: string }[]>()
+  for (const r of repos) {
+    const key = real(String(r.path))
+    const id = String(r.project_id)
+    const held = out.get(key) ?? []
+    if (!held.some((h) => h.id === id)) out.set(key, [...held, { id, name: names.get(id) ?? id }])
+  }
+  return out
+}
+
+/** A path by its real location, or resolved when it no longer exists (a removed folder still names its project). */
+export function realOrResolved(p: string): string {
+  try {
+    return realpathSync(p)
+  } catch {
+    // A folder that no longer exists still names its project; its resolved path is the honest key.
+    return path.resolve(p)
+  }
 }
 // #endregion start-choices

@@ -98,7 +98,10 @@ await test('every literal column list the main process selects exists in the mig
   const patterns = [
     /\.select\(\s*'([a-z_]+)'\s*,\s*'([^']*)'/g,
     /\.from\(\s*'([a-z_]+)'\s*\)\s*\.select\(\s*'([^']*)'/g,
-    /\.selectIn\(\s*'([a-z_]+)'\s*,\s*'([^']*)'/g
+    /\.selectIn\(\s*'([a-z_]+)'\s*,\s*'([^']*)'/g,
+    // memoryOverviewRead's counts name their table and key column as two literals (2026-10-03: two of
+    // them counted by a column the table does not have).
+    /countOf\(\s*store\s*,\s*'([a-z_]+)'\s*,\s*'([^']*)'/g
   ]
   for (const file of files) {
     const text = readFileSync(file, 'utf8')

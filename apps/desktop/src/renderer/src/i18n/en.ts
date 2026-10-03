@@ -72,7 +72,7 @@ export const en = {
 
   'onboarding.title': 'New project',
   'onboarding.lede':
-    'A project holds repositories, memory and the agents that work in them. Nothing is written until you save.',
+    'A project holds repositories, memory and the agents that work in them. The project itself is made only when you create it; a new folder you make for it is created at once.',
   'onboarding.name': 'Name',
   'onboarding.namePlaceholder': 'What is this project called?',
   'onboarding.purpose': 'Purpose',
@@ -82,6 +82,12 @@ export const en = {
   'onboarding.addRepo': 'Choose folder…',
   'onboarding.newFolder': "Create a new folder for it…",
   'onboarding.newFolder.badName': "The project name cannot be a folder name: {problem}.",
+  'onboarding.newFolder.problem.not-a-name': "it is not text",
+  'onboarding.newFolder.problem.empty': "it is empty",
+  'onboarding.newFolder.problem.too-long': "it is longer than 80 characters",
+  'onboarding.newFolder.problem.leading-dot': "it starts with a dot",
+  'onboarding.newFolder.problem.separator': "it contains a slash, a colon or a control character",
+  'onboarding.newFolder.problem.text-direction': "it contains a character that reverses the reading direction",
   'onboarding.removeRepo': 'Remove',
   'onboarding.primary': 'primary',
   'onboarding.noRepos': 'No repository attached yet.',
@@ -433,8 +439,8 @@ export const en = {
 
   // Goals and the plan (M146 step 7). The unattached list is the point, not a
   // leftover: work nobody connected to a direction is what a plan is FOR.
-  // Search (M141 · SCR-37). Grouped by store, because a ranked hit and a
-  // substring hit are different promises.
+  // Search (M141 · SCR-37). Grouped by store, because a word match and a
+  // substring match are different promises.
   'glyph.search': '⌕',
   'search.open': 'Search',
   'search.placeholder': 'Find a project, a task, a fact, a decision, a session',
@@ -445,7 +451,7 @@ export const en = {
   'search.nothingIn': 'Nothing matches. Searched: {stores}.',
   'search.store.transcripts': 'Sessions',
   'search.store.tasks': 'Tasks',
-  'search.method.substring': 'matched by text — this store has no index, so there is no ranking',
+  'search.method.substring': 'matched as text anywhere: this store has no word index; newest first',
   'search.unsearchable': 'could not be searched: {reason}',
   'search.found': '{total} across the stores that answered',
   'search.partial': 'This is not everything — a store did not answer, or its list was cut off.',

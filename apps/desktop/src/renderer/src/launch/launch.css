@@ -371,7 +371,7 @@
 .fp-style[aria-pressed=true]{border:2px solid var(--app-ink);padding:calc(var(--space-3) - 1px) calc(var(--space-2) - 1px)}
 .fp-variants{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2);margin-bottom:var(--space-3)}
 .fp-variants button{border:1px solid var(--app-line);border-radius:var(--app-radius-control);padding:var(--space-3);background:var(--app-panel);color:var(--app-ink);cursor:pointer;display:flex;align-items:center;flex-direction:column;gap:var(--space-2)}
-.fp-variants button[aria-pressed=true]{outline:2px solid var(--app-accent)}
+.fp-variants button[aria-pressed=true]{outline:2px solid var(--app-ink)}
 .fp-variants .fp-face{width:85px;height:85px;min-width:60px;max-width:100%}
 .fp-variants button>span:last-child{font-size:10px}
 .fp-pulse-grid{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:var(--space-4);align-items:start}

@@ -61,10 +61,14 @@ interface CountQuery {
 async function countOf(
   store: ScopedStore,
   table: string,
+  /** A column the table HAS — its key. Two of the six key on `session_id`, and counting them by `id`
+   *  was refused by the database on every read (release review 2026-10-03: every project's memory
+   *  panel said "not the whole picture"). `read-schema-db.test.mjs` checks each pair. */
+  key: string,
   narrow: (q: CountQuery) => CountQuery,
   now: string
 ): Promise<StoreCount> {
-  const query = store.select(table, 'id', { count: 'exact', head: true }) as unknown as CountQuery
+  const query = store.select(table, key, { count: 'exact', head: true }) as unknown as CountQuery
   const result = (await (narrow(query) as unknown as Promise<{
     count: number | null
     error: { message: string } | null
@@ -96,14 +100,14 @@ export async function memoryOverviewFor(
   const [facts, superseded, retrievals, misses, transcripts, packs] = await Promise.all([
     // Only what is currently true (M48). A corrected fact is kept and readable,
     // and counting it as current is what bi-temporality exists to prevent.
-    countOf(store, 'memory_facts', (q) => q.eq('project_id', projectId).is('valid_to', null), now),
-    countOf(store, 'memory_facts', (q) => q.eq('project_id', projectId).not('valid_to', 'is', null), now),
-    countOf(store, 'memory_retrievals', (q) => q.eq('project_id', projectId), now),
+    countOf(store, 'memory_facts', 'id', (q) => q.eq('project_id', projectId).is('valid_to', null), now),
+    countOf(store, 'memory_facts', 'id', (q) => q.eq('project_id', projectId).not('valid_to', 'is', null), now),
+    countOf(store, 'memory_retrievals', 'id', (q) => q.eq('project_id', projectId), now),
     // THE MISSES ARE THE POINT (M46): a memory screen showing only what it
     // holds is the screen that cannot answer "does memory work here".
-    countOf(store, 'memory_retrievals', (q) => q.eq('project_id', projectId).eq('hits', 0), now),
-    countOf(store, 'session_transcripts', (q) => q.eq('project_id', projectId), now),
-    countOf(store, 'session_context_packs', (q) => q.eq('project_id', projectId), now)
+    countOf(store, 'memory_retrievals', 'id', (q) => q.eq('project_id', projectId).eq('hits', 0), now),
+    countOf(store, 'session_transcripts', 'session_id', (q) => q.eq('project_id', projectId), now),
+    countOf(store, 'session_context_packs', 'session_id', (q) => q.eq('project_id', projectId), now)
   ])
   return { facts, superseded, retrievals, misses, transcripts, packs }
 }

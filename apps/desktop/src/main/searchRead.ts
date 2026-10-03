@@ -136,16 +136,21 @@ export async function searchFor(store: ScopedStore, query: string): Promise<Sear
     ? `project names could not be read: ${projectRead.error.message}`
     : null
 
+  // NEWEST FIRST, in every store (M141, release review 2026-10-03). The word stores were labelled
+  // "ranked" while nothing ordered them by rank, so a capped group was an arbitrary subset. Each store
+  // now returns its newest matches, and a cut group says so (`truncated`).
   const [projects, tasks, facts, decisions, transcripts] = (await Promise.all([
     // Substring, because `projects` carries no tsvector. The method travels
     // with the group so the reader knows what kind of promise "found" is.
     store
       .select('projects', 'id,name,purpose,created_at')
       .or(substringFilter(['name', 'purpose'], text))
+      .order('created_at', { ascending: false })
       .limit(SEARCH_CAP),
     store
       .select('project_tasks', 'id,project_id,title,instruction,started_at')
       .or(substringFilter(['title', 'instruction'], text))
+      .order('started_at', { ascending: false, nullsFirst: false })
       .limit(SEARCH_CAP),
     // REMEMBERED AND NOT A DECISION. Without `neq` a decision comes back here
     // AND in its own group below, and a reader counting "found" counts it
@@ -155,16 +160,19 @@ export async function searchFor(store: ScopedStore, query: string): Promise<Sear
       .is('valid_to', null)
       .neq('kind', 'decision')
       .textSearch('search', text, { type: 'plain', config: 'english' })
+      .order('recorded_at', { ascending: false })
       .limit(SEARCH_CAP),
     store
       .select('memory_facts', 'id,project_id,claim,recorded_at')
       .is('valid_to', null)
       .eq('kind', 'decision')
       .textSearch('search', text, { type: 'plain', config: 'english' })
+      .order('recorded_at', { ascending: false })
       .limit(SEARCH_CAP),
     store
       .select('session_transcripts', 'session_id,project_id,annotation,captured_at')
       .textSearch('search', text, { type: 'plain', config: 'english' })
+      .order('captured_at', { ascending: false })
       .limit(SEARCH_CAP)
   ])) as unknown as [Read, Read, Read, Read, Read]
 
@@ -190,7 +198,7 @@ export async function searchFor(store: ScopedStore, query: string): Promise<Sear
     }),
     groupOf({
       store: 'facts',
-      method: 'ranked',
+      method: 'words',
       read: facts,
       shape: { id: 'id', text: 'claim', at: 'recorded_at', project: 'project_id' },
       named,
@@ -198,7 +206,7 @@ export async function searchFor(store: ScopedStore, query: string): Promise<Sear
     }),
     groupOf({
       store: 'decisions',
-      method: 'ranked',
+      method: 'words',
       read: decisions,
       shape: { id: 'id', text: 'claim', at: 'recorded_at', project: 'project_id' },
       named,
@@ -206,7 +214,7 @@ export async function searchFor(store: ScopedStore, query: string): Promise<Sear
     }),
     groupOf({
       store: 'transcripts',
-      method: 'ranked',
+      method: 'words',
       read: transcripts,
       shape: { id: 'session_id', text: 'annotation', at: 'captured_at', project: 'project_id' },
       named,

@@ -74,9 +74,10 @@ export interface SearchHit {
 
 export interface SearchGroup {
   store: SearchStore
-  /** How this store was searched. Shown, because a ranked match and a
-   *  substring match are different promises about what "found" means. */
-  method: 'ranked' | 'substring'
+  /** How this store was searched. Shown, because a word match (stemmed full-text, `words`) and a
+   *  substring match are different promises about what "found" means. Neither is a relevance rank:
+   *  every store returns its newest matches. */
+  method: 'words' | 'substring'
   hits: SearchHit[]
   /** Why it could not be searched, when it could not. */
   problem: string | null

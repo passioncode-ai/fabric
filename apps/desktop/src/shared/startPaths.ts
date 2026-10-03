@@ -70,19 +70,22 @@ export type NewFolderResult =
   | { ok: true; path: string }
   | { ok: false; reason: 'exists' | 'invalid-name' | 'outside' | 'failed'; detail?: string }
 
+/** Why a name cannot be a folder: a code, so each window says it in its own language. */
+export type FolderNameProblem = 'not-a-name' | 'empty' | 'too-long' | 'leading-dot' | 'separator' | 'text-direction'
+
 /**
  * A folder name the create path accepts: a string; no separators, no leading dot, ≤ 80 characters; no
  * control characters and no bidirectional overrides (U+202A–U+202E, U+2066–U+2069), which make a name
  * read differently from what it is (`evil\u202Etxt.exe`).
  */
-export function folderNameProblem(name: unknown): string | null {
-  if (typeof name !== 'string') return 'not a name'
+export function folderNameProblem(name: unknown): FolderNameProblem | null {
+  if (typeof name !== 'string') return 'not-a-name'
   const s = name.trim()
   if (!s) return 'empty'
-  if (s.length > 80) return 'too long'
-  if (s === '.' || s === '..' || s.startsWith('.')) return 'starts with a dot'
-  if (/[/\\:\u0000-\u001f\u007f]/.test(s)) return 'contains a separator or control character'
-  if (/[\u202a-\u202e\u2066-\u2069]/.test(s)) return 'contains a text-direction control'
+  if (s.length > 80) return 'too-long'
+  if (s === '.' || s === '..' || s.startsWith('.')) return 'leading-dot'
+  if (/[/\\:\u0000-\u001f\u007f]/.test(s)) return 'separator'
+  if (/[\u202a-\u202e\u2066-\u2069]/.test(s)) return 'text-direction'
   return null
 }
 

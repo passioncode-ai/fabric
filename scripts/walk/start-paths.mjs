@@ -1,22 +1,26 @@
 #!/usr/bin/env node
-// #region walk-start-paths — docs: docs/evidence/plans/2026-10-03-verification.md#protocol
+// #region walk-start-paths — docs: docs/adr/0100-first-run-and-start-paths.md#decision
 // Walk the first run and the start paths in the REAL built app (ADR-0100), screenshot every state.
 //
 //   pnpm --filter @fabric/desktop exec electron-vite build   # the app this walks
-//   node scripts/walk/start-paths.mjs <out-dir> [--theme dark|light] [--locale en|ru]
+//   node scripts/test-stack.mjs run -- node scripts/walk/start-paths.mjs <out-dir> [--theme dark|light] [--locale en|ru]
 //
 // The app runs with a throwaway user-data folder whose active Estate is a NEW random Estate, so the
-// operator's projects are not visible and the first run is honestly due. The local stack must be up
-// (`supabase start`). The native folder picker cannot be clicked from CDP, so the unpackaged app
+// first run is honestly due — and against a DISPOSABLE stack, never the operator's: the app reads
+// SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY from the environment `test-stack.mjs run` sets, and this
+// script refuses the live ports through the same guard as every database probe (CO-181: walks run on
+// the live stack left an estate behind each time). The native folder picker cannot be clicked from CDP, so the unpackaged app
 // honours FABRIC_WALK_PICK=<project>:<scanRoot>:<parent> (index.ts `IPC.startChooseFolder`); a
 // packaged app ignores it. Fixture repositories are built here with git. Writes only under <out-dir>
 // and temp folders; creates Projects only in the throwaway Estate.
 import { execFileSync, spawn } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import { probeEnv } from '../lib/test-stack.mjs'
 
+const stackEnv = probeEnv() // exits 1 unless this runs against a disposable stack
 const ROOT = path.resolve(import.meta.dirname, '../..')
 const APP = path.join(ROOT, 'apps/desktop')
 const OUT = path.resolve(process.argv[2] ?? path.join(tmpdir(), 'fabric-walk'))
@@ -50,7 +54,7 @@ writeFileSync(path.join(userData, 'settings.json'), JSON.stringify({ theme: THEM
 
 const electron = path.join(APP, 'node_modules/.bin/electron')
 const child = spawn(electron, [APP, `--user-data-dir=${userData}`, `--remote-debugging-port=${PORT}`], {
-  env: { ...process.env, FABRIC_WALK_PICK: [fresh, projects, parent].join(path.delimiter) },
+  env: { ...stackEnv, FABRIC_WALK_PICK: [fresh, projects, parent].join(path.delimiter) },
   stdio: ['ignore', 'pipe', 'pipe']
 })
 let appLog = ''
@@ -64,9 +68,12 @@ async function page() {
       const p = list.find((x) => x.type === 'page' && !x.url.startsWith('devtools'))
       if (p) return p.webSocketDebuggerUrl
     } catch { /* not up yet */ }
+    // A failed start shows a modal dialog and opens no page; its reason is in the user-data folder.
+    if (existsSync(path.join(userData, 'startup-failure.log'))) break
     await sleep(500)
   }
-  throw new Error('the app never opened a page on the debugging port\n' + appLog.slice(-2000))
+  const failure = existsSync(path.join(userData, 'startup-failure.log')) ? readFileSync(path.join(userData, 'startup-failure.log'), 'utf8') : ''
+  throw new Error('the app never opened a page on the debugging port\n' + (failure ? `startup failure: ${failure}\n` : '') + appLog.slice(-2000))
 }
 
 let ws, seq = 0

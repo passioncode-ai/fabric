@@ -65,7 +65,7 @@ function fakeDb(answers) {
           lte: () => q,
           in: () => q,
           textSearch: (c, t) => { filters.push(['textSearch', c, t]); return q },
-          order: () => q,
+          order: (c, o) => { filters.push(['order', c, o?.ascending === false ? 'desc' : 'asc']); return q },
           limit: (n) => { filters.push(['limit', String(n), '']); return q },
           maybeSingle: () => Promise.resolve(next(table)),
           then: (resolve) => Promise.resolve(next(table)).then(resolve)
@@ -136,7 +136,15 @@ const PROJECTS = [{ id: 'p1', name: 'Atlas ledger', purpose: 'keep the ledger' }
   decisions && decisions.hits.length === 1
     ? ok('a recorded decision is returned in its own group')
     : fail('the decisions group returned ' + JSON.stringify(decisions?.hits))
-  eq(decisions?.method, 'ranked', 'ranked, because memory_facts carries the tsvector')
+  eq(decisions?.method, 'words', 'matched by words, because memory_facts carries the tsvector — and not called ranked, since nothing orders it by rank')
+
+  // NEWEST FIRST, in every store (release review 2026-10-03): a capped group is the newest matches,
+  // never an arbitrary subset of them.
+  const searchQueries = queries.filter((q) => q.filters.some(([op]) => op === 'limit'))
+  const unordered = searchQueries.filter((q) => !q.filters.some(([op, , dir]) => op === 'order' && dir === 'desc'))
+  unordered.length === 0 && searchQueries.length === 5
+    ? ok('all 5 store queries return their newest matches first')
+    : fail(`${unordered.length} of ${searchQueries.length} store queries are not ordered newest first: ` + unordered.map((q) => q.table).join(', '))
 
   // AND NOT TWICE. Two queries hit `memory_facts`: one must exclude decisions
   // and one must require them, or a decision is counted under both headings.

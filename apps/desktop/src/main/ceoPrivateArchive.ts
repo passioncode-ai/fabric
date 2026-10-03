@@ -21,7 +21,7 @@ import { ARCHIVE_SCHEMA, digestInput } from '../shared/archive.ts'
 import { archiveFail as fail, decodeArchiveUtf8, parseArchiveJson } from './archiveJson.ts'
 
 export const PRIVATE_ARCHIVE_SCHEMA = 'CeoPrivateArchive@1' as const
-export const PRIVATE_ARCHIVE_LIMITS = Object.freeze({ sourceSchemas: Object.freeze([66, 67, 68, 69, 70] as const), privateBytes: 8 * 1024 * 1024,
+export const PRIVATE_ARCHIVE_LIMITS = Object.freeze({ sourceSchemas: Object.freeze([66, 67, 68, 69, 70, 71] as const), privateBytes: 8 * 1024 * 1024,
   journalBytes: 32 * 1024 * 1024, journalLineBytes: 1024 * 1024, manifestBytes: 4096, events: 65536,
   conversations: 256, messages: 4096, operations: 8192, depth: 32, nodes: 1_000_000 })
 export type JournalSeq = number | string
@@ -29,7 +29,7 @@ export interface PrivateEstateManifest { schema: typeof ARCHIVE_SCHEMA; sourceEs
 export interface PrivateConversation { id: string; subject_kind: 'global'|'project'|'question'; subject_id: string; owner_project_id: string|null; created_seq: number; revision: number }
 export interface PrivateMessage { id: string; conversation_id: string; ordinal: number; content_id: string; request_id: string; accepted_seq: number; envelope: CeoSend; source_digest: string; origin: { estate_id: string; canonical_digest: string } }
 export type PrivateOperation = { operation_id: string; kind: 'send'; message_id: string } | { operation_id: string; kind: 'open'; requested_conversation_id: string; subject_kind: PrivateConversation['subject_kind']; subject_id: string; receipt: { conversation_id: string; revision: number; receipt_seq: number } }
-export interface CeoPrivateArchive { schema: typeof PRIVATE_ARCHIVE_SCHEMA; archive_id: string; source_schema_version: 66 | 67 | 68 | 69 | 70; owner_person_id: string; estate_archive: PrivateEstateManifest; retention: 'no-deletion-v1'; conversations: PrivateConversation[]; messages: PrivateMessage[]; operations: PrivateOperation[]; tombstones: []; archive_digest: string }
+export interface CeoPrivateArchive { schema: typeof PRIVATE_ARCHIVE_SCHEMA; archive_id: string; source_schema_version: 66 | 67 | 68 | 69 | 70 | 71; owner_person_id: string; estate_archive: PrivateEstateManifest; retention: 'no-deletion-v1'; conversations: PrivateConversation[]; messages: PrivateMessage[]; operations: PrivateOperation[]; tombstones: []; archive_digest: string }
 export interface PrivateArchiveAdmission { archive: CeoPrivateArchive; canonical: string; digest: string }
 
 type Obj = Record<string, unknown>

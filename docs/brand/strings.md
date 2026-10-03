@@ -25,7 +25,7 @@ sentence.
 | Key | Text (primary) | Location | Scenario | Status |
 |---|---|---|---|---|
 | `estate.empty` | Nothing here yet. A project is a persistent workspace: its repositories, its memory, the agents working in it and the workflows they follow. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
-| `onboarding.lede` | A project holds repositories, memory and the agents that work in them. Nothing is written until you save. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
+| `onboarding.lede` | A project holds repositories, memory and the agents that work in them. The project itself is made only when you create it; a new folder you make for it is created at once. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
 | `onboarding.memoryUnavailable.hosted-estates-not-built` | Hosted estates are not built yet. This becomes available with them. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
 | `onboarding.memoryOnly` | Memory is stored in this machine’s database. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
 | `onboarding.memoryNone` | No memory backend is available on this machine, so a project cannot store anything it learns. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
@@ -386,3 +386,9 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `agents.createFailed` | The agent was not created: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.createdNotice` | Created {name}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `start.scan.hiddenTicked` | Ticked but hidden by the search: {count}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `onboarding.newFolder.problem.not-a-name` | it is not text | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
+| `onboarding.newFolder.problem.empty` | it is empty | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
+| `onboarding.newFolder.problem.too-long` | it is longer than 80 characters | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
+| `onboarding.newFolder.problem.leading-dot` | it starts with a dot | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
+| `onboarding.newFolder.problem.separator` | it contains a slash, a colon or a control character | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
+| `onboarding.newFolder.problem.text-direction` | it contains a character that reverses the reading direction | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |

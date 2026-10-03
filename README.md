@@ -242,6 +242,10 @@ first. Two other things are refused as well: the live project id, and an address
 loopback. `down` acts only on a folder that carries the marker `up` wrote. It never runs
 `supabase stop --no-backup` for the live project.
 
+`pnpm -r test` in the full tier runs under [`scripts/with-timeout.mjs`](scripts/with-timeout.mjs)
+(`FABRIC_FULL_TIMEOUT_S`, default 2700): past the limit the whole process group is stopped and the
+tier fails with exit 124 and the command named, so a hung probe cannot keep the tier running forever.
+
 The eleven `apps/desktop/test/run-*-db.mjs` suites own a temporary PostgreSQL cluster each.
 They need PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default `/opt/homebrew/opt/postgresql@17/bin`)
 and run first in the full tier.

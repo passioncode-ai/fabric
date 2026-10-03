@@ -41,7 +41,7 @@ const hit = (over: Partial<SearchGroup['hits'][number]>) => ({
 })
 
 const group = (over: Partial<SearchGroup> & Pick<SearchGroup, 'store'>): SearchGroup => ({
-  method: 'ranked',
+  method: 'words',
   hits: [],
   problem: null,
   labelProblem: null,
