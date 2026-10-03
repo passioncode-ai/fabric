@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "source": {
-    "docs/reports/product.html": "f3b870ba5594234bbd570901040e3a837071be6ad8949b842701059c96097a96",
-    "docs/ux/product-model.json": "57da9d0787f6678910916923d3c4dbcbddac1a2fe0ffec2d0ad12ddc660c6d8c"
+    "docs/reports/product.html": "b77c87c3deedf35843a83bae3e7060a1552e12c36f1b37ed698f3f40f32d6009",
+    "docs/ux/product-model.json": "a5d596c75b8c2d68089b39da5f6d870b6dd4b07b6725e23795e8e37a00761eee"
   },
   "views": [
     {
@@ -404,6 +404,10 @@
     {
       "id": "private-history",
       "file": "private-history.jpg"
+    },
+    {
+      "id": "agent-access",
+      "file": "agent-access.jpg"
     },
     {
       "id": "mcp-servers",
