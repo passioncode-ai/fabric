@@ -1,4 +1,4 @@
-# Release verification — three independent iterations (P-02)
+# Release verification — Fabric 0.3.0: three independent iterations (P-02)
 
 Run `2026-10-03-onboarding-and-plan`. The operator's rule (2026-10-03): before the DMG and the release,
 three independent testing iterations across every level of the project, every finding fixed, and only

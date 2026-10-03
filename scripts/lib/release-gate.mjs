@@ -8,7 +8,9 @@
 //   * every finding row `| VN-k | … |` ends with a disposition: fixed, ruled (a register id), not a
 //     defect, not recoverable, or stopped — anything else is an open finding;
 //   * the section's LAST non-blank line is `Exit for iteration N: … Blocking findings open: none.`, the
-//     only "Blocking findings open:" in it.
+//     only "Blocking findings open:" in it;
+//   * the ledger's title (its first `# ` line) names the version it clears, exactly — verification of
+//     0.3.1 found that bumping two strings would have cleared the hub on 0.3.0's closed ledger (PL-1).
 // Pure over the texts, so the gate and its test read one rule.
 
 export const ITERATIONS = 3
@@ -27,6 +29,9 @@ export function releaseGateProblems({ version, gateText, ledgerText }) {
   if (typeof ledgerText !== 'string' || !ledgerText) return [`the verification ledger ${gate.ledger} cannot be read`]
   const problems = []
   const lines = ledgerText.split('\n')
+  const title = lines.find((l) => /^# /.test(l)) ?? ''
+  const exact = new RegExp(String.raw`(?<![\d.])${version.replace(/\./g, '\\.')}(?![\d]|\.\d)`)
+  if (!exact.test(title)) problems.push(`the ledger ${gate.ledger} does not name version ${version} in its title ("${title.replace(/^# /, '')}"); each release is cleared by its own ledger`)
   for (let n = 1; n <= ITERATIONS; n++) {
     const starts = lines.flatMap((l, i) => (new RegExp(String.raw`^## Iteration ${n}\s*$`).test(l) ? [i] : []))
     if (starts.length !== 1) { problems.push(`the ledger has ${starts.length} "## Iteration ${n}" headings; exactly one is required`); continue }

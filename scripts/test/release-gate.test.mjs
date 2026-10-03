@@ -4,7 +4,7 @@ import { releaseGateProblems } from '../lib/release-gate.mjs'
 
 const gateText = JSON.stringify({ version: '0.3.0', ledger: 'docs/evidence/plans/x.md' })
 const iteration = (n, exit = true) => `## Iteration ${n}\n\n[report](x/iteration-${n}/r.md)\n\n| ID | Disposition |\n|---|---|\n| V${n}-1 | fixed: a |\n\n${exit ? `Exit for iteration ${n}: every finding fixed or ruled. Blocking findings open: none.` : 'Exit for iteration 2: Blocking findings open: V2-3.'}\n`
-const ledger = (...parts) => `# Ledger\n\n## Protocol\n\nx\n\n${parts.join('\n')}`
+const ledger = (...parts) => `# Ledger — Fabric 0.3.0\n\n## Protocol\n\nx\n\n${parts.join('\n')}`
 
 test('three iterations, each closed with none blocking, clear the release', () => {
   assert.deepEqual(releaseGateProblems({ version: '0.3.0', gateText, ledgerText: ledger(iteration(1), iteration(2), iteration(3)) }), [])
@@ -47,4 +47,30 @@ test('a finding row in any spelling is read, and "fixed?" is not a disposition (
     const third = `## Iteration 3\n\n[r](x/iteration-3/r.md)\n\n${row}\n\nExit for iteration 3: x. Blocking findings open: none.\n`
     assert.ok(releaseGateProblems({ version: '0.3.0', gateText, ledgerText: ledger(...ok, third) }).some((x) => x.includes('V3-41 has no disposition')), row)
   }
+})
+
+// PL-1 (0.3.1 verification, iteration 1): the gate tied the gate file to the app version but not the
+// LEDGER to a version — bumping two strings would have cleared 0.3.1 (the hub) on 0.3.0's closed ledger.
+test('the ledger must name the version it clears in its title: 0.3.0\'s closed ledger refuses a 0.3.1 gate', () => {
+  const closed = (title) => `# ${title}\n\n## Protocol\n\nx\n\n${[iteration(1), iteration(2), iteration(3)].join('\n')}`
+  const gate031 = JSON.stringify({ version: '0.3.1', ledger: 'docs/evidence/plans/x.md' })
+  const for030 = closed('Release verification — Fabric 0.3.0: three independent iterations')
+  assert.ok(releaseGateProblems({ version: '0.3.1', gateText: gate031, ledgerText: for030 }).some((x) => x.includes('does not name version 0.3.1')))
+  // a version that merely CONTAINS the one asked for is not it (0.3.10, 10.3.1)
+  for (const t of ['Fabric 0.3.10', 'Fabric 10.3.1', 'Fabric 0.3.1.2', 'no version at all'])
+    assert.ok(releaseGateProblems({ version: '0.3.1', gateText: gate031, ledgerText: closed(t) }).some((x) => x.includes('does not name version 0.3.1')), t)
+  assert.deepEqual(releaseGateProblems({ version: '0.3.1', gateText: gate031, ledgerText: closed('Release verification — Fabric 0.3.1, the hub (ADR-0115): three independent iterations') }), [])
+})
+test('the real files: 0.3.0\'s ledger clears only 0.3.0, and the hub\'s ledger does not clear 0.3.1 before its iterations close', async () => {
+  const { readFileSync } = await import('node:fs')
+  const root = new URL('../../', import.meta.url)
+  const read = (p) => readFileSync(new URL(p, root), 'utf8')
+  const old = 'docs/evidence/plans/2026-10-03-verification.md'
+  const hub = 'docs/evidence/plans/2026-10-04-hub-verification.md'
+  const gateFor = (version, ledger) => JSON.stringify({ version, ledger })
+  assert.deepEqual(releaseGateProblems({ version: '0.3.0', gateText: gateFor('0.3.0', old), ledgerText: read(old) }), [])
+  assert.ok(releaseGateProblems({ version: '0.3.1', gateText: gateFor('0.3.1', old), ledgerText: read(old) }).some((x) => x.includes('does not name version 0.3.1')))
+  const hubText = read(hub)
+  assert.ok(releaseGateProblems({ version: '0.3.1', gateText: gateFor('0.3.1', hub), ledgerText: hubText }).length > 0 || /^## Iteration 3\s*$/m.test(hubText) && !/_Not started\._/.test(hubText),
+    'the hub ledger must not clear 0.3.1 while an iteration is open')
 })
