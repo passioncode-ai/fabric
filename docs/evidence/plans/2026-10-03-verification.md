@@ -112,7 +112,74 @@ Exit for iteration 1: every finding above is fixed or ruled with a register id. 
 
 ## Iteration 2
 
-_Not started._
+Five fresh reviewers, 2026-10-03, against `0ca25630..57f4080c`. Reports, kept as written:
+[scenarios/UX/UI](2026-10-03-verification/iteration-2/2026-10-03-ux.md) (UX-n), [errors and boundaries](2026-10-03-verification/iteration-2/2026-10-03-errors.md) (ER-n),
+[code ↔ documents](2026-10-03-verification/iteration-2/2026-10-03-docs.md) (DO-n), [data, memory, orchestration, harness](2026-10-03-verification/iteration-2/2026-10-03-data.md)
+(DA-n), [plan and workspace](2026-10-03-verification/iteration-2/2026-10-03-plan.md) (PL-n). Two reviewers disclosed that a grep showed them
+a line of an iteration-1 report before their findings were written; neither finding depended on it.
+Fixes: `a58639e6` and the commit carrying this section (renderer, plan, release gate, ADR-0103), the merged
+`claude/iter2-data-fixes` (`2994d790`…`76192afc`) and `claude/iter2-boundary-fixes` (`4e78f020`…`16426c0d`).
+Each "Corrects V1-n" names an iteration-1 disposition this iteration found untrue.
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V2-1 | DA-1 | Hand-offs and heartbeats still accepted another estate's ids; migration 70's header overclaimed | fixed `2994d790` (migration 72; every create keyed on a global id refused at the door) — ADR-0103; `estate-identity-db.test.mjs` (watched: 11 failures without 72). Corrects V1-45 and V1-58; CO-184 closed |
+| V2-2 | DA-2 | `ci.sh full` failed at HEAD (P21, P32, usage-observation) and `&&` chains hid ~50 suites | fixed `d0f15d62`: P21 reads `scope.ts`-private tables, P32 ends through managed stop, usage-observation expects the problem reading; `scripts/run-test-chains.mjs` runs every suite and fails listing each (95 ran, 94 passed in the worktree; the one was a missing build). Corrects V1-46/54/55 |
+| V2-3 | DA-3, DO-6 | File roots refreshed from one capped page | fixed `148ba023` (`fileRootsRefresh.ts`: every page, or the roots stay; watched "reset to 1000 of 2500"). Corrects V1-22 |
+| V2-4 | DA-4 | Search labels from a capped read with no error | fixed `99625313` (labels for exactly the hits' projects; a failed read sets `labelProblem`) |
+| V2-5 | DA-5 | Journal lookups scanned the estate's journal every cycle | fixed `2994d790` (four partial indexes; EXPLAIN uses each); `contextDemandFor` no longer reads the journal |
+| V2-6 | DA-6 | Foreign ids journalled then skipped in ~12 projector arms | fixed `2994d790` (refused at the door) |
+| V2-7 | DA-7 | Context requirement guessed from the journal; missing project counted as met; facts uncounted | fixed `bbd0a1d1` |
+| V2-8 | DA-8 | Port race, walk temp folders, uncounted launch failures, offset paging, agent-name race | fixed `3a988153`, `c32459b4`, `6fec77d9`, and one agent per name under the estate lock (`2994d790`); offset paging ruled CO-185 |
+| V2-9 | UX-1 | Codex called "Terminal" in five selects | fixed: `runnerLabel.ts` at every call site (`runnerLabel.test.ts`). Corrects V1-4 |
+| V2-10 | UX-2, ER-2 | SCN-127's "refused by main" claim false; `projects.create` exposed any folder to every window | fixed `dd2ca23b` (`admitRepoPaths`: the calling window's roots or its scan's candidates; refused before journalling; watched "the disk root is refused"); refusal codes translated in the renderer |
+| V2-11 | UX-3 | Focus never moved on the start paths or in the agent form | fixed: each path's heading, the name field on open, the confirmation after create (tests watched). Corrects V1-7 |
+| V2-12 | UX-4 | The section route broke the layout | fixed: `revealSection` waits for the section, scrolls only its container, focuses its heading; the sidebar marks the section |
+| V2-13 | UX-5, DO-13 | One concept, several names; "agent" meant two things | fixed: "coding agent" for runners (en, ru), CONTEXT and terminology rows |
+| V2-14 | UX-6 | A created agent's row showed `CLAUDE-CODE` | fixed: `runnerLabel` |
+| V2-15 | UX-7, ER-10 | Raw IPC text in Onboarding and FirstRun; kept-scan failure dropped | fixed: `errorText`/`explainError`; the scan screen says an unreadable kept list. `onError(String(e))` calls reach `OperatorError`, which unwraps (M106c) — not a defect. Corrects V1-30 |
+| V2-16 | UX-8 | Failures looked like information | fixed: alert callouts and `.st-warn` in the danger tone; `field-problem` for field errors |
+| V2-17 | UX-9 | "N not added yet" counted parts | fixed (watched) |
+| V2-18 | UX-10 | Agent form semantics | fixed: `FieldGroup` for servers, `aria-describedby`, `aria-invalid`, an empty-name reason, the existing agent's name in the duplicate message |
+| V2-19 | UX-11 | Copy defects | fixed: no "Found means", no literal backticks, counts without plural errors, parts instead of "products", one casing of project, first-person lede, no second numbering, no repeated authority line. Corrects V1-13 |
+| V2-20 | UX-12 | Visual consistency | fixed the uppercase card label and the sentence-case pills; the prototype's hard-coded pill size and the form's native controls are ruled CO-169 / CO-179 (the design-system adoption and the form restyle). Corrects V1-17 in part |
+| V2-21 | UX-13 | Navigation marked home on start screens | fixed: start screens mark "+ Project"; the first run marks nothing |
+| V2-22 | UX-14, DO-9 | Screen and flow state tables disagreed with scenarios and code | fixed: SCR-70…73, FLW-69…72, SCN-128/129/131 coverage. Corrects V1-16 |
+| V2-23 | UX-15 | Dead CSS | fixed: removed |
+| V2-24 | UX-16 | New agent listed archived projects | fixed |
+| V2-25 | UX-17 | Create while options unread; Check again race; silent clipboard; "0 so far" | fixed (tests watched) |
+| V2-26 | UX-18 | A made folder stayed silently on Remove/Cancel; no busy label | fixed: a "new folder" chip, a stays-on-disk note, a busy label |
+| V2-27 | ER-1 | A partial clone ran its uploadpack during the scan and the repo watcher | fixed `4e78f020` (one hardened `gitRun`: no lazy fetch, no transport, repository filter/diff drivers neutralised — the filter driver found while fixing it); watched in both callers. Corrects V1-18 |
+| V2-28 | ER-3, DO-1 | Depth-skipped folders counted and never said | fixed: deep and symlink notices on the scan screen (tests). Corrects V1-39, V1-51 |
+| V2-29 | ER-4 | A hung filesystem could hang the scan | fixed `e021c4db` (no sync or untimed fs; the walk races Stop and the deadline; watched "Stop returned in 60003 ms") and the renderer leaves scanning at once on Stop. Corrects V1-25 |
+| V2-30 | ER-5 | The agent list stuck in "reading" under StrictMode | fixed (a StrictMode test that fails on the old ref) |
+| V2-31 | ER-6 | The test-stack guard could be bypassed | fixed `3a988153`. Corrects V1-46's guard claim |
+| V2-32 | ER-7 | with-timeout reported every signal as 143 | fixed `d2e0f1df` |
+| V2-33 | ER-8 | Detection misread versions, left children, missed version-manager installs | fixed `74d5716a`; sessions now get the same widened PATH (`env.ts#fixPath`). Corrects V1-29 |
+| V2-34 | ER-9 | New-folder refusals without their reason | fixed `c258ce6d` |
+| V2-35 | ER-11 | A `.git` symlink read as a plain folder | fixed `e021c4db` |
+| V2-36 | DO-2 | The handoff's next command failed; walk statuses disagreed | fixed: the handoff and REQ status name `scripts/test-stack.mjs run --` and the walk receipts. Corrects V1-37 |
+| V2-37 | DO-3 | New code without regions; migration 70's rule unspecified | fixed: 40 region markers, migrations 70–72 point at ADR-0103 |
+| V2-38 | DO-4, DO-7 | README claims about probes and the runner count | fixed |
+| V2-39 | DO-5 | Unregistered strings | fixed: every new key registered; brand lint 0 errors, 1457 warnings (1468 at the base). Corrects V1-67 |
+| V2-40 | DO-8, DO-11 | ADR-0100 cited a moved file; "one folder" claim | fixed: ADR-0100 §5 and §7 (reusable parent, per-window admission) |
+| V2-41 | DO-10 | Only http(s) remotes lost credentials | fixed `16426c0d`. Corrects V1-21 |
+| V2-42 | DO-12, PL-11 | P-02 status stale | fixed |
+| V2-43 | DO-14 | Region markers at the generic `#decision` | fixed: ADR-0100 items carry anchors; markers point at SCN, SCR or the item |
+| V2-44 | DO-15 | The icon check ignored the mark | fixed: `build-app-icon.mjs --check` compares `markSha256` (watched) |
+| V2-45 | PL-1 | The plan gate missed closing words, packet statuses and P-id collisions | fixed: the workspace's vocabulary (agreement tested), `Status:` lines and receipts, P-ids only from the plan table (each planted case watched). Corrects V1-42 |
+| V2-46 | PL-2 | Lane entry rules added gates | fixed: lanes 3, 5, 6 restate their registers. Corrects V1-60 |
+| V2-47 | PL-3 | Three different "now" tasks | fixed: launch README, harness README, CLAUDE.md point at Now/Next. Corrects V1-63 |
+| V2-48 | PL-4, PL-12 | ADR-0101 changed ADR-0044 while claiming not to; §2 drifted | fixed: ADR-0101 amends ADR-0044 §1, §2 lists every form, §5 states the in-lane order |
+| V2-49 | PL-5 | Registers P-01 delivered into were not updated | fixed: dated notes on AR-2.1, AD24, FR-A/B/C; ADR-0100 propagated into the strategy. Corrects V1-61 |
+| V2-50 | PL-6 | M199 rows stale; lane 5 scheduled landed work | fixed: rows follow the merge log; lane 5 names M199.ui and M199.acceptance |
+| V2-51 | PL-7 | Open work in no lane; two "lane" systems | fixed: lane 12 (CO-112, CO-158, CO-165, CO-169, CO-173, CO-175); the roadmap's column is "Track". Corrects V1-59 |
+| V2-52 | PL-8 | The common backlog could not show lanes 3, 4, 7 | fixed: FR and the adoption module tables declared (collector run: FR-A…G and modules present); N1 ruled CO-186 |
+| V2-53 | PL-9 | Nothing enforced the release gate | fixed: `scripts/release-mac.mjs` refuses without `docs/launch/release-gate.json`'s ledger exit (`release-gate.test.mjs`, watched) |
+| V2-54 | PL-10 | 0.3.0 before N1 | fixed: P-03 states that 0.3.0 ships detection without real-provider acceptance; N1's Claude half may run inside P-02 |
+| V2-55 | PL (KB) | Knowledge-base pages | ruled: corrected in the fabric-workspace PR at landing (P-03), as V1-65 records; `knowledge/plans.md` AR-1 partial, AR-2 lane 6, a link to the plan |
+
+Exit for iteration 2: every finding above is fixed or ruled with a register id. Blocking findings open: none.
 
 ## Iteration 3
 

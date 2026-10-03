@@ -131,3 +131,13 @@ AD01). The lanes now cite only open work, and each entry rule is the register's 
 see [the plan](../backlog.md#general-development-plan). What survives of the reasoning above: Start
 first, the release gate before more features, and V1 rows in their own order. Erratum: D9 above
 names "the rule in ADR-0100"; the general plan's rule is ADR-0101.
+
+## REQ status after iteration 2 (appended 2026-10-03)
+
+Changes from the table above ([ledger §Iteration 2](2026-10-03-verification.md#iteration-2)):
+REQ-03, REQ-04 and REQ-05 are **met** — walk ×3 on a disposable stack, 10/10 each, at `57f4080c`
+(dark/en, light/ru, dark/ru), and re-walked before the release. REQ-06 is **met** with the iteration-2
+form fixes (StrictMode, focus, field problems). REQ-11 is **met**: every new key registered, brand lint
+0 errors, 1457 warnings against 1468 at the base. REQ-12 is **met**: 40 region markers, migrations 70–72
+pointing at ADR-0103 (V2-37). REQ-15: iterations 1 and 2 closed with no blocking finding open;
+iteration 3 next. REQ-16 and REQ-17 are gated by `scripts/release-mac.mjs` (V2-53).

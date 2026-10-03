@@ -10,6 +10,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { chooseRepoRoot } from './repoRoot'
 import { materializeStack } from './bundledStack'
+import { widenProbePath } from './executorDetect.ts'
 import { app } from 'electron'
 
 export interface SupabaseEnv {
@@ -18,12 +19,14 @@ export interface SupabaseEnv {
 }
 
 // A .app launched from the Dock inherits a minimal PATH without Homebrew —
-// `supabase` and `claude` both live there. Appended once at startup.
+// `supabase` and `claude` both live there. Appended once at startup, then the version managers' folders
+// that exist (`widenProbePath`), so a coding agent the first run finds is one a session can also launch
+// (iteration 2: a volta-only Codex was found by detection and missing from the session's PATH).
 export function fixPath(): void {
   const extra = ['/opt/homebrew/bin', '/usr/local/bin', `${process.env.HOME}/.local/bin`]
   const parts = (process.env.PATH ?? '').split(':')
   for (const p of extra) if (!parts.includes(p)) parts.push(p)
-  process.env.PATH = parts.join(':')
+  process.env.PATH = widenProbePath(parts.join(':'), process.env)
 }
 
 let bundledRoot: string | null | undefined

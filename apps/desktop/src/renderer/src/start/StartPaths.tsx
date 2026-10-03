@@ -30,6 +30,16 @@ export interface StartProps {
  */
 export const errorText = (e: unknown): string => humaniseError(e).detail
 
+/**
+ * An error, with the refusals main sends as codes said in this window's language: a repository path the
+ * window did not choose (`repo-path-refused:<code>: <path>`, startChoices.ts) reads as a sentence.
+ */
+export function explainError(e: unknown, t: Translate): string {
+  const text = errorText(e)
+  const m = /(?:^|: )repo-path-refused:(not-a-path|missing|not-a-folder|not-chosen): ([\s\S]*)$/.exec(text)
+  return m ? t(`start.repoRefused.${m[1]}` as 'start.repoRefused.not-chosen', { path: m[2] }) : text
+}
+
 /** A candidate's path as the checklist shows it: relative to the scanned folder, which the summary already names. */
 export function shownPath(path: string, root: string): string {
   return path.startsWith(root + '/') ? path.slice(root.length + 1) : path
@@ -190,7 +200,7 @@ function AddProject({ onPath, onCreated, onOpenProject }: StartProps): React.JSX
       const p = await window.fabric.projects.create({ id: id.current, name: name.trim(), repoPaths: [facts.path] })
       onCreated(p.id)
     } catch (e) {
-      setS({ at: 'failed', reason: errorText(e), facts, name })
+      setS({ at: 'failed', reason: explainError(e, t), facts, name })
     }
   }
 
@@ -328,7 +338,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
         done[p] = 'ok'
         created.push(project.id)
       } catch (e) {
-        done[p] = errorText(e)
+        done[p] = explainError(e, t)
       }
       setS({ at: 'importing', scan, done: { ...done }, queue })
     }
@@ -385,6 +395,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
           {scan.truncated && <div className="lp-callout" role="status"><p>{t('start.scan.truncated', { visited: scan.visited })}</p></div>}
           {scan.unreadable > 0 && <div className="lp-callout" role="status"><p>{t('start.scan.unreadable', { count: scan.unreadable })}</p></div>}
           {scan.deep > 0 && <div className="lp-callout" role="status"><p>{t('start.scan.deep', { count: scan.deep })}</p></div>}
+          {scan.symlinks > 0 && <div className="lp-callout" role="status"><p>{t('start.scan.symlinks', { count: scan.symlinks })}</p></div>}
           {s.at === 'imported' && (
             <div className="lp-callout" role="status">
               <p>{failedCount === 0 ? t('start.scan.importedAll', { ok: s.created.length }) : t('start.scan.importedSome', { ok: s.created.length, failed: failedCount })}</p>

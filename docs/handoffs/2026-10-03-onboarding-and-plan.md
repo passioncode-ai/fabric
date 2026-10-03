@@ -20,6 +20,12 @@ The plan everyone works to: [general development plan](../evidence/backlog.md#ge
   quota, search, context; `90b012dc`…`745ba358`) and `claude/ci-full-disposable-stack` (`c0f7339f`:
   `ci.sh full` on a disposable stack, a guard against the live ports, `scripts/residue-report.mjs`).
   Migration 71 restores `append_event`'s lock timeout and event-type check (lost in 63/64).
+- **Verification iteration 2** (five fresh reviewers): 55 findings, each fixed or ruled —
+  [ledger §Iteration 2](../evidence/plans/2026-10-03-verification.md#iteration-2). Merged
+  `claude/iter2-data-fixes` (migration 72, the full tier runs every suite through
+  `scripts/run-test-chains.mjs`) and `claude/iter2-boundary-fixes` (one hardened `gitRun`, repository
+  paths admitted per window, a scan the disk cannot hang). ADR-0103 records the write-boundary rule;
+  `scripts/release-mac.mjs` now refuses without the ledger's exit (`docs/launch/release-gate.json`).
 - Separately on `main` (`afb62b82`): Claude Code 2.1.288 re-pin and `scripts/repin-provider-builds.mjs`.
 
 ## Checks run for this state
@@ -30,12 +36,13 @@ The plan everyone works to: [general development plan](../evidence/backlog.md#ge
 - Planted defects watched failing for every new test (listed per finding in the ledger).
 
 ## Open — exact next task
-1. **Iteration 2** of P-02: five fresh reviewers who have not seen iteration 1 (protocol in the
-   ledger; the reviewer brief names the levels and the rules). Diff to review: `0ca25630..HEAD`.
-   Then fix everything, record `V2-n`, repeat for **iteration 3**, which must end with zero blocking.
-2. Before the release: `bash scripts/ci.sh full` (now safe — disposable stack), the live walk ×3
+1. **Iteration 3** of P-02: five fresh reviewers who have seen neither earlier iteration (protocol in
+   the ledger). Diff to review: `0ca25630..HEAD`. Fix everything, record `V3-n`, and end the section with
+   `Exit for iteration 3: … Blocking findings open: none.` — the release gate reads that line.
+2. Before the release: `bash scripts/ci.sh full` (disposable stack, every suite), the live walk ×3
    (`pnpm --filter @fabric/desktop exec electron-vite build`, then
-   `node scripts/walk/start-paths.mjs <out> [--theme light] [--locale ru]`).
+   `node scripts/test-stack.mjs run -- node scripts/walk/start-paths.mjs <out> [--theme light] [--locale ru]`
+   — the walk refuses any other stack).
 3. **P-03**: `scripts/release-mac.mjs` 0.3.0 (notarized DMG; the App Store Connect key through
    `use_secret.py`), install and walk on this Mac, publish on passioncode.ai (authorized by the operator
    on 2026-10-03), the merge-log entry, land by fast-forward, `node scripts/workspace.mjs sync`, and the

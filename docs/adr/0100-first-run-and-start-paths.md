@@ -50,9 +50,11 @@ it). The operator settled each one.
    warning; already-imported repositories are marked and cannot be ticked; the last scan is kept and
    shown, and adding from it later goes through the checked create. Dependency trees, build output and
    similar noise-named folders are not entered (but one that is itself a repository is listed); hidden
-   folders and symlinks out of the chosen folder never are. The walk runs git with every
-   config-driven program switched off, so a repository's own config cannot make the scan execute
-   anything; a remote URL loses its credentials before it is shown or kept. What the walk could not
+   folders and symlinks out of the chosen folder never are. The walk runs git only through
+   `gitRun.ts` with every config-driven program switched off — signature, pager, fsmonitor, hooks,
+   repository-defined filter and diff drivers — lazy fetch off and every transport refused, so a
+   repository's own config cannot make the scan execute anything (amended after verification
+   iteration 2, which ran a planted uploadpack through a partial clone); a remote URL loses its credentials before it is shown or kept. What the walk could not
    cover is said: stopped by its bound, folders that could not be read, a folder read abandoned after
    its timeout. Re-scanning on a schedule is not built (CO-177).
 <a id="new-project"></a>
@@ -71,10 +73,13 @@ it). The operator settled each one.
 <a id="boundary"></a>
 7. **The boundary.** Every folder these paths read is one the operator chose in this window's
    picker (`fileRoots`, S02.roots); the main process refuses anything else as outside. A folder chosen
-   as the PARENT of a new project is not opened: the window may create new folders in it and nothing more — the folder itself is never opened for reading or writing. A kept scan
-   is shown, never granted. `projects.create` checks every repository path it is given (absolute, an
-   existing folder, by its real path) and adds the new project's folders to the estate's roots and the
-   git watch at once. The only exception is the walk harness's `FABRIC_WALK_PICK`, which answers the
+   as the PARENT of a new project is not opened: the window may create new project folders directly in
+   it — reusable while the window lives, each folder granted to that window — and may not read, list or
+   write anything else there. A kept scan is shown, never granted. `projects.create` and `repos.attach`
+   admit a repository path only when it is absolute, an existing folder taken by its real path, and
+   either reachable from the calling window or a candidate main listed for that window's latest or kept
+   scan; anything else is refused before it is journalled (`startChoices.ts#admitRepoPaths`). An
+   admitted project's folders join the estate's roots and the git watch at once. The only exception is the walk harness's `FABRIC_WALK_PICK`, which answers the
    picker in an UNPACKAGED run and is ignored by a packaged app.
 <a id="app-icon"></a>
 8. **The app icon** is the PassionCode.ai mark from its source SVG, composed on a graphite macOS

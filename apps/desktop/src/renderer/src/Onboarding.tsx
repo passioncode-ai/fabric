@@ -16,7 +16,7 @@ import { memoryChoice } from '../../shared/memoryChoice.ts'
 import { useT } from './i18n'
 import { folderNameProblem, type FolderNameProblem } from '../../shared/startPaths.ts'
 import { runnerLabel } from './runnerLabel'
-import { errorText } from './start/StartPaths'
+import { errorText, explainError } from './start/StartPaths'
 
 export function Onboarding({
   draft,
@@ -108,7 +108,7 @@ export function Onboarding({
       }
       onCreated(await window.fabric.projects.create(input))
     } catch (e) {
-      onError(String(e))
+      onError(explainError(e, t))
     } finally {
       setBusy(false)
     }

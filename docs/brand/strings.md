@@ -276,7 +276,7 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.menu.lede` | A Project is the durable unit: its sources, agents, decisions and evidence live together. Bring one, many, or start from nothing. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.card.add.mark` | + | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.card.add.title` | Add a project | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.add.body` | A folder you already work in becomes a Project. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `start.card.add.body` | A folder you already work in becomes a project. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.card.add.meta` | One folder | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.card.scan.mark` | ≡ | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.card.scan.title` | Scan a projects folder | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
@@ -416,3 +416,8 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `first.exec.copyFailed` | Not copied: select the text | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.scan.keptFailed` | The last scan could not be read: {reason}. Scan a folder to see its repositories. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.deep` | Folders deeper than the scan goes, not entered: {count}. A repository among them is not listed; to find it, scan the folder that holds it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.scan.symlinks` | Folders that are links to elsewhere, not followed: {count}. Scan the folder a link points to if its repositories belong here. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.repoRefused.not-a-path` | {path} is not a folder path. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
+| `start.repoRefused.missing` | The folder {path} does not exist. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
+| `start.repoRefused.not-a-folder` | {path} is a file, not a folder. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
+| `start.repoRefused.not-chosen` | The folder {path} was not chosen in this window. Choose it with the folder picker or scan the folder that holds it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |

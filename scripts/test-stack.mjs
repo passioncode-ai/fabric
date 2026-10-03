@@ -132,6 +132,14 @@ function supabase(args, { log, timeout = 600_000 } = {}) {
 
 const shQuote = v => `'${String(v).replace(/'/g, `'\\''`)}'`
 
+/** Runs `start`; on a failure, calls `beforeRetry` and runs it exactly once more. Returns the last result. */
+export function startWithOneRetry(start, beforeRetry) {
+  const first = start()
+  if (first.status === 0) return first
+  beforeRetry(first)
+  return start()
+}
+
 export async function up(dir) {
   const live = liveStack()
   const abs = path.resolve(dir)
@@ -152,7 +160,15 @@ export async function up(dir) {
     const log = path.join(abs, 'stack.log')
     say(`starting ${projectId} on API ${plan.apiPort}, DB ${plan.dbPort} (live stack: API ${live.apiPort}, DB ${live.dbPort}, untouched); log ${log}`)
     const started = Date.now()
-    const start = supabase(['start', '--workdir', abs, '-x', EXCLUDE.join(',')], { log })
+    const start = startWithOneRetry(
+      () => supabase(['start', '--workdir', abs, '-x', EXCLUDE.join(',')], { log }),
+      (failed) => {
+        // A start can fail after every migration applied (a health check timing out under load, measured
+        // 2026-10-03); this stack is disposable, so it is stopped and started once more before failing.
+        say(`supabase start failed (${failed.status ?? failed.signal}); stopping ${projectId} and starting it once more`)
+        supabase(['stop', '--workdir', abs, '--no-backup'], { log })
+      }
+    )
     // The ports are bound (or the start failed): the claim has done its job either way.
     release()
     if (start.status !== 0) throw new Error(`supabase start failed (${start.status ?? start.signal}); last lines:\n${(start.stderr || start.stdout || '').trim().split('\n').slice(-15).join('\n')}`)

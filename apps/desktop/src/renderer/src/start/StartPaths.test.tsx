@@ -22,7 +22,7 @@ function bridge(over: Record<string, unknown> = {}) {
     start: {
       chooseFolder: vi.fn(async () => '/w'),
       inspect: vi.fn(async (): Promise<FolderView> => ({ ...repo({ path: '/w/alpha', name: 'alpha' }) })),
-      scan: vi.fn(async (): Promise<ScanView> => ({ root: '/w', candidates: [], visited: 1, unreadable: 0, deep: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z' })),
+      scan: vi.fn(async (): Promise<ScanView> => ({ root: '/w', candidates: [], visited: 1, unreadable: 0, deep: 0, symlinks: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z' })),
       cancelScan: vi.fn(async () => undefined),
       lastScan: vi.fn(async () => null),
       createFolder: vi.fn(async () => ({ ok: true, path: '/w/new-thing' })),
@@ -133,7 +133,7 @@ describe('add a project (SCN-127)', () => {
 
 describe('scan a projects folder (SCN-128)', () => {
   const scan: ScanView = {
-    root: '/w', visited: 9, unreadable: 0, deep: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z',
+    root: '/w', visited: 9, unreadable: 0, deep: 0, symlinks: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z',
     candidates: [
       repo({ path: '/w/a', name: 'a', group: '/w/a' }),
       repo({ path: '/w/_wt/a-fix', name: 'a-fix', kind: 'worktree', parent: '/w/a', group: '/w/a' }),
@@ -210,7 +210,7 @@ describe('iteration 1 fixes', () => {
   })
 
   it('"Tick all shown" ticks one Project per product, never a worktree; ticking a part warns', async () => {
-    const scan: ScanView = { root: '/w', visited: 3, unreadable: 2, deep: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [
+    const scan: ScanView = { root: '/w', visited: 3, unreadable: 2, deep: 0, symlinks: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [
       repo({ path: '/w/a', name: 'a', group: '/w/a' }),
       repo({ path: '/w/_wt/a-fix', name: 'a-fix', kind: 'worktree', parent: '/w/a', group: '/w/a' })
     ] }
@@ -229,7 +229,7 @@ describe('iteration 1 fixes', () => {
 
   it('Scan again goes through the picker, offering the last folder; the error text loses Electron\'s wrapper', async () => {
     const chooseFolder = vi.fn(async () => '/w')
-    const scanFn = vi.fn().mockResolvedValueOnce({ root: '/w', visited: 1, unreadable: 0, deep: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [repo({})] })
+    const scanFn = vi.fn().mockResolvedValueOnce({ root: '/w', visited: 1, unreadable: 0, deep: 0, symlinks: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [repo({})] })
       .mockRejectedValueOnce(new Error("Error invoking remote method 'start:scan': Error: that file is outside every folder open in Fabric: /x"))
     bridge({ start: { ...bridge().start, chooseFolder, scan: scanFn } })
     start('scan')
@@ -241,7 +241,7 @@ describe('iteration 1 fixes', () => {
 })
 
 describe('iteration 2 fixes', () => {
-  const scanOf = (over: Partial<ScanView>): ScanView => ({ root: '/w', visited: 3, unreadable: 0, deep: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [], ...over })
+  const scanOf = (over: Partial<ScanView>): ScanView => ({ root: '/w', visited: 3, unreadable: 0, deep: 0, symlinks: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [], ...over })
 
   it('arriving on a path moves focus to its heading', async () => {
     bridge()
@@ -293,5 +293,24 @@ describe('iteration 2 fixes', () => {
     start('convert')
     fireEvent.click(screen.getByRole('button', { name: en['first.exec.copy'] }))
     expect(await screen.findByRole('button', { name: en['first.exec.copyFailed'] })).toBeTruthy()
+  })
+})
+
+describe('iteration 2 fixes, after the boundary branch', () => {
+  it('linked folders the scan did not follow are counted and said', async () => {
+    bridge({ start: { ...bridge().start, scan: vi.fn(async (): Promise<ScanView> => ({ root: '/w', visited: 3, unreadable: 0, deep: 0, symlinks: 2, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [] })) } })
+    start('scan')
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
+    expect(await screen.findByText(en['start.scan.symlinks'].replace('{count}', '2'))).toBeTruthy()
+  })
+
+  it('a repository path main refused as not chosen in this window reads as a sentence, not a code', async () => {
+    bridge({ projects: { create: vi.fn(async () => { throw new Error("Error invoking remote method 'projects:create': RepoPathRefused: repo-path-refused:not-chosen: /w/alpha") }) } })
+    start('add')
+    fireEvent.click(screen.getByRole('button', { name: en['start.add.choose'] }))
+    fireEvent.click(await screen.findByRole('button', { name: en['start.add.create'] }))
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toContain(en['start.repoRefused.not-chosen'].replace('{path}', '/w/alpha'))
+    expect(alert.textContent).not.toContain('repo-path-refused')
   })
 })

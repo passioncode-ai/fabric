@@ -79,6 +79,7 @@ import { MemoryOverviewSection } from './MemoryOverviewSection'
 import { DigestSection } from './DigestSection'
 import { since, since as ago, until as ahead } from './duration'
 import { runnerLabel } from './runnerLabel'
+import { explainError } from './start/StartPaths'
 import { ProjectLaunch } from './launch/ProjectLaunch'
 import { go } from './evidence'
 import { describeMove } from '../../shared/provenance.ts'
@@ -1077,7 +1078,7 @@ export function ReposSection({
       await window.fabric.repos.attach(project.id, picked)
       await onChanged()
     } catch (e) {
-      onError(String(e))
+      onError(explainError(e, t))
     }
   }
   return (

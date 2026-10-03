@@ -45,15 +45,10 @@ export interface ScanResult {
   cancelled: boolean
 }
 
-/**
- * A scan as the renderer sees it. Main always sends `symlinks` (`scanFolder`, `parseStoredScan`); it is
- * optional on the VIEW only because the renderer's own fixtures predate the field, and a renderer reading
- * it must treat a missing value as unknown rather than as zero.
- */
-export interface ScanView extends Omit<ScanResult, 'candidates' | 'symlinks'> {
+/** A scan as the renderer sees it: the result with each candidate marked by the projects that hold it. */
+export interface ScanView extends Omit<ScanResult, 'candidates'> {
   candidates: CandidateView[]
   scannedAt: string
-  symlinks?: number
 }
 
 /**

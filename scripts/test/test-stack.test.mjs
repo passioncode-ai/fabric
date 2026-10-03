@@ -168,3 +168,17 @@ test('a block another live run has claimed is skipped; a dead claimant\'s block 
     rmSync(dir, { recursive: true, force: true })
   }
 })
+
+test('a disposable stack whose start fails is stopped and started exactly once more', async () => {
+  const { startWithOneRetry } = await import('../test-stack.mjs')
+  const calls = []
+  const ok = startWithOneRetry(() => { calls.push('start'); return { status: calls.length === 1 ? 1 : 0 } }, () => calls.push('stop'))
+  assert.deepEqual(calls, ['start', 'stop', 'start'])
+  assert.equal(ok.status, 0)
+  const twice = []
+  assert.equal(startWithOneRetry(() => { twice.push('start'); return { status: 1 } }, () => twice.push('stop')).status, 1, 'a second failure is the failure')
+  assert.deepEqual(twice, ['start', 'stop', 'start'], 'never a third start')
+  const once = []
+  startWithOneRetry(() => { once.push('start'); return { status: 0 } }, () => once.push('stop'))
+  assert.deepEqual(once, ['start'], 'a good start is not repeated')
+})
