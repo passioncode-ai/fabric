@@ -236,8 +236,12 @@ node scripts/test-stack.mjs down <dir>
 
 A probe reads its connection only from `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`,
 `DATABASE_URL` and `FABRIC_TEST_STACK`, through `probeEnv()` in
-[`scripts/lib/test-stack.mjs`](scripts/lib/test-stack.mjs). Nothing falls back to
-`supabase status` at the root. Three things refuse an address on a live port: `up`, `guard`
+[`scripts/lib/test-stack.mjs`](scripts/lib/test-stack.mjs). No probe in a tier falls back to
+`supabase status` at the root. Two manual probes outside every tier still do, by design, and found an
+estate in the live stack when run: `apps/desktop/test/chat-activation-native.test.mjs` and
+`handshake-e2e.test.mjs` (CO-182). The live walk of the built app runs here too:
+`node scripts/test-stack.mjs run -- node scripts/walk/start-paths.mjs <out-dir>`; it refuses to start
+otherwise. Three things refuse an address on a live port: `up`, `guard`
 and each probe itself. The live ports are whatever the root `supabase/config.toml` declares,
 plus 54321 and 54322 in every case. A refusal is a FAIL with exit 1, and nothing connects
 first. Two other things are refused as well: the live project id, and an address that is not
@@ -256,9 +260,10 @@ prints them). It runs under [`scripts/with-timeout.mjs`](scripts/with-timeout.mj
 tier fails with exit 124 and the command named, so a hung probe cannot keep the tier running forever.
 A command ended by a signal exits 128 plus that signal's number.
 
-The eleven `apps/desktop/test/run-*-db.mjs` suites own a temporary PostgreSQL cluster each.
-They need PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default `/opt/homebrew/opt/postgresql@17/bin`)
-and run first in the full tier; every one runs, and the step fails at the end naming each that did not
+Thirteen owned-cluster runners (`apps/desktop/test/run-*-db.mjs` and `run-ceo-host-sql.mjs`) each own a
+temporary PostgreSQL cluster. They need PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default
+`/opt/homebrew/opt/postgresql@17/bin`). Two (`run-estate-identity-db`, `run-read-schema-db`) run in the
+fast tier; the other eleven run first in the full tier; every one runs, and the step fails at the end naming each that did not
 pass.
 
 ### Test residue in the live database
