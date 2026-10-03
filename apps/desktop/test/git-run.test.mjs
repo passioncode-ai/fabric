@@ -121,4 +121,48 @@ function plantPartialClone(dir, uploadpack) {
   }
 }
 
-console.log('PASS gitRun: partial-clone lazy fetch, repository filter drivers (global kept), core.fsmonitor, inherited GIT_DIR — no program from a repository config runs')
+// ── 5. a SUBMODULE's own config (iteration 3, errors finding 1): `git status` in the superproject spawns a
+// child status per submodule, and that child reads `.git/modules/<sub>/config` — where the superproject's
+// driver neutralisation never looked. A filter defined there, assigned by the submodule's own
+// info/attributes, with a stat-dirty file in the submodule, ran under a plain superproject status.
+{
+  const subSrc = path.join(base, 'sub-src')
+  mkdirSync(subSrc)
+  git(subSrc, 'init', '-q', '-b', 'main')
+  writeFileSync(path.join(subSrc, 'f.txt'), 'one\n')
+  git(subSrc, 'add', '.')
+  git(subSrc, 'commit', '-q', '-m', 'sub')
+  const sup = path.join(base, 'super')
+  mkdirSync(sup)
+  git(sup, 'init', '-q', '-b', 'main')
+  git(sup, '-c', 'protocol.file.allow=always', 'submodule', 'add', '-q', subSrc, 'sub')
+  git(sup, 'commit', '-q', '-m', 'add sub')
+  const modDir = path.join(sup, '.git', 'modules', 'sub')
+  assert.ok(existsSync(path.join(modDir, 'config')), 'the plant has an absorbed submodule git dir')
+  git(path.join(sup, 'sub'), 'config', 'filter.evil.clean', evil)
+  git(path.join(sup, 'sub'), 'config', 'filter.evil.process', evil)
+  // The submodule's own fsmonitor too: the child status must not run it either.
+  git(path.join(sup, 'sub'), 'config', 'core.fsmonitor', evil)
+  mkdirSync(path.join(modDir, 'info'), { recursive: true })
+  writeFileSync(path.join(modDir, 'info', 'attributes'), '* filter=evil\n')
+  writeFileSync(path.join(sup, 'sub', 'f.txt'), 'two\n')
+  await gitRun(sup, ['status', '--porcelain=v1'])
+  assert.equal(runs(), 0, "a submodule's own filter driver or fsmonitor must never run on a superproject read")
+  await gitRun(sup, ['diff', '--stat']).catch(() => undefined)
+  assert.equal(runs(), 0, "a superproject diff must never recurse into a submodule's drivers")
+
+  // `-c diff.ignoreSubmodules=all` alone is only a DEFAULT: `submodule.<name>.ignore` — in the repository's
+  // config or its tracked .gitmodules — outranks it (probed 2026-10-03: one run each for status and diff).
+  // Only the command-line `--ignore-submodules=all` outranks the repository.
+  git(sup, 'config', 'submodule.sub.ignore', 'none')
+  await gitRun(sup, ['status', '--porcelain=v1'])
+  assert.equal(runs(), 0, 'submodule.<name>.ignore=none in .git/config must not re-open the submodule')
+  await gitRun(sup, ['diff', '--stat']).catch(() => undefined)
+  assert.equal(runs(), 0, 'nor for a diff')
+  git(sup, 'config', '--unset', 'submodule.sub.ignore')
+  writeFileSync(path.join(sup, '.gitmodules'), `${readFileSync(path.join(sup, '.gitmodules'), 'utf8')}\tignore = none\n`)
+  await gitRun(sup, ['status', '--porcelain=v1'])
+  assert.equal(runs(), 0, 'ignore=none in the tracked .gitmodules must not re-open the submodule')
+}
+
+console.log('PASS gitRun: partial-clone lazy fetch, repository filter drivers (global kept), core.fsmonitor, inherited GIT_DIR, submodule config — no program from a repository config runs')

@@ -1,4 +1,4 @@
-// #region git-run — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+// #region git-run — docs: docs/adr/0100-first-run-and-start-paths.md#scan
 // One hardened way to run git, used by everything that reads a repository:
 // the repo-state watcher, the code statistics, and the start paths' folder
 // inspection and scan (ADR-0100 §3: "the walk runs git with every
@@ -52,6 +52,13 @@ export const HARDENED_GIT_ARGS: readonly string[] = [
   '-c', 'gpg.ssh.program=false',
   '-c', 'gpg.x509.program=false',
   '-c', 'diff.external=',
+  // A submodule is another repository with its own config (`.git/modules/<name>/config`), which the
+  // driver neutralisation below never reads: `git status` spawns a child status per submodule, and that
+  // child ran the submodule's own clean filter (iteration 3). These are the defaults; the per-command
+  // `--ignore-submodules=all` (SUBMODULE_FLAG_COMMANDS) is what outranks `submodule.<name>.ignore`.
+  '-c', 'diff.ignoreSubmodules=all',
+  '-c', 'submodule.recurse=false',
+  '-c', 'status.submoduleSummary=false',
   // No read touches a remote: every transport is refused, which also closes `ext::` URLs and the
   // local-path fetch a partial clone's lazy fetch would make.
   '-c', 'protocol.allow=never',
@@ -141,6 +148,20 @@ async function repositoryDrivers(repoPath: string, env: Record<string, string>, 
   return keys
 }
 
+/**
+ * Subcommands that look into a submodule's working tree, and so would run the submodule's own config.
+ * `diff.ignoreSubmodules` is only their default — `submodule.<name>.ignore=none` in the repository's
+ * config or its tracked `.gitmodules` outranks it (probed 2026-10-03) — so the flag goes on the command
+ * line, right after the subcommand, where nothing the repository writes can override it.
+ */
+const SUBMODULE_FLAG_COMMANDS = new Set(['status', 'diff', 'diff-index', 'diff-files'])
+
+/** The arguments with `--ignore-submodules=all` placed after any subcommand that would recurse. */
+export function withSubmodulesIgnored(args: readonly string[]): string[] {
+  if (args.length && SUBMODULE_FLAG_COMMANDS.has(args[0])) return [args[0], '--ignore-submodules=all', ...args.slice(1)]
+  return [...args]
+}
+
 export interface GitRunOptions {
   /** How long the command may take; the default suits the repo-state watcher. */
   timeoutMs?: number
@@ -158,7 +179,7 @@ export async function gitRun(repoPath: string, args: string[], opts: GitRunOptio
     env[`GIT_CONFIG_VALUE_${i}`] = ''
   })
   if (drivers.length) env.GIT_CONFIG_COUNT = String(drivers.length)
-  const { stdout } = await exec('git', [...lead, ...args], {
+  const { stdout } = await exec('git', [...lead, ...withSubmodulesIgnored(args)], {
     cwd: repoPath,
     timeout,
     maxBuffer: 8_000_000,
