@@ -1,4 +1,4 @@
-// #region start-paths — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+// #region start-paths — docs: docs/adr/0100-first-run-and-start-paths.md#scan
 // The shapes of the first run and the start paths (ADR-0100): what the renderer is told about a
 // folder, a scan and the coding agents on this machine. ONE definition (R-005): the main-process
 // modules `projectDiscovery.ts` and `executorDetect.ts` produce exactly these.
@@ -55,13 +55,22 @@ export interface ScanView extends Omit<ScanResult, 'candidates'> {
  * A kept scan read back from disk (`main/startPaths.ts`), or null when it is not one. Counts that are
  * missing read as 0; a missing `truncated` reads as TRUE — "nobody recorded it" must never read as "this
  * is the whole folder"; a kept scan is never `cancelled` (a cancelled one is not kept).
+ *
+ * Every kept candidate is TIED TO ITS ROOT (iteration 3, errors finding 2): the root must be an absolute,
+ * normal path, and a candidate whose path is not one, lies outside that root, or is the filesystem root
+ * is dropped — the file is on disk, and what it names is later offered to the checked create.
+ * POSIX paths only: the app ships for macOS.
  */
 export function parseStoredScan(v: unknown): (ScanResult & { scannedAt: string }) | null {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return null
   const r = v as Record<string, unknown>
   if (typeof r.root !== 'string' || typeof r.scannedAt !== 'string' || !Array.isArray(r.candidates)) return null
+  const root = r.root
+  if (!normalAbsolute(root)) return null
   const candidates = r.candidates.filter(
-    (c): c is Candidate => !!c && typeof c === 'object' && typeof (c as Candidate).path === 'string' && typeof (c as Candidate).group === 'string' && typeof (c as Candidate).name === 'string'
+    (c): c is Candidate =>
+      !!c && typeof c === 'object' && typeof (c as Candidate).path === 'string' && typeof (c as Candidate).group === 'string' && typeof (c as Candidate).name === 'string' &&
+      underRoot((c as Candidate).path, root)
   )
   const count = (x: unknown): number => (typeof x === 'number' && Number.isFinite(x) && x >= 0 ? x : 0)
   return {
@@ -75,6 +84,19 @@ export function parseStoredScan(v: unknown): (ScanResult & { scannedAt: string }
     truncated: typeof r.truncated === 'boolean' ? r.truncated : true,
     cancelled: false
   }
+}
+
+/** An absolute POSIX path already in normal form: no empty, `.` or `..` segment, no trailing slash. */
+function normalAbsolute(p: string): boolean {
+  if (p === '/') return true
+  if (!p.startsWith('/') || p.endsWith('/')) return false
+  return p.slice(1).split('/').every((seg) => seg !== '' && seg !== '.' && seg !== '..' && !seg.includes('\u0000'))
+}
+
+/** A kept candidate: a normal absolute path, the root itself or below it, never the filesystem root. */
+function underRoot(p: string, root: string): boolean {
+  if (!normalAbsolute(p) || p === '/') return false
+  return p === root || p.startsWith(root === '/' ? '/' : root + '/')
 }
 
 export type ExecutorState = 'found' | 'unresponsive' | 'missing'

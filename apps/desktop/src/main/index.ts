@@ -2936,7 +2936,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     try {
       const result = await scanFolder(resolved, { signal: ctl.signal })
       // What main found is what this window may add without the picker; a stopped scan lists nothing.
-      if (!result.cancelled) scanCandidates.record(scope, 'scan', result.candidates.map((c) => c.path))
+      // Held as the walk wrote them, tied to the root they were found under (`ScanCandidates#record`).
+      if (!result.cancelled) scanCandidates.record(scope, 'scan', result.root, result.candidates.map((c) => c.path))
       const kept = keepScan(result)
       const view: ScanView = { ...result, scannedAt: kept?.scannedAt ?? new Date().toISOString(), candidates: (await withImported(result.candidates)) as CandidateView[] }
       ops.record({ op: 'start.scan', outcome: 'ok', detail: { visited: result.visited, candidates: result.candidates.length, unreadable: result.unreadable, deep: result.deep, symlinks: result.symlinks, truncated: result.truncated, cancelled: result.cancelled }, ctx: { correlationId: ops.correlate() } })
@@ -2956,7 +2957,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // the picker. Its CANDIDATES — repositories main itself found under a folder the operator picked —
     // are what this window may add from it (ADR-0100 §3), through `projects.create`'s admission; the
     // root and everything else under it stay unreachable.
-    scanCandidates.record(scopeOf(event), 'kept', kept.candidates.map((c) => c.path))
+    scanCandidates.record(scopeOf(event), 'kept', kept.root, kept.candidates.map((c) => c.path))
     return { ...kept, candidates: (await withImported(kept.candidates)) as CandidateView[] }
   })
   handle(IPC.startCreateFolder, async (event, input): Promise<Returns<FabricApi['start']['createFolder']>> => {
