@@ -25,7 +25,7 @@ export class ParentChoices {
   record(scope: string, picked: string): string | null {
     let real: string
     try {
-      real = realpathSync(path.resolve(picked))
+      real = realpathSync.native(path.resolve(picked))
     } catch {
       // Not silence: the caller treats null as "not offered as a parent" and the picker simply returns.
       return null
@@ -40,7 +40,7 @@ export class ParentChoices {
   resolve(scope: string, p: string, roots: (p: string) => string): string {
     let real: string
     try {
-      real = realpathSync(path.resolve(p))
+      real = realpathSync.native(path.resolve(p))
     } catch {
       throw new OutsideRoots(p)
     }
@@ -102,7 +102,7 @@ export class ScanCandidates {
     const listed = [slots.scan, slots.kept].some((l) => !!l && l.paths.has(real) && within(real, l.root))
     if (!listed) return false
     try {
-      if (realpathSync(real) !== real) return false
+      if (realpathSync.native(real) !== real) return false
       if (lstatSync(real).isSymbolicLink()) return false
       lstatSync(path.join(real, '.git'))
       return true
@@ -121,7 +121,7 @@ export class ScanCandidates {
 function realHome(): string {
   const h = homedir()
   try {
-    return realpathSync(h)
+    return realpathSync.native(h)
   } catch {
     // An unresolvable home is still the home: compared as given.
     return path.resolve(h)
@@ -184,7 +184,7 @@ export function admitRepoPaths(
     if (typeof p !== 'string' || !path.isAbsolute(p)) throw new RepoPathRefused('not-a-path', String(p))
     let real: string
     try {
-      real = realpathSync(p)
+      real = realpathSync.native(p)
     } catch {
       throw new RepoPathRefused('missing', p)
     }
@@ -256,7 +256,7 @@ export function indexImported(
 /** A path by its real location, or resolved when it no longer exists (a removed folder still names its project). */
 export function realOrResolved(p: string): string {
   try {
-    return realpathSync(p)
+    return realpathSync.native(p)
   } catch {
     // A folder that no longer exists still names its project; its resolved path is the honest key.
     return path.resolve(p)

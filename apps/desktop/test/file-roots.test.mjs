@@ -29,7 +29,7 @@ let failures = 0
 const ok = (m) => console.log('  ok   ' + m)
 const fail = (m) => { failures++; console.log('  FAIL ' + m) }
 
-const base = mkdtempSync(path.join(tmpdir(), 'fabric-roots-'))
+const base = realpathSync.native(mkdtempSync(path.join(tmpdir(), 'fabric-roots-')))
 const repo = path.join(base, 'repo');          mkdirSync(repo)
 const decoy = path.join(base, 'repo-backup');  mkdirSync(decoy)
 const secrets = path.join(base, 'secrets');    mkdirSync(secrets)
@@ -221,6 +221,26 @@ try {
   const broad = new FileRoots()
   broad.reset(['/', path.dirname(realpathSync(process.env.HOME))])
   broad.list().length === 0 ? ok('the filesystem root and the folder holding the home folder are never roots') : fail('a too-broad root was kept: ' + broad.list().join(', '))
+}
+
+// 6 — a PARENT folder swapped for a link after attach, and a stored path that is not its own canonical
+// spelling (re-verification after the confirmation pass: lstat checked only the last component, and JS
+// realpath keeps a path's letter case, so '/USERS' and firmlinked spellings slipped past isTooBroad).
+{
+  const { rmSync, renameSync } = await import('node:fs')
+  const parentDir = path.join(realpathSync.native(base), 'parent'); mkdirSync(parentDir)
+  const child = path.join(parentDir, 'child'); mkdirSync(child)
+  const elsewhere = path.join(realpathSync.native(base), 'elsewhere'); mkdirSync(path.join(elsewhere, 'child'), { recursive: true })
+  writeFileSync(path.join(elsewhere, 'child', 'secret.txt'), 'not chosen')
+  const r = new FileRoots()
+  r.reset([child])
+  r.list().includes(child) ? ok('a canonical attached repository is a root') : fail('a canonical repository was refused: ' + r.list().join(', '))
+  renameSync(parentDir, parentDir + '-moved'); symlinkSync(elsewhere, parentDir)
+  r.reset([child])
+  r.list().length === 0 ? ok('a repository whose parent became a link grants nothing') : fail('a swapped parent made a root: ' + r.list().join(', '))
+  const upper = new FileRoots()
+  upper.reset([child.toUpperCase(), '/USERS', '/System/Volumes/Data/Users'])
+  upper.list().length === 0 ? ok('a stored path in another spelling (case, firmlink) grants nothing') : fail('a non-canonical spelling became a root: ' + upper.list().join(', '))
 }
 
 if (failures > 0) {

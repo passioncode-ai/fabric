@@ -31,11 +31,28 @@ import { ops } from './opsSink.ts'
  * admitted from a window (`startChoices.ts#admitRepoPaths`).
  */
 export function isTooBroad(real: string, home: string = realHomeOrSelf()): boolean {
-  return real === path.parse(real).root || real === home || home.startsWith(real.endsWith(path.sep) ? real : real + path.sep)
+  if (real === path.parse(real).root || real === home || home.startsWith(real.endsWith(path.sep) ? real : real + path.sep)) return true
+  // By identity as well as by spelling: '/USERS' or a firmlinked '/System/Volumes/Data/Users' names the same
+  // folder as '/Users' under another string.
+  try {
+    const target = statSync(real)
+    for (let d = home; ; d = path.dirname(d)) {
+      try {
+        const s = statSync(d)
+        if (s.dev === target.dev && s.ino === target.ino) return true
+      } catch {
+        // An ancestor of a home folder that cannot be read is simply not compared.
+      }
+      if (path.dirname(d) === d) break
+    }
+  } catch {
+    // A path that cannot be read here is judged by its spelling above.
+  }
+  return false
 }
 function realHomeOrSelf(): string {
   try {
-    return realpathSync(homedir())
+    return realpathSync.native(homedir())
   } catch {
     // Not silence: a home folder that cannot be resolved is compared by its resolved path instead.
     return path.resolve(homedir())
@@ -86,13 +103,21 @@ export class FileRoots {
     // A repository was attached by its real path. If that path has since BECOME a link, or resolves to a
     // folder too broad to be a repository, it grants nothing — a refresh must not turn a swapped folder into
     // a root (confirmation pass after iteration 3: a repo replaced by a link to / made the roots ['/']).
+    // The path must still be its OWN canonical spelling — the native realpath resolves every link in the
+    // path (a parent swapped for a link too) and the case and firmlinks of the filesystem — or it grants
+    // nothing: a stored path is compared to what it is now, not trusted (re-verification after the
+    // confirmation pass).
     let real: string
     try {
       if (lstatSync(p).isSymbolicLink()) {
         ops.failed('files.repo-became-link', new Error('an attached repository path is now a link; it grants nothing'), { detail: { path: p } })
         return
       }
-      real = realpathSync(p)
+      real = realpathSync.native(p)
+      if (real !== p) {
+        ops.failed('files.repo-not-canonical', new Error('an attached repository path no longer resolves to itself; it grants nothing'), { detail: { path: p, now: real } })
+        return
+      }
     } catch {
       // A configured repository that no longer exists is not a reason to fail
       // the whole set; it simply grants nothing.
@@ -115,7 +140,7 @@ export class FileRoots {
   allow(p: string, scope: string): void {
     if (!scope) throw new Error('a folder grant belongs to the window that chose it; no scope was given')
     try {
-      const real = realpathSync(p)
+      const real = realpathSync.native(p)
       const set = this.granted.get(scope) ?? new Set<string>()
       set.add(real)
       this.granted.set(scope, set)
@@ -152,8 +177,8 @@ export class FileRoots {
     let real: string
     try {
       real = existsSync(absolute)
-        ? realpathSync(absolute)
-        : path.join(realpathSync(path.dirname(absolute)), path.basename(absolute))
+        ? realpathSync.native(absolute)
+        : path.join(realpathSync.native(path.dirname(absolute)), path.basename(absolute))
     } catch {
       throw new OutsideRoots(absolute)
     }

@@ -87,8 +87,10 @@ it). The operator settled each one.
    anything else is refused before it is journalled, with a code the window translates
    (`startChoices.ts#admitRepoPaths`, `repo-path-refused:<code>`). "Too broad" is a filesystem root, the
    home folder, or any folder that holds it (`files.ts#isTooBroad`), and the estate's roots apply the same
-   rule on every refresh: an attached repository whose path has since become a link, or resolves too
-   broad, grants nothing (`FileRoots.addRepo`). An
+   rule on every refresh: an attached repository whose path has since become a link, no longer resolves to
+   its own canonical spelling (the native realpath — a parent swapped for a link, another letter case, a
+   firmlink), or resolves too broad (compared by spelling and by device and inode), grants nothing
+   (`FileRoots.addRepo`). Every path Fabric records or compares is that native canonical form. An
    admitted project's folders join the estate's roots and the git watch at once. The only exception is the walk harness's `FABRIC_WALK_PICK`, which answers the
    picker in an UNPACKAGED run and is ignored by a packaged app.
 <a id="app-icon"></a>
