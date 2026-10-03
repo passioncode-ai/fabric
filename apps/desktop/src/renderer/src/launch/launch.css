@@ -413,8 +413,13 @@
 /* ── adaptations to the app window ── */
 /* The prototype draws the product inside a report frame; here it IS the window. */
 .launch-root .workbench { flex: 1; min-height: 0; }
-.launch-root .app-sidebar { position: relative; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
+.launch-root .app-sidebar { position: relative; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; }
 .launch-root .app-main { min-height: 0; overflow-y: auto; }
+/* ONE scroller: `.app-main`. `.content` inside it is not a second one, so a sticky footer sticks to the
+   window's visible bottom (iteration 3: `.content` was an overflow box that never scrolled, and the scan's
+   "Add N as projects" sat 4 600 px down). The window itself never scrolls past the tab bar. */
+.launch-root .app-main .content { overflow: visible; min-height: auto; }
+.app.launch-root { overflow: hidden; }
 /* The app's global headings are the report's label style (uppercase, muted); the design's are not. */
 .lp h2, .lp h3 { text-transform: none; color: var(--app-ink); font-family: inherit; }
 .lp h3 { letter-spacing: -.025em; }

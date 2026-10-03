@@ -314,3 +314,42 @@ describe('iteration 2 fixes, after the boundary branch', () => {
     expect(alert.textContent).not.toContain('repo-path-refused')
   })
 })
+
+describe('iteration 3 fixes', () => {
+  const scanOf = (over: Partial<ScanView>): ScanView => ({ root: '/w', visited: 3, unreadable: 0, deep: 0, symlinks: 0, truncated: false, cancelled: false, scannedAt: '2026-10-03T00:00:00Z', candidates: [], ...over })
+
+  it('a search with no match says so; the summary names parts only when there are some', async () => {
+    bridge({ start: { ...bridge().start, scan: vi.fn(async () => scanOf({ candidates: [repo({ path: '/w/a', name: 'a', group: '/w/a' })] })) } })
+    start('scan')
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
+    expect(await screen.findByText(en['start.scan.summary'].replace('{count}', '1').replace('{folder}', '/w'), { exact: false })).toBeTruthy()
+    fireEvent.change(screen.getByPlaceholderText(en['start.scan.filter']), { target: { value: 'zzz' } })
+    expect(screen.getByText(en['start.scan.noMatch'])).toBeTruthy()
+  })
+
+  it('an empty project name says why Add is greyed out, bound to the field', async () => {
+    bridge()
+    start('add')
+    fireEvent.click(screen.getByRole('button', { name: en['start.add.choose'] }))
+    const input = await screen.findByLabelText(en['start.name.label'])
+    fireEvent.change(input, { target: { value: '  ' } })
+    const problem = screen.getByText(en['start.name.empty'])
+    expect(problem.className).toBe('field-problem')
+    expect(input.getAttribute('aria-describedby')).toBe(problem.id)
+  })
+
+  it('Back waits while an import runs', async () => {
+    let finish!: () => void
+    bridge({
+      start: { ...bridge().start, scan: vi.fn(async () => scanOf({ candidates: [repo({ path: '/w/a', name: 'a', group: '/w/a' })] })) },
+      projects: { create: vi.fn(() => new Promise((r) => { finish = () => r({ id: 'p', name: 'a' }) })) }
+    })
+    start('scan')
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
+    fireEvent.click(await screen.findByRole('button', { name: en['start.scan.selectAll'] }))
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.import'].replace('{count}', '1') }))
+    expect((await screen.findByRole('button', { name: en['start.back'] }) as HTMLButtonElement).disabled).toBe(true)
+    finish()
+    await waitFor(() => expect((screen.getByRole('button', { name: en['start.back'] }) as HTMLButtonElement).disabled).toBe(false))
+  })
+})

@@ -22,6 +22,8 @@
 // mid-run failure ADR-0034 refuses one level down, and it deserves the same
 // answer one level up.
 
+import { AGENTS } from './agents.ts'
+
 export interface AgentSpec {
   /** What the operator will pick it by. */
   name: string
@@ -34,6 +36,11 @@ export interface AgentSpec {
 }
 
 export type SpecVerdict = { ok: true; spec: AgentSpec } | { ok: false; reason: string }
+
+/** A runner with a program — Claude Code, Codex — not the login shell (`program: null`) and not an unknown id. */
+export function isCodingAgent(runnerId: string): boolean {
+  return AGENTS.some((a) => a.id === runnerId && a.program !== null)
+}
 
 export const NAME_MAX = 60
 export const INSTRUCTIONS_MIN = 20
@@ -78,6 +85,9 @@ export function readSpec(draft: {
       reason: `say what the agent is for in at least ${INSTRUCTIONS_MIN} characters — this text is the whole of what it will be told`
     }
   if (!draft.runnerId.trim()) return { ok: false, reason: 'an agent needs a program to run in' }
+  // A created agent runs in a CODING AGENT — a runner with a program (iteration 3: the form offered the
+  // login shell, which is "no agent", and confirmed an agent nothing would run).
+  if (!isCodingAgent(draft.runnerId.trim())) return { ok: false, reason: `${draft.runnerId.trim()} is not a coding agent an agent can run in` }
 
   // Duplicates are dropped rather than refused: asking for the same server twice
   // is a typo, not a decision, and refusing it teaches nothing.

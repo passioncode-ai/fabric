@@ -1714,6 +1714,8 @@ results always pair text with an icon — colour is never the only signal.
   | unreadable | folders could not be read | none | counts them as a gap |
   | deep | folders past the depth limit | none | counts them and says how to reach a repository there |
   | symlinks | linked folders not followed | none | counts them and says to scan the folder a link points to |
+  | kept-unreadable | the last scan cannot be read | none | says so with the reason, and the prompt to scan |
+  | no-match | the search hides every row | none | says nothing matches and how to see every repository |
   | duplicate | candidate already in a project | none | a ticked, disabled box; In <project> opens it |
   | part-ticked | a worktree or nested repository ticked | none | warning that it becomes its own project |
   | importing | Add pressed | none | progress N of M |

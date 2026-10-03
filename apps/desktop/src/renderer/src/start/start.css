@@ -89,6 +89,7 @@
 .st-exec-row > div { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
 .st-exec-row small { color: var(--app-muted); font-size: var(--app-fs-caption); }
 .st-exec-row code { color: var(--app-muted); }
+.st-exec-row .lp-pill[data-state='ready'] { border-color: var(--state-good); color: var(--app-ink); font-weight: 600; }
 .st-exec-note { grid-column: 1 / -1; margin: 0; color: var(--app-muted); font-size: var(--app-fs-caption); }
 .st-install { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); background: var(--app-panel-quiet); border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-2) var(--space-3); }
 .st-install code { flex: 1; color: var(--app-ink); }

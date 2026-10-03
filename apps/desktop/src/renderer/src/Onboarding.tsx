@@ -241,7 +241,7 @@ export function Onboarding({
         <Field label={t('onboarding.defaultAgent')} hint={t('onboarding.defaultAgentHint')}>
           {(id) => (
             <select id={id} value={agent} onChange={(e) => patch({ agent: e.target.value })}>
-              {agents.map((o) => (
+              {agents.filter((o) => o.program !== null).map((o) => (
                 <option key={o.id} value={o.id} disabled={!o.available}>
                   {/* Each option by its own name (iteration 1: Codex was shown as "Terminal"); the shell has no program. */}
                   {runnerLabel(o.id, t)}

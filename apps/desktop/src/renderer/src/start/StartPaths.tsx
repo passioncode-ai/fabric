@@ -71,7 +71,7 @@ export function StartScreen(props: StartProps): React.JSX.Element {
   }
 }
 
-function Heading({ kicker, title, lede, back }: { kicker: string; title: string; lede: string; back?: { label: string; onClick: () => void } }): React.JSX.Element {
+function Heading({ kicker, title, lede, back }: { kicker: string; title: string; lede: string; back?: { label: string; onClick: () => void; disabled?: boolean } }): React.JSX.Element {
   // Each path mounts its own heading, and focus lands on it: a keyboard or screen-reader user hears
   // where they arrived instead of staying on a button that is gone (iteration 2: focus stayed on BODY).
   const ref = useRef<HTMLHeadingElement>(null)
@@ -83,7 +83,7 @@ function Heading({ kicker, title, lede, back }: { kicker: string; title: string;
         <h2 tabIndex={-1} ref={ref}>{title}</h2>
         <p>{lede}</p>
       </div>
-      {back && <div className="lp-actions"><button type="button" className="lp-button" onClick={back.onClick}>{back.label}</button></div>}
+      {back && <div className="lp-actions"><button type="button" className="lp-button" disabled={back.disabled} onClick={back.onClick}>{back.label}</button></div>}
     </header>
   )
 }
@@ -234,7 +234,8 @@ function AddProject({ onPath, onCreated, onOpenProject }: StartProps): React.JSX
             {facts.importedBy.length === 0 && (
               <label className="lp-field">
                 {t('start.name.label')}
-                <input value={name} maxLength={80} disabled={busy} onChange={(e) => setS({ at: 'ready', facts, name: e.target.value })} aria-invalid={!!nameProblem} />
+                <input value={name} maxLength={80} disabled={busy} onChange={(e) => setS({ at: 'ready', facts, name: e.target.value })} aria-invalid={!!nameProblem} aria-describedby={nameProblem ? 'start-add-name-problem' : undefined} />
+                {nameProblem && <small className="field-problem" id="start-add-name-problem">{nameProblem}</small>}
               </label>
             )}
             <FolderFactsList f={facts} t={t} locale={locale} />
@@ -366,7 +367,8 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
 
   return (
     <div className="lp st" data-launch-view="start-scan">
-      <Heading kicker={t('start.kicker')} title={t('start.scan.title')} lede={t('start.scan.lede')} back={{ label: t('start.back'), onClick: () => onPath('menu') }} />
+      {/* Back waits while an import runs: leaving would drop the per-row results (iteration 3). */}
+      <Heading kicker={t('start.kicker')} title={t('start.scan.title')} lede={t('start.scan.lede')} back={{ label: t('start.back'), onClick: () => onPath('menu'), disabled: busy }} />
       {(s.at === 'idle' || s.at === 'failed') && (
         <section className="lp-panel st-step">
           {s.at === 'failed' && <div className="lp-callout" role="alert"><p>{t('start.scan.failed', { reason: s.reason })}</p></div>}
@@ -387,7 +389,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
         <section className="lp-panel st-step st-scan">
           <div className="lp-panel-head">
             <p className="st-summary">
-              {t('start.scan.summary', { count: scan.candidates.length, parts, folder: scan.root })}
+              {parts > 0 ? t('start.scan.summaryParts', { count: scan.candidates.length, parts, folder: scan.root }) : t('start.scan.summary', { count: scan.candidates.length, folder: scan.root })}
               {' · '}{t('start.scan.when', { date: shortDate(scan.scannedAt, locale) })}
             </p>
             <button type="button" className="lp-button" disabled={busy} onClick={() => void run(scan.root)}>{t('start.scan.again')}</button>
@@ -414,6 +416,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
                 <button type="button" className="lp-button" disabled={busy || tickable.length === 0} onClick={() => setPicked(new Set([...picked, ...tickable.map((c) => c.path)]))}>{t('start.scan.selectAll')}</button>
                 <button type="button" className="lp-button" disabled={busy || picked.size === 0} onClick={() => setPicked(new Set())}>{t('start.scan.clear')}</button>
               </div>
+              {groups.length === 0 && <p className="st-empty" role="status">{t('start.scan.noMatch')}</p>}
               <ul className="st-groups">
                 {groups.map((g) => (
                   <li key={g.group} className="st-group">

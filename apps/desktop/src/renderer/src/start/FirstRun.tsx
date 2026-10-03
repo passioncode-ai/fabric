@@ -87,8 +87,8 @@ function PersonaStep({ onNext }: { onNext(): void }): React.JSX.Element {
         {problem && <div className="lp-callout" role="alert"><p>{problem}</p><button type="button" className="lp-button" onClick={onNext}>{t('first.persona.continueAnyway')}</button></div>}
         <label className="lp-field">
           {t('first.persona.name')}
-          <input value={name} maxLength={PERSONA_NAME_MAX + 10} placeholder={t('launch.brand.product')} onChange={(e) => { touched.current = true; setName(e.target.value) }} aria-invalid={tooLong} />
-          <small>{tooLong ? t('first.persona.tooLong', { max: PERSONA_NAME_MAX }) : t('first.persona.nameHint')}</small>
+          <input value={name} maxLength={PERSONA_NAME_MAX + 10} placeholder={t('launch.brand.product')} onChange={(e) => { touched.current = true; setName(e.target.value) }} aria-invalid={tooLong} aria-describedby="first-persona-name-hint" />
+          <small id="first-persona-name-hint" className={tooLong ? 'field-problem' : undefined}>{tooLong ? t('first.persona.tooLong', { max: PERSONA_NAME_MAX }) : t('first.persona.nameHint')}</small>
         </label>
         <p className="lp-kicker">{t('first.persona.character')}</p>
         <div className="fp-style-options" role="group" aria-label={t('first.persona.character')}>
@@ -158,7 +158,8 @@ function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): R
                   </small>
                   {r.path && <code>{r.path}</code>}
                 </div>
-                <span className={r.state === 'found' && r.connected ? 'lp-pill' : 'lp-pill attention'}>
+                {/* Ready reads strongest; installed-but-not-connected is neutral; only a problem draws attention (iteration 3). */}
+                <span className={r.state === 'found' ? 'lp-pill' : 'lp-pill attention'} data-state={r.state === 'found' && r.connected ? 'ready' : r.state === 'found' ? 'installed' : r.state}>
                   {r.state === 'found' ? t(r.connected ? 'first.exec.state.found' : 'first.exec.state.foundUnconnected') : t(`first.exec.state.${r.state}` as 'first.exec.state.missing')}
                 </span>
                 {r.state === 'found' && !r.connected && <p className="st-exec-note">{t('first.exec.unconnected', { name: r.label })}</p>}

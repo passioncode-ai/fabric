@@ -117,8 +117,9 @@
    * a hand-picked 42px for one list only. */
   min-width: 3.5rem;
 }
-.row-main { flex: 1; min-width: 0; }
-.row-trail { color: var(--app-muted); font-size: var(--app-fs-caption); white-space: nowrap; }
+/* A long path wraps inside the row instead of running under its trailing pills (iteration 3). */
+.row-main { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.row-trail { color: var(--app-muted); font-size: var(--app-fs-caption); white-space: nowrap; flex-shrink: 0; }
 .row-quiet { color: var(--app-muted); }
 
 /* ── Toolbar ─────────────────────────────────────────────────── */

@@ -45,6 +45,8 @@ repo(path.join(projects, 'site', 'packages', 'theme'), 'package.json', 'theme')
 mkdirSync(path.join(projects, '_worktrees'))
 git(path.join(projects, 'billing-service'), 'worktree', 'add', '-q', path.join(projects, '_worktrees', 'billing-hotfix'), '-b', 'hotfix')
 repo(path.join(projects, 'node_modules', 'noise'), 'package.json', 'noise')
+// Enough repositories that the checklist is taller than the window, so the sticky footer is tested.
+for (let i = 1; i <= 24; i++) repo(path.join(projects, `lib-${String(i).padStart(2, '0')}`), 'package.json', `chore: lib ${i}`)
 const parent = path.join(fx, 'new'); mkdirSync(parent)
 const fresh = path.join(fx, 'fresh-service'); repo(fresh, 'go.mod', 'feat: first handler', 'https://x-access-token:ghp_FAKEFAKE@github.com/example/fresh.git')
 
@@ -146,6 +148,10 @@ try {
     if (ticked.includes('billing-hotfix')) throw new Error('the worktree was ticked by Tick all shown')
     if (!ticked.includes('billing-service')) throw new Error('the repository was not ticked')
     await capture('scan-3-ticked')
+    // The footer is sticky to the visible bottom of the window, never somewhere down the page (iteration 3).
+    const foot = await evaluate(`(() => { const r = document.querySelector('.st-foot').getBoundingClientRect(); return { bottom: r.bottom, view: innerHeight, scrolled: document.scrollingElement.scrollTop } })()`)
+    if (foot.bottom > foot.view + 1) throw new Error(`the footer ends at ${foot.bottom}px in a ${foot.view}px window`)
+    if (foot.scrolled !== 0) throw new Error('the window itself scrolled past the tab bar')
     await click('.st-foot button.primary', '')
     await waitFor(`[...document.querySelectorAll('[data-launch-view="start-scan"] [role=status]')].some(e => e.textContent.includes(${JSON.stringify(String(ticked.length))}))`, 'import summary', 30000)
     await capture('scan-4-imported')

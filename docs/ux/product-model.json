@@ -9586,6 +9586,16 @@
           "behavior": "counts them and says to scan the folder a link points to"
         },
         {
+          "state": "kept-unreadable",
+          "trigger": "the last scan cannot be read",
+          "behavior": "says so with the reason, and the prompt to scan"
+        },
+        {
+          "state": "no-match",
+          "trigger": "the search hides every row",
+          "behavior": "says nothing matches and how to see every repository"
+        },
+        {
           "state": "duplicate",
           "trigger": "candidate already in a project",
           "behavior": "a ticked, disabled box; In <project> opens it"
@@ -9658,7 +9668,7 @@
       "view": "start-new",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1728,
+        "line": 1730,
         "coverage_claim": "apps/desktop/src/renderer/src/Onboarding.tsx",
         "status_claim": "designed"
       },
@@ -9751,7 +9761,7 @@
       "view": "start-agent",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1749,
+        "line": 1751,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9814,7 +9824,7 @@
       "view": "start-convert",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1764,
+        "line": 1766,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx (the planned state; the conversion itself is AR-7/AR-11)",
         "status_claim": "designed"
       },

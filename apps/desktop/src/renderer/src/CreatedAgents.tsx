@@ -61,7 +61,9 @@ export function CreatedAgents({
   }
   useEffect(reread, [project.id])
 
-  const available = (options ?? []).filter((o) => o.available)
+  // Only coding agents: the login shell is "no agent" and nothing would run a created agent in it.
+  const coding = (options ?? []).filter((o) => o.program !== null)
+  const available = coding.filter((o) => o.available)
   // The chosen program must be one that can run here; the project default if it can, else the first.
   useEffect(() => {
     if (options === null) return
@@ -147,7 +149,7 @@ export function CreatedAgents({
       {created !== null && !open && <p className="muted" role="status" tabIndex={-1} ref={notice}>{t('agents.createdNotice', { name: created })}</p>}
       {!open ? (
         <Toolbar>
-          <Button tone="quiet" onClick={() => { setOpen(true); setCreated(null); setFailure(null) }} disabled={read.state !== 'ready'}>
+          <Button onClick={() => { setOpen(true); setCreated(null); setFailure(null) }} disabled={read.state !== 'ready'}>
             {t('agents.newTitle')}
           </Button>
         </Toolbar>
@@ -174,7 +176,7 @@ export function CreatedAgents({
             {(id, describedBy) => (
               <select id={id} value={runner} disabled={busy || noRunner || options === null} aria-describedby={describedBy} onChange={(e) => setRunner(e.target.value)}>
                 {options === null && <option value={runner}>{t('agents.runnersReading')}</option>}
-                {(options ?? []).map((o) => (
+                {coding.map((o) => (
                   <option key={o.id} value={o.id} disabled={!o.available}>
                     {o.available ? runnerLabel(o.id, t) : `${runnerLabel(o.id, t)} (${t('onboarding.unavailable')})`}
                   </option>

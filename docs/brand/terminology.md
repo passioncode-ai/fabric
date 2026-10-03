@@ -21,9 +21,9 @@ Contract: brand-contract v1
 | Fabric Switchboard | Fabric Switcher, F Switchboard; use Switchboard as the short form |
 | Fabric Inbox | Fabric Mail; use Inbox as the short form |
 | Fabric Agent Adapter | Fabric Adapter, Fabric agent adapter; the published skills that adapt a project to the Fabric protocol |
-| Coding agent | executor, runner (in interface text), «агент» alone in Russian where a runner is meant — use «агент для кода» |
+| Coding agent | Runner, runner, executor |
 | First run | onboarding wizard, setup tour |
-| Start path | wizard, flow (in interface text) |
+| Start path | wizard |
 | Claude Code | Cloud Code, CloudCode |
 | Codex | CodeX |
 | AI-native team | AI team, autonomous company |
@@ -33,6 +33,8 @@ Contract: brand-contract v1
 | Estate | organization tenant, company tenant |
 | Passion coding | passionate coding, passion fruit coding |
 | Mac | MAC (the computer the app runs on) |
+
+The wrong forms above are literal strings the brand lint looks for in the English registry. In Russian a coding agent is «агент для кода» — never «агент» alone where a runner is meant, and never «раннер»; the lint does not read the Russian registry, so review it by hand.
 
 PassionCode.ai is the full name. PassionCode is the approved short family label in running text
 (as on the public site); it is not a wrong form.

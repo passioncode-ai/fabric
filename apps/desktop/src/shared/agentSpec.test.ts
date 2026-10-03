@@ -93,3 +93,12 @@ describe('a name taken between the read and the write (migration 72)', () => {
     expect(agentNameTakenAtWrite(null)).toBe(false)
   })
 })
+
+describe('a created agent runs in a coding agent', () => {
+  it('refuses the login shell and an unknown runner; accepts Claude Code and Codex', () => {
+    expect(ok({ runnerId: 'shell' }).ok).toBe(false)
+    expect(ok({ runnerId: 'aider' }).ok).toBe(false)
+    expect(ok({ runnerId: 'claude-code' }).ok).toBe(true)
+    expect(ok({ runnerId: 'codex' }).ok).toBe(true)
+  })
+})

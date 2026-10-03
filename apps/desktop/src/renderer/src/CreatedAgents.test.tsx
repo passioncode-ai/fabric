@@ -17,7 +17,7 @@ const agent = (over: Partial<CreatedAgent> = {}): CreatedAgent =>
 const option = (over: Partial<LaunchOption>): LaunchOption =>
   ({ id: 'claude-code', label: 'Claude Code', program: 'claude', description: '', available: true, connectsToSurface: true, ...over }) as LaunchOption
 
-const OPTIONS = [option({}), option({ id: 'shell', label: 'Terminal', program: null, available: true, connectsToSurface: false })]
+const OPTIONS = [option({}), option({ id: 'codex', label: 'Codex', program: 'codex', available: true, connectsToSurface: false }), option({ id: 'shell', label: 'Terminal', program: null, available: true, connectsToSurface: false })]
 const BRIEF = 'Reviews every pull request against the scenarios.'
 
 function bridge(agents: { list?: () => Promise<CreatedAgent[]>; create?: (i: unknown) => Promise<CreatedAgent> } = {}) {
@@ -130,24 +130,24 @@ describe('creating an agent (M125)', () => {
     await openForm()
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: '  Planner ' } })
     fireEvent.change(screen.getByLabelText('What it is for'), { target: { value: BRIEF } })
-    fireEvent.change(screen.getByLabelText('Coding agent'), { target: { value: 'shell' } })
+    fireEvent.change(screen.getByLabelText('Coding agent'), { target: { value: 'codex' } })
     fireEvent.click(screen.getByLabelText('github'))
     fireEvent.click(screen.getByRole('button', { name: 'Create the agent' }))
     expect((await screen.findByRole('status')).textContent).toBe('Created Planner.')
-    expect(fabric.agents.create).toHaveBeenCalledWith({ projectId: 'p1', name: 'Planner', instructions: BRIEF, runnerId: 'shell', servers: ['github'] })
+    expect(fabric.agents.create).toHaveBeenCalledWith({ projectId: 'p1', name: 'Planner', instructions: BRIEF, runnerId: 'codex', servers: ['github'] })
     expect(await screen.findByText('Planner')).toBeTruthy()
     expect(screen.queryByLabelText('Name'), 'the form closes on success').toBeNull()
     expect(document.activeElement?.textContent, 'focus lands on the confirmation').toBe('Created Planner.')
-    expect(screen.getByText('Terminal'), 'the row names the coding agent, never its raw id').toBeTruthy()
+    expect(screen.getByText('Codex'), 'the row names the coding agent, never its raw id').toBeTruthy()
   })
 
   it('opens with focus on the name, and names Codex as Codex', async () => {
     bridge()
-    mount([option({}), option({ id: 'codex', label: 'Codex', program: 'codex' })])
+    mount([option({}), option({ id: 'codex', label: 'Codex', program: 'codex' }), option({ id: 'shell', label: 'Terminal', program: null })])
     await openForm()
     expect(document.activeElement).toBe(screen.getByLabelText('Name'))
     const labels = [...(screen.getByLabelText('Coding agent') as HTMLSelectElement).options].map((o) => o.textContent)
-    expect(labels).toEqual(['Claude Code', 'Codex'])
+    expect(labels, 'the login shell is not offered as a coding agent').toEqual(['Claude Code', 'Codex'])
   })
 
   it('does not create while the coding agents are still being read', async () => {
@@ -177,9 +177,10 @@ describe('creating an agent (M125)', () => {
 
   it('with no program available to run it, says so and offers no create', async () => {
     bridge()
-    mount([option({ available: false }), option({ id: 'shell', label: 'Terminal', program: null, available: false, connectsToSurface: false })])
+    // The login shell is always available and is not a coding agent: it must not make the form look ready.
+    mount([option({ available: false }), option({ id: 'codex', label: 'Codex', program: 'codex', available: false }), option({ id: 'shell', label: 'Terminal', program: null, available: true, connectsToSurface: false })])
     await openForm()
-    expect(screen.getByText('No program to run it in is available on this computer.')).toBeTruthy()
+    expect(screen.getByText('No coding agent to run it in is available on this computer.')).toBeTruthy()
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Planner' } })
     fireEvent.change(screen.getByLabelText('What it is for'), { target: { value: BRIEF } })
     expect((screen.getByRole('button', { name: 'Create the agent' }) as HTMLButtonElement).disabled).toBe(true)

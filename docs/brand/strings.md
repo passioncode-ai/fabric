@@ -24,7 +24,7 @@ sentence.
 
 | Key | Text (primary) | Location | Scenario | Status |
 |---|---|---|---|---|
-| `estate.empty` | Nothing here yet. A project is a persistent workspace: its repositories, its memory, the agents working in it and the workflows they follow. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
+| `estate.empty` | Nothing here yet. A project holds its repositories, its memory, the agents working in it and the workflows they follow. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
 | `onboarding.lede` | A project holds repositories, memory and the agents that work in them. The project itself is made only when you create it; a new folder you make for it is created at once. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
 | `onboarding.memoryUnavailable.hosted-estates-not-built` | Hosted estates are not built yet. This becomes available with them. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
 | `onboarding.memoryOnly` | Memory is stored in this machine’s database. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | shipped |
@@ -254,7 +254,7 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `first.exec.lede` | Fabric does not write code itself: it hands work to a coding agent on this Mac and keeps the record. It looked for the ones it can run. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.checking` | Looking for coding agents… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.failed` | The check did not run: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `first.exec.found` | Installed · version {version} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `first.exec.found` | Version {version} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.unresponsive` | {program} is on this Mac, but “{program} --version” did not answer. Run {program} once in a terminal to finish its setup, then check again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.missing` | Not installed. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.state.found` | Ready | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
@@ -273,7 +273,7 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.back` | Back | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.planned` | Planned | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.menu.title` | Where does the work come from? | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.menu.lede` | A Project is the durable unit: its sources, agents, decisions and evidence live together. Bring one, many, or start from nothing. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `start.menu.lede` | A project is the durable unit: its sources, agents, decisions and evidence live together. Bring one, many, or start from nothing. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.card.add.mark` | + | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.card.add.title` | Add a project | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.card.add.body` | A folder you already work in becomes a project. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
@@ -306,7 +306,7 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.name.label` | Project name | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.name.empty` | A project needs a name. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.add.title` | Add a project | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
-| `start.add.lede` | Choose the folder. Fabric reads it, shows what it found, and creates the Project only when you confirm. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
+| `start.add.lede` | Choose the folder. Fabric reads it, shows what it found, and creates the project only when you confirm. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.add.choose` | Choose a folder… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.add.choose.body` | Usually a git repository you work in. A plain folder works too. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.add.reading` | Reading {folder}… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
@@ -319,21 +319,21 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.add.failed` | The project was not added: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.add.nothingWritten` | Nothing in the folder is changed. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.scan.title` | Scan a projects folder | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
-| `start.scan.lede` | Choose the folder that holds your projects. Fabric lists the repositories it finds; each one you tick becomes its own Project. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.scan.lede` | Choose the folder that holds your projects. Fabric lists the repositories it finds; each one you tick becomes its own project. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.choose` | Choose a folder to scan… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.choose.body` | For example the folder where you clone repositories. The scan goes four folders deep (two inside a repository) and skips dependency folders, build output and hidden folders. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.readOnly` | Scanning only reads. Nothing is created until you tick and confirm. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.scanning` | Scanning {folder}… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.stop` | Stop | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.failed` | The scan did not finish: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
-| `start.scan.summary` | Repositories: {count}, of them parts of another (worktrees, nested): {parts} · in {folder} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.scan.summary` | Repositories: {count} · in {folder} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.when` | scanned {date} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.again` | Scan again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.truncated` | The scan stopped after {visited} folders. The list below is not the whole folder. Scan a narrower one. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.none` | No repositories were found in this folder. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.filter` | Filter by name or path | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.selectAll` | Tick all shown | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
-| `start.scan.clear` | Clear | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.scan.clear` | Untick all | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.group` | {name} · {count} folders | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.noCommits` | no commits yet | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.inProject` | In {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
@@ -349,7 +349,7 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.scan.importedAll` | Added: {ok}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.importedSome` | Added: {ok}. Not added: {failed}. Those stay ticked, so adding again retries them. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.nested` | inside another repository | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
-| `start.scan.partWarning` | This becomes a separate Project from the repository it belongs to. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.scan.partWarning` | This becomes a separate project from the repository it belongs to. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.rowFailed` | Not added: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.tickToAdd` | Tick repositories to add | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.new.git` | Start it as a git repository | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
@@ -378,7 +378,7 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `agents.readFailed` | The agents could not be read: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.retry` | Try again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.runner` | Coding agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
-| `agents.noRunner` | No program to run it in is available on this computer. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
+| `agents.noRunner` | No coding agent to run it in is available on this computer. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.nameTooLong` | At most {max} characters. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.nameTaken` | This project already has an agent called {name}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.instructionsShort` | At least {min} characters, {count} so far. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
@@ -415,9 +415,11 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `first.persona.variant` | Variant | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.copyFailed` | Not copied: select the text | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.scan.keptFailed` | The last scan could not be read: {reason}. Scan a folder to see its repositories. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
-| `start.scan.deep` | Folders deeper than the scan goes, not entered: {count}. A repository among them is not listed; to find it, scan the folder that holds it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.scan.deep` | Folders deeper than the scan goes, not entered: {count}. Most are folders inside repositories; if a repository is among them, scan the folder that holds it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.symlinks` | Folders that are links to elsewhere, not followed: {count}. Scan the folder a link points to if its repositories belong here. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.repoRefused.not-a-path` | {path} is not a folder path. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.repoRefused.missing` | The folder {path} does not exist. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.repoRefused.not-a-folder` | {path} is a file, not a folder. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.repoRefused.not-chosen` | The folder {path} was not chosen in this window. Choose it with the folder picker or scan the folder that holds it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
+| `start.scan.summaryParts` | Repositories: {count}, of them parts of another (worktrees, nested): {parts} · in {folder} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.scan.noMatch` | Nothing matches the search. Clear it to see every repository. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
