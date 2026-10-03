@@ -120,7 +120,13 @@ const api: FabricApi = {
     write: (file, content, expectedHash, grantId) =>
       ipcRenderer.invoke(IPC.filesWrite, file, content, expectedHash, grantId),
     requestOverwrite: (file) => ipcRenderer.invoke(IPC.filesRequestOverwrite, file),
-    openExternally: (file) => ipcRenderer.invoke(IPC.filesOpenExternally, file)
+    openExternally: (file) => ipcRenderer.invoke(IPC.filesOpenExternally, file),
+    reportUnsaved: (unsaved) => ipcRenderer.send(IPC.filesUnsaved, unsaved === true),
+    onQuitRequested: (handler) => {
+      const fn = (): void => handler()
+      ipcRenderer.on(IPC.filesQuitRequested, fn)
+      return () => ipcRenderer.removeListener(IPC.filesQuitRequested, fn)
+    }
   },
   settings: {
     read: () => ipcRenderer.invoke(IPC.settingsRead),

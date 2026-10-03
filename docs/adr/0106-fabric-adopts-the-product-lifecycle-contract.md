@@ -89,3 +89,33 @@ about deadlines keep their own short ones.
   changes still do, twice, as before.
 - The operator's running stack keeps its extra containers until it is next started fresh; the exclusion
   applies at the next `supabase start`.
+
+## Amendment — after the independent review (2026-10-03, same day)
+
+An independent reviewer read this decision and its code against the real built app
+(on a disposable stack: exit 0 after `SIGTERM` in 158 ms idle and 2.15 s with a live shell). Its findings
+changed the implementation, not the decision; recorded here rather than by editing §1–§5:
+
+- **Unsaved work.** §1's "every trigger ends the process" now has one deliberate exception: an editor with
+  unsaved changes stops the *first* quit before anything is shut down and shows its own choice; a second
+  request within a minute quits anyway (`quit.ts` `blockers`). Before, the editor cancelled its unload
+  after the drain and the deadline then ended the process, losing the work.
+- **The deadline is visible.** A quit the deadline had to end exits with code 3, not 0, and the walk waits
+  15 s, longer than the deadline, so a stalled shutdown can no longer pass as graceful.
+- **The startup-failure dialog is asynchronous**, so a `SIGTERM` or a logout while it is open is answered.
+- **§2:** the Keychain token is held in memory until five minutes before it expires (or a 401/403), so a
+  signed-in Fabric reads the item about once per token lifetime instead of ~31 times an hour; unlocking the
+  screen releases only credential holds, never a provider's 429 back-off; a refused read is reported as
+  `credential-refused`, not "not signed in"; walks set `FABRIC_NO_KEYCHAIN=1` and `--use-mock-keychain`.
+- **§3:** the lock file appears with its holder already written and a dead holder is replaced through one
+  exclusive takeover file, with the holder identified by pid and start time (both held the lock in 20 of 20
+  simultaneous starts before); nested bounded runs share the outer run's process group and timeouts end
+  the whole process tree (a timed-out publish had left `ci.sh` and git under ppid 1); every exit after an
+  error goes through `exitWithin`, which ends the pid if Node's own exit deadlocks; `heroku` calls have a
+  60 s timeout.
+- **Hosted CI:** the real-Electron quit case runs where there is a display (macOS, or Linux with `DISPLAY`)
+  and says `NOT_RUN` elsewhere; the hosted Linux runner had no display.
+- **Known and accepted:** a second `SIGTERM` during a drain is handled by Chromium itself and ends the
+  process at once; the drain's own limits (8 s + 2 s) meet the 10 s deadline with no margin, and the
+  deadline's exit code 3 makes that case visible rather than hidden.
+

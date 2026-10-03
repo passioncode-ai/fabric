@@ -51,6 +51,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'estate.quotaUnread': 'Читаю окна аккаунта…',
   'estate.quotaUnavailable': 'Квоту не удалось прочитать: {reason}. Про сам аккаунт это не говорит ничего.',
   'estate.quotaNoCredential': 'Нечем читать — Claude Code не залогинен на этой машине.',
+  'estate.quotaCredentialRefused': 'Связка ключей не выдала учётные данные Claude Code: она заблокирована или доступ отклонён. Fabric спросит снова, когда экран разблокируют или Fabric перезапустят.',
   'estate.quotaUnreachable': 'До сервиса не достучались, поэтому это последние прочитанные числа, {age} назад.',
   'estate.quotaRejected': 'Сервис отклонил запрос, поэтому это последние прочитанные числа, {age} назад.',
   'estate.quotaEmpty': 'Сервис ответил пустотой, поэтому это последние прочитанные числа, {age} назад.',

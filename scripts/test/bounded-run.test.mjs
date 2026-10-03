@@ -90,3 +90,61 @@ test('workspace.mjs runs no command without a deadline, and the sync is locked, 
   assert.match(src, /writeStatus\(statusFile/, 'the sync writes no status record')
   assert.match(src, /rotateLog\(log\)/, 'the sync log is never rotated')
 })
+
+// Review finding 6: two processes starting together both held the lock in 20 of 20 rounds.
+test('of many processes racing for the lock, exactly one holds it — every round', async () => {
+  const lib = path.resolve(import.meta.dirname, '../lib/bounded-run.mjs')
+  for (let round = 0; round < 10; round++) {
+    const dir = tmp()
+    const file = path.join(dir, 'publish.lock')
+    const racer = `import { acquireLock } from ${JSON.stringify(lib)}; const l = acquireLock(${JSON.stringify(file)}, { token: 'r' + process.pid }); process.stdout.write(l ? 'WON' : 'LOST'); setTimeout(() => {}, 400)`
+    const runs = Array.from({ length: 4 }, () => new Promise((resolve) => {
+      const c = spawn(process.execPath, ['--input-type=module', '-e', racer], { stdio: ['ignore', 'pipe', 'inherit'] })
+      let out = ''; c.stdout.on('data', (b) => { out += b }); c.on('exit', () => resolve(out))
+    }))
+    const outs = await Promise.all(runs)
+    assert.equal(outs.filter((o) => o === 'WON').length, 1, `round ${round}: ${outs.join(',')}`)
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('a dead holder is taken over by exactly one of several racers', async () => {
+  const lib = path.resolve(import.meta.dirname, '../lib/bounded-run.mjs')
+  for (let round = 0; round < 10; round++) {
+    const dir = tmp()
+    const file = path.join(dir, 'publish.lock')
+    const dead = spawn(process.execPath, ['-e', '0']); await new Promise((r) => dead.once('exit', r))
+    writeFileSync(file, JSON.stringify({ pid: dead.pid, token: 'crashed', at: 'x' }))
+    const racer = `import { acquireLock } from ${JSON.stringify(lib)}; const l = acquireLock(${JSON.stringify(file)}, { token: 'r' + process.pid }); process.stdout.write(l ? 'WON' : 'LOST'); setTimeout(() => {}, 400)`
+    const outs = await Promise.all(Array.from({ length: 4 }, () => new Promise((resolve) => {
+      const c = spawn(process.execPath, ['--input-type=module', '-e', racer], { stdio: ['ignore', 'pipe', 'inherit'] })
+      let out = ''; c.stdout.on('data', (b) => { out += b }); c.on('exit', () => resolve(out))
+    })))
+    assert.equal(outs.filter((o) => o === 'WON').length, 1, `round ${round}: ${outs.join(',')}`)
+    rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+test('a holder whose pid was recycled by another process does not keep the lock', () => {
+  const dir = tmp()
+  const file = path.join(dir, 'publish.lock')
+  // Our own pid is alive, but the recorded start time is not ours: a recycled pid.
+  writeFileSync(file, JSON.stringify({ pid: process.pid, token: 'old', started: 'Thu Jan  1 00:00:00 1970', at: 'x' }))
+  assert.ok(acquireLock(file, { token: 'new' }), 'a recycled pid kept a dead lock looking held')
+  rmSync(dir, { recursive: true, force: true })
+})
+
+// Review finding 5: a timed-out publish left its nested ci.sh and git steps running under ppid 1.
+test('a timed-out run ends the nested runs it started too, not only its own group', async () => {
+  const lib = path.resolve(import.meta.dirname, '../lib/bounded-run.mjs')
+  const dir = tmp()
+  const mark = path.join(dir, 'nested.pid')
+  // The outer step is itself a bounded runner that starts a nested bounded step which hangs.
+  const inner = `require('fs').writeFileSync(${JSON.stringify(mark)}, String(process.pid)); process.on('SIGTERM',()=>{}); setInterval(()=>{},1000)`
+  const outer = `import { boundedRun } from ${JSON.stringify(lib)}; await boundedRun(process.execPath, ['-e', ${JSON.stringify(inner)}], { timeoutMs: 600000, stdio: 'ignore' })`
+  await assert.rejects(boundedRun(process.execPath, ['--input-type=module', '-e', outer], { timeoutMs: 2000, stdio: 'ignore' }), (e) => e.code === 'ETIMEDOUT')
+  await new Promise((r) => setTimeout(r, 300))
+  assert.ok(existsSync(mark), 'the nested step never started')
+  assert.equal(alive(Number(readFileSync(mark, 'utf8'))), false, 'the nested step survived its outer run')
+  rmSync(dir, { recursive: true, force: true })
+})

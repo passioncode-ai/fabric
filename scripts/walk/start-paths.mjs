@@ -59,8 +59,10 @@ writeFileSync(path.join(userData, 'settings.json'), JSON.stringify({ theme: THEM
 // The Electron BINARY, never the `node_modules/.bin/electron` wrapper: the wrapper forwards signals to
 // its child, so the app received SIGTERM twice and was hard-killed instead of quitting (CO-191).
 const electron = createRequire(path.join(APP, 'package.json'))('electron')
-const child = spawn(electron, [APP, `--user-data-dir=${userData}`, `--remote-debugging-port=${PORT}`], {
-  env: { ...stackEnv, FABRIC_WALK_PICK: [fresh, projects, parent].join(path.delimiter) },
+// The walk never touches the operator's own credentials (lifecycle LC-14, review finding 11): no real
+// Keychain read for the quota (FABRIC_NO_KEYCHAIN) and Chromium's mock keychain for anything else.
+const child = spawn(electron, ['--use-mock-keychain', APP, `--user-data-dir=${userData}`, `--remote-debugging-port=${PORT}`], {
+  env: { ...stackEnv, FABRIC_NO_KEYCHAIN: '1', FABRIC_WALK_PICK: [fresh, projects, parent].join(path.delimiter) },
   stdio: ['ignore', 'pipe', 'pipe'],
   // Its own process group: anything the app started is reaped once the app itself has exited.
   detached: true

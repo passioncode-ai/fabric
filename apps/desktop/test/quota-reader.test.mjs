@@ -13,7 +13,7 @@
 // Pure: it injects its fetch and its clock. Nothing reaches the network, no
 // credential is read, and nothing is written.
 
-import { createQuotaReader, readKeychainToken, KEYCHAIN_TIMEOUT_MS, CREDENTIAL_HOLD_MS, FAILURE_HOLD_MS } from '../src/main/quota.ts'
+import { createQuotaReader, readKeychainToken, readToken, forgetCachedToken, KEYCHAIN_TIMEOUT_MS, CREDENTIAL_HOLD_MS, FAILURE_HOLD_MS } from '../src/main/quota.ts'
 import { mayStart } from '../src/shared/quotaGate.ts'
 
 let failures = 0
@@ -135,6 +135,36 @@ await failedFirst('an unreachable service', () => createQuotaReader({
     ? ok('absent, denied and stalled reads are told apart')
     : fail(`outcomes: ${absent.outcome} ${denied.outcome} ${stalled.outcome}`)
 }
+
+// ── unlocking the screen releases a credential hold, never a provider's back-off (review finding 12) ──
+{
+  let clock = 1_757_000_000_000
+  let asked = 0
+  const r = createQuotaReader({ token: async () => { asked++; return 'test-token' }, fetchUsage: async () => ({ status: 429, retryAfter: 600 }), now: () => clock })
+  await r.read(); r.retryCredential(); clock += 3_000; await r.read()
+  asked === 1 ? ok('retryCredential keeps a 429 back-off') : fail(`retryCredential cleared the 429 back-off: ${asked} asks`)
+  let asked2 = 0
+  const s = createQuotaReader({ token: async () => { asked2++; return null }, fetchUsage: async () => { throw new Error('must not be called') }, now: () => clock })
+  await s.read(); s.retryCredential(); await s.read()
+  asked2 === 2 ? ok('and releases a no-credential hold') : fail(`retryCredential did not release the credential hold: ${asked2}`)
+}
+
+// ── the Keychain token is read once per its lifetime, not on every reading (review finding 10) ──
+if (process.platform === 'darwin') {
+  forgetCachedToken()
+  let reads = 0
+  const exec = async () => { reads++; return { stdout: JSON.stringify({ claudeAiOauth: { accessToken: 'tok', expiresAt: Date.now() + 3_600_000 } }) } }
+  await readToken(exec); await readToken(exec); await readToken(exec)
+  reads === 1 ? ok('a valid token is read from the Keychain once and held in memory') : fail(`the Keychain was read ${reads} times for one valid token`)
+  forgetCachedToken(); await readToken(exec)
+  reads === 2 ? ok('a rejected token (forgetCachedToken) is read again') : fail(`forgetCachedToken did not force a read: ${reads}`)
+  forgetCachedToken()
+  let reads2 = 0
+  const soon = async () => { reads2++; return { stdout: JSON.stringify({ claudeAiOauth: { accessToken: 'tok', expiresAt: Date.now() + 60_000 } }) } }
+  await readToken(soon); await readToken(soon)
+  reads2 === 2 ? ok('a token within five minutes of expiry is not served from memory') : fail(`an expiring token was cached: ${reads2}`)
+  forgetCachedToken()
+} else ok('NOT_RUN: the Keychain token cache is macOS-only')
 
 console.log(failures ? '\n  FAIL ' + failures + ' failure(s)' : '\nall green')
 process.exit(failures ? 1 : 0)

@@ -63,6 +63,11 @@ export interface QuotaReader {
   /** Forget one account's cache and backoff, or all of them. Removing an
    *  account must not clear another's backoff (M199.usage). */
   forget(key?: ObservationKey): void
+  /**
+   * The person may have signed in or unlocked the keychain: release only the holds a missing or refused
+   * credential set. A provider's 429 back-off stays (finding 12: unlocking the screen cleared it).
+   */
+  retryCredential(): void
   stop(): void
 }
 
@@ -104,10 +109,19 @@ export const FAILURE_HOLD_CAP_MS = 15 * 60_000
 // declaration to the usage fetcher's — and runs alone as a plain script. That is why the helpers are
 // exported at the end of this file rather than where they are declared.
 /** The bearer, from the Keychain on macOS and the JSON file elsewhere. Never logged. */
-async function readToken(): Promise<string | null> {
-  if (process.platform === 'darwin' && !keychainRefused) {
-    const read = await readKeychainToken()
-    if (read.token) return read.token
+async function readToken(exec?: Exec): Promise<string | null> {
+  // A walk or test sets FABRIC_NO_KEYCHAIN=1 so it never reads the operator's real credential (LC-14).
+  if (process.platform === 'darwin' && !keychainRefused && process.env.FABRIC_NO_KEYCHAIN !== '1') {
+    // HELD UNTIL IT EXPIRES (lifecycle review 2026-10-03, finding 10): re-reading the item on every
+    // two-minute reading was ~31 Keychain reads an hour while signed in — a read on a timer, which
+    // LC-04 forbids. The token is kept in memory until five minutes before its own expiry, or until
+    // the provider rejects it.
+    if (cachedToken && Date.now() < cachedToken.until) return cachedToken.token
+    const read = await readKeychainToken(exec)
+    if (read.token) {
+      cachedToken = { token: read.token, until: read.expiresAt ? read.expiresAt - TOKEN_EARLY_MS : Date.now() + TOKEN_UNDATED_MS }
+      return read.token
+    }
     if (read.outcome !== 'absent') {
       keychainRefused = read.outcome
       // Said once, as a code; never the value, never again until the person acts.
@@ -144,6 +158,12 @@ async function readToken(): Promise<string | null> {
  */
 let keychainRefused: KeychainOutcome | null = null
 function resetKeychainRefusal(): void { keychainRefused = null }
+/** The bearer read from the Keychain, kept until shortly before it expires (finding 10). */
+let cachedToken: { token: string; until: number } | null = null
+const TOKEN_EARLY_MS = 5 * 60_000
+const TOKEN_UNDATED_MS = 60 * 60_000
+/** The provider rejected the token: the next reading reads the Keychain again. */
+function forgetCachedToken(): void { cachedToken = null }
 
 // #region quota-credential-read — docs: docs/adr/0106-fabric-adopts-the-product-lifecycle-contract.md#2-credentials-are-read-once-and-the-outcome-is-kept
 /** What one Keychain read found. Every outcome is kept by the reader (lifecycle LC-04). */
@@ -161,14 +181,15 @@ const KEYCHAIN_TIMEOUT_MS = 5_000
  * outcome and does not ask again until the person acts: a 3 s poll that re-asked on every
  * failure was a prompt loop waiting for a locked keychain (lifecycle audit, fabric F4).
  */
-async function readKeychainToken(exec: Exec = run as unknown as Exec): Promise<{ token: string | null; outcome: KeychainOutcome }> {
+async function readKeychainToken(exec: Exec = run as unknown as Exec): Promise<{ token: string | null; outcome: KeychainOutcome; expiresAt?: number }> {
   try {
     const { stdout } = await exec('security', ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-w'], {
       timeout: KEYCHAIN_TIMEOUT_MS,
       killSignal: 'SIGKILL'
     })
     const oauth = JSON.parse(stdout.trim())?.claudeAiOauth
-    return typeof oauth?.accessToken === 'string' ? { token: oauth.accessToken, outcome: 'found' } : { token: null, outcome: 'absent' }
+    if (typeof oauth?.accessToken !== 'string') return { token: null, outcome: 'absent' }
+    return { token: oauth.accessToken, outcome: 'found', expiresAt: typeof oauth.expiresAt === 'number' ? oauth.expiresAt : undefined }
   } catch (e) {
     const err = e as { code?: unknown; killed?: boolean; signal?: unknown }
     if (err.killed || err.signal === 'SIGKILL') return { token: null, outcome: 'timeout' }
@@ -296,8 +317,10 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
         // there is nothing to fall back to.
         // Not signed in: there is no account to name, and naming one would be
         // inventing the thing the reading is about.
-        holds.set(slot, { until: now() + CREDENTIAL_HOLD_MS, problem: 'no-credential', account: null })
-        return last ? withAge(last.quota, last.at, 'no-credential') : noReading('no-credential', null)
+        // A refused or stalled Keychain read is not "not signed in" (finding 12): say which it was.
+        const missing: 'no-credential' | 'credential-refused' = !deps.token && !key && keychainRefused ? 'credential-refused' : 'no-credential'
+        holds.set(slot, { until: now() + CREDENTIAL_HOLD_MS, problem: missing, account: null })
+        return last ? withAge(last.quota, last.at, missing) : noReading(missing, null)
       }
 
       let result: { status: number; retryAfter?: number; body?: unknown }
@@ -314,6 +337,8 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
         return last ? withAge(last.quota, last.at, 'throttled') : noReading('throttled', accountOf(bearer))
       }
       if (result.status !== 200 || !result.body) {
+        // A rejected token is read again next time, not served from memory until it expires.
+        if ((result.status === 401 || result.status === 403) && !deps.token && !key) forgetCachedToken()
         holdFailure(slot, 'rejected', accountOf(bearer))
         return last ? withAge(last.quota, last.at, 'rejected') : noReading('rejected', accountOf(bearer))
       }
@@ -387,6 +412,10 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
       failures.delete(slot)
     },
 
+    retryCredential(): void {
+      for (const [slot, hold] of holds) if (hold.problem === 'no-credential' || hold.problem === 'credential-refused') holds.delete(slot)
+    },
+
     stop(): void {
       entries.clear()
       holds.clear()
@@ -396,5 +425,5 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
   }
 }
 
-export { readKeychainToken, resetKeychainRefusal, KEYCHAIN_TIMEOUT_MS }
+export { readKeychainToken, resetKeychainRefusal, forgetCachedToken, readToken, KEYCHAIN_TIMEOUT_MS }
 export type { KeychainOutcome }

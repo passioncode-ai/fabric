@@ -44,6 +44,7 @@ export function quotaOf(reading: QuotaReading): Quota | null {
  */
 export const QUOTA_PROBLEM_KEYS = {
   'no-credential': 'estate.quotaNoCredential',
+  'credential-refused': 'estate.quotaCredentialRefused',
   unreachable: 'estate.quotaUnreachable',
   rejected: 'estate.quotaRejected',
   empty: 'estate.quotaEmpty',
@@ -60,6 +61,7 @@ export const QUOTA_PROBLEM_KEYS = {
  */
 export const QUOTA_PROBLEM_UNREAD_KEYS = {
   'no-credential': 'estate.quotaNoCredential',
+  'credential-refused': 'estate.quotaCredentialRefused',
   unreachable: 'estate.quotaUnreachableUnread',
   rejected: 'estate.quotaRejectedUnread',
   empty: 'estate.quotaEmptyUnread',

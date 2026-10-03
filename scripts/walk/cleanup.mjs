@@ -32,7 +32,9 @@ function reapGroup(child) {
  *  - 'already-exited': it had ended before the walk asked.
  * A walk passes only on 'terminated'.
  */
-export function endApp(child, { graceMs = 10_000 } = {}) {
+// The grace outlasts the app's own 10 s quit deadline, so a stalled shutdown ends by the app's deadline
+// exit (code 3 → 'signalled') rather than racing the walk's SIGKILL to a verdict.
+export function endApp(child, { graceMs = 15_000 } = {}) {
   if (!child) return Promise.resolve('already-exited')
   if (child.exitCode !== null || child.signalCode !== null) {
     reapGroup(child)

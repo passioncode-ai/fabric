@@ -56,7 +56,7 @@ export function validateDeployedVersion(version,expected,release){
  return release.version
 }
 export async function verifyDeployment(config,expected){
- const cli=args=>execFileSync('heroku',args,{encoding:'utf8',maxBuffer:1024*1024,stdio:['ignore','pipe','pipe']})
+ const cli=args=>execFileSync('heroku',args,{encoding:'utf8',maxBuffer:1024*1024,stdio:['ignore','pipe','pipe'],timeout:60000,killSignal:'SIGKILL'})
  const secret=name=>{try{return cli(['config:get',name,'--app',config.heroku_app]).replace(/\r?\n$/,'')}catch{throw Error('Cannot read Heroku access configuration: '+name)}}
  const user=secret('WORKSPACE_USER'),password=secret('WORKSPACE_PASSWORD')
  if(!user||!password)throw Error('Heroku access configuration is missing')

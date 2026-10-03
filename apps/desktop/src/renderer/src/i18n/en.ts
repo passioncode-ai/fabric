@@ -184,6 +184,7 @@ export const en = {
   'estate.quotaUnread': 'Reading the account’s windows…',
   'estate.quotaUnavailable': 'The quota could not be read: {reason}. This says nothing about the account itself.',
   'estate.quotaNoCredential': 'No credential to read it with — Claude Code is not signed in on this machine.',
+  'estate.quotaCredentialRefused': 'The Keychain did not hand over Claude Code\'s credential — it is locked or access was refused. Fabric asks again once the screen is unlocked or Fabric restarts.',
   'estate.quotaUnreachable': 'The service could not be reached, so these numbers are the last ones read {age} ago.',
   'estate.quotaRejected': 'The service refused the request, so these numbers are the last ones read {age} ago.',
   'estate.quotaEmpty': 'The service answered with nothing, so these numbers are the last ones read {age} ago.',

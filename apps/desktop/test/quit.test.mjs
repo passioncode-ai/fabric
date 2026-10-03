@@ -111,7 +111,7 @@ test('a shutdown that never settles is ended by the deadline', () => {
   q.beforeQuit({ preventDefault() {} })
   assert.deepEqual(exits, [])
   fire()
-  assert.deepEqual(exits, [0])
+  assert.deepEqual(exits, [3], 'a deadline exit must not look like a clean one')
 })
 
 test('a failing shutdown still lets the quit through', async () => {
@@ -127,7 +127,45 @@ test('a failing shutdown still lets the quit through', async () => {
   assert.equal(again.prevented, false, 'the drained re-quit must not be cancelled again')
 })
 
-test('a real Electron main process exits gracefully on SIGTERM', { timeout: 60_000 }, async () => {
+test('unsaved work stops the first quit before anything stops; a second request soon after is "quit anyway"', () => {
+  let clock = 0
+  const shown = []
+  let stopped = 0
+  const q = createQuitCoordinator({
+    app: { quit() {}, exit() {} }, ready: () => true, shutdown: () => new Promise(() => {}), setTimer: () => ({}),
+    blockers: () => [7], onBlocked: (ids) => shown.push(ids), now: () => clock
+  })
+  q.onQuit(() => stopped++)
+  const first = { prevented: false, preventDefault() { this.prevented = true } }
+  q.beforeQuit(first)
+  assert.equal(first.prevented, true)
+  assert.deepEqual(shown, [[7]])
+  assert.equal(q.quitting, false, 'the question must stop nothing')
+  assert.equal(stopped, 0)
+  clock += 5_000
+  q.beforeQuit({ preventDefault() {} })
+  assert.equal(q.quitting, true, 'a second request soon after is quit anyway')
+  assert.equal(stopped, 1)
+})
+
+test('a request long after the question asks again', () => {
+  let clock = 0
+  const shown = []
+  const q = createQuitCoordinator({
+    app: { quit() {}, exit() {} }, ready: () => true, shutdown: () => new Promise(() => {}), setTimer: () => ({}),
+    blockers: () => [7], onBlocked: (ids) => shown.push(ids), now: () => clock
+  })
+  q.beforeQuit({ preventDefault() {} })
+  clock += 120_000
+  q.beforeQuit({ preventDefault() {} })
+  assert.equal(shown.length, 2)
+  assert.equal(q.quitting, false)
+})
+
+// A real window needs a display: the hosted Linux runner has none ("fixture exited before ready",
+// runs 37118117108 and 37119372339). macOS always has one; Linux runs it only with DISPLAY set.
+const noDisplay = process.platform !== 'darwin' && !process.env.DISPLAY
+test('a real Electron main process exits gracefully on SIGTERM', { timeout: 60_000, skip: noDisplay ? 'NOT_RUN: a real Electron window needs macOS or a DISPLAY' : false }, async () => {
   const electron = createRequire(import.meta.url)('electron')
   const dir = mkdtempSync(path.join(tmpdir(), 'fabric-quit-'))
   const main = path.join(import.meta.dirname, 'fixtures/quit-app/main.mjs')

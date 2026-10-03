@@ -1,7 +1,7 @@
 // The v1 control plane (ADR-0031 §2): the only Supabase client, the journal
 // writer, the PTY host and the IPC surface — all here, never in the renderer.
 
-import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, net, powerMonitor, shell } from 'electron'
+import { BrowserWindow, Notification, app, clipboard, dialog, ipcMain, net, powerMonitor, shell, webContents } from 'electron'
 import { CONFIGURED, saveProjectSettings } from './commands/projectSettingsCommand.ts'
 import { landed, type SaveSettingsInput } from '../shared/projectSettings.ts'
 import path from 'node:path'
@@ -286,6 +286,8 @@ let ptys: PtyManager
 let stopRuntime: ReturnType<typeof createNativeStopRuntime>
 let surface: AgentSurface
 let mainWindow: BrowserWindow | null = null
+/** Editor windows whose close would lose work right now (reported by the editor itself). */
+const unsavedEditors = new Set<number>()
 // One owner for quitting (CO-191, lifecycle LC-01): the re-quit after the drain runs on a
 // macrotask, `window-all-closed` quits once quitting, every scheduler stops first, and a
 // hard deadline ends the process if anything stalls.
@@ -296,6 +298,18 @@ const quit = createQuitCoordinator({
   // durable; closing the host does not manufacture a successful Stop receipt.
   shutdown: () => stopRuntime.shutdown().then(() => surface?.stop()),
   onDeadline: () => ops.failed('app.quit-deadline', new Error('quit_deadline'), { note: 'the drain or teardown stalled; the process was ended at the deadline' }),
+  // Editors with unsaved work stop the first quit before anything is shut down (ADR-0106 §1).
+  blockers: () => [...unsavedEditors],
+  onBlocked: (ids) => {
+    for (const id of ids) {
+      const contents = webContents.fromId(id)
+      if (!contents || contents.isDestroyed()) { unsavedEditors.delete(id); continue }
+      const win = BrowserWindow.fromWebContents(contents)
+      win?.show()
+      win?.focus()
+      contents.send(IPC.filesQuitRequested)
+    }
+  },
   onSchedulerError: (e) => ops.failed('app.quit-scheduler-stop', e, { note: 'a scheduler failed to stop; the others were stopped and the quit continues' })
 })
 /** sessionId → taskId, so a session's exit can close the task that opened it. */
@@ -734,7 +748,7 @@ const STATS_WINDOW_DAYS = 7
 const quota = createQuotaReader()
 // The person unlocking the screen is the action a held credential read waits for: a locked
 // keychain is the usual reason a read was refused (lifecycle LC-04).
-void app.whenReady().then(() => powerMonitor.on('unlock-screen', () => { resetKeychainRefusal(); quota.forget() }))
+void app.whenReady().then(() => powerMonitor.on('unlock-screen', () => { resetKeychainRefusal(); quota.retryCredential() }))
 
 /** M73 — holds the machine awake while agents work, per the operator's policy. */
 let power: PowerKeeper | null = null
@@ -3995,7 +4009,7 @@ async function startOrExplain(): Promise<void> {
     // failure, shows the operator a dialog naming it, writes startup-failure.log
     // and records it below. Silence is the one thing this is not.
     ops.failed('startup.bootstrap', e)
-    explainAndQuit(e)
+    void explainAndQuit(e)
   }
 }
 
@@ -4008,7 +4022,7 @@ async function startOrExplain(): Promise<void> {
  * look. The product's first impression, whenever anything was wrong, was that
  * it does not work at all.
  */
-function explainAndQuit(e: unknown): void {
+async function explainAndQuit(e: unknown): Promise<void> {
   const failure = classifyStartupFailure(e)
 
   // SMOKE NEXT, and the order is not a detail: `showMessageBoxSync` is modal,
@@ -4047,9 +4061,13 @@ function explainAndQuit(e: unknown): void {
   }
   ops.failed('index.failure', e, { note: `bootstrap failed (${failure.cause}):` })
 
-  for (;;) {
+  // ASYNC, not `showMessageBoxSync` (lifecycle review 2026-10-03, finding 8): a synchronous modal blocks
+  // the main thread, so a SIGTERM or a logout while it was open went unanswered — the process was still
+  // alive 25 s later and the quit deadline was never armed. With the dialog awaited, a quit proceeds and
+  // the loop stops asking.
+  while (!quit.quitting) {
     const plan = startupDialog(failure, { retryable: !pastRetryPoint, logPath })
-    const choice = dialog.showMessageBoxSync({
+    const { response: choice } = await dialog.showMessageBox({
       type: 'error',
       title: 'Fabric could not start',
       message: plan.message,
@@ -4059,6 +4077,8 @@ function explainAndQuit(e: unknown): void {
       cancelId: plan.buttons.length - 1,
       noLink: true
     })
+    // A quit that arrived while the dialog was open wins over whatever the dialog answered.
+    if (quit.quitting) return
     const pressed = plan.buttons[choice]
     if (pressed === 'Retry') {
       void startOrExplain()
@@ -4070,6 +4090,7 @@ function explainAndQuit(e: unknown): void {
       clipboard.writeText(`${failure.cause}\n${failure.title}\n\n${failure.detail}`)
       continue
     }
+    if (quit.quitting) return
     app.quit()
     process.exitCode = 1
     return
@@ -4077,6 +4098,21 @@ function explainAndQuit(e: unknown): void {
 }
 
 app.on('before-quit', (e) => quit.beforeQuit(e))
+const watchedEditors = new Set<number>()
+ipcMain.on(IPC.filesUnsaved, (e, unsaved: boolean) => {
+  const id = e.sender.id
+  if (!watchedEditors.has(id)) {
+    watchedEditors.add(id)
+    e.sender.once('destroyed', () => { unsavedEditors.delete(id); watchedEditors.delete(id) })
+  }
+  if (unsaved === true) unsavedEditors.add(id)
+  else unsavedEditors.delete(id)
+})
+// Once the person has chosen to quit anyway, an editor's beforeunload no longer cancels the quit: a
+// cancelled unload during a quit would only leave the deadline to end the process (finding 7).
+app.on('web-contents-created', (_e, contents) => {
+  contents.on('will-prevent-unload', (event) => { if (quit.quitting) event.preventDefault() })
+})
 
 // Closing a window is not quitting the IDE: PTY sessions live in the main
 // process. Cmd+Q is the real quit and ends sessions — and once a quit has begun,

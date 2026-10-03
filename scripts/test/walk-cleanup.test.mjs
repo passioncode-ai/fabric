@@ -75,4 +75,6 @@ test('the walk spawns the Electron binary in its own process group, and fails on
   assert.doesNotMatch(walk, /node_modules\/\.bin\/electron'\)/, 'start-paths.mjs spawns the forwarding wrapper, which doubles SIGTERM')
   assert.match(walk, /createRequire\(path\.join\(APP, 'package\.json'\)\)\('electron'\)/)
   assert.match(walk, /ok: ended === 'terminated'/, 'the walk passes an app that had to be killed')
+  assert.match(walk, /FABRIC_NO_KEYCHAIN: '1'/, 'the walk lets the app read the operator\'s real Keychain')
+  assert.match(walk, /'--use-mock-keychain'/)
 })

@@ -312,7 +312,7 @@ export interface Quota {
   byModel: Record<string, QuotaWindow>
   readAt: string
   ageSeconds: number
-  problem: 'no-credential' | 'unreachable' | 'rejected' | 'empty' | 'throttled' | null
+  problem: 'no-credential' | 'credential-refused' | 'unreachable' | 'rejected' | 'empty' | 'throttled' | null
   /**
    * Which account this reading is ABOUT (FA-03).
    *
@@ -1139,6 +1139,13 @@ export interface FabricApi {
      */
     requestOverwrite(file: string): Promise<{ grantId: string; expiresAt: string }>
     /**
+     * Lifecycle (ADR-0106 §1): an editor tells main whether closing it now would lose work, so a quit
+     * can stop before anything is shut down and let the person choose (lifecycle review finding 7).
+     */
+    reportUnsaved(unsaved: boolean): void
+    /** Main asks this editor to show its "unsaved changes" choice because a quit was requested. */
+    onQuitRequested(handler: () => void): () => void
+    /**
      * Open a file in whatever the machine uses for it.
      *
      * NOT `Promise<void>` (M109). `shell.openPath` resolves to an ERROR STRING —
@@ -1513,6 +1520,8 @@ export const IPC = {
   filesWrite: 'files:write',
   filesRequestOverwrite: 'files:request-overwrite',
   filesOpenExternally: 'files:open-externally',
+  filesUnsaved: 'files:unsaved',
+  filesQuitRequested: 'files:quit-requested',
   windowsOpenFile: 'windows:open-file',
   settingsRead: 'settings:read',
   settingsWrite: 'settings:write',

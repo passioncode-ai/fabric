@@ -6,7 +6,7 @@ import path from 'node:path'
 import {snapshot,writeSnapshot,checkReceipt,git,receiptPath,publicationOnly,verifyCommittedSnapshot,receiptFor} from './workspace-snapshot.mjs'
 import {resolveSources,pinnedSources,localSourceDirs,sourcesMatch,sourcePins,fetchTip,lagReport,syncReasons,syncLeftovers} from './workspace-sources.mjs'
 import {completedPublication,verifyDeployment,publicationSource,publicationHazards,sourceChangedSince} from './workspace-release.mjs'
-import {boundedRun,nonInteractiveGitEnv,acquireLock,writeStatus,rotateLog,killAll} from './lib/bounded-run.mjs'
+import {boundedRun,nonInteractiveGitEnv,acquireLock,writeStatus,rotateLog,killAll,exitWithin} from './lib/bounded-run.mjs'
 const root=path.resolve(import.meta.dirname,'..'),child=path.join(root,'workspace')
 const config=()=>JSON.parse(readFileSync(path.join(root,'workspace.config.json'),'utf8'))
 // #region workspace-bounded — docs: docs/adr/0106-fabric-adopts-the-product-lifecycle-contract.md#3-a-scheduled-job-is-bounded-exclusive-and-observable
@@ -32,6 +32,10 @@ const holdPublication=()=>{
 // #endregion workspace-bounded
 const clean=dir=>{if(git(dir,'status','--porcelain').toString().trim())throw Error('Commit or preserve your changes first: '+dir)}
 const cmd=process.argv[2]||'status'
+// Every command but `sync` (which records its own outcome) ends through exitWithin on an error: Node 26.8.2
+// deadlocked inside its own exit after an uncaught error, and a hung publish child held the scheduled job
+// for hours (2026-10-03, twice). The error is printed first, then the process is made to end.
+if(cmd!=='sync'){const die=e=>{console.error(e?.stack||e);killAll();exitWithin(1)};process.on('uncaughtException',die);process.on('unhandledRejection',die)}
 // A detached checkout of main (the scheduled sync's own) pushes its pin to main; a branch pushes itself.
 const pushTarget=()=>git(root,'branch','--show-current').toString().trim()?'HEAD':'HEAD:main'
 if(cmd==='status'){
@@ -116,7 +120,7 @@ if(cmd==='status'){
  const startedAt=new Date().toISOString(),log=process.env.FABRIC_WORKSPACE_SYNC_LOG
  if(log)rotateLog(log)
  const status=(outcome,reason)=>writeStatus(statusFile,{schema:'WorkspaceSync@1',pid:process.pid,started_at:startedAt,ended_at:outcome==='running'?null:new Date().toISOString(),outcome,reason:reason??null})
- const finish=(outcome,reason,code)=>{status(outcome,reason);console.log('== sync '+outcome+(reason?': '+reason:'')+' · '+new Date().toISOString());process.exit(code)}
+ const finish=(outcome,reason,code)=>{status(outcome,reason);console.log('== sync '+outcome+(reason?': '+reason:'')+' · '+new Date().toISOString());exitWithin(code)}
  const watchdogMs=Number(process.env.FABRIC_WORKSPACE_SYNC_DEADLINE_MS)||100*MIN
  setTimeout(()=>{killAll();finish('timeout','the run passed its '+Math.round(watchdogMs/MIN)+' min watchdog; every step it started was ended',124)},watchdogMs).unref()
  for(const sig of ['SIGTERM','SIGINT'])process.once(sig,()=>{killAll();finish('stopped','received '+sig,143)})

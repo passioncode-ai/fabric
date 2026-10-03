@@ -193,6 +193,14 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
   }, [dirty, saved])
 
+  // A quit asks the same question (ADR-0106 §1): main learns whether closing would lose work, and when
+  // the person quits with unsaved changes, main shows this window and asks it to raise its own choice
+  // before anything is shut down — instead of the quit's deadline ending the process under it.
+  useEffect(() => {
+    window.fabric.files.reportUnsaved(closeWouldLoseWork({ dirty, saved }, leaving.current))
+  }, [dirty, saved])
+  useEffect(() => window.fabric.files.onQuitRequested(() => setClosing(true)), [])
+
   // A load failure has no editor to keep; a write failure must never take one away.
   if (loadError)
     return (
