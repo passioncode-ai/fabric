@@ -12,6 +12,7 @@ import { chooseRepoRoot } from './repoRoot'
 import { materializeStack } from './bundledStack'
 import { widenProbePath } from './executorDetect.ts'
 import { app } from 'electron'
+import { STACK_EXCLUDED_SERVICES } from './stackServices.ts'
 
 export interface SupabaseEnv {
   url: string
@@ -82,7 +83,8 @@ export async function stackStatusEnv(): Promise<Record<string, string>> {
  * optional: nothing here depends on being watched.
  */
 export async function startStack(onLine?: (line: string) => void): Promise<void> {
-  const child = run('supabase', ['start'], {
+  // Only the services Fabric calls (lifecycle LC-09): the rest cost ~1.4 GiB at idle for nothing.
+  const child = run('supabase', ['start', '-x', STACK_EXCLUDED_SERVICES.join(',')], {
     cwd: repoRoot(),
     encoding: 'utf8',
     timeout: 240_000,

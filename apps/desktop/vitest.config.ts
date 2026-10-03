@@ -23,7 +23,10 @@ export default defineConfig({
     environment: 'jsdom',
     // See the file: Monaco probes for a jsdom gap at IMPORT time, so the fix
     // has to land before any spec's first line.
-    setupFiles: ['./test/jsdom-gaps.ts'],
+    setupFiles: ['./test/jsdom-gaps.ts', './test/load-tolerance.ts'],
+    // A loaded machine is not a failing interface (see test/load-tolerance.ts).
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
     // `src/shared` is here because the ladder is asked by BOTH the renderer
     // and the main process, and a rule enforced in two places is tested where
     // it lives rather than twice at its call sites.

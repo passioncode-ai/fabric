@@ -31,7 +31,8 @@ import { readSettings, writeSettings } from './settings'
 import { createPowerKeeper, type PowerKeeper } from './power'
 import { createRepoStateReader } from './repoState'
 import { createCodeStatsReader } from './codeStats'
-import { createQuotaReader } from './quota'
+import { createQuotaReader, resetKeychainRefusal } from './quota'
+import { createQuitCoordinator } from './quit.ts'
 import { readGateway } from './gateway'
 import { classifyStartupFailure, startupDialog } from '../shared/startupFailure'
 import { readBuildManifestCandidates, withSchemaReadiness } from './schemaReadiness.ts'
@@ -285,6 +286,18 @@ let ptys: PtyManager
 let stopRuntime: ReturnType<typeof createNativeStopRuntime>
 let surface: AgentSurface
 let mainWindow: BrowserWindow | null = null
+// One owner for quitting (CO-191, lifecycle LC-01): the re-quit after the drain runs on a
+// macrotask, `window-all-closed` quits once quitting, every scheduler stops first, and a
+// hard deadline ends the process if anything stalls.
+const quit = createQuitCoordinator({
+  app,
+  ready: () => !!ptys && !!stopRuntime,
+  // Quit requests scoped termination. A deadline leaves unresolved ownership
+  // durable; closing the host does not manufacture a successful Stop receipt.
+  shutdown: () => stopRuntime.shutdown().then(() => surface?.stop()),
+  onDeadline: () => ops.failed('app.quit-deadline', new Error('quit_deadline'), { note: 'the drain or teardown stalled; the process was ended at the deadline' }),
+  onSchedulerError: (e) => ops.failed('app.quit-scheduler-stop', e, { note: 'a scheduler failed to stop; the others were stopped and the quit continues' })
+})
 /** sessionId → taskId, so a session's exit can close the task that opened it. */
 const taskBySession = new Map<string, string>()
 /** sessionId → detached window showing that session. */
@@ -559,7 +572,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   ptys = new PtyManager(journal, ACTIVE_ESTATE, {
     onData: (sessionId, data, written) => broadcast(IPC.terminalData, sessionId, data, written),
     onExit: async (sessionId, exitCode) => {
-      const requestedByFabric = !!ptys.get(sessionId)?.termination || quitting
+      const requestedByFabric = !!ptys.get(sessionId)?.termination || quit.quitting
       broadcast(IPC.terminalExit, sessionId, exitCode)
       syncPower()
       // Observed local exit revokes Fabric credentials even if Run lookup is
@@ -685,7 +698,7 @@ function startTranscriptRecovery(): void {
   }
   void tick()
 }
-app.on('will-quit', () => { recoveryGeneration++; if (recoveryTimer) clearTimeout(recoveryTimer) })
+quit.onQuit(() => { recoveryGeneration++; if (recoveryTimer) clearTimeout(recoveryTimer) })
 
 function toTranscript(row: Record<string, unknown>): SessionTranscript {
   return {
@@ -719,6 +732,9 @@ const codeStats = createCodeStatsReader()
 const STATS_WINDOW_DAYS = 7
 /** M83 — the account's quota, cached with its age. */
 const quota = createQuotaReader()
+// The person unlocking the screen is the action a held credential read waits for: a locked
+// keychain is the usual reason a read was refused (lifecycle LC-04).
+void app.whenReady().then(() => powerMonitor.on('unlock-screen', () => { resetKeychainRefusal(); quota.forget() }))
 
 /** M73 — holds the machine awake while agents work, per the operator's policy. */
 let power: PowerKeeper | null = null
@@ -1893,10 +1909,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   }
   // #endregion cycle-run
 
+  // A quitting process starts no cycle: a windowless Fabric that kept its 60 s cycle could
+  // start agent sessions and write receipts saying the app was open (CO-191).
   const ticker = setInterval(() => {
+    if (quit.quitting) return
     void runCycle()
   }, TICK_MS)
-  app.on('will-quit', () => clearInterval(ticker))
+  quit.onQuit(() => clearInterval(ticker))
 
   handle(IPC.workspaceImport, async (): Promise<Returns<FabricApi['workspace']['adopt']>> => {
     const picked = await dialog.showOpenDialog({
@@ -2758,7 +2777,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       }
     })()
   }, NOTIFY_MS)
-  app.on('will-quit', () => clearInterval(notifier))
+  quit.onQuit(() => clearInterval(notifier))
 
   /**
    * The four stores, counted (M135).
@@ -4057,24 +4076,12 @@ function explainAndQuit(e: unknown): void {
   }
 }
 
-let quitting = false
-app.on('before-quit', (e) => {
-  if (quitting || !ptys || !stopRuntime) return
-  // Quit requests scoped termination. A deadline leaves unresolved ownership
-  // durable; closing the host does not manufacture a successful Stop receipt.
-  e.preventDefault()
-  quitting = true
-  void stopRuntime
-    .shutdown()
-    .then(() => surface?.stop())
-    .finally(() => app.quit())
-})
+app.on('before-quit', (e) => quit.beforeQuit(e))
 
 // Closing a window is not quitting the IDE: PTY sessions live in the main
-// process. Cmd+Q is the real quit and ends sessions.
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
-})
+// process. Cmd+Q is the real quit and ends sessions — and once a quit has begun,
+// the last window closing finishes it on macOS too (CO-191).
+app.on('window-all-closed', () => quit.windowAllClosed(process.platform))
 app.on('activate', () => {
   if (mainWindow === null && !process.env.SMOKE) createWindow()
 })

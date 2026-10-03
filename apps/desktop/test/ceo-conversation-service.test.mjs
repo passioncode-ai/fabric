@@ -11,11 +11,11 @@ const C=id(3),OP=id(4),MSG=id(5),ctx={schema:'CeoContext@1',mode:'none',selectio
 const draft=(text='A useful question')=>({text,context:structuredClone(ctx),expected_revision:0,subject_revision:1})
 const pending=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve}}
 const roots=[]
-// A test that is not about the deadline runs with the product's own default (ceoConversationService.ts:
-// `deps.timeoutMs ?? 10000`). A shorter default made the 32-send cleanup test report commit_unknown
-// under machine load — true behaviour for a slow send, a false failure for this test. Tests about the
-// deadline set their own (5–150 ms) explicitly.
-const CEO_TEST_DEFAULT_TIMEOUT_MS=10000
+// A test that is not about the deadline runs with a generous one. The product's own default
+// (ceoConversationService.ts: `deps.timeoutMs ?? 10000`) still made `freeze` report local_save_unknown
+// at load 135 during the scheduled sync (2026-10-03) — true behaviour for a slow save, a false failure
+// for this test. Tests about the deadline set their own (5–150 ms) explicitly.
+const CEO_TEST_DEFAULT_TIMEOUT_MS=60000
 function fixture(options={}){
  const dir=mkdtempSync(path.join(tmpdir(),'fabric-ceo-service-'));roots.push(dir)
  const initial={estateId:id(1),personId:id(2),revision:1,actor:{kind:'person',id:id(2)}}

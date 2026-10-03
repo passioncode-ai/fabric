@@ -186,6 +186,11 @@ node --experimental-strip-types apps/desktop/test/session-env.test.mjs
 # reaches no network. An HTTP 200 whose body said nothing used to become a clean
 # reading, and a clean reading is permission for work nobody is watching.
 node --experimental-strip-types apps/desktop/test/quota-reader.test.mjs
+# ADR-0106 §1: quitting ends the process (CO-191) — the coordinator against a model of Electron's
+# non-reentrant quit, and a real Electron main process that must exit gracefully on SIGTERM.
+node --experimental-strip-types apps/desktop/test/quit.test.mjs
+# ADR-0106 §4: the app's stack excludes exactly what the disposable stack excludes.
+node --experimental-strip-types apps/desktop/test/stack-services.test.mjs
 node --experimental-strip-types apps/desktop/test/transcripts.test.mjs
 node apps/desktop/test/file-roots.test.mjs
 # ADR-0100: the start paths' disk reads and executor detection, against a real git tree and real processes.
@@ -320,6 +325,9 @@ fi
 # off the operator's live stack, and the residue report's read-only property. Pure: they start
 # nothing and connect to nothing; the full tier below is where the guard is used.
 node --test scripts/test/test-stack.test.mjs scripts/test/residue-report.test.mjs scripts/test/with-timeout.test.mjs scripts/test/run-test-chains.test.mjs scripts/test/walk-cleanup.test.mjs scripts/test/release-gate.test.mjs
+# Lifecycle contract (ADR-0106): a scheduled job can never wedge — deadlines, process groups, the
+# publication lock, status and rotation.
+node --test scripts/test/bounded-run.test.mjs
 
 step "measured runtimes: the private pipe adapters under Node and inside Electron main (E0, B1, B2a, B2b-1, B4)"
 # The registry and the native view host read a private Node pipe field and rely on libuv's

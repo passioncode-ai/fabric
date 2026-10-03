@@ -12,7 +12,7 @@
 
 import { execFileSync, spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { releaseGateProblems } from './lib/release-gate.mjs'
@@ -59,6 +59,11 @@ try {
   delete env.ASC_API_KEY_P8_B64
 
   console.log(`\n== build Fabric ${version} from ${commit.slice(0, 12)}`)
+  // LC-15: the previous build is removed before the new one, and its app bundle is first unregistered
+  // from LaunchServices, so no stale copy of Fabric answers an `open` or a Dock click afterwards. The
+  // previous release itself lives in the published GitHub release, not on this machine.
+  const previousApp = path.join(desktop, 'dist', 'mac-arm64', 'Fabric.app')
+  if (existsSync(previousApp)) spawnSync('/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister', ['-u', previousApp], { stdio: 'ignore', timeout: 30_000 })
   rmSync(path.join(desktop, 'dist'), { recursive: true, force: true })
   run('node', ['../../scripts/stage-app-icon.mjs'])
   run('pnpm', ['exec', 'electron-vite', 'build'])

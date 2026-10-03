@@ -1,6 +1,6 @@
 // #region walk-cleanup — docs: README.md#the-disposable-test-stack
-// How a walk ends (release review 2026-10-03, iteration 2, finding 8): the app it started has EXITED,
-// and the temporary folders it made are gone.
+// How a walk ends (release review 2026-10-03, iteration 2, finding 8): the app it started has EXITED —
+// gracefully, or the walk fails (CO-191) — and the temporary folders it made are gone.
 //
 // `start-paths.mjs` sent SIGTERM and exited in the same tick, so the Electron app could still be
 // running — holding its user-data folder and the debugging port — when the next walk started, and
@@ -9,41 +9,47 @@
 import { rmSync } from 'node:fs'
 
 /**
- * Signal the app's whole process group when it was spawned `detached` (its own group), else the process.
- * The walk starts the app through `node_modules/.bin/electron`, a wrapper whose CHILD is the real Electron:
- * signalling the wrapper alone orphaned the app (twenty copies in the operator's Dock, 2026-10-03).
+ * The signal goes to the app's process ONLY (lifecycle LC-02). Signalling the whole group — the walk's
+ * fix of the morning of 2026-10-03 — delivered SIGTERM twice whenever a wrapper forwarded it, and
+ * Chromium handles only the first gracefully: the second hard-killed the app in about 100 ms, so
+ * "app terminated" meant "killed without shutdown" and hid CO-191 (an app that never quits). The walk
+ * now spawns the Electron binary itself, so its pid IS the app.
  */
-function signal(child, sig) {
-  try {
-    process.kill(-child.pid, sig)
-    return
-  } catch {
-    // Not a group leader (spawned without `detached`), or the group is gone: signal the process itself.
-  }
+function signalApp(child, sig) {
   try { child.kill(sig) } catch { /* gone between the check and the kill */ }
 }
 
-/** Resolve once the app — and every process in its group — has been ended: SIGTERM, SIGKILL after `graceMs`. */
+/** After the app has exited, nothing it started may outlive it: its group (spawned `detached`) is killed. */
+function reapGroup(child) {
+  try { process.kill(-child.pid, 'SIGKILL') } catch { /* not a group leader, or the group is already empty */ }
+}
+
+/**
+ * Resolve once the app has ended, and say HOW:
+ *  - 'terminated': it exited by itself, code 0, after SIGTERM — the only graceful outcome;
+ *  - 'signalled': the signal's default action ended it, or it exited non-zero — no clean shutdown;
+ *  - 'killed': it was still alive after `graceMs` and was SIGKILLed;
+ *  - 'already-exited': it had ended before the walk asked.
+ * A walk passes only on 'terminated'.
+ */
 export function endApp(child, { graceMs = 10_000 } = {}) {
   if (!child) return Promise.resolve('already-exited')
   if (child.exitCode !== null || child.signalCode !== null) {
-    // The wrapper is gone, but what it started may not be.
-    signal(child, 'SIGKILL')
+    reapGroup(child)
     return Promise.resolve('already-exited')
   }
   return new Promise((resolve) => {
     let killed = false
     const timer = setTimeout(() => {
       killed = true
-      signal(child, 'SIGKILL')
+      signalApp(child, 'SIGKILL')
     }, graceMs)
-    child.once('exit', () => {
+    child.once('exit', (code, sig) => {
       clearTimeout(timer)
-      // The leader exited; anything left in its group (the real app under a wrapper) goes with it.
-      signal(child, 'SIGKILL')
-      resolve(killed ? 'killed' : 'terminated')
+      reapGroup(child)
+      resolve(killed ? 'killed' : code === 0 && sig === null ? 'terminated' : 'signalled')
     })
-    signal(child, 'SIGTERM')
+    signalApp(child, 'SIGTERM')
   })
 }
 

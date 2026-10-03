@@ -13,7 +13,7 @@
 // Pure: it injects its fetch and its clock. Nothing reaches the network, no
 // credential is read, and nothing is written.
 
-import { createQuotaReader } from '../src/main/quota.ts'
+import { createQuotaReader, readKeychainToken, KEYCHAIN_TIMEOUT_MS, CREDENTIAL_HOLD_MS, FAILURE_HOLD_MS } from '../src/main/quota.ts'
 import { mayStart } from '../src/shared/quotaGate.ts'
 
 let failures = 0
@@ -90,6 +90,51 @@ await failedFirst('an unreachable service', () => createQuotaReader({
   fetchUsage: async () => { throw new Error('getaddrinfo ENOTFOUND') },
   now: () => 1_757_000_000_000
 }), 'unreachable')
+
+// ── every outcome is held: no credential read on every poll (lifecycle LC-04) ─────
+// MEASURED 2026-10-03: with quota unknown, the renderer's 3 s poll ran `security
+// find-generic-password -w` every 3 s, because only a 429 was ever held. With a locked
+// keychain that is a dialog every 3 s.
+{
+  let clock = 1_757_000_000_000
+  let asked = 0
+  const r = createQuotaReader({ token: async () => { asked++; return null }, fetchUsage: async () => { throw new Error('must not be called') }, now: () => clock })
+  await r.read(); clock += 3_000; await r.read(); clock += 3_000; const q = await r.read()
+  asked === 1 && q.problem === 'no-credential'
+    ? ok('a missing credential is read once and held, not re-read on every poll')
+    : fail(`a missing credential was read ${asked} times in 6 s; problem ${q.problem}`)
+  clock += CREDENTIAL_HOLD_MS
+  await r.read()
+  asked === 2 ? ok('and asked again only after the hold') : fail(`after the hold the credential was read ${asked} times`)
+  r.forget(); await r.read()
+  asked === 3 ? ok('or at once when the person acts (forget)') : fail(`forget did not release the hold: ${asked}`)
+}
+{
+  let clock = 1_757_000_000_000
+  let asked = 0
+  const r = createQuotaReader({ token: async () => { asked++; return 'test-token' }, fetchUsage: async () => { throw new Error('getaddrinfo ENOTFOUND') }, now: () => clock })
+  await r.read(); clock += 3_000; const q = await r.read()
+  asked === 1 && q.problem === 'unreachable'
+    ? ok('an unreachable service holds the next request back and says why')
+    : fail(`unreachable was asked ${asked} times in 3 s; problem ${q.problem}`)
+  clock += FAILURE_HOLD_MS; await r.read()
+  clock += FAILURE_HOLD_MS; await r.read()
+  asked === 2 ? ok('and the hold doubles on a second failure') : fail(`the failure hold did not double: ${asked} asks`)
+}
+// ── one Keychain read is bounded, and its outcome is named ──────────────────────
+{
+  let seen
+  const found = await readKeychainToken(async (file, args, opts) => { seen = { file, args, opts }; return { stdout: JSON.stringify({ claudeAiOauth: { accessToken: 'tok' } }) } })
+  found.token === 'tok' && seen.opts.timeout === KEYCHAIN_TIMEOUT_MS && seen.opts.killSignal === 'SIGKILL' && !seen.args.includes('tok')
+    ? ok('the Keychain read carries a deadline and a kill signal')
+    : fail('keychain read options: ' + JSON.stringify(seen?.opts))
+  const absent = await readKeychainToken(async () => { throw Object.assign(new Error('not found'), { code: 44 }) })
+  const denied = await readKeychainToken(async () => { throw Object.assign(new Error('user canceled'), { code: 128 }) })
+  const stalled = await readKeychainToken(async () => { throw Object.assign(new Error('killed'), { killed: true, signal: 'SIGKILL' }) })
+  absent.outcome === 'absent' && denied.outcome === 'denied' && stalled.outcome === 'timeout'
+    ? ok('absent, denied and stalled reads are told apart')
+    : fail(`outcomes: ${absent.outcome} ${denied.outcome} ${stalled.outcome}`)
+}
 
 console.log(failures ? '\n  FAIL ' + failures + ' failure(s)' : '\nall green')
 process.exit(failures ? 1 : 0)

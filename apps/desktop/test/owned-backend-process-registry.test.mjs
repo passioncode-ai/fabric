@@ -18,12 +18,15 @@ writeFileSync(script,`import readline from 'node:readline';\nif(process.argv[2]=
 writeFileSync(tree,`import {spawn}from'node:child_process';import{writeFileSync}from'node:fs';const c=spawn(process.execPath,['-e',"process.on('SIGTERM',()=>{});process.stdout.write('ready');setInterval(()=>{},1000)"],{env:{},stdio:['ignore','pipe','ignore']});c.stdout.once('data',()=>writeFileSync(process.argv[2],'ready'));setInterval(()=>{},1000)`,{mode:0o600})
 const boundary=createProcessBoundary(),tracked=[],registries=[],transports=[]
 const delay=ms=>new Promise(r=>setTimeout(r,ms))
-const until=async(fn,label)=>{const deadline=performance.now()+4000;while(performance.now()<deadline){if(await fn())return;await delay(10)}throw Error(label)}
+// Polling deadlines and the fixture's spawn deadline are generous: on a loaded machine (load 35–135 during
+// the scheduled sync, 2026-10-03) a 1.2 s spawn deadline reported outcome_unknown for a healthy spawn.
+// Tests ABOUT the deadline pass their own (150 ms) explicitly.
+const until=async(fn,label)=>{const deadline=performance.now()+20000;while(performance.now()<deadline){if(await fn())return;await delay(10)}throw Error(label)}
 const stamp=fd=>{const s=fstatSync(fd,{bigint:true});return `${s.dev}/${s.ino}/${s.rdev}/${s.mode}`}
 let serial=10
 const admission=()=>{const n=serial++;return{admitted:true,project_id:id(3),task_id:id(n),task_run_id:id(n+1000),session_id:id(n+2000),run_ordinal:1}}
 const recipe=()=>({executable,executableSha256:hash,argv:[script],cwd:dir,env:{HOME:dir}})
-function fixture({launchRecipe=recipe(),root=path.join(dir,'root-'+serial++),timeoutMs=1200,overrides={},current}={}){
+function fixture({launchRecipe=recipe(),root=path.join(dir,'root-'+serial++),timeoutMs=15000,overrides={},current}={}){
  mkdirSync(root,{recursive:true,mode:0o700});const state={authority:{...actor}},calls={spawn:0,write:0}
  const native={spawn:(...args)=>{calls.spawn++;const child=spawn(...args),t={child,owned:null,exited:false};tracked.push(t);child.once('exit',()=>t.exited=true);child.on('error',()=>{});return child},boundary:{...boundary,capture:async pid=>{const owned=await boundary.capture(pid);tracked.find(t=>t.child.pid===pid).owned=owned;return owned}},fdIdentity:stamp,write:(fd,bytes)=>{calls.write++;return writeSync(fd,bytes)},...overrides}
  const options={rootDir:root,estateId:estate,recipe:launchRecipe,timeoutMs,authority:()=>current?current(state):state.authority}

@@ -24,6 +24,8 @@ test('healthy old source/build/release and pending releases cannot certify publi
 
 test('actual publisher resumes a failed parent push without creating a second snapshot or commit',async()=>{
  const root=mkdtempSync(path.join(tmpdir(),'fabric-release-fixture-'))
+ // The publication lock and status live outside the fixture repository and outside the real ~/.cache (LC-14).
+ const stateDir=mkdtempSync(path.join(tmpdir(),'fabric-release-state-'))
  const write=(p,s)=>{mkdirSync(path.dirname(path.join(root,p)),{recursive:true});writeFileSync(path.join(root,p),s)}
  const commit=dir=>{git(dir,'add','.');git(dir,'-c','core.hooksPath=/dev/null','-c','commit.gpgsign=false','commit','-qm','fixture');return git(dir,'rev-parse','HEAD').toString().trim()}
  const init=dir=>{mkdirSync(dir,{recursive:true});git(dir,'init','-q');git(dir,'config','user.name','Fixture');git(dir,'config','user.email','fixture@example.invalid')}
@@ -35,7 +37,7 @@ test('actual publisher resumes a failed parent push without creating a second sn
   // Host/Fabric suites are verified separately; this fixture exercises the real
   // publisher state machine and real local Git pushes, with external checks stubbed.
   write('scripts/ci.sh','#!/bin/sh\nmkdir -p fake-bin && touch fake-bin/ci-ran\nexit 0\n')
-  for(const file of ['workspace.mjs','workspace-snapshot.mjs','workspace-release.mjs','workspace-sources.mjs'])write('scripts/'+file,readFileSync(path.join(import.meta.dirname,'..',file)))
+  for(const file of ['workspace.mjs','workspace-snapshot.mjs','workspace-release.mjs','workspace-sources.mjs','lib/bounded-run.mjs'])write('scripts/'+file,readFileSync(path.join(import.meta.dirname,'..',file)))
   write('.gitignore','fake-bin/\n');write('workspace.config.json',JSON.stringify({heroku_app:'fabric-workspace',public_origin:'http://127.0.0.1:'+server.address().port}))
   const source=commit(root),s=snapshot(root,source),child=path.join(root,'workspace');init(child);writeSnapshot(child,s);const ws=commit(child)
   write(receiptPath,JSON.stringify({schema:1,source_commit:source,workspace_commit:ws,content_digest:s.manifest.content_digest,heroku_app:'fabric-workspace',release:12}))
@@ -44,7 +46,7 @@ test('actual publisher resumes a failed parent push without creating a second sn
   assert.equal(completedPublication(root).source_commit,source);assert.equal(publicationSource(root,child),source)
   write('fake-bin/heroku',`#!/usr/bin/env node\nconst a=process.argv.slice(2);if(a[0]==='config:get')console.log(a[1]==='WORKSPACE_USER'?'fixture':'fixture-test-password');else console.log(JSON.stringify({status:'succeeded',current:true,version:12}));\n`);chmodSync(path.join(root,'fake-bin/heroku'),0o755)
   write('fake-bin/npm','#!/bin/sh\nexit 0\n');chmodSync(path.join(root,'fake-bin/npm'),0o755)
-  const run=(resume=true)=>new Promise(resolve=>{const p=spawn(process.execPath,['scripts/workspace.mjs','publish',...(resume?['--resume']:[])],{cwd:root,env:{...process.env,PATH:path.join(root,'fake-bin')+path.delimiter+process.env.PATH}});let out='';p.stdout.on('data',b=>out+=b);p.stderr.on('data',b=>out+=b);p.on('close',code=>resolve({code,out}))})
+  const run=(resume=true)=>new Promise(resolve=>{const p=spawn(process.execPath,['scripts/workspace.mjs','publish',...(resume?['--resume']:[])],{cwd:root,env:{...process.env,FABRIC_WORKSPACE_STATE_DIR:stateDir,PATH:path.join(root,'fake-bin')+path.delimiter+process.env.PATH}});let out='';p.stdout.on('data',b=>out+=b);p.stderr.on('data',b=>out+=b);p.on('close',code=>resolve({code,out}))})
   git(root,'remote','add','origin',path.join(root,'nonexistent-remote'))
   const failed=await run();assert.notEqual(failed.code,0);assert.equal(git(root,'rev-parse','HEAD').toString().trim(),parent)
   const remote=mkdtempSync(path.join(tmpdir(),'fabric-release-remote-'));git(remote,'init','--bare','-q');git(root,'remote','set-url','origin',remote)

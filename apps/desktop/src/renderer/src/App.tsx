@@ -48,6 +48,7 @@ import { Workspace } from './Workspace'
 
 const FEED_POLL_MS = 2000 // ADR-0027: the table is the record; polling replay is the v1 wake-up
 const SESSION_POLL_MS = 3000
+const QUOTA_POLL_MS = 60_000
 
 /** An onboarding draft. It lives in the shell rather than in the form, so
  *  switching tabs and coming back finds the work still there — a draft is lost
@@ -362,11 +363,11 @@ function Shell({
         .catch((e: unknown) => setQuota({ read: true, failed: String(e) }))
     }
     readQuota()
-    const h = setInterval(() => {
-      void refreshSessions()
-      readQuota()
-    }, SESSION_POLL_MS)
-    return () => clearInterval(h)
+    const h = setInterval(() => void refreshSessions(), SESSION_POLL_MS)
+    // The quota is a two-minute reading (the reader's TTL); asking every 3 s only re-served
+    // the cache at best and, before every outcome was held, re-read the Keychain at worst.
+    const q = setInterval(readQuota, QUOTA_POLL_MS)
+    return () => { clearInterval(h); clearInterval(q) }
   }, [sessionWindowId, refreshProjects, refreshSessions])
 
   useEffect(() => {

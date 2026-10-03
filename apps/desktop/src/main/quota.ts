@@ -92,22 +92,64 @@ export interface QuotaDeps {
 }
 
 const DEFAULT_TTL = 120_000
+/** No credential, or a refused one: asked again only after this, or when the person acts (`forget`). */
+export const CREDENTIAL_HOLD_MS = 10 * 60_000
+/** A failed request backs off from this, doubling per consecutive failure, up to the cap. */
+export const FAILURE_HOLD_MS = 60_000
+export const FAILURE_HOLD_CAP_MS = 15 * 60_000
+
+// #region quota-credential-read — docs: docs/adr/0106-fabric-adopts-the-product-lifecycle-contract.md#2-credentials-are-read-once-and-the-outcome-is-kept
+/** What one Keychain read found. Every outcome is kept by the reader (lifecycle LC-04). */
+export type KeychainOutcome = 'found' | 'absent' | 'denied' | 'timeout'
+
+type Exec = (file: string, args: string[], opts: { timeout: number; killSignal: NodeJS.Signals }) => Promise<{ stdout: string }>
+
+/** Bounded: a `security` call that waits on a dialog or a locked keychain is ended, not awaited. */
+export const KEYCHAIN_TIMEOUT_MS = 5_000
+
+/**
+ * Reads Claude Code's credential item ONCE per call, with a deadline. `security` exits 44
+ * when the item does not exist; any other failure — a refused or dismissed dialog, a locked
+ * keychain — is `denied`, and a kill at the deadline is `timeout`. The caller keeps the
+ * outcome and does not ask again until the person acts: a 3 s poll that re-asked on every
+ * failure was a prompt loop waiting for a locked keychain (lifecycle audit, fabric F4).
+ */
+export async function readKeychainToken(exec: Exec = run as unknown as Exec): Promise<{ token: string | null; outcome: KeychainOutcome }> {
+  try {
+    const { stdout } = await exec('security', ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-w'], {
+      timeout: KEYCHAIN_TIMEOUT_MS,
+      killSignal: 'SIGKILL'
+    })
+    const oauth = JSON.parse(stdout.trim())?.claudeAiOauth
+    return typeof oauth?.accessToken === 'string' ? { token: oauth.accessToken, outcome: 'found' } : { token: null, outcome: 'absent' }
+  } catch (e) {
+    const err = e as { code?: unknown; killed?: boolean; signal?: unknown }
+    if (err.killed || err.signal === 'SIGKILL') return { token: null, outcome: 'timeout' }
+    if (err.code === 44) return { token: null, outcome: 'absent' }
+    return { token: null, outcome: 'denied' }
+  }
+}
+// #endregion quota-credential-read
+
+/**
+ * A refused or stalled Keychain read is not retried by a timer at all: the next read waits
+ * for the person — unlocking the screen, which is when a locked keychain opens
+ * (`resetKeychainRefusal`, wired to `powerMonitor` 'unlock-screen'), or the next launch.
+ */
+let keychainRefused: KeychainOutcome | null = null
+export function resetKeychainRefusal(): void { keychainRefused = null }
 
 /** The bearer, from the Keychain on macOS and the JSON file elsewhere. Never logged. */
 async function readToken(): Promise<string | null> {
-  if (process.platform === 'darwin') {
-    try {
-      const { stdout } = await run('security', [
-        'find-generic-password',
-        '-s',
-        KEYCHAIN_SERVICE,
-        '-w'
-      ])
-      const oauth = JSON.parse(stdout.trim())?.claudeAiOauth
-      return typeof oauth?.accessToken === 'string' ? oauth.accessToken : null
-    } catch {
-      /* fall through to the file, which some setups still use */
+  if (process.platform === 'darwin' && !keychainRefused) {
+    const read = await readKeychainToken()
+    if (read.token) return read.token
+    if (read.outcome !== 'absent') {
+      keychainRefused = read.outcome
+      // Said once, as a code; never the value, never again until the person acts.
+      ops.failed('quota.keychain', new Error(`keychain_${read.outcome}`), { note: 'the credential was not read; no further Keychain read until the screen is unlocked or the app restarts' })
     }
+    /* fall through to the file, which some setups still use */
   }
   // THE CONFIG HOME, not a fixed path (M199.usage). The dated probe reproduces
   // this reading `$HOME/.claude` whatever `CLAUDE_CONFIG_DIR` says, while
@@ -186,7 +228,20 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
    * or the same account across a re-authentication that may have changed plan.
    */
   const entries = new Map<string, { at: number; quota: Quota }>()
-  const backoffs = new Map<string, number>()
+  /**
+   * EVERY OUTCOME IS KEPT (lifecycle LC-04). Only a 429 used to hold the next request back;
+   * a missing or refused credential, an unreachable service or an empty answer was asked
+   * again on the renderer's next 3 s poll — a Keychain read and an HTTPS call every 3 s,
+   * and a dialog every 3 s whenever the keychain was locked. A hold names its problem, so
+   * the reading served during it says why, not "throttled".
+   */
+  const holds = new Map<string, { until: number; problem: NonNullable<Quota['problem']>; account: string | null }>()
+  const failures = new Map<string, number>()
+  const holdFailure = (slot: string, problem: NonNullable<Quota['problem']>, account: string | null): void => {
+    const n = (failures.get(slot) ?? 0) + 1
+    failures.set(slot, n)
+    holds.set(slot, { until: now() + Math.min(FAILURE_HOLD_CAP_MS, FAILURE_HOLD_MS * 2 ** (n - 1)), problem, account })
+  }
   /** One in-flight read per account, so two callers do not both ask. */
   const inFlight = new Map<string, Promise<Quota>>()
   const SYSTEM_DEFAULT = 'system-default'
@@ -218,11 +273,10 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
 
   const readFor = async (slot: string, key: ObservationKey | undefined): Promise<Quota> => {
       const last = entries.get(slot) ?? null
-      const backoffUntil = backoffs.get(slot) ?? 0
+      const hold = holds.get(slot)
       if (last && now() - last.at < ttl) return withAge(last.quota, last.at, last.quota.problem)
-      if (now() < backoffUntil)
-        // No credential has been read yet on this path, so no account is named.
-        return last ? withAge(last.quota, last.at, 'throttled') : noReading('throttled', null)
+      if (hold && now() < hold.until)
+        return last ? withAge(last.quota, last.at, hold.problem) : noReading(hold.problem, hold.account)
 
       // WITH AN ACCOUNT CHOSEN, the system default is not an answer. Reading it
       // is the first defect the dated probe reproduces, and answering from it
@@ -237,6 +291,7 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
         // there is nothing to fall back to.
         // Not signed in: there is no account to name, and naming one would be
         // inventing the thing the reading is about.
+        holds.set(slot, { until: now() + CREDENTIAL_HOLD_MS, problem: 'no-credential', account: null })
         return last ? withAge(last.quota, last.at, 'no-credential') : noReading('no-credential', null)
       }
 
@@ -244,15 +299,17 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
       try {
         result = await fetchUsage(bearer)
       } catch (e) {
-      ops.failed('quota.snapshot', e)
+        ops.failed('quota.snapshot', e)
+        holdFailure(slot, 'unreachable', accountOf(bearer))
         return last ? withAge(last.quota, last.at, 'unreachable') : noReading('unreachable', accountOf(bearer))
       }
 
       if (result.status === 429) {
-        backoffs.set(slot, now() + (result.retryAfter ?? 60) * 1000)
+        holds.set(slot, { until: now() + (result.retryAfter ?? 60) * 1000, problem: 'throttled', account: accountOf(bearer) })
         return last ? withAge(last.quota, last.at, 'throttled') : noReading('throttled', accountOf(bearer))
       }
       if (result.status !== 200 || !result.body) {
+        holdFailure(slot, 'rejected', accountOf(bearer))
         return last ? withAge(last.quota, last.at, 'rejected') : noReading('rejected', accountOf(bearer))
       }
 
@@ -277,8 +334,10 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
       // for an answer. Named here rather than left for the reader to infer,
       // because the producer is the only place that knows the body was empty
       // rather than the plan being narrow.
-      if (!fiveHour && !sevenDay)
+      if (!fiveHour && !sevenDay) {
+        holdFailure(slot, 'empty', accountOf(bearer))
         return last ? withAge(last.quota, last.at, 'empty') : noReading('empty', accountOf(bearer))
+      }
       const quota: Quota = {
         fiveHour,
         sevenDay,
@@ -292,6 +351,8 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
         account: accountOf(bearer)
       }
       entries.set(slot, { at, quota })
+      holds.delete(slot)
+      failures.delete(slot)
       return quota
   }
 
@@ -308,7 +369,8 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
     forget(key?: ObservationKey): void {
       if (!key) {
         entries.clear()
-        backoffs.clear()
+        holds.clear()
+        failures.clear()
         return
       }
       // ONE slot. Removing an account or moving its auth revision must not
@@ -316,12 +378,14 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
       // account, and forgetting it would make the next tick ask again.
       const slot = keyOf(key)
       entries.delete(slot)
-      backoffs.delete(slot)
+      holds.delete(slot)
+      failures.delete(slot)
     },
 
     stop(): void {
       entries.clear()
-      backoffs.clear()
+      holds.clear()
+      failures.clear()
       inFlight.clear()
     }
   }

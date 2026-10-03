@@ -5,6 +5,7 @@
 #   scripts/install-workspace-sync.sh             install or repair (idempotent)
 #   scripts/install-workspace-sync.sh --status    what is installed and the last log lines
 #   scripts/install-workspace-sync.sh --uninstall remove the job; the checkout is left for inspection
+#   scripts/install-workspace-sync.sh --uninstall --purge   also remove the checkout (git worktree), source mirrors, state and logs (LC-14)
 #
 # It makes a dedicated detached checkout of this repository's origin/main (sync moves it, so it
 # is never a checkout anyone works in), initialises the workspace submodule with its Heroku
@@ -18,21 +19,31 @@ REPO="$(cd "$(dirname "$0")/.." && pwd -P)"
 CHECKOUT="${FABRIC_WORKSPACE_SYNC_DIR:-$HOME/.cache/fabric-workspace/sync-checkout}"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
 LOG="$HOME/Library/Logs/fabric-workspace-sync.log"
+STATE="${FABRIC_WORKSPACE_STATE_DIR:-$HOME/.cache/fabric-workspace}"
 INTERVAL="${FABRIC_WORKSPACE_SYNC_INTERVAL:-7200}"
 
 case "${1:-install}" in
   --status)
     if launchctl print "gui/$(id -u)/$LABEL" >/dev/null 2>&1; then echo "loaded: $LABEL (every ${INTERVAL}s)"; else echo "not loaded: $LABEL"; fi
     [ -d "$CHECKOUT" ] && echo "checkout: $CHECKOUT @ $(git -C "$CHECKOUT" rev-parse --short HEAD)"
+    [ -f "$STATE/sync-status.json" ] && { echo "last run:"; cat "$STATE/sync-status.json"; }
     [ -f "$LOG" ] && { echo "last log lines:"; tail -5 "$LOG"; }
     exit 0 ;;
   --uninstall)
     launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
+    # Wait until launchd has really let go, so a reinstall right after does not race the unload.
+    for _ in 1 2 3 4 5 6 7 8 9 10; do launchctl print "gui/$(id -u)/$LABEL" >/dev/null 2>&1 || break; sleep 0.5; done
     rm -f "$PLIST"
-    echo "removed $LABEL; the checkout $CHECKOUT is left for inspection"
+    if [ "${2:-}" = "--purge" ]; then
+      [ -e "$CHECKOUT" ] && { git -C "$REPO" worktree remove --force "$CHECKOUT" 2>/dev/null || rm -rf "$CHECKOUT"; git -C "$REPO" worktree prune; }
+      rm -rf "$STATE" "$LOG" "$LOG".[0-9]*
+      echo "removed $LABEL, its checkout, state and logs"
+    else
+      echo "removed $LABEL; the checkout $CHECKOUT is left for inspection (--uninstall --purge removes it)"
+    fi
     exit 0 ;;
   install) ;;
-  *) echo "usage: $0 [--status|--uninstall]" >&2; exit 2 ;;
+  *) echo "usage: $0 [--status|--uninstall [--purge]]" >&2; exit 2 ;;
 esac
 
 for tool in git node heroku; do
@@ -52,6 +63,13 @@ git -C "$CHECKOUT/workspace" remote get-url heroku >/dev/null 2>&1 \
 
 mkdir -p "$(dirname "$PLIST")" "$(dirname "$LOG")"
 NODE="$(command -v node)"
+# A minimal PATH built from the tools the job uses, never the interactive one: a captured shell PATH
+# carries plugin directories that later disappear (lifecycle audit, observatory F13).
+JOB_PATH="/usr/bin:/bin:/usr/sbin:/sbin"
+for tool in node git heroku pnpm npm; do
+  d="$(dirname "$(command -v "$tool" 2>/dev/null || echo /usr/bin/true)")"
+  case ":$JOB_PATH:" in *":$d:"*) ;; *) JOB_PATH="$d:$JOB_PATH" ;; esac
+done
 cat >"$PLIST" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -62,13 +80,17 @@ cat >"$PLIST" <<PLIST
   </array>
   <key>WorkingDirectory</key><string>$CHECKOUT</string>
   <key>EnvironmentVariables</key><dict>
-    <key>PATH</key><string>$PATH</string>
+    <key>PATH</key><string>$JOB_PATH</string>
     <key>FABRIC_WORKSPACE_SYNC_CHECKOUT</key><string>$CHECKOUT</string>
+    <key>FABRIC_WORKSPACE_SYNC_LOG</key><string>$LOG</string>
   </dict>
   <key>StartInterval</key><integer>$INTERVAL</integer>
   <key>RunAtLoad</key><false/>
   <key>LowPriorityIO</key><true/>
   <key>Nice</key><integer>10</integer>
+  <key>ProcessType</key><string>Background</string>
+  <!-- Longer than the job's own stop path (it kills its step groups and writes its status). -->
+  <key>ExitTimeOut</key><integer>30</integer>
   <key>StandardOutPath</key><string>$LOG</string>
   <key>StandardErrorPath</key><string>$LOG</string>
 </dict></plist>

@@ -20,6 +20,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { probeEnv } from '../lib/test-stack.mjs'
 import { endApp, removeTemp } from './cleanup.mjs'
+import { createRequire } from 'node:module'
 
 const stackEnv = probeEnv() // exits 1 unless this runs against a disposable stack
 const ROOT = path.resolve(import.meta.dirname, '../..')
@@ -55,11 +56,13 @@ const userData = mkdtempSync(path.join(tmpdir(), 'fabric-walk-ud-'))
 writeFileSync(path.join(userData, 'active-estate.json'), JSON.stringify({ schema: 'ActiveEstate@1', estate_id: randomUUID(), recorded_at: new Date().toISOString() }), { mode: 0o600 })
 writeFileSync(path.join(userData, 'settings.json'), JSON.stringify({ theme: THEME, locale: LOCALE }))
 
-const electron = path.join(APP, 'node_modules/.bin/electron')
+// The Electron BINARY, never the `node_modules/.bin/electron` wrapper: the wrapper forwards signals to
+// its child, so the app received SIGTERM twice and was hard-killed instead of quitting (CO-191).
+const electron = createRequire(path.join(APP, 'package.json'))('electron')
 const child = spawn(electron, [APP, `--user-data-dir=${userData}`, `--remote-debugging-port=${PORT}`], {
   env: { ...stackEnv, FABRIC_WALK_PICK: [fresh, projects, parent].join(path.delimiter) },
   stdio: ['ignore', 'pipe', 'pipe'],
-  // Its own process group, so endApp ends the real Electron the wrapper starts, not only the wrapper.
+  // Its own process group: anything the app started is reaped once the app itself has exited.
   detached: true
 })
 let appLog = ''
@@ -210,6 +213,8 @@ try {
   const ended = await endApp(child)
   const left = removeTemp([fx, userData])
   log(`app ${ended}; temp folders ${left.length ? `left behind: ${left.join(', ')}` : 'removed'}`)
+  // An app that had to be killed did not quit: that is CO-191, and the walk says so (lifecycle LC-01).
+  steps.push({ name: 'app-quits-gracefully', ok: ended === 'terminated', error: ended === 'terminated' ? undefined : `the app was ${ended}, not terminated` })
   const failed = steps.filter((s) => !s.ok).length
   log(`${steps.length - failed}/${steps.length} walk steps passed → ${OUT}`)
   process.exit(failed ? 1 : 0)
