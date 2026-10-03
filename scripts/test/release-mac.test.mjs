@@ -4,7 +4,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { builderConfig, builderIdentity, parseReleaseArgs, releaseCommitProblem, signatureOf, tagProblem } from '../lib/release-mac.mjs'
@@ -146,4 +146,11 @@ test('electron-builder resolves the release as a signed DMG with the identity CI
   assert.equal(c.mac.hardenedRuntime, true)
   assert.equal(c.dmg.sign, true)
   assert.equal(c.appId, 'ai.passioncode.desktop', 'the base config is still under it')
+})
+
+// The v0.3.0-rc.1 rehearsal: electron-builder saw CI and a tag, tried to publish to GitHub itself and failed
+// for want of a token, after signing and notarizing. Publishing belongs to the workflow's approved job.
+test('electron-builder never publishes by itself; the workflow publish job does', () => {
+  const src = readFileSync(new URL('../release-mac.mjs', import.meta.url), 'utf8')
+  assert.match(src, /'electron-builder', '--mac', '--config', config, '--publish', 'never'\]/)
 })

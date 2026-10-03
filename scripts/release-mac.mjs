@@ -101,7 +101,10 @@ try {
   const config = path.join(tmp, 'electron-builder.release-identity.json')
   writeFileSync(config, JSON.stringify(builderConfig({ releaseConfig: path.join(desktop, 'electron-builder.release.yml'), identity: args.identity })))
   console.log(`   identity: ${identity}${process.env.CSC_KEYCHAIN ? ' (CI keychain)' : ''}`)
-  run('pnpm', ['exec', 'electron-builder', '--mac', '--config', config], { env })
+  // `--publish never`: electron-builder publishes to GitHub on its own when it sees CI and a tag, and then
+  // demands a token (the v0.3.0-rc.1 rehearsal signed and notarized, then failed on exactly that). The
+  // workflow's own `publish` job, behind its approval, is the one that publishes (ADR-0111).
+  run('pnpm', ['exec', 'electron-builder', '--mac', '--config', config, '--publish', 'never'], { env })
 
   const dist = path.join(desktop, 'dist')
   const dmgName = readdirSync(dist).find(f => f.endsWith('.dmg')) ?? fail('no DMG was produced')
