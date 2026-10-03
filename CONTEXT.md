@@ -270,6 +270,30 @@ of Projects. A token is only a replaceable credential pointing to this binding; 
 the authority itself, is never forwarded into a Run, and cannot broaden the Project set or
 effect ceiling recorded by the binding (ADR-0026).
 
+**Hub** — Fabric's MCP door toward agents registered on this Mac, through which one agent
+reaches a connected product (ADR-0115). It is the agent surface itself, on one stable loopback
+port, published while Fabric runs in `hub.json`; it is not a second server, not a gateway and
+not a relay. A session Fabric starts reaches the same server with its one-shot bearer.
+
+**Door token** — the hub's shared credential for ASKING: 32 random bytes in a 0600 file that
+`hub.json` names, rotated on every start. It reaches `fabric.access.request` and
+`fabric.access.status` and nothing else, and it may be reused; it is never a grant.
+
+**Binding credential** — the long-lived, revocable credential an agent receives once, on the first
+status read after the operator allows its request; Fabric keeps only its sha256. It identifies
+one registered agent and reaches `agent.call` within that agent's access grants.
+
+**Access grant** — one standing permission of one binding: one capability (the product's tool
+name) on one resource (e.g. `cloudflare:news@example.com`) of one callee, decided by the
+operator, with an expiry it may not lack (a year by default) and revocable. A new capability or
+resource needs a new request and a new prompt. Not a **Grant** (the one-shot floor exception
+above): a standing grant never opens a floored action.
+
+**Product connection** — one cloud product connected to Fabric by the product's own consent: the
+product's app asks the operator and delivers a key to the hub. Fabric keeps the key's metadata;
+its secret lives in Project Observatory's vault and is read for one call at a time. Fabric holds
+one connection per product and never hands its credential to an agent.
+
 **Question** — a point where a running node cannot proceed without a permission or a
 choice its instructions did not settle. Every question is answered by the fabric or
 escalated to the operator; it is never silently allowed and never silently dropped.

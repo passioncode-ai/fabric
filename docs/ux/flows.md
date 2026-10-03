@@ -2232,3 +2232,52 @@ flowchart TD
   | Screen | States used here |
   |---|---|
   | SCR-75 Convert an agent | planned |
+
+### FLW-75: An external agent asks for access
+- **Traces:** ST-045; SCN-132 (JTBD-08)
+- **Goal:** Answer an agent's request once, knowing who asks and what for.
+- **Entry points:** a native prompt over Fabric's window; a notification and the queue when Fabric is in the background.
+- **Success exit:** the agent holds a credential limited to what was allowed; or a standing denial.
+- **Task analysis:** Read who asks and what; Allow or Deny; later, revoke.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ R[Agent asks through the door token] -->|not registered| X[Refused before any prompt]
+ R -->|window on screen| P[Native prompt over the window]
+ R -->|background| N[Notification; row in SCR-41]
+ N -->|clicked| P
+ N -->|Allow or Deny in the queue| D
+ P --> D{Decision}
+ D -->|Allow| A[Credential collected once; grants listed in SCR-76 Agent access]
+ D -->|Deny| Y[Denied until cleared in SCR-76 Agent access]
+ A -->|Revoke| V[Next call refused]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-41 Ranked Board and question detail | access row with the prompt's facts, Allow and Deny |
+  | SCR-76 Agent access | loading, unreadable, hub-off, waiting, read |
+
+### FLW-76: Connect a product
+- **Traces:** ST-045; SCN-133 (JTBD-08)
+- **Goal:** Connect a product once, by its own consent, with nothing copied.
+- **Entry points:** SCR-76 Connect, or Reconnect for a connected product; Allow and connect in FLW-75's prompt.
+- **Success exit:** SCR-76 shows the product connected.
+- **Task analysis:** Choose Connect; allow in the product's app.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ C[SCR-76 Agent access: Connect or Reconnect] --> L[Product's app asks]
+ L -->|Allow| K[Key delivered to Fabric, stored in the vault]
+ L -->|Deny| N[SCR-76 says declined]
+ K -->|vault missing| F[Record withdrawn; the product revokes the key]
+ K --> S[SCR-76 shows connected]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-76 Agent access | waiting, connected, declined, failed, hub-off |

@@ -281,6 +281,12 @@ node --experimental-strip-types apps/desktop/test/search-read.test.mjs
 node --experimental-strip-types apps/desktop/test/run-lifecycle-contract.test.mjs
 # Release review iteration 2: the file roots read every page or keep what they had.
 node --experimental-strip-types apps/desktop/test/file-roots-refresh.test.mjs
+# ADR-0115 (the hub): the registry reader over real directories, then the hub's door, consent and
+# product connection — fakes under the real surface, a real MCP client and server on loopback.
+node --experimental-strip-types apps/desktop/test/agent-registry.test.mjs
+node --experimental-strip-types apps/desktop/test/hub-files.test.mjs
+node --experimental-strip-types --test-force-exit apps/desktop/test/hub-products.test.mjs
+node --experimental-strip-types apps/desktop/test/consent-presenter.test.mjs
 
 step "owned databases: the SQL contract and the reads, on a cluster this run creates and removes"
 # A disposable PostgreSQL (`initdb` into a temp dir, Unix socket only) with the
@@ -290,6 +296,9 @@ step "owned databases: the SQL contract and the reads, on a cluster this run cre
 # EVERY RUNNER RUNS, and the step fails once at the end naming each one that failed
 # (release review iteration 3, coordinator): this loop used to `exit` on the first
 # failure, so the second runner's verdict was never seen.
+#
+# run-hub-access-db (migration 76, ADR-0115) is here for the same reason: it holds the hub's standing
+# access — who may call a cloud product through Fabric — to its refusals and its privileges.
 #
 # run-function-privileges-db (migration 75) joins them here, not in the full tier: it is
 # the sweep that no projector and no host-only SECURITY DEFINER command is executable by
@@ -305,7 +314,7 @@ step "owned databases: the SQL contract and the reads, on a cluster this run cre
 # NOT_RUN. Set FABRIC_PG_BIN to run it.
 owned_fast_failed=()
 owned_fast_not_run=()
-for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db; do
+for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db; do
   set +e
   node "apps/desktop/test/$runner.mjs"
   code=$?

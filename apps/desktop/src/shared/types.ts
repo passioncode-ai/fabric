@@ -9,6 +9,7 @@ import type { ProjectSettingsWrite, SaveSettingsInput } from './projectSettings.
 import type { TaskState } from './ladder.ts'
 import type { GoalRow } from './plan.ts'
 import type { AttentionItem } from './attention.ts'
+import type { HubActResult, HubOverview } from './access.ts'
 import type { AboutNamespace, CorrectionOutcome, InsightCategory } from './memoryContract.ts'
 import type { RetroPage, RetroQuery } from './retroView.ts'
 import type { BuildLine, BuildManifest, CompatibilityVerdict } from './buildManifest.ts'
@@ -1113,6 +1114,21 @@ export interface FabricApi {
      *  in an hour — never a setting and never a role (M140). */
     grant(input: { projectId: string | null; floorClass: string; target: string }): Promise<void>
   }
+  /**
+   * Agent access (ADR-0115): what registered agents on this Mac may do through Fabric, what is waiting
+   * for the operator's answer, and which products are connected. Every act answers with its outcome;
+   * a refusal carries its reason, never a silent no-op.
+   */
+  hub: {
+    overview(): Promise<HubOverview>
+    decide(requestId: string, decision: 'allowed' | 'denied'): Promise<HubActResult>
+    revokeGrant(grantId: string): Promise<HubActResult>
+    revokeAgent(bindingId: string): Promise<HubActResult>
+    clearDenial(requestId: string): Promise<HubActResult>
+    /** Opens the product's connect link. A connected product is connected again only with `reconnect: true`. */
+    connect(product: string, opts?: { reconnect?: boolean }): Promise<HubActResult>
+    disconnect(product: string): Promise<HubActResult>
+  }
   goals: {
     list(projectId: string): Promise<GoalRow[]>
     define(projectId: string, title: string): Promise<GoalRow>
@@ -1530,6 +1546,13 @@ export const IPC = {
   terminalMemoryBackends: 'terminal:memory-backends',
   feedReplay: 'feed:replay',
   attentionGrant: 'attention:grant',
+  hubOverview: 'hub:overview',
+  hubDecide: 'hub:decide',
+  hubRevokeGrant: 'hub:revoke-grant',
+  hubRevokeAgent: 'hub:revoke-agent',
+  hubClearDenial: 'hub:clear-denial',
+  hubConnect: 'hub:connect',
+  hubDisconnect: 'hub:disconnect',
   favouritesList: 'favourites:list',
   favouritesToggle: 'favourites:toggle',
   favouritesReplace: 'favourites:replace',

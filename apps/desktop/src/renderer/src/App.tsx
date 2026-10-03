@@ -30,6 +30,7 @@ import { QuotaPanel } from './launch/QuotaPanel'
 import { markOf } from '../../shared/feedMarks.ts'
 import { CeoChat } from './CeoChat'
 import { PrivateHistoryPanel } from './PrivateHistoryPanel'
+import { AgentAccessPanel } from './AgentAccessPanel'
 import { BoardPanel } from './BoardPanel'
 import { SearchPanel } from './SearchPanel'
 import { EstateAgents } from './EstateAgents'
@@ -161,6 +162,8 @@ function Shell({
   }
   /** Private history and restore (SCR-65, SCR-48), opened from settings; one side panel at a time. */
   const [historyOpen, setHistoryOpen] = useState(false)
+  /** Agent access (SCR-76, ADR-0115), opened from settings; one side panel at a time. */
+  const [accessOpen, setAccessOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   /**
    * What a panel asked to be shown, addressed to one project and CONSUMED when
@@ -618,6 +621,7 @@ function Shell({
         <SettingsBar
           settings={settings}
           onOpenHistory={() => { setSearchOpen(false); setChatOpen(false); setHistoryOpen(true) }}
+          onOpenAccess={() => { setSearchOpen(false); setChatOpen(false); setHistoryOpen(false); setAccessOpen(true) }}
           onChange={async (next) => {
             const written = await window.fabric.settings.write(next)
             // The settings the DISK holds, not the ones that were asked for: a
@@ -641,7 +645,7 @@ function Shell({
         </Banner>
       )}
 
-      <div className={searchOpen || chatOpen || historyOpen ? 'shell shell-with-panel' : 'shell'}>
+      <div className={searchOpen || chatOpen || historyOpen || accessOpen ? 'shell shell-with-panel' : 'shell'}>
       <main className="content">
         {active.kind === 'board' && (
           <BoardScreen
@@ -866,6 +870,7 @@ function Shell({
         )}
         {chatOpen && <CeoChat key={chatSuggestion ?? 'chat'} suggestion={chatSuggestion} onClose={() => setChatOpen(false)} projects={projects} />}
         {historyOpen && <PrivateHistoryPanel onClose={() => setHistoryOpen(false)} />}
+        {accessOpen && <AgentAccessPanel onClose={() => setAccessOpen(false)} />}
       </div>
       </LaunchShell>
     </div>
@@ -875,16 +880,19 @@ function Shell({
 function SettingsBar({
   settings,
   onChange,
-  onOpenHistory
+  onOpenHistory,
+  onOpenAccess
 }: {
   settings: AppSettings
   onOpenHistory: () => void
+  onOpenAccess: () => void
   onChange: (next: Partial<AppSettings>) => Promise<void> | void
 }): React.JSX.Element {
   const t = useT()
   return (
     <div className="settings-bar">
       <Button tone="ghost" onClick={onOpenHistory}>{t('settings.history')}</Button>
+      <Button tone="ghost" onClick={onOpenAccess}>{t('settings.agentAccess')}</Button>
       <Field label={t('settings.theme')}>
         {(id) => (
           <select

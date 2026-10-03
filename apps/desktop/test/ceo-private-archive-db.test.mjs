@@ -30,7 +30,7 @@ create schema supabase_migrations;create table supabase_migrations.schema_migrat
 const lit = v => `convert_from(decode('${Buffer.from(String(v)).toString('hex')}','hex'),'UTF8')`
 const jsonb = v => `${lit(typeof v === 'string' ? v : JSON.stringify(v))}::jsonb`
 
-// ── 1. The full chain, 66 included (67, 68, 69, 70, 71, 72, 73, 74 and 75 each redefine the export and canonical form for their schema).
+// ── 1. The full chain, 66 included (67, 68, 69, 70, 71, 72, 73, 74, 75 and 76 each redefine the export and canonical form for their schema).
 const migrations = new URL('../../../supabase/migrations/', import.meta.url)
 const files = readdirSync(migrations).filter(f => f.endsWith('.sql')).sort()
 assert.ok(files.includes('20260927000066_ceo_private_archive.sql'))
@@ -128,7 +128,7 @@ const canon = raw => `select ceo_private_archive_canonical(${jsonb(raw)})`
 const edit = (raw, fn) => { const a = JSON.parse(raw); fn(a); return JSON.stringify(a) }
 refuses('companion wrong schema', canon(edit(empty, a => { a.schema = 'CeoPrivateArchive@2' })), 'unsupported_schema')
 refuses('companion wrong source schema', canon(edit(empty, a => { a.source_schema_version = 65 })), 'unsupported_schema')
-refuses('companion unqualified later source schema', canon(edit(empty, a => { a.source_schema_version = 76 })), 'unsupported_schema')
+refuses('companion unqualified later source schema', canon(edit(empty, a => { a.source_schema_version = 77 })), 'unsupported_schema')
 refuses('companion non-empty tombstones', canon(edit(empty, a => { a.tombstones = [{}] })), 'invalid_archive')
 refuses('companion unknown field', canon(edit(empty, a => { a.extra = true })), 'invalid_archive')
 refuses('companion unknown operation kind', canon(edit(unicode, a => { a.operations[0].kind = 'close' })), 'invalid_archive')

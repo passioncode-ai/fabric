@@ -21,7 +21,7 @@
 import { obligationRef, type EntityRef } from './entityRef.ts'
 import { refusedBy, type ReadEnvelope, type SourceReceipt } from './readEnvelope.ts'
 
-export type AttentionKind = 'refused' | 'review' | 'abandoned' | 'proposal'
+export type AttentionKind = 'access' | 'refused' | 'review' | 'abandoned' | 'proposal'
 
 export interface AttentionItem {
   kind: AttentionKind
@@ -57,6 +57,24 @@ export interface AttentionItem {
    * which is worse than not stopping it.
    */
   proposal?: { id: string; depth: number; bound: number }
+  /**
+   * An external agent waiting on the operator's consent (ADR-0115 §2). Present only on an `access`
+   * item, and it carries the act: allow or deny that request. It leaves the queue when it is answered
+   * or expires — derived, like everything here.
+   */
+  access?: AccessFacts & { requestId: string; callee: string; expiresAt: string }
+}
+
+/**
+ * What the native consent prompt states, so an Allow given in the queue says the same (security review
+ * of PR #7): who the registry says is asking, its reason as its own one-line claim, the same-user floor,
+ * and — when it does — that this adds to access the agent already holds. Built by `consentFacts`.
+ */
+export interface AccessFacts {
+  origin: string
+  reason: string
+  floor: string
+  incremental: string | null
 }
 
 export interface AttentionSources {
@@ -93,6 +111,16 @@ export interface AttentionSources {
     bound: number
     created_at: string
   }[]
+  /** Access requests from registered agents, waiting on the operator and not yet expired (ADR-0115). */
+  access?: ({
+    id: string
+    agent_id: string
+    name: string
+    callee: string
+    lines: string[]
+    requested_at: string
+    expires_at: string
+  } & AccessFacts)[]
   names: Record<string, string>
 }
 
@@ -105,10 +133,24 @@ export interface AttentionSources {
 // person moves, which is more urgent than a review an agent finished and can wait
 // on. Ranked below review it would sit under a growing list and be the thing
 // nobody reaches, which is how a bound turns into a place work goes to die.
-const RANK: Record<AttentionKind, number> = { refused: 0, proposal: 1, review: 2, abandoned: 3 }
+// An ACCESS request ranks with a refusal: an agent is blocked right now, and the request expires in ten
+// minutes, so it is the one item here that is lost by waiting.
+const RANK: Record<AttentionKind, number> = { access: 0, refused: 0, proposal: 1, review: 2, abandoned: 3 }
 
 export function attentionOf(sources: AttentionSources): AttentionItem[] {
   const items: AttentionItem[] = []
+  for (const row of sources.access ?? [])
+    items.push({
+      kind: 'access',
+      ref: { kind: 'access-request', id: row.id },
+      // An external agent belongs to the estate, not to a project.
+      projectId: null,
+      projectName: null,
+      title: `${row.name} asks to use ${row.callee === 'fabric-inbox' ? 'Fabric Inbox' : row.callee}`,
+      detail: row.lines.join('; '),
+      since: row.requested_at,
+      access: { requestId: row.id, callee: row.callee, expiresAt: row.expires_at, origin: row.origin, reason: row.reason, floor: row.floor, incremental: row.incremental }
+    })
   for (const row of sources.refusals)
     items.push({
       kind: 'refused',
@@ -173,6 +215,7 @@ export function attentionOf(sources: AttentionSources): AttentionItem[] {
 
 /** What is waiting, per project. */
 export interface ProjectAttention {
+  access: number
   refused: number
   proposal: number
   review: number
@@ -199,7 +242,7 @@ export function attentionByProject(
   const out: Record<string, ProjectAttention> = {}
   for (const item of items) {
     if (!item.projectId) continue
-    const row = (out[item.projectId] ??= { refused: 0, proposal: 0, review: 0, abandoned: 0, total: 0 })
+    const row = (out[item.projectId] ??= { access: 0, refused: 0, proposal: 0, review: 0, abandoned: 0, total: 0 })
     row[item.kind] += 1
     row.total += 1
   }

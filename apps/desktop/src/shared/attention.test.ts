@@ -131,8 +131,8 @@ describe('what is waiting, per project', () => {
       item('refused', 'a'),
       item('abandoned', 'b')
     ])
-    expect(counts.a).toEqual({ refused: 1, proposal: 0, review: 2, abandoned: 0, total: 3 })
-    expect(counts.b).toEqual({ refused: 0, proposal: 0, review: 0, abandoned: 1, total: 1 })
+    expect(counts.a).toEqual({ access: 0, refused: 1, proposal: 0, review: 2, abandoned: 0, total: 3 })
+    expect(counts.b).toEqual({ access: 0, refused: 0, proposal: 0, review: 0, abandoned: 1, total: 1 })
   })
 
   it('counts nothing for a project with nothing waiting — the key is simply absent', () => {
@@ -263,5 +263,23 @@ describe('what the estate may claim about what is waiting', () => {
     expect(waitingProblem({ read: true, envelope: dead })?.kind).toBe('unreadable')
     expect(waitingCounts({ read: true, failed: 'the bridge is gone' })).toBeNull()
     expect(waitingProblem({ read: true, failed: 'the bridge is gone' })?.kind).toBe('unreadable')
+  })
+})
+
+describe('an external agent waiting on consent (ADR-0115)', () => {
+  it('is an estate-level item, first in the queue, carrying the act and leaving no project count', () => {
+    const items = attentionOf({
+      reviews: [{ id: 't1', project_id: 'p1', title: 'x', instruction: 'x', started_at: '2026-10-01T00:00:00Z' }],
+      expired: [], refusals: [], proposals: [], names: { p1: 'One' },
+      access: [{ id: 'r1', agent_id: 'example-agent.default', name: 'Example agent', callee: 'fabric-inbox', lines: ['read mail in news@example.com'], requested_at: '2026-10-03T10:00:00Z', expires_at: '2026-10-03T10:10:00Z',
+        origin: 'An agent registered as example-agent.default (installed by example-installer)', reason: 'summarise the newsletter', floor: 'It cannot prove which program sent the request.', incremental: null }]
+    })
+    expect(items[0]).toMatchObject({
+      kind: 'access', ref: { kind: 'access-request', id: 'r1' }, projectId: null,
+      title: 'Example agent asks to use Fabric Inbox', detail: 'read mail in news@example.com',
+      access: { requestId: 'r1', callee: 'fabric-inbox', expiresAt: '2026-10-03T10:10:00Z',
+        origin: 'An agent registered as example-agent.default (installed by example-installer)', reason: 'summarise the newsletter', floor: 'It cannot prove which program sent the request.', incremental: null }
+    })
+    expect(attentionByProject(items).p1).toEqual({ access: 0, refused: 0, proposal: 0, review: 1, abandoned: 0, total: 1 })
   })
 })

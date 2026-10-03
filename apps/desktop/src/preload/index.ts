@@ -104,6 +104,15 @@ const api: FabricApi = {
     list: () => ipcRenderer.invoke(IPC.attentionList),
     grant: (input) => ipcRenderer.invoke(IPC.attentionGrant, input)
   },
+  hub: {
+    overview: () => ipcRenderer.invoke(IPC.hubOverview),
+    decide: (requestId, decision) => ipcRenderer.invoke(IPC.hubDecide, requestId, decision),
+    revokeGrant: (grantId) => ipcRenderer.invoke(IPC.hubRevokeGrant, grantId),
+    revokeAgent: (bindingId) => ipcRenderer.invoke(IPC.hubRevokeAgent, bindingId),
+    clearDenial: (requestId) => ipcRenderer.invoke(IPC.hubClearDenial, requestId),
+    connect: (product, opts) => ipcRenderer.invoke(IPC.hubConnect, product, opts),
+    disconnect: (product) => ipcRenderer.invoke(IPC.hubDisconnect, product)
+  },
   goals: {
     list: (projectId) => ipcRenderer.invoke(IPC.goalsList, projectId),
     define: (projectId, title) => ipcRenderer.invoke(IPC.goalsDefine, projectId, title)

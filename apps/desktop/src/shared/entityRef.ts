@@ -41,7 +41,9 @@ export const ENTITY_KINDS = [
   'work',
   'fact',
   'transcript',
-  'project'
+  'project',
+  // ADR-0115: an external agent's request for access, answered where it is shown.
+  'access-request'
 ] as const
 
 export type EntityKind = (typeof ENTITY_KINDS)[number]
@@ -92,7 +94,7 @@ export type Destination =
   /** The act that resolves it is on the row the operator is already looking at
    *  — answering a question, granting a refusal, deciding a proposal. Sending
    *  them elsewhere would take away the button. */
-  | { at: 'here'; ref: EntityRef; act: 'answer' | 'grant' | 'decide' }
+  | { at: 'here'; ref: EntityRef; act: 'answer' | 'grant' | 'decide' | 'consent' }
   /** The project is known and the entity is not focusable by any surface that
    *  exists. Named, so the row can say "this opens the project, not the fact". */
   | { at: 'project'; projectId: string; ref: EntityRef; why: string }
@@ -151,6 +153,8 @@ export function destinationOf(input: {
       return { at: 'here', ref, act: 'grant' }
     case 'proposal':
       return { at: 'here', ref, act: 'decide' }
+    case 'access-request':
+      return { at: 'here', ref, act: 'consent' }
     case 'work':
       // An expired lease over work that is not a task. It used to be navigated
       // to as though it were one; there is no screen for it, and pretending

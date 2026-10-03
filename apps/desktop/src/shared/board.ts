@@ -92,6 +92,7 @@ export interface BoardEntry {
    *  complaints. */
   grantable?: AttentionItem['grantable']
   proposal?: AttentionItem['proposal']
+  access?: AttentionItem['access']
   /** Present only on an authored question: what the answer form needs, and the
    *  revision it must be submitted against. */
   question?: { revision: number; options: { id: string; label: string; consequence?: string }[] }
@@ -148,7 +149,8 @@ export function boardEntries(input: {
       priority,
       components,
       ...(a.grantable ? { grantable: a.grantable } : {}),
-      ...(a.proposal ? { proposal: a.proposal } : {})
+      ...(a.proposal ? { proposal: a.proposal } : {}),
+      ...(a.access ? { access: a.access } : {})
     }
   })
 

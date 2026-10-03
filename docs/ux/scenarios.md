@@ -141,6 +141,8 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-129 | Create a new project in a new folder or as an idea | Start paths | P-01 | ST-001, FLW-72 | draft | — |
 | SCN-130 | Start a new agent inside a project | Start paths | P-01 | ST-050, FLW-73 | draft | — |
 | SCN-131 | Convert an agent built elsewhere into a Fabric agent | Start paths | P-01 | ST-050, FLW-74 | draft | — |
+| SCN-132 | An external agent asks for access and the operator decides | Hub | P-01 | ST-045, FLW-75 | draft | — |
+| SCN-133 | Connect a product to Fabric by the product's own consent | Hub | P-01 | ST-045, FLW-76 | draft | — |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -3206,4 +3208,48 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Telemetry:** planned only.
 - **Status:** draft
 - **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx (the planned screen only; the conversion itself is not built — AR-11)
+- **Product:** unobserved
+
+### SCN-132: An external agent asks for access and the operator decides
+- **Persona:** P-01
+- **Feature:** Hub
+- **Traces:** ST-045, FLW-75 (JTBD-08)
+- **Entry point:** An agent registered on this Mac (a `services/` descriptor or a `providers/` entry) reads `hub.json`, takes the door token from the file it names, and calls `fabric.access.request` on Fabric's MCP ([ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md) §2). Before it sends a binding credential it re-reads `hub.json` and checks that the `pid` there is alive: while Fabric is down any program can hold the port (the tools' descriptions say so).
+- **Preconditions:** Fabric is running and its hub is listening; the agent's id resolves in the registry.
+- **Steps:**
+  1. The agent asks for capabilities on resources of a product, with its reason → Fabric reads the registry; an id it does not resolve is refused before anything is shown.
+  2. With a Fabric window on screen, a native prompt opens over it: the agent's registry name and id, who installed it and where it came from, what it asks in the product's words ("list and search mail and read mail in news@example.com"; a tool that sends mail says so, and a tool Fabric does not know is said to be unknown), its reason quoted as its own claim on one line, and the same-user floor ("an agent registered as example-agent"). Deny is the default. Nothing the agent or its descriptor wrote can start a line of its own or reorder the text: line breaks, control and bidirectional characters are removed.
+  3. With Fabric in the background, a notification says who asks; the request waits in the queue (SCR-41) with the prompt's own facts — who installed it and where it came from, its reason, the same-user floor, and whether it adds to existing access — then Allow and Deny; clicking the notification brings the same prompt forward. Settings → Agent access (SCR-76) shows the same facts beside its Allow.
+  4. Operator allows → the agent's next status read carries its credential once; its calls are checked against the grants (one capability on one mailbox each, a year unless revoked).
+  5. Operator later opens Settings → Agent access (SCR-76) → sees the agent and each grant in plain words → revokes one, or all → the next call is refused.
+- **Expected result:** The agent works within what was allowed, nothing wider; every decision and every call is in the journal.
+- **Alt paths:** Deny → the same request is answered "denied" without a prompt until the operator clears the denial in SCR-76. Nobody answers within 10 minutes → expired; the agent asks again. An agent that already has access asks for more → a new prompt says it adds to existing access; asking again for something it already holds extends that grant rather than adding a second one. The product is not connected yet → the prompt's Allow reads "Allow and connect Fabric Inbox" and starts SCN-133. Creating an address that forwards its mail elsewhere, or that a reply agent answers, is asked for as its own line ("when creating news@example.com, also forward a copy of its mail…") and granted per address; without that grant the call is refused and nothing is sent.
+- **UI elements:** native prompt (Deny, Allow); notification; queue row with the prompt's facts, Allow and Deny; SCR-76 lists.
+- **States covered:** loading,unreadable,hub-off,waiting,prompt,notified,allowed,denied,expired,revoked
+- **Errors & recovery:** An unreadable access list is said in SCR-76 with Try again, never "no agent has access". A decision on an expired or already answered request is refused with its reason. A hub whose port is taken says why in SCR-76; sessions Fabric starts keep working.
+- **Design rationale:** One prompt per request, not per call — fatigue makes Allow reflexive (ADR-0115, rejected alternatives); the prompt states what Fabric can and cannot prove.
+- **Telemetry:** journal events `access.requested@1`, `access.decided@1`, `access.credential.claimed@1`, `access.grant.revoked@1`, `access.binding.revoked@1`, `access.denial.cleared@1`, `hub.call.forwarded@1`.
+- **Status:** draft
+- **Coverage:** apps/desktop/src/main/accessService.ts, apps/desktop/src/main/consentPresenter.ts, apps/desktop/src/main/hubTools.ts, apps/desktop/src/renderer/src/AgentAccessPanel.tsx, apps/desktop/src/renderer/src/launch/ObligationActs.tsx
+- **Product:** unobserved
+
+### SCN-133: Connect a product to Fabric by the product's own consent
+- **Persona:** P-01
+- **Feature:** Hub
+- **Traces:** ST-045, FLW-76 (JTBD-08)
+- **Entry point:** Settings → Agent access → Connect beside the product; or Allow and connect in SCN-132's prompt.
+- **Preconditions:** The product's desktop app is installed and signed in; Project Observatory is installed (its vault keeps the product's key).
+- **Steps:**
+  1. Operator chooses Connect → Fabric opens the product's connect link; SCR-76 says it is waiting for the answer in the product.
+  2. The product's app asks the operator in its own prompt → Allow → the app makes a key through the owner's signed-in session and delivers it to Fabric on this Mac.
+  3. Fabric stores the key's secret in Project Observatory's vault, keeps only the key's metadata, and SCR-76 shows the product connected, with its server and date.
+- **Expected result:** The product is connected once, with nothing copied by a person; agents with grants reach it through Fabric.
+- **Alt paths:** Deny in the product → SCR-76 says the connection was declined. The product reports it needs a sign-in, has no server, or could not make the key → SCR-76 shows that reason. Disconnect → Fabric stops forwarding to the product; the key itself is revoked in the product's Agent access. Reconnect (a connected product) → the same flow replaces Fabric's key; it is the only way a live connection's key is replaced — Connect is not offered while connected, and Allow and connect in SCN-132 does not reconnect. The previous key stays in the product's Agent access until revoked there.
+- **UI elements:** Connect; Reconnect and Disconnect once connected; waiting, declined and failure lines.
+- **States covered:** loading,hub-off,waiting,connected,declined,failed
+- **Errors & recovery:** Without Project Observatory the key is refused with that reason and the product revokes it; nothing is kept anywhere weaker. The connection is recorded before its secret is stored: a record that fails leaves the previous connection and its secret as they were, and a secret the vault will not keep withdraws the record just made — no client id is ever left beside another key's secret. A hub that is not listening disables Connect and Reconnect and says why.
+- **Design rationale:** The product's own app asks, so "keys are issued by a person in the app" still holds; Fabric holds one credential per product and never hands it to an agent (ADR-0115 §4, §6).
+- **Telemetry:** journal events `product.connected@1`, `product.disconnected@1`.
+- **Status:** draft
+- **Coverage:** apps/desktop/src/main/productConnect.ts, apps/desktop/src/main/observatoryVault.ts, apps/desktop/src/renderer/src/AgentAccessPanel.tsx
 - **Product:** unobserved

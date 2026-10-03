@@ -33,6 +33,14 @@ import { closeHttpServer } from './closeHttpServer.ts'
 //      that overclaims is worse than none: a reader that wins the race before the
 //      real session initialises, and anything with access to the agent's own
 //      process. Same-uid isolation has a floor and this is it.
+//
+// ADR-0115 ADDS A SECOND WAY IN, and narrows rule 3 rather than dropping it. The same server, on a
+// stable loopback port, also admits agents REGISTERED on this machine (`hub.ts`, `hubTools.ts`):
+// the door token (in a 0600 file named by `hub.json`) may only ask for access, and a binding
+// credential — long-lived, revocable, held as a sha256 — may call `agent.call` within its grants.
+// Sessions Fabric starts keep the one-shot bearer above, unchanged: an external credential is
+// looked up only when the bearer is not a session's, and it reaches a server with none of the
+// session tools. The floor is the same-user floor, now written into the consent prompt.
 
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import { randomBytes, randomUUID } from 'node:crypto'
@@ -66,6 +74,8 @@ import { createScopedStore } from './scopedStore.ts'
 import { buildProtocol, protocolHash } from '../shared/protocol.ts'
 import { ops } from './opsSink.ts'
 import { QUESTION_KINDS, normaliseAsk } from '../shared/questionAsk.ts'
+import { sameToken, type AccessService, type HubPrincipal } from './accessService.ts'
+import type { McpServer as HubServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 
 /** Check the complete original before lookup, normalization or legacy text
  * scrubbing. Reference identity is preserved; recognizable secrets refuse the
@@ -218,6 +228,29 @@ export interface AgentSurfaceDeps {
   /** Injected so the expiry probe does not have to sleep for two minutes. */
   now?: () => number
   limits?: Partial<AgentSurfaceLimits>
+  /** ADR-0115's external ingress. Absent, the surface is exactly the session door it always was. */
+  hub?: HubIngress
+}
+
+/** What the surface needs to admit a registered agent from outside (ADR-0115 §1). */
+export interface HubIngress {
+  /** The current door token; null while none is published. */
+  doorToken: () => string | null
+  access: Pick<AccessService, 'authenticate'>
+  /** A server holding exactly the tools this principal may use. */
+  tools: (principal: HubPrincipal) => HubServer
+  /** `POST /fabric/v1/connect/<product>`: a product delivering its key (ADR-0115 §4). */
+  callback?: (product: string, req: IncomingMessage, res: ServerResponse) => Promise<void>
+}
+
+/** Why the surface could not take its port. A port is stable or there is no hub: never a fallback. */
+export class HubPortUnavailable extends Error {
+  readonly port: number
+  constructor(port: number, reason: string) {
+    super(reason)
+    this.name = 'HubPortUnavailable'
+    this.port = port
+  }
 }
 
 /** Everything the surface knows about one credential's life. Never leaves here. */
@@ -240,6 +273,8 @@ export class AgentSurface {
    *  its rules", so a restart appending a second row costs nothing, while a
    *  table to prevent it would be state kept for tidiness. */
   private oriented = new Set<string>()
+  /** Calls per external principal per window — the door token is one principal, each binding another. */
+  private externalBudget = new Map<string, { windowStart: number; calls: number }>()
   private http: Server | null = null
   private port = 0
 
@@ -261,7 +296,17 @@ export class AgentSurface {
     return this.port ? `http://127.0.0.1:${this.port}/mcp` : ''
   }
 
-  async start(): Promise<void> {
+  /** `http://127.0.0.1:<port>` once listening — what `hub.json` publishes. Empty until then. */
+  get origin(): string {
+    return this.port ? `http://127.0.0.1:${this.port}` : ''
+  }
+
+  /**
+   * Listen. `port` 0 (the default, and every probe's) takes an ephemeral port; the app passes the
+   * hub's stable port, and a port that cannot be taken is a `HubPortUnavailable` — the caller says
+   * why, rather than this moving somewhere an agent's stored origin does not point.
+   */
+  async start(opts: { port?: number } = {}): Promise<void> {
     if (this.http) return
     // M104 — NOT fire-and-forget. `void this.handle(...)` with three reachable
     // throws inside meant a rejection left `res` unwritten: the agent blocked
@@ -278,11 +323,18 @@ export class AgentSurface {
         else AgentSurface.refuse(res, 500, 'the surface failed to handle this request')
       })
     })
+    const wanted = opts.port ?? 0
     await new Promise<void>((resolve, reject) => {
-      server.once('error', reject)
+      server.once('error', (e: NodeJS.ErrnoException) =>
+        reject(
+          wanted && (e.code === 'EADDRINUSE' || e.code === 'EACCES')
+            ? new HubPortUnavailable(wanted, `port ${wanted} on 127.0.0.1 is ${e.code === 'EADDRINUSE' ? 'already in use by another program' : 'not available to this user'}; set FABRIC_HUB_PORT to a free port`)
+            : e
+        )
+      )
       // Loopback only: this door is for processes on this machine, and binding
       // wider would put the estate on the network without anyone deciding to.
-      server.listen(0, '127.0.0.1', () => resolve())
+      server.listen(wanted, '127.0.0.1', () => resolve())
     })
     const address = server.address()
     this.port = typeof address === 'object' && address ? address.port : 0
@@ -354,6 +406,17 @@ export class AgentSurface {
   }
 
   private async handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    // ADR-0115 §4: a product delivering its key to the callback this hub put in its connect link.
+    // Not an MCP route and not bearer-authenticated: the single-use state in the body is the proof.
+    // A hub with no published door token is CLOSED: no callback and no external principal, so the
+    // surface is exactly the session door it was before ADR-0115 (the app falls back to that when the
+    // hub's port could not be taken).
+    const hub = this.deps.hub && this.deps.hub.doorToken() !== null ? this.deps.hub : null
+    const connect = req.method === 'POST' ? /^\/fabric\/v1\/connect\/([a-z][a-z0-9-]{1,62})$/.exec((req.url ?? '').split('?')[0]) : null
+    if (connect && hub?.callback) {
+      await hub.callback(connect[1], req, res)
+      return
+    }
     if (req.method !== 'POST' || !req.url?.startsWith('/mcp')) {
       res.writeHead(404).end()
       return
@@ -369,6 +432,9 @@ export class AgentSurface {
     const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
     const st = this.states.get(token)
     if (!st) {
+      // A session's bearer is looked up FIRST and is never confused with an external credential:
+      // only a bearer that is not a session's reaches the hub's door (ADR-0115).
+      if (token && hub && (await this.handleExternal(token, hub, req, res, ctx, attempt))) return
       // No credential, no scope, no surface. The absence of a token is not a
       // reason to fall back to something broader.
       AgentSurface.refuse(res, 401, 'unknown or revoked credential', {}, attempt)
@@ -514,6 +580,79 @@ export class AgentSurface {
       return
     }
     await st.transport.handleRequest(req, res, body)
+  }
+
+  /**
+   * An external principal (ADR-0115): the door token, or a binding credential. Returns false when the
+   * bearer is neither, so the caller refuses it exactly as it refuses any unknown bearer.
+   *
+   * STATELESS, deliberately. A session's bearer is spent on one initialize and paired with a session
+   * id; an external credential is reusable by design (an agent that restarts keeps working), so each
+   * request gets a fresh server and transport, and there is no session id to steal or to leak.
+   */
+  private async handleExternal(
+    token: string,
+    hub: HubIngress,
+    req: IncomingMessage,
+    res: ServerResponse,
+    ctx: AttemptContext,
+    attempt: { refused(reason: string): void; saw(body: unknown): void }
+  ): Promise<boolean> {
+    let principal: HubPrincipal | null = null
+    const door = hub.doorToken()
+    if (door && sameToken(token, door)) principal = { kind: 'door' }
+    else {
+      try {
+        const binding = await hub.access.authenticate(token)
+        if (binding) principal = { kind: 'binding', binding }
+      } catch (e) {
+        // Not "unknown credential": the credential could not be CHECKED, and an agent told it is
+        // unknown would discard a valid one. 503 says try again.
+        ops.failed('agentSurface.hub-authenticate', e)
+        AgentSurface.refuse(res, 503, 'the hub cannot check credentials right now; try again', { 'retry-after': '5' }, attempt)
+        return true
+      }
+    }
+    if (!principal) return false
+    const key = principal.kind === 'door' ? 'door' : `binding:${principal.binding.id}`
+    ctx.sessionId = key
+
+    const now = this.now()
+    const budget = this.externalBudget.get(key) ?? { windowStart: now, calls: 0 }
+    if (now - budget.windowStart >= this.limits.budgetWindowMs) {
+      budget.windowStart = now
+      budget.calls = 0
+    }
+    if (budget.calls >= this.limits.budgetCalls) {
+      const retryIn = Math.ceil((budget.windowStart + this.limits.budgetWindowMs - now) / 1000)
+      ops.record({ op: 'agentSurface.budgetExhausted', outcome: 'ok', level: 'warn', detail: { principal: key, calls: this.limits.budgetCalls, retry_in_s: retryIn }, ctx: { correlationId: ctx.correlationId, estateId: this.deps.estateId } })
+      AgentSurface.refuse(res, 429, `call budget exhausted: ${this.limits.budgetCalls} calls per ${this.limits.budgetWindowMs / 1000}s. Retry in ${retryIn}s.`, { 'retry-after': String(Math.max(1, retryIn)) }, attempt)
+      return true
+    }
+    budget.calls++
+    this.externalBudget.set(key, budget)
+
+    let body: unknown
+    try {
+      body = await readJson(req)
+    } catch (e) {
+      if (e instanceof BodyTooLarge) {
+        AgentSurface.refuse(res, 413, 'request body too large', {}, attempt)
+        return true
+      }
+      throw e
+    }
+    attempt.saw(body)
+    const server = hub.tools(principal)
+    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })
+    res.on('close', () => {
+      // Each request owns its server and transport; both end with the response.
+      void transport.close()
+      void server.close()
+    })
+    await server.connect(transport)
+    await transport.handleRequest(req, res, body)
+    return true
   }
 
   /**
