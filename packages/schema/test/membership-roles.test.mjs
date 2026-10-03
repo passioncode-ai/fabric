@@ -16,9 +16,11 @@
 // never reset.
 
 import pg from 'pg'
+import { probeEnv } from '../../../scripts/lib/test-stack.mjs'
 import { randomUUID } from 'node:crypto'
 
-const DB_URL = process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+// The disposable stack the tier started; probeEnv() refuses the live one (54322) before connecting.
+const DB_URL = probeEnv().DATABASE_URL
 let failures = 0
 const ok = (m) => console.log('  ok   ' + m)
 const fail = (m) => { failures++; console.error('  FAIL ' + m) }

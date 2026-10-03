@@ -15,6 +15,7 @@
 
 import { execFileSync } from 'node:child_process'
 import path from 'node:path'
+import { probeEnv } from '../../../scripts/lib/test-stack.mjs'
 
 const HERE = import.meta.dirname
 // EVERYTHING BELOW IS A TEMPLATE LITERAL. A backtick or a ${...} inside it
@@ -701,12 +702,14 @@ else fail('memory search returned ' + facts.facts.length)
 // Proven by making the read actually fail: SELECT is revoked from the role the
 // surface uses, the tool is called, and the answer must be a refusal rather
 // than an empty result. Restored in a finally, because a probe that leaves the
-// database less readable than it found it is worse than no probe.
+// database less readable than it found it is worse than no probe. The revoke
+// goes to the disposable stack's database (DATABASE_URL, checked by probeEnv in
+// the parent): it used to be a hardcoded 127.0.0.1:54322 — the operator's live
+// database — so a running app lost memory reads for the length of this call.
 {
   const pg = await import('node:child_process')
   const sql = (statement) =>
-    pg.execFileSync('psql', ['-h', '127.0.0.1', '-p', '54322', '-U', 'postgres', '-d', 'postgres', '-q', '-c', statement],
-      { env: { ...process.env, PGPASSWORD: 'postgres' }, encoding: 'utf8' })
+    pg.execFileSync('psql', [process.env.DATABASE_URL, '-X', '-q', '-c', statement], { encoding: 'utf8' })
 
   try {
     sql('revoke select on memory_facts from service_role;')
@@ -1097,24 +1100,9 @@ await surface.stop()
 process.exit(failures ? 1 : 0)
 `
 
-// The stack's own env, so no key is written down here.
-const env = { ...process.env }
-try {
-  const out = execFileSync('supabase', ['status', '-o', 'env'], {
-    cwd: path.resolve(HERE, '../../..'),
-    encoding: 'utf8'
-  })
-  for (const line of out.split('\n')) {
-    const m = line.match(/^([A-Z0-9_]+)="?([^"]*)"?\s*$/)
-    if (!m) continue
-    if (m[1] === 'API_URL') env.SUPABASE_URL = m[2]
-    if (m[1] === 'SERVICE_ROLE_KEY') env.SUPABASE_SERVICE_ROLE_KEY = m[2]
-    if (m[1] === 'DB_URL') env.DATABASE_URL = m[2]
-  }
-} catch {
-  console.log('  skip agent surface probe: the local stack is not running')
-  process.exit(0)
-}
+// The disposable stack the tier started — never `supabase status` at the root, which is the
+// operator's live stack. probeEnv() refuses (FAIL, exit 1) before anything connects otherwise.
+const env = probeEnv()
 
 try {
   const out = execFileSync(process.execPath, ['--experimental-strip-types', '--input-type=module', '-e', script], {
