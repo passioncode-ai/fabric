@@ -40,6 +40,15 @@ The plan everyone works to: [general development plan](../evidence/backlog.md#ge
   paths admitted per window, a scan the disk cannot hang). ADR-0103 records the write-boundary rule;
   `scripts/release-mac.mjs` now refuses without the ledger's exit (`docs/launch/release-gate.json`).
 - Separately on `main` (`afb62b82`): Claude Code 2.1.288 re-pin and `scripts/repin-provider-builds.mjs`.
+- **The product lifecycle contract (P-05, [ADR-0106](../adr/0106-fabric-adopts-the-product-lifecycle-contract.md)).**
+  An audit of nine products ([report](https://github.com/passioncode-ai/fabric-workspace/blob/main/docs/reports/2026-10-03-lifecycle-audit/README.md),
+  [contract LC-01…LC-15](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/lifecycle.md)) found an idle Fabric
+  that never quit (CO-191). `src/main/quit.ts` owns quitting; `quota.ts` holds every credential outcome;
+  `scripts/workspace.mjs` runs everything through `scripts/lib/bounded-run.mjs` (deadline, process group,
+  machine-wide lock, watchdog, status, rotation); the stack starts without the services Fabric never calls;
+  `AGENTS.md` → *Lifecycle*. The other products' packets are open PRs in their own repositories (below).
+- **The agent learning loop and Fix in Fabric, designed** ([ADR-0109](../adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md),
+  [spec](../evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md)): P-06 and P-07 in lane 8.
 
 ## Checks run for this state
 - `VITEST_MAX_WORKERS=4 bash scripts/ci.sh full` with `FABRIC_PLAYWRIGHT_MODULE` and `FABRIC_CHROME` set:
@@ -49,8 +58,18 @@ The plan everyone works to: [general development plan](../evidence/backlog.md#ge
   dark/en, light/ru, dark/ru): 10/10 each, including the sticky-footer assertion on 29 repositories.
 - The release gate on the ledger: `releaseGateProblems` returns no problem for version 0.3.0.
 - Planted defects watched failing for every new test (listed per finding in the ledger).
+- Lifecycle (2026-10-03, after main was merged in): `bash scripts/ci.sh fast` exit 0; walk ×2 on a
+  disposable stack 11/11 each, including the new `app-quits-gracefully` step (the app exited by itself,
+  code 0) and 0 leftover processes; `apps/desktop/test/quit.test.mjs` fails on the old quit pattern (the
+  real Electron process was still alive 20 s after SIGTERM) and passes on the coordinator.
 
 ## Open — exact next task
+0. **Other repositories' lifecycle packets** (each an open PR, not merged, not released): fabric-agent-adapter
+   #28 (0.7.0), passioncode #30 (0.1.23, pins the adapter after its release), fabric-dashboards #21,
+   fabric-switchboard #23 (0.5.4, after the owning session's 0.5.3-beta.1), project-observatory-dashboard
+   #125 (rebase after `feat/macos-notarize`, regenerate the inventory), fabric-inbox #12, plus okolos and
+   fabric-vr when their runs report. local-lifecycle BL-1075 landed in sshlg-personal-os `948aa8cb` and the
+   broker was reinstalled (all four apps recognised again).
 1. **Land on `main`** by fast-forward after `bash scripts/ci.sh fast` on the branch head: write the
    `docs/MERGES.md` entry inside the change (AGENTS.md iteration contract), refresh the map, push `main`,
    then `node scripts/workspace.mjs sync` and the fabric-workspace PR for `knowledge/plans.md` (AR-1
@@ -60,7 +79,9 @@ The plan everyone works to: [general development plan](../evidence/backlog.md#ge
    `python3 ~/DATA/project-observatory/tools/use_secret.py run apple-publisher-kj35uyyl22 ASC_API_KEY_P8_B64,ASC_KEY_ID,ASC_ISSUER_ID -- node scripts/release-mac.mjs`
    — it refuses unless HEAD is `origin/main` and the ledger is clear (`docs/launch/release-gate.json`);
    install in /Applications and walk; publish on passioncode.ai (authorized by the operator on 2026-10-03).
-   Measure CO-191 (quit on SIGTERM) before walking the packaged app.
+   CO-191 is closed (ADR-0106); before the DMG, one independent reviewer reads the lifecycle diff
+   (`git diff 84209c61^1..` limited to the lifecycle files) and the packaged app is walked with the
+   graceful-quit step.
 
 ## Human steps
 - CO-181: whether to remove the test residue from the live local database

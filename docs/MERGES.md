@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-03 · `onboarding-and-plan` · claude/onboarding-and-plan → main
+- run: r-516254241; integration: fast-forward after `bash scripts/ci.sh fast` on the branch head (main merged into the branch first: ADR-0105 and the workspace pin)
+- scope: first run and the start paths (ADR-0100), the general development plan (ADR-0101), the write boundary (ADR-0103, migrations 70–75), three verification iterations (P-02), the product lifecycle contract (ADR-0106, CO-191 closed), the agent learning loop and Fix in Fabric designed (ADR-0109), the Fabric app icon, living map
+- summary: Fabric quits on SIGTERM; a scheduled sync can no longer wedge; the next release is P-03 (0.3.0) from this main.
+
 ### 2026-10-01 · `organization-quality` · codex/org-quality-2026-10-01 → main
 - run: r-01a0f7454075
 - integration: planned fast-forward after the local fast gate; final commit in task handoff
