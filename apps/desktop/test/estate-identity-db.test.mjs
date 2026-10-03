@@ -304,10 +304,136 @@ test('the hot journal lookups can use their partial indexes (finding 5)', () => 
   }
 })
 
+// ── migration 73: a session belongs to the estate that holds it ANYWHERE (release review iteration 3) ──
+//
+// Migration 72 refused a heartbeat only when another estate's task held the session in
+// `project_tasks.session_id`. A managed launch records its session in `task_runs.session_id`
+// (migration 62), so after `admit_task_launch(A, …, S)` estate B's first heartbeat for S was ACCEPTED,
+// the row became B's, and A's next beat was refused. The stage, transcript and context-pack arms each
+// looked only at their own table. To WATCH these fail, run the runner with
+// FABRIC_SKIP_MIGRATION=20261003000073_session_owner_at_the_door.sql.
+// #region session-owner-at-the-door — docs: docs/adr/0103-an-id-belongs-to-one-estate-at-the-write-boundary.md#decision
+const MANAGED_TASK = uuid(80), MANAGED_SESSION = uuid(81), CAPTURED_SESSION = uuid(82)
+sql(append(A, 'task.created@1', { id: MANAGED_TASK, title: 'a managed launch', instruction: 'run me' }, P))
+const admitted = JSON.parse(sql(`select admit_task_launch('${A}','${MANAGED_TASK}',${system},'${MANAGED_SESSION}','operator')`))
+const sessionRefusals = (session) => [
+  ['agent.heartbeat@1', { session_id: session, beat_seq: 1, phase: 'working' }],
+  ['agent.stage.reported@1', { session_id: session, stage: 'hijacked' }],
+  ['transcript.captured@1', { session_id: session, sha256: 'd'.repeat(64), bytes: 1, lines: 1 }],
+  ['context.compiled@1', { session_id: session, sha256: 'e'.repeat(64), chars: 1 }]
+]
+
+test('admit_task_launch: a session A launched is A\'s — B\'s heartbeat, stage, transcript and context pack are refused', () => {
+  assert.equal(admitted.admitted, true, `the fixture launch was not admitted: ${JSON.stringify(admitted)}`)
+  assert.equal(sql(`select count(*) from project_tasks where session_id='${MANAGED_SESSION}'`), '0',
+    'the fixture must hold the session ONLY in task_runs, as a managed launch does')
+  const seqB = journalOf(B)
+  for (const [type, payload] of sessionRefusals(MANAGED_SESSION)) {
+    const said = refusal(append(B, type, payload, Q))
+    assert.ok(said, `${type} from B for a session A's managed launch holds was ACCEPTED — the finding itself`)
+    assert.match(said, /session that belongs to another estate/, type)
+    assert.doesNotMatch(said, new RegExp(A), 'the refusal names the estate that owns the session')
+  }
+  assert.equal(journalOf(B), seqB, 'a refused session event reached B\'s journal')
+  // and A's own beat still lands, as A's
+  sql(append(A, 'agent.heartbeat@1', { session_id: MANAGED_SESSION, beat_seq: 1, phase: 'working' }, P))
+  assert.equal(sql(`select estate_id from session_heartbeats where session_id='${MANAGED_SESSION}'`), A)
+})
+
+test('a session A holds only in session_transcripts cannot be beaten, staged or packed from B', () => {
+  sql(append(A, 'transcript.captured@1', { session_id: CAPTURED_SESSION, sha256: 'f'.repeat(64), bytes: 1, lines: 1 }, P))
+  for (const [type, payload] of sessionRefusals(CAPTURED_SESSION).filter(([t]) => t !== 'transcript.captured@1')) {
+    const said = refusal(append(B, type, payload, Q))
+    assert.ok(said, `${type} from B for a session A holds in session_transcripts was ACCEPTED`)
+    assert.match(said, /session that belongs to another estate/, type)
+  }
+})
+
+const crossEstateRace = await (async () => {
+  // Two DIFFERENT estates creating one new global id at once. The estate lock serialises appends of one
+  // estate only, and the door read before it: both passed, and the second create committed in its
+  // journal a fact no projection of its estate shows. Each session holds its transaction open.
+  const NEW_PROJECT = uuid(90), NEW_SESSION = uuid(91)
+  const hold = (estate, type, payload, project) => `begin; ${append(estate, type, payload, project)}; select pg_sleep(1.5); commit;`
+  // One race at a time: two appends of A would otherwise queue on A's estate lock and reorder the second race.
+  const race = async (first, second) => {
+    const a = psqlAsync(first)
+    await new Promise((r) => setTimeout(r, 300))
+    return Promise.all([a, psqlAsync(second)])
+  }
+  const [fp, sp] = await race(hold(A, 'project.created@1', { id: NEW_PROJECT, name: 'raced by A' }, NEW_PROJECT),
+                              hold(B, 'project.created@1', { id: NEW_PROJECT, name: 'raced by B' }, NEW_PROJECT))
+  const [fb, sb] = await race(hold(A, 'agent.heartbeat@1', { session_id: NEW_SESSION, beat_seq: 1, phase: 'working' }, P),
+                              hold(B, 'agent.heartbeat@1', { session_id: NEW_SESSION, beat_seq: 1, phase: 'working' }, Q))
+  return { NEW_PROJECT, NEW_SESSION, results: [fp, fb, sp, sb] }
+})()
+test('two estates creating one new project id at once: the second waits on the id and is refused (coordinator item A)', () => {
+  const { NEW_PROJECT, results: [fp, , sp] } = crossEstateRace
+  assert.equal(fp.code, 0, fp.err)
+  assert.notEqual(sp.code, 0, 'both estates committed a create of one project id — the door raced')
+  assert.match(sp.err, /belongs to another estate/)
+  assert.equal(sql(`select count(*) from journal where estate_id='${B}' and payload->>'id'='${NEW_PROJECT}'`), '0', 'a raced create reached B\'s journal')
+})
+
+test('two estates beating one new session at once: the second waits on the session and is refused (coordinator item A)', () => {
+  const { NEW_SESSION, results: [, fb, , sb] } = crossEstateRace
+  assert.equal(fb.code, 0, fb.err)
+  assert.notEqual(sb.code, 0, 'both estates committed a first heartbeat of one session — the door raced')
+  assert.match(sb.err, /belongs to another estate/)
+  assert.equal(sql(`select count(*) from journal where estate_id='${B}' and payload->>'session_id'='${NEW_SESSION}'`), '0', 'a raced beat reached B\'s journal')
+})
+
+test('an import of a workspace holding "Reviewer" and "reviewer" lands whole, without losing either (finding 2)', () => {
+  const D = uuid(4), PD = uuid(92)
+  const events = JSON.stringify([
+    { type: 'project.created@1', project_id: PD, payload: { id: PD, name: 'imported' } },
+    { type: 'agent.registered@1', project_id: PD, payload: { id: uuid(93), project_id: PD, name: 'Reviewer', runner_id: 'claude-code', instructions: 'review it' } },
+    { type: 'agent.registered@1', project_id: PD, payload: { id: uuid(94), project_id: PD, name: 'reviewer', runner_id: 'claude-code', instructions: 'review it too' } }
+  ])
+  const said = refusal(`select import_declared_snapshot('${D}','${uuid(95)}','digest',${system},'${events}')`)
+  assert.equal(said, null, `the import was refused whole: ${said}`)
+  assert.equal(sql(`select string_agg(role, ',' order by role) from agent_bindings where estate_id='${D}'`), 'Reviewer,reviewer')
+  // The exemption is the import's own transaction: an ordinary create of the same name afterwards is refused.
+  const later = refusal(`select append_event('${D}','agent.registered@1',${system},'${JSON.stringify({ id: uuid(96), project_id: PD, name: 'REVIEWER', runner_id: 'claude-code', instructions: 'a third' })}','1','${PD}')`)
+  assert.ok(later, 'the import exemption leaked past its transaction')
+  assert.match(later, /already has an agent called REVIEWER/)
+  assert.equal(sql(`select count(*) from declared_import_authorizations`), '0', 'an import authorisation outlived its transaction')
+})
+
+test('a heartbeat row the old projector moved into another estate is repaired from the owner\'s journal (finding 3)', () => {
+  const S = MANAGED_SESSION
+  // What the projector before migration 72 left behind: B's beat moved A's row into B, and B's journal holds it.
+  sql(`update session_heartbeats set estate_id='${B}', project_id='${Q}', beat_seq=50, phase='blocked' where session_id='${S}'`)
+  const seq = Number(sql(`select coalesce(max(seq),0) from journal where estate_id='${B}'`)) + 1
+  sql(`insert into journal (estate_id, seq, type, schema_rev, actor, project_id, payload)
+       values ('${B}', ${seq}, 'agent.heartbeat@1', '1', ${system}, '${Q}', '${JSON.stringify({ session_id: S, beat_seq: 50, phase: 'blocked' })}')`)
+  assert.equal(sql(`select repair_foreign_heartbeats()`), '1', 'the moved row was not repaired')
+  const row = () => sql(`select estate_id||'|'||project_id||'|'||beat_seq||'|'||phase from session_heartbeats where session_id='${S}'`)
+  assert.equal(row(), `${A}|${P}|1|working`, 'the repaired row is not the owner\'s last beat')
+  assert.equal(sql(`select repair_foreign_heartbeats()`), '0', 'the repair is not idempotent')
+  sql(`select rebuild_estate_projections('${B}')`)
+  assert.equal(row(), `${A}|${P}|1|working`, 'a rebuild of B took the managed session\'s heartbeat back')
+  sql(append(A, 'agent.heartbeat@1', { session_id: S, beat_seq: 2, phase: 'verifying' }, P))
+  assert.equal(row(), `${A}|${P}|2|verifying`, 'A\'s next beat did not land after the repair')
+})
+
+test('the name rule folds case beyond ASCII, as the form does: ÄRZT and ärzt, ΟΔΟΣ and οδοσ are one name (finding 7)', () => {
+  for (const [first, second, n] of [['ÄRZT', 'ärzt', 97], ['ΟΔΟΣ', 'οδοσ', 99]]) {
+    sql(append(A, 'agent.registered@1', agentPayload(uuid(n), first), P))
+    const said = refusal(append(A, 'agent.registered@1', agentPayload(uuid(n + 1), second), P))
+    assert.ok(said, `a second agent called ${second} was created beside ${first}`)
+    assert.match(said, /already has an agent called/)
+  }
+})
+// #endregion session-owner-at-the-door
+
 test('the door is not an API: no role may call the guard directly', () => {
   for (const role of ['anon', 'authenticated', 'service_role'])
-    for (const fn of ['refuse_foreign_identity(uuid,text,jsonb,uuid)', 'refuse_taken_agent_name(uuid,text,jsonb)', 'identity_uuid(text)'])
-      assert.equal(sql(`select has_function_privilege('${role}','${fn}','execute')`), 'f', `${role} ${fn}`)
+    for (const fn of ['refuse_foreign_identity(uuid,text,jsonb,uuid)', 'refuse_taken_agent_name(uuid,text,jsonb)', 'identity_uuid(text)',
+                      'lock_global_identity(uuid)', 'session_held_elsewhere(uuid,uuid)', 'repair_foreign_heartbeats()'])
+      assert.equal(sql(`select coalesce(has_function_privilege('${role}',to_regprocedure('${fn}'),'execute'),false)`), 'f', `${role} ${fn}`)
+  for (const role of ['anon', 'authenticated', 'service_role'])
+    assert.equal(sql(`select coalesce(has_table_privilege('${role}',to_regclass('declared_import_authorizations'),'insert'),false)`), 'f', role)
 })
 
 if (failures) { console.log(`\n${failures} failure(s)`); process.exit(1) }
