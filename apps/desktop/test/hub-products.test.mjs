@@ -500,4 +500,42 @@ test('finding 4: create_address forwards only the address\'s own fields; forward
   assert.deepEqual(g.events[0].payload.grant_ids, ['create_address@cloudflare:news@example.com', 'create_address.forward_to@cloudflare:news@example.com'])
   g.inbox.close()
 })
+
+test('finding 5: a refusal made before forwarding is not remembered — Allow, then the same idempotencyKey reaches the product', async () => {
+  const grants = []
+  const h = await hubCall(grants)
+  const args = { agentId: 'fabric-inbox', capability: 'read_message', input: { accountId: 'news@example.com', messageId: 'm' }, idempotencyKey: 'k-allow' }
+  const first = await h.call(binding, args, undefined)
+  assert.equal(first.structuredContent.error.code, 'access-required')
+  grants.push(grant('read_message', 'cloudflare:news@example.com')) // the operator allowed
+  const second = await h.call(binding, args, undefined)
+  assert.equal(second.structuredContent.outcome, 'succeeded', 'the 24-hour cache replayed a refusal made before anything was sent')
+  assert.equal(h.inbox.seen.length, 1)
+  const third = await h.call(binding, args, undefined)
+  assert.deepEqual(third, second, 'an answer the product produced is replayed')
+  assert.equal(h.inbox.seen.length, 1)
+  h.inbox.close()
+})
+
+test('finding 5: the idempotency memory is per binding — one binding cannot evict another\'s answers', async () => {
+  let forwarded = 0
+  const call = createAgentCall({
+    access: { liveGrantsOf: async (b) => [{ ...grant('list_messages', 'cloudflare:news@example.com'), binding_id: b.id }] },
+    store: { liveConnection: async () => ({ id: 'c-1', product: 'fabric-inbox', server: 'https://mail.example.com', mcp_url: 'https://mail.example.com/mcp', key_id: 'k', client_id: 'abc.access', level: 'admin', send: 'send', key_expires_at: null, secret_ref: slot, connected_at: '', removed_at: null }), append: async () => 1 },
+    vault: { read: async () => ({ ok: true, value: SECRET }) },
+    forward: async () => { forwarded++; return { ok: true, result: { structuredContent: { n: forwarded } }, wallMs: 1 } },
+    estateId: 'estate-1'
+  })
+  const a = { ...binding, id: 'b-a' }, b = { ...binding, id: 'b-b' }
+  const args = (key) => ({ agentId: 'fabric-inbox', capability: 'list_messages', input: {}, idempotencyKey: key })
+  const kept = await call(a, args('mine'), undefined)
+  for (let i = 0; i < 1100; i++) await call(b, args(`flood-${i}`), undefined)
+  const before = forwarded
+  const again = await call(a, args('mine'), undefined)
+  assert.equal(forwarded, before, 'binding b\'s calls evicted binding a\'s answer, so a retry was sent twice')
+  assert.deepEqual(again, kept)
+  const sameKeyOtherBinding = await call(b, args('mine'), undefined)
+  assert.equal(forwarded, before + 1, 'a key is one binding\'s, not shared')
+  assert.notDeepEqual(sameKeyOtherBinding.structuredContent.output, kept.structuredContent.output)
+})
 // #endregion product-connect

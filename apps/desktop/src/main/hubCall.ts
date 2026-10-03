@@ -17,7 +17,9 @@
 //   7. the answer is the interop result envelope, the product's output inside it.
 //
 // `idempotencyKey`: a retry with the same key and the same arguments returns the first answer and
-// sends nothing; the same key with different arguments is refused. Kept in memory for 24 hours.
+// sends nothing; the same key with different arguments is refused. Kept in memory for 24 hours, per
+// binding (at most 256 keys each), and only for answers the PRODUCT produced — a refusal Fabric made
+// before forwarding is re-decided on the retry (security review of PR #7, finding 5).
 
 import { createHash, randomBytes } from 'node:crypto'
 import { accessRefusal, coverage, resourceArguments, CONNECTABLE_PRODUCTS } from '../shared/access.ts'
@@ -31,7 +33,8 @@ import { ops } from './opsSink.ts'
 
 const TRACEPARENT = /^(?!ff)([0-9a-f]{2})-(?!0{32})([0-9a-f]{32})-(?!0{16})([0-9a-f]{16})-([0-9a-f]{2})$/
 const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000
-const IDEMPOTENCY_MAX = 1000
+/** Per binding: one binding's keys can never push another binding's out. */
+const IDEMPOTENCY_MAX_PER_BINDING = 256
 const HUB_ACTOR: AccessActor = { kind: 'system', id: 'fabric-hub' }
 
 export interface HubCallDeps {
@@ -60,7 +63,8 @@ const logLine = (text: string): string => text.replace(/[\u0000-\u001f\u007f-\u0
 export function createAgentCall(deps: HubCallDeps) {
   const now = deps.now ?? Date.now
   const random = deps.random ?? randomBytes
-  const remembered = new Map<string, { argsHash: string; at: number; answer: Promise<ToolAnswer> }>()
+  // binding id → idempotencyKey → the first answer to it.
+  const remembered = new Map<string, Map<string, { argsHash: string; at: number; answer: Promise<{ answer: ToolAnswer; produced: boolean }> }>>()
 
   const span = async (fields: Record<string, unknown>): Promise<boolean> => {
     try {
@@ -104,7 +108,9 @@ export function createAgentCall(deps: HubCallDeps) {
     }
   }
 
-  async function perform(binding: BindingRow, args: AgentCallArgs, meta: Record<string, unknown> | undefined): Promise<ToolAnswer> {
+  /** The answer, and whether the PRODUCT produced it — only such an answer is replayed for a retry. */
+  async function perform(binding: BindingRow, args: AgentCallArgs, meta: Record<string, unknown> | undefined): Promise<{ answer: ToolAnswer; produced: boolean }> {
+    const before = (a: ToolAnswer) => ({ answer: a, produced: false })
     const callId = random(16).toString('hex')
     const incoming = typeof meta?.traceparent === 'string' ? TRACEPARENT.exec(meta.traceparent) : null
     const traceId = incoming ? incoming[2] : random(16).toString('hex')
@@ -120,25 +126,25 @@ export function createAgentCall(deps: HubCallDeps) {
 
     if (!(CONNECTABLE_PRODUCTS as readonly string[]).includes(args.agentId)) {
       await span({ ...base, outcome: 'refused', error_code: 'unknown-callee', grant_ids: [], wall_ms: 0 })
-      return refusal('unknown-callee', `Fabric routes agent.call to connected products only (${CONNECTABLE_PRODUCTS.join(', ')}); ${args.agentId} is not one`)
+      return before(refusal('unknown-callee', `Fabric routes agent.call to connected products only (${CONNECTABLE_PRODUCTS.join(', ')}); ${args.agentId} is not one`))
     }
     const read = resourceArguments(args.capability, args.input)
     if (!read.ok) {
       await span({ ...base, outcome: 'refused', error_code: 'invalid-arguments', grant_ids: [], wall_ms: 0 })
-      return refusal('invalid-arguments', read.reason)
+      return before(refusal('invalid-arguments', read.reason))
     }
     const grants = await deps.access.liveGrantsOf(binding)
     const cover = coverage({ callee: args.agentId, capability: args.capability, resources: read.resources, workspace: read.workspace, requires: read.requires }, grants, now())
     if (!cover.ok) {
       await span({ ...base, outcome: 'refused', error_code: 'access-required', grant_ids: [], wall_ms: 0 })
       const r = accessRefusal({ agentId: binding.agent_id, callee: args.agentId, capability: args.capability, capabilities: cover.ask, resources: cover.missing, why: cover.reason })
-      return answer(r, true)
+      return before(answer(r, true))
     }
     let connection: ConnectionRow | null
     connection = await deps.store.liveConnection(args.agentId)
     if (!connection) {
       await span({ ...base, outcome: 'refused', error_code: 'product-not-connected', grant_ids: cover.grantIds, wall_ms: 0 })
-      return refusal('product-not-connected', `${args.agentId} is not connected to Fabric. Ask the operator to connect it (Settings → Agent access → Connect); nothing was sent.`)
+      return before(refusal('product-not-connected', `${args.agentId} is not connected to Fabric. Ask the operator to connect it (Settings → Agent access → Connect); nothing was sent.`))
     }
     const secret = await deps.vault.read(connection.secret_ref)
     if (!secret.ok) {
@@ -146,7 +152,7 @@ export function createAgentCall(deps: HubCallDeps) {
       // The vault's reason can carry its tool's own output — paths, slot names, a traceback. The operator
       // reads it in the operations log; the agent is told only what happened and what to do.
       ops.record({ op: 'hub.call', outcome: 'failed', level: 'warn', detail: { callee: args.agentId, capability: args.capability, code: 'product-credential-unavailable', reason: logLine(secret.reason) }, ctx: { correlationId: ops.correlate() } })
-      return refusal('product-credential-unavailable', `Fabric could not read ${args.agentId}'s key from its vault. Nothing was sent. The operator can see why in Fabric's operations log; try again later.`)
+      return before(refusal('product-credential-unavailable', `Fabric could not read ${args.agentId}'s key from its vault. Nothing was sent. The operator can see why in Fabric's operations log; try again later.`))
     }
     const forwarded = await deps.forward({
       mcpUrl: connection.mcp_url, clientId: connection.client_id, clientSecret: secret.value,
@@ -156,33 +162,49 @@ export function createAgentCall(deps: HubCallDeps) {
     if (!forwarded.ok) {
       const written = await span({ ...base, outcome: 'failed', error_code: forwarded.code, grant_ids: cover.grantIds, narrowing: narrowing ?? 'workspace', wall_ms: forwarded.wallMs })
       ops.record({ op: 'hub.call', outcome: 'failed', level: 'warn', detail: { callee: args.agentId, capability: args.capability, code: forwarded.code, span_written: written }, ctx: { correlationId: ops.correlate() } })
-      return refusal(forwarded.code, `${args.agentId} could not be reached for ${args.capability}: ${forwarded.message}`)
+      // Not the product's answer: unreachable, refused at the door, or a transport failure. A retry with
+      // the same key must reach the product again rather than be told this for a day.
+      return before(refusal(forwarded.code, `${args.agentId} could not be reached for ${args.capability}: ${forwarded.message}`))
     }
     const outcome = forwarded.result.isError ? 'failed' : 'succeeded'
     const written = await span({ ...base, outcome, error_code: forwarded.result.isError ? 'product-error' : null, grant_ids: cover.grantIds, narrowing: narrowing ?? 'workspace', wall_ms: forwarded.wallMs })
     ops.record({ op: 'hub.call', outcome: 'ok', detail: { callee: args.agentId, capability: args.capability, product_outcome: outcome, wall_ms: forwarded.wallMs, span_written: written }, ctx: { correlationId: ops.correlate() } })
     const output = forwarded.result.structuredContent ?? { content: forwarded.result.content ?? [] }
-    return answer(envelope({ callId, outcome, binding, callee: args.agentId, capability: args.capability, narrowing, grantIds: cover.grantIds, output, wallMs: forwarded.wallMs, traceparent, spanWritten: written }), forwarded.result.isError === true)
+    return { answer: answer(envelope({ callId, outcome, binding, callee: args.agentId, capability: args.capability, narrowing, grantIds: cover.grantIds, output, wallMs: forwarded.wallMs, traceparent, spanWritten: written }), forwarded.result.isError === true), produced: true }
   }
 
   return async function agentCall(binding: BindingRow, args: AgentCallArgs, meta: Record<string, unknown> | undefined): Promise<ToolAnswer> {
-    if (!args.idempotencyKey) return perform(binding, args, meta)
+    if (!args.idempotencyKey) return (await perform(binding, args, meta)).answer
     const t = now()
-    for (const [k, v] of remembered) if (t - v.at > IDEMPOTENCY_TTL_MS) remembered.delete(k)
-    const key = `${binding.id}\u0000${args.idempotencyKey}`
+    let mine = remembered.get(binding.id)
+    if (mine) {
+      for (const [k, v] of mine) if (t - v.at > IDEMPOTENCY_TTL_MS) mine.delete(k)
+    } else {
+      mine = new Map()
+      remembered.set(binding.id, mine)
+    }
     const argsHash = sha256(canonical({ agentId: args.agentId, capability: args.capability, input: args.input }))
-    const seen = remembered.get(key)
+    const seen = mine.get(args.idempotencyKey)
     if (seen) {
       if (seen.argsHash !== argsHash)
         return refusal('idempotency-conflict', 'this idempotencyKey was already used for a different call; use a new key for a new call')
-      return seen.answer
+      return (await seen.answer).answer
     }
-    if (remembered.size >= IDEMPOTENCY_MAX) remembered.delete(remembered.keys().next().value as string)
+    // The oldest of THIS binding's keys goes; another binding's never does.
+    if (mine.size >= IDEMPOTENCY_MAX_PER_BINDING) mine.delete(mine.keys().next().value as string)
     const answering = perform(binding, args, meta)
-    remembered.set(key, { argsHash, at: t, answer: answering })
-    // A call that THREW is not an answer to replay: the next retry must reach the product again.
-    answering.catch(() => remembered.delete(key))
-    return answering
+    const key = args.idempotencyKey
+    const entry = { argsHash, at: t, answer: answering }
+    mine.set(key, entry) // a retry while this one is in flight waits for it rather than sending twice
+    const forget = (): void => {
+      if (mine.get(key) === entry) mine.delete(key)
+      if (mine.size === 0 && remembered.get(binding.id) === mine) remembered.delete(binding.id)
+    }
+    // Only an answer the product produced is kept: a refusal made before forwarding (no grant yet, not
+    // connected, no key, unreachable) is the state of Fabric at that moment, and the retry after the
+    // operator acts must be checked again. A call that THREW is no answer either.
+    answering.then((r) => { if (!r.produced) forget() }, forget)
+    return (await answering).answer
   }
 }
 // #endregion hub-call
