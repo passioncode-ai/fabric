@@ -33,13 +33,13 @@ order from chat.
    repository cannot resolve, an id of an unknown form, a lane that names no work, and a lane that
    schedules work its own register calls finished (the closing words the workspace's
    `normalizeStatus` knows, an adoption packet's `Status:` line or receipt); each was watched failing.
-5. **Inside a lane the order is that register's own** — the strategy table for FR, the packets'
+3. **Inside a lane the order is that register's own** — the strategy table for FR, the packets'
    prerequisites for AD, the registry plan for AR, the memory plan's graph for MEM-P. An entry rule
    restates the register's prerequisite; it never adds a gate the register does not have.
-3. **Changing the plan** is an ordinary guarded edit under the agent-sync lease, in the same change
+4. **Changing the plan** is an ordinary guarded edit under the agent-sync lease, in the same change
    as the work that moves it, with a living-map changelog entry (ADR-0044). Reordering lanes or
    adding one is a plan edit; reversing a recorded decision is a new ADR.
-4. **The narrative** of why the lanes are in this order lives in the dated plan beside it
+5. **The narrative** of why the lanes are in this order lives in the dated plan beside it
    (`docs/evidence/plans/2026-10-03-onboarding-and-plan.md#general-plan`); the cross-repository
    knowledge base links to the section rather than copying it.
 
@@ -49,4 +49,5 @@ order from chat.
 - `docs/backlog-sources.json` declares the plan's `P-*` table so the common workspace backlog shows
   it beside every other register.
 - The release gate the operator set on 2026-10-03 — three independent verification iterations
-  before any release — is a lane entry rule here, not a convention.
+  before any release, each closed with no blocking finding open — is enforced by
+  `scripts/release-mac.mjs` (`scripts/lib/release-gate.mjs`), not left to convention.

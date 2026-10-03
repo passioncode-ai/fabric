@@ -91,3 +91,28 @@ test('the closing vocabulary agrees with the workspace normaliser wherever that 
     assert.ok(['done', 'cancelled'].includes(normalizeStatus(w)) && CLOSING_WORDS.includes(w) && isFinished(w), w)
   for (const w of ['open', 'partial', 'partly shipped', 'blocked', 'proposed', 'in progress']) assert.equal(isFinished(w), false, w)
 })
+
+// ── iteration 3 ──
+test('the status column is read by its header, with the workspace prefix rule: "closed … by", "resolved finally", "shipped on", "done in PR"', () => {
+  const files = { 'docs/c.md': [
+    '| # | What | Status |', '|---|---|---|',
+    '| CO-047 | x | closed 2026-08-26 by ADR-0011 |',
+    '| CO-028 | x | resolved finally after the review |',
+    '| CO-030 | x | open — Passed AD12 receipt is a prerequisite |',
+    '', '| ID | Packet | Deps | Status |', '|---|---|---|---|',
+    '| FR-D | x | Passed AD12 receipt plus | shipped on 2026-10-03 |',
+    '| FR-E | x | y | done in PR #12 |'
+  ].join('\n') }
+  const b = plan('| 12 · rest | y | z | CO-047, CO-028, CO-030, FR-D, FR-E |')
+  const p = planProblems(b, { ...files, 'docs/evidence/backlog.md': b })
+  for (const id of ['CO-047', 'CO-028', 'FR-D', 'FR-E']) assert.ok(p.some((x) => x.includes(id) && x.includes('finished')), id + '\n' + p.join('\n'))
+  assert.ok(!p.some((x) => x.includes('CO-030 ')), 'a dependency cell is not a status\n' + p.join('\n'))
+})
+test('every open carry-over row is cited by some lane', () => {
+  const ledger = ['| # | What | Status |', '|---|---|---|', '| CO-001 | a | open |', '| CO-002 | b | closed 2026-09-01 |', '| CO-003 | c | partially — x |'].join('\n')
+  const files = { 'docs/evidence/specs/2026-08-16-software-fabric-carryover.md': ledger }
+  const b = plan('| 12 · rest | y | z | CO-001 |')
+  const p = planProblems(b, { ...files, 'docs/evidence/backlog.md': b })
+  assert.ok(p.some((x) => x.includes('CO-003') && x.includes('no lane')), p.join('\n'))
+  assert.ok(!p.some((x) => x.includes('CO-002')), p.join('\n'))
+})

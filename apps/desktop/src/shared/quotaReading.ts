@@ -1,3 +1,4 @@
+// #region quota-reading — docs: docs/ux/screens.md#scr-30-estate-home
 // Which question the quota panel is answering (AX-14).
 //
 // MEASURED at `8652799`: the estate panel rendered ONE sentence when `quota`
@@ -73,3 +74,4 @@ export function quotaHasNumbers(q: Quota): boolean {
 export function quotaProblemKey(problem: NonNullable<Quota['problem']>, hasNumbers = true): string {
   return (hasNumbers ? QUOTA_PROBLEM_KEYS : QUOTA_PROBLEM_UNREAD_KEYS)[problem]
 }
+// #endregion quota-reading

@@ -535,7 +535,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 ### SCR-27: Onboarding
 - **Used by:** FLW-18, FLW-32
 - **Purpose:** a new tab IS the project's setup form; nothing reaches the register until it is saved, so an abandoned draft leaves no half-project behind.
-- **Elements:** R0: native folder picker, selected folder chip/change action, optional URL field, automatic discovery stages and cancel/retry, derived project identity and sourced insight. No required manual name, purpose or project-check page. Historical native form remains separately evidenced below; optional idea/starter capabilities remain outside the default R0 path.
+- **Elements:** R0: native folder picker, selected folder chip/change action, optional URL field, automatic discovery stages and cancel/retry, derived project identity and sourced insight. No required manual name, purpose or project-check page in the R0 target. *(Amended 2026-10-03 by [ADR-0100](../adr/0100-first-run-and-start-paths.md) §4: the shipped New project path is this draft-backed form with a required name — SCR-73 — until the R0 target is built.)* Historical native form remains separately evidenced below; optional idea/starter capabilities remain outside the default R0 path.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
@@ -1713,6 +1713,7 @@ results always pair text with an icon — colour is never the only signal.
   | truncated | walk stopped by its bound | none | says the list is not the whole folder |
   | unreadable | folders could not be read | none | counts them as a gap |
   | deep | folders past the depth limit | none | counts them and says how to reach a repository there |
+  | symlinks | linked folders not followed | none | counts them and says to scan the folder a link points to |
   | duplicate | candidate already in a project | none | a ticked, disabled box; In <project> opens it |
   | part-ticked | a worktree or nested repository ticked | none | warning that it becomes its own project |
   | importing | Add pressed | none | progress N of M |
@@ -1738,7 +1739,8 @@ results always pair text with an icon — colour is never the only signal.
   | exists | folder already there | none | refusal, no Project |
   | outside | location not granted | none | refusal, choose again |
   | failed | mkdir/git/create failed | none | reason; a half-made folder is removed, so retry creates it again |
-  | created | folder made | none | the folder joins the repositories; Save creates the Project |
+  | created | folder made | none | the folder, named after the project, joins the repositories with a "new folder" chip; Save creates the Project |
+  | left-on-disk | a made folder removed from the form | none | says the folder stays on disk; Fabric deletes no folder |
 - **Coverage:** apps/desktop/src/renderer/src/Onboarding.tsx
 - **Scenarios:** SCN-129
 - **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
@@ -1752,7 +1754,7 @@ results always pair text with an icon — colour is never the only signal.
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
   | loading | project list unknown | none | busy line |
-  | no-project | estate has no project | none | notice with two paths |
+  | no-project | estate has no project that is not archived | none | notice with two paths |
   | choose-project | projects exist | none | one button per project |
 - **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx
 - **Scenarios:** SCN-130

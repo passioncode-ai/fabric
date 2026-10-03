@@ -877,3 +877,14 @@ same turn and thread, backend exit 0 with a quiescent group after Stop. The turn
 first `workspace routing discovery failed` (DNS closed by the sandbox — fixed), then
 `usageLimitExceeded` — the Codex account's usage resets 2026-10-03 19:15.
 
+
+## Chain launch bound · 2026-10-03
+
+<a id="chain-launch-bound"></a>
+A chain follower whose launch fails is retried unattended at most `MAX_CHAIN_LAUNCH_ATTEMPTS` (3) times,
+counted from the journal (`chain.dispatch@1` failures for that follower) plus, within a pass, failures the
+journal could not record. After the third failure the follower is not retried by the timer: one
+`routine.paused@1` receipt says why, and the operator decides (`apps/desktop/src/main/chainAdvance.ts`,
+`launchesExhausted`). The pass carries on with the other followers; a failure to read links, tasks,
+hand-offs or provenance starts nothing and reports `outcome_unknown` (release review 2026-10-03,
+`apps/desktop/test/chain-advance-reads.test.mjs`).

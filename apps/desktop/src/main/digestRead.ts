@@ -1,3 +1,4 @@
+// #region digest-read — docs: docs/ux/screens.md#scr-31-project-page
 /**
  * Reading the digest, and the boundary that reading may acknowledge (UX28-03).
  *
@@ -122,3 +123,4 @@ export async function digestFor(
     boundary
   )
 }
+// #endregion digest-read

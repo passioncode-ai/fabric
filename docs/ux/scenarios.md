@@ -3129,9 +3129,9 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
   4. Operator sees the summary → Open the first one, or leaves the unticked ones for later.
 - **Expected result:** One Project per ticked repository; nothing created for an unticked one; the last scan is kept so unticked candidates can be imported later.
 - **Alt paths:** Stop during the scan returns to the start and says nothing was added. Scan again opens the picker at the same folder. Leaving the screen stops a running scan. An already-imported repository is marked "In <project>", cannot be ticked, and opens that project. The kept last scan is shown when the path opens; it is not a grant.
-- **UI elements:** Choose a folder to scan; scanning with Stop; summary (count, groups, folder, date); truncation notice; filter; group heads; candidate rows with checkbox, pills and in-project link; Add N as projects; per-row added/not added.
-- **States covered:** idle,picker-cancel,scanning,cancelled,results,empty,truncated,unreadable,deep,duplicate,part-ticked,importing,partial,imported,failed
-- **Errors & recovery:** A walk stopped by its bound says the list is not the whole folder; folders that could not be read are counted and named as a gap. Folders deeper than the scan goes are counted and said, with how to reach a repository there; Stop leaves the scanning state at once and a late answer is ignored; a kept list that cannot be read is said. A row that failed to import shows its reason, stays ticked, and Add retries it with the same id. A scan error says why and offers to choose again.
+- **UI elements:** Choose a folder to scan; scanning with Stop; summary (count, parts of another repository, folder, date); truncation notice; filter; group heads; candidate rows with checkbox, pills and in-project link; Add N as projects; per-row added/not added.
+- **States covered:** idle,picker-cancel,scanning,cancelled,results,empty,truncated,unreadable,deep,symlinks,duplicate,part-ticked,importing,partial,imported,failed
+- **Errors & recovery:** A walk stopped by its bound says the list is not the whole folder; folders that could not be read are counted as a gap. Folders deeper than the scan goes, and linked folders it does not follow, are counted and said, with how to reach a repository there; Stop leaves the scanning state at once and a late answer is ignored; a kept list that cannot be read is said. A row that failed to import shows its reason, stays ticked, and Add retries it with the same id. A scan error says why and offers to choose again.
 - **Design rationale:** Nothing becomes a Project without the operator's tick; Tick all shown ticks one Project per product, so a worktree becomes a separate Project only by a deliberate, warned tick.
 - **Telemetry:** planned only.
 - **Status:** draft
@@ -3151,7 +3151,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Expected result:** A new Project; with a folder, the folder exists under the chosen parent and, when asked, is a git repository on `main`.
 - **Alt paths:** Change location; switch to an idea at any point.
 - **UI elements:** Name; purpose; repositories with Add repository and Create a new folder for it; git checkbox; folder problem line; memory backend; default agent; Save; Cancel.
-- **States covered:** idle,invalid-name,no-parent,creating,exists,outside,failed,created
+- **States covered:** idle,invalid-name,no-parent,creating,exists,outside,failed,created,left-on-disk
 - **Errors & recovery:** A folder that already exists, an invalid folder name (separators, a leading dot, control or text-direction characters), a location not chosen in this window and a failed mkdir/git init each say what happened; nothing is added. A failed git init removes the half-made folder, so the retry is not refused as "exists". The parent folder is not opened to the window: only the new folder is.
 - **Design rationale:** The idea path keeps "zero to one progressively" honest: a project can exist before its code does.
 - **Telemetry:** planned only.
@@ -3168,7 +3168,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Steps:**
   1. Operator sees the projects → chooses one.
   2. Fabric opens that project's team (`#sec-agents`) and reads the agents created in it before saying there are none.
-  3. Operator opens Create an agent → name, what it is for, the program it runs in (only programs available on this computer), the servers it needs from those the project grants → Create the agent.
+  3. Operator opens Create an agent → name, what it is for, the coding agent it runs in (those not available on this computer are listed, disabled), the servers it needs from those the project grants → Create the agent.
   4. Fabric confirms "Created <name>." and lists the agent with what it reaches (M125).
 - **Expected result:** The agent exists in that project, named once, reaching only the servers it asked for.
 - **Alt paths:** With no project, the path offers Add a project and New project. An agent made by asking the CEO is SCN-121.

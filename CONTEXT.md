@@ -182,7 +182,8 @@ retired; project routines and history survive them.
 Code, Codex. The first run's word for what the code calls an executor or runner (`AGENTS`,
 `shared/agents.ts`); the interface says "coding agent" wherever a runner is meant, and "agent" only for
 the configuration bound into a project. It is *on this machine* when its program is on the PATH,
-*responding* when it also answers `--version`, *connected* when Fabric's own tools reach its sessions,
+*responding* when it also answers `--version`, *connected* when the runner catalogue marks it as handed
+Fabric's credential (`connectsToSurface` in `shared/agents.ts` — a property of the runner, not a measurement),
 and becomes an Agent only when bound into a project. Detection never verifies its account (CO-176).
 [ADR-0100](docs/adr/0100-first-run-and-start-paths.md).
 

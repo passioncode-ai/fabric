@@ -1,11 +1,12 @@
 // One field, several stores (M141 · SCR-37).
 //
 // WHY THE RESULTS ARE GROUPED AND NOT MERGED. `memory_facts` and
-// `session_transcripts` carry a tsvector with a GIN index and come back RANKED;
-// `project_tasks` has no such index and is matched by substring. Merging them
-// into one list would imply an ordering across incomparable scorers — a rank
-// from Postgres beside "the string appears somewhere" — and the reader would
-// take the top of that list as the best answer. Grouped, each store says how it
+// `session_transcripts` carry a tsvector with a GIN index and are matched by WORDS;
+// `projects` and `project_tasks` have no such index and are matched by substring.
+// Every store returns its newest matches — nothing is ranked by relevance (release
+// review 2026-10-03). Merging them into one list would imply one ordering across
+// different matchers, and the reader would take the top of that list as the best
+// answer. Grouped, each store says how it
 // was searched and the reader knows what kind of promise each result is.
 //
 // AND DECISIONS ARE A SUBSET OF FACTS, which is why adding them is not simply

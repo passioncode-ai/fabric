@@ -1,3 +1,4 @@
+// #region repin-provider-builds-cli — docs: docs/evidence/plans/2026-10-03-onboarding-and-plan.md#req-table
 // Re-pin version-only provider rows to the installed CLI builds (REQ-19, 2026-10-03).
 // Usage: node --experimental-strip-types scripts/repin-provider-builds.mjs [--check]
 //   --check  print what would change and exit 1 when a re-pin is due; writes nothing.
@@ -29,3 +30,4 @@ if (!r.changed.length) { console.log('provider builds: the pins match the instal
 if (process.argv.includes('--check')) { console.log('re-pin due: ' + r.changed.join('; ')); process.exit(1) }
 writeFileSync(FILE, r.source)
 console.log('re-pinned: ' + r.changed.join('; ') + ` (checkedAt ${today}); every current row stays unverified`)
+// #endregion repin-provider-builds-cli

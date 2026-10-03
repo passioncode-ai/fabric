@@ -120,7 +120,8 @@ For changes to scenarios, flows or screens, update the visual route model and af
 
 The direction everyone works to is the [general development plan](docs/evidence/backlog.md#general-development-plan)
 ([ADR-0101](docs/adr/0101-the-general-development-plan.md)): lanes of the product, each naming its work by id.
-Choose subsequent work inside a lane by [Build order by layer](docs/evidence/backlog.md#build-order-by-layer):
+Inside a lane the order is that register's own (ADR-0101 §3); the
+[build order by layer](docs/evidence/backlog.md#build-order-by-layer) schedules the batches it names:
 actual prerequisites and integrity first; a long file alone does not block all features.
 Readiness is per capability, not a blanket waterfall across every item in a layer.
 [ADR-0044](docs/adr/0044-foundation-first-delivery-and-the-living-design-map.md) records

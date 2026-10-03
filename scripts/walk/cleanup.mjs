@@ -1,4 +1,4 @@
-// #region walk-cleanup — docs: docs/adr/0100-first-run-and-start-paths.md#decision
+// #region walk-cleanup — docs: README.md#the-disposable-test-stack
 // How a walk ends (release review 2026-10-03, iteration 2, finding 8): the app it started has EXITED,
 // and the temporary folders it made are gone.
 //

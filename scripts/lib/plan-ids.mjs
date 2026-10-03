@@ -24,6 +24,34 @@ export const CLOSING_WORDS = ['done', 'closed', 'resolved', 'shipped', 'complete
 const FINISHED = new RegExp(String.raw`^(?:✅\s*)?(?:${CLOSING_WORDS.join('|')})(?:\s+\d{4}-\d{2}-\d{2})?\s*(?:$|[—–\-;:.,(])`, 'iu')
 const plain = (cell) => cell.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*`]/g, '').trim()
 export const isFinished = (cell) => FINISHED.test(plain(cell))
+/**
+ * A STATUS cell — one read by its column header — is classified by the workspace's own prefix rule
+ * (`normalizeStatus`: the closing word leads, whatever follows — "closed 2026-08-26 by ADR-0011",
+ * "shipped on 2026-10-03", "done in PR #12"; iteration 3 found the standalone rule too narrow there).
+ * The standalone rule above stays only for tables with no status header, where any cell may be a
+ * prerequisite like "Passed AD12 receipt…".
+ */
+const CLOSING_PREFIX = new RegExp(String.raw`^(?:✅\s*)?(?:${CLOSING_WORDS.join('|')})(?=$|[\s\p{P}])`, 'iu')
+export const isFinishedStatus = (cell) => CLOSING_PREFIX.test(plain(cell).toLowerCase())
+const STATUS_HEADER = /^(status|статус|work card \/ acceptance)$/i
+
+/** Each table row with its cells and the index of its status column (by header), or -1. */
+function tableRows(text) {
+  const rows = []
+  const lines = text.split('\n')
+  let statusAt = -1
+  let inTable = false
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    if (!line.startsWith('|')) { inTable = false; statusAt = -1; continue }
+    const cells = line.split('|').slice(1, -1).map((c) => c.trim())
+    if (/^\|\s*:?-/.test(line)) continue
+    if (!inTable && /^\|\s*:?-/.test(lines[i + 1] ?? '')) { statusAt = cells.findIndex((c) => STATUS_HEADER.test(plain(c))); inTable = true; continue }
+    inTable = true
+    rows.push({ cells, statusAt })
+  }
+  return rows
+}
 /** A lane row: its first cell is `<n> · <name>`. */
 const LANE = /^\s*\d+\s*·/
 
@@ -62,10 +90,9 @@ export function finishedIds(files) {
   const out = new Set()
   for (const text0 of Object.values(files)) {
     const text = withoutPlan(text0)
-    for (const line of text.split('\n')) {
-      if (!line.startsWith('|')) continue
-      const cells = line.split('|').slice(1, -1).map((c) => c.trim())
-      if (!cells.slice(1).some(isFinished)) continue
+    for (const { cells, statusAt } of tableRows(text)) {
+      const finished = statusAt > 0 ? isFinishedStatus(cells[statusAt] ?? '') : cells.slice(1).some(isFinished)
+      if (!finished) continue
       for (const m of (cells[0] ?? '').matchAll(ID)) out.add(m[0])
     }
   }
@@ -130,6 +157,16 @@ export function planProblems(backlog, files) {
     for (const id of ids) if (finished.has(id) || ownFinished.has(id)) problems.push(`lane "${lane.name}" schedules ${id}, whose own row says it is finished`)
   }
   if (citedIds(block).size === 0) problems.push('the plan cites no work at all')
+  // Every open carry-over row has a lane (iteration 3: lane 12 claimed the leftovers while 132 were in none).
+  const ledger = files['docs/evidence/specs/2026-08-16-software-fabric-carryover.md']
+  if (ledger) {
+    const inLanes = new Set(laneEntries(block).flatMap((l) => l.entries))
+    for (const { cells, statusAt } of tableRows(ledger)) {
+      const id = /^CO-\d+$/.test(cells[0] ?? '') ? cells[0] : null
+      if (!id || statusAt < 0 || isFinishedStatus(cells[statusAt] ?? '')) continue
+      if (!inLanes.has(id)) problems.push(`carry-over ${id} is open and cited by no lane`)
+    }
+  }
   return problems
 }
 // #endregion plan-ids

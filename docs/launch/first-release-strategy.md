@@ -128,7 +128,7 @@ Baseline source commit: [`473ba9a4d3ba3250c6d41e7e0007b2ece256533c`](https://git
 - This revision adds SCN-095/096, FLW-55/56, twelve `r0-*` routes and first journey `PJ-R0-FIRST`, reusing canonical screens without upgrading native coverage.
 - Validation run for these sources: `node scripts/sync-product-ux.mjs`; `node scripts/check-product-model.mjs` (PASS); `python3 docs/ux/lint.py` (0 errors, existing U077 vision-rule warning). These validate registry/model structure, not runtime or rendered usability. Root iteration records final generated/rendered checks in [first-release brief](first-release.md).
 
-Exact next native task after target review: FR-A and the bounded FR-B readiness slice, using AD02 draft acceptance as prerequisite; then FR-C native picker/source observation. Do not begin by implementing another manual name/purpose/review wizard. Do not claim a completed scan, stopped process, voice capture or portable handoff from a fixture demonstration. No member-repository changes are required by this planning supplement.
+Exact next native task after target review: FR-A and the bounded FR-B readiness slice, using AD02 draft acceptance as prerequisite; then FR-C native picker/source observation. Do not begin by implementing another manual name/purpose/review wizard (2026-10-03: [ADR-0100](../adr/0100-first-run-and-start-paths.md) §4 routes New project through the existing draft-backed form; no new wizard was built). Do not claim a completed scan, stopped process, voice capture or portable handoff from a fixture demonstration. No member-repository changes are required by this planning supplement.
 
 ## Conversation and context refinement · 2026-09-26
 

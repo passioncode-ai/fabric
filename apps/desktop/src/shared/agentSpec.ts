@@ -1,3 +1,4 @@
+// #region agent-spec — docs: docs/ux/scenarios.md#scn-130-start-a-new-agent-inside-a-project
 // An agent created from a prompt (M125).
 //
 // `agents.ts` said this moment would come: "the projector branch for
@@ -112,3 +113,4 @@ export function resolveServers(
     }
   return { ok: true, servers: [...requested] }
 }
+// #endregion agent-spec

@@ -9581,6 +9581,11 @@
           "behavior": "counts them and says how to reach a repository there"
         },
         {
+          "state": "symlinks",
+          "trigger": "linked folders not followed",
+          "behavior": "counts them and says to scan the folder a link points to"
+        },
+        {
           "state": "duplicate",
           "trigger": "candidate already in a project",
           "behavior": "a ticked, disabled box; In <project> opens it"
@@ -9653,7 +9658,7 @@
       "view": "start-new",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1727,
+        "line": 1728,
         "coverage_claim": "apps/desktop/src/renderer/src/Onboarding.tsx",
         "status_claim": "designed"
       },
@@ -9696,7 +9701,12 @@
         {
           "state": "created",
           "trigger": "folder made",
-          "behavior": "the folder joins the repositories; Save creates the Project"
+          "behavior": "the folder, named after the project, joins the repositories with a \"new folder\" chip; Save creates the Project"
+        },
+        {
+          "state": "left-on-disk",
+          "trigger": "a made folder removed from the form",
+          "behavior": "says the folder stays on disk; Fabric deletes no folder"
         }
       ]
     },
@@ -9741,7 +9751,7 @@
       "view": "start-agent",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1747,
+        "line": 1749,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9753,7 +9763,7 @@
         },
         {
           "state": "no-project",
-          "trigger": "estate has no project",
+          "trigger": "estate has no project that is not archived",
           "behavior": "notice with two paths"
         },
         {
@@ -9804,7 +9814,7 @@
       "view": "start-convert",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1762,
+        "line": 1764,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx (the planned state; the conversion itself is AR-7/AR-11)",
         "status_claim": "designed"
       },
@@ -31767,7 +31777,7 @@
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "One Project per ticked repository; nothing created for an unticked one; the last scan is kept so unticked candidates can be imported later.",
-      "errors_recovery": "A walk stopped by its bound says the list is not the whole folder; folders that could not be read are counted and named as a gap. Folders deeper than the scan goes are counted and said, with how to reach a repository there; Stop leaves the scanning state at once and a late answer is ignored; a kept list that cannot be read is said. A row that failed to import shows its reason, stays ticked, and Add retries it with the same id. A scan error says why and offers to choose again.",
+      "errors_recovery": "A walk stopped by its bound says the list is not the whole folder; folders that could not be read are counted as a gap. Folders deeper than the scan goes, and linked folders it does not follow, are counted and said, with how to reach a repository there; Stop leaves the scanning state at once and a late answer is ignored; a kept list that cannot be read is said. A row that failed to import shows its reason, stays ticked, and Add retries it with the same id. A scan error says why and offers to choose again.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 3119

@@ -1,3 +1,4 @@
+// #region memory-overview-read — docs: docs/ux/screens.md#scr-34-project-memory
 /**
  * Counting the four stores, through the one place scope is enforced (UX28-07).
  *
@@ -111,3 +112,4 @@ export async function memoryOverviewFor(
   ])
   return { facts, superseded, retrievals, misses, transcripts, packs }
 }
+// #endregion memory-overview-read

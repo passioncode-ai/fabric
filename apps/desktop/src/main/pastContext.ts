@@ -1,3 +1,4 @@
+// #region past-context — docs: docs/ux/scenarios.md#scn-057-preview-the-next-context-and-inspect-the-exact-past-pack
 // What a session actually ran from, months later (AX-04).
 //
 // MEASURED at `e68b3f7`, and it corrects the audit packet rather than repeating
@@ -145,3 +146,4 @@ export function createPastContext(deps: PastContextDeps) {
     }
   }
 }
+// #endregion past-context

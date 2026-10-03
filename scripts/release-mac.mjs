@@ -27,13 +27,17 @@ const assess = (args, what) => { const r = spawnSync('spctl', args, { encoding: 
 for (const v of ['ASC_API_KEY_P8_B64', 'ASC_KEY_ID', 'ASC_ISSUER_ID']) if (!process.env[v]) fail(`${v} missing — run through use_secret.py (see the header)`)
 if (out('git', ['status', '--porcelain'], { cwd: root })) fail('the tree is not clean; commit first so the build names its commit')
 const version = JSON.parse(readFileSync(path.join(desktop, 'package.json'), 'utf8')).version
-// The release gate (plan row P-02): three independent verification iterations, the last with no blocking
-// finding open, recorded in the ledger docs/launch/release-gate.json names (scripts/lib/release-gate.mjs).
+// A release is built from `main` as it is on the remote (plan row P-03), and only when the release gate
+// is clear (P-02, scripts/lib/release-gate.mjs). Both files are read FROM THE COMMIT, not the working tree:
+// a clean `git status` can hide a skip-worktree edit (iteration 3).
 {
-  const gateFile = path.join(root, 'docs', 'launch', 'release-gate.json')
-  const gateText = (() => { try { return readFileSync(gateFile, 'utf8') } catch { return '' } })()
+  try { out('git', ['fetch', '--quiet', 'origin', 'main'], { cwd: root }) } catch { fail('could not fetch origin/main to check the release commit') }
+  if (out('git', ['rev-parse', 'HEAD'], { cwd: root }) !== out('git', ['rev-parse', 'origin/main'], { cwd: root }))
+    fail('HEAD is not origin/main; land the change on main first, then release from it')
+  const atHead = (p) => { try { return out('git', ['show', `HEAD:${p}`], { cwd: root }) } catch { return '' } }
+  const gateText = atHead('docs/launch/release-gate.json')
   const ledgerPath = (() => { try { return JSON.parse(gateText).ledger } catch { return null } })()
-  const ledgerText = (() => { try { return ledgerPath ? readFileSync(path.join(root, ledgerPath), 'utf8') : '' } catch { return '' } })()
+  const ledgerText = typeof ledgerPath === 'string' && /^docs\/[\w./-]+\.md$/.test(ledgerPath) && !ledgerPath.includes('..') ? atHead(ledgerPath) : ''
   const problems = releaseGateProblems({ version, gateText, ledgerText })
   if (problems.length) fail(`the release gate is not clear:\n  ${problems.join('\n  ')}`)
 }

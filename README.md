@@ -237,9 +237,10 @@ node scripts/test-stack.mjs down <dir>
 A probe reads its connection only from `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`,
 `DATABASE_URL` and `FABRIC_TEST_STACK`, through `probeEnv()` in
 [`scripts/lib/test-stack.mjs`](scripts/lib/test-stack.mjs). No probe in a tier falls back to
-`supabase status` at the root. Two manual probes outside every tier still do, by design, and found an
-estate in the live stack when run: `apps/desktop/test/chat-activation-native.test.mjs` and
-`handshake-e2e.test.mjs` (CO-182). The live walk of the built app runs here too:
+`supabase status` at the root. Two manual probes outside every tier still reach the live stack, by
+design (CO-182): `apps/desktop/test/chat-activation-native.test.mjs` reads it through `supabase status`
+and founds an estate there when run; `handshake-e2e.test.mjs` takes its addresses from the environment
+with no guard. The live walk of the built app runs here too:
 `node scripts/test-stack.mjs run -- node scripts/walk/start-paths.mjs <out-dir>`; it refuses to start
 otherwise. Three things refuse an address on a live port: `up`, `guard`
 and each probe itself. The live ports are whatever the root `supabase/config.toml` declares,

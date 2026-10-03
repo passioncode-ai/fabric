@@ -28,7 +28,8 @@ it). The operator settled each one.
 1. **The first run** (SCN-126, SCR-70) is three steps, each skippable: *your Fabric* — a name and a
    look (persona: name, character, variant), which changes how Fabric looks and never what it may
    do; *coding agents* — Claude Code and Codex detected on PATH by `--version`: **ready** (installed and
-   connected to Fabric's tools), **installed** (runs in a folder as itself, not connected — Codex today),
+   connected to Fabric's tools — `connected` is the runner catalogue's `connectsToSurface`, not a
+   measurement), **installed** (runs in a folder as itself, not connected — Codex today),
    **needs setup** (installed, did not answer: run it once; no install command is offered), **not
    installed** (the vendor's install command); sign-in is not verified here (CO-176); *where to start*
    — the start paths. It is shown once,

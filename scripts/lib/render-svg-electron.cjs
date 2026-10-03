@@ -1,3 +1,4 @@
+// #region render-svg-electron — docs: docs/adr/0100-first-run-and-start-paths.md#app-icon
 // Render one SVG to a transparent PNG at its own size with Electron's offscreen renderer.
 // Usage: electron scripts/lib/render-svg-electron.cjs <in.svg> <out.png> <size>
 const { app, BrowserWindow } = require('electron')
@@ -16,3 +17,4 @@ app.whenReady().then(async () => {
   writeFileSync(output, image.resize({ width: size, height: size }).toPNG())
   app.exit(0)
 }).catch((e) => { console.error(e); app.exit(1) })
+// #endregion render-svg-electron

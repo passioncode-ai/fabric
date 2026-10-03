@@ -192,9 +192,9 @@ const spawnsIn = (p) => spawns.filter((s) => s.projectId === p)
     : fail('the pause did not name the quota: ' + JSON.stringify(paused))
 }
 
-// THE POSITIVE CONTROL, and this file needs one more than most. CO-118 means
-// no chain step starts at all right now, so "started === 0" above is true
-// whatever the quota says — a green that has not reached its condition. What
+// THE POSITIVE CONTROL, and this file needs one more than most. While CO-118 was open (closed
+// 2026-10-03) no chain step started at all, so "started === 0" above was true whatever the quota said
+// — a green that had not reached its condition. What
 // distinguishes them is the RECEIPT: the quota branch writes a code no other
 // path writes, and with a roomy reading it must not appear.
 {

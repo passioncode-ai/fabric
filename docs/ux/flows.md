@@ -2169,7 +2169,7 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-72 Scan a projects folder | idle, picker-cancel, scanning, cancelled, results, empty, truncated, unreadable, deep, duplicate, part-ticked, importing, partial, imported, failed |
+  | SCR-72 Scan a projects folder | idle, picker-cancel, scanning, cancelled, results, empty, truncated, unreadable, deep, symlinks, duplicate, part-ticked, importing, partial, imported, failed |
 
 ### FLW-72: Create a new project
 - **Traces:** ST-001; SCN-129 (JTBD-01)
@@ -2191,7 +2191,7 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-73 New project | idle, invalid-name, no-parent, creating, exists, outside, failed, created |
+  | SCR-73 New project | idle, invalid-name, no-parent, creating, exists, outside, failed, created, left-on-disk |
 
 ### FLW-73: Start a new agent
 - **Traces:** ST-050; SCN-130 (JTBD-05)

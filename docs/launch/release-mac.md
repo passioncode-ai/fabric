@@ -19,9 +19,13 @@ extends the local packaging config; `pnpm --dir apps/desktop package` keeps buil
 
 ## Cut a release
 
-0. **The release gate.** [`docs/launch/release-gate.json`](release-gate.json) names the version and the
+0. **Land, then release.** The change lands on `main` first; `scripts/release-mac.mjs` refuses unless
+   HEAD is the freshly fetched `origin/main`.
+   **The release gate.** [`docs/launch/release-gate.json`](release-gate.json) names the version and the
    verification ledger that clears it ([general plan](../evidence/backlog.md#general-development-plan),
-   P-02). `scripts/release-mac.mjs` refuses unless that ledger has three iterations, each ending
+   P-02). The script reads both from the commit and refuses unless the ledger has exactly one section per
+   iteration (three), each linking its reviewer reports, every finding row disposed (fixed, ruled, not a
+   defect, not recoverable, stopped), and each ending with its one line
    `Exit for iteration N: … Blocking findings open: none.` (`scripts/lib/release-gate.mjs`, tested by
    `scripts/test/release-gate.test.mjs`).
 1. Bump `version` in [`apps/desktop/package.json`](../../apps/desktop/package.json), commit, and run
