@@ -23,7 +23,8 @@ const sql = (input) =>
 const refusal = (q) => {
   try { sql(q); return null } catch (e) { return String(e.stderr ?? e.message) }
 }
-const uuid = (n) => `70000000-0000-4000-8000-${String(n).padStart(12, '0')}`
+// A hex letter in every fixture id, so a spelling in upper case differs from the canonical one (migration 74).
+const uuid = (n) => `7000000a-0000-4000-8000-${String(n).padStart(12, '0')}`
 const A = uuid(1), B = uuid(2), C = uuid(3)
 const P = uuid(10), Q = uuid(11), REPO = uuid(12), FACT = uuid(13), TASK = uuid(14), SESSION = uuid(15), STAGE_SESSION = uuid(16)
 const system = `'{"kind":"system","id":"estate-identity-probe"}'`
@@ -427,10 +428,124 @@ test('the name rule folds case beyond ASCII, as the form does: ÄRZT and ärzt, 
 })
 // #endregion session-owner-at-the-door
 
+// ── migration 74: the door compares exactly what the projector stores (confirmation pass after iteration 3) ──
+//
+// Migration 72's `identity_uuid` matched only the hyphenated pattern, while every projector casts with
+// `::uuid`, which also takes 32 bare hex digits, a `{braced}` id and hyphens after any group of four. The
+// reviewer, on an owned cluster: B's heartbeat and stage naming A's session WITHOUT HYPHENS or BRACED were
+// accepted, the stage row moved to B, and A's own canonical beat and stage were then refused; a braced
+// transcript took a new session before A's launch could; `project.created@1` with A's project id without
+// hyphens was journalled in B. To WATCH these fail, run the runner with
+// FABRIC_SKIP_MIGRATION=20261003000074_canonical_ids_at_the_door.sql.
+// #region canonical-ids-at-the-door — docs: docs/adr/0103-an-id-belongs-to-one-estate-at-the-write-boundary.md#decision
+const spellings = (id) => {
+  const forms = {
+    'without hyphens': id.replaceAll('-', ''),
+    braced: `{${id}}`,
+    'in upper case': id.toUpperCase(),
+    'hyphenated every four digits': id.replaceAll('-', '').match(/.{4}/g).join('-')
+  }
+  for (const [how, spelled] of Object.entries(forms)) assert.notEqual(spelled, id, `the fixture spelled ${how} is the canonical id`)
+  return forms
+}
+
+test('identity_uuid answers the canonical uuid for every spelling ::uuid accepts, and null for anything else', () => {
+  for (const [how, spelled] of Object.entries(spellings(MANAGED_SESSION)))
+    assert.equal(sql(`select identity_uuid('${spelled}')`), MANAGED_SESSION, how)
+  for (const junk of ['not-a-uuid', ` ${MANAGED_SESSION}`, `{${MANAGED_SESSION}`, ''])
+    assert.equal(sql(`select coalesce(identity_uuid('${junk}')::text, 'null')`), 'null', JSON.stringify(junk))
+})
+
+test('B cannot take A\'s session by spelling it differently: heartbeat, stage, transcript and context pack are refused', () => {
+  const seqB = journalOf(B)
+  const stageOfA = () => sql(`select estate_id||'|'||stage from agent_stages where session_id='${STAGE_SESSION}'`)
+  const stageBefore = stageOfA()
+  for (const [how, spelled] of Object.entries(spellings(MANAGED_SESSION)))
+    for (const [type, payload] of sessionRefusals(spelled)) {
+      const said = refusal(append(B, type, payload, Q))
+      assert.ok(said, `${type} from B naming A's managed session ${how} was ACCEPTED — the finding itself`)
+    }
+  for (const [how, spelled] of Object.entries(spellings(STAGE_SESSION))) {
+    const said = refusal(append(B, 'agent.stage.reported@1', { session_id: spelled, stage: 'hijacked' }, Q))
+    assert.ok(said, `B's stage naming A's stage session ${how} was ACCEPTED`)
+  }
+  assert.equal(journalOf(B), seqB, 'a refused session event reached B\'s journal')
+  assert.equal(stageOfA(), stageBefore, 'A\'s stage row moved')
+  assert.equal(sql(`select estate_id from session_heartbeats where session_id='${MANAGED_SESSION}'`), A, 'A\'s heartbeat row moved')
+  // and A, writing canonically, is still the owner
+  const beat = Number(sql(`select beat_seq from session_heartbeats where session_id='${MANAGED_SESSION}'`)) + 1
+  sql(append(A, 'agent.heartbeat@1', { session_id: MANAGED_SESSION, beat_seq: beat, phase: 'working' }, P))
+  sql(append(A, 'agent.stage.reported@1', { session_id: STAGE_SESSION, stage: 'the original stage' }, P))
+})
+
+test('a create carrying A\'s id spelled differently is refused — project, fact, task, hand-off, goal', () => {
+  const seqB = journalOf(B)
+  for (const [how, spelled] of [...Object.entries(spellings(P))]) {
+    const said = refusal(append(B, 'project.created@1', { id: spelled, name: 'HIJACKED' }, null))
+    assert.ok(said, `project.created@1 in B with A's project id ${how} was ACCEPTED — the finding itself`)
+  }
+  for (const [how, spelled] of Object.entries(spellings(FACT)))
+    assert.ok(refusal(append(B, 'memory.project.recorded@1', { id: spelled, claim: 'rewritten from B' }, Q)), `fact ${how}`)
+  for (const [how, spelled] of Object.entries(spellings(TASK))) {
+    assert.ok(refusal(append(B, 'task.started@1', { id: spelled, instruction: 'rewritten from B', option_id: 'shell' }, Q)), `task ${how}`)
+    assert.ok(refusal(append(B, 'task.handoff@1', { task_id: spelled, name: 'report', value: 'WRITTEN BY B' }, Q)), `hand-off ${how}`)
+  }
+  assert.equal(journalOf(B), seqB, 'a refused create reached B\'s journal')
+  assert.equal(projectOfA(), atlas)
+  assert.equal(factOfA(), fact)
+  assert.equal(handoffOfA(), `written by A|${A}`)
+})
+
+test('a NEW id in any non-canonical spelling is refused, so the journal never holds one and a later launch is not blocked', () => {
+  const S2 = uuid(110), T2 = uuid(111), G2 = uuid(112)
+  const seqB = journalOf(B)
+  for (const [how, spelled] of Object.entries(spellings(S2))) {
+    const said = refusal(append(B, 'transcript.captured@1', { session_id: spelled, sha256: 'a'.repeat(64), bytes: 1, lines: 1 }, Q))
+    assert.ok(said, `a transcript for a new session written ${how} was ACCEPTED`)
+    assert.match(said, /non-canonical/, how)
+  }
+  for (const [key, value] of [['id', G2.toUpperCase()], ['project_id', `{${Q}}`], ['task_id', TASK.replaceAll('-', '')]])
+    assert.ok(refusal(append(B, 'goal.defined@1', { id: G2, title: 'g', [key]: value }, Q)), `goal.defined@1 with ${key} ${value}`)
+  assert.equal(journalOf(B), seqB, 'a non-canonical id reached B\'s journal')
+  assert.equal(sql(`select count(*) from session_transcripts where session_id='${S2}'`), '0')
+  // A's managed launch of that session is admitted: nothing took it first.
+  sql(append(A, 'task.created@1', { id: T2, title: 'launch after a refused capture', instruction: 'run' }, P))
+  const got = JSON.parse(sql(`select admit_task_launch('${A}','${T2}',${system},'${S2}','operator')`))
+  assert.equal(got.admitted, true, JSON.stringify(got))
+})
+
+test('a malformed id that ::uuid refuses is still left to the projector, not to the spelling rule', () => {
+  const said = refusal(append(B, 'goal.defined@1', { id: '{not-a-uuid}', title: 'x' }, Q))
+  assert.ok(said)
+  assert.match(said, /invalid input syntax for type uuid/)
+})
+
+test('the name rule trims exactly the whitespace the form trims (JS String#trim), and nothing more', () => {
+  // `agentSpec.ts#nameKey` trims with JS `trim`: Unicode White_Space-ish set of ECMAScript (WhiteSpace + LineTerminator).
+  // Computed here from the runtime, not copied, so a drift between the two is caught.
+  const jsSpace = []
+  for (let c = 0; c <= 0xffff; c++) if ((c < 0xd800 || c > 0xdfff) && String.fromCodePoint(c).trim() === '') jsSpace.push(String.fromCodePoint(c))
+  assert.equal(jsSpace.length, 25, 'the runtime\'s trim set changed; re-check migration 74\'s list')
+  sql(append(A, 'agent.registered@1', agentPayload(uuid(120), 'Warden'), P))
+  const seqA = journalOf(A)
+  for (const ch of jsSpace) {
+    const said = refusal(append(A, 'agent.registered@1', agentPayload(uuid(121), `${ch}warden${ch}`), P))
+    assert.ok(said, `"warden" wrapped in U+${ch.codePointAt(0).toString(16).padStart(4, '0')} was a second agent to the database, one to the form`)
+    assert.match(said, /already has an agent called/)
+  }
+  assert.equal(journalOf(A), seqA, 'a refused name reached the journal')
+  // A character JS does not trim is part of the name on both sides.
+  for (const [ch, n] of [['​', 122], ['\u0085', 123], ['᠎', 124]])
+    assert.equal(refusal(append(A, 'agent.registered@1', agentPayload(uuid(n), `${ch}warden`), P)), null,
+      `U+${ch.codePointAt(0).toString(16)} is not whitespace to the form, so the database must not trim it either`)
+})
+// #endregion canonical-ids-at-the-door
+
 test('the door is not an API: no role may call the guard directly', () => {
   for (const role of ['anon', 'authenticated', 'service_role'])
     for (const fn of ['refuse_foreign_identity(uuid,text,jsonb,uuid)', 'refuse_taken_agent_name(uuid,text,jsonb)', 'identity_uuid(text)',
-                      'lock_global_identity(uuid)', 'session_held_elsewhere(uuid,uuid)', 'repair_foreign_heartbeats()'])
+                      'lock_global_identity(uuid)', 'session_held_elsewhere(uuid,uuid)', 'repair_foreign_heartbeats()',
+                      'refuse_noncanonical_identity(text,jsonb)', 'agent_name_trim(text)'])
       assert.equal(sql(`select coalesce(has_function_privilege('${role}',to_regprocedure('${fn}'),'execute'),false)`), 'f', `${role} ${fn}`)
   for (const role of ['anon', 'authenticated', 'service_role'])
     assert.equal(sql(`select coalesce(has_table_privilege('${role}',to_regclass('declared_import_authorizations'),'insert'),false)`), 'f', role)

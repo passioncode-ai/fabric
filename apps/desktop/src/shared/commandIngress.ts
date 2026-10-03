@@ -96,7 +96,10 @@ const text: Rule = (v, c) => {
   const result = redact(string(v)); add(c, result.redactions); return result.text
 }
 const nonemptyText: Rule = (v, c) => string(v).trim() ? text(v, c) : refuse('invalid_shape')
-const uuid: Rule = v => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(string(v))
+/** Canonical form only — lower-case, hyphenated 8-4-4-4-12 — the one spelling the journal holds: migration 74's
+ * `refuse_noncanonical_identity` refuses any other spelling at `append_event`, so an upper-case id is refused
+ * here with this boundary's own code instead of reaching the database. Refused, never rewritten. */
+const uuid: Rule = v => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(string(v))
   ? v : refuse('invalid_identifier')
 const digest: Rule = v => /^[0-9a-f]{64}$/i.test(string(v)) ? v : refuse('invalid_identifier')
 /** Resource and correlation strings are never rewritten. Shape detection is
@@ -225,9 +228,8 @@ export function prepareDeclaredImport(input: unknown): PreparedInput<PreparedDec
       if (!['project.created@1', 'project.settings.updated@1', 'agent.registered@1'].includes(type)) refuse('unsupported_import_event')
       const payload = event(type, envelope.payload, counts)
       const project = type === 'agent.registered@1' ? payload.project_id : payload.id
-      // PostgreSQL UUID comparison ignores hex case. Preserve both original
-      // byte strings while comparing identity, never rewrite stored IDs.
-      if ((project as string).toLowerCase() !== (envelope.project_id as string).toLowerCase()) refuse('invalid_identifier')
+      // Both ids are canonical lower case by the `uuid` rule, so byte equality is identity.
+      if (project !== envelope.project_id) refuse('invalid_identifier')
       return { type, project_id: envelope.project_id, payload }
     }
     return object({ commandId: required(uuid), inputDigest: required(digest), events: required(list(imported)) })(v, c) as unknown as PreparedDeclaredImport

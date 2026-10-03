@@ -4,7 +4,7 @@ import { COMMAND_INGRESS_LIMITS, COVERED_INGRESS_EVENTS, prepareAnswerCompositio
 import { readIdea } from './idea.ts'
 
 const id = '12345678-1234-5678-9abc-123456789abc'
-const other = 'ABCDEFAB-1234-5678-9ABC-ABCDEFABCDEF'
+const other = 'abcdefab-1234-5678-9abc-abcdefabcdef'
 const canary = 'synthetic-opaque-canary-7391'
 const secret = `SERVICE_TOKEN=${canary}`
 const note = { task_id: id, note_id: other, body_md: secret }
@@ -77,7 +77,9 @@ describe('explicit event privacy policy', () => {
       .toMatchObject({state:'prepared',value:{about:{namespace:'provider',key:'Claude-Code'},supersedes:other}})
   })
   it('rejects invalid identifiers and enums rather than rewriting them', () => {
-    for (const bad of ['claude-code', ` ${id}`, secret])
+    // Upper case, bare and braced spellings too: migration 74 refuses any id the journal would not hold in
+    // canonical lower-case hyphenated form, so the boundary says so with its own code first.
+    for (const bad of ['claude-code', ` ${id}`, secret, other.toUpperCase(), other.replaceAll('-', ''), `{${other}}`])
       expect(prepareEventPayload('goal.defined@1', {id: bad, title: 'goal'})).toEqual({state: 'rejected', code: 'invalid_identifier'})
     for (const [type, changes] of [
       ['project.created@1', {memory_backend: 'other'}], ['goal.defined@1', {autonomy: secret}],
@@ -198,11 +200,17 @@ describe('prepare before deriving titles, answers or digests', () => {
     expect(prepareDeclaredImport({...input,events:[...input.events,{type:'project.created@1',project_id:other,payload:{id,name:'x'}}]})).toEqual({state:'rejected',code:'invalid_identifier'})
     expect(prepareDeclaredImport({...input,events:[...input.events,{type:'project.created@1',project_id:id,payload:{id,name:'x',repo_path:secret}}]})).toEqual({state:'rejected',code:'secret_in_reference'})
   })
-  it('compares import UUID identities case-insensitively while preserving input bytes', () => {
-    const event = {type:'agent.registered@1',project_id:other.toLowerCase(),
+  it('refuses an import whose ids are not canonical lower case, rather than rewriting them (migration 74)', () => {
+    const event = {type:'agent.registered@1',project_id:other,
       payload:{id,project_id:other,name:'legacy',instructions:null,runner_id:null}}
     const input = {commandId:other,inputDigest:'a'.repeat(64),events:[event]}
     expect(prepareDeclaredImport(input)).toEqual({state:'prepared',value:input,redactions:[]})
+    const upper = other.toUpperCase()
+    for (const bad of [
+      {...input,commandId:upper},
+      {...input,events:[{...event,project_id:upper}]},
+      {...input,events:[{...event,payload:{...event.payload,project_id:upper}}]}
+    ]) expect(prepareDeclaredImport(bad)).toEqual({state:'rejected',code:'invalid_identifier'})
   })
 })
 
