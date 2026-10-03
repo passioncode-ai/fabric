@@ -1,6 +1,8 @@
 # The release build: one signed, notarized and stapled DMG for Apple silicon.
-# Run through scripts/release-mac.mjs, which supplies the notarization key from the secret store;
-# `pnpm package` keeps building the unsigned folder for local use.
+# Run through scripts/release-mac.mjs, in CI's protected `release` environment
+# (.github/workflows/release.yml, ADR-0111). The script supplies the signing identity
+# (`-c.mac.identity`, from the CI keychain the shared apple-signing action makes) and the
+# notarization key; `pnpm package` keeps building the unsigned folder for local use.
 extends: ./electron-builder.yml
 artifactName: ${productName}-${version}-${arch}.${ext}
 mac:
@@ -8,9 +10,9 @@ mac:
     - target: dmg
       arch:
         - arm64
-  # The Developer ID team, matched as a substring of the certificate name in the keychain; the
-  # team id is printed in every signed binary's signature, the holder's name need not be here.
-  identity: "KJ35UYYL22"
+  # No identity here: the base config's `identity: null` (unsigned) is overridden on the command
+  # line by scripts/release-mac.mjs with the identity CI hands it. A team id written here would be a
+  # second, unreviewed source for which certificate signs Fabric.
   hardenedRuntime: true
   gatekeeperAssess: false
   entitlements: resources/entitlements.mac.plist
