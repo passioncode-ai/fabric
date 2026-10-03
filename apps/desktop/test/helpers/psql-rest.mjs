@@ -54,6 +54,17 @@ export function createPsqlRest(url) {
   return {
     /** Every statement this client rendered, for a probe that asserts the shape. */
     statements: [],
+    /** A function call with named arguments, as PostgREST's `/rpc` makes it: an object argument is
+     *  jsonb, anything else a literal the function's own parameter type reads. The function runs as
+     *  the cluster's owner here, which is a superset of the service role the app calls it with. */
+    rpc(fn, args = {}) {
+      const params = Object.entries(args).map(([k, v]) =>
+        `${ident(k)} => ${v !== null && typeof v === 'object' ? `${literal(JSON.stringify(v))}::jsonb` : literal(v)}`)
+      const statement = `select coalesce(to_json(r), 'null'::json) from ${ident(fn)}(${params.join(', ')}) r;`
+      this.statements.push(statement)
+      const { out, error } = run(statement)
+      return Promise.resolve(error ? { data: null, error } : { data: JSON.parse(out), error: null })
+    },
     from(table) {
       const self = this
       const where = []
