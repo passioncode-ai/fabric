@@ -275,3 +275,21 @@ console.log('PASS repo path admission: picker, folder made, scan candidates, kep
   }
 }
 console.log('PASS candidates: the walk path kept as written and tied to its root; a symlink swap, /, the home folder refused')
+
+// ── projects.create (iteration 3, errors finding 10 / docs finding 10): a project NAME taken from a folder
+// on disk skipped the folder-name rule, so U+202E became a project name; and a repository one project holds
+// was attached to another when the renderer did not stop it (REQ-04 "never duplicated").
+{
+  const { projectNameProblem } = await import(path.resolve(import.meta.dirname, '../src/shared/startPaths.ts'))
+  const { refuseHeldByOther } = await import(path.resolve(import.meta.dirname, '../src/main/startChoices.ts'))
+  for (const [bad, code] of [['evil‮txt', 'text-direction'], ['a⁦b', 'text-direction'], ['a\u0007b', 'control'], ['line\nbreak', 'control'], ['', 'empty'], ['   ', 'empty'], [42, 'not-a-name']])
+    assert.equal(projectNameProblem(bad), code, JSON.stringify(bad))
+  // A project name is not a folder name: separators, a leading dot, colons and length stay legal.
+  for (const ok of ['Billing / API', '.dotfiles', 'Q3: launch', 'x'.repeat(200), 'Проект «Альфа»']) assert.equal(projectNameProblem(ok), null, ok)
+
+  const index = new Map([['/w/a', [{ id: 'p1', name: 'One' }]], ['/w/b', [{ id: 'p2', name: 'Two' }, { id: 'p3', name: 'Three' }]]])
+  assert.doesNotThrow(() => refuseHeldByOther(['/w/a', '/w/new'], 'p1', index), 'a repository the same project holds, or nobody holds, passes')
+  assert.throws(() => refuseHeldByOther(['/w/new', '/w/a'], 'p9', index), (e) => e instanceof RepoPathRefused && e.code === 'held-by-other' && /^repo-path-refused:held-by-other: \/w\/a$/.test(e.message), 'a repository another project holds is refused with a code')
+  assert.throws(() => refuseHeldByOther(['/w/b'], 'p2', index), /held-by-other/, 'held by this project AND another is still held by another')
+}
+console.log('PASS projects.create: bidi/control project names refused by code, other names legal; a repository another project holds refused (held-by-other)')

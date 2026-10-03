@@ -147,6 +147,25 @@ export function folderNameProblem(name: unknown): FolderNameProblem | null {
   return null
 }
 
+/** Why a string cannot be a PROJECT name: a code, sent as `project-name-refused:<code>` by `projects.create`. */
+export type ProjectNameProblem = 'not-a-name' | 'empty' | 'text-direction' | 'control'
+
+/**
+ * A project name `projects.create` accepts (iteration 3, errors finding 10: a name taken from a folder on
+ * disk skipped every rule, so U+202E became a project name). Only what makes a name READ differently from
+ * what it is is refused — bidirectional overrides and isolates (U+202A–U+202E, U+2066–U+2069) and control
+ * characters; separators, a leading dot, colons and length stay legal, because a project name is not a
+ * folder name.
+ */
+export function projectNameProblem(name: unknown): ProjectNameProblem | null {
+  if (typeof name !== 'string') return 'not-a-name'
+  const s = name.trim()
+  if (!s) return 'empty'
+  if (/[‪-‮⁦-⁩]/.test(s)) return 'text-direction'
+  if (/[\u0000-\u001f\u007f-\u009f]/.test(s)) return 'control'
+  return null
+}
+
 /** Group candidates by product for the checklist, groups ordered by their newest commit. */
 export function groupCandidates<T extends Candidate>(candidates: readonly T[]): { group: string; items: T[] }[] {
   const map = new Map<string, T[]>()

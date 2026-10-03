@@ -208,6 +208,17 @@ export function admitRepoPaths(
   })
 }
 
+/**
+ * Refuses the whole call when a repository path is already held by a project OTHER than `projectId`
+ * (REQ-04: a repository is never duplicated; iteration 3, docs finding 10 — only the renderer prevented
+ * it). `held` is keyed by real path (`indexImported`); `paths` are admitted real paths.
+ */
+export function refuseHeldByOther(paths: readonly string[], projectId: string, held: ReadonlyMap<string, readonly { id: string }[]>): void {
+  for (const p of paths) {
+    if ((held.get(p) ?? []).some((h) => h.id !== projectId)) throw new RepoPathRefused('held-by-other', p)
+  }
+}
+
 // #endregion scan-candidates
 
 /**

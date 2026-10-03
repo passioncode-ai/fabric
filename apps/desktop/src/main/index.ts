@@ -236,9 +236,9 @@ import { inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors } from './executorDetect.ts'
 import { keepScan, lastScan } from './startPaths.ts'
 import { createProjectFolder } from './projectFolder.ts'
-import { ParentChoices, ScanCandidates, admitRepoPaths, indexImported, realOrResolved, walkPickFor } from './startChoices.ts'
+import { ParentChoices, ScanCandidates, admitRepoPaths, indexImported, realOrResolved, refuseHeldByOther, walkPickFor } from './startChoices.ts'
 import { sessionEnvironment } from './sessionEnv.ts'
-import type { CandidateView, FolderFacts, ScanView } from '../shared/startPaths.ts'
+import { projectNameProblem, type CandidateView, type FolderFacts, type ScanView } from '../shared/startPaths.ts'
 import { livenessFor } from './livenessRead.ts'
 import { classifyObservationGap, type HostWindow } from '../shared/harnessBreak.ts'
 import { createDrafts } from './onboardingDrafts.ts'
@@ -796,6 +796,26 @@ async function listRepos(projectId: string): Promise<RepoRow[]> {
   return (data ?? []) as RepoRow[]
 }
 
+/** Which projects hold each folder, by real path, every page read (`startChoices.ts#indexImported`). */
+async function readImportedIndex(): Promise<Map<string, { id: string; name: string }[]>> {
+  const [repos, projects] = await Promise.all([
+    store.selectAll('project_repos', 'path,project_id', { orderBy: ['project_id', 'path'] }),
+    store.selectAll('projects', 'id,name', { orderBy: ['id'] })
+  ])
+  if (repos.failed || projects.failed) throw new Error(`projects read failed: ${repos.failed ?? projects.failed}`)
+  return indexImported(repos.rows, projects.rows)
+}
+
+/**
+ * A window's repository paths for `projectId`, admitted (`admitForWindow`) and none held by another
+ * project (REQ-04, `refuseHeldByOther`) — or the whole call refused before anything is journalled.
+ */
+async function admitReposFor(event: Electron.IpcMainInvokeEvent, projectId: string, paths: unknown): Promise<string[]> {
+  const admitted = admitForWindow(event, paths)
+  if (admitted.length) refuseHeldByOther(admitted, projectId, await readImportedIndex())
+  return admitted
+}
+
 async function attachRepos(projectId: string, paths: string[]): Promise<void> {
   const existing = new Set((await listRepos(projectId)).map((r) => r.path))
   for (const raw of paths) {
@@ -910,8 +930,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   }
 
   handle(IPC.projectsCreate, async (event, input: CreateProjectInput): Promise<Returns<FabricApi['projects']['create']>> => {
-    const name = input.name?.trim()
-    if (!name) throw new Error('project name is required')
+    // #region project-name-rule — docs: docs/adr/0100-first-run-and-start-paths.md#boundary
+    // A name read from a folder on disk is checked here, not trusted (iteration 3): a code, never English.
+    const nameProblem = projectNameProblem(input?.name)
+    if (nameProblem) throw new Error(`project-name-refused:${nameProblem}`)
+    // #endregion project-name-rule
+    const name = (input.name as string).trim()
     const id = input.id
     if (!id) throw new Error('a project needs an id chosen by the caller')
 
@@ -920,12 +944,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // then failed attaching would otherwise be "already exists, nothing to do",
     // and the operator would be left with a project missing the repositories
     // they chose — a partial creation that looks complete.
-    // #region repo-path-admission — docs: docs/ux/scenarios.md#scn-128-scan-a-projects-folder-and-tick-what-becomes-a-project
+    // #region repo-path-admission — docs: docs/adr/0100-first-run-and-start-paths.md#boundary
     // Every repository path the renderer names is checked here, not trusted: an absolute path to an
     // existing folder that THIS window can reach (its picker, a folder it made, the estate's repositories)
-    // or that main listed for this window's scan — or the create is refused before anything is journalled
-    // (iteration 1: any string; iteration 2: any existing folder, then exposed to every window).
-    const repoPaths = admitForWindow(event, input.repoPaths)
+    // or that main listed for this window's scan, and held by no OTHER project (REQ-04) — or the create is
+    // refused before anything is journalled (iteration 1: any string; iteration 2: any existing folder,
+    // then exposed to every window; iteration 3: a repository another project held).
+    const repoPaths = await admitReposFor(event, id, input.repoPaths)
     // #endregion repo-path-admission
     // A failed read is not "no such project" (iteration 1: it appended a second create that cleared the
     // project's folder).
@@ -2887,14 +2912,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // Which projects already hold a folder. Every page is read (iteration 1: past PostgREST's 1000-row cap
   // an imported folder looked new), and paths are compared by their REAL path on both sides, so a folder
   // attached through a symlink or with a trailing slash is still recognised.
-  const importedIndex = async (): Promise<Map<string, { id: string; name: string }[]>> => {
-    const [repos, projects] = await Promise.all([
-      store.selectAll('project_repos', 'path,project_id', { orderBy: ['project_id', 'path'] }),
-      store.selectAll('projects', 'id,name', { orderBy: ['id'] })
-    ])
-    if (repos.failed || projects.failed) throw new Error(`projects read failed: ${repos.failed ?? projects.failed}`)
-    return indexImported(repos.rows, projects.rows)
-  }
+  const importedIndex = readImportedIndex
   const withImported = async <T extends FolderFacts>(rows: T[]): Promise<(T & { importedBy: { id: string; name: string }[] })[]> => {
     const index = await importedIndex()
     return rows.map((r) => ({ ...r, importedBy: index.get(realOrResolved(r.path)) ?? [] }))
@@ -3502,8 +3520,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
 
   handle(IPC.reposAttach, async (event, projectId: string, paths: string[]): Promise<Returns<FabricApi['repos']['attach']>> => {
     // The same admission as projects.create (iteration 2, errors finding 2): this window's own folders,
-    // by their real paths, or nothing is attached.
-    await attachRepos(projectId, admitForWindow(event, paths))
+    // by their real paths, none held by another project (REQ-04), or nothing is attached.
+    await attachRepos(projectId, await admitReposFor(event, projectId, paths))
     await refreshFileRoots()
     return listRepos(projectId)
   })
