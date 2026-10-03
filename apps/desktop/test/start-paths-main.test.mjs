@@ -55,11 +55,29 @@ assert.ok(ticks > 0, 'the event loop ran while the folder was being made')
   assert.equal(out.detail, 'parent-not-chosen', 'the outside refusal carries a code, not English text')
 }
 
+// iteration 3, errors finding 6: `git init` ran with the inherited environment, so a Fabric started with
+// GIT_DIR set (from a git hook, say) initialised THAT repository and reported success for an empty folder.
+{
+  const elsewhere = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-gitdir-')))
+  const saved = { GIT_DIR: process.env.GIT_DIR, GIT_WORK_TREE: process.env.GIT_WORK_TREE }
+  process.env.GIT_DIR = path.join(elsewhere, 'other.git')
+  process.env.GIT_WORK_TREE = elsewhere
+  let made
+  try {
+    made = await createProjectFolder({ parent, name: 'zeta', git: true }, inParent)
+  } finally {
+    for (const [k, v] of Object.entries(saved)) if (v === undefined) delete process.env[k]; else process.env[k] = v
+  }
+  assert.equal(made.ok, true)
+  assert.ok(existsSync(path.join(parent, 'zeta', '.git', 'HEAD')), 'the new folder itself is the repository, whatever GIT_DIR said')
+  assert.equal(existsSync(path.join(elsewhere, 'other.git')), false, 'no repository was initialised where an inherited GIT_DIR pointed')
+}
+
 // the name rule
 for (const bad of ['', '  ', '.hidden', 'a/b', 'a\\b', 'a:b', 'x'.repeat(81), 'evil‮txt.exe', 'a⁦b', 'a\u0007b']) assert.ok(folderNameProblem(bad), JSON.stringify(bad))
 for (const bad of [42, null, undefined, {}]) assert.ok(folderNameProblem(bad), String(bad))
 assert.equal(folderNameProblem('billing-service'), null)
-assert.deepEqual(readdirSync(parent).sort(), ['alpha', 'beta', 'delta', 'gamma'])
+assert.deepEqual(readdirSync(parent).sort(), ['alpha', 'beta', 'delta', 'gamma', 'zeta'])
 console.log('PASS project folder: made with git, exists/invalid/outside refused, failed git leaves nothing, non-blocking, name rule')
 
 // ── a kept scan read back (main/startPaths.ts validateScan → shared parseStoredScan): every count validated,
