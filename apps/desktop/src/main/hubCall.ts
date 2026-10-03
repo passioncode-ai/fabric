@@ -53,6 +53,9 @@ export function canonical(value: unknown): string {
 
 const sha256 = (text: string): string => createHash('sha256').update(text, 'utf8').digest('hex')
 
+/** One line of at most 300 characters with control characters removed, for the operations log. */
+const logLine = (text: string): string => text.replace(/[\u0000-\u001f\u007f-\u009f]+/g, ' ').trim().slice(0, 300)
+
 export function createAgentCall(deps: HubCallDeps) {
   const now = deps.now ?? Date.now
   const random = deps.random ?? randomBytes
@@ -139,7 +142,10 @@ export function createAgentCall(deps: HubCallDeps) {
     const secret = await deps.vault.read(connection.secret_ref)
     if (!secret.ok) {
       await span({ ...base, outcome: 'failed', error_code: 'product-credential-unavailable', grant_ids: cover.grantIds, wall_ms: now() - started })
-      return refusal('product-credential-unavailable', `Fabric could not read ${args.agentId}'s key from the vault: ${secret.reason}. Nothing was sent.`)
+      // The vault's reason can carry its tool's own output — paths, slot names, a traceback. The operator
+      // reads it in the operations log; the agent is told only what happened and what to do.
+      ops.record({ op: 'hub.call', outcome: 'failed', level: 'warn', detail: { callee: args.agentId, capability: args.capability, code: 'product-credential-unavailable', reason: logLine(secret.reason) }, ctx: { correlationId: ops.correlate() } })
+      return refusal('product-credential-unavailable', `Fabric could not read ${args.agentId}'s key from its vault. Nothing was sent. The operator can see why in Fabric's operations log; try again later.`)
     }
     const forwarded = await deps.forward({
       mcpUrl: connection.mcp_url, clientId: connection.client_id, clientSecret: secret.value,

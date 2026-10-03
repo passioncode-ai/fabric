@@ -69,11 +69,43 @@ export interface ProductConnectorDeps {
   random?: (n: number) => Buffer
   /** Told whenever an attempt changes, so the screen does not poll. */
   changed?: (outcome: ConnectOutcome) => void
+  /** How long the callback's body may take to arrive (default 5 s; the product gives up at 10 s). */
+  bodyTimeoutMs?: number
 }
 
 interface PendingState {
   spec: ProductSpec
   createdAt: number
+}
+
+/**
+ * The callback's body, whole, within a size and a deadline. The product's app posts a few hundred bytes
+ * and gives up on its own after 10 s, so a body still arriving after `ms` is not the app — and a reader
+ * with no deadline is a socket anyone on this Mac can hold open for as long as the server allows.
+ */
+function readBounded(req: IncomingMessage, max: number, ms: number): Promise<{ ok: true; raw: string } | { ok: false; status: number; error: string }> {
+  return new Promise((resolve) => {
+    const chunks: Buffer[] = []
+    let size = 0
+    let settled = false
+    const finish = (v: { ok: true; raw: string } | { ok: false; status: number; error: string }): void => {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      req.off('data', onData).off('end', onEnd).off('error', onError)
+      if (!v.ok) req.pause()
+      resolve(v)
+    }
+    const timer = setTimeout(() => finish({ ok: false, status: 408, error: 'the body did not arrive in time' }), ms)
+    const onData = (chunk: Buffer): void => {
+      size += chunk.length
+      if (size > max) finish({ ok: false, status: 413, error: 'body too large' })
+      else chunks.push(chunk)
+    }
+    const onEnd = (): void => finish({ ok: true, raw: Buffer.concat(chunks).toString('utf8') })
+    const onError = (): void => finish({ ok: false, status: 400, error: 'the body could not be read' })
+    req.on('data', onData).on('end', onEnd).on('error', onError)
+  })
 }
 
 function write(res: ServerResponse, status: number, body: Record<string, unknown>): void {
@@ -96,6 +128,7 @@ export class ProductConnector {
   private deps: ProductConnectorDeps
   private now: () => number
   private random: (n: number) => Buffer
+  private bodyTimeoutMs: number
   private pending = new Map<string, PendingState>()
   private last = new Map<string, ConnectOutcome>()
 
@@ -104,6 +137,7 @@ export class ProductConnector {
     this.deps = deps
     this.now = deps.now ?? Date.now
     this.random = deps.random ?? randomBytes
+    this.bodyTimeoutMs = deps.bodyTimeoutMs ?? 5000
   }
 
   private settle(outcome: ConnectOutcome): void {
@@ -154,16 +188,15 @@ export class ProductConnector {
     }
     if (req.headers.origin !== undefined) return fail(403, 'a browser cannot deliver a key')
     if (!/^application\/json\b/i.test(req.headers['content-type'] ?? '')) return fail(415, 'expected application/json')
-    let raw = ''
-    let size = 0
-    for await (const chunk of req) {
-      size += (chunk as Buffer).length
-      if (size > MAX_CALLBACK_BYTES) return fail(413, 'body too large')
-      raw += (chunk as Buffer).toString('utf8')
+    const read = await readBounded(req, MAX_CALLBACK_BYTES, this.bodyTimeoutMs)
+    if (!read.ok) {
+      // The connection is closed after the answer: a sender that is still trickling bytes is not waited on.
+      res.once('finish', () => req.destroy())
+      return fail(read.status, read.error)
     }
     let body: Record<string, unknown>
     try {
-      const parsed = JSON.parse(raw) as unknown
+      const parsed = JSON.parse(read.raw) as unknown
       if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return fail(400, 'expected a JSON object')
       body = parsed as Record<string, unknown>
     } catch {
