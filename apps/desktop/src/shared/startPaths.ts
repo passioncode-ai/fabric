@@ -100,9 +100,16 @@ export interface NewFolderInput {
   name: string
   git: boolean
 }
+/**
+ * `detail` by reason: `invalid-name` → a `FolderNameProblem` code; `outside` → `'parent-not-chosen'` (a code,
+ * never English text, so each window says it in its own language); `exists` → the folder's path;
+ * `failed` → the system's own message (a git init timeout reads "git init timed out after N s").
+ */
 export type NewFolderResult =
   | { ok: true; path: string }
   | { ok: false; reason: 'exists' | 'invalid-name' | 'outside' | 'failed'; detail?: string }
+/** The one `detail` an `outside` refusal carries. */
+export type NewFolderOutsideDetail = 'parent-not-chosen'
 
 /** Why a name cannot be a folder: a code, so each window says it in its own language. */
 export type FolderNameProblem = 'not-a-name' | 'empty' | 'too-long' | 'leading-dot' | 'separator' | 'text-direction'

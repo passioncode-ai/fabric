@@ -37,11 +37,29 @@ await createProjectFolder({ parent, name: 'gamma', git: true }, inParent)
 clearInterval(t)
 assert.ok(ticks > 0, 'the event loop ran while the folder was being made')
 
+// iteration 2, errors finding 9: each failure says its real reason, as a code the window can translate
+{
+  const { writeFileSync: wf, chmodSync: cm } = await import('node:fs')
+  // Two creates of the same name at once: one makes it, the other is told it EXISTS — not a raw failure.
+  const pair = await Promise.all([1, 2].map(() => createProjectFolder({ parent, name: 'delta', git: false }, inParent)))
+  assert.deepEqual(pair.map((r) => (r.ok ? 'ok' : r.reason)).sort(), ['exists', 'ok'], 'a concurrent create of the same folder is "exists"')
+  // A git that hangs is named as a timeout, with its limit, and leaves nothing behind.
+  const slowGit = path.join(parent, '..', `slow-git-${process.pid}.sh`)
+  wf(slowGit, '#!/bin/sh\nexec /bin/sleep 10\n'); cm(slowGit, 0o755)
+  const slow = await createProjectFolder({ parent, name: 'epsilon', git: true }, inParent, { gitBinary: slowGit, gitTimeoutMs: 300 })
+  assert.equal(slow.reason, 'failed')
+  assert.match(slow.detail ?? '', /timed out after 0\.3 s/, 'a git init timeout says so, with its limit')
+  assert.equal(existsSync(path.join(parent, 'epsilon')), false, 'the timed-out folder is removed')
+  // Outside: a CODE in detail, never an English sentence for a Russian window.
+  const out = await createProjectFolder({ parent: '/', name: 'x', git: false }, inParent)
+  assert.equal(out.detail, 'parent-not-chosen', 'the outside refusal carries a code, not English text')
+}
+
 // the name rule
 for (const bad of ['', '  ', '.hidden', 'a/b', 'a\\b', 'a:b', 'x'.repeat(81), 'evil‮txt.exe', 'a⁦b', 'a\u0007b']) assert.ok(folderNameProblem(bad), JSON.stringify(bad))
 for (const bad of [42, null, undefined, {}]) assert.ok(folderNameProblem(bad), String(bad))
 assert.equal(folderNameProblem('billing-service'), null)
-assert.deepEqual(readdirSync(parent).sort(), ['alpha', 'beta', 'gamma'])
+assert.deepEqual(readdirSync(parent).sort(), ['alpha', 'beta', 'delta', 'gamma'])
 console.log('PASS project folder: made with git, exists/invalid/outside refused, failed git leaves nothing, non-blocking, name rule')
 
 // ── a kept scan read back (main/startPaths.ts validateScan → shared parseStoredScan): every count validated,
@@ -72,6 +90,8 @@ const { ParentChoices, walkPickFor } = await import(path.resolve(import.meta.dir
   const outside = () => { throw new Error('outside every root') }
   assert.equal(choices.record('win:1', parent), parent, 'a chosen parent is recorded by its real path')
   assert.equal(choices.resolve('win:1', parent, outside), parent, 'the window that chose it may create in it')
+  assert.equal(choices.resolve('win:1', parent, outside), parent, 'the choice is reusable: a second folder needs no second pick (ADR-0100 §7)')
+  assert.throws(() => choices.resolve('win:1', path.join(parent, 'alpha'), outside), /outside every root/, 'a folder INSIDE the chosen parent is not the parent: nothing is created deeper')
   assert.throws(() => choices.resolve('win:2', parent, outside), /outside every root/, 'another window falls through to its own roots')
   assert.throws(() => choices.resolve('win:1', path.join(parent, 'nope-missing'), outside), /outside every folder/, 'a path that does not exist is refused, not created')
   assert.equal(choices.record('win:1', path.join(parent, 'vanished')), null, 'a folder that vanished after the picker is not recorded')

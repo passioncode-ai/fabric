@@ -3,8 +3,11 @@
  * What a window chose in the start paths' folder picker (ADR-0100), kept apart from `index.ts` so it
  * is tested without Electron.
  *
- * A folder chosen as the PARENT of a new project is not opened: the window may create one folder in it
- * and nothing more (iteration 1 found the parent's whole tree had become readable and writable). The
+ * A folder chosen as the PARENT of a new project is not opened: the window may create new project
+ * folders directly in it, and nothing else — not read it, not list it, not write into anything already
+ * there (iteration 1 found the parent's whole tree had become readable and writable). The choice is
+ * REUSABLE while the window lives: the operator may make a folder, remove it from the form, and make
+ * another without picking the parent again; each folder made is granted to the window on its own. The
  * choice belongs to the window that made it and is revoked with that window, like its granted roots
  * (S02.roots); iteration 2 found the revocation was claimed in a comment and never done.
  */
