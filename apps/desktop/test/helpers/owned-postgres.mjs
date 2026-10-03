@@ -1,21 +1,28 @@
 // A disposable PostgreSQL cluster this process owns, with the whole migration
 // chain applied (L8, ADR-0084).
 //
-// The eleven `run-*-db.mjs` runners each carry this code inline; it is the
+// The older `run-*-db.mjs` runners each carry this code inline; it is the
 // same sequence they run, extracted once for the runners added with the
-// 2026-10-03 release-review fixes rather than copied a twelfth time. It never
+// 2026-10-03 release-review fixes rather than copied a twelfth time (migration
+// 75 moved the releases and board-deferral runners onto it too). It never
 // targets an existing database: `initdb` into a temporary directory, a Unix
 // socket only (`listen_addresses=''`), and the directory removed afterwards.
 //
 // `FABRIC_SKIP_MIGRATION` names one migration file to leave out. It exists so a
 // fix can be WATCHED failing against the chain without it (AGENTS.md: a planted
 // defect is watched being caught) — never set it in CI.
+//
+// `supabaseDefaults: true` puts Supabase's default privileges in force BEFORE the chain:
+// every function, table and sequence a migration creates in `public` is then granted to
+// anon, authenticated and service_role, as on every Supabase project. A bare cluster has
+// no such default, so a migration that revokes from `public` alone looks closed here and is
+// open on Supabase (migration 75 measured three such commands). Privilege sweeps run with it.
 import { mkdtempSync, readdirSync, readFileSync, rmSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 
-export function withOwnedPostgres({ name, port }, body) {
+export function withOwnedPostgres({ name, port, supabaseDefaults = false }, body) {
   const bin = process.env.FABRIC_PG_BIN ?? '/opt/homebrew/opt/postgresql@17/bin'
   if (!existsSync(path.join(bin, 'initdb'))) {
     console.error('NOT_RUN: set FABRIC_PG_BIN to installed PostgreSQL binaries')
@@ -40,6 +47,10 @@ do $$ begin create role authenticated; exception when duplicate_object then null
 do $$ begin create role service_role; exception when duplicate_object then null; end $$;
 create schema auth; create function auth.uid() returns uuid language sql as 'select null::uuid';
 create schema supabase_migrations; create table supabase_migrations.schema_migrations(version text);`)
+    if (supabaseDefaults)
+      sql(`alter default privileges in schema public grant all on tables to postgres, anon, authenticated, service_role;
+alter default privileges in schema public grant all on functions to postgres, anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to postgres, anon, authenticated, service_role;`)
     const migrations = new URL('../../../../supabase/migrations/', import.meta.url)
     const skip = process.env.FABRIC_SKIP_MIGRATION ?? ''
     for (const file of readdirSync(migrations).filter((x) => x.endsWith('.sql')).sort()) {

@@ -258,10 +258,10 @@ The probes that need only PostgreSQL, not the whole stack, run on clusters of th
 `apps/desktop/test/run-*-db.mjs` runner (and `run-ceo-host-sql.mjs`) `initdb`s a temporary cluster
 on a Unix socket, applies the migration chain, runs its suite and removes the cluster. They need
 PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default Homebrew's `postgresql@17`); without them a runner
-exits 2, NOT_RUN. `ci.sh fast` runs two of them (`run-estate-identity-db`, `run-read-schema-db`):
-both run even when one fails, the step fails at the end naming each failure, and NOT_RUN does **not**
+exits 2, NOT_RUN. `ci.sh fast` runs three of them (`run-estate-identity-db`, `run-read-schema-db`,
+`run-function-privileges-db`): each runs even when another fails, the step fails at the end naming each failure, and NOT_RUN does **not**
 fail the fast tier — the hosted fast runner has no PostgreSQL — but is printed beside the runner and
-again on the tier's last line, so that green does not claim the step ran. `ci.sh full` runs those two
+again on the tier's last line, so that green does not claim the step ran. `ci.sh full` runs those three
 in the same step and every other runner after it, the same way, and fails on NOT_RUN.
 
 The full tier runs every package's test suites through
@@ -276,10 +276,10 @@ is running, prints the list so far with the number of suites it never reached, a
 with exit 124 and the command named, so a hung probe cannot keep the tier running forever. A command
 ended by a signal exits 128 plus that signal's number.
 
-Thirteen owned-cluster runners (`apps/desktop/test/run-*-db.mjs` and `run-ceo-host-sql.mjs`) each own a
+Fourteen owned-cluster runners (`apps/desktop/test/run-*-db.mjs` and `run-ceo-host-sql.mjs`) each own a
 temporary PostgreSQL cluster. They need PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default
-`/opt/homebrew/opt/postgresql@17/bin`). Two (`run-estate-identity-db`, `run-read-schema-db`) run in the
-fast tier; the other eleven run first in the full tier; every one runs, and the step fails at the end naming each that did not
+`/opt/homebrew/opt/postgresql@17/bin`). Three (`run-estate-identity-db`, `run-read-schema-db`,
+`run-function-privileges-db`) run in the fast tier; the other eleven run first in the full tier; every one runs, and the step fails at the end naming each that did not
 pass.
 
 ### Test residue in the live database

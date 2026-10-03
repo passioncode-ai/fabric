@@ -110,4 +110,29 @@ test('the database itself refuses a deferral that names another estate\'s questi
   refused(`insert into question_deferrals (question_id, estate_id, project_id, reason, deferred_at, deferred_by_kind, deferred_by_id, deferred_seq)
     values ('${q}','${foreign}','${theirs}','x',now(),'person','operator',1)`, /question_deferrals_estate_id_question_id_fkey|questions/)
 })
+
+// Migration 75. The door test above checked the commands and never the projector behind them:
+// `apply_question_deferrals` was SECURITY DEFINER with a NULL ACL (EXECUTE to PUBLIC), so anon could set a
+// question aside, or take a deferral back, with a hand-built journal row and nothing in the journal.
+// To WATCH it fail: FABRIC_SKIP_MIGRATION=20261003000075_projectors_are_not_public.sql node test/run-board-deferral-db.mjs
+// #region projectors-are-not-public — docs: docs/adr/0103-an-id-belongs-to-one-estate-at-the-write-boundary.md#decision
+test('the projector is not a door: no API role, the service role included, can insert or delete a deferral with a forged journal row', () => {
+  const open = ask(), kept = ask()
+  defer(kept, uuid(n++), 'kept for the pilot')
+  const deferred = q => sql(`select count(*) from question_deferrals where question_id='${q}'`)
+  const journalBefore = sql(`select count(*) from journal where estate_id='${E}'`)
+  const forged = (type, q) => `jsonb_populate_record(null::journal, jsonb_build_object('estate_id','${E}','seq',999999,'type','${type}',
+    'schema_rev','1','actor','{"kind":"person","id":"forger"}'::jsonb,'payload',jsonb_build_object('id','${q}','reason','FORGED'),'occurred_at',now()))`
+  for (const role of ['anon', 'authenticated', 'service_role'])
+    for (const [type, q] of [['question.deferred@1', open], ['question.reopened@1', kept]])
+      assert.throws(() => sql(`set role ${role}; select apply_question_deferrals(${forged(type, q)})`),
+        e => /permission denied for function apply_question_deferrals/.test(String(e.stderr ?? e.message)),
+        `${role} called apply_question_deferrals directly with ${type} — the finding itself`)
+  assert.equal(deferred(open), '0', 'a deferral was inserted around the journal')
+  assert.equal(deferred(kept), '1', 'a deferral was deleted around the journal')
+  assert.equal(sql(`select count(*) from journal where estate_id='${E}'`), journalBefore)
+  for (const role of ['public', 'anon', 'authenticated', 'service_role'])
+    assert.equal(sql(`select has_function_privilege('${role}','apply_question_deferrals(journal)','execute')`), 'f', role)
+})
+// #endregion projectors-are-not-public
 console.log(JSON.stringify({ status: 'PASS', cases: count }))
