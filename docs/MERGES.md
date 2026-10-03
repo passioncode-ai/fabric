@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-03 · `release-approval-amended` · docs/release-approval-amended → main
+- run: r-cc7db4880; base: 45572b65; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
+- scope: ADR-0113 (amends ADR-0111's approval rule), `docs/launch/release-mac.md` step 4, `.github/workflows/release.yml` comment, P-03 in `docs/evidence/backlog.md`, ADR index, DOCMAP, a note in the 2026-10-03 handoff, the pipeline reservation moves 0112 -> 0114, the mockup receipt for the backlog re-pinned (M131 byte-identical), living map
+- summary: any member of `release-approvers` may approve a Fabric release, the tag's pusher included; an agent never approves.
+
 ### 2026-10-03 · `release-in-ci` · feat/release-in-ci → main
 - run: r-baa5dc8b4; base: 15335a0a; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
 - scope: `.github/workflows/release.yml` (preflight, macos in the `release` environment, the shared publish), `scripts/release-mac.mjs` with `scripts/lib/release-mac.mjs` and its test, `electron-builder.release.yml` without an identity, ADR-0111, `docs/launch/release-mac.md`, `CHANGELOG.md`, README, DOCMAP, living map
