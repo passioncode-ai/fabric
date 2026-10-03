@@ -84,4 +84,28 @@ test('the commands are the only door, and a release names rows of its own estate
   refused(`insert into releases (id, estate_id, project_id, name, environment, summary, task_ids, decision_ids, recorded_at, recorded_by_kind, recorded_by_id, recorded_seq)
     values ('${uuid(n++)}','${E}','${theirs}','x','y','z','{}','{}',now(),'person','op',1)`, /foreign key|violates/)
 })
+
+// Migration 75. The test above checked the commands and never the projector behind them: `apply_releases`
+// was SECURITY DEFINER with a NULL ACL (EXECUTE to PUBLIC), and the independent verifier rewrote a
+// verified release as anon with a hand-built journal row and no journal entry. This is that probe.
+// To WATCH it fail: FABRIC_SKIP_MIGRATION=20261003000075_projectors_are_not_public.sql node test/run-releases-db.mjs
+// #region projectors-are-not-public — docs: docs/adr/0103-an-id-belongs-to-one-estate-at-the-write-boundary.md#decision
+test('the projector is not a door: no API role, the service role included, can rewrite a release with a forged journal row', () => {
+  const { id } = record({ name: 'Atlas 0.5.0' })
+  verify(id, 'accepted', 'checked in the demo environment')
+  const state = () => sql(`select verified_outcome||'|'||verification_receipt||'|'||verified_seq from releases where id='${id}'`)
+  const before = state(), journalBefore = sql(`select count(*) from journal where estate_id='${E}'`)
+  const forged = `jsonb_populate_record(null::journal, jsonb_build_object('estate_id','${E}','seq',999999,'type','release.verified@1',
+    'schema_rev','1','actor','{"kind":"person","id":"forger"}'::jsonb,'payload',jsonb_build_object('id','${id}','outcome','failed','receipt','FORGED'),'occurred_at',now()))`
+  for (const role of ['anon', 'authenticated', 'service_role']) {
+    assert.throws(() => sql(`set role ${role}; select apply_releases(${forged})`),
+      e => /permission denied for function apply_releases/.test(String(e.stderr ?? e.message)),
+      `${role} called apply_releases directly — the finding itself`)
+    assert.equal(state(), before, `${role} rewrote the release around the journal`)
+  }
+  assert.equal(sql(`select count(*) from journal where estate_id='${E}'`), journalBefore)
+  for (const role of ['public', 'anon', 'authenticated', 'service_role'])
+    assert.equal(sql(`select has_function_privilege('${role}','apply_releases(journal)','execute')`), 'f', role)
+})
+// #endregion projectors-are-not-public
 console.log(JSON.stringify({ status: 'PASS', cases: count }))

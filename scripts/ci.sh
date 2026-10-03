@@ -278,9 +278,14 @@ step "owned databases: the SQL contract and the reads, on a cluster this run cre
 # whole migration chain; it never touches the stack the desktop uses. The other
 # `run-*-db.mjs` runners run in the full tier (review finding 3).
 #
-# BOTH RUNNERS RUN, and the step fails once at the end naming each one that failed
+# EVERY RUNNER RUNS, and the step fails once at the end naming each one that failed
 # (release review iteration 3, coordinator): this loop used to `exit` on the first
 # failure, so the second runner's verdict was never seen.
+#
+# run-function-privileges-db (migration 75) joins them here, not in the full tier: it is
+# the sweep that no projector and no host-only SECURITY DEFINER command is executable by
+# an API role, run with Supabase's default privileges in force — a security gate belongs
+# in the tier that runs before every commit.
 #
 # WITHOUT POSTGRESQL THE FAST TIER PASSES, AND SAYS SO. A runner with no PostgreSQL
 # 17 binaries exits 2 (NOT_RUN). This is the tier that runs before every commit,
@@ -291,14 +296,14 @@ step "owned databases: the SQL contract and the reads, on a cluster this run cre
 # NOT_RUN. Set FABRIC_PG_BIN to run it.
 owned_fast_failed=()
 owned_fast_not_run=()
-for runner in run-estate-identity-db run-read-schema-db; do
+for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db; do
   set +e
   node "apps/desktop/test/$runner.mjs"
   code=$?
   set -e
   if [ "$code" = "2" ] && [ "$TIER" = "full" ]; then
     # The full tier passes through this step too, and its own owned-cluster loop does not repeat
-    # these two: NOT_RUN fails there, as it does for every other runner in that tier.
+    # these three: NOT_RUN fails there, as it does for every other runner in that tier.
     owned_fast_failed+=("$runner (NOT_RUN: no PostgreSQL binaries, FABRIC_PG_BIN)")
   elif [ "$code" = "2" ]; then
     printf 'NOT_RUN %s: no PostgreSQL binaries (FABRIC_PG_BIN)\n' "$runner"
