@@ -175,5 +175,45 @@
     "productionEdits": false,
     "visualAcceptance": "NOT_RUN",
     "AD02Acceptance": "NOT_RUN"
+  },
+  "stableCaptureRemoteReplay": {
+    "sourceCommit": "4df3079e01dd3493bf8ae302549de603257f4a26",
+    "authenticatedFetchExitCode": 0,
+    "fastForwardOnlyExitCode": 0,
+    "priorColdProductBuildExitCode": 0,
+    "productSourceUnchangedByFollowups": true,
+    "commands": [
+      {
+        "command": "node --test apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+        "exitCode": 0,
+        "tests": 17,
+        "pass": 17,
+        "skip": 0
+      },
+      {
+        "command": "verify remote host byte pin,472 source/190 build pins,nine capture boundaries,two PNG hashes",
+        "exitCode": 0
+      },
+      {
+        "command": "node apps/desktop/test/onboarding-visual-native-harness.mjs --prepare balanced --locale en --width640 --height900; Electron44 host --fixture <owned fresh> --probe",
+        "prepareExitCode": 0,
+        "nativeExitCode": 0,
+        "scope": "one cold-source native replay"
+      }
+    ],
+    "coldNative": {
+      "codeCommit": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "hostPin": "afd35dd2d5d1c12f3f2f8d3a9a402cd9181b460ec0a3f2017eb748e0b352fffb",
+      "prepareExitCode": 0,
+      "nativeExitCode": 0,
+      "viewport": {
+        "width": 640,
+        "height": 900
+      },
+      "stableMs": 527,
+      "exactBeforeAfter": true,
+      "treeClean": true
+    },
+    "treeClean": true
   }
 }

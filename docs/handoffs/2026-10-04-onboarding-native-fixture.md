@@ -174,6 +174,17 @@ form and tabs. These two source-bound images prove capture state, not the styled
 reachability, CUA acceptance or AD02. Root/visual author must repeat paired evidence with this
 host and the assembled renderer; old pairs are not reused as accepted evidence.
 
+## Pushed stable-source replay
+
+Exact stable host code commit `4df3079e01dd3493bf8ae302549de603257f4a26` was pushed and the
+remote branch verified. The earlier clean authenticated cold clone fetched that branch and
+advanced with `git merge --ff-only FETCH_HEAD`, both exit 0. Its existing real product build is
+unchanged by these test-host-only follow-ups. It replayed 17/17 containment tests, verified the
+host SHA, 472 source/190 build pins, all nine equal capture boundaries and both PNG byte hashes.
+One fresh native EN640×900 replay from that exact pushed commit also exited 0 with equal seeded
+pre/post-capture state. The cold checkout remained clean. This receipt-only follow-up preserves
+those exact code bytes and does not replace independent assembled-candidate acceptance.
+
 ## Exact next task
 
 Root/visual author: import the immutable two host files into the owning checkout, build that
