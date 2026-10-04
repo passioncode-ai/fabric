@@ -1,4 +1,4 @@
-<sub>ssheleg skills — sheleg-design · ux-scenarios · task-pipeline</sub>
+<sub>ssheleg skills — sheleg-design · ux-scenarios · task-pipeline · web-design-guidelines · accessibility-review</sub>
 
 # CO-179.1 — isolated Onboarding visual author preparation
 
@@ -104,7 +104,44 @@ matrix, keyboard/AX/VoiceOver, 200% text and CI remain NOT_RUN by this author.
 Root explicitly owns independent native acceptance and canonical convergence;
 their active AD02 CUA window is not touched by this author.
 
-Root's exact next task is to combine the pushed candidate
+## Initial source-bound rendering, pending correction
+
+Production author commit is `d454dc7dd6e0774281e8ad4653d00e43c8415ebe`.
+The authorized remote branch resolved to it, and a fresh sparse remote checkout
+returned all four task files byte-equal. The independently published fixture
+host is `07b4626dec8d0713433ce60c4b34b06284e43544`; its two test files were
+copied unchanged into the author's untracked test directory, excluded from
+this branch delivery. Fresh fixtures bind the actual checkout/build/host pins.
+
+The [capture index](2026-10-04-onboarding-visual-captures/index.json) links 16
+actual hidden Electron44 `capturePage()` PNGs and complete probe receipts:
+before/after EN and RU at 640/960/1440 × 900 client dimensions, plus bounded
+long repositories at 760 × 1000 in both languages. Actual client dimensions
+and PNG pixels/hashes are recorded. The before host source revision is the
+fixture commit, whose production renderer remains the ff7 baseline; the after
+source revision is d454. Generated synthetic temporary path prefixes differ
+between fixtures. No screenshot was drawn or retouched.
+
+These are initial viewport captures before synthetic bridge probes. Their tier
+is source-bound rendering, not interactive native acceptance. Lower controls
+are below the viewport in several cases; these screenshots do not establish
+scroll reachability, keyboard/AX/VoiceOver, busy/refusal/left-on-disk rendering
+or 200% text coverage. The real runner menu excludes the program-null terminal
+and keeps Codex unavailable; the probe asserts those outcomes.
+
+Visual review found a suspected right-edge lede overflow in the initial
+long-repository RU760 candidate. This observation rejects visual completion
+pending a bounded read-only geometry probe and local repair. Root authorized
+up to two correction iterations. These initial d454 captures remain historical;
+they must not be relabelled as a later repaired source.
+
+Existing accessibility association seam, independently reported upstream:
+`Onboarding.tsx:241–243` ignores the second callback argument for defaultAgent
+and does not assign `aria-describedby` on its select. `Field.tsx:20–22,25–35`
+provides that argument and hint ID. It predates the candidate and remains
+unchanged here; root owns the bounded association fix and fresh native checks.
+
+Root's exact next task is to combine the final pushed candidate
 with the independently pushed bounded fixture, build fresh artifacts, perform
 actual AD02/native CO-179 acceptance, reconcile canonical UX/map/registry if
 needed, then decide integration. No release, install, provider or production
@@ -114,8 +151,10 @@ userData action is part of this author branch.
 
 **Made with [ssheleg skills](https://github.com/ssheleg/sshlg-skills)**
 
-- [`sheleg-design`](https://github.com/ssheleg/sheleg-design-skill) — Scoped existing launch visuals and token mappings
-- [`ux-scenarios`](https://github.com/ssheleg/super-ux) — Preserved SCR73 and SCN129 paths
-- [`task-pipeline`](https://github.com/ssheleg/task-pipeline) — Isolated reversible author preparation and handoff
+- [`sheleg-design`](https://github.com/ssheleg/sheleg-design-skill) — Mapped existing launch hierarchy and token-only local styling
+- [`ux-scenarios`](https://github.com/ssheleg/super-ux) — Preserved SCR73 SCN129 and draft paths
+- [`task-pipeline`](https://github.com/ssheleg/task-pipeline) — Isolated author source and evidence handoff
+- `web-design-guidelines` — Reviewed wrapping native controls and focus constraints — not a skill this family ships
+- `accessibility-review` — Reviewed label association and bounded accessibility claims — not a skill this family ships
 
 <sub>A star on [the bundle](https://github.com/ssheleg/sshlg-skills) helps.</sub>
