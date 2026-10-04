@@ -117,6 +117,34 @@ Full converged fast/app gates, CUA screenshots, styled native matrix, real CLI/p
 stack/DB/chooser/create, hosted CI, release, installation, wiki sync and report index are NOT_RUN by
 this author. Root owns the assembled candidate, shared documentation and independent acceptance.
 
+## Follow-up: bounded state and read-only geometry
+
+The initial source candidate is immutable `07b4626dec8d0713433ce60c4b34b06284e43544`; its original
+11-test and seven native receipts above remain historical. An authenticated fresh remote clone of
+that commit installed existing dependencies offline with scripts disabled, built the product and
+replayed 11/11 containment tests with a clean tree (each command exit 0).
+
+A final saturation audit then showed three actual RED negatives on that candidate: the 65th
+synthetic project, 513th request and audit bytes beyond 8 MiB were accepted. The follow-up enforces
+64 distinct synthetic ProjectRows, 512 total fixture IPC requests (including refused registered
+channels) and an 8 MiB audit ceiling checked before append. Refused overflow does not expand the
+record map or audit file. `node --test --test-name-pattern='hard.*ceiling'` was exit 1 with all three
+negatives failing before the fix; the full final containment suite is now **14/14**, exit 0, zero
+skips. No production interface or authority changes.
+
+At the visual author's request, `probe.json` now also records bounded read-only initial geometry
+before bridge probes: document client/scroll dimensions, fixed content/form/header/paragraph/repo
+selectors, rectangles and relevant computed width/min-width/overflow/font/white-space fields. Up
+to 16 nodes per fixed selector and 64 total records are admitted. There is no caller-provided
+selector or script, and no style mutation. This helps locate an observed clipping seam; it does not
+approve that seam or the styled visual matrix.
+
+The [follow-up native slice](2026-10-04-onboarding-native-fixture-followup.json) records all seven
+actual Electron44 probes/captures again at the new host byte hash. All exit 0, with configured and
+actual content dimensions equal. The original baseline image/receipts are preserved; the new slice
+has its own exact source/build/host pins and geometry. Root owns importing both commits, fresh
+assembled fixtures and independent CUA/AD02 acceptance.
+
 ## Exact next task
 
 Root/visual author: import the immutable two host files into the owning checkout, build that

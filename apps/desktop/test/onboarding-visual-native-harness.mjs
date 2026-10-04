@@ -268,8 +268,12 @@ export function createFixtureHost(candidate, { alive = () => true } = {}) {
   const records = new Map(); let sequence = 0; let parentChosen = false
   const audit = detail => {
     checkRoot(root)
-    fs.appendFileSync(ownedPath(root, path.join(root, 'audit.jsonl')), JSON.stringify({ at: new Date().toISOString(), fixtureId: marker.id,
-      sourceRevision: marker.sourceRevision, ...safeJSON(detail) }) + '\n', { mode: 0o600 })
+    const file = ownedPath(root, path.join(root, 'audit.jsonl'))
+    const line = JSON.stringify({ at: new Date().toISOString(), fixtureId: marker.id,
+      sourceRevision: marker.sourceRevision, ...safeJSON(detail) }) + '\n'
+    const previousBytes = fs.existsSync(file) ? fs.statSync(file).size : 0
+    assert.ok(previousBytes + Buffer.byteLength(line) <= 8 * 1024 * 1024, 'fixture audit byte limit')
+    fs.appendFileSync(file, line, { mode: 0o600 })
   }
   const handlers = new Map(); const add = (key, run, delay = 0) => { assert.ok(p.types.IPC[key]); handlers.set(p.types.IPC[key], { run, delay }) }
   const noArgs = args => assert.equal(args.length, 0, 'unexpected fixture arguments')
@@ -328,6 +332,7 @@ export function createFixtureHost(candidate, { alive = () => true } = {}) {
     if (input.repoPaths !== undefined) { assert.ok(Array.isArray(input.repoPaths) && input.repoPaths.length <= 16); input.repoPaths.forEach(value => ownedPath(root, value)) }
     assert.ok(Object.values(drafts.read().drafts).some(draft => draft.projectId === input.id), 'project ID is not an initiating owned draft')
     if (config.create === 'refuse') throw new Error('project-create-refused:synthetic-fixture')
+    assert.ok(records.has(input.id) || records.size < 64, 'synthetic project record limit')
     const row = projectRow(input, marker.createdAt); records.set(input.id, cloned(row)); return row
   }, config.createDelayMs)
   add('projectsList', args => { noArgs(args); return [...records.values()] })
@@ -345,10 +350,12 @@ export function createFixtureHost(candidate, { alive = () => true } = {}) {
     records: () => cloned([...records.values()]),
     async invoke(channel, original = []) {
       checkRoot(root); assert.ok(alive(), 'initiating window closed'); text(channel, 128)
+      assert.ok(sequence < 512, 'fixture request limit')
+      const request = ++sequence
       const handler = handlers.get(channel)
       if (!handler) { audit({ kind: 'blocked-ipc', channel }); throw new Error('unregistered synthetic IPC channel') }
       const args = safeJSON(original); assert.ok(Array.isArray(args), 'argument array required')
-      const request = ++sequence; const requestedAt = Date.now()
+      const requestedAt = Date.now()
       // Snapshot inputs per request; neither a later draft nor another window can redirect this response.
       audit({ kind: 'request', channel, request, args, delayMs: handler.delay })
       if (handler.delay) await new Promise(resolve => setTimeout(resolve, handler.delay))
@@ -428,7 +435,17 @@ async function launch(candidate, probe) {
       const node = document.querySelector('.onboarding'); if (!node) throw Error('compiled onboarding not visible');
       const initial = { inputValues:[...node.querySelectorAll('input:not([type=checkbox]):not([type=radio])')].map(n=>n.value),
         radios:[...node.querySelectorAll('input[type=radio]')].map(n=>({disabled:n.disabled,checked:n.checked})),
-        agentOptions:[...node.querySelectorAll('select option')].map(n=>({value:n.value,disabled:n.disabled})), text:node.innerText };
+        agentOptions:[...node.querySelectorAll('select option')].map(n=>({value:n.value,disabled:n.disabled})), text:node.innerText,
+        geometry: { document:{clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,
+          clientHeight:document.documentElement.clientHeight,scrollHeight:document.documentElement.scrollHeight,innerWidth,innerHeight},
+          nodes:['.app-main','.content','.onboarding','.onboarding header','.onboarding header h1','.onboarding p','.onboarding form','.onboarding .repo-list .row','.onboarding .repo-list .row-main']
+            .flatMap(selector=>[...document.querySelectorAll(selector)].slice(0,16).map((element,index)=>{
+              const rect=element.getBoundingClientRect(); const css=getComputedStyle(element);
+              return {selector,index,rect:{x:rect.x,y:rect.y,width:rect.width,height:rect.height,left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom},
+                clientWidth:element.clientWidth,scrollWidth:element.scrollWidth,clientHeight:element.clientHeight,scrollHeight:element.scrollHeight,
+                computed:{display:css.display,width:css.width,minWidth:css.minWidth,maxWidth:css.maxWidth,overflow:css.overflow,
+                  overflowX:css.overflowX,overflowY:css.overflowY,fontSize:css.fontSize,whiteSpace:css.whiteSpace,overflowWrap:css.overflowWrap,wordBreak:css.wordBreak}};
+            })).slice(0,64) } };
       const backends=await window.fabric.terminal.memoryBackends(); const runners=await window.fabric.terminal.options();
       const parent=await window.fabric.start.chooseFolder('parent');
       const folder=parent ? await window.fabric.start.createFolder({parent,name:'Fixture one',git:true}) : null;

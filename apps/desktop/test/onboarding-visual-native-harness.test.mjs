@@ -142,4 +142,29 @@ test('browser requests deny network and foreign local files', () => {
   assert.equal(allowBrowserURL(pathToFileURL('/etc/passwd').href), false)
   assert.equal(allowBrowserURL(pathToFileURL(path.join(desktop, 'out/renderer/index.html')).href), true)
 })
+test('synthetic project records have a hard count ceiling across changing owned draft IDs', async () => {
+  const root = prepared(); const host = createFixtureHost(root)
+  const read = await host.invoke(host.IPC.draftsRead)
+  for (let i = 0; i < 64; i++) {
+    read.drafts['draft-1'].projectId = `fixture-project-${i}`
+    await host.invoke(host.IPC.draftsSave, [read.drafts])
+    await host.invoke(host.IPC.projectsCreate, [{ ...input, id: read.drafts['draft-1'].projectId }])
+  }
+  assert.equal(host.records().length, 64)
+  read.drafts['draft-1'].projectId = 'fixture-project-overflow'
+  await host.invoke(host.IPC.draftsSave, [read.drafts])
+  await assert.rejects(host.invoke(host.IPC.projectsCreate, [{ ...input, id: read.drafts['draft-1'].projectId }]), /synthetic project record limit/)
+  assert.equal(host.records().length, 64)
+})
+test('fixture requests have a hard count ceiling', async () => {
+  const root = prepared(); const host = createFixtureHost(root)
+  for (let i = 0; i < 512; i++) await host.invoke(host.IPC.terminalMemoryBackends)
+  await assert.rejects(host.invoke(host.IPC.terminalMemoryBackends), /fixture request limit/)
+})
+test('fixture audit has a hard byte ceiling', async () => {
+  const root = prepared(); const host = createFixtureHost(root)
+  fs.writeFileSync(path.join(root, 'audit.jsonl'), Buffer.alloc(8 * 1024 * 1024, 32), { mode: 0o600 })
+  await assert.rejects(host.invoke(host.IPC.terminalMemoryBackends), /fixture audit byte limit/)
+  assert.equal(fs.statSync(path.join(root, 'audit.jsonl')).size, 8 * 1024 * 1024)
+})
 // #endregion onboarding-fixture-containment

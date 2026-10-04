@@ -78,5 +78,56 @@
       "path": "2026-10-04-onboarding-native-fixture-baseline.png",
       "sha256": "365ec65620c70b56972e8d7e9900ed1f95a7a2d1b57e0950233e32f5379b488e"
     }
+  },
+  "initialRemoteReplay": {
+    "sourceCommit": "07b4626dec8d0713433ce60c4b34b06284e43544",
+    "authenticatedCloneExitCode": 0,
+    "commands": [
+      {
+        "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+        "exitCode": 0
+      },
+      {
+        "command": "pnpm --filter @fabric/desktop build",
+        "exitCode": 0
+      },
+      {
+        "command": "node --test apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+        "exitCode": 0,
+        "tests": 11,
+        "skip": 0
+      }
+    ],
+    "treeClean": true
+  },
+  "followup": {
+    "initialSourceCommit": "07b4626dec8d0713433ce60c4b34b06284e43544",
+    "red": {
+      "command": "node --test --test-name-pattern='hard.*ceiling' apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+      "exitCode": 1,
+      "tests": 3,
+      "failed": 3,
+      "observed": "Missing expected rejection for 65th record, 513th request, and audit beyond8MiB"
+    },
+    "ceilings": {
+      "syntheticProjects": 64,
+      "totalFixtureIPCRequests": 512,
+      "auditBytes": 8388608
+    },
+    "green": {
+      "command": "node --test apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+      "exitCode": 0,
+      "tests": 14,
+      "pass": 14,
+      "skip": 0
+    },
+    "hostSha256": "ae85da06ff53bde324f42e7da7704e3656d44e2b45de794c43a86536b997b047",
+    "nativeCases": 7,
+    "nativePass": 7,
+    "nativeGeometryAndCaptures": true,
+    "nativeReceipt": "2026-10-04-onboarding-native-fixture-followup.json",
+    "productionEdits": false,
+    "visualAcceptance": "NOT_RUN",
+    "AD02Acceptance": "NOT_RUN"
   }
 }
