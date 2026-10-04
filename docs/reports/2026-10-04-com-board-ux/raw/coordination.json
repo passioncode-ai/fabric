@@ -1,0 +1,16 @@
+{
+  "kind": "self-reported-subagent-coordination-not-authentication",
+  "as_of": "2026-10-04",
+  "messages": [
+    {
+      "to": "root",
+      "finding": "Existing board authored/derived no-seen semantics cannot become generic message ACK.",
+      "response": "Root accepted separate communications projection and typed entity; no implicit seen/dismiss."
+    },
+    {
+      "to": "root/hub_docs_plan",
+      "finding": "Participant queries, counts, cursors and facets must not expose raw estate traffic.",
+      "response": "Compiler researcher acknowledged public task inventory creates no messaging permissions."
+    }
+  ]
+}

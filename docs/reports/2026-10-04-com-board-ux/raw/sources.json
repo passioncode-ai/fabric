@@ -1,0 +1,77 @@
+[
+  {
+    "id": "a2a-thread",
+    "url": "https://github.com/a2aproject/A2A/discussions/762",
+    "type": "primary-developer-discussion",
+    "created_at": "2025-06-17T07:52:21Z",
+    "updated_at": "2025-08-03T12:28:47Z",
+    "read_at": "2026-10-04",
+    "comments": [
+      {
+        "url": "https://github.com/a2aproject/A2A/discussions/762#discussioncomment-13916655",
+        "author": "keenranger",
+        "created_at": "2025-07-29T02:35:23Z",
+        "excerpt": "In my implementation, I’m keeping a single contextId for the entire conversation and generating a new taskId for each turn."
+      },
+      {
+        "url": "https://github.com/a2aproject/A2A/discussions/762#discussioncomment-13976074",
+        "author": "izzymsft",
+        "created_at": "2025-08-03T12:28:47Z",
+        "observation": "Reply points to server-generated identifiers and fixes #925/#926; those fixes were not separately audited."
+      }
+    ],
+    "limit": "Individual implementation report, not an authorization rule."
+  },
+  {
+    "id": "a2a-spec",
+    "url": "https://github.com/a2aproject/A2A/blob/fe182ee3c053d2e6a3ad2576c959fa5f7d8b5d07/docs/specification.md",
+    "type": "primary-specification",
+    "git_revision": "fe182ee3c053d2e6a3ad2576c959fa5f7d8b5d07",
+    "read_at": "2026-10-04",
+    "limit": "Fabric design is MCP-first, not implemented A2A interoperability.",
+    "retrieved_url": "https://raw.githubusercontent.com/a2aproject/A2A/fe182ee3c053d2e6a3ad2576c959fa5f7d8b5d07/docs/specification.md",
+    "retrieved_sha256": "a89afdc9352a10d6d311f4531ebfd5bb1c6bf7b9bd2807db26756222e8a12ee7",
+    "retrieved_bytes": 156876
+  },
+  {
+    "id": "otel-links",
+    "url": "https://github.com/open-telemetry/opentelemetry.io/blob/e644265b718017bdb4fcc8ffe756f90d0c7e7e16/content/en/docs/concepts/signals/traces.md",
+    "type": "primary-documentation",
+    "git_revision": "e644265b718017bdb4fcc8ffe756f90d0c7e7e16",
+    "read_at": "2026-10-04",
+    "excerpt": "Links exist so that you can associate one span with one or more spans, implying a causal relationship.",
+    "retrieved_url": "https://raw.githubusercontent.com/open-telemetry/opentelemetry.io/e644265b718017bdb4fcc8ffe756f90d0c7e7e16/content/en/docs/concepts/signals/traces.md",
+    "retrieved_sha256": "e114163e1eecc33e146a502784c484ca482648a1f278c24ab4809262d2cc0061",
+    "retrieved_bytes": 13086
+  },
+  {
+    "id": "anthropic",
+    "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+    "type": "primary-engineering",
+    "published_at": "2025-06-13",
+    "read_at": "2026-10-04",
+    "excerpt": "Beyond standard observability, we monitor agent decision patterns and interaction structures"
+  },
+  {
+    "id": "apg-feed",
+    "url": "https://www.w3.org/WAI/ARIA/apg/patterns/feed/",
+    "type": "primary-guidance",
+    "read_at": "2026-10-04",
+    "related_repository_revision": "0f765e4dc33e966026114ac12a8380db1de3b787",
+    "limit": "URL is mutable; source pin is for repository snapshot, not a proven hosted-page byte identity."
+  },
+  {
+    "id": "wcag-status",
+    "url": "https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html",
+    "type": "primary-guidance",
+    "read_at": "2026-10-04",
+    "limit": "Mutable guidance page; bounded application described in report."
+  },
+  {
+    "id": "wcag-pause",
+    "url": "https://www.w3.org/WAI/WCAG22/Understanding/pause-stop-hide.html",
+    "type": "primary-guidance",
+    "read_at": "2026-10-04",
+    "limit": "UI display pause is a distinct proposed control from durable cancellation."
+  }
+]

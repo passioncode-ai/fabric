@@ -1,0 +1,343 @@
+{
+  "candidate": "7011ce429d2593951b9d99940f78ab5850f17309",
+  "files": [
+    {
+      "path": "apps/desktop/src/shared/board.ts",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "3e4c00b9d0539be5171f1d6f1452ba082ca8e073b816b0ba04fa13e3c580f057",
+      "symbols": [
+        {
+          "needle": "export interface BoardEntry",
+          "lines": [
+            55
+          ]
+        },
+        {
+          "needle": "export function boardEntries",
+          "lines": [
+            104
+          ]
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/launch/BoardScreen.tsx",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "d2366271853085f200da1e1d1598cfb4214c12de8cd3ff725a1e5b32d01c9fd2",
+      "symbols": [
+        {
+          "needle": "export function BoardScreen",
+          "lines": [
+            32
+          ]
+        },
+        {
+          "needle": "window.fabric.board.query",
+          "lines": [
+            87
+          ]
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/components/Board.tsx",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "bbde6cbe533b4f4a36d63252e54c0e763df112aeef27729b2404b37d3ffee576",
+      "symbols": [
+        {
+          "needle": "export function",
+          "lines": [
+            17,
+            21
+          ]
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/shared/types.ts",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "93f5032b9dcef5e20866bba20745709cec8698ae21866925db7ce20878ff897c",
+      "symbols": [
+        {
+          "needle": "export interface FabricApi",
+          "lines": [
+            802
+          ]
+        },
+        {
+          "needle": "  board: {",
+          "lines": [
+            1080
+          ]
+        },
+        {
+          "needle": "  boardQuery:",
+          "lines": [
+            1498
+          ]
+        },
+        {
+          "needle": "  feedReplay:",
+          "lines": [
+            1547
+          ]
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/preload/index.ts",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "543cedd1887f255289a03df76ee97ce6fedb758765f86f7d06773cc9cf807c11",
+      "symbols": [
+        {
+          "needle": "  board: {",
+          "lines": [
+            95
+          ]
+        },
+        {
+          "needle": "  hub: {",
+          "lines": [
+            107
+          ]
+        },
+        {
+          "needle": "  feed: {",
+          "lines": [
+            141
+          ]
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/index.ts",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "328589e27a014e793db22196e469c508d34b8850a98dae0b41b1ea4c5230c226",
+      "symbols": [
+        {
+          "needle": "  handle(IPC.boardQuery",
+          "lines": [
+            2751
+          ]
+        },
+        {
+          "needle": "    IPC.feedReplay,",
+          "lines": [
+            3849
+          ]
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/App.tsx",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "a62af5b8f5c6de0dd3e54f6857e0c236d7aff5080347b3ba1ba581efb5651af0",
+      "symbols": [
+        {
+          "needle": "window.fabric.feed.replay",
+          "lines": [
+            329
+          ]
+        },
+        {
+          "needle": "slice(-500)",
+          "lines": [
+            333
+          ]
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/shared/readEnvelope.ts",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "c5376f46f132d351ddb773db6738aa57b457cbafdb6e13b14da883f2ef9331c1",
+      "symbols": [
+        {
+          "needle": "export interface ReadEnvelope",
+          "lines": [
+            50
+          ]
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/shared/entityRef.ts",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "d5211575247274cdf39d3df8c0389bcf77e1bd16be717de4d4f3c2625d47f324",
+      "symbols": [
+        {
+          "needle": "export const ENTITY_KINDS",
+          "lines": [
+            36
+          ]
+        },
+        {
+          "needle": "export function destinationOf",
+          "lines": [
+            123
+          ]
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/AgentAccessPanel.tsx",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "e686f1ce7160b8f93566c4e82a4a1c20f8be3373b80afd29550276c31a8e50b1",
+      "symbols": [
+        {
+          "needle": "export function AgentAccessPanel",
+          "lines": [
+            57
+          ]
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/hubTools.ts",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "a4cc8781424231bf64536549760da1350c92d4024a2ff9875c57b74a03918ce2",
+      "symbols": [
+        {
+          "needle": "export",
+          "lines": [
+            30,
+            37,
+            41,
+            45,
+            52,
+            59,
+            95
+          ]
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/continuationDelivery.ts",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "2a90f9fa17e16a43bfb61fb608b9c657496c63afcd5d9bcb5b4b246061cb02bc",
+      "symbols": [
+        {
+          "needle": "export function continuationDeliveryId",
+          "lines": [
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/deliveryQueue.ts",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "162a7ad61547c244338186569787bb8acd46495dfab0ecc9a953e4abe31b27a4",
+      "symbols": [
+        {
+          "needle": "export",
+          "lines": [
+            4,
+            8,
+            9,
+            23
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/ux/scenarios.md",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "446f8b8bb202199db9c5023e3f862aeb471235747e4b6821ee89d26cb5a3066a",
+      "symbols": [
+        {
+          "needle": "### SCN-041",
+          "lines": [
+            1159
+          ]
+        },
+        {
+          "needle": "### SCN-061",
+          "lines": [
+            1666
+          ]
+        },
+        {
+          "needle": "### SCN-067",
+          "lines": [
+            1814
+          ]
+        },
+        {
+          "needle": "### SCN-115",
+          "lines": [
+            2858
+          ]
+        },
+        {
+          "needle": "### SCN-132",
+          "lines": [
+            3213
+          ]
+        },
+        {
+          "needle": "### SCN-133",
+          "lines": [
+            3236
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/ux/screens.md",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "e508632e0d8c083d015f7081181e11851d8307c39bec3f8e5337063810e3a802",
+      "symbols": [
+        {
+          "needle": "### SCR-41",
+          "lines": [
+            853
+          ]
+        }
+      ]
+    },
+    {
+      "path": "docs/ux/foundation.md",
+      "commit": "7011ce429d2593951b9d99940f78ab5850f17309",
+      "sha256": "2e5f7de8a3599acd591130ead2fd879c273fa103cb1b8331f7ce8ec0b6f64a06",
+      "symbols": [
+        {
+          "needle": "### ST-002",
+          "lines": [
+            248
+          ]
+        },
+        {
+          "needle": "### ST-007",
+          "lines": [
+            293
+          ]
+        },
+        {
+          "needle": "### ST-030",
+          "lines": [
+            517
+          ]
+        },
+        {
+          "needle": "### ST-034",
+          "lines": [
+            557
+          ]
+        },
+        {
+          "needle": "### ST-045",
+          "lines": [
+            682
+          ]
+        },
+        {
+          "needle": "### ST-048",
+          "lines": [
+            712
+          ]
+        }
+      ]
+    }
+  ]
+}

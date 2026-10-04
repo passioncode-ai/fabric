@@ -1,0 +1,44 @@
+{
+  "baseline": "7011ce429d2593951b9d99940f78ab5850f17309",
+  "scope": "research-only proposed UX, no canonical UX or runtime change",
+  "commands": [
+    {
+      "command": "reports.py check docs/reports/2026-10-04-com-board-ux",
+      "exit": 0,
+      "scope": "1 report, zero errors/warnings after canonical observability tag"
+    },
+    {
+      "command": "local relative file-link, committed-source SHA256/symbol and bounded public boundary check",
+      "exit": 0,
+      "links": 25,
+      "baseline_files": 16,
+      "errors": []
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit": 0,
+      "scope": "only task-owned report and handoff staged"
+    }
+  ],
+  "not_run": [
+    "bash scripts/ci.sh fast (root owns integrated map/gate)",
+    "runtime tests",
+    "browser/prototype/native Electron",
+    "VoiceOver",
+    "live Claude/Codex COM",
+    "Telegram",
+    "migration/build/release/install",
+    "hosted CI",
+    "reports.py index (root owns one convergence publication)"
+  ],
+  "residue": {
+    "owned_worktree": "retained branch for handoff",
+    "services": 0,
+    "listeners": 0,
+    "databases": 0
+  },
+  "initial_local_check": {
+    "exit": 1,
+    "reason": "raw/checks.json link checked before this receipt existed; generated receipt then rechecked"
+  }
+}
