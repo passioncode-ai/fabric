@@ -101,6 +101,11 @@ node --check apps/desktop/test/onboarding-reason-negative-control.mjs
 node apps/desktop/test/onboarding-reason-negative-control.mjs --run
 ```
 
+Remote head943dda1943e5686ea410f5b5a7714f367c0a1592 was independently
+verified. Fresh remote sparse checkout returned all62 task files byte-equal,
+all18 native/hidden PNG hashes valid and entry links resolving. This is durable
+delivery, not integration. The receipt-only follow-up preserves all source.
+
 Root's first next task: import the scoped stylesheet and this test/evidence
 packet, reconcile its modifier-qualified launcher ownership under the existing
 claim, rebuild fresh, then check EN/RU light960 initial/footer and sidebar

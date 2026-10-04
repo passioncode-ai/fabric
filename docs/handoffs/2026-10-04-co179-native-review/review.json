@@ -118,5 +118,15 @@
     "960 initial EN/RU light single-memory form and sidebar launcher bounds",
     "sidebar normal-flow launcher remains keyboard/click reachable",
     "fresh combined source/build pins after importing CSS"
-  ]
+  ],
+  "remote_cold_delivery": {
+    "revision": "943dda1943e5686ea410f5b5a7714f367c0a1592",
+    "branch": "codex/co179-native-review-20261004",
+    "remote_branch_verified": true,
+    "fresh_remote_sparse_checkout": true,
+    "task_files_byte_equal": 62,
+    "png_hashes_valid": 18,
+    "entry_links_resolve": true,
+    "proof_tier": "durable-source-and-render-artifact-delivery-not-integration"
+  }
 }
