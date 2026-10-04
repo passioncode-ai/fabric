@@ -89,8 +89,7 @@
           "apps/desktop/src/renderer/src/components/registry.ts",
           "apps/desktop/src/renderer/src/Onboarding.test.tsx",
           "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
-          "apps/desktop/test/adoption-native-harness.mjs",
-          "docs/handoffs/p08-source-qualification"
+          "apps/desktop/test/adoption-native-harness.mjs"
         ],
         "steps": [
           "Read standing policy, canonical P-08 Now/CO-179 and the exact dossier scope; acquire actual task/resource claims before writes",
@@ -204,6 +203,9 @@
             "sha256": "df26bf5078b04db64279dbbf0b6b6abd57f82181a98b7e2a46315fda65abf717"
           }
         }
+      ],
+      "output_scope": [
+        "docs/handoffs/p08-source-qualification"
       ]
     }
   ]

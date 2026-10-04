@@ -1,7 +1,7 @@
 // #region unified-compiler-tests — docs: docs/handoffs/2026-10-04-unified-canonical-recompile.md#checks-and-integration
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, rmSync, existsSync, readdirSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, rmSync, existsSync, readdirSync, symlinkSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
@@ -121,8 +121,8 @@ function ownerSource(f) {
   const ref=path=>({path,revision:basis,sha256:createHash('sha256').update(readFileSync(join(f.root,path))).digest('hex')})
   const packet={id:'P-08.qualify-source',canonical_key:row.key,related_canonical_keys:[],basis_revision:basis,
     basis_sources:[row.path,'scripts/unified-plan.mjs'].map(ref),operation:'qualification',title:'Qualify bounded example-agent source work',
-    context:{outcome:'Assemble and qualify current bounded source work without accepting its parent',sources:[row.path,'scripts/unified-plan.mjs'],scope:['scripts/unified-plan.mjs','docs/handoffs/example-agent-qualification'],steps:['Read source','Run exact owned checks'],acceptance:['Record exact-source scoped results and unresolved gates'],risks:['Historical receipt is not current acceptance'],stop_conditions:['Stop before release or live changes'],resume:'Read current pinned source and scoped receipts'},
-    rollback:'Discard only task-owned isolated changes',authority:{kind:'source-owner-bounded-work',repository:'https://github.com/passioncode-ai/fabric',actions:['code','check','commit','push'],standing:ref('AGENTS.md'),requested_source:ref(row.path)},
+    context:{outcome:'Assemble and qualify current bounded source work without accepting its parent',sources:[row.path,'scripts/unified-plan.mjs'],scope:['scripts/unified-plan.mjs'],steps:['Read source','Run exact owned checks'],acceptance:['Record exact-source scoped results and unresolved gates'],risks:['Historical receipt is not current acceptance'],stop_conditions:['Stop before release or live changes'],resume:'Read current pinned source and scoped receipts'},
+    output_scope:['docs/handoffs/example-agent-qualification'],rollback:'Discard only task-owned isolated changes',authority:{kind:'source-owner-bounded-work',repository:'https://github.com/passioncode-ai/fabric',actions:['code','check','commit','push'],standing:ref('AGENTS.md'),requested_source:ref(row.path)},
     dependencies:[{kind:'source-input',purpose:'Current owner source',ref:ref(row.path)}],acceptance_gates:[{id:'P-08.parent',requirement:'Native/full/independent/human release gates remain separate',required_for:'parent-acceptance'}],
     impact_scope:JSON.parse(readFileSync(join(f.root,input,'impacts.json'),'utf8')).filter(i=>i.severity==='blocking'&&i.disposition==='open'&&i.targets.includes('P-08')).map(i=>({id:i.id,effect:'parent-acceptance-only',reason:'Qualification is work to investigate this gate; parent stays open',source:ref(input+'/impacts.json')}))}
   return {schema:'unified-owner-reconciliation/1',repository:'https://github.com/passioncode-ai/fabric',packets:[packet]}
@@ -188,8 +188,60 @@ test('committed owner qualification activates only its bounded leaf and keeps pa
   const graph=JSON.parse(readFileSync(join(f.root,output,'audit-graph.json'),'utf8'))
   const node=graph.nodes.find(n=>n.title===task.title)
   const cold=JSON.parse(readFileSync(join(f.root,output,'cold-packets',node.id+'.json'),'utf8'))
-  assert.deepEqual(cold.source_scope.edit_targets,source.packets[0].context.scope)
+  assert.deepEqual(cold.source_scope.edit_targets,[...source.packets[0].context.scope,...source.packets[0].output_scope])
+  assert.deepEqual(cold.source_scope.input_targets,source.packets[0].context.scope);assert.deepEqual(cold.source_scope.new_output_targets,source.packets[0].output_scope)
 }))
+test('existing directory scope cannot hide a changed descendant from basis byte contracts',()=>fixture(f=>{
+  const path='docs/example-subject/model.js';mkdirSync(dirname(join(f.root,path)),{recursive:true});writeFileSync(join(f.root,path),'export const revision = 1\n');f.commit()
+  const source=ownerSource(f);source.packets[0].context.scope=['docs/example-subject']
+  writeFileSync(join(f.root,path),'export const revision = 2\n');f.commit();publishOwner(f,source)
+  const result=f.compile();assert.notEqual(result.status,0,'changed committed directory child must not become runnable');assert(!existsSync(join(f.root,output,'plan.json')))
+}))
+test('complete immutable existing directory inventory qualifies only with every descendant byte contract',()=>fixture(f=>{
+  const paths=['docs/example-subject/model.js','docs/example-subject/nested/schema.json'];for(const path of paths){mkdirSync(dirname(join(f.root,path)),{recursive:true});writeFileSync(join(f.root,path),'{}\n')}f.commit()
+  const source=ownerSource(f),packet=source.packets[0];packet.context.scope=['docs/example-subject']
+  for(const path of paths)packet.basis_sources.push({path,revision:packet.basis_revision,sha256:createHash('sha256').update(readFileSync(join(f.root,path))).digest('hex')})
+  publishOwner(f,source);const result=f.compile();assert.equal(result.status,0,result.stderr);assert.equal(f.check().status,0,f.check().stderr)
+  const plan=JSON.parse(readFileSync(join(f.root,output,'plan.json'),'utf8'));for(const path of paths)assert(plan.sources.some(s=>s.path===path))
+  const packetView=spawnSync('node',['scripts/unified-plan.mjs','--report',output,'packet',packet.id],{cwd:f.root,encoding:'utf8'});assert.equal(packetView.status,0,packetView.stderr)
+  const view=JSON.parse(packetView.stdout);for(const path of paths)assert(view.source_pins.some(s=>s.path===path))
+  const graph=JSON.parse(readFileSync(join(f.root,output,'audit-graph.json'),'utf8'));const node=graph.nodes.find(n=>n.title===packet.title)
+  const cold=JSON.parse(readFileSync(join(f.root,output,'cold-packets',node.id+'.json'),'utf8'));for(const path of paths)assert(cold.inputs.some(s=>s.address===path&&s.commit===f.revision))
+  const next=spawnSync('node',['scripts/unified-plan.mjs','--report',output,'next'],{cwd:f.root,encoding:'utf8'});assert.equal(next.status,0,next.stderr);assert.deepEqual(JSON.parse(next.stdout).ready.map(t=>t.id),[packet.id])
+}))
+test('directory inventory rejects deleted added untracked hidden linked nonregular and excessive descendants',()=>{
+  for(const mutation of ['delete','add','untracked','ignored','hidden','link','fifo','type-change','bound'])fixture(f=>{
+    const path='docs/example-subject/model.js';mkdirSync(dirname(join(f.root,path)),{recursive:true});writeFileSync(join(f.root,path),'{}\n');f.commit()
+    const source=ownerSource(f),packet=source.packets[0];packet.context.scope=['docs/example-subject'];packet.basis_sources.push({path,revision:packet.basis_revision,sha256:createHash('sha256').update(readFileSync(join(f.root,path))).digest('hex')})
+    if(mutation==='delete')rmSync(join(f.root,path))
+    if(mutation==='add'||mutation==='untracked')writeFileSync(join(f.root,'docs/example-subject/extra.js'),'{}\n')
+    if(mutation==='ignored'){writeFileSync(join(f.root,'.gitignore'),'docs/example-subject/ignored.js\n');writeFileSync(join(f.root,'docs/example-subject/ignored.js'),'{}\n')}
+    if(mutation==='type-change'){rmSync(join(f.root,path));mkdirSync(join(f.root,path));writeFileSync(join(f.root,path,'nested.js'),'{}\n')}
+    if(mutation==='hidden')writeFileSync(join(f.root,'docs/example-subject/.hidden'),'{}\n')
+    if(mutation==='link')symlinkSync(join(f.root,'scripts/unified-plan.mjs'),join(f.root,'docs/example-subject/linked.js'))
+    if(mutation==='fifo')execFileSync('mkfifo',[join(f.root,'docs/example-subject/pipe')])
+    if(mutation==='bound')for(let i=0;i<1025;i++)writeFileSync(join(f.root,'docs/example-subject/extra-'+i),'{}\n')
+    if(mutation==='untracked'){writeFileSync(join(f.root,reconciliationPath),JSON.stringify(source));f.commit();writeFileSync(join(f.root,'docs/example-subject/untracked.js'),'{}\n')}
+    else publishOwner(f,source)
+    const result=f.compile();assert.notEqual(result.status,0,mutation);assert(!existsSync(join(f.root,output,'plan.json')),mutation)
+  })
+})
+test('new outputs require explicit absent nonoverlapping source-safe paths',()=>{
+  for(const mutation of ['implicit','existing-file','existing-directory','old-deleted','overlap','output-overlap','linked-parent','file-parent','historical-file-parent','glob'])fixture(f=>{
+    let source=ownerSource(f),packet=source.packets[0]
+    if(mutation==='implicit'){packet.context.scope.push('docs/example-new-input');packet.output_scope=[]}
+    if(mutation==='existing-file')packet.output_scope=['scripts/unified-plan.mjs']
+    if(mutation==='existing-directory')packet.output_scope=['docs/evidence']
+    if(mutation==='old-deleted'){const path='docs/example-deleted-output.json';writeFileSync(join(f.root,path),'{}\n');f.commit();source=ownerSource(f);packet=source.packets[0];rmSync(join(f.root,path));packet.output_scope=[path]}
+    if(mutation==='overlap')packet.output_scope=['scripts/unified-plan.mjs/extra']
+    if(mutation==='output-overlap')packet.output_scope=['docs/example-new-output','docs/example-new-output/nested']
+    if(mutation==='linked-parent'){symlinkSync(join(f.root,'docs/evidence'),join(f.root,'docs/example-link'));packet.output_scope=['docs/example-link/new']}
+    if(mutation==='file-parent')packet.output_scope=['AGENTS.md/new']
+    if(mutation==='historical-file-parent'){const path='docs/example-old-parent';writeFileSync(join(f.root,path),'{}\n');f.commit();source=ownerSource(f);packet=source.packets[0];rmSync(join(f.root,path));mkdirSync(join(f.root,path));packet.output_scope=[path+'/new-output']}
+    if(mutation==='glob')packet.output_scope=['docs/example-output/*']
+    publishOwner(f,source);const result=f.compile();assert.notEqual(result.status,0,mutation);assert(!existsSync(join(f.root,output,'plan.json')),mutation)
+  })
+})
 test('missing or NOT_RUN scoped acceptance holds only the bounded owner packet',()=>fixture(f=>{
   const source=ownerSource(f);source.packets[0].dependencies.push({kind:'scoped-acceptance',subject_key:source.packets[0].canonical_key,scope:'native same-build',proof_tier:'native',receipt:null});publishOwner(f,source)
   assert.equal(f.compile().status,0);assert.equal(f.check().status,0)

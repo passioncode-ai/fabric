@@ -7,6 +7,7 @@ import re
 import argparse
 import subprocess
 import shlex
+import stat
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -76,6 +77,81 @@ def exact_ref(ref, inputs):
     return raw
 
 
+def scoped_files(paths, basis):
+    """A directory is a bounded complete input inventory, never an implicit output."""
+    files = set()
+    visited = 0
+    for path in paths:
+        target = owner_path(path)
+        if not target.exists():
+            raise SystemExit('Missing reconciliation input scope; declare new outputs explicitly')
+        entries = subprocess.check_output(['git', 'ls-tree', '-rz', basis, '--', path], cwd=ROOT).split(b'\0')
+        committed = set()
+        for entry in filter(None, entries):
+            if len(entry) > 1400:
+                raise SystemExit('Oversized reconciliation scope tree entry')
+            metadata, name = entry.decode('utf8').split('\t', 1)
+            mode, kind, _ = metadata.split(' ')
+            owner_path(name)
+            if mode not in ['100644', '100755'] or kind != 'blob':
+                raise SystemExit('Nonregular reconciliation basis scope entry refused')
+            committed.add(name)
+            if len(committed) > 256:
+                raise SystemExit('Reconciliation scope inventory exceeds bound')
+        live = set()
+        pending = [target]
+        while pending:
+            item = pending.pop()
+            visited += 1
+            if visited > 1024:
+                raise SystemExit('Reconciliation scope traversal exceeds bound')
+            relative = item.relative_to(ROOT).as_posix()
+            owner_path(relative)
+            mode = item.lstat().st_mode
+            if stat.S_ISREG(mode):
+                live.add(relative)
+            elif stat.S_ISDIR(mode):
+                for child in item.iterdir():
+                    pending.append(child)
+                    if len(pending) + visited > 1024:
+                        raise SystemExit('Reconciliation scope traversal exceeds bound')
+            else:
+                raise SystemExit('Linked or nonregular reconciliation live scope entry refused')
+        if not committed or live != committed:
+            raise SystemExit('Reconciliation scope inventory differs from immutable basis')
+        files.update(live)
+        if len(files) > 256:
+            raise SystemExit('Reconciliation scope inventory exceeds bound')
+    return files
+
+
+def new_outputs(paths, input_paths, basis, revision):
+    if not isinstance(paths, list) or len(paths) > 64 or len(set(paths)) != len(paths):
+        raise SystemExit('Invalid reconciliation explicit output scope')
+    for path in paths:
+        target = owner_path(path)
+        for parent in target.parents:
+            if parent == ROOT:
+                break
+            if parent.exists() and not parent.is_dir():
+                raise SystemExit('Non-directory reconciliation output parent refused')
+        if target.exists():
+            raise SystemExit('New reconciliation output already exists in live tree')
+        for commit in [basis, revision]:
+            if subprocess.run(['git', 'cat-file', '-e', commit + ':' + path], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
+                raise SystemExit('New reconciliation output already exists in immutable tree')
+            for parent in target.parents:
+                if parent == ROOT:
+                    break
+                ancestor = parent.relative_to(ROOT).as_posix()
+                kind = subprocess.run(['git', 'cat-file', '-t', commit + ':' + ancestor], cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+                if kind.returncode == 0 and kind.stdout.strip() != b'tree':
+                    raise SystemExit('Non-directory reconciliation immutable output parent refused')
+        if any(path == other or path.startswith(other + '/') or other.startswith(path + '/') for other in input_paths + [p for p in paths if p != path]):
+            raise SystemExit('Overlapping reconciliation input or output scopes refused')
+    return paths
+
+
 def owner_packets(inventory, revision):
     path = owner_path(RECONCILIATION)
     present_at_revision = subprocess.run(['git', 'cat-file', '-e', revision + ':' + RECONCILIATION], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
@@ -91,8 +167,9 @@ def owner_packets(inventory, revision):
         raise SystemExit('Invalid or cross-owner reconciliation source')
     by_key = {row['key']: row for row in inventory['tasks']}
     tasks, used = [], set()
-    required = {'id', 'canonical_key', 'related_canonical_keys', 'basis_revision', 'basis_sources', 'operation', 'title', 'context', 'rollback', 'authority', 'dependencies', 'acceptance_gates', 'impact_scope'}
+    required = {'id', 'canonical_key', 'related_canonical_keys', 'basis_revision', 'basis_sources', 'operation', 'title', 'context', 'output_scope', 'rollback', 'authority', 'dependencies', 'acceptance_gates', 'impact_scope'}
     for packet in source['packets']:
+        packet_inputs = set()
         if not isinstance(packet, dict) or set(packet) != required:
             raise SystemExit('Reconciliation packet fields invalid; no derived status or done authority is accepted')
         row = by_key.get(packet['canonical_key'])
@@ -117,7 +194,7 @@ def owner_packets(inventory, revision):
         for ref in packet['basis_sources']:
             if ref['revision'] != basis or ref['path'] in basis_paths:
                 raise SystemExit('Reconciliation basis receipts must share one immutable revision without duplicates')
-            exact_ref(ref, inputs); basis_paths.add(ref['path'])
+            exact_ref(ref, packet_inputs); basis_paths.add(ref['path'])
         ctx = packet['context']
         fields = {'outcome', 'sources', 'scope', 'steps', 'acceptance', 'risks', 'stop_conditions', 'resume'}
         if not isinstance(ctx, dict) or set(ctx) != fields or any(not ctx[k] for k in fields) or any(not isinstance(ctx[k], list) for k in fields - {'outcome', 'resume'}):
@@ -126,7 +203,8 @@ def owner_packets(inventory, revision):
             raise SystemExit('Reconciliation context is oversized or not textual')
         for value in ctx['scope'] + ctx['sources']:
             owner_path(value)
-        required_basis = {r['path'] for r in rows} | set(ctx['sources']) | {p for p in ctx['scope'] if owner_path(p).is_file()}
+        required_basis = {r['path'] for r in rows} | set(ctx['sources']) | scoped_files(ctx['scope'], basis)
+        outputs = new_outputs(packet['output_scope'], ctx['scope'] + ctx['sources'], basis, revision)
         if not required_basis.issubset(basis_paths):
             raise SystemExit('Reconciliation basis does not cover canonical/context/current scoped files')
         authority = packet['authority']
@@ -135,7 +213,7 @@ def owner_packets(inventory, revision):
         for field, expected in [('standing', 'AGENTS.md'), ('requested_source', row['path'])]:
             if authority[field]['path'] != expected or authority[field]['revision'] != basis:
                 raise SystemExit('Reconciliation authority must bind standing AGENTS and original owner source')
-            exact_ref(authority[field], inputs)
+            exact_ref(authority[field], packet_inputs)
         if not isinstance(packet['acceptance_gates'], list) or not packet['acceptance_gates'] or any(set(gate) != {'id', 'requirement', 'required_for'} or not gate['id'] or not gate['requirement'] or gate['required_for'] != 'parent-acceptance' for gate in packet['acceptance_gates']):
             raise SystemExit('Reconciliation must retain separate parent acceptance gates without status claims')
         nonblocking = []
@@ -148,7 +226,7 @@ def owner_packets(inventory, revision):
                 raise SystemExit('Invalid or excessive reconciliation impact applicability')
             if decision['source']['path'] != impacts_path or decision['source']['revision'] != basis:
                 raise SystemExit('Impact applicability must bind the exact owning impact input')
-            exact_ref(decision['source'], inputs)
+            exact_ref(decision['source'], packet_inputs)
             impact = current_impacts.get(decision['id'])
             if not impact or impact['severity'] != 'blocking' or impact['disposition'] != 'open' or not any(r['id'] in impact['targets'] for r in rows):
                 raise SystemExit('Impact applicability cannot clear unknown or unrelated impacts')
@@ -158,13 +236,13 @@ def owner_packets(inventory, revision):
             raise SystemExit('Reconciliation dependencies must be explicit')
         for dep in packet['dependencies']:
             if dep.get('kind') == 'source-input' and set(dep) == {'kind', 'purpose', 'ref'} and dep['purpose']:
-                exact_ref(dep['ref'], inputs)
+                exact_ref(dep['ref'], packet_inputs)
             elif dep.get('kind') == 'scoped-acceptance' and set(dep) == {'kind', 'subject_key', 'scope', 'proof_tier', 'receipt'} and dep['scope'] and dep['proof_tier'] in ['source', 'focused', 'native', 'disposable', 'independent']:
                 if dep['subject_key'] not in {r['key'] for r in rows}:
                     raise SystemExit('Scoped dependency is outside declared owner identities')
                 if dep['receipt'] is None:
                     holds.append('Missing scoped acceptance: ' + dep['scope']); continue
-                receipt = json.loads(exact_ref(dep['receipt'], inputs))
+                receipt = json.loads(exact_ref(dep['receipt'], packet_inputs))
                 expected = {'schema': 'unified-scoped-receipt/1', 'repository': repo, 'subject_key': dep['subject_key'], 'basis_revision': basis, 'scope': dep['scope'], 'proof_tier': dep['proof_tier']}
                 if set(receipt) != set(expected) | {'result'} or any(receipt.get(k) != v for k, v in expected.items()) or receipt.get('result') not in ['PASS', 'FAIL', 'NOT_RUN']:
                     raise SystemExit('Reconciliation receipt has forged subject, basis, scope or proof tier')
@@ -172,8 +250,10 @@ def owner_packets(inventory, revision):
                     holds.append('Scoped acceptance ' + receipt['result'] + ': ' + dep['scope'])
             else:
                 raise SystemExit('Invalid reconciliation dependency')
+        inputs.update(packet_inputs)
         current = dict(ctx)
-        current['sources'] = list(dict.fromkeys(ctx['sources'] + [r['path'] for r in rows] + [RECONCILIATION]))
+        current['scope'] = ctx['scope'] + outputs
+        current['sources'] = list(dict.fromkeys(ctx['sources'] + sorted(packet_inputs) + [RECONCILIATION]))
         current['owner_reconciliation'] = packet
         current['owner_holds'] = holds
         current['stop_conditions'] = ctx['stop_conditions'] + ['Stop before release approval, tag, deployment, production publication or operator database mutation; this packet does not accept its canonical parent']
@@ -437,6 +517,10 @@ def main():
                 'source_scope': {'edit_targets': ctx['scope'] if t['kind'] == 'bounded-source-work' else [unit_path]},
                 'outputs': [{'path': unit_path, 'contract': 'bounded leaf or explicit refusal, not canonical completion'}],
                 'acceptance': ctx['acceptance'], 'guards': ctx['stop_conditions'], 'resume': ctx['resume']}
+        if t['kind'] == 'bounded-source-work':
+            packet = ctx['owner_reconciliation']
+            leaf['source_scope']['input_targets'] = packet['context']['scope']
+            leaf['source_scope']['new_output_targets'] = packet['output_scope']
         (out / f'{nid}.json').write_text(json.dumps(leaf, ensure_ascii=False, indent=2) + '\n')
     (output / 'audit-graph.json').write_text(json.dumps({'goal': plan['goal'], 'requirements': ['REQ-003'], 'nodes': nodes, 'edges': edges}, ensure_ascii=False, indent=2) + '\n')
     print(f'Compiled {len(lanes)} direction lanes, {len(inventory["tasks"])} source-qualified canonical rows, {len(tasks)} held/dispatch/design records, {len(sources)} revision-bound source pins into {args.output}')
