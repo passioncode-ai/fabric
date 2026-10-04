@@ -2,7 +2,7 @@
   "baseline": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
   "method": "Read-only static source audit. No browser or runtime acceptance. Explicit canonical Scenarios fields parsed only within own heading, not contaminated model unions. Existing model status is descriptive historical evidence; source line receipts identify baseline. Proposed introduction stages are design recommendations, not measured conversion. Root synthesis aligns proposed introduction stages with journey.json S0–S6; raw batch proposal remains in audit/2026-09-17-inventory.md. R0 target routes appended 2026-09-25; old pinned evidence retained, new canonical links explicitly target current documents.",
   "counts": {
-    "views": 110,
+    "views": 111,
     "families": 21,
     "each_view_exactly_once": true
   },
@@ -2570,6 +2570,41 @@
               "line": 2622,
               "status": "draft",
               "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "agent-access",
+          "route": "docs/reports/product.html#view-agent-access",
+          "title": "Доступ агентов",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-76",
+              "source": "docs/ux/screens.md:1782",
+              "explicit_scenarios": [
+                "SCN-132",
+                "SCN-133"
+              ],
+              "runtime_description": "Встроено (ADR-0115, 67a5dc42): Настройки → Доступ агентов; запросы, гранты, отказы и подключение Fabric Inbox. Живой прогон с приложением Fabric Inbox — CO-195.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-132",
+              "line": 3213,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/main/accessService.ts`, `apps/desktop/src/renderer/src/AgentAccessPanel.tsx`, `apps/desktop/test/hub-door-db.test.mjs`",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-133",
+              "line": 3236,
+              "status": "draft",
+              "coverage": "`apps/desktop/src/main/productConnect.ts`, `apps/desktop/test/hub-products.test.mjs`",
               "product": "unobserved"
             }
           ]

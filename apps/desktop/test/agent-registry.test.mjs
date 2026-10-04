@@ -210,10 +210,10 @@ test('a FIFO, a link to /dev/zero and a directory named *.json are problems, and
   execFileSync('/usr/bin/mkfifo', [path.join(h.services, 'evil-fifo.json')])
   symlinkSync('/dev/zero', path.join(h.services, 'evil-zero.json'))
   mkdirSync(path.join(h.providers, 'evil-dir.json'))
-  const script = `const { readRegistry } = await import(${JSON.stringify(SRC)});
+  const child = `const { readRegistry } = await import(${JSON.stringify(SRC)});
     const s = readRegistry({ servicesDir: ${JSON.stringify(h.services)}, providersDir: ${JSON.stringify(h.providers)} });
     console.log(JSON.stringify({ keys: s.entries.map((e) => e.key), problems: s.problems.map((p) => [path.basename(p.file), p.code]) }))`
-  const r = spawnSync(process.execPath, ['--experimental-strip-types', '--input-type=module', '-e', `import path from 'node:path'; ${script}`], { timeout: 5000, encoding: 'utf8' })
+  const r = spawnSync(process.execPath, ['--experimental-strip-types', '--input-type=module', '-e', `import path from 'node:path'; ${child}`], { timeout: 5000, encoding: 'utf8' })
   assert.equal(r.signal, null, `the registry read did not return within 5 s (${r.signal})`)
   assert.equal(r.status, 0, r.stderr)
   const out = JSON.parse(r.stdout.trim().split('\n').at(-1))
