@@ -1,0 +1,7 @@
+{
+  "scope": "existing unified research/output tree, selected compiler and test code, new handoff",
+  "files_checked": 616,
+  "offending_files": 0,
+  "literal_rules": "operator local-only file; values omitted",
+  "baseline": "484600a338f2c413333e57c09a28712b8559c401"
+}

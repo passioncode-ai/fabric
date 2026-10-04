@@ -1,0 +1,47 @@
+✔ complete packet preserves program constraints and exact leaf context (2.420917ms)
+✔ omitted canonical work cannot pass the coverage gate (0.875666ms)
+✔ changed source blocks a previously complete packet (0.96225ms)
+✔ every context source is pinned; an untargeted blocking finding is refused (0.914ms)
+✔ blocking finding stops only its affected task until explicitly resolved (0.877458ms)
+✔ cycles, missing payloads and unknown dependencies are refused (1.1405ms)
+✔ unknown impact targets, path escape and empty cold context are refused (0.75975ms)
+✔ external owner and human gate do not become runnable with a delivered message (0.567917ms)
+✔ canonical priority precedes computed downstream count; dependency requires done proof (0.663375ms)
+✔ a missing or changed completion receipt fails validation (1.175708ms)
+✔ a new blocking impact invalidates completed prerequisite satisfaction (0.567833ms)
+✔ write scope cannot escape the repo directly or through a linked parent (0.87275ms)
+✔ a broad unreviewed parent cannot be promoted to candidate by dropping dependencies (0.69125ms)
+✖ a newly declared canonical source cannot hide outside the general-plan lanes (1.241791ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 13
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55.029875
+
+✖ failing tests:
+
+test at scripts/test/unified-plan.test.mjs:123:1
+✖ a newly declared canonical source cannot hide outside the general-plan lanes (1.241791ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /canonical.*inventory|canonical.*coverage|uncovered.*COM-01/i. Input:
+
+  ''
+
+      at file://<owning-checkout>/scripts/test/unified-plan.test.mjs:129:10
+      at fixture (file://<owning-checkout>/scripts/test/unified-plan.test.mjs:29:9)
+      at TestContext.<anonymous> (file://<owning-checkout>/scripts/test/unified-plan.test.mjs:123:92)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '',
+    expected: /canonical.*inventory|canonical.*coverage|uncovered.*COM-01/i,
+    operator: 'match',
+    diff: 'simple'
+  }

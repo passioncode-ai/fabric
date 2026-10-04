@@ -1,0 +1,34 @@
+Command: PATH=<Node24.10.0 bin>:$PATH bash scripts/ci.sh fast
+Exit: 1
+Full local output SHA-256: 175edf934d0efaec3f31295c96c6e8b62feffdb5afff936a3cd647f9a1027657
+Bounded ending excerpt (shared map integration remains root-owned):
+PASS requested: broken internal link with unquoted attribute refuses; exit=1
+PASS requested: duplicate id with single attribute refuses; exit=1
+PASS requested: duplicate id with unquoted attribute refuses; exit=1
+PASS requested: source mutation plus refresh with committed iteration refuses; exit=1
+PASS requested: new uncommitted iteration refresh; exit=0
+PASS requested: new iteration check; exit=0
+PASS requested: repeat refresh of same uncommitted iteration; exit=0
+PASS requested: repeat refresh check; exit=0
+PASS requested: same uncommitted iteration refinement refresh; exit=0
+PASS requested: same iteration refined source check; exit=0
+PASS parser-regression: valid uppercase HREF to nonexistent anchor refuses; exit=1
+PASS parser-regression: quoted greater-than before broken href refuses; exit=1
+PASS parser-regression: valid single-quoted special changelog attributes refresh successfully; exit=0
+PASS publication-boundary: directory submodule projection and skill link refresh; exit=0
+PASS publication-boundary: initialized projection checks; exit=0
+PASS publication-boundary: publication-only output does not stale its own source map; exit=0
+PASS publication-boundary: uninitialized submodule keeps symlink fingerprint stable; exit=0
+
+file://<owning-checkout>/scripts/check-design-map.mjs:67
+  if ((sourceChanged || contentChanged) && attrs(previousTree, 'data-iteration').includes(iteration)) throw new Error('Changed iteration reuses the committed top entry: add a NEW top changelog entry. Repeated refresh within an uncommitted iteration is allowed.')
+                                                                                                            ^
+
+Error: Changed iteration reuses the committed top entry: add a NEW top changelog entry. Repeated refresh within an uncommitted iteration is allowed.
+    at file://<owning-checkout>/scripts/check-design-map.mjs:67:109
+    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:691:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.10.0
+[ELIFECYCLE] Command failed with exit code 1.

@@ -1,0 +1,19 @@
+Command: FABRIC_COMPILER_TEST_BASELINE=<original compiler at 484600a3> node --test --test-name-pattern="real research inputs" scripts/test/build-unified-plan.test.mjs
+Exit: 1
+Full local output SHA-256: 0a8d3ba9bc20c8ea58ffb6fb80793a05d44b5fceee2d93772bee505b04bffcb9
+Bounded excerpt; generated plan string diff omitted:
+✖ real research inputs compile all manifest sources, keep 14 COM rows held and preserve the dated input (581.194417ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 640.992
+
+✖ failing tests:
+
+test at scripts/test/build-unified-plan.test.mjs:47:1
+✖ real research inputs compile all manifest sources, keep 14 COM rows held and preserve the dated input (581.194417ms)
+  AssertionError [ERR_ASSERTION]: compiler must preserve the historical input cut

@@ -1,0 +1,40 @@
+{
+  "supported_runtime": "Node24.10.0",
+  "focused_tests": {
+    "command": "node --test scripts/test/unified-plan.test.mjs scripts/test/build-unified-plan.test.mjs",
+    "exit": 0,
+    "tests": 25,
+    "pass": 25,
+    "skip": 0
+  },
+  "actual_common_parser_fixture": {
+    "canonical_keys": 557,
+    "COM_keys": 14,
+    "source_pins": 70,
+    "derived_records": 894,
+    "ready": 0
+  },
+  "before_commit_fast": {
+    "exit": 1,
+    "gate": "shared design-map iteration change; root-owned integration"
+  },
+  "regions": {
+    "exit": 0,
+    "markers": 107
+  },
+  "python_syntax": {
+    "exit": 0
+  },
+  "diff_check": {
+    "exit": 0
+  },
+  "not_run": [
+    "hosted CI",
+    "product runtime",
+    "native acceptance",
+    "deployment",
+    "workspace publication"
+  ],
+  "guarded_register_edits": [],
+  "task_owned_leases_taken": []
+}
