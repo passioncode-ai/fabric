@@ -1,7 +1,8 @@
 // #region unified-compiler-tests — docs: docs/handoffs/2026-10-04-unified-canonical-recompile.md#checks-and-integration
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, rmSync, existsSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, rmSync, existsSync, readdirSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -108,5 +109,48 @@ test('missing or locally changed pinned common parser stops compilation',()=>fix
   rmSync(join(f.root,'workspace'),{recursive:true,force:true})
   const missing=f.compile();assert.notEqual(missing.status,0);assert.match(missing.stderr,/submodule update --init workspace/)
   assert(!existsSync(join(f.root,output,'plan.json')))
+}))
+test('production parity refuses authority forgeries across every dispatching CLI verb',()=>fixture(f=>{
+  const compile=f.compile();assert.equal(compile.status,0,compile.stderr)
+  const file=join(f.root,output,'plan.json'),original=JSON.parse(readFileSync(file,'utf8'))
+  const mutants=[
+    ['historical-proof-repromoted-done',p=>{p.tasks.find(t=>t.id==='UP-01').dispatch='done'}],
+    ['historical-proof-rebound-to-current',p=>{const t=p.tasks.find(t=>t.id==='UP-01');t.dispatch='done';t.evidence.source_revision=f.revision;t.evidence.scope='Current release acceptance'}],
+    ['historical-proof-repromoted-candidate',p=>{const t=p.tasks.find(t=>t.id==='UP-01');t.id='UP-01.prepare';t.kind='design-review';t.dispatch='candidate'}],
+    ['historical-markers-deleted',p=>{for(const t of p.tasks){delete t.historical_dispatch;delete t.historical_evidence;delete t.context.research_provenance}delete p.research_source_revision;delete p.reconciliation}],
+    ['dependency-payload-relabelled',p=>{const t=p.tasks.find(t=>t.depends_on.length);t.depends_on[0].carries='Forged owner authority'}],
+    ['bounded-scope-relabelled',p=>{p.tasks[0].context.scope=['docs/forged-owner-acceptance.json']}],
+  ]
+  for(const [name,mutate]of mutants){
+    const forged=structuredClone(original);mutate(forged);writeFileSync(file,JSON.stringify(forged))
+    for(const args of [['check'],['next'],['packet','UP-01'],['impacts','UP-01']]){
+      const r=spawnSync('node',['scripts/unified-plan.mjs','--report',output,...args],{cwd:f.root,encoding:'utf8'})
+      assert.notEqual(r.status,0,name+' '+args.join(' '));assert.match(r.stderr,/compiled graph differs from committed inputs/,name);assert.equal(r.stdout,'',name)
+    }
+  }
+  writeFileSync(file,JSON.stringify(original));assert.equal(f.check().status,0,f.check().stderr)
+}))
+test('emit-plan reconstructs exact production graph without writing or overwriting any cut',()=>fixture(f=>{
+  assert.equal(f.compile().status,0)
+  const original=readFileSync(join(f.root,output,'plan.json'),'utf8'),historical=readFileSync(join(f.root,input,'plan.json'),'utf8')
+  const snapshot=()=>{
+    const files=[]
+    const walk=dir=>{for(const entry of readdirSync(join(f.root,dir),{withFileTypes:true})){
+      if(entry.name==='.git')continue
+      const path=join(dir,entry.name)
+      if(entry.isDirectory())walk(path)
+      else if(entry.isFile())files.push([path,createHash('sha256').update(readFileSync(join(f.root,path))).digest('hex')])
+    }}
+    walk('');return files.sort((a,b)=>a[0].localeCompare(b[0],'en'))
+  }
+  const before=snapshot()
+  for(const selected of [output,input,'docs/reports/never-created']){
+    const r=spawnSync('python3',['scripts/build-unified-plan.py','--emit-plan','--source-revision',f.revision,'--output',selected,'--privacy-deny-file',f.deny],{cwd:f.root,encoding:'utf8',maxBuffer:32*1024*1024})
+    assert.equal(r.status,0,r.stderr);assert.deepEqual(JSON.parse(r.stdout),JSON.parse(original))
+  }
+  assert.equal(readFileSync(join(f.root,output,'plan.json'),'utf8'),original)
+  assert.equal(readFileSync(join(f.root,input,'plan.json'),'utf8'),historical)
+  assert(!existsSync(join(f.root,'docs/reports/never-created')))
+  assert.deepEqual(snapshot(),before,'emit-plan must not create, remove or modify repository files')
 }))
 // #endregion unified-compiler-tests

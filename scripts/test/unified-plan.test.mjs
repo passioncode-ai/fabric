@@ -12,7 +12,7 @@ import { validatePlan as productionValidatePlan, frontier, taskPacket, selectedR
 
 const digest = s => createHash('sha256').update(s).digest('hex')
 // The unit boundary receives a parser response. Actual pinned common-parser and
-// compiler integration runs separately in build-unified-plan.test.mjs after
+// compiler/production-parity integration runs separately in build-unified-plan.test.mjs after
 // workspace initialization; these fixtures need no private-repository access.
 function fixtureInventory(root,revision) {
   const repository='https://github.com/passioncode-ai/fabric'
@@ -25,7 +25,7 @@ function fixtureInventory(root,revision) {
   return {schema:1,scope:'unit parser response',repository,commit:revision,declarations:manifest.sources,
     sources:paths.map(path=>({path,sha256:digest(readFileSync(join(root,path))),commit:revision})),tasks,contexts:[]}
 }
-const validatePlan=(plan,root)=>productionValidatePlan(plan,root,{inventoryReader:fixtureInventory})
+const validatePlan=(plan,root)=>productionValidatePlan(plan,root,{inventoryReader:fixtureInventory,expectedPlanReader:null})
 function fixture(run) {
   const root = mkdtempSync(join(tmpdir(), 'fabric-unified-plan-'))
   const source = '<!-- general-plan:begin -->\n| 1 · Start | outcome | none | P-01 |\n<!-- general-plan:end -->\n\n| ID | Packet | Status |\n|---|---|---|\n| P-01 | Start | open |\n'

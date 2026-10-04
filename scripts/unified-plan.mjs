@@ -2,6 +2,7 @@
 import { readFileSync, existsSync, realpathSync } from 'node:fs'
 import { resolve, relative, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { canonicalInventory, sourceRevisionProblems, publicInputProblems } from './unified-canonical-sources.mjs'
 
@@ -26,7 +27,7 @@ export function canonicalLanes(text) {
     return { number: Number(cells[1].match(/^\d+/)[0]), canonical_ids: cells.at(-2).split(',').map(x => x.trim()) }
   })
 }
-export function validatePlan(plan, root, { inventoryReader = canonicalInventory } = {}) {
+export function validatePlan(plan, root, { inventoryReader = canonicalInventory, expectedPlanReader = expectedPlanFromSources } = {}) {
   const problems = []
   if (plan.schema !== 1) problems.push('unsupported schema')
   if (!/^[a-f0-9]{40}$/.test(plan.baseline ?? '')) problems.push('missing full source revision')
@@ -117,7 +118,20 @@ export function validatePlan(plan, root, { inventoryReader = canonicalInventory 
     if (impact.disposition !== 'open' && !present(impact.resolution)) problems.push(`${impact.id}: disposition without resolution`)
     for (const id of impact.targets ?? []) if (!ids.has(id) && !canon.has(id)) problems.push(`${impact.id}: unknown impact target ${id}`)
   }
+  if (expectedPlanReader) {
+    try {
+      const expected = expectedPlanReader(root, plan.baseline)
+      if (JSON.stringify(plan) !== JSON.stringify(expected)) problems.push('compiled graph differs from committed inputs; regenerate rather than edit derived authority')
+    } catch (e) { problems.push(`expected graph reconstruction: ${e.message}`) }
+  }
   return [...new Set(problems)].sort()
+}
+export function expectedPlanFromSources(root, revision, privacyFile) {
+  const args = ['scripts/build-unified-plan.py', '--emit-plan', '--source-revision', revision]
+  if (privacyFile) args.push('--privacy-deny-file', privacyFile)
+  const result = spawnSync('python3', args, {cwd:root, encoding:'utf8', maxBuffer:32 * 1024 * 1024})
+  if (result.error || result.status !== 0) throw new Error(result.error?.message ?? result.stderr.trim() ?? 'compiler refused committed inputs')
+  return JSON.parse(result.stdout)
 }
 function descendants(tasks, id, seen = new Set()) {
   for (const t of tasks) if ((t.depends_on ?? []).some(x => x.id === id) && !seen.has(t.id)) { seen.add(t.id); descendants(tasks, t.id, seen) }
@@ -170,7 +184,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       const deny = privacyFile ? JSON.parse(readFileSync(privacyFile,'utf8')) : []
       const privacy = publicInputProblems([{path:`${report}/plan.json`,bytes:planBytes},...(plan.sources??[]).filter(s=>safePath(s.path)&&existsSync(resolve(root,s.path))).map(s=>({path:s.path,bytes:readFileSync(resolve(root,s.path))}))],deny)
       if (privacy.length) throw new Error(privacy.join('\n'))
-      const problems = validatePlan(plan, root)
+      const problems = validatePlan(plan, root, {expectedPlanReader:(owner, pin)=>expectedPlanFromSources(owner, pin, privacyFile)})
       if (problems.length) { console.error(problems.join('\n')); process.exitCode = 1 }
       else if (verb === 'check') console.log(`PASS: ${plan.lanes.length} lanes, ${plan.tasks.length} packets; sources, coverage, dependencies and impacts valid`)
       else if (verb === 'next') console.log(JSON.stringify(frontier(plan), null, 2))

@@ -1,0 +1,36 @@
+✔ real research inputs compile all manifest sources, keep 14 COM rows held and preserve the dated input (10378.617334ms)
+ℹ {"canonical_rows":557,"COM_rows":14,"source_pins":70,"derived_records":894,"ready":0}
+✔ a changed canonical source cannot be assigned the old immutable revision (884.36425ms)
+✔ private input sentinel is refused before writing and never echoed into diagnostics (1448.18125ms)
+✔ private metadata remains in its owning source and cannot be copied through a full research packet (1464.353833ms)
+✔ recompilation refuses to overwrite an existing cut or the historical input directory (479.227583ms)
+✔ missing or locally changed pinned common parser stops compilation (592.179458ms)
+✔ production parity refuses authority forgeries across every dispatching CLI verb (52560.322709ms)
+✔ emit-plan reconstructs exact production graph without writing or overwriting any cut (5510.941125ms)
+✔ complete packet preserves program constraints and exact leaf context (82.421834ms)
+✔ omitted canonical work cannot pass the coverage gate (75.081458ms)
+✔ changed source blocks a previously complete packet (70.586834ms)
+✔ every context source is pinned; an untargeted blocking finding is refused (77.495ms)
+✔ blocking finding stops only its affected task until explicitly resolved (58.395375ms)
+✔ cycles, missing payloads and unknown dependencies are refused (103.322709ms)
+✔ unknown impact targets, path escape and empty cold context are refused (66.595459ms)
+✔ external owner and human gate do not become runnable with a delivered message (52.84725ms)
+✔ canonical priority precedes computed downstream count; dependency requires done proof (51.9195ms)
+✔ a missing or changed completion receipt fails validation (97.171ms)
+✔ a new blocking impact invalidates completed prerequisite satisfaction (52.833791ms)
+✔ write scope cannot escape the repo directly or through a linked parent (81.011541ms)
+✔ a broad unreviewed parent cannot be promoted to candidate by dropping dependencies (84.280334ms)
+✔ a newly declared canonical source cannot hide outside the general-plan lanes (74.118416ms)
+✔ source pins cannot substitute a different or forged immutable commit (90.298166ms)
+✔ identical IDs in different canonical files retain both owner identities (192.207708ms)
+✔ held canonical source references cannot become executable by removing dependencies (80.159084ms)
+✔ one current pointer selects only a report path and explicit selection stays reproducible (62.547833ms)
+✔ privacy diagnostics redact matching source paths without echoing a private literal (0.377208ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 73388.509625
