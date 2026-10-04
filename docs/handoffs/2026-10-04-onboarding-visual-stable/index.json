@@ -1,0 +1,753 @@
+{
+  "tier": "source-bound-hidden-test-host-rendering-not-native-UI-acceptance",
+  "captures": [
+    {
+      "id": "before-balanced-en-640x900",
+      "mode": "balanced",
+      "locale": "en",
+      "viewport": [
+        640,
+        900
+      ],
+      "source_revision": "b9515579102f5d5fd2c3028e38ba79e1ce54de3c",
+      "capture": {
+        "file": "page.png",
+        "sha256": "f60b2097023fa9efcae3caf9d2d2e360e0942fc8b010d592fbd00adedb198d5a",
+        "bytes": 158691,
+        "pixels": {
+          "width": 1280,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-qfMwTy",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "before-balanced-en-640x900.json",
+      "image": "before-balanced-en-640x900.png",
+      "main_geometry": {
+        "bottom": 1142.7109375,
+        "clientHeight": 978,
+        "scrollHeight": 978,
+        "clientWidth": 640,
+        "scrollWidth": 640
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "before-balanced-en-960x900",
+      "mode": "balanced",
+      "locale": "en",
+      "viewport": [
+        960,
+        900
+      ],
+      "source_revision": "b9515579102f5d5fd2c3028e38ba79e1ce54de3c",
+      "capture": {
+        "file": "page.png",
+        "sha256": "61070b50955cf3154a3ac73d9a6c3147bfe62e2c62df2f62c310ef1c4c60e056",
+        "bytes": 211621,
+        "pixels": {
+          "width": 1920,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-5PfqmC",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "before-balanced-en-960x900.json",
+      "image": "before-balanced-en-960x900.png",
+      "main_geometry": {
+        "bottom": 900,
+        "clientHeight": 855,
+        "scrollHeight": 978,
+        "clientWidth": 768,
+        "scrollWidth": 768
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "before-balanced-en-1440x900",
+      "mode": "balanced",
+      "locale": "en",
+      "viewport": [
+        1440,
+        900
+      ],
+      "source_revision": "b9515579102f5d5fd2c3028e38ba79e1ce54de3c",
+      "capture": {
+        "file": "page.png",
+        "sha256": "eeb53672210f582f26d37cc86d1b0406412b2880961d88f5355a608125612e53",
+        "bytes": 222115,
+        "pixels": {
+          "width": 2880,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-kUkS0f",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "before-balanced-en-1440x900.json",
+      "image": "before-balanced-en-1440x900.png",
+      "main_geometry": {
+        "bottom": 900,
+        "clientHeight": 855,
+        "scrollHeight": 992,
+        "clientWidth": 1248,
+        "scrollWidth": 1248
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "before-balanced-ru-640x900",
+      "mode": "balanced",
+      "locale": "ru",
+      "viewport": [
+        640,
+        900
+      ],
+      "source_revision": "b9515579102f5d5fd2c3028e38ba79e1ce54de3c",
+      "capture": {
+        "file": "page.png",
+        "sha256": "479a2f6867e9a88cc446311fc9479a04d2acea3408c1bb1d0d8871f8fc1dd135",
+        "bytes": 160652,
+        "pixels": {
+          "width": 1280,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-3qLw0c",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "before-balanced-ru-640x900.json",
+      "image": "before-balanced-ru-640x900.png",
+      "main_geometry": {
+        "bottom": 1165.7421875,
+        "clientHeight": 1001,
+        "scrollHeight": 1001,
+        "clientWidth": 640,
+        "scrollWidth": 640
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "before-balanced-ru-960x900",
+      "mode": "balanced",
+      "locale": "ru",
+      "viewport": [
+        960,
+        900
+      ],
+      "source_revision": "b9515579102f5d5fd2c3028e38ba79e1ce54de3c",
+      "capture": {
+        "file": "page.png",
+        "sha256": "629ce5adfdb708f2cead78d527ced330b0e620c02e394c607d56d818b48b445c",
+        "bytes": 222428,
+        "pixels": {
+          "width": 1920,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-os6cO9",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "before-balanced-ru-960x900.json",
+      "image": "before-balanced-ru-960x900.png",
+      "main_geometry": {
+        "bottom": 900,
+        "clientHeight": 855,
+        "scrollHeight": 978,
+        "clientWidth": 768,
+        "scrollWidth": 768
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "before-balanced-ru-1440x900",
+      "mode": "balanced",
+      "locale": "ru",
+      "viewport": [
+        1440,
+        900
+      ],
+      "source_revision": "b9515579102f5d5fd2c3028e38ba79e1ce54de3c",
+      "capture": {
+        "file": "page.png",
+        "sha256": "46db6da8231cbcf701dcc535a37d15d0114c1c66cd7e410de04e9ccc03f0c8b1",
+        "bytes": 233031,
+        "pixels": {
+          "width": 2880,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-YJ6E8u",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "before-balanced-ru-1440x900.json",
+      "image": "before-balanced-ru-1440x900.png",
+      "main_geometry": {
+        "bottom": 900,
+        "clientHeight": 855,
+        "scrollHeight": 992,
+        "clientWidth": 1248,
+        "scrollWidth": 1248
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "before-long-repos-en-760x1000",
+      "mode": "long-repos",
+      "locale": "en",
+      "viewport": [
+        760,
+        1000
+      ],
+      "source_revision": "b9515579102f5d5fd2c3028e38ba79e1ce54de3c",
+      "capture": {
+        "file": "page.png",
+        "sha256": "50085aa633bcd078a55e038c73c353ed961d8048227f6ca8240923a494868218",
+        "bytes": 223268,
+        "pixels": {
+          "width": 1520,
+          "height": 2000
+        },
+        "configuredContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "actualContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-KMIRKV",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "before-long-repos-en-760x1000.json",
+      "image": "before-long-repos-en-760x1000.png",
+      "main_geometry": {
+        "bottom": 1222.53125,
+        "clientHeight": 1058,
+        "scrollHeight": 1058,
+        "clientWidth": 760,
+        "scrollWidth": 760
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "before-long-repos-ru-760x1000",
+      "mode": "long-repos",
+      "locale": "ru",
+      "viewport": [
+        760,
+        1000
+      ],
+      "source_revision": "b9515579102f5d5fd2c3028e38ba79e1ce54de3c",
+      "capture": {
+        "file": "page.png",
+        "sha256": "916bb5201c5b8200425e98555a845c44026d7caca63047d2450578bf7fcea0f6",
+        "bytes": 229526,
+        "pixels": {
+          "width": 1520,
+          "height": 2000
+        },
+        "configuredContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "actualContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-OuRyVI",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "before-long-repos-ru-760x1000.json",
+      "image": "before-long-repos-ru-760x1000.png",
+      "main_geometry": {
+        "bottom": 1222.53125,
+        "clientHeight": 1058,
+        "scrollHeight": 1058,
+        "clientWidth": 760,
+        "scrollWidth": 760
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "after-balanced-en-640x900",
+      "mode": "balanced",
+      "locale": "en",
+      "viewport": [
+        640,
+        900
+      ],
+      "source_revision": "65b1dd25ba1360da0da34b5d9c92885952c9fbe7",
+      "capture": {
+        "file": "page.png",
+        "sha256": "059b4cd84110fc389690dccdb1641e96b5265fbb43f208c1c87cddcec90a69fe",
+        "bytes": 156940,
+        "pixels": {
+          "width": 1280,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-1nJ8Wn",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "after-balanced-en-640x900.json",
+      "image": "after-balanced-en-640x900.png",
+      "main_geometry": {
+        "bottom": 900,
+        "clientHeight": 735,
+        "scrollHeight": 1070,
+        "clientWidth": 640,
+        "scrollWidth": 640
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "after-balanced-en-960x900",
+      "mode": "balanced",
+      "locale": "en",
+      "viewport": [
+        960,
+        900
+      ],
+      "source_revision": "65b1dd25ba1360da0da34b5d9c92885952c9fbe7",
+      "capture": {
+        "file": "page.png",
+        "sha256": "92baa69f7db653b2158231248878a371fec4d3f5abbf1b1ec189055d9d158c76",
+        "bytes": 207435,
+        "pixels": {
+          "width": 1920,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-wVyssT",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "after-balanced-en-960x900.json",
+      "image": "after-balanced-en-960x900.png",
+      "main_geometry": {
+        "bottom": 900,
+        "clientHeight": 855,
+        "scrollHeight": 1070,
+        "clientWidth": 768,
+        "scrollWidth": 768
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "after-balanced-en-1440x900",
+      "mode": "balanced",
+      "locale": "en",
+      "viewport": [
+        1440,
+        900
+      ],
+      "source_revision": "65b1dd25ba1360da0da34b5d9c92885952c9fbe7",
+      "capture": {
+        "file": "page.png",
+        "sha256": "630338f7e302e7c63c2b5b15536cc900fd3e85c1030314955e190c16f8043608",
+        "bytes": 213975,
+        "pixels": {
+          "width": 2880,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-U1nVGu",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "after-balanced-en-1440x900.json",
+      "image": "after-balanced-en-1440x900.png",
+      "main_geometry": {
+        "bottom": 900,
+        "clientHeight": 855,
+        "scrollHeight": 1084,
+        "clientWidth": 1248,
+        "scrollWidth": 1248
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "after-balanced-ru-640x900",
+      "mode": "balanced",
+      "locale": "ru",
+      "viewport": [
+        640,
+        900
+      ],
+      "source_revision": "65b1dd25ba1360da0da34b5d9c92885952c9fbe7",
+      "capture": {
+        "file": "page.png",
+        "sha256": "99c09f7e7d5d3664e3142871f98e138654b6018c013bf6825f218a97afaa18e8",
+        "bytes": 150733,
+        "pixels": {
+          "width": 1280,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-7g5M5P",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "after-balanced-ru-640x900.json",
+      "image": "after-balanced-ru-640x900.png",
+      "main_geometry": {
+        "bottom": 900,
+        "clientHeight": 735,
+        "scrollHeight": 1097,
+        "clientWidth": 640,
+        "scrollWidth": 640
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "after-balanced-ru-960x900",
+      "mode": "balanced",
+      "locale": "ru",
+      "viewport": [
+        960,
+        900
+      ],
+      "source_revision": "65b1dd25ba1360da0da34b5d9c92885952c9fbe7",
+      "capture": {
+        "file": "page.png",
+        "sha256": "d816fe15117db3dda0a5a2184d5c994d4a6b2dbb4a569e97b6878e405b4bb0e9",
+        "bytes": 217259,
+        "pixels": {
+          "width": 1920,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-jTzQO7",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "after-balanced-ru-960x900.json",
+      "image": "after-balanced-ru-960x900.png",
+      "main_geometry": {
+        "bottom": 900,
+        "clientHeight": 855,
+        "scrollHeight": 1070,
+        "clientWidth": 768,
+        "scrollWidth": 768
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "after-balanced-ru-1440x900",
+      "mode": "balanced",
+      "locale": "ru",
+      "viewport": [
+        1440,
+        900
+      ],
+      "source_revision": "65b1dd25ba1360da0da34b5d9c92885952c9fbe7",
+      "capture": {
+        "file": "page.png",
+        "sha256": "9e0f032d51b9036a0a8816d9b5a8a07dbd5e0b0d3d89cc70340d6eac2ec060ec",
+        "bytes": 223599,
+        "pixels": {
+          "width": 2880,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-wTup0J",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "after-balanced-ru-1440x900.json",
+      "image": "after-balanced-ru-1440x900.png",
+      "main_geometry": {
+        "bottom": 900,
+        "clientHeight": 855,
+        "scrollHeight": 1084,
+        "clientWidth": 1248,
+        "scrollWidth": 1248
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "after-long-repos-en-760x1000",
+      "mode": "long-repos",
+      "locale": "en",
+      "viewport": [
+        760,
+        1000
+      ],
+      "source_revision": "65b1dd25ba1360da0da34b5d9c92885952c9fbe7",
+      "capture": {
+        "file": "page.png",
+        "sha256": "b123facd8db97e5e205c4fc1639119c3201b6006be43a62a0fd37cbc98886bbb",
+        "bytes": 217878,
+        "pixels": {
+          "width": 1520,
+          "height": 2000
+        },
+        "configuredContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "actualContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-R3EyTH",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "after-long-repos-en-760x1000.json",
+      "image": "after-long-repos-en-760x1000.png",
+      "main_geometry": {
+        "bottom": 1000,
+        "clientHeight": 835,
+        "scrollHeight": 1152,
+        "clientWidth": 760,
+        "scrollWidth": 760
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    },
+    {
+      "id": "after-long-repos-ru-760x1000",
+      "mode": "long-repos",
+      "locale": "ru",
+      "viewport": [
+        760,
+        1000
+      ],
+      "source_revision": "65b1dd25ba1360da0da34b5d9c92885952c9fbe7",
+      "capture": {
+        "file": "page.png",
+        "sha256": "fcd249a33baa398ef961de5aa867add06ebd2c79554a441184b7bb85e84bfb34",
+        "bytes": 222223,
+        "pixels": {
+          "width": 1520,
+          "height": 2000
+        },
+        "configuredContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "actualContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "stable exact seeded form before synthetic bridge probes"
+      },
+      "boundary_equal": true,
+      "fixture_ownership_id": "fabric-co179-fixture-b6NSIm",
+      "host_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+      "receipt": "after-long-repos-ru-760x1000.json",
+      "image": "after-long-repos-ru-760x1000.png",
+      "main_geometry": {
+        "bottom": 1000,
+        "clientHeight": 835,
+        "scrollHeight": 1152,
+        "clientWidth": 760,
+        "scrollWidth": 760
+      },
+      "pixel_review": {
+        "inspected": true,
+        "visible_surface": "Onboarding with Fixture one and two draft tabs",
+        "acceptance_tier": "initial rendered viewport only"
+      }
+    }
+  ],
+  "review": {
+    "inspected_pngs": 16,
+    "valid_pairs": 8,
+    "source_delta_exactly": [
+      "renderer/src/Onboarding.launch.css",
+      "renderer/src/Onboarding.tsx"
+    ],
+    "capture_boundaries_equal": 16,
+    "candidate_scroll_extent_present": 8,
+    "native_interaction_acceptance": "NOT_RUN by author",
+    "current_candidate_revision": "65b1dd25ba1360da0da34b5d9c92885952c9fbe7"
+  }
+}

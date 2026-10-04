@@ -80,8 +80,9 @@ new isolated sheet; token usage and containment require a separate source review
 
 Candidate source authored. Exact comparison with baseline after removing the
 single CSS import and reverting the root class is byte-equal: no executable
-form code or product text changed. All 25 CSS selector groups are contained by
-the modifier. The local type/spacing declaration audit passed; all type and
+form code or product text changed. Initial source has 25 modifier-contained CSS
+selector groups; the measured correction adds three modifier-qualified ancestor
+groups (28 total), affecting only the workbench containing this form. The local type/spacing declaration audit passed; all type and
 nonzero spacing derive from existing aliases. Native focus rules are inherited
 and not overridden; focus/VoiceOver behavior still requires native acceptance.
 
@@ -157,25 +158,79 @@ use exact fixture host `991524a368158a063a99c048685b246573971f34` and fresh
 fixtures. Both PNGs were inspected and show the expected actual form. Geometry
 **disproves** the suspected horizontal lede overflow: all measured document,
 main, content, form and row scroll widths equal their client widths; the lede's
-right edge is728 within the760 client. No horizontal wrapping patch is justified.
+right edge is 728 within the 760 client. No horizontal wrapping patch is justified.
 
 It instead exposes an existing narrow-layout scroll containment defect. At the
 existing <=768 launch breakpoint, the workbench becomes `display:block`.
 The real `.app-main` grows with content rather than occupying the remaining
-window: baseline y164.78125/height1057.75/bottom1222.53125; initial candidate
-y164.78125/height1152.0625/bottom1316.84375, against1000 client height. Its
+window: baseline y 164.78125 / height 1057.75 / bottom 1222.53125; initial candidate
+y 164.78125 / height 1152.0625 / bottom 1316.84375, against 1000 client height. Its
 scrollHeight equals clientHeight, so the extra content does not create a scroll
 extent inside that intended scroller. The root clips its overflow. This prevents
 the required lower controls from being reached at that width.
 
-Root authorized bounded correction. Before editing: retain the existing768
+Root authorized bounded correction. Before editing: retain the existing 768
 breakpoint, and only for a workbench containing `.onboarding-launch`, use a
-column flex frame, fixed-size sidebar region and flexible/min-height0 app-main.
+column flex frame, fixed-size sidebar region and flexible/min-height 0 app-main.
 The existing `.app-main` remains the sole scroller. No global launch/theme rule,
 native control, executable form logic, copy or canonical map is changed. Verify
 actual resulting main bounds/scroll extent using the hardened state-boundary
 host, repeat the same matrix and inspect real PNGs. Initial receipts remain
 historical; root independently accepts native interaction after convergence.
+
+## Final stable rendering — author delivery, native acceptance held
+
+Correction source is `65b1dd25ba1360da0da34b5d9c92885952c9fbe7`.
+The repeated focused suite passes 17/17 (6.38s); typecheck, fresh build,
+design, 114 code-region references and diff whitespace checks exit 0. Production
+source remains frozen. The ancestor correction uses the existing <=768
+breakpoint and only the workbench containing `.onboarding-launch`.
+
+[Stable comparison entry](2026-10-04-onboarding-visual-stable/README.md)
+links all eight valid before/after pairs and full receipts. All 16 actual PNGs
+were personally viewed and show the seeded Onboarding form and two draft tabs.
+Host files are immutable `4df3079e01dd3493bf8ae302549de603257f4a26`;
+the fixture owner's later receipt-only b951 commit has identical host bytes.
+Each capture requires the exact configured form and unchanged geometry for at
+least 500ms, a paint boundary before/after capture and equal before/after state.
+The receipts' `observed.initial` equals that capture-boundary snapshot. All
+16 PNG hashes, client dimensions and boundaries were independently checked.
+Across all eight pairs, production source pins differ in exactly Onboarding.tsx
+and the new local stylesheet; App source and other production files remain
+at the ff7 baseline. This is independent of root's later draft-recovery fix.
+
+Measured corrected `.app-main` ends at the viewport in all eight candidate
+cases and has scrollHeight greater than clientHeight. At RU640 its bounds are
+bottom 900, clientHeight 735, scrollHeight 1097; at RU long-path760, bottom1000,
+clientHeight835, scrollHeight1152. All measured scroll widths equal client
+widths. The full synthetic path and Remove button visibly coexist in both
+long-path candidates. Only the initial viewport was captured: actual native
+scrolling to lower controls, keyboard/AX/VoiceOver, 200% text, busy/refusal and
+left-on-disk state rendering remain for independent acceptance.
+
+The extra corrected diagnostic PNG from host991 is retained in the geometry
+index as **INVALID paired visual evidence**: it shows EstateHome while the later
+geometry shows Onboarding. Its geometry helped diagnose the scroll frame;
+it is not a stable before/after proof. Historical d454/07b and991 artifacts
+are preserved unchanged, with review outcomes, rather than overwritten.
+
+Import the complete task-owned chain in order:
+
+1. `d454dc7dd6e0774281e8ad4653d00e43c8415ebe` — local visual source/handoff.
+2. `08432cba75a1e1627ae60945d58ce906df17bb8c` — historical initial captures.
+3. `65b1dd25ba1360da0da34b5d9c92885952c9fbe7` — measured narrow scroll repair.
+4. Subsequent evidence-only commit(s) at this branch head — stable matrix and
+   explicit invalid historical diagnostic receipt; no further source edits.
+
+Root's first integration task is to combine this full chain with the fixture
+owner's full host chain (07b →991 →4df, b951 receipts), root-owned corrupt/late
+hydrate draft recovery and the pre-existing defaultAgent hint association fix.
+Root must claim and reconcile canonical scenarios/screens/map/modifier registry,
+then rebuild fresh and bind evidence to the combined source. Root owns native
+CUA scrolling, keyboard/AX checks, the required folder/busy/refusal/notice states,
+AD02 acceptance and any CO-179 closure decision. Existing author images cannot
+attest that changed combined build. No canonical closure, release, installation
+or production userData change is asserted here.
 
 Root's exact next task is to combine the final pushed candidate
 with the independently pushed bounded fixture, build fresh artifacts, perform
