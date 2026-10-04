@@ -1,0 +1,237 @@
+{
+  "case_format": "fabric-research-acceptance-vectors/1",
+  "execution": "NOT_RUN: design expectations; no COM implementation under test",
+  "cases": [
+    {
+      "id": "N01",
+      "precondition": "Installed or configured without explicit enrollment",
+      "action": "Attempt poll/claim",
+      "required_observation": "Refuse consumption; no enrollment/probe/request ACK",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N02",
+      "precondition": "Hook definition untrusted",
+      "action": "Start first headless turn",
+      "required_observation": "Visible untrusted/skipped classification; no COM bootstrap success",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N03",
+      "precondition": "Definition hash/cwd/trust revision changes after discovery",
+      "action": "Start/resume or replace thread",
+      "required_observation": "Revalidate current trust; cached grant cannot authorize changed definition",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N04",
+      "precondition": "Startup API not ready",
+      "action": "Run bounded hook then reconnect",
+      "required_observation": "Deferred-catch-up; pending intent retained, no fake ACK/cursor advance",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N05",
+      "precondition": "Board tool lacks actual permission or negotiation",
+      "action": "Enroll/claim",
+      "required_observation": "Typed unsupported/refused/deferred; thoughts or schema listing not permission",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N06",
+      "precondition": "PID/provider/toolname supplied by client or reused PID",
+      "action": "Enroll or assert managed provenance",
+      "required_observation": "Authorized external principal may remain asserted; forged managed provenance refused",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N07",
+      "precondition": "Two Projects with distinct participant grants",
+      "action": "Read body/search/count/cursor/facets",
+      "required_observation": "No cross-Project content, names, totals, cursor or filter leakage",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N08",
+      "precondition": "Disk/checkpoint write fails after response",
+      "action": "Advance cursor and retry",
+      "required_observation": "Cursor unchanged until durable checkpoint; idempotent catch-up without invented success",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N09",
+      "precondition": "Cancellation while poll/backoff active",
+      "action": "Stop consumer",
+      "required_observation": "Bounded stop; no new claim; pending state preserved",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N10",
+      "precondition": "API timeout/unreachable",
+      "action": "Poll queue",
+      "required_observation": "Read uncertainty, not empty queue; jitter/backoff bounded",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N11",
+      "precondition": "Stored/PTY-written/queued or helper heartbeat only",
+      "action": "Mark accepted/completed",
+      "required_observation": "No request ACK, attention or completion inferred",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N12",
+      "precondition": "Crash/kill without end hook",
+      "action": "Recover responder",
+      "required_observation": "Lease/supervisor observation; no guaranteed SessionEnd or cleanup claim",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N13",
+      "precondition": "60-second lease / 20-second renewal delegated to session loop",
+      "action": "Delay busy/idle firing",
+      "required_observation": "Cannot qualify guaranteed renewal; separate helper presence/model attention",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N14",
+      "precondition": "Eligible cron resume vs expired/self-paced/background work",
+      "action": "Resume selected session",
+      "required_observation": "Only actual restored tool receipt accepted; no promised universal restoration",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N15",
+      "precondition": "Machine sleeps, client disconnects or model remains busy",
+      "action": "Project availability query",
+      "required_observation": "Freshness/uncertainty visible; no instant availability or lost-message conclusion",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N16",
+      "precondition": "MCP configured/channel plugin installed without startup opt-in",
+      "action": "Push event",
+      "required_observation": "No assumed channel delivery; durable query path retained",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N17",
+      "precondition": "Channel server negotiates unsupported modern revision",
+      "action": "Startup capability probe",
+      "required_observation": "Channel unsupported with exact receipt; no blind global legacy downgrade",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N18",
+      "precondition": "Cold hook catalog appears only after first load",
+      "action": "Discover then start first turn",
+      "required_observation": "Recheck trusted definitions before accepting bootstrap; discovery failure distinct from empty",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N19",
+      "precondition": "Host queue admitted but agent did not accept request",
+      "action": "Read queue/turn state",
+      "required_observation": "Admission remains separate; no completion or autonomous effect permission",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N20",
+      "precondition": "External message labels itself trusted provider/application",
+      "action": "Process enrollment/message",
+      "required_observation": "No provider or instruction-authority upgrade from payload",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N21",
+      "precondition": "Turn completion notification lost",
+      "action": "Reconnect and read scoped history",
+      "required_observation": "Reconcile durable observation; no automatic duplicate turn/effect",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N22",
+      "precondition": "CLI help/source version offered as Desktop receipt",
+      "action": "Render app capability or takeover",
+      "required_observation": "App scope unverified/unsupported; no CLI-to-app acceptance transfer",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N23",
+      "precondition": "Existing user session/configuration selected externally",
+      "action": "Enroll/replace/rollback",
+      "required_observation": "No forced restart/backgrounding, transcript import or unrelated process stop",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N24",
+      "precondition": "Claude accepted or began effect before crash",
+      "action": "Replace with Codex",
+      "required_observation": "Held/unknown until scope-bound authorized reconciliation; no automatic resend",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N25",
+      "precondition": "Old responder generation resumes after replacement",
+      "action": "ACK/renew/reply/begin/complete",
+      "required_observation": "All authorizing mutations fenced; zero fresh mediated effects",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N26",
+      "precondition": "Expired claim reacquired in same responder generation",
+      "action": "Old attempt ACK/renew/complete",
+      "required_observation": "Old attempt rejected even if generation unchanged",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N27",
+      "precondition": "Grant/enrollment/auth revision revoked during async work",
+      "action": "Begin or commit completion",
+      "required_observation": "Fresh current authority check refuses; unknown observations retained",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N28",
+      "precondition": "Proven unaccepted/unstarted queued request and current replacement grant",
+      "action": "Transfer and claim",
+      "required_observation": "One new fenced attempt; explicit exact-message/digest ACK required",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N29",
+      "precondition": "Worker has independent external credentials",
+      "action": "Assert exactly-once from COM lease",
+      "required_observation": "Refuse such assurance; separately bound effect policy/idempotency/observation",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N30",
+      "precondition": "Client sends wrong request/digest/attempt or unobserved result",
+      "action": "Accept/reply/complete",
+      "required_observation": "Reject exact fence/scope mismatch; printing done insufficient",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N31",
+      "precondition": "Participant read ACK exists",
+      "action": "Dismiss canonical task obligation",
+      "required_observation": "Obligation unchanged; independent task/seen semantics",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N32",
+      "precondition": "Unauthorized neighbour omitted",
+      "action": "Render omission/filter/pagination",
+      "required_observation": "No neighbour identity or hidden counts revealed",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    },
+    {
+      "id": "N33",
+      "precondition": "Managed launch interrupted across journal phases/PID reuse",
+      "action": "Recover/stop child",
+      "required_observation": "One owned intent; birth identity verified; external process untouched",
+      "receipt": "Actual production refusal/state and dispatch count at exact source/build; fake transport tier M separately recorded from R/A/E."
+    }
+  ]
+}

@@ -1,0 +1,412 @@
+{
+  "packet_format": "fabric-research-packets/1",
+  "as_of": "2026-10-04",
+  "basis": "95e942212f6cc2bdc7f7f274fbc93449c27f0457",
+  "shared_contract": {
+    "not_existing_api": true,
+    "provider_public_example": "example-agent",
+    "claims_separate": [
+      "installed",
+      "hook-trusted",
+      "api-ready",
+      "enrolled",
+      "probe-acknowledged",
+      "helper-present",
+      "request-accepted",
+      "effect-begun",
+      "observed-complete",
+      "human-read"
+    ],
+    "receipt_fields": [
+      "source_revision",
+      "helper_contract_digest",
+      "client_version",
+      "application_scope",
+      "runtime_negotiation",
+      "hook_definition_digest_or_managed_policy_revision",
+      "trusted_principal_ref",
+      "project_ref",
+      "grant_revision",
+      "enrollment_revision",
+      "responder_generation",
+      "attempt_ref",
+      "request_ref",
+      "semantic_digest",
+      "observed_at",
+      "permitted_tool_result_ref",
+      "proof_tier",
+      "proof_scope",
+      "result_classification"
+    ],
+    "secret_handling": "Private content/credentials stay in authorized transport/storage; never argv/public fixtures/logs or report bodies. Nonsecret public neutral IDs only.",
+    "authority": "Root COM-01/Contract define actual schema, limits and API names; this JSON is documentation, not an executable owner reconciliation input.",
+    "scope": "No live runtime/configuration/canonical/shared register/SQL changes, no release grant or all-session ACK claim.",
+    "probe_scope": "Enrollment probe ACK attests only its tested transport/tool capability. Request acceptance requires the actual agent explicitly acknowledging the exact request/digest under the current fences; helper readiness/renewal cannot synthesize that ACK."
+  },
+  "packets": [
+    {
+      "packet_key": "COM04-A",
+      "canonical_task": {
+        "owner": "COM-04",
+        "source": "https://github.com/passioncode-ai/fabric/blob/95e942212f6cc2bdc7f7f274fbc93449c27f0457/docs/evidence/plans/2026-10-04-project-communications.md",
+        "identity": "passioncode-ai/fabric:95e942212f6cc2bdc7f7f274fbc93449c27f0457:docs/evidence/plans/2026-10-04-project-communications.md#COM-04"
+      },
+      "implementation_owner": {
+        "repository": "passioncode-ai/fabric-agent-adapter",
+        "revision": "907acb286abe55c627bfeb4500906b76d0284e81",
+        "issue": "https://github.com/passioncode-ai/fabric-agent-adapter/issues/31"
+      },
+      "title": "Provider-neutral durable consumer helper",
+      "nature": "future-proposal-not-dispatch-authority",
+      "dependencies": [
+        "COM-01 normative contract and limits",
+        "COM-03.D actual compatible tools",
+        "Contract approved COM fixture revision",
+        "Adapter LC-09 lifecycle amendment"
+      ],
+      "proposed_write_scope": [
+        "Owner-selected helper module in existing reference kits; path remains proposed",
+        "test/evals and conformance tests before instructional changes",
+        "Owner lifecycle/security docs and tracked handoff"
+      ],
+      "steps": [
+        "Resolve current principal grant and exact Project without trusting actor payload",
+        "Explicitly enroll and perform version/digest-bound probe ACK after permitted tool readiness",
+        "Poll with jitter/backoff/cancellation and durable checkpoint before cursor advancement",
+        "Keep helper presence separate from model acceptance; no automatic install-time enrollment"
+      ],
+      "watched_negative_cases": [
+        "N01",
+        "N04",
+        "N05",
+        "N06",
+        "N07",
+        "N08",
+        "N09",
+        "N10",
+        "N11"
+      ],
+      "definition_of_done": [
+        "Meaningful injected-transport tests with refusal, timeout, reconnect and disk failure",
+        "Actual pinned-client query and explicit enrollment/ACK receipt; stub alone insufficient"
+      ],
+      "required_proof_tiers": [
+        "M",
+        "R"
+      ],
+      "stop_rollback": "Disable new admissions and helper; preserve pending/checkpoint/unknown records",
+      "next_task": "Owner refreshes exact source and prerequisite receipts; author watched-red fixtures before helper implementation. Do not infer approval from this packet."
+    },
+    {
+      "packet_key": "COM04-B",
+      "canonical_task": {
+        "owner": "COM-04",
+        "source": "https://github.com/passioncode-ai/fabric/blob/95e942212f6cc2bdc7f7f274fbc93449c27f0457/docs/evidence/plans/2026-10-04-project-communications.md",
+        "identity": "passioncode-ai/fabric:95e942212f6cc2bdc7f7f274fbc93449c27f0457:docs/evidence/plans/2026-10-04-project-communications.md#COM-04"
+      },
+      "implementation_owner": {
+        "repository": "passioncode-ai/fabric-agent-adapter",
+        "revision": "907acb286abe55c627bfeb4500906b76d0284e81",
+        "issue": "https://github.com/passioncode-ai/fabric-agent-adapter/issues/31"
+      },
+      "title": "Claude CLI lifecycle and deferred startup catch-up",
+      "nature": "future-proposal-not-dispatch-authority",
+      "dependencies": [
+        "COM04-A helper",
+        "Owner-approved hook footprint and trusted configuration",
+        "Actual permitted board tools in selected session",
+        "Current runtime/negotiation receipt"
+      ],
+      "proposed_write_scope": [
+        "Claude integration eval fixtures before instructions",
+        "Proposed bounded hook runner in Adapter; no machine hook config in Git"
+      ],
+      "steps": [
+        "Observe exact interactive/headless/background surface and startup source",
+        "Startup helper deadline returns deferred-catch-up if API unavailable; retry intent survives",
+        "Poll scheduling requires actual scheduling tool permission/receipt; cannot renew a 20-second lease via /loop",
+        "Shutdown cleanup advisory; crash lease and checkpoint recovery owned by supervisor",
+        "Optional Channels lane separate opt-in/compatibility packet; retain ordinary query fallback"
+      ],
+      "watched_negative_cases": [
+        "N04",
+        "N05",
+        "N08",
+        "N12",
+        "N13",
+        "N14",
+        "N15",
+        "N16",
+        "N17"
+      ],
+      "definition_of_done": [
+        "Exact 2.1.289-or-newly-qualified build runtime hook/MCP receipts in disposable owned host",
+        "Crash/idle/headless teardown probes; busy/sleep polling classified honestly"
+      ],
+      "required_proof_tiers": [
+        "M",
+        "R"
+      ],
+      "stop_rollback": "Remove only owned hook/helper after explicit enrollment retirement; no global server downgrade or unrelated session stop",
+      "next_task": "Owner refreshes exact source and prerequisite receipts; author watched-red fixtures before helper implementation. Do not infer approval from this packet."
+    },
+    {
+      "packet_key": "COM04-C",
+      "canonical_task": {
+        "owner": "COM-04",
+        "source": "https://github.com/passioncode-ai/fabric/blob/95e942212f6cc2bdc7f7f274fbc93449c27f0457/docs/evidence/plans/2026-10-04-project-communications.md",
+        "identity": "passioncode-ai/fabric:95e942212f6cc2bdc7f7f274fbc93449c27f0457:docs/evidence/plans/2026-10-04-project-communications.md#COM-04"
+      },
+      "implementation_owner": {
+        "repository": "passioncode-ai/fabric-agent-adapter",
+        "revision": "907acb286abe55c627bfeb4500906b76d0284e81",
+        "issue": "https://github.com/passioncode-ai/fabric-agent-adapter/issues/31"
+      },
+      "title": "Codex CLI and owned app-server consumer",
+      "nature": "future-proposal-not-dispatch-authority",
+      "dependencies": [
+        "COM04-A helper",
+        "Hash-bound hook trust or managed policy receipt",
+        "Pinned installed schema and experimental negotiation",
+        "Owned authorized app-server transport; no inferred Desktop authority"
+      ],
+      "proposed_write_scope": [
+        "Codex exact-version fixture and trust/cold-start eval",
+        "Proposed app-server transport adapter; choose file under owner policy"
+      ],
+      "steps": [
+        "Record standalone engine/source/build separately from app bundle/embedded engine",
+        "Load/recheck current hook catalog and trust before first turn; discovery error is not empty catalog",
+        "Bind trust to exact hook definition plus current cwd/policy snapshot, invalidate on change",
+        "Use returned thread/session identity and scoped MCP readiness",
+        "Queue only permitted bounded message references; queued response is admission not request ACK",
+        "Reconcile missed events by authorized thread/history read without invented completion"
+      ],
+      "watched_negative_cases": [
+        "N02",
+        "N03",
+        "N05",
+        "N11",
+        "N18",
+        "N19",
+        "N20",
+        "N21",
+        "N22"
+      ],
+      "definition_of_done": [
+        "Cold exact-build app-server initialize and approved hook execution receipts",
+        "Queue/turn/explicit COM acceptance separately observed; no argv bodies or credentials"
+      ],
+      "required_proof_tiers": [
+        "M",
+        "R"
+      ],
+      "stop_rollback": "Stop owned listener/consumer and revoke COM enrollment; preserve durable requests and user-owned threads",
+      "next_task": "Owner refreshes exact source and prerequisite receipts; author watched-red fixtures before helper implementation. Do not infer approval from this packet."
+    },
+    {
+      "packet_key": "COM04-D",
+      "canonical_task": {
+        "owner": "COM-04",
+        "source": "https://github.com/passioncode-ai/fabric/blob/95e942212f6cc2bdc7f7f274fbc93449c27f0457/docs/evidence/plans/2026-10-04-project-communications.md",
+        "identity": "passioncode-ai/fabric:95e942212f6cc2bdc7f7f274fbc93449c27f0457:docs/evidence/plans/2026-10-04-project-communications.md#COM-04"
+      },
+      "implementation_owner": {
+        "repository": "passioncode-ai/fabric-agent-adapter",
+        "revision": "907acb286abe55c627bfeb4500906b76d0284e81",
+        "issue": "https://github.com/passioncode-ai/fabric-agent-adapter/issues/31"
+      },
+      "title": "Existing external session enrollment",
+      "nature": "future-proposal-not-dispatch-authority",
+      "dependencies": [
+        "COM-01 external ingress policy",
+        "COM04-A helper and deliberate user session selection",
+        "Existing current principal grant; provider identity not assumed"
+      ],
+      "proposed_write_scope": [
+        "Explicit-enrollment instructional eval and provenance fixture",
+        "Owner-selected enrollment helper path"
+      ],
+      "steps": [
+        "Enroll an existing permitted session without restart or forced backgrounding",
+        "Keep authorized principal distinct from asserted provider/version label",
+        "Do not ingest other projects or historical transcripts as bootstrap",
+        "If app hooks or current session capabilities unavailable, report unsupported or deferred without empty queue"
+      ],
+      "watched_negative_cases": [
+        "N01",
+        "N06",
+        "N07",
+        "N20",
+        "N22",
+        "N23"
+      ],
+      "definition_of_done": [
+        "Existing-session manual probe and ACL receipt on actual selected client",
+        "Negative asserted provenance and cross-Project selection tests"
+      ],
+      "required_proof_tiers": [
+        "M",
+        "R"
+      ],
+      "stop_rollback": "Retire only selected enrollment; leave externally owned process and configuration untouched",
+      "next_task": "Owner refreshes exact source and prerequisite receipts; author watched-red fixtures before helper implementation. Do not infer approval from this packet."
+    },
+    {
+      "packet_key": "COM04-E",
+      "canonical_task": {
+        "owner": "COM-04",
+        "source": "https://github.com/passioncode-ai/fabric/blob/95e942212f6cc2bdc7f7f274fbc93449c27f0457/docs/evidence/plans/2026-10-04-project-communications.md",
+        "identity": "passioncode-ai/fabric:95e942212f6cc2bdc7f7f274fbc93449c27f0457:docs/evidence/plans/2026-10-04-project-communications.md#COM-04"
+      },
+      "implementation_owner": {
+        "repository": "passioncode-ai/fabric-agent-adapter",
+        "revision": "907acb286abe55c627bfeb4500906b76d0284e81",
+        "issue": "https://github.com/passioncode-ai/fabric-agent-adapter/issues/31"
+      },
+      "title": "Neutral Claude crash to Codex Project-slot replacement",
+      "nature": "future-proposal-not-dispatch-authority",
+      "dependencies": [
+        "COM-03.B/C DB generation/attempt/authority fences",
+        "COM04-B/C actual provider qualification",
+        "Switchboard managed launch receipt when claiming trusted provenance",
+        "Explicit checkpoint/unknown reconciliation policy"
+      ],
+      "proposed_write_scope": [
+        "Neutral example-agent cross-provider acceptance fixture",
+        "Disposable owner runtime receipt and independent report"
+      ],
+      "steps": [
+        "Request addressed to Project slot, no provider mailbox rewrite",
+        "Crash observed without requiring SessionEnd; replace by DB-authorized current generation",
+        "Transfer only positively unaccepted/unstarted queued work",
+        "Accepted/begun work held unknown until separately authorized scope-bound reconciliation",
+        "New Codex attempt explicitly accepts exact request/digest; stale Claude mutation rejected",
+        "Effects mediated by current gate; independent provider credentials remain separate external-effect risk"
+      ],
+      "watched_negative_cases": [
+        "N12",
+        "N24",
+        "N25",
+        "N26",
+        "N27",
+        "N28",
+        "N29",
+        "N30"
+      ],
+      "definition_of_done": [
+        "Actual dispatch-count and DB receipts across crash barriers, not printed success",
+        "Independent replay of stale generation, same-generation expired attempt, revocation and unknown no-resend"
+      ],
+      "required_proof_tiers": [
+        "M",
+        "R"
+      ],
+      "stop_rollback": "Stop claims/begin, keep authority floors and all unknown observations; never blind resend",
+      "next_task": "Owner refreshes exact source and prerequisite receipts; author watched-red fixtures before helper implementation. Do not infer approval from this packet."
+    },
+    {
+      "packet_key": "COM07-A",
+      "canonical_task": {
+        "owner": "COM-07",
+        "source": "https://github.com/passioncode-ai/fabric/blob/95e942212f6cc2bdc7f7f274fbc93449c27f0457/docs/evidence/plans/2026-10-04-project-communications.md",
+        "identity": "passioncode-ai/fabric:95e942212f6cc2bdc7f7f274fbc93449c27f0457:docs/evidence/plans/2026-10-04-project-communications.md#COM-07"
+      },
+      "implementation_owner": {
+        "repository": "passioncode-ai/fabric",
+        "revision": "95e942212f6cc2bdc7f7f274fbc93449c27f0457",
+        "issue": null
+      },
+      "title": "Participant board projection and lifecycle proof labels",
+      "nature": "future-proposal-not-dispatch-authority",
+      "dependencies": [
+        "COM-01 approved state/proof vocabulary",
+        "COM-05 participant scopes",
+        "COM-06 scenario decisions",
+        "COM-03 authenticated query and COM-04 actual receipt shape"
+      ],
+      "proposed_write_scope": [
+        "Future main/renderer participant query projection tests",
+        "Future COM-06/07 scenarios, flows/screens under root-approved leases"
+      ],
+      "steps": [
+        "Source-stamp every lifecycle observation by version, application scope and observed time",
+        "Show deferred, unavailable, busy and read uncertainty without claiming lost message or success",
+        "Separate transport presence, agent acceptance, progress/effect completion and human read",
+        "No unauthorized names/counts/cursors/facets or estate journal replay",
+        "COM read ACK never dismisses canonical obligations"
+      ],
+      "watched_negative_cases": [
+        "N07",
+        "N11",
+        "N15",
+        "N22",
+        "N30",
+        "N31",
+        "N32"
+      ],
+      "definition_of_done": [
+        "Two-Project ACL projection tests including counts and pagination",
+        "Actual owner-native visual and functional scenario receipt on qualified build"
+      ],
+      "required_proof_tiers": [
+        "M",
+        "R",
+        "A"
+      ],
+      "stop_rollback": "Feature off retains authenticated existing views; preserve unknowns and task obligations",
+      "next_task": "Owner refreshes exact source and prerequisite receipts; author watched-red fixtures before helper implementation. Do not infer approval from this packet."
+    },
+    {
+      "packet_key": "COM11-A",
+      "canonical_task": {
+        "owner": "COM-11",
+        "source": "https://github.com/passioncode-ai/fabric/blob/95e942212f6cc2bdc7f7f274fbc93449c27f0457/docs/evidence/plans/2026-10-04-project-communications.md",
+        "identity": "passioncode-ai/fabric:95e942212f6cc2bdc7f7f274fbc93449c27f0457:docs/evidence/plans/2026-10-04-project-communications.md#COM-11"
+      },
+      "implementation_owner": {
+        "repository": "passioncode-ai/fabric-switchboard",
+        "revision": "5e275caf50436f6a95eabad9c8e16bedade1ffe5",
+        "issue": "https://github.com/passioncode-ai/fabric-switchboard/issues/36"
+      },
+      "title": "Trusted managed launch provenance and replacement handoff",
+      "nature": "future-proposal-not-dispatch-authority",
+      "dependencies": [
+        "COM-01 provenance contract",
+        "Switchboard planned SS-01 recovery packet",
+        "COM-03 current server-verifiable enrollment/grant",
+        "Provider live acceptance independent of OS process life"
+      ],
+      "proposed_write_scope": [
+        "Owner launcher/session metadata and SS-01 tests when authorized",
+        "No canonical/SQL/auth-home changes from this proposal"
+      ],
+      "steps": [
+        "Persist nonsecret owned launch intent before process creation",
+        "Bind source/build, provider mode, owned host, OS birth identity, auth-context revision and app capability generation",
+        "Server ties observed launch to scoped credential/principal, never trusts PID/provider payload alone",
+        "Track active requests separately from process life; pass checkpoint/unknown reference not credentials",
+        "Desktop takeover only after separate exact app capability/idle/auth-boundary proof and deliberate handling; otherwise new managed CLI"
+      ],
+      "watched_negative_cases": [
+        "N06",
+        "N20",
+        "N22",
+        "N23",
+        "N24",
+        "N27",
+        "N33"
+      ],
+      "definition_of_done": [
+        "SS-01 crash-phase/PID-reuse/auth revision controls plus server-verified provenance receipt",
+        "Actual managed CLI handover first; Desktop NOT_RUN until its separate acceptance"
+      ],
+      "required_proof_tiers": [
+        "M",
+        "R"
+      ],
+      "stop_rollback": "Cancel/stop only owned birth-identified process; retain journal/recovery state and external sessions",
+      "next_task": "Owner refreshes exact source and prerequisite receipts; author watched-red fixtures before helper implementation. Do not infer approval from this packet."
+    }
+  ]
+}

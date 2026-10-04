@@ -1,0 +1,204 @@
+{
+  "as_of": "2026-10-04",
+  "collection": "Official web and immutable source, plus version-scoped primary developer discussions; none is local app acceptance",
+  "fabric_basis": "95e942212f6cc2bdc7f7f274fbc93449c27f0457",
+  "owner_sources": [
+    {
+      "repository": "passioncode-ai/fabric-agent-adapter",
+      "revision": "907acb286abe55c627bfeb4500906b76d0284e81",
+      "policy": "AGENTS.md",
+      "issue": 31
+    },
+    {
+      "repository": "passioncode-ai/fabric-switchboard",
+      "revision": "5e275caf50436f6a95eabad9c8e16bedade1ffe5",
+      "policy": "docs/packets/session-supervisor.md",
+      "issue": 36
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "resolved_url": "https://code.claude.com/docs/en/hooks",
+      "http_status": 200,
+      "sha256": "bd73d483fcd539d12b8556fbbb5b7356d6ad3179bf4eb59b39a4d45368a932b2",
+      "bytes": 2944937,
+      "read_at": "2026-10-04T15:25:08.369999+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://code.claude.com/docs/en/scheduled-tasks",
+      "resolved_url": "https://code.claude.com/docs/en/scheduled-tasks",
+      "http_status": 200,
+      "sha256": "604e31a5848e224c4ef283e33afd8efbdbb2e4bb453e9b629f569fc649cd22ef",
+      "bytes": 539889,
+      "read_at": "2026-10-04T15:25:08.134798+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://code.claude.com/docs/en/agent-view",
+      "resolved_url": "https://code.claude.com/docs/en/agent-view",
+      "http_status": 200,
+      "sha256": "a5cf58162ff94da55d799dfb6d1e210d58641495aa204b408282946877752160",
+      "bytes": 1078594,
+      "read_at": "2026-10-04T15:25:08.244555+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://code.claude.com/docs/en/headless",
+      "resolved_url": "https://code.claude.com/docs/en/headless",
+      "http_status": 200,
+      "sha256": "865124493408392fa1e00c4bec15f53a60ad1e394b67ddf25005dbf2062993a2",
+      "bytes": 687480,
+      "read_at": "2026-10-04T15:25:08.181823+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://code.claude.com/docs/en/cli-reference",
+      "resolved_url": "https://code.claude.com/docs/en/cli-reference",
+      "http_status": 200,
+      "sha256": "b1a7e8e4c3d70c5c47d40b3a1bc47191fcbdc77ef9709ba5c41aa224fb62ed28",
+      "bytes": 536394,
+      "read_at": "2026-10-04T15:25:08.137547+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://code.claude.com/docs/en/channels",
+      "resolved_url": "https://code.claude.com/docs/en/channels",
+      "http_status": 200,
+      "sha256": "e8364ed35a2273630fe421b53e72e9b5ccf15544a498178325bb967824f3263b",
+      "bytes": 627691,
+      "read_at": "2026-10-04T15:25:08.227857+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "resolved_url": "https://code.claude.com/docs/en/mcp",
+      "http_status": 200,
+      "sha256": "6eaa67e5475a9543aeb25e40d043ab538f3c7e98765fb4585d364e934edd8182",
+      "bytes": 1517979,
+      "read_at": "2026-10-04T15:25:08.667177+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://learn.chatgpt.com/docs/hooks",
+      "resolved_url": "https://learn.chatgpt.com/docs/hooks",
+      "http_status": 200,
+      "sha256": "48d15cf5667f8d47915952d83fa9b07cdb31cb60cda598dab6d88de26fba9dfe",
+      "bytes": 512110,
+      "read_at": "2026-10-04T15:25:08.612257+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://learn.chatgpt.com/docs/app-server",
+      "resolved_url": "https://learn.chatgpt.com/docs/app-server",
+      "http_status": 200,
+      "sha256": "cd33c62f167a1caa00198b6105ce3c6e978fd93814dc4488064d6790f697b55f",
+      "bytes": 956318,
+      "read_at": "2026-10-04T15:25:08.670663+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/openai/codex/a956835d020762cb2b570053af06f643a11c0ecc/codex-rs/app-server/README.md",
+      "resolved_url": "https://raw.githubusercontent.com/openai/codex/a956835d020762cb2b570053af06f643a11c0ecc/codex-rs/app-server/README.md",
+      "http_status": 200,
+      "sha256": "d7fae889d9101c3bdae896204d840fc9c2a70e063bcb0108d5625f1e29f04d44",
+      "bytes": 31193,
+      "read_at": "2026-10-04T15:25:08.594835+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://github.com/microsoft/vscode/pull/336306",
+      "resolved_url": "https://github.com/microsoft/vscode/pull/336306",
+      "http_status": 200,
+      "sha256": "8e9d86e7922d5b6a106875e0e5e361f6e4ee9f7366702a32525fd1d16b219777",
+      "bytes": 429971,
+      "read_at": "2026-10-04T15:25:09.560482+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://github.com/openai/codex/issues/46210",
+      "resolved_url": "https://github.com/openai/codex/issues/46210",
+      "http_status": 200,
+      "sha256": "b308aab637bbf1a96edc95e0eae0f595ca9821b7d0ce27268e332dc54b5d89d3",
+      "bytes": 367880,
+      "read_at": "2026-10-04T15:25:09.324341+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://github.com/openai/codex/issues/33416",
+      "resolved_url": "https://github.com/openai/codex/issues/33416",
+      "http_status": 200,
+      "sha256": "b3f9b95bc9758f75c1ce0898487e5c5336a1c02a4bae6e83b15e68b3677276bd",
+      "bytes": 293650,
+      "read_at": "2026-10-04T15:25:09.625379+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://github.com/openai/codex/issues/18860",
+      "resolved_url": "https://github.com/openai/codex/issues/18860",
+      "http_status": 200,
+      "sha256": "37900087665bcec3853049c5521b2bd1224f8eb510587a05ae207dc8edb1b6bc",
+      "bytes": 369274,
+      "read_at": "2026-10-04T15:25:09.785491+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://github.com/anthropics/claude-code/issues/41577",
+      "resolved_url": "https://github.com/anthropics/claude-code/issues/41577",
+      "http_status": 200,
+      "sha256": "8490c6d3960ec3e82ea9d1c735f8861394dbcc52a58924dde96460149d3cd52e",
+      "bytes": 273983,
+      "read_at": "2026-10-04T15:25:09.631582+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://github.com/anthropics/claude-code/issues/88071",
+      "resolved_url": "https://github.com/anthropics/claude-code/issues/88071",
+      "http_status": 200,
+      "sha256": "a6a60c016a07d4cac0775ccf1da212bd0b52dab2f8e1bbb9f5cebb98c6cd3665",
+      "bytes": 351365,
+      "read_at": "2026-10-04T15:25:09.629289+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    },
+    {
+      "url": "https://github.com/openai/codex/releases/tag/rust-v0.160.0",
+      "resolved_url": "https://github.com/openai/codex/releases/tag/rust-v0.160.0",
+      "http_status": 200,
+      "sha256": "7a73ddc07db563c60de5e61195bc2276d44bdd5c1b5a0a74780b4b4697365337",
+      "bytes": 265281,
+      "read_at": "2026-10-04T15:25:10.095582+00:00",
+      "scope": "Public source fetch; not a runtime receipt. Full third-party bodies not redistributed."
+    }
+  ],
+  "existing_owner_issues": [
+    {
+      "html_url": "https://github.com/passioncode-ai/fabric-agent-adapter/issues/31",
+      "number": 31,
+      "state": "open",
+      "title": "COM-04/08/09/12: scoped consumer adapters and optional Telegram transport",
+      "updated_at": "2026-10-04T12:15:03Z"
+    },
+    {
+      "html_url": "https://github.com/passioncode-ai/fabric-switchboard/issues/36",
+      "number": 36,
+      "state": "open",
+      "title": "COM-11/12: provider provenance for project responder replacement",
+      "updated_at": "2026-10-04T10:54:54Z"
+    }
+  ],
+  "developer_pr": {
+    "head": "1b5ed6bc8622a80f275d297a6c36b4b18d70f449",
+    "html_url": "https://github.com/microsoft/vscode/pull/336306",
+    "merge_commit_sha": "8324aca6303ee583eb05e282c4d5a141912aa7ea",
+    "merged": true,
+    "merged_at": "2026-09-16T07:55:57Z",
+    "number": 336306
+  },
+  "codex_release": {
+    "html_url": "https://github.com/openai/codex/releases/tag/rust-v0.160.0",
+    "published_at": "2026-10-01T20:19:13Z",
+    "tag_name": "rust-v0.160.0",
+    "target_commitish": "a956835d020762cb2b570053af06f643a11c0ecc"
+  }
+}

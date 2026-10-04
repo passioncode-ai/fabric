@@ -1,0 +1,158 @@
+{
+  "as_of": "2026-10-04",
+  "proof_tier": "S: static only",
+  "versions": {
+    "codex": "codex-cli 0.160.0",
+    "claude": "2.1.289 (Claude Code)"
+  },
+  "schema_generation": "CODEX_HOME=<task-owned-empty-temp-home> codex app-server generate-json-schema --experimental --out <task-owned-temp-dir>",
+  "schema_generation_exit": 0,
+  "methods": [
+    "hooks/list",
+    "mcpServer/tool/call",
+    "thread/queue/add",
+    "thread/queue/delete",
+    "thread/queue/list",
+    "thread/queue/reorder",
+    "thread/queue/start",
+    "thread/queue/update",
+    "thread/read",
+    "thread/resume",
+    "turn/interrupt",
+    "turn/start",
+    "turn/steer"
+  ],
+  "schemas": {
+    "ClientRequest.json": {
+      "sha256": "4a6fc883c2e84c4721bfabd6756ca5bb6e99675a8938768d8bc9cc67ff984700",
+      "required": [],
+      "properties": []
+    },
+    "v2/ThreadQueueAddParams.json": {
+      "sha256": "60f25b7d3e3357c215bef9d2fe7047200f545e030dca9e00527ac0620cd0c88f",
+      "required": [
+        "clientUserMessageId",
+        "input",
+        "threadId"
+      ],
+      "properties": [
+        "clientUserMessageId",
+        "input",
+        "threadId"
+      ]
+    },
+    "v2/ThreadQueueStartParams.json": {
+      "sha256": "d92f1e985c183fa3f261bbfa004416f0f572a225a53e5de1744682e154cce936",
+      "required": [
+        "threadId"
+      ],
+      "properties": [
+        "queuedSubmissionId",
+        "threadId"
+      ]
+    },
+    "v2/TurnStartParams.json": {
+      "sha256": "07771223642e1b61bd9aac0069fc0f98143a1c047724ca02c7ceb13653442738",
+      "required": [
+        "input",
+        "threadId"
+      ],
+      "properties": [
+        "additionalContext",
+        "approvalPolicy",
+        "approvalsReviewer",
+        "clientUserMessageId",
+        "collaborationMode",
+        "cwd",
+        "cyberAccessProgram",
+        "disabledPluginIds",
+        "effort",
+        "environments",
+        "input",
+        "model",
+        "multiAgentMode",
+        "outputSchema",
+        "permissions",
+        "personality",
+        "responsesapiClientMetadata",
+        "runtimeWorkspaceRoots",
+        "sandboxPolicy",
+        "serviceTier",
+        "serviceTierForTurn",
+        "summary",
+        "threadId",
+        "toolOutput",
+        "turnTrigger"
+      ]
+    },
+    "v2/HooksListResponse.json": {
+      "sha256": "891dd10ef7f78e59631fce05fff2becddb8004b3c0338dbbbd6b4f17ef1fa64f",
+      "required": [
+        "data"
+      ],
+      "properties": [
+        "data"
+      ]
+    },
+    "v2/McpServerToolCallParams.json": {
+      "sha256": "7039a7583a1cbf38e9e0f5fe6398ff3711acd4d654b81b0be562514087fce6ba",
+      "required": [
+        "server",
+        "threadId",
+        "tool"
+      ],
+      "properties": [
+        "_meta",
+        "arguments",
+        "server",
+        "threadId",
+        "tool"
+      ]
+    }
+  },
+  "help": [
+    {
+      "command": "codex --help",
+      "exit": 0,
+      "stdout_sha256": "c077e724b5b49a832d8bc8b409424ec232f2ee66b90ca978df8759acf4235fed"
+    },
+    {
+      "command": "codex app-server --help",
+      "exit": 0,
+      "stdout_sha256": "0e4f7a11edeebf0a8ccb64b6ac43288e0f085a945fcd2bde52e23fd8be1d402e"
+    },
+    {
+      "command": "codex queue --help",
+      "exit": 0,
+      "stdout_sha256": "234a348e84b0374eb11d4848e50f412d1763d21ec1ecf7a7f2c96ea0af8b5edf"
+    },
+    {
+      "command": "codex agents --help",
+      "exit": 0,
+      "stdout_sha256": "30a14aba16f01fd5bcbad3073565e160544a6f9dd6daedc102c88ef6c173d3ba"
+    },
+    {
+      "command": "claude --help",
+      "exit": 0,
+      "stdout_sha256": "dcbc10518d45d86d53ce22fe6400628ffb77cb57c3dd3898215672075f1731fa"
+    },
+    {
+      "command": "claude agents --help",
+      "exit": 0,
+      "stdout_sha256": "3e00994f5e4fa279b639bab3fc07fb81012032bd336594f2ed1c2c71da67c0b5"
+    },
+    {
+      "command": "claude attach --help",
+      "exit": 0,
+      "stdout_sha256": "481150bcda27a05b9cae12e03c5a2b26a2bfd3fd27a63814463a91f07576a20d"
+    }
+  ],
+  "upstream_version_source": "a956835d020762cb2b570053af06f643a11c0ecc",
+  "binary_source_attestation": "NOT_PROVEN: matching version is not build attestation",
+  "app_scope": {
+    "codex_conventional_plist_present": false,
+    "claude_conventional_plist_present": true,
+    "qualification": "No app launched or session listed; conventional absence is not global absence."
+  },
+  "runtime": "NOT_RUN: no app-server/model/account/board/session invocation"
+}

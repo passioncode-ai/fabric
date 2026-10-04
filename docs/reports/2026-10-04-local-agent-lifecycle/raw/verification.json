@@ -1,0 +1,93 @@
+{
+  "as_of": "2026-10-04",
+  "source_basis": "95e942212f6cc2bdc7f7f274fbc93449c27f0457",
+  "artifact_check": {
+    "command": "python3 docs/reports/2026-10-04-local-agent-lifecycle/raw/check_packet.py",
+    "exit": 0,
+    "packets": 7,
+    "designed_vectors": 33,
+    "artifact_corruptions_refused": 5,
+    "scope": "Research structure/static assertions, not production negative-case execution"
+  },
+  "static_capture": {
+    "command": "python3 docs/reports/2026-10-04-local-agent-lifecycle/raw/capture_static.py <offline-0.160.0-schema-directory>",
+    "exit": 0,
+    "scope": "Version/help and generated JSON schema only"
+  },
+  "sources": {
+    "public_fetch_count": 17,
+    "fetch_errors": 0,
+    "owner_issue_31": "open",
+    "owner_issue_36": "open",
+    "issue_write": "NOT_RUN"
+  },
+  "report_header": {
+    "command": "reports.py check docs/reports/2026-10-04-local-agent-lifecycle",
+    "exit": 0
+  },
+  "regions": {
+    "command": "node scripts/check-regions.mjs",
+    "exit": 0,
+    "markers": 131
+  },
+  "privacy": {
+    "method": "Local-only forbidden consumer identifier rules over all authored public artifacts",
+    "rule_count": 3,
+    "result": "PASS",
+    "rule_values": "Not published"
+  },
+  "initial_incomplete_docs": {
+    "command": "bash scripts/check-docs.sh",
+    "result": "FAIL: verification.json had not been written; subsequent final check recorded separately"
+  },
+  "initial_map_without_dependencies": {
+    "command": "node scripts/check-design-map.mjs",
+    "node_version": "26.8.2",
+    "exit": 1,
+    "reason": "parse5 missing before fast script provisioned own worktree dependencies; not a map result"
+  },
+  "not_run": [
+    "Real provider model/session/hook execution",
+    "Live board enrollment, ACK, poll, replace or effects",
+    "Desktop app launch/acceptance",
+    "Paid provider operations",
+    "Full native/disposable database suite",
+    "Hosted CI dispatch",
+    "Canonical activation, SQL/config or guarded edits",
+    "Wiki index/workspace publication",
+    "Release or all-session ACK"
+  ],
+  "integration_owner": "Root owns map/merge-log/canonical adoption notes, wiki index and qualified source integration; research source is not independently accepted.",
+  "fast": {
+    "command": "bash scripts/ci.sh fast",
+    "node_version": "24.21.0",
+    "exit": 1,
+    "passed_before_stop": [
+      "types",
+      "interface tokens/strings/design and brand assets",
+      "workspace snapshot/release tests",
+      "product model tests/current model"
+    ],
+    "stopped_at": "scripts/sync-product-ux.mjs:80 UX projection stale",
+    "scope": "Frozen source 95e94221; existing generated projection drift, not changed by this task. Parent reports repair at 54cefbbf0c9b71ad0c403689b90c790ceb7ed139; not independently rerun here."
+  },
+  "map": {
+    "command": "node scripts/check-design-map.mjs",
+    "node_version": "24.21.0",
+    "exit": 1,
+    "reason": "Changed iteration reuses committed top entry; root owns map/merge-log integration",
+    "waiver": "None; do not call source iteration fully green."
+  },
+  "final_docs": {
+    "command": "bash scripts/check-docs.sh",
+    "exit": 0,
+    "relative_markdown_files_inspected": 581,
+    "brand_errors": 0,
+    "brand_warnings": 1472,
+    "scope": "Structural documentation/narrative/brand/UX link checks only; inherited warnings remain advisory"
+  },
+  "working_diff": {
+    "command": "git diff --check",
+    "exit": 0
+  }
+}
