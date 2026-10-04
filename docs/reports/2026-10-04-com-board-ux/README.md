@@ -28,6 +28,8 @@ report:
   consumers: [fabric, fabric-agent-adapter, fabric-dashboards, fabric-switchboard, project-observatory, fabric-workspace]
 ---
 
+<sub>ssheleg skills — ux-scenarios · ux-flows · task-pipeline · project-reports</sub>
+
 # Fabric communication board — proposed UX
 
 ## Main finding and scope
@@ -192,7 +194,11 @@ new palette, spacing, motion styling or shipped interface text decision.
 
 Executed: baseline-file/hash/anchor inventory, primary-source retrieval, report-header
 validation, report-relative-link validation and task-owned whitespace/privacy checks.
-Receipts are [raw/checks.json](raw/checks.json). No new runtime tests were invented for
+Receipts are [raw/checks.json](raw/checks.json). A fresh remote sparse clone of
+source commit 0d4f265367631467afef43193ddedbe3700911aa read all nine task-owned files
+byte-identically and resolved 25 relative file links; [cold read receipt](raw/cold-read.json).
+Report-header validation also passed in that clone. This later receipt changes documentation
+only; it does not qualify root convergence or runtime functionality. No new runtime tests were invented for
 this report-only change. Root owns the shared map, full fast gate, final common plan,
 canonical UX edits and one wiki report-index publication at convergence.
 
@@ -206,3 +212,14 @@ records decisions/blocked controls, then the UX implementer executes packet06.A 
 reserve current canonical identifiers and trace each accepted path before UI work.
 Root merges this report with a same-iteration map entry and complete source gate;
 then COM07.A begins a scoped read-only list using real COM02 fixtures.
+
+---
+
+**Made with [ssheleg skills](https://github.com/ssheleg/sshlg-skills)**
+
+- [`ux-scenarios`](https://github.com/ssheleg/super-ux) — draft board paths
+- [`ux-flows`](https://github.com/ssheleg/super-ux) — state and recovery coverage
+- [`task-pipeline`](https://github.com/ssheleg/task-pipeline) — bounded execution packets
+- `project-reports` — owned sources and report — not a skill this family ships
+
+<sub>A star on [the bundle](https://github.com/ssheleg/sshlg-skills) helps.</sub>

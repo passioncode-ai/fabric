@@ -1,0 +1,56 @@
+{
+  "source_commit": "0d4f265367631467afef43193ddedbe3700911aa",
+  "source_branch": "codex/com-board-scenarios-20261004",
+  "fresh_remote_sparse_clone": true,
+  "tracked_files": [
+    {
+      "path": "docs/handoffs/2026-10-04-com-board-ux.md",
+      "sha256": "2e81e1beee4c8383967efca68487a3540eccdd805219fbdc71297637b86ed46d",
+      "same_bytes": true
+    },
+    {
+      "path": "docs/reports/2026-10-04-com-board-ux/README.md",
+      "sha256": "0b2b505870b73b0d3889de17e5cdf7ed3036c4a96628a9f2bfb4256aee2c6b25",
+      "same_bytes": true
+    },
+    {
+      "path": "docs/reports/2026-10-04-com-board-ux/execution-packets.md",
+      "sha256": "d600924d91d48ba2d8c553807e5f14306c0a39e11d72ae468215ca9ae3e10966",
+      "same_bytes": true
+    },
+    {
+      "path": "docs/reports/2026-10-04-com-board-ux/proposed-paths.md",
+      "sha256": "bc93d79aaacaa2c6d517bd2017c7a6abbf6793011d5d218a1e50412e5aee7640",
+      "same_bytes": true
+    },
+    {
+      "path": "docs/reports/2026-10-04-com-board-ux/raw/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "same_bytes": true
+    },
+    {
+      "path": "docs/reports/2026-10-04-com-board-ux/raw/baseline.json",
+      "sha256": "97a36f224853c9da73d7c3fc1347d5214a16d9e9a6f019c3a32d8ab47c30247a",
+      "same_bytes": true
+    },
+    {
+      "path": "docs/reports/2026-10-04-com-board-ux/raw/checks.json",
+      "sha256": "f1191947427bce3db310e8dc239bcce688a9db470d05afad8ec20b1796f9cc11",
+      "same_bytes": true
+    },
+    {
+      "path": "docs/reports/2026-10-04-com-board-ux/raw/coordination.json",
+      "sha256": "88130ddf734a4a1a2564742c496047fc9b95b42e925ae63f9e58f8099738dc96",
+      "same_bytes": true
+    },
+    {
+      "path": "docs/reports/2026-10-04-com-board-ux/raw/sources.json",
+      "sha256": "25057a2a5ba94ab1c2e79e1173535f01a913df1e67a168c5759c73f6e3256e54",
+      "same_bytes": true
+    }
+  ],
+  "relative_links_resolved": 25,
+  "errors": [],
+  "exit": 0,
+  "scope": "Git readback only; not runtime or release acceptance"
+}

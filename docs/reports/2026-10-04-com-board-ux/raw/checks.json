@@ -18,6 +18,11 @@
       "command": "git diff --cached --check",
       "exit": 0,
       "scope": "only task-owned report and handoff staged"
+    },
+    {
+      "command": "fresh remote sparse clone; task-owned byte and relative file-link readback; reports.py check",
+      "exit": 0,
+      "scope": "source 0d4f265367631467afef43193ddedbe3700911aa, nine files, 25 links, zero report errors"
     }
   ],
   "not_run": [
