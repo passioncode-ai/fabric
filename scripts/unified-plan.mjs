@@ -3,11 +3,58 @@ import { readFileSync, existsSync, realpathSync } from 'node:fs'
 import { resolve, relative, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createHash } from 'node:crypto'
+import { canonicalInventory, sourceRevisionProblems, publicInputProblems } from './unified-canonical-sources.mjs'
 
 export const REPORT = 'docs/reports/2026-10-04-unified-execution'
+export const CURRENT_POINTER = 'docs/unified-plan-current.json'
 const hash = bytes => createHash('sha256').update(bytes).digest('hex')
 const safePath = p => typeof p === 'string' && p.length > 0 && !p.startsWith('/') && !p.split(/[\\/]/).some(x => x === '..' || x === '')
 const present = x => typeof x === 'string' ? x.trim().length > 0 : Array.isArray(x) ? x.length > 0 : x && typeof x === 'object' && Object.keys(x).length > 0
+export function selectedReport(root, explicit) {
+  if (explicit !== undefined) return explicit
+  const pointerPath = resolve(root, CURRENT_POINTER)
+  if (!existsSync(pointerPath)) return REPORT
+  if (realpathSync(pointerPath) !== resolve(realpathSync(root), CURRENT_POINTER)) throw new Error('current plan pointer contains a symlink')
+  const pointer = JSON.parse(readFileSync(pointerPath, 'utf8'))
+  if (pointer.schema !== 1 || Object.keys(pointer).some(k => !['schema', 'report'].includes(k)) || !safePath(pointer.report) || !pointer.report.startsWith('docs/reports/')) throw new Error('invalid current plan pointer; it contains only schema and report path')
+  return pointer.report
+}
+export function reportDirectory(root, report = REPORT) {
+  if (!safePath(report) || report.includes('\\') || report.split('/').includes('.') || /^[A-Za-z]:/.test(report)) throw new Error('unsafe report directory')
+  const base = realpathSync(root), target = resolve(base, report)
+  let ancestor = target
+  while (!existsSync(ancestor) && ancestor !== dirname(ancestor)) ancestor = dirname(ancestor)
+  if (realpathSync(ancestor) !== ancestor) throw new Error('report directory contains a symlink')
+  const inside = relative(base, target)
+  if (inside.startsWith('..') || inside.startsWith('/')) throw new Error('report directory escapes repository')
+  return target
+}
+export function readPlan(root, report = REPORT) {
+  const directory = reportDirectory(root, report), path = resolve(directory, 'plan.json')
+  if (realpathSync(path) !== path) throw new Error('plan file contains a symlink')
+  return JSON.parse(readFileSync(path, 'utf8'))
+}
+export function parseArgs(args) {
+  let report = REPORT, selected = false
+  const options = {}
+  const positional = []
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--report') {
+      if (selected || !args[i + 1] || args[i + 1].startsWith('--')) throw new Error('usage: --report requires one repository-relative directory')
+      report = args[++i]; selected = true
+    } else if (['--source-revision', '--privacy-deny-file'].includes(args[i])) {
+      const name = args[i], key = name.slice(2).replaceAll('-', '_')
+      if (key in options || !args[i + 1] || args[i + 1].startsWith('--')) throw new Error(`usage: ${name} requires one value`)
+      options[key] = args[++i]
+    } else if (args[i].startsWith('-')) throw new Error(`unknown option ${args[i]}`)
+    else positional.push(args[i])
+  }
+  const [verb = 'check', id] = positional
+  if (!['check', 'next', 'packet', 'impacts', 'inventory'].includes(verb) || positional.length > 2 || (['check', 'next', 'inventory'].includes(verb) && id) || (verb === 'packet' && !id)) throw new Error('usage: node scripts/unified-plan.mjs [--report DIR] [--privacy-deny-file LOCAL] check|next|packet ID|impacts [ID]|inventory --source-revision SHA')
+  if (verb === 'inventory' && !/^[a-f0-9]{40}$/.test(options.source_revision ?? '')) throw new Error('inventory requires --source-revision fullSHA')
+  if (verb !== 'inventory' && options.source_revision) throw new Error('--source-revision is only valid for inventory')
+  return { report, verb, id, ...options }
+}
 export function canonicalLanes(text) {
   const section = text.split('<!-- general-plan:begin -->')[1]?.split('<!-- general-plan:end -->')[0]
   if (!section) throw new Error('canonical general-plan markers missing')
@@ -16,7 +63,7 @@ export function canonicalLanes(text) {
     return { number: Number(cells[1].match(/^\d+/)[0]), canonical_ids: cells.at(-2).split(',').map(x => x.trim()) }
   })
 }
-export function validatePlan(plan, root) {
+export function validatePlan(plan, root, { inventoryReader = canonicalInventory } = {}) {
   const problems = []
   if (plan.schema !== 1) problems.push('unsupported schema')
   if (!/^[a-f0-9]{40}$/.test(plan.baseline ?? '')) problems.push('missing full source revision')
@@ -30,6 +77,7 @@ export function validatePlan(plan, root) {
     if (!t.title || !present(t.canonical_ids)) problems.push(`${t.id}: missing title/canonical ids`)
     if (!Number.isInteger(t.priority_group) || t.priority_group < 0) problems.push(`${t.id}: invalid priority group`)
     if (!['candidate', 'design-gated', 'owned-elsewhere', 'operator-gated', 'done'].includes(t.dispatch)) problems.push(`${t.id}: unknown dispatch state`)
+    if (t.dispatch === 'candidate' && t.kind === 'canonical-source-review') problems.push(`${t.id}: held canonical source reference cannot dispatch`)
     if (t.dispatch === 'candidate' && ['design-review', 'activation-design', 'implementation'].includes(t.kind) && !t.id.endsWith('.prepare')) problems.push(`${t.id}: broad parent cannot dispatch without reviewed bounded leaf`)
     if (t.dispatch === 'done') {
       if (!safePath(t.evidence?.path) || !/^[a-f0-9]{64}$/.test(t.evidence?.sha256 ?? '')) problems.push(`${t.id}: done without digest-bound evidence`)
@@ -71,6 +119,20 @@ export function validatePlan(plan, root) {
     catch { problems.push(`source unreadable: ${s.path}`) }
   }
   if (!(plan.sources ?? []).some(s => s.path === 'docs/evidence/backlog.md')) problems.push('canonical backlog not pinned')
+  try {
+    const inventory = inventoryReader(root, plan.baseline)
+    if (JSON.stringify(plan.canonical_inventory) !== JSON.stringify(inventory)) problems.push('canonical inventory coverage or source revision drift')
+    for (const source of inventory.sources) if (!pinned.has(source.path)) problems.push(`canonical source not pinned: ${source.path}`)
+    const keys = new Set(inventory.tasks.map(t => t.key))
+    const covered = new Set(tasks.flatMap(t => t.canonical_keys ?? []))
+    for (const task of inventory.tasks) if (!covered.has(task.key)) problems.push(`uncovered canonical task: ${task.id} (${task.path})`)
+    for (const task of tasks) for (const key of task.canonical_keys ?? []) {
+      if (!keys.has(key)) problems.push(`${task.id}: unknown canonical source identity`)
+      const row = inventory.tasks.find(r => r.key === key)
+      if (row && (!(task.canonical_ids ?? []).includes(row.id) || !(task.context?.sources ?? []).some(p => p.split('#')[0] === row.path))) problems.push(`${task.id}: canonical identity lacks its owner source`)
+    }
+  } catch (e) { problems.push(`canonical inventory: ${e.message}`) }
+  problems.push(...sourceRevisionProblems(root, plan.sources ?? [], plan.baseline))
   try {
     const lanes = canonicalLanes(readFileSync(resolve(root, 'docs/evidence/backlog.md'), 'utf8'))
     const mapped = new Set(tasks.flatMap(t => t.canonical_ids ?? []))
@@ -124,15 +186,32 @@ export function taskPacket(plan, id) {
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-    const [verb = 'check', id] = process.argv.slice(2)
-    const plan = JSON.parse(readFileSync(resolve(root, REPORT, 'plan.json'), 'utf8'))
-    const problems = validatePlan(plan, root)
-    if (problems.length) { console.error(problems.join('\n')); process.exitCode = 1 }
-    else if (verb === 'check') console.log(`PASS: ${plan.lanes.length} lanes, ${plan.tasks.length} packets; sources, coverage, dependencies and impacts valid`)
-    else if (verb === 'next') console.log(JSON.stringify(frontier(plan), null, 2))
-    else if (verb === 'packet') console.log(JSON.stringify(taskPacket(plan, id), null, 2))
-    else if (verb === 'impacts') console.log(JSON.stringify(id ? taskPacket(plan, id).impacts : plan.impacts, null, 2))
-    else throw new Error('usage: node scripts/unified-plan.mjs check|next|packet ID|impacts [ID]')
+    const args = process.argv.slice(2)
+    const parsed = parseArgs(args)
+    const report = selectedReport(root, args.includes('--report') ? parsed.report : undefined)
+    const revision = parsed.source_revision
+    const privacyFile = parsed.privacy_deny_file ?? process.env.FABRIC_PUBLIC_PRIVACY_DENY_FILE
+    const { verb, id } = parsed
+    if (verb === 'inventory') {
+      const inventory = canonicalInventory(root, revision)
+      const deny = privacyFile ? JSON.parse(readFileSync(privacyFile,'utf8')) : []
+      const privacy = publicInputProblems(inventory.sources.map(s=>({path:s.path,bytes:readFileSync(resolve(root,s.path))})),deny)
+      if (privacy.length) throw new Error(privacy.join('\n'))
+      console.log(JSON.stringify(inventory, null, 2))
+    } else {
+      const plan = readPlan(root, report)
+      const planBytes = readFileSync(resolve(reportDirectory(root, report), 'plan.json'))
+      const deny = privacyFile ? JSON.parse(readFileSync(privacyFile,'utf8')) : []
+      const privacy = publicInputProblems([{path:`${report}/plan.json`,bytes:planBytes},...(plan.sources??[]).filter(s=>safePath(s.path)&&existsSync(resolve(root,s.path))).map(s=>({path:s.path,bytes:readFileSync(resolve(root,s.path))}))],deny)
+      if (privacy.length) throw new Error(privacy.join('\n'))
+      const problems = validatePlan(plan, root)
+      if (problems.length) { console.error(problems.join('\n')); process.exitCode = 1 }
+      else if (verb === 'check') console.log(`PASS: ${plan.lanes.length} lanes, ${plan.tasks.length} packets; sources, coverage, dependencies and impacts valid`)
+      else if (verb === 'next') console.log(JSON.stringify(frontier(plan), null, 2))
+      else if (verb === 'packet') console.log(JSON.stringify(taskPacket(plan, id), null, 2))
+      else if (verb === 'impacts') console.log(JSON.stringify(id ? taskPacket(plan, id).impacts : plan.impacts, null, 2))
+      else throw new Error('usage: node scripts/unified-plan.mjs [--report docs/reports/CUT] [--privacy-deny-file LOCAL.json] check|next|packet ID|impacts [ID]|inventory --source-revision SHA')
+    }
   } catch (e) { console.error(e.message); process.exitCode = 1 }
 }
 // #endregion unified-plan

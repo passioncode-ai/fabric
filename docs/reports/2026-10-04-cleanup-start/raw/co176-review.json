@@ -1,0 +1,194 @@
+{
+  "as_of": "2026-10-04T13:49:28.795816+00:00",
+  "scope": "Independent CO-176 current source review and disposable synthetic process/renderer negatives only",
+  "status": "PASS",
+  "sources": {
+    "apps/desktop/src/main/executorAuth.ts": "41930848800793f8bcb2d56bb1dcba6570bd655f2168355fcb9b2fbe8aff2c11",
+    "apps/desktop/src/main/executorDetect.ts": "7b53af20ca36094f19c122812b031872d72b8d316ff34a7262adc8d2f330f21f",
+    "apps/desktop/src/shared/startPaths.ts": "02f0b15bea5a76e66ffd54e916e174f4087d2c233cc1b1c3d79c0d223d1e682f",
+    "apps/desktop/src/renderer/src/start/FirstRun.tsx": "ba7b615831f113888f394320c41fbd1aa2c3804efddaf6b542c42a46ba9cce1a",
+    "apps/desktop/src/renderer/src/start/StartPaths.test.tsx": "f0bf4f383620c3fabf8651f340059ac6b7f8c36d38e97280d248311aa9bc5ac1",
+    "apps/desktop/src/renderer/src/i18n/en.ts": "159ea0ccf239367a6f19771168f3ecfcc0c58fecaeeae80281228a5da430d44f",
+    "apps/desktop/src/renderer/src/i18n/ru.ts": "72429f5941b0a7e17e46d1b03742fa7fec24f12573e517323dc51102109ee2c4",
+    "apps/desktop/test/executor-auth.test.mjs": "656bce52741e285480e6cb99340ea3a0a36d94ef83884b6665b8b40d321a4db5",
+    "docs/brand/voice.md": "1e27c57ccc0031958ec552aa9cbd806cb7b003dc09f8d4bbd3e980b139e258ca",
+    "docs/brand/terminology.md": "03ab409ed3de53eae986386c6ab64130e53a68491decb2be83afbe6d71c13f57",
+    "docs/brand/facts.md": "47fad6978081b1be3a0e7c3cd4c4b230e04b792a4668bcf020675ef920a14a6d",
+    "scripts/ci.sh": "55c964fc5dd0d39bf3392a7281f747b929ea4deca5c89bbe9efd5a951404e5da",
+    "docs/ux/scenarios.md": "bdbe94ea3b982d2072bbbc1c9a4533056d5d34bc021bc9d16eab6943495272bd",
+    "apps/desktop/package.json": "981921ecf18898ba4866488d5b3a55f2c47e257b53f98ca21cbb31e6bc5e7d0d"
+  },
+  "findings": [
+    {
+      "id": "CO176-R1",
+      "severity": "medium",
+      "status": "RESOLVED",
+      "source": "apps/desktop/src/renderer/src/start/FirstRun.tsx:186",
+      "finding": "Only forward/Continue without an agent control is disabled while informational executor/auth check is pending. New auth observation adds up to8seconds before it resolves. No separate step2 Skip exists.",
+      "contract": "docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start: every step skippable; check is information, not gate; pending Continue usable",
+      "recommendation": "Keep continue-without available during pending check; fence late reply on step departure; add delayed synthetic component control.",
+      "resolution": "FirstRun.tsx forward control has no pending disabled flag; effect cleanup increments checks generation on departure. Added delayed pending/leave test at StartPaths.test.tsx:83; final focused run35/35."
+    },
+    {
+      "id": "CO176-R2",
+      "severity": "medium",
+      "status": "RESOLVED",
+      "source": "scripts/ci.sh:205",
+      "finding": "Focused CI gate currently runs executor-detect.test.mjs, not new executor-auth.test.mjs.",
+      "recommendation": "Root adds focused synthetic auth suite to normal gate; no credential-bearing real vendor execution.",
+      "resolution": "scripts/ci.sh:206 and apps/desktop/package.json test now execute synthetic executor-auth.test.mjs. Root owns full gate execution."
+    }
+  ],
+  "checks": {
+    "source_review": [
+      {
+        "area": "build/version/platform gate",
+        "verdict": "PASS",
+        "evidence": "executorAuth.ts READERS exact Claude2.1.289/Codex0.160.0 darwin-arm64; all other build/id/platform/arch return unsupported before spawn."
+      },
+      {
+        "area": "raw response and IPC/log disclosure",
+        "verdict": "PASS",
+        "evidence": "executorAuth.ts classify returns only state/method/reason; methods whitelist; buffers reset; no log call; index.ts:3224 returns detectExecutors typed rows. No raw stderr/stdout/account subject on this path."
+      },
+      {
+        "area": "bounded process lifecycle",
+        "verdict": "PASS",
+        "evidence": "32768combined bytes, max8000ms,100ms drain; detached group SIGKILL on all finish paths; bounded parent-exit drain ignores descendant EOF."
+      },
+      {
+        "area": "exit pairing/crossstream/malformed secret",
+        "verdict": "PASS",
+        "evidence": "Claude boolean loggedIn and exit0/1 pairing, nonempty stderr refused; Codex exact trimmed message and paired exit0/1 only, combined stream extras refused."
+      },
+      {
+        "area": "latest request / ready separate auth",
+        "verdict": "PASS",
+        "evidence": "ExecutorStep checks generation only newest may setRows/setFailure; ready pill uses found&&connected, never auth; older bridge authentication absent\u2192unknown."
+      },
+      {
+        "area": "informational check skip while pending",
+        "verdict": "PASS_AFTER_FIX",
+        "evidence": "FirstRun.tsx:186 enabled continue-without; checks.current increment on cleanup; StartPaths.test.tsx:83 pending\u2192continue\u2192late authenticated result stays on next step. Focused35/35PASS."
+      }
+    ],
+    "executed": [
+      {
+        "command": "node --experimental-strip-types apps/desktop/test/executor-auth.test.mjs",
+        "exit_code": 0,
+        "output": "PASS executor auth: exact builds, environment, strict whitelisted status, missing/hung/oversize/secret/unsupported negative controls, group cleanup",
+        "note": "Reran final expanded synthetic test file after it changed; exit0 same PASS receipt."
+      },
+      {
+        "command": "node_modules/.bin/vitest run src/renderer/src/start/StartPaths.test.tsx",
+        "cwd": "apps/desktop",
+        "exit_code": 0,
+        "test_files": 1,
+        "tests_passed": 35,
+        "note": "Final rerun after pending-skip source and delayed component test changed;35/35PASS."
+      },
+      {
+        "kind": "independent disposable-process negatives",
+        "exit_code": 0,
+        "cases": 15,
+        "results": [
+          {
+            "id": "claude-0",
+            "state": "unknown",
+            "reason": "invalid-response"
+          },
+          {
+            "id": "claude-1",
+            "state": "unknown",
+            "reason": "invalid-response"
+          },
+          {
+            "id": "claude-2",
+            "state": "unknown",
+            "reason": "invalid-response"
+          },
+          {
+            "id": "claude-3",
+            "state": "authenticated",
+            "reason": null
+          },
+          {
+            "id": "claude-4",
+            "state": "unknown",
+            "reason": "invalid-response"
+          },
+          {
+            "id": "codex-5",
+            "state": "unknown",
+            "reason": "invalid-response"
+          },
+          {
+            "id": "codex-6",
+            "state": "unknown",
+            "reason": "invalid-response"
+          },
+          {
+            "id": "codex-7",
+            "state": "unknown",
+            "reason": "invalid-response"
+          },
+          {
+            "id": "codex-8",
+            "state": "unknown",
+            "reason": "invalid-response"
+          },
+          {
+            "id": "claude-9",
+            "state": "unknown",
+            "reason": "output-limit"
+          },
+          {
+            "id": "unsupported-10",
+            "state": "unsupported",
+            "reason": "unverified-build"
+          },
+          {
+            "id": "unsupported-11",
+            "state": "unsupported",
+            "reason": "unverified-build"
+          },
+          {
+            "id": "unsupported-12",
+            "state": "unsupported",
+            "reason": "unverified-build"
+          },
+          {
+            "id": "claude-13",
+            "state": "unknown",
+            "reason": "timeout"
+          },
+          {
+            "id": "timeout-process-group",
+            "state": "killed"
+          }
+        ],
+        "reproduction": "Machine-only script; source module invoked with fixture executable and isolated synthetic HOME/PATH. No installed provider command."
+      }
+    ],
+    "invocation_correction": "First renderer invocation from repository root found no tests due vitest root include; reran from apps/desktop with34 passing. Not an implementation failure."
+  },
+  "locale_review": {
+    "status": "PASS",
+    "contract": "docs/brand/voice.md + terminology.md + facts.md brand-contract v1",
+    "new_keys_count": 5,
+    "parity": "5EN/5RU same keys; no interpolation mismatch",
+    "finding": "Current final copy attributes sign-in to the coding agent (EN) / executor (RU), displays installation/Fabric connection/sign-in separately, says no tasks start, and keeps unknown/unavailable recovery and continuation usable. Five-key parity; no inflated ready/admission claim."
+  },
+  "limits": [
+    "No actual installed CLI auth/login status invocation",
+    "No account credentials or raw provider responses captured",
+    "Packaged native rendering/vendor acceptance NOT_RUN",
+    "Root owns CI, UX, docs, implementation and publication; reviewer changed only this JSON"
+  ],
+  "check_counts": {
+    "independent_disposable_cases": 15,
+    "final_renderer_tests": 35,
+    "focused_auth_script": 1,
+    "resolved_review_findings": 2
+  }
+}

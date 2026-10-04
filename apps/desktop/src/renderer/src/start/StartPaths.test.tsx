@@ -1,13 +1,13 @@
 // The first run and the start paths (ADR-0100), driven through the real components with the bridge
 // stubbed at its edge. Each case asserts what reaches the bridge — the act — not only what is drawn.
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { I18nProvider } from '../i18n'
 import { en } from '../i18n/en'
 import { PersonaProvider } from '../launch/persona'
 import { FirstRun, firstRunDue } from './FirstRun'
 import { StartScreen, explainError, type StartPath } from './StartPaths'
-import type { CandidateView, FolderView, ScanView } from '../../../shared/startPaths.ts'
+import type { CandidateView, ExecutorRow, FolderView, ScanView } from '../../../shared/startPaths.ts'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
@@ -49,6 +49,56 @@ function start(path: StartPath, projects: { id: string; name: string }[] | null 
 }
 
 describe('the first run (SCN-126)', () => {
+  // #region executor-auth-render-test — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
+  const executor = (authentication?: ExecutorRow['authentication']): ExecutorRow => ({ id: 'claude-code', label: 'Claude Code', connected: false, state: 'found', version: '2.1.289', path: '/fixture/claude', install: null, authentication })
+  it('shows separate sign-in states without promoting connectivity or blocking continuation', async () => {
+    for (const [state, key] of [
+      ['authenticated', 'start.executor.auth.authenticated'], ['not-authenticated', 'start.executor.auth.notAuthenticated'],
+      ['unsupported', 'start.executor.auth.unsupported'], ['unknown', 'start.executor.auth.unknown']
+    ] as const) {
+      bridge({ start: { ...bridge().start, executors: vi.fn(async () => [executor({ state, method: null, reason: null })]) } })
+      render(<I18nProvider locale="en"><PersonaProvider><FirstRun onFinish={vi.fn()} /></PersonaProvider></I18nProvider>)
+      fireEvent.click(await screen.findByRole('button', { name: en['first.skip'] }))
+      await screen.findByText(en[key])
+      expect(screen.queryByText(en['first.exec.state.found']), 'signed in never promotes Fabric connectivity').toBeNull()
+      fireEvent.click(screen.getByRole('button', { name: en['first.exec.continueWithout'] }))
+      await screen.findByText(en['first.start.lede'])
+      cleanup()
+    }
+  })
+  it('treats an older bridge with no status as unknown, and ignores a stale authenticated reply', async () => {
+    let resolveOld!: (rows: ExecutorRow[]) => void
+    const executors = vi.fn().mockImplementationOnce(() => new Promise<ExecutorRow[]>((resolve) => { resolveOld = resolve }))
+      .mockResolvedValueOnce([executor()])
+    bridge({ start: { ...bridge().start, executors } })
+    render(<I18nProvider locale="en"><PersonaProvider><FirstRun onFinish={vi.fn()} /></PersonaProvider></I18nProvider>)
+    fireEvent.click(await screen.findByRole('button', { name: en['first.skip'] }))
+    await waitFor(() => expect(executors).toHaveBeenCalledTimes(1))
+    fireEvent.click(screen.getByRole('button', { name: en['first.exec.recheck'] }))
+    await screen.findByText(en['start.executor.auth.unknown'])
+    await act(async () => { resolveOld([executor({ state: 'authenticated', method: 'claude.ai', reason: null })]) })
+    expect(screen.queryByText(en['start.executor.auth.authenticated'])).toBeNull()
+    expect(screen.getByText(en['start.executor.auth.unknown'])).toBeTruthy()
+  })
+  it('lets the operator continue while the auth check is pending and ignores its late answer after leaving', async () => {
+    let answer!: (rows: ExecutorRow[]) => void
+    const executors = vi.fn(() => new Promise<ExecutorRow[]>((resolve) => { answer = resolve }))
+    bridge({ start: { ...bridge().start, executors } })
+    render(<I18nProvider locale="en"><PersonaProvider><FirstRun onFinish={vi.fn()} /></PersonaProvider></I18nProvider>)
+    fireEvent.click(await screen.findByRole('button', { name: en['first.skip'] }))
+    await screen.findByText(en['first.exec.checking'])
+    const next = screen.getByRole('button', { name: en['first.exec.continueWithout'] }) as HTMLButtonElement
+    expect(next.disabled).toBe(false)
+    fireEvent.click(next)
+    await screen.findByText(en['first.start.lede'])
+    await act(async () => { answer([executor({ state: 'authenticated', method: 'claude.ai', reason: null })]) })
+    expect(screen.queryByText(en['first.exec.title'])).toBeNull()
+    expect(screen.queryByText(en['start.executor.auth.authenticated'])).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: en['first.back'] }))
+    await waitFor(() => expect(executors).toHaveBeenCalledTimes(2))
+    expect(screen.queryByText(en['start.executor.auth.authenticated']), 're-entry starts a fresh check, never reuses a skipped result').toBeNull()
+  })
+  // #endregion executor-auth-render-test
   it('is due only for a never-finished estate known to be empty', () => {
     expect(firstRunDue(null, [])).toBe(true)
     expect(firstRunDue(null, null), 'an unknown list is not an empty one').toBe(false)

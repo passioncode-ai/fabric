@@ -1,0 +1,2196 @@
+{
+  "schema": 1,
+  "as_of": "2026-10-04",
+  "scope": "Supplemental capability owner/source mapping only; no new writable statuses, readiness, native acceptance, or organization-wide coverage",
+  "count": 43,
+  "basis": {
+    "git_head_at_read": "484600a338f2c413333e57c09a28712b8559c401",
+    "lanes_review_path": "docs/reports/2026-10-04-cleanup-start/raw/lanes-review.json",
+    "lanes_review_sha256": "2ba0a31f7ce2106a7e1d063d01b20b0df54c5578b71a267ad8ccefd17990fc46",
+    "historical_plan_path": "docs/reports/2026-10-04-unified-execution/plan.json",
+    "historical_plan_sha256": "0b2be8e8d05ca5ced7a7f0266ba25d8a9b2c6715b5b7bb502f42fdb952db6669",
+    "declared_inventory_count_at_main_cut": 543,
+    "source_cut_note": "Owner locations/hash describe current working source bytes. Root commits this receipt with reviewed inputs; only source files whose current bytes match HEAD have an attested commit here."
+  },
+  "known_canonical_deferral": {
+    "path": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+    "line": 200,
+    "text": "| CO-189 | 2026-10-03 iteration-3 plan review; reserved under key board-sources-20261003 | **Adoption packets, MEM-P packages and L3c are not on the common board.** The adoption module table is declared (modules list their packets), but packet-level status lives in `Status:` lines and receipts, MEM-P in headings, L3c in the dated launch-UI plan — none a table the workspace collector can read. | a second status table would be a second home for the same status | when one of those registers gains a living status table | `docs/backlog-sources.json` | open |",
+    "context": [
+      {
+        "line": 199,
+        "text": "| CO-188 | 2026-10-03 iteration-3 docs review; reserved under key convert-states-20261003 | **Only the planned state of \"convert an agent\" is designed.** The brief's REQ-07 asks for the dry-run plan, the branch, the probe and registry admission as designed screens and states; SCR-75 and FLW-74 hold only `planned`. REQ-07 is corrected to partly met. | the conversion is AR-11's work; its states belong with it | when AR-11 starts | SCN-131, SCR-75, AR-11 | open |"
+      },
+      {
+        "line": 200,
+        "text": "| CO-189 | 2026-10-03 iteration-3 plan review; reserved under key board-sources-20261003 | **Adoption packets, MEM-P packages and L3c are not on the common board.** The adoption module table is declared (modules list their packets), but packet-level status lives in `Status:` lines and receipts, MEM-P in headings, L3c in the dated launch-UI plan — none a table the workspace collector can read. | a second status table would be a second home for the same status | when one of those registers gains a living status table | `docs/backlog-sources.json` | open |"
+      },
+      {
+        "line": 201,
+        "text": "| CO-190 | 2026-10-03 iteration-3 UX review; reserved under key workspace-absences-table-names-20261003 | **The estate-folder question lists raw table names.** \"What a folder will not bring back: …\" is composed by `shared/archive.ts#restorability` from table names such as `project_tasks`, shown as they are on the home after the first run. The copy beside it also called a project \"a persistent workspace\" (fixed 2026-10-03). | existing copy that predates the start paths; the names need a mapping owned by the archive contract | before the estate-folder question is offered to a second operator | `apps/desktop/src/shared/archive.ts#restorability`, `EstateHome.tsx` | open |"
+      },
+      {
+        "line": 202,
+        "text": "| CO-191 | 2026-10-03 iteration-3 UX review; reserved under key app-sigterm-quit-20261003 | **The app does not exit within 10 s of SIGTERM.** At the end of every walk the reviewer saw the app killed after the walk's 10 s grace. Quit goes through `before-quit`, which waits for the scoped runtime shutdown (`stopRuntime.shutdown()`) before quitting — by design for live sessions, but the deadline and its effect on an idle app are unmeasured. | a measurement first: the shutdown deadline with no session running | before the packaged app is walked as P-03 | `apps/desktop/src/main/index.ts` `before-quit`; `scripts/walk/cleanup.mjs` | closed 2026-10-03 — measured: an idle app never exited (a re-entrant `app.quit()` inside Electron's non-reentrant quit left it windowless and running); `src/main/quit.ts` quits on a macrotask with a 10 s hard deadline, the walk fails on a killed app, `apps/desktop/test/quit.test.mjs` watches a real Electron exit gracefully ([ADR-0106](../../adr/0106-fabric-adopts-the-product-lifecycle-contract.md) §1); the check on the released 0.3.0 is [fabric#5](https://github.com/passioncode-ai/fabric/issues/5) |"
+      },
+      {
+        "line": 203,
+        "text": "| CO-192 | 2026-10-03 lifecycle broker (sshlg-personal-os BL-1076), measured live; reserved under key background-launch-20261003 | **A non-activating launch still raised Fabric's windows and took focus.** The machine's lifecycle broker launches apps with `activates=false`; Fabric showed its splash and main window anyway. | `--background`: start and do the normal startup work with no splash, no window and no focus until the person activates the app; the broker passes the flag only to targets enrolled with `backgroundLaunch: true` | before the broker enrols Fabric for background launch | `apps/desktop/src/main/index.ts` `BACKGROUND_LAUNCH`; `apps/desktop/test/background-launch.test.mjs` | closed 2026-10-03 — `--background` honoured (no splash, no main window until `activate`; an activation during startup opens the window once startup is done); a launch without activation delivers no `activate` on Electron 44 (measured with `open -g`); the broker enrols Fabric after 0.3.0 ([ADR-0106](../../adr/0106-fabric-adopts-the-product-lifecycle-contract.md)); tracked publicly as [fabric#4](https://github.com/passioncode-ai/fabric/issues/4) — its real-launch test and the released-build check remain there |"
+      },
+      {
+        "line": 204,
+        "text": "| CO-193 | 2026-10-03 hub consent (ADR-0115 S2–S4), run r-c3933a2eb; reserved under key hub-capability-name-underscore-20261003 | **`agent.call` takes product tool names the contract's pattern refuses.** `fabric-interop/0.1` `capabilityName` is `^[a-z][a-z0-9.-]{1,127}$`; Fabric Inbox's tools are `read_message`, `list_messages`. Fabric's `agent.call` and `fabric.access.request` accept `^[a-z][a-z0-9._-]{1,127}$` (`apps/desktop/src/shared/access.ts` `CAPABILITY_PATTERN`) so a connected product is called by its own tool names. | Amending the contract is fabric-agent-contract's change, not this branch's. **Owner and next step (2026-10-04, 0.3.1 verification V1, PL-9):** passioncode-ai/fabric-agent-contract opens an issue and a PR that either allows `_` in `$defs.capabilityName` (`^[a-z][a-z0-9._-]{1,127}$`) or adds a `toolName` field to `interop-agent-call` for a product's own tool names; until then Fabric's `agent.call` deviates from the published schema by this one character class. Checked read-only 2026-10-04: `gh issue list -R passioncode-ai/fabric-agent-contract --state all` → no issue on it yet | before a second hub client validates `agent.call` arguments against the published schema | [ADR-0115](../../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md), `schemas/interop-agent-call.schema.json` in passioncode-ai/fabric-agent-contract | open |"
+      },
+      {
+        "line": 205,
+        "text": "| CO-194 | 2026-10-03 hub consent (ADR-0115 S4), run r-c3933a2eb; reserved under key hub-server-source-fabric-20261003 | **A session's declared server with `source: 'fabric'` still refuses.** The hub routes `agent.call` for registered EXTERNAL agents holding a binding (ADR-0115 §5); a project's `mcp_servers` entry proxied through Fabric for a session Fabric starts is a different principal with no grant model yet, so `shared/servers.ts#planServers` keeps its refusal, now naming ADR-0115 and this row. | Sessions' credentials are one-shot and project-scoped; giving them product grants needs its own consent design (AR-3.2) | AR-3.2, when Fabric writes its MCP entry into each catalogued runner | `apps/desktop/src/shared/servers.ts`, [AR-3.2](../plans/2026-09-29-agent-registry-plan.md#ar-3--hub-and-tasking-walking-skeleton-part-2) | open |"
+      },
+      {
+        "line": 206,
+        "text": "| CO-195 | 2026-10-03 hub consent (ADR-0115 S5 and acceptance), run r-c3933a2eb; reserved under key hub-port-collision-sessions-20261003 | **No live end-to-end run with the Fabric Inbox desktop app yet.** Every hop is tested with real code at both ends of Fabric's side — the real surface, store and MCP SDK — against a fake Fabric Inbox server and a fake Project Observatory engine (`hub-products.test.mjs`, `hub-door-db.test.mjs`); the connect link and callback shapes match passioncode-ai/fabric-inbox `desktop/connect.cjs` (branch `agent/hub-connect`). Not yet observed: the real app's prompt, a real key minted through Cloudflare Access, a real `X-Fabric-Accounts` narrowing on the Worker, and the first consumer (S5). | The Fabric Inbox half is on its own branch and release; S5 lives in its own private repository. **Updated 2026-10-04 (0.3.1 verification V1, PL-5, PL-7, PL-14):** Fabric's side is on `main` as 67a5dc42 (PR #7) and ships in 0.3.1. Fabric Inbox merged #16 (`733182d`), #18 (`fc615c4`) and #24 (`e7cc73b`, \"a comma is never part of an account id\", merged 2026-10-03T21:15:51Z); its desktop app 0.9.0 (`0ecc086`) carries the connect link, but the narrowing that matters is the **server's**: v0.9.0 does not contain #24 (`gh api repos/passioncode-ai/fabric-inbox/compare/e7cc73bc32...v0.9.0` → behind by 4, measured by the iteration-1 plan review), and the Worker deployed after #24 is version `4fd02b75-3453-49ad-bab2-cc10c7a020a1` (`wrangler deploy` of fabric-inbox 0.9.0 sources on 2026-10-03, after #24 merged; the deploy log names the Worker version, not the commit). The minimum product for 0.3.1 is therefore the Fabric Inbox **server** at Worker version `4fd02b75` or later (carrying #24); the 0.9.0 desktop app is needed only for the connect link. Key note: this row's reservation key names a different subject (port collision); the key was reused, and the port-collision behaviour is in code (sessions keep an ephemeral port), with no row of its own | after Fabric 0.3.1 is released: install a build of 0.3.1, the Fabric Inbox 0.9.0 app against the `4fd02b75`-or-later server, connect, run one example agent through request → Allow → `agent.call read_message` | [ADR-0115 slices](../../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#slices) | open |"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "id": "N1",
+      "historical_task_id": "N1",
+      "historical_lane": 5,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "N1.metadata",
+        "N1",
+        "N1.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/evidence/plans/2026-09-27-first-slice-plan.md",
+        "line": 705,
+        "text": "### N1 · first slice on real providers",
+        "context": [
+          {
+            "line": 705,
+            "text": "### N1 · first slice on real providers"
+          },
+          {
+            "line": 707,
+            "text": "In a dedicated test Project, on the exact source SHA, for Codex and Claude separately: launch,"
+          },
+          {
+            "line": 708,
+            "text": "delivery with ACK by digest, operator Stop, natural exit, crash and restart, stale command,"
+          },
+          {
+            "line": 709,
+            "text": "SIGTERM ignored, child survives, double Stop — the HAR-R0-04 matrix — plus ADR-0081's gates"
+          },
+          {
+            "line": 710,
+            "text": "(a)–(e) for Codex and the provider capability matrix rows each packet claims. Publish only the"
+          },
+          {
+            "line": 711,
+            "text": "capabilities measured; `NOT_RUN` stays `NOT_RUN`."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "canonical packet table status",
+        "path": "docs/evidence/plans/2026-09-27-first-slice-plan.md",
+        "line": 92,
+        "text": "| 20 | [N1 · first slice on real providers](#n1--first-slice-on-real-providers) | REQ-10 | all above; human steps | open |",
+        "coverage_note": "historical CLI versions/quota reset are not real-provider matrix acceptance"
+      }
+    },
+    {
+      "id": "AD02",
+      "historical_task_id": "AD02",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD02",
+        "AD02.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD02.md",
+        "line": 1,
+        "text": "# AD02 · Сохранить native черновики при новом старте",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD02 · Сохранить native черновики при новом старте"
+          },
+          {
+            "line": 3,
+            "text": "Status: **ready-for-bounded-work**. Plan, not implementation receipt. Module `project`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD02.md",
+        "line": 3,
+        "text": "Status: **ready-for-bounded-work**. Plan, not implementation receipt. Module `project`; parent CO-166/OX, tracked by CO-167."
+      },
+      "acceptance_receipt": {
+        "path": "docs/launch/adoption/receipts/AD02.json",
+        "status": "blocked",
+        "proofTier": "pure",
+        "predicate": "native-acceptance-pending",
+        "interpretation": "packet ready-for-bounded-work does not override blocked native acceptance"
+      }
+    },
+    {
+      "id": "AD03",
+      "historical_task_id": "AD03",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD03",
+        "AD03.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD03.md",
+        "line": 1,
+        "text": "# AD03 · Единый target-сценарий создания",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD03 · Единый target-сценарий создания"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `project`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD03.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `project`; parent CO-166/OX, tracked by CO-167."
+      },
+      "context_correction": {
+        "path": "docs/launch/adoption/README.md",
+        "line": 3,
+        "text": "> **2026-09-25 · текущий целевой вход изменён.** [Первый релиз: CEO → исполнитель → папка → обзор](../first-release.md) и [стратегия FR-A…G](../first-release-strategy.md) заменяют обязательные name/purpose/review шаги AD03. Исторические результаты и 25 пакетов ниже сохранены; их наличие не означает готовность нового пути.",
+        "context": [
+          {
+            "line": 3,
+            "text": "> **2026-09-25 · текущий целевой вход изменён.** [Первый релиз: CEO → исполнитель → папка → обзор](../first-release.md) и [стратегия FR-A…G](../first-release-strategy.md) заменяют обязательные name/purpose/review шаги AD03. Исторические результаты и 25 пакетов ниже сохранены; их наличие не означает готовность нового пути."
+          },
+          {
+            "line": 5,
+            "text": "**Текущий review: 17 сентября 2026.** [Интерактивный проект знакомства](../../reports/adoption.html#overview) · [Все возможности](../../reports/adoption.html#capabilities) · [34 наблюдения и 18 решений](../../reports/adoption.html#findings) · [25 пакетов реализации](../../reports/adoption.html#plan)."
+          },
+          {
+            "line": 7,
+            "text": "Начните с интерактивного маршрута: выберите исходную ситуацию, фазу знакомства и состояние. Затем откройте соответствующее решение и пакет. Подробный [конечный дизайн](design.md) объясняет функционал, последовательность сессий, hook, ошибки и измерение пользы. [Общие контракты](contracts.md) запрещают разным агентам придумывать несовместимые модели. Все хорошие идеи и старые экраны сохранены в [инвентаре 85 представлений](inventory.json)."
+          },
+          {
+            "line": 9,
+            "text": "## Реализация · 17 сентября 2026"
+          }
+        ]
+      }
+    },
+    {
+      "id": "AD04",
+      "historical_task_id": "AD04",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD04",
+        "AD04.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD04.md",
+        "line": 1,
+        "text": "# AD04 · Один durable create и восстановление неизвестного исхода",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD04 · Один durable create и восстановление неизвестного исхода"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `project`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD04.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `project`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD05",
+      "historical_task_id": "AD05",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD05",
+        "AD05.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD05.md",
+        "line": 1,
+        "text": "# AD05 · Минимальный порт источника и честное отсутствие данных",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD05 · Минимальный порт источника и честное отсутствие данных"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `sources`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD05.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `sources`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD06",
+      "historical_task_id": "AD06",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD06",
+        "AD06.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD06.md",
+        "line": 1,
+        "text": "# AD06 · Первый полезный checkpoint на своём проекте",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD06 · Первый полезный checkpoint на своём проекте"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `context`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD06.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `context`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD07",
+      "historical_task_id": "AD07",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD07",
+        "AD07.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD07.md",
+        "line": 1,
+        "text": "# AD07 · Возврат: общий снимок и прочитанная граница",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD07 · Возврат: общий снимок и прочитанная граница"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `context`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD07.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `context`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD09",
+      "historical_task_id": "AD09",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD09",
+        "AD09.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD09.md",
+        "line": 1,
+        "text": "# AD09 · Durable текстовый разговор и общий command path",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD09 · Durable текстовый разговор и общий command path"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `conversation`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD09.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `conversation`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD08",
+      "historical_task_id": "AD08",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD08",
+        "AD08.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD08.md",
+        "line": 1,
+        "text": "# AD08 · Одинаковый возврат в Home, Project и Fabric",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD08 · Одинаковый возврат в Home, Project и Fabric"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `context`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD08.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `context`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD10",
+      "historical_task_id": "AD10",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD10",
+        "AD10.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD10.md",
+        "line": 1,
+        "text": "# AD10 · Composer: понятный scope, shortcuts и сохранность ввода",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD10 · Composer: понятный scope, shortcuts и сохранность ввода"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `conversation`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD10.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `conversation`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD11",
+      "historical_task_id": "AD11",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD11",
+        "AD11.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD11.md",
+        "line": 1,
+        "text": "# AD11 · Исправление атрибуции и точные ссылки на разговор",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD11 · Исправление атрибуции и точные ссылки на разговор"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `conversation`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD11.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `conversation`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD12",
+      "historical_task_id": "AD12",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD12",
+        "AD12.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD12.md",
+        "line": 1,
+        "text": "# AD12 · Выбрать и проверить STT-порт для R0",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD12 · Выбрать и проверить STT-порт для R0"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `voice`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD12.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `voice`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD13",
+      "historical_task_id": "AD13",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD13",
+        "AD13.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD13.md",
+        "line": 1,
+        "text": "# AD13 · Реальный voice capture → правка → отправка",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD13 · Реальный voice capture → правка → отправка"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `voice`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD13.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `voice`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD14",
+      "historical_task_id": "AD14",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD14",
+        "AD14.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD14.md",
+        "line": 1,
+        "text": "# AD14 · Доска: решение и возврат отложенного",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD14 · Доска: решение и возврат отложенного"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `attention`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD14.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `attention`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD15",
+      "historical_task_id": "AD15",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD15",
+        "AD15.readiness",
+        "AD15.prepare",
+        "AD15.readiness.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD15.md",
+        "line": 1,
+        "text": "# AD15 · Минимальная настройка допущенного исполнителя",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD15 · Минимальная настройка допущенного исполнителя"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `execution`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD15.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `execution`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD16",
+      "historical_task_id": "AD16",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD16",
+        "AD16.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD16.md",
+        "line": 1,
+        "text": "# AD16 · Один Run без ручной имитации механики",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD16 · Один Run без ручной имитации механики"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `execution`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD16.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `execution`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD17",
+      "historical_task_id": "AD17",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD17",
+        "AD17.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD17.md",
+        "line": 1,
+        "text": "# AD17 · Один понятный повторяемый цикл",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD17 · Один понятный повторяемый цикл"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `cycles`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD17.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `cycles`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD18",
+      "historical_task_id": "AD18",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD18",
+        "AD18.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD18.md",
+        "line": 1,
+        "text": "# AD18 · Durable прогресс знакомства из результата",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD18 · Durable прогресс знакомства из результата"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `adoption`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD18.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `adoption`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD19",
+      "historical_task_id": "AD19",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD19",
+        "AD19.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD19.md",
+        "line": 1,
+        "text": "# AD19 · Плавное знакомство в точке потребности",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD19 · Плавное знакомство в точке потребности"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `adoption`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD19.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `adoption`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD20",
+      "historical_task_id": "AD20",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD20",
+        "AD20.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD20.md",
+        "line": 1,
+        "text": "# AD20 · Спокойная оболочка и честная пустота",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD20 · Спокойная оболочка и честная пустота"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `shell`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD20.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `shell`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD21",
+      "historical_task_id": "AD21",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD21",
+        "AD21.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD21.md",
+        "line": 1,
+        "text": "# AD21 · Потребностные входы к глубине и приглашению",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD21 · Потребностные входы к глубине и приглашению"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `depth`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD21.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `depth`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD24",
+      "historical_task_id": "AD24",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD24",
+        "AD24.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD24.md",
+        "line": 1,
+        "text": "# AD24 · Найти проекты в выбранной папке",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD24 · Найти проекты в выбранной папке"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `sources`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "> **2026-10-03 · partly delivered outside this packet's chain.** The start paths ([ADR-0100](../../../adr/0100-first-run-and-start-paths.md) §3, plan row P-01) built candidate discovery in a chosen folder — a bounded, cancellable, read-only scan presented as a checklist where each ticked repository becomes its own Project. That bypassed this packet's prerequisites (AD05 → AD04 → AD02/AD03 acceptance), which remain unmet; the bypass is recorded here rather than hidden. The packet's status is unchanged until its own receipts exist."
+          },
+          {
+            "line": 7,
+            "text": "## Entry and invariant"
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD24.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `sources`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD22",
+      "historical_task_id": "AD22",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD22",
+        "AD22.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD22.md",
+        "line": 1,
+        "text": "# AD22 · Интеграционная приёмка всех обязательных R0 путей",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD22 · Интеграционная приёмка всех обязательных R0 путей"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `acceptance`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD22.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `acceptance`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "AD23",
+      "historical_task_id": "AD23",
+      "historical_lane": 4,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "AD23",
+        "AD23.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/adoption/packets/AD23.md",
+        "line": 1,
+        "text": "# AD23 · Пилот ценности и следующее решение по данным",
+        "context": [
+          {
+            "line": 1,
+            "text": "# AD23 · Пилот ценности и следующее решение по данным"
+          },
+          {
+            "line": 3,
+            "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `acceptance`; parent CO-166/OX, tracked by CO-167."
+          },
+          {
+            "line": 5,
+            "text": "## Entry and invariant"
+          },
+          {
+            "line": 7,
+            "text": "Read [shared contracts](../contracts.md), [target design](../design.md), [handoff](../README.md). Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "preserved packet design status, not implementation",
+        "path": "docs/launch/adoption/packets/AD23.md",
+        "line": 3,
+        "text": "Status: **blocked-on-receipts**. Plan, not implementation receipt. Module `acceptance`; parent CO-166/OX, tracked by CO-167."
+      }
+    },
+    {
+      "id": "L3c",
+      "historical_task_id": "L3c",
+      "historical_lane": 9,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "L3c",
+        "L3c.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/evidence/plans/2026-09-29-launch-ui-plan.md",
+        "line": 43,
+        "text": "| L3c | Board: Back restoring filter and selection; the `?item=` address | open | SCN-050 step 5 |",
+        "context": [
+          {
+            "line": 42,
+            "text": "| L3b | Board: «На следующий раз» (set aside with a reason, return to the board), «+ Добавить тему» (a topic the owner writes) | **done** | migration [`20260929000068_board_deferral_and_topics.sql`](../../../supabase/migrations/20260929000068_board_deferral_and_topics.sql) (`question_deferrals`, `defer_question`, `reopen_question`, `ask_topic`; schema 68 qualified as a private-archive source), [`board-deferral-db.test.mjs`](../../../apps/desktop/test/board-deferral-db.test.mjs) via `pnpm test:board-db` (11 groups, including a deferral naming another estate's question refused by the database itself), `commandIngressAdapters.ts#commitBoardCommand` + adapter tests, `commandIngress.ts#prepareDeferralReason`/`#prepareTopic`, `board.deferred`, BoardScreen 20 cases; runtime schema contract 68–68; the pipeline reservation moved to 69/70 |"
+          },
+          {
+            "line": 43,
+            "text": "| L3c | Board: Back restoring filter and selection; the `?item=` address | open | SCN-050 step 5 |"
+          },
+          {
+            "line": 44,
+            "text": "| L4 | Project (`launch-project`, SCR-31/SCR-03): now → next step, the project's board, its work, goal, team, rhythm, resources; the journal full width; the navigation's six project sections | **done** | [`launch/ProjectLaunch.tsx`](../../../apps/desktop/src/renderer/src/launch/ProjectLaunch.tsx) + test (5 cases); the Board scoped to a project and opened at a row (`AppRoute` `{ kind: 'board', projectId, item }`, `appRoute.test.ts`, `BoardScreen.test.tsx`); the detailed sections stay below under «Все разделы проекта» |"
+          },
+          {
+            "line": 45,
+            "text": "| L5 | Agent workspace (`launch-agent`, SCR-39): an open task as the whole page — the run rail (agent, state, task, run, session, hold), tabs Now / Context / Decisions / Tasks and sessions / Next, and the console on demand | **done** | [`TaskPage.tsx`](../../../apps/desktop/src/renderer/src/TaskPage.tsx) in the prototype's `lp-ide` layout, every earlier part kept (brief, notes and promotion, siblings, links, receipts, research, open session); [`launch/AgentWorkspace.tsx`](../../../apps/desktop/src/renderer/src/launch/AgentWorkspace.tsx) + test (the run's state in words, the pack this run was given beside the next one, the console read only when opened). **Numbering to settle:** `docs/ux/screens.md` names SCR-39 «Estate agents» (`EstateAgents.tsx`), the launch series uses SCR-39 for this workspace; the registry row was left as it is |"
+          },
+          {
+            "line": 46,
+            "text": "| L6 | Planning (`launch-plan`, SCR-40): every project → a project's goals → a goal's open work; Plan / History, zoom, the same plan as a list; «Планирование» in the navigation; the project's «План» and «Цели и критерии» open it | **done** | [`launch/PlanScreen.tsx`](../../../apps/desktop/src/renderer/src/launch/PlanScreen.tsx) + test (5 cases) on `planOf` and `goalProgress` (a capped closed count is a floor, said so); `AppRoute` `{ kind: 'plan', projectId }`. **Not drawn:** edges between work — the order under a goal is priority, not dependency, and task links live on each task's page; the prototype's fourth level (stages of one task) has no data behind it yet |"
+          },
+          {
+            "line": 47,
+            "text": "| L7 | Pulse (`launch-pulse`, SCR-42 in the launch series): the rhythm over 7 or 28 days with any day's events, decisions and results apart; running sessions as observed; the next cycle; what the pulse means. Reached from «Вся активность →» and the rhythm on the home, «Пульс →» on the Board and the project | **done** | [`launch/PulseScreen.tsx`](../../../apps/desktop/src/renderer/src/launch/PulseScreen.tsx) + test (4 cases), `homeView.ts#eventKind`/`#eventsOfDay` + test; a day the feed window cut off stays unknown when filtered to one project. The home keeps its folded journal (its mark-read act has no other home yet). **Numbering to settle:** `screens.md` names SCR-42 «Inbox» |"
+          },
+          {
+            "line": 48,
+            "text": "| L8 | Releases (`launch-releases`): per project, a release's name, where it applies, what went in (tasks), why (decisions), its verification and receipt, and what comes next; record a release, record its verification, roll back by a new record; «Релизы →» and the latest verified result on the Pulse | **done** | [ADR-0084](../../adr/0084-a-release-is-a-record-with-its-basis.md); migration [`20260929000069_releases.sql`](../../../supabase/migrations/20260929000069_releases.sql) (`releases`, `record_release`, `verify_release`; schema 69 qualified as a private-archive source), [`releases-db.test.mjs`](../../../apps/desktop/test/releases-db.test.mjs) via `pnpm test:releases-db` (6 groups: refusals of an agent, another project's task or decision, an unknown rollback; the latest verification stands; a rollback leaves the old record as it was); [`shared/releases.ts`](../../../apps/desktop/src/shared/releases.ts) + test (the state derived, never stored); `commandIngressAdapters.ts#commitReleaseCommand`, `commandIngress.ts#prepareRelease`; [`launch/ReleasesScreen.tsx`](../../../apps/desktop/src/renderer/src/launch/ReleasesScreen.tsx) + test (8 cases); `AppRoute` `{ kind: 'releases', projectId, release }`; runtime schema contract 69–69; the pipeline reservation moved to 70/71 and ADR-0085. **Numbering:** the launch series files this under SCR-42 beside the Pulse |"
+          },
+          {
+            "line": 49,
+            "text": "| L9 | Persona (`launch-persona`, SCR-36): character, variants, preview, keep or skip; every avatar in the window takes the kept look | **done** | [`launch/PersonaScreen.tsx`](../../../apps/desktop/src/renderer/src/launch/PersonaScreen.tsx) + test (3 cases), [`launch/persona.tsx`](../../../apps/desktop/src/renderer/src/launch/persona.tsx) (one read per window), [`shared/persona.ts`](../../../apps/desktop/src/shared/persona.ts) + test, `main/persona.ts` (`persona.json`, a preference of this machine like the pins, not journalled); «Мой облик» on the home. The look changes no role and no authority. **Numbering:** `screens.md` names SCR-36 «Estate record»; the launch series uses it for this screen |"
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "canonical launch UI plan status",
+        "path": "docs/evidence/plans/2026-09-29-launch-ui-plan.md",
+        "line": 43,
+        "text": "| L3c | Board: Back restoring filter and selection; the `?item=` address | open | SCN-050 step 5 |"
+      }
+    },
+    {
+      "id": "MEM-P0",
+      "historical_task_id": "MEM-P0",
+      "historical_lane": 7,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "MEM-P0",
+        "MEM-P0.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/memory/plan.md",
+        "line": 30,
+        "text": "## MEM-P0 · подтвердить baseline и зафиксировать расширения",
+        "context": [
+          {
+            "line": 30,
+            "text": "## MEM-P0 · подтвердить baseline и зафиксировать расширения"
+          },
+          {
+            "line": 32,
+            "text": "**Owner:** memory contract/QA. **Prerequisites:** доступный локальный test stack; текущие capability descriptors. **Read:** evidence.md, `memory-eval.test.mjs`, transcript migration, `contextPack.ts`, `scope.ts`, external contract pin. **Write:** синтетический корпус, contract fixtures, versioned local schemas и задача совместимости при новом wire surface."
+          },
+          {
+            "line": 34,
+            "text": "**Работа:** сохранить случаи: русская/английская сессии, совпадение после 400000 символов, оборванный хвост, conflicting decision, одинаковое имя проектов, другой Estate, секрет на границе chunks, старый pack, неизвестный stop, Codex unsupported. Зафиксировать, какие fail именно на исходном коде; не исправлять тест до «зелёного» удалением случая. Сопоставить каждый public API с текущей версией/permissions."
+          },
+          {
+            "line": 36,
+            "text": "**Приёмка:** reproducible memory-on/off answer с source ref; baseline misses отдельно от no-access; skip без Supabase отмечен NOT-RUN. Из тестового набора не уходят реальные пользовательские стенограммы. **Output:** pinned baseline, schema delta и список изменений P1/P2/P4/P5. **Не делать:** embeddings и новые модели до базового измерения."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "no per-package status column in owner; plan heading and dependency context only",
+        "readiness": "not inferred"
+      }
+    },
+    {
+      "id": "MEM-P1",
+      "historical_task_id": "MEM-P1",
+      "historical_lane": 7,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "MEM-P1",
+        "MEM-P1.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/memory/plan.md",
+        "line": 38,
+        "text": "## MEM-P1 · устойчивый захват и правдивое покрытие",
+        "context": [
+          {
+            "line": 38,
+            "text": "## MEM-P1 · устойчивый захват и правдивое покрытие"
+          },
+          {
+            "line": 40,
+            "text": "**Owner:** host capture. **Depends:** P0 для PTY/coverage; CW-N1 дополнительно для structured chat/voice sub-slice. **Read/write:** `transcripts.ts`, `index.ts`, `pty.ts`, `shared/redact.ts`, spool metadata, capture journal projection/migrations/tests. **Input:** adapter event + trusted binding. **Output:** sanitized chunks + durable coverage manifest + stable capture receipt."
+          },
+          {
+            "line": 42,
+            "text": "**Работа:** сохранить truncation/redaction/gap counters в spool; корректно восстановить их после crash; различить observed и durable cursor; incremental journal checkpoints; sequence dedup; versioned sanitizer; bounded streaming private/PEM/token filtering; structured chat/voice adapter через CW-N1 с separate provenance. Legacy PTY остаётся observation. Fail closed при ненадёжном фильтре, с видимой потерей покрытия."
+          },
+          {
+            "line": 44,
+            "text": "**Приёмка:** kill между fsync/append/ack, повтор recovery и concurrent retry дают один chunk; cap/disk full не дают complete; CRLF/UTF-8 и секрет через границу chunks скрыты до spool; error logs без payload; final hook отсутствует — durable prefix читается. Startup не меняет partial в complete. **Rollback:** dual-read legacy с coverage=unknown; old spool никогда не выдаёт выдуманную полноту. **Нельзя:** хранить сырой stdin «временно на диске» или выкидывать исходник после summary."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "no per-package status column in owner; plan heading and dependency context only",
+        "readiness": "not inferred"
+      }
+    },
+    {
+      "id": "MEM-P2",
+      "historical_task_id": "MEM-P2",
+      "historical_lane": 7,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "MEM-P2",
+        "MEM-P2.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/memory/plan.md",
+        "line": 46,
+        "text": "## MEM-P2 · поиск и адресное чтение сессий",
+        "context": [
+          {
+            "line": 46,
+            "text": "## MEM-P2 · поиск и адресное чтение сессий"
+          },
+          {
+            "line": 48,
+            "text": "**Owner:** knowledge read boundary. **Depends:** P1. **Read/write:** agentSurface transcript tool, searchRead, scopedStore/scope, FTS projection migration, chunk cursor validators. **Input:** authenticated principal/query/effective grants. **Output:** ranked L0 results, nearby timeline, capped L2 source ranges and retrieval receipt."
+          },
+          {
+            "line": 50,
+            "text": "**Работа:** индекс всех разрешённых chunks; RU/EN и identifiers; rank/date/id ordering; пагинация со snapshot cursor; bounded query/limit; query-near snippet; revalidate read grants; before/after timeline в том же scope. Existing APIs сохраняются versioned; legacy unbounded body получает bounded successor, deprecation без тихого breaking change. Search metadata/total не раскрывают denied source."
+          },
+          {
+            "line": 52,
+            "text": "**Приёмка:** конец большой сессии находится; совпадение через chunk boundary не дублируется; выдача стабильна между страницами; другой Project/Estate не читает snippet/count/ref; отзыв grant между search и detail запрещает detail; stale/tampered cursor отвергается; zero match/error/index lag различимы. SQL параметризован, user query не подставляется как SQL. **Output to P4/P6:** DTO, scopes, empty/partial/error branches, corpus receipts."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "no per-package status column in owner; plan heading and dependency context only",
+        "readiness": "not inferred"
+      }
+    },
+    {
+      "id": "MEM-P3",
+      "historical_task_id": "MEM-P3",
+      "historical_lane": 7,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "MEM-P3",
+        "MEM-P3.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/memory/plan.md",
+        "line": 54,
+        "text": "## MEM-P3 · отложенные резюме, необязательные для R0",
+        "context": [
+          {
+            "line": 54,
+            "text": "## MEM-P3 · отложенные резюме, необязательные для R0"
+          },
+          {
+            "line": 56,
+            "text": "**Owner:** background Routine. **Depends:** P1; source-authorized egress policy. **Write:** bounded derivation job, summary projection, lineage, costs and retry receipts. **Input:** immutable source segment refs. **Output:** L0/L1 derivatives with model/prompt/source versions."
+          },
+          {
+            "line": 58,
+            "text": "**Работа:** checkpoint/idle запускает deterministic eligible queue; dedup job key = source digest + derivation revision; cost cap/retry cap; partial segment остаётся partial. Preserve disagreements, unverified outcomes, exact constraints as refs. Без approved provider summary unavailable, оригинал читается."
+          },
+          {
+            "line": 60,
+            "text": "**Приёмка:** каждое factual assertion имеет source-range refs; неподдержанные/непроверенные утверждения помечаются и не продвигаются в Decision, качество независимо оценивается на корпусе (не предполагается безошибочный hallucination detector); timeout не блокирует capture; retry не удваивает billing receipt; source revoked/deleted делает derivative недоступным; reconstruction from source, не recursive self-summary. **Deferred:** automatic promotion/learned ranking — отдельные reviewed policies."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "no per-package status column in owner; plan heading and dependency context only",
+        "readiness": "not inferred"
+      }
+    },
+    {
+      "id": "MEM-P4",
+      "historical_task_id": "MEM-P4",
+      "historical_lane": 7,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "MEM-P4",
+        "MEM-P4.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/memory/plan.md",
+        "line": 62,
+        "text": "## MEM-P4 · контекст следующего запуска",
+        "context": [
+          {
+            "line": 62,
+            "text": "## MEM-P4 · контекст следующего запуска"
+          },
+          {
+            "line": 64,
+            "text": "**Owner:** compiler/admission. **Depends:** P2, CW-N1; P3 optional. **Write:** `contextPack.ts`, `sessionBundle.ts`, `pastContext.ts`, manifests and tests. **Input:** Task revision, user constraints, predecessor checkpoint, selected source refs, provider capabilities. **Output:** preview/immutable pack and explicit omissions."
+          },
+          {
+            "line": 66,
+            "text": "**Работа:** deterministic priority tiers; mandatory set; current user-input floor; target tokenizer budget или честный bytes cap; authorized refs before retrieval and dispatch; source freshness; conflict pairs; task/run binding; no retrieval instruction execution. Исторический pack читается только из archive, а не генерируется заново."
+          },
+          {
+            "line": 68,
+            "text": "**Приёмка:** одна и та же snapshot/config с фиксированным snapshotAt и canonical serialization даёт один digest; createdAt квитанции исключён из hashed content; unrelated old memory не вытесняет текущую задачу; обязательный текст не влезает — отказ admission; pinned unauthorized source отказ; declined/expired facts не current; recompile после изменения revision создаёт новый pack; missing past blob не подменяется preview. **Compatibility:** новые optional fields не ломают legacy read; legacy coverage unknown видна. **Output to P5:** portable checkpoint и pack refs, никаких credentials."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "no per-package status column in owner; plan heading and dependency context only",
+        "readiness": "not inferred"
+      }
+    },
+    {
+      "id": "MEM-P5",
+      "historical_task_id": "MEM-P5",
+      "historical_lane": 7,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "MEM-P5",
+        "MEM-P5.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/memory/plan.md",
+        "line": 70,
+        "text": "## MEM-P5 · продолжение через того же или другого исполнителя",
+        "context": [
+          {
+            "line": 70,
+            "text": "## MEM-P5 · продолжение через того же или другого исполнителя"
+          },
+          {
+            "line": 72,
+            "text": "**Owner:** execution / FR-E. **Depends:** P4 + verified provider adapter + existing stop/fencing. **Write:** continuation/admission state machine, capability descriptors, receiver adapter, Work UI bindings/tests. **Input:** predecessor Task/Run, observed stop, fresh repo observation, target choice. **Output:** one successor Run/session, predecessor edge, delivered/acknowledged receipts."
+          },
+          {
+            "line": 74,
+            "text": "**Работа:** три режима native/same-provider-new/cross-provider-new; stable command ID; checkpoint seal; repository compare and operator-visible stale recovery; unsettled effects reconcile; readiness as actual probe, not fixture selection; receiver verifies pack digest and reports missing sources."
+          },
+          {
+            "line": 76,
+            "text": "**Приёмка:** закрытый done/cancelled Task не переоткрывается — новый linked Task; stalled old process → successor не пишет; stop timeout → unknown; crash после delivery до ack → reconcile без второго Run; stale branch/dirty tree → refresh/review; unsupported Codex stays blocked; successful native test не считается cross-provider test. Реально выполнить Claude Code→Codex и обратный путь на disposable repo либо записать конкретный NOT-RUN и держать capability unverified. **Нельзя:** reuse vendor hidden reasoning/tool credentials или копировать provider name как Agent identity."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "no per-package status column in owner; plan heading and dependency context only",
+        "readiness": "not inferred"
+      }
+    },
+    {
+      "id": "MEM-P6",
+      "historical_task_id": "MEM-P6",
+      "historical_lane": 7,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "MEM-P6",
+        "MEM-P6.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/memory/plan.md",
+        "line": 78,
+        "text": "## MEM-P6 · workspace памяти и CEO",
+        "context": [
+          {
+            "line": 78,
+            "text": "## MEM-P6 · workspace памяти и CEO"
+          },
+          {
+            "line": 80,
+            "text": "**Owner:** product UI. **Depends:** P2/P4 + CW-N1/N3. **Write:** MemoryOverviewSection, scoped search/source components, R0 navigation/CEO context attachment through actual APIs. **Input:** producer DTOs. **Output:** Home→Memory; Project→scoped Memory; Work→exact Session/pack; source→conversation."
+          },
+          {
+            "line": 82,
+            "text": "**Работа:** сохранить dashboard Board/Projects/Agents; не добавлять всю память на главную. Visible scope chips, search, compact tabs, session/source inspector. Record author/provider/Task/coverage separately. «В разговор» прикрепляет pinned ref; text/voice и кнопка дают одинаковый command envelope. Context inspector показывает разрешённые проекты и причины пропуска. Settings owns imports/retention/summary budgets."
+          },
+          {
+            "line": 84,
+            "text": "**Приёмка:** keyboard-only список→источник→чат→возврат; mobile не скрывает search/primary action; title и source доступны screen-reader; draft survives inspect; scope change убирает выбранный чужой source; empty/error/denied/stale/partial различимы; exact Run link не открывает другой Task; no background task launch on read. Цвет дополняет текст. **Проверки:** component + native integration + browser, отдельная WCAG оценка по конкретным критериям, не screenshot certification."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "no per-package status column in owner; plan heading and dependency context only",
+        "readiness": "not inferred"
+      }
+    },
+    {
+      "id": "MEM-P7",
+      "historical_task_id": "MEM-P7",
+      "historical_lane": 7,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "MEM-P7",
+        "MEM-P7.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/launch/memory/plan.md",
+        "line": 86,
+        "text": "## MEM-P7 · приёмка, эксплуатация и жизненный цикл",
+        "context": [
+          {
+            "line": 86,
+            "text": "## MEM-P7 · приёмка, эксплуатация и жизненный цикл"
+          },
+          {
+            "line": 88,
+            "text": "**Owner:** independent QA / storage. **Depends:** P1/P2/P4/P5/P6. **Write:** release fixtures, coverage dashboards, restore/export manifests; retention/erasure ADR proposal when ready. **Input:** native receivers and corpus. **Output:** per-capability acceptance matrix, not one blanket readiness flag."
+          },
+          {
+            "line": 90,
+            "text": "**Release gates:** memory-on beats memory-off на заданных source-only задачах; unanswerable question остаётся без выдуманной ссылки; unauthorized bytes=0 в synthetic cases; bounded L2/packs obey configured cap; replay and crash не теряют acknowledged chunks; cold resume can identify correct Task/branch/constraints/unfinished effect. Зафиксировать latency/cost на указанном corpus/host, не обещать SLA до измерения. Проверить export/restore: источники/refs/coverage связаны и local-only artifacts явно отмечены."
+          },
+          {
+            "line": 92,
+            "text": "**Retention work:** перечислить replicas и key ownership; запретить автоматическое забывание как релизную иллюзию; спроектировать suppression-before-replay и безопасный audit, backup expiry и внешний provider boundary. Полное удаление требует отдельного accepted lifecycle decision/migration. Пока оно не готово, UI не обещает «удалено везде». **Rollout:** read-only search сначала; capture расширяется под feature flag; compiler/continuation подключаются после native receipts; rollback не удаляет журнал и не смешивает версии индекса."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "no per-package status column in owner; plan heading and dependency context only",
+        "readiness": "not inferred"
+      }
+    },
+    {
+      "id": "P-06.1",
+      "historical_task_id": "P-06.1",
+      "historical_lane": 8,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "P-06.1",
+        "P-06.1.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+        "line": 100,
+        "text": "| P-06.1 | fabric | migration: `agent_binding_id` on facts, `agent_goals`, `agent_rules`, the six events with `event_types` rows and feed sentences, projectors added as functions, grants and RLS | owned-cluster tests: replay, estate isolation, a foreign binding refused at the door |",
+        "context": [
+          {
+            "line": 99,
+            "text": "|---|---|---|---|"
+          },
+          {
+            "line": 100,
+            "text": "| P-06.1 | fabric | migration: `agent_binding_id` on facts, `agent_goals`, `agent_rules`, the six events with `event_types` rows and feed sentences, projectors added as functions, grants and RLS | owned-cluster tests: replay, estate isolation, a foreign binding refused at the door |"
+          },
+          {
+            "line": 101,
+            "text": "| P-06.2 | fabric | `fabric_retro_record` and the host-observed half on run end | a fake agent answers and one that does not; both leave honest rows |"
+          },
+          {
+            "line": 102,
+            "text": "| P-06.3 | fabric | recurrence → rule proposal; the Board kind; approve/reject/edit; off-goal guard | planted self-apply refused; off-goal proposal cannot be approved |"
+          },
+          {
+            "line": 103,
+            "text": "| P-06.4 | fabric | approved rules in the binding's next revision and the context pack section | a run after approval carries the rule with its id; rollback restores the previous revision |"
+          },
+          {
+            "line": 104,
+            "text": "| P-06.5 | fabric | agent page: goals, rules, insights, retire | scenario walk |"
+          },
+          {
+            "line": 105,
+            "text": "| P-07.1 | fabric | `fabric://` scheme (`propose`, `agent`), confirmation screen, proposal filing, CEO residue | a link never files without confirmation; a secret-shaped value is refused |"
+          },
+          {
+            "line": 106,
+            "text": "| P-07.2 | fabric | loopback MCP for outside callers, per-client tokens issued at setup; tools for agent goals/rules/insights and proposal status (AR-3.1 subset) | a client sees only what its token allows; Fabric stopped → clients get a clear \"not running\" |"
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "child Packet table has no status column; parent status remains its owning backlog row",
+        "parent": "P-06",
+        "path": "docs/evidence/backlog.md",
+        "line": 88,
+        "text": "| P-06 | The agent learning loop: goals per agent, a retrospective after every run, insights, rule proposals approved on the Board, approved rules in the agent's next revision and context ([ADR-0109](../adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md)) | open — designed 2026-10-03; packets P-06.1…P-06.6 | [spec](specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md#2-the-learning-loop-p-06) |"
+      }
+    },
+    {
+      "id": "P-06.2",
+      "historical_task_id": "P-06.2",
+      "historical_lane": 8,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "P-06.2",
+        "P-06.2.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+        "line": 101,
+        "text": "| P-06.2 | fabric | `fabric_retro_record` and the host-observed half on run end | a fake agent answers and one that does not; both leave honest rows |",
+        "context": [
+          {
+            "line": 100,
+            "text": "| P-06.1 | fabric | migration: `agent_binding_id` on facts, `agent_goals`, `agent_rules`, the six events with `event_types` rows and feed sentences, projectors added as functions, grants and RLS | owned-cluster tests: replay, estate isolation, a foreign binding refused at the door |"
+          },
+          {
+            "line": 101,
+            "text": "| P-06.2 | fabric | `fabric_retro_record` and the host-observed half on run end | a fake agent answers and one that does not; both leave honest rows |"
+          },
+          {
+            "line": 102,
+            "text": "| P-06.3 | fabric | recurrence → rule proposal; the Board kind; approve/reject/edit; off-goal guard | planted self-apply refused; off-goal proposal cannot be approved |"
+          },
+          {
+            "line": 103,
+            "text": "| P-06.4 | fabric | approved rules in the binding's next revision and the context pack section | a run after approval carries the rule with its id; rollback restores the previous revision |"
+          },
+          {
+            "line": 104,
+            "text": "| P-06.5 | fabric | agent page: goals, rules, insights, retire | scenario walk |"
+          },
+          {
+            "line": 105,
+            "text": "| P-07.1 | fabric | `fabric://` scheme (`propose`, `agent`), confirmation screen, proposal filing, CEO residue | a link never files without confirmation; a secret-shaped value is refused |"
+          },
+          {
+            "line": 106,
+            "text": "| P-07.2 | fabric | loopback MCP for outside callers, per-client tokens issued at setup; tools for agent goals/rules/insights and proposal status (AR-3.1 subset) | a client sees only what its token allows; Fabric stopped → clients get a clear \"not running\" |"
+          },
+          {
+            "line": 107,
+            "text": "| P-07.3 | fabric-dashboards | Fabric agents view (via P-07.2), Fix button and ⌘⇧F, install detection, scheme allowed | scenario walk; Fabric absent shows Install |"
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "child Packet table has no status column; parent status remains its owning backlog row",
+        "parent": "P-06",
+        "path": "docs/evidence/backlog.md",
+        "line": 88,
+        "text": "| P-06 | The agent learning loop: goals per agent, a retrospective after every run, insights, rule proposals approved on the Board, approved rules in the agent's next revision and context ([ADR-0109](../adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md)) | open — designed 2026-10-03; packets P-06.1…P-06.6 | [spec](specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md#2-the-learning-loop-p-06) |"
+      }
+    },
+    {
+      "id": "P-06.3",
+      "historical_task_id": "P-06.3",
+      "historical_lane": 8,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "P-06.3",
+        "P-06.3.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+        "line": 102,
+        "text": "| P-06.3 | fabric | recurrence → rule proposal; the Board kind; approve/reject/edit; off-goal guard | planted self-apply refused; off-goal proposal cannot be approved |",
+        "context": [
+          {
+            "line": 101,
+            "text": "| P-06.2 | fabric | `fabric_retro_record` and the host-observed half on run end | a fake agent answers and one that does not; both leave honest rows |"
+          },
+          {
+            "line": 102,
+            "text": "| P-06.3 | fabric | recurrence → rule proposal; the Board kind; approve/reject/edit; off-goal guard | planted self-apply refused; off-goal proposal cannot be approved |"
+          },
+          {
+            "line": 103,
+            "text": "| P-06.4 | fabric | approved rules in the binding's next revision and the context pack section | a run after approval carries the rule with its id; rollback restores the previous revision |"
+          },
+          {
+            "line": 104,
+            "text": "| P-06.5 | fabric | agent page: goals, rules, insights, retire | scenario walk |"
+          },
+          {
+            "line": 105,
+            "text": "| P-07.1 | fabric | `fabric://` scheme (`propose`, `agent`), confirmation screen, proposal filing, CEO residue | a link never files without confirmation; a secret-shaped value is refused |"
+          },
+          {
+            "line": 106,
+            "text": "| P-07.2 | fabric | loopback MCP for outside callers, per-client tokens issued at setup; tools for agent goals/rules/insights and proposal status (AR-3.1 subset) | a client sees only what its token allows; Fabric stopped → clients get a clear \"not running\" |"
+          },
+          {
+            "line": 107,
+            "text": "| P-07.3 | fabric-dashboards | Fabric agents view (via P-07.2), Fix button and ⌘⇧F, install detection, scheme allowed | scenario walk; Fabric absent shows Install |"
+          },
+          {
+            "line": 108,
+            "text": "| P-07.4 | project-observatory-dashboard | Fix on findings, ⌘⇧F in the app, scheme allowed in the webview, install detection | finding → link carries type:subject; verification closes on the next run |"
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "child Packet table has no status column; parent status remains its owning backlog row",
+        "parent": "P-06",
+        "path": "docs/evidence/backlog.md",
+        "line": 88,
+        "text": "| P-06 | The agent learning loop: goals per agent, a retrospective after every run, insights, rule proposals approved on the Board, approved rules in the agent's next revision and context ([ADR-0109](../adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md)) | open — designed 2026-10-03; packets P-06.1…P-06.6 | [spec](specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md#2-the-learning-loop-p-06) |"
+      }
+    },
+    {
+      "id": "P-06.4",
+      "historical_task_id": "P-06.4",
+      "historical_lane": 8,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "P-06.4",
+        "P-06.4.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+        "line": 103,
+        "text": "| P-06.4 | fabric | approved rules in the binding's next revision and the context pack section | a run after approval carries the rule with its id; rollback restores the previous revision |",
+        "context": [
+          {
+            "line": 102,
+            "text": "| P-06.3 | fabric | recurrence → rule proposal; the Board kind; approve/reject/edit; off-goal guard | planted self-apply refused; off-goal proposal cannot be approved |"
+          },
+          {
+            "line": 103,
+            "text": "| P-06.4 | fabric | approved rules in the binding's next revision and the context pack section | a run after approval carries the rule with its id; rollback restores the previous revision |"
+          },
+          {
+            "line": 104,
+            "text": "| P-06.5 | fabric | agent page: goals, rules, insights, retire | scenario walk |"
+          },
+          {
+            "line": 105,
+            "text": "| P-07.1 | fabric | `fabric://` scheme (`propose`, `agent`), confirmation screen, proposal filing, CEO residue | a link never files without confirmation; a secret-shaped value is refused |"
+          },
+          {
+            "line": 106,
+            "text": "| P-07.2 | fabric | loopback MCP for outside callers, per-client tokens issued at setup; tools for agent goals/rules/insights and proposal status (AR-3.1 subset) | a client sees only what its token allows; Fabric stopped → clients get a clear \"not running\" |"
+          },
+          {
+            "line": 107,
+            "text": "| P-07.3 | fabric-dashboards | Fabric agents view (via P-07.2), Fix button and ⌘⇧F, install detection, scheme allowed | scenario walk; Fabric absent shows Install |"
+          },
+          {
+            "line": 108,
+            "text": "| P-07.4 | project-observatory-dashboard | Fix on findings, ⌘⇧F in the app, scheme allowed in the webview, install detection | finding → link carries type:subject; verification closes on the next run |"
+          },
+          {
+            "line": 109,
+            "text": "| P-06.6 | fabric-agent-contract, fabric-agent-adapter | `agent-instructions` target and agent-private scope for learning proposals; the retrospective an agent returns, documented | contract schema tests; adapter skill text |"
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "child Packet table has no status column; parent status remains its owning backlog row",
+        "parent": "P-06",
+        "path": "docs/evidence/backlog.md",
+        "line": 88,
+        "text": "| P-06 | The agent learning loop: goals per agent, a retrospective after every run, insights, rule proposals approved on the Board, approved rules in the agent's next revision and context ([ADR-0109](../adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md)) | open — designed 2026-10-03; packets P-06.1…P-06.6 | [spec](specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md#2-the-learning-loop-p-06) |"
+      }
+    },
+    {
+      "id": "P-06.5",
+      "historical_task_id": "P-06.5",
+      "historical_lane": 8,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "P-06.5",
+        "P-06.5.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+        "line": 104,
+        "text": "| P-06.5 | fabric | agent page: goals, rules, insights, retire | scenario walk |",
+        "context": [
+          {
+            "line": 103,
+            "text": "| P-06.4 | fabric | approved rules in the binding's next revision and the context pack section | a run after approval carries the rule with its id; rollback restores the previous revision |"
+          },
+          {
+            "line": 104,
+            "text": "| P-06.5 | fabric | agent page: goals, rules, insights, retire | scenario walk |"
+          },
+          {
+            "line": 105,
+            "text": "| P-07.1 | fabric | `fabric://` scheme (`propose`, `agent`), confirmation screen, proposal filing, CEO residue | a link never files without confirmation; a secret-shaped value is refused |"
+          },
+          {
+            "line": 106,
+            "text": "| P-07.2 | fabric | loopback MCP for outside callers, per-client tokens issued at setup; tools for agent goals/rules/insights and proposal status (AR-3.1 subset) | a client sees only what its token allows; Fabric stopped → clients get a clear \"not running\" |"
+          },
+          {
+            "line": 107,
+            "text": "| P-07.3 | fabric-dashboards | Fabric agents view (via P-07.2), Fix button and ⌘⇧F, install detection, scheme allowed | scenario walk; Fabric absent shows Install |"
+          },
+          {
+            "line": 108,
+            "text": "| P-07.4 | project-observatory-dashboard | Fix on findings, ⌘⇧F in the app, scheme allowed in the webview, install detection | finding → link carries type:subject; verification closes on the next run |"
+          },
+          {
+            "line": 109,
+            "text": "| P-06.6 | fabric-agent-contract, fabric-agent-adapter | `agent-instructions` target and agent-private scope for learning proposals; the retrospective an agent returns, documented | contract schema tests; adapter skill text |"
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "child Packet table has no status column; parent status remains its owning backlog row",
+        "parent": "P-06",
+        "path": "docs/evidence/backlog.md",
+        "line": 88,
+        "text": "| P-06 | The agent learning loop: goals per agent, a retrospective after every run, insights, rule proposals approved on the Board, approved rules in the agent's next revision and context ([ADR-0109](../adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md)) | open — designed 2026-10-03; packets P-06.1…P-06.6 | [spec](specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md#2-the-learning-loop-p-06) |"
+      }
+    },
+    {
+      "id": "P-06.6",
+      "historical_task_id": "P-06.6",
+      "historical_lane": 8,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "P-06.6",
+        "P-06.6.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+        "line": 109,
+        "text": "| P-06.6 | fabric-agent-contract, fabric-agent-adapter | `agent-instructions` target and agent-private scope for learning proposals; the retrospective an agent returns, documented | contract schema tests; adapter skill text |",
+        "context": [
+          {
+            "line": 108,
+            "text": "| P-07.4 | project-observatory-dashboard | Fix on findings, ⌘⇧F in the app, scheme allowed in the webview, install detection | finding → link carries type:subject; verification closes on the next run |"
+          },
+          {
+            "line": 109,
+            "text": "| P-06.6 | fabric-agent-contract, fabric-agent-adapter | `agent-instructions` target and agent-private scope for learning proposals; the retrospective an agent returns, documented | contract schema tests; adapter skill text |"
+          },
+          {
+            "line": 111,
+            "text": "Order: P-06.1 → P-06.2 → P-06.3 → P-06.4 → P-06.5; P-07.1 can start with P-06.1; P-07.2 before P-07.3;"
+          },
+          {
+            "line": 112,
+            "text": "P-07.4 after P-07.1. Each packet is a pipeline task with its own tests and scenario updates"
+          },
+          {
+            "line": 113,
+            "text": "(`docs/ux/scenarios.md`: SCN-062 grows the loop; a new scenario covers Fix)."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "child Packet table has no status column; parent status remains its owning backlog row",
+        "parent": "P-06",
+        "path": "docs/evidence/backlog.md",
+        "line": 88,
+        "text": "| P-06 | The agent learning loop: goals per agent, a retrospective after every run, insights, rule proposals approved on the Board, approved rules in the agent's next revision and context ([ADR-0109](../adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md)) | open — designed 2026-10-03; packets P-06.1…P-06.6 | [spec](specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md#2-the-learning-loop-p-06) |"
+      }
+    },
+    {
+      "id": "P-07.1",
+      "historical_task_id": "P-07.1",
+      "historical_lane": 8,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "P-07.1",
+        "P-07.1.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+        "line": 105,
+        "text": "| P-07.1 | fabric | `fabric://` scheme (`propose`, `agent`), confirmation screen, proposal filing, CEO residue | a link never files without confirmation; a secret-shaped value is refused |",
+        "context": [
+          {
+            "line": 104,
+            "text": "| P-06.5 | fabric | agent page: goals, rules, insights, retire | scenario walk |"
+          },
+          {
+            "line": 105,
+            "text": "| P-07.1 | fabric | `fabric://` scheme (`propose`, `agent`), confirmation screen, proposal filing, CEO residue | a link never files without confirmation; a secret-shaped value is refused |"
+          },
+          {
+            "line": 106,
+            "text": "| P-07.2 | fabric | loopback MCP for outside callers, per-client tokens issued at setup; tools for agent goals/rules/insights and proposal status (AR-3.1 subset) | a client sees only what its token allows; Fabric stopped → clients get a clear \"not running\" |"
+          },
+          {
+            "line": 107,
+            "text": "| P-07.3 | fabric-dashboards | Fabric agents view (via P-07.2), Fix button and ⌘⇧F, install detection, scheme allowed | scenario walk; Fabric absent shows Install |"
+          },
+          {
+            "line": 108,
+            "text": "| P-07.4 | project-observatory-dashboard | Fix on findings, ⌘⇧F in the app, scheme allowed in the webview, install detection | finding → link carries type:subject; verification closes on the next run |"
+          },
+          {
+            "line": 109,
+            "text": "| P-06.6 | fabric-agent-contract, fabric-agent-adapter | `agent-instructions` target and agent-private scope for learning proposals; the retrospective an agent returns, documented | contract schema tests; adapter skill text |"
+          },
+          {
+            "line": 111,
+            "text": "Order: P-06.1 → P-06.2 → P-06.3 → P-06.4 → P-06.5; P-07.1 can start with P-06.1; P-07.2 before P-07.3;"
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "child Packet table has no status column; parent status remains its owning backlog row",
+        "parent": "P-07",
+        "path": "docs/evidence/backlog.md",
+        "line": 89,
+        "text": "| P-07 | Fix in Fabric: a problem in Fabric Dashboards or Project Observatory becomes a confirmed proposal in Fabric through `fabric://`, verified when the source stops reporting it; Dashboards edits agent insights through Fabric's loopback MCP | open — designed 2026-10-03; packets P-07.1…P-07.4 | [spec](specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md#33-fix-p-07) |"
+      }
+    },
+    {
+      "id": "P-07.2",
+      "historical_task_id": "P-07.2",
+      "historical_lane": 8,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "P-07.2",
+        "P-07.2.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+        "line": 106,
+        "text": "| P-07.2 | fabric | loopback MCP for outside callers, per-client tokens issued at setup; tools for agent goals/rules/insights and proposal status (AR-3.1 subset) | a client sees only what its token allows; Fabric stopped → clients get a clear \"not running\" |",
+        "context": [
+          {
+            "line": 105,
+            "text": "| P-07.1 | fabric | `fabric://` scheme (`propose`, `agent`), confirmation screen, proposal filing, CEO residue | a link never files without confirmation; a secret-shaped value is refused |"
+          },
+          {
+            "line": 106,
+            "text": "| P-07.2 | fabric | loopback MCP for outside callers, per-client tokens issued at setup; tools for agent goals/rules/insights and proposal status (AR-3.1 subset) | a client sees only what its token allows; Fabric stopped → clients get a clear \"not running\" |"
+          },
+          {
+            "line": 107,
+            "text": "| P-07.3 | fabric-dashboards | Fabric agents view (via P-07.2), Fix button and ⌘⇧F, install detection, scheme allowed | scenario walk; Fabric absent shows Install |"
+          },
+          {
+            "line": 108,
+            "text": "| P-07.4 | project-observatory-dashboard | Fix on findings, ⌘⇧F in the app, scheme allowed in the webview, install detection | finding → link carries type:subject; verification closes on the next run |"
+          },
+          {
+            "line": 109,
+            "text": "| P-06.6 | fabric-agent-contract, fabric-agent-adapter | `agent-instructions` target and agent-private scope for learning proposals; the retrospective an agent returns, documented | contract schema tests; adapter skill text |"
+          },
+          {
+            "line": 111,
+            "text": "Order: P-06.1 → P-06.2 → P-06.3 → P-06.4 → P-06.5; P-07.1 can start with P-06.1; P-07.2 before P-07.3;"
+          },
+          {
+            "line": 112,
+            "text": "P-07.4 after P-07.1. Each packet is a pipeline task with its own tests and scenario updates"
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "child Packet table has no status column; parent status remains its owning backlog row",
+        "parent": "P-07",
+        "path": "docs/evidence/backlog.md",
+        "line": 89,
+        "text": "| P-07 | Fix in Fabric: a problem in Fabric Dashboards or Project Observatory becomes a confirmed proposal in Fabric through `fabric://`, verified when the source stops reporting it; Dashboards edits agent insights through Fabric's loopback MCP | open — designed 2026-10-03; packets P-07.1…P-07.4 | [spec](specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md#33-fix-p-07) |"
+      }
+    },
+    {
+      "id": "P-07.3",
+      "historical_task_id": "P-07.3",
+      "historical_lane": 8,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "P-07.3",
+        "P-07.3.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+        "line": 107,
+        "text": "| P-07.3 | fabric-dashboards | Fabric agents view (via P-07.2), Fix button and ⌘⇧F, install detection, scheme allowed | scenario walk; Fabric absent shows Install |",
+        "context": [
+          {
+            "line": 106,
+            "text": "| P-07.2 | fabric | loopback MCP for outside callers, per-client tokens issued at setup; tools for agent goals/rules/insights and proposal status (AR-3.1 subset) | a client sees only what its token allows; Fabric stopped → clients get a clear \"not running\" |"
+          },
+          {
+            "line": 107,
+            "text": "| P-07.3 | fabric-dashboards | Fabric agents view (via P-07.2), Fix button and ⌘⇧F, install detection, scheme allowed | scenario walk; Fabric absent shows Install |"
+          },
+          {
+            "line": 108,
+            "text": "| P-07.4 | project-observatory-dashboard | Fix on findings, ⌘⇧F in the app, scheme allowed in the webview, install detection | finding → link carries type:subject; verification closes on the next run |"
+          },
+          {
+            "line": 109,
+            "text": "| P-06.6 | fabric-agent-contract, fabric-agent-adapter | `agent-instructions` target and agent-private scope for learning proposals; the retrospective an agent returns, documented | contract schema tests; adapter skill text |"
+          },
+          {
+            "line": 111,
+            "text": "Order: P-06.1 → P-06.2 → P-06.3 → P-06.4 → P-06.5; P-07.1 can start with P-06.1; P-07.2 before P-07.3;"
+          },
+          {
+            "line": 112,
+            "text": "P-07.4 after P-07.1. Each packet is a pipeline task with its own tests and scenario updates"
+          },
+          {
+            "line": 113,
+            "text": "(`docs/ux/scenarios.md`: SCN-062 grows the loop; a new scenario covers Fix)."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "child Packet table has no status column; parent status remains its owning backlog row",
+        "parent": "P-07",
+        "path": "docs/evidence/backlog.md",
+        "line": 89,
+        "text": "| P-07 | Fix in Fabric: a problem in Fabric Dashboards or Project Observatory becomes a confirmed proposal in Fabric through `fabric://`, verified when the source stops reporting it; Dashboards edits agent insights through Fabric's loopback MCP | open — designed 2026-10-03; packets P-07.1…P-07.4 | [spec](specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md#33-fix-p-07) |"
+      }
+    },
+    {
+      "id": "P-07.4",
+      "historical_task_id": "P-07.4",
+      "historical_lane": 8,
+      "historical_dispatch": "design-gated",
+      "historical_dispatch_is_not_current_readiness": true,
+      "related_historical_task_ids": [
+        "P-07.4",
+        "P-07.4.prepare"
+      ],
+      "declared_manifest_row": false,
+      "owner": {
+        "path": "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+        "line": 108,
+        "text": "| P-07.4 | project-observatory-dashboard | Fix on findings, ⌘⇧F in the app, scheme allowed in the webview, install detection | finding → link carries type:subject; verification closes on the next run |",
+        "context": [
+          {
+            "line": 107,
+            "text": "| P-07.3 | fabric-dashboards | Fabric agents view (via P-07.2), Fix button and ⌘⇧F, install detection, scheme allowed | scenario walk; Fabric absent shows Install |"
+          },
+          {
+            "line": 108,
+            "text": "| P-07.4 | project-observatory-dashboard | Fix on findings, ⌘⇧F in the app, scheme allowed in the webview, install detection | finding → link carries type:subject; verification closes on the next run |"
+          },
+          {
+            "line": 109,
+            "text": "| P-06.6 | fabric-agent-contract, fabric-agent-adapter | `agent-instructions` target and agent-private scope for learning proposals; the retrospective an agent returns, documented | contract schema tests; adapter skill text |"
+          },
+          {
+            "line": 111,
+            "text": "Order: P-06.1 → P-06.2 → P-06.3 → P-06.4 → P-06.5; P-07.1 can start with P-06.1; P-07.2 before P-07.3;"
+          },
+          {
+            "line": 112,
+            "text": "P-07.4 after P-07.1. Each packet is a pipeline task with its own tests and scenario updates"
+          },
+          {
+            "line": 113,
+            "text": "(`docs/ux/scenarios.md`: SCN-062 grows the loop; a new scenario covers Fix)."
+          }
+        ]
+      },
+      "status_receipt": {
+        "kind": "child Packet table has no status column; parent status remains its owning backlog row",
+        "parent": "P-07",
+        "path": "docs/evidence/backlog.md",
+        "line": 89,
+        "text": "| P-07 | Fix in Fabric: a problem in Fabric Dashboards or Project Observatory becomes a confirmed proposal in Fabric through `fabric://`, verified when the source stops reporting it; Dashboards edits agent insights through Fabric's loopback MCP | open — designed 2026-10-03; packets P-07.1…P-07.4 | [spec](specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md#33-fix-p-07) |"
+      }
+    }
+  ],
+  "sources": [
+    {
+      "path": "docs/evidence/backlog.md",
+      "sha256": "3135378f808cca85b5408b13f54159b8e6818ab2d7f9258eef7f25644a17d608",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/evidence/plans/2026-09-27-first-slice-plan.md",
+      "sha256": "98b7be6c090a10a095630e52977f69aff3007e329a5538fe2cae4135249d5327",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/evidence/plans/2026-09-29-launch-ui-plan.md",
+      "sha256": "98046c09b3e2484edc2236a23b2b9fdc3c69905d4cb3d49224013f70fe657c66",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "sha256": "50a73374b7305a1b092333940b299d1595c33ed63b1d0fd1a41e6a9476b8db51",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+      "sha256": "150d680acd625d3fb73bbc62af4edb3afff3cafda9dd080ab1d58eabe51685b5",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/README.md",
+      "sha256": "30faf2740375d94f7c72bc0dc145a80f06337fee729d4de27b6b3cc5e49485b7",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD02.md",
+      "sha256": "0339e67e3e3e5fefbae86d10ff626e4d987816740d1532a62c83405561f60df0",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD03.md",
+      "sha256": "c76557f29d4797bdfcbcf9036e074014f447a0ff021903ea0dd0e8c7c1163f80",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD04.md",
+      "sha256": "595a5df96eeec6ed53761db0074944c459c4656bf587be5e4fcd447b2ab328f2",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD05.md",
+      "sha256": "c28b324f4456741fa84a681d9be5f5971a0372e214a2247547f64d54c6304d3a",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD06.md",
+      "sha256": "9232ba5479d7fe84b56e5d02db97573b937c2f3cf4ed3c85102175dce0081b3d",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD07.md",
+      "sha256": "9de2092440e91b78626e19f163ba6cb78bb58ab9662c779859f918ad5508688b",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD08.md",
+      "sha256": "6d65fe481124795332e69bfc74b8ced532bda328bbd2e2282ab683a9a4842a55",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD09.md",
+      "sha256": "5ff28973edfe438c74d3e3917353cc6f9f592b8006b02277bd0049ceec7767a2",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD10.md",
+      "sha256": "eb4f422b93befbd28e84bdf330f6bc0c2af0754e7245c9cb0b2ca3d568b5d7b3",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD11.md",
+      "sha256": "e489e9e8205c8227c7be9b6f99a58c54b0af54da809d86c0beaa54f29ee7f4e8",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD12.md",
+      "sha256": "42ec7e476568fdbf2e47d35b1dcc5160ec241f7804207c3ea6040ebd58f0b3e3",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD13.md",
+      "sha256": "3ad4fe4c419097b072e429a8d9175b175cc32d79d93c31b68ebc3ef65cb1a97b",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD14.md",
+      "sha256": "70ca326e34b44269d5def4c524f1cbd5b43d74fb168b2a9ee71281abc591f261",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD15.md",
+      "sha256": "1f1784bd83cad5afbb06504d5e883bec2d342afb5d0157605c12a39a8f1278fc",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD16.md",
+      "sha256": "25a36f4dc8183832c7730cd8e9678b5e73cf5a2b649da43b0203b037be61503d",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD17.md",
+      "sha256": "5f01d00e03fdf2751797b3a0436eeac40c1265b86657b6025f153f3c43ec1614",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD18.md",
+      "sha256": "ca7810e3d72e0b128383c1d0bca0794fce7c56628e74cd75e6517c4c3ede06e0",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD19.md",
+      "sha256": "0fcec20f8f2adebf4171236eb2afa9d690bfc89f84c95b9d3d31628b8826dbe1",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD20.md",
+      "sha256": "5b8ba156e47c32c18bc60605df40bd3599fa3076990b81c84c60c7706602c473",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD21.md",
+      "sha256": "9528c096a3df7aee5b5a7e22ddf6ea111f83f86ab84077b53c08a55ba994df6a",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD22.md",
+      "sha256": "9e5f602732eb374a5a6431040adaad454e532947eaac83c0c86cf138c98486d8",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD23.md",
+      "sha256": "55b713917ea2cf052e44ef467ed56da234422a5492497b611e3c3e96005e472d",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/packets/AD24.md",
+      "sha256": "930b0c6c3da8de7e9d538906587aaa7387bdc2b7f5b3444cb39f0e3bbcd06899",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/receipts/AD02.json",
+      "sha256": "12b74a7a8a3d1ad4719f24fda323473b3040f7ceb24ac4a7d0ae12fa167a99cd",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/memory/plan.md",
+      "sha256": "4ebf901b7e1f12bf3d31d7078f0ecb86e011b539817ee18b5730d21e4f26ac7c",
+      "bytes_match_git_head": true,
+      "attested_source_commit": "484600a338f2c413333e57c09a28712b8559c401"
+    }
+  ],
+  "checks": {
+    "unique_ids": 43,
+    "historical_exact_task_ids_resolved": 43,
+    "current_owner_paths_resolved": 43,
+    "current_owner_id_locations_resolved": 43,
+    "status_or_explicit_absence_preserved": 43,
+    "all_checks_passed": true
+  },
+  "not_run": [
+    "runtime/native/provider acceptance",
+    "supplemental schedule activation",
+    "organization-wide coverage"
+  ]
+}

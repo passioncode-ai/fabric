@@ -57,7 +57,7 @@ node --test scripts/test/sibling-commits.test.mjs
 node scripts/check-sibling-commits.mjs
 node scripts/check-adoption-plan.mjs
 # Unified execution context: source drift, coverage and cross-task findings block dispatch.
-node --test scripts/test/unified-plan.test.mjs
+node --test scripts/test/unified-plan.test.mjs scripts/test/build-unified-plan.test.mjs scripts/test/reconcile-unified-start.test.mjs
 node scripts/check-adoption-bindings.mjs
 # Existed since the R0 operator audit and nothing ran it (the FA-10 class).
 node scripts/check-operator-plan.mjs
@@ -203,6 +203,7 @@ node apps/desktop/test/file-roots.test.mjs
 node --experimental-strip-types apps/desktop/test/git-run.test.mjs
 node --experimental-strip-types apps/desktop/test/project-discovery.test.mjs
 node --experimental-strip-types apps/desktop/test/executor-detect.test.mjs
+node --experimental-strip-types apps/desktop/test/executor-auth.test.mjs
 node --experimental-strip-types apps/desktop/test/start-paths-main.test.mjs
 node --experimental-strip-types apps/desktop/test/delivery.test.mjs
 node --experimental-strip-types apps/desktop/test/pty-launch-failure.test.mjs

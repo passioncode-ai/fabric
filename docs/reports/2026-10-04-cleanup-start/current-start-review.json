@@ -1,0 +1,265 @@
+{
+  "schema": 1,
+  "review": [
+    {
+      "id": "P-01.prepare",
+      "dispatch": "done",
+      "packet": "docs/reports/2026-10-04-cleanup-start/start-packets/P-01.json",
+      "evidence": {
+        "path": "docs/reports/2026-10-04-cleanup-start/start-packets/P-01.json",
+        "scope": "P-01.prepare"
+      }
+    },
+    {
+      "id": "CO-176.prepare",
+      "dispatch": "done",
+      "packet": "docs/reports/2026-10-04-cleanup-start/packets/CO-176.prepare.json",
+      "evidence": {
+        "path": "docs/reports/2026-10-04-cleanup-start/packets/CO-176.prepare.json",
+        "scope": "CO-176.prepare"
+      }
+    },
+    {
+      "id": "CO-177.prepare",
+      "dispatch": "design-gated",
+      "packet": "docs/reports/2026-10-04-cleanup-start/packets/CO-177.prepare.json"
+    },
+    {
+      "id": "CO-178.prepare",
+      "dispatch": "operator-gated",
+      "packet": "docs/reports/2026-10-04-cleanup-start/packets/CO-178.prepare.json"
+    },
+    {
+      "id": "CO-179.prepare",
+      "dispatch": "owned-elsewhere",
+      "packet": "docs/reports/2026-10-04-cleanup-start/start-packets/CO-179.json"
+    },
+    {
+      "id": "CO-180.prepare",
+      "dispatch": "done",
+      "packet": "docs/reports/2026-10-04-cleanup-start/start-packets/CO-180.json",
+      "evidence": {
+        "path": "docs/reports/2026-10-04-cleanup-start/start-packets/CO-180.json",
+        "scope": "CO-180.prepare"
+      }
+    }
+  ],
+  "new_tasks": [
+    {
+      "id": "CO-176.1",
+      "canonical_ids": [
+        "CO-176"
+      ],
+      "lane": 1,
+      "title": "Bounded exact-build login observation with sanitized envelope, unknown/refusal and informational skip; local code/process/component proof only.",
+      "kind": "implementation",
+      "dispatch": "done",
+      "priority_group": 11,
+      "depends_on": [
+        {
+          "id": "CO-176.prepare",
+          "carries": "Current bounded packet and exact-build/source review; no native acceptance inheritance"
+        }
+      ],
+      "context": {
+        "outcome": "Bounded exact-build login observation with sanitized envelope, unknown/refusal and informational skip; local code/process/component proof only.",
+        "sources": [
+          "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+          "docs/adr/0100-first-run-and-start-paths.md",
+          "docs/ux/scenarios.md",
+          "docs/ux/screens.md",
+          "docs/ux/flows.md",
+          "docs/architecture/provider-accounts.md",
+          "apps/desktop/src/shared/providerCapabilityMatrix.ts",
+          "docs/brand/voice.md",
+          "docs/brand/terminology.md",
+          "docs/brand/facts.md",
+          "docs/reports/2026-10-04-cleanup-start/raw/co176-auth-observation.json",
+          "docs/reports/2026-10-04-cleanup-start/raw/start-auth-sources.json",
+          "apps/desktop/test/executor-auth.test.mjs",
+          "apps/desktop/src/renderer/src/start/StartPaths.test.tsx",
+          "docs/reports/2026-10-04-cleanup-start/raw/execution.json",
+          "docs/reports/2026-10-04-cleanup-start/raw/co176-review.json"
+        ],
+        "scope": [
+          "apps/desktop/src/main/executorAuth.ts",
+          "apps/desktop/src/main/executorDetect.ts",
+          "apps/desktop/src/shared/startPaths.ts",
+          "apps/desktop/src/renderer/src/start/FirstRun.tsx",
+          "apps/desktop/src/renderer/src/start/StartPaths.test.tsx",
+          "apps/desktop/src/renderer/src/i18n/en.ts",
+          "apps/desktop/src/renderer/src/i18n/ru.ts",
+          "apps/desktop/test/executor-auth.test.mjs",
+          "apps/desktop/package.json",
+          "scripts/ci.sh"
+        ],
+        "steps": [
+          "Pin exact vendor build from existing version detection",
+          "Run official status reader with same executable/environment, 8s/32KiB combined cap and owned-group cleanup",
+          "Parse strict approved fields into optional separate ExecutorAuthentication; no raw secret output survives",
+          "Render translated auth states and recovery, keep informational skip/pending continuation and latest-request/unmount fence",
+          "Parent updates canonical UX/brand/model and CI, independently reviews native surface later"
+        ],
+        "acceptance": [
+          "Observed focused checks in raw/execution.json plus independently reviewed exact file hashes.",
+          "Acceptance scope is this bounded source/target leaf only; packaged native/product release and broad parent remain open."
+        ],
+        "risks": [
+          "No login/logout, model turn, credential file/manual Keychain read, account import, raw logs or capability matrix promotion",
+          "Unknown build/runtime never executes guessed status command",
+          "Unexpected/malformed/mismatched exit/credential-bearing unmeasured output => unknown",
+          "Optional absent auth on older bridge => unknown, never false signed-in",
+          "Do not alter unrelated access.* locale keys or Onboarding visual work"
+        ],
+        "stop_conditions": [
+          "Raw credential leak: stop and repair before resume",
+          "Unsupported build: display unsupported, no fallback login or model call",
+          "Overlapping writer: coordinate before editing"
+        ],
+        "resume": "Verify immutable source pins and exact receipt scope first. Re-run a focused check only if code or dependency bytes change; continue remaining parent work from its canonical owner and current lease."
+      },
+      "evidence": {
+        "path": "docs/reports/2026-10-04-cleanup-start/raw/execution.json",
+        "scope": "CO-176.1"
+      }
+    },
+    {
+      "id": "CO-180.1",
+      "canonical_ids": [
+        "CO-180"
+      ],
+      "lane": 1,
+      "title": "Separate Project per ticked repository, preserved identity/results/retry/gaps/unchecked candidates; target-browser/pure proof only.",
+      "kind": "implementation",
+      "dispatch": "done",
+      "priority_group": 11,
+      "depends_on": [
+        {
+          "id": "CO-180.prepare",
+          "carries": "Current bounded packet and exact-build/source review; no native acceptance inheritance"
+        }
+      ],
+      "context": {
+        "outcome": "Separate Project per ticked repository, preserved identity/results/retry/gaps/unchecked candidates; target-browser/pure proof only.",
+        "sources": [
+          "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+          "docs/adr/0100-first-run-and-start-paths.md#scan",
+          "docs/ux/scenarios.md#scn-128-scan-a-projects-folder-and-tick-what-becomes-a-project",
+          "docs/ux/flows.md#flw-55-configure-ceo-and-discover-the-first-project",
+          "scripts/product/first-release.mjs",
+          "scripts/test/first-release.test.mjs",
+          "scripts/product/renderers.mjs",
+          "docs/ux/scenarios.md",
+          "docs/ux/flows.md",
+          "docs/ux/screens.md",
+          "docs/reports/2026-10-04-cleanup-start/raw/start-review.json",
+          "docs/reports/2026-10-04-cleanup-start/raw/execution.json",
+          "docs/reports/2026-10-04-cleanup-start/raw/co180-review.json",
+          "docs/reports/2026-10-04-cleanup-start/raw/co180-browser.json"
+        ],
+        "scope": [
+          "scripts/product/first-release.mjs",
+          "scripts/product/first-release.css",
+          "scripts/product/renderers.mjs",
+          "scripts/test/first-release.test.mjs",
+          "scripts/test/co180-scan.browser.cjs",
+          "docs/ux/scenarios.md",
+          "docs/ux/flows.md",
+          "docs/ux/screens.md",
+          "docs/ux/product-model.json",
+          "docs/reports/product.html",
+          "docs/brand/strings.md"
+        ],
+        "steps": [
+          "Read accepted ADR-0100 §3/§7 and current SCN-128.",
+          "Execute separate-project identity, row results, failed-only retry, manual part warnings, retained partial coverage and reachable kept checklist.",
+          "Run current pure model tests and independent browser at390/1280; preserve explicit Project references and frozenRunpacks.",
+          "Leave canonical status update and integration to the owning leased register; no native or unrelated R0 first-run acceptance is claimed from target scanner proof."
+        ],
+        "acceptance": [
+          "Observed focused checks in raw/execution.json plus independently reviewed exact file hashes.",
+          "Acceptance scope is this bounded source/target leaf only; packaged native/product release and broad parent remain open."
+        ],
+        "risks": [
+          "two candidates must never collapse into one Project",
+          "unchecked/unknown candidate no Project",
+          "already-imported disabled and no merge",
+          "empty/denied/cancelled scans no Project",
+          "late result after cancelled or replaced generation no mutation",
+          "failed candidate retained for retry with stable ID",
+          "explicit related-source/pinned existing Run context preserved"
+        ],
+        "stop_conditions": [
+          "Prototype or shared UX files acquired by another owner",
+          "correctness requires runtime authority/schema redesign",
+          "fixture/model evidence cannot resolve current sources"
+        ],
+        "resume": "Verify immutable source pins and exact receipt scope first. Re-run a focused check only if code or dependency bytes change; continue remaining parent work from its canonical owner and current lease."
+      },
+      "evidence": {
+        "path": "docs/reports/2026-10-04-cleanup-start/raw/execution.json",
+        "scope": "CO-180.1"
+      }
+    }
+  ],
+  "impacts": [
+    {
+      "id": "CS-COVERAGE",
+      "targets": [
+        "P-08"
+      ],
+      "severity": "advisory",
+      "disposition": "incorporated",
+      "evidence": "docs/reports/2026-10-04-cleanup-start/raw/lanes-review.json",
+      "action": "Use all declared owner rows and preserve supplementary capability mapping",
+      "source_date": "2026-10-04",
+      "resolution": "Compiler source coverage requires all 543 baseline rows; readiness remains independent."
+    },
+    {
+      "id": "CS-AUTH",
+      "targets": [
+        "CO-176"
+      ],
+      "severity": "advisory",
+      "disposition": "incorporated",
+      "evidence": "docs/reports/2026-10-04-cleanup-start/raw/co176-review.json",
+      "action": "Separate observed login from connected/ready/identity",
+      "source_date": "2026-10-04",
+      "resolution": "Bounded exact-build native-source observer implemented and independently checked; packaged native acceptance remains open."
+    },
+    {
+      "id": "CS-GRANT",
+      "targets": [
+        "CO-177"
+      ],
+      "severity": "blocking",
+      "disposition": "open",
+      "evidence": "docs/reports/2026-10-04-cleanup-start/packets/CO-177.prepare.json",
+      "action": "Set persistent revocable observation grant in new accepted ADR before scheduled scan",
+      "source_date": "2026-10-04"
+    },
+    {
+      "id": "CS-BRAND",
+      "targets": [
+        "CO-178"
+      ],
+      "severity": "blocking",
+      "disposition": "open",
+      "evidence": "docs/reports/2026-10-04-cleanup-start/packets/CO-178.prepare.json",
+      "action": "Obtain bounded Estate terminology decision before locale changes",
+      "source_date": "2026-10-04"
+    },
+    {
+      "id": "CS-PEER",
+      "targets": [
+        "CO-179",
+        "P-08"
+      ],
+      "severity": "blocking",
+      "disposition": "open",
+      "evidence": "docs/reports/2026-10-04-cleanup-start/raw/lanes-review.json",
+      "action": "Reconcile current native fixture owner and release source convergence before exact-candidate acceptance",
+      "source_date": "2026-10-04"
+    }
+  ]
+}

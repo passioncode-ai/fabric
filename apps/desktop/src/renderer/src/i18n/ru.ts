@@ -1562,6 +1562,13 @@ export const ru: Partial<Record<StringKey, string>> = {
   'first.exec.copyFailed': "Не скопировано: выделите текст",
   'first.exec.copied': "Скопировано",
   'first.exec.note': "«Установлен» — программа есть на этом Mac и отвечает; «готов» — к его сессиям подключены и инструменты Fabric. Вход в аккаунт проверяется при первом запуске агента.",
+  // #region executor-auth-copy — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
+  'start.executor.auth.authenticated': "Исполнитель сообщает, что вход выполнен",
+  'start.executor.auth.notAuthenticated': "Исполнитель сообщает, что вход не выполнен. Войдите в аккаунт исполнителя и проверьте снова.",
+  'start.executor.auth.unsupported': "Проверка входа недоступна для этой версии исполнителя. Можно продолжить; доступ проверится при запуске работы.",
+  'start.executor.auth.unknown': "Не удалось подтвердить вход. Проверьте снова или продолжите; доступ проверится при запуске работы.",
+  'start.executor.auth.note': "Установка, подключение к Fabric и вход показаны отдельно. Проверка входа не запускает задач. Можно продолжить и без неё.",
+  // #endregion executor-auth-copy
   'first.exec.recheck': "Проверить снова",
   'first.exec.continueWithout': "Продолжить без агента",
   'first.start.title': "С чего {name} начнёт?",

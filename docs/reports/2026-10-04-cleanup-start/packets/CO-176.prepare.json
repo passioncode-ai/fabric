@@ -1,0 +1,208 @@
+{
+  "schema": 1,
+  "id": "CO-176.prepare",
+  "context": {
+    "outcome": "Observe provider sign-in separately from installation/Fabric connection/stable identity/admitted work in SCN-126.",
+    "sources": [
+      "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "docs/adr/0100-first-run-and-start-paths.md",
+      "docs/ux/scenarios.md",
+      "docs/ux/screens.md",
+      "docs/ux/flows.md",
+      "docs/architecture/provider-accounts.md",
+      "apps/desktop/src/shared/providerCapabilityMatrix.ts",
+      "docs/brand/voice.md",
+      "docs/brand/terminology.md",
+      "docs/brand/facts.md",
+      "docs/reports/2026-10-04-cleanup-start/raw/co176-auth-observation.json",
+      "docs/reports/2026-10-04-cleanup-start/raw/start-auth-sources.json",
+      "apps/desktop/test/executor-auth.test.mjs",
+      "apps/desktop/src/renderer/src/start/StartPaths.test.tsx"
+    ],
+    "scope": [
+      "docs/reports/2026-10-04-cleanup-start/packets/CO-176.prepare.json"
+    ],
+    "steps": [
+      "Pin exact vendor build from existing version detection",
+      "Run official status reader with same executable/environment, 8s/32KiB combined cap and owned-group cleanup",
+      "Parse strict approved fields into optional separate ExecutorAuthentication; no raw secret output survives",
+      "Render translated auth states and recovery, keep informational skip/pending continuation and latest-request/unmount fence",
+      "Parent updates canonical UX/brand/model and CI, independently reviews native surface later"
+    ],
+    "acceptance": [
+      {
+        "command": "node --experimental-strip-types apps/desktop/test/executor-auth.test.mjs",
+        "result": "RED against baseline: assertion authenticated got undefined, exit 1; GREEN after implementation exit 0",
+        "negative_controls": [
+          "string boolean",
+          "mismatched exit code",
+          "secret-bearing stderr",
+          "missing executable",
+          "timeout",
+          "combined stdout+stderr byte overflow",
+          "unknown vendor/build/runtime no invocation",
+          "unknown method removed",
+          "same profile env",
+          "normal-exit descendant killed",
+          "unrecognized Codex API-key syntax"
+        ]
+      },
+      {
+        "command": "node --experimental-strip-types apps/desktop/test/executor-detect.test.mjs",
+        "result": "PASS exit 0; real disposable processes and bounded asynchronous filesystem cases"
+      },
+      {
+        "command": "pnpm exec vitest run src/renderer/src/start/StartPaths.test.tsx (cwd apps/desktop)",
+        "result": "35 tests / 1 file PASS exit 0; jsdom only; all auth states, continuation, recheck fence and pending skip/unmount/late-result/re-entry included"
+      },
+      {
+        "command": "pnpm typecheck (cwd apps/desktop)",
+        "result": "PASS exit 0; tsc node and web"
+      },
+      {
+        "command": "node scripts/check-regions.mjs",
+        "result": "PASS 116 region markers; all docs references resolve, exit 0"
+      },
+      {
+        "command": "git diff --check -- apps/desktop",
+        "result": "PASS exit 0"
+      }
+    ],
+    "risks": [
+      "No login/logout, model turn, credential file/manual Keychain read, account import, raw logs or capability matrix promotion",
+      "Unknown build/runtime never executes guessed status command",
+      "Unexpected/malformed/mismatched exit/credential-bearing unmeasured output => unknown",
+      "Optional absent auth on older bridge => unknown, never false signed-in",
+      "Do not alter unrelated access.* locale keys or Onboarding visual work"
+    ],
+    "stop_conditions": [
+      "Raw credential leak: stop and repair before resume",
+      "Unsupported build: display unsupported, no fallback login or model call",
+      "Overlapping writer: coordinate before editing"
+    ],
+    "resume": "Read canonical owner row and exact pinned current sources first; verify active ownership before mutation. Existing bounded observer is implemented and focused checks pass; prepare remaining native acceptance with disposable fixtures and no live operator stack/DB. Do not reimplement or claim native pass from status/jsdom.",
+    "source_manifest": [
+      {
+        "path": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+        "sha256": "50a73374b7305a1b092333940b299d1595c33ed63b1d0fd1a41e6a9476b8db51",
+        "bytes": 166704,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "docs/adr/0100-first-run-and-start-paths.md",
+        "sha256": "e9c36c52956b9b6128bb604aad428abd0d108e207626405f6914f715fa8fe3bb",
+        "bytes": 9625,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "docs/ux/scenarios.md",
+        "sha256": "bdbe94ea3b982d2072bbbc1c9a4533056d5d34bc021bc9d16eab6943495272bd",
+        "bytes": 349104,
+        "provenance": "working-cut",
+        "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "docs/ux/screens.md",
+        "sha256": "ea20704251c5887f998f5805f64cab0fd3c01bff64ba4e9f1c04051cf482bded",
+        "bytes": 183171,
+        "provenance": "working-cut",
+        "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "docs/ux/flows.md",
+        "sha256": "14d5ea70e4f9533e9dea456c360e778834128ec73939209075ce496ae1255339",
+        "bytes": 129781,
+        "provenance": "working-cut",
+        "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "docs/architecture/provider-accounts.md",
+        "sha256": "cdedda7e2ec8797c8c4d2a37723c34e32044b6b5e28b3a74764ee7158e1aecc2",
+        "bytes": 22920,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "apps/desktop/src/shared/providerCapabilityMatrix.ts",
+        "sha256": "022e197741338feef03b871e8accb206927ff0eb2c413fd7416835ac93442f54",
+        "bytes": 10482,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "docs/brand/voice.md",
+        "sha256": "1e27c57ccc0031958ec552aa9cbd806cb7b003dc09f8d4bbd3e980b139e258ca",
+        "bytes": 3773,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "docs/brand/terminology.md",
+        "sha256": "03ab409ed3de53eae986386c6ab64130e53a68491decb2be83afbe6d71c13f57",
+        "bytes": 5046,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "docs/brand/facts.md",
+        "sha256": "47fad6978081b1be3a0e7c3cd4c4b230e04b792a4668bcf020675ef920a14a6d",
+        "bytes": 5176,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      }
+    ],
+    "implementation_scope": [
+      "apps/desktop/src/main/executorAuth.ts",
+      "apps/desktop/src/main/executorDetect.ts",
+      "apps/desktop/src/shared/startPaths.ts",
+      "apps/desktop/src/renderer/src/start/FirstRun.tsx",
+      "apps/desktop/src/renderer/src/i18n/en.ts",
+      "apps/desktop/src/renderer/src/i18n/ru.ts",
+      "apps/desktop/test/executor-auth.test.mjs",
+      "apps/desktop/src/renderer/src/start/StartPaths.test.tsx"
+    ],
+    "lane": 1,
+    "base_revision": "484600a338f2c413333e57c09a28712b8559c401",
+    "ownership": "Parent owns canonical lease/registers/ADR/UX model/generated publication. Worker only declared bounded files; disjoint i18n namespaces preserved.",
+    "id": "CO-176",
+    "status": "implementation working-cut; native acceptance open",
+    "objective": "Observe provider sign-in separately from installation/Fabric connection/stable identity/admitted work in SCN-126.",
+    "canonical_source": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:187",
+    "dependencies": [
+      {
+        "id": "M199",
+        "carried_contract": "Reader measured per exact CLI build and runtime; boolean sign-in never completes stable subject/profile/identity passport."
+      },
+      {
+        "id": "AR-2.1",
+        "carried_contract": "Registry readiness/admission does not inherit login-status snapshot."
+      },
+      {
+        "id": "P-01 / ADR-0100",
+        "carried_contract": "Agent detection informational and skippable, including while pending; preserve all start paths."
+      }
+    ],
+    "read_scope": [
+      "apps/desktop/src/main/index.ts IPC.startExecutors passes sessionEnvironment",
+      "apps/desktop/src/preload/index.ts existing start.executors IPC",
+      "apps/desktop/src/shared/types.ts existing ExecutorRow bridge",
+      "docs/ux SCN-126 / SCR-70 / FLW-69",
+      "docs/brand/locales/ru.md"
+    ],
+    "writers_consumers": [
+      "main/executorAuth.ts",
+      "main/executorDetect.ts",
+      "shared/startPaths.ts ExecutorAuthentication/ExecutorRow",
+      "preload start.executors existing IPC",
+      "renderer start/FirstRun.tsx"
+    ],
+    "dod": [
+      "Focused process/jsdom/type checks and source propagation pass",
+      "Native acceptance measured independently or explicitly NOT_RUN; scoped implementation evidence cannot close whole task"
+    ],
+    "priority_reasoning": "First-lane affordable current build/status prerequisite measured; independent from active CO-179 form style.",
+    "receipt": "../raw/co176-auth-observation.json"
+  }
+}

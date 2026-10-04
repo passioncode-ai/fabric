@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "id": "CO-179.prepare",
+  "context": {
+    "outcome": "Contain native New project SCR73 in launch visual language while preserving actual draft/folder behavior before next release after0.3.0.",
+    "sources": [
+      "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "docs/evidence/plans/unified-leaves/CO-179.json",
+      "docs/launch/adoption/receipts/AD02.json",
+      "apps/desktop/src/renderer/src/Onboarding.tsx",
+      "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+      "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
+      "docs/reports/2026-10-04-cleanup-start/raw/start-review.json"
+    ],
+    "scope": [
+      "docs/reports/2026-10-04-cleanup-start/start-packets/CO-179.json"
+    ],
+    "steps": [
+      "Existing owners finish their scoped leaves; root does not duplicate code.",
+      "Obtain fixture-host test receipt separately from app-native state/visual matrix receipt; synthetic handlers cannot prove real folder/create/main effect.",
+      "Verify required persistence/error/focus/disabled/unread/saving states and visually compare ru/en widths under sheleg-design.",
+      "Publish exact-SHA/native proof and preserve unfinished deadline if native coverage absent."
+    ],
+    "acceptance": [
+      "Scoped visual refinement plus exact proof tiers and remaining native gaps recorded; canonical CO179 stays open until full owning predicate."
+    ],
+    "risks": [
+      "outside/exists/invalid/failed folder",
+      "created folder remains on disk after cancel/remove notice",
+      "saving refusal draft retained",
+      "unregistered IPC/foreign path/symlink denied",
+      "disabled backend reason visible",
+      "git restart persistence not asserted"
+    ],
+    "stop_conditions": [
+      "Another owner holds this work",
+      "unknown source/build pin",
+      "fixture state or visual/native harness coverage missing"
+    ],
+    "resume": "Read this complete packet, current source revisions and owning canonical row; use current prerequisites and exact acceptance proof tier. Release deadline highest in Start; existing two peer owners retain it. Root selects independent CO180 while coordinating required receipts.",
+    "canonical_order": 5,
+    "canonical_parent": "CO-179",
+    "classification": "active-peer-owned-visual-and-fixture-work",
+    "baseline": "484600a338f2c413333e57c09a28712b8559c401",
+    "dependencies": [
+      {
+        "id": "AD02",
+        "contract": "Actual native restart acceptance is not currently passed; consume only exact scoped evidence."
+      },
+      {
+        "id": "CO-179.fixture",
+        "contract": "Owned disposable synthetic host capability is separately scoped, no operator DB/stack; current WIP must survive cleanup."
+      },
+      {
+        "id": "sheleg-design",
+        "contract": "Reviewed visual mapping through current launch tokens/components with scenario/brand chain."
+      }
+    ],
+    "validation_commands": [
+      "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/Onboarding.test.tsx src/renderer/src/onboardingDraft.persist.test.tsx",
+      "node --test apps/desktop/test/onboarding-visual-native-harness.test.mjs"
+    ],
+    "negative_controls": [
+      "outside/exists/invalid/failed folder",
+      "created folder remains on disk after cancel/remove notice",
+      "saving refusal draft retained",
+      "unregistered IPC/foreign path/symlink denied",
+      "disabled backend reason visible",
+      "git restart persistence not asserted"
+    ],
+    "scope_boundary": {
+      "root_write": [],
+      "owned_visual_proposed": [
+        "apps/desktop/src/renderer/src/Onboarding.tsx",
+        "apps/desktop/src/renderer/src/Onboarding.launch.css",
+        "apps/desktop/src/renderer/src/Onboarding.visual.test.tsx"
+      ],
+      "owned_fixture_WIP": [
+        "apps/desktop/test/onboarding-visual-native-harness.mjs",
+        "apps/desktop/test/onboarding-visual-native-harness.test.mjs"
+      ],
+      "excluded": [
+        "App.tsx Draft/hydration",
+        "main product data/stack",
+        "schema",
+        "shared components/global styles",
+        "git persistence change"
+      ]
+    },
+    "observed_baseline_facts": [
+      "CO179.prepare dossier persisted; preparation complete-with-explicit-implementation-blockers, implementation blocked.",
+      "AD02 receipt status blocked/proofTier pure/predicate native-acceptance-pending unchanged.",
+      "Visual branch at ff7eb7f3 clean without committed Onboarding diff from baseline; clean does not mean assigned work finished.",
+      "Fixture branch at ff7eb7f3 has two untracked harness files with six typed synthetic IPC handlers, strict deny-list and test negatives. Source existence does not prove checks or native acceptance.",
+      "git checkbox is component-local useState(true), not persisted Draft."
+    ]
+  }
+}

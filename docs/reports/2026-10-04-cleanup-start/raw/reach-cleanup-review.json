@@ -1,0 +1,1846 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-10-04T12:55:18Z",
+  "review_head": "484600a338f2c413333e57c09a28712b8559c401",
+  "canonical_coverage_commit": "8babdd15afca8afb04e1860eaa3db6abbd8a5341",
+  "scope": "Read-only lanes10–12 delta and Fabric/selected adjacent worktree/build/cache reconnaissance; no deletion, prune, fetch, branch change, code change or canonical edit.",
+  "tracked_privacy": {
+    "absolute_home_paths": false,
+    "credential_values": false,
+    "process_argv": false,
+    "raw_process_names_or_file_paths": false
+  },
+  "machine_only_inventory": {
+    "locator": "${HOME}/.cache/fabric-cleanup-start-20261004/machine-inventory.json",
+    "mode": "0600",
+    "root_cleanup_after_review": true
+  },
+  "method": {
+    "repository_state": [
+      "git worktree list --porcelain",
+      "git status --porcelain=v1 --untracked-files=all",
+      "git ls-remote origin heads and lease refs",
+      "git merge-base --is-ancestor HEAD current remote-main SHA",
+      "du -sk owned worktrees/artifact directories",
+      "df -k task filesystem"
+    ],
+    "activity": "lsof -nP -Fpn captured machine-only; matching cwd/open files; no command argv collected",
+    "activity_scan_exit_code": 0,
+    "limitations": [
+      "Activity is a point-in-time same-machine snapshot; root must recheck before removal.",
+      "Lease ref presence does not establish active/expired status; all affected repos held until holder/expiry disposition.",
+      "No directory deletion proposed solely because ignored artifacts look like cache.",
+      "No claim source test/native/provider acceptance; no tests run in this review.",
+      "No explicit completed-handoff waiver used for unmerged worktrees."
+    ]
+  },
+  "lanes_10_12": [
+    {
+      "lane": 10,
+      "canonical_ids": [
+        "S4",
+        "S5",
+        "S6"
+      ],
+      "canonical_id_count": 3,
+      "plan_lane_set_matches": true,
+      "base_and_prepare_task_count": 6,
+      "dispatch_counts": {
+        "design-gated": 3,
+        "candidate": 3
+      },
+      "canonical_delta_from_8babdd15": "none measured in backlog/carryover/report inputs",
+      "status_authority": "owning backlog/carry-over rows; report is design snapshot only",
+      "recommendation": "Preserve all existing delivery status; choose one readiness-verified preparation leaf before implementation; retain source-specific external dependencies."
+    },
+    {
+      "lane": 11,
+      "canonical_ids": [
+        "V1-M1",
+        "V1-M2",
+        "V1-M3",
+        "V1-M4",
+        "V1-M5",
+        "V1-M6",
+        "V1-M7"
+      ],
+      "canonical_id_count": 7,
+      "plan_lane_set_matches": true,
+      "base_and_prepare_task_count": 14,
+      "dispatch_counts": {
+        "design-gated": 7,
+        "candidate": 7
+      },
+      "canonical_delta_from_8babdd15": "none measured in backlog/carryover/report inputs",
+      "status_authority": "owning backlog/carry-over rows; report is design snapshot only",
+      "recommendation": "Preserve all existing delivery status; choose one readiness-verified preparation leaf before implementation; retain source-specific external dependencies."
+    },
+    {
+      "lane": 12,
+      "canonical_ids": [
+        "CO-112",
+        "CO-158",
+        "CO-165",
+        "CO-169",
+        "CO-173",
+        "CO-175",
+        "CO-001",
+        "CO-003",
+        "CO-004",
+        "CO-005",
+        "CO-006",
+        "CO-007",
+        "CO-008",
+        "CO-009",
+        "CO-010",
+        "CO-011",
+        "CO-012",
+        "CO-014",
+        "CO-015",
+        "CO-016",
+        "CO-017",
+        "CO-018",
+        "CO-019",
+        "CO-020",
+        "CO-022",
+        "CO-023",
+        "CO-024",
+        "CO-025",
+        "CO-026",
+        "CO-027",
+        "CO-029",
+        "CO-030",
+        "CO-031",
+        "CO-032",
+        "CO-033",
+        "CO-034",
+        "CO-035",
+        "CO-036",
+        "CO-037",
+        "CO-038",
+        "CO-039",
+        "CO-040",
+        "CO-043",
+        "CO-044",
+        "CO-045",
+        "CO-050",
+        "CO-051",
+        "CO-052",
+        "CO-053",
+        "CO-054",
+        "CO-055",
+        "CO-056",
+        "CO-057",
+        "CO-059",
+        "CO-060",
+        "CO-061",
+        "CO-062",
+        "CO-063",
+        "CO-064",
+        "CO-065",
+        "CO-066",
+        "CO-067",
+        "CO-069",
+        "CO-070",
+        "CO-071",
+        "CO-072",
+        "CO-073",
+        "CO-074",
+        "CO-078",
+        "CO-080",
+        "CO-081",
+        "CO-082",
+        "CO-083",
+        "CO-084",
+        "CO-085",
+        "CO-086",
+        "CO-087",
+        "CO-088",
+        "CO-089",
+        "CO-090",
+        "CO-091",
+        "CO-092",
+        "CO-094",
+        "CO-095",
+        "CO-097",
+        "CO-098",
+        "CO-099",
+        "CO-100",
+        "CO-101",
+        "CO-102",
+        "CO-103",
+        "CO-104",
+        "CO-105",
+        "CO-106",
+        "CO-107",
+        "CO-108",
+        "CO-109",
+        "CO-111",
+        "CO-113",
+        "CO-114",
+        "CO-115",
+        "CO-116",
+        "CO-117",
+        "CO-119",
+        "CO-120",
+        "CO-121",
+        "CO-122",
+        "CO-123",
+        "CO-124",
+        "CO-126",
+        "CO-127",
+        "CO-128",
+        "CO-129",
+        "CO-130",
+        "CO-131",
+        "CO-132",
+        "CO-133",
+        "CO-134",
+        "CO-135",
+        "CO-136",
+        "CO-137",
+        "CO-138",
+        "CO-139",
+        "CO-140",
+        "CO-141",
+        "CO-142",
+        "CO-143",
+        "CO-146",
+        "CO-147",
+        "CO-148",
+        "CO-149",
+        "CO-150",
+        "CO-151",
+        "CO-152",
+        "CO-153",
+        "CO-154",
+        "CO-155",
+        "CO-156",
+        "CO-157",
+        "CO-159",
+        "CO-160",
+        "CO-162",
+        "CO-163",
+        "CO-164",
+        "CO-170",
+        "CO-189",
+        "CO-190"
+      ],
+      "canonical_id_count": 147,
+      "plan_lane_set_matches": true,
+      "base_and_prepare_task_count": 294,
+      "dispatch_counts": {
+        "design-gated": 294
+      },
+      "canonical_delta_from_8babdd15": "none measured in backlog/carryover/report inputs",
+      "status_authority": "owning backlog/carry-over rows; report is design snapshot only",
+      "recommendation": "Preserve all existing delivery status; choose one readiness-verified preparation leaf before implementation; retain source-specific external dependencies."
+    }
+  ],
+  "source_delta": {
+    "declared_plan_source_count": 59,
+    "declared_plan_drift": [],
+    "original_reach_manifest_drift": [
+      {
+        "path": "docs/evidence/backlog.md",
+        "recorded_sha256": "8725d7c73d0be3eacbe1ad72d0f418e44c11dff794877c7a53f9a09074988c19",
+        "current_sha256": "3135378f808cca85b5408b13f54159b8e6818ab2d7f9258eef7f25644a17d608",
+        "disposition": "historical-cut-preserved-not-rehashed"
+      }
+    ],
+    "canonical_files_delta_from_coverage": [],
+    "next_cut_rule": "Do not modify previous dated raw receipts; new root cut records current source locators and measures every selected prerequisite."
+  },
+  "research_omissions_and_future_impacts": [
+    {
+      "id": "RC-01",
+      "targets": [
+        "S4",
+        "CO-112",
+        "CO-059"
+      ],
+      "severity": "advisory",
+      "finding": "Top-level source pin coverage is declared-input coverage, not every writer/scope file; exact paths listed in selected_scope_review.",
+      "action": "During preparation pin current exact writer/consumer contracts and acceptance inputs before turning broad design into implementation.",
+      "disposition": "sent-parent; preserve design gate"
+    },
+    {
+      "id": "RC-02",
+      "targets": [
+        "CO-059"
+      ],
+      "severity": "preserved-correction",
+      "finding": "CO079 is closed by Accepted ADR0023; open CO059 retains full context mapping and stricter diagnostic→indeterminate rule.",
+      "action": "No policy-engine reselection/reopening; retain current source directives and bounded mapping negatives.",
+      "disposition": "coverage-preserved"
+    },
+    {
+      "id": "RC-03",
+      "targets": [
+        "S4",
+        "S5",
+        "S6",
+        "V1-M1",
+        "V1-M2",
+        "V1-M3",
+        "V1-M4",
+        "V1-M5",
+        "V1-M6",
+        "V1-M7"
+      ],
+      "severity": "explicit-design-limit",
+      "finding": "Thematic primary-source research and bounded activation packets are present; broad future capability design/provider/native acceptance is not complete.",
+      "action": "Use preparation to select exact channel/property/consumer, authority and acceptance; do not mark broad milestone shipped.",
+      "disposition": "design-gated"
+    },
+    {
+      "id": "RC-04",
+      "targets": [
+        "CO-112"
+      ],
+      "severity": "preserved-prerequisite",
+      "finding": "Existing provider account/switch code and current M199.ui/M199.acceptance descendants are recorded; actual same-provider identity+native-ref A→B→A still requires scoped live proof.",
+      "action": "No transcript-only continuation claim, inherited quota authorization or copied credentials/provider homes.",
+      "disposition": "held-current-acceptance"
+    },
+    {
+      "id": "RC-05",
+      "targets": [
+        "S4",
+        "P-07"
+      ],
+      "severity": "preserved-invariant",
+      "finding": "Offline/error/stale/partial or missing source never means fixed; source observation/quota/account/project scope and revision remain attached.",
+      "action": "Retain newer successful complete scoped scan as resolution receipt.",
+      "disposition": "coverage-preserved"
+    },
+    {
+      "id": "RC-06",
+      "targets": [
+        "CO-173",
+        "CO-175",
+        "CO-189"
+      ],
+      "severity": "preserved-future-trigger",
+      "finding": "Reprove changed claim/contract recipe pin and use one source for shared backlog before touching affected card/flow/status extractor.",
+      "action": "Do not silently rehash historical receipts or create a second editable common-board status.",
+      "disposition": "trigger-held"
+    }
+  ],
+  "selected_scope_review": [
+    {
+      "id": "S4",
+      "scope_files_unpinned_by_top_level_plan": [
+        "apps/desktop/src/main/agentSurface.ts",
+        "apps/desktop/src/main/commands/proposalCommands.ts",
+        "apps/desktop/src/main/policy.ts",
+        "apps/desktop/src/shared/proposals.ts",
+        "docs/adr/0023-policy-is-an-embedded-decision-port-that-never-grants-on-uncertainty.md",
+        "docs/adr/0028-one-effects-algebra-and-the-floor-lives-in-the-schema.md",
+        "docs/adr/0029-a-proposal-terminates-at-the-target-product-manager.md",
+        "docs/architecture/external-contracts.md",
+        "docs/architecture/work-producing-agents.md"
+      ],
+      "risk": "Preparation must bind current exact writer/consumer inputs; the declared source gate does not automatically cover every future implementation scope path.",
+      "disposition": "advisory-design-prerequisite; no direct implementation dispatch currently permitted"
+    },
+    {
+      "id": "CO-112",
+      "scope_files_unpinned_by_top_level_plan": [
+        "apps/desktop/src/main/providerAccounts.ts",
+        "apps/desktop/src/main/switchCoordinator.ts",
+        "apps/desktop/src/shared/providerAccounts.ts",
+        "apps/desktop/src/shared/providerCapabilityMatrix.ts",
+        "apps/desktop/src/shared/switchOperation.ts",
+        "docs/adr/0051-provider-accounts-and-conversation-continuity.md",
+        "docs/adr/0052-provider-account-automatic-switching.md",
+        "docs/audit/2026-09-09-final/COMMON.md",
+        "docs/audit/2026-09-09-final/packets/M199.acceptance.md",
+        "docs/audit/2026-09-09-final/packets/M199.ui.md"
+      ],
+      "risk": "Preparation must bind current exact writer/consumer inputs; the declared source gate does not automatically cover every future implementation scope path.",
+      "disposition": "advisory-design-prerequisite; no direct implementation dispatch currently permitted"
+    },
+    {
+      "id": "CO-059",
+      "scope_files_unpinned_by_top_level_plan": [
+        "apps/desktop/src/main/policy.ts",
+        "apps/desktop/src/shared/authorityIngress.ts",
+        "apps/desktop/src/shared/containment.ts",
+        "docs/adr/0023-policy-is-an-embedded-decision-port-that-never-grants-on-uncertainty.md",
+        "docs/adr/0028-one-effects-algebra-and-the-floor-lives-in-the-schema.md",
+        "docs/architecture/iteration-1-modules.md"
+      ],
+      "risk": "Preparation must bind current exact writer/consumer inputs; the declared source gate does not automatically cover every future implementation scope path.",
+      "disposition": "advisory-design-prerequisite; no direct implementation dispatch currently permitted"
+    }
+  ],
+  "remaining_roadmap": {
+    "tracks": 5,
+    "named_m_records": 153,
+    "unique_m_ids": 153,
+    "historical_prose_count": 154,
+    "disposition": "153 exact names retained versus prose154; no invented missing id; records are reconciliation references, not implemented capabilities"
+  },
+  "worktrees": [
+    {
+      "inventory_id": "WT-001",
+      "repo": "fabric",
+      "worktree_label": "fabric",
+      "head": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "branch": "refs/heads/claude/onboarding-and-plan",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/claude/onboarding-and-plan"
+      ],
+      "cwd_or_open_file_count": 25,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 1257220,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "cwd_or_open_files_observed",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-002",
+      "repo": "fabric",
+      "worktree_label": "sync-checkout",
+      "head": "484600a338f2c413333e57c09a28712b8559c401",
+      "branch": null,
+      "detached": true,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/main"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 951568,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-003",
+      "repo": "fabric",
+      "worktree_label": "fabric-report-index-source-5fc94e4",
+      "head": "5fc94e49502a11ff4defd63adade342be5bd9adf",
+      "branch": null,
+      "detached": true,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 71080,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "repo_remote_lease_refs_present_require_holder_expiry_review"
+      ]
+    },
+    {
+      "inventory_id": "WT-004",
+      "repo": "fabric",
+      "worktree_label": "fabric-claude-recovery-20261004",
+      "head": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+      "branch": "refs/heads/codex/claude-recovery-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/claude-recovery-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 845304,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-005",
+      "repo": "fabric",
+      "worktree_label": "fabric-cleanup-start-20261004",
+      "head": "484600a338f2c413333e57c09a28712b8559c401",
+      "branch": "refs/heads/agent/cleanup-start-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": false,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/main"
+      ],
+      "cwd_or_open_file_count": 2,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 71100,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "tracked_or_untracked_changes",
+        "cwd_or_open_files_observed",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-006",
+      "repo": "fabric",
+      "worktree_label": "fabric-com-board-scenarios-20261004",
+      "head": "1b516af195f12f2f76b20080491715c047e6d3f4",
+      "branch": "refs/heads/codex/com-board-scenarios-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/com-board-scenarios-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 62088,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review"
+      ]
+    },
+    {
+      "inventory_id": "WT-007",
+      "repo": "fabric",
+      "worktree_label": "fabric-hub-docs-plan-dispositions-20261004",
+      "head": "53adddb57a43c44f8f82840d0e6c1e6ac0af7132",
+      "branch": "refs/heads/agent/hub-docs-plan-dispositions-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/agent/hub-docs-plan-dispositions-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 61608,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review"
+      ]
+    },
+    {
+      "inventory_id": "WT-008",
+      "repo": "fabric",
+      "worktree_label": "fabric-hub-i2-dispositions-check-20261004",
+      "head": "d92146fecb771b179a408a9e8f7f11e6b7845784",
+      "branch": "refs/heads/codex/hub-i2-dispositions-check-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/hub-i2-dispositions-check-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 512632,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review"
+      ]
+    },
+    {
+      "inventory_id": "WT-009",
+      "repo": "fabric",
+      "worktree_label": "fabric-hub-i3-data-20261004",
+      "head": "d286d3cf4ab2cee837ce6fd001799ac725a0a0e3",
+      "branch": "refs/heads/codex/hub-i3-data-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/hub-i3-data-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 61900,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-010",
+      "repo": "fabric",
+      "worktree_label": "fabric-hub-i3-docs-20261004",
+      "head": "43ef216270d48712d07af450d50c9c13fce3221d",
+      "branch": "refs/heads/codex/hub-i3-docs-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/hub-i3-docs-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 61896,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-011",
+      "repo": "fabric",
+      "worktree_label": "fabric-hub-i3-errors-20261004",
+      "head": "ae94574ad99fb1c0e98dbe16ef5cc01abb9f2cd6",
+      "branch": "refs/heads/codex/hub-i3-errors-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/hub-i3-errors-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 512384,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-012",
+      "repo": "fabric",
+      "worktree_label": "fabric-hub-i3-fixes-20261004",
+      "head": "d1a8282069f3c6579cc58000ca5b655fadcbb8c9",
+      "branch": "refs/heads/codex/hub-i3-fixes-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": false,
+      "exact_remote_refs": [],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 870516,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "head_not_proven_remote_preserved",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-013",
+      "repo": "fabric",
+      "worktree_label": "fabric-hub-i3-plan-20261004",
+      "head": "7291c1c9fbd842e1befff147429761266cd95c36",
+      "branch": "refs/heads/codex/hub-i3-plan-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/hub-i3-plan-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 512604,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-014",
+      "repo": "fabric",
+      "worktree_label": "fabric-hub-i3-ux-20261004",
+      "head": "b3fd19597132dc7db72de86ca6895a06c81cfade",
+      "branch": "refs/heads/codex/hub-i3-ux-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/hub-i3-ux-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 506740,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-015",
+      "repo": "fabric",
+      "worktree_label": "fabric-hub-upgrade-rehearsal-20261004",
+      "head": "8718873332481226202c05e1953d365e609ee51e",
+      "branch": "refs/heads/codex/hub-upgrade-rehearsal",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/hub-upgrade-rehearsal"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 61600,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review"
+      ]
+    },
+    {
+      "inventory_id": "WT-016",
+      "repo": "fabric",
+      "worktree_label": "fabric-onboarding-visual-20261004",
+      "head": "ff7eb7f3a955fc43a30b302c1a68e3fee2d896c0",
+      "branch": "refs/heads/codex/onboarding-visual-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/hub-i3-fixes-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 828640,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-017",
+      "repo": "fabric",
+      "worktree_label": "fabric-release-review-receipts-20261004",
+      "head": "e13fb147b791f9a88fc3e9f47ff61d1576867e0d",
+      "branch": "refs/heads/codex/release-review-receipts-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/release-review-receipts-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 62024,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review"
+      ]
+    },
+    {
+      "inventory_id": "WT-018",
+      "repo": "fabric",
+      "worktree_label": "fabric-telegram-board-transport-20261004",
+      "head": "b9aa8bffa33223b4159cad3101ec879afbbd1f6e",
+      "branch": "refs/heads/codex/telegram-board-transport-research",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/telegram-board-transport-research"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 59488,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review"
+      ]
+    },
+    {
+      "inventory_id": "WT-019",
+      "repo": "fabric",
+      "worktree_label": "fabric-unified-canonical-coverage-20261004",
+      "head": "8babdd15afca8afb04e1860eaa3db6abbd8a5341",
+      "branch": "refs/heads/codex/unified-canonical-coverage-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/unified-canonical-coverage-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 604172,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review"
+      ]
+    },
+    {
+      "inventory_id": "WT-020",
+      "repo": "fabric",
+      "worktree_label": "hub-v2-core-resume",
+      "head": "a89a99a415845751830fabe756c540f289f8a7b5",
+      "branch": "refs/heads/fix/hub-v2-core-resume",
+      "detached": false,
+      "clean_tracked_and_untracked": false,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/fix/hub-v2-core-resume"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 59604,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "tracked_or_untracked_changes",
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-021",
+      "repo": "fabric",
+      "worktree_label": "hubfix2-core",
+      "head": "9ab288545a1c4599921a5a24896539743fd9fb03",
+      "branch": "refs/heads/agent/hub-0.3.1-v2-core",
+      "detached": false,
+      "clean_tracked_and_untracked": false,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/agent/hub-0.3.1-v2-core"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 509976,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "tracked_or_untracked_changes",
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-022",
+      "repo": "fabric",
+      "worktree_label": "hubfix2-surface",
+      "head": "c745d4011065a93e42ed89b16906cc96e8f6e37b",
+      "branch": "refs/heads/agent/hub-0.3.1-v2-surface",
+      "detached": false,
+      "clean_tracked_and_untracked": false,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 509960,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "tracked_or_untracked_changes",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-023",
+      "repo": "fabric",
+      "worktree_label": "hubfix2-surface-resume",
+      "head": "beda3c857e55e5b3e3edbb8986fee7d55b328446",
+      "branch": "refs/heads/agent/hub-0.3.1-v2-surface-resume",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/agent/hub-0.3.1-v2-surface-resume"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 61400,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-024",
+      "repo": "fabric",
+      "worktree_label": "fabric-contract-consumer-regression",
+      "head": "26ac9843f9238d5ea658295ded5fc7776b74ed4f",
+      "branch": "refs/heads/codex/co193-consumer-regression-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/co193-consumer-regression-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 502952,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review"
+      ]
+    },
+    {
+      "inventory_id": "WT-025",
+      "repo": "fabric",
+      "worktree_label": "fabric-contract-consumer-review",
+      "head": "0c5735c9c1f2cdb85a5995d5b411555e216b56c7",
+      "branch": "refs/heads/codex/contract-consumer-review-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/contract-consumer-review-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 502944,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review"
+      ]
+    },
+    {
+      "inventory_id": "WT-026",
+      "repo": "fabric",
+      "worktree_label": "fabric-onboarding-fixture",
+      "head": "ff7eb7f3a955fc43a30b302c1a68e3fee2d896c0",
+      "branch": "refs/heads/codex/co179-native-fixture-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": false,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/hub-i3-fixes-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 534956,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "tracked_or_untracked_changes",
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-027",
+      "repo": "fabric",
+      "worktree_label": "fabric-unified-compiler-review",
+      "head": "8babdd15afca8afb04e1860eaa3db6abbd8a5341",
+      "branch": "refs/heads/codex/unified-compiler-review-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": false,
+      "status_exit_code": 0,
+      "remote_main": "484600a338f2c413333e57c09a28712b8559c401",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/unified-canonical-coverage-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 13,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 153672,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "tracked_or_untracked_changes",
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review"
+      ]
+    },
+    {
+      "inventory_id": "WT-028",
+      "repo": "fabric-workspace",
+      "worktree_label": "fabric-workspace",
+      "head": "fbbae4017776712c542b2dddeb84faa00b0b46e5",
+      "branch": "refs/heads/main",
+      "detached": false,
+      "clean_tracked_and_untracked": false,
+      "status_exit_code": 0,
+      "remote_main": "898a3cb4af9bd9dfa8b507fce28bdb008295596c",
+      "main_ancestry_exit_code": 128,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/claude/plans-after-onboarding"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 3,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 134080,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "tracked_or_untracked_changes",
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-029",
+      "repo": "fabric-workspace",
+      "worktree_label": "fabric-workspace-hub-com-20261004",
+      "head": "a1d59298d6381b23742f69abb2396a2dc58cce4a",
+      "branch": "refs/heads/agent/knowledge-hub-com-co196-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "898a3cb4af9bd9dfa8b507fce28bdb008295596c",
+      "main_ancestry_exit_code": 128,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/agent/knowledge-hub-com-co196-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 3,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 75740,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review"
+      ]
+    },
+    {
+      "inventory_id": "WT-030",
+      "repo": "fabric-agent-contract",
+      "worktree_label": "fabric-agent-contract",
+      "head": "6cf2dc0e4ad35149be6970b9b7628fee705a6583",
+      "branch": "refs/heads/agent/fabric-service-m1",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": false,
+      "exact_remote_refs": [],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 2372,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "head_not_proven_remote_preserved",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-031",
+      "repo": "fabric-agent-contract",
+      "worktree_label": "fabric-agent-contract-2ce3922",
+      "head": "2ce392291c6668598d12cd38327e24696b5ca15c",
+      "branch": null,
+      "detached": true,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 251944,
+      "explicit_protection": false,
+      "disposition": "completed-clean-potential-removal-candidate-recheck-required",
+      "hold_reasons": []
+    },
+    {
+      "inventory_id": "WT-032",
+      "repo": "fabric-agent-contract",
+      "worktree_label": "fabric-agent-contract-co193-20261004",
+      "head": "4e484b3c8c24bdf7ba134941ce6b668a9cdeaf08",
+      "branch": "refs/heads/agent/capability-underscore-co193-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/agent/capability-underscore-co193-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 1416,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main"
+      ]
+    },
+    {
+      "inventory_id": "WT-033",
+      "repo": "fabric-agent-contract",
+      "worktree_label": "fabric-agent-contract-tga-20261004",
+      "head": "2ce392291c6668598d12cd38327e24696b5ca15c",
+      "branch": null,
+      "detached": true,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 251944,
+      "explicit_protection": false,
+      "disposition": "completed-clean-potential-removal-candidate-recheck-required",
+      "hold_reasons": []
+    },
+    {
+      "inventory_id": "WT-034",
+      "repo": "fabric-agent-contract",
+      "worktree_label": "fabric-contract-adapter-new",
+      "head": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "branch": null,
+      "detached": true,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/main"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 252012,
+      "explicit_protection": false,
+      "disposition": "completed-clean-potential-removal-candidate-recheck-required",
+      "hold_reasons": []
+    },
+    {
+      "inventory_id": "WT-035",
+      "repo": "fabric-agent-contract",
+      "worktree_label": "fabric-contract-adapter-old",
+      "head": "2ce392291c6668598d12cd38327e24696b5ca15c",
+      "branch": null,
+      "detached": true,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 251944,
+      "explicit_protection": false,
+      "disposition": "completed-clean-potential-removal-candidate-recheck-required",
+      "hold_reasons": []
+    },
+    {
+      "inventory_id": "WT-036",
+      "repo": "fabric-agent-contract",
+      "worktree_label": "fabric-contract-review-current",
+      "head": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "branch": null,
+      "detached": true,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/main"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 252012,
+      "explicit_protection": false,
+      "disposition": "completed-clean-potential-removal-candidate-recheck-required",
+      "hold_reasons": []
+    },
+    {
+      "inventory_id": "WT-037",
+      "repo": "fabric-agent-contract",
+      "worktree_label": "fabric-contract-review-legacy",
+      "head": "2ce392291c6668598d12cd38327e24696b5ca15c",
+      "branch": null,
+      "detached": true,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 251944,
+      "explicit_protection": false,
+      "disposition": "completed-clean-potential-removal-candidate-recheck-required",
+      "hold_reasons": []
+    },
+    {
+      "inventory_id": "WT-038",
+      "repo": "fabric-agent-adapter",
+      "worktree_label": "fabric-agent-adapter",
+      "head": "c3a9968b6b1e0184512ad53327f7962250b3011c",
+      "branch": "refs/heads/main",
+      "detached": false,
+      "clean_tracked_and_untracked": false,
+      "status_exit_code": 0,
+      "remote_main": "907acb286abe55c627bfeb4500906b76d0284e81",
+      "main_ancestry_exit_code": 128,
+      "head_remote_preserved": false,
+      "exact_remote_refs": [],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 5752,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "tracked_or_untracked_changes",
+        "not_proven_contained_in_current_remote_main",
+        "head_not_proven_remote_preserved",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-039",
+      "repo": "fabric-agent-adapter",
+      "worktree_label": "adapter-pr24",
+      "head": "843d2779964c6217e5ccde089848ffc65f899b01",
+      "branch": "refs/heads/pr24-merge-main",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "907acb286abe55c627bfeb4500906b76d0284e81",
+      "main_ancestry_exit_code": 128,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/fix/mcp-probe-headers"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 1560,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main"
+      ]
+    },
+    {
+      "inventory_id": "WT-040",
+      "repo": "fabric-agent-adapter",
+      "worktree_label": "fabric-agent-adapter-contract-adoption",
+      "head": "cb77ff78406e0dd7bdc4f67bdd104a0d108d2c46",
+      "branch": "refs/heads/codex/contract-pin-adoption-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "907acb286abe55c627bfeb4500906b76d0284e81",
+      "main_ancestry_exit_code": 128,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/contract-pin-adoption-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 1812,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main"
+      ]
+    },
+    {
+      "inventory_id": "WT-041",
+      "repo": "fabric-agent-adapter",
+      "worktree_label": "fabric-agent-adapter-contract-recheck",
+      "head": "cb77ff78406e0dd7bdc4f67bdd104a0d108d2c46",
+      "branch": null,
+      "detached": true,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "907acb286abe55c627bfeb4500906b76d0284e81",
+      "main_ancestry_exit_code": 128,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/contract-pin-adoption-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 1792,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main"
+      ]
+    },
+    {
+      "inventory_id": "WT-042",
+      "repo": "fabric-agent-adapter",
+      "worktree_label": "fabric-agent-adapter-contract-review",
+      "head": "5f88fb4e1fb28a546407db786995be382232623e",
+      "branch": "refs/heads/codex/contract-adoption-review-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "907acb286abe55c627bfeb4500906b76d0284e81",
+      "main_ancestry_exit_code": 128,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/contract-adoption-review-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 1820,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main"
+      ]
+    },
+    {
+      "inventory_id": "WT-043",
+      "repo": "fabric-agent-adapter",
+      "worktree_label": "fabric-agent-adapter-review-receipts",
+      "head": "c86caa0c0140ca46855097a94bd3772981cd6967",
+      "branch": "refs/heads/codex/contract-adoption-review-receipts-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "907acb286abe55c627bfeb4500906b76d0284e81",
+      "main_ancestry_exit_code": 128,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/contract-adoption-review-receipts-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 1208,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main"
+      ]
+    },
+    {
+      "inventory_id": "WT-044",
+      "repo": "fabric-inbox",
+      "worktree_label": "fabric-inbox",
+      "head": "40725f59f207ae14a8429515fce641af9523e995",
+      "branch": "refs/heads/main",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "90138c4aa17050f214b29fb5ad10aa9c6e86fb17",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [],
+      "cwd_or_open_file_count": 1,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 517164,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "cwd_or_open_files_observed",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-045",
+      "repo": "fabric-dashboards",
+      "worktree_label": "fabric-dashboards",
+      "head": "e2c4d80c86129227c49aa67ce553f4a864d05327",
+      "branch": "refs/heads/main",
+      "detached": false,
+      "clean_tracked_and_untracked": false,
+      "status_exit_code": 0,
+      "remote_main": "f7e806919c81f88d0fc7129c355c06c7036387ef",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [],
+      "cwd_or_open_file_count": 17,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 2668,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "tracked_or_untracked_changes",
+        "cwd_or_open_files_observed",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-046",
+      "repo": "fabric-switchboard",
+      "worktree_label": "fabric-switchboard",
+      "head": "e40251674273543aecc5a28eac476caa3713d34a",
+      "branch": "refs/heads/main",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "5e275caf50436f6a95eabad9c8e16bedade1ffe5",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [],
+      "cwd_or_open_file_count": 14,
+      "remote_lease_ref_count": 3,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 1034060,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "cwd_or_open_files_observed",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-047",
+      "repo": "fabric-switchboard",
+      "worktree_label": "fabric-switchboard-quota-review",
+      "head": "55f7c56a19c0fbb8d5e1db933fed3ad9b7a07fbf",
+      "branch": "refs/heads/codex/quota-order-countdown",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "5e275caf50436f6a95eabad9c8e16bedade1ffe5",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/quota-order-countdown"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 3,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 4581516,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review"
+      ]
+    },
+    {
+      "inventory_id": "WT-048",
+      "repo": "fabric-vr",
+      "worktree_label": "fabric-vr",
+      "head": "a930f591b6cfb497e2fa3830872c146fbf0a0990",
+      "branch": "refs/heads/main",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "3d6179f2a69f9cbe7ab169405e7f5ff48ae52293",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": false,
+      "exact_remote_refs": [],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 138412,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "head_not_proven_remote_preserved",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-049",
+      "repo": "passioncode-ai.github.io",
+      "worktree_label": "passioncode-ai.github.io",
+      "head": "d59d521fa51394e80f8dc510e7fc3910990c6e27",
+      "branch": "refs/heads/main",
+      "detached": false,
+      "clean_tracked_and_untracked": false,
+      "status_exit_code": 0,
+      "remote_main": "25e138ff127bb6b7145ce30914f00178c71560e7",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 1,
+      "lease_assessment": "ref presence only; no expiry/holder disposition read, conservatively held",
+      "size_kib": 232140,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "tracked_or_untracked_changes",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-050",
+      "repo": "project-observatory",
+      "worktree_label": "project-observatory",
+      "head": "0cd436e735b6d93fadf141480c9f55c0b44c6157",
+      "branch": "refs/heads/main",
+      "detached": false,
+      "clean_tracked_and_untracked": false,
+      "status_exit_code": 0,
+      "remote_main": "0cd436e735b6d93fadf141480c9f55c0b44c6157",
+      "main_ancestry_exit_code": 0,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/main"
+      ],
+      "cwd_or_open_file_count": 39,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 857756,
+      "explicit_protection": true,
+      "disposition": "hold",
+      "hold_reasons": [
+        "tracked_or_untracked_changes",
+        "cwd_or_open_files_observed",
+        "explicit_active_or_recovery_protection"
+      ]
+    },
+    {
+      "inventory_id": "WT-051",
+      "repo": "project-observatory",
+      "worktree_label": "observatory-memory-program-20261004",
+      "head": "266b4978deab00d29567260a270eaf6dd13fa598",
+      "branch": "refs/heads/codex/memory-program-20261004",
+      "detached": false,
+      "clean_tracked_and_untracked": true,
+      "status_exit_code": 0,
+      "remote_main": "0cd436e735b6d93fadf141480c9f55c0b44c6157",
+      "main_ancestry_exit_code": 1,
+      "head_remote_preserved": true,
+      "exact_remote_refs": [
+        "refs/heads/codex/memory-program-20261004"
+      ],
+      "cwd_or_open_file_count": 0,
+      "remote_lease_ref_count": 0,
+      "lease_assessment": "no remote lease refs listed at snapshot",
+      "size_kib": 22024,
+      "explicit_protection": false,
+      "disposition": "hold",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main"
+      ]
+    }
+  ],
+  "build_cache": [
+    {
+      "repo": "fabric",
+      "worktree_label": "fabric",
+      "relative_artifact": "apps/desktop/out",
+      "size_kib": 29188,
+      "source_head": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "owner_uid": 501,
+      "mtime_epoch": 1790480797.1335251,
+      "recommendation": "inspect_build_activity_and_release_retention_before_removal",
+      "hold_reasons": [
+        "cwd_or_open_files_observed",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ],
+      "deletion_authorized": false
+    },
+    {
+      "repo": "fabric",
+      "worktree_label": "sync-checkout",
+      "relative_artifact": "apps/desktop/out",
+      "size_kib": 29188,
+      "source_head": "484600a338f2c413333e57c09a28712b8559c401",
+      "owner_uid": 501,
+      "mtime_epoch": 1790796347.9243321,
+      "recommendation": "inspect_build_activity_and_release_retention_before_removal",
+      "hold_reasons": [
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ],
+      "deletion_authorized": false
+    },
+    {
+      "repo": "fabric",
+      "worktree_label": "fabric-claude-recovery-20261004",
+      "relative_artifact": "apps/desktop/out",
+      "size_kib": 29220,
+      "source_head": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+      "owner_uid": 501,
+      "mtime_epoch": 1791108800.0588818,
+      "recommendation": "inspect_build_activity_and_release_retention_before_removal",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ],
+      "deletion_authorized": false
+    },
+    {
+      "repo": "fabric",
+      "worktree_label": "fabric-hub-i3-fixes-20261004",
+      "relative_artifact": "apps/desktop/out",
+      "size_kib": 29232,
+      "source_head": "d1a8282069f3c6579cc58000ca5b655fadcbb8c9",
+      "owner_uid": 501,
+      "mtime_epoch": 1791115777.0693798,
+      "recommendation": "inspect_build_activity_and_release_retention_before_removal",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "head_not_proven_remote_preserved",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ],
+      "deletion_authorized": false
+    },
+    {
+      "repo": "fabric",
+      "worktree_label": "fabric-onboarding-visual-20261004",
+      "relative_artifact": "apps/desktop/out",
+      "size_kib": 29232,
+      "source_head": "ff7eb7f3a955fc43a30b302c1a68e3fee2d896c0",
+      "owner_uid": 501,
+      "mtime_epoch": 1791118579.6117783,
+      "recommendation": "inspect_build_activity_and_release_retention_before_removal",
+      "hold_reasons": [
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ],
+      "deletion_authorized": false
+    },
+    {
+      "repo": "fabric",
+      "worktree_label": "fabric-onboarding-fixture",
+      "relative_artifact": "apps/desktop/out",
+      "size_kib": 29232,
+      "source_head": "ff7eb7f3a955fc43a30b302c1a68e3fee2d896c0",
+      "owner_uid": 501,
+      "mtime_epoch": 1791117578.0877128,
+      "recommendation": "inspect_build_activity_and_release_retention_before_removal",
+      "hold_reasons": [
+        "tracked_or_untracked_changes",
+        "not_proven_contained_in_current_remote_main",
+        "repo_remote_lease_refs_present_require_holder_expiry_review",
+        "explicit_active_or_recovery_protection"
+      ],
+      "deletion_authorized": false
+    },
+    {
+      "repo": "machine",
+      "worktree_label": null,
+      "relative_artifact": ".cache/fabric-workspace",
+      "size_kib": 1008832,
+      "source_head": null,
+      "owner_uid": 501,
+      "mtime_epoch": 1791114337.1107397,
+      "recommendation": "hold_managed_or_current_evidence",
+      "hold_reasons": [
+        "managed_sync_cache_or_current_task_evidence"
+      ],
+      "deletion_authorized": false
+    },
+    {
+      "repo": "machine",
+      "worktree_label": null,
+      "relative_artifact": ".cache/fabric-cleanup-start-20261004",
+      "size_kib": 1164,
+      "source_head": null,
+      "owner_uid": 501,
+      "mtime_epoch": 1791118620.484399,
+      "recommendation": "hold_managed_or_current_evidence",
+      "hold_reasons": [
+        "managed_sync_cache_or_current_task_evidence"
+      ],
+      "deletion_authorized": false
+    }
+  ],
+  "disk_pressure": {
+    "capacity_kib": 482797652,
+    "used_kib": 447831728,
+    "available_kib": 5007508,
+    "used_percent": "99%"
+  },
+  "cleanup_candidate_counts": {
+    "repos": 10,
+    "worktrees": 51,
+    "dirty_worktrees": 11,
+    "potential_worktree_candidates": 6,
+    "potential_candidate_size_kib": 1511800,
+    "build_cache_entries": 8,
+    "build_cache_size_kib": 1185288,
+    "deleted": 0
+  },
+  "urgent_cleanup_findings": [
+    {
+      "id": "RC-DISK",
+      "finding": "Actual filesystem pressure99%; available5007508KiB at snapshot.",
+      "action": "Root rechecks six clean detached contract candidates first; managed sync cache and active recovery/I3/onboarding/fixture trees held."
+    },
+    {
+      "id": "RC-LIVE-I3",
+      "finding": "fabric-hub-i3-fixes HEAD advanced during the live inventory; its later head was not at exact captured remote branch tip.",
+      "action": "Preserve entire worktree and output; do not classify inactive from absent file handles alone."
+    }
+  ],
+  "next_root_task": "Revalidate each proposed completed-clean candidate against fresh status/remote-main preservation/activity/lease/build evidence; remove only task-authorized safe candidates. Then continue Start from current canonical rows, not a blanket horizon activation."
+}

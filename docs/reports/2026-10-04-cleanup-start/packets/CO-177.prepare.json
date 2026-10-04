@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "id": "CO-177.prepare",
+  "context": {
+    "outcome": "Define explicit persistent revocable read-only observation grant before any scheduled parent-folder rescan.",
+    "sources": [
+      "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "docs/adr/0100-first-run-and-start-paths.md",
+      "apps/desktop/src/main/files.ts",
+      "apps/desktop/src/main/fileRootsRefresh.ts",
+      "apps/desktop/src/main/startChoices.ts",
+      "apps/desktop/src/main/projectDiscovery.ts",
+      "apps/desktop/src/main/startPaths.ts",
+      "CONTEXT.md",
+      "docs/ux/scenarios.md"
+    ],
+    "scope": [
+      "docs/reports/2026-10-04-cleanup-start/packets/CO-177.prepare.json"
+    ],
+    "steps": [
+      "Inventory current authority/retention writers",
+      "Compare manual-picker baseline versus explicit finite-lived opt-in grant; parent owner decides no-window/restart semantics",
+      "Specify revision/root-substitution/principal/expiry fences before spawn and publication, revoke UI and disposal",
+      "Decompose after accepted ADR into grant store/enforcement, scheduler, consent/revoke UI, and disposable fixture tests"
+    ],
+    "acceptance": [
+      "Design negative controls: no opt-in, expired, revoked, actor drift, root replaced, stale callback => no current scan publication",
+      "Future disposable fixture matrix: unreadable/timeout/truncated/cancelled/partial retain explicit status; no live operator roots or DB"
+    ],
+    "risks": [
+      "No schema ID guessed, no authority inferred from saved root/last scan",
+      "No home/filesystem root/broad parent/symlink escape read",
+      "No auto-create/import without tick; partial/unreadable/truncated never complete",
+      "Quit/expiry/revocation blocks new work; late callbacks cannot revive grant"
+    ],
+    "stop_conditions": [
+      "Missing scope/expiry/revoke/lifecycle decision => implementation blocked; design may proceed"
+    ],
+    "resume": "Read canonical owner row and exact pinned current sources first; verify active ownership before mutation. Preparation is report-only. Preserve decision gate; runtime/translation implementation requires the explicit prerequisite decision.",
+    "source_manifest": [
+      {
+        "path": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+        "sha256": "50a73374b7305a1b092333940b299d1595c33ed63b1d0fd1a41e6a9476b8db51",
+        "bytes": 166704,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "docs/adr/0100-first-run-and-start-paths.md",
+        "sha256": "e9c36c52956b9b6128bb604aad428abd0d108e207626405f6914f715fa8fe3bb",
+        "bytes": 9625,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "apps/desktop/src/main/files.ts",
+        "sha256": "1d341657c33345a5f13cc2d852ccf2134e9bd1d461757b4112a16c1dd968b2db",
+        "bytes": 12720,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "apps/desktop/src/main/fileRootsRefresh.ts",
+        "sha256": "2c16601f03c804b3f7337fa6eaa3dfab34ade2067ae753d845be7cba90f5eb4b",
+        "bytes": 1759,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "apps/desktop/src/main/startChoices.ts",
+        "sha256": "2d1278ea5a0994eeec7d5054bf79259af4f918b0512c3912476f95d30e8e06fe",
+        "bytes": 11593,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "apps/desktop/src/main/projectDiscovery.ts",
+        "sha256": "5076ea167de583699e8ce1477f403cc6dbc919d5eb7f7509cd3fbce72ddd0015",
+        "bytes": 21947,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "apps/desktop/src/main/startPaths.ts",
+        "sha256": "4c6d0138b186204d87f5f00011beb10cb0ffa8079af6afc6da67131ca3d70649",
+        "bytes": 2100,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "CONTEXT.md",
+        "sha256": "216b4729418f21afeafb057227b2f802725e306f3586a05c1c3c38a270568fb5",
+        "bytes": 23029,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "docs/ux/scenarios.md",
+        "sha256": "bdbe94ea3b982d2072bbbc1c9a4533056d5d34bc021bc9d16eab6943495272bd",
+        "bytes": 349104,
+        "provenance": "working-cut",
+        "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+      }
+    ],
+    "implementation_scope": [
+      "Report design dossier only now; parent new accepted ADR under lease before any implementation"
+    ],
+    "lane": 1,
+    "base_revision": "484600a338f2c413333e57c09a28712b8559c401",
+    "ownership": "Parent owns canonical lease/registers/ADR/UX model/generated publication. Worker only declared bounded files; disjoint i18n namespaces preserved.",
+    "id": "CO-177.prepare",
+    "parent": "CO-177",
+    "status": "design-ready; implementation decision-gated",
+    "canonical_source": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:188",
+    "objective": "Define explicit persistent revocable read-only observation grant before any scheduled parent-folder rescan.",
+    "read_scope": [
+      "files.ts FileRoots/isTooBroad and window picker grants",
+      "startPaths.ts kept scan/chooseFolder",
+      "startChoices.ts admitRepoPaths",
+      "projectDiscovery.ts bounded read-only traversal",
+      "ADR-0100 §7, SCN-128 and lifecycle background contract"
+    ],
+    "writers_consumers": {
+      "proposed_writers": [
+        "Explicit opt-in main-process grant owner creates/revokes"
+      ],
+      "proposed_consumers": [
+        "Bounded scheduler consumes grant revision snapshot",
+        "projectDiscovery uses allowed canonical root only",
+        "Candidate view displays scan observation; no auto-import"
+      ]
+    },
+    "dependencies": [
+      {
+        "id": "ADR-0100 §7",
+        "carried_contract": "Kept scan is observation, not authority. Window choice grants that window only. Creation-parent may create children, not list/read parent."
+      },
+      {
+        "id": "new authority ADR",
+        "carried_contract": "Set principal/estate/device root canonical spelling/device+inode, operation, finite expiry, revocation/revision, cadence/budget, lifecycle owner before runtime code."
+      }
+    ],
+    "dod": [
+      "Bounded cold dossier plus explicit grant decisions",
+      "Accepted new ADR prerequisite before native implementation dispatch"
+    ],
+    "priority_reasoning": "Next canonical Start item, authority is real prerequisite; does not blanket-block independent auth observation."
+  }
+}

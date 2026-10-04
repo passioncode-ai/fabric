@@ -1913,9 +1913,9 @@
           "file": "scripts/product/renderers.mjs",
           "line": 38,
           "symbol": "renderProduct",
-          "sha256": "0bc6e4da3b1f4cfbb6cd482bdeaa7e073dcbeae812acc4e533bd8943869049b5",
+          "sha256": "65b2c2b6857f08cb04a928d9c76b77a0ba534cd31b48eb7de3a81da180fb2367",
           "source_inspected": true,
-          "final_review_note": "2026-09-09: source diff rechecked for additive M199 account prototype, retained controller scope/form/assistant behavior and merged S09 count baseline. Original acceptance unchanged; M199 has separate browser receipt, no runtime acceptance. Re-reviewed 2026-09-29 (agent-registry design): the only change is new view cases inserted after line 376; renderProduct (38) and renderExtended (259) are unchanged. Re-reviewed 2026-10-03 (ADR-0100 start paths): the only change is six new view cases (first-run, start-add, start-scan, start-new, start-agent, start-convert) inserted before the default; renderProduct and renderExtended are unchanged."
+          "final_review_note": "2026-09-09: source diff rechecked for additive M199 account prototype, retained controller scope/form/assistant behavior and merged S09 count baseline. Original acceptance unchanged; M199 has separate browser receipt, no runtime acceptance. Re-reviewed 2026-09-29 (agent-registry design): the only change is new view cases inserted after line 376; renderProduct (38) and renderExtended (259) are unchanged. Re-reviewed 2026-10-03 (ADR-0100 start paths): the only change is six new view cases (first-run, start-add, start-scan, start-new, start-agent, start-convert) inserted before the default; renderProduct and renderExtended are unchanged. Re-reviewed 2026-10-04 (CO-176): byte comparison against 484600a3 confirms only first-run case changed; renderProduct/renderExtended and all G21/G59/G80 paths are unchanged. New first-run target text exposes informational sign-in independently; no new acceptance for these historical rows."
         }
       ],
       "validation": {
@@ -4628,9 +4628,9 @@
           "file": "scripts/product/renderers.mjs",
           "line": 38,
           "symbol": "renderProduct",
-          "sha256": "0bc6e4da3b1f4cfbb6cd482bdeaa7e073dcbeae812acc4e533bd8943869049b5",
+          "sha256": "65b2c2b6857f08cb04a928d9c76b77a0ba534cd31b48eb7de3a81da180fb2367",
           "source_inspected": true,
-          "final_review_note": "2026-09-09: source diff rechecked for additive M199 account prototype, retained controller scope/form/assistant behavior and merged S09 count baseline. Original acceptance unchanged; M199 has separate browser receipt, no runtime acceptance. Re-reviewed 2026-09-29 (agent-registry design): the only change is new view cases inserted after line 376; renderProduct (38) and renderExtended (259) are unchanged. Re-reviewed 2026-10-03 (ADR-0100 start paths): the only change is six new view cases (first-run, start-add, start-scan, start-new, start-agent, start-convert) inserted before the default; renderProduct and renderExtended are unchanged."
+          "final_review_note": "2026-09-09: source diff rechecked for additive M199 account prototype, retained controller scope/form/assistant behavior and merged S09 count baseline. Original acceptance unchanged; M199 has separate browser receipt, no runtime acceptance. Re-reviewed 2026-09-29 (agent-registry design): the only change is new view cases inserted after line 376; renderProduct (38) and renderExtended (259) are unchanged. Re-reviewed 2026-10-03 (ADR-0100 start paths): the only change is six new view cases (first-run, start-add, start-scan, start-new, start-agent, start-convert) inserted before the default; renderProduct and renderExtended are unchanged. Re-reviewed 2026-10-04 (CO-176): byte comparison against 484600a3 confirms only first-run case changed; renderProduct/renderExtended and all G21/G59/G80 paths are unchanged. New first-run target text exposes informational sign-in independently; no new acceptance for these historical rows."
         },
         {
           "file": "scripts/product/operations.mjs",
@@ -6042,9 +6042,9 @@
           "file": "scripts/product/renderers.mjs",
           "line": 259,
           "symbol": "renderExtended",
-          "sha256": "0bc6e4da3b1f4cfbb6cd482bdeaa7e073dcbeae812acc4e533bd8943869049b5",
+          "sha256": "65b2c2b6857f08cb04a928d9c76b77a0ba534cd31b48eb7de3a81da180fb2367",
           "source_inspected": true,
-          "final_review_note": "2026-09-09: source diff rechecked for additive M199 account prototype, retained controller scope/form/assistant behavior and merged S09 count baseline. Original acceptance unchanged; M199 has separate browser receipt, no runtime acceptance. Re-reviewed 2026-09-29 (agent-registry design): the only change is new view cases inserted after line 376; renderProduct (38) and renderExtended (259) are unchanged. Re-reviewed 2026-10-03 (ADR-0100 start paths): the only change is six new view cases (first-run, start-add, start-scan, start-new, start-agent, start-convert) inserted before the default; renderProduct and renderExtended are unchanged."
+          "final_review_note": "2026-09-09: source diff rechecked for additive M199 account prototype, retained controller scope/form/assistant behavior and merged S09 count baseline. Original acceptance unchanged; M199 has separate browser receipt, no runtime acceptance. Re-reviewed 2026-09-29 (agent-registry design): the only change is new view cases inserted after line 376; renderProduct (38) and renderExtended (259) are unchanged. Re-reviewed 2026-10-03 (ADR-0100 start paths): the only change is six new view cases (first-run, start-add, start-scan, start-new, start-agent, start-convert) inserted before the default; renderProduct and renderExtended are unchanged. Re-reviewed 2026-10-04 (CO-176): byte comparison against 484600a3 confirms only first-run case changed; renderProduct/renderExtended and all G21/G59/G80 paths are unchanged. New first-run target text exposes informational sign-in independently; no new acceptance for these historical rows."
         }
       ],
       "validation": {

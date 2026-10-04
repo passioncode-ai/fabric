@@ -1692,6 +1692,13 @@ export const en = {
   'first.exec.copyFailed': "Not copied: select the text",
   'first.exec.copied': "Copied",
   'first.exec.note': "Installed means the program is on this Mac and answers; ready means the tools of Fabric also reach its sessions. Whether your account signs in is checked the first time an agent starts.",
+  // #region executor-auth-copy — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
+  'start.executor.auth.authenticated': "The coding agent reports signed in",
+  'start.executor.auth.notAuthenticated': "The coding agent reports signed out. Sign in to its account, then check again.",
+  'start.executor.auth.unsupported': "Sign-in check is unavailable for this version of the coding agent. You can continue; access is checked when work starts.",
+  'start.executor.auth.unknown': "Could not confirm sign-in. Check again or continue; access is checked when work starts.",
+  'start.executor.auth.note': "Installation, connection to Fabric and sign-in are shown separately. Checking sign-in starts no tasks. You can continue without it.",
+  // #endregion executor-auth-copy
   'first.exec.recheck': "Check again",
   'first.exec.continueWithout': "Continue without an agent",
   'first.start.title': "Where shall {name} start?",

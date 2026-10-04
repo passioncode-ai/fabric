@@ -27,6 +27,13 @@ function fixture({handles=[{itemId:'item',processId:'process'}],request,timeoutM
  f.setScope({binding:{...binding,fabric:{...binding.fabric,runId:'new'}},sourceSequence:4,observationCursor:4})
  assert.equal((await f.control.requestStop(command,()=>true)).reasonCode,'scope_changed')
 }
+// A settled command answers its stored outcome even when a repeat's own budget runs out:
+// the repeat writes nothing, and a refusal would read as "nothing was sent".
+{
+ const busy=ms=>{const until=performance.now()+ms;while(performance.now()<until){}}
+ const f=fixture({timeoutMs:200});const r=await f.control.requestStop(command,()=>true);assert.equal(r.status,'request_ack')
+ assert.equal(await f.control.requestStop(command,()=>{busy(250);return true}),r);assert.equal(f.calls.length,3)
+}
 for(const runtimeProfile of ['owned-pty','shared-daemon','remote']){
  const f=fixture(),b={...binding,provider:{...binding.provider,runtimeProfile}}
  assert.equal(createCodexProviderControl({...f.options,binding:b,ownership:{...f.options.ownership,binding:b}}).reasonCode,'unsupported_control_profile')

@@ -38,11 +38,19 @@ test('invalid task launch cannot substitute another task or restart accepted wor
  const s=connected(),p=project(s);act(s,'task','A');act(s,'run','not-a-task');assert.equal(s.run,null);p.tasks[0].state='done';act(s,'run',p.tasks[0].id);assert.equal(s.run,null);
 })
 
-test('multiple sources form one project; main changes preserve ID and pinned run context',()=>{
- const s=connected();act(s,'source-mode','collection');project(s,'/Data');act(s,'candidate-toggle','/Data/Website');act(s,'candidate-toggle','/Data/Notes');assert.equal(s.primarySource,'/Data/Website');act(s,'candidate-import');act(s,'scan-result');assert.equal(s.projects.length,1);const p=s.projects[0],id=p.id;assert.equal(p.sources.length,2);act(s,'task','Inspect website');act(s,'run');const pack=structuredClone(s.run.context);act(s,'primary-source','/Data/Notes');assert.equal(p.id,id);assert.equal(p.source,'/Data/Notes');assert.deepEqual(s.run.context,pack);assert.equal(pack.sources[1].access,'reference-only');
+test('explicit related references preserve Project ID and pinned run context on primary change',()=>{
+ const s=connected(),p=project(s,'/Data/Website'),id=p.id;
+ p.sources.push({path:'/Data/Notes',name:'Notes',role:'related',summary:'Explicit reference',status:'observed'});
+ act(s,'task','Inspect website');act(s,'run');const pack=structuredClone(s.run.context);
+ act(s,'primary-source','/Data/Notes');assert.equal(p.id,id);assert.equal(p.source,'/Data/Notes');
+ assert.deepEqual(s.run.context,pack);assert.equal(pack.sources[1].access,'reference-only');
 })
-test('candidate selection rejects absent/empty and promotes remaining first source',()=>{
- const s=connected();act(s,'source-mode','collection');project(s,'/Data');act(s,'candidate-import');assert.equal(s.projects.length,0);act(s,'candidate-toggle','/not-permitted');assert.equal(s.chosenSources.length,0);act(s,'candidate-toggle','/Data/Website');act(s,'candidate-toggle','/Data/Notes');act(s,'candidate-toggle','/Data/Website');assert.equal(s.primarySource,'/Data/Notes');act(s,'candidate-primary','/Data/Website');assert.equal(s.primarySource,'/Data/Notes');
+test('candidate selection rejects absent/empty and retains only deliberate ticks',()=>{
+ const s=connected();act(s,'source-mode','collection');project(s,'/Data');act(s,'candidate-import');
+ assert.equal(s.projects.length,0);act(s,'candidate-toggle','/not-permitted');assert.equal(s.chosenSources.length,0);
+ act(s,'candidate-toggle','/Data/Website');act(s,'candidate-toggle','/Data/Notes');act(s,'candidate-toggle','/Data/Website');
+ assert.deepEqual(s.chosenSources,['/Data/Notes']);act(s,'candidate-import');act(s,'scan-result');
+ assert.deepEqual(s.projects.map(p=>p.source),['/Data/Notes']);
 })
 test('Board discussions isolate drafts, do not resolve on read, and apply once',()=>{
  const s=connected(),p=project(s);act(s,'topic','Question A');const a=s.board[0];s.drafts['ticket:'+a.id]='Inspect entry with a keyboard';act(s,'send');assert.equal(a.state,'open');assert.equal(p.tasks.length,0);act(s,'close-chat');act(s,'topic','Question B');const b=s.board[1];assert.equal(s.messages['ticket:'+b.id].length,1);act(s,'open-ticket',a.id);assert.equal(s.messages['ticket:'+a.id].at(-2).text,'Inspect entry with a keyboard');act(s,'outcome-apply',a.id);act(s,'outcome-apply',a.id);assert.equal(p.tasks.length,1);assert.equal(p.tasks[0].sourceTicket,a.id);assert.equal(a.state,'done');assert.equal(s.run,null);act(s,'outcome-run',a.id);assert.equal(s.run.task,p.tasks[0].id);assert.equal(s.run.context.decisions.length,1);act(s,'deliver');assert.equal(s.board.length,2);assert.equal(a.state,'open');assert.equal(a.outcome,null);assert.equal(a.outcomes.length,1);
@@ -58,8 +66,20 @@ test('single avatar opens chat and appearance lives only in Settings; Plan has n
 })
 test('planning CTA understands arbitrary intent and retains criteria refinements and draft',()=>{const s=connected(),p=project(s);act(s,'plan-chat');const b=s.board[0],key='ticket:'+b.id;s.drafts[key]='Вход с клавиатуры';act(s,'send');s.drafts[key]='Критерий: все действия доступны Tab и Enter';act(s,'send');assert.equal(b.outcome.taskTitle,'Вход с клавиатуры');assert.match(b.outcome.criteria,/Tab и Enter/);s.drafts[key]='pending';act(s,'close-chat');act(s,'plan-chat');assert.equal(s.drafts[key],'pending');assert.equal(s.board.length,1);act(s,'outcome-apply',b.id);assert.match(p.tasks[0].criteria,/Tab и Enter/);})
 test('rejecting a result creates linked rework and never accepts the old task',()=>{const s=connected(),p=project(s);act(s,'task','Initial');act(s,'run');act(s,'deliver');const b=s.board[0];act(s,'open-ticket',b.id);s.drafts['ticket:'+b.id]='Не принимаю, исправь ошибку входа';act(s,'send');assert.equal(b.outcome.kind,'rework');act(s,'outcome-apply',b.id);assert.equal(p.tasks[0].state,'review');assert.equal(p.tasks[1].revisesTask,p.tasks[0].id);assert.match(p.tasks[1].title,/исправь/);})
-test('a related folder reopens its owning project after primary change',()=>{const s=connected();act(s,'source-mode','collection');project(s,'/Data');act(s,'candidate-toggle','/Data/Website');act(s,'candidate-toggle','/Data/Notes');act(s,'candidate-import');act(s,'scan-result');const p=s.projects[0];act(s,'primary-source','/Data/Notes');act(s,'picked','/Data/Website');assert.equal(act(s,'scan'),'r0-project');assert.equal(s.selected,p.id);assert.equal(s.projects.length,1);assert.equal(p.source,'/Data/Notes');})
-test('selection cannot silently merge sources owned by two existing projects',()=>{const s=connected();project(s,'/Data/Website');project(s,'/Data/Notes');act(s,'source-mode','collection');project(s,'/Data');act(s,'candidate-toggle','/Data/Website');act(s,'candidate-toggle','/Data/Notes');act(s,'candidate-import');assert.match(s.notice,/разным проектам/);assert.equal(s.scan,'candidates');assert.equal(s.projects.length,2);assert(s.projects.every(p=>p.sources.length===1));})
+test('a deliberately related folder reopens its owning Project after primary change',()=>{
+ const s=connected(),p=project(s,'/Data/Website');p.sources.push({path:'/Data/Notes',name:'Notes',role:'related'});
+ act(s,'primary-source','/Data/Notes');act(s,'picked','/Data/Website');assert.equal(act(s,'scan'),'r0-project');
+ assert.equal(s.selected,p.id);assert.equal(s.projects.length,1);assert.equal(p.source,'/Data/Notes');
+})
+test('already imported rows cannot be ticked; new ticks do not merge or alter existing Projects',()=>{
+ firstReleaseStores.clear();const s=firstReleaseStore({estate:'co180-existing'});s.readiness='ready';
+ const p=project(s,'/Data/Website');act(s,'task','Keep task');const before=structuredClone(p);
+ act(s,'source-mode','collection');project(s,'/Data');act(s,'candidate-toggle','/Data/Website');act(s,'candidate-toggle','/Data/Notes');
+ assert.deepEqual(s.chosenSources,['/Data/Notes']);const html=renderFirstRelease('r0-discovery',{estate:'co180-existing'});
+ assert.match(html,new RegExp('project='+p.id));assert.match(html,/data-value="\/Data\/Website"[^>]*disabled/);
+ act(s,'candidate-import');act(s,'scan-result');assert.equal(s.projects.length,2);assert.deepEqual(p,before);
+ assert.equal(s.projects[1].source,'/Data/Notes');assert(s.projects.every(p=>p.sources.length===1));
+})
 test('reload with missing fixture project cannot trap global map or add-project recovery',()=>{firstReleaseStores.clear();for(const view of ['r0-map','r0-home','r0-source','r0-setup']){const html=renderFirstRelease(view,{project:'r0-project-gone',state:'ready'});assert.doesNotMatch(html,/Исход операции пока неизвестен/)}assert.match(renderFirstRelease('r0-project',{project:'r0-project-gone'}),/Исход операции пока неизвестен/);})
 test('criteria refinement preserves the rework title after a rejected result',()=>{const s=connected(),p=project(s);act(s,'task','Initial');act(s,'run');act(s,'deliver');const b=s.board[0];act(s,'open-ticket',b.id);s.drafts['ticket:'+b.id]='Не принимаю, исправь ошибку входа';act(s,'send');const title=b.outcome.taskTitle;s.drafts['ticket:'+b.id]='Критерий: вход доступен с клавиатуры';act(s,'send');assert.equal(b.outcome.taskTitle,title);act(s,'outcome-apply',b.id);assert.equal(p.tasks[1].title,title);assert.match(p.tasks[1].criteria,/клавиатуры/);assert.equal(p.tasks[0].state,'review');})
 
@@ -184,4 +204,74 @@ test('blocked attached events and rendering never reach domain mutations; review
  assert.match(html,/Рабочее пространство ещё не запущено/);assert.equal(domainSnapshot(s),before)
  state.state='error';click('startup-example','ready');assert.equal(s.startupExample,'ready')
  view.dispose()
+})
+
+// CO-180: the scanner selects Projects, never implicit related-source authority.
+test('each ticked repository creates its own Project and unticked repositories stay out',()=>{
+ const s=connected();act(s,'source-mode','collection');project(s,'/Data');
+ act(s,'candidate-toggle','/Data/Website');act(s,'candidate-toggle','/Data/Notes');
+ act(s,'candidate-import');act(s,'scan-result');
+ assert.equal(s.projects.length,2);assert.deepEqual(s.projects.map(p=>p.source),['/Data/Website','/Data/Notes']);
+ assert(s.projects.every(p=>p.sources.length===1&&p.sources[0].role==='primary'));
+ assert.equal(new Set(s.projects.map(p=>p.id)).size,2);assert.equal(s.selected,s.projects[0].id);
+})
+test('scan checklist shows independent Projects and no primary selector',()=>{
+ firstReleaseStores.clear();const s=firstReleaseStore({estate:'co180'});s.readiness='ready';act(s,'source-mode','collection');project(s,'/Data');
+ act(s,'candidate-toggle','/Data/Website');act(s,'candidate-toggle','/Data/Notes');
+ const html=renderFirstRelease('r0-discovery',{estate:'co180'});
+ assert.doesNotMatch(html,/data-r0="candidate-primary"|общий контекст|связанные источники/);
+ assert.match(html,/Каждая выбранная папка станет отдельным проектом/);
+})
+test('cancelled or refused batch creates no Projects and cannot accept late answers',()=>{
+ for(const outcome of ['cancelled','denied','failed']){const s=connected();act(s,'source-mode','collection');project(s,'/Data');act(s,'candidate-toggle','/Data/Website');act(s,'candidate-toggle','/Data/Notes');act(s,'candidate-import');act(s,'scan-result',outcome);act(s,'scan-result','done');assert.equal(s.projects.length,0)}
+})
+
+test('batch re-entry and repeated result do not duplicate projects; missing executor starts nothing',()=>{
+ const s=connected();act(s,'source-mode','collection');project(s,'/Data');act(s,'candidate-toggle','/Data/Website');act(s,'candidate-toggle','/Data/Notes');
+ s.readiness='auth';assert.equal(act(s,'candidate-import'),'r0-provider');assert.equal(s.scan,'candidates');assert.equal(s.projects.length,0);
+ s.readiness='ready';act(s,'candidate-import');const token=s.scanToken;act(s,'candidate-import');assert.equal(s.scanToken,token);
+ act(s,'scan-result');act(s,'scan-result');act(s,'candidate-import');assert.equal(s.projects.length,2);
+})
+
+test('failed or stopped batch retries the same selected repositories through the visible scan action',()=>{
+ for(const stop of ['failed','denied','stop']){const s=connected();act(s,'source-mode','collection');project(s,'/Data');act(s,'candidate-toggle','/Data/Website');act(s,'candidate-toggle','/Data/Notes');act(s,'candidate-import');
+ if(stop==='stop')act(s,'scan-cancel');else act(s,'scan-result',stop);
+ assert.equal(s.projects.length,0);act(s,'scan');act(s,'scan-result');
+ assert.deepEqual(s.projects.map(p=>p.source),['/Data/Website','/Data/Notes']);act(s,'scan-result');assert.equal(s.projects.length,2)}
+})
+
+test('failed batch retry retains an independently imported repository and adds the remaining tick',()=>{
+ const s=connected();act(s,'source-mode','collection');project(s,'/Data');act(s,'candidate-toggle','/Data/Website');act(s,'candidate-toggle','/Data/Notes');act(s,'candidate-import');act(s,'scan-result','failed');
+ const existing={id:'concurrent-existing',source:'/Data/Website',name:'Website',sources:[{path:'/Data/Website',role:'primary'}],tasks:[{id:'keep'}],contextRevision:9};
+ s.projects.push(existing);const before=structuredClone(existing);act(s,'scan');act(s,'scan-result');
+ assert.equal(s.projects.length,2);assert.equal(s.selected,existing.id);assert.deepEqual(existing,before);assert.equal(s.projects[1].source,'/Data/Notes');
+ assert.deepEqual(s.importResults.map(r=>r.status),['existing','added']);
+})
+test('explicit rescan and single candidate drop failed batch identity',()=>{
+ const s=connected(),p=project(s,'/Projects/atlas','partial');act(s,'source-mode','collection');project(s,'/Data');act(s,'candidate-toggle','/Data/Website');act(s,'candidate-toggle','/Data/Notes');act(s,'candidate-import');act(s,'scan-result','failed');
+ s.selected=p.id;act(s,'scan-current');act(s,'scan-result');assert.equal(s.projects.length,1);assert.equal(p.partial,false);assert.equal(s.pendingImports,null);
+ act(s,'source-mode','collection');project(s,'/Data');act(s,'candidate-toggle','/Data/Website');act(s,'candidate-import');act(s,'scan-result','failed');act(s,'candidate','/Data/Notes');act(s,'scan-result');
+ assert.deepEqual(s.projects.map(p=>p.source),['/Projects/atlas','/Data/Notes']);
+})
+
+test('batch summary preserves each result and retries only failed rows',()=>{
+ firstReleaseStores.clear();const s=firstReleaseStore({estate:'batch-summary'});s.readiness='ready';act(s,'source-mode','collection');project(s,'/Data');act(s,'candidate-all');s.importOutcomes={'/Data/Notes':'failed'};act(s,'candidate-import');assert.equal(act(s,'scan-result'),'r0-discovery');
+ assert.equal(s.projects.length,1);const existing=structuredClone(s.projects[0]);assert.deepEqual(s.pendingImports,['/Data/Notes']);assert.deepEqual(s.chosenSources,['/Data/Website','/Data/Notes']);
+ const html=renderFirstRelease('r0-discovery',{estate:'batch-summary'});assert.match(html,/Повторить для оставшихся/);assert.match(html,/Выбор сохранён/);assert.match(html,/Открыть первый проект/);
+ s.importOutcomes={};act(s,'scan');act(s,'scan-result');assert.equal(s.projects.length,2);assert.deepEqual(s.projects[0],existing);assert.equal(s.pendingImports,null);assert.deepEqual(s.importResults.map(r=>r.status),['added','added']);act(s,'scan-result');assert.equal(s.projects.length,2);
+})
+test('select all excludes nested/worktree parts and imported heads; manual parts warn and stay separate',()=>{
+ firstReleaseStores.clear();const s=firstReleaseStore({estate:'scan-parts'});s.readiness='ready';project(s,'/Data/Website');act(s,'source-mode','collection');project(s,'/Data');s.candidates.push({name:'Website tools',path:'/Data/Website/tools',kind:'nested'},{name:'Website worktree',path:'/Data/Website-wt',kind:'worktree'});
+ act(s,'candidate-all');assert.deepEqual(s.chosenSources,['/Data/Notes']);const html=renderFirstRelease('r0-discovery',{estate:'scan-parts'});assert.match(html,/Выбирайте вручную/);act(s,'candidate-toggle','/Data/Website/tools');act(s,'candidate-toggle','/Data/Website-wt');act(s,'candidate-import');act(s,'scan-result');assert.equal(s.projects.length,4);assert(s.projects.every(p=>p.sources.length===1));
+})
+
+test('import summary retains collection and per-project gaps; kept checklist remains reachable',()=>{
+ firstReleaseStores.clear();const state={estate:'scan-gaps'},s=firstReleaseStore(state);s.readiness='ready';act(s,'source-mode','collection');project(s,'/Data','partial');act(s,'candidate-toggle','/Data/Website');act(s,'candidate-import');act(s,'scan-result','partial');
+ assert.equal(s.projects[0].partial,true);assert.equal(s.importResults[0].observation,'partial');const summary=renderFirstRelease('r0-discovery',state).split('<div class="r0-demo-tools">')[0];assert.match(summary,/Список найденных проектов неполный/);assert.match(summary,/Обзор неполный/);assert.match(summary,/Выбрать оставшиеся проекты/);
+ act(s,'candidates-return');assert.equal(s.scan,'candidates-partial');assert.equal(s.projects.length,1);assert.deepEqual(s.chosenSources,[]);act(s,'candidate-toggle','/Data/Notes');act(s,'candidate-import');act(s,'scan-result');assert.equal(s.projects.length,2);assert.equal(s.projects[0].source,'/Data/Website');
+})
+
+test('unknown scan or row outcome is not a successful project observation',()=>{
+ const s=connected();act(s,'source-mode','collection');act(s,'picked','/Data');act(s,'scan');act(s,'scan-result','unknown');assert.equal(s.scan,'failed');assert.equal(s.projects.length,0);
+ act(s,'scan');act(s,'scan-result');act(s,'candidate-all');s.importOutcomes={'/Data/Notes':'unknown'};act(s,'candidate-import');act(s,'scan-result');assert.equal(s.projects.length,1);assert.deepEqual(s.pendingImports,['/Data/Notes']);assert.equal(s.importResults[1].status,'failed');
 })

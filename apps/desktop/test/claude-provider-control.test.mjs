@@ -1,6 +1,7 @@
 // Pure controller + real Claude transport/normalizer with an owned Node peer.
 // No Claude process, credentials, config, network, provider turn or model call.
 import assert from 'node:assert/strict'
+import { mock } from 'node:test'
 import { spawn } from 'node:child_process'
 import { createClaudeProviderControl, CLAUDE_STOP_LIMITS } from '../src/main/claudeProviderControl.ts'
 import { createClaudeControlTransport } from '../src/main/claudeControlTransport.ts'
@@ -33,7 +34,9 @@ const ack = n => ({status:'ack',requestId:`owned:${n}`})
 function harness(options={}) {
   const f=options.fixture??fixture(),calls=[]
   let authority=true
-  const ports={binding,ownership:f.state,currentState:()=>f.state,timeoutMs:200,...options,
+  // Scope/identity fixtures need scheduling headroom on the loaded test host;
+  // deadline scenarios supply their own explicit 10/15/35 ms budgets below.
+  const ports={binding,ownership:f.state,currentState:()=>f.state,timeoutMs:5000,...options,
     transport:options.transport??{requestControl:async(request,fence)=>{if(!fence())return {status:'not_sent',reason:'effect_fenced'};calls.push(request);return ack(calls.length)}}}
   delete ports.fixture
   const parsed=createClaudeProviderControl(ports);assert.equal(parsed.ok,true,parsed.reasonCode)
@@ -134,20 +137,55 @@ await test('total monotonic deadline fences slow synchronous authority and defer
   const busy=ms=>{const until=performance.now()+ms;while(performance.now()<until){}}
   const h=harness({timeoutMs:10});assert.equal((await h.control.requestStop(h.cmd,()=>{busy(20);return true})).reasonCode,'deadline');assert.equal(h.calls.length,0)
   let writes=0,lateFence
-  const delayed=harness({timeoutMs:15,transport:{requestControl:(_request,fence)=>{lateFence=fence;return new Promise(()=>{})}}})
-  const result=await delayed.control.requestStop(delayed.cmd,delayed.allowed)
+  // Ensure this real-timer case reaches the hung transport before host load can
+  // consume its budget. Restore the real monotonic clock at transport entry;
+  // the unchanged 15 ms setTimeout and all late fences then use real time.
+  const admissionTime=performance.now(),admissionClock=mock.method(performance,'now',()=>admissionTime)
+  const delayed=harness({timeoutMs:15,transport:{requestControl:(_request,fence)=>{
+    lateFence=fence;admissionClock.mock.restore();return new Promise(()=>{})
+  }}})
+  let result
+  try { result=await delayed.control.requestStop(delayed.cmd,delayed.allowed) }
+  finally { admissionClock.mock.restore() }
   assert.equal(result.status,'outcome_unknown');assert.equal(result.reasonCode,'deadline')
   if(lateFence())writes++;assert.equal(writes,0)
   assert.equal(await delayed.control.requestStop(delayed.cmd,delayed.allowed),result)
 })
-await test('deadline covers interrupt plus all tasks rather than resetting per request',async()=>{
-  let calls=0
-  const h=harness({timeoutMs:35,transport:{requestControl:async(_request,fence)=>{
-    await sleep(22);if(!fence())return {status:'not_sent',reason:'effect_fenced'};calls++;return ack(calls)
-  }}})
-  const r=await h.control.requestStop(h.cmd,h.allowed);assert.equal(r.status,'outcome_unknown');assert.equal(calls,1)
-  await sleep(25);assert.equal(calls,1)
+await test('a settled command answers its own outcome even when a repeat exhausts its fresh budget',async()=>{
+  // A repeat starts no write, so its admission deadline must not replace the stored
+  // outcome_unknown with a refusal that reads as "nothing was sent".
+  const busy=ms=>{const until=performance.now()+ms;while(performance.now()<until){}}
+  let sends=0
+  const h=harness({timeoutMs:200,transport:{requestControl:async()=>{sends++;return {status:'outcome_unknown',reason:'deadline'}}}})
+  const first=await h.control.requestStop(h.cmd,h.allowed)
+  assert.equal(first.status,'outcome_unknown');assert.equal(first.reasonCode,'request_timeout')
+  assert.equal(await h.control.requestStop(h.cmd,()=>{busy(250);return true}),first)
+  assert.equal(sends,1)
 })
+// #region claude-stop-total-deadline — docs: docs/evidence/plans/2026-09-27-first-slice-plan.md#b2a--claude-over-owned-stdio
+await test('deadline covers interrupt plus all tasks rather than resetting per request',async()=>{
+  let clock=0
+  const clockMock=mock.method(performance,'now',()=>clock)
+  try {
+    const writes=[],lateFences=[]
+    const h=harness({timeoutMs:35,transport:{requestControl:async(request,fence)=>{
+      lateFences.push(fence)
+      await Promise.resolve();clock+=22
+      if(!fence())return {status:'not_sent',reason:'effect_fenced'}
+      writes.push(request);return ack(writes.length)
+    }}})
+    const r=await h.control.requestStop(h.cmd,h.allowed)
+    assert.equal(clock,44);assert.equal(r.status,'outcome_unknown');assert.equal(r.reasonCode,'deadline')
+    assert.equal(r.interruptAcknowledged,true)
+    assert.deepEqual(writes,[{subtype:'interrupt'}])
+    assert.deepEqual(r.taskRequests,[{taskId:'child',acknowledged:false}])
+    assert.equal(lateFences.length,2)
+    for(const fence of lateFences)assert.equal(fence(),false,'completed command permanently fences every retained write callback')
+    assert.equal(await h.control.requestStop(h.cmd,h.allowed),r)
+    assert.equal(writes.length,1)
+  } finally { clockMock.mock.restore() }
+})
+// #endregion claude-stop-total-deadline
 
 async function withPeer(mode,run) {
   const script=`
@@ -178,7 +216,9 @@ async function withPeer(mode,run) {
   let state=createClaudeProviderState(binding).value,readyResolve
   const ready=new Promise(resolve=>{readyResolve=resolve})
   let revoked=false,events=0
-  transport=createClaudeControlTransport({input:child.stdout,output:child.stdin,timeoutMs:150,onEvent:raw=>{
+  // Only the dropped peer must exhaust its budgets; replying peers get scheduling headroom so a
+  // loaded host cannot turn a real reply into a deadline outcome.
+  transport=createClaudeControlTransport({input:child.stdout,output:child.stdin,timeoutMs:mode==='dropped'?150:2000,onEvent:raw=>{
     const seq=++events,kind=raw.type==='result'?'root-result':raw.subtype==='task_started'?'task-start':null
     // Explicit ownership receipts from this deterministic peer fixture. This
     // does not manufacture a native-production origin attestation.
@@ -203,7 +243,7 @@ async function withPeer(mode,run) {
 }
 for(const mode of ['success','dropped','revoked','new'])await test(`real owned pipes + transport + normalizer: ${mode}`,async()=>{
   await withPeer(mode,async peer=>{
-    const control=createClaudeProviderControl({binding,ownership:peer.state,currentState:()=>peer.state,transport:peer.transport,timeoutMs:300}).value
+    const control=createClaudeProviderControl({binding,ownership:peer.state,currentState:()=>peer.state,transport:peer.transport,timeoutMs:mode==='dropped'?300:4000}).value
     const cmd=command(peer.state.observation.cursor),r=await control.requestStop(cmd,peer.allowed)
     assert.equal(r.status,mode==='success'?'request_ack':'outcome_unknown')
     assert.equal(r.inventoryComplete,false);assert.equal(r.unknownWriters,true)
@@ -213,7 +253,7 @@ for(const mode of ['success','dropped','revoked','new'])await test(`real owned p
       assert.equal(peer.state.tasks[0].terminal,'interrupted');assert.equal(r.taskRequests[0].acknowledged,true)
       assert.equal(peer.state.observation.terminal.outcome,'interrupted')
     }
-    if(mode==='new'){assert.deepEqual(r.unaddressedTaskIds,['new-child']);assert.equal(peer.state.tasks.find(t=>t.id==='new-child').terminal,null)}
+    if(mode==='new'){assert.equal(r.reasonCode,'new_owned_tasks');assert.deepEqual(r.unaddressedTaskIds,['new-child']);assert.equal(peer.state.tasks.find(t=>t.id==='new-child').terminal,null)}
     if(mode!=='revoked')assert.equal(await control.requestStop(cmd,peer.allowed),r)
   })
 })

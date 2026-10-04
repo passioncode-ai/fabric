@@ -1,0 +1,186 @@
+{
+  "as_of": "2026-10-04T17:30:54.416Z",
+  "scope": "CO-180 SCN-128 generated target prototype only",
+  "tier": "target-only",
+  "native_acceptance": "NOT_RUN",
+  "headless": true,
+  "profile": "isolated temporary browser profile",
+  "server": "owned ephemeral loopback",
+  "fixtures": "page-local model only; provider/native/filesystem/DB invocation prohibited",
+  "checks": [
+    {
+      "id": "actual_onboarding_fixture_probe_and_parent_discovery",
+      "status": "PASS"
+    },
+    {
+      "id": "two_ticks_two_projects_unticked_absent_visible_summary",
+      "status": "PASS"
+    },
+    {
+      "id": "kept_candidates_existing_disabled_exact_project_link",
+      "status": "PASS"
+    },
+    {
+      "id": "failed_batch_explicit_retry_retains_exact_batch_no_duplicates",
+      "status": "PASS"
+    },
+    {
+      "id": "cancelled_batch_fences_late_timer_and_explicit_retry",
+      "status": "PASS"
+    },
+    {
+      "id": "mixed_row_failure_retry_only_remaining_preserves_first_id",
+      "status": "PASS"
+    },
+    {
+      "id": "nested_worktree_manual_warning_select_all_excludes_parts",
+      "status": "PASS"
+    },
+    {
+      "id": "partial_parent_and_row_summary_preserved",
+      "status": "PASS"
+    },
+    {
+      "id": "provider_denied_import_does_not_start",
+      "status": "PASS"
+    },
+    {
+      "id": "startup_refusal_and_generic_denied_have_no_domain_effect",
+      "status": "PASS"
+    }
+  ],
+  "page_errors": [],
+  "external_network_attempts": 0,
+  "screenshots": [
+    {
+      "name": "summary-1280.png",
+      "width": 1280,
+      "state": "imported",
+      "location": "machine-only browser output"
+    },
+    {
+      "name": "summary-390.png",
+      "width": 390,
+      "state": "imported",
+      "location": "machine-only browser output"
+    },
+    {
+      "name": "discovery-390.png",
+      "width": 390,
+      "state": "candidates-with-manual-parts",
+      "location": "machine-only browser output"
+    },
+    {
+      "name": "discovery-1280.png",
+      "width": 1280,
+      "state": "candidates-with-manual-parts",
+      "location": "machine-only browser output"
+    }
+  ],
+  "sources": {
+    "docs/reports/product.html": "60dd4c4952829d9412780f4a566f3e05905f13b9b9527e21d516e9702609b4a3",
+    "scripts/product/first-release.mjs": "18460b4f0a1a34bf4a42f8e5633899a0b3781c6cc9b754765c5d283ce6d5f503",
+    "scripts/product/first-release.css": "c04bd68f78c58c2a1147aec9c00c93b9bc130763e9c0e889eeafab45d7f32853",
+    "docs/ux/scenarios.md": "bdbe94ea3b982d2072bbbc1c9a4533056d5d34bc021bc9d16eab6943495272bd"
+  },
+  "browser": "154.0.8037.93",
+  "visual_geometry": [
+    {
+      "width": 390,
+      "dock": {
+        "x": 295,
+        "y": 1008.4375,
+        "width": 66,
+        "height": 66,
+        "right": 361,
+        "bottom": 1074.4375
+      },
+      "targets": [
+        {
+          "label": "Часть другого проекта. Выбирайте вручную, если нужен отдельный проект.",
+          "rect": {
+            "x": 81,
+            "y": 684.078125,
+            "width": 263,
+            "height": 38.375,
+            "right": 344,
+            "bottom": 722.453125
+          }
+        },
+        {
+          "label": "Часть другого проекта. Выбирайте вручную, если нужен отдельный проект.",
+          "rect": {
+            "x": 81,
+            "y": 817.6875,
+            "width": 263,
+            "height": 38.375,
+            "right": 344,
+            "bottom": 856.0625
+          }
+        },
+        {
+          "label": "Добавить выбранные проекты",
+          "rect": {
+            "x": 46,
+            "y": 935.4375,
+            "width": 222.46875,
+            "height": 40,
+            "right": 268.46875,
+            "bottom": 975.4375
+          }
+        }
+      ],
+      "intersections": 0,
+      "dock_position": "static"
+    },
+    {
+      "width": 1280,
+      "dock": {
+        "x": 1165,
+        "y": 934.21875,
+        "width": 66,
+        "height": 66,
+        "right": 1231,
+        "bottom": 1000.21875
+      },
+      "targets": [
+        {
+          "label": "Часть другого проекта. Выбирайте вручную, если нужен отдельный проект.",
+          "rect": {
+            "x": 364,
+            "y": 659.421875,
+            "width": 449.9375,
+            "height": 19.1875,
+            "right": 813.9375,
+            "bottom": 678.609375
+          }
+        },
+        {
+          "label": "Часть другого проекта. Выбирайте вручную, если нужен отдельный проект.",
+          "rect": {
+            "x": 364,
+            "y": 773.84375,
+            "width": 449.9375,
+            "height": 19.1875,
+            "right": 813.9375,
+            "bottom": 793.03125
+          }
+        },
+        {
+          "label": "Добавить выбранные проекты",
+          "rect": {
+            "x": 329,
+            "y": 853.21875,
+            "width": 222.46875,
+            "height": 40,
+            "right": 551.46875,
+            "bottom": 893.21875
+          }
+        }
+      ],
+      "intersections": 0,
+      "dock_position": "static"
+    }
+  ],
+  "status": "PASS"
+}

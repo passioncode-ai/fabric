@@ -1,0 +1,515 @@
+{
+  "schema": "fabric-independent-co180-review/1",
+  "as_of": "2026-10-04T13:55:10.292379+00:00",
+  "project": "fabric",
+  "parent": "CO-180",
+  "review_mode": "Read-only CO-180 combined source/model/generated diff and independent in-memory reproductions; only own review artifact written for this review. Separate CO-176 authorized implementation has its own receipt.",
+  "base_revision": "484600a338f2c413333e57c09a28712b8559c401",
+  "sourcehashes": [
+    {
+      "path": "scripts/product/first-release.mjs",
+      "sha256": "18460b4f0a1a34bf4a42f8e5633899a0b3781c6cc9b754765c5d283ce6d5f503",
+      "bytes": 101038,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "scripts/test/first-release.test.mjs",
+      "sha256": "33548f782111c8b08b08c464526b1a5fcf556438e197d8bb358a698d931d649c",
+      "bytes": 36052,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "scripts/test/chat-workspace.test.mjs",
+      "sha256": "29b780f7bf208cdf1ed661bcab04893e065004b7092809e6b8db627d67be4816",
+      "bytes": 7110,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/ux/flows.md",
+      "sha256": "14d5ea70e4f9533e9dea456c360e778834128ec73939209075ce496ae1255339",
+      "bytes": 129781,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/ux/screens.md",
+      "sha256": "ea20704251c5887f998f5805f64cab0fd3c01bff64ba4e9f1c04051cf482bded",
+      "bytes": 183171,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/ux/scenarios.md",
+      "sha256": "bdbe94ea3b982d2072bbbc1c9a4533056d5d34bc021bc9d16eab6943495272bd",
+      "bytes": 349104,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/brand/strings.md",
+      "sha256": "b9c409b79ef29e03bc3e933ae4b40b87f236954ae2a645b2e3204043a357497e",
+      "bytes": 73943,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/ux/product-model.json",
+      "sha256": "ee8ef44b8ba49c2036ef6299b47a4a9ef847f35d916846ce728f2c2d1490a4a0",
+      "bytes": 1907479,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/reports/product.html",
+      "sha256": "60dd4c4952829d9412780f4a566f3e05905f13b9b9527e21d516e9702609b4a3",
+      "bytes": 5074318,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "scripts/product/first-release.css",
+      "sha256": "c04bd68f78c58c2a1147aec9c00c93b9bc130763e9c0e889eeafab45d7f32853",
+      "bytes": 29606,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    }
+  ],
+  "verdict": "PASS-scoped-target-prototype; no-open-major-or-severe",
+  "proof_boundary": "Pure target model/state and mock-clock attachment checks; no full/native/provider/product acceptance asserted.",
+  "findings": [
+    {
+      "id": "CO180-R1",
+      "severity": "major",
+      "status": "fixed-in-final-working-cut-and-independently-rechecked",
+      "title": "Failed batch retry interpreted first selected repository as parent collection; stale batch leaked into another rescan",
+      "source": "scripts/product/first-release.mjs candidate-import/scan/scan-current/scan-result",
+      "initial_reproduction": [
+        "collectionData→tickWebsite+Notes→candidate-import→failed→visible scan retry",
+        "Before fix: scanempty,candidatesempty,projects0,pendingImports2",
+        "Existing partial Atlas→failedbatch→scan-current→scan-result: before fix incorrectly addedWebsite+Notes, Atlas partial unchanged"
+      ],
+      "fix_observed": "candidate-import sets sourceModeproject; candidate/scan-current clear pendingImports for different operations; explicit stop preserves staged batch for explicit retry.",
+      "validation": "7 independent in-memory current assertions passed after patch; no product files/IPC touched."
+    },
+    {
+      "id": "CO180-R2",
+      "severity": "major",
+      "status": "fixed-in-final-working-cut-and-independently-rechecked",
+      "title": "Static r0-discovery purpose still promises several sources, a primary and one Project",
+      "source": "docs/ux/product-model.json r0-discovery.purpose, current reading line12651",
+      "actual": "Выбрать несколько найденных источников, назначить главный и получить обзор одного проекта.",
+      "expected": "Each selected repository is a distinct Project; no primary/related batch grouping. Flow Mermaid was propagated but view purpose was not.",
+      "validation": "Independent traversal of r0-discovery.purpose rejects old primary/one-Project description; model gate and generated HTML parity pass.",
+      "final_actual": "Выбрать найденные репозитории и добавить каждый как отдельный проект."
+    },
+    {
+      "id": "CO180-R3",
+      "severity": "major",
+      "status": "fixed-in-final-working-cut-and-independently-rechecked",
+      "title": "Already-imported first selected row short-circuits batch retry and drops remaining repository",
+      "source": "scripts/product/first-release.mjs scan existing shortcut before pendingImports completion",
+      "reproduction": [
+        "collectionData→tickWebsite+Notes→candidate-import→failed",
+        "Insert independently createdWebsite targetProject with stableID existing-independent-1 to model concurrent import",
+        "Visible scan retry returnsr0-project, leaves scanfailed/pendingImports2, creates noNotes"
+      ],
+      "expected": "Existing Website keeps exactID/context; Notes creates one independent Project; no merges/duplicates.",
+      "suggested_bounded_fix": "Handle staged batch retry before single-source duplicate shortcut; retain existing per-row ProjectID. Pure target regression with concurrent already-imported first row.",
+      "fix_observed": "scan existing shortcut is guarded by !s.pendingImports; pending batch retry reaches per-row existing-ID reuse.",
+      "validation": "Independent injected current first repo existing-independent-1 keeps identical Project/context; retry creates exactly one Notes Project, clears pendingImports; repeated completion does not duplicate."
+    },
+    {
+      "id": "CO180-R4",
+      "severity": "major",
+      "status": "fixed-in-final-working-cut-and-independently-rechecked",
+      "title": "Partial overview and partial parent collection were presented as a completed import",
+      "source": "scripts/product/first-release.mjs scan-result/r0ImportSummary/candidates-return",
+      "initial_reproduction": "Initial reproduction: Project.partial true with row showing only added; parent candidates-partial disclosure disappeared after import.",
+      "fix_observed": "Collection partial/root kept separately; row observation partial visible as incomplete; independent summary inspection excludes demo dropdown.",
+      "validation": "64 focused tests plus independent final expanded assertions pass."
+    },
+    {
+      "id": "CO180-R5",
+      "severity": "major",
+      "status": "fixed-in-final-working-cut-and-independently-rechecked",
+      "title": "Unknown row status rendered undefined",
+      "source": "scripts/product/first-release.mjs scan-result/r0ImportSummary/candidates-return",
+      "initial_reproduction": "Inject unrecognised status in importResults; old status lookup returned undefined.",
+      "fix_observed": "Helper fallback displays unknown; unrecognised scan/per-row result now becomes failed and creates no Project.",
+      "validation": "64 focused tests plus independent final expanded assertions pass."
+    },
+    {
+      "id": "CO180-R6",
+      "severity": "major",
+      "status": "fixed-in-final-working-cut-and-independently-rechecked",
+      "title": "Unticked retained candidates had no route back from success summary",
+      "source": "scripts/product/first-release.mjs scan-result/r0ImportSummary/candidates-return",
+      "initial_reproduction": "Import Website only; Notes remained in stored list but no checklist return action was available.",
+      "fix_observed": "Explicit candidates-return keeps collection root and partial disclosure, removes already imported ticks, imported row disabled, Notes creates separately while Website stays unchanged.",
+      "validation": "64 focused tests plus independent final expanded assertions pass."
+    }
+  ],
+  "checks_actually_run": [
+    {
+      "command": "node --test scripts/test/first-release.test.mjs scripts/test/chat-workspace.test.mjs",
+      "tests": 64,
+      "passed": 64,
+      "failed": 0,
+      "exit_code": 0,
+      "first_release_tests": 51,
+      "chat_tests": 13,
+      "duration_ms": 84.597625,
+      "proof_tier": "pure target state/attachment; no native/provider"
+    },
+    {
+      "command": "node --input-type=module (independent final expanded CO180 assertions)",
+      "passed_cases": 6,
+      "exit_code": 0,
+      "cases": [
+        "Per-row partial observation visible outside demo dropdown",
+        "Collection partial remains visible after successful individual import",
+        "Unknown summary status cannot render undefined",
+        "Return to retained checklist; imported row cannot tick; remaining Notes creates alone; original Project unchanged",
+        "Unknown/failed per-row outcomes create no Project",
+        "Static r0-discovery purpose remains one Project per repo"
+      ],
+      "proof_tier": "pure model/render"
+    },
+    {
+      "command": "node scripts/check-product-model.mjs",
+      "exit_code": 0,
+      "result": {
+        "screens": 76,
+        "views": 111,
+        "scenarios": 133,
+        "flows": 76,
+        "journeys": 40,
+        "findings": 32,
+        "active_tasks": 58,
+        "task_contexts": 108,
+        "pinned_receipts": 87,
+        "repinned_receipts": 87,
+        "stale_receipts": 76,
+        "verified_git_blobs": 31,
+        "source_io_checked": true
+      },
+      "proof_tier": "crosswalk/source checks, not runtime"
+    },
+    {
+      "command": "node scripts/build-product-report.mjs --check",
+      "exit_code": 0,
+      "result": "PASS product.html matches canonical inputs",
+      "proof_tier": "generated target parity"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "proof_tier": "whitespace only"
+    }
+  ],
+  "receipt_log_readings": [
+    {
+      "logical_name": "co180-red.log",
+      "source_tier": "operator-owned local receipt; machine path intentionally excluded",
+      "sha256": "69dfc119f439122b4c4c7bba9ffc3c19e52839f7495ce79beb3d1be9b30574b6",
+      "tests": 43,
+      "passed": 41,
+      "failed": 2,
+      "claim_limit": "Local pure target suites only. Red log inspected, not independently replayed against frozen source; final60test command independently executed."
+    },
+    {
+      "logical_name": "co180-green.log",
+      "source_tier": "local receipt; machine path excluded",
+      "sha256": "34611943ca766d69449114586bd73305f9a76dbe1f5cccdaf7a95133b764f087",
+      "tests": 64,
+      "pass": 64,
+      "fail": 0,
+      "claim_limit": "Mutable log snapshot digest; independent final 64-test command separately executed."
+    }
+  ],
+  "source_pointer_correction": {
+    "actual_scn095_heading": "docs/ux/scenarios.md:2429 Configure Fabric and discover a real project",
+    "historical_amended_step": "docs/ux/scenarios.md:2439 belongsSCN095, explicitly amended byADR0100",
+    "actual_scn103_heading": "docs/ux/scenarios.md:2616 See MCP servers through Project Observatory",
+    "conclusion": "Never label2439 asSCN103. Historical amended R0 grouping prose stays historical; current checklist requirementSCN128 governs this change."
+  },
+  "positive_findings": [
+    "Basic selectedWebsite+Notes results in2Projects with distinct IDs and1primary source each.",
+    "Already-primary imported row disabled and opens exactProjectID in new regression.",
+    "Legitimate explicit related references still render in Project/context; pinned Run snapshot retained under primary change; chat tests remaingreen.",
+    "UI primary batch selector removed; currentFLW55 Mermaid describes separate Projects.",
+    "Scenario Product unobserved retained; brand strings status proposed/prototype and native localization registries unchanged.",
+    "Failure/stop retry now retains deliberate selected batch and creates only those repositories; another explicit rescan/candidate clears old batch identity.",
+    "A newly existing first candidate cannot suppress remaining batch rows; ProjectID/context reused unchanged.",
+    "Current r0-discovery static model purpose and generated HTML now agree with separate-Project target semantics.",
+    "Visible per-row summary retains successful/existing/failed results; retry targets only failed rows and preserves successful Projects.",
+    "Select all skips worktree/nested/already imported rows; deliberate manual parts remain separate and warn in target prototype.",
+    "Parent and per-row incomplete observations remain visible; retained checklist can import remaining unticked repositories without mutating previous Projects.",
+    "Unknown scan or per-row outcome fails closed in the target model rather than creating a successful Project."
+  ],
+  "coverage_limits": [
+    "Pure target checklist state/actions/render and fixture source model only; native filesystem/picker/import runtime acceptance NOT_RUN in this review.",
+    "Nested/worktree/select-all/manual warning and per-row outcomes exercised as target fixtures, not real repository/native create evidence.",
+    "Generated product.html is target design, not native or release acceptance.",
+    "Browser evidence is separately owned by browser reviewer; not asserted from this receipt.",
+    "Full CI, live provider, device and product-runtime acceptance NOT_RUN."
+  ],
+  "next": "Root may integrate this bounded target-only CO180 change with owning lease/status/map/handoff gates. Any later sourcehash drift requires review of changed bytes; this receipt grants no native/provider/full-release acceptance.",
+  "review_iterations": [
+    {
+      "as_of": "2026-10-04T13:17:04.333572+00:00",
+      "verdict": "interim-blocked-pending-root-ready",
+      "sourcehashes": [
+        {
+          "path": "scripts/product/first-release.mjs",
+          "sha256": "b5673d44a495409cf7d30aadd54dfe7986982f08c7c564d5384b80abe132559d",
+          "bytes": 97167,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "scripts/test/first-release.test.mjs",
+          "sha256": "313a3f000bc8ef01e3c2c1f491bd50cbc9bda243b3080405b896afd7dabd3edb",
+          "bytes": 32410,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "scripts/test/chat-workspace.test.mjs",
+          "sha256": "29b780f7bf208cdf1ed661bcab04893e065004b7092809e6b8db627d67be4816",
+          "bytes": 7110,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/ux/flows.md",
+          "sha256": "6be8d759e8c6870f5a55603790221ed29778053cedeece219e8a40c0936080ea",
+          "bytes": 129661,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/ux/screens.md",
+          "sha256": "8cce5363a6472de1635234ed0fa1f7b250ddbc6ce99644760b6983a34810fbc1",
+          "bytes": 182411,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/ux/scenarios.md",
+          "sha256": "4d8c670e217a5fa023ef18f51eb0953306d413c0f67f0fe99b767f42b325257e",
+          "bytes": 348293,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/brand/strings.md",
+          "sha256": "3e7cd36d7442f7328ad3c5273421ef4065a934fa7157e0980eb5a2434726d33a",
+          "bytes": 72673,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/ux/product-model.json",
+          "sha256": "38caae56cbbe9e41c7fa4e296c7d332f3848f7ed3018815258d9e491edf15ec4",
+          "bytes": 1906205,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/reports/product.html",
+          "sha256": "bacc837ce6abb96ee1b1240630d272ad625242fa972f176e4e8491711e7b6b21",
+          "bytes": 5067198,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        }
+      ],
+      "receipt_log_readings": [
+        {
+          "logical_name": "co180-red.log",
+          "source_tier": "operator-owned local receipt; machine path intentionally excluded",
+          "sha256": "69dfc119f439122b4c4c7bba9ffc3c19e52839f7495ce79beb3d1be9b30574b6",
+          "tests": 43,
+          "passed": 41,
+          "failed": 2,
+          "claim_limit": "Local pure target suites only, log is mutable while root rechecks; exact digest identifies this reading."
+        },
+        {
+          "logical_name": "co180-green.log",
+          "source_tier": "operator-owned local receipt; machine path intentionally excluded",
+          "sha256": "e82acc4cba04dd83cf9e3749bb48c8d8747429fad8e2025312bac296231301f3",
+          "tests": 60,
+          "passed": 60,
+          "failed": 0,
+          "claim_limit": "Local pure target suites only, log is mutable while root rechecks; exact digest identifies this reading."
+        }
+      ],
+      "open_findings": [
+        "CO180-R2",
+        "CO180-R3"
+      ],
+      "note": "Preserved interim cut. Root then corrected both findings before final recheck."
+    },
+    {
+      "as_of": "2026-10-04T13:22:16.290845+00:00",
+      "verdict": "PASS-scoped-target-prototype; no-open-major-or-severe",
+      "sourcehashes": [
+        {
+          "path": "scripts/product/first-release.mjs",
+          "sha256": "b5673d44a495409cf7d30aadd54dfe7986982f08c7c564d5384b80abe132559d",
+          "bytes": 97167,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "scripts/test/first-release.test.mjs",
+          "sha256": "313a3f000bc8ef01e3c2c1f491bd50cbc9bda243b3080405b896afd7dabd3edb",
+          "bytes": 32410,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "scripts/test/chat-workspace.test.mjs",
+          "sha256": "29b780f7bf208cdf1ed661bcab04893e065004b7092809e6b8db627d67be4816",
+          "bytes": 7110,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/ux/flows.md",
+          "sha256": "6be8d759e8c6870f5a55603790221ed29778053cedeece219e8a40c0936080ea",
+          "bytes": 129661,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/ux/screens.md",
+          "sha256": "8cce5363a6472de1635234ed0fa1f7b250ddbc6ce99644760b6983a34810fbc1",
+          "bytes": 182411,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/ux/scenarios.md",
+          "sha256": "4d8c670e217a5fa023ef18f51eb0953306d413c0f67f0fe99b767f42b325257e",
+          "bytes": 348293,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/brand/strings.md",
+          "sha256": "3e7cd36d7442f7328ad3c5273421ef4065a934fa7157e0980eb5a2434726d33a",
+          "bytes": 72673,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/ux/product-model.json",
+          "sha256": "38caae56cbbe9e41c7fa4e296c7d332f3848f7ed3018815258d9e491edf15ec4",
+          "bytes": 1906205,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/reports/product.html",
+          "sha256": "bacc837ce6abb96ee1b1240630d272ad625242fa972f176e4e8491711e7b6b21",
+          "bytes": 5067198,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        }
+      ],
+      "checks_actually_run": [
+        {
+          "command": "node --test scripts/test/first-release.test.mjs scripts/test/chat-workspace.test.mjs",
+          "tests": 60,
+          "passed": 60,
+          "failed": 0,
+          "exit_code": 0,
+          "proof_tier": "pure-target",
+          "note": "Final independently rerun after root ready:47first-release+13chat=60. Earlier57 interim receipt retained in review_iterations.",
+          "duration_ms": 79.426875,
+          "first_release_tests": 47,
+          "chat_tests": 13
+        },
+        {
+          "command": "node scripts/check-product-model.mjs",
+          "exit_code": 0,
+          "result": "76screens111views133scenarios76flows40journeys87pinned87repinned76stale receipts; source_io_checkedtrue",
+          "proof_tier": "model/source consistency, not semantic/native coverage"
+        },
+        {
+          "command": "node --input-type=module (seven standalone assertions using current firstReleaseAction)",
+          "exit_code": 0,
+          "passed_cases": 7,
+          "cases": [
+            "failedbatch retry",
+            "deniedbatch retry",
+            "cancelled outcome retry",
+            "different existing Project rescan",
+            "different individual candidate",
+            "explicit cancel retry",
+            "replacement folder"
+          ],
+          "proof_tier": "pure-target-state"
+        },
+        {
+          "command": "node --input-type=module (five standalone assertions using attachFirstRelease and node:test mock.timers)",
+          "exit_code": 0,
+          "passed_cases": 5,
+          "cases": [
+            "stop fences old completion",
+            "stop→newexplicitretry exactly2",
+            "replacementfolder onlyAtlas",
+            "dispose noeffects",
+            "startupbehind→ready oldcallbacknoeffects"
+          ],
+          "proof_tier": "pure-target-attachment-mock-clock"
+        },
+        {
+          "command": "node --input-type=module (independent finalR2/R3 assertions)",
+          "exit_code": 0,
+          "passed_cases": 2,
+          "result": "Staticpurpose corrected; independently imported first row reused with stable unchanged ProjectID/context while remaining repo creates once.",
+          "proof_tier": "pure-target-state/model"
+        },
+        {
+          "command": "node scripts/build-product-report.mjs --check",
+          "exit_code": 0,
+          "result": "PASS product.html matches its canonical inputs",
+          "proof_tier": "generated target parity"
+        },
+        {
+          "command": "git diff --check",
+          "exit_code": 0,
+          "result": "No whitespace errors in current combined diff"
+        }
+      ],
+      "receipt_log_readings": [
+        {
+          "logical_name": "co180-red.log",
+          "source_tier": "operator-owned local receipt; machine path intentionally excluded",
+          "sha256": "69dfc119f439122b4c4c7bba9ffc3c19e52839f7495ce79beb3d1be9b30574b6",
+          "tests": 43,
+          "passed": 41,
+          "failed": 2,
+          "claim_limit": "Local pure target suites only. Red log inspected, not independently replayed against frozen source; final60test command independently executed."
+        },
+        {
+          "logical_name": "co180-green.log",
+          "source_tier": "operator-owned local receipt; machine path intentionally excluded",
+          "sha256": "e82acc4cba04dd83cf9e3749bb48c8d8747429fad8e2025312bac296231301f3",
+          "tests": 60,
+          "passed": 60,
+          "failed": 0,
+          "claim_limit": "Local pure target suites only. Red log inspected, not independently replayed against frozen source; final60test command independently executed."
+        }
+      ],
+      "note": "Earlier narrower 60-test cut preserved; expanded row-summary/failed-retry/manual-parts and coverage disclosure reviewed below."
+    }
+  ],
+  "open_findings": [],
+  "final_scope_ruling": "PASS applies to CO-180 legacy R0 one-Project-per-repository, retry/selection/summary/partial/unknown-state target reconciliation and model/strings propagation. Existing explicit related references and pinned Run semantics remain covered by focused tests. Full SCN-128 native acceptance remains open."
+}

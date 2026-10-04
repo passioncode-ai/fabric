@@ -1,0 +1,187 @@
+{
+  "schema": 1,
+  "id": "CO-178.prepare",
+  "context": {
+    "outcome": "Select Russian public form of Estate while retaining its canonical isolation/ownership meaning.",
+    "sources": [
+      "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "CONTEXT.md",
+      "docs/brand/terminology.md",
+      "docs/brand/locales/ru.md",
+      "docs/brand/voice.md",
+      "apps/desktop/src/renderer/src/i18n/ru.ts"
+    ],
+    "scope": [
+      "docs/reports/2026-10-04-cleanup-start/packets/CO-178.prepare.json"
+    ],
+    "steps": [
+      "Evaluate options and semantic/length tradeoffs",
+      "Owner selects accepted locale rule in one canonical home",
+      "Inventory visible occurrences and perform copywriting-controlled translation pass after decision",
+      "Review smallest widths, plurals/cases and permission wording in RU target contexts"
+    ],
+    "acceptance": [
+      "Occurrence count derived from current ru.ts, not remembered",
+      "After decision: key parity/typecheck, terminology scan, targeted RU visual contexts; visual/native evidence remains separate"
+    ],
+    "risks": [
+      "No mechanical domain/API/DB rename",
+      "No new legal/payment/permission claim",
+      "Term remains unchanged while decision open"
+    ],
+    "stop_conditions": [
+      "No accepted term: no string replacement"
+    ],
+    "resume": "Read canonical owner row and exact pinned current sources first; verify active ownership before mutation. Preparation is report-only. Preserve decision gate; runtime/translation implementation requires the explicit prerequisite decision.",
+    "source_manifest": [
+      {
+        "path": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+        "sha256": "50a73374b7305a1b092333940b299d1595c33ed63b1d0fd1a41e6a9476b8db51",
+        "bytes": 166704,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "CONTEXT.md",
+        "sha256": "216b4729418f21afeafb057227b2f802725e306f3586a05c1c3c38a270568fb5",
+        "bytes": 23029,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "docs/brand/terminology.md",
+        "sha256": "03ab409ed3de53eae986386c6ab64130e53a68491decb2be83afbe6d71c13f57",
+        "bytes": 5046,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "docs/brand/locales/ru.md",
+        "sha256": "1c1ff7feb36930591a50c984711a71cab3568893ffa09bcfe346660301839976",
+        "bytes": 779,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "docs/brand/voice.md",
+        "sha256": "1e27c57ccc0031958ec552aa9cbd806cb7b003dc09f8d4bbd3e980b139e258ca",
+        "bytes": 3773,
+        "provenance": "committed-identical",
+        "revision": "484600a338f2c413333e57c09a28712b8559c401"
+      },
+      {
+        "path": "apps/desktop/src/renderer/src/i18n/ru.ts",
+        "sha256": "72429f5941b0a7e17e46d1b03742fa7fec24f12573e517323dc51102109ee2c4",
+        "bytes": 150278,
+        "provenance": "working-cut",
+        "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+      }
+    ],
+    "implementation_scope": [
+      "Report options/inventory only until owner choice; after choice parent locale pack and bounded translation pass"
+    ],
+    "lane": 1,
+    "base_revision": "484600a338f2c413333e57c09a28712b8559c401",
+    "ownership": "Parent owns canonical lease/registers/ADR/UX model/generated publication. Worker only declared bounded files; disjoint i18n namespaces preserved.",
+    "id": "CO-178.prepare",
+    "parent": "CO-178",
+    "status": "decision-ready; implementation brand-gated",
+    "canonical_source": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:189",
+    "objective": "Select Russian public form of Estate while retaining its canonical isolation/ownership meaning.",
+    "read_scope": [
+      "CONTEXT.md:316 Estate/Person/Membership",
+      "docs/brand/terminology.md:33,67",
+      "docs/brand/locales/ru.md",
+      "ru.ts occurrence inventory"
+    ],
+    "inventory": {
+      "matching_lines": 13,
+      "rows": [
+        {
+          "line": 128,
+          "key": "tabs.dropped"
+        },
+        {
+          "line": 140,
+          "key": "estate.journal"
+        },
+        {
+          "line": 141,
+          "key": "estate.reading"
+        },
+        {
+          "line": 235,
+          "key": "Это окно ещё не знает, эстейт оно, сессия или файл — поэтому не показывает ничего, вместо того чтобы показать неверное.',"
+        },
+        {
+          "line": 254,
+          "key": "Операции и их исходы, новые сверху. Это собственная запись программы — отдельная от истории эстейта, и потерять её ничего не стоит.',"
+        },
+        {
+          "line": 469,
+          "key": "event.estate.imported@1"
+        },
+        {
+          "line": 514,
+          "key": "harness.estateWide"
+        },
+        {
+          "line": 1103,
+          "key": "onboarding.memoryHint.cloud"
+        },
+        {
+          "line": 1104,
+          "key": "onboarding.memoryUnavailable.hosted-estates-not-built"
+        },
+        {
+          "line": 1327,
+          "key": "agents.none"
+        },
+        {
+          "line": 1345,
+          "key": "profile.tenureNone"
+        },
+        {
+          "line": 1478,
+          "key": "event.estate.created@1"
+        },
+        {
+          "line": 1525,
+          "key": "event.estate.settings.set@1"
+        }
+      ]
+    },
+    "options": [
+      {
+        "term": "пространство организации",
+        "benefit": "Persistent operating boundary, avoids transliteration",
+        "tradeoff": "Longer; distinguish personal default workspace and Project in narrow UI"
+      },
+      {
+        "term": "организация",
+        "benefit": "Short/familiar",
+        "tradeoff": "May imply legal organization rather than operating workspace"
+      },
+      {
+        "term": "эстейт",
+        "benefit": "Keeps current canonical term consistent",
+        "tradeoff": "Jargon; first-use explanation needed"
+      }
+    ],
+    "decision_owner": "Operator / brand-pack owner; preserve current term until accepted choice",
+    "dependencies": [
+      {
+        "id": "CONTEXT Estate contract",
+        "carried_contract": "One organization persistent workspace holding projects/agents/chains/connections/vault/journal/memory; Person global, Membership scoped. Do not rename English/code/DB identity."
+      },
+      {
+        "id": "brand locale choice",
+        "carried_contract": "Term, casing, grammatical forms, first-use expansion and exceptions before replacements."
+      }
+    ],
+    "dod": [
+      "Options and measured inventory durable; explicit owner choice before implementation"
+    ],
+    "priority_reasoning": "Start-lane next brand decision; preparation available now, terminology implementation not inferred."
+  }
+}

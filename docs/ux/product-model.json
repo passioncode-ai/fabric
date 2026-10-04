@@ -3723,7 +3723,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 559,
+        "line": 561,
         "coverage_claim": "`apps/desktop/src/renderer/src/EditorWindow.tsx`",
         "status_claim": "designed"
       },
@@ -3854,7 +3854,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 578,
+        "line": 580,
         "coverage_claim": "none from this repository — the subject is `passioncode-ai.github.io`, and a citation this tree cannot resolve is not a citation (UX28-15). Corrected together with SCN-038, which read `implemented` while the board's BL-017 records the address answering HTTP 522; the two registers disagreed and the one with no evidence gave way",
         "status_claim": "designed"
       },
@@ -4060,7 +4060,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 600,
+        "line": 602,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -4346,7 +4346,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 630,
+        "line": 632,
         "coverage_claim": "partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes",
         "status_claim": "designed"
       },
@@ -4624,7 +4624,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 665,
+        "line": 667,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -4812,7 +4812,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 688,
+        "line": 690,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -4990,7 +4990,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 706,
+        "line": 708,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5164,7 +5164,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 728,
+        "line": 730,
         "coverage_claim": "`apps/desktop/src/renderer/src/HarnessSection.tsx`, `apps/desktop/src/shared/harness.ts`, `apps/desktop/src/main/harnessRead.ts`, `apps/desktop/src/renderer/src/HarnessSection.test.tsx`, `apps/desktop/test/harness-read.test.mjs` (UX28-05). The `error` row above was specified from the start and the code answered `0` until this change. The `skills with the mandatory task skill marked` element is NOT built — it is M123's — and no skills row is shown rather than an empty one that would read as \"none installed\"",
         "status_claim": "designed"
       },
@@ -5329,7 +5329,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 748,
+        "line": 750,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5491,7 +5491,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 768,
+        "line": 770,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5640,7 +5640,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 788,
+        "line": 790,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5802,7 +5802,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 803,
+        "line": 805,
         "coverage_claim": "the list order, the attach lifecycle and the ended-session snapshot — `apps/desktop/src/renderer/src/EstateAgents.tsx`, `apps/desktop/src/shared/sessionOrder.ts`, `apps/desktop/src/renderer/src/TerminalView.tsx`, `apps/desktop/src/shared/sessionOrder.test.ts`, `apps/desktop/src/renderer/src/EstateAgents.terminal.test.tsx`. NOT covered: the launch control at the head of the list, the task the agent holds, and view-files — all named in Elements and none built",
         "status_claim": "designed"
       },
@@ -6003,7 +6003,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 832,
+        "line": 834,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6210,7 +6210,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 853,
+        "line": 855,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6412,7 +6412,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 878,
+        "line": 880,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6588,7 +6588,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 897,
+        "line": 899,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6741,7 +6741,7 @@
       "view": "manager",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 918,
+        "line": 920,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6882,7 +6882,7 @@
       "view": "retro",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 942,
+        "line": 944,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7025,7 +7025,7 @@
       "view": "feedback",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 967,
+        "line": 969,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7172,7 +7172,7 @@
       "view": "sync",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 993,
+        "line": 995,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7312,7 +7312,7 @@
       "view": "restore",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1018,
+        "line": 1020,
         "coverage_claim": "`apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (the restore section) over `apps/desktop/src/main/privateHistory.ts` and `restore_estate_verified`; Open this Estate records the choice (`apps/desktop/src/main/activeEstate.ts`) and restarts.",
         "status_claim": "designed"
       },
@@ -7424,7 +7424,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1043,
+        "line": 1045,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7507,7 +7507,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1066,
+        "line": 1068,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7592,7 +7592,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1089,
+        "line": 1091,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7682,7 +7682,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1112,
+        "line": 1114,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7777,7 +7777,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1135,
+        "line": 1137,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7860,7 +7860,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1158,
+        "line": 1160,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7943,7 +7943,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1181,
+        "line": 1183,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8032,7 +8032,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1204,
+        "line": 1206,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8115,7 +8115,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1227,
+        "line": 1229,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8198,7 +8198,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1250,
+        "line": 1252,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8281,7 +8281,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1273,
+        "line": 1275,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8366,7 +8366,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1296,
+        "line": 1298,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8453,7 +8453,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1319,
+        "line": 1321,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8541,7 +8541,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1341,
+        "line": 1343,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8633,7 +8633,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1363,
+        "line": 1365,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8782,7 +8782,7 @@
       ],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1387,
+        "line": 1389,
         "coverage_claim": "`apps/desktop/src/renderer/src/CeoChat.tsx` over `window.fabric.ceo` (IPC `ceo:*`, `apps/desktop/src/main/ceoChatBinding.ts`, `apps/desktop/src/main/ceoConversationService.ts`); every state above has an RTL test in `CeoChat.test.tsx`. The gate opens while private recovery is available (first-slice plan C5, `index.ts` `ceoChatActivation`); a new conversation is opened on the server before its first send and only known conversations are read. The real app was driven through this screen by `apps/desktop/test/chat-activation-native.test.mjs`: sent from the composer, shown as saved with no reply yet, read back after a cold restart.",
         "status_claim": "designed"
       },
@@ -8931,7 +8931,7 @@
       ],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1415,
+        "line": 1417,
         "coverage_claim": "`apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (opened from settings) over `window.fabric.history` and `apps/desktop/src/main/privateHistory.ts`; RTL tests in `PrivateHistoryPanel.test.tsx`, the service on an owned PostgreSQL. Import is part of restore: migration 66 imports private history only into a verified restore.",
         "status_claim": "designed"
       },
@@ -9042,7 +9042,7 @@
       "view": "mcp-servers",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1577,
+        "line": 1579,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9117,7 +9117,7 @@
       "view": "run-trace",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1595,
+        "line": 1597,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9192,7 +9192,7 @@
       "view": "fabric-tools",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1612,
+        "line": 1614,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9267,7 +9267,7 @@
       "view": "optimizer",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1629,
+        "line": 1631,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9340,7 +9340,7 @@
       "view": "first-run",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1658,
+        "line": 1660,
         "coverage_claim": "apps/desktop/src/renderer/src/start/FirstRun.tsx",
         "status_claim": "designed"
       },
@@ -9362,8 +9362,8 @@
         },
         {
           "state": "checking",
-          "trigger": "detection running",
-          "behavior": "busy line"
+          "trigger": "version/status observation running",
+          "behavior": "busy line; Continue without an agent available"
         },
         {
           "state": "found",
@@ -9389,6 +9389,26 @@
           "state": "check-failed",
           "trigger": "detection itself failed",
           "behavior": "reason and Check again"
+        },
+        {
+          "state": "authenticated",
+          "trigger": "exact supported vendor status reports signed in",
+          "behavior": "separate status; no account identity/admission claim"
+        },
+        {
+          "state": "not-authenticated",
+          "trigger": "exact vendor status reports signed out",
+          "behavior": "sign in through the coding agent and check again; continue remains available"
+        },
+        {
+          "state": "auth-unsupported",
+          "trigger": "current build/runtime has no measured reader",
+          "behavior": "explicitly unverified; no guessed status command"
+        },
+        {
+          "state": "auth-unknown",
+          "trigger": "timeout, refusal, malformed or excessive output",
+          "behavior": "cannot confirm; retry or continue, no raw provider output"
         },
         {
           "state": "choose-path",
@@ -9444,7 +9464,7 @@
       "view": "start-add",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1681,
+        "line": 1687,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9537,7 +9557,7 @@
       "view": "start-scan",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1702,
+        "line": 1708,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9680,7 +9700,7 @@
       "view": "start-new",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1733,
+        "line": 1739,
         "coverage_claim": "apps/desktop/src/renderer/src/Onboarding.tsx",
         "status_claim": "designed"
       },
@@ -9773,7 +9793,7 @@
       "view": "start-agent",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1754,
+        "line": 1760,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9836,7 +9856,7 @@
       "view": "start-convert",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1769,
+        "line": 1775,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx (the planned state; the conversion itself is AR-7/AR-11)",
         "status_claim": "designed"
       },
@@ -9891,7 +9911,7 @@
       "view": "agent-access",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1782,
+        "line": 1788,
         "coverage_claim": "apps/desktop/src/renderer/src/AgentAccessPanel.tsx",
         "status_claim": "designed"
       },
@@ -12648,7 +12668,7 @@
         "SCR-27"
       ],
       "horizon": "near",
-      "purpose": "Выбрать несколько найденных источников, назначить главный и получить обзор одного проекта.",
+      "purpose": "Выбрать найденные репозитории и добавить каждый как отдельный проект.",
       "task_ids": [
         "S14",
         "M185"
@@ -31898,7 +31918,7 @@
         "SCR-70",
         "SCR-71"
       ],
-      "coverage": "apps/desktop/src/renderer/src/start/FirstRun.tsx; apps/desktop/src/renderer/src/start/StartPaths.test.tsx",
+      "coverage": "apps/desktop/src/renderer/src/start/FirstRun.tsx; apps/desktop/src/renderer/src/start/StartPaths.test.tsx; CO-176 current main observer `apps/desktop/src/main/executorAuth.ts`, disposable-process negatives `apps/desktop/test/executor-auth.test.mjs` and current sanitized vendor reading in `docs/reports/2026-10-04-cleanup-start/raw/`. Local source/fixture proof does not establish packaged native or account-identity acceptance.",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "The first run is finished once; `settings.firstRun.completedAt` holds the moment; the operator is on the chosen path or home.",
@@ -31936,7 +31956,7 @@
       "screen_refs": [
         "SCR-72"
       ],
-      "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/src/main/startPaths.ts",
+      "coverage": "apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/src/main/startPaths.ts; target-only legacy R0 scan checklist: scripts/product/first-release.mjs (CO-180), scripts/test/first-release.test.mjs. Prototype checks do not certify native acceptance.",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "One Project per ticked repository; nothing created for an unticked one; the last scan is kept so unticked candidates can be imported later.",
@@ -33244,7 +33264,7 @@
       "title": "Configure CEO and discover the first project",
       "goal": "First useful sourced insight from the user's selected project, with minimal operator input.",
       "entry_points": "First launch; New project; restored source draft; launch-start/onboarding aliases; CEO add-project intent.",
-      "success_exit": "SCR-30 r0-home and SCR-31 r0-project with source receipts and one next action.",
+      "success_exit": "SCR-30 r0-home and SCR-31 r0-project with source receipts and one next action. A folder-scan checklist creates one Project per ticked repository, in selection order; existing primary identities open their own Project and are never merged.",
       "screen_refs": [
         "SCR-30",
         "SCR-31",
@@ -33259,7 +33279,7 @@
         "file": "docs/ux/flows.md",
         "line": 1696
       },
-      "mermaid_source": "flowchart TD\n V[Build and schema check] -->|compatible| A\n V -->|unknown or incompatible| E[Native startup error; no workspace services]\n E -->|fresh schema observation| V\n A[SCR-36 r0-setup: meet Fabric] -->|connect executor| B[SCR-05 r0-provider]\n B -->|missing or auth or unsupported| R[Install / sign in / change provider]\n R -->|recheck actual readiness| B\n B -->|ready| C[SCR-27 r0-source: choose folder or URL]\n B -->|read saved work| H[SCR-30 r0-home: saved snapshot]\n C -->|picker cancel| C\n C -->|read-only observation| D[SCR-27 r0-discovery]\n D -->|parent folder candidates| M[Select several sources and primary]\n M -->|assemble bounded context| D\n D -->|denied / error / cancelled| C\n D -->|partial with sources| P[SCR-31 r0-project: facts and gaps]\n D -->|observed| H\n D -->|duplicate| P\n H -->|inspect insight| P\n P -->|record next task| T[SCR-32 r0-work]\n P -->|question for operator| Q[SCR-41 r0-board]\n P -->|direction| G[SCR-40 r0-plan]",
+      "mermaid_source": "flowchart TD\n V[Build and schema check] -->|compatible| A\n V -->|unknown or incompatible| E[Native startup error; no workspace services]\n E -->|fresh schema observation| V\n A[SCR-36 r0-setup: meet Fabric] -->|connect executor| B[SCR-05 r0-provider]\n B -->|missing or auth or unsupported| R[Install / sign in / change provider]\n R -->|recheck actual readiness| B\n B -->|ready| C[SCR-27 r0-source: choose folder or URL]\n B -->|read saved work| H[SCR-30 r0-home: saved snapshot]\n C -->|picker cancel| C\n C -->|read-only observation| D[SCR-27 r0-discovery]\n D -->|parent folder candidates| M[Tick repositories to add as separate Projects]\n M -->|one Project per tick; unticked stays out| H\n M -->|already imported| P\n D -->|denied / error / cancelled| C\n D -->|partial with sources| P[SCR-31 r0-project: facts and gaps]\n D -->|observed| H\n D -->|duplicate| P\n H -->|inspect insight| P\n P -->|record next task| T[SCR-32 r0-work]\n P -->|question for operator| Q[SCR-41 r0-board]\n P -->|direction| G[SCR-40 r0-plan]",
       "status": "target_or_mixed_not_coverage_claim",
       "scenario_ids": [
         "SCN-059",
@@ -33280,7 +33300,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 1733
+        "line": 1734
       },
       "mermaid_source": "flowchart TD\n A[SCR-32 r0-work: running] -->|stop| B[Stop requested]\n B -->|termination observed| C[Stopped: inspect context]\n B -->|timeout| D[Check same Stop / confirm scoped Force / wait]\n D -->|cancel Force| U\n D -->|observed stopped| C\n D -->|unknown| U[Reconcile: no second writer]\n U -->|termination observed| C\n C -->|copy context / leave| C\n C -->|continue| E[Choose native resume / fresh same provider / other provider]\n E -->|missing capability or auth| F[SCR-05 r0-provider: recovery]\n F --> E\n E -->|HEAD / worktree changed| G[Refresh context and reconcile]\n G --> E\n E -->|ready and admitted| H[New linked run: spawn then delivery]\n H -->|failed / unknown| E\n H -->|acknowledged| A\n A -->|close the window| W[Window closed: agent still working]\n W -->|reattach| A\n A -->|backend lost| L[Every window: connection lost, input off]\n L -->|end observed| C\n L -->|end not confirmed| U",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33301,7 +33321,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 1769
+        "line": 1770
       },
       "mermaid_source": "flowchart TD\n A[Screen: SCR-30 or SCR-31] -->|avatar| C[Screen: SCR-64 conversation]\n C -->|chat not activated| N[Not yet activated: draft stays on this Mac]\n C -->|type| D[Saved on this Mac]\n D -->|several Projects or All| X[Refused: this slice supports None or One]\n X --> D\n D -->|send| S{Send result}\n S -->|accepted| P[Saved, no reply yet]\n S -->|refused| R[Refused: named reason, draft kept]\n S -->|unknown| U[Result unknown: check again with the same operation]\n U -->|found| P\n U -->|still unknown| U\n D -->|newer text elsewhere| K[Draft conflict: newer text kept]\n D -->|capacity full| F[Kept drafts and sends: forget, discard, check again]\n F --> D\n C -->|history unreadable| H[Local history unreadable, not empty]\n C -->|no access| Z[Unavailable: no content]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33321,7 +33341,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 1804
+        "line": 1805
       },
       "mermaid_source": "flowchart TD\n S[Screen: SCR-52 Settings] -->|private history| P[Screen: SCR-65 Private history]\n P -->|export| E{Write a new private file}\n E -->|history changed meanwhile| P\n E -->|written| X[Exported: file name shown]\n P -->|import| V{Check file before writing}\n V -->|not this person, not this Estate, altered, too large| P\n V -->|valid| I{Import in one step}\n I -->|result unknown: same operation| I\n I -->|imported| H[History restored; nothing will be sent]\n I -->|failed: rolled back| P",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33342,7 +33362,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 1862
+        "line": 1863
       },
       "mermaid_source": "flowchart TD\n H[Screen: SCR-30 Estate home] -->|agents| R[Screen: SCR-05 Agent registry]\n R -->|scan running| R\n R -->|open card| C{Card state}\n C -->|declared or admitted| U[Use in a project: FLW-61]\n C -->|manifest invalid, foreign, unreadable| X[Card names the problem; no use action]\n C -->|has a dashboard| D{Fabric Dashboards installed?}\n D -->|yes| DB[Opens in Fabric Dashboards]\n D -->|no| I[Card says so, links to Fabric Dashboards]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33366,7 +33386,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 1888
+        "line": 1889
       },
       "mermaid_source": "flowchart TD\n R[Screen: SCR-05 Agent registry] -->|MCP servers| M[Screen: SCR-66 MCP servers]\n M --> O{Project Observatory answers?}\n O -->|yes| L[Inventory: servers, declared in, transport, health]\n O -->|not installed| F[Fabric's own servers + recommend Observatory]\n O -->|installed, not answering| E[Last inventory with its age + the reason]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33389,7 +33409,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 1911
+        "line": 1912
       },
       "mermaid_source": "flowchart TD\n C[Screen: SCR-64 CEO conversation] -->|task| P{Fabric plans}\n P -->|no fitting agent| N[Says so; offers to make one: FLW-67]\n P -->|agent not in project| A{Admission probes + binding}\n A -->|a gate fails| G[Names the gate; keeps the plan]\n A -->|bound| J\n P -->|ready| J{Job running}\n J -->|input_required| Q[Screen: SCR-24 Approval queue: interaction point]\n Q -->|answered by me or by Fabric when delegable| J\n J -->|failed, agent down| F[Names the failure; offers retry or another agent]\n J -->|result unknown| K[Looks it up by job id; never repeats blindly]\n J -->|completed| D[Screen: SCR-09 Run detail: result envelope]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33412,7 +33432,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 1942
+        "line": 1943
       },
       "mermaid_source": "flowchart TD\n X[External: agent calls Fabric MCP] --> S{Credential + grant}\n S -->|expired, revoked, outside scope| R[Refused with reason; recorded in SCR-22]\n S -->|allowed| T[Routed with traceparent]\n T -->|callee down| E[Error to caller; recorded]\n T -->|ok| V[Result; span in the run trace]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33432,7 +33452,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 1965
+        "line": 1966
       },
       "mermaid_source": "flowchart TD\n A[Any screen] -->|avatar| C[Screen: SCR-64 CEO conversation with view context]\n C -->|change request| P{Proposal on the open object}\n P -->|ambiguous target| Q[Asks which one]\n P -->|confirmed| Y[Applied, recorded, screen updates]\n P -->|declined| N[No effect]\n A -->|micro-control| M[Direct edit, recorded]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33454,7 +33474,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 1989
+        "line": 1990
       },
       "mermaid_source": "flowchart TD\n C[Screen: SCR-64 CEO conversation] -->|compose| G[Screen: SCR-49 Маршрут работы: proposed graph]\n G --> K{Checks}\n K -->|incompatible edge, no checker before an effect, cycle| X[Names the failing part; Fabric proposes a fix]\n K -->|all pass| A[Approve → new version saved]\n A -->|global| U[Used by a project with its own bindings]\n A -->|replace an agent| R[Stage keeps its capability; next run resolves the new agent]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33476,7 +33496,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2012
+        "line": 2013
       },
       "mermaid_source": "flowchart TD\n D[Screen: SCR-09 Run detail] -->|trace| T[Screen: SCR-67 Run trace]\n T -->|node| N[Input, output, error, usage]\n T -->|agent reported nothing| I[That part marked incomplete]\n T -->|run still going| L[Live nodes update]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33497,7 +33517,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2034
+        "line": 2035
       },
       "mermaid_source": "flowchart TD\n O[Screen: SCR-69 Optimizer proposals] -->|open| P{Proposal}\n P -->|evidence too thin| W[Marked 'needs more runs'; cannot be accepted]\n P -->|accept| A[Tool created or pipeline version saved]\n P -->|decline| D[Reason recorded; not proposed again for the same pattern]\n A --> T[Screen: SCR-68 Fabric tools]\n T -->|enable without passing test| X[Stays disabled; failing fixture named]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33522,7 +33542,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2058
+        "line": 2059
       },
       "mermaid_source": "flowchart TD\n C[Screen: SCR-64 CEO conversation] -->|make or convert| F[Screen: SCR-15 Agent foundry: production project]\n F --> S[Intake → base or project → capabilities → manifest → evals → install]\n S --> A[Screen: SCR-16 Conformance and admission]\n A -->|gate fails| K[Draft kept; gate named; fix proposed]\n A -->|admitted| B[Canary binding; appears in SCR-05 as your agent]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33545,7 +33565,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2081
+        "line": 2082
       },
       "mermaid_source": "flowchart TD\n C[Screen: SCR-64 CEO conversation] -->|question| Q{Memory search}\n Q -->|facts found| A[Answer with citations]\n Q -->|nothing recorded| N[Says nothing is recorded]\n Q -->|memory unavailable| U[Says memory is unavailable; answers nothing from it]\n A -->|open citation| M[Screen: SCR-34 Project memory]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33566,9 +33586,9 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2106
+        "line": 2107
       },
-      "mermaid_source": "flowchart TD\n A[Screen: SCR-70 step 1 Your Fabric] -->|Continue / Skip| B[SCR-70 step 2 Coding agents]\n B -->|Continue| C[SCR-70 step 3 Where to start]\n C -->|path| D[Start path SCR-71..75]\n C -->|Later| H[Home]",
+      "mermaid_source": "flowchart TD\n A[Screen: SCR-70 step 1 Your Fabric] -->|Continue / Skip| B[SCR-70 step 2 Coding agents]\n B -->|Continue / continue without an agent, including while checking| C[SCR-70 step 3 Where to start]\n C -->|path| D[Start path SCR-71..75]\n C -->|Later| H[Home]",
       "status": "target_or_mixed_not_coverage_claim",
       "scenario_ids": [
         "SCN-126"
@@ -33585,7 +33605,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2127
+        "line": 2128
       },
       "mermaid_source": "flowchart TD\n A[Screen: SCR-71 Add a project] -->|Choose| P{Picker}\n P -->|cancel| A\n P -->|folder| R[Reading]\n R --> F[Facts and name]\n F -->|already in a project| O[Open that project]\n F -->|Add| C[Project created] --> H[Project page]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33604,7 +33624,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2150
+        "line": 2151
       },
       "mermaid_source": "flowchart TD\n A[Screen: SCR-72 Scan] -->|Choose| S[Scanning]\n S -->|Stop| A\n S --> L[Checklist grouped by product]\n L -->|tick and Add| I[Importing row by row]\n I --> D[Summary: added / not added]\n D -->|retry ticked| I\n D -->|Open the first| H[Project page]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33623,7 +33643,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2174
+        "line": 2175
       },
       "mermaid_source": "flowchart TD\n A[Screen: SCR-73 New project] -->|folder| L[Choose location]\n A -->|idea| C[Create]\n L --> C\n C -->|folder refused| A\n C --> H[Project page]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33642,7 +33662,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2196
+        "line": 2197
       },
       "mermaid_source": "flowchart TD\n A[Screen: SCR-74 New agent] -->|project| T[Project team, agent form]\n A -->|no project| P[Add a project / New project]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33661,7 +33681,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2215
+        "line": 2216
       },
       "mermaid_source": "flowchart TD\n A[Screen: SCR-75 Convert] -->|today| M[Planned: manual route]\n A -.->|AR-7 / AR-11| P[Dry-run plan] -.-> B[Adapter on a branch] -.-> Q{Conformance probe}\n Q -.->|green| R[Registry]\n Q -.->|red| F[Findings; branch kept]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33681,7 +33701,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2236
+        "line": 2237
       },
       "mermaid_source": "flowchart TD\n R[Agent asks through the door token] -->|not registered| X[Refused before any prompt]\n R -->|window in front| P[Native prompt over the window, in the operator's language]\n R -->|background, or behind another app| N[Notification; row in SCR-41]\n N -->|clicked, or window comes forward| P\n N -->|Allow or Deny in the queue| D\n P --> D{Decision}\n D -->|Allow| A[Credential collected once; grants listed in SCR-76 Agent access]\n D -->|Allow, product not connected| C[FLW-76 starts; if the product cannot open, the Allow stands and says so]\n D -->|Deny| Y[Denied until cleared in SCR-76 Agent access]\n A -->|Revoke| V[Next call refused]",
       "status": "target_or_mixed_not_coverage_claim",
@@ -33700,7 +33720,7 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2264
+        "line": 2265
       },
       "mermaid_source": "flowchart TD\n C[SCR-76 Agent access: Connect or Reconnect] --> L[Product's app asks]\n L -->|Allow| K[Key delivered; secret stored in its own vault slot, then recorded, within 8 s]\n L -->|Deny| N[SCR-76 says declined]\n L -->|no answer in 10 min| W[SCR-76 says no answer; Try again]\n K -->|vault missing, refused or too slow| F[Nothing recorded; the product revokes the key; SCR-76 says why]\n K -->|recorded after the deadline| G[Record withdrawn; a Reconnect says the product is not connected now]\n K --> S[SCR-76 shows connected]\n S -->|Disconnect| D[Fabric stops using it; the key stays valid in the product until revoked there]",
       "status": "target_or_mixed_not_coverage_claim",
