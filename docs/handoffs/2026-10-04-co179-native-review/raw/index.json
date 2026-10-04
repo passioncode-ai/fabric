@@ -1,0 +1,136 @@
+{
+  "acceptedCssSha256": "4949e5603177dc1374850b85ab7c33a2fcd940f682a9b95b9ee5ee5ca13a9cff",
+  "acceptedSourceRestored": true,
+  "matrix": [
+    {
+      "id": "normal-reason-en",
+      "mode": "balanced",
+      "overrides": {
+        "locale": "en",
+        "theme": "dark",
+        "width": 1440,
+        "height": 1200
+      },
+      "png": "normal-reason-en.png",
+      "receipt": "normal-reason-en.json",
+      "cssSha256": "4949e5603177dc1374850b85ab7c33a2fcd940f682a9b95b9ee5ee5ca13a9cff",
+      "pngSha256": "0baf38a422f43df7a7c9d33f3a40a7778dd4899415f807fdb71d8f4a8342b994",
+      "tier": "hidden-actual-Electron-render-not-CUA",
+      "pixelReview": "PENDING independent inspection"
+    },
+    {
+      "id": "normal-single-light-en-960",
+      "mode": "single",
+      "overrides": {
+        "locale": "en",
+        "theme": "light",
+        "width": 960,
+        "height": 900
+      },
+      "png": "normal-single-light-en-960.png",
+      "receipt": "normal-single-light-en-960.json",
+      "cssSha256": "4949e5603177dc1374850b85ab7c33a2fcd940f682a9b95b9ee5ee5ca13a9cff",
+      "pngSha256": "6ea7a72f759606ee7c7410830cb2bd7c4b9f8b9d16378c4b65381320d8e7697f",
+      "tier": "hidden-actual-Electron-render-not-CUA",
+      "pixelReview": "PENDING independent inspection"
+    },
+    {
+      "id": "normal-reason-ru",
+      "mode": "balanced",
+      "overrides": {
+        "locale": "ru",
+        "theme": "dark",
+        "width": 1440,
+        "height": 1200
+      },
+      "png": "normal-reason-ru.png",
+      "receipt": "normal-reason-ru.json",
+      "cssSha256": "4949e5603177dc1374850b85ab7c33a2fcd940f682a9b95b9ee5ee5ca13a9cff",
+      "pngSha256": "319c6928f9c11f0de445943f52a6965625a72b2ff83ba84e7c750e00fe6e3d65",
+      "tier": "hidden-actual-Electron-render-not-CUA",
+      "pixelReview": "PENDING independent inspection"
+    },
+    {
+      "id": "normal-single-light-ru-960",
+      "mode": "single",
+      "overrides": {
+        "locale": "ru",
+        "theme": "light",
+        "width": 960,
+        "height": 900
+      },
+      "png": "normal-single-light-ru-960.png",
+      "receipt": "normal-single-light-ru-960.json",
+      "cssSha256": "4949e5603177dc1374850b85ab7c33a2fcd940f682a9b95b9ee5ee5ca13a9cff",
+      "pngSha256": "91ebbbd81856fe6b72db5113ac833e5541f665c62e1dceea38ab1be86dc0ddbb",
+      "tier": "hidden-actual-Electron-render-not-CUA",
+      "pixelReview": "PENDING independent inspection"
+    },
+    {
+      "id": "normal-balanced-dark-ru-640",
+      "mode": "balanced",
+      "overrides": {
+        "locale": "ru",
+        "theme": "dark",
+        "width": 640,
+        "height": 900
+      },
+      "png": "normal-balanced-dark-ru-640.png",
+      "receipt": "normal-balanced-dark-ru-640.json",
+      "cssSha256": "4949e5603177dc1374850b85ab7c33a2fcd940f682a9b95b9ee5ee5ca13a9cff",
+      "pngSha256": "99c09f7e7d5d3664e3142871f98e138654b6018c013bf6825f218a97afaa18e8",
+      "tier": "hidden-actual-Electron-render-not-CUA",
+      "pixelReview": "PENDING independent inspection"
+    },
+    {
+      "id": "normal-balanced-light-en-2x",
+      "mode": "balanced",
+      "overrides": {
+        "locale": "en",
+        "theme": "light",
+        "zoomFactor": 2,
+        "width": 1440,
+        "height": 1200
+      },
+      "png": "normal-balanced-light-en-2x.png",
+      "receipt": "normal-balanced-light-en-2x.json",
+      "cssSha256": "4949e5603177dc1374850b85ab7c33a2fcd940f682a9b95b9ee5ee5ca13a9cff",
+      "pngSha256": "1fd49b408a9dd9883bbde1165c3f58787d313bdacb0320e24d66c9a6102106e3",
+      "tier": "hidden-actual-Electron-render-not-CUA",
+      "pixelReview": "PENDING independent inspection"
+    },
+    {
+      "id": "mutant-reason-en",
+      "mode": "balanced",
+      "overrides": {
+        "locale": "en",
+        "theme": "dark",
+        "width": 1440,
+        "height": 1200
+      },
+      "png": "mutant-reason-en.png",
+      "receipt": "mutant-reason-en.json",
+      "cssSha256": "c3548613e53d24269906b431436a8c961ae05ecd54ec232cfc878df481704af1",
+      "pngSha256": "63a91c3f0566c2bb3dc49018b9133b127e6d14fb4d7289af4f9c5a06d214899f",
+      "tier": "hidden-actual-Electron-render-not-CUA",
+      "pixelReview": "PENDING independent inspection"
+    },
+    {
+      "id": "mutant-reason-ru",
+      "mode": "balanced",
+      "overrides": {
+        "locale": "ru",
+        "theme": "dark",
+        "width": 1440,
+        "height": 1200
+      },
+      "png": "mutant-reason-ru.png",
+      "receipt": "mutant-reason-ru.json",
+      "cssSha256": "c3548613e53d24269906b431436a8c961ae05ecd54ec232cfc878df481704af1",
+      "pngSha256": "152c22bc0f24cd29234857526b8d24e4dcca65c56975fe86ede71e438aee4bed",
+      "tier": "hidden-actual-Electron-render-not-CUA",
+      "pixelReview": "PENDING independent inspection"
+    }
+  ],
+  "nativeAcceptance": "NOT_RUN by this author; root CUA owned separately"
+}

@@ -1,0 +1,3 @@
+
+/* TEST-OWNED NEGATIVE CONTROL: never imported by normal product source. */
+.onboarding-launch .choice.disabled > span > .muted { visibility: hidden; }

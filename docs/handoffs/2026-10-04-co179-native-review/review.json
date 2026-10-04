@@ -1,0 +1,121 @@
+{
+  "schema": "fabric-co179-independent-visual-review/1",
+  "as_of": "2026-10-04",
+  "baseline": "9adebf88964df6e3cffb13c016863ca981459674",
+  "accepted_css_sha256": "4949e5603177dc1374850b85ab7c33a2fcd940f682a9b95b9ee5ee5ca13a9cff",
+  "source_restored": true,
+  "hidden_render_review": [
+    {
+      "id": "normal-reason-en",
+      "inspected": true,
+      "verdict": "PASS within visible initial viewport",
+      "finding": "Native actual Onboarding; visible controls/text intact.960 footer unobscured.640/2x lower states below initial viewport require native scrolling.",
+      "png": "normal-reason-en.png",
+      "sha256": "0baf38a422f43df7a7c9d33f3a40a7778dd4899415f807fdb71d8f4a8342b994"
+    },
+    {
+      "id": "normal-single-light-en-960",
+      "inspected": true,
+      "verdict": "PASS within visible initial viewport",
+      "finding": "Native actual Onboarding; visible controls/text intact.960 footer unobscured.640/2x lower states below initial viewport require native scrolling.",
+      "png": "normal-single-light-en-960.png",
+      "sha256": "6ea7a72f759606ee7c7410830cb2bd7c4b9f8b9d16378c4b65381320d8e7697f"
+    },
+    {
+      "id": "normal-reason-ru",
+      "inspected": true,
+      "verdict": "PASS within visible initial viewport",
+      "finding": "Native actual Onboarding; visible controls/text intact.960 footer unobscured.640/2x lower states below initial viewport require native scrolling.",
+      "png": "normal-reason-ru.png",
+      "sha256": "319c6928f9c11f0de445943f52a6965625a72b2ff83ba84e7c750e00fe6e3d65"
+    },
+    {
+      "id": "normal-single-light-ru-960",
+      "inspected": true,
+      "verdict": "PASS within visible initial viewport",
+      "finding": "Native actual Onboarding; visible controls/text intact.960 footer unobscured.640/2x lower states below initial viewport require native scrolling.",
+      "png": "normal-single-light-ru-960.png",
+      "sha256": "91ebbbd81856fe6b72db5113ac833e5541f665c62e1dceea38ab1be86dc0ddbb"
+    },
+    {
+      "id": "normal-balanced-dark-ru-640",
+      "inspected": true,
+      "verdict": "PASS within visible initial viewport",
+      "finding": "Native actual Onboarding; visible controls/text intact.960 footer unobscured.640/2x lower states below initial viewport require native scrolling.",
+      "png": "normal-balanced-dark-ru-640.png",
+      "sha256": "99c09f7e7d5d3664e3142871f98e138654b6018c013bf6825f218a97afaa18e8"
+    },
+    {
+      "id": "normal-balanced-light-en-2x",
+      "inspected": true,
+      "verdict": "PASS within visible initial viewport",
+      "finding": "Native actual Onboarding; visible controls/text intact.960 footer unobscured.640/2x lower states below initial viewport require native scrolling.",
+      "png": "normal-balanced-light-en-2x.png",
+      "sha256": "1fd49b408a9dd9883bbde1165c3f58787d313bdacb0320e24d66c9a6102106e3"
+    },
+    {
+      "id": "mutant-reason-en",
+      "inspected": true,
+      "verdict": "REJECT",
+      "finding": "Disabled Cloud is visible but actual unavailable reason is deliberately missing",
+      "png": "mutant-reason-en.png",
+      "sha256": "63a91c3f0566c2bb3dc49018b9133b127e6d14fb4d7289af4f9c5a06d214899f"
+    },
+    {
+      "id": "mutant-reason-ru",
+      "inspected": true,
+      "verdict": "REJECT",
+      "finding": "Disabled Cloud is visible but actual unavailable reason is deliberately missing",
+      "png": "mutant-reason-ru.png",
+      "sha256": "152c22bc0f24cd29234857526b8d24e4dcca65c56975fe86ede71e438aee4bed"
+    }
+  ],
+  "negative_control": {
+    "cases": 2,
+    "rejected": 2,
+    "pairs": [
+      {
+        "locale": "en",
+        "source_delta": [
+          "renderer/src/Onboarding.launch.css"
+        ],
+        "non_text_native_snapshot_equal": true,
+        "rendered_text_removed": [
+          "Hosted estates are not built yet. This becomes available with them."
+        ]
+      },
+      {
+        "locale": "ru",
+        "source_delta": [
+          "renderer/src/Onboarding.launch.css"
+        ],
+        "non_text_native_snapshot_equal": true,
+        "rendered_text_removed": [
+          "\u041e\u0431\u043b\u0430\u0447\u043d\u044b\u0445 \u044d\u0441\u0442\u0435\u0439\u0442\u043e\u0432 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442. \u042d\u0442\u0430 \u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e\u0441\u0442\u044c \u043f\u043e\u044f\u0432\u0438\u0442\u0441\u044f \u0432\u043c\u0435\u0441\u0442\u0435 \u0441 \u043d\u0438\u043c\u0438."
+        ]
+      }
+    ],
+    "meaning": "Actual pixels and rendered innerText reject missing reason; radio states and geometry remain equal. Product source presence alone would miss the visual failure."
+  },
+  "root_native_frames_reviewed": 10,
+  "canonical_closure": false,
+  "integration": false,
+  "checks": {
+    "focused_test_files": 2,
+    "focused_tests": 21,
+    "focused_duration_seconds": 44.78,
+    "focused_exit": 0,
+    "typecheck_exit": 0,
+    "accepted_mutant_restored_builds_exit": 0,
+    "design_exit": 0,
+    "regions_exit": 0,
+    "regions": 131,
+    "diff_check_exit": 0,
+    "driver_syntax_exit": 0
+  },
+  "root_native_recheck_required": [
+    "960 initial EN/RU light single-memory form and sidebar launcher bounds",
+    "sidebar normal-flow launcher remains keyboard/click reachable",
+    "fresh combined source/build pins after importing CSS"
+  ]
+}

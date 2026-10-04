@@ -1,0 +1,6 @@
+{"fixture":"/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-2iBn3E","sourceRevision":"9adebf88964df6e3cffb13c016863ca981459674","synthetic":true,"pid":89792}
+Error occurred in handler for 'settings:write': Error: unregistered synthetic IPC channel
+    at Object.invoke (file:///Users/sshlg/DATA/_worktrees/fabric-co179-native-review-20261004/apps/desktop/test/onboarding-visual-native-harness.mjs:357:70)
+    at file:///Users/sshlg/DATA/_worktrees/fabric-co179-native-review-20261004/apps/desktop/test/onboarding-visual-native-harness.mjs:434:17
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:122853)
+    at Session.emit (node:events:509:28)

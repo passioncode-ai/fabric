@@ -1,0 +1,96 @@
+{
+  "entries": [
+    {
+      "png": "en-light-960-overlay-observed.png",
+      "marker": "en-light-960-marker.json",
+      "sha256": "b4b96ff4e61a01b580392e24aa53f91ab6cae7a663084d3d0bd371f0e72542e4",
+      "captured_by": "root actual native CUA; this author only inspected original pixels",
+      "source_revision": "9adebf88964df6e3cffb13c016863ca981459674",
+      "inspected_by": "com_board_scenarios independent author",
+      "verdict": "REJECT initial Create project occlusion"
+    },
+    {
+      "png": "en-light-960-bottom.png",
+      "marker": "en-light-960-marker.json",
+      "sha256": "ca9f6cd2303212968ceb09d63d99f144ec1b30ef75bf23449df0fe48fc0a1fa8",
+      "captured_by": "root actual native CUA; this author only inspected original pixels",
+      "source_revision": "9adebf88964df6e3cffb13c016863ca981459674",
+      "inspected_by": "com_board_scenarios independent author",
+      "verdict": "PASS reached footer unoccluded"
+    },
+    {
+      "png": "en-dark-640-bottom.png",
+      "marker": "en-dark-640-marker.json",
+      "sha256": "5cca35c756f027fde7ceb4c5010fc19abe0efc1ba6ceae8ba3940d619fe0dd8b",
+      "captured_by": "root actual native CUA; this author only inspected original pixels",
+      "source_revision": "9adebf88964df6e3cffb13c016863ca981459674",
+      "inspected_by": "com_board_scenarios independent author",
+      "verdict": "PASS reached footer/native focus state; configured no memory"
+    },
+    {
+      "png": "ru-dark-640-bottom.png",
+      "marker": "ru-dark-640-marker.json",
+      "sha256": "8c0b6d5ea731b783ec330dc173fff270e2cce6d24f6c0a214537dce10889358e",
+      "captured_by": "root actual native CUA; this author only inspected original pixels",
+      "source_revision": "9adebf88964df6e3cffb13c016863ca981459674",
+      "inspected_by": "com_board_scenarios independent author",
+      "verdict": "PASS reached memory reason and footer"
+    },
+    {
+      "png": "en-dark-long-760-bottom.png",
+      "marker": "en-dark-long-760-marker.json",
+      "sha256": "7ccaa5e13a61379073d7be1fbc629cf8849043b2f124a1fd90069e50bc1744fe",
+      "captured_by": "root actual native CUA; this author only inspected original pixels",
+      "source_revision": "9adebf88964df6e3cffb13c016863ca981459674",
+      "inspected_by": "com_board_scenarios independent author",
+      "verdict": "PASS full wrapped path,Remove,reason,footer"
+    },
+    {
+      "png": "ru-light-1440-bottom.png",
+      "marker": "ru-light-1440-marker.json",
+      "sha256": "dcf82cad683ed5a9197d504390638349d6a99a3c5b19beb7b18afdf470095447",
+      "captured_by": "root actual native CUA; this author only inspected original pixels",
+      "source_revision": "9adebf88964df6e3cffb13c016863ca981459674",
+      "inspected_by": "com_board_scenarios independent author",
+      "verdict": "PASS reached memory reason and footer"
+    },
+    {
+      "png": "en-light-2x-bottom.png",
+      "marker": "en-light-2x-marker.json",
+      "sha256": "9311ee77791c4f0f87b721326195ecdc8f77b9be0e44d90568af7a6bb81c81dc",
+      "captured_by": "root actual native CUA; this author only inspected original pixels",
+      "source_revision": "9adebf88964df6e3cffb13c016863ca981459674",
+      "inspected_by": "com_board_scenarios independent author",
+      "verdict": "PASS reached readable footer at2x"
+    },
+    {
+      "png": "ru-light-2x-bottom.png",
+      "marker": "ru-light-2x-marker.json",
+      "sha256": "eb876f9a0e9822759188f4224cb14ad773388156b03ca1bc42d2a39a19b9834c",
+      "captured_by": "root actual native CUA; this author only inspected original pixels",
+      "source_revision": "9adebf88964df6e3cffb13c016863ca981459674",
+      "inspected_by": "com_board_scenarios independent author",
+      "verdict": "PASS reached readable footer at2x"
+    },
+    {
+      "png": "ru-dark-2x-bottom.png",
+      "marker": "ru-dark-2x-marker.json",
+      "sha256": "3c898d51fc1526dcc92543af6a9d7bbabf3ea256bad8b22b15241b07a57e800b",
+      "captured_by": "root actual native CUA; this author only inspected original pixels",
+      "source_revision": "9adebf88964df6e3cffb13c016863ca981459674",
+      "inspected_by": "com_board_scenarios independent author",
+      "verdict": "PASS reached readable footer at2x"
+    },
+    {
+      "png": "en-dark-640-remove-left-folder.png",
+      "marker": "en-dark-640-marker.json",
+      "sha256": "532ca638b8a9655fe73aa0846fd0ed43779efd125fb947c8c24441fd9c1f800b",
+      "captured_by": "root actual native CUA; this author only inspected original pixels",
+      "source_revision": "9adebf88964df6e3cffb13c016863ca981459674",
+      "inspected_by": "com_board_scenarios independent author",
+      "verdict": "PASS visible complete left-on-disk notice and footer"
+    }
+  ],
+  "copy_byte_equal": true,
+  "claim_limit": "Pixels independently inspected; native actions/source-build receipts owned by root. Candidate CSS requires fresh root receipt."
+}
