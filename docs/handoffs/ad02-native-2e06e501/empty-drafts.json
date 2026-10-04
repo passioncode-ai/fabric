@@ -1,0 +1,10 @@
+{
+  "draft-bd54717f-8ac8-4ebc-993c-1549778eafb1": {
+    "projectId": "de14db1a-7f3c-4fdd-9fb6-f42e2d30a436",
+    "name": "AD02 first final",
+    "purpose": "First install local draft only",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  }
+}

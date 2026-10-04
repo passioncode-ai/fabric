@@ -1,0 +1,25 @@
+{
+  "theme": "dark",
+  "locale": "en",
+  "keepAwake": "never",
+  "workspace": {
+    "path": null,
+    "git": "declined"
+  },
+  "tabs": {
+    "tabs": [
+      {
+        "kind": "draft",
+        "id": "draft-bd54717f-8ac8-4ebc-993c-1549778eafb1"
+      }
+    ],
+    "active": {
+      "kind": "draft",
+      "id": "draft-bd54717f-8ac8-4ebc-993c-1549778eafb1"
+    }
+  },
+  "readThroughSeq": 0,
+  "firstRun": {
+    "completedAt": null
+  }
+}

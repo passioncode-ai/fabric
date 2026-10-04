@@ -1,0 +1,71 @@
+Window: "Fabric · AD02 isolated acceptance", App: Electron.
+0 standard window Fabric · AD02 isolated acceptance, Secondary Actions: Raise
+	1 container Fabric · AD02 isolated acceptance
+		2 container
+			3 HTML content Fabric, URL: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html
+				4 container
+					5 button Fabric
+					6 text AD02 isolated fixture
+					7 text Fabric
+					8 text PassionCode.ai
+					9 container Fabric navigation
+						10 link Description: Fabric, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						11 link Description: Board, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						12 link Description: Planning, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						13 link Description: + Project, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						14 disclosure triangle Manage
+							15 text Manage
+						16 link Description: Fabric help, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+					17 button Talk to Fabric · Status unknown
+						18 image Fabric · personal avatar
+						19 text Fabric
+						20 text Status unknown
+					21 text My workspace  /  Fabric
+					22 toggle button Search, Value: 0
+					23 text Something did not work
+					24 text the drafts could not be read: local_state_recovery_required
+					25 button Dismiss
+					26 content list First run
+						27 container
+							28 text 1 Your Fabric
+						29 container
+							30 text 2 Coding agents
+						31 container
+							32 text 3 Where to start
+					33 container Hello. I'm Fabric.
+						34 image Fabric · personal avatar
+						35 heading Hello. I'm Fabric., Value: 2
+							36 text Hello. I'm Fabric.
+						37 text I run your projects with the coding agents you already use. Give me a name and a face: that changes how I look, never what I may do.
+						38 container
+							39 text Name
+							40 text field (settable) Name Leave it empty to keep “Fabric”., Placeholder: Fabric
+							41 text Leave it empty to keep “Fabric”.
+						42 text CHARACTER
+						43 container Character
+							44 toggle button Orbit, Value: 1
+								45 image
+								46 text Orbit
+							47 toggle button Spark, Value: 0
+								48 image
+								49 text Spark
+							50 toggle button Wave, Value: 0
+								51 image
+								52 text Wave
+						53 text VARIANT
+						54 button More variants
+						55 container Variant
+							56 toggle button Description: Variant 1, Value: 1
+								57 image
+							58 toggle button Description: Variant 2, Value: 0
+								59 image
+							60 toggle button Description: Variant 3, Value: 0
+								61 image
+						62 button Continue
+						63 button Skip
+	64 close button
+	65 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	66 minimise button
+67 menu bar
+	68 Electron
+	69 Edit

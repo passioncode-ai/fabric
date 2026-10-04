@@ -1,0 +1,29 @@
+{
+  "theme": "dark",
+  "locale": "en",
+  "keepAwake": "never",
+  "workspace": {
+    "path": null,
+    "git": "declined"
+  },
+  "tabs": {
+    "tabs": [
+      {
+        "kind": "draft",
+        "id": "draft-1"
+      },
+      {
+        "kind": "draft",
+        "id": "draft-2"
+      }
+    ],
+    "active": {
+      "kind": "draft",
+      "id": "draft-1"
+    }
+  },
+  "readThroughSeq": 0,
+  "firstRun": {
+    "completedAt": null
+  }
+}

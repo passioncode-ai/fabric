@@ -1,0 +1,10 @@
+{"at":"2026-10-04T14:14:46.560Z","pid":58605,"kind":"start","mode":"restored","userData":"/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-ad02-native-s6Y8Iq/userData","electron":"44.0.0"}
+{"at":"2026-10-04T14:14:46.937Z","pid":58605,"kind":"renderer-loaded"}
+{"at":"2026-10-04T14:14:46.943Z","pid":58605,"kind":"blocked-ipc","channel":"persona:read"}
+{"at":"2026-10-04T14:14:46.944Z","pid":58605,"kind":"draft-read","status":"ready","ids":["draft-1","draft-2"],"delayedMs":60000}
+{"at":"2026-10-04T14:14:46.979Z","pid":58605,"kind":"blocked-ipc","channel":"favourites:order"}
+{"at":"2026-10-04T14:14:46.980Z","pid":58605,"kind":"blocked-ipc","channel":"ceo:status"}
+{"at":"2026-10-04T14:15:04.916Z","pid":58605,"kind":"blocked-ipc","channel":"start:last-scan"}
+{"at":"2026-10-04T14:15:46.972Z","pid":58605,"kind":"draft-save","status":"committed","ids":["draft-1","draft-2","draft-903b2fd6-d221-4450-826a-3608a2e54baa"],"names":["Original one","Original two","AD02 early final"]}
+{"at":"2026-10-04T14:15:46.989Z","pid":58605,"kind":"tabs-save","status":"committed","tabs":{"tabs":[{"kind":"draft","id":"draft-1"},{"kind":"draft","id":"draft-2"},{"kind":"draft","id":"draft-903b2fd6-d221-4450-826a-3608a2e54baa"}],"active":{"kind":"draft","id":"draft-903b2fd6-d221-4450-826a-3608a2e54baa"}}}
+{"at":"2026-10-04T14:16:28.284Z","pid":58605,"kind":"quit","draftStatus":"ready","draftIds":["draft-1","draft-2","draft-903b2fd6-d221-4450-826a-3608a2e54baa"]}

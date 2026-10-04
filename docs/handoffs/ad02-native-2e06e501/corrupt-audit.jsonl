@@ -1,0 +1,15 @@
+{"at":"2026-10-04T14:01:50.561Z","pid":72507,"kind":"start","mode":"corrupt","userData":"/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-ad02-native-o5smwa/userData","electron":"44.0.0"}
+{"at":"2026-10-04T14:01:51.097Z","pid":72507,"kind":"renderer-loaded"}
+{"at":"2026-10-04T14:01:51.107Z","pid":72507,"kind":"blocked-ipc","channel":"persona:read"}
+{"at":"2026-10-04T14:01:51.110Z","pid":72507,"kind":"draft-read","status":"unreadable","ids":[],"delayedMs":0}
+{"at":"2026-10-04T14:01:51.157Z","pid":72507,"kind":"blocked-ipc","channel":"favourites:order"}
+{"at":"2026-10-04T14:01:51.157Z","pid":72507,"kind":"blocked-ipc","channel":"ceo:status"}
+{"at":"2026-10-04T14:02:19.001Z","pid":72507,"kind":"blocked-ipc","channel":"start:last-scan"}
+{"at":"2026-10-04T14:03:36.027Z","pid":72507,"kind":"quit","draftStatus":"unreadable","draftIds":[]}
+{"at":"2026-10-04T14:03:54.971Z","pid":85411,"kind":"start","mode":"corrupt","userData":"/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-ad02-native-o5smwa/userData","electron":"44.0.0"}
+{"at":"2026-10-04T14:03:55.359Z","pid":85411,"kind":"renderer-loaded"}
+{"at":"2026-10-04T14:03:55.364Z","pid":85411,"kind":"blocked-ipc","channel":"persona:read"}
+{"at":"2026-10-04T14:03:55.365Z","pid":85411,"kind":"draft-read","status":"unreadable","ids":[],"delayedMs":0}
+{"at":"2026-10-04T14:03:55.399Z","pid":85411,"kind":"blocked-ipc","channel":"favourites:order"}
+{"at":"2026-10-04T14:03:55.400Z","pid":85411,"kind":"blocked-ipc","channel":"ceo:status"}
+{"at":"2026-10-04T14:04:36.955Z","pid":85411,"kind":"quit","draftStatus":"unreadable","draftIds":[]}

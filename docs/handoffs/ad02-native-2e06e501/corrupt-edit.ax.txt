@@ -1,0 +1,60 @@
+Window: "Fabric · AD02 isolated acceptance", App: Electron.
+0 standard window Fabric · AD02 isolated acceptance, Secondary Actions: Raise
+	1 container Fabric · AD02 isolated acceptance
+		2 container
+			3 HTML content Fabric, URL: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html
+				4 container
+					5 button Fabric
+					6 button AD02 protected unsaved
+					7 button Close tab
+					8 text AD02 isolated fixture
+					9 text Fabric
+					10 text PassionCode.ai
+					11 container Fabric navigation
+						12 link Description: Fabric, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						13 link Description: Board, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						14 link Description: Planning, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						15 link Description: + Project, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						16 disclosure triangle Manage
+							17 text Manage
+						18 link Description: Fabric help, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+					19 button Talk to Fabric · Status unknown
+						20 image Fabric · personal avatar
+						21 text Fabric
+						22 text Status unknown
+					23 container
+						24 text My workspace  /  Fabric
+						25 toggle button Search, Value: 0
+					26 container
+						27 text Something did not work the drafts could not be read: local_state_invalid_json
+						28 button Dismiss
+					29 container
+						30 heading New project, Value: 1
+							31 text New project
+						32 text A project holds repositories, memory and the agents that work in them. The project itself is made only when you create it; a new folder you make for it is created at once.
+						33 container
+							34 text Name
+							35 text field (settable) Name, Value: AD02 protected unsaved, Placeholder: What is this project called?
+						36 container
+							37 text Purpose
+							38 text field (settable) Purpose, Value: Preserve unreadable saved references, Placeholder: What is it for? One line is enough.
+						39 container Repositories
+							40 text Repositories
+							41 text Sessions start in the primary repository. You can attach more later.
+							42 text No repository attached yet.
+							43 button Choose folder…
+							44 button Create a new folder for it…
+							45 Tick box Start it as a git repository, Value: 1
+						46 container
+							47 text Default coding agent What the quick Launch action starts. You can always pick another.
+							48 pop-up button Default coding agent
+						49 button Create project
+						50 button Cancel
+	51 close button
+	52 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	53 minimise button
+54 menu bar
+	55 Electron
+	56 Edit
+
+The focused UI element is 38 text field (settable) Purpose, Value: Preserve unreadable saved references, Placeholder: What is it for? One line is enough.

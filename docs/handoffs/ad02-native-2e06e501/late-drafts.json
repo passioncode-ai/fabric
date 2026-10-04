@@ -1,0 +1,26 @@
+{
+  "draft-1": {
+    "projectId": "ad02-project-1",
+    "name": "Original one",
+    "purpose": "Preserve Original one",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  },
+  "draft-2": {
+    "projectId": "ad02-project-2",
+    "name": "Original two",
+    "purpose": "Preserve Original two",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  },
+  "draft-903b2fd6-d221-4450-826a-3608a2e54baa": {
+    "projectId": "24acb26f-e657-4498-89b7-5553fb3239d3",
+    "name": "AD02 early final",
+    "purpose": "Keep input while original drafts load",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  }
+}

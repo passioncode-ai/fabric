@@ -1,0 +1,61 @@
+Window: "Fabric · AD02 isolated acceptance", App: Electron.
+0 standard window Fabric · AD02 isolated acceptance, Secondary Actions: Raise
+	1 container Fabric · AD02 isolated acceptance
+		2 container
+			3 HTML content Fabric, URL: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html
+				4 container
+					5 button Fabric
+					6 button Original one
+					7 button Close tab
+					8 button Original two
+					9 button Close tab
+					10 button AD02 early final
+					11 button Close tab
+					12 text AD02 isolated fixture
+					13 text Fabric
+					14 text PassionCode.ai
+					15 container Fabric navigation
+						16 link Description: Fabric, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						17 link Description: Board, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						18 link Description: Planning, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						19 link Description: + Project, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						20 disclosure triangle Manage
+							21 text Manage
+						22 link Description: Fabric help, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+					23 button Talk to Fabric · Status unknown
+						24 image Fabric · personal avatar
+						25 text Fabric
+						26 text Status unknown
+					27 container
+						28 text My workspace  /  Fabric
+						29 toggle button Search, Value: 0
+					30 container
+						31 heading New project, Value: 1
+							32 text New project
+						33 text A project holds repositories, memory and the agents that work in them. The project itself is made only when you create it; a new folder you make for it is created at once.
+						34 container
+							35 text Name
+							36 text field (settable) Name, Value: AD02 early final, Placeholder: What is this project called?
+						37 container
+							38 text Purpose
+							39 text field (settable) Purpose, Value: Keep input while original drafts load, Placeholder: What is it for? One line is enough.
+						40 container Repositories
+							41 text Repositories
+							42 text Sessions start in the primary repository. You can attach more later.
+							43 text No repository attached yet.
+							44 button Choose folder…
+							45 button Create a new folder for it…
+							46 Tick box Start it as a git repository, Value: 1
+						47 container
+							48 text Default coding agent What the quick Launch action starts. You can always pick another.
+							49 pop-up button Default coding agent
+						50 button Create project
+						51 button Cancel
+	52 close button
+	53 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	54 minimise button
+55 menu bar
+	56 Electron
+	57 Edit
+
+The focused UI element is 39 text field (settable) Purpose, Value: Keep input while original drafts load, Placeholder: What is it for? One line is enough.

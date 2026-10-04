@@ -1,0 +1,34 @@
+{
+  "draft-1": {
+    "projectId": "ad02-project-1",
+    "name": "AD02 final one",
+    "purpose": "Current source restart one",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  },
+  "draft-2": {
+    "projectId": "ad02-project-2",
+    "name": "AD02 final two",
+    "purpose": "Current source restart two",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  },
+  "draft-4edbec72-c907-4ec1-9770-f802af0c6f9e": {
+    "projectId": "e65a565a-18dc-4032-8d8d-2ecbf32245e1",
+    "name": "AD02 final three",
+    "purpose": "Current source restart three",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  },
+  "draft-e58c05b2-e24c-409f-a4a7-6411ee91864f": {
+    "projectId": "73b020f0-f8b3-44c5-b667-efadd91ed7e9",
+    "name": "AD02 final four",
+    "purpose": "Current source restart four",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  }
+}

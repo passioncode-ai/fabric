@@ -1,0 +1,63 @@
+Window: "Fabric · AD02 isolated acceptance", App: Electron.
+0 standard window Fabric · AD02 isolated acceptance, Secondary Actions: Raise
+	1 container Fabric · AD02 isolated acceptance
+		2 container
+			3 HTML content Fabric, URL: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html
+				4 container
+					5 button Fabric
+					6 button AD02 final one
+					7 button Close tab
+					8 button AD02 final two
+					9 button Close tab
+					10 button AD02 final three
+					11 button Close tab
+					12 button AD02 final four
+					13 button Close tab
+					14 text AD02 isolated fixture
+					15 text Fabric
+					16 text PassionCode.ai
+					17 container Fabric navigation
+						18 link Description: Fabric, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						19 link Description: Board, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						20 link Description: Planning, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						21 link Description: + Project, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						22 disclosure triangle Manage
+							23 text Manage
+						24 link Description: Fabric help, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+					25 button Talk to Fabric · Status unknown
+						26 image Fabric · personal avatar
+						27 text Fabric
+						28 text Status unknown
+					29 container
+						30 text My workspace  /  Fabric
+						31 toggle button Search, Value: 0
+					32 container
+						33 heading New project, Value: 1
+							34 text New project
+						35 text A project holds repositories, memory and the agents that work in them. The project itself is made only when you create it; a new folder you make for it is created at once.
+						36 container
+							37 text Name
+							38 text field (settable) Name, Value: AD02 final three, Placeholder: What is this project called?
+						39 container
+							40 text Purpose
+							41 text field (settable) Purpose, Value: Current source restart three, Placeholder: What is it for? One line is enough.
+						42 container Repositories
+							43 text Repositories
+							44 text Sessions start in the primary repository. You can attach more later.
+							45 text No repository attached yet.
+							46 button Choose folder…
+							47 button Create a new folder for it…
+							48 Tick box Start it as a git repository, Value: 1
+						49 container
+							50 text Default coding agent What the quick Launch action starts. You can always pick another.
+							51 pop-up button Default coding agent
+						52 button Create project
+						53 button Cancel
+	54 close button
+	55 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	56 minimise button
+57 menu bar
+	58 Electron
+	59 Edit
+
+The focused UI element is 10 button AD02 final three
