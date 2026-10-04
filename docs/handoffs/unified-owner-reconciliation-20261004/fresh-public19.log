@@ -1,0 +1,27 @@
+✔ complete packet preserves program constraints and exact leaf context (70.567875ms)
+✔ omitted canonical work cannot pass the coverage gate (60.522792ms)
+✔ changed source blocks a previously complete packet (61.561958ms)
+✔ every context source is pinned; an untargeted blocking finding is refused (66.094666ms)
+✔ blocking finding stops only its affected task until explicitly resolved (52.287834ms)
+✔ cycles, missing payloads and unknown dependencies are refused (95.564458ms)
+✔ unknown impact targets, path escape and empty cold context are refused (62.724459ms)
+✔ external owner and human gate do not become runnable with a delivered message (51.299916ms)
+✔ canonical priority precedes computed downstream count; dependency requires done proof (49.067084ms)
+✔ a missing or changed completion receipt fails validation (87.791917ms)
+✔ a new blocking impact invalidates completed prerequisite satisfaction (49.609083ms)
+✔ write scope cannot escape the repo directly or through a linked parent (75.15925ms)
+✔ a broad unreviewed parent cannot be promoted to candidate by dropping dependencies (75.852042ms)
+✔ a newly declared canonical source cannot hide outside the general-plan lanes (62.03575ms)
+✔ source pins cannot substitute a different or forged immutable commit (55.815ms)
+✔ identical IDs in different canonical files retain both owner identities (123.415584ms)
+✔ held canonical source references cannot become executable by removing dependencies (63.930542ms)
+✔ one current pointer selects only a report path and explicit selection stays reproducible (50.376209ms)
+✔ privacy diagnostics redact matching source paths without echoing a private literal (0.569875ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1282.85125

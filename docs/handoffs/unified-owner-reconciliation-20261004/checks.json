@@ -30,7 +30,7 @@
     "exit": 0
   },
   "fast": {
-    "command": "pnpm check:fast",
+    "command": "bash scripts/ci.sh fast",
     "exit": 1,
     "first_failure": "Map sources changed; root owns guarded map refresh"
   },
@@ -54,5 +54,16 @@
   "native_product": "NOT_RUN",
   "full_disposable_product": "NOT_RUN",
   "live_runtime": "NOT_RUN",
-  "release_or_parent_acceptance": "NOT_GRANTED"
+  "release_or_parent_acceptance": "NOT_GRANTED",
+  "fresh_public_checkout": {
+    "source_revision": "537ca82d90e7bb814a907209cb303bbed8633e1e",
+    "remote_ref_verified": true,
+    "command": "node --test scripts/test/unified-plan.test.mjs",
+    "exit": 0,
+    "tests": 19,
+    "pass": 19,
+    "skip": 0,
+    "tracked_status": "clean",
+    "scope": "Public sparse fresh checkout; no owner source activation"
+  }
 }
