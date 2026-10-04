@@ -19,6 +19,7 @@ binding is not communication authority. Live enrollment needs named vault slots,
 separate live authorization; webhook additionally needs an HTTPS deployment owner.
 
 Checks: [raw/checks.json](../reports/2026-10-04-telegram-board-transport/raw/checks.json).
+Fresh remote readback: [raw/readback.json](../reports/2026-10-04-telegram-board-transport/raw/readback.json).
 Baselines: [raw/baselines.json](../reports/2026-10-04-telegram-board-transport/raw/baselines.json).
 No implementation, live provider/bot, release, install, paid operation or deploy checks.
 

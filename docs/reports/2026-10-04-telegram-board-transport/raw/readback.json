@@ -1,0 +1,9 @@
+{
+  "command": "fresh remote sparse clone of codex/telegram-board-transport-research; checkout report/handoffs; resolve relative links and parse JSON sidecars",
+  "source_commit": "9124646c2905ec7fd7e2841fe0013732a8333db0",
+  "result": "PASS",
+  "relative_links_resolved": 6,
+  "json_sidecars_parsed": 3,
+  "scope": "Read access and source packet links only; no live bot, map convergence or publication acceptance",
+  "temporary_checkout_removed": true
+}
