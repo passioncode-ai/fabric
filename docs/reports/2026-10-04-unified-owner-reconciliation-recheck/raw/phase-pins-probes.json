@@ -1,0 +1,1240 @@
+{
+  "candidate": "cf16bc851d14e42b9df683b16928acba38d9b589",
+  "pinnedParser": "898a3cb4af9bd9dfa8b507fce28bdb008295596c",
+  "fixtureRevision": "aa969b96834afbf4419b3ad9c3ef05f1105d3b7a",
+  "results": [
+    {
+      "name": "undecided-phase-compiles",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "undecided-phase-holds-leaf",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "ready": [],
+        "held": [
+          {
+            "id": "UP-01",
+            "reasons": [
+              "design-gated",
+              "impact I-01"
+            ]
+          },
+          {
+            "id": "P-01.parent",
+            "reasons": [
+              "design-gated",
+              "requires P-01.parent.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance",
+              "impact I-01"
+            ]
+          },
+          {
+            "id": "COM-01",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-02",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-03",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-04",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-05",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-06",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-07",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-08",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-09",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-10",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-11",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-12",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-13",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-14",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "source.ed7ea10cf593bc84",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "P-01.parent.prepare",
+            "reasons": [
+              "design-gated",
+              "impact I-01"
+            ]
+          },
+          {
+            "id": "P-01.qualify-source",
+            "reasons": [
+              "impact I-01"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "explicit-parent-only-compiles",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "explicit-parent-only-bounded-ready",
+      "observed": [
+        "P-01.qualify-source"
+      ],
+      "expected": [
+        "P-01.qualify-source"
+      ],
+      "matched": true,
+      "detail": {
+        "ready": [
+          {
+            "id": "P-01.qualify-source",
+            "title": "Example-agent bounded qualification",
+            "kind": "bounded-source-work",
+            "priority_group": 0,
+            "unblocks": 0
+          }
+        ],
+        "held": [
+          {
+            "id": "UP-01",
+            "reasons": [
+              "design-gated",
+              "impact I-01"
+            ]
+          },
+          {
+            "id": "P-01.parent",
+            "reasons": [
+              "design-gated",
+              "requires P-01.parent.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance",
+              "impact I-01"
+            ]
+          },
+          {
+            "id": "COM-01",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-02",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-03",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-04",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-05",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-06",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-07",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-08",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-09",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-10",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-11",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-12",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-13",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-14",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "source.ed7ea10cf593bc84",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "P-01.parent.prepare",
+            "reasons": [
+              "design-gated",
+              "impact I-01"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "explicit-parent-only-parent-still-held",
+      "observed": true,
+      "expected": true,
+      "matched": true,
+      "detail": {
+        "ready": [
+          {
+            "id": "P-01.qualify-source",
+            "title": "Example-agent bounded qualification",
+            "kind": "bounded-source-work",
+            "priority_group": 0,
+            "unblocks": 0
+          }
+        ],
+        "held": [
+          {
+            "id": "UP-01",
+            "reasons": [
+              "design-gated",
+              "impact I-01"
+            ]
+          },
+          {
+            "id": "P-01.parent",
+            "reasons": [
+              "design-gated",
+              "requires P-01.parent.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance",
+              "impact I-01"
+            ]
+          },
+          {
+            "id": "COM-01",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-02",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-03",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-04",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-05",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-06",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-07",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-08",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-09",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-10",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-11",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-12",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-13",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-14",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "source.ed7ea10cf593bc84",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "P-01.parent.prepare",
+            "reasons": [
+              "design-gated",
+              "impact I-01"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown-phase-decision",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Impact applicability cannot clear unknown or unrelated impacts\n"
+      }
+    },
+    {
+      "name": "global-phase-clear",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Invalid or excessive reconciliation impact applicability\n"
+      }
+    },
+    {
+      "name": "bounded-design-phase-exemption",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Invalid or excessive reconciliation impact applicability\n"
+      }
+    },
+    {
+      "name": "mutated-phase-input",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Dirty or forged reconciliation source receipt: docs/reports/2026-10-04-unified-execution/impacts.json\n"
+      }
+    },
+    {
+      "name": "new-unreviewed-phase-compiles",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "new-unreviewed-phase-blocks",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "ready": [],
+        "held": [
+          {
+            "id": "UP-01",
+            "reasons": [
+              "design-gated",
+              "impact I-01",
+              "impact I-02"
+            ]
+          },
+          {
+            "id": "P-01.parent",
+            "reasons": [
+              "design-gated",
+              "requires P-01.parent.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance",
+              "impact I-01",
+              "impact I-02"
+            ]
+          },
+          {
+            "id": "COM-01",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-02",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-03",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-04",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-05",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-06",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-07",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-08",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-09",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-10",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-11",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-12",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-13",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-14",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "source.ed7ea10cf593bc84",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "P-01.parent.prepare",
+            "reasons": [
+              "design-gated",
+              "impact I-01",
+              "impact I-02"
+            ]
+          },
+          {
+            "id": "P-01.qualify-source",
+            "reasons": [
+              "impact I-02"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "new-phase-exact-block-reason",
+      "observed": true,
+      "expected": true,
+      "matched": true,
+      "detail": {
+        "ready": [],
+        "held": [
+          {
+            "id": "UP-01",
+            "reasons": [
+              "design-gated",
+              "impact I-01",
+              "impact I-02"
+            ]
+          },
+          {
+            "id": "P-01.parent",
+            "reasons": [
+              "design-gated",
+              "requires P-01.parent.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance",
+              "impact I-01",
+              "impact I-02"
+            ]
+          },
+          {
+            "id": "COM-01",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-02",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-03",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-04",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-05",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-06",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-07",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-08",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-09",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-10",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-11",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-12",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-13",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "COM-14",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "source.ed7ea10cf593bc84",
+            "reasons": [
+              "owned-elsewhere"
+            ]
+          },
+          {
+            "id": "P-01.parent.prepare",
+            "reasons": [
+              "design-gated",
+              "impact I-01",
+              "impact I-02"
+            ]
+          },
+          {
+            "id": "P-01.qualify-source",
+            "reasons": [
+              "impact I-02"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "unknown-severity-compile-no-status-authority",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "unknown-severity-check",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "I-01: invalid impact state\n"
+      }
+    },
+    {
+      "name": "unknown-severity-next",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "I-01: invalid impact state\n"
+      }
+    },
+    {
+      "name": "unknown-severity-packet",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "I-01: invalid impact state\n"
+      }
+    },
+    {
+      "name": "unknown-severity-impacts",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "I-01: invalid impact state\n"
+      }
+    },
+    {
+      "name": "unknown-disposition-compile-no-status-authority",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "unknown-disposition-check",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "I-01: disposition without resolution\nI-01: invalid impact state\n"
+      }
+    },
+    {
+      "name": "unknown-disposition-next",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "I-01: disposition without resolution\nI-01: invalid impact state\n"
+      }
+    },
+    {
+      "name": "unknown-disposition-packet",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "I-01: disposition without resolution\nI-01: invalid impact state\n"
+      }
+    },
+    {
+      "name": "unknown-disposition-impacts",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "I-01: disposition without resolution\nI-01: invalid impact state\n"
+      }
+    },
+    {
+      "name": "receipt-phase-compile",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 21 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "packet-pin-AGENTS.md",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "cold-pin-AGENTS.md",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "packet-pin-docs/example-subject/a.js",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "cold-pin-docs/example-subject/a.js",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "packet-pin-docs/example-subject/b.js",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "cold-pin-docs/example-subject/b.js",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "packet-pin-docs/evidence/dependency.md",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "cold-pin-docs/evidence/dependency.md",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "packet-pin-docs/reports/2026-10-04-unified-execution/impacts.json",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "cold-pin-docs/reports/2026-10-04-unified-execution/impacts.json",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "packet-pin-docs/evidence/typed-receipt.json",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "cold-pin-docs/evidence/typed-receipt.json",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "packet-pin-docs/evidence/plans/unified-current-reconciliation.json",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "cold-pin-docs/evidence/plans/unified-current-reconciliation.json",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "receipt-phase-ready-candidate-only",
+      "observed": [
+        "P-01.qualify-source"
+      ],
+      "expected": [
+        "P-01.qualify-source"
+      ],
+      "matched": true
+    },
+    {
+      "name": "receipt-phase-no-done",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "forged-drop-impact-source-check",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "P-01.qualify-source: unpinned context source docs/reports/2026-10-04-unified-execution/impacts.json\ncompiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "forged-drop-impact-source-next",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "P-01.qualify-source: unpinned context source docs/reports/2026-10-04-unified-execution/impacts.json\ncompiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "forged-drop-impact-source-packet",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "P-01.qualify-source: unpinned context source docs/reports/2026-10-04-unified-execution/impacts.json\ncompiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "forged-drop-impact-source-impacts",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "P-01.qualify-source: unpinned context source docs/reports/2026-10-04-unified-execution/impacts.json\ncompiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "forged-clear-phase-holds-check",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "forged-clear-phase-holds-next",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "forged-clear-phase-holds-packet",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "forged-clear-phase-holds-impacts",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "forged-parent-done-check",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "forged-parent-done-next",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "forged-parent-done-packet",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "forged-parent-done-impacts",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    }
+  ]
+}
