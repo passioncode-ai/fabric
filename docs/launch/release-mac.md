@@ -27,7 +27,7 @@ A **`vX.Y.Z` tag on main** launches a release. Nothing else does: no laptop hold
 build signed anywhere but the `release` environment is a debug build that is never published.
 
 1. **Land, then release.** The release pull request lands on `main` first: `version` in
-   [`apps/desktop/package.json`](../../apps/desktop/package.json) is `X.Y.Z`, the `## Unreleased` section of
+   [`apps/desktop/package.json`](../../apps/desktop/package.json) is `X.Y.Z`, the `## X.Y.Z (unreleased)` (or `## Unreleased`) section of
    [`CHANGELOG.md`](../../CHANGELOG.md) is renamed `## X.Y.Z` (it becomes the release notes), and
    `bash scripts/ci.sh fast` is green.
    **The release gate.** [`docs/launch/release-gate.json`](release-gate.json) names the version and the
@@ -36,7 +36,11 @@ build signed anywhere but the `release` environment is a debug build that is nev
    version from the commit, and reads both files from the commit; it refuses unless the ledger has exactly one section per
    iteration (three), each linking its reviewer reports, every finding row disposed (fixed, ruled, not a
    defect, not recoverable, stopped), and each ending with its one line
-   `Exit for iteration N: … Blocking findings open: none.` (`scripts/lib/release-gate.mjs`, tested by
+   `Exit for iteration N: … Blocking findings open: none.`, and unless the ledger's title names exactly the
+   version it clears — each release has its own ledger; 0.3.0's is
+   [`2026-10-03-verification.md`](../evidence/plans/2026-10-03-verification.md), 0.3.1's (the hub) is
+   [`2026-10-04-hub-verification.md`](../evidence/plans/2026-10-04-hub-verification.md), and the bump to
+   0.3.1 points the gate at it (`scripts/lib/release-gate.mjs`, tested by
    `scripts/test/release-gate.test.mjs`).
 2. **Push the tag** on the release commit: `git tag -a vX.Y.Z <commit on main> -m "Fabric X.Y.Z" && git push origin vX.Y.Z`.
    A published release is never rewritten; a fix is a new tag.
@@ -61,7 +65,9 @@ build signed anywhere but the `release` environment is a debug build that is nev
    prerelease while Fabric is an early preview (`prerelease: "true"`, ADR-0111 §1):
    `https://github.com/passioncode-ai/fabric/releases/tag/vX.Y.Z`. Verify a download with
    `gpg --verify SHA256SUMS.asc SHA256SUMS`, `shasum -a 256 -c SHA256SUMS --ignore-missing` and
-   `gh attestation verify Fabric-X.Y.Z-arm64.dmg -R passioncode-ai/fabric`.
+   `gh attestation verify Fabric-X.Y.Z-arm64.dmg --owner passioncode-ai --signer-repo passioncode-ai/.github` —
+   the attestation is signed by the organization's shared publish workflow, so `-R passioncode-ai/fabric` alone
+   fails ("verifying with issuer sigstore.dev"; the shared workflow's own note, measured 2026-10-03).
 7. Smoke the published DMG on this Mac: install it, then `FABRIC_APP_EXECUTABLE=/Applications/Fabric.app/Contents/MacOS/Fabric
    FABRIC_PLAYWRIGHT_MODULE=<playwright> node apps/desktop/test/chat-activation-native.test.mjs` — the packaged
    app starts from its own stack, the window is named Fabric, the chat saves and survives a cold restart.

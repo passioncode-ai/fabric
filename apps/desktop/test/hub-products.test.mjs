@@ -25,6 +25,8 @@ const { createAgentCall } = await import(path.join(SRC, 'hubCall.ts'))
 const { AgentSurface } = await import(path.join(SRC, 'agentSurface.ts'))
 
 const SECRET = 'cf-secret-' + 'Zq9'.repeat(10)
+const ESTATE_A = '00000000-0000-4000-8000-00000000000a'
+const ESTATE_B = '00000000-0000-4000-8000-00000000000b'
 
 // ── a fake Project Observatory engine
 function fakeObservatory() {
@@ -61,8 +63,11 @@ if cmd == 'where':
     sys.stderr.write(f'{name} is not in the vault\\n'); sys.exit(0)
 if cmd == 'run':
     head = args[1:args.index('--')]
-    project, name = [a for a in head if a not in ('--env', env)][:2]
+    project, name = [a for a in head if a not in ('--env', env, '--vault-only')][:2]
     child = args[args.index('--') + 1:]
+    import time
+    time.sleep(float(os.environ.get('FAKE_RUN_SLEEP', '0')))
+    if os.environ.get('FAKE_RUN_NOWRITE'): sys.exit(0)
     value = open(os.path.join(STORE, project, env, name)).read()
     e = dict(os.environ); e[name] = value
     p = subprocess.run(child, env=e, capture_output=True)
@@ -130,7 +135,7 @@ test('connect: the link is exactly what Fabric Inbox parses, and the state is si
   const o = fakeObservatory()
   const store = recordingStore()
   let origin = ''
-  const connector = new ProductConnector({ store, vault: createObservatoryVault({ launcher: o.launcher, env: o.env }), origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
+  const connector = new ProductConnector({ estateId: ESTATE_A, store, vault: createObservatoryVault({ launcher: o.launcher, env: o.env }), origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
   const surface = await hubWith(connector)
   origin = surface.origin
   assert.equal((await connector.begin(FABRIC_INBOX)).ok, true)
@@ -148,10 +153,12 @@ test('connect: the link is exactly what Fabric Inbox parses, and the state is si
   const key = { id: 'key-1', clientId: 'abc.access', level: 'admin', send: 'send', expiresAt: '2027-10-03T00:00:00Z' }
   const ok = await deliver(origin, { state, outcome: 'connected', server: 'https://mail.example.com', mcpUrl: 'https://mail.example.com/mcp', key, clientSecret: SECRET })
   assert.equal(ok.status, 200)
-  assert.equal(readFileSync(path.join(o.store, 'fabric/local/FABRIC_INBOX_CLIENT_SECRET'), 'utf8'), SECRET)
   assert.equal(store.events.length, 1)
   assert.equal(store.events[0].type, 'product.connected@1')
-  assert.deepEqual(store.events[0].payload.secret_ref, FABRIC_INBOX.secret)
+  // The slot is this estate's and this connection's own (DA-6): prefix, estate hex, connection hex.
+  const ref = store.events[0].payload.secret_ref
+  assert.deepEqual(ref, { ...FABRIC_INBOX.secret, name: `FABRIC_INBOX_CLIENT_SECRET_0000000000004000800000000000000A_${store.events[0].payload.id.replace(/-/g, '').toUpperCase()}` })
+  assert.equal(readFileSync(path.join(o.store, `fabric/local/${ref.name}`), 'utf8'), SECRET)
   assert.ok(!JSON.stringify(store.events).includes(SECRET), 'the secret reached the journal')
   assert.equal(connector.lastOutcome('fabric-inbox').outcome, 'connected')
 
@@ -166,7 +173,7 @@ test('connect: denied and failed are recorded; a browser, a wrong state, an expi
   const store = recordingStore()
   const puts = []
   let origin = ''
-  const connector = new ProductConnector({ store, vault: { put: async (s, v) => { puts.push(v); return { ok: true } }, read: async () => ({ ok: false, reason: 'n/a' }) }, origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }), now: () => clock })
+  const connector = new ProductConnector({ estateId: ESTATE_A, store, vault: { put: async (s, v) => { puts.push(v); return { ok: true } }, read: async () => ({ ok: false, reason: 'n/a' }) }, origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }), now: () => clock })
   const surface = await hubWith(connector)
   origin = surface.origin
   const stateOf = async () => { await connector.begin(FABRIC_INBOX); return new URL(opened.at(-1)).searchParams.get('state') }
@@ -174,6 +181,7 @@ test('connect: denied and failed are recorded; a browser, a wrong state, an expi
   assert.equal((await deliver(origin, { state: await stateOf(), outcome: 'denied' })).status, 200)
   assert.equal(connector.lastOutcome('fabric-inbox').outcome, 'denied')
   assert.equal((await deliver(origin, { state: await stateOf(), outcome: 'failed', error: 'sign_in_required' })).status, 200)
+  assert.equal(connector.lastOutcome('fabric-inbox').problem.code, 'sign_in_required')
   assert.match(connector.lastOutcome('fabric-inbox').reason, /sign in again/)
 
   const s1 = await stateOf()
@@ -187,14 +195,15 @@ test('connect: denied and failed are recorded; a browser, a wrong state, an expi
   const bad = await deliver(origin, { state: s3, outcome: 'connected', server: 'http://mail.example.com', mcpUrl: 'https://mail.example.com/mcp', key: { id: 'k', clientId: 'c', level: 'admin', send: 'send', expiresAt: null }, clientSecret: SECRET })
   assert.equal(bad.status, 400)
   assert.equal(puts.length, 0, 'an unusable delivery reached the vault')
-  assert.equal(store.events.length, 0)
+  // Only the product's own Deny and failure are journalled (DA-7); no refused delivery is.
+  assert.deepEqual(store.events.map((e) => e.type), ['product.connect.refused@1', 'product.connect.refused@1'])
   await surface.stop()
 })
 
 test('a closed hub (no published door token) opens neither the callback nor any external door', async () => {
   const opened = []
   let origin = ''
-  const connector = new ProductConnector({ store: recordingStore(), vault: { put: async () => ({ ok: true }), read: async () => ({ ok: false, reason: 'n/a' }) }, origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
+  const connector = new ProductConnector({ estateId: ESTATE_A, store: recordingStore(), vault: { put: async () => ({ ok: true }), read: async () => ({ ok: false, reason: 'n/a' }) }, origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
   const surface = await hubWith(connector)
   origin = surface.origin
   await connector.begin(FABRIC_INBOX)
@@ -212,7 +221,7 @@ test('connect: without the vault the callback answers 503, so the product revoke
   const opened = []
   const store = recordingStore()
   let origin = ''
-  const connector = new ProductConnector({ store, vault: createObservatoryVault({ launcher: 'project-observatory-not-installed-here' }), origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
+  const connector = new ProductConnector({ estateId: ESTATE_A, store, vault: createObservatoryVault({ launcher: 'project-observatory-not-installed-here' }), origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
   const surface = await hubWith(connector)
   origin = surface.origin
   await connector.begin(FABRIC_INBOX)
@@ -220,8 +229,9 @@ test('connect: without the vault the callback answers 503, so the product revoke
   const r = await deliver(origin, { state, outcome: 'connected', server: 'https://mail.example.com', mcpUrl: 'https://mail.example.com/mcp', key: { id: 'k', clientId: 'c', level: 'admin', send: 'send', expiresAt: null }, clientSecret: SECRET })
   assert.equal(r.status, 503)
   assert.match((await r.json()).reason, /Project Observatory is not installed/)
-  // Recorded first, then withdrawn when the vault would not keep the secret: no connection is left live.
-  assert.deepEqual(store.events.map((e) => e.type), ['product.connected@1', 'product.disconnected@1'])
+  // The secret first (ER-6): a vault that would not keep it leaves nothing recorded.
+  assert.deepEqual(store.events, [])
+  assert.equal(connector.lastOutcome('fabric-inbox').problem.code, 'vault')
   assert.match(connector.lastOutcome('fabric-inbox').reason, /not kept/)
   await surface.stop()
 })
@@ -459,7 +469,7 @@ test('a vault that cannot hand over the key: the agent hears a plain sentence, n
 test('connect: a callback whose body does not arrive in time is answered 408, and the hub is not held open', async () => {
   const opened = []
   let origin = ''
-  const connector = new ProductConnector({ store: recordingStore(), vault: { put: async () => ({ ok: true }), read: async () => ({ ok: false, reason: 'n/a' }) }, origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }), bodyTimeoutMs: 300 })
+  const connector = new ProductConnector({ estateId: ESTATE_A, store: recordingStore(), vault: { put: async () => ({ ok: true }), read: async () => ({ ok: false, reason: 'n/a' }) }, origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }), bodyTimeoutMs: 300 })
   const surface = await hubWith(connector)
   origin = surface.origin
   try {
@@ -551,31 +561,31 @@ async function connectWith({ append, put, live = null }) {
     append: async (type, actor, payload) => { await append?.(type, payload); events.push({ type, payload }); return events.length },
     liveConnection: async () => live
   }
-  const connector = new ProductConnector({ store, vault: { put: async (s, v) => { puts.push(v); return put ? put(v) : { ok: true } }, read: async () => ({ ok: false, reason: 'n/a' }) }, origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
+  const connector = new ProductConnector({ estateId: ESTATE_A, store, vault: { put: async (s, v) => { puts.push(v); return put ? put(v) : { ok: true } }, read: async () => ({ ok: false, reason: 'n/a' }) }, origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }) })
   const surface = await hubWith(connector)
   origin = surface.origin
   return { connector, surface, events, puts, opened, origin }
 }
 const delivery = (state) => ({ state, outcome: 'connected', server: 'https://mail.example.com', mcpUrl: 'https://mail.example.com/mcp', key: { id: 'key-2', clientId: 'new.access', level: 'admin', send: 'send', expiresAt: null }, clientSecret: SECRET + '-new' })
 
-test('connect: the record is written before the secret — a failed record leaves the vault (and the live connection\'s secret) untouched', async () => {
+test('connect: a failed record answers non-2xx after the secret went to a slot of its own — the live connection\'s slot is untouched', async () => {
   const c = await connectWith({ append: async () => { throw new Error('journal down') } })
   try {
     await c.connector.begin(FABRIC_INBOX, { reconnect: true })
     const r = await deliver(c.origin, delivery(new URL(c.opened[0]).searchParams.get('state')))
     assert.equal(r.status, 500)
-    assert.deepEqual(c.puts, [], 'the secret was switched although the connection naming it was never recorded')
+    assert.deepEqual(c.puts, [SECRET + '-new'], 'the new secret goes only to its own new slot')
+    assert.deepEqual(c.events, [])
   } finally { await c.surface.stop() }
 })
 
-test('connect: a secret the vault would not keep withdraws the connection just recorded, so no client id is left beside another key\'s secret', async () => {
+test('connect: a secret the vault would not keep is never recorded, so no client id is left beside another key\'s secret', async () => {
   const c = await connectWith({ put: async () => ({ ok: false, reason: 'vault locked' }) })
   try {
     await c.connector.begin(FABRIC_INBOX)
     const r = await deliver(c.origin, delivery(new URL(c.opened[0]).searchParams.get('state')))
     assert.equal(r.status, 503)
-    assert.deepEqual(c.events.map((e) => e.type), ['product.connected@1', 'product.disconnected@1'])
-    assert.equal(c.events[1].payload.id, c.events[0].payload.id)
+    assert.deepEqual(c.events, [])
     assert.match(c.connector.lastOutcome('fabric-inbox').reason, /not kept/)
   } finally { await c.surface.stop() }
 })
@@ -586,10 +596,205 @@ test('connect: a product already connected is reconnected only when the operator
   try {
     const refused = await c.connector.begin(FABRIC_INBOX)
     assert.equal(refused.ok, false)
-    assert.match(refused.reason, /already connected.*Reconnect/)
+    assert.equal(refused.problem.code, 'already-connected')
+    assert.match(refused.reason, /already connected.*reconnect it/)
     assert.equal(c.opened.length, 0, 'the product was opened without the operator choosing to reconnect')
     assert.equal((await c.connector.begin(FABRIC_INBOX, { reconnect: true })).ok, true)
     assert.equal(c.opened.length, 1)
   } finally { await c.surface.stop() }
 })
+// ── verification iteration 1 for 0.3.1: the callback's deadline, a slot per estate and connection, the product's refusals
+/** An estate-scoped connection store applying product.connected@1 / product.disconnected@1 as migration 76's projector does. */
+function connectionStore(opts = {}) {
+  const events = []
+  const connections = new Map()
+  return {
+    events, connections,
+    liveConnection: async (p) => [...connections.values()].find((c) => c.product === p && c.removed_at === null) ?? null,
+    append: async (type, actor, payload) => {
+      await opts.beforeAppend?.(type, payload)
+      events.push({ type, payload })
+      if (type === 'product.connected@1') {
+        for (const c of connections.values()) if (c.product === payload.product && !c.removed_at) c.removed_at = 'superseded'
+        connections.set(payload.id, { ...payload, removed_at: null })
+      } else if (type === 'product.disconnected@1') connections.get(payload.id).removed_at = 'withdrawn'
+      return events.length
+    }
+  }
+}
+function memoryVault(opts = {}) {
+  const slots = new Map()
+  return {
+    slots,
+    put: async (slot, value) => { await opts.beforePut?.(slot); slots.set(`${slot.project}/${slot.env}/${slot.name}`, value); return opts.answer ?? { ok: true } },
+    read: async (slot) => (slots.has(`${slot.project}/${slot.env}/${slot.name}`) ? { ok: true, value: slots.get(`${slot.project}/${slot.env}/${slot.name}`) } : { ok: false, reason: 'no such slot' })
+  }
+}
+async function connectorOn({ store, vault, estateId = ESTATE_A, deadlineMs, now }) {
+  const opened = []
+  let origin = ''
+  const connector = new ProductConnector({ store, vault, estateId, origin: () => origin, openExternal: async (u) => { opened.push(u) }, actor: () => ({ kind: 'person', id: 'operator' }), callbackDeadlineMs: deadlineMs, now })
+  const surface = await hubWith(connector)
+  origin = surface.origin
+  const stateOf = async (opts) => { const r = await connector.begin(FABRIC_INBOX, opts); assert.equal(r.ok, true, JSON.stringify(r)); return new URL(opened.at(-1)).searchParams.get('state') }
+  return { connector, surface, origin, opened, stateOf }
+}
+const late = (ms) => new Promise((r) => setTimeout(r, ms))
+
+test('ER-6: a vault slower than the product\'s deadline is answered non-2xx and NOTHING is recorded — Fabric is never "connected" to a key the product revoked', async () => {
+  const store = connectionStore()
+  const vault = memoryVault({ beforePut: () => late(600) })
+  const c = await connectorOn({ store, vault, deadlineMs: 250 })
+  try {
+    const r = await deliver(c.origin, delivery(await c.stateOf()))
+    assert.ok(r.status >= 400, `answered ${r.status}`)
+    await late(800) // the slow vault finishes after the answer
+    assert.equal(await store.liveConnection('fabric-inbox'), null, 'Fabric recorded a connection after answering the product non-2xx')
+    assert.deepEqual(store.events.filter((e) => e.type === 'product.connected@1'), [])
+    assert.equal(c.connector.lastOutcome('fabric-inbox').outcome, 'failed')
+    assert.equal(c.connector.lastOutcome('fabric-inbox').problem.code, 'deadline')
+  } finally { await c.surface.stop() }
+})
+
+test('ER-6: a record that lands after the deadline is withdrawn; a Reconnect says the previous connection is gone', async () => {
+  const live = { id: 'c-old', product: 'fabric-inbox', removed_at: null }
+  const store = connectionStore({ beforeAppend: (type) => (type === 'product.connected@1' ? late(500) : undefined) })
+  store.connections.set('c-old', live)
+  const vault = memoryVault()
+  const c = await connectorOn({ store, vault, deadlineMs: 250 })
+  try {
+    const r = await deliver(c.origin, delivery(await c.stateOf({ reconnect: true })))
+    assert.ok(r.status >= 400, `answered ${r.status}`)
+    await late(700)
+    assert.deepEqual(store.events.map((e) => e.type), ['product.connected@1', 'product.disconnected@1'])
+    assert.equal(await store.liveConnection('fabric-inbox'), null)
+    const last = c.connector.lastOutcome('fabric-inbox')
+    assert.equal(last.problem.code, 'withdrawn')
+    assert.equal(last.problem.previousLost, true)
+  } finally { await c.surface.stop() }
+})
+
+test('ER-6: the secret is stored first, in a slot of its own, and only then recorded — a failed record leaves the live connection\'s slot untouched', async () => {
+  const order = []
+  const store = connectionStore({ beforeAppend: (type) => { order.push(type); throw new Error('journal down') } })
+  const vault = memoryVault({ beforePut: (slot) => { order.push(`put ${slot.name}`) } })
+  vault.slots.set('fabric/local/LIVE', 'live-secret')
+  const c = await connectorOn({ store, vault, deadlineMs: 2000 })
+  try {
+    const r = await deliver(c.origin, delivery(await c.stateOf({ reconnect: true })))
+    assert.equal(r.status, 500)
+    assert.match(order[0], /^put FABRIC_INBOX_CLIENT_SECRET_0{8}00004000800000000000000A_[0-9A-F]{32}$/)
+    assert.equal(order[1], 'product.connected@1')
+    assert.equal(vault.slots.get('fabric/local/LIVE'), 'live-secret')
+    assert.equal(c.connector.lastOutcome('fabric-inbox').problem.code, 'record-failed')
+  } finally { await c.surface.stop() }
+})
+
+test('ER-6: a vault that would not keep the secret answers 503 and records nothing', async () => {
+  const store = connectionStore()
+  const c = await connectorOn({ store, vault: memoryVault({ answer: { ok: false, reason: 'vault locked' } }), deadlineMs: 2000 })
+  try {
+    const r = await deliver(c.origin, delivery(await c.stateOf()))
+    assert.equal(r.status, 503)
+    assert.deepEqual(store.events, [])
+    assert.deepEqual(c.connector.lastOutcome('fabric-inbox').problem, { code: 'vault', detail: 'vault locked' })
+  } finally { await c.surface.stop() }
+})
+
+test('DA-6: two estates on one Mac each keep their own secret — connecting in one never overwrites the other\'s', async () => {
+  const vault = memoryVault()
+  const a = connectionStore()
+  const b = connectionStore()
+  const ca = await connectorOn({ store: a, vault, estateId: ESTATE_A })
+  const cb = await connectorOn({ store: b, vault, estateId: ESTATE_B })
+  try {
+    assert.equal((await deliver(ca.origin, { ...delivery(await ca.stateOf()), clientSecret: 'secret-of-A' })).status, 200)
+    assert.equal((await deliver(cb.origin, { ...delivery(await cb.stateOf()), clientSecret: 'secret-of-B' })).status, 200)
+    const refA = (await a.liveConnection('fabric-inbox')).secret_ref
+    const refB = (await b.liveConnection('fabric-inbox')).secret_ref
+    assert.notEqual(refA.name, refB.name)
+    assert.match(refA.name, /^[A-Z][A-Z0-9_]*$/)
+    assert.equal((await vault.read(refA)).value, 'secret-of-A')
+    assert.equal((await vault.read(refB)).value, 'secret-of-B')
+    assert.deepEqual(Object.keys(refA).sort(), ['env', 'name', 'project'])
+  } finally { await ca.surface.stop(); await cb.surface.stop() }
+})
+
+test('DA-7: the product\'s own Deny and failure are journalled as product.connect.refused@1', async () => {
+  const store = connectionStore()
+  const c = await connectorOn({ store, vault: memoryVault() })
+  try {
+    assert.equal((await deliver(c.origin, { state: await c.stateOf(), outcome: 'denied' })).status, 200)
+    assert.equal((await deliver(c.origin, { state: await c.stateOf(), outcome: 'failed', error: 'mint_failed' })).status, 200)
+    assert.deepEqual(store.events.map((e) => [e.type, e.payload]), [
+      ['product.connect.refused@1', { product: 'fabric-inbox', outcome: 'denied', error: null }],
+      ['product.connect.refused@1', { product: 'fabric-inbox', outcome: 'failed', error: 'mint_failed' }]
+    ])
+  } finally { await c.surface.stop() }
+})
+
+test('UX-6: "waiting" ends with the connect state — after 10 minutes with no answer the outcome is failed, no-answer', async () => {
+  let clock = Date.now()
+  const c = await connectorOn({ store: connectionStore(), vault: memoryVault(), now: () => clock })
+  try {
+    await c.stateOf()
+    assert.equal(c.connector.lastOutcome('fabric-inbox').outcome, 'waiting')
+    clock += 10 * 60_000 + 1
+    const last = c.connector.lastOutcome('fabric-inbox')
+    assert.equal(last.outcome, 'failed')
+    assert.equal(last.problem.code, 'no-answer')
+  } finally { await c.surface.stop() }
+})
+
+test('UX-7: a connect that cannot start says why as a code, naming nothing by its id', async () => {
+  const store = connectionStore()
+  store.connections.set('c-1', { id: 'c-1', product: 'fabric-inbox', removed_at: null })
+  const c = await connectorOn({ store, vault: memoryVault() })
+  try {
+    const r = await c.connector.begin(FABRIC_INBOX)
+    assert.equal(r.ok, false)
+    assert.equal(r.problem.code, 'already-connected')
+    assert.doesNotMatch(r.reason, /fabric-inbox/)
+  } finally { await c.surface.stop() }
+})
+
 // #endregion product-connect
+
+// ── ER-3 / ER-4 / ER-10 (verification iteration 1 for 0.3.1): reading the key must not park the main
+// process's thread pool, must end even when the vault tool exits 0 without handing anything over, and
+// must ask the vault ONLY (`--vault-only`), so a value appearing in an env file between the check and
+// the read is never used.
+test('vault: six slow reads at once leave an unrelated file read fast (no FIFO open on the thread pool)', async () => {
+  const { readFile } = await import('node:fs/promises')
+  const o = fakeObservatory()
+  const vault = createObservatoryVault({ launcher: o.launcher, env: { ...o.env, FAKE_RUN_SLEEP: '1.5' } })
+  assert.deepEqual(await createObservatoryVault({ launcher: o.launcher, env: o.env }).put(slot, SECRET), { ok: true })
+  const reads = Array.from({ length: 6 }, () => vault.read(slot))
+  await new Promise((r) => setTimeout(r, 900)) // every read has started and its engine is sleeping
+  const t0 = Date.now()
+  await readFile(o.log)
+  const took = Date.now() - t0
+  const answers = await Promise.all(reads)
+  assert.ok(took < 300, `an unrelated fs read took ${took} ms while six key reads waited`)
+  for (const a of answers) assert.deepEqual(a, { ok: true, value: SECRET })
+})
+
+test('vault: a run that exits 0 without handing the key over is a refusal, not a call that never ends', async () => {
+  const o = fakeObservatory()
+  assert.deepEqual(await createObservatoryVault({ launcher: o.launcher, env: o.env }).put(slot, SECRET), { ok: true })
+  const vault = createObservatoryVault({ launcher: o.launcher, env: { ...o.env, FAKE_RUN_NOWRITE: '1' } })
+  const r = await Promise.race([vault.read(slot), new Promise((resolve) => setTimeout(() => resolve('still pending after 5 s'), 5000))])
+  assert.notEqual(r, 'still pending after 5 s', 'the read never ended')
+  assert.equal(r.ok, false)
+  assert.match(r.reason, /handed nothing over/)
+})
+
+test('vault: the read asks the vault only — `run` carries --vault-only', async () => {
+  const o = fakeObservatory()
+  const vault = createObservatoryVault({ launcher: o.launcher, env: o.env })
+  await vault.put(slot, SECRET)
+  await vault.read(slot)
+  const runs = readFileSync(o.log, 'utf8').trim().split('\n').map((l) => JSON.parse(l)).filter((a) => a[0].endsWith('use_secret.py') && a[1] === 'run')
+  assert.equal(runs.length, 1)
+  assert.ok(runs[0].slice(0, runs[0].indexOf('--')).includes('--vault-only'), `run was called without --vault-only: ${runs[0].slice(1, 7).join(' ')}`)
+})

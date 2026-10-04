@@ -306,6 +306,17 @@ button:disabled { opacity: .4; cursor: default; }
 /* In the narrow panel the title keeps its line and the actions take the next one. */
 .ceo-panel .panel-head .panel-title { flex: 1 0 100%; }
 
+/* Agent access (SCR-76): one bordered card per product, request and agent; the text owns the width and
+   the acts take their own line under it, so a narrow panel never squeezes the words into a column (UX-1). */
+.access-card { border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-2); margin-bottom: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); }
+.access-card p { margin: 0; }
+.access-name { margin: 0; font-size: var(--app-fs-body); }
+.access-asks { margin: 0; padding-left: var(--space-3); }
+.access-url { overflow-wrap: anywhere; }
+.access-problem { color: var(--state-ink); border-left: 2px solid var(--state-idle); padding-left: var(--space-2); }
+.access-acts { margin-top: var(--space-1); }
+.access-detail { display: block; overflow-wrap: anywhere; }
+
 /* The conversation with Fabric (SCR-64), opened from the launcher in the navigation. The panel
    reuses .ceo-panel; the log is the only growing area and the composer stays at the bottom. */
 .chat-log { display: flex; flex-direction: column; gap: var(--space-2); min-height: 8rem; overflow-y: auto; }

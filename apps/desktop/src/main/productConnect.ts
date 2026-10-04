@@ -14,15 +14,22 @@
 // use (spent before anything is awaited), dead after 10 minutes. A request carrying an `Origin`
 // header is a browser, not the product's app, and is refused before the body is read.
 //
-// THE RECORD FIRST, THEN THE SECRET. `product.connected@1` (metadata and the vault slot) is journalled,
-// and only then is the secret switched in the vault (`observatoryVault.ts`, and nowhere else); only then
-// is 200 answered. The order is the point (security review of PR #7): the vault slot is one per product,
-// so switching the secret first and then failing to record would leave the LIVE connection's client id
-// beside the NEW key's secret. Recorded first, a failed record leaves the old pair whole (and answers
-// non-2xx, so the product revokes the new key); a vault that then refuses the secret has the new record
-// withdrawn (`product.disconnected@1`) and answers 503, so the product revokes it too — a key nobody can
-// keep safely is a key that should not exist. Until the vault answers, a call pairs the new client id
-// with the old secret, which the product refuses; nothing is widened.
+// ONE DEADLINE, BELOW THE PRODUCT'S (verification iteration 1 for 0.3.1, ER-6). The product revokes the key
+// unless the callback answers 2xx within 10 s, so the whole callback — body, vault, record — runs inside
+// `callbackDeadlineMs` (8 s). Past it, or once the product has hung up, Fabric answers non-2xx and records
+// nothing; Fabric is never left "connected" to a key the product has already revoked.
+//
+// THE SECRET FIRST, IN A SLOT OF ITS OWN, THEN THE RECORD (DA-6). Each connection's secret has its own vault
+// slot, named by the estate and the connection: `FABRIC_INBOX_CLIENT_SECRET_<ESTATE>_<CONNECTION>` (hex,
+// upper case). So two estates on one Mac never share a secret, and writing the new key's secret touches
+// nothing a live connection reads — the reason the security review of PR #7 put the record first is gone.
+// Only after the vault has kept the secret, and only inside the deadline, is `product.connected@1`
+// appended (which, for a Reconnect, supersedes the previous connection in the same event) and 200
+// answered. A vault that refuses, or is too slow, leaves NO record and the previous connection whole;
+// the product revokes the new key. A record that itself lands after the deadline is withdrawn at once
+// (`product.disconnected@1`) — and for a Reconnect the previous connection was already superseded by it,
+// which the outcome says (`previousLost`). A secret written to a slot no record names is inert: the
+// product has revoked its key. Superseded slots stay in the vault until removed there (`vault.py`).
 //
 // RECONNECT IS A CHOICE. A product already connected is connected again only when the operator chose
 // Reconnect (`begin(spec, { reconnect: true })`); every other caller is refused while a connection lives.
@@ -30,10 +37,13 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { randomBytes, randomUUID } from 'node:crypto'
 import type { AccessActor, AccessStore } from './accessStore.ts'
+import { productName, type ConnectProblem, type ConnectProblemCode } from '../shared/access.ts'
 import type { SecretSlot, VaultPort } from './observatoryVault.ts'
 import { ops } from './opsSink.ts'
 
 export const CONNECT_STATE_TTL_MS = 10 * 60 * 1000
+/** The whole callback answers within this; the product's own limit is 10 s (ADR-0115 §4.4). */
+export const CALLBACK_DEADLINE_MS = 8000
 const MAX_CALLBACK_BYTES = 64 * 1024
 const FAILURES = new Set(['no_server', 'sign_in_required', 'mint_failed'])
 
@@ -44,7 +54,17 @@ export interface ProductSpec {
   client: string
   clientId: string
   level: 'read' | 'mail' | 'admin'
+  /** The vault slot's project, env and name prefix; the estate and the connection complete the name. */
   secret: SecretSlot
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const hexOf = (uuid: string): string => uuid.replace(/-/g, '').toUpperCase()
+
+/** The vault slot of ONE connection in ONE estate: `<PREFIX>_<ESTATE HEX>_<CONNECTION HEX>` (DA-6). */
+export function secretSlotFor(spec: ProductSpec, estateId: string, connectionId: string): SecretSlot {
+  if (!UUID.test(estateId) || !UUID.test(connectionId)) throw new Error('a secret slot is named by an estate id and a connection id (UUIDs)')
+  return { ...spec.secret, name: `${spec.secret.name}_${hexOf(estateId)}_${hexOf(connectionId)}` }
 }
 
 export const FABRIC_INBOX: ProductSpec = {
@@ -58,16 +78,21 @@ export const FABRIC_INBOX: ProductSpec = {
   secret: { project: 'fabric', env: 'local', name: 'FABRIC_INBOX_CLIENT_SECRET' }
 }
 
-/** The last outcome of a connect attempt, for the operator's screen. */
+/** The last outcome of a connect attempt, for the operator's screen. `problem` is phrased there (en/ru);
+ *  `reason` is the same in English, for the operations log. */
 export type ConnectOutcome =
-  | { product: string; outcome: 'waiting'; since: string }
-  | { product: string; outcome: 'connected'; at: string }
+  | { product: string; outcome: 'waiting'; since: string; reconnect: boolean }
+  | { product: string; outcome: 'connected'; at: string; reconnect: boolean }
   | { product: string; outcome: 'denied'; at: string }
-  | { product: string; outcome: 'failed'; at: string; reason: string }
+  | { product: string; outcome: 'failed'; at: string; problem: ConnectProblem; reason: string }
+
+export type BeginAnswer = { ok: true; expiresAt: string } | { ok: false; problem: ConnectProblem; reason: string }
 
 export interface ProductConnectorDeps {
   store: Pick<AccessStore, 'append' | 'liveConnection'>
   vault: VaultPort
+  /** The estate this connector's connections belong to; it names their vault slots (DA-6). */
+  estateId: string
   /** The hub's origin, `http://127.0.0.1:<port>`; empty while the hub is not listening. */
   origin: () => string
   openExternal: (url: string) => Promise<void>
@@ -79,11 +104,15 @@ export interface ProductConnectorDeps {
   changed?: (outcome: ConnectOutcome) => void
   /** How long the callback's body may take to arrive (default 5 s; the product gives up at 10 s). */
   bodyTimeoutMs?: number
+  /** The whole callback's deadline (default 8 s), below the product's 10 s (ER-6). */
+  callbackDeadlineMs?: number
 }
 
 interface PendingState {
   spec: ProductSpec
   createdAt: number
+  /** The operator chose Reconnect: a live connection exists and this attempt replaces it on success. */
+  reconnect: boolean
 }
 
 /**
@@ -137,15 +166,18 @@ export class ProductConnector {
   private now: () => number
   private random: (n: number) => Buffer
   private bodyTimeoutMs: number
+  private callbackDeadlineMs: number
   private pending = new Map<string, PendingState>()
   private last = new Map<string, ConnectOutcome>()
 
   // Assigned in the body: Node's type-stripping loader rejects parameter properties.
   constructor(deps: ProductConnectorDeps) {
+    if (!UUID.test(deps.estateId)) throw new Error('a ProductConnector belongs to one estate (a UUID)')
     this.deps = deps
     this.now = deps.now ?? Date.now
     this.random = deps.random ?? randomBytes
     this.bodyTimeoutMs = deps.bodyTimeoutMs ?? 5000
+    this.callbackDeadlineMs = deps.callbackDeadlineMs ?? CALLBACK_DEADLINE_MS
   }
 
   private settle(outcome: ConnectOutcome): void {
@@ -153,7 +185,26 @@ export class ProductConnector {
     this.deps.changed?.(outcome)
   }
 
+  private failed(product: string, at: string, problem: ConnectProblem, reason: string): void {
+    this.settle({ product, outcome: 'failed', at, problem, reason })
+  }
+
+  private prune(now: number): void {
+    for (const [s, p] of this.pending) if (now - p.createdAt > CONNECT_STATE_TTL_MS) this.pending.delete(s)
+  }
+
+  /**
+   * The last attempt, as the operator's screen shows it. "Waiting" lasts only while a connect state is
+   * alive (UX-6): once the 10-minute window has passed with no answer, it reads as failed, no answer.
+   */
   lastOutcome(product: string): ConnectOutcome | null {
+    const last = this.last.get(product) ?? null
+    if (last?.outcome !== 'waiting') return last
+    const now = this.now()
+    this.prune(now)
+    if ([...this.pending.values()].some((p) => p.spec.product === product)) return last
+    const at = new Date(Date.parse(last.since) + CONNECT_STATE_TTL_MS).toISOString()
+    this.failed(product, at, { code: 'no-answer' }, `no answer from ${productName(product)} within 10 minutes`)
     return this.last.get(product) ?? null
   }
 
@@ -168,8 +219,10 @@ export class ProductConnector {
    * Start connecting: mint a state, open the product's link. The answer arrives at the callback.
    * A product that is already connected is refused unless the operator chose Reconnect.
    */
-  async begin(spec: ProductSpec, opts: { reconnect?: boolean } = {}): Promise<{ ok: true; expiresAt: string } | { ok: false; reason: string }> {
-    if (!this.deps.origin()) return { ok: false, reason: 'the hub is not listening, so the product would have nowhere to deliver its key' }
+  async begin(spec: ProductSpec, opts: { reconnect?: boolean } = {}): Promise<BeginAnswer> {
+    const name = productName(spec.product)
+    const refuse = (code: ConnectProblemCode, reason: string, detail?: string): BeginAnswer => ({ ok: false, problem: detail ? { code, detail } : { code }, reason })
+    if (!this.deps.origin()) return refuse('hub-off', `the hub is not listening, so ${name} would have nowhere to deliver its key`)
     if (!opts.reconnect) {
       let live: Awaited<ReturnType<AccessStore['liveConnection']>>
       try {
@@ -177,40 +230,72 @@ export class ProductConnector {
       } catch (e) {
         // A read that fails is not "not connected": opening the product could replace a live key.
         ops.failed('connect.live-read', e, { product: spec.product })
-        return { ok: false, reason: `whether ${spec.product} is already connected could not be read: ${(e as Error).message}` }
+        return refuse('live-unreadable', `whether ${name} is already connected could not be read: ${(e as Error).message}`, (e as Error).message)
       }
-      if (live) return { ok: false, reason: `${spec.product} is already connected; choose Reconnect to replace its key` }
+      if (live) return refuse('already-connected', `${name} is already connected; reconnect it to replace its key`)
     }
     const now = this.now()
-    for (const [s, p] of this.pending) if (now - p.createdAt > CONNECT_STATE_TTL_MS) this.pending.delete(s)
+    this.prune(now)
     if ([...this.pending.values()].filter((p) => p.spec.product === spec.product).length >= 3)
-      return { ok: false, reason: `a connection to ${spec.product} is already waiting for its answer` }
+      return refuse('busy', `a connection to ${name} is already waiting for its answer`)
     const state = this.random(32).toString('base64url')
-    this.pending.set(state, { spec, createdAt: now })
+    const reconnect = opts.reconnect === true
+    this.pending.set(state, { spec, createdAt: now, reconnect })
     const link = this.linkFor(spec, state)
     try {
       await this.deps.openExternal(link)
     } catch (e) {
       this.pending.delete(state)
       ops.failed('connect.open', e, { product: spec.product })
-      const reason = `${spec.product} could not be opened — is its app installed? (${(e as Error).message})`
-      this.settle({ product: spec.product, outcome: 'failed', at: new Date(now).toISOString(), reason })
-      return { ok: false, reason }
+      const reason = `${name} could not be opened — is its app installed? (${(e as Error).message})`
+      const problem: ConnectProblem = { code: 'not-installed', detail: (e as Error).message }
+      this.failed(spec.product, new Date(now).toISOString(), problem, reason)
+      return { ok: false, problem, reason }
     }
-    ops.record({ op: 'connect.begin', outcome: 'ok', detail: { product: spec.product }, ctx: { correlationId: ops.correlate() } })
-    this.settle({ product: spec.product, outcome: 'waiting', since: new Date(now).toISOString() })
+    ops.record({ op: 'connect.begin', outcome: 'ok', detail: { product: spec.product, reconnect }, ctx: { correlationId: ops.correlate() } })
+    this.settle({ product: spec.product, outcome: 'waiting', since: new Date(now).toISOString(), reconnect })
     return { ok: true, expiresAt: new Date(now + CONNECT_STATE_TTL_MS).toISOString() }
   }
 
-  /** `POST /fabric/v1/connect/<product>`. Answers fast; 2xx only once the key is safely stored. */
+  /** The product's own Deny or failure, in the journal (DA-7). Its absence would only cost history. */
+  private async journalRefusal(product: string, outcome: 'denied' | 'failed', error: string | null): Promise<void> {
+    try {
+      await this.deps.store.append('product.connect.refused@1', this.deps.actor(), { product, outcome, error })
+    } catch (e) {
+      // The product has already decided; the answer to it does not depend on our history. Logged, not hidden.
+      ops.failed('connect.refused-record', e, { product, outcome, error })
+    }
+  }
+
+  /**
+   * `POST /fabric/v1/connect/<product>`. 2xx only once the key is safely stored AND recorded, inside
+   * one deadline below the product's own (ER-6); anything else is non-2xx, so the product revokes it.
+   */
   async callback(product: string, req: IncomingMessage, res: ServerResponse): Promise<void> {
+    // THE DEADLINE, AND THE PRODUCT HANGING UP, END THE WAIT ALIKE: either way a 2xx would reach no one.
+    let late = false
+    let timer: NodeJS.Timeout | undefined
+    const deadline = new Promise<'late'>((resolve) => {
+      const end = (): void => { late = true; resolve('late') }
+      timer = setTimeout(end, this.callbackDeadlineMs)
+      res.once('close', () => { if (!res.writableFinished) end() })
+    })
+    try {
+      await this.answer(product, req, res, deadline, () => late)
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+
+  private async answer(product: string, req: IncomingMessage, res: ServerResponse, deadline: Promise<'late'>, isLate: () => boolean): Promise<void> {
+    const name = productName(product)
     const fail = (status: number, error: string, detail?: Record<string, unknown>): void => {
       ops.record({ op: 'connect.callback', outcome: 'ok', level: 'warn', detail: { product, refused: error, status, ...detail }, ctx: { correlationId: ops.correlate() } })
       write(res, status, { error })
     }
     if (req.headers.origin !== undefined) return fail(403, 'a browser cannot deliver a key')
     if (!/^application\/json\b/i.test(req.headers['content-type'] ?? '')) return fail(415, 'expected application/json')
-    const read = await readBounded(req, MAX_CALLBACK_BYTES, this.bodyTimeoutMs)
+    const read = await readBounded(req, MAX_CALLBACK_BYTES, Math.min(this.bodyTimeoutMs, this.callbackDeadlineMs))
     if (!read.ok) {
       // The connection is closed after the answer: a sender that is still trickling bytes is not waited on.
       res.once('finish', () => req.destroy())
@@ -231,25 +316,27 @@ export class ProductConnector {
     if (!pending || pending.spec.product !== product) return fail(400, 'unknown or already used state')
     const at = new Date(this.now()).toISOString()
     if (this.now() - pending.createdAt > CONNECT_STATE_TTL_MS) {
-      this.settle({ product, outcome: 'failed', at, reason: 'the product answered after the 10-minute window' })
+      this.failed(product, at, { code: 'late' }, `${name} answered after the 10-minute window`)
       return fail(400, 'the state expired')
     }
 
     if (body.outcome === 'denied') {
       this.settle({ product, outcome: 'denied', at })
       ops.record({ op: 'connect.callback', outcome: 'ok', detail: { product, outcome: 'denied' }, ctx: { correlationId: ops.correlate() } })
+      await this.journalRefusal(product, 'denied', null)
       return write(res, 200, { ok: true })
     }
     if (body.outcome === 'failed') {
       const error = typeof body.error === 'string' && FAILURES.has(body.error) ? body.error : 'unknown'
       const reasons: Record<string, string> = {
-        no_server: `${product} has no server set up yet`,
-        sign_in_required: `${product} needs you to sign in again; it has opened its sign-in`,
-        mint_failed: `${product} could not make the key`,
-        unknown: `${product} reported a failure Fabric does not recognise`
+        no_server: `${name} has no server set up yet`,
+        sign_in_required: `${name} needs you to sign in again; it has opened its sign-in`,
+        mint_failed: `${name} could not make the key`,
+        unknown: `${name} reported a failure Fabric does not recognise`
       }
-      this.settle({ product, outcome: 'failed', at, reason: reasons[error] })
+      this.failed(product, at, { code: error as ConnectProblemCode }, reasons[error])
       ops.record({ op: 'connect.callback', outcome: 'ok', level: 'warn', detail: { product, outcome: 'failed', error }, ctx: { correlationId: ops.correlate() } })
+      await this.journalRefusal(product, 'failed', error)
       return write(res, 200, { ok: true })
     }
     if (body.outcome !== 'connected') return fail(400, 'unknown outcome')
@@ -269,28 +356,52 @@ export class ProductConnector {
     }
     if (typeof secret !== 'string' || !secret || secret.length > 4096) problems.push('clientSecret')
     if (problems.length) {
-      this.settle({ product, outcome: 'failed', at, reason: `${product} delivered a key Fabric cannot use (${problems.join(', ')})` })
+      this.failed(product, at, { code: 'invalid-delivery', detail: problems.join(', ') }, `${name} delivered a key Fabric cannot use (${problems.join(', ')})`)
       return fail(400, `invalid delivery: ${problems.join(', ')}`)
     }
     const k = key as { id: string; clientId: string; level: string; send: string; expiresAt?: string | null }
-
     const id = randomUUID()
-    try {
-      await this.deps.store.append('product.connected@1', this.deps.actor(), {
-        id, product, server: body.server, mcp_url: body.mcpUrl, key_id: k.id, client_id: k.clientId,
-        level: k.level, send: k.send, key_expires_at: k.expiresAt ?? null, secret_ref: pending.spec.secret
-      })
-    } catch (e) {
-      // Nothing was switched: the vault still holds the live connection's own secret. Answering non-2xx
-      // makes the product revoke the key it just minted.
-      ops.failed('connect.record', e, { product, key_id: k.id })
-      this.settle({ product, outcome: 'failed', at, reason: `the connection could not be recorded: ${(e as Error).message}` })
+    const slot = secretSlotFor(pending.spec, this.deps.estateId, id)
+    const tooLate = (stage: string): void => {
+      ops.record({ op: 'connect.callback', outcome: 'failed', level: 'error', detail: { product, stage, refused: 'deadline', key_id: k.id, connection_id: id, deadline_ms: this.callbackDeadlineMs }, ctx: { correlationId: ops.correlate() } })
+      this.failed(product, at, { code: 'deadline' }, `Fabric could not keep the key within ${name}'s 10 seconds (stage: ${stage})`)
+      write(res, 504, { error: 'deadline' })
+    }
+
+    // 1. THE SECRET, into a slot no live connection reads.
+    const put = this.deps.vault.put(slot, secret as string)
+    const stored = await Promise.race([put, deadline])
+    if (stored === 'late') {
+      // The put may still finish: its slot is named by no record, and the product revokes the key.
+      put.then((r) => ops.record({ op: 'connect.callback', outcome: 'ok', level: 'warn', detail: { product, stage: 'vault-after-deadline', stored: r.ok, connection_id: id }, ctx: { correlationId: ops.correlate() } }), () => undefined)
+      return tooLate('vault')
+    }
+    if (!stored.ok) {
+      this.failed(product, at, { code: 'vault', detail: stored.reason }, `the key was not kept: ${stored.reason}`)
+      ops.record({ op: 'connect.callback', outcome: 'failed', level: 'error', detail: { product, stage: 'vault', reason: stored.reason, key_id: k.id, connection_id: id }, ctx: { correlationId: ops.correlate() } })
+      return write(res, 503, { error: 'vault_unavailable', reason: stored.reason })
+    }
+    if (isLate()) return tooLate('vault')
+
+    // 2. THE RECORD, only now — and withdrawn if it lands after the product stopped waiting.
+    const appended = this.deps.store.append('product.connected@1', this.deps.actor(), {
+      id, product, server: body.server, mcp_url: body.mcpUrl, key_id: k.id, client_id: k.clientId,
+      level: k.level, send: k.send, key_expires_at: k.expiresAt ?? null, secret_ref: slot
+    }).then(() => 'recorded' as const, (e: unknown) => ({ error: e as Error }))
+    const recorded = await Promise.race([appended, deadline])
+    if (recorded !== 'late' && recorded !== 'recorded') {
+      ops.failed('connect.record', recorded.error, { product, key_id: k.id })
+      this.failed(product, at, { code: 'record-failed', detail: recorded.error.message }, `the connection could not be recorded: ${recorded.error.message}`)
       return write(res, 500, { error: 'record_failed' })
     }
-    const stored = await this.deps.vault.put(pending.spec.secret, secret as string)
-    if (!stored.ok) {
-      // The record names a key whose secret is not kept: withdraw it, so no call pairs this client id with
-      // the previous key's secret, and answer 503 so the product revokes the new key.
+    if (recorded === 'late' || isLate()) {
+      write(res, 504, { error: 'deadline' })
+      const landed = recorded === 'recorded' ? 'recorded' : await appended
+      if (landed !== 'recorded') {
+        ops.failed('connect.record', landed.error, { product, key_id: k.id, after: 'deadline' })
+        this.failed(product, at, { code: 'deadline' }, `Fabric could not record the key within ${name}'s 10 seconds`)
+        return
+      }
       let withdrawn = true
       try {
         await this.deps.store.append('product.disconnected@1', this.deps.actor(), { id })
@@ -298,19 +409,26 @@ export class ProductConnector {
         withdrawn = false
         ops.failed('connect.withdraw', e, { product, connection_id: id, key_id: k.id })
       }
-      this.settle({ product, outcome: 'failed', at, reason: `the key was not kept: ${stored.reason}${withdrawn ? '' : ' — and the connection could not be withdrawn; disconnect it in Settings → Agent access'}` })
-      ops.record({ op: 'connect.callback', outcome: 'failed', level: 'error', detail: { product, stage: 'vault', reason: stored.reason, key_id: k.id, connection_id: id, withdrawn }, ctx: { correlationId: ops.correlate() } })
-      return write(res, 503, { error: 'vault_unavailable', reason: stored.reason })
+      ops.record({ op: 'connect.callback', outcome: 'failed', level: 'error', detail: { product, stage: 'record-after-deadline', connection_id: id, key_id: k.id, withdrawn, reconnect: pending.reconnect }, ctx: { correlationId: ops.correlate() } })
+      const problem: ConnectProblem = withdrawn
+        ? (pending.reconnect ? { code: 'withdrawn', previousLost: true } : { code: 'withdrawn' })
+        : { code: 'record-failed', detail: 'the late record could not be withdrawn; disconnect it in Settings → Agent access' }
+      this.failed(product, at, problem, withdrawn ? 'the key was recorded after the product stopped waiting, and was withdrawn' : 'the late record could not be withdrawn')
+      return
     }
-    ops.record({ op: 'connect.callback', outcome: 'ok', detail: { product, outcome: 'connected', connection_id: id, key_id: k.id, level: k.level }, ctx: { correlationId: ops.correlate() } })
-    this.settle({ product, outcome: 'connected', at })
+    ops.record({ op: 'connect.callback', outcome: 'ok', detail: { product, outcome: 'connected', connection_id: id, key_id: k.id, level: k.level, reconnect: pending.reconnect }, ctx: { correlationId: ops.correlate() } })
+    this.settle({ product, outcome: 'connected', at, reconnect: pending.reconnect })
     write(res, 200, { ok: true })
   }
 
-  /** The operator's disconnect: Fabric stops forwarding; the key itself is revoked in the product. */
-  async disconnect(product: string): Promise<{ ok: true } | { ok: false; reason: string }> {
+  /**
+   * The operator's disconnect: Fabric stops using the connection. The key itself stays valid in the
+   * product until the operator revokes it there, and its secret stays in its vault slot (no record names
+   * it any more) — SCN-133 and SCR-76 say both.
+   */
+  async disconnect(product: string): Promise<{ ok: true } | { ok: false; problem: ConnectProblem; reason: string }> {
     const live = await this.deps.store.liveConnection(product)
-    if (!live) return { ok: false, reason: `${product} is not connected` }
+    if (!live) return { ok: false, problem: { code: 'not-connected' }, reason: `${productName(product)} is not connected` }
     await this.deps.store.append('product.disconnected@1', this.deps.actor(), { id: live.id })
     ops.record({ op: 'connect.disconnect', outcome: 'ok', detail: { product, connection_id: live.id }, ctx: { correlationId: ops.correlate() } })
     return { ok: true }

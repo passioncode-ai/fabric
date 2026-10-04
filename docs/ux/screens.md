@@ -54,7 +54,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-38 | Harness tool | FLW-24 | none — text-only | designed | none yet |
 | SCR-39 | Estate agents | FLW-21, FLW-27 | none — text-only | built | `apps/desktop/src/renderer/src/EstateAgents.tsx` |
 | SCR-40 | Graph explorer family | FLW-23, FLW-27 | none — text-only | built | `apps/desktop/src/renderer/src/launch/PlanScreen.tsx` |
-| SCR-41 | Ranked Board and question detail | FLW-25, FLW-26, FLW-27, FLW-28, FLW-29 | none — text-only | built | `apps/desktop/src/renderer/src/launch/BoardScreen.tsx` |
+| SCR-41 | Ranked Board and question detail | FLW-25, FLW-26, FLW-27, FLW-28, FLW-29, FLW-75 | none — text-only | built | `apps/desktop/src/renderer/src/launch/BoardScreen.tsx` |
 | SCR-42 | Inbox | FLW-21, FLW-29 | none — text-only | designed | none yet |
 | SCR-43 | Cycles | FLW-30 | none — text-only | designed | none yet |
 | SCR-44 | Manager lifecycle | FLW-34 | none — text-only | designed | none yet |
@@ -851,7 +851,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Status:** designed
 
 ### SCR-41: Ranked Board and question detail
-- **Used by:** FLW-25, FLW-26, FLW-27, FLW-28, FLW-29
+- **Used by:** FLW-25, FLW-26, FLW-27, FLW-28, FLW-29, FLW-75
 - **Purpose:** One scoped union of unresolved authored questions and derived obligations, separate from task Kanban; one source for home top5/project top10/full/counters.
 - **Elements:** Scope/filter/grouping, stable rank with component disclosure, canonical selected item, owner/age/source/blockers, options with consequences, answer draft, commit receipt and continuation receipt separately, full-list cursor. Grants route to SCR-24 authority detail where needed.
 - **States:**
@@ -861,6 +861,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
   | empty | Complete unresolved query returns zero | none | Only state no unresolved items in this scope; do not claim autonomous work is succeeding. |
   | open question | Selected authored question open | none | Answer form tied to question revision; impacts and primary action visible. |
   | derived obligation | Review/refusal/lease/proposal unresolved | none | Offer the action that resolves underlying state; no dismiss/read action. |
+  | access request | A registered agent's request waits for consent (SCN-132, ADR-0115) | none | Titled "<agent> asks to use <product>"; the native prompt's facts as a block — who it is, what it asks, its reason as its claim, the same-user floor, whether it adds to access, that access lasts a year — then Deny and Allow (or "Allow and connect <product>") in their own row; settles to Allowed or Denied, and an Allow whose product could not be opened says so beside it; leaves when answered or expired. In the operator's language. |
   | delivery unknown | Possible write without conclusive receipt | none | Keep committed answer visible; inspect addressed session; no automatic resend or closed-loop claim. |
   | delivery queued | Another dispatcher owns a fenced pending instruction | none | Show waiting separately from written and accepted. |
   | submitting | Answer command pending | none | Retain draft and identity; prevent duplicate submission, support same command retry. |
@@ -1781,18 +1782,18 @@ results always pair text with an icon — colour is never the only signal.
 ### SCR-76: Agent access
 - **Used by:** FLW-75, FLW-76
 - **Purpose:** What registered agents on this Mac may do through Fabric, what is waiting for an answer, and which products are connected — opened from Settings ([ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)).
-- **Elements:** where agents reach Fabric, or why they cannot; products with Connect, or Reconnect and Disconnect once connected, and the last connect outcome; waiting requests with the agent, who installed it and where it came from, what it asks in plain words, its reason as its claim, the same-user floor, whether it adds to existing access, Deny and Allow; agents with access, each grant in plain words with its expiry and Revoke, and Revoke all; denied requests with Clear the denial.
+- **Elements:** where agents reach Fabric, or why they cannot; Products — one card each, the text first and Connect (or Reconnect and Disconnect once connected) on their own line under it, and the last connect outcome; waiting requests, one card each headed by the agent's name — who installed it and where it came from, what it asks in plain words, its reason as its claim, the same-user floor, whether it adds to existing access, that access lasts a year unless revoked, when the request expires, Deny and Allow (or "Allow and connect <product>"); agents with access, one card each, each grant in plain words with its expiry (a date in the operator's locale) and Revoke, and Revoke all; denied requests with Clear the denial. Every button names whose it is to a screen reader. Every word is in the operator's language.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
   | loading | first read | none | busy line |
   | unreadable | the overview could not be read | none | says so with Try again; never "no agent has access" |
-  | hub-off | the hub's port could not be taken | none | warning with the reason; Connect disabled; sessions unaffected |
-  | read | overview read | none | the four lists; an empty list says so in words |
-  | waiting | a connect link was opened | none | waiting for the answer in the product |
-  | connected | the product delivered its key and the vault kept it | none | server and date, Reconnect, Disconnect |
+  | hub-off | the hub's port could not be taken | none | warning: free the port, then quit and reopen Fabric; the machine's reason as a second line; Connect disabled; sessions unaffected |
+  | read | overview read | none | the four lists; an empty list says so in words — denied requests included |
+  | waiting | a connect link was opened and its 10 minutes have not passed | none | waiting for the answer in the product |
+  | connected | the product delivered its key, the vault kept it and it was recorded within the deadline | none | server and date, Reconnect, Disconnect; after Reconnect or Disconnect, a line that the previous key stays valid in the product until revoked there |
   | declined | the operator denied in the product | none | says it was declined |
-  | failed | the product reported a failure, or the vault refused | none | the reason |
+  | failed | the product reported a failure; the vault refused or was too slow; no answer within 10 minutes; a Reconnect whose new key was withdrawn | none | the reason in warning ink, separated from the connected line; Try again when not connected; a withdrawn Reconnect says the product is not connected now |
 - **Coverage:** apps/desktop/src/renderer/src/AgentAccessPanel.tsx
 - **Scenarios:** SCN-132, SCN-133
 - **Resources:** [ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md).

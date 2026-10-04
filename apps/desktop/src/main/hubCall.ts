@@ -19,7 +19,16 @@
 // `idempotencyKey`: a retry with the same key and the same arguments returns the first answer and
 // sends nothing; the same key with different arguments is refused. Kept in memory for 24 hours, per
 // binding (at most 256 keys each), and only for answers the PRODUCT produced — a refusal Fabric made
-// before forwarding is re-decided on the retry (security review of PR #7, finding 5).
+// before forwarding is re-decided on the retry (security review of PR #7, finding 5). A remembered
+// answer is replayed only while the grant that allowed it still covers the call and the product is still
+// connected: revoking stops the next call, a retried key included (ER-5, verification iteration 1 for 0.3.1).
+//
+// EVERY HOP HAS ITS SPAN, a throw included (ER-11): input nested deeper than 16 levels is refused as
+// invalid-arguments before anything is hashed, and a failure Fabric could not get past is a `failed`
+// span with error_code `hub-unavailable` and a fixed sentence — the cause goes to the operations log.
+//
+// A CALLER THAT HANGS UP stops the hop (ER-13): the MCP request's signal reaches the forward, nothing is
+// read from the vault or sent once it has fired, and the span says `cancelled`.
 
 import { createHash, randomBytes } from 'node:crypto'
 import { accessRefusal, coverage, resourceArguments, CONNECTABLE_PRODUCTS } from '../shared/access.ts'
@@ -47,7 +56,22 @@ export interface HubCallDeps {
   random?: (n: number) => Buffer
 }
 
-/** Canonical JSON (keys sorted), so one argument set has one hash however it was spelled. */
+/** Deeper than this, an input is refused before it is hashed or read (the same bound `resourceArguments` holds). */
+const MAX_INPUT_DEPTH = 16
+
+/** Whether a JSON value nests deeper than `limit` — iterative, so an absurd input cannot exhaust the stack. */
+export function nestsDeeperThan(value: unknown, limit: number): boolean {
+  const stack: Array<[unknown, number]> = [[value, 0]]
+  while (stack.length) {
+    const [v, d] = stack.pop() as [unknown, number]
+    if (!v || typeof v !== 'object') continue
+    if (d >= limit) return true
+    for (const child of Array.isArray(v) ? v : Object.values(v as Record<string, unknown>)) stack.push([child, d + 1])
+  }
+  return false
+}
+
+/** Canonical JSON (keys sorted), so one argument set has one hash however it was spelled. Call only on bounded input. */
 export function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`
   if (value && typeof value === 'object')
@@ -109,7 +133,7 @@ export function createAgentCall(deps: HubCallDeps) {
   }
 
   /** The answer, and whether the PRODUCT produced it — only such an answer is replayed for a retry. */
-  async function perform(binding: BindingRow, args: AgentCallArgs, meta: Record<string, unknown> | undefined): Promise<{ answer: ToolAnswer; produced: boolean }> {
+  async function perform(binding: BindingRow, args: AgentCallArgs, meta: Record<string, unknown> | undefined, signal?: AbortSignal): Promise<{ answer: ToolAnswer; produced: boolean }> {
     const before = (a: ToolAnswer) => ({ answer: a, produced: false })
     const callId = random(16).toString('hex')
     const incoming = typeof meta?.traceparent === 'string' ? TRACEPARENT.exec(meta.traceparent) : null
@@ -117,12 +141,39 @@ export function createAgentCall(deps: HubCallDeps) {
     const parentSpanId = incoming ? incoming[3] : null
     const spanId = random(8).toString('hex')
     const traceparent = `00-${traceId}-${spanId}-01`
+    const tooDeep = nestsDeeperThan(args.input, MAX_INPUT_DEPTH)
     const base = {
       trace_id: traceId, span_id: spanId, parent_span_id: parentSpanId, trace_incomplete: !incoming,
       caller: { binding_id: binding.id, agent_id: binding.agent_id }, callee: args.agentId, capability: args.capability,
-      args_hash: `sha256:${sha256(canonical(args.input))}`
+      args_hash: tooDeep ? null : `sha256:${sha256(canonical(args.input))}`
     }
     const started = now()
+    if (tooDeep) {
+      await span({ ...base, outcome: 'refused', error_code: 'invalid-arguments', grant_ids: [], wall_ms: 0 })
+      return before(refusal('invalid-arguments', `the input nests deeper than ${MAX_INPUT_DEPTH} levels; nothing was sent`))
+    }
+    try {
+      return await hop(binding, args, base, started, callId, traceparent, signal)
+    } catch (e) {
+      // Not the product's answer and not a refusal Fabric decided: a read or a write here failed. The
+      // agent hears one fixed sentence; the cause (which may name tables, paths or a stack) is logged.
+      ops.failed('hub.call', e, { callee: args.agentId, capability: args.capability })
+      await span({ ...base, outcome: 'failed', error_code: 'hub-unavailable', grant_ids: [], wall_ms: now() - started })
+      return before(refusal('hub-unavailable', 'Fabric could not complete this call just now. Nothing was sent. The operator can see why in Fabric\'s operations log; try again later.'))
+    }
+  }
+
+  const cancelled = async (base: Record<string, unknown>, grantIds: string[], started: number): Promise<{ answer: ToolAnswer; produced: boolean }> => {
+    await span({ ...base, outcome: 'cancelled', error_code: 'cancelled', grant_ids: grantIds, wall_ms: now() - started })
+    return { answer: refusal('cancelled', 'the call was cancelled by its caller; if it had reached the product, a retry must reuse its idempotencyKey'), produced: false }
+  }
+
+  async function hop(
+    binding: BindingRow, args: AgentCallArgs, base: Record<string, unknown>, started: number,
+    callId: string, traceparent: string, signal: AbortSignal | undefined
+  ): Promise<{ answer: ToolAnswer; produced: boolean }> {
+    const before = (a: ToolAnswer) => ({ answer: a, produced: false })
+    if (signal?.aborted) return cancelled(base, [], started)
 
     if (!(CONNECTABLE_PRODUCTS as readonly string[]).includes(args.agentId)) {
       await span({ ...base, outcome: 'refused', error_code: 'unknown-callee', grant_ids: [], wall_ms: 0 })
@@ -146,6 +197,7 @@ export function createAgentCall(deps: HubCallDeps) {
       await span({ ...base, outcome: 'refused', error_code: 'product-not-connected', grant_ids: cover.grantIds, wall_ms: 0 })
       return before(refusal('product-not-connected', `${args.agentId} is not connected to Fabric. Ask the operator to connect it (Settings → Agent access → Connect); nothing was sent.`))
     }
+    if (signal?.aborted) return cancelled(base, cover.grantIds, started)
     const secret = await deps.vault.read(connection.secret_ref)
     if (!secret.ok) {
       await span({ ...base, outcome: 'failed', error_code: 'product-credential-unavailable', grant_ids: cover.grantIds, wall_ms: now() - started })
@@ -154,11 +206,13 @@ export function createAgentCall(deps: HubCallDeps) {
       ops.record({ op: 'hub.call', outcome: 'failed', level: 'warn', detail: { callee: args.agentId, capability: args.capability, code: 'product-credential-unavailable', reason: logLine(secret.reason) }, ctx: { correlationId: ops.correlate() } })
       return before(refusal('product-credential-unavailable', `Fabric could not read ${args.agentId}'s key from its vault. Nothing was sent. The operator can see why in Fabric's operations log; try again later.`))
     }
+    if (signal?.aborted) return cancelled(base, cover.grantIds, started)
     const forwarded = await deps.forward({
       mcpUrl: connection.mcp_url, clientId: connection.client_id, clientSecret: secret.value,
-      narrowing: cover.narrowing, capability: args.capability, input: args.input, traceparent
+      narrowing: cover.narrowing, capability: args.capability, input: args.input, traceparent, signal
     })
     const narrowing = cover.narrowing
+    if (!forwarded.ok && (forwarded.code === 'cancelled' || signal?.aborted)) return cancelled({ ...base, narrowing: narrowing ?? 'workspace' }, cover.grantIds, started)
     if (!forwarded.ok) {
       const written = await span({ ...base, outcome: 'failed', error_code: forwarded.code, grant_ids: cover.grantIds, narrowing: narrowing ?? 'workspace', wall_ms: forwarded.wallMs })
       ops.record({ op: 'hub.call', outcome: 'failed', level: 'warn', detail: { callee: args.agentId, capability: args.capability, code: forwarded.code, span_written: written }, ctx: { correlationId: ops.correlate() } })
@@ -173,8 +227,18 @@ export function createAgentCall(deps: HubCallDeps) {
     return { answer: answer(envelope({ callId, outcome, binding, callee: args.agentId, capability: args.capability, narrowing, grantIds: cover.grantIds, output, wallMs: forwarded.wallMs, traceparent, spanWritten: written }), forwarded.result.isError === true), produced: true }
   }
 
-  return async function agentCall(binding: BindingRow, args: AgentCallArgs, meta: Record<string, unknown> | undefined): Promise<ToolAnswer> {
-    if (!args.idempotencyKey) return (await perform(binding, args, meta)).answer
+  /** Whether a remembered answer may still be replayed: the grant still covers the call and the product is connected. */
+  async function stillAllowed(binding: BindingRow, args: AgentCallArgs): Promise<boolean> {
+    const read = resourceArguments(args.capability, args.input)
+    if (!read.ok) return false
+    const grants = await deps.access.liveGrantsOf(binding)
+    const cover = coverage({ callee: args.agentId, capability: args.capability, resources: read.resources, workspace: read.workspace, requires: read.requires }, grants, now())
+    return cover.ok && (await deps.store.liveConnection(args.agentId)) !== null
+  }
+
+  return async function agentCall(binding: BindingRow, args: AgentCallArgs, meta: Record<string, unknown> | undefined, signal?: AbortSignal): Promise<ToolAnswer> {
+    // Too deep to hash: refused (with its span) before the idempotency memory hashes it.
+    if (!args.idempotencyKey || nestsDeeperThan(args.input, MAX_INPUT_DEPTH)) return (await perform(binding, args, meta, signal)).answer
     const t = now()
     let mine = remembered.get(binding.id)
     if (mine) {
@@ -188,11 +252,23 @@ export function createAgentCall(deps: HubCallDeps) {
     if (seen) {
       if (seen.argsHash !== argsHash)
         return refusal('idempotency-conflict', 'this idempotencyKey was already used for a different call; use a new key for a new call')
-      return (await seen.answer).answer
+      const first = await seen.answer
+      let allowed: boolean
+      try {
+        allowed = await stillAllowed(binding, args)
+      } catch (e) {
+        ops.failed('hub.call.replay-check', e, { callee: args.agentId, capability: args.capability })
+        allowed = false
+      }
+      if (allowed) return first.answer
+      // Revoked, expired or disconnected since: the memory of this key is spent, and the call is decided
+      // again — which refuses it, with its own span, and sends nothing.
+      if (mine.get(args.idempotencyKey) === seen) mine.delete(args.idempotencyKey)
+      return (await perform(binding, args, meta, signal)).answer
     }
     // The oldest of THIS binding's keys goes; another binding's never does.
     if (mine.size >= IDEMPOTENCY_MAX_PER_BINDING) mine.delete(mine.keys().next().value as string)
-    const answering = perform(binding, args, meta)
+    const answering = perform(binding, args, meta, signal)
     const key = args.idempotencyKey
     const entry = { argsHash, at: t, answer: answering }
     mine.set(key, entry) // a retry while this one is in flight waits for it rather than sending twice

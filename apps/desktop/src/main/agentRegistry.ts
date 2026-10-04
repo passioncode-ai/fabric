@@ -23,7 +23,7 @@
 // conformance probe's check). Same-user files prove what was INSTALLED, not which process speaks
 // — the prompt says so (ADR-0115 §2, the same-user floor).
 
-import { readFileSync, readdirSync, statSync, watch, type FSWatcher } from 'node:fs'
+import { closeSync, constants as fsc, fstatSync, lstatSync, openSync, readSync, readdirSync, statSync, watch, type FSWatcher } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { oneLine } from '../shared/access.ts'
@@ -239,6 +239,35 @@ export function validateProviderEntry(raw: unknown): string[] {
   return problems
 }
 
+/**
+ * Read a registry file only when it is a REGULAR file of at most MAX_FILE_BYTES (ER-1, verification
+ * iteration 1 for 0.3.1). `statSync` + `readFileSync` let a FIFO or a link to `/dev/zero` through
+ * (size 0) and then blocked the main process for ever. A link is followed only to a regular file; the
+ * file is opened non-blocking (a FIFO swapped in after the check opens without waiting for a writer),
+ * the OPEN descriptor is checked again, and at most MAX_FILE_BYTES + 1 bytes are read from it.
+ */
+function readRegularFile(file: string): { ok: true; value: string } | { ok: false; reason: string } {
+  const link = lstatSync(file)
+  if (link.isSymbolicLink() ? !statSync(file).isFile() : !link.isFile()) return { ok: false, reason: 'not a regular file' }
+  const fd = openSync(file, fsc.O_RDONLY | fsc.O_NONBLOCK | (fsc.O_NOCTTY ?? 0))
+  try {
+    const st = fstatSync(fd)
+    if (!st.isFile()) return { ok: false, reason: 'not a regular file' }
+    if (st.size > MAX_FILE_BYTES) return { ok: false, reason: 'too-large' }
+    const buf = Buffer.alloc(MAX_FILE_BYTES + 1)
+    let got = 0
+    for (;;) {
+      const n = readSync(fd, buf, got, buf.length - got, null)
+      if (n === 0) break
+      got += n
+      if (got > MAX_FILE_BYTES) return { ok: false, reason: 'too-large' }
+    }
+    return { ok: true, value: buf.subarray(0, got).toString('utf8') }
+  } finally {
+    closeSync(fd)
+  }
+}
+
 interface Candidate {
   entry: RegistryEntry
   port: number | null
@@ -266,11 +295,12 @@ function readDir(
     const stem = name.slice(0, -'.json'.length)
     let raw: unknown
     try {
-      if (statSync(file).size > MAX_FILE_BYTES) {
-        problems.push({ file, key: stem, code: 'unreadable', reason: `the file is larger than ${MAX_FILE_BYTES} bytes and is not a ${kind} entry` })
+      const text = readRegularFile(file)
+      if (!text.ok) {
+        problems.push({ file, key: stem, code: 'unreadable', reason: text.reason === 'too-large' ? `the file is larger than ${MAX_FILE_BYTES} bytes and is not a ${kind} entry` : `${text.reason}; it is not a ${kind} entry` })
         continue
       }
-      raw = JSON.parse(readFileSync(file, 'utf8'))
+      raw = JSON.parse(text.value)
     } catch (e) {
       // Not silence: the problem list IS the report, logged by `refresh` when it changes.
       problems.push({ file, key: stem, code: 'unreadable', reason: `the file cannot be read as JSON: ${(e as Error).message}` })

@@ -10,6 +10,11 @@
 // and removed on quit — only by the process that wrote them, so a second Fabric that failed to start
 // cannot delete the first one's door.
 //
+// THE ORIGIN IS USED EXACTLY AS WRITTEN. `http://127.0.0.1:<port>`, never `localhost`: a name that resolves
+// to another loopback address could reach another program. Fabric holds the hub port on [::1] as well
+// (`AgentSurface.start`), so the IPv6 loopback cannot be squatted while Fabric runs (ER-8, verification
+// iteration 1 for 0.3.1), but the published origin is the contract.
+//
 // THE PORT DOES NOT PROVE WHO HOLDS IT. While Fabric is down, any program running as this user can listen on
 // the hub's port and answer like a hub (port squatting). So the contract for an agent is: re-read hub.json
 // before sending a binding credential, and send it only when the `pid` hub.json names is alive (and is
@@ -45,7 +50,7 @@ export function hubPort(env: NodeJS.ProcessEnv = process.env): PortChoice {
   const raw = env.FABRIC_HUB_PORT
   if (raw === undefined || raw === '') return { ok: true, port: DEFAULT_HUB_PORT }
   if (!/^\d{4,5}$/.test(raw) || Number(raw) < 1024 || Number(raw) > 65535)
-    return { ok: false, reason: `FABRIC_HUB_PORT=${JSON.stringify(raw)} is not a port between 1024 and 65535` }
+    return { ok: false, reason: `the hub port setting (FABRIC_HUB_PORT=${JSON.stringify(raw)}) is not a port between 1024 and 65535. Correct or remove it, then quit and reopen Fabric` }
   return { ok: true, port: Number(raw) }
 }
 
@@ -53,7 +58,7 @@ export function hubPort(env: NodeJS.ProcessEnv = process.env): PortChoice {
 export function checkPortUnclaimed(port: number, claimed: Map<number, string>): PortChoice {
   const by = claimed.get(port)
   return by
-    ? { ok: false, reason: `port ${port} is claimed by the registered agent ${by}; set FABRIC_HUB_PORT to a free port` }
+    ? { ok: false, reason: `port ${port} is claimed by the registered agent ${by}, so agents outside Fabric cannot reach it. Move that agent to another port (or choose a free one for Fabric with FABRIC_HUB_PORT), then quit and reopen Fabric` }
     : { ok: true, port }
 }
 
@@ -118,5 +123,51 @@ export function withdrawHub(root: string, pid: number = process.pid): { removed:
   rmSync(hubFile, { force: true })
   rmSync(doorTokenFile, { force: true })
   return { removed: true }
+}
+/** What `startHub` needs of the surface: listen on a port (a refusal throws), and say where it listens. */
+export interface HubListener {
+  start(opts?: { port?: number }): Promise<void>
+  readonly origin: string
+}
+
+export type HubStart = { open: true; doorToken: string; hubFile: string } | { open: false; down: string }
+
+/**
+ * Start the surface on the hub's stable port and publish the hub — or, when the port cannot be had,
+ * start it on an ephemeral port with the external ingress CLOSED (no hub.json, no door token) and say
+ * why (DA-9, verification iteration 1 for 0.3.1: this was inline in `index.ts`, driven by no test).
+ * Sessions Fabric starts work either way; only agents outside Fabric lose the hub. Never throws: a
+ * surface that cannot listen at all is reported in `down`, and the caller's sessions say so.
+ */
+export async function startHub(opts: {
+  surface: HubListener
+  env?: NodeJS.ProcessEnv
+  claimedPorts: Map<number, string>
+  root: string
+  publish?: typeof publishHub
+}): Promise<HubStart> {
+  const chosen = hubPort(opts.env ?? process.env)
+  const unclaimed = chosen.ok ? checkPortUnclaimed(chosen.port, opts.claimedPorts) : chosen
+  let down: string
+  try {
+    if (!unclaimed.ok) throw Object.assign(new Error(unclaimed.reason), { name: 'HubPortUnavailable' })
+    await opts.surface.start({ port: unclaimed.port })
+    const published = (opts.publish ?? publishHub)({ root: opts.root, port: unclaimed.port })
+    ops.record({ op: 'hub.published', outcome: 'ok', detail: { origin: opts.surface.origin, hub_file: published.hubFile }, ctx: { correlationId: ops.correlate() } })
+    return { open: true, doorToken: published.doorToken, hubFile: published.hubFile }
+  } catch (e) {
+    down = (e as Error).name === 'HubPortUnavailable'
+      ? (e as Error).message
+      : `the hub could not start (${(e as Error).message}), so agents outside Fabric cannot reach it. Quit and reopen Fabric to try again`
+    ops.failed('index.hub-not-listening', e, { reason: down })
+  }
+  try {
+    if (!opts.surface.origin) await opts.surface.start()
+  } catch (e2) {
+    // A session must still start when the surface cannot: the agent simply has nothing to report
+    // through, and the launch says so rather than failing.
+    ops.failed('index.agent-surface-failed-to-start', e2, { note: 'agent surface failed to start:' })
+  }
+  return { open: false, down }
 }
 // #endregion hub-discovery

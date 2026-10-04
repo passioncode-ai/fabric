@@ -100,7 +100,7 @@ Each row is an observation, then a verdict. Tiered by backing: **measured** here
 | # | Observation | Verdict | Tier |
 |---|---|---|---|
 | M1 | The floor is in the SCHEMA (ADR-0004), not an instruction. A model cannot argue its way through a refused write. This is the strongest thing in the system. | keep | measured |
-| M2 | Per-hop credential scoping through the gateway (ADR-0034); no upstream key in a session bundle. | keep | measured |
+| M2 | Per-hop credential scoping through the gateway (ADR-0034); no upstream key in a session bundle. **Route superseded by [ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)** (noted 2026-10-04): the gateway is off since 2026-09-14; external agents reach products through the hub, narrowed per call by grant and by the product; sessions' declared servers through Fabric refuse (CO-194). No upstream key in a session bundle still holds. | keep (the scoping), route superseded | measured |
 | M3 | **`canUseTool` — intercepting EVERY tool call — is unbuilt** (M140 half). Only the ASK path exists. A runner that does not ask is unfloored except by the schema. | gap, known, waits on a per-runner hook | measured |
 
 ### Evidence — the track that ends audits

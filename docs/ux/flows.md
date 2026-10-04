@@ -2244,12 +2244,13 @@ flowchart TD
 ```mermaid
 flowchart TD
  R[Agent asks through the door token] -->|not registered| X[Refused before any prompt]
- R -->|window on screen| P[Native prompt over the window]
- R -->|background| N[Notification; row in SCR-41]
- N -->|clicked| P
+ R -->|window in front| P[Native prompt over the window, in the operator's language]
+ R -->|background, or behind another app| N[Notification; row in SCR-41]
+ N -->|clicked, or window comes forward| P
  N -->|Allow or Deny in the queue| D
  P --> D{Decision}
  D -->|Allow| A[Credential collected once; grants listed in SCR-76 Agent access]
+ D -->|Allow, product not connected| C[FLW-76 starts; if the product cannot open, the Allow stands and says so]
  D -->|Deny| Y[Denied until cleared in SCR-76 Agent access]
  A -->|Revoke| V[Next call refused]
 ```
@@ -2257,7 +2258,7 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-41 Ranked Board and question detail | access row with the prompt's facts, Allow and Deny |
+  | SCR-41 Ranked Board and question detail | access request |
   | SCR-76 Agent access | loading, unreadable, hub-off, waiting, read |
 
 ### FLW-76: Connect a product
@@ -2271,10 +2272,13 @@ flowchart TD
 ```mermaid
 flowchart TD
  C[SCR-76 Agent access: Connect or Reconnect] --> L[Product's app asks]
- L -->|Allow| K[Key delivered to Fabric, stored in the vault]
+ L -->|Allow| K[Key delivered; secret stored in its own vault slot, then recorded, within 8 s]
  L -->|Deny| N[SCR-76 says declined]
- K -->|vault missing| F[Record withdrawn; the product revokes the key]
+ L -->|no answer in 10 min| W[SCR-76 says no answer; Try again]
+ K -->|vault missing, refused or too slow| F[Nothing recorded; the product revokes the key; SCR-76 says why]
+ K -->|recorded after the deadline| G[Record withdrawn; a Reconnect says the product is not connected now]
  K --> S[SCR-76 shows connected]
+ S -->|Disconnect| D[Fabric stops using it; the key stays valid in the product until revoked there]
 ```
 
 - **Screens traversed:**

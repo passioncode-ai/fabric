@@ -6187,17 +6187,18 @@
         "FLW-26",
         "FLW-27",
         "FLW-28",
-        "FLW-29"
+        "FLW-29",
+        "FLW-75"
       ],
       "scenario_ids": [
+        "SCN-132",
         "SCN-050",
         "SCN-051",
         "SCN-053",
         "SCN-055",
         "SCN-058",
         "SCN-054",
-        "SCN-062",
-        "SCN-132"
+        "SCN-062"
       ],
       "states": {
         "loading": "Показывать читаемый scope и загрузку нужного источника; ещё не выводить нули или пустой успех.",
@@ -6233,6 +6234,11 @@
           "state": "derived obligation",
           "trigger": "Review/refusal/lease/proposal unresolved",
           "behavior": "Offer the action that resolves underlying state; no dismiss/read action."
+        },
+        {
+          "state": "access request",
+          "trigger": "A registered agent's request waits for consent (SCN-132, ADR-0115)",
+          "behavior": "Titled \"<agent> asks to use <product>\"; the native prompt's facts as a block — who it is, what it asks, its reason as its claim, the same-user floor, whether it adds to access, that access lasts a year — then Deny and Allow (or \"Allow and connect <product>\") in their own row; settles to Allowed or Denied, and an Allow whose product could not be opened says so beside it; leaves when answered or expired. In the operator's language."
         },
         {
           "state": "delivery unknown",
@@ -6406,7 +6412,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 877,
+        "line": 878,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6582,7 +6588,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 896,
+        "line": 897,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6735,7 +6741,7 @@
       "view": "manager",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 917,
+        "line": 918,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6876,7 +6882,7 @@
       "view": "retro",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 941,
+        "line": 942,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7019,7 +7025,7 @@
       "view": "feedback",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 966,
+        "line": 967,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7166,7 +7172,7 @@
       "view": "sync",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 992,
+        "line": 993,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7306,7 +7312,7 @@
       "view": "restore",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1017,
+        "line": 1018,
         "coverage_claim": "`apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (the restore section) over `apps/desktop/src/main/privateHistory.ts` and `restore_estate_verified`; Open this Estate records the choice (`apps/desktop/src/main/activeEstate.ts`) and restarts.",
         "status_claim": "designed"
       },
@@ -7418,7 +7424,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1042,
+        "line": 1043,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7501,7 +7507,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1065,
+        "line": 1066,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7586,7 +7592,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1088,
+        "line": 1089,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7676,7 +7682,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1111,
+        "line": 1112,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7771,7 +7777,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1134,
+        "line": 1135,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7854,7 +7860,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1157,
+        "line": 1158,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7937,7 +7943,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1180,
+        "line": 1181,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8026,7 +8032,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1203,
+        "line": 1204,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8109,7 +8115,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1226,
+        "line": 1227,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8192,7 +8198,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1249,
+        "line": 1250,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8275,7 +8281,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1272,
+        "line": 1273,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8360,7 +8366,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1295,
+        "line": 1296,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8447,7 +8453,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1318,
+        "line": 1319,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8535,7 +8541,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1340,
+        "line": 1341,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8627,7 +8633,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1362,
+        "line": 1363,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8776,7 +8782,7 @@
       ],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1386,
+        "line": 1387,
         "coverage_claim": "`apps/desktop/src/renderer/src/CeoChat.tsx` over `window.fabric.ceo` (IPC `ceo:*`, `apps/desktop/src/main/ceoChatBinding.ts`, `apps/desktop/src/main/ceoConversationService.ts`); every state above has an RTL test in `CeoChat.test.tsx`. The gate opens while private recovery is available (first-slice plan C5, `index.ts` `ceoChatActivation`); a new conversation is opened on the server before its first send and only known conversations are read. The real app was driven through this screen by `apps/desktop/test/chat-activation-native.test.mjs`: sent from the composer, shown as saved with no reply yet, read back after a cold restart.",
         "status_claim": "designed"
       },
@@ -8925,7 +8931,7 @@
       ],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1414,
+        "line": 1415,
         "coverage_claim": "`apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (opened from settings) over `window.fabric.history` and `apps/desktop/src/main/privateHistory.ts`; RTL tests in `PrivateHistoryPanel.test.tsx`, the service on an owned PostgreSQL. Import is part of restore: migration 66 imports private history only into a verified restore.",
         "status_claim": "designed"
       },
@@ -9036,7 +9042,7 @@
       "view": "mcp-servers",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1576,
+        "line": 1577,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9111,7 +9117,7 @@
       "view": "run-trace",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1594,
+        "line": 1595,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9186,7 +9192,7 @@
       "view": "fabric-tools",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1611,
+        "line": 1612,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9261,7 +9267,7 @@
       "view": "optimizer",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1628,
+        "line": 1629,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9334,7 +9340,7 @@
       "view": "first-run",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1657,
+        "line": 1658,
         "coverage_claim": "apps/desktop/src/renderer/src/start/FirstRun.tsx",
         "status_claim": "designed"
       },
@@ -9438,7 +9444,7 @@
       "view": "start-add",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1680,
+        "line": 1681,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9531,7 +9537,7 @@
       "view": "start-scan",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1701,
+        "line": 1702,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9674,7 +9680,7 @@
       "view": "start-new",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1732,
+        "line": 1733,
         "coverage_claim": "apps/desktop/src/renderer/src/Onboarding.tsx",
         "status_claim": "designed"
       },
@@ -9767,7 +9773,7 @@
       "view": "start-agent",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1753,
+        "line": 1754,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9830,7 +9836,7 @@
       "view": "start-convert",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1768,
+        "line": 1769,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx (the planned state; the conversion itself is AR-7/AR-11)",
         "status_claim": "designed"
       },
@@ -9850,7 +9856,7 @@
       "canonical_surface": "agent_access",
       "alias_of": null,
       "horizon": "near",
-      "current_status": "Сделано 2026-10-03 (ADR-0115): renderer/src/AgentAccessPanel.tsx, открывается из настроек.",
+      "current_status": "Сделано 2026-10-03 (ADR-0115), исправлено в верификации 0.3.1: renderer/src/AgentAccessPanel.tsx, открывается из настроек; карточки, слова на языке оператора.",
       "task_ids": [],
       "scenario_ids": [
         "SCN-132",
@@ -9862,7 +9868,7 @@
       ],
       "primary_action": "Разрешить или отказать",
       "information": [
-        "ADR-0115: живое приложение — эталон этого экрана; вид прототипа — настройки, из которых он открывается."
+        "ADR-0115: живое приложение — эталон этого экрана; макет agent-access показывает его состояния (верификация 0.3.1, UX-12). Вход — «Настройки → Доступ агентов»."
       ],
       "states": {
         "loading": "Читаем доступ агентов.",
@@ -9882,10 +9888,10 @@
         ]
       },
       "current_evidence": [],
-      "view": "settings",
+      "view": "agent-access",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1781,
+        "line": 1782,
         "coverage_claim": "apps/desktop/src/renderer/src/AgentAccessPanel.tsx",
         "status_claim": "designed"
       },
@@ -9903,22 +9909,22 @@
         {
           "state": "hub-off",
           "trigger": "the hub's port could not be taken",
-          "behavior": "warning with the reason; Connect disabled; sessions unaffected"
+          "behavior": "warning: free the port, then quit and reopen Fabric; the machine's reason as a second line; Connect disabled; sessions unaffected"
         },
         {
           "state": "read",
           "trigger": "overview read",
-          "behavior": "the four lists; an empty list says so in words"
+          "behavior": "the four lists; an empty list says so in words — denied requests included"
         },
         {
           "state": "waiting",
-          "trigger": "a connect link was opened",
+          "trigger": "a connect link was opened and its 10 minutes have not passed",
           "behavior": "waiting for the answer in the product"
         },
         {
           "state": "connected",
-          "trigger": "the product delivered its key and the vault kept it",
-          "behavior": "server and date, Reconnect, Disconnect"
+          "trigger": "the product delivered its key, the vault kept it and it was recorded within the deadline",
+          "behavior": "server and date, Reconnect, Disconnect; after Reconnect or Disconnect, a line that the previous key stays valid in the product until revoked there"
         },
         {
           "state": "declined",
@@ -9927,8 +9933,8 @@
         },
         {
           "state": "failed",
-          "trigger": "the product reported a failure, or the vault refused",
-          "behavior": "the reason"
+          "trigger": "the product reported a failure; the vault refused or was too slow; no answer within 10 minutes; a Reconnect whose new key was withdrawn",
+          "behavior": "the reason in warning ink, separated from the connected line; Try again when not connected; a withdrawn Reconnect says the product is not connected now"
         }
       ]
     }
@@ -12991,6 +12997,31 @@
         "label": "Экспортировать личную историю",
         "view": "private-history",
         "description": "Экспорта и импорта ещё не было. Переносятся только ваши разговоры, как история."
+      }
+    },
+    {
+      "id": "agent-access",
+      "title": "Доступ агентов",
+      "screen_id": "SCR-76",
+      "screen_ids": [
+        "SCR-76"
+      ],
+      "horizon": "near",
+      "purpose": "Что зарегистрированные на этом Mac агенты могут делать через Fabric, какие запросы ждут ответа и какие продукты подключены (ADR-0115).",
+      "task_ids": [],
+      "states": [
+        "ready",
+        "empty",
+        "loading",
+        "error",
+        "partial",
+        "denied",
+        "conflict"
+      ],
+      "empty_action": {
+        "label": "Подключить",
+        "view": "agent-access",
+        "description": "Ни один агент не ждёт ответа и ни у одного нет доступа; Fabric Inbox можно подключить."
       }
     },
     {
@@ -31980,7 +32011,7 @@
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "The agent works within what was allowed, nothing wider; every decision and every call is in the journal.",
-      "errors_recovery": "An unreadable access list is said in SCR-76 with Try again, never \"no agent has access\". A decision on an expired or already answered request is refused with its reason. A hub whose port is taken says why in SCR-76; sessions Fabric starts keep working.",
+      "errors_recovery": "An unreadable access list is said in SCR-76 with Try again, never \"no agent has access\", and without the transport's wording. A decision on an expired or already answered request is refused, and the refusal is said in the operator's language. A mailbox with an invisible or look-alike character (not printable ASCII) is refused before any prompt, so what is shown is exactly what is granted. A hub whose port is taken says why in SCR-76; sessions Fabric starts keep working.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 3213
@@ -31999,7 +32030,7 @@
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "The product is connected once, with nothing copied by a person; agents with grants reach it through Fabric.",
-      "errors_recovery": "Without Project Observatory the key is refused with that reason and the product revokes it; nothing is kept anywhere weaker. The connection is recorded before its secret is stored: a record that fails leaves the previous connection and its secret as they were, and a secret the vault will not keep withdraws the record just made — no client id is ever left beside another key's secret. A hub that is not listening disables Connect and Reconnect and says why.",
+      "errors_recovery": "Fabric answers the product within its 10 seconds or not at all: the whole delivery runs inside one 8-second deadline. The secret is stored first, in a vault slot of its own (named by the estate and the connection, so two estates on one Mac never share one), and only then is the connection recorded and the product told yes. Without Project Observatory, with a vault that refuses, or past the deadline, nothing is recorded, the previous connection stays as it was, the product revokes the new key, and SCR-76 says why. A record that itself lands after the deadline is withdrawn at once; on a Reconnect the previous connection had already been replaced by it, so SCR-76 says Fabric Inbox is not connected now and to connect again. A hub that is not listening disables Connect and Reconnect and says why.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 3236
@@ -33652,7 +33683,7 @@
         "file": "docs/ux/flows.md",
         "line": 2236
       },
-      "mermaid_source": "flowchart TD\n R[Agent asks through the door token] -->|not registered| X[Refused before any prompt]\n R -->|window on screen| P[Native prompt over the window]\n R -->|background| N[Notification; row in SCR-41]\n N -->|clicked| P\n N -->|Allow or Deny in the queue| D\n P --> D{Decision}\n D -->|Allow| A[Credential collected once; grants listed in SCR-76 Agent access]\n D -->|Deny| Y[Denied until cleared in SCR-76 Agent access]\n A -->|Revoke| V[Next call refused]",
+      "mermaid_source": "flowchart TD\n R[Agent asks through the door token] -->|not registered| X[Refused before any prompt]\n R -->|window in front| P[Native prompt over the window, in the operator's language]\n R -->|background, or behind another app| N[Notification; row in SCR-41]\n N -->|clicked, or window comes forward| P\n N -->|Allow or Deny in the queue| D\n P --> D{Decision}\n D -->|Allow| A[Credential collected once; grants listed in SCR-76 Agent access]\n D -->|Allow, product not connected| C[FLW-76 starts; if the product cannot open, the Allow stands and says so]\n D -->|Deny| Y[Denied until cleared in SCR-76 Agent access]\n A -->|Revoke| V[Next call refused]",
       "status": "target_or_mixed_not_coverage_claim",
       "scenario_ids": [
         "SCN-132"
@@ -33669,9 +33700,9 @@
       ],
       "source": {
         "file": "docs/ux/flows.md",
-        "line": 2263
+        "line": 2264
       },
-      "mermaid_source": "flowchart TD\n C[SCR-76 Agent access: Connect or Reconnect] --> L[Product's app asks]\n L -->|Allow| K[Key delivered to Fabric, stored in the vault]\n L -->|Deny| N[SCR-76 says declined]\n K -->|vault missing| F[Record withdrawn; the product revokes the key]\n K --> S[SCR-76 shows connected]",
+      "mermaid_source": "flowchart TD\n C[SCR-76 Agent access: Connect or Reconnect] --> L[Product's app asks]\n L -->|Allow| K[Key delivered; secret stored in its own vault slot, then recorded, within 8 s]\n L -->|Deny| N[SCR-76 says declined]\n L -->|no answer in 10 min| W[SCR-76 says no answer; Try again]\n K -->|vault missing, refused or too slow| F[Nothing recorded; the product revokes the key; SCR-76 says why]\n K -->|recorded after the deadline| G[Record withdrawn; a Reconnect says the product is not connected now]\n K --> S[SCR-76 shows connected]\n S -->|Disconnect| D[Fabric stops using it; the key stays valid in the product until revoked there]",
       "status": "target_or_mixed_not_coverage_claim",
       "scenario_ids": [
         "SCN-133"

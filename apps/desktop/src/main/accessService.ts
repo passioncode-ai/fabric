@@ -13,6 +13,15 @@
 // minted on the first status read after an Allow (32 random bytes; Fabric keeps the sha256) and never
 // again — two reads cannot both win, because every write here runs one at a time and the projector
 // refuses a second claim.
+//
+// WHO MAY READ A REQUEST (ER-2, verification iteration 1 for 0.3.1 — RFC 8628's device_code). The door
+// token is shared by every agent on this Mac, so holding it proves nothing about WHICH request is
+// yours. The answer that CREATES a request carries a per-request poll secret (32 random bytes; Fabric
+// keeps only its sha256, in the request event), and a status read through the door must present it.
+// An identical ask while that request waits gets the same request id and NO secret: before this, a
+// second process could re-ask a known agent's routine request, ride on its prompt and collect the
+// credential the operator granted to the first. A binding reads the requests it asked or was granted
+// by its own credential, which already proves who it is.
 
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto'
 import {
@@ -23,6 +32,7 @@ import {
   requestSignature,
   type AccessAsk
 } from '../shared/access.ts'
+import type { AccessActAnswer, AccessActRefusal } from '../shared/accessActs.ts'
 import type { AccessActor, AccessRequestRow, AccessStore, BindingRow, GrantRow } from './accessStore.ts'
 import type { Resolution } from './agentRegistry.ts'
 import { ops } from './opsSink.ts'
@@ -31,7 +41,7 @@ import { ops } from './opsSink.ts'
 export type HubPrincipal = { kind: 'door' } | { kind: 'binding'; binding: BindingRow }
 
 export type RequestAnswer =
-  | { ok: true; requestId: string; status: 'pending' | 'denied'; expiresAt: string; note: string }
+  | { ok: true; requestId: string; status: 'pending' | 'denied'; expiresAt: string; note: string; pollSecret?: string }
   | { ok: false; refused: string }
 
 export type StatusAnswer =
@@ -69,6 +79,9 @@ export interface AccessServiceDeps {
 
 const HUB_ACTOR: AccessActor = { kind: 'system', id: 'fabric-hub' }
 const CREDENTIAL = /^[A-Za-z0-9_-]{43}$/
+const POLL_SECRET = CREDENTIAL
+
+const refuse = (code: AccessActRefusal, reason: string): AccessActAnswer => ({ ok: false, code, reason })
 
 export function verifierOf(credential: string): string {
   return createHash('sha256').update(credential, 'utf8').digest('hex')
@@ -126,25 +139,32 @@ export class AccessService {
         return { ok: false, refused: `this credential belongs to ${principal.binding.agent_id}; it asks only for its own agent` }
 
       const signature = requestSignature(ask)
-      const denied = (await this.deps.store.requests({ status: 'denied', agentId: entry.key, callee: ask.callee }))
+      const denied = (await this.deps.store.requests({ status: 'denied', agentId: entry.key, callee: ask.callee, standingOnly: true }))
         .find((r) => r.denial_cleared_at === null && requestSignature({ agentId: r.agent_id, callee: r.callee as AccessAsk['callee'], capabilities: r.capabilities, resources: r.resources }) === signature)
       if (denied)
         return { ok: true, requestId: denied.id, status: 'denied', expiresAt: denied.expires_at, note: 'The operator denied this exact request. It stays denied until they clear the denial; asking again does not prompt.' }
 
       const now = this.now()
-      const pending = (await this.deps.store.requests({ status: 'pending' })).filter((r) => Date.parse(r.expires_at) > now)
-      const same = pending.find((r) => r.asked_by_binding === bindingId && requestSignature({ agentId: r.agent_id, callee: r.callee as AccessAsk['callee'], capabilities: r.capabilities, resources: r.resources }) === signature)
-      if (same) return { ok: true, requestId: same.id, status: 'pending', expiresAt: same.expires_at, note: 'This request is already with the operator. Poll fabric.access.status; do not ask again.' }
-      if (pending.filter((r) => r.agent_id === entry.key).length >= (this.deps.maxPendingPerAgent ?? 3))
+      const liveAt = new Date(now).toISOString()
+      // Live requests only, filtered and counted by the database (DA-5): never a capped page filtered here.
+      const same = (await this.deps.store.requests({ status: 'pending', agentId: entry.key, callee: ask.callee, liveAt }))
+        .find((r) => r.asked_by_binding === bindingId && requestSignature({ agentId: r.agent_id, callee: r.callee as AccessAsk['callee'], capabilities: r.capabilities, resources: r.resources }) === signature)
+      if (same)
+        return {
+          ok: true, requestId: same.id, status: 'pending', expiresAt: same.expires_at,
+          note: 'This request is already with the operator. Poll fabric.access.status with the pollSecret from the answer that created it; this answer carries none. Do not ask again.'
+        }
+      if ((await this.deps.store.countRequests({ status: 'pending', agentId: entry.key, liveAt })) >= (this.deps.maxPendingPerAgent ?? 3))
         return { ok: false, refused: `${entry.key} already has requests waiting for the operator; wait for them to be answered or to expire` }
-      if (pending.length >= (this.deps.maxPending ?? 20))
+      if ((await this.deps.store.countRequests({ status: 'pending', liveAt })) >= (this.deps.maxPending ?? 20))
         return { ok: false, refused: 'too many requests are waiting for the operator; try again after they are answered or expire' }
 
       const id = randomUUID()
       const expiresAt = new Date(now + ACCESS_REQUEST_TTL_MS).toISOString()
+      const pollSecret = this.random(32).toString('base64url')
       await this.deps.store.append('access.requested@1', HUB_ACTOR, {
         id, agent_id: entry.key, callee: ask.callee, capabilities: ask.capabilities, resources: ask.resources,
-        reason: ask.reason, binding_id: bindingId, expires_at: expiresAt,
+        reason: ask.reason, binding_id: bindingId, expires_at: expiresAt, poll_verifier: verifierOf(pollSecret),
         registry: { key: entry.key, kind: entry.kind, name: entry.name, installed_by: entry.installedBy, repository: entry.repository, summary: entry.summary }
       })
       const row = await this.deps.store.request(id)
@@ -160,15 +180,24 @@ export class AccessService {
       }
       ops.record({ op: 'hub.access.requested', outcome: 'ok', detail: { request_id: id, agent_id: entry.key, callee: ask.callee, capabilities: ask.capabilities, resources: ask.resources, incremental: bindingId !== null }, ctx: { correlationId: ops.correlate() } })
       this.deps.present({ row, connected })
-      return { ok: true, requestId: id, status: 'pending', expiresAt, note: 'The operator has been asked. Poll fabric.access.status every few seconds; the request expires in 10 minutes.' }
+      return {
+        ok: true, requestId: id, status: 'pending', expiresAt, pollSecret,
+        note: 'The operator has been asked. Poll fabric.access.status with this requestId and pollSecret every few seconds; the pollSecret is shown only here. The request expires in 10 minutes.'
+      }
     })
   }
 
-  /** `fabric.access.status`. The first read after an Allow carries the credential, once. */
-  status(principal: HubPrincipal, requestId: string): Promise<StatusAnswer> {
+  /**
+   * `fabric.access.status`. The first read after an Allow carries the credential, once. Through the door
+   * the poll secret of the creating answer is required (ER-2); a wrong or missing one reads exactly like
+   * an unknown id, so the answer says nothing about another agent's request.
+   */
+  status(principal: HubPrincipal, requestId: string, pollSecret?: string): Promise<StatusAnswer> {
     return this.serial(async () => {
       const row = typeof requestId === 'string' && /^[0-9a-f-]{36}$/.test(requestId) ? await this.deps.store.request(requestId) : null
-      const mine = row && (principal.kind === 'door' || row.asked_by_binding === principal.binding.id || row.granted_binding_id === principal.binding.id)
+      const mine = row && (principal.kind === 'door'
+        ? typeof pollSecret === 'string' && POLL_SECRET.test(pollSecret) && typeof row.poll_verifier === 'string' && sameToken(verifierOf(pollSecret), row.poll_verifier)
+        : row.asked_by_binding === principal.binding.id || row.granted_binding_id === principal.binding.id)
       if (!row || !mine) return { ok: false, refused: 'no such request' }
       const now = this.now()
       if (row.status === 'pending')
@@ -179,7 +208,12 @@ export class AccessService {
         return { ok: true, requestId: row.id, status: 'denied', expiresAt: row.expires_at, note: row.denial_cleared_at ? 'Denied; the operator has since cleared the denial, so you may ask again.' : 'Denied by the operator. Asking again with the same request does not prompt until they clear the denial.' }
 
       const bindingId = row.granted_binding_id as string
-      const grants = (await this.deps.store.grantsOf(bindingId)).filter((g) => g.request_id === row.id)
+      // The binding's live grants that cover this request (DA-8): an incremental Allow that re-grants a
+      // held capability moves the row's request_id to the newer request, and the first request must not
+      // then stop listing a grant it still gives.
+      const asked = new Set(row.capabilities.flatMap((c) => row.resources.map((r) => `${c}\u0000${r}`)))
+      const grants = (await this.deps.store.grantsOf(bindingId))
+        .filter((g) => g.request_id === row.id || (g.revoked_at === null && Date.parse(g.expires_at) > now && g.callee === row.callee && asked.has(`${g.capability}\u0000${g.resource}`)))
       const base = {
         ok: true as const, requestId: row.id, status: 'allowed' as const, expiresAt: row.expires_at, bindingId,
         grants: grants.map((g) => ({ capability: g.capability, resource: g.resource, expiresAt: g.expires_at }))
@@ -203,13 +237,13 @@ export class AccessService {
   }
 
   /** The operator's answer. Refused when the request is no longer pending or has expired. */
-  decide(requestId: string, decision: 'allowed' | 'denied', actor: AccessActor): Promise<{ ok: true } | { ok: false; reason: string }> {
+  decide(requestId: string, decision: 'allowed' | 'denied', actor: AccessActor): Promise<AccessActAnswer> {
     return this.serial(async () => {
       const row = await this.deps.store.request(requestId)
-      if (!row) return { ok: false, reason: 'no such request' }
-      if (row.status !== 'pending') return { ok: false, reason: `that request was already ${row.status}` }
+      if (!row) return refuse('not-found', 'no such request')
+      if (row.status !== 'pending') return refuse('already-decided', `that request was already ${row.status}`)
       const now = this.now()
-      if (Date.parse(row.expires_at) <= now) return { ok: false, reason: 'that request expired before it was answered; the agent must ask again' }
+      if (Date.parse(row.expires_at) <= now) return refuse('expired', 'that request expired before it was answered; the agent must ask again')
       if (decision === 'denied') {
         await this.deps.store.append('access.decided@1', actor, { request_id: row.id, decision: 'denied' })
         ops.record({ op: 'hub.access.decided', outcome: 'ok', detail: { request_id: row.id, decision, agent_id: row.agent_id }, ctx: { correlationId: ops.correlate() } })
@@ -220,7 +254,7 @@ export class AccessService {
       if (newBinding) bindingId = randomUUID()
       else {
         const asking = await this.deps.store.binding(row.asked_by_binding as string)
-        if (!asking || asking.revoked_at) return { ok: false, reason: 'the credential that asked has been revoked; the agent must ask again with the door token' }
+        if (!asking || asking.revoked_at) return refuse('asking-binding-revoked', 'the agent that asked for more has had its access revoked since; it has to ask again from the start')
         bindingId = asking.id
       }
       const expiresAt = new Date(now + GRANT_TTL_MS).toISOString()
@@ -246,30 +280,30 @@ export class AccessService {
     return (await this.deps.store.grantsOf(binding.id)).filter((g) => g.revoked_at === null && Date.parse(g.expires_at) > now)
   }
 
-  revokeGrant(grantId: string, actor: AccessActor): Promise<{ ok: true } | { ok: false; reason: string }> {
+  revokeGrant(grantId: string, actor: AccessActor): Promise<AccessActAnswer> {
     return this.serial(async () => {
       const live = (await this.deps.store.liveGrants()).find((g) => g.id === grantId)
-      if (!live) return { ok: false, reason: 'that grant is not live (already revoked, or no such grant)' }
+      if (!live) return refuse('not-live', 'that grant is not live (already revoked, or no such grant)')
       await this.deps.store.append('access.grant.revoked@1', actor, { grant_id: grantId })
       ops.record({ op: 'hub.access.grant-revoked', outcome: 'ok', detail: { grant_id: grantId, agent_id: live.agent_id }, ctx: { correlationId: ops.correlate() } })
       return { ok: true }
     })
   }
 
-  revokeBinding(bindingId: string, actor: AccessActor): Promise<{ ok: true } | { ok: false; reason: string }> {
+  revokeBinding(bindingId: string, actor: AccessActor): Promise<AccessActAnswer> {
     return this.serial(async () => {
       const b = await this.deps.store.binding(bindingId)
-      if (!b || b.revoked_at) return { ok: false, reason: 'that credential is not live (already revoked, or no such credential)' }
+      if (!b || b.revoked_at) return refuse('not-live', 'that credential is not live (already revoked, or no such credential)')
       await this.deps.store.append('access.binding.revoked@1', actor, { binding_id: bindingId })
       ops.record({ op: 'hub.access.binding-revoked', outcome: 'ok', detail: { binding_id: bindingId, agent_id: b.agent_id }, ctx: { correlationId: ops.correlate() } })
       return { ok: true }
     })
   }
 
-  clearDenial(requestId: string, actor: AccessActor): Promise<{ ok: true } | { ok: false; reason: string }> {
+  clearDenial(requestId: string, actor: AccessActor): Promise<AccessActAnswer> {
     return this.serial(async () => {
       const r = await this.deps.store.request(requestId)
-      if (!r || r.status !== 'denied' || r.denial_cleared_at) return { ok: false, reason: 'there is no standing denial with that id' }
+      if (!r || r.status !== 'denied' || r.denial_cleared_at) return refuse('not-found', 'there is no standing denial with that id')
       await this.deps.store.append('access.denial.cleared@1', actor, { request_id: requestId })
       return { ok: true }
     })
@@ -282,9 +316,10 @@ export class AccessService {
     bindings: Array<BindingRow & { grants: GrantRow[]; registry: AccessRequestRow['registry'] | null }>
   }> {
     const now = this.now()
+    const liveAt = new Date(now).toISOString()
     const [pending, denied, bindings, grants] = await Promise.all([
-      this.deps.store.requests({ status: 'pending' }),
-      this.deps.store.requests({ status: 'denied' }),
+      this.deps.store.requests({ status: 'pending', liveAt }),
+      this.deps.store.requests({ status: 'denied', standingOnly: true }),
       this.deps.store.bindings(),
       this.deps.store.liveGrants()
     ])
@@ -296,8 +331,15 @@ export class AccessService {
     return {
       pending: pending.filter((r) => Date.parse(r.expires_at) > now),
       denials: denied.filter((r) => r.denial_cleared_at === null),
+      // A binding whose credential was never collected, once its claim window has passed, can never be
+      // used (`status` refuses to mint after it), so it is not "an agent with access" (ER-12): listing it
+      // with a year of live grants told the operator something false. Its rows stay in the journal.
       bindings: bindings
         .filter((b) => b.revoked_at === null)
+        .filter((b) => b.verifier !== null || (() => {
+          const decided = origins.get(b.id)?.decided_at
+          return decided !== null && decided !== undefined && now - Date.parse(decided) <= CREDENTIAL_CLAIM_WINDOW_MS
+        })())
         .map((b) => ({ ...b, grants: grants.filter((g) => g.binding_id === b.id && Date.parse(g.expires_at) > now), registry: origins.get(b.id)?.registry ?? null }))
     }
   }

@@ -6,6 +6,7 @@
 // #region hub-access-schema — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#3-grants-are-standing-narrow-and-revocable
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 const url = process.env.FABRIC_DISPATCH_TEST_DATABASE_URL
 if (!url) { console.error('NOT_RUN: use run-hub-access-db.mjs'); process.exit(2) }
 assert.match(new URL(url).pathname, /^\/fabric_dispatch_test_[a-z0-9_]+$/)
@@ -39,7 +40,9 @@ test('the nine event types are registered and the four tables exist with RLS on'
   assert.equal(sql(`select count(*) from event_types where type in ('access.requested@1','access.decided@1','access.credential.claimed@1','access.grant.revoked@1','access.binding.revoked@1','access.denial.cleared@1','product.connected@1','product.disconnected@1','hub.call.forwarded@1')`), '9')
   assert.equal(sql(`select string_agg(relname || '=' || relrowsecurity, ',' order by relname) from pg_class where relname in ('access_requests','access_bindings','access_grants','product_connections')`),
     'access_bindings=true,access_grants=true,access_requests=true,product_connections=true')
-  assert.equal(sql(`select schema_version()`), '76')
+  // The admitted schema, not a literal that goes stale (migration 77 moved it past 76).
+  const admitted = JSON.parse(readFileSync(new URL('../src/shared/schemaContract.json', import.meta.url), 'utf8')).maximum
+  assert.equal(sql(`select schema_version()`), String(admitted))
 })
 
 test('no API role reads or writes the access tables; the service role reads them and writes none', () => {
@@ -154,6 +157,58 @@ test('one live grant per binding, callee, capability and resource: a second allo
     grants: [{ id: G5, capability: 'read_message', resource: 'cloudflare:news@example.com', expires_at: later(525600) }] })
   assert.equal(sql(`select count(*) from access_grants where binding_id='${B3}' and revoked_at is null`), '1')
   assert.equal(sql(`select id || '|' || request_id || '|' || (expires_at > now() + interval '300 days') from access_grants where binding_id='${B3}'`), `${G4}|${R5}|true`)
+})
+
+// ── migration 77: what the writer promised is now the schema's rule too (verification 0.3.1, DA-4, ER-2, DA-7, DO-5) ──
+// To WATCH these fail, run the runner with FABRIC_SKIP_MIGRATION=20261004000077_hub_access_at_the_door.sql.
+
+test('a connection names a vault slot and never a value: secret_ref is exactly {project, env, name} (DA-4)', () => {
+  const conn = (id, secret_ref) => ({ id, product: 'fabric-inbox', server: 'https://mail.example.com', mcp_url: 'https://mail.example.com/mcp',
+    key_id: 'key-9', client_id: 'client.access', level: 'admin', send: 'send', key_expires_at: null, secret_ref })
+  refuses(`set role service_role; select append_event('${E}','product.connected@1',${person},${j(conn('76000000-0000-4000-8000-000000000051',
+    { project: 'fabric', env: 'local', name: 'FABRIC_INBOX_CLIENT_SECRET', value: 'sk-live-secret' }))})`, /secret_ref/)
+  refuses(`set role service_role; select append_event('${E}','product.connected@1',${person},${j(conn('76000000-0000-4000-8000-000000000052',
+    { project: 'fabric', env: 'local' }))})`, /secret_ref/)
+  refuses(`set role service_role; select append_event('${E}','product.connected@1',${person},${j(conn('76000000-0000-4000-8000-000000000053',
+    { project: 'fabric', env: 'local', name: 'not a slot' }))})`, /secret_ref/)
+  assert.equal(sql(`select count(*) from journal where estate_id='${E}' and payload->'secret_ref' ? 'value'`), '0', 'a secret value reached the journal')
+})
+
+test('a request lives ten minutes and a grant at most a year, as the hub writes them (DA-4)', () => {
+  refuses(`set role service_role; select append_event('${E}','access.requested@1',${hub},${j(request('76000000-0000-4000-8000-000000000061', { expires_at: later(60 * 24 * 365 * 100) }))})`, /expires/)
+  const R6 = '76000000-0000-4000-8000-000000000016'
+  append(E, 'access.requested@1', hub, request(R6))
+  refuses(`set role service_role; select append_event('${E}','access.decided@1',${person},${j({
+    request_id: R6, decision: 'allowed', binding_id: '76000000-0000-4000-8000-000000000026', new_binding: true,
+    grants: [{ id: '76000000-0000-4000-8000-000000000066', capability: 'list_messages', resource: 'cloudflare:news@example.com', expires_at: later(525600 * 100) }] })})`, /366 days/)
+  assert.equal(sql(`select status from access_requests where id='${R6}'`), 'pending', 'a refused decision changed the request')
+})
+
+test('a span carries the documented fields only, never the arguments (DA-4)', () => {
+  const span = {
+    trace_id: 'a'.repeat(32), span_id: 'b'.repeat(16), parent_span_id: null, trace_incomplete: true,
+    caller: { binding_id: B1, agent_id: 'example-agent' }, callee: 'fabric-inbox', capability: 'read_message',
+    args_hash: 'sha256:' + 'c'.repeat(64), outcome: 'refused', error_code: 'access-required', grant_ids: [], wall_ms: 0
+  }
+  append(E, 'hub.call.forwarded@1', hub, span)
+  append(E, 'hub.call.forwarded@1', hub, { ...span, outcome: 'succeeded', error_code: null, narrowing: ['cloudflare:news@example.com'], wall_ms: 12 })
+  refuses(`set role service_role; select append_event('${E}','hub.call.forwarded@1',${hub},${j({ ...span, args: { messageId: 'm-1' } })})`, /hub\.call\.forwarded@1 carries/)
+})
+
+test('a request may carry the sha256 of its poll secret; nothing else in that column (ER-2)', () => {
+  const R7 = '76000000-0000-4000-8000-000000000017'
+  append(E, 'access.requested@1', hub, request(R7, { poll_verifier: 'd'.repeat(64) }))
+  assert.equal(sql(`select poll_verifier from access_requests where id='${R7}'`), 'd'.repeat(64))
+  refuses(`set role service_role; select append_event('${E}','access.requested@1',${hub},${j(request('76000000-0000-4000-8000-000000000018', { poll_verifier: 'the secret itself' }))})`, /poll_verifier|check constraint/)
+  assert.equal(sql(`select coalesce(poll_verifier, 'none') from access_requests where id='${R1}'`), 'none', 'a request written before the column has none')
+})
+
+test('the product\'s own No is journalled, projected nowhere; the connected note says the secret is stored first (DA-7, DO-5)', () => {
+  assert.equal(sql(`select projects from event_types where type='product.connect.refused@1'`), 'f')
+  append(E, 'product.connect.refused@1', hub, { product: 'fabric-inbox', outcome: 'denied', error: null })
+  append(E, 'product.connect.refused@1', hub, { product: 'fabric-inbox', outcome: 'failed', error: 'sign_in_required' })
+  refuses(`set role service_role; select append_event('${E}','product.connect.refused@1',${hub},${j({ product: 'fabric-inbox', outcome: 'connected', error: null })})`, /product\.connect\.refused@1/)
+  assert.match(sql(`select note from event_types where type='product.connected@1'`), /once its secret is stored in the vault/)
 })
 
 test('a replay of the chain leaves every row as it was (rebuild is idempotent)', () => {

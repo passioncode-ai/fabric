@@ -22,6 +22,8 @@ export interface AccessRequestRow {
   reason: string
   registry: { key?: string; kind?: string; name?: string; installed_by?: string; repository?: string | null; summary?: string | null }
   asked_by_binding: string | null
+  /** sha256 of the poll secret handed to the asker that created the request (ER-2, migration 77); null before 77. */
+  poll_verifier: string | null
   requested_at: string
   expires_at: string
   status: 'pending' | 'allowed' | 'denied'
@@ -72,9 +74,26 @@ export interface ConnectionRow {
 
 export type AccessActor = { kind: 'person' | 'system'; id: string }
 
+/**
+ * Which requests to read. `liveAt` keeps only requests whose expiry is after that instant, and
+ * `standingOnly` only denials nobody cleared — both IN THE QUERY (DA-5, verification iteration 1 for
+ * 0.3.1): expiry is read from `expires_at` and never written, so an unanswered request stays `pending`
+ * for ever, and a page of the 500 oldest rows filtered afterwards went blank after 500 unanswered asks.
+ */
+export interface RequestFilter {
+  status?: AccessRequestRow['status']
+  agentId?: string
+  callee?: string
+  liveAt?: string
+  standingOnly?: boolean
+}
+
 export interface AccessStore {
   request(id: string): Promise<AccessRequestRow | null>
-  requests(filter: { status?: AccessRequestRow['status']; agentId?: string; callee?: string }): Promise<AccessRequestRow[]>
+  /** Newest first, at most 500. */
+  requests(filter: RequestFilter): Promise<AccessRequestRow[]>
+  /** How many requests match — a count, never the length of a capped page. */
+  countRequests(filter: RequestFilter): Promise<number>
   binding(id: string): Promise<BindingRow | null>
   bindingByVerifier(verifier: string): Promise<BindingRow | null>
   bindings(): Promise<BindingRow[]>
@@ -85,7 +104,7 @@ export interface AccessStore {
 }
 
 const REQUEST_COLUMNS =
-  'id,agent_id,callee,capabilities,resources,reason,registry,asked_by_binding,requested_at,expires_at,status,decided_at,decided_by,granted_binding_id,credential_claimed_at,denial_cleared_at'
+  'id,agent_id,callee,capabilities,resources,reason,registry,asked_by_binding,poll_verifier,requested_at,expires_at,status,decided_at,decided_by,granted_binding_id,credential_claimed_at,denial_cleared_at'
 const BINDING_COLUMNS = 'id,agent_id,request_id,verifier,created_at,claimed_at,revoked_at'
 const GRANT_COLUMNS = 'id,binding_id,request_id,agent_id,callee,capability,resource,decided_at,expires_at,revoked_at'
 const CONNECTION_COLUMNS = 'id,product,server,mcp_url,key_id,client_id,level,send,key_expires_at,secret_ref,connected_at,removed_at'
@@ -96,6 +115,24 @@ function read<T>(answer: Answer<T>, what: string): T | null {
   return answer.data
 }
 
+/** The three filters a request read uses, as the query builder offers them. */
+interface Filterable {
+  eq(column: string, value: string): Filterable
+  gt(column: string, value: string): Filterable
+  is(column: string, value: null): Filterable
+}
+
+/** A request read narrowed by `filter` in the query itself (the builder's own type is too deep to name here). */
+function narrowed<Q>(query: Q, filter: RequestFilter): Q {
+  let q = query as unknown as Filterable
+  if (filter.status) q = q.eq('status', filter.status)
+  if (filter.agentId) q = q.eq('agent_id', filter.agentId)
+  if (filter.callee) q = q.eq('callee', filter.callee)
+  if (filter.liveAt) q = q.gt('expires_at', filter.liveAt)
+  if (filter.standingOnly) q = q.is('denial_cleared_at', null)
+  return q as unknown as Q
+}
+
 export function createAccessStore(deps: { db: SupabaseClient; journal: Journal; estateId: string }): AccessStore {
   const store = createScopedStore(deps.db, { kind: 'estate', estateId: deps.estateId })
   return {
@@ -103,11 +140,14 @@ export function createAccessStore(deps: { db: SupabaseClient; journal: Journal; 
       return read(await store.select('access_requests', REQUEST_COLUMNS).eq('id', id).maybeSingle(), 'the access request') as AccessRequestRow | null
     },
     async requests(filter) {
-      let q = store.select('access_requests', REQUEST_COLUMNS)
-      if (filter.status) q = q.eq('status', filter.status)
-      if (filter.agentId) q = q.eq('agent_id', filter.agentId)
-      if (filter.callee) q = q.eq('callee', filter.callee)
-      return (read(await q.order('requested_at', { ascending: true }).limit(500), 'the access requests') ?? []) as AccessRequestRow[]
+      const q = narrowed(store.select('access_requests', REQUEST_COLUMNS), filter)
+      return (read(await q.order('requested_at', { ascending: false }).limit(500), 'the access requests') ?? []) as AccessRequestRow[]
+    },
+    async countRequests(filter) {
+      const answer = await narrowed(store.select('access_requests', 'id', { count: 'exact', head: true }), filter)
+      if (answer.error) throw new Error(`the access requests could not be counted: ${answer.error.message}`)
+      if (typeof answer.count !== 'number') throw new Error('the access requests could not be counted: no count came back')
+      return answer.count
     },
     async binding(id) {
       return read(await store.select('access_bindings', BINDING_COLUMNS).eq('id', id).maybeSingle(), 'the binding') as BindingRow | null

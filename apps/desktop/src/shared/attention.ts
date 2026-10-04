@@ -18,6 +18,7 @@
 // place for the transcript that is not the estate's journal (§4). None of that
 // is scheduled, so none of it is half-built here.
 
+import type { PendingRequestFacts } from './access.ts'
 import { obligationRef, type EntityRef } from './entityRef.ts'
 import { refusedBy, type ReadEnvelope, type SourceReceipt } from './readEnvelope.ts'
 
@@ -62,20 +63,16 @@ export interface AttentionItem {
    * item, and it carries the act: allow or deny that request. It leaves the queue when it is answered
    * or expires — derived, like everything here.
    */
-  access?: AccessFacts & { requestId: string; callee: string; expiresAt: string }
+  access?: PendingRequestFacts
 }
 
 /**
  * What the native consent prompt states, so an Allow given in the queue says the same (security review
- * of PR #7): who the registry says is asking, its reason as its own one-line claim, the same-user floor,
- * and — when it does — that this adds to access the agent already holds. Built by `consentFacts`.
+ * of PR #7): who the registry says is asking, what it asks, its reason as its own one-line claim, the
+ * same-user floor, whether this adds to access it already holds and whether Allow also connects the
+ * product — as FACTS the queue phrases in the operator's language (verification 0.3.1, UX-2).
  */
-export interface AccessFacts {
-  origin: string
-  reason: string
-  floor: string
-  incremental: string | null
-}
+export type AccessFacts = PendingRequestFacts
 
 export interface AttentionSources {
   /** Tasks an agent moved to review: it says it is done and cannot say so. */
@@ -112,15 +109,7 @@ export interface AttentionSources {
     created_at: string
   }[]
   /** Access requests from registered agents, waiting on the operator and not yet expired (ADR-0115). */
-  access?: ({
-    id: string
-    agent_id: string
-    name: string
-    callee: string
-    lines: string[]
-    requested_at: string
-    expires_at: string
-  } & AccessFacts)[]
+  access?: PendingRequestFacts[]
   names: Record<string, string>
 }
 
@@ -142,14 +131,15 @@ export function attentionOf(sources: AttentionSources): AttentionItem[] {
   for (const row of sources.access ?? [])
     items.push({
       kind: 'access',
-      ref: { kind: 'access-request', id: row.id },
+      ref: { kind: 'access-request', id: row.requestId },
       // An external agent belongs to the estate, not to a project.
       projectId: null,
       projectName: null,
-      title: `${row.name} asks to use ${row.callee === 'fabric-inbox' ? 'Fabric Inbox' : row.callee}`,
-      detail: row.lines.join('; '),
-      since: row.requested_at,
-      access: { requestId: row.id, callee: row.callee, expiresAt: row.expires_at, origin: row.origin, reason: row.reason, floor: row.floor, incremental: row.incremental }
+      // A VALUE, not a sentence: every screen phrases an access row through `sayQueueTitle` (UX-2).
+      title: row.agent.name ?? row.agent.agentId,
+      detail: null,
+      since: row.requestedAt,
+      access: row
     })
   for (const row of sources.refusals)
     items.push({

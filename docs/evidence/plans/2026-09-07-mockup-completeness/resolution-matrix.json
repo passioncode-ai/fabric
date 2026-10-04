@@ -271,7 +271,7 @@
           "file": "scripts/product/governance.mjs",
           "line": 28,
           "symbol": "data",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
@@ -963,7 +963,7 @@
           "file": "scripts/product/governance.mjs",
           "line": 137,
           "symbol": "syncGovernanceRepositories",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
@@ -1913,7 +1913,7 @@
           "file": "scripts/product/renderers.mjs",
           "line": 38,
           "symbol": "renderProduct",
-          "sha256": "9c0028b496f292c09e08069b005b5d972d779012d65cac49cd8c8f531ebb6983",
+          "sha256": "0bc6e4da3b1f4cfbb6cd482bdeaa7e073dcbeae812acc4e533bd8943869049b5",
           "source_inspected": true,
           "final_review_note": "2026-09-09: source diff rechecked for additive M199 account prototype, retained controller scope/form/assistant behavior and merged S09 count baseline. Original acceptance unchanged; M199 has separate browser receipt, no runtime acceptance. Re-reviewed 2026-09-29 (agent-registry design): the only change is new view cases inserted after line 376; renderProduct (38) and renderExtended (259) are unchanged. Re-reviewed 2026-10-03 (ADR-0100 start paths): the only change is six new view cases (first-run, start-add, start-scan, start-new, start-agent, start-convert) inserted before the default; renderProduct and renderExtended are unchanged."
         }
@@ -2327,7 +2327,7 @@
           "file": "scripts/product/governance.mjs",
           "line": 52,
           "symbol": "goals",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
@@ -2786,14 +2786,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 154,
           "symbol": "resolveProposal",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 151,
           "symbol": "publish",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
@@ -4390,35 +4390,35 @@
           "file": "scripts/product/governance.mjs",
           "line": 89,
           "symbol": "proposalRecord",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 88,
           "symbol": "proposalSource",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 94,
           "symbol": "proposal",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 154,
           "symbol": "resolveProposal",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 151,
           "symbol": "publish",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
@@ -4509,35 +4509,35 @@
           "file": "scripts/product/governance.mjs",
           "line": 89,
           "symbol": "proposalRecord",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 88,
           "symbol": "proposalSource",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 94,
           "symbol": "proposal",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 154,
           "symbol": "resolveProposal",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 151,
           "symbol": "publish",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
@@ -4628,7 +4628,7 @@
           "file": "scripts/product/renderers.mjs",
           "line": 38,
           "symbol": "renderProduct",
-          "sha256": "9c0028b496f292c09e08069b005b5d972d779012d65cac49cd8c8f531ebb6983",
+          "sha256": "0bc6e4da3b1f4cfbb6cd482bdeaa7e073dcbeae812acc4e533bd8943869049b5",
           "source_inspected": true,
           "final_review_note": "2026-09-09: source diff rechecked for additive M199 account prototype, retained controller scope/form/assistant behavior and merged S09 count baseline. Original acceptance unchanged; M199 has separate browser receipt, no runtime acceptance. Re-reviewed 2026-09-29 (agent-registry design): the only change is new view cases inserted after line 376; renderProduct (38) and renderExtended (259) are unchanged. Re-reviewed 2026-10-03 (ADR-0100 start paths): the only change is six new view cases (first-run, start-add, start-scan, start-new, start-agent, start-convert) inserted before the default; renderProduct and renderExtended are unchanged."
         },
@@ -4687,35 +4687,35 @@
           "file": "scripts/product/governance.mjs",
           "line": 119,
           "symbol": "projectSettings",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 86,
           "symbol": "configDiff",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 153,
           "symbol": "commitConfig",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 152,
           "symbol": "publishProject",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 137,
           "symbol": "syncGovernanceRepositories",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
@@ -4807,28 +4807,28 @@
           "file": "scripts/product/governance.mjs",
           "line": 119,
           "symbol": "projectSettings",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 86,
           "symbol": "configDiff",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 153,
           "symbol": "commitConfig",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         }
       ],
@@ -5734,14 +5734,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 94,
           "symbol": "proposal",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 151,
           "symbol": "publish",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
@@ -6042,7 +6042,7 @@
           "file": "scripts/product/renderers.mjs",
           "line": 259,
           "symbol": "renderExtended",
-          "sha256": "9c0028b496f292c09e08069b005b5d972d779012d65cac49cd8c8f531ebb6983",
+          "sha256": "0bc6e4da3b1f4cfbb6cd482bdeaa7e073dcbeae812acc4e533bd8943869049b5",
           "source_inspected": true,
           "final_review_note": "2026-09-09: source diff rechecked for additive M199 account prototype, retained controller scope/form/assistant behavior and merged S09 count baseline. Original acceptance unchanged; M199 has separate browser receipt, no runtime acceptance. Re-reviewed 2026-09-29 (agent-registry design): the only change is new view cases inserted after line 376; renderProduct (38) and renderExtended (259) are unchanged. Re-reviewed 2026-10-03 (ADR-0100 start paths): the only change is six new view cases (first-run, start-add, start-scan, start-new, start-agent, start-convert) inserted before the default; renderProduct and renderExtended are unchanged."
         }
@@ -6181,13 +6181,13 @@
           "file": "docs/evidence/backlog.md",
           "line": 714,
           "symbol": "| M131 |",
-          "sha256": "2c2aafb4e49267f4a1f8c45ad21bc9721bd2f7cdeefe5d6c531efa8476fbcb8f",
+          "sha256": "8725d7c73d0be3eacbe1ad72d0f418e44c11dff794877c7a53f9a09074988c19",
           "source_inspected": true,
           "final_review_note": "Re-pinned 2026-09-10 (UX28-15): the backlog gained a paragraph recording the causes of the UX register linter's warnings, which shifted every row below it. The M131 row MOVED from line 656 to 658 and is BYTE-IDENTICAL to the reviewed version — verified against HEAD, sha256 68b4fff5d458e33cf4a4d2be6d940a07428d9fc96dd13e3f29b53fb1c57ec7e7 — so this claim is re-reviewed unchanged rather than re-asserted, the same disposition FA-01 recorded when the same shift happened on 2026-09-09. The re-pin tool REFUSED to do this automatically, which is correct: it checks the line, and a line that moved is a claim a person has to look at. Taken a second time in the same run because the exposure count on the line above changed after the first digest — the row itself re-verified byte-identical again. Once this change is committed the tool works normally: it compares HEAD's line N to the working tree's, and until the shift is in HEAD it must refuse. Re-pointed 2026-09-12 (plan close-out): the CITED ROW is unchanged and moved thirteen lines, which is exactly the paragraph recording that the audit queue is exhausted. `repin-mockup-receipts.mjs` refused rather than re-pinning, because a moved line and an edited claim look identical to a hash — so the claim was re-read and the pointer moved by hand, which is what that refusal exists to force. Line corrected 2026-09-12: the row had moved to 671 and the move was reported but not written back; the claim itself was re-read and holds — M131 still records the 2026-09-07 correction under commit 33c0815.",
           "pulse_review_note": "2026-09-15: cited line unchanged/moved, matched against d2bec11. Additive pulse/persona routes and assistant appearance callback reviewed; original production verdict unchanged. New launch scope is covered in docs/launch/pulse.md.",
           "operator_review_note": "2026-09-15: OX planning appended below prior backlog. Cited M131 line 671 is byte-identical to HEAD and still records the historical source correction; no runtime/brand delivery verdict promoted. Current launch reachability findings have their own audit docs/ux/audits/2026-09-15-r0-operator.md; old completeness is not end-to-end R0 acceptance. Register arithmetic refreshed after CO-166 (136 open of 166); cited M131 row remains byte-identical.",
           "toolkit_review_note": "2026-09-26: reviewed diff from b64b490. Only measured carry-over counts changed from 138/168 to 139/169 after CO-169; M131, mascot scope and production status are unchanged. Source revalidation only, not fresh browser acceptance.",
-          "plan_review_note": "2026-10-03: the general development plan (ADR-0101) was inserted above the build order; M131 moved from line 671 to 702 and is byte-identical to HEAD. Claim re-read, pointer moved by hand; no verdict changed. Re-pointed again 2026-10-03 (verification iteration 1): the plan's lanes were rewritten and grew seven lines; M131 moved from 702 to 709 and is byte-identical to the row at 0ca25630. Claim re-read; no verdict changed. Re-pointed again 2026-10-03 (verification iteration 2): the plan gained lane 12 and the Now/Next line; M131 moved from 709 to 710 and is byte-identical to the row at 0ca25630. Claim re-read; no verdict changed. Re-pinned again 2026-10-03 (verification iteration 3): the plan's lanes and the priority nodes' status prefixes changed; M131 is still line 710 and byte-identical to the row at 0ca25630. Claim re-read; no verdict changed. Re-pointed again 2026-10-03 (lifecycle contract and learning-loop design): the priority table gained P-05, P-06 and P-07; M131 moved from 710 to 713 and is byte-identical to the row at 0ca25630. Claim re-read; no verdict changed. Re-pointed again 2026-10-04 (Fabric 0.3.0 released): the priority table gained P-08; M131 moved from 713 to 714 and is byte-identical to the row at 0ca25630. Claim re-read; no verdict changed. Re-pinned again 2026-10-04 (Now line): only the Now/Next sentence changed; M131 is still line 714 and byte-identical. Claim re-read; no verdict changed."
+          "plan_review_note": "2026-10-03: the general development plan (ADR-0101) was inserted above the build order; M131 moved from line 671 to 702 and is byte-identical to HEAD. Claim re-read, pointer moved by hand; no verdict changed. Re-pointed again 2026-10-03 (verification iteration 1): the plan's lanes were rewritten and grew seven lines; M131 moved from 702 to 709 and is byte-identical to the row at 0ca25630. Claim re-read; no verdict changed. Re-pointed again 2026-10-03 (verification iteration 2): the plan gained lane 12 and the Now/Next line; M131 moved from 709 to 710 and is byte-identical to the row at 0ca25630. Claim re-read; no verdict changed. Re-pinned again 2026-10-03 (verification iteration 3): the plan's lanes and the priority nodes' status prefixes changed; M131 is still line 710 and byte-identical to the row at 0ca25630. Claim re-read; no verdict changed. Re-pointed again 2026-10-03 (lifecycle contract and learning-loop design): the priority table gained P-05, P-06 and P-07; M131 moved from 710 to 713 and is byte-identical to the row at 0ca25630. Claim re-read; no verdict changed. Re-pointed again 2026-10-04 (verification of 0.3.1, iteration 1): the plan gained P-08 and lane notes; M131 moved from 713 to 714 and is byte-identical. Claim re-read; no verdict changed."
         },
         {
           "file": "docs/ux/mockup-contract.md",
@@ -6237,14 +6237,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 52,
           "symbol": "goals",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
@@ -6405,21 +6405,21 @@
           "file": "scripts/product/governance.mjs",
           "line": 47,
           "symbol": "pipeline",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 15,
           "symbol": "skillGate",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         }
       ],
@@ -6636,14 +6636,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 57,
           "symbol": "usage",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         }
       ],
@@ -6676,21 +6676,21 @@
           "file": "scripts/product/governance.mjs",
           "line": 76,
           "symbol": "settings",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 87,
           "symbol": "localDiagnostics",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
@@ -6758,35 +6758,35 @@
           "file": "scripts/product/governance.mjs",
           "line": 89,
           "symbol": "proposalRecord",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 88,
           "symbol": "proposalSource",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 94,
           "symbol": "proposal",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 154,
           "symbol": "resolveProposal",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 151,
           "symbol": "publish",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
@@ -6957,28 +6957,28 @@
           "file": "scripts/product/governance.mjs",
           "line": 108,
           "symbol": "notifications",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 113,
           "symbol": "notificationExtras",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 151,
           "symbol": "publish",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
@@ -7498,14 +7498,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 76,
           "symbol": "settings",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
@@ -7647,14 +7647,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 70,
           "symbol": "governor",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         }
       ],
@@ -7891,14 +7891,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 114,
           "symbol": "notifierComposer",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
@@ -7973,14 +7973,14 @@
           "file": "scripts/product/governance.mjs",
           "line": 57,
           "symbol": "usage",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 148,
           "symbol": "attachGovernanceInteractions",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         }
       ],
@@ -8013,35 +8013,35 @@
           "file": "scripts/product/governance.mjs",
           "line": 119,
           "symbol": "projectSettings",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 86,
           "symbol": "configDiff",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 153,
           "symbol": "commitConfig",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 152,
           "symbol": "publishProject",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {
           "file": "scripts/product/governance.mjs",
           "line": 137,
           "symbol": "syncGovernanceRepositories",
-          "sha256": "2c928c13280ff8a6841200a2e77985ddcb30fae10afa376985937535d0025162",
+          "sha256": "61a339bd0121840eea7397828318cc30af7ad537bef47d35f48c536ebb47b156",
           "source_inspected": true
         },
         {

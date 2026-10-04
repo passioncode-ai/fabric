@@ -4,30 +4,15 @@
 
 import { createContext, useContext, useMemo } from 'react'
 import { en, type StringKey } from './en'
-import { ru } from './ru'
+import { translator, type Locale, type Translate } from './translate.ts'
 
-export type Locale = 'en' | 'ru'
+export type { Locale, Translate } from './translate.ts'
 
-/** Locale registries. Bilingual from 2026-09-06 (M197): a NEW key lands in both
- *  in the same change — the ratchet gate in check-design.mjs enforces it — and
- *  the legacy debt lives in `ru-baseline.txt`, which may only shrink. A missing
- *  ru key falls back to en, visibly counted rather than silently absorbed. */
-const registries: Record<Locale, Partial<Record<StringKey, string>>> = {
-  en,
-  ru
-}
-
-export type Translate = (key: StringKey, vars?: Record<string, string | number>) => string
-
-function build(locale: Locale): Translate {
-  return (key, vars) => {
-    const raw = registries[locale][key] ?? registries.en[key] ?? key
-    if (!vars) return raw
-    return raw.replace(/\{(\w+)\}/g, (m, name: string) =>
-      name in vars ? String(vars[name]) : m
-    )
-  }
-}
+/** Locale registries live in `translate.ts` (bilingual from 2026-09-06, M197): a NEW key lands in both
+ *  in the same change — the ratchet gate in check-design.mjs enforces it — and the legacy debt lives in
+ *  `ru-baseline.txt`, which may only shrink. A missing ru key falls back to en, visibly counted rather
+ *  than silently absorbed. */
+const build = (locale: Locale): Translate => translator(locale)
 
 const I18nContext = createContext<{ locale: Locale; t: Translate }>({
   locale: 'en',

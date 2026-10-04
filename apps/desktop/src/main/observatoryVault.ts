@@ -5,19 +5,31 @@
 //
 //   store:  `python3 "$(project-observatory full-path)/tools/vault.py" put|rotate fabric <env> <NAME>`,
 //           the value on STDIN only — never argv, never the environment, never a log line.
-//   read:   `use_secret.py where` first, and anything but a vault slot is refused; then
-//           `use_secret.py run --env <env> fabric <NAME> -- /bin/sh -c 'printf %s "$NAME" > "$1"' sh <fifo>`.
-//           `run` scrubs the value from everything its child PRINTS, so the value cannot come back on
-//           stdout; it comes back through a named pipe in a 0700 directory of our own, written by the
-//           shell's builtin `printf` from the child's environment — so it is in no argv either — and it
-//           is held in memory for the one call that needs it.
+//   read:   `use_secret.py where` first, and anything but a vault slot is refused (its answer names
+//           WHERE a value lives, which is the better refusal); then
+//           `use_secret.py run --env <env> --vault-only fabric <NAME> -- /bin/sh -c 'printf %s "$NAME" > "$1"' sh <fifo>`.
+//           `--vault-only` makes the read itself refuse anything but the vault, so a value that appears
+//           in an env file between `where` and `run` is never used (ER-10, verification iteration 1 for
+//           0.3.1). `run` scrubs the value from everything its child PRINTS, so the value cannot come
+//           back on stdout; it comes back through a named pipe in a 0700 directory of our own, written by
+//           the shell's builtin `printf` from the child's environment — so it is in no argv either — and
+//           it is held in memory for the one call that needs it.
+//
+// THE PIPE NEVER WAITS ON A THREAD (ER-3/ER-4). Opening a FIFO for reading blocks until a writer opens
+// it, and `createReadStream` did that open on libuv's thread pool (four threads in Electron's main
+// process): four key reads at once stalled every fs call, DNS lookup and async crypto of the app, and a
+// `run` that exited 0 without writing parked a thread for ever, so the read never ended and the app
+// could not quit. The read end is now opened O_NONBLOCK (returns at once), drained with non-blocking
+// reads while `run` lives and once more after it exits; a run that wrote nothing is a refusal, "the vault
+// handed nothing over", never a wait. (An inherited extra pipe would need no FIFO at all, but `run`
+// starts its child with Python's `close_fds=True`, so an fd 3 never reaches the shell.)
 //
 // THE INTERPRETER is the one Observatory's own launcher names in its first line (its venv), because a
 // Dock-launched app's PATH puts the system's `python3` first and the engine's tools are not written
 // for it. A launcher without a readable first line falls back to `python3` on PATH.
 
 import { execFile, spawn } from 'node:child_process'
-import { constants, closeSync, createReadStream, existsSync, mkdtempSync, openSync, readFileSync, rmSync } from 'node:fs'
+import { constants, closeSync, existsSync, mkdtempSync, openSync, readFileSync, readSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { ops } from './opsSink.ts'
@@ -173,39 +185,61 @@ export function createObservatoryVault(opts: {
 
       const dir = mkdtempSync(path.join(tmpdir(), 'fabric-secret-'))
       const fifo = path.join(dir, 'value')
+      let fd: number | null = null
       try {
         const made = await run('/usr/bin/mkfifo', ['-m', '600', fifo], { timeoutMs: 2000, env })
         if (made.code !== 0) return { ok: false, reason: `could not make the pipe the secret travels through: ${said(made.stderr)}` }
+        // Non-blocking: the open returns at once although no writer exists yet, and every read below
+        // answers at once — data, end-of-file, or EAGAIN while the writer has not written.
+        fd = openSync(fifo, constants.O_RDONLY | constants.O_NONBLOCK)
         const chunks: Buffer[] = []
-        const reading = new Promise<void>((resolve, reject) => {
-          const stream = createReadStream(fifo)
-          stream.on('data', (c) => chunks.push(c as Buffer))
-          stream.on('end', () => resolve())
-          stream.on('error', reject)
-        })
-        const child = run(
-          found.engine.python,
-          [path.join(found.engine.tools, 'use_secret.py'), 'run', '--env', slot.env, slot.project, slot.name, '--', '/bin/sh', '-c', `printf %s "$${slot.name}" > "$1"`, 'sh', fifo],
-          { timeoutMs, env }
-        )
-        const r = await child
-        if (r.code !== 0) {
-          // The reader is still waiting to open its end; opening the write end once and closing it
-          // gives it end-of-file, so no thread is left blocked on a pipe nobody will write.
-          try {
-            closeSync(openSync(fifo, constants.O_WRONLY | constants.O_NONBLOCK))
-          } catch (e) {
-            // ENXIO means no reader is waiting any more; nothing is left to release.
-            if ((e as NodeJS.ErrnoException).code !== 'ENXIO') ops.failed('vault.read-release', e)
+        let size = 0
+        const drain = (): void => {
+          const buf = Buffer.alloc(16384)
+          for (;;) {
+            let n: number
+            try {
+              n = readSync(fd as number, buf, 0, buf.length, null)
+            } catch (e) {
+              if ((e as NodeJS.ErrnoException).code === 'EAGAIN') return
+              throw e
+            }
+            if (n === 0) return
+            size += n
+            if (size > 65536) throw new Error('the vault handed over more than 64 KiB; refused')
+            chunks.push(Buffer.from(buf.subarray(0, n)))
           }
-          await reading.catch(() => undefined)
-          return { ok: false, reason: r.timedOut ? 'Project Observatory did not hand the secret over in time' : `Project Observatory refused to hand the secret over: ${said(r.stderr)}` }
         }
-        await reading
+        // Drained while `run` lives, so a writer is never left blocked on a full pipe.
+        const poll = setInterval(() => {
+          try {
+            drain()
+          } catch {
+            // The final drain after `run` exits reports it; nothing is dropped silently.
+          }
+        }, 25)
+        let r: Awaited<ReturnType<typeof run>>
+        try {
+          r = await run(
+            found.engine.python,
+            [path.join(found.engine.tools, 'use_secret.py'), 'run', '--env', slot.env, '--vault-only', slot.project, slot.name, '--', '/bin/sh', '-c', `printf %s "$${slot.name}" > "$1"`, 'sh', fifo],
+            { timeoutMs, env }
+          )
+        } finally {
+          clearInterval(poll)
+        }
+        try {
+          drain()
+        } catch (e) {
+          return { ok: false, reason: (e as Error).message }
+        }
+        if (r.code !== 0)
+          return { ok: false, reason: r.timedOut ? 'Project Observatory did not hand the secret over in time' : `Project Observatory refused to hand the secret over: ${said(r.stderr)}` }
         const value = Buffer.concat(chunks).toString('utf8')
-        if (!value) return { ok: false, reason: `${slot.name} is empty in the vault` }
+        if (!value) return { ok: false, reason: `the vault handed nothing over for ${slot.name}: \`use_secret.py run\` ended without writing the value` }
         return { ok: true, value }
       } finally {
+        if (fd !== null) closeSync(fd)
         rmSync(dir, { recursive: true, force: true })
       }
     }

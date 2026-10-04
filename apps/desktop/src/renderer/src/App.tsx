@@ -15,6 +15,7 @@ import {
   type AppRoute,
   type Tab
 } from '../../shared/appRoute.ts'
+import { closePanel, togglePanel, type SidePanel } from './sidePanel'
 import { taskOf, type EntityRef } from '../../shared/entityRef.ts'
 import { EditorWindow } from './EditorWindow'
 import { EstateHome } from './EstateHome'
@@ -150,21 +151,19 @@ function Shell({
   const [quota, setQuota] = useState<QuotaReading>({ read: false })
   const [error, setError] = useState<string | null>(null)
   const [showSettings, setShowSettings] = useState(false)
-  /** The conversation with Fabric (SCR-64). One side panel at a time, like the other two. */
-  const [chatOpen, setChatOpen] = useState(false)
+  /** Search, the conversation with Fabric (SCR-64), private history (SCR-65) and Agent access (SCR-76):
+   *  ONE side panel at a time, held in one state (UX-13). */
+  const [panel, setPanel] = useState<SidePanel>(null)
+  const chatOpen = panel === 'chat'
+  const historyOpen = panel === 'history'
+  const accessOpen = panel === 'access'
+  const searchOpen = panel === 'search'
   /** An example from Help put in the composer (SCR-44); null when the chat is opened plainly. */
   const [chatSuggestion, setChatSuggestion] = useState<string | null>(null)
   const openChat = (suggestion: string | null): void => {
-    setSearchOpen(false)
-    setHistoryOpen(false)
     setChatSuggestion(suggestion)
-    setChatOpen(true)
+    setPanel('chat')
   }
-  /** Private history and restore (SCR-65, SCR-48), opened from settings; one side panel at a time. */
-  const [historyOpen, setHistoryOpen] = useState(false)
-  /** Agent access (SCR-76, ADR-0115), opened from settings; one side panel at a time. */
-  const [accessOpen, setAccessOpen] = useState(false)
-  const [searchOpen, setSearchOpen] = useState(false)
   /**
    * What a panel asked to be shown, addressed to one project and CONSUMED when
    * that project's screen honours it.
@@ -609,10 +608,10 @@ function Shell({
         }}
         onAgents={() => { setShowSettings(false); setActive({ kind: 'agents' }) }}
         onSettings={() => setShowSettings((v) => !v)}
-        onHistory={() => { setSearchOpen(false); setChatOpen(false); setHistoryOpen(true) }}
-        onSearch={() => { setChatOpen(false); setHistoryOpen(false); setSearchOpen((v) => !v) }}
+        onHistory={() => setPanel('history')}
+        onSearch={() => setPanel((p) => togglePanel(p, 'search', { toggle: true }))}
         searchOpen={searchOpen}
-        onChat={() => { setSearchOpen(false); setHistoryOpen(false); setChatSuggestion(null); setChatOpen((v) => !v) }}
+        onChat={() => { setChatSuggestion(null); setPanel((p) => togglePanel(p, 'chat', { toggle: true })) }}
         onHelp={() => { setShowSettings(false); setActive({ kind: 'help' }) }}
         onQuota={() => { setShowSettings(false); setActive({ kind: 'quota' }) }}
         chatOpen={chatOpen}
@@ -620,8 +619,8 @@ function Shell({
       {showSettings && (
         <SettingsBar
           settings={settings}
-          onOpenHistory={() => { setSearchOpen(false); setChatOpen(false); setHistoryOpen(true) }}
-          onOpenAccess={() => { setSearchOpen(false); setChatOpen(false); setHistoryOpen(false); setAccessOpen(true) }}
+          onOpenHistory={() => setPanel('history')}
+          onOpenAccess={() => setPanel('access')}
           onChange={async (next) => {
             const written = await window.fabric.settings.write(next)
             // The settings the DISK holds, not the ones that were asked for: a
@@ -656,7 +655,7 @@ function Shell({
             feedMark={markOf(marks, ['task', 'work', 'question', 'goal', 'proposal', 'grant', 'policy', 'effect'])}
             onOpen={openEntity}
             onError={setError}
-            onChat={() => { setSearchOpen(false); setHistoryOpen(false); setChatOpen(true) }}
+            onChat={() => setPanel('chat')}
             onPulse={() => setActive({ kind: 'pulse', projectId: active.projectId ?? null })}
           />
         )}
@@ -860,17 +859,17 @@ function Shell({
 
         {searchOpen && (
           <SearchPanel
-            onClose={() => setSearchOpen(false)}
+            onClose={() => setPanel((p) => closePanel(p, 'search'))}
             onOpen={(projectId, ref) => {
               openEntity(projectId, ref)
-              setSearchOpen(false)
+              setPanel((p) => closePanel(p, 'search'))
             }}
             onError={setError}
           />
         )}
-        {chatOpen && <CeoChat key={chatSuggestion ?? 'chat'} suggestion={chatSuggestion} onClose={() => setChatOpen(false)} projects={projects} />}
-        {historyOpen && <PrivateHistoryPanel onClose={() => setHistoryOpen(false)} />}
-        {accessOpen && <AgentAccessPanel onClose={() => setAccessOpen(false)} />}
+        {chatOpen && <CeoChat key={chatSuggestion ?? 'chat'} suggestion={chatSuggestion} onClose={() => setPanel((p) => closePanel(p, 'chat'))} projects={projects} />}
+        {historyOpen && <PrivateHistoryPanel onClose={() => setPanel((p) => closePanel(p, 'history'))} />}
+        {accessOpen && <AgentAccessPanel onClose={() => setPanel((p) => closePanel(p, 'access'))} />}
       </div>
       </LaunchShell>
     </div>

@@ -277,10 +277,17 @@ not a relay. A session Fabric starts reaches the same server with its one-shot b
 
 **Door token** — the hub's shared credential for ASKING: 32 random bytes in a 0600 file that
 `hub.json` names, rotated on every start. It reaches `fabric.access.request` and
-`fabric.access.status` and nothing else, and it may be reused; it is never a grant.
+`fabric.access.status` and nothing else, and it may be reused; it is never a grant. Through the
+door, reading a request's status also needs that request's **poll secret**.
+
+**Poll secret** — a per-request secret (32 random bytes) the hub returns only in the answer that
+CREATED an access request, as RFC 8628's device code is; Fabric keeps its sha256. Through the door,
+`fabric.access.status` reads a request only with its poll secret, so another holder of the door token
+cannot read its answer or collect its credential (ADR-0115 amendment 11).
 
 **Binding credential** — the long-lived, revocable credential an agent receives once, on the first
-status read after the operator allows its request; Fabric keeps only its sha256. It identifies
+status read after the operator allows its request — within 10 minutes of the decision; after that it
+is never issued and the agent asks again; Fabric keeps only its sha256. It identifies
 one registered agent and reaches `agent.call` within that agent's access grants.
 
 **Access grant** — one standing permission of one binding: one capability (the product's tool
@@ -291,8 +298,9 @@ above): a standing grant never opens a floored action.
 
 **Product connection** — one cloud product connected to Fabric by the product's own consent: the
 product's app asks the operator and delivers a key to the hub. Fabric keeps the key's metadata;
-its secret lives in Project Observatory's vault and is read for one call at a time. Fabric holds
-one connection per product and never hands its credential to an agent.
+its secret lives in Project Observatory's vault, in a slot of its own estate and connection, and is
+read for one call at a time. Fabric holds one connection per product per estate and never hands its
+credential to an agent. Disconnect stops Fabric using the key; it does not revoke it in the product.
 
 **Question** — a point where a running node cannot proceed without a permission or a
 choice its instructions did not settle. Every question is answered by the fabric or

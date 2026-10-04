@@ -14,6 +14,8 @@
 // connected product takes the product's tool name as it is (`^[a-z][a-z0-9._-]{1,127}$`); the
 // contract amendment is a carry-over row, not a silent rename.
 
+import type { AccessActRefusal } from './accessActs.ts'
+
 export const ACCESS_REQUEST_TTL_MS = 10 * 60 * 1000
 /** ADR-0115 §3: an allow's default expiry. A grant without one is refused (§6). */
 export const GRANT_TTL_MS = 365 * 24 * 60 * 60 * 1000
@@ -56,7 +58,7 @@ const WORKSPACE_SETUP: Record<string, SetupSpec> = {
     own: ['localPart', 'domain', 'name', 'createRoute'],
     extras: {
       forwardTo: { suffix: 'forward_to', plain: 'forward a copy of its mail to an address the agent chooses' },
-      agent: { suffix: 'reply_agent', plain: 'choose the reply agent that answers its mail — a reply agent can send mail' }
+      agent: { suffix: 'reply_agent', plain: 'choose the reply agent that answers its mail; a reply agent can send mail' }
     }
   }
 }
@@ -99,8 +101,8 @@ const PLAIN: Record<string, string> = {
   delete_message: 'delete mail for good',
   sync_account: 'sync a Gmail account',
   manage_folder: 'create, rename or remove folders',
-  approve_rule_run: 'approve a rule’s action, which can send mail',
-  dismiss_rule_run: 'dismiss a rule’s action',
+  approve_rule_run: 'approve what a rule is about to do, which can send mail',
+  dismiss_rule_run: 'dismiss what a rule was about to do',
   // level admin — the one setup Fabric runs, and the admin tool that sends
   create_address: 'create the address',
   send_test_message: 'send a test message'
@@ -108,6 +110,13 @@ const PLAIN: Record<string, string> = {
 
 /** The tools that send mail (`sends: true` in Fabric Inbox's `workers/mcp/tools.ts`). */
 export const SENDS_MAIL: ReadonlySet<string> = new Set(['send_email', 'reply', 'forward', 'approve_rule_run', 'send_test_message'])
+
+/** Every capability Fabric can describe: the product's tools and each setup extra. Each has its own
+ *  operator sentence in the i18n registries (`access.cap.<id>`, en and ru). */
+export const KNOWN_CAPABILITIES: readonly string[] = [
+  ...Object.keys(PLAIN),
+  ...Object.entries(WORKSPACE_SETUP).flatMap(([tool, spec]) => Object.values(spec.extras).map((e) => `${tool}.${e.suffix}`))
+]
 
 // Every character that can break a line, reorder what follows it or hide in it: C0/C1 controls, DEL,
 // the bidirectional marks, embeddings, overrides and isolates, the Unicode line and paragraph
@@ -141,10 +150,17 @@ export type Normalised<T> = { ok: true; value: T } | { ok: false; reason: string
 const ACCOUNT_CF = /^[^@\s/:%,]+@[^@\s/:%,]+\.[^@\s/:%,]+$/
 const ACCOUNT_GMAIL = /^[A-Za-z0-9_-]{1,128}$/
 
+// PRINTABLE ASCII ONLY (verification iteration 1 for 0.3.1, ER-9). Fabric Inbox's account ids are ASCII
+// (Cloudflare addresses, Gmail ids; its `create_address` localPart is `[a-z0-9._+-]`), and a zero-width
+// space, a word joiner, a soft hyphen or a look-alike letter is removed or invisible when the prompt
+// shows it — so the operator would allow a string they were not shown. Refused instead: the string shown
+// and the string granted are byte-identical.
+const PRINTABLE_ASCII = /^[\x21-\x7e]+$/
+
 /** A Fabric Inbox account id, normalised as the product reads it; null when it is not one. */
 export function normaliseInboxAccount(value: string): string | null {
   const v = value.trim()
-  if (v.length > 400) return null
+  if (v.length > 400 || !PRINTABLE_ASCII.test(v)) return null
   if (v.startsWith('cloudflare:')) return ACCOUNT_CF.test(v.slice(11)) ? `cloudflare:${v.slice(11).toLowerCase()}` : null
   if (v.startsWith('gmail:')) return ACCOUNT_GMAIL.test(v.slice(6)) ? v : null
   if (ACCOUNT_CF.test(v)) return `cloudflare:${v.toLowerCase()}`
@@ -214,24 +230,39 @@ export function normaliseAccessRequest(input: {
   }
 }
 
+/** A product tool as the operator is shown it: its id, and whether Fabric has words for it. */
+export interface CapabilityRef { id: string; known: boolean }
+/** A resource as the operator is shown it: an address, a Gmail account, or (never expected) the raw id. */
+export type ResourceRef = { kind: 'address'; address: string } | { kind: 'gmail'; id: string } | { kind: 'other'; text: string }
 /**
- * What is asked, one line per resource, in the product's words. A workspace setup is its own line,
- * because it runs without the narrowing header and the operator must see that it does.
+ * One line of what is asked, as FACTS — the renderer and the native prompt phrase it through the i18n
+ * registries (verification iteration 1 for 0.3.1, UX-2): never an English sentence carried from main.
+ * `setup` and `setup-extra` run on the workspace without the narrowing header, so each is its own line.
  */
-export function describeAsk(ask: Pick<AccessAsk, 'capabilities' | 'resources'>): string[] {
+export type AskLine =
+  | { kind: 'inside'; capabilities: CapabilityRef[]; resource: ResourceRef }
+  | { kind: 'setup' | 'setup-extra'; capability: CapabilityRef; resource: ResourceRef }
+
+export function capabilityRef(id: string): CapabilityRef {
+  const known = Object.prototype.hasOwnProperty.call(PLAIN, id) || setupExtra(id) !== null
+  return { id: known ? id : oneLine(id, 128), known }
+}
+
+export function resourceRef(resource: string): ResourceRef {
+  if (resource.startsWith('cloudflare:')) return { kind: 'address', address: oneLine(resource.slice(11), 400) }
+  if (resource.startsWith('gmail:')) return { kind: 'gmail', id: oneLine(resource.slice(6), 400) }
+  return { kind: 'other', text: oneLine(resource, 400) }
+}
+
+/** What is asked, one line per resource, as facts. A workspace setup is its own line. */
+export function askLines(ask: Pick<AccessAsk, 'capabilities' | 'resources'>): AskLine[] {
   const inside = ask.capabilities.filter((c) => !isWorkspaceSetup(c))
   const setup = ask.capabilities.filter(isWorkspaceSetup)
-  const lines: string[] = []
+  const lines: AskLine[] = []
   for (const r of ask.resources) {
-    if (inside.length) {
-      const verbs = inside.map(plainCapability)
-      const said = verbs.length === 1 ? verbs[0] : `${verbs.slice(0, -1).join(', ')} and ${verbs[verbs.length - 1]}`
-      lines.push(`${said} in ${displayResource(r)}`)
-    }
-    for (const c of setup)
-      lines.push(setupExtra(c)
-        ? `set up the workspace: when creating ${displayResource(r)}, also ${plainCapability(c)}`
-        : `set up the workspace: ${plainCapability(c)} ${displayResource(r)}`)
+    const resource = resourceRef(r)
+    if (inside.length) lines.push({ kind: 'inside', capabilities: inside.map(capabilityRef), resource })
+    for (const c of setup) lines.push({ kind: setupExtra(c) ? 'setup-extra' : 'setup', capability: capabilityRef(c), resource })
   }
   return lines
 }
@@ -362,102 +393,113 @@ export function accessRefusal(input: { agentId: string; callee: string; capabili
 export const PRODUCT_NAMES: Record<string, string> = { 'fabric-inbox': 'Fabric Inbox' }
 export const productName = (id: string): string => PRODUCT_NAMES[id] ?? id
 
-/** The same-user floor (ADR-0115 §2), said wherever the operator can answer a request. */
-export const SAME_USER_FLOOR =
-  'Fabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id.'
-
 type RegistrySnapshot = { name?: string; installed_by?: string; repository?: string | null }
 
-/** The agent's name as shown: the registry's, on one line, or its id. */
-export function agentName(agentId: string, registry: RegistrySnapshot | null | undefined): string {
-  return oneLine(registry?.name ?? '', 80) || agentId
-}
+/** Who is asking, as the registry knows it — every field from outside Fabric on one line, or null. */
+export interface AgentFacts { agentId: string; name: string | null; installedBy: string | null; repository: string | null }
 
-/**
- * The facts the native prompt states, as the attention queue and the settings list show them too —
- * so an Allow given from either says what the prompt would have said (security review of PR #7).
- * Everything that came from outside Fabric is one line, with nothing that can break or reorder it.
- */
-export function consentFacts(input: { agentId: string; registry: RegistrySnapshot | null | undefined; reason: string; incremental: boolean }): {
-  origin: string
-  reason: string
-  floor: string
-  incremental: string | null
-} {
-  const r = input.registry ?? {}
-  const by = oneLine(r.installed_by ?? '', 200)
-  const repo = oneLine(r.repository ?? '', 300)
-  const where = [by ? `installed by ${by}` : null, repo ? `source ${repo}` : null].filter(Boolean).join('; ')
+export function agentFacts(agentId: string, registry: RegistrySnapshot | null | undefined): AgentFacts {
+  const r = registry ?? {}
   return {
-    origin: `An agent registered as ${input.agentId}${where ? ` (${where})` : ''}`,
-    reason: oneLine(input.reason, 300),
-    floor: SAME_USER_FLOOR,
-    incremental: input.incremental ? 'This agent already has access through Fabric; this adds to it.' : null
+    agentId,
+    name: oneLine(r.name ?? '', 80) || null,
+    installedBy: oneLine(r.installed_by ?? '', 200) || null,
+    repository: oneLine(r.repository ?? '', 300) || null
   }
 }
 
+/** The agent's name as shown: the registry's, on one line, or its id. A value, not a sentence. */
+export function agentName(agentId: string, registry: RegistrySnapshot | null | undefined): string {
+  return agentFacts(agentId, registry).name ?? agentId
+}
+
 /**
- * The words of the native prompt (ADR-0115 §2). The agent is named as the REGISTRY knows it, with
- * where it came from; what it asks is said in the product's words; its reason is quoted as its own
- * claim, on one line; and the same-user floor is said, not implied. Deny is the default and the
- * cancel answer.
+ * Why connecting a product did not happen, as a CODE the operator's screens phrase (en/ru). `detail` is
+ * the machine's own words (Observatory's refusal, the open error) — shown as a secondary detail only.
+ * `previousLost`: a Reconnect whose new key was withdrawn after it had already replaced the old record.
  */
-export function consentText(input: {
-  agentId: string
-  registry: RegistrySnapshot
+export const CONNECT_PROBLEM_CODES = [
+  'hub-off', 'already-connected', 'busy', 'live-unreadable', 'not-installed', 'no-flow', 'late', 'no-answer',
+  'no_server', 'sign_in_required', 'mint_failed', 'unknown', 'invalid-delivery', 'record-failed', 'vault',
+  'deadline', 'withdrawn', 'not-connected'
+] as const
+export type ConnectProblemCode = (typeof CONNECT_PROBLEM_CODES)[number]
+export interface ConnectProblem { code: ConnectProblemCode; detail?: string; previousLost?: boolean }
+
+/** A request as the operator decides it: the native prompt's facts, structured (UX-2). */
+export interface PendingRequestFacts {
+  requestId: string
+  agent: AgentFacts
+  callee: string
+  /** The product's display name (a proper name, the same in every language). */
+  product: string
+  /** Whether the product is connected; when not, Allow also opens its connect flow (UX-4). */
+  connected: boolean
+  ask: AskLine[]
+  /** The agent's own words, one line — shown quoted, as its claim. */
+  reason: string
+  /** This adds to access the agent already holds. */
+  incremental: boolean
+  requestedAt: string
+  expiresAt: string
+}
+
+/** A stored request, as much of it as the operator's facts need (accessStore's row, structurally). */
+export interface RequestRowLike {
+  id: string
+  agent_id: string
   callee: string
   capabilities: string[]
   resources: string[]
   reason: string
-  connected: boolean
-  incremental: boolean
-}): { title: string; message: string; detail: string; buttons: [string, string]; defaultId: 0; cancelId: 0 } {
-  const product = productName(input.callee)
-  const name = agentName(input.agentId, input.registry)
-  const facts = consentFacts(input)
-  const detail = [
-    `${facts.origin} asks to:`,
-    ...describeAsk(input).map((l) => `• ${l}`),
-    '',
-    'Its reason, in its own words:',
-    `“${facts.reason}”`,
-    '',
-    facts.floor,
-    '',
-    facts.incremental ?? `If you allow, the agent gets its own credential for ${product} through Fabric.`,
-    'Access lasts a year unless you revoke it in Settings → Agent access.',
-    ...(input.connected ? [] : ['', `${product} is not connected to Fabric yet. Allow also opens ${product}, which asks you to connect it.`])
-  ].join('\n')
+  asked_by_binding: string | null
+  requested_at: string
+  expires_at: string
+  registry: RegistrySnapshot | null
+}
+
+/** One waiting request as facts, for the queue and Settings → Agent access alike (UX-2, UX-4). */
+export function pendingFacts(r: RequestRowLike, connected: boolean): PendingRequestFacts {
   return {
-    title: `Allow ${name} to use ${product}?`,
-    message: `${name} asks to use ${product} through Fabric`,
-    detail,
-    buttons: ['Deny', input.connected ? 'Allow' : `Allow and connect ${product}`],
-    defaultId: 0,
-    cancelId: 0
+    requestId: r.id,
+    agent: agentFacts(r.agent_id, r.registry),
+    callee: r.callee,
+    product: productName(r.callee),
+    connected,
+    ask: askLines(r),
+    reason: oneLine(r.reason, 300),
+    incremental: r.asked_by_binding !== null,
+    requestedAt: r.requested_at,
+    expiresAt: r.expires_at
   }
 }
 
-/** What the operator's Agent access list shows (Settings → Agent access). */
+/** What the operator's Agent access list shows (Settings → Agent access). No sentence crosses IPC. */
 export interface HubOverview {
+  /** `reason` is the machine's own words, shown only as a secondary detail under a localised line. */
   hub: { listening: true; origin: string } | { listening: false; reason: string }
   products: Array<{
     product: string
     name: string
     connection: { server: string; level: string; connectedAt: string; keyExpiresAt: string | null } | null
-    lastAttempt: { outcome: 'waiting' | 'connected' | 'denied' | 'failed'; at: string; reason?: string } | null
+    lastAttempt: { outcome: 'waiting' | 'connected' | 'denied' | 'failed'; at: string; problem?: ConnectProblem; reconnect?: boolean } | null
   }>
-  /** `origin`, `reason`, `floor` and `incremental` are `consentFacts`: the native prompt's own facts. */
-  pending: Array<{ requestId: string; agentId: string; name: string; callee: string; lines: string[]; reason: string; origin: string; floor: string; incremental: string | null; requestedAt: string; expiresAt: string }>
+  pending: PendingRequestFacts[]
   agents: Array<{
     bindingId: string
-    agentId: string
-    name: string
+    agent: AgentFacts
     since: string
-    grants: Array<{ grantId: string; callee: string; capability: string; resource: string; line: string; expiresAt: string }>
+    grants: Array<{ grantId: string; callee: string; capability: string; resource: string; line: AskLine; expiresAt: string }>
   }>
-  denials: Array<{ requestId: string; agentId: string; name: string; callee: string; lines: string[]; deniedAt: string | null }>
+  denials: Array<{ requestId: string; agent: AgentFacts; callee: string; ask: AskLine[]; deniedAt: string | null }>
 }
 
-export type HubActResult = { ok: true } | { ok: false; reason: string }
+/**
+ * The answer to an operator's act. Refused: a code the screen phrases (an `AccessActRefusal`, or a
+ * connect `problem`), with `reason` kept for the operations log. Allowed but the product's connect
+ * flow could not start: `connect.problem` (UX-5) — the Allow stands.
+ */
+export type HubActResult =
+  | { ok: true; connect?: { problem: ConnectProblem } }
+  | { ok: false; reason: string; code?: AccessActRefusal; problem?: ConnectProblem }
 // #endregion hub-access

@@ -33,6 +33,8 @@ Contract: brand-contract v1
 | Estate | organization tenant, company tenant |
 | Passion coding | passionate coding, passion fruit coding |
 | Mac | MAC (the computer the app runs on) |
+| Project Observatory | Observatory alone in the interface's first mention; the machine's project and credential registry whose vault keeps a connected product's key |
+| Gmail | GMail, gmail (Google's mail service, an account kind Fabric Inbox reads) |
 
 The wrong forms above are literal strings the brand lint looks for in the English registry. In Russian a coding agent is «агент для кода» — never «агент» alone where a runner is meant, and never «раннер»; the lint does not read the Russian registry, so review it by hand.
 

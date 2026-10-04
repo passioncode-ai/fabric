@@ -19,6 +19,7 @@ import type { AnswerReceipt, ProjectRow } from '../../../shared/types'
 import { AnswerForm, submitAnswer } from '../BoardPanel'
 import { since } from '../duration'
 import { useLocale, useT } from '../i18n'
+import { titleOf } from '../attentionTitle'
 import { FabricAvatar } from './FabricAvatar'
 import { FabricName } from './persona'
 import { ObligationActs, useProposalDecisions } from './ObligationActs'
@@ -220,7 +221,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
               onClick={() => setSelected(selected === r.entry.ref ? null : r.entry.ref)}>
               <span className="lp-topic-num">{String(i + 1).padStart(2, '0')}</span>
               <span>
-                <span className="lp-topic-title">{r.entry.title}</span>
+                <span className="lp-topic-title">{titleOf(r.entry, t)}</span>
                 <span className="lp-meta">
                   {[r.entry.projectName, kindOfRow(r), r.at === 'open' ? r.entry.detail : r.at === 'later' ? r.entry.reason : null].filter(Boolean).join(' · ')}
                 </span>
@@ -242,7 +243,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
               <p className="lp-kicker">{[kindOfRow(chosen), chosen.entry.projectName].filter(Boolean).join(' · ')}</p>
               <button type="button" className="lp-button" aria-label={t('launch.board.close')} onClick={() => setSelected(null)}>{t('glyph.close')}</button>
             </div>
-            <h3 id="topic-title" tabIndex={-1}>{chosen.entry.title}</h3>
+            <h3 id="topic-title" tabIndex={-1}>{titleOf(chosen.entry, t)}</h3>
             {chosen.at === 'open' ? (
               <>
                 {chosen.entry.detail && <p>{chosen.entry.detail}</p>}
