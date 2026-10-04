@@ -5,14 +5,38 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } from 'node
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createHash } from 'node:crypto'
-import { validatePlan, frontier, taskPacket } from '../unified-plan.mjs'
+import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+import { publicInputProblems } from '../unified-canonical-sources.mjs'
+import { validatePlan as productionValidatePlan, frontier, taskPacket, selectedReport, REPORT } from '../unified-plan.mjs'
 
 const digest = s => createHash('sha256').update(s).digest('hex')
+// The unit boundary receives a parser response. Actual pinned common-parser and
+// compiler integration runs separately in build-unified-plan.test.mjs after
+// workspace initialization; these fixtures need no private-repository access.
+function fixtureInventory(root,revision) {
+  const repository='https://github.com/passioncode-ai/fabric'
+  const manifest=JSON.parse(readFileSync(join(root,'docs/backlog-sources.json'),'utf8'))
+  const paths=[...new Set(['docs/backlog-sources.json',...manifest.sources.map(s=>s.path)])].sort()
+  const tasks=manifest.sources.flatMap(source=>readFileSync(join(root,source.path),'utf8').split('\n').flatMap((line,i)=>{
+    const m=line.match(/^\| (P-01|COM-01) \| ([^|]+) \| (open) \|$/)
+    return m?[{key:`${repository}:${source.path}:${m[1]}`,id:m[1],path:source.path,title:m[2].trim(),status:m[3],line:i+1}]:[]
+  }))
+  return {schema:1,scope:'unit parser response',repository,commit:revision,declarations:manifest.sources,
+    sources:paths.map(path=>({path,sha256:digest(readFileSync(join(root,path))),commit:revision})),tasks,contexts:[]}
+}
+const validatePlan=(plan,root)=>productionValidatePlan(plan,root,{inventoryReader:fixtureInventory})
 function fixture(run) {
   const root = mkdtempSync(join(tmpdir(), 'fabric-unified-plan-'))
-  const source = '<!-- general-plan:begin -->\n| 1 · Start | outcome | none | P-01 |\n<!-- general-plan:end -->\n'
+  const source = '<!-- general-plan:begin -->\n| 1 · Start | outcome | none | P-01 |\n<!-- general-plan:end -->\n\n| ID | Packet | Status |\n|---|---|---|\n| P-01 | Start | open |\n'
   mkdirSync(join(root, 'docs/evidence'), { recursive: true })
   writeFileSync(join(root, 'docs/evidence/backlog.md'), source)
+  const manifest = JSON.stringify({schema:1,repository:'https://github.com/passioncode-ai/fabric',sources:[{path:'docs/evidence/backlog.md',goal:'agent-workplace',kind:'tasks',format:'table',idColumn:'ID',titleColumn:'Packet',statusColumn:'Status'}]})
+  writeFileSync(join(root,'docs/backlog-sources.json'),manifest)
+  const git = (...args) => execFileSync('git',args,{cwd:root,stdio:['ignore','pipe','pipe']}).toString().trim()
+  git('init','-q');git('add','docs')
+  git('-c','user.name=Fixture','-c','user.email=fixture@example.test','commit','-qm','canonical fixture')
+  const revision=git('rev-parse','HEAD')
   const context = {
     outcome: 'A cold reader can reproduce the check',
     sources: ['docs/evidence/backlog.md'], scope: ['scripts/unified-plan.mjs'],
@@ -21,10 +45,11 @@ function fixture(run) {
     risks: ['Source changes invalidate dispatch'],
     stop_conditions: ['Stop on source drift'], resume: 'Reconcile the source and regenerate the cut',
   }
-  const plan = { schema: 1, baseline: 'a'.repeat(40), constraints: ['Canonical register owns delivery status'],
-    sources: [{ path: 'docs/evidence/backlog.md', sha256: digest(source) }],
+  const inventory=fixtureInventory(root,revision)
+  const plan = { schema: 1, baseline: revision, constraints: ['Canonical register owns delivery status'], canonical_inventory:inventory,
+    sources: [{ path: 'docs/evidence/backlog.md', sha256: digest(source),commit:revision },{path:'docs/backlog-sources.json',sha256:digest(manifest),commit:revision}],
     lanes: [{ number: 1, canonical_ids: ['P-01'] }],
-    tasks: [{ id: 'P-01.design', title: 'Reconcile start', canonical_ids: ['P-01'], lane: 1,
+    tasks: [{ id: 'P-01.design', title: 'Reconcile start', canonical_ids: ['P-01'], canonical_keys:[inventory.tasks[0].key],lane: 1,
       kind: 'design', dispatch: 'candidate', priority_group: 0, depends_on: [], context }], impacts: [] }
   try { run({ root, plan, source, context }) } finally { rmSync(root, { recursive: true, force: true }) }
 }
@@ -119,4 +144,53 @@ test('a broad unreviewed parent cannot be promoted to candidate by dropping depe
   plan.tasks[0].id = 'P-01.design.prepare'
   assert.deepEqual(validatePlan(plan, root), [])
 }))
+
+test('a newly declared canonical source cannot hide outside the general-plan lanes', () => fixture(({root, plan}) => {
+  const source = '| ID | Packet | Status |\n|---|---|---|\n| COM-01 | Contract and source map | open |\n'
+  writeFileSync(join(root, 'docs/evidence/com.md'), source)
+  writeFileSync(join(root, 'docs/backlog-sources.json'), JSON.stringify({schema:1, repository:'https://github.com/passioncode-ai/fabric', sources:[
+    {path:'docs/evidence/com.md',goal:'agent-workplace',kind:'tasks',format:'table',idColumn:'ID',titleColumn:'Packet',statusColumn:'Status'}
+  ]}))
+  assert.match(validatePlan(plan, root).join('\n'), /canonical.*inventory|canonical.*coverage|uncovered.*COM-01/i)
+}))
+
+test('source pins cannot substitute a different or forged immutable commit', () => fixture(({root, plan}) => {
+  plan.sources[0].commit = 'f'.repeat(40)
+  assert.match(validatePlan(plan, root).join('\n'), /source revision mismatch/)
+}))
+test('identical IDs in different canonical files retain both owner identities', () => fixture(({root, plan}) => {
+  const path='docs/evidence/other.md'
+  const source='| ID | Packet | Status |\n|---|---|---|\n| P-01 | Independent owning source | open |\n'
+  writeFileSync(join(root,path),source)
+  const manifest=JSON.parse(readFileSync(join(root,'docs/backlog-sources.json'),'utf8'))
+  manifest.sources.push({...manifest.sources[0],path})
+  writeFileSync(join(root,'docs/backlog-sources.json'),JSON.stringify(manifest))
+  execFileSync('git',['add','docs'],{cwd:root})
+  execFileSync('git',['-c','user.name=Fixture','-c','user.email=fixture@example.test','commit','-qm','second owner source'],{cwd:root})
+  plan.baseline=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim()
+  plan.canonical_inventory=fixtureInventory(root,plan.baseline)
+  plan.sources=plan.canonical_inventory.sources
+  assert.match(validatePlan(plan,root).join('\n'), /uncovered canonical task: P-01.*other.md/)
+  const row=plan.canonical_inventory.tasks.find(t=>t.path===path)
+  plan.tasks.push({...plan.tasks[0],id:'second-owner',canonical_keys:[row.key],context:{...plan.tasks[0].context,sources:[path]}})
+  assert.deepEqual(validatePlan(plan,root),[])
+}))
+test('held canonical source references cannot become executable by removing dependencies',()=>fixture(({root,plan})=>{
+  plan.tasks[0].kind='canonical-source-review'
+  assert.match(validatePlan(plan,root).join('\n'),/held canonical source reference cannot dispatch/)
+}))
+test('one current pointer selects only a report path and explicit selection stays reproducible',()=>fixture(({root})=>{
+  assert.equal(selectedReport(root),REPORT)
+  writeFileSync(join(root,'docs/unified-plan-current.json'),JSON.stringify({schema:1,report:'docs/reports/new-cut'}))
+  assert.equal(selectedReport(root),'docs/reports/new-cut')
+  assert.equal(selectedReport(root,REPORT),REPORT)
+  writeFileSync(join(root,'docs/unified-plan-current.json'),JSON.stringify({schema:1,report:'docs/reports/new-cut',status:'done'}))
+  assert.throws(()=>selectedReport(root),/only schema and report path/)
+  writeFileSync(join(root,'docs/unified-plan-current.json'),JSON.stringify({schema:1,report:'../outside'}))
+  assert.throws(()=>selectedReport(root),/invalid current plan pointer/)
+}))
+test('privacy diagnostics redact matching source paths without echoing a private literal',()=>{
+  const problems=publicInputProblems([{path:'docs/SYNTHETIC_PRIVATE_SENTINEL.json',bytes:Buffer.from('SYNTHETIC_PRIVATE_SENTINEL')}],['SYNTHETIC_PRIVATE_SENTINEL'])
+  assert.deepEqual(problems,['private input refused: <redacted source path>'])
+})
 // #endregion unified-plan-tests

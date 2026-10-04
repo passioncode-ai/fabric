@@ -1,0 +1,34 @@
+✔ real research inputs compile all manifest sources, keep 14 COM rows held and preserve the dated input (5034.052ms)
+ℹ {"canonical_rows":557,"COM_rows":14,"source_pins":70,"derived_records":894,"ready":0}
+✔ a changed canonical source cannot be assigned the old immutable revision (885.152709ms)
+✔ private input sentinel is refused before writing and never echoed into diagnostics (1454.367875ms)
+✔ private metadata remains in its owning source and cannot be copied through a full research packet (1544.609833ms)
+✔ recompilation refuses to overwrite an existing cut or the historical input directory (520.296209ms)
+✔ missing or locally changed pinned common parser stops compilation (596.248667ms)
+✔ complete packet preserves program constraints and exact leaf context (76.422875ms)
+✔ omitted canonical work cannot pass the coverage gate (64.359458ms)
+✔ changed source blocks a previously complete packet (59.7605ms)
+✔ every context source is pinned; an untargeted blocking finding is refused (59.81575ms)
+✔ blocking finding stops only its affected task until explicitly resolved (47.425916ms)
+✔ cycles, missing payloads and unknown dependencies are refused (91.095ms)
+✔ unknown impact targets, path escape and empty cold context are refused (68.958875ms)
+✔ external owner and human gate do not become runnable with a delivered message (53.794083ms)
+✔ canonical priority precedes computed downstream count; dependency requires done proof (53.432833ms)
+✔ a missing or changed completion receipt fails validation (92.162708ms)
+✔ a new blocking impact invalidates completed prerequisite satisfaction (47.318917ms)
+✔ write scope cannot escape the repo directly or through a linked parent (78.863292ms)
+✔ a broad unreviewed parent cannot be promoted to candidate by dropping dependencies (75.758958ms)
+✔ a newly declared canonical source cannot hide outside the general-plan lanes (74.930709ms)
+✔ source pins cannot substitute a different or forged immutable commit (54.486584ms)
+✔ identical IDs in different canonical files retain both owner identities (120.486ms)
+✔ held canonical source references cannot become executable by removing dependencies (60.586625ms)
+✔ one current pointer selects only a report path and explicit selection stays reproducible (60.249417ms)
+✔ privacy diagnostics redact matching source paths without echoing a private literal (0.319958ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10095.46725
