@@ -6,7 +6,7 @@
 //         Fabric, not a squatter; and the agent-facing text says to use the published origin verbatim.
 // #region hub-consent — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#1-one-door-a-second-way-in
 import assert from 'node:assert/strict'
-import { createServer } from 'node:http'
+import { createServer, request } from 'node:http'
 import path from 'node:path'
 import test from 'node:test'
 import { memStore, fakeRegistry } from './helpers/access-memstore.mjs'
@@ -102,3 +102,27 @@ test('ER-8: the agent-facing text says to use the published origin verbatim, nev
   await surface.stop()
 })
 // #endregion hub-consent
+
+
+test('V2 ER-3: hostile Host and browser Origin are refused before any credential lookup', async (t) => {
+  const { surface, lookups } = await hub({ budgetCalls: 5 })
+  t.after(() => surface.stop())
+  for (const headers of [{host: 'attacker.example'}, {origin: 'http://attacker.example'}, {origin: 'null'}]) {
+    const status = await new Promise((resolve, reject) => {
+      const req = request(`${surface.origin}/mcp`, {method:'POST',headers:{authorization:'Bearer attacker','content-type':'application/json',...headers}}, res => {res.resume();res.on('end',()=>resolve(res.statusCode))})
+      req.on('error',reject);req.end(JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/list'}))
+    })
+    assert.ok([403,421].includes(status), `host/origin accepted: ${status}`)
+  }
+  assert.equal(lookups.n, 0, 'hostile browser traffic spent the unknown credential budget')
+  assert.equal((await rpc(surface, DOOR, 'tools/list', {})).status, 200)
+})
+
+test('V2 ER-5: JSON-RPC batches are rejected before creating a hub transport', async (t) => {
+  const { surface } = await hub()
+  t.after(() => surface.stop())
+  const body = Array.from({length: 300}, (_, i) => ({jsonrpc:'2.0',id:i,method:'tools/list'}))
+  const res = await fetch(`${surface.origin}/mcp`, {method:'POST',headers:{authorization:`Bearer ${DOOR}`,'content-type':'application/json',accept:'application/json, text/event-stream'},body:JSON.stringify(body)})
+  assert.equal(res.status,400)
+  assert.match(await res.text(), /batch/i)
+})

@@ -7,7 +7,7 @@
 //     which records the headers it received and narrows exactly as the real one does.
 // Pure: no database (the store is a recording stand-in; migration 76 has its own suite).
 // #region product-connect — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#4-a-product-is-connected-once-by-the-products-own-consent
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, readFileSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
@@ -478,7 +478,7 @@ test('connect: a callback whose body does not arrive in time is answered 408, an
     const started = Date.now()
     const answer = await new Promise((resolve, reject) => {
       const s = connect(port, '127.0.0.1', () => {
-        s.write(`POST /fabric/v1/connect/fabric-inbox HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Type: application/json\r\nContent-Length: 200\r\n\r\n{"state":`)
+        s.write(`POST /fabric/v1/connect/fabric-inbox HTTP/1.1\r\nHost: 127.0.0.1:${new URL(origin).port}\r\nContent-Type: application/json\r\nContent-Length: 200\r\n\r\n{"state":`)
       })
       let got = ''
       s.on('data', (d) => { got += d.toString('utf8') })
@@ -797,4 +797,37 @@ test('vault: the read asks the vault only — `run` carries --vault-only', async
   const runs = readFileSync(o.log, 'utf8').trim().split('\n').map((l) => JSON.parse(l)).filter((a) => a[0].endsWith('use_secret.py') && a[1] === 'run')
   assert.equal(runs.length, 1)
   assert.ok(runs[0].slice(0, runs[0].indexOf('--')).includes('--vault-only'), `run was called without --vault-only: ${runs[0].slice(1, 7).join(' ')}`)
+})
+
+
+test('V2 ER-4: vault reads have bounded process concurrency and resolve the launcher once', async (t) => {
+  const o = fakeObservatory()
+  t.after(() => rmSync(o.root, {recursive:true, force:true}))
+  const launcherLog = path.join(o.root, 'launcher.log')
+  writeFileSync(o.launcher, `#!/bin/sh\necho resolve >> "${launcherLog}"\n[ "$1" = full-path ] && echo "${path.join(o.root, 'engine')}" && exit 0\nexit 2\n`)
+  const vault = createObservatoryVault({launcher:o.launcher,env:{...o.env,FAKE_RUN_SLEEP:'0.35'}})
+  assert.equal((await vault.put(slot, SECRET)).ok,true)
+  const reads = Array.from({length:12},()=>vault.read(slot))
+  await new Promise(r=>setTimeout(r,150))
+  const started = readFileSync(o.log,'utf8').trim().split('\n').map(l=>JSON.parse(l)).filter(a=>a[1]==='run').length
+  assert.ok(started<=4, `unbounded vault process fan-out: ${started} run children`)
+  assert.ok((await Promise.all(reads)).every(r=>r.ok))
+  assert.equal(readFileSync(launcherLog,'utf8').trim().split('\n').length,1)
+})
+
+test('V2 ER-4: a cancelled vault read leaves its queue without spawning', async (t) => {
+  const o=fakeObservatory()
+  t.after(()=>rmSync(o.root,{recursive:true,force:true}))
+  const vault=createObservatoryVault({launcher:o.launcher,env:{...o.env,FAKE_RUN_SLEEP:'0.35'}})
+  await vault.put(slot,SECRET)
+  const controller=new AbortController()
+  const reads=Array.from({length:4},()=>vault.read(slot))
+  const queued=vault.read(slot,{signal:controller.signal})
+  controller.abort()
+  const answer=await queued
+  assert.equal(answer.ok,false)
+  assert.match(answer.reason,/cancel/i)
+  await Promise.all(reads)
+  const runs=readFileSync(o.log,'utf8').trim().split('\n').map(l=>JSON.parse(l)).filter(a=>a[1]==='run')
+  assert.equal(runs.length,4)
 })

@@ -44,7 +44,7 @@ export type VaultAnswer<T extends object = object> = ({ ok: true } & T) | { ok: 
 
 export interface VaultPort {
   put(slot: SecretSlot, value: string): Promise<VaultAnswer>
-  read(slot: SecretSlot): Promise<VaultAnswer<{ value: string }>>
+  read(slot: SecretSlot, options?: { signal?: AbortSignal }): Promise<VaultAnswer<{ value: string }>>
 }
 
 interface Engine {
@@ -58,7 +58,7 @@ const PROJECT = /^[a-z0-9][a-z0-9._-]{0,63}$/
 function run(
   cmd: string,
   args: string[],
-  opts: { input?: string; timeoutMs: number; env?: NodeJS.ProcessEnv }
+  opts: { input?: string; timeoutMs: number; env?: NodeJS.ProcessEnv; signal?: AbortSignal }
 ): Promise<{ code: number | null; stdout: string; stderr: string; timedOut: boolean; spawnError?: string }> {
   return new Promise((resolve) => {
     let stdout = ''
@@ -66,7 +66,7 @@ function run(
     let timedOut = false
     let child
     try {
-      child = spawn(cmd, args, { env: opts.env ?? process.env, stdio: ['pipe', 'pipe', 'pipe'] })
+      child = spawn(cmd, args, { env: opts.env ?? process.env, stdio: ['pipe', 'pipe', 'pipe'], signal: opts.signal })
     } catch (e) {
       // Not silence: the spawn failure is the answer, and every caller turns it into a refusal with its reason.
       resolve({ code: null, stdout, stderr, timedOut, spawnError: (e as Error).message })
@@ -108,7 +108,7 @@ export function createObservatoryVault(opts: {
   const env = opts.env ?? process.env
   const timeoutMs = opts.timeoutMs ?? 7000
 
-  async function engine(): Promise<VaultAnswer<{ engine: Engine }>> {
+  async function resolveEngine(): Promise<VaultAnswer<{ engine: Engine }>> {
     const launcher = opts.launcher ?? 'project-observatory'
     const found = await new Promise<{ path: string | null; reason?: string }>((resolve) =>
       execFile(launcher, ['full-path'], { env, timeout: 5000 }, (e, stdout) => {
@@ -137,6 +137,44 @@ export function createObservatoryVault(opts: {
     return { ok: true, engine: { tools, python } }
   }
 
+  // V2 ER-4: cache only the engine location, never its secret. Share the initial lookup across reads.
+  let cachedEngine: Promise<VaultAnswer<{ engine: Engine }>> | null = null
+  function engine(): Promise<VaultAnswer<{ engine: Engine }>> {
+    if (!cachedEngine) cachedEngine = resolveEngine().then((answer) => {
+      if (!answer.ok) cachedEngine = null
+      return answer
+    })
+    return cachedEngine
+  }
+  let active = 0
+  const waiting: Array<() => void> = []
+  async function limited<T extends object>(signal: AbortSignal | undefined, work: () => Promise<VaultAnswer<T>>): Promise<VaultAnswer<T>> {
+    if (signal?.aborted) return { ok: false, reason: 'vault read cancelled' }
+    if (active >= 4) {
+      if (waiting.length >= 64) return { ok: false, reason: 'the vault read queue is full; try again later' }
+      const admitted = await new Promise<boolean>((resolve) => {
+        const next = (): void => { signal?.removeEventListener('abort', cancel); resolve(true) }
+        const cancel = (): void => {
+          const i = waiting.indexOf(next)
+          if (i >= 0) waiting.splice(i, 1)
+          resolve(false)
+        }
+        waiting.push(next)
+        signal?.addEventListener('abort', cancel, { once: true })
+        if (signal?.aborted) cancel()
+      })
+      if (!admitted) return { ok: false, reason: 'vault read cancelled' }
+    } else active++
+    try {
+      if (signal?.aborted) return { ok: false, reason: 'vault read cancelled' }
+      return await work()
+    } finally {
+      const next = waiting.shift()
+      if (next) next() // transfer the slot without a race against a newly arriving caller
+      else active--
+    }
+  }
+
   function checkSlot(slot: SecretSlot): string | null {
     if (!PROJECT.test(slot.project)) return `vault project ${JSON.stringify(slot.project)} is not a folder name`
     if (!['local', 'stage', 'prod'].includes(slot.env)) return `vault env ${JSON.stringify(slot.env)} is not local, stage or prod`
@@ -146,6 +184,7 @@ export function createObservatoryVault(opts: {
 
   async function where(e: Engine, slot: SecretSlot): Promise<'vault' | 'elsewhere' | 'absent' | { reason: string }> {
     const r = await run(e.python, [path.join(e.tools, 'use_secret.py'), 'where', '--env', slot.env, slot.project, slot.name], { timeoutMs, env })
+    if (r.spawnError) cachedEngine = null
     if (r.spawnError || r.timedOut) return { reason: r.timedOut ? 'Project Observatory did not answer in time' : `Project Observatory could not be run: ${r.spawnError}` }
     const out = r.stdout.trim()
     if (r.code === 0 && out.startsWith('vault:')) return 'vault'
@@ -173,7 +212,8 @@ export function createObservatoryVault(opts: {
       return { ok: false, reason }
     },
 
-    async read(slot) {
+    async read(slot, options) {
+      return limited(options?.signal, async () => {
       const bad = checkSlot(slot)
       if (bad) return { ok: false, reason: bad }
       const found = await engine()
@@ -223,7 +263,7 @@ export function createObservatoryVault(opts: {
           r = await run(
             found.engine.python,
             [path.join(found.engine.tools, 'use_secret.py'), 'run', '--env', slot.env, '--vault-only', slot.project, slot.name, '--', '/bin/sh', '-c', `printf %s "$${slot.name}" > "$1"`, 'sh', fifo],
-            { timeoutMs, env }
+            { timeoutMs, env, signal: options?.signal }
           )
         } finally {
           clearInterval(poll)
@@ -233,6 +273,8 @@ export function createObservatoryVault(opts: {
         } catch (e) {
           return { ok: false, reason: (e as Error).message }
         }
+        if (r.spawnError) cachedEngine = null
+        if (options?.signal?.aborted) return { ok: false, reason: 'vault read cancelled' }
         if (r.code !== 0)
           return { ok: false, reason: r.timedOut ? 'Project Observatory did not hand the secret over in time' : `Project Observatory refused to hand the secret over: ${said(r.stderr)}` }
         const value = Buffer.concat(chunks).toString('utf8')
@@ -242,6 +284,7 @@ export function createObservatoryVault(opts: {
         if (fd !== null) closeSync(fd)
         rmSync(dir, { recursive: true, force: true })
       }
+      })
     }
   }
 }

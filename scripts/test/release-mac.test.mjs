@@ -7,7 +7,13 @@ import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { builderConfig, builderIdentity, parseReleaseArgs, releaseCommitProblem, signatureOf, tagProblem } from '../lib/release-mac.mjs'
+import { builderConfig, builderIdentity, changelogProblem, parseReleaseArgs, releaseCommitProblem, signatureOf, tagProblem } from '../lib/release-mac.mjs'
+
+test('a release requires exactly one finalized changelog entry for its exact version', () => {
+  assert.equal(changelogProblem({ version: '0.3.1', text: '# Changelog\n\n## 0.3.1\n\nDelivered hub.\n\n## 0.3.0\nPrevious.\n' }), null)
+  for (const text of ['# Changelog\n## 0.3.1 — unreleased\n', '# Changelog\n## 0.3.10\n', '# Changelog\n## 0.3.1\n## 0.3.1\n', '# Changelog\n## 0.3.1\n\n## 0.3.0\nPrevious.'])
+    assert.match(changelogProblem({ version: '0.3.1', text }), /changelog/i)
+})
 
 // Fake identities only: a team id is ten upper-case characters, and none of these is a real one.
 const ID = 'Developer ID Application: Example Org (ABCDE12345)'

@@ -26,7 +26,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, 
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { releaseGateProblems } from './lib/release-gate.mjs'
-import { builderConfig, builderIdentity, parseReleaseArgs, releaseCommitProblem, signatureOf, tagProblem } from './lib/release-mac.mjs'
+import { builderConfig, builderIdentity, changelogProblem, parseReleaseArgs, releaseCommitProblem, signatureOf, tagProblem } from './lib/release-mac.mjs'
 
 // #region release-mac — docs: docs/launch/release-mac.md#how-a-release-is-made
 const root = path.resolve(import.meta.dirname, '..'), desktop = path.join(root, 'apps', 'desktop')
@@ -63,6 +63,8 @@ if (JSON.parse(readFileSync(path.join(desktop, 'package.json'), 'utf8')).version
   const ledgerText = typeof ledgerPath === 'string' && /^docs\/[\w./-]+\.md$/.test(ledgerPath) && !ledgerPath.includes('..') ? atHead(ledgerPath) : ''
   const problems = releaseGateProblems({ version, gateText, ledgerText })
   if (problems.length) fail(`the release gate is not clear:\n  ${problems.join('\n  ')}`)
+  const changelog = changelogProblem({ version, text: atHead('CHANGELOG.md') })
+  if (changelog) fail(changelog)
 }
 const commit = out('git', ['rev-parse', 'HEAD'], { cwd: root })
 if (args.checkOnly) {

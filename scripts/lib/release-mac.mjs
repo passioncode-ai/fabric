@@ -65,6 +65,20 @@ export function tagProblem({ tag, version }) {
   return new RegExp(`^v${v}(?:-rc\\.\\d+)?$`).test(tag) ? null : `the tag ${tag} does not name version ${version} (v${version}, or v${version}-rc.N for a rehearsal)`
 }
 
+/** A published version has one finalized, nonempty changelog entry, never an unreleased heading. */
+export function changelogProblem({ version, text }) {
+  const lines = String(text ?? '').split('\n')
+  const escaped = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const heading = new RegExp(`^## ${escaped}$`)
+  const starts = lines.flatMap((line, i) => heading.test(line.trim()) ? [i] : [])
+  if (starts.length !== 1) return `the changelog must have exactly one finalized "## ${version}" entry (found ${starts.length})`
+  const from = starts[0] + 1
+  const next = lines.findIndex((line, i) => i >= from && /^## /.test(line))
+  if (!lines.slice(from, next < 0 ? lines.length : next).some(line => line.trim()))
+    return `the changelog entry for ${version} is empty`
+  return null
+}
+
 /**
  * A release is built from `main` as it is on the remote (plan row P-03): HEAD must be reachable from
  * origin/main. Its tip passes, and so does a release tag on main that CI checks out after main moved on.

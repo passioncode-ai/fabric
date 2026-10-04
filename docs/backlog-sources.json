@@ -352,7 +352,7 @@
       "kind": "tasks",
       "format": "table",
       "idColumn": "ID",
-      "titleColumn": "Веха",
+      "titleColumn": "\u0412\u0435\u0445\u0430",
       "statusColumn": "Status",
       "excludeIds": [
         "S02.store",
@@ -468,7 +468,7 @@
       "idColumn": "ID",
       "titleColumn": "Item",
       "statusColumn": "Status",
-      "heading": "Canonical module status — 2026-10-01"
+      "heading": "Canonical module status \u2014 2026-10-01"
     },
     {
       "path": "docs/evidence/plans/2026-09-29-agent-registry-plan.md",
@@ -507,6 +507,16 @@
       "titleColumn": "Deliverable",
       "statusColumn": "Status",
       "heading": "Module spine"
+    },
+    {
+      "path": "docs/evidence/plans/2026-10-04-project-communications.md",
+      "goal": "agent-workplace",
+      "kind": "tasks",
+      "format": "table",
+      "idColumn": "ID",
+      "titleColumn": "Packet",
+      "statusColumn": "Status",
+      "heading": "Canonical communication task status"
     }
   ]
 }

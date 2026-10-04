@@ -459,6 +459,16 @@ export class AgentSurface {
   }
 
   private async handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    // V2 ER-3: validate the local destination BEFORE reading any bearer or callback state.
+    // Native clients use the published literal loopback origin; browser origins carry no authority here.
+    if (![ `127.0.0.1:${this.port}`, `[::1]:${this.port}` ].includes(req.headers.host ?? '')) {
+      AgentSurface.refuse(res, 421, 'the Host does not name this Fabric loopback listener')
+      return
+    }
+    if (req.headers.origin !== undefined) {
+      AgentSurface.refuse(res, 403, 'browser origins cannot call the Fabric agent surface')
+      return
+    }
     // ADR-0115 §4: a product delivering its key to the callback this hub put in its connect link.
     // Not an MCP route and not bearer-authenticated: the single-use state in the body is the proof.
     // A hub with no published door token is CLOSED: no callback and no external principal, so the
@@ -545,6 +555,11 @@ export class AgentSurface {
       throw e
     }
     attempt.saw(body)
+    // V2 ER-5: MCP removed JSON-RPC batches; one HTTP envelope must not bypass per-call budgets.
+    if (Array.isArray(body)) {
+      AgentSurface.refuse(res, 400, 'JSON-RPC batches are not accepted', {}, attempt)
+      return
+    }
     const headerSession = headerValue(req, 'mcp-session-id')
 
     if (isInitialize(body)) {
@@ -710,6 +725,10 @@ export class AgentSurface {
       throw e
     }
     attempt.saw(body)
+    if (Array.isArray(body)) {
+      AgentSurface.refuse(res, 400, 'JSON-RPC batches are not accepted', {}, attempt)
+      return true
+    }
 
     // The door's bucket is the request being polled, or the agent asking — never the whole door (ER-7).
     const key = principal.kind === 'door' ? `door:${doorBucket(body)}` : `binding:${principal.binding.id}`
