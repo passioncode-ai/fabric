@@ -17,6 +17,7 @@ import { useT } from './i18n'
 import { folderNameProblem, type FolderNameProblem } from '../../shared/startPaths.ts'
 import { runnerLabel } from './runnerLabel'
 import { errorText, explainError } from './start/StartPaths'
+import './Onboarding.launch.css'
 
 export function Onboarding({
   draft,
@@ -115,7 +116,7 @@ export function Onboarding({
   }
 
   return (
-    <div className="onboarding">
+    <div className="onboarding onboarding-launch">
       <header>
         <h1>{t('onboarding.title')}</h1>
         <p className="muted">{t('onboarding.lede')}</p>
