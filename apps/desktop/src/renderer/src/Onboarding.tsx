@@ -19,6 +19,7 @@ import { runnerLabel } from './runnerLabel'
 import { errorText, explainError } from './start/StartPaths'
 import './Onboarding.launch.css'
 
+// #region onboarding-launch-form — docs: docs/handoffs/ad02-native-20261004/README.md#select-hint-and-map-boundary
 export function Onboarding({
   draft,
   onDraftChange,
@@ -240,8 +241,8 @@ export function Onboarding({
         )}
 
         <Field label={t('onboarding.defaultAgent')} hint={t('onboarding.defaultAgentHint')}>
-          {(id) => (
-            <select id={id} value={agent} onChange={(e) => patch({ agent: e.target.value })}>
+          {(id, describedBy) => (
+            <select id={id} aria-describedby={describedBy} value={agent} onChange={(e) => patch({ agent: e.target.value })}>
               {agents.filter((o) => o.program !== null).map((o) => (
                 <option key={o.id} value={o.id} disabled={!o.available}>
                   {/* Each option by its own name (iteration 1: Codex was shown as "Terminal"); the shell has no program. */}
@@ -265,3 +266,4 @@ export function Onboarding({
     </div>
   )
 }
+// #endregion onboarding-launch-form

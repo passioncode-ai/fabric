@@ -1,0 +1,9 @@
+{"at":"2026-10-04T13:06:11.894Z","pid":38077,"kind":"start","mode":"corrupt","userData":"/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-ad02-native-NymcJA/userData","electron":"44.0.0"}
+{"at":"2026-10-04T13:06:12.255Z","pid":38077,"kind":"renderer-loaded"}
+{"at":"2026-10-04T13:06:12.261Z","pid":38077,"kind":"draft-read","status":"unreadable","ids":[],"delayedMs":0}
+{"at":"2026-10-04T13:06:12.262Z","pid":38077,"kind":"blocked-ipc","channel":"persona:read"}
+{"at":"2026-10-04T13:06:12.299Z","pid":38077,"kind":"blocked-ipc","channel":"favourites:order"}
+{"at":"2026-10-04T13:06:12.299Z","pid":38077,"kind":"blocked-ipc","channel":"ceo:status"}
+{"at":"2026-10-04T13:06:12.307Z","pid":38077,"kind":"draft-read","status":"unreadable","ids":[],"delayedMs":0}
+{"at":"2026-10-04T13:06:12.331Z","pid":38077,"kind":"tabs-save","status":"committed","tabs":{"tabs":[],"active":null}}
+{"at":"2026-10-04T13:08:12.191Z","pid":38077,"kind":"quit","draftStatus":"unreadable","draftIds":[]}

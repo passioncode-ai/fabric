@@ -5,7 +5,7 @@
   "host": { "platform": "darwin", "arch": "arm64", "release": "25.6.0" },
   "node": "26.8.2",
   "pnpm": "11.21.0",
-  "lockfileSha256": "942096860e7443ee0cb00573d5746d5c5b21cc232aed7db7a09502f0d7ded069",
+  "lockfileSha256": "b452d830770a8ef28e4fc1e973d87388856fcf49e3363144c58186b7624f66f6",
   "packages": {
     "electron": "44.0.0",
     "electron-builder": "26.15.3",

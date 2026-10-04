@@ -88,6 +88,49 @@ function stub(
 }
 
 describe('a draft outlives the window', () => {
+  // #region saved-tabs-authority-regressions — docs: docs/handoffs/ad02-native-20261004/README.md#regressions
+  it('shares the same initial draft snapshot with working-set restoration', async () => {
+    const read = vi.fn()
+      .mockResolvedValueOnce({ drafts: {}, status: 'unreadable', problem: 'the drafts could not be read: local_state_invalid_json' })
+      .mockResolvedValue({ drafts: started, status: 'ready', problem: null })
+    const save = vi.fn(async () => ({ saved: true, reason: null }))
+    const { api } = stub({ draftApi: { read, save } })
+    render(<App />)
+    await screen.findByText(/drafts could not be read/)
+    await new Promise(resolve => setTimeout(resolve, 30))
+    expect(read, 'two reads disagree about initial storage authority').toHaveBeenCalledTimes(1)
+    expect(api.tabs.write).not.toHaveBeenCalled()
+    expect(save).not.toHaveBeenCalled()
+  })
+
+  it('keeps the saved working set when draft storage is unreadable', async () => {
+    const { api, save } = stub({ status: 'unreadable', problem: 'the drafts could not be read: local_state_invalid_json' })
+    render(<App />)
+    await screen.findByText(/drafts could not be read/)
+    await newProject()
+    fireEvent.change(screen.getByPlaceholderText(en['onboarding.namePlaceholder']), { target: { value: 'Unsaved new work' } })
+    await new Promise(resolve => setTimeout(resolve, 30))
+    expect(api.tabs.write, 'unreadable drafts erased saved tab references').not.toHaveBeenCalled()
+    expect(save).not.toHaveBeenCalled()
+    expect(screen.queryByText(/no longer in this estate/)).toBeNull()
+  })
+
+  it('does not write an empty working set while restoration reads are pending', async () => {
+    let resolveRead!: (value: { drafts: DraftFile; status: 'ready'; problem: null }) => void
+    const pending = new Promise<{ drafts: DraftFile; status: 'ready'; problem: null }>(resolve => { resolveRead = resolve })
+    const { api } = stub({ draftApi: { read: () => pending, save: async () => ({ saved: true, reason: null }) } })
+    render(<App />)
+    await newProject()
+    fireEvent.change(screen.getByPlaceholderText(en['onboarding.namePlaceholder']), { target: { value: 'Early independent work' } })
+    expect(api.tabs.write, 'pending restore overwrote the original working set').not.toHaveBeenCalled()
+    await act(async () => { resolveRead({ drafts: started, status: 'ready', problem: null }); await pending })
+    await waitFor(() => expect(api.tabs.write).toHaveBeenCalled())
+    const saved = api.tabs.write.mock.calls.at(-1)![0] as { tabs: Array<{kind:string;id:string}> }
+    expect(saved.tabs.some(tab => tab.id === 'tab-1')).toBe(true)
+    expect(saved.tabs).toHaveLength(2)
+  })
+
+  // #endregion saved-tabs-authority-regressions
   it('restores the tab WITH its fields', async () => {
     // The acceptance in its own words: "close/reopen restores draft fields
     // without inventing committed object". The fields are the point — a tab

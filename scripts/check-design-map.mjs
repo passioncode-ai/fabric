@@ -53,9 +53,13 @@ const withoutStamp = (source, list) => {
   return location ? source.slice(0, location.startOffset) + source.slice(location.endOffset) : source
 }
 let committed = ''
-try { committed = execFileSync('git', ['show', 'HEAD:docs/reports/map.html'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }) }
-catch {
+try { committed = execFileSync('git', ['show', 'HEAD:docs/reports/map.html'], { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }) }
+catch (error) {
   execFileSync('git', ['rev-parse', '--verify', 'HEAD'], { cwd: root, stdio: 'ignore' })
+  // A failed read of an existing map is not a missing baseline (for example,
+  // a child-process buffer limit). Refuse instead of dropping old anchors.
+  const present = execFileSync('git', ['ls-tree', '--name-only', 'HEAD', '--', 'docs/reports/map.html'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim()
+  if (present === 'docs/reports/map.html') throw error
   console.log('Initial map: no committed map baseline; no old anchors to compare.')
 }
 if (committed) {

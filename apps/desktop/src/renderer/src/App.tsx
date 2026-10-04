@@ -127,9 +127,11 @@ function Shell({
    *  first screen told the operator a fact nobody had measured. */
   const [projects, setProjects] = useState<ProjectRow[] | null>(null)
   const [tabs, setTabs] = useState<Tab[]>([])
-  /** Guards the one-time restore, and stops the writer saving an empty set
-   *  over the operator's before it has been read back. */
+  // #region saved-tabs-read-authority — docs: docs/handoffs/ad02-native-20261004/README.md#write-authority
+  /** Claims the one-time read; an in-flight read is not write authority. */
   const restored = useRef(false)
+  const [tabsRestored, setTabsRestored] = useState(false)
+  // #endregion saved-tabs-read-authority
   // ONE value. It used to be a `Tab` with a boolean `showAgents` beside it, and
   // two booleans side by side have four states of which two are nonsense: a
   // click that opened a project while the agents view was up changed the tab
@@ -201,6 +203,16 @@ function Shell({
   /** Whether the drafts on disk have been read, so the first persist cannot
    *  write an empty set over them (AX-05). */
   const [draftsLoaded, setDraftsLoaded] = useState(false)
+  // #region initial-draft-snapshot — docs: docs/handoffs/ad02-native-20261004/README.md#write-authority
+  const initialDraftRead = useRef<ReturnType<typeof window.fabric.drafts.read> | null>(null)
+  const readInitialDrafts = useCallback(() => {
+    // Hydration and tab restoration must use one snapshot, including failure.
+    // Two reads can disagree about which saved draft identities are readable.
+    initialDraftRead.current ??= Promise.resolve().then(() => window.fabric.drafts.read())
+    return initialDraftRead.current
+  }, [])
+  // #endregion initial-draft-snapshot
+
 
   /**
    * READ THE DRAFTS ONCE, before anything can write over them (AX-05).
@@ -217,8 +229,7 @@ function Shell({
    */
   useEffect(() => {
     let alive = true
-    void window.fabric.drafts
-      .read()
+    void readInitialDrafts()
       .then((answer) => {
         if (!alive) return
         // Hydration may finish after the operator has already opened and typed
@@ -242,7 +253,7 @@ function Shell({
     return () => {
       alive = false
     }
-  }, [])
+  }, [readInitialDrafts])
 
   /**
    * Persist on change, and say so when it does not land.
@@ -289,7 +300,12 @@ function Shell({
         // The drafts on disk decide which draft tabs come back: a tab is
         // restored only if the thing it names still exists, which is one rule
         // for both kinds (AX-05).
-        const onDisk = await window.fabric.drafts.read()
+        const onDisk = await readInitialDrafts()
+        // #region unreadable-draft-working-set — docs: docs/handoffs/ad02-native-20261004/README.md#write-authority
+        // An unreadable draft set cannot prove a saved tab's subject is gone.
+        // Keep its working set on disk; the draft reader reports the failure.
+        if (onDisk.status === 'unreadable') return
+        // #endregion unreadable-draft-working-set
         const r = restoreTabs(saved, loaded.map((p) => p.id), Object.keys(onDisk.drafts))
         if (r.tabs.length) setTabs((current) => [
           ...r.tabs.filter((saved) => !current.some((tab) => keyOf(tab) === keyOf(saved))),
@@ -299,11 +315,12 @@ function Shell({
         // Dropped tabs are SAID. Quietly reopening four of five is how an
         // operator concludes they closed one themselves.
         if (r.dropped.length) setError((current) => [current, t('tabs.dropped', { count: r.dropped.length })].filter(Boolean).join(' · '))
+        setTabsRestored(true)
       } catch {
         // A working set that cannot be read is not a reason to fail to start.
       }
     }
-  }, [])
+  }, [readInitialDrafts])
   const refreshSessions = useCallback(async () => {
     setSessions(await window.fabric.terminal.list())
   }, [])
@@ -480,12 +497,14 @@ function Shell({
     void refreshProjects()
   }
 
+  // #region saved-tabs-write-authority — docs: docs/handoffs/ad02-native-20261004/README.md#write-authority
   // M111 — written on every change, not on quit. Saved only at the end, a crash
   // after closing four of five tabs would bring all five back.
   useEffect(() => {
-    if (!restored.current) return
+    if (!tabsRestored) return
     void window.fabric.tabs.write(toPersist(tabs, active)).catch(() => {})
-  }, [tabs, active])
+  }, [tabs, active, tabsRestored])
+  // #endregion saved-tabs-write-authority
 
   // Cmd+W. The menu asks and the renderer decides, because the main process does
   // not know what a tab is and should not.

@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
+
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+
+ Test Files  2 passed (2)
+      Tests  21 passed (21)
+   Start at  15:40:53
+   Duration  6.30s (transform 7.15s, setup 206ms, import 9.32s, tests 1.10s, environment 1.04s)

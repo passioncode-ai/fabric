@@ -1,0 +1,52 @@
+
+ RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
+
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+ ❯ src/renderer/src/Onboarding.test.tsx (9 tests | 1 failed) 182ms
+     × associates the default-agent hint with its native selector 85ms
+ ❯ src/renderer/src/onboardingDraft.persist.test.tsx (12 tests | 1 failed) 1047ms
+     × shares the same initial draft snapshot with working-set restoration 89ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/renderer/src/Onboarding.test.tsx > where memory lives, in the form that creates a project > associates the default-agent hint with its native selector
+AssertionError: expected null to be '_r_3_-hint' // Object.is equality
+
+- Expected:
+"_r_3_-hint"
+
++ Received:
+null
+
+ ❯ src/renderer/src/Onboarding.test.tsx:55:53
+     53|     const select = screen.getByRole('combobox')
+     54|     const hint = screen.getByText(en['onboarding.defaultAgentHint'])
+     55|     expect(select.getAttribute('aria-describedby')).toBe(hint.id)
+       |                                                     ^
+     56|     expect(hint.id).not.toBe('')
+     57|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/renderer/src/onboardingDraft.persist.test.tsx > a draft outlives the window > shares the same initial draft snapshot with working-set restoration
+AssertionError: two reads disagree about initial storage authority: expected "vi.fn()" to be called 1 times, but got 2 times
+ ❯ src/renderer/src/onboardingDraft.persist.test.tsx:100:83
+     98|     await screen.findByText(/drafts could not be read/)
+     99|     await new Promise(resolve => setTimeout(resolve, 30))
+    100|     expect(api.drafts.read, 'two reads disagree about initial storage …
+       |                                                                                   ^
+    101|     expect(api.tabs.write).not.toHaveBeenCalled()
+    102|     expect(save).not.toHaveBeenCalled()
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 19 passed (21)
+   Start at  15:38:29
+   Duration  6.75s (transform 7.59s, setup 216ms, import 9.97s, tests 1.23s, environment 1.01s)
+
+undefined
+/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/renderer/src/Onboarding.test.tsx src/renderer/src/onboardingDraft.persist.test.tsx

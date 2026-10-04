@@ -1,0 +1,34 @@
+{
+  "draft-1": {
+    "projectId": "ad02-project-1",
+    "name": "AD02 retained one",
+    "purpose": "Native restart proof one",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  },
+  "draft-2": {
+    "projectId": "ad02-project-2",
+    "name": "AD02 retained two",
+    "purpose": "Native restart proof two",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  },
+  "draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e": {
+    "projectId": "46168054-19ca-4dce-8cb1-d0bc870c63d4",
+    "name": "AD02 retained three",
+    "purpose": "Native restart proof three",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  },
+  "draft-b271d13e-97b2-450b-be28-33e77d3748dc": {
+    "projectId": "3a1a98b6-6510-48ac-8a94-2401dca3373e",
+    "name": "AD02 retained four",
+    "purpose": "Native restart proof four",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "theme": "dark",
+  "locale": "en",
+  "keepAwake": "never",
+  "workspace": {
+    "path": null,
+    "git": "declined"
+  },
+  "tabs": {
+    "tabs": [],
+    "active": null
+  },
+  "readThroughSeq": 0,
+  "firstRun": {
+    "completedAt": null
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "theme": "dark",
+  "locale": "en",
+  "keepAwake": "never",
+  "workspace": {
+    "path": null,
+    "git": "declined"
+  },
+  "tabs": {
+    "tabs": [
+      {
+        "kind": "draft",
+        "id": "draft-1"
+      },
+      {
+        "kind": "draft",
+        "id": "draft-2"
+      },
+      {
+        "kind": "draft",
+        "id": "draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e"
+      },
+      {
+        "kind": "draft",
+        "id": "draft-b271d13e-97b2-450b-be28-33e77d3748dc"
+      }
+    ],
+    "active": {
+      "kind": "draft",
+      "id": "draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e"
+    }
+  },
+  "readThroughSeq": 0,
+  "firstRun": {
+    "completedAt": null
+  }
+}

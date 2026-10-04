@@ -48,6 +48,14 @@ const CLOUD_OFF: MemoryBackendOption = {
 }
 
 describe('where memory lives, in the form that creates a project', () => {
+  it('associates the default-agent hint with its native selector', () => {
+    mount([LOCAL])
+    const select = screen.getByRole('combobox')
+    const hint = screen.getByText(en['onboarding.defaultAgentHint'])
+    expect(select.getAttribute('aria-describedby')).toBe(hint.id)
+    expect(hint.id).not.toBe('')
+  })
+
   it('shows the unavailable backend WITH its reason', async () => {
     // M99 removed it and the operator overturned that on 2026-09-05: the
     // roadmap this states out loud is worth more than the cost of a radio

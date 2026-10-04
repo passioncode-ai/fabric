@@ -1,0 +1,12 @@
+{"at":"2026-10-04T13:02:52.976Z","pid":19011,"kind":"start","mode":"restored","userData":"/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-ad02-native-mFhqRG/userData","electron":"44.0.0"}
+{"at":"2026-10-04T13:02:53.340Z","pid":19011,"kind":"renderer-loaded"}
+{"at":"2026-10-04T13:02:53.346Z","pid":19011,"kind":"draft-read","status":"ready","ids":["draft-1","draft-2"],"delayedMs":20000}
+{"at":"2026-10-04T13:02:53.346Z","pid":19011,"kind":"blocked-ipc","channel":"persona:read"}
+{"at":"2026-10-04T13:02:53.379Z","pid":19011,"kind":"blocked-ipc","channel":"favourites:order"}
+{"at":"2026-10-04T13:02:53.379Z","pid":19011,"kind":"blocked-ipc","channel":"ceo:status"}
+{"at":"2026-10-04T13:02:53.388Z","pid":19011,"kind":"draft-read","status":"ready","ids":["draft-1","draft-2"],"delayedMs":0}
+{"at":"2026-10-04T13:02:53.412Z","pid":19011,"kind":"tabs-save","status":"committed","tabs":{"tabs":[],"active":null}}
+{"at":"2026-10-04T13:02:53.440Z","pid":19011,"kind":"tabs-save","status":"committed","tabs":{"tabs":[{"kind":"draft","id":"draft-1"},{"kind":"draft","id":"draft-2"}],"active":{"kind":"draft","id":"draft-1"}}}
+{"at":"2026-10-04T13:03:13.367Z","pid":19011,"kind":"draft-save","status":"committed","ids":["draft-1","draft-2"],"names":["AD02 early typed","Original two"]}
+{"at":"2026-10-04T13:04:08.363Z","pid":19011,"kind":"tabs-save","status":"committed","tabs":{"tabs":[{"kind":"draft","id":"draft-1"},{"kind":"draft","id":"draft-2"}],"active":{"kind":"draft","id":"draft-2"}}}
+{"at":"2026-10-04T13:04:08.763Z","pid":19011,"kind":"quit","draftStatus":"ready","draftIds":["draft-1","draft-2"]}

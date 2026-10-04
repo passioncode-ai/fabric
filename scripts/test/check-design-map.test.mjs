@@ -20,7 +20,9 @@ write('docs/adr/decision.md','accepted architecture v1\n')
 write('docs/evidence/plans/brief.md','execution dependencies v1\n')
 git('init','-q');git('add','.');git('commit','-qm','fixture source baseline')
 const initial='<html><body><h2 id="changelog">Log</h2><div data-iteration="v1"><a href="#current">review</a></div><section id="current"></section><section id="old"></section></body></html>\n'
-write('docs/reports/map.html',initial)
+// The actual map crossed Node's default1MiB child-process buffer. A read
+// failure must not erase its committed anchor/iteration baseline.
+write('docs/reports/map.html',initial.replace('</body>', '<!--' + 'source-map-size-boundary'.repeat(50000) + '--></body>'))
 const bootstrap=run(true)
 if(bootstrap.exit!==0)throw Error('Bootstrap failed: '+JSON.stringify(bootstrap))
 git('add','docs/reports/map.html');git('commit','-qm','fixture committed map')

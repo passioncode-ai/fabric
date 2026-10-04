@@ -91,6 +91,10 @@ if (arg('--prepare')) {
   write(path.join(dir, markerName), marker)
   console.log(JSON.stringify({ fixture: dir, mode, userData, sourceModules: Object.keys(pins), instruction: 'No app launched. Launch Electron with --fixture, then drive manually through CUA.' }, null, 2))
 } else {
+  // #region native-test-host-bootstrap — docs: docs/handoffs/ad02-native-20261004/README.md#native-host
+  // Electron ESM bootstrap cannot await app readiness at module top level.
+  // Launch after module evaluation; only this test-owned host is affected.
+  async function launch() {
   if (!process.versions.electron) throw new Error('Use --prepare with Node, or launch this file through Electron with --fixture')
   const candidate = arg('--fixture')
   if (!candidate) throw new Error('Missing --fixture; refusing default userData')
@@ -174,4 +178,10 @@ if (arg('--prepare')) {
   await win.loadFile(path.join(desktop, 'out/renderer/index.html'))
   audit('renderer-loaded')
   console.log(JSON.stringify({ pid: process.pid, fixture: dir, userData: app.getPath('userData'), title: win.getTitle() }))
+  }
+  void launch().catch(error => {
+    console.error(error)
+    require('electron').app.exit(1)
+  })
+  // #endregion native-test-host-bootstrap
 }

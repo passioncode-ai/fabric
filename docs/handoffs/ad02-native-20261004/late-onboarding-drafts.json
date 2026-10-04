@@ -1,0 +1,18 @@
+{
+  "draft-1": {
+    "projectId": "",
+    "name": "AD02 early typed",
+    "purpose": "Early input survives late hydration",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  },
+  "draft-2": {
+    "projectId": "ad02-project-2",
+    "name": "Original two",
+    "purpose": "Preserve Original two",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  }
+}

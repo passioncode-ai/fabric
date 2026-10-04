@@ -1,0 +1,25 @@
+✔ all declared synthetic modes compile against actual current IPC result types (537.529625ms)
+✔ unknown config, delay, size and response modes fail closed (4.445ms)
+✔ owned direct root, private permissions, marker and actual source/build pins are required (535.269291ms)
+✔ symlink and foreign paths refuse before any local-state effect (371.032167ms)
+✔ compiled module forgery cannot self-approve by replacing its marker hash (340.980708ms)
+✔ six typed synthetic handlers are admitted; folder path and create stay synthetic (454.125709ms)
+✔ unregistered privileged channels trigger no live transport, subprocess or product-data effects (452.70625ms)
+✔ actual product Draft and atomic local-state modules save only bounded fixture disk (508.52675ms)
+✔ controlled folder and create refusal/cancellation modes return current product shapes (2844.777708ms)
+✔ delayed responses snapshot initiating inputs and a closed owner causes no late mutation (823.642292ms)
+✔ browser requests deny network and foreign local files (0.342042ms)
+✔ synthetic project records have a hard count ceiling across changing owned draft IDs (1626.30875ms)
+✔ fixture requests have a hard count ceiling (885.848208ms)
+✔ fixture audit has a hard byte ceiling (397.767542ms)
+✔ first-run or journal snapshots cannot satisfy a form capture boundary (106.326916ms)
+✔ a screenshot transition cannot be accepted against a later ready form (109.045583ms)
+✔ stable capture takes geometry at equal before and after state boundaries (21.863833ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10141.760125

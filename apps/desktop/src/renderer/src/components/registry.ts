@@ -171,6 +171,7 @@ export const LAYOUT: Readonly<Record<string, string>> = {
   'session-head': 'the session window title band',
   'editor-head': 'the editor window title band',
   onboarding: 'the onboarding form shell',
+  'onboarding-launch': 'the existing onboarding form scoped to the launch visual system',
   booting: 'the pre-bootstrap splash body',
   mono: 'monospace text',
   muted: 'de-emphasised text',

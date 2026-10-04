@@ -1,0 +1,18 @@
+{
+  "draft-1": {
+    "projectId": "ad02-project-1",
+    "name": "Original one",
+    "purpose": "Preserve Original one",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  },
+  "draft-2": {
+    "projectId": "ad02-project-2",
+    "name": "Original two",
+    "purpose": "Preserve Original two",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  }
+}

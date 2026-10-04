@@ -1,0 +1,29 @@
+{"source":"/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/scripts/check-design-map.mjs","sha256":"67880cb0de12ff88ae2d761ac27350aec47ff17ea26c69a810c91eeb7c6735bb","fixture_root":"/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-map-gate-fixture-NWQaLD","requested_pass":false,"requested_pass_count":14,"requested_count":16,"total_count":23,"all_pass":false}
+PASS requested: committed baseline checks successfully; exit=0
+PASS requested: ADR-only source mutation refuses unchanged map; exit=1
+PASS requested: execution-brief-only mutation refuses unchanged map; exit=1
+FAIL requested: previous public anchor removal refuses; exit=0
+Initial map: no committed map baseline; no old anchors to compare.
+PASS: map source stamp (5 files), 3 unique anchors and 1 link targets. Prose accuracy, completeness, external URLs and Markdown fragments are not verified.
+PASS requested: broken internal link with double attribute refuses; exit=1
+PASS requested: broken internal link with single attribute refuses; exit=1
+PASS requested: broken internal link with unquoted attribute refuses; exit=1
+PASS requested: duplicate id with single attribute refuses; exit=1
+PASS requested: duplicate id with unquoted attribute refuses; exit=1
+FAIL requested: source mutation plus refresh with committed iteration refuses; exit=0
+Initial map: no committed map baseline; no old anchors to compare.
+Stamped reviewed source bytes. This command does not review or update map content.
+PASS: map source stamp (5 files), 4 unique anchors and 1 link targets. Prose accuracy, completeness, external URLs and Markdown fragments are not verified.
+PASS requested: new uncommitted iteration refresh; exit=0
+PASS requested: new iteration check; exit=0
+PASS requested: repeat refresh of same uncommitted iteration; exit=0
+PASS requested: repeat refresh check; exit=0
+PASS requested: same uncommitted iteration refinement refresh; exit=0
+PASS requested: same iteration refined source check; exit=0
+PASS parser-regression: valid uppercase HREF to nonexistent anchor refuses; exit=1
+PASS parser-regression: quoted greater-than before broken href refuses; exit=1
+PASS parser-regression: valid single-quoted special changelog attributes refresh successfully; exit=0
+PASS publication-boundary: directory submodule projection and skill link refresh; exit=0
+PASS publication-boundary: initialized projection checks; exit=0
+PASS publication-boundary: publication-only output does not stale its own source map; exit=0
+PASS publication-boundary: uninitialized submodule keeps symlink fingerprint stable; exit=0

@@ -1,0 +1,10 @@
+{
+  "draft-5c5fdf82-3a29-48b8-b567-98f04ed82356": {
+    "projectId": "fc59188c-760c-4b26-87cb-10ab379ab58a",
+    "name": "AD02 first saved",
+    "purpose": "First install creates durable draft storage",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  }
+}

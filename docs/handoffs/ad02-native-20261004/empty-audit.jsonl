@@ -1,0 +1,16 @@
+{"at":"2026-10-04T13:04:30.650Z","pid":27197,"kind":"start","mode":"empty","userData":"/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-ad02-native-oiPBHB/userData","electron":"44.0.0"}
+{"at":"2026-10-04T13:04:31.050Z","pid":27197,"kind":"renderer-loaded"}
+{"at":"2026-10-04T13:04:31.055Z","pid":27197,"kind":"draft-read","status":"ready","ids":[],"delayedMs":0}
+{"at":"2026-10-04T13:04:31.055Z","pid":27197,"kind":"blocked-ipc","channel":"persona:read"}
+{"at":"2026-10-04T13:04:31.089Z","pid":27197,"kind":"blocked-ipc","channel":"favourites:order"}
+{"at":"2026-10-04T13:04:31.090Z","pid":27197,"kind":"blocked-ipc","channel":"ceo:status"}
+{"at":"2026-10-04T13:04:31.116Z","pid":27197,"kind":"draft-save","status":"committed","ids":[],"names":[]}
+{"at":"2026-10-04T13:04:31.129Z","pid":27197,"kind":"draft-read","status":"ready","ids":[],"delayedMs":0}
+{"at":"2026-10-04T13:04:31.154Z","pid":27197,"kind":"tabs-save","status":"committed","tabs":{"tabs":[],"active":null}}
+{"at":"2026-10-04T13:05:13.344Z","pid":27197,"kind":"blocked-ipc","channel":"start:last-scan"}
+{"at":"2026-10-04T13:05:13.363Z","pid":27197,"kind":"tabs-save","status":"committed","tabs":{"tabs":[],"active":null}}
+{"at":"2026-10-04T13:05:19.144Z","pid":27197,"kind":"draft-save","status":"committed","ids":["draft-5c5fdf82-3a29-48b8-b567-98f04ed82356"],"names":[""]}
+{"at":"2026-10-04T13:05:19.162Z","pid":27197,"kind":"tabs-save","status":"committed","tabs":{"tabs":[{"kind":"draft","id":"draft-5c5fdf82-3a29-48b8-b567-98f04ed82356"}],"active":{"kind":"draft","id":"draft-5c5fdf82-3a29-48b8-b567-98f04ed82356"}}}
+{"at":"2026-10-04T13:05:26.330Z","pid":27197,"kind":"draft-save","status":"committed","ids":["draft-5c5fdf82-3a29-48b8-b567-98f04ed82356"],"names":["AD02 first saved"]}
+{"at":"2026-10-04T13:05:26.467Z","pid":27197,"kind":"draft-save","status":"committed","ids":["draft-5c5fdf82-3a29-48b8-b567-98f04ed82356"],"names":["AD02 first saved"]}
+{"at":"2026-10-04T13:05:53.367Z","pid":27197,"kind":"quit","draftStatus":"ready","draftIds":["draft-5c5fdf82-3a29-48b8-b567-98f04ed82356"]}

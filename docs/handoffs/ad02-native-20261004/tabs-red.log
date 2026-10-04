@@ -1,0 +1,107 @@
+
+ RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
+
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+ ❯ src/renderer/src/onboardingDraft.persist.test.tsx (11 tests | 2 failed) 863ms
+     × keeps the saved working set when draft storage is unreadable 178ms
+     × does not write an empty working set while restoration reads are pending 44ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/renderer/src/onboardingDraft.persist.test.tsx > a draft outlives the window > keeps the saved working set when draft storage is unreadable
+AssertionError: unreadable drafts erased saved tab references: expected "vi.fn()" to not be called at all, but actually been called 2 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      Object {
+        "active": null,
+        "tabs": Array [],
+      },
+    ]
+
+  2nd vi.fn() call:
+
+    Array [
+      Object {
+        "active": Object {
+          "id": "draft-a2298813-e824-4ab3-9e9e-d8931a4c7556",
+          "kind": "draft",
+        },
+        "tabs": Array [
+          Object {
+            "id": "draft-a2298813-e824-4ab3-9e9e-d8931a4c7556",
+            "kind": "draft",
+          },
+        ],
+      },
+    ]
+
+
+Number of calls: 2
+
+ ❯ src/renderer/src/onboardingDraft.persist.test.tsx:98:81
+     96|     fireEvent.change(screen.getByPlaceholderText(en['onboarding.namePl…
+     97|     await new Promise(resolve => setTimeout(resolve, 30))
+     98|     expect(api.tabs.write, 'unreadable drafts erased saved tab referen…
+       |                                                                                 ^
+     99|     expect(save).not.toHaveBeenCalled()
+    100|     expect(screen.queryByText(/no longer in this estate/)).toBeNull()
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/renderer/src/onboardingDraft.persist.test.tsx > a draft outlives the window > does not write an empty working set while restoration reads are pending
+AssertionError: pending restore overwrote the original working set: expected "vi.fn()" to not be called at all, but actually been called 2 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      Object {
+        "active": null,
+        "tabs": Array [],
+      },
+    ]
+
+  2nd vi.fn() call:
+
+    Array [
+      Object {
+        "active": Object {
+          "id": "draft-c6ed83e9-7030-403a-b3d8-a434324b1bd1",
+          "kind": "draft",
+        },
+        "tabs": Array [
+          Object {
+            "id": "draft-c6ed83e9-7030-403a-b3d8-a434324b1bd1",
+            "kind": "draft",
+          },
+        ],
+      },
+    ]
+
+
+Number of calls: 2
+
+ ❯ src/renderer/src/onboardingDraft.persist.test.tsx:110:86
+    108|     await newProject()
+    109|     fireEvent.change(screen.getByPlaceholderText(en['onboarding.namePl…
+    110|     expect(api.tabs.write, 'pending restore overwrote the original wor…
+       |                                                                                      ^
+    111|     await act(async () => { resolveRead({ drafts: started, status: 're…
+    112|     await waitFor(() => expect(api.tabs.write).toHaveBeenCalled())
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 9 passed (11)
+   Start at  15:08:49
+   Duration  6.70s (transform 3.90s, setup 123ms, import 4.98s, tests 863ms, environment 633ms)
+
+undefined
+/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/renderer/src/onboardingDraft.persist.test.tsx

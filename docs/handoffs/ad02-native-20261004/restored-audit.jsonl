@@ -1,0 +1,41 @@
+{"at":"2026-10-04T12:52:29.762Z","pid":53255,"kind":"start","mode":"restored","userData":"/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-ad02-native-E7b78J/userData","electron":"44.0.0"}
+{"at":"2026-10-04T12:58:16.693Z","pid":97442,"kind":"start","mode":"restored","userData":"/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-ad02-native-E7b78J/userData","electron":"44.0.0"}
+{"at":"2026-10-04T12:58:17.246Z","pid":97442,"kind":"renderer-loaded"}
+{"at":"2026-10-04T12:58:17.255Z","pid":97442,"kind":"draft-read","status":"ready","ids":["draft-1","draft-2"],"delayedMs":0}
+{"at":"2026-10-04T12:58:17.256Z","pid":97442,"kind":"blocked-ipc","channel":"persona:read"}
+{"at":"2026-10-04T12:58:17.309Z","pid":97442,"kind":"blocked-ipc","channel":"favourites:order"}
+{"at":"2026-10-04T12:58:17.309Z","pid":97442,"kind":"blocked-ipc","channel":"ceo:status"}
+{"at":"2026-10-04T12:58:17.329Z","pid":97442,"kind":"draft-save","status":"committed","ids":["draft-1","draft-2"],"names":["Original one","Original two"]}
+{"at":"2026-10-04T12:58:17.330Z","pid":97442,"kind":"draft-read","status":"ready","ids":["draft-1","draft-2"],"delayedMs":0}
+{"at":"2026-10-04T12:58:17.360Z","pid":97442,"kind":"tabs-save","status":"committed","tabs":{"tabs":[{"kind":"draft","id":"draft-1"},{"kind":"draft","id":"draft-2"}],"active":{"kind":"draft","id":"draft-1"}}}
+{"at":"2026-10-04T12:59:16.023Z","pid":97442,"kind":"draft-save","status":"committed","ids":["draft-1","draft-2"],"names":["AD02 retained one","Original two"]}
+{"at":"2026-10-04T12:59:16.142Z","pid":97442,"kind":"draft-save","status":"committed","ids":["draft-1","draft-2"],"names":["AD02 retained one","Original two"]}
+{"at":"2026-10-04T12:59:16.267Z","pid":97442,"kind":"tabs-save","status":"committed","tabs":{"tabs":[{"kind":"draft","id":"draft-1"},{"kind":"draft","id":"draft-2"}],"active":{"kind":"draft","id":"draft-2"}}}
+{"at":"2026-10-04T12:59:32.620Z","pid":97442,"kind":"draft-save","status":"committed","ids":["draft-1","draft-2"],"names":["AD02 retained one","AD02 retained two"]}
+{"at":"2026-10-04T12:59:32.722Z","pid":97442,"kind":"draft-save","status":"committed","ids":["draft-1","draft-2"],"names":["AD02 retained one","AD02 retained two"]}
+{"at":"2026-10-04T12:59:32.828Z","pid":97442,"kind":"blocked-ipc","channel":"start:last-scan"}
+{"at":"2026-10-04T12:59:32.846Z","pid":97442,"kind":"tabs-save","status":"committed","tabs":{"tabs":[{"kind":"draft","id":"draft-1"},{"kind":"draft","id":"draft-2"}],"active":null}}
+{"at":"2026-10-04T12:59:40.864Z","pid":97442,"kind":"draft-save","status":"committed","ids":["draft-1","draft-2","draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e"],"names":["AD02 retained one","AD02 retained two",""]}
+{"at":"2026-10-04T12:59:40.881Z","pid":97442,"kind":"tabs-save","status":"committed","tabs":{"tabs":[{"kind":"draft","id":"draft-1"},{"kind":"draft","id":"draft-2"},{"kind":"draft","id":"draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e"}],"active":{"kind":"draft","id":"draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e"}}}
+{"at":"2026-10-04T12:59:53.201Z","pid":97442,"kind":"draft-save","status":"committed","ids":["draft-1","draft-2","draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e"],"names":["AD02 retained one","AD02 retained two","AD02 retained three"]}
+{"at":"2026-10-04T12:59:53.347Z","pid":97442,"kind":"draft-save","status":"committed","ids":["draft-1","draft-2","draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e"],"names":["AD02 retained one","AD02 retained two","AD02 retained three"]}
+{"at":"2026-10-04T12:59:53.445Z","pid":97442,"kind":"blocked-ipc","channel":"start:last-scan"}
+{"at":"2026-10-04T12:59:53.464Z","pid":97442,"kind":"tabs-save","status":"committed","tabs":{"tabs":[{"kind":"draft","id":"draft-1"},{"kind":"draft","id":"draft-2"},{"kind":"draft","id":"draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e"}],"active":null}}
+{"at":"2026-10-04T12:59:58.614Z","pid":97442,"kind":"draft-save","status":"committed","ids":["draft-1","draft-2","draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e","draft-b271d13e-97b2-450b-be28-33e77d3748dc"],"names":["AD02 retained one","AD02 retained two","AD02 retained three",""]}
+{"at":"2026-10-04T12:59:58.629Z","pid":97442,"kind":"tabs-save","status":"committed","tabs":{"tabs":[{"kind":"draft","id":"draft-1"},{"kind":"draft","id":"draft-2"},{"kind":"draft","id":"draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e"},{"kind":"draft","id":"draft-b271d13e-97b2-450b-be28-33e77d3748dc"}],"active":{"kind":"draft","id":"draft-b271d13e-97b2-450b-be28-33e77d3748dc"}}}
+{"at":"2026-10-04T13:00:05.811Z","pid":97442,"kind":"draft-save","status":"committed","ids":["draft-1","draft-2","draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e","draft-b271d13e-97b2-450b-be28-33e77d3748dc"],"names":["AD02 retained one","AD02 retained two","AD02 retained three","AD02 retained four"]}
+{"at":"2026-10-04T13:00:05.920Z","pid":97442,"kind":"draft-save","status":"committed","ids":["draft-1","draft-2","draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e","draft-b271d13e-97b2-450b-be28-33e77d3748dc"],"names":["AD02 retained one","AD02 retained two","AD02 retained three","AD02 retained four"]}
+{"at":"2026-10-04T13:00:57.502Z","pid":97442,"kind":"quit","draftStatus":"ready","draftIds":["draft-1","draft-2","draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e","draft-b271d13e-97b2-450b-be28-33e77d3748dc"]}
+{"at":"2026-10-04T13:01:14.568Z","pid":12317,"kind":"start","mode":"restored","userData":"/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-ad02-native-E7b78J/userData","electron":"44.0.0"}
+{"at":"2026-10-04T13:01:14.975Z","pid":12317,"kind":"renderer-loaded"}
+{"at":"2026-10-04T13:01:14.980Z","pid":12317,"kind":"draft-read","status":"ready","ids":["draft-1","draft-2","draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e","draft-b271d13e-97b2-450b-be28-33e77d3748dc"],"delayedMs":0}
+{"at":"2026-10-04T13:01:14.981Z","pid":12317,"kind":"blocked-ipc","channel":"persona:read"}
+{"at":"2026-10-04T13:01:14.987Z","pid":12317,"kind":"blocked-ipc","channel":"favourites:order"}
+{"at":"2026-10-04T13:01:14.987Z","pid":12317,"kind":"blocked-ipc","channel":"ceo:status"}
+{"at":"2026-10-04T13:01:15.005Z","pid":12317,"kind":"draft-save","status":"committed","ids":["draft-1","draft-2","draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e","draft-b271d13e-97b2-450b-be28-33e77d3748dc"],"names":["AD02 retained one","AD02 retained two","AD02 retained three","AD02 retained four"]}
+{"at":"2026-10-04T13:01:15.015Z","pid":12317,"kind":"draft-read","status":"ready","ids":["draft-1","draft-2","draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e","draft-b271d13e-97b2-450b-be28-33e77d3748dc"],"delayedMs":0}
+{"at":"2026-10-04T13:01:15.041Z","pid":12317,"kind":"tabs-save","status":"committed","tabs":{"tabs":[{"kind":"draft","id":"draft-1"},{"kind":"draft","id":"draft-2"},{"kind":"draft","id":"draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e"},{"kind":"draft","id":"draft-b271d13e-97b2-450b-be28-33e77d3748dc"}],"active":{"kind":"draft","id":"draft-b271d13e-97b2-450b-be28-33e77d3748dc"}}}
+{"at":"2026-10-04T13:01:39.960Z","pid":12317,"kind":"tabs-save","status":"committed","tabs":{"tabs":[{"kind":"draft","id":"draft-1"},{"kind":"draft","id":"draft-2"},{"kind":"draft","id":"draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e"},{"kind":"draft","id":"draft-b271d13e-97b2-450b-be28-33e77d3748dc"}],"active":{"kind":"draft","id":"draft-1"}}}
+{"at":"2026-10-04T13:01:40.429Z","pid":12317,"kind":"tabs-save","status":"committed","tabs":{"tabs":[{"kind":"draft","id":"draft-1"},{"kind":"draft","id":"draft-2"},{"kind":"draft","id":"draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e"},{"kind":"draft","id":"draft-b271d13e-97b2-450b-be28-33e77d3748dc"}],"active":{"kind":"draft","id":"draft-2"}}}
+{"at":"2026-10-04T13:01:41.427Z","pid":12317,"kind":"tabs-save","status":"committed","tabs":{"tabs":[{"kind":"draft","id":"draft-1"},{"kind":"draft","id":"draft-2"},{"kind":"draft","id":"draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e"},{"kind":"draft","id":"draft-b271d13e-97b2-450b-be28-33e77d3748dc"}],"active":{"kind":"draft","id":"draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e"}}}
+{"at":"2026-10-04T13:02:37.511Z","pid":12317,"kind":"quit","draftStatus":"ready","draftIds":["draft-1","draft-2","draft-00ffb0f5-e19d-46ab-89b4-dbb8f86bec5e","draft-b271d13e-97b2-450b-be28-33e77d3748dc"]}
