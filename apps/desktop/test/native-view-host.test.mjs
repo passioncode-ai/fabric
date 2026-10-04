@@ -16,7 +16,9 @@ const childCode=`import os,sys,tty,signal,time\ntty.setraw(0)\nchild=os.fork()\n
 const script=path.join(dir,'view.py'),childScript=path.join(dir,'child.py');writeFileSync(script,fixtureCode,{mode:0o600});writeFileSync(childScript,childCode,{mode:0o600})
 const boundary=createProcessBoundary(),tracked=[],hosts=[]
 const delay=ms=>new Promise(r=>setTimeout(r,ms))
-const until=async(fn,label)=>{const end=performance.now()+4000;while(performance.now()<end){if(await fn())return;await delay(10)}throw Error(label)}
+// Waits for outcomes this file does not time (the host's own deadline is timeoutMs). 4 s let a loaded machine fail
+// "native ready" before python under the PTY had printed (the 2026-10-04 07:08Z sync); 20 s as in the registry test.
+const until=async(fn,label)=>{const end=performance.now()+20000;while(performance.now()<end){if(await fn())return;await delay(10)}throw Error(label)}
 const recipe=()=>({executable:python,executableSha256:hash,argv:[script],cwd:dir,env:{PATH:'/usr/bin:/bin',HOME:dir,PYTHONUNBUFFERED:'1'},cols:80,rows:24})
 const stamp=fd=>{const s=fstatSync(fd);return `${s.dev}/${s.ino}/${s.rdev}/${s.mode}`}
 function fixture({recipe:provided=recipe(),system:overrides={},current}={}){
