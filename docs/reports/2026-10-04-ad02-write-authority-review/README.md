@@ -88,7 +88,7 @@ node scripts/test/check-design-map.test.mjs
 python3 docs/reports/2026-10-04-ad02-write-authority-review/raw/native-prepare-probe.py
 ```
 
-The prepare probe requires an already built desktop and deletes its disposable fixtures. Dependencies/build outputs stay ignored and local. Tracked logs normalize only review-machine/temporary paths; original local logs are ignored. No shared source, map, registry, native host or wiki index was edited by the review branch.
+The prepare probe requires an already built desktop and deletes its disposable fixtures. Dependencies/build outputs stay ignored and local. Tracked logs normalize only review-machine/temporary paths and trailing terminal blank lines; original local logs are ignored. No shared source, map, registry, native host or wiki index was edited by the review branch.
 
 Completed: exact source inspection, four independent caller probes and before control, independent map RED/fixed/oversized controls, existing focused/map tests, typecheck, local build, host syntax and prepare-only isolation checks. **Exact next task:** root freezes any further test-host changes and executes/reviews the actual combined native matrix against that source/build, preserving the old failed/qualified cuts. Keep AD02/CO179 and parent/runtime closure open until their own acceptance evidence exists. This report's source verdict is not inherited by later App/map/host changes.
 

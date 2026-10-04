@@ -22,4 +22,3 @@ PASS publication-boundary: directory submodule projection and skill link refresh
 PASS publication-boundary: initialized projection checks; exit=0
 PASS publication-boundary: publication-only output does not stale its own source map; exit=0
 PASS publication-boundary: uninitialized submodule keeps symlink fingerprint stable; exit=0
-
