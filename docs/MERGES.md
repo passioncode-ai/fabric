@@ -278,3 +278,7 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 module summary retain partial status where cited acceptance covers only another
 consumer. Documentation-only follow-up, normal fast-forward after local fast gate;
 map anchor `iteration-2026-10-01-backlog-review`.
+
+### 2026-10-04 · unified-plan-20261004 · agent/unified-plan-20261004
+
+Source integration entry for the dated twelve-lane research, source-pinned dispatch/context checks and independently reviewed negative controls. Landing uses a PR and linear squash after the local fast gate; publication follows the immutable main source. Actual integration and publication are verified through Git/PR and the canonical workspace receipt. P-08 product fixes remain in their existing worktrees. Source gate and handoff receipts live in docs/reports/2026-10-04-unified-execution/checks/.

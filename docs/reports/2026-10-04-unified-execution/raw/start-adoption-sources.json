@@ -1,0 +1,240 @@
+{
+  "schema": "fabric-research-sources/1",
+  "as_of": "2026-10-04",
+  "sources": [
+    {
+      "id": "SA-01",
+      "url": "https://www.electronjs.org/docs/latest/tutorial/security",
+      "title": "Electron security checklist",
+      "source_kind": "official-documentation",
+      "read_at": "2026-10-04",
+      "excerpt": "Validate the sender of all IPC messages",
+      "claim": "IPC caller, parsed URL origin and permissions require validation in trusted main; renderer context is not authority.",
+      "applies_to": [
+        "FR-C",
+        "AD05",
+        "AD09",
+        "AD11",
+        "AD21",
+        "P-07",
+        "P-08"
+      ],
+      "limits": "Guideline only; this research did not test Fabric IPC."
+    },
+    {
+      "id": "SA-02",
+      "url": "https://www.electronjs.org/docs/latest/api/dialog",
+      "title": "Electron dialog",
+      "source_kind": "official-documentation",
+      "read_at": "2026-10-04",
+      "excerpt": "whether or not the dialog was canceled",
+      "claim": "Cancellation returns empty paths; alias resolution and MAS security-scoped bookmarks are platform-specific.",
+      "applies_to": [
+        "FR-C",
+        "AD24",
+        "CO-177"
+      ],
+      "limits": "MAS bookmarks do not automatically apply to Developer ID distribution; picker choice still needs app grant semantics."
+    },
+    {
+      "id": "SA-03",
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Anthropic context engineering",
+      "source_kind": "vendor-engineering",
+      "read_at": "2026-10-04",
+      "excerpt": "compaction, structured note-taking, and multi-agent architectures",
+      "claim": "Long horizon work needs bounded relevant context, durable notes, and scoped subagents; aggressive compaction may lose later-relevant details.",
+      "applies_to": [
+        "FR-D",
+        "FR-E",
+        "AD06",
+        "AD07",
+        "AD08",
+        "P-06"
+      ],
+      "limits": "Vendor design rationale; no measured Fabric accuracy or retention benefit."
+    },
+    {
+      "id": "SA-04",
+      "url": "https://github.com/microsoft/vscode/issues/305818",
+      "title": "VS Code orphaned chat history issue",
+      "source_kind": "developer-issue-thread",
+      "read_at": "2026-10-04",
+      "excerpt": "Discover orphaned chat data",
+      "claim": "A contributor reports folder-URI keyed chat history orphaning on moved/renamed/deleted workspaces. Use stable Project/Run identity and explicit relink for portable Fabric context.",
+      "applies_to": [
+        "FR-E",
+        "AD07",
+        "AD11",
+        "CO-168"
+      ],
+      "limits": "Reported feature-request, not reproduction in Fabric and not proof of all current VS Code behavior; Windows environment."
+    },
+    {
+      "id": "SA-05",
+      "url": "https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/",
+      "title": "W3C disclosure pattern",
+      "source_kind": "official-standard-guidance",
+      "read_at": "2026-10-04",
+      "excerpt": "The element that shows and hides the content has role",
+      "claim": "Disclosure uses button activation, aria-expanded and optional aria-controls, with Enter/Space behavior.",
+      "applies_to": [
+        "M187",
+        "AD19",
+        "AD20",
+        "CO-179",
+        "FR-F"
+      ],
+      "limits": "APG pattern is a design baseline; keyboard/assistive-tech acceptance must run in Fabric."
+    },
+    {
+      "id": "SA-06",
+      "url": "https://www.postgresql.org/docs/current/queries-limit.html",
+      "title": "PostgreSQL LIMIT/OFFSET",
+      "source_kind": "official-documentation",
+      "read_at": "2026-10-04",
+      "excerpt": "a unique order",
+      "claim": "LIMIT/OFFSET requires deterministic unique ordering; skipped rows still incur computation. Combine with local deletion-between-pages finding to design keyset cursor.",
+      "applies_to": [
+        "CO-185",
+        "AD07",
+        "AD22"
+      ],
+      "limits": "Docs alone do not prove snapshot isolation or no omissions under concurrent mutation; deletion race is local carryover finding."
+    },
+    {
+      "id": "SA-07",
+      "url": "https://github.com/nodejs/node/issues/51858",
+      "title": "Node recursive readdir follows symlinks issue",
+      "source_kind": "developer-issue-thread",
+      "read_at": "2026-10-04",
+      "excerpt": "All files under",
+      "claim": "Contributor reports recursive readdirSync traversing link outside selected tree on Node21.6.2. Use explicit lstat/no-follow traversal, realpath containment and admission-time revalidation.",
+      "applies_to": [
+        "AD24",
+        "FR-C",
+        "CO-177"
+      ],
+      "limits": "Closed not planned; old Linux report, not current macOS Node measurement."
+    },
+    {
+      "id": "SA-08",
+      "url": "https://github.com/electron-userland/electron-builder/issues/9529",
+      "title": "Packaged macOS capture/signing issue",
+      "source_kind": "developer-issue-thread",
+      "read_at": "2026-10-04",
+      "excerpt": "no frames/audio samples arrive",
+      "claim": "Reporter observed live getUserMedia tracks without capture samples in ad-hoc macOS builds. A capture-ready receipt must inspect actual samples and packaged signing state.",
+      "applies_to": [
+        "AD12",
+        "AD13",
+        "FR-F",
+        "AD22",
+        "FR-G"
+      ],
+      "limits": "Closed report for ad-hoc signing; Fabric Developer ID build is not proven affected; do not copy re-sign workaround."
+    },
+    {
+      "id": "SA-09",
+      "url": "https://www.electronjs.org/docs/latest/api/system-preferences",
+      "title": "Electron media permissions",
+      "source_kind": "official-documentation",
+      "read_at": "2026-10-04",
+      "excerpt": "getMediaAccessStatus(mediaType)",
+      "claim": "macOS capture permission must be observed/requested with application usage descriptions; denied and restricted remain explicit states.",
+      "applies_to": [
+        "AD12",
+        "AD13",
+        "FR-F"
+      ],
+      "limits": "Permission status is not proof that usable samples arrived."
+    },
+    {
+      "id": "SA-10",
+      "url": "https://stripe.com/blog/idempotency",
+      "title": "Stripe engineering: idempotent APIs",
+      "source_kind": "vendor-engineering",
+      "read_at": "2026-10-04",
+      "excerpt": "The call could succeed",
+      "claim": "A successful operation can lose its reply. Durable request identity plus replay/reconciliation avoids repeating effects after ambiguous completion.",
+      "applies_to": [
+        "AD04",
+        "AD09",
+        "AD11",
+        "AD14",
+        "AD16",
+        "FR-C"
+      ],
+      "limits": "General distributed-systems rationale, not instruction to wire Stripe into Fabric."
+    },
+    {
+      "id": "SA-11",
+      "url": "https://github.com/openai/whisper",
+      "title": "Whisper model/language tradeoffs",
+      "source_kind": "project-documentation",
+      "read_at": "2026-10-04",
+      "excerpt": "Whisper's performance varies widely depending on the language",
+      "claim": "Model size, language and hardware affect accuracy/speed; published GPU figures are not target-Mac RU/EN measurements.",
+      "applies_to": [
+        "AD12",
+        "AD13"
+      ],
+      "limits": "No STT choice accepted, model installed or audio uploaded by this research."
+    },
+    {
+      "id": "SA-12",
+      "url": "https://github.com/ggml-org/whisper.cpp",
+      "title": "whisper.cpp Apple Silicon support",
+      "source_kind": "project-documentation",
+      "read_at": "2026-10-04",
+      "excerpt": "Support for CPU-only inference",
+      "claim": "Local C/C++ Whisper offers Apple Silicon and offline execution candidates; package/model size and cold/warm latency need native benchmark.",
+      "applies_to": [
+        "AD12"
+      ],
+      "limits": "Repository claims only; no local install or performance claim."
+    },
+    {
+      "id": "SA-13",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder",
+      "title": "MediaRecorder stop/dataavailable semantics",
+      "source_kind": "authoritative-api-documentation",
+      "read_at": "2026-10-04",
+      "excerpt": "dataavailable",
+      "claim": "stop delivers a final recording chunk asynchronously; record/cancel cleanup must wait or intentionally discard and prevent late transcript writes.",
+      "applies_to": [
+        "AD13",
+        "FR-F"
+      ],
+      "limits": "No actual microphone capture performed."
+    }
+  ],
+  "source_count": 13,
+  "not_run": [
+    "native Electron acceptance",
+    "real provider login/readiness probes",
+    "STT RU/EN benchmark",
+    "moderated pilot",
+    "packaged voice capture"
+  ],
+  "artifact_verification": {
+    "command": "python3 inline JSON/coverage/field/source/hash validation",
+    "result": "PASS",
+    "canonical_count": 47,
+    "records": 48,
+    "sources": 13,
+    "checks": [
+      "unique dispatch IDs",
+      "lane canonical set equality",
+      "required fields",
+      "all canonical source files exist",
+      "all current scope file hashes match",
+      "research source references resolve"
+    ],
+    "not_run": [
+      "product test suite",
+      "native and user acceptance",
+      "provider and STT benchmark"
+    ]
+  }
+}

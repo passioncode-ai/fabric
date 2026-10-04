@@ -1,0 +1,54 @@
+{
+  "as_of": "2026-10-04",
+  "method": "Official docs and primary developer threads opened live; excerpts limited, local gates executed independently.",
+  "sources": [
+    {
+      "id": "RG01",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/transports",
+      "kind": "normative",
+      "claim": "Validate Origin, bind loopback and authenticate; disconnect is not explicit CancelledNotification.",
+      "excerpt": "Disconnection SHOULD NOT be interpreted as the client cancelling its request.",
+      "read_at": "2026-10-04"
+    },
+    {
+      "id": "RG02",
+      "url": "https://modelcontextprotocol.io/docs/2025-11-25/tutorials/security/security_best_practices",
+      "kind": "official-current-tutorial",
+      "claim": "Consent and audience boundaries; client token passthrough is forbidden. Preserve separate Fabric binding and product credential.",
+      "excerpt": "Token passthrough is explicitly forbidden",
+      "read_at": "2026-10-04"
+    },
+    {
+      "id": "RG03",
+      "url": "https://github.com/modelcontextprotocol/inspector/issues/574",
+      "kind": "developer-issue",
+      "claim": "Node/client requests can omit Origin; test native absence separately from hostile browser Origin. Closed issue is historical symptom, not proof of current SDK behavior.",
+      "excerpt": "no origin header in request",
+      "read_at": "2026-10-04"
+    },
+    {
+      "id": "RG04",
+      "url": "https://www.electronjs.org/docs/latest/tutorial/code-signing",
+      "kind": "official",
+      "claim": "Signing and notarization are separate steps; release ledger/attestation are separate from native/provider acceptance.",
+      "excerpt": "the app needs to be code signed",
+      "read_at": "2026-10-04"
+    },
+    {
+      "id": "RG05",
+      "url": "https://github.com/electron/notarize/issues/219",
+      "kind": "developer-issue",
+      "claim": "Historical macos-latest failures are diagnosis evidence; do not copy its January2025 runner workaround to October2026 without reproducing exact toolchain.",
+      "excerpt": "build fails randomly",
+      "read_at": "2026-10-04"
+    },
+    {
+      "id": "RG06",
+      "url": "https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments",
+      "kind": "official",
+      "claim": "Protected jobs wait for explicit review; agent cannot substitute local test pass for human release approval.",
+      "excerpt": "You can approve or reject jobs awaiting review.",
+      "read_at": "2026-10-04"
+    }
+  ]
+}

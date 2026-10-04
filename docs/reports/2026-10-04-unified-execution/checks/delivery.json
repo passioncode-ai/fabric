@@ -1,0 +1,13 @@
+{
+  "kind": "durable handoff verification entry points",
+  "source_branch": "agent/unified-plan-20261004",
+  "source_baseline": "41f994a709990ad72621fa834768a8833e7d93e1",
+  "source_commit_locator": "git log of this report; canonical docs/workspace-receipt.json source_commit after authorized publication",
+  "remote_verification": "git ls-remote origin refs/heads/agent/unified-plan-20261004 equals delivered HEAD",
+  "source_gate": "VITEST_MAX_WORKERS=4 bash scripts/ci.sh fast must exit0 before push; publisher repeats its required gates",
+  "publication_verification": "node scripts/workspace.mjs check --require-child; canonical receipt owns source/child/digest/release identity",
+  "product_release": "NOT_RUN; existing P-08 owner and human gates preserved",
+  "hosted_ci": "NOT_RUN; nightly policy",
+  "first_leaf": "CO-179.prepare complete; product implementation blocked, see dossier and CO179-review.json",
+  "fresh_checkout": "node scripts/unified-plan.mjs check and packet CO-179.prepare from remote checkout"
+}

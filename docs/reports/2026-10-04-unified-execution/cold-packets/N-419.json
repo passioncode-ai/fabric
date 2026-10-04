@@ -1,0 +1,60 @@
+{
+  "schema_version": "execution-packet/1",
+  "node": "N-419",
+  "id": "CO-186.prepare",
+  "intent": "One cold-reader implementation or acceptance leaf for CO-186, or a precise trigger/authority/dependency refusal.",
+  "inputs": [
+    {
+      "address": "CONTEXT.md",
+      "sha256": "216b4729418f21afeafb057227b2f802725e306f3586a05c1c3c38a270568fb5"
+    },
+    {
+      "address": "docs/architecture/system-contract.md",
+      "sha256": "7daf5121cb7ecc0f8ba771053a0f45f6191268c3bfaf752e083e112fdbce65bc"
+    },
+    {
+      "address": "docs/evidence/backlog.md",
+      "sha256": "3135378f808cca85b5408b13f54159b8e6818ab2d7f9258eef7f25644a17d608"
+    },
+    {
+      "address": "docs/AGENT_SYNC.md",
+      "sha256": "0de6ecfd0a80f9a1090d031e5b0b46ec8ef12295ec77149da7016a20b3ace641"
+    },
+    {
+      "address": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "sha256": "50a73374b7305a1b092333940b299d1595c33ed63b1d0fd1a41e6a9476b8db51"
+    },
+    {
+      "address": "docs/ux/vision.md",
+      "sha256": "b49ff2c9b4af97b5f4fa56183ee8a703e2e3a607f86c1c368746e95517cc444c"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/CO-186.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/CO-186.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "Named dossier exists and answers all eight cold-reader questions; source refs resolve and match their hashes.",
+    "Cold independent reviewer can execute the scoped checks without planning chat; unavailable checks remain NOT_RUN, and unresolved prerequisite prevents implementation dispatch."
+  ],
+  "guards": [
+    "missing authority, source policy, capability or schema contract: stop effect and report typed blocker",
+    "unknown outcome: reconcile stable command/effect id before retry",
+    "unrelated agent work/file claim: do not overwrite; send finding to lead",
+    "Stop before implementation until a bounded leaf and upstream acceptance/authority are approved; a planning dependency is not a completion receipt."
+  ],
+  "resume": "Read this packet and its pinned canonical sources; verify trigger, dependency receipts and authority; produce one bounded follow-on leaf before code."
+}

@@ -1,0 +1,18 @@
+{
+  "as_of": "2026-10-04",
+  "source_revision": "41f994a709990ad72621fa834768a8833e7d93e1",
+  "claude_session": "b37c8ba2-bd28-4fce-975a-12edea3e6a14",
+  "last_working_reply": "2026-10-04T07:22:09.998Z",
+  "last_request_attempt": "2026-10-04T08:50:35.426Z",
+  "completed_work_claim": "7 lifecycle PRs merged; native-view-host timeout fixed in 1e8b2e20; publication restarted",
+  "verified_publication": {
+    "started_at": "2026-10-04T07:21:58.976Z",
+    "ended_at": "2026-10-04T07:34:20.243Z",
+    "outcome": "published"
+  },
+  "lag_check": "13 sources, grace24h: all current; 8 WITHIN-GRACE rather than exact latest pin",
+  "next_priority": "P-08; iteration2 active in hubfix2-core/surface; root will not write those dirty files",
+  "coordination": "isolated worktree, Git CAS lease, fs record plane without cloud token in isolated checkout; preexisting missing baselines recorded without reset",
+  "session_id": "01a1061b-fdfc-7bb0-bf1b-b91e1f0d9a5a",
+  "lease_identity": "unified-6a5a-20261004; distinct prefix because tool run id is truncated"
+}

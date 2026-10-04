@@ -1,0 +1,299 @@
+{
+  "schema": 1,
+  "tasks": [
+    {
+      "id": "UP-01",
+      "canonical_ids": [
+        "P-08"
+      ],
+      "lane": 2,
+      "title": "Compile the complete research queue and block stale or invalid dispatch",
+      "kind": "implementation",
+      "dispatch": "done",
+      "priority_group": 0,
+      "depends_on": [],
+      "context": {
+        "sources": [
+          "docs/evidence/backlog.md",
+          "docs/launch/release-mac.md",
+          "docs/evidence/plans/2026-10-04-hub-verification.md",
+          "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md"
+        ],
+        "risks": [
+          "Source/unit green cannot be substituted for native/provider/hosted acceptance.",
+          "Other worktrees retain file ownership; no automatic live schema migration."
+        ],
+        "stop_conditions": [
+          "Stop on stale digest, changed upstream contract, missing receipt or required authority."
+        ],
+        "resume": "Fetch source refs, acquire own lease, inspect exact upstream receipt and first missing check.",
+        "outcome": "Compile the complete research queue and block stale or invalid dispatch",
+        "scope": [
+          "scripts/unified-plan.mjs",
+          "scripts/test/unified-plan.test.mjs",
+          "scripts/build-unified-plan.py"
+        ],
+        "steps": [
+          "Write meaningful negative controls and watch missing implementation fail.",
+          "Implement coverage/digest/dependency/impact validation and exact cold packet output.",
+          "Independent reviewer reproduces fail-open cases; fix them and watch all regressions pass."
+        ],
+        "acceptance": [
+          "node --test scripts/test/unified-plan.test.mjs exits0 with13 tests; explicit absence, changed source, missing proof, open impact and cycle refuse."
+        ]
+      }
+    },
+    {
+      "id": "P-08.preflight",
+      "canonical_ids": [
+        "P-08"
+      ],
+      "lane": 2,
+      "title": "Recover publication and measure the current hub release gate",
+      "kind": "verification",
+      "dispatch": "done",
+      "priority_group": 0,
+      "depends_on": [],
+      "context": {
+        "sources": [
+          "docs/evidence/backlog.md",
+          "docs/launch/release-mac.md",
+          "docs/evidence/plans/2026-10-04-hub-verification.md",
+          "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md"
+        ],
+        "risks": [
+          "Source/unit green cannot be substituted for native/provider/hosted acceptance.",
+          "Other worktrees retain file ownership; no automatic live schema migration."
+        ],
+        "stop_conditions": [
+          "Stop on stale digest, changed upstream contract, missing receipt or required authority."
+        ],
+        "resume": "Fetch source refs, acquire own lease, inspect exact upstream receipt and first missing check.",
+        "outcome": "Recover publication and measure the current hub release gate",
+        "scope": [
+          "docs/reports/2026-10-04-unified-execution/checks/execution.json"
+        ],
+        "steps": [
+          "Read sanitized Claude tail; compare branch refs and live sync outcome.",
+          "Invoke the existing gate for0.3.1 on its own ledger.",
+          "Send cross-lane findings to release owner without touching dirty hub worktrees."
+        ],
+        "acceptance": [
+          "Receipt says publication completed and release_ready=false with iteration2/3 not closed."
+        ]
+      }
+    },
+    {
+      "id": "P-08",
+      "canonical_ids": [
+        "P-08"
+      ],
+      "lane": 2,
+      "title": "Finish owned hub verification before0.3.1 release",
+      "kind": "verification",
+      "dispatch": "owned-elsewhere",
+      "priority_group": 0,
+      "depends_on": [],
+      "context": {
+        "sources": [
+          "docs/evidence/backlog.md",
+          "docs/launch/release-mac.md",
+          "docs/evidence/plans/2026-10-04-hub-verification.md",
+          "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md"
+        ],
+        "risks": [
+          "Source/unit green cannot be substituted for native/provider/hosted acceptance.",
+          "Other worktrees retain file ownership; no automatic live schema migration."
+        ],
+        "stop_conditions": [
+          "Stop on stale digest, changed upstream contract, missing receipt or required authority."
+        ],
+        "resume": "Fetch source refs, acquire own lease, inspect exact upstream receipt and first missing check.",
+        "outcome": "Finish owned hub verification before0.3.1 release",
+        "scope": [
+          "docs/evidence/plans/2026-10-04-hub-verification.md",
+          "docs/launch/release-gate.json",
+          "CHANGELOG.md",
+          "apps/desktop/package.json"
+        ],
+        "steps": [
+          "Owner integrates hubfix2 fixes and re-verifies original findings on exact merged SHA.",
+          "Incorporate reviewed impacts: schema head77+, CO179 deadline, transport cancellation norm.",
+          "Fresh independent iteration3 across five levels; every finding gets fixed/ruled with its canonical ID and proof.",
+          "After full local disposable gate, bump version and release notes; land approved iteration and invoke established release flow only when allowed.",
+          "Human approves protected signing/publish jobs; validate signatures, install/walk, then separately approved live schema backup→rehearsal→migration and workspace receipt."
+        ],
+        "acceptance": [
+          "Existing releaseGateProblems clears0.3.1 only after3 independent closed iterations.",
+          "Full CI exact release SHA, packaged smoke, notarization, attestation and verified download all have independent receipts."
+        ]
+      }
+    },
+    {
+      "id": "CO-181",
+      "canonical_ids": [
+        "CO-181"
+      ],
+      "lane": 2,
+      "title": "Decide bounded deletion of observed live test residue",
+      "kind": "decision",
+      "dispatch": "operator-gated",
+      "priority_group": 0,
+      "depends_on": [],
+      "context": {
+        "sources": [
+          "docs/evidence/backlog.md",
+          "docs/launch/release-mac.md",
+          "docs/evidence/plans/2026-10-04-hub-verification.md",
+          "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md"
+        ],
+        "risks": [
+          "Source/unit green cannot be substituted for native/provider/hosted acceptance.",
+          "Other worktrees retain file ownership; no automatic live schema migration."
+        ],
+        "stop_conditions": [
+          "Stop on stale digest, changed upstream contract, missing receipt or required authority."
+        ],
+        "resume": "Fetch source refs, acquire own lease, inspect exact upstream receipt and first missing check.",
+        "outcome": "Decide bounded deletion of observed live test residue",
+        "scope": [
+          "docs/evidence/specs/2026-08-16-software-fabric-carryover.md"
+        ],
+        "steps": [
+          "Run node scripts/residue-report.mjs read-only and preserve scoped counts.",
+          "Separate operator data from known test ownership; produce exact deletion preview and recovery prerequisite.",
+          "Present the concrete delete/retain choice to the operator; no deletion from this packet."
+        ],
+        "acceptance": [
+          "Exact owner/rows/backup evidence and operator decision attached; no absent answer interpreted as approval."
+        ]
+      }
+    },
+    {
+      "id": "CO-182",
+      "canonical_ids": [
+        "CO-182"
+      ],
+      "lane": 2,
+      "title": "Design disposable-stack ownership for the two manual native/handshake probes",
+      "kind": "design",
+      "dispatch": "candidate",
+      "priority_group": 0,
+      "depends_on": [],
+      "context": {
+        "sources": [
+          "docs/evidence/backlog.md",
+          "docs/launch/release-mac.md",
+          "docs/evidence/plans/2026-10-04-hub-verification.md",
+          "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md",
+          "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+          "apps/desktop/test/chat-activation-native.test.mjs",
+          "apps/desktop/test/handshake-e2e.test.mjs",
+          "scripts/test-stack.mjs"
+        ],
+        "risks": [
+          "Source/unit green cannot be substituted for native/provider/hosted acceptance.",
+          "Other worktrees retain file ownership; no automatic live schema migration."
+        ],
+        "stop_conditions": [
+          "Stop on stale digest, changed upstream contract, missing receipt or required authority."
+        ],
+        "resume": "Fetch source refs, acquire own lease, inspect exact upstream receipt and first missing check.",
+        "outcome": "Design disposable-stack ownership for the two manual native/handshake probes",
+        "scope": [
+          "docs/evidence/plans/unified-leaves/CO-182.json"
+        ],
+        "steps": [
+          "Read CO182 exactly: chat-activation-native and handshake-e2e currently use the live operator stack and are outside CI tiers.",
+          "Trace all URLs/ports/userData/native startup paths and identify which fixture still assumes live fabric stack; no probe runs before isolation check.",
+          "Design explicit FABRIC_TEST_STACK ownership/environment propagation into native Electron and real handshake; reject54321/54322 and refuse cleanup outside owned namespace.",
+          "Prepare one bounded implementation leaf per independently testable probe with positive isolated lifecycle and negative live-port refusal; add to a tier only after disposable acceptance."
+        ],
+        "acceptance": [
+          "Cold leaf names exact producer/consumer environment, owned native userData, disposable project/ports/DB, teardown and refusal of live stack.",
+          "Both probe files remain NOT_RUN until owned native harness exists; no test data is written to operator estate."
+        ]
+      }
+    },
+    {
+      "id": "CO-197",
+      "canonical_ids": [
+        "CO-197"
+      ],
+      "lane": 2,
+      "title": "Publish reviewed source iteration with exact parent/child identity",
+      "kind": "verification",
+      "dispatch": "design-gated",
+      "priority_group": 0,
+      "depends_on": [],
+      "context": {
+        "sources": [
+          "docs/evidence/backlog.md",
+          "docs/launch/release-mac.md",
+          "docs/evidence/plans/2026-10-04-hub-verification.md",
+          "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md"
+        ],
+        "risks": [
+          "Source/unit green cannot be substituted for native/provider/hosted acceptance.",
+          "Other worktrees retain file ownership; no automatic live schema migration."
+        ],
+        "stop_conditions": [
+          "Stop on stale digest, changed upstream contract, missing receipt or required authority."
+        ],
+        "resume": "Fetch source refs, acquire own lease, inspect exact upstream receipt and first missing check.",
+        "outcome": "Publish reviewed source iteration with exact parent/child identity",
+        "scope": [
+          "workspace",
+          "docs/workspace-receipt.json"
+        ],
+        "steps": [
+          "Finish source content and map; run local gate and commit.",
+          "Read workspace publication contract, publish committed source only, verify full digest/release/child identity.",
+          "Commit parent pin only after child pushed; run workspace check --require-child and lag."
+        ],
+        "acceptance": [
+          "Combined workspace check exits0; publication has source/child full SHAs, digest and positive release number."
+        ]
+      }
+    },
+    {
+      "id": "N1.metadata",
+      "canonical_ids": [
+        "N1"
+      ],
+      "lane": 5,
+      "title": "Read exact installed provider versions without changing profiles",
+      "kind": "verification",
+      "dispatch": "done",
+      "priority_group": 1,
+      "depends_on": [],
+      "context": {
+        "sources": [
+          "docs/evidence/backlog.md",
+          "docs/launch/release-mac.md",
+          "docs/evidence/plans/2026-10-04-hub-verification.md",
+          "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md"
+        ],
+        "risks": [
+          "Source/unit green cannot be substituted for native/provider/hosted acceptance.",
+          "Other worktrees retain file ownership; no automatic live schema migration."
+        ],
+        "stop_conditions": [
+          "Stop on stale digest, changed upstream contract, missing receipt or required authority."
+        ],
+        "resume": "Fetch source refs, acquire own lease, inspect exact upstream receipt and first missing check.",
+        "outcome": "Read exact installed provider versions without changing profiles",
+        "scope": [
+          "docs/reports/2026-10-04-unified-execution/checks/execution.json"
+        ],
+        "steps": [
+          "Invoke claude --version and codex --version with deadline.",
+          "Compare versions with the capability matrix; record metadata as a prerequisite only."
+        ],
+        "acceptance": [
+          "Both version commands exited0; no native/provider acceptance or quota reset inferred."
+        ]
+      }
+    }
+  ]
+}

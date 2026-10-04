@@ -52,6 +52,16 @@ its `P-*` rows below. A row's status lives in its register. `scripts/check-plan-
 id no document defines, on a lane that names no open work, and on finished work left in a lane. Change the plan under the agent-sync lease, in the same change as the work
 that moves it, with a living-map entry; reversing a recorded decision is a new ADR.
 
+### Researched dispatch context — 2026-10-04
+
+[Unified research and execution](../reports/2026-10-04-unified-execution/README.md)
+([RPT fabric/2026-10-04-unified-execution §Execution order]) covers the twelve lanes,
+retains every canonical id and supplies source-pinned cold-agent packets, bounded
+preparation leaves and cross-task impact controls. It is context, not another delivery
+status register. `node scripts/unified-plan.mjs check` refuses missing coverage or changed
+inputs; `next` shows candidates and held work, never grants authority. P-08 remains Now
+and with its existing owners; its release consumes the open deadline/transport inputs.
+
 <!-- general-plan:begin -->
 | Lane | Outcome | Entry rule | Delivers |
 |---|---|---|---|

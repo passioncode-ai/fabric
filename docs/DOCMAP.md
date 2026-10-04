@@ -34,6 +34,10 @@ the normal source commit → workspace snapshot → verified publication chain.
 
 ## Current entry
 
+[Unified execution research](reports/2026-10-04-unified-execution/README.md) is the dated
+2026-10-04 cross-lane decision input and cold-agent dispatch context. The canonical
+general plan and owner registers retain priorities and delivery status.
+
 [Harness audit and R0 correction plan](audit/2026-09-26-harness/README.md): current native modules, adapter/skills ownership, delivery/stop gaps and H00…H09. Runtime readiness remains receipt-based.
 
 [Launch overview](launch/README.md) is the first wiki entry: current focus → direct prototype/task → architecture and preserved ideas. `launch/overview.json` owns its structured content; the workspace host renders it. Delivery statuses still belong to the existing backlog.
