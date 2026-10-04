@@ -78,14 +78,43 @@ copy; fabric#4 and fabric#5 verified on the released build and closed.
 2. **P-06.1 and P-07.1** ([ADR-0109](../adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md),
    [spec](../evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md)): the learning loop's data
    model and the `fabric://` door.
-3. **The other products' lifecycle PRs** — each has a row in its own board (2026-10-04 sweep): dashboards
-   #21 (FD-03), inbox #12, okolos #11, vr #9, switchboard #23 (SB-27), adapter #28 (FAA-01, rebase onto
-   0.6.3), launcher #30 (PC-03, renumber to 0.1.28).
+3. **The other products' lifecycle PRs**, each recorded in its own board (2026-10-04 sweep): dashboards
+   #21 (FD-03), inbox #12 (B-46, conflicts with `main`), okolos #11 (B-136, mergeable), vr #9 (B-272,
+   conflicts with `main`), switchboard #23 (SB-27), adapter #28 (FAA-01, rebase onto 0.6.3), launcher #30
+   (PC-03, renumber to 0.1.28). On each rebase keep `main`'s board rows.
 4. The broker's `backgroundLaunch` enrolment for Fabric is BL-1077 in sshlg-personal-os (awaits the
    operator's go).
+5. **okolos B-139** has a deadline: a fresh feed snapshot must be committed before 2026-10-13T11:42Z, or
+   `pnpm package:check` fails in CI.
+
+### Backlog consolidation, 2026-10-04 — where each board lives
+
+Every unfinished item, open PR and issue was recorded in its owner's board. The common backlog
+(<https://wiki.passioncode.ai/backlog>) is generated from these boards. `node scripts/workspace.mjs lag`
+reported all 13 sources current at 01:36Z, with fabric-vr one commit within grace.
+
+| Repository | Board | Landed at | Rows |
+|---|---|---|---|
+| fabric | `docs/evidence/backlog.md` | `82e4bc06`, `c7388fa9` | P-03 done, P-08; CO-191/192 closed |
+| fabric-workspace | `knowledge/plans.md`, `knowledge/products.md` | `e39620c` (#32) | Fabric 0.3.0, Now P-08 |
+| org-index | `BACKLOG.md` (X-rows) | #35 (peer project-observatory-ce) | X-26…X-30; X-28 covers fabric-workspace #14 and org-index #31 |
+| fabric-dashboards | `docs/backlog.md` | `6679100` | FD-03…FD-08 |
+| fabric-switchboard | its board | `9685a49` | SB-27…SB-30 |
+| fabric-inbox | `docs/evidence/backlog.md` | `8881962` | B-41…B-46 (now has a Status column) |
+| okolos | `docs/backlog.md` | `02f9a61`, `9bdd8e4d` | B-134, B-135 (done → Observatory OBS-32), B-138…B-141 |
+| fabric-vr | `docs/evidence/backlog.md` | `8176144`, `9f6f311`, `d5eebcb` | B-261…B-273; DEC-0105 amends DEC-0104 |
+| fabric-agent-adapter | its board | `e2899c8` | FAA-01…FAA-05 |
+| fabric-agent-contract | its board | `71cdd6e` | CT-01 |
+| passioncode | its board | `69de003`, `afcced7` | PC-03…PC-06, PC-08, PC-09 |
+| project-observatory-dashboard | `docs/backlog.md` | `071760c` (#141), `0419742f` (#143) | OBS-14…OBS-30, OBS-32 |
+| passioncode-ai.github.io | its board | `8ed6d1c`, `25e138f` | SITE-006 closed, SITE-009/010 |
+
+The scheduled publication (`ai.passioncode.fabric-workspace-sync`) failed every run from 2026-10-03 13:12Z
+until 2026-10-04 01:23Z. Its first successful run since then ended `published` at 01:35Z. The causes and
+fixes are recorded in [ADR-0106 § third amendment](../adr/0106-fabric-adopts-the-product-lifecycle-contract.md#third-amendment--the-scheduled-sync-in-launchds-environment-2026-10-04).
 
 ## Human steps
-- Approve the 0.3.0 release jobs in the protected `release` environment: khurss or svlab93 (not the tag's author).
+- Releases: any member of `release-approvers` approves the protected `release` environment, the tag's pusher included ([ADR-0113](../adr/0113-any-release-approver-may-approve-the-tag-pusher-included.md)).
 - CO-181: whether to remove the test residue from the live local database
   (`node scripts/residue-report.mjs` counts it read-only; nothing has been deleted).
 
