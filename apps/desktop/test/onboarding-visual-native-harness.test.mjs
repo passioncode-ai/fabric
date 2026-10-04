@@ -8,7 +8,7 @@ import { createRequire } from 'node:module'
 import { pathToFileURL } from 'node:url'
 import test from 'node:test'
 import { DEFAULT_CONFIG, SCENARIOS, MARKER, desktop, scenarioConfig, validateConfig, prepareFixture,
-  loadFixture, createFixtureHost, ownedPath, allowBrowserURL, validateTypedFixtures, backendRows, runnerRows } from './onboarding-visual-native-harness.mjs'
+  loadFixture, createFixtureHost, ownedPath, allowBrowserURL, validateTypedFixtures, backendRows, runnerRows, captureWithStableForm } from './onboarding-visual-native-harness.mjs'
 const require = createRequire(import.meta.url)
 const roots = []
 const prepared = (name = 'balanced', overrides = {}) => { const root = prepareFixture(scenarioConfig(name, overrides)); roots.push(root); return root }
@@ -166,5 +166,25 @@ test('fixture audit has a hard byte ceiling', async () => {
   fs.writeFileSync(path.join(root, 'audit.jsonl'), Buffer.alloc(8 * 1024 * 1024, 32), { mode: 0o600 })
   await assert.rejects(host.invoke(host.IPC.terminalMemoryBackends), /fixture audit byte limit/)
   assert.equal(fs.statSync(path.join(root, 'audit.jsonl')).size, 8 * 1024 * 1024)
+})
+const readyForm = { formCount: 1, inputValues: ['Fixture one', 'Synthetic fixture purpose'],
+  tabLabels: ['Fixture one', 'Fixture two'], activeTab: 'Fixture one', selectValue: 'claude-code',
+  repoPaths: [], agentOptions: [{value:'claude-code',disabled:false}], radios: [],
+  geometry: { document: { innerWidth:760,innerHeight:1000 }, nodes: [] } }
+test('first-run or journal snapshots cannot satisfy a form capture boundary', async () => {
+  await assert.rejects(captureWithStableForm({ read:async()=>({...readyForm,formCount:0,activeTab:null}),
+    paint:async()=>{},capture:async()=>({page:'first-run'}),expected:readyForm,timeoutMs:100,settleMs:20 }), /NOT_READY/)
+})
+test('a screenshot transition cannot be accepted against a later ready form', async () => {
+  let page = 'form'
+  await assert.rejects(captureWithStableForm({ read:async()=>page==='form'?readyForm:{...readyForm,formCount:0},
+    paint:async()=>{},capture:async()=>{page='journal';return {page}},expected:readyForm,timeoutMs:100,settleMs:20 }), /NOT_READY/)
+})
+test('stable capture takes geometry at equal before and after state boundaries', async () => {
+  const result = await captureWithStableForm({read:async()=>readyForm,paint:async()=>{},capture:async()=>({page:'form'}),
+    expected:readyForm,timeoutMs:150,settleMs:20})
+  assert.deepEqual(result.before, result.after)
+  assert.deepEqual(result.before, readyForm)
+  assert.ok(result.stableMs>=20)
 })
 // #endregion onboarding-fixture-containment

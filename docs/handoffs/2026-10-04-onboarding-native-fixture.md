@@ -145,6 +145,35 @@ actual content dimensions equal. The original baseline image/receipts are preser
 has its own exact source/build/host pins and geometry. Root owns importing both commits, fresh
 assembled fixtures and independent CUA/AD02 acceptance.
 
+## Follow-up: stable capture boundary
+
+Visual-author inspection found actual first-run and journal PNGs at EN640/EN960, and an
+EstateHome PNG at long-repository RU760, while the later bridge/geometry snapshots reported the
+Onboarding form. The `07b4626` and `991524a` slices remain historical bridge receipts; their
+captures cannot establish paired visual acceptance. The original files are preserved.
+
+Three actual RED assertions (`node --test --test-name-pattern='capture boundary|screenshot
+transition|stable capture' apps/desktop/test/onboarding-visual-native-harness.test.mjs`, exit 1,
+three failures) demonstrated the missing boundary before this fix. The host now requires exact
+seeded name/purpose, draft tabs and active draft, repository paths, selected agent and option
+availability, memory radio states and configured viewport. It waits for fonts, requires an
+unchanged full read-only geometry/form snapshot for at least 500 ms, then waits for two renderer
+animation frames. Exact predicates and equal geometry snapshots are checked immediately before
+and after capture, with another two-frame paint barrier. A transition triggers a bounded retry;
+missing state or frames returns `NOT_READY`, never an empty capture pass. No state, style or
+animation override is injected.
+
+The [stable capture slice](2026-10-04-onboarding-native-fixture-stable-capture.json) records nine
+fresh Electron44 replays at the final host byte hash: the previous seven scenarios plus the two
+EN640/EN960 race regressions. All nine exit 0; each capture has equal before/after snapshots,
+matching initial state and content dimensions, and at least 500 ms of stability. The complete
+containment suite passes **17/17**, zero skips. This author also inspected the actual new
+[640 PNG](2026-10-04-onboarding-native-fixture-stable-640.png) and
+[960 PNG](2026-10-04-onboarding-native-fixture-stable-960.png): both show the seeded Onboarding
+form and tabs. These two source-bound images prove capture state, not the styled matrix, control
+reachability, CUA acceptance or AD02. Root/visual author must repeat paired evidence with this
+host and the assembled renderer; old pairs are not reused as accepted evidence.
+
 ## Exact next task
 
 Root/visual author: import the immutable two host files into the owning checkout, build that

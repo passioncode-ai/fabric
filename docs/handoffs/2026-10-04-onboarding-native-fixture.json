@@ -129,5 +129,51 @@
     "productionEdits": false,
     "visualAcceptance": "NOT_RUN",
     "AD02Acceptance": "NOT_RUN"
+  },
+  "stableCapture": {
+    "supersedesCaptureBoundaryAt": [
+      "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "991524a368158a063a99c048685b246573971f34"
+    ],
+    "historicalCaptureAcceptance": "INVALID for paired visual claims; originals preserved",
+    "red": {
+      "command": "node --test --test-name-pattern='capture boundary|screenshot transition|stable capture' apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+      "exitCode": 1,
+      "tests": 3,
+      "failed": 3
+    },
+    "green": {
+      "command": "node --test apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+      "exitCode": 0,
+      "tests": 17,
+      "pass": 17,
+      "skip": 0
+    },
+    "hostSha256": "afd35dd2d5d1c12f3f2f8d3a9a402cd9181b460ec0a3f2017eb748e0b352fffb",
+    "settleMs": 500,
+    "paintFramesBefore": 2,
+    "paintFramesAfter": 2,
+    "exactSeedAndSameGeometry": true,
+    "onTimeout": "NOT_READY",
+    "nativeCases": 9,
+    "nativePass": 9,
+    "receipt": "2026-10-04-onboarding-native-fixture-stable-capture.json",
+    "pngs": [
+      {
+        "path": "2026-10-04-onboarding-native-fixture-stable-640.png",
+        "sha256": "f60b2097023fa9efcae3caf9d2d2e360e0942fc8b010d592fbd00adedb198d5a",
+        "actualPixelsInspected": true,
+        "scope": "seeded form state only"
+      },
+      {
+        "path": "2026-10-04-onboarding-native-fixture-stable-960.png",
+        "sha256": "61070b50955cf3154a3ac73d9a6c3147bfe62e2c62df2f62c310ef1c4c60e056",
+        "actualPixelsInspected": true,
+        "scope": "seeded form state only"
+      }
+    ],
+    "productionEdits": false,
+    "visualAcceptance": "NOT_RUN",
+    "AD02Acceptance": "NOT_RUN"
   }
 }

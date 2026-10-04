@@ -367,6 +367,36 @@ export function createFixtureHost(candidate, { alive = () => true } = {}) {
     }
   }
 }
+/** Accept pixels only between equal, settled, exact seeded form snapshots. No UI mutation. */
+export async function captureWithStableForm({ read, paint, capture, expected, timeoutMs = 10000, settleMs = 500 }) {
+  assert.ok(Number.isInteger(timeoutMs) && timeoutMs >= 50 && timeoutMs <= 20000)
+  assert.ok(Number.isInteger(settleMs) && settleMs >= 10 && settleMs < timeoutMs)
+  const matches = value => {
+    if (!value || value.formCount !== 1) return false
+    for (const key of ['formCount', 'formVisible', 'inputValues', 'tabLabels', 'activeTab', 'selectValue', 'repoPaths', 'agentOptions', 'radios'])
+      if (Object.hasOwn(expected, key) && JSON.stringify(value[key]) !== JSON.stringify(expected[key])) return false
+    for (const [key, valueExpected] of Object.entries(expected.geometry?.document ?? {}))
+      if (value.geometry?.document?.[key] !== valueExpected) return false
+    return true
+  }
+  const started = Date.now(); let signature = null; let since = started; let rejectedCaptures = 0
+  while (Date.now() - started < timeoutMs) {
+    const current = await read(); const key = JSON.stringify(current)
+    if (!matches(current)) { signature = null; await new Promise(resolve => setTimeout(resolve, 10)); continue }
+    if (signature !== key) { signature = key; since = Date.now() }
+    if (Date.now() - since < settleMs) { await new Promise(resolve => setTimeout(resolve, 10)); continue }
+    await paint()
+    const before = await read()
+    if (!matches(before) || JSON.stringify(before) !== signature) { signature = null; continue }
+    const image = await capture()
+    await paint()
+    const after = await read()
+    if (matches(after) && JSON.stringify(after) === JSON.stringify(before))
+      return { image, initial: before, before, after, stableMs: Date.now() - since, rejectedCaptures }
+    rejectedCaptures++; signature = null
+  }
+  throw new Error('NOT_READY: exact seeded onboarding form did not remain stable across capture')
+}
 export function allowBrowserURL(url) {
   if (url.startsWith('data:')) return true
   if (!url.startsWith('file:')) return false
@@ -415,25 +445,15 @@ async function launch(candidate, probe) {
   console.log(JSON.stringify({ fixture: root, sourceRevision: marker.sourceRevision, synthetic: true, pid: process.pid }))
   if (probe) {
     assert.equal(marker.config.drafts, 'restored', 'automated probe requires restored draft scenario')
-    for (let i = 0; i < 200; i++) {
-      if (await win.webContents.executeJavaScript("!!document.querySelector('.onboarding input')")) break
-      await new Promise(resolve => setTimeout(resolve, 50))
-    }
-    // Dedicated test capture, before bridge probes. No caller-selected path or arbitrary script.
-    await win.webContents.executeJavaScript('document.fonts.ready.then(() => true)')
-    await new Promise(resolve => setTimeout(resolve, 100))
-    const image = await win.webContents.capturePage()
-    const png = image.toPNG()
-    assert.ok(png.length > 0 && png.length <= 20 * 1024 * 1024, 'bounded PNG capture required')
-    const captureFile = ownedPath(root, path.join(root, 'page.png'))
-    fs.writeFileSync(captureFile, png, { mode: 0o600 })
-    const capture = { file: 'page.png', sha256: sha(png), bytes: png.length, pixels: image.getSize(),
-      configuredContentSize: { width: marker.config.width, height: marker.config.height },
-      actualContentSize: Object.fromEntries(['width','height'].map((key,index) => [key,win.getContentSize()[index]])),
-      tier: 'source-bound-rendering-evidence', timing: 'initial form before synthetic bridge probes' }
-    const observed = await win.webContents.executeJavaScript(`(async () => {
-      const node = document.querySelector('.onboarding'); if (!node) throw Error('compiled onboarding not visible');
-      const initial = { inputValues:[...node.querySelectorAll('input:not([type=checkbox]):not([type=radio])')].map(n=>n.value),
+    // Fixed readonly predicate and geometry; the same snapshot binds both sides of capture.
+    const read = () => win.webContents.executeJavaScript(`(() => {
+      const node = document.querySelector('.onboarding'); if (!node) return {formCount:0};
+      const form=node.querySelector('form'); const rect=form?.getBoundingClientRect();
+      const initial = { formCount:node.querySelectorAll('form').length, formVisible:!!rect && rect.width>0 && rect.height>0 && getComputedStyle(form).visibility!=='hidden',
+        tabLabels:[...document.querySelectorAll('.tabbar .tab-label')].map(n=>n.textContent),
+        activeTab:document.querySelector('.tabbar .tab-btn.active .tab-label')?.textContent ?? null,
+        selectValue:node.querySelector('select')?.value ?? '',
+        repoPaths:[...node.querySelectorAll('.repo-list .row-main .mono')].map(n=>n.textContent), inputValues:[...node.querySelectorAll('input:not([type=checkbox]):not([type=radio])')].map(n=>n.value),
         radios:[...node.querySelectorAll('input[type=radio]')].map(n=>({disabled:n.disabled,checked:n.checked})),
         agentOptions:[...node.querySelectorAll('select option')].map(n=>({value:n.value,disabled:n.disabled})), text:node.innerText,
         geometry: { document:{clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,
@@ -446,14 +466,42 @@ async function launch(candidate, probe) {
                 computed:{display:css.display,width:css.width,minWidth:css.minWidth,maxWidth:css.maxWidth,overflow:css.overflow,
                   overflowX:css.overflowX,overflowY:css.overflowY,fontSize:css.fontSize,whiteSpace:css.whiteSpace,overflowWrap:css.overflowWrap,wordBreak:css.wordBreak}};
             })).slice(0,64) } };
+      return initial;
+    })()`)
+    const coding = runnerRows(marker.config.runners).filter(row => row.program !== null)
+    const expected = { formCount:1,formVisible:true,inputValues:['Fixture one','Synthetic fixture purpose'],
+      tabLabels:['Fixture one','Fixture two'],activeTab:'Fixture one',selectValue:coding.length?'claude-code':'',
+      repoPaths:marker.config.repos==='long'?[path.join(root,'synthetic-repo','bounded-long-repository-name-'.repeat(7))]:[],
+      agentOptions:coding.map(row=>({value:row.id,disabled:!row.available})),
+      radios:marker.config.backendDelayMs===0 && ['two','unavailable'].includes(marker.config.backends)
+        ? [{disabled:false,checked:true},{disabled:marker.config.backends==='unavailable',checked:false}] : [],
+      geometry:{document:{innerWidth:marker.config.width,innerHeight:marker.config.height}} }
+    await win.webContents.executeJavaScript('document.fonts.ready.then(() => true)')
+    const paint = () => win.webContents.executeJavaScript(`new Promise((resolve,reject)=>{
+      const timeout=setTimeout(()=>reject(Error('NOT_READY: no renderer paint frame')),1000);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{clearTimeout(timeout);resolve(true)}));
+    })`)
+    const boundary = await captureWithStableForm({read,paint,capture:()=>win.webContents.capturePage(),expected})
+    const image = boundary.image
+    const png = image.toPNG()
+    assert.ok(png.length > 0 && png.length <= 20 * 1024 * 1024, 'bounded PNG capture required')
+    const captureFile = ownedPath(root, path.join(root, 'page.png'))
+    fs.writeFileSync(captureFile, png, { mode: 0o600 })
+    const capture = { file: 'page.png', sha256: sha(png), bytes: png.length, pixels: image.getSize(),
+      configuredContentSize: { width: marker.config.width, height: marker.config.height },
+      actualContentSize: Object.fromEntries(['width','height'].map((key,index) => [key,win.getContentSize()[index]])),
+      tier: 'source-bound-rendering-evidence', timing: 'stable exact seeded form before synthetic bridge probes',
+      boundary: { before:boundary.before,after:boundary.after,stableMs:boundary.stableMs,rejectedCaptures:boundary.rejectedCaptures } }
+    const observed = await win.webContents.executeJavaScript(`(async () => {
       const backends=await window.fabric.terminal.memoryBackends(); const runners=await window.fabric.terminal.options();
       const parent=await window.fabric.start.chooseFolder('parent');
       const folder=parent ? await window.fabric.start.createFolder({parent,name:'Fixture one',git:true}) : null;
       const repos=await window.fabric.repos.choose().catch(e=>({refused:String(e)}));
       const create=await window.fabric.projects.create({id:'fixture-project-1',name:'Fixture one',repoPaths:[],memoryBackend:'local',defaultAgent:'claude-code'}).catch(e=>({refused:String(e)}));
       const privileged=await window.fabric.settings.write({theme:'dark'}).then(()=>({unexpected:true}),()=>({refused:true}));
-      return {initial,backends,runners,parent,folder,repos,create,privileged};
+      return {backends,runners,parent,folder,repos,create,privileged};
     })()`)
+    observed.initial = boundary.initial
     assert.deepEqual(observed.backends, backendRows(marker.config.backends))
     assert.deepEqual(observed.runners, runnerRows(marker.config.runners))
     assert.equal(observed.privileged.refused, true)
