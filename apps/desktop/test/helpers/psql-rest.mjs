@@ -16,6 +16,12 @@
 // does not understand fails the probe instead of passing it. It proves the
 // schema the query names, not the gateway's grammar — `or()` and `textSearch`
 // are deliberately absent.
+//
+// `maxRows` mirrors PostgREST's `max_rows` (1000 in `supabase/config.toml`): an answer never holds more rows
+// than that, however many match and whatever limit the builder asked for, and nothing says it was cut —
+// exactly what the gateway does. Omitted, nothing is capped (the older probes' behaviour). The hub's reads
+// are probed with it on (verification iteration 2 for 0.3.1, ER-8/DA-1: grants and bindings read as the
+// 1000 / 500 oldest rows).
 import { execFileSync } from 'node:child_process'
 
 const ident = (name) => {
@@ -38,7 +44,7 @@ function columnsOf(list) {
   }).join(', ')
 }
 
-export function createPsqlRest(url) {
+export function createPsqlRest(url, { maxRows = null } = {}) {
   const run = (statement) => {
     try {
       const out = execFileSync('psql', [url, '-X', '-q', '-t', '-A', '-v', 'ON_ERROR_STOP=1'], {
@@ -99,9 +105,10 @@ export function createPsqlRest(url) {
         single() { single = 'one'; return q },
         then(resolve, reject) {
           const filter = where.length ? ` where ${where.join(' and ')}` : ''
+          const capped = maxRows === null ? limit : limit === null ? maxRows : Math.min(limit, maxRows)
           const rows = `select ${columns} from ${ident(table)}${filter}` +
             (order.length ? ` order by ${order.join(', ')}` : '') +
-            (limit !== null ? ` limit ${limit}` : '') + (offset !== null ? ` offset ${offset}` : '')
+            (capped !== null ? ` limit ${capped}` : '') + (offset !== null ? ` offset ${offset}` : '')
           const statement = `select json_build_object('rows', coalesce((select json_agg(t) from (${rows}) t), '[]'::json)` +
             (count ? `, 'count', (select count(*) from ${ident(table)}${filter})` : '') + ');'
           self.statements.push(statement)

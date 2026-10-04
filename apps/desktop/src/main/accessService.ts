@@ -212,8 +212,10 @@ export class AccessService {
       // held capability moves the row's request_id to the newer request, and the first request must not
       // then stop listing a grant it still gives.
       const asked = new Set(row.capabilities.flatMap((c) => row.resources.map((r) => `${c}\u0000${r}`)))
-      const grants = (await this.deps.store.grantsOf(bindingId))
-        .filter((g) => g.request_id === row.id || (g.revoked_at === null && Date.parse(g.expires_at) > now && g.callee === row.callee && asked.has(`${g.capability}\u0000${g.resource}`)))
+      const own = await this.deps.store.grants({ bindingId, requestId: row.id })
+      const covering = (await this.deps.store.grants({ bindingId, liveAt: new Date(now).toISOString() }))
+        .filter((g) => g.callee === row.callee && asked.has(`${g.capability}\u0000${g.resource}`) && !own.some((o) => o.id === g.id))
+      const grants = [...own, ...covering]
       const base = {
         ok: true as const, requestId: row.id, status: 'allowed' as const, expiresAt: row.expires_at, bindingId,
         grants: grants.map((g) => ({ capability: g.capability, resource: g.resource, expiresAt: g.expires_at }))
@@ -263,7 +265,7 @@ export class AccessService {
       // `access_grants_one_live` holds the same rule in the database).
       const held = new Map<string, string>()
       if (!newBinding)
-        for (const g of await this.deps.store.grantsOf(bindingId))
+        for (const g of await this.deps.store.grants({ bindingId, unrevoked: true }))
           if (g.revoked_at === null && g.callee === row.callee) held.set(`${g.capability}\u0000${g.resource}`, g.id)
       const grants = row.capabilities.flatMap((capability) => row.resources.map((resource) => ({
         id: held.get(`${capability}\u0000${resource}`) ?? randomUUID(), capability, resource, expires_at: expiresAt
@@ -274,15 +276,18 @@ export class AccessService {
     })
   }
 
-  /** The grants a binding holds now: not revoked, not expired. */
-  async liveGrantsOf(binding: BindingRow): Promise<GrantRow[]> {
+  /** The grants a binding holds now: not revoked, not expired — every one of them (ER-8). */
+  async liveGrantsOf(binding: Pick<BindingRow, 'id'>): Promise<GrantRow[]> {
     const now = this.now()
-    return (await this.deps.store.grantsOf(binding.id)).filter((g) => g.revoked_at === null && Date.parse(g.expires_at) > now)
+    return (await this.deps.store.grants({ bindingId: binding.id, liveAt: new Date(now).toISOString() }))
+      .filter((g) => g.revoked_at === null && Date.parse(g.expires_at) > now)
   }
 
   revokeGrant(grantId: string, actor: AccessActor): Promise<AccessActAnswer> {
     return this.serial(async () => {
-      const live = (await this.deps.store.liveGrants()).find((g) => g.id === grantId)
+      // Read by its id (ER-8): never looked for in a page of other grants, where a live one could be missing.
+      const g = typeof grantId === 'string' && /^[0-9a-f-]{36}$/.test(grantId) ? await this.deps.store.grant(grantId) : null
+      const live = g && g.revoked_at === null ? g : null
       if (!live) return refuse('not-live', 'that grant is not live (already revoked, or no such grant)')
       await this.deps.store.append('access.grant.revoked@1', actor, { grant_id: grantId })
       ops.record({ op: 'hub.access.grant-revoked', outcome: 'ok', detail: { grant_id: grantId, agent_id: live.agent_id }, ctx: { correlationId: ops.correlate() } })
@@ -317,11 +322,13 @@ export class AccessService {
   }> {
     const now = this.now()
     const liveAt = new Date(now).toISOString()
+    // Every live binding and every live grant, read whole (ER-8 / DA-1): a capped page of the oldest rows
+    // hid newer live credentials and grants from the one screen that offers to revoke them.
     const [pending, denied, bindings, grants] = await Promise.all([
       this.deps.store.requests({ status: 'pending', liveAt }),
       this.deps.store.requests({ status: 'denied', standingOnly: true }),
-      this.deps.store.bindings(),
-      this.deps.store.liveGrants()
+      this.deps.store.liveBindings(),
+      this.deps.store.grants({ liveAt })
     ])
     const origins = new Map<string, AccessRequestRow>()
     for (const b of bindings) {

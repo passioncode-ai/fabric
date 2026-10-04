@@ -19,9 +19,12 @@ export function memStore({ now = () => Date.now() } = {}) {
     async countRequests(f) { this.reads++; return [...requests.values()].filter((r) => matches(r, f)).length },
     async binding(id) { return bindings.get(id) ?? null },
     async bindingByVerifier(v) { return [...bindings.values()].find((b) => b.verifier === v) ?? null },
-    async bindings() { return [...bindings.values()] },
-    async grantsOf(id) { return [...grants.values()].filter((g) => g.binding_id === id) },
-    async liveGrants() { return [...grants.values()].filter((g) => g.revoked_at === null) },
+    async liveBindings() { return [...bindings.values()].filter((b) => b.revoked_at === null) },
+    async grants(f) {
+      return [...grants.values()].filter((g) => (!f.bindingId || g.binding_id === f.bindingId) && (!f.requestId || g.request_id === f.requestId) &&
+        (!(f.unrevoked || f.liveAt) || g.revoked_at === null) && (!f.liveAt || Date.parse(g.expires_at) > Date.parse(f.liveAt)))
+    },
+    async grant(id) { return grants.get(id) ?? null },
     async liveConnection(p) { return [...connections.values()].find((c) => c.product === p && c.removed_at === null) ?? null },
     async append(type, actor, p) {
       seq++; events.push({ seq, type, actor, payload: p })

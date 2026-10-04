@@ -297,6 +297,55 @@ await test('500 unanswered expired requests: the caps still hold and the live re
   assert.equal(ov.pending.length, 3, 'the live requests were not listed for the operator')
 })
 
+// ── ER-8 / DA-1 (verification iteration 2 for 0.3.1): the grant and binding reads went through the gateway's
+// 1000-row cap, oldest first. Read through `maxRows: 1000` exactly as PostgREST answers: one never-collected
+// Allow of 32 tools × 32 mailboxes (1024 live grants), then a small agent's one grant, decided later; and
+// 501 bindings revoked before a newer live one. Every live grant must be listed, usable and revocable, and
+// every live credential listed — whatever came before them.
+await test('more than 1000 grants and 500 bindings: every live grant is listed, covers its call and can be revoked; the newest live credential is listed', async () => {
+  const { execFileSync } = await import('node:child_process')
+  const E3 = randomUUID()
+  const psql = (input) => execFileSync('psql', [url, '-X', '-q', '-t', '-A', '-v', 'ON_ERROR_STOP=1'], { input, encoding: 'utf8' }).trim()
+  const SYS = `'{"kind":"system","id":"fabric-hub"}'::jsonb`
+  const ME = `'{"kind":"person","id":"operator"}'::jsonb`
+  // One request and its Allow, all in SQL (append_event, the app's own door): `caps` × `boxes` grants.
+  const allow = (caps, boxes, { claim = false, revoke = false } = {}) => `
+    declare r uuid := gen_random_uuid(); b uuid := gen_random_uuid(); g jsonb;
+    begin
+      perform append_event('${E3}','access.requested@1',${SYS}, jsonb_build_object('id',r,'agent_id','example-agent.default',
+        'callee','fabric-inbox','capabilities',to_jsonb(${caps}),'resources',to_jsonb(${boxes}),'reason','r','registry','{}'::jsonb,
+        'binding_id',null,'poll_verifier',repeat('a',64),'expires_at',(now()+interval '9 minutes')::text));
+      select jsonb_agg(jsonb_build_object('id',gen_random_uuid(),'capability',c,'resource',x,'expires_at',(now()+interval '300 days')::text))
+        into g from unnest(${caps}) c, unnest(${boxes}) x;
+      perform append_event('${E3}','access.decided@1',${ME}, jsonb_build_object('request_id',r,'decision','allowed','binding_id',b,'new_binding',true,'grants',g));
+      ${claim ? `perform append_event('${E3}','access.credential.claimed@1',${SYS}, jsonb_build_object('binding_id',b,'request_id',r,'verifier',encode(sha256(b::text::bytea),'hex')));` : ''}
+      ${revoke ? `perform append_event('${E3}','access.binding.revoked@1',${ME}, jsonb_build_object('binding_id',b));` : ''}
+    end;`
+  const tools = `array(select 'tool_'||lpad(i::text,2,'0') from generate_series(0,31) i)`
+  const boxes = `array(select 'cloudflare:box'||lpad(i::text,2,'0')||'@example.com' from generate_series(0,31) i)`
+  // 501 bindings revoked first, so a 500-row oldest-first page holds none of the live ones.
+  psql(`set role service_role; do $$ begin for i in 1..501 loop ${allow(`array['read_message']`, `array['cloudflare:old@example.com']`, { claim: true, revoke: true })} end loop; end $$;`)
+  // One broad Allow, never collected: 1024 live grants, decided before the small agent's one grant.
+  psql(`set role service_role; do $$ begin ${allow(tools, boxes)} end $$;`)
+  psql(`set role service_role; do $$ begin ${allow(`array['send_email']`, `array['cloudflare:ceo@example.com']`, { claim: true })} end $$;`)
+  const live = Number(psql(`select count(*) from access_grants where estate_id = '${E3}' and revoked_at is null`))
+  assert.equal(live, 1025, 'the seed did not write 1025 live grants')
+
+  const capped = createPsqlRest(url, { maxRows: 1000 })
+  const service = new AccessService({ store: createAccessStore({ db: capped, journal: createJournal(capped), estateId: E3 }), registry, present: () => undefined, connected: async () => true })
+  const ov = await service.overview()
+  const small = ov.bindings.find((b) => b.grants.some((g) => g.capability === 'send_email'))
+  assert.ok(small, `the newest live credential is not listed (bindings listed: ${ov.bindings.length})`)
+  assert.deepEqual(small.grants.map((g) => `${g.capability} ${g.resource}`), ['send_email cloudflare:ceo@example.com'], 'the small agent\'s live grant is not listed with it')
+  const broad = ov.bindings.find((b) => b.grants.some((g) => g.capability === 'tool_31'))
+  assert.equal(broad?.grants.length, 1024, 'the broad binding does not list every one of its live grants')
+  // The broad binding's newest pair is inside its grants for a call, not cut off by the page.
+  const held = await service.liveGrantsOf({ id: broad.id, agent_id: 'example-agent.default' })
+  assert.equal(held.length, 1024, 'a call reads only part of the binding\'s live grants')
+  assert.deepEqual(await service.revokeGrant(small.grants[0].id, OPERATOR), { ok: true }, 'Revoke refused a live grant')
+  assert.equal(psql(`select count(*) from access_grants where id = '${small.grants[0].id}' and revoked_at is not null`), '1', 'the revoked grant is still live')
+})
+
 // ── DA-9: the port-taken fallback, driven: the hub port held by another program closes the hub with its
 // reason, and the sessions Fabric starts still work on an ephemeral port with the door closed.
 await test('a hub port another program holds: the hub is down with its reason, sessions still initialise, the door stays closed', async () => {
