@@ -72,6 +72,14 @@ The full `bash scripts/ci.sh fast`, full app chain, native/real CLI, live produc
 release, installation, wiki sync and report index are **NOT_RUN** by this author. Root owns the
 converged fast gate and independent review. Local focused green is not a hosted or live receipt.
 
+## Remote delivery replay
+
+Authenticated fresh clone of the pushed branch resolved source commit
+`6d84380b7e5b9e08fbb2a47054a2281b88ca2744`. Offline frozen-lockfile development dependency
+installation with scripts disabled exited 0; the focused Node gate replayed 9/9 tests with no skips,
+and `git status --porcelain` remained empty. These are source/development receipts, not a product
+installation or live receipt. The ledger records the exact commands and replayed SHA.
+
 ## Exact next task
 
 Root: import the source author commit, reconcile the two test-chain additions, import the independent

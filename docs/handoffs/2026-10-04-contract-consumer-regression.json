@@ -82,5 +82,20 @@
     "wiki sync",
     "report index"
   ],
-  "firstNextTask": "Root imports author source, reconciles app/CI chains, imports independent packet unchanged, requests exact-SHA independent review, and runs converged source gate."
+  "firstNextTask": "Root imports author source, reconciles app/CI chains, imports independent packet unchanged, requests exact-SHA independent review, and runs converged source gate.",
+  "remoteReplay": {
+    "sourceCommit": "6d84380b7e5b9e08fbb2a47054a2281b88ca2744",
+    "remote": "git@github.com:passioncode-ai/fabric.git",
+    "branch": "codex/co193-consumer-regression-20261004",
+    "clone": "git clone --depth 1 --single-branch --branch codex/co193-consumer-regression-20261004 <existing-authorized-origin> <owned-temp>/repo",
+    "cloneExitCode": 0,
+    "install": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+    "installExitCode": 0,
+    "replay": "node --experimental-strip-types apps/desktop/test/contract-consumer.test.mjs",
+    "replayExitCode": 0,
+    "tests": 9,
+    "pass": 9,
+    "skip": 0,
+    "treeClean": true
+  }
 }
