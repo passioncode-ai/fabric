@@ -1,4 +1,4 @@
-Command: PATH=<Node24>/bin:$PATH pnpm check:fast
+Command: PATH=<Node24>/bin:$PATH bash scripts/ci.sh fast
 Exit: 1
 Full local log sha256: dd944313ccd972d9ba6c4bcedae67384745d922d6b17bf3952ee14e7ad1e48d9
 
