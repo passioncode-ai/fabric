@@ -1,0 +1,7 @@
+{
+  "first_publisher_source_gate": "PASS canonical fast",
+  "export": "REFUSED hidden empty scaffold path raw/.gitkeep",
+  "correction": "Removed task-owned empty placeholder; serveability gate unchanged. Snapshot preflight before retry.",
+  "child_or_deploy_mutation_at_failure": "none; refusal occurred during collection before writeSnapshot",
+  "product_release": "NOT_RUN"
+}
