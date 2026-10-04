@@ -116,6 +116,10 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       columns: Columns,
       opts: {
         eq?: ReadonlyArray<readonly [column: string, value: string | number | boolean]>
+        /** Columns that must be null — in the query, so the cap pages over matching rows only. */
+        isNull?: readonly string[]
+        /** `column > value`, in the query (an expiry still ahead, for instance). */
+        gt?: ReadonlyArray<readonly [column: string, value: string | number]>
         orderBy: readonly string[]
         pageSize?: number
         /** A ceiling on the whole read. Past it the read FAILS rather than
@@ -133,6 +137,8 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
         let q = db.from(table).select(columns, { count: 'exact' })
         for (const [c, value] of filters) q = q.eq(c, value)
         for (const [c, value] of opts.eq ?? []) q = q.eq(c, value)
+        for (const c of opts.isNull ?? []) q = q.is(c, null)
+        for (const [c, value] of opts.gt ?? []) q = q.gt(c, value)
         for (const c of opts.orderBy) q = q.order(c, { ascending: true })
         const { data, error, count } = await q.range(from, from + pageSize - 1)
         if (error)

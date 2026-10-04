@@ -88,6 +88,22 @@ export interface RequestFilter {
   standingOnly?: boolean
 }
 
+/**
+ * Which grants to read. Every read is COMPLETE — paged to the end over a stable order, filtered in the
+ * query (ER-8 / DA-1, verification iteration 2 for 0.3.1): the gateway answers at most 1000 rows however
+ * many match, and the grants and bindings were read as the 1000 / 500 OLDEST rows with dead ones in the
+ * page. One broad Allow (32 tools × 32 mailboxes) or a year of expired grants then pushed a newer live
+ * grant out of every read: it still worked for a call, was missing from Settings, and its Revoke answered
+ * "not live". `liveAt` keeps grants neither revoked nor expired at that instant; `unrevoked` keeps grants
+ * not revoked (an expired one included — it still holds the one live row a re-grant extends).
+ */
+export interface GrantFilter {
+  bindingId?: string
+  requestId?: string
+  unrevoked?: boolean
+  liveAt?: string
+}
+
 export interface AccessStore {
   request(id: string): Promise<AccessRequestRow | null>
   /** Newest first, at most 500. */
@@ -96,9 +112,12 @@ export interface AccessStore {
   countRequests(filter: RequestFilter): Promise<number>
   binding(id: string): Promise<BindingRow | null>
   bindingByVerifier(verifier: string): Promise<BindingRow | null>
-  bindings(): Promise<BindingRow[]>
-  grantsOf(bindingId: string): Promise<GrantRow[]>
-  liveGrants(): Promise<GrantRow[]>
+  /** Every binding not revoked, oldest first — complete, never a capped page. */
+  liveBindings(): Promise<BindingRow[]>
+  /** Every grant the filter matches — complete, never a capped page. */
+  grants(filter: GrantFilter): Promise<GrantRow[]>
+  /** One grant by its id, live or not. */
+  grant(id: string): Promise<GrantRow | null>
   liveConnection(product: string): Promise<ConnectionRow | null>
   append(type: string, actor: AccessActor, payload: Record<string, unknown>): Promise<number>
 }
@@ -155,14 +174,26 @@ export function createAccessStore(deps: { db: SupabaseClient; journal: Journal; 
     async bindingByVerifier(verifier) {
       return read(await store.select('access_bindings', BINDING_COLUMNS).eq('verifier', verifier).maybeSingle(), 'the binding') as BindingRow | null
     },
-    async bindings() {
-      return (read(await store.select('access_bindings', BINDING_COLUMNS).order('created_at', { ascending: true }).limit(500), 'the bindings') ?? []) as BindingRow[]
+    async liveBindings() {
+      const all = await store.selectAll('access_bindings', BINDING_COLUMNS, { isNull: ['revoked_at'], orderBy: ['created_at', 'id'] })
+      if (all.failed) throw new Error(`the bindings could not be read: ${all.failed}`)
+      return all.rows as unknown as BindingRow[]
     },
-    async grantsOf(bindingId) {
-      return (read(await store.select('access_grants', GRANT_COLUMNS).eq('binding_id', bindingId).order('decided_at', { ascending: true }).limit(1000), 'the grants') ?? []) as GrantRow[]
+    async grants(filter) {
+      const eq: Array<readonly [string, string]> = []
+      if (filter.bindingId) eq.push(['binding_id', filter.bindingId])
+      if (filter.requestId) eq.push(['request_id', filter.requestId])
+      const all = await store.selectAll('access_grants', GRANT_COLUMNS, {
+        eq,
+        isNull: filter.unrevoked || filter.liveAt ? ['revoked_at'] : [],
+        gt: filter.liveAt ? [['expires_at', filter.liveAt]] : [],
+        orderBy: ['decided_at', 'id']
+      })
+      if (all.failed) throw new Error(`the grants could not be read: ${all.failed}`)
+      return all.rows as unknown as GrantRow[]
     },
-    async liveGrants() {
-      return (read(await store.select('access_grants', GRANT_COLUMNS).is('revoked_at', null).order('decided_at', { ascending: true }).limit(1000), 'the grants') ?? []) as GrantRow[]
+    async grant(id) {
+      return read(await store.select('access_grants', GRANT_COLUMNS).eq('id', id).maybeSingle(), 'the grant') as GrantRow | null
     },
     async liveConnection(product) {
       return read(await store.select('product_connections', CONNECTION_COLUMNS).eq('product', product).is('removed_at', null).maybeSingle(), 'the product connection') as ConnectionRow | null
