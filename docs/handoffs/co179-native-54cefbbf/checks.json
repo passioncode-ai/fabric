@@ -1,0 +1,135 @@
+{
+  "schema": "fabric-co179-native-recheck/1",
+  "source_revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+  "source_build_host_pin_checks": "PASS",
+  "native_launcher_keyboard_locales": [
+    "en",
+    "ru"
+  ],
+  "scope": "real Electron product renderer/preload with typed contained synthetic IPC; not production main/provider/database",
+  "cases": [
+    {
+      "name": "en-light-960",
+      "fixture_id": "c36da811-aa62-4b29-80b8-e215d6dca49a",
+      "config": {
+        "version": 1,
+        "locale": "en",
+        "theme": "light",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "one",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 960,
+        "height": 900
+      },
+      "events": 487,
+      "blocked_ipc": [
+        "ceo:call"
+      ],
+      "source_build_host_pin_check": "PASS",
+      "actual_exit_codes": [
+        2,
+        2
+      ]
+    },
+    {
+      "name": "ru-light-960",
+      "fixture_id": "990d614c-1020-480b-95bc-5c0c4182b874",
+      "config": {
+        "version": 1,
+        "locale": "ru",
+        "theme": "light",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "one",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 960,
+        "height": 900
+      },
+      "events": 202,
+      "blocked_ipc": [
+        "ceo:call"
+      ],
+      "source_build_host_pin_check": "PASS",
+      "actual_exit_codes": [
+        0
+      ]
+    },
+    {
+      "name": "ru-dark-960",
+      "fixture_id": "ab17c469-b687-419e-9db4-f23237057494",
+      "config": {
+        "version": 1,
+        "locale": "ru",
+        "theme": "dark",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 960,
+        "height": 900
+      },
+      "events": 225,
+      "blocked_ipc": [],
+      "source_build_host_pin_check": "PASS",
+      "actual_exit_codes": [
+        0
+      ]
+    },
+    {
+      "name": "en-light-960-keyboard",
+      "fixture_id": "01f5ef7a-bda5-49b0-ac34-e7a68596a272",
+      "config": {
+        "version": 1,
+        "locale": "en",
+        "theme": "light",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "one",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 960,
+        "height": 900
+      },
+      "events": 74,
+      "blocked_ipc": [
+        "ceo:call"
+      ],
+      "source_build_host_pin_check": "PASS",
+      "actual_exit_codes": [
+        0
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+✔ real research inputs compile all manifest sources, keep 14 COM rows held and preserve the dated input (60501.132041ms)
+ℹ {"canonical_rows":571,"COM_rows":14,"source_pins":71,"derived_records":908,"ready":0}
+✔ a changed canonical source cannot be assigned the old immutable revision (4862.521792ms)
+✔ private input sentinel is refused before writing and never echoed into diagnostics (6447.4735ms)
+✔ private metadata remains in its owning source and cannot be copied through a full research packet (8682.959458ms)
+✔ recompilation refuses to overwrite an existing cut or the historical input directory (3982.46275ms)
+✔ missing or locally changed pinned common parser stops compilation (4664.943584ms)
+✔ production parity refuses authority forgeries across every dispatching CLI verb (421123.06325ms)
+✔ emit-plan reconstructs exact production graph without writing or overwriting any cut (49014.027125ms)
+✔ committed owner qualification activates only its bounded leaf and keeps parent impacts open (69873.140709ms)
+✔ existing directory scope cannot hide a changed descendant from basis byte contracts (7233.732792ms)
+✔ complete immutable existing directory inventory qualifies only with every descendant byte contract (80877.598583ms)
+✔ directory inventory rejects deleted added untracked hidden linked nonregular and excessive descendants (55020.860959ms)
+✔ new outputs require explicit absent nonoverlapping source-safe paths (59822.281667ms)
+✔ missing or NOT_RUN scoped acceptance holds only the bounded owner packet (61060.306125ms)
+✔ owner source refuses forged identity, done state, receipt, release authority and impact scope (15789.54075ms)
+✔ derived owner packet, applicability or done mutations cannot bypass deterministic parity (47820.818042ms)
+✔ changed impact or subject bytes and dirty owner source cannot retain old qualification authority (10638.484417ms)
+✔ new blocking impact remains blocking without an exact owner applicability decision (43196.288166ms)
+✔ a pinned scoped receipt cannot substitute historical basis, foreign owner or current scope (22097.8635ms)
+✔ complete packet preserves program constraints and exact leaf context (357.664042ms)
+✔ omitted canonical work cannot pass the coverage gate (167.741875ms)
+✔ changed source blocks a previously complete packet (175.961167ms)
+✔ every context source is pinned; an untargeted blocking finding is refused (465.307458ms)
+✔ blocking finding stops only its affected task until explicitly resolved (238.489667ms)
+✔ cycles, missing payloads and unknown dependencies are refused (296.057792ms)
+✔ unknown impact targets, path escape and empty cold context are refused (211.959333ms)
+✔ external owner and human gate do not become runnable with a delivered message (166.944667ms)
+✔ canonical priority precedes computed downstream count; dependency requires done proof (101.440541ms)
+✔ a missing or changed completion receipt fails validation (221.250625ms)
+✔ a new blocking impact invalidates completed prerequisite satisfaction (146.438917ms)
+✔ write scope cannot escape the repo directly or through a linked parent (173.334834ms)
+✔ a broad unreviewed parent cannot be promoted to candidate by dropping dependencies (223.789209ms)
+✔ a newly declared canonical source cannot hide outside the general-plan lanes (171.907625ms)
+✔ source pins cannot substitute a different or forged immutable commit (200.620375ms)
+✔ identical IDs in different canonical files retain both owner identities (395.040458ms)
+✔ held canonical source references cannot become executable by removing dependencies (373.018084ms)
+✔ one current pointer selects only a report path and explicit selection stays reproducible (178.69225ms)
+✔ privacy diagnostics redact matching source paths without echoing a private literal (0.777333ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1032947.067291

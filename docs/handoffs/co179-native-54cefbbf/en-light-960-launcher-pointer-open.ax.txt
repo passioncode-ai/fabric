@@ -1,0 +1,90 @@
+Window: "Fabric · CO179 synthetic fixture", App: Electron.
+0 standard window Fabric · CO179 synthetic fixture, Secondary Actions: Raise
+	1 container Fabric · CO179 synthetic fixture
+		2 container
+			3 HTML content Fabric, URL: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html
+				4 container
+					5 button Fabric
+					6 button Fixture one
+					7 button Close tab
+					8 button Fixture two
+					9 button Close tab
+					10 text CO179 synthetic test fixture
+					11 text Fabric
+					12 text PassionCode.ai
+					13 container Fabric navigation
+						14 link Description: Fabric, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						15 link Description: Board, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						16 link Description: Planning, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						17 link Description: + Project, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						18 disclosure triangle Manage
+							19 text Manage
+						20 link Description: Fabric help, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+					21 button Talk to Fabric · Conversation not switched on
+						22 image Fabric · personal avatar
+						23 text Fabric
+						24 text Conversation not switched on
+					25 text My workspace  /  Fabric
+					26 toggle button Search, Value: 0
+					27 content list First run
+						28 container
+							29 text 1 Your Fabric
+						30 container
+							31 text 2 Coding agents
+						32 container
+							33 text 3 Where to start
+					34 container Hello. I'm Fabric.
+						35 image Fabric · personal avatar
+						36 heading Hello. I'm Fabric., Value: 2
+							37 text Hello. I'm Fabric.
+						38 text I run your projects with the coding agents you already use. Give me a name and a face: that changes how I look, never what I may do.
+						39 container
+							40 text Name
+							41 text field (settable) Name Leave it empty to keep “Fabric”., Placeholder: Fabric
+							42 text Leave it empty to keep “Fabric”.
+						43 text CHARACTER
+						44 container Character
+							45 toggle button Orbit, Value: 1
+								46 image
+								47 text Orbit
+							48 toggle button Spark, Value: 0
+								49 image
+								50 text Spark
+							51 toggle button Wave, Value: 0
+								52 image
+								53 text Wave
+						54 text VARIANT
+						55 button More variants
+						56 container Variant
+							57 toggle button Description: Variant 1, Value: 1
+								58 image
+							59 toggle button Description: Variant 2, Value: 0
+								60 image
+							61 toggle button Description: Variant 3, Value: 0
+								62 image
+						63 button Continue
+						64 button Skip
+					65 container Fabric
+						66 container
+							67 heading FABRIC · NO PROJECT, Value: 2
+								68 text FABRIC  ·  NO PROJECT
+							69 button History
+							70 button New conversation
+							71 button Minimise
+							72 container
+								73 text The conversation did not load The conversation service did not answer. The draft is kept.
+								74 button Retry
+							75 container Conversation context
+								76 toggle button No project, Value: 1
+								77 toggle button All projects, Value: 0
+							78 text Message to Fabric
+							79 text entry area (settable) Message to Fabric, Placeholder: Ask or delegate…
+							80 button (disabled) Send
+	81 close button
+	82 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	83 minimise button
+84 menu bar
+	85 Electron
+	86 Edit
+
+The focused UI element is 21 button Talk to Fabric · Conversation not switched on

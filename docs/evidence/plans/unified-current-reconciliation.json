@@ -1,0 +1,636 @@
+{
+  "schema": "unified-owner-reconciliation/1",
+  "repository": "https://github.com/passioncode-ai/fabric",
+  "packets": [
+    {
+      "id": "P-08.qualify-source",
+      "canonical_key": "https://github.com/passioncode-ai/fabric:docs/evidence/backlog.md:P-08",
+      "related_canonical_keys": [
+        "https://github.com/passioncode-ai/fabric:docs/evidence/specs/2026-08-16-software-fabric-carryover.md:CO-179"
+      ],
+      "basis_revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+      "basis_sources": [
+        {
+          "path": "AGENTS.md",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "80f6bdf7f1d1a5f05eb40f2b7911732b9b3c5b3ea7c85dc45e3ff527dd50f9ec"
+        },
+        {
+          "path": "apps/desktop/package.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "e5109dd89a24d998d492d1342fe383c29d9f6f180d340aeed7bc4c5ec4d5bfc0"
+        },
+        {
+          "path": "apps/desktop/src/main/accessStore.ts",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "0b5a81cf1edfe31d89ef7dbc1d8cb9e1ebe4e5e3b9853905328571da2b52a8ee"
+        },
+        {
+          "path": "apps/desktop/src/main/agentSurface.ts",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "b5f7315ba6ea9ea023fc2ed30288f8475b8f4cd2ed4b72e2647ebfcdd608e4e4"
+        },
+        {
+          "path": "apps/desktop/src/main/ceoPrivateArchive.ts",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "9c64bb9e148a69335b7bced61fc30da60ac692b35eabd7c2b298f0ac9c9b2f8b"
+        },
+        {
+          "path": "apps/desktop/src/main/consentPresenter.ts",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "4e4186d0b6df6c8c589f2d747f1553a82245d3be6b5a41f1931a441890a08f73"
+        },
+        {
+          "path": "apps/desktop/src/main/hubCall.ts",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "f0af9012125709481e068018f97dda02d6752d8c3fb3ca61fe7c512295da2625"
+        },
+        {
+          "path": "apps/desktop/src/main/hubTools.ts",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "d8b0572f6ef3fb16840e1e7afccad6ed33e26a715b89ffc40df15d4e2e6e7283"
+        },
+        {
+          "path": "apps/desktop/src/main/productForwarder.ts",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "cfd56164bf50bef4c74adc483a74a593e254bfc13dc3bc412be496cae551cb11"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/AgentAccessPanel.test.tsx",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "5d341c3cdc39ad70d0d3137bfa3cff18257948b82993eca72a1479887a9377af"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/AgentAccessPanel.tsx",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "e686f1ce7160b8f93566c4e82a4a1c20f8be3373b80afd29550276c31a8e50b1"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/App.tsx",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "8aca50d0cd3aa4ac7a715064889a8c949742558f3d0b231e3c48b2ffbee917ec"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/Onboarding.launch.css",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "4949e5603177dc1374850b85ab7c33a2fcd940f682a9b95b9ee5ee5ca13a9cff"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "7931e1f89b9f75ee8b3a58b5eced54fe08578b6115fea86180f70217114540db"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/Onboarding.tsx",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "895ea04e3c61af11f61eced27d41c1e62d53a945ea05167b617d734b92565f10"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/components/registry.ts",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "b44d6d19383e3b20cf3f30cdaf7578e9045e673c033cf0abfa794b7a9c99d70e"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "92015dd42cee4f65a77ed0ca27259983e217e31466256e57b7154916a795b3f7"
+        },
+        {
+          "path": "apps/desktop/src/shared/access.ts",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "441110570fb98528a3665e659c93f1247913b78a55d42969810c0cff86b8251a"
+        },
+        {
+          "path": "apps/desktop/test/adoption-native-harness.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "5d6a28eba37954c91655bb92fb1c7e0e05ee828573752ca1441a2371fa0eaed3"
+        },
+        {
+          "path": "apps/desktop/test/ceo-private-archive-codec.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "f44fa558f141fa0ddb18646ff6f21ad701b03090acc04835d0fa5d1b15ef3e40"
+        },
+        {
+          "path": "apps/desktop/test/ceo-private-archive-db.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "920af692da774233311418fcba0a321041ec4490bb1c944906898b700aaf5038"
+        },
+        {
+          "path": "apps/desktop/test/consent-presenter.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "a50a680af75f49c3269fed1ea77fda2843cae46f933337e655b26aaa71c5c88e"
+        },
+        {
+          "path": "apps/desktop/test/contract-consumer-fixtures.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "ba709333ba1cc87711015a13edfee44d9abff8914a1d11678cfb15e35bce7318"
+        },
+        {
+          "path": "apps/desktop/test/contract-consumer.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "672c8330eb259c24525e9388323f510ef4f2515ff20a4fdc7885a5fa6a737992"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/LICENSE",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/README.md",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "134e1c8dbb9280b723b6b22be3996539a8a3fbefbc6dd8892695a923e85810d9"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/SOURCE.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "1b4f5d03650a3097eb3ea65b837e99cc03f24025e021e25c77694041c07930e2"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/current/positive/interop-agent-call.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "68c401dce7610c056dea60660ca685a0642db63f0b269ed735c81bd0406f9331"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/current/positive/manifest-mcp.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "dfaaa5ec16dcf6843b9122a72d534c6f6b2e1899902952df324a9bb38a055fdb"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/current/positive/pipeline.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "162d2e61b971c0a249796df1ad9146d77502135b71da171437681a4260ce829c"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/current/positive/service-well-known-capabilities.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "27961da9f655340e3da4949760a2f53c1dd0168e6057a5e84f87633c300bb3af"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/common.schema.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "8c7c781e2b798a549eaf19175740f5873aa3d51518e3316ee35177c79630209a"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/interop-agent-call.schema.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "57439b2e6e67b8ec74f38ab855cf951071a762ce8e04f3c6b4a857c0b24c4ce6"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/interop-capability.schema.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "16240f19a851d56127e766456561da8a05e1902b321e52d4c7d45a635f13a598"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/manifest.schema.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "02043fc530e13167e682d0699eb0a5e261c9d7b0409203e2e66361f88cbba7b5"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/pipeline.schema.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "b0ccfbcd5cf874b69a829662bd62a53d9c8b2ffbc2b1555d834b1a518f387b1e"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/service-common.schema.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "3477169eff687d30f72b162631dead9d0f6e53b620ae097e43c65a678b381cb6"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/service-well-known.schema.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "c51a6ec9814944d3c7ec5e28dbc10e37063a9eded78c45e2776ccd9ba69f02e3"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/legacy/schemas/common.schema.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "b0b4f7dafa9ccffd345ec319c97cacf65b1983c2da874c63606ca60cab448fd5"
+        },
+        {
+          "path": "apps/desktop/test/fixtures/fabric-agent-contract/legacy/schemas/interop-agent-call.schema.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "57439b2e6e67b8ec74f38ab855cf951071a762ce8e04f3c6b4a857c0b24c4ce6"
+        },
+        {
+          "path": "apps/desktop/test/helpers/access-memstore.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "63230890db58b8a442b94dfefea094efde02fc8b31dcfa1a786b89a8dd160ba7"
+        },
+        {
+          "path": "apps/desktop/test/hub-access-service.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "015c92e62480156846dd1e6d69e1c06b1a99303e8779a3684d18a87c60f6b72e"
+        },
+        {
+          "path": "apps/desktop/test/hub-call-i3.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "816b3c3c69682e2286bb1fdb1ccf6099e75e06cde6a24d1ed83e71bb1f049760"
+        },
+        {
+          "path": "apps/desktop/test/hub-call.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "15aa6b77f33cdfcfeefb5713682aac7000afb6a60d6b596a33c829c831ad94c7"
+        },
+        {
+          "path": "apps/desktop/test/hub-door-db.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "358d44bab513f83d9598828072bdd860acc69de3f1c5d27451a52522b79f4131"
+        },
+        {
+          "path": "apps/desktop/test/hub-products.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "2f44417f8d6a2501b8da6c2a8571c549ed0869acfa61cdef39737e2ebecf158d"
+        },
+        {
+          "path": "apps/desktop/test/hub-surface.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "c464ff9e59399ac07ecb2a4b3ea5d978b8793836bbb803086d92c6b7923fbce1"
+        },
+        {
+          "path": "apps/desktop/test/onboarding-reason-negative-control.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "ce8af70bab2f04005423c42eb541e390c1dfc9960f1f2e94d657920d4d25b11c"
+        },
+        {
+          "path": "apps/desktop/test/onboarding-visual-native-harness.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "07629730a0e4b24cde6fe425a67770708a436fa4507e98cfb81b0b6d530a75d7"
+        },
+        {
+          "path": "apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "11a8a73b404bd00be021bee14d8ad5c48d3f7b903fbaa8902c060dbccc1698b2"
+        },
+        {
+          "path": "apps/desktop/test/private-history-db.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "378a53d59773e5e517cbe78fb47c1aee2720fe02b6e21f0c32d844e31abf504f"
+        },
+        {
+          "path": "docs/evidence/backlog.md",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+        },
+        {
+          "path": "docs/evidence/plans/unified-leaves/CO-179.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "626a37d322a3cc7f9d8ed5ec5eb004f8b67f85a0a4ce637c933ac0b10a4fb09c"
+        },
+        {
+          "path": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "c2ff476db93bfe988382e3e8197a828dc0b17d6f2616c2a5803c43a7c07c1c39"
+        },
+        {
+          "path": "docs/handoffs/2026-10-04-assembled-qualification.md",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "ddef2959859aac5d747ab693604db539a94ad9a4521ed4a9b6dd74acc30787b7"
+        },
+        {
+          "path": "docs/handoffs/2026-10-04-co179-native-review/review.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "1e5a3b2cc18a79ced7fb9dedfc413b6564e7efad73861a6fe5f3163f0de22d71"
+        },
+        {
+          "path": "docs/launch/release-gate.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "ab3443057091521c30680a7d22f1cb00a3bb857c0cb10a2aae0a94aac1cb0ab6"
+        },
+        {
+          "path": "docs/launch/release-mac.md",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "cb3bccaf1492a53af08cfb9e249a348da98374bcbfe1cee172ed0ab6c7bf265d"
+        },
+        {
+          "path": "docs/reports/2026-10-04-unified-execution/impacts.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "df26bf5078b04db64279dbbf0b6b6abd57f82181a98b7e2a46315fda65abf717"
+        },
+        {
+          "path": "docs/reports/2026-10-04-unified-owner-reconciliation-recheck/raw/checks.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "0839c60f2bfc2e6c6865e828cc415bd089b90be0ef23f109bc3c576fecbade56"
+        },
+        {
+          "path": "docs/ux/product-model.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "8e3f134b04219d48b59f4d78e621e6d502e5a7dfbe1aba79e236576b05e97858"
+        },
+        {
+          "path": "docs/ux/scenarios.md",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "7d5da5eef952df0cb851b836e21edcad93aa008c9b5e73f9c8641ddba1972108"
+        },
+        {
+          "path": "pnpm-lock.yaml",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "b452d830770a8ef28e4fc1e973d87388856fcf49e3363144c58186b7624f66f6"
+        },
+        {
+          "path": "scripts/build-unified-plan.py",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "19af50bc4133ffabbfc6451d9d29ca7301000f184b5857fba5b8fad73d48faa1"
+        },
+        {
+          "path": "scripts/check-design-map.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "725c2285933ccb535737c650741ad7af227730eb3699a95c9082f2c0ca108372"
+        },
+        {
+          "path": "scripts/check-registers.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "25ac82eeeb0aa36dff85fae358a290e5cbfcc16bfe8ac6b6f6dac4a80a473fc5"
+        },
+        {
+          "path": "scripts/ci.sh",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "0eaed03d7cf59ae07bdfcc0c4afeaa4af55046ddb5236226c3c53fa4392bd2f5"
+        },
+        {
+          "path": "scripts/lib/plan-ids.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "0720da1eb951f3927fb6b961c70e20c13d5f2fc31e6fe11e07f5bb6967f8c270"
+        },
+        {
+          "path": "scripts/lib/registers.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "587afdcb1a89229090110485f9a5e7c9b34763c10381eee29a1c3719eec16d73"
+        },
+        {
+          "path": "scripts/lib/release-gate.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "080218fe21903a1b2c8b25655ae436d2f87c4eb4e2ceece9f71a40ea493e9e34"
+        },
+        {
+          "path": "scripts/lib/release-mac.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "ce86a0dabc7f546c04c87075162ebc4cdecdd16a604019b3b817b6b7562458fc"
+        },
+        {
+          "path": "scripts/release-mac.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "31fee7ebef9e3112cae36e64cb44f6aa2d37cb219ebf0414f9956abda5ad8d0e"
+        },
+        {
+          "path": "scripts/test/build-unified-plan.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "52b1b74f6cca39dff6c4ce5767d0dd35ce07f10568ef5a138f41da22744ae754"
+        },
+        {
+          "path": "scripts/test/check-design-map.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "f6f91be2c640099337e6b2b674caf82662d65148f756cf0231b3fec443f55228"
+        },
+        {
+          "path": "scripts/test/plan-ids.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "5c9df09c8e8b9c36a55cf3f355c32ad97a42bbefd00ea412b836fe5d784efac3"
+        },
+        {
+          "path": "scripts/test/registers.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "02a9dffbd12e00f8cfa7ee9a2148dfeff15095a8162fd57a6b388b6593908b7d"
+        },
+        {
+          "path": "scripts/test/release-gate.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "77db5011084b1f2120f0667fb8d50227546426dfabe46bbf96146b7331b4383d"
+        },
+        {
+          "path": "scripts/test/unified-plan.test.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "2865cdfc555ef852c06b432bc6f0c2d1e05e64037dcdc83cbad55ca7c3228abc"
+        },
+        {
+          "path": "scripts/unified-canonical-sources.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "de9fa6a8d7dbdae3c5f980ad1ac2760cf624641a1bde90c1060470c6d1ce03b5"
+        },
+        {
+          "path": "scripts/unified-plan.mjs",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "642046d7a5b747e6632703b1bda34c8bc6e68840442f3216bf8a8be60a0a5272"
+        },
+        {
+          "path": "toolchain.lock.json",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "8ffc86d22c30b47586a39f61930556cc38cd7960a063a750629c5b924ea80554"
+        }
+      ],
+      "operation": "qualification",
+      "title": "Qualify current hub source and bounded CO-179/native onboarding repairs",
+      "context": {
+        "outcome": "Qualify the assembled committed hub and CO-179 source at the stated basis; collect scoped native, full disposable and independent results while parent tasks and release gates remain open",
+        "sources": [
+          "AGENTS.md",
+          "apps/desktop/package.json",
+          "apps/desktop/src/main/accessStore.ts",
+          "apps/desktop/src/main/agentSurface.ts",
+          "apps/desktop/src/main/ceoPrivateArchive.ts",
+          "apps/desktop/src/main/consentPresenter.ts",
+          "apps/desktop/src/main/hubCall.ts",
+          "apps/desktop/src/main/hubTools.ts",
+          "apps/desktop/src/main/productForwarder.ts",
+          "apps/desktop/src/renderer/src/AgentAccessPanel.test.tsx",
+          "apps/desktop/src/renderer/src/AgentAccessPanel.tsx",
+          "apps/desktop/src/renderer/src/App.tsx",
+          "apps/desktop/src/renderer/src/Onboarding.launch.css",
+          "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+          "apps/desktop/src/renderer/src/Onboarding.tsx",
+          "apps/desktop/src/renderer/src/components/registry.ts",
+          "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
+          "apps/desktop/src/shared/access.ts",
+          "apps/desktop/test/adoption-native-harness.mjs",
+          "apps/desktop/test/ceo-private-archive-codec.test.mjs",
+          "apps/desktop/test/ceo-private-archive-db.test.mjs",
+          "apps/desktop/test/consent-presenter.test.mjs",
+          "apps/desktop/test/contract-consumer-fixtures.mjs",
+          "apps/desktop/test/contract-consumer.test.mjs",
+          "apps/desktop/test/fixtures/fabric-agent-contract/LICENSE",
+          "apps/desktop/test/fixtures/fabric-agent-contract/README.md",
+          "apps/desktop/test/fixtures/fabric-agent-contract/SOURCE.json",
+          "apps/desktop/test/fixtures/fabric-agent-contract/current/positive/interop-agent-call.json",
+          "apps/desktop/test/fixtures/fabric-agent-contract/current/positive/manifest-mcp.json",
+          "apps/desktop/test/fixtures/fabric-agent-contract/current/positive/pipeline.json",
+          "apps/desktop/test/fixtures/fabric-agent-contract/current/positive/service-well-known-capabilities.json",
+          "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/common.schema.json",
+          "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/interop-agent-call.schema.json",
+          "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/interop-capability.schema.json",
+          "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/manifest.schema.json",
+          "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/pipeline.schema.json",
+          "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/service-common.schema.json",
+          "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/service-well-known.schema.json",
+          "apps/desktop/test/fixtures/fabric-agent-contract/legacy/schemas/common.schema.json",
+          "apps/desktop/test/fixtures/fabric-agent-contract/legacy/schemas/interop-agent-call.schema.json",
+          "apps/desktop/test/helpers/access-memstore.mjs",
+          "apps/desktop/test/hub-access-service.test.mjs",
+          "apps/desktop/test/hub-call-i3.test.mjs",
+          "apps/desktop/test/hub-call.test.mjs",
+          "apps/desktop/test/hub-door-db.test.mjs",
+          "apps/desktop/test/hub-products.test.mjs",
+          "apps/desktop/test/hub-surface.test.mjs",
+          "apps/desktop/test/onboarding-reason-negative-control.mjs",
+          "apps/desktop/test/onboarding-visual-native-harness.mjs",
+          "apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+          "apps/desktop/test/private-history-db.test.mjs",
+          "docs/evidence/backlog.md",
+          "docs/evidence/plans/unified-leaves/CO-179.json",
+          "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+          "docs/handoffs/2026-10-04-assembled-qualification.md",
+          "docs/handoffs/2026-10-04-co179-native-review/review.json",
+          "docs/launch/release-gate.json",
+          "docs/launch/release-mac.md",
+          "docs/reports/2026-10-04-unified-execution/impacts.json",
+          "docs/reports/2026-10-04-unified-owner-reconciliation-recheck/raw/checks.json",
+          "docs/ux/product-model.json",
+          "docs/ux/scenarios.md",
+          "pnpm-lock.yaml",
+          "scripts/build-unified-plan.py",
+          "scripts/check-design-map.mjs",
+          "scripts/check-registers.mjs",
+          "scripts/ci.sh",
+          "scripts/lib/plan-ids.mjs",
+          "scripts/lib/registers.mjs",
+          "scripts/lib/release-gate.mjs",
+          "scripts/lib/release-mac.mjs",
+          "scripts/release-mac.mjs",
+          "scripts/test/build-unified-plan.test.mjs",
+          "scripts/test/check-design-map.test.mjs",
+          "scripts/test/plan-ids.test.mjs",
+          "scripts/test/registers.test.mjs",
+          "scripts/test/release-gate.test.mjs",
+          "scripts/test/unified-plan.test.mjs",
+          "scripts/unified-canonical-sources.mjs",
+          "scripts/unified-plan.mjs",
+          "toolchain.lock.json"
+        ],
+        "scope": [
+          "apps/desktop/src/renderer/src/App.tsx",
+          "apps/desktop/src/renderer/src/Onboarding.tsx",
+          "apps/desktop/src/renderer/src/components/registry.ts",
+          "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+          "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
+          "apps/desktop/test/adoption-native-harness.mjs",
+          "apps/desktop/src/renderer/src/Onboarding.launch.css",
+          "apps/desktop/test/onboarding-visual-native-harness.mjs",
+          "apps/desktop/test/onboarding-visual-native-harness.test.mjs"
+        ],
+        "steps": [
+          "Read standing policy, canonical P-08 Now/CO-179 and the exact dossier scope; acquire actual task/resource claims before writes",
+          "Confirm all assembled subject byte contracts and the production-only onboarding CSS change; preserve rejected historical and test-only mutant cuts; rebuild the committed basis for current native controls",
+          "Run the exact combined focused checks, same-build native state matrix and owned/disposable full tier; record each source SHA, proof scope, result and NOT_RUN",
+          "Obtain independent frozen-candidate reports; root owns all canonical ledger/map closures and owner publication"
+        ],
+        "acceptance": [
+          "One committed bounded source candidate plus scoped executed-check receipts and unresolved prerequisites",
+          "Native and visual evidence is bound to the exact same committed source/build; different-build and partial evidence remain scoped limitations",
+          "Five independent reports and full tier are collected for root assessment; this preparation never marks P-08/CO-179 done or release-ready"
+        ],
+        "risks": [
+          "The basis is current committed source54cefbbf, with app metadata still0.3.0; this is an unreleased0.3.1 preparation candidate. Any later version/runtime/test/build change needs owner refresh and fresh exact-source qualification.",
+          "Native scoped receipts do not imply production main, provider, live DB, VoiceOver, installed upgrade or human approval. Historical CO-179 records do not become current parent acceptance.",
+          "A source-qualified packet grants only bounded source work under actual claims; independently verified lifecycle capability/enrollment/ACK remains future COM04 work."
+        ],
+        "stop_conditions": [
+          "Stop on changed subject bytes, missing claim, stale/unknown receipt or unauthorized scope",
+          "Stop before release approval, tag, signing/publishing deployment, installed operator database mutation or production/workspace publication",
+          "Do not edit guarded root registers, ledger or map from this bounded child"
+        ],
+        "resume": "Read the committed current entry and exact source/build receipts, claim the named resources, then execute P-08.qualify-source only; parent gates stay open"
+      },
+      "rollback": "Discard only task-owned isolated source changes; retain historical reports/receipts, root registers, live runtime and operator database",
+      "authority": {
+        "kind": "source-owner-bounded-work",
+        "repository": "https://github.com/passioncode-ai/fabric",
+        "actions": [
+          "design",
+          "code",
+          "check",
+          "commit",
+          "push"
+        ],
+        "standing": {
+          "path": "AGENTS.md",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "80f6bdf7f1d1a5f05eb40f2b7911732b9b3c5b3ea7c85dc45e3ff527dd50f9ec"
+        },
+        "requested_source": {
+          "path": "docs/evidence/backlog.md",
+          "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+          "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+        }
+      },
+      "dependencies": [
+        {
+          "kind": "source-input",
+          "purpose": "Canonical P-08 is Now, source work is already requested; not a release approval",
+          "ref": {
+            "path": "docs/evidence/backlog.md",
+            "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+            "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+          }
+        },
+        {
+          "kind": "source-input",
+          "purpose": "CO-179 dossier exact next-child scope only; its historical native NOT_RUN is not acceptance",
+          "ref": {
+            "path": "docs/evidence/plans/unified-leaves/CO-179.json",
+            "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+            "sha256": "626a37d322a3cc7f9d8ed5ec5eb004f8b67f85a0a4ce637c933ac0b10a4fb09c"
+          }
+        }
+      ],
+      "acceptance_gates": [
+        {
+          "id": "AD02.same-build",
+          "requirement": "Final same-build native state matrix and persistence/write containment",
+          "required_for": "parent-acceptance"
+        },
+        {
+          "id": "CO-179.visual-native",
+          "requirement": "Visual/native containment for current onboarding source",
+          "required_for": "parent-acceptance"
+        },
+        {
+          "id": "P-08.full-disposable",
+          "requirement": "Exact-source full owned/disposable tier",
+          "required_for": "parent-acceptance"
+        },
+        {
+          "id": "P-08.independent-review",
+          "requirement": "Five independent reports and versioned verification gate at frozen candidate",
+          "required_for": "parent-acceptance"
+        },
+        {
+          "id": "P-08.human-release",
+          "requirement": "Protected human approval, version/changelog and release/install gates; no grant from this source packet",
+          "required_for": "parent-acceptance"
+        }
+      ],
+      "impact_scope": [
+        {
+          "id": "I-01",
+          "effect": "parent-acceptance-only",
+          "reason": "This bounded qualification investigates the gate; parent remains open and release-blocking",
+          "source": {
+            "path": "docs/reports/2026-10-04-unified-execution/impacts.json",
+            "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+            "sha256": "df26bf5078b04db64279dbbf0b6b6abd57f82181a98b7e2a46315fda65abf717"
+          }
+        },
+        {
+          "id": "I-05",
+          "effect": "parent-acceptance-only",
+          "reason": "This bounded qualification investigates the gate; parent remains open and release-blocking",
+          "source": {
+            "path": "docs/reports/2026-10-04-unified-execution/impacts.json",
+            "revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+            "sha256": "df26bf5078b04db64279dbbf0b6b6abd57f82181a98b7e2a46315fda65abf717"
+          }
+        }
+      ],
+      "output_scope": [
+        "docs/handoffs/p08-source-qualification"
+      ]
+    }
+  ]
+}
