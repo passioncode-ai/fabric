@@ -96,4 +96,3 @@ findings before comparing earlier reports. Do not tag from this report.
 - [`copywriting`](https://github.com/ssheleg/super-ux) — reviewed schema recovery and connection messages
 
 <sub>A star on [the bundle](https://github.com/ssheleg/sshlg-skills) helps.</sub>
-
