@@ -86,5 +86,18 @@
         "PASS: Fabric documentation structure"
       ]
     }
-  ]
+  ],
+  "fresh_remote_checkout": {
+    "source_commit": "09c878db384eeaa7bd1952e7df31400f511f2a99",
+    "dependency_directories": 0,
+    "command": "node apps/desktop/test/run-hub-upgrade-db.mjs",
+    "exit_code": 0,
+    "observed": [
+      "PASS upgrade 75\u219278: exact migration ledger, preserved estate/journal/projections/live authority, restored pending refused, pg_dump/restore, ACLs/replay and concurrent reconnect CAS",
+      "PASS upgrade 77\u219278: exact migration ledger, preserved estate/journal/projections/live authority, restored pending refused, pg_dump/restore, ACLs/replay and concurrent reconnect CAS",
+      "PASS owned hub upgrade rehearsal; suffix80 is migration count78, no existing database addressed",
+      "PASS cleanup: owned PostgreSQL stopped; socket, dumps and data removed"
+    ],
+    "checkout_removed": true
+  }
 }
