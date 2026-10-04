@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
+import { pgEnv } from './helpers/pg-env.mjs'
 const bin = process.env.FABRIC_PG_BIN ?? '/opt/homebrew/opt/postgresql@17/bin'
 if (!existsSync(path.join(bin, 'initdb'))) {
   console.error('NOT_RUN: set FABRIC_PG_BIN to installed PostgreSQL binaries'); process.exit(2)
@@ -10,7 +11,7 @@ if (!existsSync(path.join(bin, 'initdb'))) {
 const dir = mkdtempSync(path.join(tmpdir(), 'fabric-managed-stop-'))
 const data = path.join(dir, 'data')
 let started = false
-const run = (name, args) => execFileSync(path.join(bin, name), args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
+const run = (name, args) => execFileSync(path.join(bin, name), args, { encoding: 'utf8', env: pgEnv(), stdio: ['ignore', 'pipe', 'pipe'] })
 try {
   run('initdb', ['-D', data, '-A', 'trust', '-U', 'postgres', '--no-locale', '-E', 'UTF8'])
   run('pg_ctl', ['-D', data, '-l', path.join(dir, 'postgres.log'), '-o', `-F -k ${dir} -c listen_addresses='' -p 58437`, '-w', 'start'])

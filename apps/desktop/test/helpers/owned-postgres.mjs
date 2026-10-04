@@ -21,6 +21,7 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync, existsSync } from 'node
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { execFileSync } from 'node:child_process'
+import { pgEnv } from './pg-env.mjs'
 
 export function withOwnedPostgres({ name, port, supabaseDefaults = false }, body) {
   const bin = process.env.FABRIC_PG_BIN ?? '/opt/homebrew/opt/postgresql@17/bin'
@@ -33,7 +34,7 @@ export function withOwnedPostgres({ name, port, supabaseDefaults = false }, body
   const data = path.join(dir, 'data')
   let started = false
   const run = (tool, args, input) =>
-    execFileSync(path.join(bin, tool), args, { encoding: 'utf8', input, stdio: ['pipe', 'pipe', 'pipe'] })
+    execFileSync(path.join(bin, tool), args, { encoding: 'utf8', input, env: pgEnv(), stdio: ['pipe', 'pipe', 'pipe'] })
   try {
     run('initdb', ['-D', data, '-A', 'trust', '-U', 'postgres', '--no-locale', '-E', 'UTF8'])
     run('pg_ctl', ['-D', data, '-l', path.join(dir, 'postgres.log'), '-o', `-F -k ${dir} -c listen_addresses='' -p ${port}`, '-w', 'start'])
