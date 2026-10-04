@@ -73,3 +73,15 @@ PassionCode.ai is the full name. PassionCode is the approved short family label 
 | Interaction point | A typed place where a person, role, agent or estate may submit or resolve work. |
 | Role workspace | A host-controlled projection of the work, context and actions available to a person or role. |
 | Agent Bootstrap Recipe | A versioned handoff that guides a coding agent through adaptation or creation; it grants no authority. |
+
+## Hub access terms (English / Russian)
+
+These terms describe ADR-0115; secrets remain in the main process.
+
+| English | Russian | Meaning |
+|---|---|---|
+| Hub | хаб | Fabric’s local door for registered agents |
+| Door token | токен входа | May ask for access and read a request with its poll secret; grants no product call |
+| Binding credential | учётные данные привязки | An agent’s credential for Fabric, bounded by the grants; never the product’s key |
+| Access grant | разрешение доступа | One capability on one resource, until expiry or revocation |
+| Product connection | подключение продукта | Product key metadata in Fabric and its secret in the vault |

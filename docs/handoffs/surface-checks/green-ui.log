@@ -1,0 +1,8 @@
+
+ RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/hubfix2-surface-resume/apps/desktop
+
+
+ Test Files  4 passed (4)
+      Tests  72 passed (72)
+   Start at  11:29:34
+   Duration  5.65s (transform 3.10s, setup 1.33s, import 4.20s, tests 2.50s, environment 8.93s)

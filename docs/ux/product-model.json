@@ -9909,7 +9909,7 @@
         {
           "state": "hub-off",
           "trigger": "the hub's port could not be taken",
-          "behavior": "warning: free the port, then quit and reopen Fabric; the machine's reason as a second line; Connect disabled; sessions unaffected"
+          "behavior": "warning with the remedy for the specific cause in the operator's language; the machine's observation as a second line; Connect/Reconnect disabled; sessions unaffected"
         },
         {
           "state": "read",
@@ -9919,12 +9919,12 @@
         {
           "state": "waiting",
           "trigger": "a connect link was opened and its 10 minutes have not passed",
-          "behavior": "waiting for the answer in the product"
+          "behavior": "waiting for the answer in the product; Connect/Reconnect disabled; a Reconnect says the current key remains in use"
         },
         {
           "state": "connected",
           "trigger": "the product delivered its key, the vault kept it and it was recorded within the deadline",
-          "behavior": "server and date, Reconnect, Disconnect; after Reconnect or Disconnect, a line that the previous key stays valid in the product until revoked there"
+          "behavior": "server and date, Reconnect, Disconnect; after Disconnect, the key remains valid in the product; only after successful Reconnect, the previous key remains valid there. No such claim when Reconnect merely opens the product"
         },
         {
           "state": "declined",
@@ -32030,7 +32030,7 @@
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "The product is connected once, with nothing copied by a person; agents with grants reach it through Fabric.",
-      "errors_recovery": "Fabric answers the product within its 10 seconds or not at all: the whole delivery runs inside one 8-second deadline. The secret is stored first, in a vault slot of its own (named by the estate and the connection, so two estates on one Mac never share one), and only then is the connection recorded and the product told yes. Without Project Observatory, with a vault that refuses, or past the deadline, nothing is recorded, the previous connection stays as it was, the product revokes the new key, and SCR-76 says why. A record that itself lands after the deadline is withdrawn at once; on a Reconnect the previous connection had already been replaced by it, so SCR-76 says Fabric Inbox is not connected now and to connect again. A hub that is not listening disables Connect and Reconnect and says why.",
+      "errors_recovery": "Fabric answers the product within its 10 seconds or not at all: the whole delivery runs inside one 8-second deadline. The secret is stored first, in a vault slot of its own (named by the estate and the connection, so two estates on one Mac never share one), and only then is the connection recorded and the product told yes. Without Project Observatory, with a vault that refuses, or past the deadline, nothing is recorded, the previous connection stays as it was, the product revokes the new key, and SCR-76 says why. A record that itself lands after the deadline is withdrawn at once; on a Reconnect the previous connection had already been replaced by it, so SCR-76 says Fabric Inbox is not connected now and to connect again. An invalid delivery settles its single pending attempt as failed immediately; a browser Origin cannot cancel consent. A late record that could not be withdrawn says the recorded connection will not work and to disconnect then connect again. A hub that is not listening disables Connect and Reconnect and gives the remedy for its own cause (invalid setting, registered-agent port claim, another listener, or startup failure) in the operator's language; machine observations are a secondary line.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 3236
@@ -33702,7 +33702,7 @@
         "file": "docs/ux/flows.md",
         "line": 2264
       },
-      "mermaid_source": "flowchart TD\n C[SCR-76 Agent access: Connect or Reconnect] --> L[Product's app asks]\n L -->|Allow| K[Key delivered; secret stored in its own vault slot, then recorded, within 8 s]\n L -->|Deny| N[SCR-76 says declined]\n L -->|no answer in 10 min| W[SCR-76 says no answer; Try again]\n K -->|vault missing, refused or too slow| F[Nothing recorded; the product revokes the key; SCR-76 says why]\n K -->|recorded after the deadline| G[Record withdrawn; a Reconnect says the product is not connected now]\n K --> S[SCR-76 shows connected]\n S -->|Disconnect| D[Fabric stops using it; the key stays valid in the product until revoked there]",
+      "mermaid_source": "flowchart TD\n C[SCR-76 Agent access: Connect or Reconnect] --> L[Product's app asks; waiting disables another attempt; Reconnect retains current key]\n L -->|Allow| K[Key delivered; secret stored in its own vault slot, then recorded, within 8 s]\n L -->|Deny| N[SCR-76 says declined]\n L -->|no answer in 10 min| W[SCR-76 says no answer; Try again]\n K -->|vault missing, refused or too slow| F[Nothing recorded; the product revokes the key; SCR-76 says why]\n K -->|recorded after the deadline| G[Record withdrawn; a Reconnect says the product is not connected now]\n K --> S[SCR-76 shows connected; only successful Reconnect says previous key is no longer used]\n S -->|Disconnect| D[Fabric stops using it; the key stays valid in the product until revoked there]",
       "status": "target_or_mixed_not_coverage_claim",
       "scenario_ids": [
         "SCN-133"

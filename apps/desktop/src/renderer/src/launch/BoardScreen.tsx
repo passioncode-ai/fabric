@@ -72,6 +72,12 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   const [receipt, setReceipt] = useState<Record<string, AnswerReceipt>>({})
   const [sending, setSending] = useState<string | null>(null)
   const reload = useRef<() => Promise<void>>(async () => {})
+  /** What the last access decision did, named: its row leaves the queue once the decision is projected (UX-1). */
+  const [accessSaid, setAccessSaid] = useState<{ text: string; detail: string | null } | null>(null)
+  const accessSaidRef = useRef<HTMLDivElement>(null)
+  // Focus follows the act (UX-7, iteration 2): the buttons that were pressed are gone, so the sentence
+  // that says what happened takes focus instead of the document body.
+  useEffect(() => { if (accessSaid) accessSaidRef.current?.focus() }, [accessSaid])
 
   useEffect(() => {
     let alive = true
@@ -194,6 +200,11 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
         <div className="lp-callout" role="status"><b>{t('launch.board.reviewTitle')}</b><p>{t('launch.board.reviewBody')}</p></div>
       )}
       {problem && <div className="lp-callout" role="alert"><b>{t('needsYou.unreadable', { reason: problem })}</b></div>}
+      {accessSaid && (
+        <div className="lp-callout" role="status" tabIndex={-1} ref={accessSaidRef}>
+          <b>{accessSaid.text}</b>{accessSaid.detail && <p>{accessSaid.detail}</p>}
+        </div>
+      )}
       {unread.length > 0 && (
         <div className="lp-callout" role="status"><b>{t('needsYou.partial', { sources: unread.map((s) => s.name).join(', ') })}</b></div>
       )}
@@ -275,7 +286,8 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                     }}
                   />
                 ) : (
-                  <ObligationActs item={chosen.entry} decisions={decisions} onOpen={onOpen} onError={onError} />
+                  // Keyed by the row: the acts keep their own answer, and another row's must never show it (UX-1, iteration 2).
+                  <ObligationActs key={chosen.entry.ref} item={chosen.entry} decisions={decisions} onOpen={onOpen} onError={onError} onAccessDecided={(text, detail) => setAccessSaid({ text, detail })} />
                 )}
                 {chosen.entry.question && chosen.entry.projectId && (() => {
                   const entry = chosen.entry as BoardEntry

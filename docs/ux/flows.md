@@ -2271,13 +2271,13 @@ flowchart TD
 
 ```mermaid
 flowchart TD
- C[SCR-76 Agent access: Connect or Reconnect] --> L[Product's app asks]
+ C[SCR-76 Agent access: Connect or Reconnect] --> L[Product's app asks; waiting disables another attempt; Reconnect retains current key]
  L -->|Allow| K[Key delivered; secret stored in its own vault slot, then recorded, within 8 s]
  L -->|Deny| N[SCR-76 says declined]
  L -->|no answer in 10 min| W[SCR-76 says no answer; Try again]
  K -->|vault missing, refused or too slow| F[Nothing recorded; the product revokes the key; SCR-76 says why]
  K -->|recorded after the deadline| G[Record withdrawn; a Reconnect says the product is not connected now]
- K --> S[SCR-76 shows connected]
+ K --> S[SCR-76 shows connected; only successful Reconnect says previous key is no longer used]
  S -->|Disconnect| D[Fabric stops using it; the key stays valid in the product until revoked there]
 ```
 

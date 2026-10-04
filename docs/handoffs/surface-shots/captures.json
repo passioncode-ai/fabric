@@ -1,0 +1,329 @@
+{
+  "revision": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+  "captures": [
+    {
+      "file": "after-long-panel-en-light.png",
+      "revision": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "sourceFingerprints": {
+        "apps/desktop/src/renderer/src/AgentAccessPanel.tsx": "10036e3f8f423bf3d8fe0dc552283f6f8a56923794fb0c44df881c4c6e738103",
+        "apps/desktop/src/renderer/src/launch/BoardScreen.tsx": "d2366271853085f200da1e1d1598cfb4214c12de8cd3ff725a1e5b32d01c9fd2",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx": "f7736c1c1161d5ddda1853b4af26826bdfd466268e91e70e280c2958b43c6d7d",
+        "apps/desktop/src/renderer/src/styles.css": "1c3013eec27283902ad4bd1c4e8a550ea56b938c41d36bfbdc38d1ce041c10ad",
+        "apps/desktop/src/renderer/src/launch/launch.css": "f7c5b96a1e91f59d7e166b832b5d110992d4d92f3fd4ff935d2dca6707bf9fb3",
+        "apps/desktop/src/renderer/src/i18n/en.ts": "b70461361d322ca6ad9eb459bd547e1068d3c33bb5bea46f81ee875e35eb809c",
+        "apps/desktop/src/renderer/src/i18n/ru.ts": "765f442df5753329c96c899ec85285c07c148c6a5de01d6449eed9868f7651be",
+        "apps/desktop/src/shared/accessWords.ts": "ad68ba89c7ecfb62e7ce18417ab80d9978f6d1847f592d91afb792cac4c84d56"
+      },
+      "route": "http://127.0.0.1:5297/?s=long&l=en&t=light&v=panel",
+      "scenario": "SCN-132",
+      "state": "pending-long-resource",
+      "viewport": {
+        "width": 760,
+        "height": 1000,
+        "devicePixelRatio": 1
+      },
+      "locale": "en",
+      "theme": "light",
+      "motion": "reduced",
+      "capturedAt": "2026-10-04T09:29:31.011Z",
+      "source": "Playwright Chromium harness"
+    },
+    {
+      "file": "after-reconnect-waiting-en-light.png",
+      "revision": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "sourceFingerprints": {
+        "apps/desktop/src/renderer/src/AgentAccessPanel.tsx": "10036e3f8f423bf3d8fe0dc552283f6f8a56923794fb0c44df881c4c6e738103",
+        "apps/desktop/src/renderer/src/launch/BoardScreen.tsx": "d2366271853085f200da1e1d1598cfb4214c12de8cd3ff725a1e5b32d01c9fd2",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx": "f7736c1c1161d5ddda1853b4af26826bdfd466268e91e70e280c2958b43c6d7d",
+        "apps/desktop/src/renderer/src/styles.css": "1c3013eec27283902ad4bd1c4e8a550ea56b938c41d36bfbdc38d1ce041c10ad",
+        "apps/desktop/src/renderer/src/launch/launch.css": "f7c5b96a1e91f59d7e166b832b5d110992d4d92f3fd4ff935d2dca6707bf9fb3",
+        "apps/desktop/src/renderer/src/i18n/en.ts": "b70461361d322ca6ad9eb459bd547e1068d3c33bb5bea46f81ee875e35eb809c",
+        "apps/desktop/src/renderer/src/i18n/ru.ts": "765f442df5753329c96c899ec85285c07c148c6a5de01d6449eed9868f7651be",
+        "apps/desktop/src/shared/accessWords.ts": "ad68ba89c7ecfb62e7ce18417ab80d9978f6d1847f592d91afb792cac4c84d56"
+      },
+      "route": "http://127.0.0.1:5297/?s=reconnectWaiting&l=en&t=light&v=panel",
+      "scenario": "SCN-133",
+      "state": "reconnect-waiting",
+      "viewport": {
+        "width": 760,
+        "height": 1000,
+        "devicePixelRatio": 1
+      },
+      "locale": "en",
+      "theme": "light",
+      "motion": "reduced",
+      "capturedAt": "2026-10-04T09:29:31.142Z",
+      "source": "Playwright Chromium harness"
+    },
+    {
+      "file": "after-long-board-en-light.png",
+      "revision": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "sourceFingerprints": {
+        "apps/desktop/src/renderer/src/AgentAccessPanel.tsx": "10036e3f8f423bf3d8fe0dc552283f6f8a56923794fb0c44df881c4c6e738103",
+        "apps/desktop/src/renderer/src/launch/BoardScreen.tsx": "d2366271853085f200da1e1d1598cfb4214c12de8cd3ff725a1e5b32d01c9fd2",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx": "f7736c1c1161d5ddda1853b4af26826bdfd466268e91e70e280c2958b43c6d7d",
+        "apps/desktop/src/renderer/src/styles.css": "1c3013eec27283902ad4bd1c4e8a550ea56b938c41d36bfbdc38d1ce041c10ad",
+        "apps/desktop/src/renderer/src/launch/launch.css": "f7c5b96a1e91f59d7e166b832b5d110992d4d92f3fd4ff935d2dca6707bf9fb3",
+        "apps/desktop/src/renderer/src/i18n/en.ts": "b70461361d322ca6ad9eb459bd547e1068d3c33bb5bea46f81ee875e35eb809c",
+        "apps/desktop/src/renderer/src/i18n/ru.ts": "765f442df5753329c96c899ec85285c07c148c6a5de01d6449eed9868f7651be",
+        "apps/desktop/src/shared/accessWords.ts": "ad68ba89c7ecfb62e7ce18417ab80d9978f6d1847f592d91afb792cac4c84d56"
+      },
+      "route": "http://127.0.0.1:5297/?s=long&l=en&t=light&v=board",
+      "scenario": "SCN-132",
+      "state": "pending-long-resource",
+      "viewport": {
+        "width": 760,
+        "height": 1000,
+        "devicePixelRatio": 1
+      },
+      "locale": "en",
+      "theme": "light",
+      "motion": "reduced",
+      "capturedAt": "2026-10-04T09:29:31.564Z",
+      "source": "Playwright Chromium harness"
+    },
+    {
+      "file": "after-long-panel-en-dark.png",
+      "revision": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "sourceFingerprints": {
+        "apps/desktop/src/renderer/src/AgentAccessPanel.tsx": "10036e3f8f423bf3d8fe0dc552283f6f8a56923794fb0c44df881c4c6e738103",
+        "apps/desktop/src/renderer/src/launch/BoardScreen.tsx": "d2366271853085f200da1e1d1598cfb4214c12de8cd3ff725a1e5b32d01c9fd2",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx": "f7736c1c1161d5ddda1853b4af26826bdfd466268e91e70e280c2958b43c6d7d",
+        "apps/desktop/src/renderer/src/styles.css": "1c3013eec27283902ad4bd1c4e8a550ea56b938c41d36bfbdc38d1ce041c10ad",
+        "apps/desktop/src/renderer/src/launch/launch.css": "f7c5b96a1e91f59d7e166b832b5d110992d4d92f3fd4ff935d2dca6707bf9fb3",
+        "apps/desktop/src/renderer/src/i18n/en.ts": "b70461361d322ca6ad9eb459bd547e1068d3c33bb5bea46f81ee875e35eb809c",
+        "apps/desktop/src/renderer/src/i18n/ru.ts": "765f442df5753329c96c899ec85285c07c148c6a5de01d6449eed9868f7651be",
+        "apps/desktop/src/shared/accessWords.ts": "ad68ba89c7ecfb62e7ce18417ab80d9978f6d1847f592d91afb792cac4c84d56"
+      },
+      "route": "http://127.0.0.1:5297/?s=long&l=en&t=dark&v=panel",
+      "scenario": "SCN-132",
+      "state": "pending-long-resource",
+      "viewport": {
+        "width": 760,
+        "height": 1000,
+        "devicePixelRatio": 1
+      },
+      "locale": "en",
+      "theme": "dark",
+      "motion": "reduced",
+      "capturedAt": "2026-10-04T09:29:32.144Z",
+      "source": "Playwright Chromium harness"
+    },
+    {
+      "file": "after-reconnect-waiting-en-dark.png",
+      "revision": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "sourceFingerprints": {
+        "apps/desktop/src/renderer/src/AgentAccessPanel.tsx": "10036e3f8f423bf3d8fe0dc552283f6f8a56923794fb0c44df881c4c6e738103",
+        "apps/desktop/src/renderer/src/launch/BoardScreen.tsx": "d2366271853085f200da1e1d1598cfb4214c12de8cd3ff725a1e5b32d01c9fd2",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx": "f7736c1c1161d5ddda1853b4af26826bdfd466268e91e70e280c2958b43c6d7d",
+        "apps/desktop/src/renderer/src/styles.css": "1c3013eec27283902ad4bd1c4e8a550ea56b938c41d36bfbdc38d1ce041c10ad",
+        "apps/desktop/src/renderer/src/launch/launch.css": "f7c5b96a1e91f59d7e166b832b5d110992d4d92f3fd4ff935d2dca6707bf9fb3",
+        "apps/desktop/src/renderer/src/i18n/en.ts": "b70461361d322ca6ad9eb459bd547e1068d3c33bb5bea46f81ee875e35eb809c",
+        "apps/desktop/src/renderer/src/i18n/ru.ts": "765f442df5753329c96c899ec85285c07c148c6a5de01d6449eed9868f7651be",
+        "apps/desktop/src/shared/accessWords.ts": "ad68ba89c7ecfb62e7ce18417ab80d9978f6d1847f592d91afb792cac4c84d56"
+      },
+      "route": "http://127.0.0.1:5297/?s=reconnectWaiting&l=en&t=dark&v=panel",
+      "scenario": "SCN-133",
+      "state": "reconnect-waiting",
+      "viewport": {
+        "width": 760,
+        "height": 1000,
+        "devicePixelRatio": 1
+      },
+      "locale": "en",
+      "theme": "dark",
+      "motion": "reduced",
+      "capturedAt": "2026-10-04T09:29:32.258Z",
+      "source": "Playwright Chromium harness"
+    },
+    {
+      "file": "after-long-board-en-dark.png",
+      "revision": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "sourceFingerprints": {
+        "apps/desktop/src/renderer/src/AgentAccessPanel.tsx": "10036e3f8f423bf3d8fe0dc552283f6f8a56923794fb0c44df881c4c6e738103",
+        "apps/desktop/src/renderer/src/launch/BoardScreen.tsx": "d2366271853085f200da1e1d1598cfb4214c12de8cd3ff725a1e5b32d01c9fd2",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx": "f7736c1c1161d5ddda1853b4af26826bdfd466268e91e70e280c2958b43c6d7d",
+        "apps/desktop/src/renderer/src/styles.css": "1c3013eec27283902ad4bd1c4e8a550ea56b938c41d36bfbdc38d1ce041c10ad",
+        "apps/desktop/src/renderer/src/launch/launch.css": "f7c5b96a1e91f59d7e166b832b5d110992d4d92f3fd4ff935d2dca6707bf9fb3",
+        "apps/desktop/src/renderer/src/i18n/en.ts": "b70461361d322ca6ad9eb459bd547e1068d3c33bb5bea46f81ee875e35eb809c",
+        "apps/desktop/src/renderer/src/i18n/ru.ts": "765f442df5753329c96c899ec85285c07c148c6a5de01d6449eed9868f7651be",
+        "apps/desktop/src/shared/accessWords.ts": "ad68ba89c7ecfb62e7ce18417ab80d9978f6d1847f592d91afb792cac4c84d56"
+      },
+      "route": "http://127.0.0.1:5297/?s=long&l=en&t=dark&v=board",
+      "scenario": "SCN-132",
+      "state": "pending-long-resource",
+      "viewport": {
+        "width": 760,
+        "height": 1000,
+        "devicePixelRatio": 1
+      },
+      "locale": "en",
+      "theme": "dark",
+      "motion": "reduced",
+      "capturedAt": "2026-10-04T09:29:32.672Z",
+      "source": "Playwright Chromium harness"
+    },
+    {
+      "file": "after-long-panel-ru-light.png",
+      "revision": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "sourceFingerprints": {
+        "apps/desktop/src/renderer/src/AgentAccessPanel.tsx": "10036e3f8f423bf3d8fe0dc552283f6f8a56923794fb0c44df881c4c6e738103",
+        "apps/desktop/src/renderer/src/launch/BoardScreen.tsx": "d2366271853085f200da1e1d1598cfb4214c12de8cd3ff725a1e5b32d01c9fd2",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx": "f7736c1c1161d5ddda1853b4af26826bdfd466268e91e70e280c2958b43c6d7d",
+        "apps/desktop/src/renderer/src/styles.css": "1c3013eec27283902ad4bd1c4e8a550ea56b938c41d36bfbdc38d1ce041c10ad",
+        "apps/desktop/src/renderer/src/launch/launch.css": "f7c5b96a1e91f59d7e166b832b5d110992d4d92f3fd4ff935d2dca6707bf9fb3",
+        "apps/desktop/src/renderer/src/i18n/en.ts": "b70461361d322ca6ad9eb459bd547e1068d3c33bb5bea46f81ee875e35eb809c",
+        "apps/desktop/src/renderer/src/i18n/ru.ts": "765f442df5753329c96c899ec85285c07c148c6a5de01d6449eed9868f7651be",
+        "apps/desktop/src/shared/accessWords.ts": "ad68ba89c7ecfb62e7ce18417ab80d9978f6d1847f592d91afb792cac4c84d56"
+      },
+      "route": "http://127.0.0.1:5297/?s=long&l=ru&t=light&v=panel",
+      "scenario": "SCN-132",
+      "state": "pending-long-resource",
+      "viewport": {
+        "width": 760,
+        "height": 1000,
+        "devicePixelRatio": 1
+      },
+      "locale": "ru",
+      "theme": "light",
+      "motion": "reduced",
+      "capturedAt": "2026-10-04T09:29:33.511Z",
+      "source": "Playwright Chromium harness"
+    },
+    {
+      "file": "after-reconnect-waiting-ru-light.png",
+      "revision": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "sourceFingerprints": {
+        "apps/desktop/src/renderer/src/AgentAccessPanel.tsx": "10036e3f8f423bf3d8fe0dc552283f6f8a56923794fb0c44df881c4c6e738103",
+        "apps/desktop/src/renderer/src/launch/BoardScreen.tsx": "d2366271853085f200da1e1d1598cfb4214c12de8cd3ff725a1e5b32d01c9fd2",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx": "f7736c1c1161d5ddda1853b4af26826bdfd466268e91e70e280c2958b43c6d7d",
+        "apps/desktop/src/renderer/src/styles.css": "1c3013eec27283902ad4bd1c4e8a550ea56b938c41d36bfbdc38d1ce041c10ad",
+        "apps/desktop/src/renderer/src/launch/launch.css": "f7c5b96a1e91f59d7e166b832b5d110992d4d92f3fd4ff935d2dca6707bf9fb3",
+        "apps/desktop/src/renderer/src/i18n/en.ts": "b70461361d322ca6ad9eb459bd547e1068d3c33bb5bea46f81ee875e35eb809c",
+        "apps/desktop/src/renderer/src/i18n/ru.ts": "765f442df5753329c96c899ec85285c07c148c6a5de01d6449eed9868f7651be",
+        "apps/desktop/src/shared/accessWords.ts": "ad68ba89c7ecfb62e7ce18417ab80d9978f6d1847f592d91afb792cac4c84d56"
+      },
+      "route": "http://127.0.0.1:5297/?s=reconnectWaiting&l=ru&t=light&v=panel",
+      "scenario": "SCN-133",
+      "state": "reconnect-waiting",
+      "viewport": {
+        "width": 760,
+        "height": 1000,
+        "devicePixelRatio": 1
+      },
+      "locale": "ru",
+      "theme": "light",
+      "motion": "reduced",
+      "capturedAt": "2026-10-04T09:29:33.847Z",
+      "source": "Playwright Chromium harness"
+    },
+    {
+      "file": "after-long-board-ru-light.png",
+      "revision": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "sourceFingerprints": {
+        "apps/desktop/src/renderer/src/AgentAccessPanel.tsx": "10036e3f8f423bf3d8fe0dc552283f6f8a56923794fb0c44df881c4c6e738103",
+        "apps/desktop/src/renderer/src/launch/BoardScreen.tsx": "d2366271853085f200da1e1d1598cfb4214c12de8cd3ff725a1e5b32d01c9fd2",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx": "f7736c1c1161d5ddda1853b4af26826bdfd466268e91e70e280c2958b43c6d7d",
+        "apps/desktop/src/renderer/src/styles.css": "1c3013eec27283902ad4bd1c4e8a550ea56b938c41d36bfbdc38d1ce041c10ad",
+        "apps/desktop/src/renderer/src/launch/launch.css": "f7c5b96a1e91f59d7e166b832b5d110992d4d92f3fd4ff935d2dca6707bf9fb3",
+        "apps/desktop/src/renderer/src/i18n/en.ts": "b70461361d322ca6ad9eb459bd547e1068d3c33bb5bea46f81ee875e35eb809c",
+        "apps/desktop/src/renderer/src/i18n/ru.ts": "765f442df5753329c96c899ec85285c07c148c6a5de01d6449eed9868f7651be",
+        "apps/desktop/src/shared/accessWords.ts": "ad68ba89c7ecfb62e7ce18417ab80d9978f6d1847f592d91afb792cac4c84d56"
+      },
+      "route": "http://127.0.0.1:5297/?s=long&l=ru&t=light&v=board",
+      "scenario": "SCN-132",
+      "state": "pending-long-resource",
+      "viewport": {
+        "width": 760,
+        "height": 1000,
+        "devicePixelRatio": 1
+      },
+      "locale": "ru",
+      "theme": "light",
+      "motion": "reduced",
+      "capturedAt": "2026-10-04T09:29:34.932Z",
+      "source": "Playwright Chromium harness"
+    },
+    {
+      "file": "after-long-panel-ru-dark.png",
+      "revision": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "sourceFingerprints": {
+        "apps/desktop/src/renderer/src/AgentAccessPanel.tsx": "10036e3f8f423bf3d8fe0dc552283f6f8a56923794fb0c44df881c4c6e738103",
+        "apps/desktop/src/renderer/src/launch/BoardScreen.tsx": "d2366271853085f200da1e1d1598cfb4214c12de8cd3ff725a1e5b32d01c9fd2",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx": "f7736c1c1161d5ddda1853b4af26826bdfd466268e91e70e280c2958b43c6d7d",
+        "apps/desktop/src/renderer/src/styles.css": "1c3013eec27283902ad4bd1c4e8a550ea56b938c41d36bfbdc38d1ce041c10ad",
+        "apps/desktop/src/renderer/src/launch/launch.css": "f7c5b96a1e91f59d7e166b832b5d110992d4d92f3fd4ff935d2dca6707bf9fb3",
+        "apps/desktop/src/renderer/src/i18n/en.ts": "b70461361d322ca6ad9eb459bd547e1068d3c33bb5bea46f81ee875e35eb809c",
+        "apps/desktop/src/renderer/src/i18n/ru.ts": "765f442df5753329c96c899ec85285c07c148c6a5de01d6449eed9868f7651be",
+        "apps/desktop/src/shared/accessWords.ts": "ad68ba89c7ecfb62e7ce18417ab80d9978f6d1847f592d91afb792cac4c84d56"
+      },
+      "route": "http://127.0.0.1:5297/?s=long&l=ru&t=dark&v=panel",
+      "scenario": "SCN-132",
+      "state": "pending-long-resource",
+      "viewport": {
+        "width": 760,
+        "height": 1000,
+        "devicePixelRatio": 1
+      },
+      "locale": "ru",
+      "theme": "dark",
+      "motion": "reduced",
+      "capturedAt": "2026-10-04T09:29:36.568Z",
+      "source": "Playwright Chromium harness"
+    },
+    {
+      "file": "after-reconnect-waiting-ru-dark.png",
+      "revision": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "sourceFingerprints": {
+        "apps/desktop/src/renderer/src/AgentAccessPanel.tsx": "10036e3f8f423bf3d8fe0dc552283f6f8a56923794fb0c44df881c4c6e738103",
+        "apps/desktop/src/renderer/src/launch/BoardScreen.tsx": "d2366271853085f200da1e1d1598cfb4214c12de8cd3ff725a1e5b32d01c9fd2",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx": "f7736c1c1161d5ddda1853b4af26826bdfd466268e91e70e280c2958b43c6d7d",
+        "apps/desktop/src/renderer/src/styles.css": "1c3013eec27283902ad4bd1c4e8a550ea56b938c41d36bfbdc38d1ce041c10ad",
+        "apps/desktop/src/renderer/src/launch/launch.css": "f7c5b96a1e91f59d7e166b832b5d110992d4d92f3fd4ff935d2dca6707bf9fb3",
+        "apps/desktop/src/renderer/src/i18n/en.ts": "b70461361d322ca6ad9eb459bd547e1068d3c33bb5bea46f81ee875e35eb809c",
+        "apps/desktop/src/renderer/src/i18n/ru.ts": "765f442df5753329c96c899ec85285c07c148c6a5de01d6449eed9868f7651be",
+        "apps/desktop/src/shared/accessWords.ts": "ad68ba89c7ecfb62e7ce18417ab80d9978f6d1847f592d91afb792cac4c84d56"
+      },
+      "route": "http://127.0.0.1:5297/?s=reconnectWaiting&l=ru&t=dark&v=panel",
+      "scenario": "SCN-133",
+      "state": "reconnect-waiting",
+      "viewport": {
+        "width": 760,
+        "height": 1000,
+        "devicePixelRatio": 1
+      },
+      "locale": "ru",
+      "theme": "dark",
+      "motion": "reduced",
+      "capturedAt": "2026-10-04T09:29:37.118Z",
+      "source": "Playwright Chromium harness"
+    },
+    {
+      "file": "after-long-board-ru-dark.png",
+      "revision": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "sourceFingerprints": {
+        "apps/desktop/src/renderer/src/AgentAccessPanel.tsx": "10036e3f8f423bf3d8fe0dc552283f6f8a56923794fb0c44df881c4c6e738103",
+        "apps/desktop/src/renderer/src/launch/BoardScreen.tsx": "d2366271853085f200da1e1d1598cfb4214c12de8cd3ff725a1e5b32d01c9fd2",
+        "apps/desktop/src/renderer/src/launch/ObligationActs.tsx": "f7736c1c1161d5ddda1853b4af26826bdfd466268e91e70e280c2958b43c6d7d",
+        "apps/desktop/src/renderer/src/styles.css": "1c3013eec27283902ad4bd1c4e8a550ea56b938c41d36bfbdc38d1ce041c10ad",
+        "apps/desktop/src/renderer/src/launch/launch.css": "f7c5b96a1e91f59d7e166b832b5d110992d4d92f3fd4ff935d2dca6707bf9fb3",
+        "apps/desktop/src/renderer/src/i18n/en.ts": "b70461361d322ca6ad9eb459bd547e1068d3c33bb5bea46f81ee875e35eb809c",
+        "apps/desktop/src/renderer/src/i18n/ru.ts": "765f442df5753329c96c899ec85285c07c148c6a5de01d6449eed9868f7651be",
+        "apps/desktop/src/shared/accessWords.ts": "ad68ba89c7ecfb62e7ce18417ab80d9978f6d1847f592d91afb792cac4c84d56"
+      },
+      "route": "http://127.0.0.1:5297/?s=long&l=ru&t=dark&v=board",
+      "scenario": "SCN-132",
+      "state": "pending-long-resource",
+      "viewport": {
+        "width": 760,
+        "height": 1000,
+        "devicePixelRatio": 1
+      },
+      "locale": "ru",
+      "theme": "dark",
+      "motion": "reduced",
+      "capturedAt": "2026-10-04T09:29:37.912Z",
+      "source": "Playwright Chromium harness"
+    }
+  ]
+}

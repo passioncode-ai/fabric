@@ -25,6 +25,7 @@
 // every stored origin wrong without anyone being told. A port another registered agent claims is
 // refused before listening, and a port in use is an error with its reason — never a quiet move.
 
+import type { HubDownCode } from '../shared/access.ts'
 import { closeSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeSync, chmodSync } from 'node:fs'
 import { randomBytes } from 'node:crypto'
 import path from 'node:path'
@@ -43,14 +44,14 @@ export interface HubDocument {
   startedAt: string
 }
 
-export type PortChoice = { ok: true; port: number } | { ok: false; reason: string }
+export type PortChoice = { ok: true; port: number } | { ok: false; reason: string; code: HubDownCode; fact: string }
 
 /** The configured hub port, or why the configuration is unusable. */
 export function hubPort(env: NodeJS.ProcessEnv = process.env): PortChoice {
   const raw = env.FABRIC_HUB_PORT
   if (raw === undefined || raw === '') return { ok: true, port: DEFAULT_HUB_PORT }
   if (!/^\d{4,5}$/.test(raw) || Number(raw) < 1024 || Number(raw) > 65535)
-    return { ok: false, reason: `the hub port setting (FABRIC_HUB_PORT=${JSON.stringify(raw)}) is not a port between 1024 and 65535. Correct or remove it, then quit and reopen Fabric` }
+    return { ok: false, code: 'port-setting', fact: `FABRIC_HUB_PORT=${JSON.stringify(raw)}`, reason: `the hub port setting (FABRIC_HUB_PORT=${JSON.stringify(raw)}) is not a port between 1024 and 65535. Correct or remove it, then quit and reopen Fabric` }
   return { ok: true, port: Number(raw) }
 }
 
@@ -58,7 +59,7 @@ export function hubPort(env: NodeJS.ProcessEnv = process.env): PortChoice {
 export function checkPortUnclaimed(port: number, claimed: Map<number, string>): PortChoice {
   const by = claimed.get(port)
   return by
-    ? { ok: false, reason: `port ${port} is claimed by the registered agent ${by}, so agents outside Fabric cannot reach it. Move that agent to another port (or choose a free one for Fabric with FABRIC_HUB_PORT), then quit and reopen Fabric` }
+    ? { ok: false, code: 'port-claimed', fact: `port ${port}: ${by}`, reason: `port ${port} is claimed by the registered agent ${by}, so agents outside Fabric cannot reach it. Move that agent to another port (or choose a free one for Fabric with FABRIC_HUB_PORT), then quit and reopen Fabric` }
     : { ok: true, port }
 }
 
@@ -130,7 +131,9 @@ export interface HubListener {
   readonly origin: string
 }
 
-export type HubStart = { open: true; doorToken: string; hubFile: string } | { open: false; down: string }
+/** `down` is said to sessions and agents (English, with the instruction); `downCode` and `downFact` let the
+ *  operator's panel say it in their language (verification iteration 2 for 0.3.1, DO-14, UX-5). */
+export type HubStart = { open: true; doorToken: string; hubFile: string } | { open: false; down: string; downCode: HubDownCode; downFact: string }
 
 /**
  * Start the surface on the hub's stable port and publish the hub — or, when the port cannot be had,
@@ -149,6 +152,8 @@ export async function startHub(opts: {
   const chosen = hubPort(opts.env ?? process.env)
   const unclaimed = chosen.ok ? checkPortUnclaimed(chosen.port, opts.claimedPorts) : chosen
   let down: string
+  let downCode: HubDownCode
+  let downFact: string
   try {
     if (!unclaimed.ok) throw Object.assign(new Error(unclaimed.reason), { name: 'HubPortUnavailable' })
     await opts.surface.start({ port: unclaimed.port })
@@ -156,9 +161,13 @@ export async function startHub(opts: {
     ops.record({ op: 'hub.published', outcome: 'ok', detail: { origin: opts.surface.origin, hub_file: published.hubFile }, ctx: { correlationId: ops.correlate() } })
     return { open: true, doorToken: published.doorToken, hubFile: published.hubFile }
   } catch (e) {
-    down = (e as Error).name === 'HubPortUnavailable'
+    const portRefused = (e as Error).name === 'HubPortUnavailable'
+    down = portRefused
       ? (e as Error).message
       : `the hub could not start (${(e as Error).message}), so agents outside Fabric cannot reach it. Quit and reopen Fabric to try again`
+    downCode = !unclaimed.ok ? unclaimed.code : portRefused ? 'port-taken' : 'not-started'
+    // The observation only: the surface says "port N on HOST is …, so agents … . Close …" — keep the first clause.
+    downFact = !unclaimed.ok ? unclaimed.fact : ((e as Error).message.split(/, so agents /)[0] ?? (e as Error).message)
     ops.failed('index.hub-not-listening', e, { reason: down })
   }
   try {
@@ -168,6 +177,6 @@ export async function startHub(opts: {
     // through, and the launch says so rather than failing.
     ops.failed('index.agent-surface-failed-to-start', e2, { note: 'agent surface failed to start:' })
   }
-  return { open: false, down }
+  return { open: false, down, downCode, downFact }
 }
 // #endregion hub-discovery

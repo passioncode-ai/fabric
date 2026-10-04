@@ -1,0 +1,1064 @@
+
+ RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/hubfix2-surface-resume/apps/desktop
+
+ ❯ src/renderer/src/launch/ObligationActs.test.tsx (8 tests | 1 failed | 7 skipped) 89ms
+     × UX-3 (iteration 2): a long mailbox wraps inside the queue's detail, so the whole resource can be read before Allow 88ms
+ ❯ src/renderer/src/AgentAccessPanel.test.tsx (26 tests | 2 failed | 24 skipped) 10123ms
+     × UX-2: while a Reconnect waits, the panel says so and that the current key stays in use; Reconnect waits too 10018ms
+     × UX-3: a long mailbox wraps inside the card on the Allow surface — the whole resource being granted can be read 104ms
+ ❯ src/renderer/src/launch/BoardScreen.test.tsx (24 tests | 2 failed | 22 skipped) 10160ms
+     × allowing one request and opening the next shows the next one's own Deny and Allow 10113ms
+     × a row's State and Waiting facts sit in the prototype's grid, not one stacked column 46ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/renderer/src/AgentAccessPanel.test.tsx > SCR-76 agent access > UX-2: while a Reconnect waits, the panel says so and that the current key stays in use; Reconnect waits too
+TestingLibraryElementError: Unable to find an element with the text: Waiting for your answer in Fabric Inbox. Until a new key arrives, Fabric keeps using the current one.. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<aside[39m
+      [33maria-label[39m=[32m"Agent access"[39m
+      [33mclass[39m=[32m"ceo-panel"[39m
+    [36m>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"panel"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"panel-head"[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"panel-title"[39m
+          [36m>[39m
+            [0mAgent access[0m
+          [36m</h2>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"toolbar toolbar-end"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-ghost"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mClose[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mAgents reach Fabric at http://127.0.0.1:47070.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+        [36m>[39m
+          [0mProducts[0m
+        [36m</h3>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"access-card"[39m
+          [33mdata-product[39m=[32m"fabric-inbox"[39m
+        [36m>[39m
+          [36m<p>[39m
+            [36m<strong>[39m
+              [0mFabric Inbox[0m
+            [36m</strong>[39m
+            [0m [0m
+            [36m<span[39m
+              [33mclass[39m=[32m"muted"[39m
+            [36m>[39m
+              [0mconnected to[0m
+              [0m [0m
+              [36m<span[39m
+                [33mclass[39m=[32m"access-url"[39m
+              [36m>[39m
+                [0mhttps://inbox.example.com[0m
+              [36m</span>[39m
+              [0m [0m
+              [0msince 10/3/2026[0m
+            [36m</span>[39m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"access-acts"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"toolbar"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"btn btn-ghost"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0mReconnect[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"btn btn-ghost"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0mDisconnect[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+        [36m>[39m
+          [0mWaiting for your answer[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo agent is waiting for an answer.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+        [36m>[39m
+          [0mAgents with access[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo agent has access through Fabric.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+        [36m>[39m
+          [0mDenied requests[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo request is denied.[0m
+        [36m</p>[39m
+      [36m</section>[39m
+    [36m</aside>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<aside[39m
+      [33maria-label[39m=[32m"Agent access"[39m
+      [33mclass[39m=[32m"ceo-panel"[39m
+    [36m>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"panel"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"panel-head"[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"panel-title"[39m
+          [36m>[39m
+            [0mAgent access[0m
+          [36m</h2>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"toolbar toolbar-end"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-ghost"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mClose[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mAgents reach Fabric at http://127.0.0.1:47070.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+        [36m>[39m
+          [0mProducts[0m
+        [36m</h3>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"access-card"[39m
+          [33mdata-product[39m=[32m"fabric-inbox"[39m
+        [36m>[39m
+          [36m<p>[39m
+            [36m<strong>[39m
+              [0mFabric Inbox[0m
+            [36m</strong>[39m
+            [0m [0m
+            [36m<span[39m
+              [33mclass[39m=[32m"muted"[39m
+            [36m>[39m
+              [0mconnected to[0m
+              [0m [0m
+              [36m<span[39m
+                [33mclass[39m=[32m"access-url"[39m
+              [36m>[39m
+                [0mhttps://inbox.example.com[0m
+              [36m</span>[39m
+              [0m [0m
+              [0msince 10/3/2026[0m
+            [36m</span>[39m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"access-acts"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"toolbar"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"btn btn-ghost"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0mReconnect[0m
+              [36m</button>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"btn btn-ghost"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0mDisconnect[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+        [36m>[39m
+          [0mWaiting for your answer[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo agent is waiting for an answer.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+        [36m>[39m
+          [0mAgents with access[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo agent has access through Fabric.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+        [36m>[39m
+          [0mDenied requests[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo request is denied.[0m
+        [36m</p>[39m
+      [36m</section>[39m
+    [36m</aside>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper ../../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ ../../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/renderer/src/AgentAccessPanel.test.tsx:203:18
+    201|     stub(live({ outcome: 'waiting', at: '2026-10-04T09:00:00Z', reconn…
+    202|     show()
+    203|     await screen.findByText(fill(en['access.products.waitingReconnect'…
+       |                  ^
+    204|     expect((screen.getByRole('button', { name: en['access.products.rec…
+    205|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  src/renderer/src/AgentAccessPanel.test.tsx > SCR-76 agent access — layout rules (iteration 2) > UX-3: a long mailbox wraps inside the card on the Allow surface — the whole resource being granted can be read
+AssertionError: <li>read mail in a.really.long.local.part.for.testing@subdom: expected 'normal' to be 'anywhere' // Object.is equality
+
+Expected: "anywhere"
+Received: "normal"
+
+ ❯ src/renderer/src/AgentAccessPanel.test.tsx:295:76
+    293|     await screen.findByText(/a\.really\.long\.local\.part/)
+    294|     for (const el of [container.querySelector('.access-asks li'), cont…
+    295|       expect(getComputedStyle(el).overflowWrap, el.outerHTML.slice(0, …
+       |                                                                            ^
+    296|   })
+    297|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  src/renderer/src/launch/BoardScreen.test.tsx > an access request's answer belongs to that request (UX-1, iteration 2) > allowing one request and opening the next shows the next one's own Deny and Allow
+TestingLibraryElementError: Unable to find role="button" and name "Deny mailbot"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"lp"[39m
+      [33mdata-launch-view[39m=[32m"launch-board"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"lp-actions lp-board-chat"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"lp-button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mDiscuss with Fabric ↗[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"fp-strip"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33maria-label[39m=[32m"Fabric · personal avatar"[39m
+          [33mclass[39m=[32m"fp-face fp-face-tiny"[39m
+          [33mdata-avatar-seed[39m=[32m"731"[39m
+          [33mdata-avatar-style[39m=[32m"orbit"[39m
+          [33mrole[39m=[32m"img"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mviewBox[39m=[32m"0 0 120 120"[39m
+          [36m>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"116"[39m
+              [33mrx[39m=[32m"36"[39m
+              [33mstyle[39m=[32m"fill: var(--avatar-orbit-0);"[39m
+              [33mwidth[39m=[32m"116"[39m
+              [33mx[39m=[32m"2"[39m
+              [33my[39m=[32m"2"[39m
+            [36m/>[39m
+            [36m<circle[39m
+              [33mcx[39m=[32m"38"[39m
+              [33mcy[39m=[32m"30"[39m
+              [33mr[39m=[32m"22"[39m
+              [33mstyle[39m=[32m"fill: var(--avatar-orbit-2);"[39m
+            [36m/>[39m
+            [36m<circle[39m
+              [33mcx[39m=[32m"96"[39m
+              [33mcy[39m=[32m"99"[39m
+              [33mopacity[39m=[32m".2"[39m
+              [33mr[39m=[32m"36"[39m
+              [33mstyle[39m=[32m"fill: var(--avatar-orbit-1);"[39m
+            [36m/>[39m
+            [36m<g[39m
+              [33mtransform[39m=[32m"rotate(-2 60 60)"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M27 43Q31 24 60 27Q89 24 93 43L98 79Q95 100 60 103Q25 100 22 79Z"[39m
+                [33mstyle[39m=[32m"fill: var(--avatar-orbit-1);"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M34 43Q60 36 86 43M31 50Q60 39 89 50"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"3"[39m
+                [33mstyle[39m=[32m"stroke: var(--avatar-orbit-2);"[39m
+              [36m/>[39m
+              [36m<rect[39m
+                [33mheight[39m=[32m"29"[39m
+                [33mrx[39m=[32m"14"[39m
+                [33mstyle[39m=[32m"fill: var(--avatar-orbit-3);"[39m
+                [33mwidth[39m=[32m"60"[39m
+                [33mx[39m=[32m"30"[39m
+                [33my[39m=[32m"55"[39m
+              [36m/>[39m
+              [36m<rect[39m
+                [33mheight[39m=[32m"7"[39m
+                [33mrx[39m=[32m"3"[39m
+                [33mstyle[39m=[32m"fill: var(--avatar-orbit-2);"[39m
+                [33mwidth[39m=[32m"6"[39m
+                [33mx[39m=[32m"41"[39m
+                [33my[39m=[32m"62"[39m
+              [36m/>[39m
+              [36m<rect[39m
+                [33mheight[39m=[32m"11"[39m
+                [33mrx[39m=[32m"3"[39m
+                [33mstyle[39m=[32m"fill: var(--avatar-orbit-2);"[39m
+                [33mwidth[39m=[32m"6"[39m
+                [33mx[39m=[32m"73"[39m
+                [33my[39m=[32m"62"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M50 91q10 6 20 0"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"3"[39m
+                [33mstyle[39m=[32m"stroke: var(--avatar-orbit-0);"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M59 28v-8"[39m
+                [33mstroke-width[39m=[32m"3"[39m
+                [33mstyle[39m=[32m"stroke: var(--avatar-orbit-3);"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"59"[39m
+                [33mcy[39m=[32m"17"[39m
+                [33mr[39m=[32m"5"[39m
+                [33mstyle[39m=[32m"fill: var(--avatar-orbit-2);"[39m
+              [36m/>[39m
+            [36m</g>[39m
+            [36m<circle[39m
+              [33mcx[39m=[32m"17"[39m
+              [33mcy[39m=[32m"91"[39m
+              [33mr[39m=[32m"4"[39m
+              [33mstyle[39m=[32m"fill: var(--avatar-orbit-2);"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</span>[39m
+        [36m<div>[39m
+          [36m<b>[39m
+            [0mFabric[0m
+          [36m</b>[39m
+          [36m<span>[39m
+            [0mLast observation · 02:00 AM · all projects[0m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"lp-heading"[39m
+      [36m>[39m
+        [36m<div>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"lp-kicker"[39m
+          [36m>[39m
+            [0mAttention board[0m
+          [36m</p>[39m
+          [36m<h2[39m
+            [33mtabindex[39m=[32m"-1"[39m
+          [36m>[39m
+            [0mWhat to work through now[0m
+          [36m</h2>[39m
+          [36m<p>[39m
+            [0mTopics, questions and results that need the next decision.[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"lp-actions"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+            [33mclass[39m=[32m"lp-button primary"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mStart the review[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33mclass[39m=[32m"lp-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m+ Add a topic[0m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"lp-board-layout"[39m
+      [36m>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"What to work through now"[39m
+          [33mclass[39m=[32m"lp-panel"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33maria-label[39m=[32m"Which topics to show"[39m
+            [33mclass[39m=[32m"lp-tabs"[39m
+            [33mrole[39m=[32m"group"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-pressed[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lp-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCurrent[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-pressed[39m=[32m"false"[39m
+              [33mclass[39m=[32m"lp-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mNext time[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-pressed[39m=[32m"false"[39m
+              [33mclass[39m=[32m"lp-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mResolved[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-pressed[39m=[32m"false"[39m
+              [33mclass[39m=[32m"lp-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mAll topics[0m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<button[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33mclass[39m=[32m"lp-topic"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"lp-topic-num"[39m
+            [36m>[39m
+              [0m01[0m
+            [36m</span>[39m
+            [36m<span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"lp-topic-title"[39m
+              [36m>[39m
+                [0mResearch desk asks to use Fabric Inbox[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"lp-meta"[39m
+              [36m>[39m
+                [0mAccess request[0m
+              [36m</span>[39m
+            [36m</span>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"lp-topic-end"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"lp-pill "[39m
+              [36m>[39m
+                [0mAccess request[0m
+              [36m</span>[39m
+              [36m<small>[39m
+                [0m23d[0m
+              [36m</small>[39m
+            [36m</span>[39m
+            [36m<span[39m
+              [33maria-hidden[39m=[32m"true"[39m
+            [36m>[39m
+              [0m↗[0m
+            [36m</span>[39m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-expanded[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lp-topic"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"lp-topic-num"[39m
+            [36m>[39m
+              [0m02[0m
+            [36m</span>[39m
+            [36m<span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"lp-topic-title"[39m
+              [36m>[39m
+                [0mmailbot asks to use Fabric Inbox[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"lp-meta"[39m
+              [36m>[39m
+                [0mAccess request[0m
+              [36m</span>[39m
+            [36m</span>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"lp-topic-end"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"lp-pill "[39m
+              [36m>[39m
+                [0mAccess request[0m
+              [36m</span>[39m
+              [36m<small>[39m
+                [0m23d[0m
+              [36m</small>[39m
+            [36m</span>[39m
+            [36m<span[39m
+              [33maria-hidden[39m=[32m"true"[39m
+            [36m>[39m
+              [0m↗[0m
+            [36m</span>[39m
+          [36m</button>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"lp-panel-foot"[39m
+          [36m>[39m
+            [36m<span>[39m
+              [0mAll projects · viewing does not close an obligation[0m
+            [36m</span>[39m
+          [36m</div>[39m
+        [36m</section>[39m
+        [36m<section[39m
+          [33maria-labelledby[39m=[32m"topic-title"[39m
+          [33mclass[39m=[32m"lp-detail"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"lp-panel-head"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"lp-kicker"[39m
+            [36m>[39m
+              [0mAccess request[0m
+            [36m</p>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Close the details"[39m
+              [33mclass[39m=[32m"lp-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0m×[0m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<h3[39m
+            [33mid[39m=[32m"topic-title"[39m
+            [33mtabindex[39m=[32m"-1"[39m
+          [36m>[39m
+            [0mmailbot asks to use Fabric Inbox[0m
+          [36m</h3>[39m
+          [36m<dl[39m
+            [33mclass[39m=[32m"lp-facts"[39m
+          [36m>[39m
+            [36m<div>[39m
+              [36m<dt>[39m
+                [0mState[0m
+              [36m</dt>[39m
+              [36m<dd>[39m
+                [0mNeeds attention[0m
+              [36m</dd>[39m
+            [36m</div>[39m
+            [36m<div>[39m
+              [36m<dt>[39m
+                [0mWaiting[0m
+              [36m</dt>[39m
+              [36m<dd>[39m
+                [0m23d[0m
+              [36m</dd>[39m
+            [36m</div>[39m
+          [36m</dl>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"lp-divider"[39m
+          [36m/>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"lp-actions"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"lp-meta"[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0mAllowed[0m
+            [36m</span>[39m
+          [36m</div>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"lp-meta"[39m
+          [36m>[39m
+            [0mThe answer and its receipt stay with the question or result they belong to.[0m
+          [36m</p>[39m
+        [36m</section>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"lp"[39m
+      [33mdata-launch-view[39m=[32m"launch-board"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"lp-actions lp-board-chat"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"lp-button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0mDiscuss with Fabric ↗[0m
+        [36m</button>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"fp-strip"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33maria-label[39m=[32m"Fabric · personal avatar"[39m
+          [33mclass[39m=[32m"fp-face fp-face-tiny"[39m
+          [33mdata-avatar-seed[39m=[32m"731"[39m
+          [33mdata-avatar-style[39m=[32m"orbit"[39m
+          [33mrole[39m=[32m"img"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mviewBox[39m=[32m"0 0 120 120"[39m
+          [36m>[39m
+            [36m<rect[39m
+              [33mheight[39m=[32m"116"[39m
+              [33mrx[39m=[32m"36"[39m
+              [33mstyle[39m=[32m"fill: var(--avatar-orbit-0);"[39m
+              [33mwidth[39m=[32m"116"[39m
+              [33mx[39m=[32m"2"[39m
+              [33my[39m=[32m"2"[39m
+            [36m/>[39m
+            [36m<circle[39m
+              [33mcx[39m=[32m"38"[39m
+              [33mcy[39m=[32m"30"[39m
+              [33mr[39m=[32m"22"[39m
+              [33mstyle[39m=[32m"fill: var(--avatar-orbit-2);"[39m
+            [36m/>[39m
+            [36m<circle[39m
+              [33mcx[39m=[32m"96"[39m
+              [33mcy[39m=[32m"99"[39m
+              [33mopacity[39m=[32m".2"[39m
+              [33mr[39m=[32m"36"[39m
+              [33mstyle[39m=[32m"fill: var(--avatar-orbit-1);"[39m
+            [36m/>[39m
+            [36m<g[39m
+              [33mtransform[39m=[32m"rotate(-2 60 60)"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M27 43Q31 24 60 27Q89 24 93 43L98 79Q95 100 60 103Q25 100 22 79Z"[39m
+                [33mstyle[39m=[32m"fill: var(--avatar-orbit-1);"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M34 43Q60 36 86 43M31 50Q60 39 89 50"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"3"[39m
+                [33mstyle[39m=[32m"stroke: var(--avatar-orbit-2);"[39m
+              [36m/>[39m
+              [36m<rect[39m
+                [33mheight[39m=[32m"29"[39m
+                [33mrx[39m=[32m"14"[39m
+                [33mstyle[39m=[32m"fill: var(--avatar-orbit-3);"[39m
+                [33mwidth[39m=[32m"60"[39m
+                [33mx[39m=[32m"30"[39m
+                [33my[39m=[32m"55"[39m
+              [36m/>[39m
+              [36m<rect[39m
+                [33mheight[39m=[32m"7"[39m
+                [33mrx[39m=[32m"3"[39m
+                [33mstyle[39m=[32m"fill: var(--avatar-orbit-2);"[39m
+                [33mwidth[39m=[32m"6"[39m
+                [33mx[39m=[32m"41"[39m
+                [33my[39m=[32m"62"[39m
+              [36m/>[39m
+              [36m<rect[39m
+                [33mheight[39m=[32m"11"[39m
+                [33mrx[39m=[32m"3"[39m
+                [33mstyle[39m=[32m"fill: var(--avatar-orbit-2);"[39m
+                [33mwidth[39m=[32m"6"[39m
+                [33mx[39m=[32m"73"[39m
+                [33my[39m=[32m"62"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M50 91q10 6 20 0"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"3"[39m
+                [33mstyle[39m=[32m"stroke: var(--avatar-orbit-0);"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M59 28v-8"[39m
+                [33mstroke-width[39m=[32m"3"[39m
+                [33mstyle[39m=[32m"stroke: var(--avatar-orbit-3);"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"59"[39m
+                [33mcy[39m=[32m"17"[39m
+                [33mr[39m=[32m"5"[39m
+                [33mstyle[39m=[32m"fill: var(--avatar-orbit-2);"[39m
+              [36m/>[39m
+            [36m</g>[39m
+            [36m<circle[39m
+              [33mcx[39m=[32m"17"[39m
+              [33mcy[39m=[32m"91"[39m
+              [33mr[39m=[32m"4"[39m
+              [33mstyle[39m=[32m"fill: var(--avatar-orbit-2);"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+        [36m</span>[39m
+        [36m<div>[39m
+          [36m<b>[39m
+            [0mFabric[0m
+          [36m</b>[39m
+          [36m<span>[39m
+            [0mLast observation · 02:00 AM · all projects[0m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"lp-heading"[39m
+      [36m>[39m
+        [36m<div>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"lp-kicker"[39m
+          [36m>[39m
+            [0mAttention board[0m
+          [36m</p>[39m
+          [36m<h2[39m
+            [33mtabindex[39m=[32m"-1"[39m
+          [36m>[39m
+            [0mWhat to work through now[0m
+          [36m</h2>[39m
+          [36m<p>[39m
+            [0mTopics, questions and results that need the next decision.[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"lp-actions"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-pressed[39m=[32m"false"[39m
+            [33mclass[39m=[32m"lp-button primary"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mStart the review[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33mclass[39m=[32m"lp-button"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0m+ Add a topic[0m
+          [36m</button>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"lp-board-layout"[39m
+      [36m>[39m
+        [36m<section[39m
+          [33maria-label[39m=[32m"What to work through now"[39m
+          [33mclass[39m=[32m"lp-panel"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33maria-label[39m=[32m"Which topics to show"[39m
+            [33mclass[39m=[32m"lp-tabs"[39m
+            [33mrole[39m=[32m"group"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-pressed[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lp-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCurrent[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-pressed[39m=[32m"false"[39m
+              [33mclass[39m=[32m"lp-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mNext time[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-pressed[39m=[32m"false"[39m
+              [33mclass[39m=[32m"lp-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mResolved[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-pressed[39m=[32m"false"[39m
+              [33mclass[39m=[32m"lp-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mAll topics[0m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<button[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33mclass[39m=[32m"lp-topic"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"lp-topic-num"[39m
+            [36m>[39m
+              [0m01[0m
+            [36m</span>[39m
+            [36m<span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"lp-topic-title"[39m
+              [36m>[39m
+                [0mResearch desk asks to use Fabric Inbox[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"lp-meta"[39m
+              [36m>[39m
+                [0mAccess request[0m
+              [36m</span>[39m
+            [36m</span>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"lp-topic-end"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"lp-pill "[39m
+              [36m>[39m
+                [0mAccess request[0m
+              [36m</span>[39m
+              [36m<small>[39m
+                [0m23d[0m
+              [36m</small>[39m
+            [36m</span>[39m
+            [36m<span[39m
+              [33maria-hidden[39m=[32m"true"[39m
+            [36m>[39m
+              [0m↗[0m
+            [36m</span>[39m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-expanded[39m=[32m"true"[39m
+            [33mclass[39m=[32m"lp-topic"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"lp-topic-num"[39m
+            [36m>[39m
+              [0m02[0m
+            [36m</span>[39m
+            [36m<span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"lp-topic-title"[39m
+              [36m>[39m
+                [0mmailbot asks to use Fabric Inbox[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"lp-meta"[39m
+              [36m>[39m
+                [0mAccess request[0m
+              [36m</span>[39m
+            [36m</span>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"lp-topic-end"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"lp-pill "[39m
+              [36m>[39m
+                [0mAccess request[0m
+              [36m</span>[39m
+              [36m<small>[39m
+                [0m23d[0m
+              [36m</small>[39m
+            [36m</span>[39m
+            [36m<span[39m
+              [33maria-hidden[39m=[32m"true"[39m
+            [36m>[39m
+              [0m↗[0m
+            [36m</span>[39m
+          [36m</button>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"lp-panel-foot"[39m
+          [36m>[39m
+            [36m<span>[39m
+              [0mAll projects · viewing does not close an obligation[0m
+            [36m</span>[39m
+          [36m</div>[39m
+        [36m</section>[39m
+        [36m<section[39m
+          [33maria-labelledby[39m=[32m"topic-title"[39m
+          [33mclass[39m=[32m"lp-detail"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"lp-panel-head"[39m
+          [36m>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"lp-kicker"[39m
+            [36m>[39m
+              [0mAccess request[0m
+            [36m</p>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Close the details"[39m
+              [33mclass[39m=[32m"lp-button"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0m×[0m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<h3[39m
+            [33mid[39m=[32m"topic-title"[39m
+            [33mtabindex[39m=[32m"-1"[39m
+          [36m>[39m
+            [0mmailbot asks to use Fabric Inbox[0m
+          [36m</h3>[39m
+          [36m<dl[39m
+            [33mclass[39m=[32m"lp-facts"[39m
+          [36m>[39m
+            [36m<div>[39m
+              [36m<dt>[39m
+                [0mState[0m
+              [36m</dt>[39m
+              [36m<dd>[39m
+                [0mNeeds attention[0m
+              [36m</dd>[39m
+            [36m</div>[39m
+            [36m<div>[39m
+              [36m<dt>[39m
+                [0mWaiting[0m
+              [36m</dt>[39m
+              [36m<dd>[39m
+                [0m23d[0m
+              [36m</dd>[39m
+            [36m</div>[39m
+          [36m</dl>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"lp-divider"[39m
+          [36m/>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"lp-actions"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"lp-meta"[39m
+              [33mrole[39m=[32m"status"[39m
+            [36m>[39m
+              [0mAllowed[0m
+            [36m</span>[39m
+          [36m</div>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"lp-meta"[39m
+          [36m>[39m
+            [0mThe answer and its receipt stay with the question or result they belong to.[0m
+          [36m</p>[39m
+        [36m</section>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper ../../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ ../../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/renderer/src/launch/BoardScreen.test.tsx:537:25
+    535|     await waitFor(() => expect(decide).toHaveBeenCalledWith('req-1', '…
+    536|     await openRow(title('mailbot'))
+    537|     expect(await screen.findByRole('button', { name: 'Deny mailbot' })…
+       |                         ^
+    538|     expect(screen.getByRole('button', { name: 'Allow mailbot' })).toBe…
+    539|     expect(screen.queryByText(en['access.allowedHere'])).toBeNull()
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  src/renderer/src/launch/BoardScreen.test.tsx > the board's fact grid is the prototype's (UX-4, iteration 2) > a row's State and Waiting facts sit in the prototype's grid, not one stacked column
+AssertionError: expected 'flex' to be 'grid' // Object.is equality
+
+Expected: "grid"
+Received: "flex"
+
+ ❯ src/renderer/src/launch/BoardScreen.test.tsx:570:44
+    568|       await openRow()
+    569|       const dl = await waitFor(() => document.querySelector('dl.lp-fac…
+    570|       expect(getComputedStyle(dl).display).toBe('grid')
+       |                                            ^
+    571|     } finally { el.remove() }
+    572|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  src/renderer/src/launch/ObligationActs.test.tsx > an access request in the queue > UX-3 (iteration 2): a long mailbox wraps inside the queue's detail, so the whole resource can be read before Allow
+AssertionError: expected 'normal' to be 'anywhere' // Object.is equality
+
+Expected: "anywhere"
+Received: "normal"
+
+ ❯ src/renderer/src/launch/ObligationActs.test.tsx:102:106
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  5 failed | 53 skipped (58)
+   Start at  11:26:45
+   Duration  11.34s (transform 611ms, setup 415ms, import 711ms, tests 20.37s, environment 1.89s)
+
+undefined
+/Users/sshlg/DATA/_worktrees/hubfix2-surface-resume/apps/desktop:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/renderer/src/AgentAccessPanel.test.tsx src/renderer/src/launch/BoardScreen.test.tsx src/renderer/src/launch/ObligationActs.test.tsx -t 'allowing one request|while a Reconnect waits|a long mailbox|fact grid'

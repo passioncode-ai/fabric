@@ -42,6 +42,8 @@
 // CEO. This is the half of the card that is about SHIPPED code.
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { BoardScreen } from './BoardScreen'
 import { I18nProvider } from '../i18n'
@@ -50,6 +52,8 @@ import { checkProposalDecision, type Rejection } from '../../../shared/proposals
 import type { AttentionItem, ProjectRow } from '../../../shared/types'
 import { boardEntries, cutBoard, type BoardCut } from '../../../shared/board'
 import { envelope, type ReadEnvelope } from '../../../shared/readEnvelope'
+import { attentionOf } from '../../../shared/attention'
+import { pendingFacts } from '../../../shared/access'
 
 afterEach(() => {
   cleanup()
@@ -499,5 +503,71 @@ describe('one project\'s board, opened at one row (SCR-31 → SCR-41)', () => {
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Which context goes to the next agent?' })).toBeTruthy())
     for (const read of [board.query, board.resolved, board.deferred]) expect(read.mock.calls[0]).toEqual([{ projectId: 'p1', limit: expect.any(Number) }])
     expect(screen.getByText(en['launch.board.footProject'].replace('{project}', 'Atlas'))).toBeTruthy()
+  })
+})
+
+// Verification iteration 2 for 0.3.1, UX-1 (blocking): the detail pane rendered the acts of whichever row
+// was chosen with no key, so the access acts kept their own answer when another row was opened — the
+// second request said "Allowed" though nobody answered it, and it offered no Deny or Allow.
+describe('an access request\'s answer belongs to that request (UX-1, iteration 2)', () => {
+  const two = attentionOf({ reviews: [], expired: [], refusals: [], proposals: [], names: {}, access: [
+    pendingFacts({ id: 'req-1', agent_id: 'research-desk.default', callee: 'fabric-inbox', capabilities: ['read_message'], resources: ['cloudflare:news@example.com'],
+      reason: 'summarise the newsletter', asked_by_binding: null, requested_at: STAMP, expires_at: '2099-01-01T00:00:00Z', registry: { name: 'Research desk' } }, true),
+    pendingFacts({ id: 'req-2', agent_id: 'mailbot', callee: 'fabric-inbox', capabilities: ['send_email'], resources: ['cloudflare:support@example.com'],
+      reason: 'answer the support box', asked_by_binding: null, requested_at: STAMP, expires_at: '2099-01-01T00:00:00Z', registry: null }, true)
+  ] } as unknown as Parameters<typeof attentionOf>[0])
+  const stubAccess = () => {
+    // The queue is read back unchanged: the projection has not caught up with the decision yet.
+    const query = vi.fn(async () => whole(two))
+    const decide = vi.fn(async () => ({ ok: true }))
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
+      fabric: { board: { query, resolved: vi.fn(async () => noneResolved), deferred: vi.fn(async () => noneResolved) }, hub: { decide }, proposals: { decide: vi.fn() }, attention: { grant: vi.fn() } }
+    }))
+    return { query, decide }
+  }
+  const title = (name: string) => en['access.queue.title'].replace('{name}', name).replace('{product}', 'Fabric Inbox')
+
+  it('allowing one request and opening the next shows the next one\'s own Deny and Allow', async () => {
+    const { decide } = stubAccess()
+    render_()
+    await openRow(title('Research desk'))
+    fireEvent.click(await screen.findByRole('button', { name: 'Allow Research desk' }))
+    await waitFor(() => expect(decide).toHaveBeenCalledWith('req-1', 'allowed'))
+    await openRow(title('mailbot'))
+    expect(await screen.findByRole('button', { name: 'Deny mailbot' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Allow mailbot' })).toBeTruthy()
+    expect(screen.queryByText(en['access.allowedHere'])).toBeNull()
+    expect(decide).toHaveBeenCalledTimes(1)
+  })
+
+  it('and the same after Deny; the board is read again and keeps saying what was decided about whom', async () => {
+    const { decide, query } = stubAccess()
+    render_()
+    await openRow(title('Research desk'))
+    const reads = query.mock.calls.length
+    fireEvent.click(await screen.findByRole('button', { name: 'Deny Research desk' }))
+    await waitFor(() => expect(decide).toHaveBeenCalledWith('req-1', 'denied'))
+    await waitFor(() => expect(query.mock.calls.length).toBeGreaterThan(reads))
+    await openRow(title('mailbot'))
+    expect(await screen.findByRole('button', { name: 'Allow mailbot' })).toBeTruthy()
+    expect(screen.queryByText(en['access.deniedHere'])).toBeNull()
+    expect(screen.getByText(en['access.queue.denied'].replace('{name}', 'Research desk').replace('{product}', 'Fabric Inbox'))).toBeTruthy()
+  })
+})
+
+// Verification iteration 2 for 0.3.1, UX-4: an unscoped `.lp-facts{display:flex}` added for the access block
+// came after the prototype's grid and flattened every fact grid on the board and the releases screen.
+describe('the board\'s fact grid is the prototype\'s (UX-4, iteration 2)', () => {
+  it('a row\'s State and Waiting facts sit in the prototype\'s grid, not one stacked column', async () => {
+    const el = document.createElement('style')
+    el.textContent = readFileSync(path.join(process.cwd(), 'src/renderer/src/launch/launch.css'), 'utf8')
+    document.head.appendChild(el)
+    try {
+      stub({ ok: true })
+      render_()
+      await openRow()
+      const dl = await waitFor(() => document.querySelector('dl.lp-facts') as HTMLElement)
+      expect(getComputedStyle(dl).display).toBe('grid')
+    } finally { el.remove() }
   })
 })

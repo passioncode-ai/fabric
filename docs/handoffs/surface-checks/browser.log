@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "locale": "en",
+      "theme": "light",
+      "viewport": 760,
+      "longPanel": "PASS",
+      "longBoard": "PASS",
+      "factGrid": "grid",
+      "waiting": "PASS",
+      "panelFocus": "PASS",
+      "boardFocus": "PASS"
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "viewport": 760,
+      "longPanel": "PASS",
+      "longBoard": "PASS",
+      "factGrid": "grid",
+      "waiting": "PASS",
+      "panelFocus": "PASS",
+      "boardFocus": "PASS"
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "viewport": 760,
+      "longPanel": "PASS",
+      "longBoard": "PASS",
+      "factGrid": "grid",
+      "waiting": "PASS",
+      "panelFocus": "PASS",
+      "boardFocus": "PASS"
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "viewport": 760,
+      "longPanel": "PASS",
+      "longBoard": "PASS",
+      "factGrid": "grid",
+      "waiting": "PASS",
+      "panelFocus": "PASS",
+      "boardFocus": "PASS"
+    }
+  ]
+}
