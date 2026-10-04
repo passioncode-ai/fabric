@@ -155,3 +155,20 @@ plus two new defects in the unsaved-work answer. What changed, again in the impl
 - **Not reproduced, fixed by construction:** the stale-claim race (L1) was rare in the reviewer's runs (one
   double holder in 60 rounds); a regression test keeps the shape, but it passes on the old code too.
 
+## Third amendment — the scheduled sync in launchd's environment (2026-10-04)
+
+Every scheduled run of `ai.passioncode.fabric-workspace-sync` from 2026-10-03 13:12Z to 2026-10-04 01:21Z
+failed at `publish`, in the fast gate, while the same gate passed in a shell. Two causes were the job's
+environment, not the code under test:
+
+- **No locale.** launchd gives a job none, and on macOS a postmaster without one exits at start
+  ("postmaster became multithreaded during startup"), so the gate's owned-cluster runners failed
+  (reproduced with `env -i`). PostgreSQL's programs now get `LC_ALL=C` when the caller set no locale
+  (`apps/desktop/test/helpers/pg-env.mjs`), and the installer writes the shell's `LANG` into the plist.
+- **§3's `ProcessType Background` was wrong for this job.** It confines the job to efficiency cores and
+  throttles it; the gate has deadlines inside it, and at load ~30 three renderer tests and the vitest
+  worker pool timed out. The job is now `ProcessType Standard`, still `Nice 10` with `LowPriorityIO`.
+
+The other failures in those runs were load-sensitive tests; the one that failed on a missing pid file
+(`executor-detect.test.mjs`) now gives its hung probe time to start its child.
+

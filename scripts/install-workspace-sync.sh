@@ -118,7 +118,10 @@ cat >"$PLIST" <<PLIST
   <key>RunAtLoad</key><false/>
   <key>LowPriorityIO</key><true/>
   <key>Nice</key><integer>10</integer>
-  <key>ProcessType</key><string>Background</string>
+  <!-- Standard, not Background: Background confines the job to efficiency cores and throttles it, and the fast
+       gate it runs has deadlines inside (vitest test and worker timeouts) — at load ~30 three tests timed out
+       (2026-10-04). Nice and LowPriorityIO keep it polite to the person. -->
+  <key>ProcessType</key><string>Standard</string>
   <!-- Longer than the job's own stop path (it kills its step groups and writes its status). -->
   <key>ExitTimeOut</key><integer>30</integer>
   <key>StandardOutPath</key><string>$LOG</string>
