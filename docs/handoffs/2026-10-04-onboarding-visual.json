@@ -132,5 +132,14 @@
     "candidate_main_within_viewport": 8,
     "candidate_scroll_extent_present": 8,
     "tier": "actual-hidden-Electron44-initial-rendered-viewport-not-native-user-interaction-acceptance"
+  },
+  "remote_cold_delivery": {
+    "revision": "13b272fb85d7ec2e28a534099d3285bb3b1c6a68",
+    "remote_branch_verified": true,
+    "fresh_sparse_remote_checkout": true,
+    "task_files_byte_equal": 78,
+    "png_receipt_hashes_valid": 35,
+    "entry_links_resolve": true,
+    "tier": "durable-source-and-artifact-delivery-not-integration"
   }
 }
