@@ -1,0 +1,82 @@
+{
+  "format": "fabric-co179-fixture-author-checks/1",
+  "asOf": "2026-10-04",
+  "base": "ff7eb7f3a955fc43a30b302c1a68e3fee2d896c0",
+  "dossierRevision": "484600a338f2c413333e57c09a28712b8559c401",
+  "branch": "codex/co179-native-fixture-20261004",
+  "scope": "two test-host source files and unguarded source handoff receipts only",
+  "checks": [
+    {
+      "command": "node --test apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+      "phase": "RED before implementation",
+      "exitCode": 1,
+      "observedFailure": "missing CO179 synthetic native fixture capability; AD02 read stubs cannot cover the visual state matrix"
+    },
+    {
+      "command": "pnpm install --offline --frozen-lockfile --ignore-scripts",
+      "exitCode": 0,
+      "dependencyChanges": false
+    },
+    {
+      "command": "pnpm --filter @fabric/desktop build",
+      "exitCode": 0,
+      "mainLoadedByFixture": false
+    },
+    {
+      "command": "node --check apps/desktop/test/onboarding-visual-native-harness.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+      "phase": "GREEN final source",
+      "exitCode": 0,
+      "tests": 11,
+      "pass": 11,
+      "skip": 0
+    },
+    {
+      "command": "<existing Electron44 development binary> apps/desktop/test/onboarding-visual-native-harness.mjs --fixture <owned temp> --probe",
+      "exitCode": 0,
+      "cases": 7,
+      "pass": 7,
+      "tier": "synthetic-native-test-host-capability",
+      "receipt": "2026-10-04-onboarding-native-fixture-probes.json"
+    },
+    {
+      "command": "node scripts/check-regions.mjs",
+      "exitCode": 0,
+      "markers": 116,
+      "allReferencesResolve": true
+    },
+    {
+      "command": "git diff --cached --check",
+      "exitCode": 0
+    }
+  ],
+  "notRun": [
+    "full converged fast/app gate",
+    "CUA screenshots",
+    "styled native matrix",
+    "AD02 acceptance",
+    "real CLI/providers",
+    "live stack/DB/vault/OS chooser/create",
+    "hosted CI",
+    "release",
+    "installation",
+    "wiki sync",
+    "report index"
+  ],
+  "firstNextTask": "Root/visual author imports exact host files, rebuilds own checkout and prepares fresh pinned fixtures; replay containment/native capability then drive styled matrix in CUA, independently prove AD02; root owns convergence gate and shared registers.",
+  "finalNativeBinding": {
+    "hostSha256": "f6e76f0576ebb6aa79a9ec7f45f9709897a4c5841967914e0d10d48107d4a70e",
+    "productSourceRevision": "ff7eb7f3a955fc43a30b302c1a68e3fee2d896c0",
+    "sourceFiles": 472,
+    "buildFiles": 190,
+    "captureTier": "source-bound-rendering-evidence",
+    "CUAAcceptance": "NOT_RUN",
+    "baselinePNG": {
+      "path": "2026-10-04-onboarding-native-fixture-baseline.png",
+      "sha256": "365ec65620c70b56972e8d7e9900ed1f95a7a2d1b57e0950233e32f5379b488e"
+    }
+  }
+}
