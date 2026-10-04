@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "source_commit": "b85c9c3cb5dc7e3876c358539bcde578759e731f",
-  "workspace_commit": "898a3cb4af9bd9dfa8b507fce28bdb008295596c",
-  "content_digest": "e925d3430b2c222a379dec19d5e60fe25e2ad28a60b642f077b599d5a03f0879",
+  "workspace_commit": "fc19159515e23feee3b9b1438ec92775f0c960ed",
+  "content_digest": "c99d21d9b62caef3fe3bae4a37d407a646906c431bc739ffd25d00269e896805",
   "heroku_app": "passioncode-fabric-workspace",
-  "release": 149,
+  "release": 150,
   "fabric_digest": "7e1b12f38e6366ee856f0e212f9f5a8260210898a14fe88d41f7fc83a0bb130c",
   "sources": [
     {
@@ -22,8 +22,8 @@
     {
       "id": "fabric-agent-adapter",
       "repository": "https://github.com/passioncode-ai/fabric-agent-adapter",
-      "commit": "46acc8bb774dbdb1e27022e566bcd0076221bea9",
-      "files_digest": "29e6d8ba38e066d583e1212dc3478ff83a238945c55919e98a66e15c6ec66157"
+      "commit": "907acb286abe55c627bfeb4500906b76d0284e81",
+      "files_digest": "68cf8e5bcbcbecba791af0aae87f5e122d2d7ba3cadb224dfabcab85c51d4623"
     },
     {
       "id": "fabric-inbox",
