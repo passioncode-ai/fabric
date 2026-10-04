@@ -2,7 +2,7 @@
 
 ## Objective and completed work
 
-Resume Claude's last work, research each canonical lane, preserve accepted priority, design cold-agent context and dependency/impact mechanism, execute first available prerequisite. Source baseline41f994a7; own branch `agent/unified-plan-20261004`, report id `fabric/2026-10-04-unified-execution`. Start at [README](README.md).
+Resume Claude's last work, research each canonical lane, preserve accepted priority, design cold-agent context and dependency/impact mechanism, execute first available prerequisite. Source baseline41f994a7; integration branch `agent/unified-plan-land-20261004`; original research checkpoint branch `agent/unified-plan-20261004` retained, report id `fabric/2026-10-04-unified-execution`. Start at [README](README.md).
 
 Completed: CO179 bounded preparation dossier, with two independent review corrections and explicit implementation blockers; sanitized recovery; publication outcome/lag read; twelve-lane research with53 primary records; all250 canonical ids covered; source-pinned queue/context/impact compiler; independent reviewers found6 guard omissions now covered by13 focused tests; actual P08 gate refusal measured, exact provider versions read. Canonical statuses unchanged. No live provider model turn, database migration, install or release approval.
 

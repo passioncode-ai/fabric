@@ -86,7 +86,7 @@ node scripts/unified-plan.mjs impacts P-08
 
 53 source records (51 distinct URLs) are primary official documentation, developer-authored issue/discussion/forum reports and research authors. Forum/issue observations are hypotheses to reproduce on the pinned build; they do not amend accepted ADRs. Every cross-lane finding names its affected canonical task and [disposition](impacts.json). Closed CO-079 was corrected to accepted ADR0023; its remaining context-mapping input belongs to open CO-059. A researcher's disproved event-count hypothesis is retained as retracted.
 
-Native/provider/hosted checks NOT_RUN are listed in the execution receipt. Private commercial report details, machine credentials and raw conversation exports are excluded from this public repository. The private report remains in its own owner and is only a scoped dependency, never a copied architecture proposal here.
+Native/provider/full hosted checks NOT_RUN are listed in the execution receipt. Private commercial report details, machine credentials and raw conversation exports are excluded from this public repository. The private report remains in its own owner and is only a scoped dependency, never a copied architecture proposal here.
 
 ## Used skills
 

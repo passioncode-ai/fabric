@@ -1,0 +1,11 @@
+{
+  "source_commit": "10ad2e5e6634bcdee96628d4afa930d975509bf3",
+  "run": 37193770136,
+  "url": "https://github.com/passioncode-ai/fabric/actions/runs/37193770136",
+  "result": "FAILURE",
+  "check": "source-and-snapshot",
+  "exact_reason": "Workspace is stale; finish source changes, commit, then node scripts/workspace.mjs publish.",
+  "disposition": "Expected before the source/child/pin two-commit chain is finished; preserve the gate and publish before integration.",
+  "other_automatic_checks": "fast job in progress at observation; gate skipped by event policy",
+  "full_nightly": "NOT_RUN; not dispatched by this run"
+}
