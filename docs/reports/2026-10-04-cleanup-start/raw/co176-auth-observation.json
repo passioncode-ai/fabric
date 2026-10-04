@@ -1,0 +1,243 @@
+{
+  "schema": "fabric-co176-status-receipt/1",
+  "project": "fabric",
+  "parent": "CO-176",
+  "as_of": "2026-10-04",
+  "written_at": "2026-10-04T13:52:35.925562+00:00",
+  "runtime": "darwin-arm64",
+  "proof_tier": "vendor-supported-read-only-status; not-native-ui-or-model-turn",
+  "observed": [
+    {
+      "provider": "claude-code",
+      "installed_on_path": true,
+      "version": {
+        "command": "claude --version",
+        "kind": "completed",
+        "exit_code": 0,
+        "duration_ms": 16,
+        "captured_bytes": 22,
+        "value": "2.1.289"
+      },
+      "status_help": {
+        "command": "claude auth status --help",
+        "kind": "completed",
+        "exit_code": 0,
+        "duration_ms": 69,
+        "captured_bytes": 196,
+        "supported_status_syntax": true,
+        "json_flag_advertised": true
+      },
+      "authentication": {
+        "command": "claude auth status --json",
+        "kind": "completed",
+        "exit_code": 0,
+        "duration_ms": 184,
+        "captured_bytes": 352,
+        "authenticated": true,
+        "method": "claude.ai",
+        "status": "authenticated"
+      }
+    },
+    {
+      "provider": "codex-cli",
+      "installed_on_path": true,
+      "version": {
+        "command": "codex --version",
+        "kind": "completed",
+        "exit_code": 0,
+        "duration_ms": 14,
+        "captured_bytes": 18,
+        "value": "0.160.0"
+      },
+      "status_help": {
+        "command": "codex login --help",
+        "kind": "completed",
+        "exit_code": 0,
+        "duration_ms": 13,
+        "captured_bytes": 1226,
+        "supported_status_syntax": true,
+        "json_flag_advertised": false
+      },
+      "authentication": {
+        "command": "codex login status",
+        "kind": "completed",
+        "exit_code": 0,
+        "duration_ms": 24,
+        "captured_bytes": 24,
+        "authenticated": true,
+        "method": "chatgpt",
+        "status": "authenticated"
+      }
+    }
+  ],
+  "limits": {
+    "deadline_seconds": 8,
+    "combined_stdout_stderr_bytes": 32768,
+    "owned_process_group_killed_on_timeout_or_oversize": true
+  },
+  "privacy": "Raw output captured only in bounded process memory and never printed or saved. Report retains boolean, method/status enum, build and command metrics. No account id, email, config path, token, login flow, model turn, credential-file or manual Keychain access.",
+  "unverified": [
+    "Live signed-out state (only current signed-in states observed)",
+    "Stable subject/org identity",
+    "Capability matrix identity-reader/subject/managed-profile acceptance",
+    "Model access, quota, connectivity, execution/admission",
+    "Native FirstRun interaction/visual acceptance",
+    "Login and credential writer isolation"
+  ],
+  "implementation": {
+    "reader_passports": [
+      {
+        "provider": "claude-code",
+        "build": "2.1.289",
+        "runtime": "darwin-arm64",
+        "command": [
+          "auth",
+          "status",
+          "--json"
+        ]
+      },
+      {
+        "provider": "codex",
+        "build": "0.160.0",
+        "runtime": "darwin-arm64",
+        "command": [
+          "login",
+          "status"
+        ]
+      }
+    ],
+    "contract": "Strict status-only parser. Unknown vendor/build/runtime never invokes status. Claude requires loggedIn boolean with matching exit 0/1; Codex accepts exact ChatGPT/Not logged in text with matching exit. API-key-bearing and other unmeasured Codex formats remain unknown. Only whitelisted method survives.",
+    "deadline_ms": 8000,
+    "total_output_bytes": 32768,
+    "drain_ms": 100,
+    "process_cleanup": "Detached owned group stopped on failure AND normal exit, streams destroyed and raw strings discarded. Same resolved executable and supplied session environment as version detection.",
+    "writers": [
+      "main/executorAuth.ts",
+      "main/executorDetect.ts"
+    ],
+    "consumers": [
+      "shared/startPaths.ts ExecutorAuthentication/ExecutorRow",
+      "preload start.executors existing IPC",
+      "renderer start/FirstRun.tsx"
+    ],
+    "no_persistence": true,
+    "fixture_platform_contract": "POSIX helper cases explicitly inject supported darwin/arm64 fixture passport; actual detect uses actual runtime and asserts unsupported/no invocation elsewhere. Linux/x64/Windows unsupported controls passed locally. Hosted Linux was NOT_RUN; Windows process fixtures explicitly SKIP."
+  },
+  "checks": [
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/executor-auth.test.mjs",
+      "result": "RED against baseline: assertion authenticated got undefined, exit 1; GREEN after implementation exit 0",
+      "negative_controls": [
+        "string boolean",
+        "mismatched exit code",
+        "secret-bearing stderr",
+        "missing executable",
+        "timeout",
+        "combined stdout+stderr byte overflow",
+        "unknown vendor/build/runtime no invocation",
+        "unknown method removed",
+        "same profile env",
+        "normal-exit descendant killed",
+        "unrecognized Codex API-key syntax"
+      ]
+    },
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/executor-detect.test.mjs",
+      "result": "PASS exit 0; real disposable processes and bounded asynchronous filesystem cases"
+    },
+    {
+      "command": "pnpm exec vitest run src/renderer/src/start/StartPaths.test.tsx (cwd apps/desktop)",
+      "result": "35 tests / 1 file PASS exit 0; jsdom only; all auth states, continuation, recheck fence and pending skip/unmount/late-result/re-entry included"
+    },
+    {
+      "command": "pnpm typecheck (cwd apps/desktop)",
+      "result": "PASS exit 0; tsc node and web"
+    },
+    {
+      "command": "node scripts/check-regions.mjs",
+      "result": "PASS 116 region markers; all docs references resolve, exit 0"
+    },
+    {
+      "command": "git diff --check -- apps/desktop",
+      "result": "PASS exit 0"
+    }
+  ],
+  "sourcehashes": [
+    {
+      "path": "apps/desktop/src/main/executorAuth.ts",
+      "sha256": "41930848800793f8bcb2d56bb1dcba6570bd655f2168355fcb9b2fbe8aff2c11",
+      "bytes": 4856,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "apps/desktop/src/main/executorDetect.ts",
+      "sha256": "7b53af20ca36094f19c122812b031872d72b8d316ff34a7262adc8d2f330f21f",
+      "bytes": 11764,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "apps/desktop/src/shared/startPaths.ts",
+      "sha256": "02f0b15bea5a76e66ffd54e916e174f4087d2c233cc1b1c3d79c0d223d1e682f",
+      "bytes": 9677,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/start/FirstRun.tsx",
+      "sha256": "ba7b615831f113888f394320c41fbd1aa2c3804efddaf6b542c42a46ba9cce1a",
+      "bytes": 12357,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/i18n/en.ts",
+      "sha256": "159ea0ccf239367a6f19771168f3ecfcc0c58fecaeeae80281228a5da430d44f",
+      "bytes": 112966,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/i18n/ru.ts",
+      "sha256": "72429f5941b0a7e17e46d1b03742fa7fec24f12573e517323dc51102109ee2c4",
+      "bytes": 150278,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "apps/desktop/test/executor-auth.test.mjs",
+      "sha256": "656bce52741e285480e6cb99340ea3a0a36d94ef83884b6665b8b40d321a4db5",
+      "bytes": 6354,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/start/StartPaths.test.tsx",
+      "sha256": "f0bf4f383620c3fabf8651f340059ac6b7f8c36d38e97280d248311aa9bc5ac1",
+      "bytes": 29120,
+      "provenance": "working-cut",
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "apps/desktop/src/shared/providerCapabilityMatrix.ts",
+      "sha256": "022e197741338feef03b871e8accb206927ff0eb2c413fd7416835ac93442f54",
+      "bytes": 10482,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    }
+  ],
+  "scratch_cleanup": {
+    "kind": "task-created clean unused scratch, separate from operator-old worktrees",
+    "branch": "codex/executor-auth-current-20261004",
+    "baseline": "484600a338f2c413333e57c09a28712b8559c401",
+    "action": "git worktree remove, exit 0, no force, working directory elsewhere; clean git status verified; no code/dependencies/provider process launched there",
+    "branch_status": "retained at baseline; never pushed",
+    "lsof": "NOT_RUN: extra requirement arrived after normal removal"
+  },
+  "remaining": [
+    "Parent source UX/brand register/model and focused CI propagation",
+    "Independent review/integration",
+    "Native UI acceptance NOT_RUN; do not close full CO-176 on jsdom"
+  ]
+}

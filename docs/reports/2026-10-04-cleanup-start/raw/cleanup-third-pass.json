@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "as_of": "2026-10-04",
+  "action": "third cleanup pass after the coordinating Codex session stopped with the data volume full",
+  "trigger": "df reported 100% used and about 2.0 GiB available; both Codex sessions writing Fabric work stopped logging at 15:43Z",
+  "checks": {
+    "live_writers": "per-worktree last command/commit time read from session logs; worktrees used by the still-running coordinator within the last 2.5 h were kept",
+    "worktree_removal": "plain git worktree remove only on clean trees whose branch equals its remote; --force only for the three trees holding a clean workspace submodule pinned on origin and for two dead-session trees whose uncommitted diff was archived first",
+    "temp_removal": "fabric* entries in the user temp directory whose own and first-level mtimes were older than 2 h and that no process held open; the newest cold-checkout of the running coordinator was kept",
+    "orphan_processes": "five test-fixture processes from 2026-10-03 (three slow-git fixtures, two node fixtures ignoring SIGTERM) re-parented to launchd, stopped with SIGKILL"
+  },
+  "removed": {
+    "temp_entries": 7620,
+    "temp_entries_kept": 110,
+    "temp_du_estimate_bytes": 2254857830,
+    "worktrees": 24,
+    "local_branches_deleted": 7,
+    "local_branches_archived_as_tags": 11,
+    "remote_branches_deleted": 10
+  },
+  "available_kib": {
+    "before_temp": 6247264,
+    "after_temp": 9733396,
+    "after_worktrees": 12582912
+  },
+  "branch_dispositions": {
+    "deleted_remote_merged_or_patch_equivalent": [
+      "agent/adr-agent-memory-observatory", "agent/sibling-repin", "agent/unified-plan-20261004",
+      "agent/unified-plan-land-20261004", "claude/onboarding-and-plan", "codex/org-quality-2026-10-01",
+      "codex/provider-cli-0.159.3", "docs/workspace-knowledge-20261002", "feat/release-in-ci",
+      "agent/hub-0.3.1-v2-core"
+    ],
+    "agent/hub-0.3.1-v2-core": "ancestor of fix/hub-v2-core-resume, which stays on origin",
+    "archived_local_tags": "archive/pre-public/* for eleven branches without a common ancestor with the re-created public main (ADR-0096); never pushed",
+    "archived_wip_tags": "archive/wip/hubfix2-surface-20261004 and archive/wip/hubfix2-core-20261004; their content was carried into codex/claude-recovery-20261004 (PR #11)"
+  },
+  "preserved": [
+    "every unmerged branch, locally and on origin",
+    "worktrees of the running coordinator and this iteration",
+    "the scheduled workspace sync checkout",
+    "the operator database, Docker data and other projects' worktrees"
+  ],
+  "measurement_limit": "APFS clones make du totals larger than physical reclamation; concurrent writes affect available-byte deltas."
+}

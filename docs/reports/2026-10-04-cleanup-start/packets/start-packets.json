@@ -1,0 +1,546 @@
+[
+  {
+    "schema": 1,
+    "id": "CO-176.prepare",
+    "context": {
+      "outcome": "Observe provider sign-in separately from installation/Fabric connection/stable identity/admitted work in SCN-126.",
+      "sources": [
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+        "docs/adr/0100-first-run-and-start-paths.md",
+        "docs/ux/scenarios.md",
+        "docs/ux/screens.md",
+        "docs/ux/flows.md",
+        "docs/architecture/provider-accounts.md",
+        "apps/desktop/src/shared/providerCapabilityMatrix.ts",
+        "docs/brand/voice.md",
+        "docs/brand/terminology.md",
+        "docs/brand/facts.md",
+        "docs/reports/2026-10-04-cleanup-start/raw/co176-auth-observation.json",
+        "docs/reports/2026-10-04-cleanup-start/raw/start-auth-sources.json",
+        "apps/desktop/test/executor-auth.test.mjs",
+        "apps/desktop/src/renderer/src/start/StartPaths.test.tsx"
+      ],
+      "scope": [
+        "docs/reports/2026-10-04-cleanup-start/packets/CO-176.prepare.json"
+      ],
+      "steps": [
+        "Pin exact vendor build from existing version detection",
+        "Run official status reader with same executable/environment, 8s/32KiB combined cap and owned-group cleanup",
+        "Parse strict approved fields into optional separate ExecutorAuthentication; no raw secret output survives",
+        "Render translated auth states and recovery, keep informational skip/pending continuation and latest-request/unmount fence",
+        "Parent updates canonical UX/brand/model and CI, independently reviews native surface later"
+      ],
+      "acceptance": [
+        {
+          "command": "node --experimental-strip-types apps/desktop/test/executor-auth.test.mjs",
+          "result": "RED against baseline: assertion authenticated got undefined, exit 1; GREEN after implementation exit 0",
+          "negative_controls": [
+            "string boolean",
+            "mismatched exit code",
+            "secret-bearing stderr",
+            "missing executable",
+            "timeout",
+            "combined stdout+stderr byte overflow",
+            "unknown vendor/build/runtime no invocation",
+            "unknown method removed",
+            "same profile env",
+            "normal-exit descendant killed",
+            "unrecognized Codex API-key syntax"
+          ]
+        },
+        {
+          "command": "node --experimental-strip-types apps/desktop/test/executor-detect.test.mjs",
+          "result": "PASS exit 0; real disposable processes and bounded asynchronous filesystem cases"
+        },
+        {
+          "command": "pnpm exec vitest run src/renderer/src/start/StartPaths.test.tsx (cwd apps/desktop)",
+          "result": "35 tests / 1 file PASS exit 0; jsdom only; all auth states, continuation, recheck fence and pending skip/unmount/late-result/re-entry included"
+        },
+        {
+          "command": "pnpm typecheck (cwd apps/desktop)",
+          "result": "PASS exit 0; tsc node and web"
+        },
+        {
+          "command": "node scripts/check-regions.mjs",
+          "result": "PASS 116 region markers; all docs references resolve, exit 0"
+        },
+        {
+          "command": "git diff --check -- apps/desktop",
+          "result": "PASS exit 0"
+        }
+      ],
+      "risks": [
+        "No login/logout, model turn, credential file/manual Keychain read, account import, raw logs or capability matrix promotion",
+        "Unknown build/runtime never executes guessed status command",
+        "Unexpected/malformed/mismatched exit/credential-bearing unmeasured output => unknown",
+        "Optional absent auth on older bridge => unknown, never false signed-in",
+        "Do not alter unrelated access.* locale keys or Onboarding visual work"
+      ],
+      "stop_conditions": [
+        "Raw credential leak: stop and repair before resume",
+        "Unsupported build: display unsupported, no fallback login or model call",
+        "Overlapping writer: coordinate before editing"
+      ],
+      "resume": "Read canonical owner row and exact pinned current sources first; verify active ownership before mutation. Existing bounded observer is implemented and focused checks pass; prepare remaining native acceptance with disposable fixtures and no live operator stack/DB. Do not reimplement or claim native pass from status/jsdom.",
+      "source_manifest": [
+        {
+          "path": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+          "sha256": "50a73374b7305a1b092333940b299d1595c33ed63b1d0fd1a41e6a9476b8db51",
+          "bytes": 166704,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/adr/0100-first-run-and-start-paths.md",
+          "sha256": "e9c36c52956b9b6128bb604aad428abd0d108e207626405f6914f715fa8fe3bb",
+          "bytes": 9625,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/ux/scenarios.md",
+          "sha256": "bdbe94ea3b982d2072bbbc1c9a4533056d5d34bc021bc9d16eab6943495272bd",
+          "bytes": 349104,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/ux/screens.md",
+          "sha256": "ea20704251c5887f998f5805f64cab0fd3c01bff64ba4e9f1c04051cf482bded",
+          "bytes": 183171,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/ux/flows.md",
+          "sha256": "14d5ea70e4f9533e9dea456c360e778834128ec73939209075ce496ae1255339",
+          "bytes": 129781,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/architecture/provider-accounts.md",
+          "sha256": "cdedda7e2ec8797c8c4d2a37723c34e32044b6b5e28b3a74764ee7158e1aecc2",
+          "bytes": 22920,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "apps/desktop/src/shared/providerCapabilityMatrix.ts",
+          "sha256": "022e197741338feef03b871e8accb206927ff0eb2c413fd7416835ac93442f54",
+          "bytes": 10482,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/brand/voice.md",
+          "sha256": "1e27c57ccc0031958ec552aa9cbd806cb7b003dc09f8d4bbd3e980b139e258ca",
+          "bytes": 3773,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/brand/terminology.md",
+          "sha256": "03ab409ed3de53eae986386c6ab64130e53a68491decb2be83afbe6d71c13f57",
+          "bytes": 5046,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/brand/facts.md",
+          "sha256": "47fad6978081b1be3a0e7c3cd4c4b230e04b792a4668bcf020675ef920a14a6d",
+          "bytes": 5176,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        }
+      ],
+      "implementation_scope": [
+        "apps/desktop/src/main/executorAuth.ts",
+        "apps/desktop/src/main/executorDetect.ts",
+        "apps/desktop/src/shared/startPaths.ts",
+        "apps/desktop/src/renderer/src/start/FirstRun.tsx",
+        "apps/desktop/src/renderer/src/i18n/en.ts",
+        "apps/desktop/src/renderer/src/i18n/ru.ts",
+        "apps/desktop/test/executor-auth.test.mjs",
+        "apps/desktop/src/renderer/src/start/StartPaths.test.tsx"
+      ],
+      "lane": 1,
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401",
+      "ownership": "Parent owns canonical lease/registers/ADR/UX model/generated publication. Worker only declared bounded files; disjoint i18n namespaces preserved.",
+      "id": "CO-176",
+      "status": "implementation working-cut; native acceptance open",
+      "objective": "Observe provider sign-in separately from installation/Fabric connection/stable identity/admitted work in SCN-126.",
+      "canonical_source": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:187",
+      "dependencies": [
+        {
+          "id": "M199",
+          "carried_contract": "Reader measured per exact CLI build and runtime; boolean sign-in never completes stable subject/profile/identity passport."
+        },
+        {
+          "id": "AR-2.1",
+          "carried_contract": "Registry readiness/admission does not inherit login-status snapshot."
+        },
+        {
+          "id": "P-01 / ADR-0100",
+          "carried_contract": "Agent detection informational and skippable, including while pending; preserve all start paths."
+        }
+      ],
+      "read_scope": [
+        "apps/desktop/src/main/index.ts IPC.startExecutors passes sessionEnvironment",
+        "apps/desktop/src/preload/index.ts existing start.executors IPC",
+        "apps/desktop/src/shared/types.ts existing ExecutorRow bridge",
+        "docs/ux SCN-126 / SCR-70 / FLW-69",
+        "docs/brand/locales/ru.md"
+      ],
+      "writers_consumers": [
+        "main/executorAuth.ts",
+        "main/executorDetect.ts",
+        "shared/startPaths.ts ExecutorAuthentication/ExecutorRow",
+        "preload start.executors existing IPC",
+        "renderer start/FirstRun.tsx"
+      ],
+      "dod": [
+        "Focused process/jsdom/type checks and source propagation pass",
+        "Native acceptance measured independently or explicitly NOT_RUN; scoped implementation evidence cannot close whole task"
+      ],
+      "priority_reasoning": "First-lane affordable current build/status prerequisite measured; independent from active CO-179 form style.",
+      "receipt": "../raw/co176-auth-observation.json"
+    }
+  },
+  {
+    "schema": 1,
+    "id": "CO-177.prepare",
+    "context": {
+      "outcome": "Define explicit persistent revocable read-only observation grant before any scheduled parent-folder rescan.",
+      "sources": [
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+        "docs/adr/0100-first-run-and-start-paths.md",
+        "apps/desktop/src/main/files.ts",
+        "apps/desktop/src/main/fileRootsRefresh.ts",
+        "apps/desktop/src/main/startChoices.ts",
+        "apps/desktop/src/main/projectDiscovery.ts",
+        "apps/desktop/src/main/startPaths.ts",
+        "CONTEXT.md",
+        "docs/ux/scenarios.md"
+      ],
+      "scope": [
+        "docs/reports/2026-10-04-cleanup-start/packets/CO-177.prepare.json"
+      ],
+      "steps": [
+        "Inventory current authority/retention writers",
+        "Compare manual-picker baseline versus explicit finite-lived opt-in grant; parent owner decides no-window/restart semantics",
+        "Specify revision/root-substitution/principal/expiry fences before spawn and publication, revoke UI and disposal",
+        "Decompose after accepted ADR into grant store/enforcement, scheduler, consent/revoke UI, and disposable fixture tests"
+      ],
+      "acceptance": [
+        "Design negative controls: no opt-in, expired, revoked, actor drift, root replaced, stale callback => no current scan publication",
+        "Future disposable fixture matrix: unreadable/timeout/truncated/cancelled/partial retain explicit status; no live operator roots or DB"
+      ],
+      "risks": [
+        "No schema ID guessed, no authority inferred from saved root/last scan",
+        "No home/filesystem root/broad parent/symlink escape read",
+        "No auto-create/import without tick; partial/unreadable/truncated never complete",
+        "Quit/expiry/revocation blocks new work; late callbacks cannot revive grant"
+      ],
+      "stop_conditions": [
+        "Missing scope/expiry/revoke/lifecycle decision => implementation blocked; design may proceed"
+      ],
+      "resume": "Read canonical owner row and exact pinned current sources first; verify active ownership before mutation. Preparation is report-only. Preserve decision gate; runtime/translation implementation requires the explicit prerequisite decision.",
+      "source_manifest": [
+        {
+          "path": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+          "sha256": "50a73374b7305a1b092333940b299d1595c33ed63b1d0fd1a41e6a9476b8db51",
+          "bytes": 166704,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/adr/0100-first-run-and-start-paths.md",
+          "sha256": "e9c36c52956b9b6128bb604aad428abd0d108e207626405f6914f715fa8fe3bb",
+          "bytes": 9625,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "apps/desktop/src/main/files.ts",
+          "sha256": "1d341657c33345a5f13cc2d852ccf2134e9bd1d461757b4112a16c1dd968b2db",
+          "bytes": 12720,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "apps/desktop/src/main/fileRootsRefresh.ts",
+          "sha256": "2c16601f03c804b3f7337fa6eaa3dfab34ade2067ae753d845be7cba90f5eb4b",
+          "bytes": 1759,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "apps/desktop/src/main/startChoices.ts",
+          "sha256": "2d1278ea5a0994eeec7d5054bf79259af4f918b0512c3912476f95d30e8e06fe",
+          "bytes": 11593,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "apps/desktop/src/main/projectDiscovery.ts",
+          "sha256": "5076ea167de583699e8ce1477f403cc6dbc919d5eb7f7509cd3fbce72ddd0015",
+          "bytes": 21947,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "apps/desktop/src/main/startPaths.ts",
+          "sha256": "4c6d0138b186204d87f5f00011beb10cb0ffa8079af6afc6da67131ca3d70649",
+          "bytes": 2100,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "CONTEXT.md",
+          "sha256": "216b4729418f21afeafb057227b2f802725e306f3586a05c1c3c38a270568fb5",
+          "bytes": 23029,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/ux/scenarios.md",
+          "sha256": "bdbe94ea3b982d2072bbbc1c9a4533056d5d34bc021bc9d16eab6943495272bd",
+          "bytes": 349104,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        }
+      ],
+      "implementation_scope": [
+        "Report design dossier only now; parent new accepted ADR under lease before any implementation"
+      ],
+      "lane": 1,
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401",
+      "ownership": "Parent owns canonical lease/registers/ADR/UX model/generated publication. Worker only declared bounded files; disjoint i18n namespaces preserved.",
+      "id": "CO-177.prepare",
+      "parent": "CO-177",
+      "status": "design-ready; implementation decision-gated",
+      "canonical_source": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:188",
+      "objective": "Define explicit persistent revocable read-only observation grant before any scheduled parent-folder rescan.",
+      "read_scope": [
+        "files.ts FileRoots/isTooBroad and window picker grants",
+        "startPaths.ts kept scan/chooseFolder",
+        "startChoices.ts admitRepoPaths",
+        "projectDiscovery.ts bounded read-only traversal",
+        "ADR-0100 §7, SCN-128 and lifecycle background contract"
+      ],
+      "writers_consumers": {
+        "proposed_writers": [
+          "Explicit opt-in main-process grant owner creates/revokes"
+        ],
+        "proposed_consumers": [
+          "Bounded scheduler consumes grant revision snapshot",
+          "projectDiscovery uses allowed canonical root only",
+          "Candidate view displays scan observation; no auto-import"
+        ]
+      },
+      "dependencies": [
+        {
+          "id": "ADR-0100 §7",
+          "carried_contract": "Kept scan is observation, not authority. Window choice grants that window only. Creation-parent may create children, not list/read parent."
+        },
+        {
+          "id": "new authority ADR",
+          "carried_contract": "Set principal/estate/device root canonical spelling/device+inode, operation, finite expiry, revocation/revision, cadence/budget, lifecycle owner before runtime code."
+        }
+      ],
+      "dod": [
+        "Bounded cold dossier plus explicit grant decisions",
+        "Accepted new ADR prerequisite before native implementation dispatch"
+      ],
+      "priority_reasoning": "Next canonical Start item, authority is real prerequisite; does not blanket-block independent auth observation."
+    }
+  },
+  {
+    "schema": 1,
+    "id": "CO-178.prepare",
+    "context": {
+      "outcome": "Select Russian public form of Estate while retaining its canonical isolation/ownership meaning.",
+      "sources": [
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+        "CONTEXT.md",
+        "docs/brand/terminology.md",
+        "docs/brand/locales/ru.md",
+        "docs/brand/voice.md",
+        "apps/desktop/src/renderer/src/i18n/ru.ts"
+      ],
+      "scope": [
+        "docs/reports/2026-10-04-cleanup-start/packets/CO-178.prepare.json"
+      ],
+      "steps": [
+        "Evaluate options and semantic/length tradeoffs",
+        "Owner selects accepted locale rule in one canonical home",
+        "Inventory visible occurrences and perform copywriting-controlled translation pass after decision",
+        "Review smallest widths, plurals/cases and permission wording in RU target contexts"
+      ],
+      "acceptance": [
+        "Occurrence count derived from current ru.ts, not remembered",
+        "After decision: key parity/typecheck, terminology scan, targeted RU visual contexts; visual/native evidence remains separate"
+      ],
+      "risks": [
+        "No mechanical domain/API/DB rename",
+        "No new legal/payment/permission claim",
+        "Term remains unchanged while decision open"
+      ],
+      "stop_conditions": [
+        "No accepted term: no string replacement"
+      ],
+      "resume": "Read canonical owner row and exact pinned current sources first; verify active ownership before mutation. Preparation is report-only. Preserve decision gate; runtime/translation implementation requires the explicit prerequisite decision.",
+      "source_manifest": [
+        {
+          "path": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+          "sha256": "50a73374b7305a1b092333940b299d1595c33ed63b1d0fd1a41e6a9476b8db51",
+          "bytes": 166704,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "CONTEXT.md",
+          "sha256": "216b4729418f21afeafb057227b2f802725e306f3586a05c1c3c38a270568fb5",
+          "bytes": 23029,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/brand/terminology.md",
+          "sha256": "03ab409ed3de53eae986386c6ab64130e53a68491decb2be83afbe6d71c13f57",
+          "bytes": 5046,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/brand/locales/ru.md",
+          "sha256": "1c1ff7feb36930591a50c984711a71cab3568893ffa09bcfe346660301839976",
+          "bytes": 779,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "docs/brand/voice.md",
+          "sha256": "1e27c57ccc0031958ec552aa9cbd806cb7b003dc09f8d4bbd3e980b139e258ca",
+          "bytes": 3773,
+          "provenance": "committed-identical",
+          "revision": "484600a338f2c413333e57c09a28712b8559c401"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/i18n/ru.ts",
+          "sha256": "72429f5941b0a7e17e46d1b03742fa7fec24f12573e517323dc51102109ee2c4",
+          "bytes": 150278,
+          "provenance": "working-cut",
+          "base_revision": "484600a338f2c413333e57c09a28712b8559c401"
+        }
+      ],
+      "implementation_scope": [
+        "Report options/inventory only until owner choice; after choice parent locale pack and bounded translation pass"
+      ],
+      "lane": 1,
+      "base_revision": "484600a338f2c413333e57c09a28712b8559c401",
+      "ownership": "Parent owns canonical lease/registers/ADR/UX model/generated publication. Worker only declared bounded files; disjoint i18n namespaces preserved.",
+      "id": "CO-178.prepare",
+      "parent": "CO-178",
+      "status": "decision-ready; implementation brand-gated",
+      "canonical_source": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:189",
+      "objective": "Select Russian public form of Estate while retaining its canonical isolation/ownership meaning.",
+      "read_scope": [
+        "CONTEXT.md:316 Estate/Person/Membership",
+        "docs/brand/terminology.md:33,67",
+        "docs/brand/locales/ru.md",
+        "ru.ts occurrence inventory"
+      ],
+      "inventory": {
+        "matching_lines": 13,
+        "rows": [
+          {
+            "line": 128,
+            "key": "tabs.dropped"
+          },
+          {
+            "line": 140,
+            "key": "estate.journal"
+          },
+          {
+            "line": 141,
+            "key": "estate.reading"
+          },
+          {
+            "line": 235,
+            "key": "Это окно ещё не знает, эстейт оно, сессия или файл — поэтому не показывает ничего, вместо того чтобы показать неверное.',"
+          },
+          {
+            "line": 254,
+            "key": "Операции и их исходы, новые сверху. Это собственная запись программы — отдельная от истории эстейта, и потерять её ничего не стоит.',"
+          },
+          {
+            "line": 469,
+            "key": "event.estate.imported@1"
+          },
+          {
+            "line": 514,
+            "key": "harness.estateWide"
+          },
+          {
+            "line": 1103,
+            "key": "onboarding.memoryHint.cloud"
+          },
+          {
+            "line": 1104,
+            "key": "onboarding.memoryUnavailable.hosted-estates-not-built"
+          },
+          {
+            "line": 1327,
+            "key": "agents.none"
+          },
+          {
+            "line": 1345,
+            "key": "profile.tenureNone"
+          },
+          {
+            "line": 1478,
+            "key": "event.estate.created@1"
+          },
+          {
+            "line": 1525,
+            "key": "event.estate.settings.set@1"
+          }
+        ]
+      },
+      "options": [
+        {
+          "term": "пространство организации",
+          "benefit": "Persistent operating boundary, avoids transliteration",
+          "tradeoff": "Longer; distinguish personal default workspace and Project in narrow UI"
+        },
+        {
+          "term": "организация",
+          "benefit": "Short/familiar",
+          "tradeoff": "May imply legal organization rather than operating workspace"
+        },
+        {
+          "term": "эстейт",
+          "benefit": "Keeps current canonical term consistent",
+          "tradeoff": "Jargon; first-use explanation needed"
+        }
+      ],
+      "decision_owner": "Operator / brand-pack owner; preserve current term until accepted choice",
+      "dependencies": [
+        {
+          "id": "CONTEXT Estate contract",
+          "carried_contract": "One organization persistent workspace holding projects/agents/chains/connections/vault/journal/memory; Person global, Membership scoped. Do not rename English/code/DB identity."
+        },
+        {
+          "id": "brand locale choice",
+          "carried_contract": "Term, casing, grammatical forms, first-use expansion and exceptions before replacements."
+        }
+      ],
+      "dod": [
+        "Options and measured inventory durable; explicit owner choice before implementation"
+      ],
+      "priority_reasoning": "Start-lane next brand decision; preparation available now, terminology implementation not inferred."
+    }
+  }
+]

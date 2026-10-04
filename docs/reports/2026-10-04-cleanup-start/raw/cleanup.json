@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "as_of": "2026-10-04",
+  "method": "df available-byte snapshots; verified tracked/untracked/ignored state, remote ancestry, active leases and lsof before normal removal; contemporaneous disk writes can affect each delta",
+  "worktrees": {
+    "free_before_bytes": 9406214144,
+    "free_after_bytes": 9448501248,
+    "observed_free_delta_bytes": 42287104,
+    "rows": [
+      {
+        "checkout": "fabric-agent-contract-2ce3922",
+        "head": "2ce392291c6668598d12cd38327e24696b5ca15c",
+        "action": "removed",
+        "checks": "clean all paths; dependencies-only ignored; merged; remote-preserved; merge-tree; no open files or cwd; no leases"
+      },
+      {
+        "checkout": "fabric-agent-contract-tga-20261004",
+        "head": "2ce392291c6668598d12cd38327e24696b5ca15c",
+        "action": "removed",
+        "checks": "clean all paths; dependencies-only ignored; merged; remote-preserved; merge-tree; no open files or cwd; no leases"
+      },
+      {
+        "checkout": "fabric-contract-adapter-new",
+        "head": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+        "action": "removed",
+        "checks": "clean all paths; dependencies-only ignored; merged; remote-preserved; merge-tree; no open files or cwd; no leases"
+      },
+      {
+        "checkout": "fabric-contract-adapter-old",
+        "head": "2ce392291c6668598d12cd38327e24696b5ca15c",
+        "action": "removed",
+        "checks": "clean all paths; dependencies-only ignored; merged; remote-preserved; merge-tree; no open files or cwd; no leases"
+      },
+      {
+        "checkout": "fabric-contract-review-current",
+        "head": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+        "action": "removed",
+        "checks": "clean all paths; dependencies-only ignored; merged; remote-preserved; merge-tree; no open files or cwd; no leases"
+      },
+      {
+        "checkout": "fabric-contract-review-legacy",
+        "head": "2ce392291c6668598d12cd38327e24696b5ca15c",
+        "action": "removed",
+        "checks": "clean all paths; dependencies-only ignored; merged; remote-preserved; merge-tree; no open files or cwd; no leases"
+      }
+    ]
+  },
+  "build_cache": {
+    "repo": "https://github.com/passioncode-ai/fabric-switchboard",
+    "checkout": "Switchboard quota review worktree",
+    "head": "55f7c56a19c0fbb8d5e1db933fed3ad9b7a07fbf",
+    "clean": true,
+    "lsof_exit": 1,
+    "open_files": false,
+    "last_build_age_seconds": 12495.39390540123,
+    "allocated_bytes": 5289574400,
+    "files": 23237,
+    "action": "removed ignored build cache only; source checkout retained",
+    "free_before_bytes": 5012787200,
+    "free_after_bytes": 9497350144,
+    "observed_free_delta_bytes": 4484562944
+  },
+  "npm_cache_verify": {
+    "exit": 0,
+    "verified_bytes": 33169420,
+    "garbage_collected_bytes": 464392,
+    "garbage_entries": 1
+  },
+  "protected": {
+    "inspected_worktrees": 51,
+    "dirty_worktrees": 11,
+    "old_test_candidates": 3509,
+    "eligible_test_dirs": 0,
+    "reason": "recent/activity or unresolved ownership; active build, sync, temporary directories and WIP retained"
+  },
+  "limits": [
+    "du totals for APFS clones are not reclaimed physical bytes",
+    "No global Docker, provider store, editor cache or another session source removal"
+  ],
+  "task_created_scratch": {
+    "action": "removed normally",
+    "count": 1,
+    "source_changed": false,
+    "dependencies_installed": false,
+    "branch": "codex/executor-auth-current-20261004",
+    "branch_head": "484600a338f2c413333e57c09a28712b8559c401",
+    "branch_pushed": false,
+    "checks": {
+      "git_status_clean": true,
+      "lsof": "NOT_RUN"
+    },
+    "scope": "New empty task scratch, separate from six completed operator worktrees; no source/app command launched there"
+  }
+}

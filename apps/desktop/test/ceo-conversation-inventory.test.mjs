@@ -16,7 +16,9 @@ const roots = []
 function service(dir, person = U) {
   const held = { estateId: E, personId: person, revision: 1, actor: { kind: 'person', id: person } }
   const rpc = { open: async () => ({ data: null }), read: async () => ({ data: null }), receipt: async () => ({ data: null }), send: () => new Promise(() => {}) }
-  return createCeoConversationService({ rootDir: dir, rpc, online: () => true, timeoutMs: 300, identity: { held: () => held, guard: async () => held } })
+  // 3 s, not 300 ms: dozens of sequential local saves on a loaded host overran 300 ms and answered
+  // local_save_unknown (2026-10-04); the one send that must time out still does, against an RPC that never answers.
+  return createCeoConversationService({ rootDir: dir, rpc, online: () => true, timeoutMs: 3000, identity: { held: () => held, guard: async () => held } })
 }
 const fresh = () => { const dir = mkdtempSync(path.join(tmpdir(), 'fabric-ceo-inventory-')); roots.push(dir); return dir }
 let groups = 0

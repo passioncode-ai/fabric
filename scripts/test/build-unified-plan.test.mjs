@@ -13,7 +13,7 @@ const input = 'docs/reports/2026-10-04-unified-execution'
 const output = 'docs/reports/2026-10-04-unified-compiler-fixture'
 function fixture(run) {
   const root=mkdtempSync(join(tmpdir(),'fabric-unified-compiler-'))
-  const parser=join(owner,'workspace')
+  const parser=process.env.FABRIC_COMPILER_TEST_WORKSPACE || join(owner,'workspace')
   const copy = path => {mkdirSync(dirname(join(root,path)),{recursive:true});copyFileSync(join(owner,path),join(root,path))}
   const oldPlan=JSON.parse(readFileSync(join(owner,input,'plan.json'),'utf8'))
   const paths=new Set([...oldPlan.sources.map(s=>s.path),'docs/backlog-sources.json','docs/adr/0101-the-general-development-plan.md',`${input}/checks/execution.json`,`${input}/impacts.json`,
@@ -94,6 +94,16 @@ test('private metadata remains in its owning source and cannot be copied through
   writeFileSync(packet,JSON.stringify(data));f.commit()
   const result=f.compile();assert.notEqual(result.status,0);assert.match(result.stderr,/Private metadata refused/i)
   assert(!existsSync(join(f.root,output,'plan.json')))
+}))
+test('JSON-escaped private literals are refused in decoded plan before any publication bytes exist',()=>fixture(f=>{
+  const packet=join(f.root,input,'packets/agents-memory.json')
+  const data=JSON.parse(readFileSync(packet,'utf8'))
+  const rows=data.tasks ?? data.packets
+  rows[0].constraints_and_failure_modes=['PRIVATE_DECODED_SENTINEL']
+  writeFileSync(packet,JSON.stringify(data).replaceAll('PRIVATE_DECODED_SENTINEL','\\u0050RIVATE_DECODED_SENTINEL'))
+  f.commit();writeFileSync(f.deny,JSON.stringify(['PRIVATE_DECODED_SENTINEL']))
+  const result=f.compile();assert.notEqual(result.status,0);assert.match(result.stderr,/Private generated plan refused/)
+  assert(!result.stderr.includes('PRIVATE_DECODED_SENTINEL'));assert(!existsSync(join(f.root,output)))
 }))
 test('recompilation refuses to overwrite an existing cut or the historical input directory',()=>fixture(f=>{
   mkdirSync(join(f.root,output),{recursive:true});writeFileSync(join(f.root,output,'plan.json'),'preserve existing cut')
@@ -312,5 +322,21 @@ test('a pinned scoped receipt cannot substitute historical basis, foreign owner 
     const source=structuredClone(original);source.packets[0].dependencies.push({kind:'scoped-acceptance',subject_key:packet.canonical_key,scope:'Native same-build',proof_tier:'native',receipt:{path,revision:rev,sha256:createHash('sha256').update(readFileSync(join(f.root,path))).digest('hex')}});publishOwner(f,source)
     const c=f.compile();assert.notEqual(c.status,0);assert.match(c.stderr,/forged subject, basis, scope or proof tier/);assert(!existsSync(join(f.root,output,'plan.json')))
   }
+}))
+test('published descendant content retains pinned parser identity; unrelated workspace history is refused',()=>fixture(f=>{
+  const parser=join(f.root,'workspace')
+  const git=(...args)=>execFileSync('git',args,{cwd:parser,stdio:['ignore','pipe','pipe']}).toString().trim()
+  const pin=git('rev-parse','HEAD')
+  writeFileSync(join(parser,'lib/publication-fixture.md'),'New publication content, unchanged parser.\n')
+  git('add','lib/publication-fixture.md')
+  git('-c','user.name=Fixture','-c','user.email=fixture@example.test','commit','-qm','content publication')
+  assert.notEqual(git('rev-parse','HEAD'),pin)
+  const result=f.compile();assert.equal(result.status,0,result.stderr)
+  const plan=JSON.parse(readFileSync(join(f.root,output,'plan.json'),'utf8'))
+  assert.equal(plan.canonical_inventory.parser.commit,pin)
+  assert.equal(f.check().status,0,f.check().stderr)
+  git('checkout','--orphan','unrelated-fixture')
+  git('-c','user.name=Fixture','-c','user.email=fixture@example.test','commit','-qm','unrelated history, identical parser bytes')
+  const refused=f.check();assert.notEqual(refused.status,0);assert.match(refused.stderr,/not a descendant/)
 }))
 // #endregion unified-compiler-tests

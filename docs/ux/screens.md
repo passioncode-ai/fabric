@@ -554,6 +554,8 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 
 
 - **Target composition · R0 revision:** CEO identity (SCR-36) → readiness (SCR-05) → source picker → automatic discovery → sourced dashboard. The earlier AD03 source/purpose/review target is superseded for R0, with its transaction integrity retained. Help and navigation retain Estate/draft/source/scan identity; a second draft is explicit.
+- **Target scan checklist (CO-180):** `r0-source` / `r0-discovery` follow ADR-0100 §3: each ticked repository becomes its own Project; no batch primary-source selector or implicit related-source aggregation. Imported rows open their exact Project and cannot be ticked again. Explicit reference sources of an existing Project and pinned Run context remain separate from scan-batch creation. Target prototype coverage: `scripts/product/first-release.mjs`, `scripts/test/first-release.test.mjs`; this does not upgrade native coverage.
+
 - **Target recovery states:** pending/unknown show original request and reconciliation; denied/loading/conflict/partial preserve input and explain the blocked action; archived duplicate opens its exact recovery. A valid idea ignores an earlier repository path at review and commit. These target states do not upgrade native coverage.
 
 ### SCR-28: Editor window
@@ -1658,19 +1660,23 @@ results always pair text with an icon — colour is never the only signal.
 ### SCR-70: First run
 - **Used by:** FLW-69
 - **Purpose:** Meet Fabric once: name and look, the coding agents on this Mac, where to start.
-- **Elements:** three-step progress; name, character, variants; executor rows (state, version, path, install command, Copy, Check again); the five path cards; Back, Skip, Later.
+- **Elements:** three-step progress; name, character, variants; executor rows (installation/tool state, version, path, separate read-only sign-in status, install command, Copy, Check again); the five path cards; Back, Skip, Later. The sign-in check is informational, including while pending; Continue without an agent remains available.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
   | first-visit | empty estate, first run not finished | none | step 1 with defaults |
   | saving | Continue on step 1 | none | Continue busy until the look is saved |
   | not-saved | look save refused | none | reason and Continue without saving |
-  | checking | detection running | none | busy line |
+  | checking | version/status observation running | none | busy line; Continue without an agent available |
   | found | agent answered --version and Fabric reaches its session | none | ready pill and version |
   | found-unconnected | agent answered, Fabric does not reach its session | none | installed pill and a note that it runs in the folder as itself |
   | unresponsive | on PATH, no answer | none | needs-setup pill and the run-once advice, no install command |
   | missing | not on PATH | none | not-installed pill and install command with Copy |
   | check-failed | detection itself failed | none | reason and Check again |
+  | authenticated | exact supported vendor status reports signed in | none | separate status; no account identity/admission claim |
+  | not-authenticated | exact vendor status reports signed out | none | sign in through the coding agent and check again; continue remains available |
+  | auth-unsupported | current build/runtime has no measured reader | none | explicitly unverified; no guessed status command |
+  | auth-unknown | timeout, refusal, malformed or excessive output | none | cannot confirm; retry or continue, no raw provider output |
   | choose-path | step 3 | none | five cards |
   | skipped | Later on step 3 (Skip on step 1 only moves to step 2) | none | first run marked finished; home, Help reopens it |
 - **Coverage:** apps/desktop/src/renderer/src/start/FirstRun.tsx

@@ -1,18 +1,19 @@
 // #region unified-plan-tests — docs: docs/reports/2026-10-04-unified-execution/protocol.md#recovery-and-source-change
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync, copyFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createHash } from 'node:crypto'
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 import { readFileSync } from 'node:fs'
 import { publicInputProblems } from '../unified-canonical-sources.mjs'
-import { validatePlan as productionValidatePlan, frontier, taskPacket, selectedReport, REPORT } from '../unified-plan.mjs'
+import { validatePlan as productionValidatePlan, frontier, taskPacket, selectedReport, REPORT, readPlan, parseArgs } from '../unified-plan.mjs'
 
 const digest = s => createHash('sha256').update(s).digest('hex')
 // The unit boundary receives a parser response. Actual pinned common-parser and
-// compiler/production-parity integration runs separately in build-unified-plan.test.mjs after
+// compiler integration runs separately in build-unified-plan.test.mjs after
 // workspace initialization; these fixtures need no private-repository access.
 function fixtureInventory(root,revision) {
   const repository='https://github.com/passioncode-ai/fabric'
@@ -193,4 +194,53 @@ test('privacy diagnostics redact matching source paths without echoing a private
   const problems=publicInputProblems([{path:'docs/SYNTHETIC_PRIVATE_SENTINEL.json',bytes:Buffer.from('SYNTHETIC_PRIVATE_SENTINEL')}],['SYNTHETIC_PRIVATE_SENTINEL'])
   assert.deepEqual(problems,['private input refused: <redacted source path>'])
 })
+test('default selection is unchanged and explicit new cut reads its own plan', () => fixture(({root, plan}) => {
+  assert.deepEqual(parseArgs([]), {report: REPORT, verb: 'check', id: undefined})
+  mkdirSync(join(root, REPORT), {recursive: true})
+  writeFileSync(join(root, REPORT, 'plan.json'), JSON.stringify(plan))
+  const next = 'docs/reports/new-cut/dispatch'
+  mkdirSync(join(root, next), {recursive: true})
+  writeFileSync(join(root, next, 'plan.json'), JSON.stringify({...plan, baseline: 'b'.repeat(40)}))
+  assert.equal(readPlan(root).baseline, plan.baseline)
+  assert.equal(readPlan(root, next).baseline, 'b'.repeat(40))
+  assert.deepEqual(parseArgs(['packet', 'P-01.design', '--report', next]), {report: next, verb: 'packet', id: 'P-01.design'})
+}))
+test('selector refuses malformed options, path traversal and linked report or plan', () => fixture(({root, plan}) => {
+  for (const args of [['--unknown'], ['--report'], ['--report', 'x', '--report', 'y'], ['packet'], ['check', 'extra']]) assert.throws(() => parseArgs(args), /unknown option|usage/)
+  for (const path of ['/tmp/report', '../report', 'docs/../report', 'docs//report', './report', 'C:/report', 'docs\\report']) assert.throws(() => readPlan(root, path), /unsafe report/)
+  mkdirSync(join(root, 'real-report'))
+  writeFileSync(join(root, 'real-report/plan.json'), JSON.stringify(plan))
+  symlinkSync(join(root, 'real-report'), join(root, 'linked-report'))
+  assert.throws(() => readPlan(root, 'linked-report'), /symlink/)
+  mkdirSync(join(root, 'linked-plan'))
+  symlinkSync(join(root, 'real-report/plan.json'), join(root, 'linked-plan/plan.json'))
+  assert.throws(() => readPlan(root, 'linked-plan'), /symlink/)
+  symlinkSync(tmpdir(), join(root, 'outside'))
+  assert.throws(() => readPlan(root, 'outside/new-report'), /symlink/)
+}))
+test('compiler rejects unknown options/baselines and unsafe cuts before reading or writing inputs', () => fixture(({root}) => {
+  const compiler = fileURLToPath(new URL('../build-unified-plan.py', import.meta.url))
+  const deny = join(root, 'privacy.local.json')
+  writeFileSync(deny, '[]')
+  const run = args => spawnSync('python3', [compiler, ...args, '--privacy-deny-file', deny], {encoding: 'utf8'})
+  for (const [args, message] of [
+    [['--unknown', '--report', 'docs/reports/new-cut', '--baseline', 'a'.repeat(40)], /unrecognized arguments/],
+    [['--report', '../outside', '--baseline', 'a'.repeat(40)], /unsafe report/],
+    [['--report', 'docs/reports/new-cut'], /required.*--source-revision/],
+    [['--report', 'docs/reports/new-cut', '--baseline', 'HEAD'], /full lowercase/],
+    [['--report', 'docs/reports/new-cut', '--baseline', 'a'.repeat(40)], /unknown baseline/],
+    [['--baseline', 'a'.repeat(40)], /generation requires --output/],
+    [['--report', REPORT, '--baseline', 'a'.repeat(40)], /Refusing to overwrite/],
+  ]) { const result = run(args); assert.notEqual(result.status, 0); assert.match(result.stderr, message) }
+  // A report selector must never follow even an internal directory symlink.
+  mkdirSync(join(root, 'docs/reports'), {recursive: true})
+  const linked = join(root, 'docs/reports/linked')
+  symlinkSync(tmpdir(), linked)
+  mkdirSync(join(root, 'scripts'))
+  const isolatedCompiler = join(root, 'scripts/build-unified-plan.py')
+  copyFileSync(compiler, isolatedCompiler)
+  const result = spawnSync('python3', [isolatedCompiler, '--report', 'docs/reports/linked', '--baseline', 'a'.repeat(40), '--privacy-deny-file', deny], {encoding: 'utf8'})
+  assert.equal(result.status, 2)
+  assert.match(result.stderr, /symlink/)
+}))
 // #endregion unified-plan-tests

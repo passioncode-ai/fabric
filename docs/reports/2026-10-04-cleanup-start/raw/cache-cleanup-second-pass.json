@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "as_of": "2026-10-04",
+  "action": "second cleanup pass",
+  "checks": {
+    "open_files": "none; lsof exit1 without errors immediately before removal",
+    "ccache_native_compiler_processes": "none; active Swift build and its own cache preserved",
+    "ccache_command": "ccache --clear",
+    "ccache_exit": 0,
+    "electron_artifact": "download ZIP only; installed app and dependency bytes preserved"
+  },
+  "electron_archive_bytes": 129743965,
+  "available_before": 9633566720,
+  "available_after": 9841266688,
+  "observed_available_delta": 207699968,
+  "preserved": [
+    "Playwright browser revisions still referenced by installed packages",
+    "active pnpm and Swift caches",
+    "unfinished Fabric worktrees",
+    "installed app and source files"
+  ],
+  "measurement_limit": "Concurrent filesystem writes may affect physical available-byte delta."
+}

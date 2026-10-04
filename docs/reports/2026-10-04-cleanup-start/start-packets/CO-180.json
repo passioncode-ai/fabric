@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "id": "CO-180.prepare",
+  "context": {
+    "outcome": "Prepare the bounded CO-180.1 target-only checklist identity correction; never close all historical prototype work from this leaf.",
+    "sources": [
+      "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "docs/adr/0100-first-run-and-start-paths.md#scan",
+      "docs/ux/scenarios.md#scn-128-scan-a-projects-folder-and-tick-what-becomes-a-project",
+      "docs/ux/flows.md#flw-55-configure-ceo-and-discover-the-first-project",
+      "scripts/product/first-release.mjs",
+      "scripts/test/first-release.test.mjs",
+      "scripts/product/renderers.mjs",
+      "docs/ux/scenarios.md",
+      "docs/ux/flows.md",
+      "docs/ux/screens.md",
+      "docs/reports/2026-10-04-cleanup-start/raw/start-review.json"
+    ],
+    "scope": [
+      "docs/reports/2026-10-04-cleanup-start/start-packets/CO-180.json"
+    ],
+    "steps": [
+      "Read accepted ADR-0100 §3/§7 and current SCN-128.",
+      "Execute separate-project identity, row results, failed-only retry, manual part warnings, retained partial coverage and reachable kept checklist.",
+      "Run current pure model tests and independent browser at390/1280; preserve explicit Project references and frozenRunpacks.",
+      "Leave canonical status update and integration to the owning leased register; no native or unrelated R0 first-run acceptance is claimed from target scanner proof."
+    ],
+    "acceptance": [
+      "Bounded current leaf, independent receipt and remaining parent scope explicitly recorded; target-only proof never promoted to native or entire parent closure."
+    ],
+    "risks": [
+      "two candidates must never collapse into one Project",
+      "unchecked/unknown candidate no Project",
+      "already-imported disabled and no merge",
+      "empty/denied/cancelled scans no Project",
+      "late result after cancelled or replaced generation no mutation",
+      "failed candidate retained for retry with stable ID",
+      "explicit related-source/pinned existing Run context preserved"
+    ],
+    "stop_conditions": [
+      "Prototype or shared UX files acquired by another owner",
+      "correctness requires runtime authority/schema redesign",
+      "fixture/model evidence cannot resolve current sources"
+    ],
+    "resume": "Read this complete packet, current source revisions and owning canonical row; use current prerequisites and exact acceptance proof tier. Parent selected CO180 after earlier rows classified: P01 built umbrella, CO176 provider observation preparation, CO177 authority decision, CO178 brand decision, CO179 active visual/fixture ownership. Independent prototype scope can progress now without native dependency.",
+    "canonical_order": 6,
+    "canonical_parent": "CO-180",
+    "classification": "selected-independent-bounded-prototype-reconciliation",
+    "baseline": "484600a338f2c413333e57c09a28712b8559c401",
+    "dependencies": [
+      {
+        "id": "ADR-0100",
+        "contract": "§3 defines one checked repository→one Project and deliberate warned nested/worktree choices; §7 stored scan is no grant."
+      },
+      {
+        "id": "SCN-128",
+        "contract": "Ordered per-row result, failed row retained with same request identity, already imported disabled, checked-only side effects."
+      },
+      {
+        "id": "CO-173",
+        "contract": "Any changed model card source evidence is re-read, not blindly rehashed as current."
+      }
+    ],
+    "validation_commands": [
+      "node --test scripts/test/first-release.test.mjs scripts/test/chat-workspace.test.mjs",
+      "node scripts/check-product-model.mjs",
+      "node scripts/sync-product-ux.mjs",
+      "node scripts/build-product-report.mjs",
+      "node scripts/check-design-map.mjs --refresh",
+      "node scripts/check-design-map.mjs",
+      "bash scripts/ci.sh fast"
+    ],
+    "negative_controls": [
+      "two candidates must never collapse into one Project",
+      "unchecked/unknown candidate no Project",
+      "already-imported disabled and no merge",
+      "empty/denied/cancelled scans no Project",
+      "late result after cancelled or replaced generation no mutation",
+      "failed candidate retained for retry with stable ID",
+      "explicit related-source/pinned existing Run context preserved"
+    ],
+    "scope_boundary": {
+      "core_write": [
+        "scripts/product/first-release.mjs",
+        "scripts/test/first-release.test.mjs"
+      ],
+      "conditional_reviewed_write": [
+        "scripts/product/first-release.css",
+        "scripts/product/renderers.mjs",
+        "scripts/product/folder-picker.mjs",
+        "docs/ux/product-fixtures.json",
+        "docs/ux/scenarios.md",
+        "docs/ux/flows.md",
+        "docs/ux/screens.md",
+        "docs/ux/product-model.json"
+      ],
+      "generated_integration_write": [
+        "docs/reports/product.html",
+        "docs/reports/map.html"
+      ],
+      "excluded": [
+        "apps/desktop/src",
+        "apps/desktop/test native handlers",
+        "SQL/schema",
+        "live DB",
+        "provider process",
+        "historical receipt rewriting"
+      ]
+    },
+    "observed_baseline_facts": [
+      "Current r0 candidate-import builds pendingGroup and scan-result produces one Project with primary+related paths.",
+      "Current test suite40/40 passes, including wrong one-Project grouping expectations; test-green is not requirements agreement.",
+      "FLW55 current Mermaid still selects primary+sources; generated product-model repeats it.",
+      "start-scan renderer already describes one checked repo per Project; first-run path is aligned."
+    ],
+    "current_facts": [
+      "Old primary-plus-related batch grouping removed in current source.",
+      "Current target performs separate Projects, summary, failed-only retry, imported identity reuse, manualpart warning, partialgap and keptchecklist.",
+      "Pure tests and independent target browser are acceptance for this leaf only; canonical and native claims remain separate."
+    ],
+    "remaining_parent_scope": "Canonical status update/integration requires the owning resource lease; the scanner leaf has its own target-only receipts, separate from native first-run acceptance."
+  }
+}

@@ -264,8 +264,8 @@ def owner_packets(inventory, revision):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output', help='New repository-relative report directory; the dated input cut is never overwritten')
-    parser.add_argument('--source-revision', required=True, help='Full committed Fabric SHA whose input bytes have been reconciled by the owner')
+    parser.add_argument('--output', '--report', dest='output', help='New repository-relative report directory; the dated input cut is never overwritten')
+    parser.add_argument('--source-revision', '--baseline', dest='source_revision', required=True, help='Full committed Fabric SHA whose input bytes have been reconciled by the owner')
     parser.add_argument('--privacy-deny-file', help='Local-only JSON array of private literal identifiers; never copied into outputs')
     parser.add_argument('--emit-plan', action='store_true', help='Reconstruct expected plan as JSON on stdout; never create or modify an output directory')
     args = parser.parse_args()
@@ -273,15 +273,23 @@ def main():
         parser.error('generation requires --output and --privacy-deny-file')
     if not args.emit_plan:
         relative_output = Path(args.output)
-        if relative_output.is_absolute() or '..' in relative_output.parts or not args.output.startswith('docs/reports/'):
-            raise SystemExit('Output must be a repository-relative docs/reports directory')
+        if relative_output.is_absolute() or '\\' in args.output or re.match(r'^[A-Za-z]:', args.output) or any(p in ('', '.', '..') for p in args.output.split('/')) or not args.output.startswith('docs/reports/'):
+            parser.error('unsafe report directory; output must be repository-relative docs/reports')
         output = ROOT / relative_output
+        current = ROOT
+        for part in relative_output.parts:
+            current = current / part
+            if current.is_symlink():
+                parser.error('report directory contains a symlink')
         if ROOT.resolve() not in output.resolve().parents:
             raise SystemExit('Output escapes repository through a linked parent')
         if output.resolve() == REPORT.resolve() or (output / 'plan.json').exists() or (output / 'audit-graph.json').exists() or (output / 'cold-packets').exists():
             raise SystemExit('Refusing to overwrite a dated input or existing generated cut; choose a new output directory')
     if not re.fullmatch(r'[a-f0-9]{40}', args.source_revision):
-        raise SystemExit('Source revision must be a full immutable commit SHA')
+        parser.error('Source revision must be a full lowercase immutable commit SHA')
+    checked = subprocess.run(['git', '-C', str(ROOT), 'cat-file', '-t', args.source_revision], capture_output=True, text=True)
+    if checked.returncode or checked.stdout.strip() != 'commit':
+        parser.error('unknown baseline commit')
     inventory_command = ['node', str(ROOT / 'scripts/unified-plan.mjs'), 'inventory', '--source-revision', args.source_revision]
     if args.privacy_deny_file:
         inventory_command += ['--privacy-deny-file', args.privacy_deny_file]
@@ -484,11 +492,18 @@ def main():
         'lanes': lanes, 'sources': [{'path': p, 'sha256': sha(ROOT / p), 'commit': args.source_revision} for p in sorted(sources)],
         'tasks': tasks, 'impacts': load(REPORT / 'impacts.json'),
     }
+    plan_text = json.dumps(plan, ensure_ascii=False, indent=2) + '\n'
+    # Loaded JSON can decode a literal hidden by Unicode escapes in the input.
+    # Check the actual publication bytes before emitting or creating any output artifacts.
+    if any(token.casefold() in plan_text.casefold() for token in deny):
+        raise SystemExit('Private generated plan refused')
+    if re.search(r'"(?:visibility|publication_scope)"\s*:\s*"private"|"private_(?:consumer|repository|context)"\s*:', plan_text, re.I):
+        raise SystemExit('Private generated metadata refused')
     if args.emit_plan:
         print(json.dumps(plan, ensure_ascii=False, separators=(',', ':')))
         return
     output.mkdir(parents=True, exist_ok=True)
-    (output / 'plan.json').write_text(json.dumps(plan, ensure_ascii=False, indent=2) + '\n')
+    (output / 'plan.json').write_text(plan_text)
     # Adapter projection for the installed pipeline's cold-reader and collision audit.
     out = output / 'cold-packets'
     out.mkdir(exist_ok=True)

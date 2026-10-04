@@ -130,7 +130,7 @@ These Russian prototype strings are proposed, not desktop i18n coverage. Source:
 | r0.ticket.open | Разобрать с Fabric | scripts/product/first-release.mjs:145 | SCN-041 | proposed |
 | r0.outcome.apply | Добавить задачу | scripts/product/first-release.mjs:35 | SCN-041 | proposed |
 | r0.source.primary | Сделать главным | scripts/product/first-release.mjs:30 | SCN-095 | proposed |
-| r0.source.selected | Продолжить с выбранными | scripts/product/first-release.mjs:139 | SCN-095 | proposed |
+| r0.source.selected | Добавить выбранные проекты | scripts/product/first-release.mjs:248 | SCN-128 | proposed |
 | r0.profile.style | Стиль общения | scripts/product/first-release.mjs:152 | SCN-042 | proposed |
 
 ## R0 compact conversation · 2026-09-26
@@ -598,3 +598,29 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `startup.schema-behind-recovery` | Stop all writers and make a verified backup first. Follow docs/launch/release-mac.md#upgrading-an-existing-database before running supabase migration up --local in {stackPath}, then retry. Fabric has not started its workspace services. | apps/desktop/src/main/schemaReadiness.ts | SCN-095 | proposed |
 
 | `access.connect.connection-changed` | The connection to {name} changed while you were answering. Check its current state, then connect again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | implemented; native acceptance pending |
+
+## Target prototype scan checklist — CO-180
+
+Surface: interface/prototype; ADR-0100 §3 and SCN-128 own the claim.
+Humanization: on — own pass; concise labels and literal state messages, no rhetorical markers;
+semantic check retains one repository per Project and explicit operator selection.
+
+| Key | Text (Russian target) | Location | Scenario | Status |
+|---|---|---|---|---|
+| `prototype.scan.selection` | Выберите проекты, которые хотите добавить. | scripts/product/first-release.mjs:248 | SCN-128 | proposed |
+| `prototype.scan.separate` | Каждая выбранная папка станет отдельным проектом. | scripts/product/first-release.mjs:248 | SCN-128 | proposed |
+| `prototype.scan.add` | Добавить выбранные проекты | scripts/product/first-release.mjs:248 | SCN-128 | proposed |
+
+These strings belong to the target prototype. These scan labels do not change native counterparts; the prototype does not claim provider/native acceptance. Native CO-176 sign-in labels are registered separately below.
+
+## First-run sign-in observation — CO-176
+
+Surface: first-run interface; SCN-126. Source facts: the supported vendor CLI result is a boolean status, not account identity or permission. Unknown/unsupported remain visible and Continue without an agent stays available while checking. Humanization: on, own concise factual pass. EN/RU registries own the exact localized strings.
+
+| Key | Location | Scenario | Status |
+|---|---|---|---|
+| `start.executor.auth.authenticated` | apps/desktop/src/renderer/src/i18n/en.ts; ru.ts | SCN-126 | implemented locally; packaged acceptance pending |
+| `start.executor.auth.notAuthenticated` | apps/desktop/src/renderer/src/i18n/en.ts; ru.ts | SCN-126 | implemented locally; packaged acceptance pending |
+| `start.executor.auth.unsupported` | apps/desktop/src/renderer/src/i18n/en.ts; ru.ts | SCN-126 | implemented locally; packaged acceptance pending |
+| `start.executor.auth.unknown` | apps/desktop/src/renderer/src/i18n/en.ts; ru.ts | SCN-126 | implemented locally; packaged acceptance pending |
+| `start.executor.auth.note` | apps/desktop/src/renderer/src/i18n/en.ts; ru.ts | SCN-126 | implemented locally; packaged acceptance pending |

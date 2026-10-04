@@ -31,7 +31,12 @@ export function canonicalInventory(root, revision) {
   const parserPath = resolve(parserRoot, 'lib/backlog.mjs')
   if (!existsSync(parserPath)) throw new Error('canonical inventory requires git submodule update --init workspace')
   const pinned = git(root, 'ls-tree', revision, 'workspace').toString().match(/^160000 commit ([a-f0-9]{40})\tworkspace$/m)?.[1]
-  if (!pinned || git(parserRoot, 'rev-parse', 'HEAD').toString().trim() !== pinned) throw new Error('canonical inventory parser does not match the source revision workspace pin')
+  if (!pinned) throw new Error('canonical inventory source revision has no workspace parser pin')
+  // A published workspace adds snapshot content above the source gitlink. It
+  // may retain this exact parser; neither its HEAD nor new content renews the
+  // pinned parser authority. Unrelated histories still cannot substitute it.
+  try { git(parserRoot, 'merge-base', '--is-ancestor', pinned, 'HEAD') }
+  catch { throw new Error('canonical inventory workspace HEAD is not a descendant of the source revision parser pin') }
   for (const path of ['lib/backlog.mjs', 'lib/snapshot.mjs']) {
     if (digest(readFileSync(resolve(parserRoot, path))) !== digest(git(parserRoot, 'show', `${pinned}:${path}`))) throw new Error('canonical inventory parser has uncommitted changes')
   }

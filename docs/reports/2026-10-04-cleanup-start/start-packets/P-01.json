@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "id": "P-01.prepare",
+  "context": {
+    "outcome": "Keep first-run/start implementation and remaining deferrals explicitly accounted for; do not rebuild already delivered code.",
+    "sources": [
+      "docs/evidence/backlog.md",
+      "docs/evidence/plans/2026-10-03-onboarding-and-plan.md",
+      "docs/adr/0100-first-run-and-start-paths.md",
+      "docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start",
+      "docs/reports/2026-10-04-cleanup-start/raw/start-review.json"
+    ],
+    "scope": [
+      "docs/reports/2026-10-04-cleanup-start/start-packets/P-01.json"
+    ],
+    "steps": [
+      "Reconcile the five child deferrals against their canonical rows; retain each open ID.",
+      "Preserve persona/detection/source-picker/scan code. Determine each capability acceptance from its own receipt."
+    ],
+    "acceptance": [
+      "Umbrella status stays partial until owning predicates are honestly satisfied; linked child packets remain explicit."
+    ],
+    "risks": [
+      "A pure UI/fixture receipt must not change a native acceptance predicate to passed."
+    ],
+    "stop_conditions": [
+      "No broad P01 implementation dispatch while child ownership/design or acceptance is unknown."
+    ],
+    "resume": "Read this complete packet, current source revisions and owning canonical row; use current prerequisites and exact acceptance proof tier. Canonical first ID is an umbrella with delivered code; select a bounded remaining child rather than duplicating the whole lane.",
+    "canonical_order": 1,
+    "canonical_parent": "P-01",
+    "classification": "partial-built-umbrella",
+    "baseline": "484600a338f2c413333e57c09a28712b8559c401",
+    "dependencies": [
+      {
+        "id": "CO-176",
+        "contract": "Measured sign-in status is separate from installed/connected/admitted."
+      },
+      {
+        "id": "CO-177",
+        "contract": "No unattended observation without revocable persistent grant."
+      },
+      {
+        "id": "CO-178",
+        "contract": "Russian Estate term requires owner decision."
+      },
+      {
+        "id": "CO-179",
+        "contract": "Visual deadline before next post0.3.0 release; separate active ownership."
+      },
+      {
+        "id": "CO-180",
+        "contract": "Target scan routes reconcile to ADR0100 one selected repository→one Project."
+      }
+    ],
+    "validation_commands": [
+      "node scripts/check-plan-ids.mjs",
+      "node scripts/unified-plan.mjs check"
+    ],
+    "negative_controls": [
+      "A pure UI/fixture receipt must not change a native acceptance predicate to passed."
+    ],
+    "scope_boundary": {
+      "read": [
+        "apps/desktop/src/renderer/src/start/FirstRun.tsx",
+        "apps/desktop/src/renderer/src/start/StartPaths.tsx",
+        "apps/desktop/src/main/startPaths.ts"
+      ],
+      "write": []
+    },
+    "observed_baseline_facts": [
+      "Canonical row: partial, built2026-10-03, sign-in deferred CO176, acceptance by P02.",
+      "SCN126–131 still draft/product unobserved. P02 is a separate completed verification ledger, not a blanket AD02 native acceptance receipt."
+    ]
+  }
+}

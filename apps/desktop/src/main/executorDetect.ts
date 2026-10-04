@@ -8,9 +8,9 @@
  * not installed", and telling the operator to install what they already have is
  * the failure this separates.
  *
- * Found is not signed in and not admitted: whether the account works is
- * answered the first time a session runs, by the provider itself. This module
- * says only what the machine has.
+ * Found, connected, login status and admission are separate. An exact supported
+ * build gets a bounded read-only status observation; execution/admission is still
+ * answered by the provider when a session runs. No account subject is inferred.
  *
  * Install commands are listed only where the vendor publishes them as the
  * install path; a program without one gets `null`, never a guessed command.
@@ -20,6 +20,7 @@ import { spawn } from 'node:child_process'
 import { constants, type Stats } from 'node:fs'
 import { access, readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
+import { observeExecutorAuth } from './executorAuth.ts'
 
 /**
  * The filesystem calls detection makes — every one asynchronous and bounded (iteration 3, errors finding 8:
@@ -206,7 +207,7 @@ function versionOf(file: string, env: Record<string, string>, timeoutMs: number)
 
 export async function detectExecutors(
   probes: readonly ExecutorProbe[],
-  opts: { env: Record<string, string>; timeoutMs?: number; fs?: ExecutorFs; fsTimeoutMs?: number }
+  opts: { env: Record<string, string>; timeoutMs?: number; authTimeoutMs?: number; fs?: ExecutorFs; fsTimeoutMs?: number }
 ): Promise<ExecutorRow[]> {
   const timeoutMs = opts.timeoutMs ?? 5000
   const ctx: FsCtx = { fs: opts.fs ?? REAL_FS, ms: opts.fsTimeoutMs ?? FS_TIMEOUT_MS }
@@ -221,7 +222,8 @@ export async function detectExecutors(
       const v = await versionOf(file, env, timeoutMs)
       // Installed but not answering: telling the operator to INSTALL it is the wrong advice (no command).
       if (v === 'timeout') return { ...base, state: 'unresponsive', version: null, path: file, install: null }
-      return { ...base, state: 'found', version: v, path: file, install: null }
+      const authentication = await observeExecutorAuth({ id: p.id, version: v, file, env, timeoutMs: opts.authTimeoutMs })
+      return { ...base, state: 'found', version: v, path: file, install: null, authentication }
     })
   )
 }

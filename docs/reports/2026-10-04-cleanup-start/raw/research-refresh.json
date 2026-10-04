@@ -1,0 +1,21 @@
+{
+  "as_of": "2026-10-04",
+  "sources": [
+    {
+      "url": "https://www.electronjs.org/docs/latest/api/dialog",
+      "kind": "official API documentation",
+      "finding": "Native directory selection has explicit openDirectory/multiSelections modes; cancellation is not a path grant. Target folder picker remains a fixture; native authority belongs to the main-process checked path contract."
+    },
+    {
+      "url": "https://github.com/electron/electron/issues/9411",
+      "kind": "developer issue thread, historical",
+      "finding": "Folder chooser flags have platform-specific behavior; the old Windows promptToCreate issue is context for cross-platform negative testing, not proof current macOS behavior is broken."
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2025-06-18/basic/authorization.mdx",
+      "kind": "official specification",
+      "finding": "Audience/resource-bound credentials matter independently of sign-in. A CLI authenticated boolean is not a grant, token passthrough permission, stable subject or cloud-product acceptance."
+    }
+  ],
+  "relationship": "Refresh narrows Start folder/auth contracts; detailed previous twelve-lane research sources remain in immutable 2026-10-04-unified-execution packets. No external source supplies native acceptance."
+}

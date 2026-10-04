@@ -431,7 +431,9 @@ answer.commit → decision + delivery obligation
    // SCR-70 · SCN-126 (ADR-0100): name and look → coding agents → where to start; each step skippable.
    return title('Здравствуйте. Я Atlas.','Fabric ведёт ваши проекты вместе с агентами, которыми вы уже пользуетесь. Имя и облик меняют только то, как он выглядит.',link('Позже — на главную','r0-home'),'Знакомство · шаг 1 из 3')
     +panel('Ваш Fabric',field('Имя','name','Atlas','Оставьте пустым — будет «Fabric».')+row('Характер','орбита · искра · волна',badge('Выбрано: орбита'))+row('Вариант','3 варианта · «Ещё варианты»',badge('2')),action('Дальше','next',true))
-    +panel('Шаг 2 · Исполнители',row('Claude Code','Установлен · версия 2.1.288 · /opt/homebrew/bin/claude',badge('готов'))+row('Codex','Не установлен · npm install -g @openai/codex',badge('не установлен','attention')),action('Проверить снова','recheck'))
+    // #region first-run-auth-target — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
+    +panel('Шаг 2 · Исполнители',row('Claude Code','Установлен · версия 2.1.289 · /opt/homebrew/bin/claude',badge('готов'))+row('Вход · пример статуса','Исполнитель сообщает, что вход выполнен',badge('вход выполнен'))+row('Codex','Не установлен · npm install -g @openai/codex',badge('не установлен','attention'))+note('Можно продолжить без проверки','Установка, подключение к Fabric и вход показаны отдельно. Проверка входа не запускает задач. Если статус не подтверждён или проверка ещё идёт, можно перейти дальше.'),action('Проверить снова','recheck')+action('Продолжить без агента','next'))
+    // #endregion first-run-auth-target
     +panel('Шаг 3 · С чего Atlas начнёт?',row('Добавить проект','Одна папка','', 'start-add')+row('Сканировать папку проектов','Сразу несколько','', 'start-scan')+row('Новый проект','С нуля','', 'start-new')+row('Новый агент','В проекте','', 'start-agent')+row('Конвертировать агента','Запланировано','', 'start-convert'))
   }
   case 'start-add': {

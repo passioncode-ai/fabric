@@ -34,8 +34,10 @@ the normal source commit → workspace snapshot → verified publication chain.
 
 ## Current entry
 
-[Unified execution research](reports/2026-10-04-unified-execution/README.md) is the dated
-2026-10-04 cross-lane decision input and cold-agent dispatch context. The canonical
+[Cleanup, current plan and Start execution](reports/2026-10-04-cleanup-start/README.md) is the current
+entry for the twelve-lane source reconciliation and bounded Start work.
+[Unified execution research](reports/2026-10-04-unified-execution/README.md) remains the immutable
+2026-10-04 research input and historical cold-agent dispatch context. The canonical
 general plan and owner registers retain priorities and delivery status.
 
 [Harness audit and R0 correction plan](audit/2026-09-26-harness/README.md): current native modules, adapter/skills ownership, delivery/stop gaps and H00…H09. Runtime readiness remains receipt-based.

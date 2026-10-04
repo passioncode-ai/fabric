@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "as_of": "2026-10-04",
+  "file": "apps/desktop/src/main/executorAuth.ts",
+  "prior_independent_sha256": "41930848800793f8bcb2d56bb1dcba6570bd655f2168355fcb9b2fbe8aff2c11",
+  "current_sha256": "313acb52bf7b2c50956329aec237ff0ac71bcf5ade2e9f259da23877d9d5c2a0",
+  "change": "Two explanatory catch comments only; executable bytes unchanged after removing the exact added comments. Invalid-response/unavailable already returned through sanitized envelope, so logging raw vendor/parser/spawn exceptions would disclose private output/path.",
+  "verification": "node scripts/check-ops.mjs",
+  "exit_code": 0,
+  "summary": "126 IPC registrations, 289 catch blocks each recording or explaining, 0 non-SMOKE console calls",
+  "limits": "Does not broaden prior runtime/provider/packaged native acceptance."
+}

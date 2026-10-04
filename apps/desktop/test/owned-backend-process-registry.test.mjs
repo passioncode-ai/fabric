@@ -126,7 +126,9 @@ try{
   await until(async()=>(await f.registry.inspect(r.handle)).processGroup==='quiescent','retained exact child group cleaned')
  })
  await test('late capture after timeout never restores write but remains available for explicit cleanup',async()=>{
-  const f=fixture({timeoutMs:150}),capture=f.native.boundary.capture;let release
+  // The capture is held until release, so the deadline always lands after spawn; 150 ms let a loaded
+  // host expire it before spawn and answer refused instead (1 in 5 runs on main at load ~10, 2026-10-04).
+  const f=fixture({timeoutMs:3000}),capture=f.native.boundary.capture;let release
   f.native.boundary.capture=async pid=>{const owned=await capture(pid);await new Promise(r=>release=r);return owned}
   const a=admission(),r=await f.registry.start(a,a.session_id,async()=>true);assert.equal(r.state,'outcome_unknown')
   // Under load the 150 ms timeout can fire before the native capture itself returns, so the hold

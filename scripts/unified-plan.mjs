@@ -15,9 +15,46 @@ export function selectedReport(root, explicit) {
   if (explicit !== undefined) return explicit
   const pointerPath = resolve(root, CURRENT_POINTER)
   if (!existsSync(pointerPath)) return REPORT
+  if (realpathSync(pointerPath) !== resolve(realpathSync(root), CURRENT_POINTER)) throw new Error('current plan pointer contains a symlink')
   const pointer = JSON.parse(readFileSync(pointerPath, 'utf8'))
   if (pointer.schema !== 1 || Object.keys(pointer).some(k => !['schema', 'report'].includes(k)) || !safePath(pointer.report) || !pointer.report.startsWith('docs/reports/')) throw new Error('invalid current plan pointer; it contains only schema and report path')
   return pointer.report
+}
+export function reportDirectory(root, report = REPORT) {
+  if (!safePath(report) || report.includes('\\') || report.split('/').includes('.') || /^[A-Za-z]:/.test(report)) throw new Error('unsafe report directory')
+  const base = realpathSync(root), target = resolve(base, report)
+  let ancestor = target
+  while (!existsSync(ancestor) && ancestor !== dirname(ancestor)) ancestor = dirname(ancestor)
+  if (realpathSync(ancestor) !== ancestor) throw new Error('report directory contains a symlink')
+  const inside = relative(base, target)
+  if (inside.startsWith('..') || inside.startsWith('/')) throw new Error('report directory escapes repository')
+  return target
+}
+export function readPlan(root, report = REPORT) {
+  const directory = reportDirectory(root, report), path = resolve(directory, 'plan.json')
+  if (realpathSync(path) !== path) throw new Error('plan file contains a symlink')
+  return JSON.parse(readFileSync(path, 'utf8'))
+}
+export function parseArgs(args) {
+  let report = REPORT, selected = false
+  const options = {}
+  const positional = []
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--report') {
+      if (selected || !args[i + 1] || args[i + 1].startsWith('--')) throw new Error('usage: --report requires one repository-relative directory')
+      report = args[++i]; selected = true
+    } else if (['--source-revision', '--privacy-deny-file'].includes(args[i])) {
+      const name = args[i], key = name.slice(2).replaceAll('-', '_')
+      if (key in options || !args[i + 1] || args[i + 1].startsWith('--')) throw new Error(`usage: ${name} requires one value`)
+      options[key] = args[++i]
+    } else if (args[i].startsWith('-')) throw new Error(`unknown option ${args[i]}`)
+    else positional.push(args[i])
+  }
+  const [verb = 'check', id] = positional
+  if (!['check', 'next', 'packet', 'impacts', 'inventory'].includes(verb) || positional.length > 2 || (['check', 'next', 'inventory'].includes(verb) && id) || (verb === 'packet' && !id)) throw new Error('usage: node scripts/unified-plan.mjs [--report DIR] [--privacy-deny-file LOCAL] check|next|packet ID|impacts [ID]|inventory --source-revision SHA')
+  if (verb === 'inventory' && !/^[a-f0-9]{40}$/.test(options.source_revision ?? '')) throw new Error('inventory requires --source-revision fullSHA')
+  if (verb !== 'inventory' && options.source_revision) throw new Error('--source-revision is only valid for inventory')
+  return { report, verb, id, ...options }
 }
 export function canonicalLanes(text) {
   const section = text.split('<!-- general-plan:begin -->')[1]?.split('<!-- general-plan:end -->')[0]
@@ -164,14 +201,11 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   try {
     const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
     const args = process.argv.slice(2)
-    const option = (name, fallback) => { const at = args.indexOf(name); if (at < 0) return fallback; if (!args[at+1] || args[at+1].startsWith('--')) throw new Error(`missing ${name} value`); return args.splice(at,2)[1] }
-    const report = selectedReport(root, option('--report', undefined))
-    const revision = option('--source-revision', undefined)
-    const privacyFile = option('--privacy-deny-file', process.env.FABRIC_PUBLIC_PRIVACY_DENY_FILE)
-    if (!safePath(report)) throw new Error('report path must stay inside the repository')
-    const reportLocation = resolve(root, report)
-    if (existsSync(reportLocation) && relative(realpathSync(root), realpathSync(reportLocation)).startsWith('..')) throw new Error('report path escapes repository')
-    const [verb = 'check', id] = args
+    const parsed = parseArgs(args)
+    const report = selectedReport(root, args.includes('--report') ? parsed.report : undefined)
+    const revision = parsed.source_revision
+    const privacyFile = parsed.privacy_deny_file ?? process.env.FABRIC_PUBLIC_PRIVACY_DENY_FILE
+    const { verb, id } = parsed
     if (verb === 'inventory') {
       const inventory = canonicalInventory(root, revision)
       const deny = privacyFile ? JSON.parse(readFileSync(privacyFile,'utf8')) : []
@@ -179,8 +213,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       if (privacy.length) throw new Error(privacy.join('\n'))
       console.log(JSON.stringify(inventory, null, 2))
     } else {
-      const planBytes = readFileSync(resolve(root, report, 'plan.json'))
-      const plan = JSON.parse(planBytes)
+      const plan = readPlan(root, report)
+      const planBytes = readFileSync(resolve(reportDirectory(root, report), 'plan.json'))
       const deny = privacyFile ? JSON.parse(readFileSync(privacyFile,'utf8')) : []
       const privacy = publicInputProblems([{path:`${report}/plan.json`,bytes:planBytes},...(plan.sources??[]).filter(s=>safePath(s.path)&&existsSync(resolve(root,s.path))).map(s=>({path:s.path,bytes:readFileSync(resolve(root,s.path))}))],deny)
       if (privacy.length) throw new Error(privacy.join('\n'))

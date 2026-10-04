@@ -121,6 +121,15 @@ function underRoot(p: string, root: string): boolean {
 }
 
 export type ExecutorState = 'found' | 'unresponsive' | 'missing'
+// #region executor-auth-contract — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
+/** A vendor CLI's read-only login status. It never proves identity, model execution or admission. */
+export interface ExecutorAuthentication {
+  state: 'authenticated' | 'not-authenticated' | 'unsupported' | 'unknown'
+  /** Whitelisted method only, never an account id, address or credential. */
+  method: string | null
+  reason: 'unverified-build' | 'unavailable' | 'timeout' | 'output-limit' | 'invalid-response' | null
+}
+// #endregion executor-auth-contract
 export interface ExecutorRow {
   id: string
   label: string
@@ -130,6 +139,8 @@ export interface ExecutorRow {
   version: string | null
   path: string | null
   install: string | null
+  /** Absent on older main processes: the renderer treats it as unknown, never signed in. */
+  authentication?: ExecutorAuthentication
 }
 
 /** A new project's folder: created under a parent the operator chose, optionally as a git repository. */

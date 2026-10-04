@@ -1699,7 +1699,7 @@ FLW-18/32: результат этапа записывает прогресс �
 - **Goal:** First useful sourced insight from the user's selected project, with minimal operator input.
 - **Before entry:** Verify exact build/schema compatibility before workspace services or recovery. Unknown/out-of-range → native startup error → fresh schema Retry, or reinstall/restart for an artifact failure. No automatic migration, no false read-only ahead mode.
 - **Entry points:** First launch; New project; restored source draft; launch-start/onboarding aliases; CEO add-project intent.
-- **Success exit:** SCR-30 r0-home and SCR-31 r0-project with source receipts and one next action.
+- **Success exit:** SCR-30 r0-home and SCR-31 r0-project with source receipts and one next action. A folder-scan checklist creates one Project per ticked repository, in selection order; existing primary identities open their own Project and are never merged.
 - **Task analysis:** Accept or customise CEO defaults; choose a ready executor; choose source with picker/URL; let CEO discover; inspect sourced insight and next action.
 - **Flow:**
 
@@ -1715,8 +1715,9 @@ flowchart TD
  B -->|read saved work| H[SCR-30 r0-home: saved snapshot]
  C -->|picker cancel| C
  C -->|read-only observation| D[SCR-27 r0-discovery]
- D -->|parent folder candidates| M[Select several sources and primary]
- M -->|assemble bounded context| D
+ D -->|parent folder candidates| M[Tick repositories to add as separate Projects]
+ M -->|one Project per tick; unticked stays out| H
+ M -->|already imported| P
  D -->|denied / error / cancelled| C
  D -->|partial with sources| P[SCR-31 r0-project: facts and gaps]
  D -->|observed| H
@@ -2114,7 +2115,7 @@ flowchart TD
 ```mermaid
 flowchart TD
  A[Screen: SCR-70 step 1 Your Fabric] -->|Continue / Skip| B[SCR-70 step 2 Coding agents]
- B -->|Continue| C[SCR-70 step 3 Where to start]
+ B -->|Continue / continue without an agent, including while checking| C[SCR-70 step 3 Where to start]
  C -->|path| D[Start path SCR-71..75]
  C -->|Later| H[Home]
 ```
@@ -2122,7 +2123,7 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-70 First run | first-visit, saving, not-saved, checking, found, found-unconnected, unresponsive, missing, check-failed, choose-path, skipped |
+  | SCR-70 First run | first-visit, saving, not-saved, checking, found, found-unconnected, unresponsive, missing, check-failed, authenticated, not-authenticated, auth-unsupported, auth-unknown, choose-path, skipped |
 
 ### FLW-70: Add an existing project
 - **Traces:** ST-001, ST-031; SCN-127 (JTBD-01)

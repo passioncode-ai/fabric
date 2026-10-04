@@ -3086,20 +3086,20 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Feature:** First run
 - **Traces:** ST-001, ST-022, FLW-69 (JTBD-01, JTBD-02)
 - **Entry point:** First launch of an estate with no project, after the project list is known; Help → Walk through the first run again.
-- **Preconditions:** The settings file and the project list have been read. `settings.firstRun.completedAt` is null. No step grants authority: the look is a preference, detection runs `--version` only.
+- **Preconditions:** The settings file and the project list have been read. `settings.firstRun.completedAt` is null. No step grants authority: the look is a preference; detection reads `--version` and, only for an exactly observed supported build/runtime, a bounded read-only vendor sign-in status. Neither check logs in, launches work or establishes account identity/admission.
 - **Steps:**
   1. Operator sees SCR-70 step 1 → types a name for their Fabric (optional; empty keeps "Fabric"), picks a character and a variant; the greeting and avatar update live → Continue saves the look, Skip keeps the default.
-  2. Operator sees step 2 → Fabric lists Claude Code and Codex with one state each: ready (installed with its version and connected to Fabric's tools), installed (runs in a folder as itself, not connected — says so), needs setup (installed, `--version` did not answer: run it once in a terminal; no install command), not installed (the vendor's install command and Copy) → Check again re-reads; Continue is labelled "Continue without an agent" when none is ready.
+  2. Operator sees step 2 → Fabric lists Claude Code and Codex with one state each: ready (installed with its version and connected to Fabric's tools), installed (runs in a folder as itself, not connected — says so), needs setup (installed, `--version` did not answer: run it once in a terminal; no install command), not installed (the vendor's install command and Copy) → A separate sign-in observation says authenticated, not authenticated, unsupported for this build, or unknown; only whitelisted status fields reach the window. Check again re-reads with the latest-request fence; Continue is labelled "Continue without an agent" when none is ready and remains usable while the informational check is pending.
   3. Operator sees step 3 → the five start paths (SCR-71…75 entries) → choosing one opens it; "Later" goes home.
 - **Expected result:** The first run is finished once; `settings.firstRun.completedAt` holds the moment; the operator is on the chosen path or home.
 - **Alt paths:** Back on steps 2–3; Skip on step 1; Help reopens the first run for an estate that already has projects.
 - **UI elements:** Three-step progress; name field with hint and 40-character limit; character choice; variants and "More variants"; executor rows with state pill, path, install command and Copy; five path cards.
-- **States covered:** first-visit,saving,not-saved,checking,found,found-unconnected,unresponsive,missing,check-failed,choose-path,skipped
+- **States covered:** first-visit,saving,not-saved,checking,found,found-unconnected,unresponsive,missing,check-failed,authenticated,not-authenticated,auth-unsupported,auth-unknown,choose-path,skipped
 - **Errors & recovery:** A look that is not saved says why and offers Continue without saving. A detection that fails says so and offers Check again. An installation already holding projects is never walked back through the first run; an unknown project list never triggers it.
 - **Design rationale:** One question per step, every step skippable; the agent check is information, not a gate, because Fabric itself is useful before an agent is ready.
 - **Telemetry:** planned only.
 - **Status:** draft
-- **Coverage:** apps/desktop/src/renderer/src/start/FirstRun.tsx; apps/desktop/src/renderer/src/start/StartPaths.test.tsx
+- **Coverage:** apps/desktop/src/renderer/src/start/FirstRun.tsx; apps/desktop/src/renderer/src/start/StartPaths.test.tsx; CO-176 current main observer `apps/desktop/src/main/executorAuth.ts`, disposable-process negatives `apps/desktop/test/executor-auth.test.mjs` and current sanitized vendor reading in `docs/reports/2026-10-04-cleanup-start/raw/`. Local source/fixture proof does not establish packaged native or account-identity acceptance.
 - **Product:** unobserved
 
 ### SCN-127: Add an existing project from one folder
@@ -3142,7 +3142,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Design rationale:** Nothing becomes a Project without the operator's tick; Tick all shown ticks one Project per product, so a worktree becomes a separate Project only by a deliberate, warned tick.
 - **Telemetry:** planned only.
 - **Status:** draft
-- **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/src/main/startPaths.ts
+- **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/src/main/startPaths.ts; target-only legacy R0 scan checklist: scripts/product/first-release.mjs (CO-180), scripts/test/first-release.test.mjs. Prototype checks do not certify native acceptance.
 - **Product:** unobserved
 
 ### SCN-129: Create a new project in a new folder or as an idea

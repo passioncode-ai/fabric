@@ -166,10 +166,12 @@ export function createCodexProviderControl(ports:CodexControlPorts):Validation<C
     const command=checked.value
     if(canonicalCommand&&canonical(canonicalCommand)!==canonical(command))return Promise.resolve(base(command.commandId,'refused','canonical_command_conflict'))
     if(!scopedAllowed(stillAllowed,command.issuedCursor))return Promise.resolve(base(command.commandId,'refused','scope_changed'))
-    if(performance.now()>=deadline)return Promise.resolve(base(command.commandId,'refused','deadline'))
     if(canonicalCommand&&canonical(canonicalCommand)!==canonical(command))return Promise.resolve(base(command.commandId,'refused','canonical_command_conflict'))
+    // A repeat writes nothing: its stored or in-flight outcome is the answer, and a refusal here
+    // would tell the caller nothing was sent after a write may already have happened.
     if(cached)return Promise.resolve(cached)
     if(pending)return pending
+    if(performance.now()>=deadline)return Promise.resolve(base(command.commandId,'refused','deadline'))
     canonicalCommand=command
     // Install the shared promise before any user port can synchronously reenter.
     let settle!:(r:CodexStopRequestResult)=>void

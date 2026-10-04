@@ -1,0 +1,961 @@
+{
+  "schema": "fabric-start-cold-review/1",
+  "as_of": "2026-10-04T13:02:31.750670+00:00",
+  "project": "fabric",
+  "base_revision": "484600a338f2c413333e57c09a28712b8559c401",
+  "mode": "read-only research/decomposition; only this own raw artifact written",
+  "canonical_lane": 1,
+  "canonical_ids": [
+    "P-01",
+    "CO-176",
+    "CO-177",
+    "CO-178",
+    "CO-179",
+    "CO-180"
+  ],
+  "canonical_item_count": 6,
+  "common_contracts": {
+    "status_authority": "docs/evidence/backlog.md only owns P-01; carry-over ledger owns CO IDs; unified snapshot is dispatch context, not completion register",
+    "proof_boundary": "Target prototype/pure checks never close native/provider/packaged/user acceptance. Product fields remain unobserved unless exact tier receipt exists.",
+    "coordination": "Root must hold exact guarded resource claims; task lease alone is insufficient. Confirm active code ownership before dispatch, including WIP without a registry claim.",
+    "source_drift": "Re-read scope against current HEAD and dependency digest before dispatch; preserve immutable dated source cuts."
+  },
+  "read_manifest": [
+    {
+      "path": "docs/evidence/backlog.md",
+      "sha256": "3135378f808cca85b5408b13f54159b8e6818ab2d7f9258eef7f25644a17d608",
+      "bytes": 365102,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "sha256": "50a73374b7305a1b092333940b299d1595c33ed63b1d0fd1a41e6a9476b8db51",
+      "bytes": 166704,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/adr/0100-first-run-and-start-paths.md",
+      "sha256": "e9c36c52956b9b6128bb604aad428abd0d108e207626405f6914f715fa8fe3bb",
+      "bytes": 9625,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/ux/vision.md",
+      "sha256": "b49ff2c9b4af97b5f4fa56183ee8a703e2e3a607f86c1c368746e95517cc444c",
+      "bytes": 4109,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/ux/scenarios.md",
+      "sha256": "6c30974330bcf1c654318ede288a683c19f69a8fae5d3efeb3e1ae30e22a88a1",
+      "bytes": 348122,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/ux/flows.md",
+      "sha256": "f2dd06b5c3cb0150f7e3072b7bd73c274c96722987c1dcc195533c467f45b7fa",
+      "bytes": 129447,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/ux/screens.md",
+      "sha256": "c732d0e56e28519583989ead1abc73321c15289f15d4d1a32de6318e256a95b4",
+      "bytes": 181877,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/ux/product-model.json",
+      "sha256": "a5d596c75b8c2d68089b39da5f6d870b6dd4b07b6725e23795e8e37a00761eee",
+      "bytes": 1905858,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/ux/product-fixtures.json",
+      "sha256": "d2e621363cba39a7b45d6f611a7cd66340d3d4c9ab6681d5e5538c44490da360",
+      "bytes": 11586,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/launch/adoption/receipts/AD02.json",
+      "sha256": "12b74a7a8a3d1ad4719f24fda323473b3040f7ceb24ac4a7d0ae12fa167a99cd",
+      "bytes": 3097,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/evidence/plans/unified-leaves/CO-179.json",
+      "sha256": "626a37d322a3cc7f9d8ed5ec5eb004f8b67f85a0a4ce637c933ac0b10a4fb09c",
+      "bytes": 35403,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "docs/reports/2026-10-04-unified-execution/plan.json",
+      "sha256": "0b2be8e8d05ca5ced7a7f0266ba25d8a9b2c6715b5b7bb502f42fdb952db6669",
+      "bytes": 7341530,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "apps/desktop/src/main/executorDetect.ts",
+      "sha256": "bdaf50864da9ac6957cfb6f2343cc58bac8761ec1625f6176c8b11bd05392540",
+      "bytes": 11487,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "apps/desktop/src/shared/startPaths.ts",
+      "sha256": "86b4708e45bdf3ad843db92e1724642668e3eb42803a5aa3236728f148d191c6",
+      "bytes": 8958,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "apps/desktop/src/shared/providerCapabilityMatrix.ts",
+      "sha256": "022e197741338feef03b871e8accb206927ff0eb2c413fd7416835ac93442f54",
+      "bytes": 10482,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/start/FirstRun.tsx",
+      "sha256": "8bac824543febeceb69c07b19da08b9925bda5c61863e184927d1c4657f7e751",
+      "bytes": 11624,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "scripts/product/first-release.mjs",
+      "sha256": "ca0f85a31820ea3a266fb2cbdfa17fe2a5f0dff1acf693c56e4191bd124a53d5",
+      "bytes": 97043,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "scripts/product/folder-picker.mjs",
+      "sha256": "961ebb5aa8a5b8d7f6a3d5750b2db2bf532dfc04248374038b8545cca7a195ba",
+      "bytes": 8298,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "scripts/product/renderers.mjs",
+      "sha256": "0bc6e4da3b1f4cfbb6cd482bdeaa7e073dcbeae812acc4e533bd8943869049b5",
+      "bytes": 135449,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "scripts/test/first-release.test.mjs",
+      "sha256": "5bc05521e53d1a6110ff2a67a79389d1aee1ef925079a3593710d2d1327220d4",
+      "bytes": 27642,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    },
+    {
+      "path": "scripts/test/chat-workspace.test.mjs",
+      "sha256": "29b780f7bf208cdf1ed661bcab04893e065004b7092809e6b8db627d67be4816",
+      "bytes": 7110,
+      "provenance": "committed-identical",
+      "revision": "484600a338f2c413333e57c09a28712b8559c401"
+    }
+  ],
+  "concurrent_branches": [
+    {
+      "branch": "codex/onboarding-visual-20261004",
+      "head": "ff7eb7f3a955fc43a30b302c1a68e3fee2d896c0",
+      "tracked_status": "clean at inspection",
+      "scope_diff_vs_baseline": "no committed Onboarding visual diff",
+      "conclusion": "preserve assigned active owner; not proven finished"
+    },
+    {
+      "branch": "codex/co179-native-fixture-20261004",
+      "head": "ff7eb7f3a955fc43a30b302c1a68e3fee2d896c0",
+      "untracked_files": [
+        "apps/desktop/test/onboarding-visual-native-harness.mjs",
+        "apps/desktop/test/onboarding-visual-native-harness.test.mjs"
+      ],
+      "conclusion": "active WIP; preserve worktree and files; no test/native outcome inferred",
+      "working_cut_sources": [
+        {
+          "path": "apps/desktop/test/onboarding-visual-native-harness.mjs",
+          "sha256": "1903dde834c5b3e7c193c9846a6c18dd939b76fd62e24ca67259f8ad2285379a",
+          "provenance": "untracked-WIP",
+          "base_revision": "ff7eb7f3a955fc43a30b302c1a68e3fee2d896c0"
+        },
+        {
+          "path": "apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+          "sha256": "9da681877bbedb0ae42a2bba7da0fa0bb290909b0584d23fb2dab219998dac7b",
+          "provenance": "untracked-WIP",
+          "base_revision": "ff7eb7f3a955fc43a30b302c1a68e3fee2d896c0"
+        }
+      ]
+    },
+    {
+      "branch": "codex/unified-canonical-coverage-20261004",
+      "head": "8babdd15afca8afb04e1860eaa3db6abbd8a5341",
+      "changes_vs_baseline": "12files692insertions27deletions compiler/canonical source/test/report changes",
+      "conclusion": "separate branch convergence required before claiming unified projection canonical coverage; no new first-lane completion inferred"
+    },
+    {
+      "branch": "origin/codex/hub-i3-fixes-20261004",
+      "head": "d1a8282069f3c6579cc58000ca5b655fadcbb8c9",
+      "source_provenance": "committed branch diff read directly; not root baseline/main",
+      "confirmed_start_impact": [
+        "Lane1 six IDs unchanged.",
+        "Lane2 now explicitly includes CO179 release dependency, current candidate-bound verification requirement; P08/Now include CO179 visual/native containment.",
+        "AD02 status not upgraded."
+      ],
+      "conclusion": "Preserve deadline dependency in recompiled unified plan; pending branch convergence not native or release pass."
+    }
+  ],
+  "coordination_measurement": {
+    "command": "python3 <installed-agent-sync-entrypoint> residue",
+    "exit_code": 0,
+    "plane": "git remote authoritative",
+    "live_refs_count": 13,
+    "reapable_by_this_run": 0,
+    "record_plane": "fs local-only; status exits1 for unavailable configured record backend",
+    "live_conflicts": [
+      {
+        "resource": "docs/evidence/backlog.md",
+        "owner_run": "r-r6a4c865e0",
+        "state": "live"
+      },
+      {
+        "resource": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+        "owner_run": "r-r6a4c865e0",
+        "state": "live"
+      },
+      {
+        "resource": "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md",
+        "owner_run": "r-r6a4c865e0",
+        "state": "live"
+      },
+      {
+        "resource": "docs/evidence/plans/2026-09-29-agent-registry-plan.md",
+        "owner_run": "r-r6a4c865e0",
+        "state": "live"
+      }
+    ],
+    "root_task": "cleanup-start-20261004 live separately",
+    "limitation": "Lease ref inventory is a momentary measurement. Absence of code file lease does not prove no peer active work; branch/WIP plus direct owner coordination required."
+  },
+  "confirmed_changes_vs_previous_cut": [
+    "Root main now484600a3 includes durable unified research and CO179 preparation dossier; no first-lane canonical CO status was closed.",
+    "CO179 visual/fixture peer branches exist at ff7eb7f3; fixture adds untracked test-host capability WIP, actual test/visual/native results not observed in this review.",
+    "Compiler canonical-coverage follow-up8babdd15 exists but is not main at this cut; root must integrate/recompile independently.",
+    "Latest source inspection confirms CO180 test suite enforces superseded old grouping; bounded change must include state/actions/consumer expectations and current flow model, not only markup.",
+    "Read committed remote hub branchd1a8282: CO179 is now also explicit lane2/P08 release prerequisite. This source change is branch-only at root baseline484600a3 and must not be lost during plan recompilation."
+  ],
+  "first_available_task": {
+    "id": "CO-180.1",
+    "selected_by": "root",
+    "reason": "Independent bounded prototype correction; earlier IDs classified with their actual missing contracts/ownership. Existing CO179 release-deadline work remains owned, not reprioritized away.",
+    "ownership_status": "No target prototype lease seen at inspection; root must still verify own exact scope and peer intent before edit.",
+    "prerequisites": [
+      "Accepted ADR0100/SCN128 already available",
+      "Source revalidation and root guarded UX/model/output resource claims",
+      "Current scenario/brand/super-ux chain for changed target-visible text",
+      "Current first-release consumer tests and all required negative assertions"
+    ],
+    "immediately_available_before_implementation": "Finish this bounded packet/source-pin review; parent now implements under scope."
+  },
+  "tasks_in_canonical_order": [
+    {
+      "id": "P-01",
+      "canonical_order": 1,
+      "classification": "partial-built-umbrella",
+      "objective": "Keep first-run/start implementation and remaining deferrals explicitly accounted for; do not rebuild already delivered code.",
+      "facts": [
+        "Canonical row: partial, built2026-10-03, sign-in deferred CO176, acceptance by P02.",
+        "SCN126–131 still draft/product unobserved. P02 is a separate completed verification ledger, not a blanket AD02 native acceptance receipt."
+      ],
+      "sources": [
+        "docs/evidence/backlog.md:83",
+        "docs/evidence/plans/2026-10-03-onboarding-and-plan.md",
+        "docs/adr/0100-first-run-and-start-paths.md",
+        "docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start"
+      ],
+      "file_scope": {
+        "read": [
+          "apps/desktop/src/renderer/src/start/FirstRun.tsx",
+          "apps/desktop/src/renderer/src/start/StartPaths.tsx",
+          "apps/desktop/src/main/startPaths.ts"
+        ],
+        "write": []
+      },
+      "implementation_steps": [
+        "Reconcile the five child deferrals against their canonical rows; retain each open ID.",
+        "Preserve persona/detection/source-picker/scan code. Determine each capability acceptance from its own receipt."
+      ],
+      "dependencies": [
+        {
+          "id": "CO-176",
+          "contract": "Measured sign-in status is separate from installed/connected/admitted."
+        },
+        {
+          "id": "CO-177",
+          "contract": "No unattended observation without revocable persistent grant."
+        },
+        {
+          "id": "CO-178",
+          "contract": "Russian Estate term requires owner decision."
+        },
+        {
+          "id": "CO-179",
+          "contract": "Visual deadline before next post0.3.0 release; separate active ownership."
+        },
+        {
+          "id": "CO-180",
+          "contract": "Target scan routes reconcile to ADR0100 one selected repository→one Project."
+        }
+      ],
+      "validation_commands": [
+        "node scripts/check-plan-ids.mjs",
+        "node scripts/unified-plan.mjs check"
+      ],
+      "negative_controls": [
+        "A pure UI/fixture receipt must not change a native acceptance predicate to passed."
+      ],
+      "definition_of_done": [
+        "Umbrella status stays partial until owning predicates are honestly satisfied; linked child packets remain explicit."
+      ],
+      "stop_conditions": [
+        "No broad P01 implementation dispatch while child ownership/design or acceptance is unknown."
+      ],
+      "priority_reasoning": "Canonical first ID is an umbrella with delivered code; select a bounded remaining child rather than duplicating the whole lane."
+    },
+    {
+      "id": "CO-176",
+      "canonical_order": 2,
+      "classification": "preparation-ready-provider-observation-gated",
+      "objective": "Verify a detected coding agent sign-in using the provider-supported status command measured for that exact build, without treating installed/connected as account acceptance.",
+      "facts": [
+        "executorDetect.ts declares found is not signed in or admitted. ExecutorRow has found/unresponsive/missing, connected and version; no auth reading field.",
+        "FirstRun currently presents connected+found as ready yet its note says sign-in answered on first session; canonical CO176 remains open.",
+        "Historical CO141 subject limitation is not permission to read credential files or use email as identity; sign-in boolean and stable account identity are distinct predicates."
+      ],
+      "sources": [
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:187",
+        "apps/desktop/src/main/executorDetect.ts:1",
+        "apps/desktop/src/shared/startPaths.ts:123",
+        "apps/desktop/src/renderer/src/start/FirstRun.tsx:124",
+        "apps/desktop/src/shared/providerCapabilityMatrix.ts",
+        "docs/architecture/provider-accounts.md#vocabulary-and-ownership"
+      ],
+      "file_scope": {
+        "preparation_write": [
+          "docs/evidence/plans/unified-leaves/CO-176.json"
+        ],
+        "proposed_implementation": [
+          "apps/desktop/src/main/executorDetect.ts",
+          "apps/desktop/src/shared/startPaths.ts",
+          "apps/desktop/src/main/startPaths.ts",
+          "apps/desktop/src/renderer/src/start/FirstRun.tsx",
+          "apps/desktop/src/renderer/src/start/StartPaths.test.tsx",
+          "apps/desktop/test/start-paths-main.test.mjs"
+        ],
+        "excluded": [
+          "credential files",
+          "managed profile login/import",
+          "provider account duplicate/subject logic",
+          "AR2 registry schema",
+          "model-turn launches"
+        ]
+      },
+      "implementation_steps": [
+        "First document exact status invocation and supported/authenticated/unauthenticated/unknown/error/parser-timeout mapping for each installed build/runtime.",
+        "If current passport lacks this probe, retain unverified until measured with bounded output and redacted booleans; version-only repin is not status proof.",
+        "Design a bounded typed read-only observation with latest-request fencing, stale/unknown visible and no auto-login.",
+        "Only after reviewed leaf + exact-build probe integrate; preserve Continue without an agent and useful Fabric-before-provider behavior."
+      ],
+      "dependencies": [
+        {
+          "id": "M199",
+          "contract": "Exact provider build/runtime capability probe for supported status reader; historical reader table alone insufficient."
+        },
+        {
+          "id": "AR-2.1",
+          "contract": "Registry must not label detected runner ready before sign-in predicate defined; do not require completion of unrelated AR2 children."
+        }
+      ],
+      "validation_commands": [
+        "node --experimental-strip-types scripts/check-provider-capability.mjs",
+        "node --test apps/desktop/test/start-paths-main.test.mjs",
+        "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/start/StartPaths.test.tsx"
+      ],
+      "negative_controls": [
+        "missing executable",
+        "hung/failing version",
+        "status timeout/nonzero/malformed output",
+        "status unsupported by provider build",
+        "recheck stale earlier callback",
+        "system-login subject unknown despite apparent sign-in",
+        "no access to credential bytes/log/raw email"
+      ],
+      "definition_of_done": [
+        "Supported current-build status is observed and labelled without inventing stable account identity or admission; unsupported stays explicit."
+      ],
+      "stop_conditions": [
+        "Exact-build observation unavailable; parser requires secret/credential access; requested scope expands into provider-account management."
+      ],
+      "priority_reasoning": "Earliest concrete canonical remaining gap, but implementation lacks current explicit measured-reader contract; its bounded prepare can proceed independently.",
+      "new_file_candidates": [
+        "docs/evidence/plans/unified-leaves/CO-176.json"
+      ]
+    },
+    {
+      "id": "CO-177",
+      "canonical_order": 3,
+      "classification": "decision-gated-persistent-authority",
+      "objective": "Design scheduled read-only project-folder rescan only after accepted persistent revocable observation grant.",
+      "facts": [
+        "ADR0100 §7 retained last scan is shown, never granted.",
+        "A parent chosen for folder creation may create direct children but grants no read/list of parent.",
+        "SCN128 Scan again opens picker; background recurring scan absent."
+      ],
+      "sources": [
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:188",
+        "docs/adr/0100-first-run-and-start-paths.md#boundary",
+        "docs/ux/scenarios.md#scn-128-scan-a-projects-folder-and-tick-what-becomes-a-project"
+      ],
+      "file_scope": {
+        "preparation_write": [
+          "docs/evidence/plans/unified-leaves/CO-177.json"
+        ],
+        "implementation_write": []
+      },
+      "implementation_steps": [
+        "Specify owner/principal/root identity/realpath revision, grant scope, expiry/revocation and no auto-import.",
+        "Define scan coverage/status, cadence/debounce, quit/drain, symlink/mount/root-change invalidation and late-result fencing.",
+        "Resolve authority by new numbered ADR if extending standing current boundary; do not edit immutable ADR0100.",
+        "Only then allocate implementation leaf with disposable filesystem tests and explicit new scenario."
+      ],
+      "dependencies": [
+        {
+          "id": "S02.roots",
+          "contract": "Window picker authority remains window-local; a new persistent observation grant is not derivable from stored path/scan."
+        },
+        {
+          "id": "ADR-0100",
+          "contract": "Existing §7 grant contract remains until separately accepted amendment."
+        }
+      ],
+      "constraints": [
+        "read-only observation does not import/create Projects",
+        "denied/stale/partial/cancelled source never fresh complete scan"
+      ],
+      "validation_commands": [
+        "node scripts/check-plan-ids.mjs",
+        "node --test apps/desktop/test/project-discovery.test.mjs"
+      ],
+      "negative_controls": [
+        "restart must not revive picker authority",
+        "revocation while walk runs",
+        "root moved/symlink replaced",
+        "parent creation grant supplied as read grant",
+        "timeout or truncated walk leaves missing repositories unconfirmed"
+      ],
+      "definition_of_done": [
+        "A complete accepted authority/lifecycle contract precedes executable scheduled work."
+      ],
+      "stop_conditions": [
+        "Persistent grant decision absent or authority owner unavailable."
+      ],
+      "priority_reasoning": "Canonical next start-touch deadline triggers design now, not consent-free scheduling implementation.",
+      "new_file_candidates": [
+        "docs/evidence/plans/unified-leaves/CO-177.json"
+      ]
+    },
+    {
+      "id": "CO-178",
+      "canonical_order": 4,
+      "classification": "brand-decision-gated",
+      "objective": "Choose and consistently apply the Russian Estate terminology at the next brand calibration.",
+      "facts": [
+        "Canonical row open; docs/brand/locales/ru.md provides no fixed Russian Estate form.",
+        "Existing transliteration is a deliberate unresolved terminology choice, not a typo."
+      ],
+      "sources": [
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:189",
+        "docs/brand/locales/ru.md",
+        "docs/brand/terminology.md",
+        "docs/brand/voice.md",
+        "docs/brand/facts.md",
+        "CONTEXT.md"
+      ],
+      "file_scope": {
+        "preparation_write": [
+          "docs/evidence/plans/unified-leaves/CO-178.json"
+        ],
+        "proposed_after_decision": [
+          "docs/brand/locales/ru.md",
+          "apps/desktop/src/renderer/src/i18n/ru.ts"
+        ],
+        "excluded": [
+          "canonical English Estate meaning",
+          "database/domain schema names",
+          "global mechanical code rename"
+        ]
+      },
+      "implementation_steps": [
+        "Inventory actual ru token occurrences and user contexts, preserving canonical Estate/domain meaning.",
+        "Prepare options and context examples for owner brand decision through copywriting.",
+        "After accepted term, change pack first and targeted strings with placeholder parity; update affected screenshots/model only for changed user text."
+      ],
+      "dependencies": [
+        {
+          "id": "brand-calibration",
+          "contract": "Accepted Russian term and inflection/examples; no research agent may settle it by translation guess."
+        }
+      ],
+      "validation_commands": [
+        "pnpm gates:docs",
+        "node --test apps/desktop/test/app-brand.test.mjs"
+      ],
+      "negative_controls": [
+        "unrelated domain identifiers altered",
+        "placeholder keys dropped",
+        "term appears in mismatched inflection/context"
+      ],
+      "definition_of_done": [
+        "Locale contract records choice and all in-scope ru display strings comply."
+      ],
+      "stop_conditions": [
+        "Term decision missing; exact command/path does not resolve—identify owning equivalent before dispatch."
+      ],
+      "priority_reasoning": "Next calibration deadline; decision dossier can proceed but broad string edits cannot.",
+      "new_file_candidates": [
+        "docs/evidence/plans/unified-leaves/CO-178.json"
+      ]
+    },
+    {
+      "id": "CO-179",
+      "canonical_order": 5,
+      "classification": "active-peer-owned-visual-and-fixture-work",
+      "objective": "Contain native New project SCR73 in launch visual language while preserving actual draft/folder behavior before next release after0.3.0.",
+      "facts": [
+        "CO179.prepare dossier persisted; preparation complete-with-explicit-implementation-blockers, implementation blocked.",
+        "AD02 receipt status blocked/proofTier pure/predicate native-acceptance-pending unchanged.",
+        "Visual branch at ff7eb7f3 clean without committed Onboarding diff from baseline; clean does not mean assigned work finished.",
+        "Fixture branch at ff7eb7f3 has two untracked harness files with six typed synthetic IPC handlers, strict deny-list and test negatives. Source existence does not prove checks or native acceptance.",
+        "git checkbox is component-local useState(true), not persisted Draft."
+      ],
+      "sources": [
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:190",
+        "docs/evidence/plans/unified-leaves/CO-179.json",
+        "docs/launch/adoption/receipts/AD02.json",
+        "apps/desktop/src/renderer/src/Onboarding.tsx",
+        "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+        "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx"
+      ],
+      "file_scope": {
+        "root_write": [],
+        "owned_visual_proposed": [
+          "apps/desktop/src/renderer/src/Onboarding.tsx",
+          "apps/desktop/src/renderer/src/Onboarding.launch.css",
+          "apps/desktop/src/renderer/src/Onboarding.visual.test.tsx"
+        ],
+        "owned_fixture_WIP": [
+          "apps/desktop/test/onboarding-visual-native-harness.mjs",
+          "apps/desktop/test/onboarding-visual-native-harness.test.mjs"
+        ],
+        "excluded": [
+          "App.tsx Draft/hydration",
+          "main product data/stack",
+          "schema",
+          "shared components/global styles",
+          "git persistence change"
+        ]
+      },
+      "implementation_steps": [
+        "Existing owners finish their scoped leaves; root does not duplicate code.",
+        "Obtain fixture-host test receipt separately from app-native state/visual matrix receipt; synthetic handlers cannot prove real folder/create/main effect.",
+        "Verify required persistence/error/focus/disabled/unread/saving states and visually compare ru/en widths under sheleg-design.",
+        "Publish exact-SHA/native proof and preserve unfinished deadline if native coverage absent."
+      ],
+      "dependencies": [
+        {
+          "id": "AD02",
+          "contract": "Actual native restart acceptance is not currently passed; consume only exact scoped evidence."
+        },
+        {
+          "id": "CO-179.fixture",
+          "contract": "Owned disposable synthetic host capability is separately scoped, no operator DB/stack; current WIP must survive cleanup."
+        },
+        {
+          "id": "sheleg-design",
+          "contract": "Reviewed visual mapping through current launch tokens/components with scenario/brand chain."
+        }
+      ],
+      "validation_commands": [
+        "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/Onboarding.test.tsx src/renderer/src/onboardingDraft.persist.test.tsx",
+        "node --test apps/desktop/test/onboarding-visual-native-harness.test.mjs"
+      ],
+      "negative_controls": [
+        "outside/exists/invalid/failed folder",
+        "created folder remains on disk after cancel/remove notice",
+        "saving refusal draft retained",
+        "unregistered IPC/foreign path/symlink denied",
+        "disabled backend reason visible",
+        "git restart persistence not asserted"
+      ],
+      "definition_of_done": [
+        "Scoped visual refinement plus exact proof tiers and remaining native gaps recorded; canonical CO179 stays open until full owning predicate."
+      ],
+      "stop_conditions": [
+        "Another owner holds this work",
+        "unknown source/build pin",
+        "fixture state or visual/native harness coverage missing"
+      ],
+      "priority_reasoning": "Release deadline highest in Start; existing two peer owners retain it. Root selects independent CO180 while coordinating required receipts.",
+      "new_file_candidates": [
+        "apps/desktop/src/renderer/src/Onboarding.launch.css",
+        "apps/desktop/src/renderer/src/Onboarding.visual.test.tsx"
+      ]
+    },
+    {
+      "id": "CO-180",
+      "canonical_order": 6,
+      "classification": "selected-independent-bounded-prototype-reconciliation",
+      "objective": "Replace old target scan grouping with ADR0100 checklist-per-repository without changing product runtime or legitimate explicit reference sources.",
+      "facts": [
+        "Current r0 candidate-import builds pendingGroup and scan-result produces one Project with primary+related paths.",
+        "Current test suite40/40 passes, including wrong one-Project grouping expectations; test-green is not requirements agreement.",
+        "FLW55 current Mermaid still selects primary+sources; generated product-model repeats it.",
+        "start-scan renderer already describes one checked repo per Project; first-run path is aligned."
+      ],
+      "sources": [
+        "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:191",
+        "docs/adr/0100-first-run-and-start-paths.md#scan",
+        "docs/ux/scenarios.md#scn-128-scan-a-projects-folder-and-tick-what-becomes-a-project",
+        "docs/ux/flows.md#flw-55-configure-ceo-and-discover-the-first-project",
+        "scripts/product/first-release.mjs:70",
+        "scripts/test/first-release.test.mjs:41",
+        "scripts/product/renderers.mjs:440"
+      ],
+      "file_scope": {
+        "core_write": [
+          "scripts/product/first-release.mjs",
+          "scripts/test/first-release.test.mjs"
+        ],
+        "conditional_reviewed_write": [
+          "scripts/product/first-release.css",
+          "scripts/product/renderers.mjs",
+          "scripts/product/folder-picker.mjs",
+          "docs/ux/product-fixtures.json",
+          "docs/ux/scenarios.md",
+          "docs/ux/flows.md",
+          "docs/ux/screens.md",
+          "docs/ux/product-model.json"
+        ],
+        "generated_integration_write": [
+          "docs/reports/product.html",
+          "docs/reports/map.html"
+        ],
+        "excluded": [
+          "apps/desktop/src",
+          "apps/desktop/test native handlers",
+          "SQL/schema",
+          "live DB",
+          "provider process",
+          "historical receipt rewriting"
+        ]
+      },
+      "implementation_steps": [
+        "Use selected_CO180_leaf below; first replace grouping assertion with requirements-negative test that fails baseline.",
+        "Root owns prototype changes and shared generated integration; preserve active Onboarding leaves."
+      ],
+      "dependencies": [
+        {
+          "id": "ADR-0100",
+          "contract": "§3 defines one checked repository→one Project and deliberate warned nested/worktree choices; §7 stored scan is no grant."
+        },
+        {
+          "id": "SCN-128",
+          "contract": "Ordered per-row result, failed row retained with same request identity, already imported disabled, checked-only side effects."
+        },
+        {
+          "id": "CO-173",
+          "contract": "Any changed model card source evidence is re-read, not blindly rehashed as current."
+        }
+      ],
+      "validation_commands": [
+        "node --test scripts/test/first-release.test.mjs scripts/test/chat-workspace.test.mjs",
+        "node scripts/check-product-model.mjs",
+        "node scripts/sync-product-ux.mjs",
+        "node scripts/build-product-report.mjs",
+        "node scripts/check-design-map.mjs --refresh",
+        "node scripts/check-design-map.mjs",
+        "bash scripts/ci.sh fast"
+      ],
+      "negative_controls": [
+        "two candidates must never collapse into one Project",
+        "unchecked/unknown candidate no Project",
+        "already-imported disabled and no merge",
+        "empty/denied/cancelled scans no Project",
+        "late result after cancelled or replaced generation no mutation",
+        "failed candidate retained for retry with stable ID",
+        "explicit related-source/pinned existing Run context preserved"
+      ],
+      "definition_of_done": [
+        "r0 source/discovery state/actions/current route model all agree with accepted checklist semantics; target-only proof stated explicitly."
+      ],
+      "stop_conditions": [
+        "Prototype or shared UX files acquired by another owner",
+        "correctness requires runtime authority/schema redesign",
+        "fixture/model evidence cannot resolve current sources"
+      ],
+      "priority_reasoning": "Parent selected CO180 after earlier rows classified: P01 built umbrella, CO176 provider observation preparation, CO177 authority decision, CO178 brand decision, CO179 active visual/fixture ownership. Independent prototype scope can progress now without native dependency."
+    }
+  ],
+  "selected_CO180_leaf": {
+    "id": "CO-180.1",
+    "parent": "CO-180",
+    "kind": "prototype-reconciliation",
+    "dispatch": "selected-by-root; revalidate exact ownership before edit",
+    "title": "Each selected scan repository creates a separate target Project with per-row outcomes",
+    "cold_context": "Fabric keeps durable Project ownership while execution providers are replaceable. Accepted ADR0100 supersedes old R0 primary+related candidate grouping. R0 stores are page-local target fixtures; no real CLI/filesystem/product IPC occurs. Legitimate explicit reference sources inside an existing Project still exist and must not be removed. Root is implementing this target-only correction while two peers own native Onboarding visual/fixture work.",
+    "inputs": [
+      "ADR0100 §3/§7",
+      "SCN128 checklist and errors/recovery",
+      "FLW55 source/discovery branch",
+      "r0-source/r0-discovery view cards",
+      "folder-picker.mjs synthetic fixture roots",
+      "existing firstReleaseAction generation/startup fences",
+      "firstReleaseContext and chatWorkspaceSnapshot immutable source/run packs"
+    ],
+    "writers_and_consumers": [
+      {
+        "writer": "firstReleaseAction candidate-toggle/import and scan-result",
+        "readers": [
+          "r0Discovery",
+          "r0Home",
+          "r0Project",
+          "firstReleaseContext",
+          "chatWorkspaceState/chatWorkspaceSnapshot",
+          "team/memory views using s.projects"
+        ],
+        "contract": "New scan-created Project owns exactly that repository; its tasks/decisions/runs remain independently addressed."
+      },
+      {
+        "writer": "attachFirstRelease asynchronous scan callbacks",
+        "readers": [
+          "firstReleaseAction scan-result",
+          "view navigation"
+        ],
+        "contract": "Current scanToken, same store and startup owner fence callback; cancel/reselection/dispose yields no late Projects."
+      },
+      {
+        "writer": "docs/ux/flows.md and screens/scenarios current amendment",
+        "readers": [
+          "docs/ux/product-model.json",
+          "sync-product-ux.mjs",
+          "build-product-report.mjs",
+          "docs/reports/product.html"
+        ],
+        "contract": "Current target route describes checklist/import summary, no primary-candidate grouping. Dated historical source snapshot remains historical."
+      }
+    ],
+    "write_scope": {
+      "required": [
+        "scripts/product/first-release.mjs",
+        "scripts/test/first-release.test.mjs",
+        "docs/ux/flows.md",
+        "docs/ux/product-model.json"
+      ],
+      "review_if_changed": [
+        "scripts/product/first-release.css",
+        "scripts/product/renderers.mjs",
+        "scripts/product/folder-picker.mjs",
+        "docs/ux/product-fixtures.json",
+        "docs/ux/scenarios.md",
+        "docs/ux/screens.md"
+      ],
+      "integration": [
+        "docs/reports/product.html",
+        "docs/reports/map.html",
+        "tracked handoff/check receipts owned by root"
+      ]
+    },
+    "source_of_truth_scope": {
+      "SCN128": "Current accepted requirement.",
+      "SCN103": "SCN-103 is a separate MCP access scenario; prior review pointer was mistaken. The historical R0 source-grouping scenario is SCN-095, superseded by ADR-0100; current checklist contract is SCN-128.",
+      "SCN095_FLW55": "Current R0 CEO-first source/discovery path impacted; revise selection→per-Project summary and preserve readiness/error recovery.",
+      "SCR27": "Source/discovery target views current states must agree.",
+      "firstRun_startScan": "Already checklist-oriented; regression compare, do not restyle or duplicate."
+    },
+    "implementation_steps": [
+      {
+        "step": 1,
+        "action": "Plant requirements assertion on baseline: tick Website+Notes then import/complete; expect2distinct Projects, each1source/owner, unticked0. Keep baseline failing receipt before replacing stale grouping tests."
+      },
+      {
+        "step": 2,
+        "action": "Separate selection from Project context: eliminate active candidate-primary/pendingGroup grouping; retain ordered candidate membership and per-row status/request identity. Existing p.sources references stay readable."
+      },
+      {
+        "step": 3,
+        "action": "Prevent selection of already imported, absent or disabled rows; provide open-existing link. A duplicate retry returns same Project ID, never merges identities."
+      },
+      {
+        "step": 4,
+        "action": "Add deterministic target candidate relationship metadata locally if needed (product head/worktree/nested parent). Tick all shown selects product heads only; manual parts visibly warn separate Project. Avoid globally changing folder-picker entries used by unrelated journeys without tests."
+      },
+      {
+        "step": 5,
+        "action": "Import checked rows in order to separate Projects; keep per-row results. Failed rows remain checked with stable retry identity; unchecked/newly-discovered rows never auto-create. Synthetic failure mode labelled as target fixture only."
+      },
+      {
+        "step": 6,
+        "action": "Keep summary/results after batch and explicit Open first action. Scan partial/truncated/read gaps stay visible; unselected entries retained for later. Cancel/new picker/startup replacement invalidate earlier callbacks."
+      },
+      {
+        "step": 7,
+        "action": "Update r0 source/discovery visible language, current flow/cards/model states and current scenario amendment. Preserve aliases launch-start/onboarding and all unrelated histories/context and task/run independence."
+      },
+      {
+        "step": 8,
+        "action": "Regenerate target route/report via repository workflow. Review changed source receipts against actual code rather than refreshing unexplained CO173 stale links. Root updates living map/gates/handoff under resource claims."
+      }
+    ],
+    "required_negative_matrix": [
+      {
+        "case": "two selected repos",
+        "expected": "two stable Project IDs, each owns only its chosen repo; no primary-source selection control for batch"
+      },
+      {
+        "case": "none or invented path selected",
+        "expected": "no Projects; explicit refusal/disabled import"
+      },
+      {
+        "case": "already-imported alongside fresh",
+        "expected": "existing row disabled/openable; fresh creates independent Project, no context merge"
+      },
+      {
+        "case": "nested/worktree",
+        "expected": "tick-all-shown excludes parts; manual checked part warns and creates separate Project"
+      },
+      {
+        "case": "partial failed row then retry",
+        "expected": "successful sibling stable; failed row retained/visible; same request ID retry produces at most one Project"
+      },
+      {
+        "case": "cancel/new picker/replaced startup/dispose then late result",
+        "expected": "no late Project or navigation/context mutation"
+      },
+      {
+        "case": "explicit pre-existing related source",
+        "expected": "reference remains in source/context snapshots; changing later chips/primary does not rewrite frozen Run pack"
+      },
+      {
+        "case": "denied/unreadable/truncated/empty collection",
+        "expected": "gaps stated; no automatic Project and no claim full scan completed"
+      }
+    ],
+    "check_commands": [
+      {
+        "command": "node --test scripts/test/first-release.test.mjs scripts/test/chat-workspace.test.mjs",
+        "purpose": "action/state boundary and downstream immutable context"
+      },
+      {
+        "command": "node --test scripts/test/adoption-creation.test.mjs scripts/test/ceo-onboarding.test.mjs scripts/test/product-model.test.mjs",
+        "purpose": "compatible aliases and shared target-route shape"
+      },
+      {
+        "command": "node scripts/sync-product-ux.mjs",
+        "purpose": "propagate source UX changes to generated model; mutation under root ownership"
+      },
+      {
+        "command": "node scripts/build-product-report.mjs",
+        "purpose": "generated target report; never native acceptance"
+      },
+      {
+        "command": "node scripts/check-product-model.mjs",
+        "purpose": "current model/source linkage"
+      },
+      {
+        "command": "node scripts/check-design-map.mjs --refresh && node scripts/check-design-map.mjs",
+        "purpose": "root-only reviewed map/source stamps"
+      },
+      {
+        "command": "bash scripts/ci.sh fast",
+        "purpose": "focused project fast integration gate; full hosted suite not dispatch-per-push"
+      }
+    ],
+    "acceptance": [
+      "Baseline planted requirements test fails because wrong merged Project exists.",
+      "Revised pure suite enforces all core checklist conditions and legitimate explicit related-source compatibility.",
+      "Current R0 route report manually/visually reviewed for candidate selection/import summary and no misleading primary group promise.",
+      "Exact affected file pins updated by review; shared guard claims valid before mutation.",
+      "Canonical CO180 may resolve only from owning row after complete target iteration; product/native acceptance remains unchanged/unobserved."
+    ],
+    "rollback": "Revert only this target prototype/state/model iteration on owned branch; preserve dated history and all operator DB/files untouched. Never reset another worktree or discard peer fixture WIP.",
+    "stop_resume": [
+      "If another owner acquired target scopes, send CO180 source/impact and pause overlapping edits; continue independent preparation.",
+      "If late callback or failure semantics require native backend changes, split future runtime leaf; do not expand CO180 scope.",
+      "If native visual/browser coverage unavailable, record exact NOT_RUN; pure pass stays pure.",
+      "Resume from current ADR0100/SCN128 and revalidated source hashes, not this historical baseline alone."
+    ],
+    "new_file_candidates": [],
+    "commands_note": "Named check commands resolve in baseline; installed agent-sync CLI entrypoint placeholder intentionally does not disclose a machine path. Proposed dossier/style/test paths explicitly marked create candidates or peer WIP."
+  },
+  "checks_actually_run": [
+    {
+      "command": "node scripts/unified-plan.mjs next",
+      "exit_code": 0,
+      "result": "CO176/177/178/180/P01.prepare candidates; parents design-gated; CO179.prepare absent completed preparation",
+      "proof_tier": "dispatch-design-only"
+    },
+    {
+      "command": "node scripts/unified-plan.mjs packet CO-180.prepare",
+      "exit_code": 0,
+      "result": "Current source-pinned activation-design packet, no direct product implementation authority"
+    },
+    {
+      "command": "node --test scripts/test/first-release.test.mjs",
+      "exit_code": 0,
+      "tests": 40,
+      "pass": 40,
+      "fail": 0,
+      "duration_ms": 82.688041,
+      "proof_tier": "pure-target-state",
+      "limitation": "Includes passing expectations for wrong one-Project multi-source grouping; acceptance against new ADR cannot use green unchanged tests."
+    },
+    {
+      "command": "git status, worktree list, scoped diffs, branch log, remote lease inventory",
+      "result": "Read-only snapshots; no worktree removed or code modified."
+    }
+  ],
+  "NOT_RUN": [
+    "provider sign-in command/current-build passport",
+    "fixture harness tests (peer-owned)",
+    "native AD02 acceptance",
+    "CO179 visual matrix",
+    "CO180 actual browser acceptance (root implementation pending)",
+    "hosted full CI",
+    "product DB writes or cleanup"
+  ],
+  "handoff_to_root": [
+    "Implement selectedCO180 leaf in root worktree with bounded prototype scope and preserved explicit reference-source contract.",
+    "Do not acquire/edit canonical backlog or carry-over while other live holder owns them; coordinate root final resolution with holder.",
+    "Preserve both Onboarding branches and untracked fixture files during cleanup.",
+    "Request this reviewer for independent combined diff review after implementation; I do not edit implementation."
+  ],
+  "canonical_source_branch_overlay": {
+    "revision": "d1a8282069f3c6579cc58000ca5b655fadcbb8c9",
+    "path": "docs/evidence/backlog.md",
+    "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598",
+    "provenance": "committed branch bytes, not asserted root worktree bytes"
+  }
+}

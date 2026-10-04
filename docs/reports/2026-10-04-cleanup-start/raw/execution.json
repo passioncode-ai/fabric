@@ -1,0 +1,65 @@
+{
+ "schema": 1,
+ "as_of": "2026-10-04",
+ "scope": "Current Start source and bounded target/native-source fixtures, not product release",
+ "checks": [
+  {
+   "command": "node --test scripts/test/first-release.test.mjs scripts/test/chat-workspace.test.mjs scripts/test/unified-plan.test.mjs scripts/test/build-unified-plan.test.mjs scripts/test/reconcile-unified-start.test.mjs",
+   "status": "PASS",
+   "exit_code": 0,
+   "tests": 104,
+   "passed": 104,
+   "failed": 0,
+   "skipped": 0,
+   "components": {
+    "first_release_and_chat": 64,
+    "unified_plan_compiler_overlay": 40
+   },
+   "duration_ms": 21027.9005
+  },
+  {
+   "command": "node --experimental-strip-types apps/desktop/test/executor-auth.test.mjs",
+   "status": "PASS",
+   "proof": "source-bound raw/co176-review.json and raw/co176-auth-observation.json"
+  },
+  {
+   "command": "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/start/StartPaths.test.tsx",
+   "status": "PASS",
+   "tests": 35,
+   "proof": "raw/co176-review.json"
+  },
+  {
+   "command": "node scripts/check-ops.mjs",
+   "status": "PASS",
+   "exit_code": 0,
+   "scope": "Comment-only explanation of sanitized invalid-response/unavailable outcomes; raw/observability-addendum.json links prior independent and current source hashes."
+  },
+  {
+   "command": "FABRIC_PLAYWRIGHT_MODULE=<installed Playwright 1.63.0> FABRIC_CHROME=<installed Chrome> bash scripts/ci.sh fast",
+   "status": "PASS",
+   "exit_code": 0,
+   "duration_s": 614,
+   "components": {
+    "vitest_files": 147,
+    "vitest_tests": 1651,
+    "browser_suites": "run, not NOT_RUN"
+   },
+   "scope": "the full source iteration on top of origin/main 9e7f54e6, before two later edits: .gitleaks.toml extension list and redaction of temporary paths in raw/deadline-test-review.json; after those, check-design-map, check-registers, check-docs, check-ops, check-regions, reports check and gitleaks --staged passed",
+   "earlier_runs": "eight earlier runs failed on: a stale map stamp, the provider stop cache defect (fixed), load-sensitive process tests (three fixed, two passed on rerun), stale mockup previews (rebuilt, 111) and two new-test fixture races (fixed); see raw/stop-cache-deadline-fix.json"
+  }
+ ],
+ "completed_leaves": {
+  "CO-176.1": "Bounded exact-build login observation with sanitized envelope, unknown/refusal and informational skip; local code/process/component proof only.",
+  "CO-180.1": "Separate Project per ticked repository, preserved identity/results/retry/gaps/unchecked candidates; target-browser/pure proof only."
+ },
+ "NOT_RUN": [
+  "packaged native app sign-in visual acceptance",
+  "provider account identity/admission/quota/real model turn",
+  "CO179 existing peer native fixture/visual",
+  "P08 replacement independent full/release acceptance",
+  "operator database migration",
+  "scripts/ci.sh full (stack-backed probes)",
+  "hosted CI (nightly policy)"
+ ],
+ "canonical_status": "Parent rows remain in their original owners; current resource leases held elsewhere, no duplicate editable status."
+}

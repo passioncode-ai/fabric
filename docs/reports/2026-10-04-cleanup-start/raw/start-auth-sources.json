@@ -1,0 +1,58 @@
+{
+  "schema": "fabric-primary-source-records/1",
+  "as_of": "2026-10-04",
+  "sources": [
+    {
+      "id": "claude-cli-status",
+      "url": "https://code.claude.com/docs/en/cli-reference",
+      "read_date": "2026-10-04",
+      "kind": "official-doc",
+      "claim_mapping": [
+        "Official read-only auth status JSON command and 0/1 login-status exits",
+        "Methods documented; status not account subject or execution admission"
+      ],
+      "excerpt": "Paraphrase only; installed exact-build help/status independently observed."
+    },
+    {
+      "id": "codex-login-source",
+      "url": "https://github.com/openai/codex/blob/main/codex-rs/cli/src/login.rs",
+      "read_date": "2026-10-04",
+      "kind": "official-developer-source",
+      "claim_mapping": [
+        "run_login_status ChatGPT/Not logged in text and 0/1 exits",
+        "Other modes can differ; key status includes formatted credential, never print or retain it"
+      ],
+      "scope_limit": "Main source explains format; not installed-build acceptance. Installed 0.160.0 ChatGPT line/help independently observed."
+    },
+    {
+      "id": "claude-status-drift",
+      "url": "https://github.com/anthropics/claude-code/issues/76168",
+      "read_date": "2026-10-04",
+      "kind": "developer-owned-issue",
+      "claim_mapping": [
+        "Reporter: login success but false status Linux2.1.202/.205; login completion alone cannot prove status"
+      ],
+      "scope_limit": "Reported failure, not reproduced on this Mac."
+    },
+    {
+      "id": "claude-status-execution",
+      "url": "https://github.com/anthropics/claude-code/issues/91669",
+      "read_date": "2026-10-04",
+      "kind": "developer-owned-issue",
+      "claim_mapping": [
+        "Reporter: logged-in status while later session auth fails; snapshot not execution proof"
+      ],
+      "scope_limit": "Windows2.1.259 report, not local acceptance."
+    },
+    {
+      "id": "codex-surface-auth",
+      "url": "https://github.com/openai/codex/issues/40632",
+      "read_date": "2026-10-04",
+      "kind": "developer-owned-issue",
+      "claim_mapping": [
+        "Reporter: desktop auth fails while CLI status logged in; runtime/surface scope matters"
+      ],
+      "scope_limit": "No author credential-file manipulation repeated."
+    }
+  ]
+}

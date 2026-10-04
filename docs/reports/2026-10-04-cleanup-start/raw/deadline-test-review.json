@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "as_of": "2026-10-04",
+  "scope": "TEST ONLY; no production port/API/timeout changes, no provider model or external effects",
+  "git_head_at_read": "484600a338f2c413333e57c09a28712b8559c401",
+  "historical_test_source_commit": "03311c856b7771e5e4cfff967b138e89e292c67f",
+  "original_observation": {
+    "provenance": "root mandatory-fast failure report; separately reproduced in owned disposable copy below",
+    "test": "deadline covers interrupt plus all tasks rather than resetting per request",
+    "budget_ms": 35,
+    "requested_sleep_ms": 22,
+    "expected_writes": 1,
+    "actual_writes": 0,
+    "cause": "sleep22 is a lower-bound scheduling delay; loaded-host delay can exceed total35 before first write; zero admitted writes is correct production behavior"
+  },
+  "additional_host_observations": [
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/claude-provider-control.test.mjs",
+      "exit": 1,
+      "location": "unchanged first scope/identity case line50",
+      "expected": "request_ack",
+      "actual": "outcome_unknown",
+      "cause": "default200ms was scheduling headroom, not the intended invariant; root authorized bounded5000ms fixture default only"
+    },
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/claude-provider-control.test.mjs",
+      "exit": 1,
+      "location": "unchanged hung transport15ms case after awaited requestStop",
+      "expected": "outcome_unknown",
+      "actual": "refused",
+      "cause": "host scheduling consumed15ms before admission; fixture now freezes admission monotonic time until transport callback entry, restores immediately and in finally, then retains actual15ms timer/hang/late-fence branch"
+    }
+  ],
+  "changes": {
+    "path": "apps/desktop/test/claude-provider-control.test.mjs",
+    "sha256": "588f36ef8242a441a5e08028c7b00b73ba67ca0769f02433526ec09f6d0d550a",
+    "scope_identity_default_ms": 5000,
+    "explicit_deadlines_preserved_ms": [
+      10,
+      15,
+      35
+    ],
+    "cumulative_deadline_fixture": {
+      "clock": "node:test mock.method(performance, now), restored in finally via returned function.mock.restore()",
+      "advance_ms_per_async_callback": 22,
+      "wall_sleep_removed": true,
+      "expected_logical_elapsed_ms": 44,
+      "first_interrupt_admitted": true,
+      "second_child_write_fenced": true,
+      "late_fences_all_refuse": true,
+      "canonical_duplicate_result_cached": true
+    },
+    "real_timer_case": "Real slow synchronous authority remains unchanged; hung transport uses controlled pre-admission only, real15ms timeout after callback entry; neither production clock nor production timeout changed",
+    "contract_region": "docs/evidence/plans/2026-09-27-first-slice-plan.md#b2a--claude-over-owned-stdio"
+  },
+  "focused_check": {
+    "command": "node --experimental-strip-types apps/desktop/test/claude-provider-control.test.mjs",
+    "node": "v26.8.2",
+    "exit": 0,
+    "scenarios": 17,
+    "stdout": "17 Claude cancellation controller scenarios passed",
+    "proof_tier": "pure controller + owned Node pipe/transport/normalizer; not Claude native/provider acceptance"
+  },
+  "negative_controls": {
+    "original_controlled_stall_reproducer": {
+      "command": "node --experimental-strip-types apps/desktop/test/original-deadline-repro.mjs",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at <tmp>/fabric-stop-deadline-review-ijtnkp3_/apps/desktop/test/original-deadline-repro.mjs:55:104\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processTimers (node:internal/timers:615:9)\n    at async test (<tmp>/fabric-stop-deadline-review-ijtnkp3_/apps/desktop/test/original-deadline-repro.mjs:47:30)\n    at async <tmp>/fabric-stop-deadline-review-ijtnkp3_/apps/desktop/test/original-deadline-repro.mjs:50:1 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: 0,\n  expected: 1,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v26.8.2\n"
+    },
+    "per_request_deadline_reset_mutant": {
+      "command": "node --experimental-strip-types apps/desktop/test/claude-provider-control.test.mjs",
+      "exit": 1,
+      "stdout": "ok   interrupt then only owned active tasks; ACK never changes observation or proves quiescence\nok   observed initialization, exact profile, request epoch and bounded owned roster are required\nok   malformed/accessor commands refuse without reads, effects or private exception prose\nok   async, throwing and revoked authority cannot send\nok   future cursor and async current state cannot grant authority\nok   connection, host epoch, digest or stream fault changed after interrupt prevents task writes\nok   missing, rebound, reopened or regressing owned state fences cancellation permanently\nok   task completes during interrupt: skip it; new owned task remains unaddressed\nok   canonical duplicates join and cache; changed command cannot resend even after unknown reply\nok   reentrant transport shares installed pending command without duplicate writes\nok   unsupported transport/error payloads stay fixed unknown; no provider prose leaks\nok   total monotonic deadline fences slow synchronous authority and deferred writes\n",
+      "stderr": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'request_ack'\n- 'outcome_unknown'\n\n    at <tmp>/fabric-stop-deadline-review-ijtnkp3_/apps/desktop/test/claude-provider-control.test.mjs:167:35\n    at async test (<tmp>/fabric-stop-deadline-review-ijtnkp3_/apps/desktop/test/claude-provider-control.test.mjs:47:30)\n    at async <tmp>/fabric-stop-deadline-review-ijtnkp3_/apps/desktop/test/claude-provider-control.test.mjs:155:1 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: 'request_ack',\n  expected: 'outcome_unknown',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v26.8.2\n"
+    },
+    "mutant_target_failure_line": 167,
+    "disposable_files_copied": 5,
+    "mutation_source": "one assignment at send() entry, only in disposable copy; root production remains unchanged",
+    "production_sha256_before": "1afd67950c8782c97b4a77d6ffacf6c374c421ab3d2abcf5e280535540658687",
+    "production_sha256_after": "1afd67950c8782c97b4a77d6ffacf6c374c421ab3d2abcf5e280535540658687",
+    "production_bytes_equal": true,
+    "peer_branch": {
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "test_sha256": "6ce6bea5ac6450178b1349e809d58fcc54fd2beedf2163214ffdbe63d4474527",
+      "matches_unmodified_HEAD03311c": true
+    }
+  },
+  "not_run": [
+    "full mandatory-fast rerun owned by root",
+    "native Claude/provider model turn",
+    "release/install/live database"
+  ]
+}

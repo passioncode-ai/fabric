@@ -6,7 +6,8 @@
 # file path to its sha256 digest ("site/tokens.css": "<64 hex>") and name audit findings by a
 # 16-hex `stable_key`; generic-api-key reads both as keys. A digest is not a credential. The
 # allowlist matches only that line shape and only for generic-api-key, so every other rule — and
-# generic-api-key on any other line — still fires.
+# generic-api-key on any other line — still fires. 2026-10-04: source extensions (cjs, ts, tsx,
+# md, py, sh, sql) added for the same path-to-digest receipts; the line shape is unchanged.
 [extend]
 useDefault = true
 
@@ -15,6 +16,6 @@ description = "sha256 digests keyed by a file path, and 16-hex audit finding key
 targetRules = ["generic-api-key"]
 regexTarget = "line"
 regexes = [
-  '''"[^"\s]+\.(css|png|svg|jpe?g|webp|gif|ico|js|mjs|json|html|woff2?)"\s*:\s*"[0-9a-f]{64}"''',
+  '''"[^"\s]+\.(css|png|svg|jpe?g|webp|gif|ico|js|mjs|cjs|ts|tsx|json|html|md|py|sh|sql|woff2?)"\s*:\s*"[0-9a-f]{64}"''',
   '''"stable_key"\s*:\s*"[0-9a-f]{16}"''',
 ]

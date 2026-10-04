@@ -134,7 +134,7 @@ function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): R
       (e: unknown) => { if (n === checks.current) setFailure(errorText(e)) }
     )
   }
-  useEffect(check, [])
+  useEffect(() => { check(); return () => { checks.current++ } }, [])
   const anyFound = rows?.some((r) => r.state === 'found' && r.connected) ?? false
   return (
     <section className="st-first-step" aria-labelledby="first-exec">
@@ -157,6 +157,14 @@ function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): R
                     {r.state === 'missing' && t('first.exec.missing')}
                   </small>
                   {r.path && <code>{r.path}</code>}
+                  {/* #region executor-auth-status — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start */}
+                  {r.state === 'found' && <small data-authentication={r.authentication?.state ?? 'unknown'}>
+                    {t(r.authentication?.state === 'authenticated' ? 'start.executor.auth.authenticated'
+                      : r.authentication?.state === 'not-authenticated' ? 'start.executor.auth.notAuthenticated'
+                      : r.authentication?.state === 'unsupported' ? 'start.executor.auth.unsupported'
+                      : 'start.executor.auth.unknown')}
+                  </small>}
+                  {/* #endregion executor-auth-status */}
                 </div>
                 {/* Ready reads strongest; installed-but-not-connected is neutral; only a problem draws attention (iteration 3). */}
                 <span className={r.state === 'found' ? 'lp-pill' : 'lp-pill attention'} data-state={r.state === 'found' && r.connected ? 'ready' : r.state === 'found' ? 'installed' : r.state}>
@@ -173,9 +181,9 @@ function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): R
             ))}
           </ul>
         )}
-        <p className="lp-meta">{t('first.exec.note')}</p>
+        <p className="lp-meta">{t('start.executor.auth.note')}</p>
         <div className="lp-actions">
-          <button type="button" className="lp-button primary" disabled={rows === null && !failure} onClick={onNext}>{anyFound ? t('first.next') : t('first.exec.continueWithout')}</button>
+          <button type="button" className="lp-button primary" onClick={onNext}>{anyFound ? t('first.next') : t('first.exec.continueWithout')}</button>
           <button type="button" className="lp-button" onClick={check}>{t('first.exec.recheck')}</button>
           <button type="button" className="lp-button" onClick={onBack}>{t('first.back')}</button>
         </div>

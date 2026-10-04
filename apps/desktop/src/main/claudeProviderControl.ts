@@ -192,10 +192,12 @@ export function createClaudeProviderControl(ports: ClaudeControlPorts): Validati
     const conflict = () => canonicalCommand !== null && canonical(canonicalCommand) !== canonical(command)
     if (conflict()) return Promise.resolve(base(command.commandId, 'refused', 'canonical_command_conflict'))
     if (!scopedAllowed(authority, command.issuedCursor)) return Promise.resolve(base(command.commandId, 'refused', 'scope_changed'))
-    if (performance.now() >= deadline) return Promise.resolve(base(command.commandId, 'refused', 'deadline'))
     if (conflict()) return Promise.resolve(base(command.commandId, 'refused', 'canonical_command_conflict'))
+    // A repeat writes nothing: its stored or in-flight outcome is the answer, and a refusal here
+    // would tell the caller nothing was sent after a write may already have happened.
     if (cached) return Promise.resolve(cached)
     if (pending) return pending
+    if (performance.now() >= deadline) return Promise.resolve(base(command.commandId, 'refused', 'deadline'))
     canonicalCommand = command
     let settle!: (result: ClaudeStopRequestResult) => void
     pending = new Promise(resolve => { settle = resolve })
