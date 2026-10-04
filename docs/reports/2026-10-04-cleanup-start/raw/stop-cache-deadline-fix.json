@@ -22,6 +22,7 @@
     "apps/desktop/test/owned-backend-process-registry.test.mjs (late capture after timeout)": "also failed on clean main (1 of 5 runs at load ~10): the 150 ms budget could expire before spawn and answer refused; the capture is held until release, so a 3000 ms budget keeps the deadline after spawn. 15 of 15 runs passed after the change",
     "apps/desktop/test/quit.test.mjs, apps/desktop/test/backend-launch.test.mjs": "failed once each while the host load average was 140-226; files identical to main; passed on both main and this branch when rerun (quit 4 runs, backend-launch 10 runs); left unchanged",
     "scripts/test/reconcile-unified-start.test.mjs (new in this iteration)": "fixture removal raced a detached git auto-maintenance write (ENOTEMPTY); fixture git now runs with gc.auto=0 and maintenance.auto=false and removal retries; 15 of 15 runs passed",
-    "apps/desktop/test/executor-auth.test.mjs (new in this iteration)": "a 200 ms detection budget for a shell-script fixture expired under load and answered unknown; classification cases now get 5000/3000 ms, the timeout case still waits on a 30 s sleep; 10 of 10 runs passed"
+    "apps/desktop/test/executor-auth.test.mjs (new in this iteration)": "a 200 ms detection budget for a shell-script fixture expired under load and answered unknown; classification cases now get 5000/3000 ms, the timeout case still waits on a 30 s sleep; 10 of 10 runs passed",
+    "apps/desktop/test/ceo-conversation-inventory.test.mjs": "the publication gate failed while a neighbour build left the volume near full: one of dozens of sequential local draft saves overran the 300 ms service budget and answered local_save_unknown; the fixture budget is 3000 ms (the hanging-send case still times out); 8 of 8 runs passed"
   }
 }

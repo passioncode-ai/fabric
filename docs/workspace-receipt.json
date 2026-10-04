@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "source_commit": "44b69fc56eace296cf7c3405b52bcf9520de89b3",
-  "workspace_commit": "062c031ee442948238e88e0da80d53161828765e",
-  "content_digest": "a058b14302c70bc27ac6695670d8b13e0494707d6339cf3bb758071e698ea897",
+  "source_commit": "c93523ecb704fe7f488be7714934027d82884b9b",
+  "workspace_commit": "1d20f128fe3113403e802ab2f4f98c5450754908",
+  "content_digest": "4abbab0f085295b318174ab61757ad8633af66a743ceada03e77d7838cbedf17",
   "heroku_app": "passioncode-fabric-workspace",
-  "release": 153,
-  "fabric_digest": "7e1b12f38e6366ee856f0e212f9f5a8260210898a14fe88d41f7fc83a0bb130c",
+  "release": 154,
+  "fabric_digest": "f84f59995a06b4ff3f5b27ccb8fd6f3e37349a3e9b44fb2e226fc8164e701db6",
   "sources": [
     {
       "id": "org-index",
