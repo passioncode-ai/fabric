@@ -1,0 +1,15 @@
+✖ I3 cyclic/unserializable/oversize result retains unknown (13.103375ms)
+✖ I3 product depth and node limits refuse before serializing a usable answer (0.680917ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 167.855833
+✖ failing tests:
+test at apps/desktop/test/hub-call-i3.test.mjs:71:1
+✖ I3 cyclic/unserializable/oversize result retains unknown (13.103375ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:89:1
+✖ I3 product depth and node limits refuse before serializing a usable answer (0.680917ms)

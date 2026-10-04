@@ -1,0 +1,10 @@
+{
+  "as_of": "2026-10-04",
+  "baseline": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+  "focused": {"command": "node --experimental-strip-types --test apps/desktop/test/hub-call-i3.test.mjs", "exit": 0, "passed": 22},
+  "products": {"command": "node --experimental-strip-types --test-force-exit apps/desktop/test/hub-products.test.mjs", "exit": 0, "passed": 51},
+  "main_typescript": {"command": "node apps/desktop/node_modules/typescript/bin/tsc --noEmit -p apps/desktop/tsconfig.node.json", "exit": 0},
+  "regions": {"command": "node scripts/check-regions.mjs", "exit": 0, "markers": 112},
+  "diff": {"command": "git diff --check", "exit": 0},
+  "not_run": ["full CI tier on author fixes", "hosted checks", "live credentials/product", "release", "independent I3 recheck"]
+}

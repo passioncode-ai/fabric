@@ -1,0 +1,12 @@
+✖ I3 actual MCP tool error is fixed text without echoed credentials (30.500583ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 188.860625
+✖ failing tests:
+test at apps/desktop/test/hub-call-i3.test.mjs:63:1
+✖ I3 actual MCP tool error is fixed text without echoed credentials (30.500583ms)

@@ -1,0 +1,10 @@
+{"probe": "frozen3b", "exit": 1, "rejected": true}
+{"probe": "remove-capacity", "exit": 1, "rejected": true}
+{"probe": "remove-effect-tracking", "exit": 1, "rejected": true}
+{"probe": "remove-authority-refresh", "exit": 1, "rejected": true}
+{"probe": "remove-unknown-retention", "exit": 1, "rejected": true}
+{"probe": "remove-error-privacy", "exit": 1, "rejected": true}
+{"probe": "remove-output-bounds", "exit": 1, "rejected": true}
+{"probe": "remove-ops-scrub", "exit": 1, "rejected": true}
+{"probe": "remove-retirement", "exit": 1, "rejected": true}
+{"probe": "remove-response-cap", "exit": 1, "rejected": true}

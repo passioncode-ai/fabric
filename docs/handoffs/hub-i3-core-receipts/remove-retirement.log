@@ -1,0 +1,18 @@
+✖ I3 binding retirement discards cached output and retains effect facts (3.608542ms)
+✖ I3 inflight completion cannot recache a retired binding answer (0.445125ms)
+✖ I3 retiring a binding during vault await refuses even a stale grant snapshot (0.319791ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 156.767458
+✖ failing tests:
+test at apps/desktop/test/hub-call-i3.test.mjs:100:1
+✖ I3 binding retirement discards cached output and retains effect facts (3.608542ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:108:1
+✖ I3 inflight completion cannot recache a retired binding answer (0.445125ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:113:1
+✖ I3 retiring a binding during vault await refuses even a stale grant snapshot (0.319791ms)

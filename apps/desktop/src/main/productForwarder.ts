@@ -74,6 +74,8 @@ export type ForwardAnswer =
 
 /** A narrowing entry the product reads as exactly one account: no list separator, no line break. */
 const UNSAFE_IN_HEADER = /[,\r\n\0]/
+/** Per HTTP response, including SSE: stop and cancel its stream before the SDK buffers/parses more. */
+export const MAX_PRODUCT_RESPONSE_BYTES = 8 * 1024 * 1024
 
 class RedirectRefused extends Error {}
 class Outdated extends Error {}
@@ -121,7 +123,19 @@ export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnsw
         controller.abort()
         throw new RedirectRefused(redirected)
       }
-      return res
+      if (!res.body) return res
+      let responseBytes = 0
+      const body = res.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({
+        transform(chunk, stream) {
+          responseBytes += chunk.byteLength
+          if (responseBytes > MAX_PRODUCT_RESPONSE_BYTES) {
+            controller.abort() // stop this body and the exchange's other requests, including GET SSE
+            throw new Error('product response exceeds Fabric’s byte limit')
+          }
+          stream.enqueue(chunk)
+        }
+      }))
+      return new Response(body, { status: res.status, statusText: res.statusText, headers: res.headers })
     })()
     inflight.add(sent)
     // Settled either way; the caller sees the rejection, this only stops tracking it.

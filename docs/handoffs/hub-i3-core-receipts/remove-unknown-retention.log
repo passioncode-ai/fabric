@@ -1,0 +1,12 @@
+✖ I3 unknown key never expires in the current process (2.546375ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 151.753334
+✖ failing tests:
+test at apps/desktop/test/hub-call-i3.test.mjs:76:1
+✖ I3 unknown key never expires in the current process (2.546375ms)

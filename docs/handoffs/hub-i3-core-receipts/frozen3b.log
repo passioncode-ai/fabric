@@ -1,0 +1,71 @@
+✖ I3 capacity preserves unknown key and refuses fresh effect (10.692875ms)
+✖ I3 capacity preserves answered key and refuses fresh effect (10.157792ms)
+✖ I3 capacity preserves ran key and refuses fresh effect (105.034625ms)
+✖ I3 all inflight keys occupy admission slots (507.55275ms)
+✖ I3 unproven thrown forward retains unknown and hides raw error (0.643208ms)
+✖ I3 revoked during vault await prevents dispatch (0.302166ms)
+✖ I3 expired during vault await prevents dispatch (0.169958ms)
+✖ I3 disconnected during vault await prevents dispatch (0.131292ms)
+✖ I3 reconnected during vault await prevents dispatch (0.133333ms)
+✔ I3 errors before dispatch remain retryable (0.256917ms)
+✔ I3 expired remembered keys release capacity only after 24 hours (10.626875ms)
+✖ I3 actual MCP 6500-deep result retains unknown without second tools/call (86.407542ms)
+✖ I3 actual MCP tool error is fixed text without echoed credentials (7.809166ms)
+✖ I3 successful product output strips credential echoes and stays replayable (0.385125ms)
+✖ I3 cyclic/unserializable/oversize result retains unknown (0.209333ms)
+✖ I3 unknown key never expires in the current process (0.219708ms)
+✖ I3 thrown and returned product diagnostics never expose credential in operations (0.245917ms)
+✖ I3 product depth and node limits refuse before serializing a usable answer (0.358666ms)
+✖ I3 forwarder bounds actual MCP response bytes before SDK decode (45.829042ms)
+✖ I3 binding retirement discards cached output and retains effect facts (0.42625ms)
+✖ I3 inflight completion cannot recache a retired binding answer (0.146042ms)
+✖ I3 retiring a binding during vault await refuses even a stale grant snapshot (0.130917ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 2
+ℹ fail 20
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 955.139709
+✖ failing tests:
+test at apps/desktop/test/hub-call-i3.test.mjs:16:50
+✖ I3 capacity preserves unknown key and refuses fresh effect (10.692875ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:16:50
+✖ I3 capacity preserves answered key and refuses fresh effect (10.157792ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:16:50
+✖ I3 capacity preserves ran key and refuses fresh effect (105.034625ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:24:1
+✖ I3 all inflight keys occupy admission slots (507.55275ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:30:1
+✖ I3 unproven thrown forward retains unknown and hides raw error (0.643208ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:36:73
+✖ I3 revoked during vault await prevents dispatch (0.302166ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:36:73
+✖ I3 expired during vault await prevents dispatch (0.169958ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:36:73
+✖ I3 disconnected during vault await prevents dispatch (0.131292ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:36:73
+✖ I3 reconnected during vault await prevents dispatch (0.133333ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:59:1
+✖ I3 actual MCP 6500-deep result retains unknown without second tools/call (86.407542ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:63:1
+✖ I3 actual MCP tool error is fixed text without echoed credentials (7.809166ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:67:1
+✖ I3 successful product output strips credential echoes and stays replayable (0.385125ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:71:1
+✖ I3 cyclic/unserializable/oversize result retains unknown (0.209333ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:76:1
+✖ I3 unknown key never expires in the current process (0.219708ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:81:1
+✖ I3 thrown and returned product diagnostics never expose credential in operations (0.245917ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:89:1
+✖ I3 product depth and node limits refuse before serializing a usable answer (0.358666ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:94:1
+✖ I3 forwarder bounds actual MCP response bytes before SDK decode (45.829042ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:100:1
+✖ I3 binding retirement discards cached output and retains effect facts (0.42625ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:108:1
+✖ I3 inflight completion cannot recache a retired binding answer (0.146042ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:113:1
+✖ I3 retiring a binding during vault await refuses even a stale grant snapshot (0.130917ms)

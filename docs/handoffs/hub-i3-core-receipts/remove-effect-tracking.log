@@ -1,0 +1,15 @@
+✖ I3 unproven thrown forward retains unknown and hides raw error (2.215833ms)
+✖ I3 actual MCP 6500-deep result retains unknown without second tools/call (32.290583ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 186.793542
+✖ failing tests:
+test at apps/desktop/test/hub-call-i3.test.mjs:30:1
+✖ I3 unproven thrown forward retains unknown and hides raw error (2.215833ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:59:1
+✖ I3 actual MCP 6500-deep result retains unknown without second tools/call (32.290583ms)

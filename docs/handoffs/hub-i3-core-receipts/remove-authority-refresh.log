@@ -1,0 +1,22 @@
+✖ I3 revoked during vault await prevents dispatch (3.14725ms)
+✖ I3 expired during vault await prevents dispatch (0.318583ms)
+✖ I3 disconnected during vault await prevents dispatch (0.221208ms)
+✖ I3 reconnected during vault await prevents dispatch (0.169208ms)
+✔ I3 retiring a binding during vault await refuses even a stale grant snapshot (0.257041ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 1
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 151.466583
+✖ failing tests:
+test at apps/desktop/test/hub-call-i3.test.mjs:36:73
+✖ I3 revoked during vault await prevents dispatch (3.14725ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:36:73
+✖ I3 expired during vault await prevents dispatch (0.318583ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:36:73
+✖ I3 disconnected during vault await prevents dispatch (0.221208ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:36:73
+✖ I3 reconnected during vault await prevents dispatch (0.169208ms)

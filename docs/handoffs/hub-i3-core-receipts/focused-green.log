@@ -1,0 +1,30 @@
+✔ I3 capacity preserves unknown key and refuses fresh effect (17.135625ms)
+✔ I3 capacity preserves answered key and refuses fresh effect (14.61075ms)
+✔ I3 capacity preserves ran key and refuses fresh effect (127.831916ms)
+✔ I3 all inflight keys occupy admission slots (15.174292ms)
+✔ I3 unproven thrown forward retains unknown and hides raw error (0.526333ms)
+✔ I3 revoked during vault await prevents dispatch (0.361208ms)
+✔ I3 expired during vault await prevents dispatch (0.171084ms)
+✔ I3 disconnected during vault await prevents dispatch (0.130959ms)
+✔ I3 reconnected during vault await prevents dispatch (0.125625ms)
+✔ I3 errors before dispatch remain retryable (0.208833ms)
+✔ I3 expired remembered keys release capacity only after 24 hours (12.709584ms)
+✔ I3 actual MCP 6500-deep result retains unknown without second tools/call (30.379333ms)
+✔ I3 actual MCP tool error is fixed text without echoed credentials (8.58275ms)
+✔ I3 successful product output strips credential echoes and stays replayable (0.258167ms)
+✔ I3 cyclic/unserializable/oversize result retains unknown (3.618958ms)
+✔ I3 unknown key never expires in the current process (0.219125ms)
+✔ I3 thrown and returned product diagnostics never expose credential in operations (0.214875ms)
+✔ I3 product depth and node limits refuse before serializing a usable answer (2.637ms)
+✔ I3 forwarder bounds actual MCP response bytes before SDK decode (45.922958ms)
+✔ I3 binding retirement discards cached output and retains effect facts (0.429ms)
+✔ I3 inflight completion cannot recache a retired binding answer (0.397417ms)
+✔ I3 retiring a binding during vault await refuses even a stale grant snapshot (0.149041ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 849.20025

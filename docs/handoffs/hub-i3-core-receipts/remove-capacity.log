@@ -1,0 +1,21 @@
+✖ I3 capacity preserves unknown key and refuses fresh effect (13.44925ms)
+✖ I3 capacity preserves answered key and refuses fresh effect (12.374625ms)
+✖ I3 capacity preserves ran key and refuses fresh effect (123.1545ms)
+✖ I3 all inflight keys occupy admission slots (513.103708ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 816.120583
+✖ failing tests:
+test at apps/desktop/test/hub-call-i3.test.mjs:16:50
+✖ I3 capacity preserves unknown key and refuses fresh effect (13.44925ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:16:50
+✖ I3 capacity preserves answered key and refuses fresh effect (12.374625ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:16:50
+✖ I3 capacity preserves ran key and refuses fresh effect (123.1545ms)
+test at apps/desktop/test/hub-call-i3.test.mjs:24:1
+✖ I3 all inflight keys occupy admission slots (513.103708ms)

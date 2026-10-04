@@ -18,7 +18,8 @@
 //
 // `idempotencyKey`: a retry with the same key and the same arguments returns the first answer and
 // sends nothing; the same key with different arguments is refused. Kept in memory for 24 hours, per
-// binding (the 256 most recent keys each). A remembered answer is replayed only while the grant that
+// binding (at most 256 retained keys each; fresh work is refused when full). A remembered answer is
+// replayed only while the grant that
 // allowed it still covers the call and the product is still connected: revoking stops the next call, a
 // retried key included (ER-5, verification iteration 1 for 0.3.1) — and the key is NOT forgotten for it,
 // so an Allow given again replays the first answer rather than sending a second time.
@@ -31,16 +32,19 @@
 // (`reached: false` — it failed before the tool call left Fabric) is forgotten too. Anything else that
 // ended without the product's answer — a cancel, the 60 s deadline, a lost connection, a redirect after
 // the call went out, and a forwarder that does not say — MAY HAVE RUN: it is answered `outcome-unknown`,
-// typed and final, and every later call with that key gets the same answer and sends nothing. Before this,
+// typed and final: every later call with that key in this process sends nothing. Unknown keys do not
+// expire; restarting Fabric requires caller reconciliation before retry. Before this,
 // such a key was forgotten while the tool told the agent to retry with it, and the retry sent the mail a
 // second time. The memory lives in this process: after Fabric restarts, a key from before is unknown to
-// it (hub.json's `instance` changes, so an agent can tell).
+// it. hub.json's startedAt plus pid are observational restart markers, never identity or authority.
+// After a restart, reconcile the product effect before retrying a prior call.
 //
 // THE MEMORY IS BOUNDED IN BYTES AND IN TIME (DA-3). An answer larger than 256 KiB is not kept whole, and
 // past 32 MiB across every binding the oldest kept answers are reduced the same way: the key is still
 // remembered as having run, and a retry is answered `answer-not-kept` — never replayed whole, never sent
-// again. Every binding's expired keys are swept at most once a minute on any call, and a revoked binding's
-// memory is dropped at once (`forgetBinding`, called by the access service's revocation).
+// again. Answered/ran keys expire after 24 hours and are swept at most once a minute; unknown keys
+// last for this process. A revoked binding loses its cached answer bodies, while its effect facts
+// remain and the binding is retired permanently (`forgetBinding`, called after durable revocation).
 //
 // THE PRODUCT'S OWN ERROR TEXT IS NOT THE AGENT'S (ER-11). It can echo the request's headers; the agent
 // hears one fixed sentence per code, and the product's words — the secret and the client id removed — go
@@ -125,6 +129,43 @@ const sha256 = (text: string): string => createHash('sha256').update(text, 'utf8
 /** One line of at most 300 characters with control characters removed, for the operations log. */
 const logLine = (text: string): string => text.replace(/[\u0000-\u001f\u007f-\u009f]+/g, ' ').trim().slice(0, 300)
 
+/** Product output is untrusted JSON. Bound traversal before recursive JSON serialization. */
+const MAX_PRODUCT_DEPTH = 64
+const MAX_PRODUCT_NODES = 100_000
+const MAX_PRODUCT_BYTES = 4 * 1024 * 1024
+const scrubProductText = (text: string, secret: string, clientId: string): string => {
+  let clean = secret ? text.split(secret).join('«redacted»') : text
+  if (clientId) clean = clean.split(clientId).join('«client id»')
+  return clean
+}
+function boundedProductOutput(value: unknown, secret: string, clientId: string): unknown {
+  let nodes = 0, bytes = 0
+  const seen = new WeakSet<object>()
+  const copy = (v: unknown, depth: number): unknown => {
+    if (++nodes > MAX_PRODUCT_NODES || depth > MAX_PRODUCT_DEPTH) throw new Error('product answer exceeds its structural bound')
+    if (v === null || typeof v === 'boolean' || (typeof v === 'number' && Number.isFinite(v))) { bytes += 8; return v }
+    if (typeof v === 'string') {
+      bytes += Buffer.byteLength(JSON.stringify(v), 'utf8')
+      if (bytes > MAX_PRODUCT_BYTES) throw new Error('product answer exceeds its byte bound')
+      return scrubProductText(v, secret, clientId)
+    }
+    if (typeof v !== 'object' || seen.has(v)) throw new Error('product answer is not JSON')
+    seen.add(v)
+    // Bound keys/array lengths before allocating their copy; each member must consume a node.
+    const keys = Object.keys(v)
+    if (keys.length > MAX_PRODUCT_NODES - nodes) throw new Error('product answer exceeds its node bound')
+    const out: unknown[] | Record<string, unknown> = Array.isArray(v) ? [] : {}
+    for (const key of keys) {
+      bytes += Buffer.byteLength(JSON.stringify(key), 'utf8') + 8
+      if (bytes > MAX_PRODUCT_BYTES) throw new Error('product answer exceeds its byte bound')
+      Object.defineProperty(out, scrubProductText(key, secret, clientId), { value: copy((v as Record<string, unknown>)[key], depth + 1), enumerable: true, configurable: true, writable: true })
+    }
+    seen.delete(v)
+    return out
+  }
+  return copy(value, 0)
+}
+
 /** The agent's sentence for a forward that provably sent nothing (ER-11): fixed per code, never the product's text. */
 function notSent(code: string, callee: string, capability: string): string {
   const name = productName(callee)
@@ -145,7 +186,7 @@ function outcomeUnknown(callee: string, capability: string, cause: string): Tool
   const name = productName(callee)
   return refusal(
     'outcome-unknown',
-    `${capability} may have run in ${name}: the call reached it and no answer came back (${cause}). Do not send it again — this idempotencyKey is refused from now on, and a new key would act twice. Check its effect with ${name}'s own read tools (for mail, get_send_status) before you act again.`,
+    `${capability} may have run in ${name}: the call may have reached it and no usable answer is available (${cause}). Do not send it again — this idempotencyKey is refused from now on, and a new key would act twice. Check its effect with ${name}'s own read tools (for mail, get_send_status) before you act again.`,
     { cause, mayHaveRun: true }
   )
 }
@@ -155,6 +196,7 @@ export function createAgentCall(deps: HubCallDeps) {
   const random = deps.random ?? randomBytes
   // binding id → idempotencyKey → what became of it.
   const remembered = new Map<string, Map<string, Remembered>>()
+  const retiredBindings = new Set<string>()
   // Every kept answer, oldest first, across bindings: the order the byte bound reduces them in (DA-3).
   const keptOrder = new Set<Remembered>()
   let keptBytes = 0
@@ -225,12 +267,19 @@ export function createAgentCall(deps: HubCallDeps) {
       await span({ ...base, outcome: 'refused', error_code: 'invalid-arguments', grant_ids: [], wall_ms: 0 })
       return before(refusal('invalid-arguments', `the input nests deeper than ${MAX_INPUT_DEPTH} levels; nothing was sent`))
     }
+    const effect = { mayHaveRun: false }
     try {
-      return await hop(binding, args, base, started, callId, traceparent, signal, replay)
+      return await hop(binding, args, base, started, callId, traceparent, signal, replay, effect)
     } catch (e) {
       // Not the product's answer and not a refusal Fabric decided: a read or a write here failed. The
       // agent hears one fixed sentence; the cause (which may name tables, paths or a stack) is logged.
-      ops.failed('hub.call', e, { callee: args.agentId, capability: args.capability })
+      // A forward or result-processing exception proves no absence of effect. Never expose its raw
+      // text: it may echo the credential that was just sent.
+      ops.failed('hub.call', effect.mayHaveRun ? new Error('forward or product answer processing failed') : e, { callee: args.agentId, capability: args.capability })
+      if (effect.mayHaveRun) {
+        await span({ ...base, outcome: 'failed', error_code: 'outcome-unknown', grant_ids: [], wall_ms: now() - started })
+        return { answer: outcomeUnknown(args.agentId, args.capability, 'product-error'), keep: 'unknown' }
+      }
       await span({ ...base, outcome: 'failed', error_code: 'hub-unavailable', grant_ids: [], wall_ms: now() - started })
       return before(refusal('hub-unavailable', 'Fabric could not complete this call just now. Nothing was sent. The operator can see why in Fabric\'s operations log; try again later.'))
     }
@@ -244,7 +293,7 @@ export function createAgentCall(deps: HubCallDeps) {
 
   async function hop(
     binding: BindingRow, args: AgentCallArgs, base: Record<string, unknown>, started: number,
-    callId: string, traceparent: string, signal: AbortSignal | undefined, replay: ToolAnswer | undefined
+    callId: string, traceparent: string, signal: AbortSignal | undefined, replay: ToolAnswer | undefined, effect: { mayHaveRun: boolean }
   ): Promise<Outcome> {
     const before = (a: ToolAnswer): Outcome => ({ answer: a, keep: 'forget' })
     if (signal?.aborted) return cancelledBefore(base, [], started)
@@ -259,7 +308,7 @@ export function createAgentCall(deps: HubCallDeps) {
       return before(refusal('invalid-arguments', read.reason))
     }
     const grants = await deps.access.liveGrantsOf(binding)
-    const cover = coverage({ callee: args.agentId, capability: args.capability, resources: read.resources, workspace: read.workspace, requires: read.requires }, grants, now())
+    let cover = coverage({ callee: args.agentId, capability: args.capability, resources: read.resources, workspace: read.workspace, requires: read.requires }, grants, now())
     if (!cover.ok) {
       await span({ ...base, outcome: 'refused', error_code: 'access-required', grant_ids: [], wall_ms: 0 })
       const r = accessRefusal({ agentId: binding.agent_id, callee: args.agentId, capability: args.capability, capabilities: cover.ask, resources: cover.missing, why: cover.reason })
@@ -287,13 +336,31 @@ export function createAgentCall(deps: HubCallDeps) {
       return before(refusal('product-credential-unavailable', `Fabric could not read ${args.agentId}'s key from its vault. Nothing was sent. The operator can see why in Fabric's operations log; try again later.`))
     }
     if (signal?.aborted) return cancelledBefore(base, cover.grantIds, started)
+    // The vault may have queued this call for seconds. Re-decide against live authority and the
+    // exact connection whose credential was read, immediately before entering the forwarder.
+    const [currentGrants, currentConnection] = await Promise.all([
+      deps.access.liveGrantsOf(binding), deps.store.liveConnection(args.agentId)
+    ])
+    if (retiredBindings.has(binding.id)) return before(refusal('binding-revoked', 'This binding was revoked while Fabric read the product key. Nothing was sent.'))
+    cover = coverage({ callee: args.agentId, capability: args.capability, resources: read.resources, workspace: read.workspace, requires: read.requires }, currentGrants, now())
+    if (!cover.ok) {
+      await span({ ...base, outcome: 'refused', error_code: 'access-required', grant_ids: [], wall_ms: now() - started })
+      return before(answer(accessRefusal({ agentId: binding.agent_id, callee: args.agentId, capability: args.capability, capabilities: cover.ask, resources: cover.missing, why: cover.reason }), true))
+    }
+    if (!currentConnection || currentConnection.id !== connection.id || currentConnection.mcp_url !== connection.mcp_url || currentConnection.client_id !== connection.client_id || canonical(currentConnection.secret_ref) !== canonical(connection.secret_ref)) {
+      await span({ ...base, outcome: 'refused', error_code: 'product-not-connected', grant_ids: cover.grantIds, wall_ms: now() - started })
+      return before(refusal('product-not-connected', 'The product connection changed while Fabric read its key. Nothing was sent; retry against the current connection.'))
+    }
+    if (signal?.aborted) return cancelledBefore(base, cover.grantIds, started)
+    effect.mayHaveRun = true // No exception from this point proves that the tool did not run.
     const forwarded = await deps.forward({
       mcpUrl: connection.mcp_url, clientId: connection.client_id, clientSecret: secret.value,
       narrowing: cover.narrowing, narrowingSince: narrowingSinceOf(args.agentId), capability: args.capability, input: args.input, traceparent, signal
     })
     const narrowing = cover.narrowing
     if (!forwarded.ok) {
-      const productText = logLine(forwarded.message.split(connection.client_id).join('«client id»'))
+      effect.mayHaveRun = forwarded.reached !== false
+      const productText = logLine(scrubProductText(forwarded.message, secret.value, connection.client_id))
       // A forwarder that does not say whether the call left Fabric is read as "it may have" — fail closed.
       const mayHaveRun = forwarded.reached !== false
       const hungUp = forwarded.code === 'cancelled' || signal?.aborted === true
@@ -307,10 +374,14 @@ export function createAgentCall(deps: HubCallDeps) {
       // Nothing left Fabric: a retry, with this key or another, must reach the product again.
       return before(refusal(forwarded.code, notSent(forwarded.code, args.agentId, args.capability), { mayHaveRun: false }))
     }
+    // Tool errors carry fixed text, never product debug output. Success is copied only after its
+    // depth, node and byte bounds are checked, with credential echoes removed from every string.
+    const output = forwarded.result.isError
+      ? { error: { code: 'product-error', message: 'The product reported an error. Check its effect with the product’s read tools before retrying.' } }
+      : boundedProductOutput(forwarded.result.structuredContent ?? { content: forwarded.result.content ?? [] }, secret.value, connection.client_id)
     const outcome = forwarded.result.isError ? 'failed' : 'succeeded'
     const written = await span({ ...base, outcome, error_code: forwarded.result.isError ? 'product-error' : null, grant_ids: cover.grantIds, narrowing: narrowing ?? 'workspace', wall_ms: forwarded.wallMs })
     ops.record({ op: 'hub.call', outcome: 'ok', detail: { callee: args.agentId, capability: args.capability, product_outcome: outcome, wall_ms: forwarded.wallMs, span_written: written }, ctx: { correlationId: ops.correlate() } })
-    const output = forwarded.result.structuredContent ?? { content: forwarded.result.content ?? [] }
     return { answer: answer(envelope({ callId, outcome, binding, callee: args.agentId, capability: args.capability, narrowing, grantIds: cover.grantIds, output, wallMs: forwarded.wallMs, traceparent, spanWritten: written }), forwarded.result.isError === true), keep: 'answer' }
   }
 
@@ -339,10 +410,16 @@ export function createAgentCall(deps: HubCallDeps) {
     if (t - lastSweep < SWEEP_EVERY_MS) return
     lastSweep = t
     for (const [bindingId, mine] of remembered)
-      for (const [key, e] of mine) if (e.state !== 'inflight' && t - e.at > IDEMPOTENCY_TTL_MS) remove(bindingId, key, e)
+      for (const [key, e] of mine) if (e.state !== 'inflight' && e.state !== 'unknown' && t - e.at > IDEMPOTENCY_TTL_MS) remove(bindingId, key, e)
   }
   const settle = (bindingId: string, key: string, entry: Remembered, o: Outcome): void => {
     if (o.keep === 'forget') return remove(bindingId, key, entry)
+    if (retiredBindings.has(bindingId) && o.keep !== 'unknown') {
+      drop(entry)
+      entry.state = 'ran'
+      entry.kept = null
+      return
+    }
     if (o.keep === 'unknown') {
       entry.state = 'unknown'
       entry.kept = o.answer
@@ -369,6 +446,7 @@ export function createAgentCall(deps: HubCallDeps) {
     )
 
   async function agentCall(binding: BindingRow, args: AgentCallArgs, meta: Record<string, unknown> | undefined, signal?: AbortSignal): Promise<ToolAnswer> {
+    if (retiredBindings.has(binding.id)) return refusal('binding-revoked', 'This binding was revoked by the operator. Nothing was sent; request new access with a new binding.')
     // Too deep to hash: refused (with its span) before the idempotency memory hashes it.
     if (!args.idempotencyKey || nestsDeeperThan(args.input, MAX_INPUT_DEPTH)) return (await perform(binding, args, meta, signal)).answer
     const key = args.idempotencyKey
@@ -378,7 +456,7 @@ export function createAgentCall(deps: HubCallDeps) {
     for (;;) {
       const seen = remembered.get(binding.id)?.get(key)
       if (!seen) break
-      if (t - seen.at > IDEMPOTENCY_TTL_MS && seen.state !== 'inflight') {
+      if (t - seen.at > IDEMPOTENCY_TTL_MS && seen.state !== 'inflight' && seen.state !== 'unknown') {
         remove(binding.id, key, seen)
         break
       }
@@ -400,23 +478,37 @@ export function createAgentCall(deps: HubCallDeps) {
       mine = new Map()
       remembered.set(binding.id, mine)
     }
-    // The oldest of THIS binding's settled keys goes; another binding's never does.
+    // Capacity is an admission limit, not permission to forget a possible effect. Inflight, unknown,
+    // answered and answer-not-kept keys all occupy slots. Existing-key replay was handled above.
     if (mine.size >= IDEMPOTENCY_MAX_PER_BINDING)
-      for (const [k, e] of mine) if (e.state !== 'inflight') { remove(binding.id, k, e); break }
+      return refusal('idempotency-capacity', 'Fabric cannot safely remember another call for this binding. Nothing was sent. Reconcile prior outcomes before making more calls.', { mayHaveRun: false })
     const entry: Remembered = { argsHash, at: t, state: 'inflight', kept: null, bytes: 0, settled: Promise.resolve() }
     mine.set(key, entry)
     const answering = perform(binding, args, meta, signal)
-    entry.settled = answering.then((o) => settle(binding.id, key, entry, o), () => remove(binding.id, key, entry))
+    entry.settled = answering.then((o) => {
+      try { settle(binding.id, key, entry, o) } catch {
+        drop(entry)
+        entry.state = 'unknown'
+        entry.kept = outcomeUnknown(args.agentId, args.capability, 'product-error')
+      }
+    }, () => {
+      entry.state = 'unknown'
+      entry.kept = outcomeUnknown(args.agentId, args.capability, 'product-error')
+    })
     const o = await answering
+    await entry.settled
     return o.answer
   }
 
-  /** A revoked binding can never call again: its memory goes at once (DA-3). */
+  /** Called after durable, irreversible binding revocation: release output, never erase effect facts. */
   function forgetBinding(bindingId: string): void {
+    retiredBindings.add(bindingId)
     const mine = remembered.get(bindingId)
     if (!mine) return
-    for (const e of mine.values()) drop(e)
-    remembered.delete(bindingId)
+    for (const e of mine.values()) {
+      drop(e)
+      if (e.state === 'answered') { e.state = 'ran'; e.kept = null }
+    }
   }
 
   /** What the memory holds now — for the operations log and the tests. */
