@@ -19,7 +19,7 @@ function fixture(run) {
   const paths=new Set([...oldPlan.sources.map(s=>s.path),'docs/backlog-sources.json','docs/adr/0101-the-general-development-plan.md',`${input}/checks/execution.json`,`${input}/impacts.json`,
     ...oldPlan.tasks.filter(t=>t.evidence).map(t=>t.evidence.path),
     ...['release','start-adoption','agents-memory','reach-horizon'].map(name=>`${input}/packets/${name}.json`),
-    'scripts/build-unified-plan.py','scripts/unified-plan.mjs','scripts/unified-canonical-sources.mjs'])
+    'scripts/build-unified-plan.py','scripts/unified-plan.mjs','scripts/unified-canonical-sources.mjs','AGENTS.md'])
   const manifest=JSON.parse(readFileSync(join(owner,'docs/backlog-sources.json'),'utf8'))
   for(const source of manifest.sources)paths.add(source.path)
   for(const path of paths)copy(path)
@@ -110,6 +110,26 @@ test('missing or locally changed pinned common parser stops compilation',()=>fix
   const missing=f.compile();assert.notEqual(missing.status,0);assert.match(missing.stderr,/submodule update --init workspace/)
   assert(!existsSync(join(f.root,output,'plan.json')))
 }))
+const reconciliationPath='docs/evidence/plans/unified-current-reconciliation.json'
+function ownerSource(f) {
+  const basis=f.revision
+  const inventory=spawnSync('node',['scripts/unified-plan.mjs','inventory','--source-revision',basis],{cwd:f.root,encoding:'utf8'})
+  assert.equal(inventory.status,0,inventory.stderr)
+  const rows=JSON.parse(inventory.stdout).tasks
+  const row=rows.find(t=>t.id==='P-08')
+  assert(row)
+  const ref=path=>({path,revision:basis,sha256:createHash('sha256').update(readFileSync(join(f.root,path))).digest('hex')})
+  const packet={id:'P-08.qualify-source',canonical_key:row.key,related_canonical_keys:[],basis_revision:basis,
+    basis_sources:[row.path,'scripts/unified-plan.mjs'].map(ref),operation:'qualification',title:'Qualify bounded example-agent source work',
+    context:{outcome:'Assemble and qualify current bounded source work without accepting its parent',sources:[row.path,'scripts/unified-plan.mjs'],scope:['scripts/unified-plan.mjs','docs/handoffs/example-agent-qualification'],steps:['Read source','Run exact owned checks'],acceptance:['Record exact-source scoped results and unresolved gates'],risks:['Historical receipt is not current acceptance'],stop_conditions:['Stop before release or live changes'],resume:'Read current pinned source and scoped receipts'},
+    rollback:'Discard only task-owned isolated changes',authority:{kind:'source-owner-bounded-work',repository:'https://github.com/passioncode-ai/fabric',actions:['code','check','commit','push'],standing:ref('AGENTS.md'),requested_source:ref(row.path)},
+    dependencies:[{kind:'source-input',purpose:'Current owner source',ref:ref(row.path)}],acceptance_gates:[{id:'P-08.parent',requirement:'Native/full/independent/human release gates remain separate',required_for:'parent-acceptance'}],
+    impact_scope:JSON.parse(readFileSync(join(f.root,input,'impacts.json'),'utf8')).filter(i=>i.severity==='blocking'&&i.disposition==='open'&&i.targets.includes('P-08')).map(i=>({id:i.id,effect:'parent-acceptance-only',reason:'Qualification is work to investigate this gate; parent stays open',source:ref(input+'/impacts.json')}))}
+  return {schema:'unified-owner-reconciliation/1',repository:'https://github.com/passioncode-ai/fabric',packets:[packet]}
+}
+function publishOwner(f,source) {
+  writeFileSync(join(f.root,reconciliationPath),JSON.stringify(source));f.commit()
+}
 test('production parity refuses authority forgeries across every dispatching CLI verb',()=>fixture(f=>{
   const compile=f.compile();assert.equal(compile.status,0,compile.stderr)
   const file=join(f.root,output,'plan.json'),original=JSON.parse(readFileSync(file,'utf8'))
@@ -152,5 +172,93 @@ test('emit-plan reconstructs exact production graph without writing or overwriti
   assert.equal(readFileSync(join(f.root,input,'plan.json'),'utf8'),historical)
   assert(!existsSync(join(f.root,'docs/reports/never-created')))
   assert.deepEqual(snapshot(),before,'emit-plan must not create, remove or modify repository files')
+}))
+test('committed owner qualification activates only its bounded leaf and keeps parent impacts open',()=>fixture(f=>{
+  const source=ownerSource(f);publishOwner(f,source)
+  const result=f.compile();assert.equal(result.status,0,result.stderr);assert.equal(f.check().status,0,f.check().stderr)
+  const plan=JSON.parse(readFileSync(join(f.root,output,'plan.json'),'utf8'))
+  assert.equal(plan.owner_reconciliation.path,reconciliationPath);assert.equal(plan.owner_reconciliation.commit,f.revision)
+  assert(plan.sources.some(s=>s.path===reconciliationPath&&s.commit===f.revision))
+  const task=plan.tasks.find(t=>t.id==='P-08.qualify-source');assert.equal(task.dispatch,'candidate')
+  const next=spawnSync('node',['scripts/unified-plan.mjs','--report',output,'next'],{cwd:f.root,encoding:'utf8'})
+  assert.equal(next.status,0,next.stderr);assert.deepEqual(JSON.parse(next.stdout).ready.map(t=>t.id),['P-08.qualify-source'])
+  assert(plan.tasks.filter(t=>t.historical_dispatch).every(t=>t.dispatch==='design-gated'))
+  assert(task.preparation_only_impacts.length>0)
+  for(const id of task.preparation_only_impacts)assert.equal(plan.impacts.find(i=>i.id===id).disposition,'open')
+  const graph=JSON.parse(readFileSync(join(f.root,output,'audit-graph.json'),'utf8'))
+  const node=graph.nodes.find(n=>n.title===task.title)
+  const cold=JSON.parse(readFileSync(join(f.root,output,'cold-packets',node.id+'.json'),'utf8'))
+  assert.deepEqual(cold.source_scope.edit_targets,source.packets[0].context.scope)
+}))
+test('missing or NOT_RUN scoped acceptance holds only the bounded owner packet',()=>fixture(f=>{
+  const source=ownerSource(f);source.packets[0].dependencies.push({kind:'scoped-acceptance',subject_key:source.packets[0].canonical_key,scope:'native same-build',proof_tier:'native',receipt:null});publishOwner(f,source)
+  assert.equal(f.compile().status,0);assert.equal(f.check().status,0)
+  let plan=JSON.parse(readFileSync(join(f.root,output,'plan.json'),'utf8'))
+  assert.equal(plan.tasks.find(t=>t.id==='P-08.qualify-source').dispatch,'design-gated')
+  rmSync(join(f.root,output),{recursive:true,force:true})
+  const path='docs/handoffs/fixture-native-receipt.json',packet=source.packets[0]
+  mkdirSync(dirname(join(f.root,path)),{recursive:true})
+  writeFileSync(join(f.root,path),JSON.stringify({schema:'unified-scoped-receipt/1',repository:source.repository,subject_key:packet.canonical_key,basis_revision:packet.basis_revision,scope:'native same-build',proof_tier:'native',result:'NOT_RUN'}))
+  const revision=f.commit();packet.dependencies.at(-1).receipt={path,revision,sha256:createHash('sha256').update(readFileSync(join(f.root,path))).digest('hex')};publishOwner(f,source)
+  assert.equal(f.compile().status,0);assert.equal(f.check().status,0)
+  plan=JSON.parse(readFileSync(join(f.root,output,'plan.json'),'utf8'));assert.equal(plan.tasks.find(t=>t.id===packet.id).dispatch,'design-gated')
+  assert.match(plan.tasks.find(t=>t.id===packet.id).context.owner_holds.join(' '),/NOT_RUN/)
+  rmSync(join(f.root,output),{recursive:true,force:true})
+  const accepted=JSON.parse(readFileSync(join(f.root,path),'utf8'));accepted.result='PASS';writeFileSync(join(f.root,path),JSON.stringify(accepted))
+  const acceptedRevision=f.commit();packet.dependencies.at(-1).receipt={path,revision:acceptedRevision,sha256:createHash('sha256').update(readFileSync(join(f.root,path))).digest('hex')};publishOwner(f,source)
+  assert.equal(f.compile().status,0);assert.equal(f.check().status,0)
+  plan=JSON.parse(readFileSync(join(f.root,output,'plan.json'),'utf8'));assert.equal(plan.tasks.find(t=>t.id===packet.id).dispatch,'candidate');assert(plan.tasks.every(t=>t.dispatch!=='done'))
+}))
+test('owner source refuses forged identity, done state, receipt, release authority and impact scope',()=>fixture(f=>{
+  const original=ownerSource(f)
+  const mutants=[
+    ['cross-owner',p=>p.canonical_key=p.canonical_key.replace('/fabric:','/other-owner:')],
+    ['renamed-owner',p=>p.id='CO-179.qualify-source'],
+    ['done',p=>p.status='done'],
+    ['forged-byte-contract',p=>p.basis_sources[0].sha256='f'.repeat(64)],
+    ['release-grant',p=>p.authority.actions.push('release')],
+    ['global-impact-clear',p=>p.impact_scope[0].effect='resolved'],
+    ['forged-impact-digest',p=>p.impact_scope[0].source.sha256='f'.repeat(64)],
+  ]
+  for(const [name,mutate]of mutants){const bad=structuredClone(original);mutate(bad.packets[0]);publishOwner(f,bad);const result=f.compile();assert.notEqual(result.status,0,name);assert(!existsSync(join(f.root,output,'plan.json')),name)}
+}))
+test('derived owner packet, applicability or done mutations cannot bypass deterministic parity',()=>fixture(f=>{
+  const source=ownerSource(f);publishOwner(f,source);assert.equal(f.compile().status,0)
+  const file=join(f.root,output,'plan.json'),original=JSON.parse(readFileSync(file,'utf8'))
+  for(const mutate of [p=>delete p.owner_reconciliation,p=>p.sources=p.sources.filter(s=>s.path!==reconciliationPath),p=>p.tasks.find(t=>t.id==='P-08.qualify-source').preparation_only_impacts.push('NEW-IMPACT'),p=>{const t=p.tasks.find(t=>t.id==='P-08.qualify-source');t.dispatch='done';t.evidence={path:input+'/checks/execution.json',sha256:createHash('sha256').update(readFileSync(join(f.root,input,'checks/execution.json'))).digest('hex')}},p=>p.tasks=p.tasks.filter(t=>t.id!=='P-08.qualify-source')]){
+    const forged=structuredClone(original);mutate(forged);writeFileSync(file,JSON.stringify(forged));const check=f.check();assert.notEqual(check.status,0);assert.equal(check.stdout,'')
+  }
+  writeFileSync(file,JSON.stringify(original));rmSync(join(f.root,reconciliationPath))
+  const missing=f.check();assert.notEqual(missing.status,0);assert.match(missing.stderr,/source missing|reconciliation source missing|source unreadable/i)
+}))
+test('changed impact or subject bytes and dirty owner source cannot retain old qualification authority',()=>fixture(f=>{
+  const source=ownerSource(f);publishOwner(f,source)
+  const file=join(f.root,reconciliationPath);writeFileSync(file,readFileSync(file,'utf8')+' ')
+  let result=f.compile();assert.notEqual(result.status,0);assert.match(result.stderr,/Dirty or forged reconciliation/)
+  writeFileSync(file,JSON.stringify(source))
+  const impact=join(f.root,input,'impacts.json'),originalImpact=readFileSync(impact,'utf8');writeFileSync(impact,originalImpact+'\n')
+  f.commit();result=f.compile();assert.notEqual(result.status,0);assert.match(result.stderr,/Dirty or forged reconciliation/)
+  writeFileSync(impact,originalImpact)
+  const subject=join(f.root,'scripts/unified-plan.mjs');writeFileSync(subject,readFileSync(subject,'utf8')+'\n// changed subject byte contract\n')
+  f.commit();result=f.compile();assert.notEqual(result.status,0);assert.match(result.stderr,/Dirty or forged reconciliation/)
+}))
+test('new blocking impact remains blocking without an exact owner applicability decision',()=>fixture(f=>{
+  const path=join(f.root,input,'impacts.json'),impacts=JSON.parse(readFileSync(path,'utf8'))
+  impacts.push({id:'I-new',targets:['P-08'],severity:'blocking',disposition:'open',evidence:'New current source observation',action:'Owner must investigate new scope'})
+  writeFileSync(path,JSON.stringify(impacts));f.commit()
+  const source=ownerSource(f);source.packets[0].impact_scope=source.packets[0].impact_scope.filter(i=>i.id!=='I-new');publishOwner(f,source)
+  const c=f.compile();assert.equal(c.status,0,c.stderr);assert.equal(f.check().status,0,f.check().stderr)
+  const next=spawnSync('node',['scripts/unified-plan.mjs','--report',output,'next'],{cwd:f.root,encoding:'utf8'})
+  assert.equal(next.status,0,next.stderr);const frontier=JSON.parse(next.stdout);assert.equal(frontier.ready.length,0)
+  assert(frontier.held.find(t=>t.id==='P-08.qualify-source').reasons.includes('impact I-new'))
+}))
+test('a pinned scoped receipt cannot substitute historical basis, foreign owner or current scope',()=>fixture(f=>{
+  const original=ownerSource(f),path='docs/evidence/fixture-scoped-receipt.json',packet=original.packets[0]
+  for(const change of [r=>r.basis_revision='a'.repeat(40),r=>r.repository='https://github.com/example/other-owner',r=>r.scope='Different operation',r=>r.proof_tier='focused']){
+    const receipt={schema:'unified-scoped-receipt/1',repository:original.repository,subject_key:packet.canonical_key,basis_revision:packet.basis_revision,scope:'Native same-build',proof_tier:'native',result:'PASS'}
+    change(receipt);writeFileSync(join(f.root,path),JSON.stringify(receipt));const rev=f.commit()
+    const source=structuredClone(original);source.packets[0].dependencies.push({kind:'scoped-acceptance',subject_key:packet.canonical_key,scope:'Native same-build',proof_tier:'native',receipt:{path,revision:rev,sha256:createHash('sha256').update(readFileSync(join(f.root,path))).digest('hex')}});publishOwner(f,source)
+    const c=f.compile();assert.notEqual(c.status,0);assert.match(c.stderr,/forged subject, basis, scope or proof tier/);assert(!existsSync(join(f.root,output,'plan.json')))
+  }
 }))
 // #endregion unified-compiler-tests

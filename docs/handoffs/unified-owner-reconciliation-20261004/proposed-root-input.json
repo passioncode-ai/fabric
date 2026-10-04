@@ -1,0 +1,210 @@
+{
+  "schema": "unified-owner-reconciliation/1",
+  "repository": "https://github.com/passioncode-ai/fabric",
+  "packets": [
+    {
+      "id": "P-08.qualify-source",
+      "canonical_key": "https://github.com/passioncode-ai/fabric:docs/evidence/backlog.md:P-08",
+      "related_canonical_keys": [
+        "https://github.com/passioncode-ai/fabric:docs/evidence/specs/2026-08-16-software-fabric-carryover.md:CO-179"
+      ],
+      "basis_revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "basis_sources": [
+        {
+          "path": "AGENTS.md",
+          "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+          "sha256": "80f6bdf7f1d1a5f05eb40f2b7911732b9b3c5b3ea7c85dc45e3ff527dd50f9ec"
+        },
+        {
+          "path": "docs/evidence/backlog.md",
+          "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+          "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+        },
+        {
+          "path": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+          "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+          "sha256": "c2ff476db93bfe988382e3e8197a828dc0b17d6f2616c2a5803c43a7c07c1c39"
+        },
+        {
+          "path": "docs/evidence/plans/unified-leaves/CO-179.json",
+          "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+          "sha256": "626a37d322a3cc7f9d8ed5ec5eb004f8b67f85a0a4ce637c933ac0b10a4fb09c"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/App.tsx",
+          "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+          "sha256": "8aca50d0cd3aa4ac7a715064889a8c949742558f3d0b231e3c48b2ffbee917ec"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/Onboarding.tsx",
+          "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+          "sha256": "895ea04e3c61af11f61eced27d41c1e62d53a945ea05167b617d734b92565f10"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/components/registry.ts",
+          "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+          "sha256": "b44d6d19383e3b20cf3f30cdaf7578e9045e673c033cf0abfa794b7a9c99d70e"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+          "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+          "sha256": "7931e1f89b9f75ee8b3a58b5eced54fe08578b6115fea86180f70217114540db"
+        },
+        {
+          "path": "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
+          "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+          "sha256": "92015dd42cee4f65a77ed0ca27259983e217e31466256e57b7154916a795b3f7"
+        },
+        {
+          "path": "apps/desktop/test/adoption-native-harness.mjs",
+          "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+          "sha256": "5d6a28eba37954c91655bb92fb1c7e0e05ee828573752ca1441a2371fa0eaed3"
+        },
+        {
+          "path": "scripts/ci.sh",
+          "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+          "sha256": "0eaed03d7cf59ae07bdfcc0c4afeaa4af55046ddb5236226c3c53fa4392bd2f5"
+        }
+      ],
+      "operation": "qualification",
+      "title": "Qualify current hub source and bounded CO-179/native onboarding repairs",
+      "context": {
+        "outcome": "Assemble already authorized source repairs and strict test-host/visual containment in an isolated branch; collect exact-source scoped results and independent reports before parent acceptance",
+        "sources": [
+          "AGENTS.md",
+          "docs/evidence/backlog.md",
+          "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+          "docs/evidence/plans/unified-leaves/CO-179.json",
+          "apps/desktop/src/renderer/src/App.tsx",
+          "apps/desktop/src/renderer/src/Onboarding.tsx",
+          "apps/desktop/src/renderer/src/components/registry.ts",
+          "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+          "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
+          "apps/desktop/test/adoption-native-harness.mjs",
+          "scripts/ci.sh"
+        ],
+        "scope": [
+          "apps/desktop/src/renderer/src/App.tsx",
+          "apps/desktop/src/renderer/src/Onboarding.tsx",
+          "apps/desktop/src/renderer/src/components/registry.ts",
+          "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+          "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
+          "apps/desktop/test/adoption-native-harness.mjs",
+          "docs/handoffs/p08-source-qualification"
+        ],
+        "steps": [
+          "Read standing policy, canonical P-08 Now/CO-179 and the exact dossier scope; acquire actual task/resource claims before writes",
+          "Assemble committed author repairs, current strict AD02 test-host bootstrap and CO-179 visual containment in an isolated branch",
+          "Run the exact combined focused checks, same-build native state matrix and owned/disposable full tier; record each source SHA, proof scope, result and NOT_RUN",
+          "Obtain independent frozen-candidate reports; root owns all canonical ledger/map closures and owner publication"
+        ],
+        "acceptance": [
+          "One committed bounded source candidate plus scoped executed-check receipts and unresolved prerequisites",
+          "Native and visual evidence is bound to the exact same committed source/build; different-build and partial evidence remain scoped limitations",
+          "Five independent reports and full tier are collected for root assessment; this preparation never marks P-08/CO-179 done or release-ready"
+        ],
+        "risks": [
+          "This proposed current basis is committed2e06e501; root must refresh basis/byte contracts again when pending native fixture theme/zoom extensions change subject bytes before activation",
+          "Historical dossier checks and partial/different-build native observations do not provide current parent acceptance"
+        ],
+        "stop_conditions": [
+          "Stop on changed subject bytes, missing claim, stale/unknown receipt or unauthorized scope",
+          "Stop before release approval, tag, signing/publishing deployment, installed operator database mutation or production/workspace publication",
+          "Do not edit guarded root registers, ledger or map from this bounded child"
+        ],
+        "resume": "Root commits current source and owner input separately; read current pinned packet and qualify only this exact bounded child"
+      },
+      "rollback": "Discard only task-owned isolated source changes; retain historical reports/receipts, root registers, live runtime and operator database",
+      "authority": {
+        "kind": "source-owner-bounded-work",
+        "repository": "https://github.com/passioncode-ai/fabric",
+        "actions": [
+          "design",
+          "code",
+          "check",
+          "commit",
+          "push"
+        ],
+        "standing": {
+          "path": "AGENTS.md",
+          "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+          "sha256": "80f6bdf7f1d1a5f05eb40f2b7911732b9b3c5b3ea7c85dc45e3ff527dd50f9ec"
+        },
+        "requested_source": {
+          "path": "docs/evidence/backlog.md",
+          "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+          "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+        }
+      },
+      "dependencies": [
+        {
+          "kind": "source-input",
+          "purpose": "Canonical P-08 is Now, source work is already requested; not a release approval",
+          "ref": {
+            "path": "docs/evidence/backlog.md",
+            "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+            "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+          }
+        },
+        {
+          "kind": "source-input",
+          "purpose": "CO-179 dossier exact next-child scope only; its historical native NOT_RUN is not acceptance",
+          "ref": {
+            "path": "docs/evidence/plans/unified-leaves/CO-179.json",
+            "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+            "sha256": "626a37d322a3cc7f9d8ed5ec5eb004f8b67f85a0a4ce637c933ac0b10a4fb09c"
+          }
+        }
+      ],
+      "acceptance_gates": [
+        {
+          "id": "AD02.same-build",
+          "requirement": "Final same-build native state matrix and persistence/write containment",
+          "required_for": "parent-acceptance"
+        },
+        {
+          "id": "CO-179.visual-native",
+          "requirement": "Visual/native containment for current onboarding source",
+          "required_for": "parent-acceptance"
+        },
+        {
+          "id": "P-08.full-disposable",
+          "requirement": "Exact-source full owned/disposable tier",
+          "required_for": "parent-acceptance"
+        },
+        {
+          "id": "P-08.independent-review",
+          "requirement": "Five independent reports and versioned verification gate at frozen candidate",
+          "required_for": "parent-acceptance"
+        },
+        {
+          "id": "P-08.human-release",
+          "requirement": "Protected human approval, version/changelog and release/install gates; no grant from this source packet",
+          "required_for": "parent-acceptance"
+        }
+      ],
+      "impact_scope": [
+        {
+          "id": "I-01",
+          "effect": "parent-acceptance-only",
+          "reason": "This bounded qualification investigates the gate; parent remains open and release-blocking",
+          "source": {
+            "path": "docs/reports/2026-10-04-unified-execution/impacts.json",
+            "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+            "sha256": "df26bf5078b04db64279dbbf0b6b6abd57f82181a98b7e2a46315fda65abf717"
+          }
+        },
+        {
+          "id": "I-05",
+          "effect": "parent-acceptance-only",
+          "reason": "This bounded qualification investigates the gate; parent remains open and release-blocking",
+          "source": {
+            "path": "docs/reports/2026-10-04-unified-execution/impacts.json",
+            "revision": "2e06e5013595ec96b52b85cae2c486050632565b",
+            "sha256": "df26bf5078b04db64279dbbf0b6b6abd57f82181a98b7e2a46315fda65abf717"
+          }
+        }
+      ]
+    }
+  ]
+}

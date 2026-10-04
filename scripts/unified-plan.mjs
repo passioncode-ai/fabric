@@ -139,7 +139,7 @@ function descendants(tasks, id, seen = new Set()) {
 }
 export function frontier(plan) {
   const tasks = plan.tasks ?? []
-  const blockedImpact = t => (plan.impacts ?? []).filter(i => i.severity === 'blocking' && i.disposition === 'open' && i.targets.some(id => id === t.id || t.canonical_ids.includes(id)))
+  const blockedImpact = t => (plan.impacts ?? []).filter(i => i.severity === 'blocking' && i.disposition === 'open' && i.targets.some(id => id === t.id || t.canonical_ids.includes(id)) && !(t.kind === 'bounded-source-work' && ['source-preparation', 'qualification'].includes(t.context?.owner_reconciliation?.operation) && (t.preparation_only_impacts ?? []).includes(i.id)))
   const done = new Set(tasks.filter(t => t.dispatch === 'done' && safePath(t.evidence?.path) && /^[a-f0-9]{64}$/.test(t.evidence?.sha256 ?? '') && !blockedImpact(t).length).map(t => t.id))
   const ready = [], held = []
   for (const t of tasks) {
