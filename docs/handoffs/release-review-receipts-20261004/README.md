@@ -1,3 +1,5 @@
+<sub>ssheleg skills — task-pipeline · evidence-docs</sub>
+
 # Release review receipt author packet
 
 Objective: harden PL10 / I3PLAN05 without publishing or rewriting historical reviews.
@@ -48,7 +50,75 @@ structured closure can be checked mechanically. Reviewer identifiers are declare
 provenance. Uniqueness cannot prove an agent had fresh context or was independent;
 the review owner must verify reviewer provenance and freshness separately.
 
+## Selected receipt contract
+
+The root owner selected `fabric-release-reviews/1`, fail closed for legacy gates.
+`gate.reviewReceipts` contains `schema` and exactly three `iterations`. Each
+iteration names its integer `iteration`, exact 40-character `candidateCommit` and
+five `reviews`: `ux`, `errors`, `docs`, `data`, `plan`, once each. Each review names
+its `level`, repository-relative `report` Markdown and `receipt` JSON under `docs/`.
+Artifact paths are globally unique; no folder naming convention encodes the
+iteration. Iteration 3's candidate equals `gate.verifiedCommit`.
+
+Each receipt names `schema`, `version`, `iteration`, `level`, `candidateCommit`,
+`report`, SHA-256 `reportSha256`, declared `reviewerRun`, `status: "closed"`,
+`blockingFindingsOpen: []` and `findings`. Declared reviewer runs are unique across
+all fifteen reviews. A finding has unique `id`, disposition `status` (`fixed`,
+`ruled`, `not-a-defect`, `not-recoverable`, `stopped`) and a nonempty string array
+`evidence`. An empty findings array records no findings. Evidence strings describe
+the reviewer declaration; this checker does not resolve every evidence reference.
+
+`releaseGateProblems` accepts `readCommitted(path)` supplied by the release owner.
+The callback must return raw committed UTF-8 bytes as a string, preserving trailing
+newlines; trimmed command output is insufficient. Missing/unreadable files fail
+closed. The pure checker performs no disk reads or Git calls. The release owner
+retains the Git candidate ancestry/runtime-change guard and manual provenance gate.
+Historical `0.3.0` artifacts were neither changed nor supplied invented receipts;
+their text remains auditable but cannot newly qualify a release.
+
+## Checks
+
+Fresh TDD red: `node --test --test-name-pattern='PL10'
+scripts/test/release-gate.test.mjs` exited 1 before implementation, with
+`fabricated closures without review artifacts were accepted`; after implementation
+the same check exited 0.
+
+`node --test scripts/test/release-gate.test.mjs scripts/test/release-mac.test.mjs`
+exited 0: 26 tests, 25 passed, 1 skipped (`electron-builder` absent). Gate tests
+covered missing files, hash mismatch, invalid JSON/path, duplicate level/artifact/
+declared run, unsupported schema, mismatched candidate and receipt fields,
+nonclosed/open findings, missing callback, and valid complete closures. A temporary
+Git repository proved disk-only files refuse, committed files pass, disk changes
+do not replace committed bytes, and committed changed report bytes fail the hash.
+
+The existing ledger in this exact base still marks iteration 3 `_Not started._`.
+The replacement regression unconditionally checks refusal of both those actual
+bytes and a variant saying `Started; findings remain open.`; it cannot pass by
+skipping an assertion when the heading's wording changes. The exact local script
+tests do not establish hosted CI, signing, release qualification, app installation
+or physical UI acceptance. Full project gates remain with root integration.
+
+`node scripts/check-regions.mjs` exited 0: 113 markers checked, all closed and
+all references resolved. `git diff --check` exited 0. Only this handoff,
+`scripts/lib/release-gate.mjs` and `scripts/test/release-gate.test.mjs` are changed.
+
 ## Resume
 
-Next: root selects the receipt schema; then add failing gate tests before implementation.
-Open: code, focused verification, independent review, loader integration and push.
+Next: root integrates this author branch, supplies the raw `HEAD:path` loader in
+`scripts/release-mac.mjs`, extends its candidate guard only for validated declared
+receipt metadata, and runs its source/map/documentation gate. Then independent
+fresh reviewers may produce genuine candidate-bound receipts. Do not fabricate
+historical review records or treat this author packet as a reviewer receipt.
+
+Open: independent review, root loader integration, guarded map/ledger/handoff,
+full local gates and hosted CI; release/signing/operator approval remain outside
+this source-only task. No report was published to the wiki from this branch.
+
+---
+
+**Made with [ssheleg skills](https://github.com/ssheleg/sshlg-skills)**
+
+- [`task-pipeline`](https://github.com/ssheleg/task-pipeline) — bounded source-only TDD author packet
+- [`evidence-docs`](https://github.com/ssheleg/task-pipeline) — verification scope and committed handoff
+
+<sub>A star on [the bundle](https://github.com/ssheleg/sshlg-skills) helps.</sub>
