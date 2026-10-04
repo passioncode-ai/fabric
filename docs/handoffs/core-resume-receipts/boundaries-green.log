@@ -1,0 +1,6 @@
+PASS DA-6 plaintext poll secret is refused before journal insertion
+PASS DA-6 plaintext credential is refused before journal insertion
+PASS DA-6 plaintext product secret is refused before journal insertion
+PASS DA-4 binding/request/grant ids have one spelling
+PASS ER-2 replacement requires the exact live connection id
+PASS DA-2 restored pending request loses its poll verifier and cannot be decided

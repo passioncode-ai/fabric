@@ -1,0 +1,74 @@
+
+ RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/hub-v2-core-resume/apps/desktop
+
+ ❯ src/shared/access.test.ts (28 tests | 3 failed) 689ms
+     × refuses a string accounts, account, a differently spelt accountId, address, mailbox, email and forwardTo 90ms
+     × a capability named after the prototype is not a capability 397ms
+     × a __proto__, constructor or prototype key anywhere in the input is invalid 24ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/shared/access.test.ts > ER-6 — a mailbox named under a key Fabric does not read is refused, never forwarded > refuses a string accounts, account, a differently spelt accountId, address, mailbox, email and forwardTo
+AssertionError: read_message {"accounts":"cloudflare:ceo@example.com"} was accepted: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ refused src/shared/access.test.ts:272:73
+    270|   const refused = (capability: string, input: Record<string, unknown>)…
+    271|     const r = resourceArguments(capability, input)
+    272|     expect(r.ok, `${capability} ${JSON.stringify(input)} was accepted`…
+       |                                                                         ^
+    273|   }
+    274|   it('refuses a string accounts, account, a differently spelt accountI…
+ ❯ src/shared/access.test.ts:275:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/shared/access.test.ts > ER-7 — prototype names are refused as invalid, never looked up > a capability named after the prototype is not a capability
+AssertionError: expected [Function] to not throw an error but 'TypeError: setup.resource is not a fu…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"TypeError: setup.resource is not a function"
+
+ ❯ src/shared/access.test.ts:297:50
+    295|   it('a capability named after the prototype is not a capability', () …
+    296|     for (const c of ['constructor', 'constructor.x', 'prototype', 'val…
+    297|       expect(() => resourceArguments(c, {})).not.toThrow()
+       |                                                  ^
+    298|     expect(resourceArguments('constructor', {}).ok).toBe(false)
+    299|     expect(normaliseAccessRequest({ ...ask, capabilities: ['constructo…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/shared/access.test.ts > ER-7 — prototype names are refused as invalid, never looked up > a __proto__, constructor or prototype key anywhere in the input is invalid
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/shared/access.test.ts:306:18
+    304|   it('a __proto__, constructor or prototype key anywhere in the input …
+    305|     const r = resourceArguments('create_address', JSON.parse('{"localP…
+    306|     expect(r.ok).toBe(false)
+       |                  ^
+    307|     expect(resourceArguments('read_message', JSON.parse('{"accountId":…
+    308|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 25 passed (28)
+   Start at  11:18:21
+   Duration  12.39s (transform 982ms, setup 1.65s, import 1.00s, tests 689ms, environment 6.35s)
+

@@ -261,3 +261,49 @@ describe('pendingFacts — what main hands the queue and Settings for one reques
     expect(f.ask).toEqual([{ kind: 'inside', capabilities: [{ id: 'read_message', known: true }], resource: { kind: 'address', address: 'news@example.com' } }])
   })
 })
+
+// Verification iteration 2 for 0.3.1, ER-6: Fabric read a mailbox only under `accountId` and the account
+// lists. A tool called with the mailbox under any other key (`address`, `account`, a string `accounts`,
+// `AccountId`, `forwardTo`) named NO resource, so it was "covered" and forwarded with the admin key —
+// narrowed only by a header an outdated product server ignores. Such keys are now refused.
+describe('ER-6 — a mailbox named under a key Fabric does not read is refused, never forwarded', () => {
+  const refused = (capability: string, input: Record<string, unknown>) => {
+    const r = resourceArguments(capability, input)
+    expect(r.ok, `${capability} ${JSON.stringify(input)} was accepted`).toBe(false)
+  }
+  it('refuses a string accounts, account, a differently spelt accountId, address, mailbox, email and forwardTo', () => {
+    refused('read_message', { accounts: 'cloudflare:ceo@example.com' })
+    refused('read_message', { account: 'cloudflare:ceo@example.com' })
+    refused('read_message', { AccountId: 'cloudflare:ceo@example.com' })
+    refused('read_message', { account_id: 'cloudflare:ceo@example.com' })
+    refused('update_address', { address: 'ceo@example.com', forwardTo: 'attacker@evil.example' })
+    refused('list_messages', { mailbox: 'ceo@example.com' })
+    refused('list_messages', { filter: { email: 'ceo@example.com' } })
+    refused('read_message', { hide: 'cloudflare:ceo@example.com' })
+  })
+  it('still reads what it reads: accountId, the account lists, recipients and the setup\'s own fields', () => {
+    expect(resourceArguments('read_message', { accountId: 'news@example.com', messageId: 'm' })).toMatchObject({ ok: true, resources: ['cloudflare:news@example.com'] })
+    expect(resourceArguments('send_email', { accountId: 'news@example.com', to: ['a@example.org'], cc: 'b@example.org', subject: 's', text: 't' })).toMatchObject({ ok: true })
+    expect(resourceArguments('create_address', { localPart: 'new', domain: 'example.com', forwardTo: 'x@example.org' })).toMatchObject({ ok: true, requires: ['create_address.forward_to'] })
+    expect(resourceArguments('list_messages', { accounts: ['news@example.com'] })).toMatchObject({ ok: true })
+  })
+})
+
+// ER-7: agent input indexed plain objects, so `constructor`, `prototype` and `__proto__` reached
+// Object.prototype — a throw read as a retryable hub-unavailable, or a prompt for "constructor".
+describe('ER-7 — prototype names are refused as invalid, never looked up', () => {
+  it('a capability named after the prototype is not a capability', () => {
+    for (const c of ['constructor', 'constructor.x', 'prototype', 'valueof', 'tostring.x', 'hasownproperty'])
+      expect(() => resourceArguments(c, {})).not.toThrow()
+    expect(resourceArguments('constructor', {}).ok).toBe(false)
+    expect(normaliseAccessRequest({ ...ask, capabilities: ['constructor'] }).ok).toBe(false)
+    expect(() => normaliseAccessRequest({ ...ask, capabilities: ['constructor.x'] })).not.toThrow()
+    expect(normaliseAccessRequest({ ...ask, capabilities: ['constructor.x'] }).ok).toBe(false)
+    expect(plainCapability('constructor')).toMatch(/does not know/)
+  })
+  it('a __proto__, constructor or prototype key anywhere in the input is invalid', () => {
+    const r = resourceArguments('create_address', JSON.parse('{"localPart":"n","domain":"example.com","__proto__":{"forwardTo":"x@evil.example"}}'))
+    expect(r.ok).toBe(false)
+    expect(resourceArguments('read_message', JSON.parse('{"accountId":"news@example.com","x":{"constructor":1}}')).ok).toBe(false)
+  })
+})

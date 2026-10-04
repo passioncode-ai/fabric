@@ -99,6 +99,7 @@ export class AccessService {
   private now: () => number
   private random: (bytes: number) => Buffer
   private chain: Promise<unknown> = Promise.resolve()
+  private credentialVerifiers = new Set<string>()
   private revokedListeners = new Set<(bindingId: string) => void>()
 
   // Assigned in the body: Node's type-stripping loader rejects parameter properties.
@@ -121,16 +122,37 @@ export class AccessService {
     return run
   }
 
+  /** Prime rate-limit hints once at hub start. These are never authority: authenticate still reads live state. */
+  async primeCredentialVerifiers(): Promise<void> {
+    // Serialize with claims/revocations so a startup read cannot put a just-revoked verifier back.
+    return this.serial(async () => {
+      this.credentialVerifiers = new Set((await this.deps.store.liveBindings()).flatMap((b) => b.verifier ? [b.verifier] : []))
+    })
+  }
+
+  /** A locally known verifier may bypass the unknown-token lookup budget, never authentication. */
+  knownCredential(credential: string): boolean {
+    return CREDENTIAL.test(credential) && this.credentialVerifiers.has(verifierOf(credential))
+  }
+
   /** The binding a presented credential names, or null. A revoked binding authenticates nothing. */
   async authenticate(credential: string): Promise<BindingRow | null> {
     if (!CREDENTIAL.test(credential)) return null
     const binding = await this.deps.store.bindingByVerifier(verifierOf(credential))
-    return binding && binding.revoked_at === null ? binding : null
+    if (binding && binding.revoked_at === null) {
+      this.credentialVerifiers.add(verifierOf(credential))
+      return binding
+    }
+    this.credentialVerifiers.delete(verifierOf(credential))
+    return null
   }
 
   /** `fabric.access.request`. Unknown agents are refused before any prompt. */
   request(principal: HubPrincipal, raw: Record<string, unknown>): Promise<RequestAnswer> {
     return this.serial(async () => {
+      const receipt = (code: string, agentId?: string): void => {
+        ops.record({ op: 'hub.access.refused', outcome: 'ok', level: 'warn', detail: { code, ...(agentId ? { agent_id: agentId } : {}) }, ctx: { correlationId: ops.correlate() } })
+      }
       const asked = normaliseAccessRequest(raw)
       if (!asked.ok) return { ok: false, refused: asked.reason }
       this.deps.registry.refresh()
@@ -148,23 +170,31 @@ export class AccessService {
       const signature = requestSignature(ask)
       const denied = (await this.deps.store.requests({ status: 'denied', agentId: entry.key, callee: ask.callee, standingOnly: true }))
         .find((r) => r.denial_cleared_at === null && requestSignature({ agentId: r.agent_id, callee: r.callee as AccessAsk['callee'], capabilities: r.capabilities, resources: r.resources }) === signature)
-      if (denied)
+      if (denied) {
+        receipt('denied-standing', entry.key)
         return { ok: true, requestId: denied.id, status: 'denied', expiresAt: denied.expires_at, note: 'The operator denied this exact request. It stays denied until they clear the denial; asking again does not prompt.' }
+      }
 
       const now = this.now()
       const liveAt = new Date(now).toISOString()
       // Live requests only, filtered and counted by the database (DA-5): never a capped page filtered here.
       const same = (await this.deps.store.requests({ status: 'pending', agentId: entry.key, callee: ask.callee, liveAt }))
         .find((r) => r.asked_by_binding === bindingId && requestSignature({ agentId: r.agent_id, callee: r.callee as AccessAsk['callee'], capabilities: r.capabilities, resources: r.resources }) === signature)
-      if (same)
+      if (same) {
+        receipt('already-pending', entry.key)
         return {
           ok: true, requestId: same.id, status: 'pending', expiresAt: same.expires_at,
           note: 'This request is already with the operator. Poll fabric.access.status with the pollSecret from the answer that created it; this answer carries none. Do not ask again.'
         }
-      if ((await this.deps.store.countRequests({ status: 'pending', agentId: entry.key, liveAt })) >= (this.deps.maxPendingPerAgent ?? 3))
+      }
+      if ((await this.deps.store.countRequests({ status: 'pending', agentId: entry.key, liveAt })) >= (this.deps.maxPendingPerAgent ?? 3)) {
+        receipt('per-agent-cap', entry.key)
         return { ok: false, refused: `${entry.key} already has requests waiting for the operator; wait for them to be answered or to expire` }
-      if ((await this.deps.store.countRequests({ status: 'pending', liveAt })) >= (this.deps.maxPending ?? 20))
+      }
+      if ((await this.deps.store.countRequests({ status: 'pending', liveAt })) >= (this.deps.maxPending ?? 20)) {
+        receipt('queue-full', entry.key)
         return { ok: false, refused: 'too many requests are waiting for the operator; try again after they are answered or expire' }
+      }
 
       const id = randomUUID()
       const expiresAt = new Date(now + ACCESS_REQUEST_TTL_MS).toISOString()
@@ -237,6 +267,7 @@ export class AccessService {
 
       const credential = this.random(32).toString('base64url')
       await this.deps.store.append('access.credential.claimed@1', HUB_ACTOR, { binding_id: bindingId, request_id: row.id, verifier: verifierOf(credential) })
+      this.credentialVerifiers.add(verifierOf(credential))
       ops.record({ op: 'hub.access.credential-claimed', outcome: 'ok', detail: { request_id: row.id, binding_id: bindingId, agent_id: row.agent_id }, ctx: { correlationId: ops.correlate() } })
       return {
         ...base, credential,
@@ -307,6 +338,7 @@ export class AccessService {
       const b = await this.deps.store.binding(bindingId)
       if (!b || b.revoked_at) return refuse('not-live', 'that credential is not live (already revoked, or no such credential)')
       await this.deps.store.append('access.binding.revoked@1', actor, { binding_id: bindingId })
+      if (b.verifier) this.credentialVerifiers.delete(b.verifier)
       for (const listener of this.revokedListeners) {
         try {
           listener(bindingId)

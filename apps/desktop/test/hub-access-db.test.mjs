@@ -134,11 +134,11 @@ test('a product connection keeps metadata and the vault slot only; a reconnect s
     key_id: 'key-1', client_id: 'client.access', level: 'admin', send: 'send', key_expires_at: later(525600),
     secret_ref: { project: 'fabric', env: 'local', name: 'FABRIC_INBOX_CLIENT_SECRET' } })
   append(E, 'product.connected@1', person, conn(C1))
-  append(E, 'product.connected@1', person, conn(C2))
+  append(E, 'product.connected@1', person, { ...conn(C2), supersedes: C1 })
   assert.equal(sql(`select string_agg(id || '=' || (removed_at is null), ',' order by connected_seq) from product_connections where estate_id='${E}'`), `${C1}=false,${C2}=true`)
   assert.equal(sql(`select secret_ref->>'name' from product_connections where id='${C2}'`), 'FABRIC_INBOX_CLIENT_SECRET')
   assert.equal(sql(`select count(*) from information_schema.columns where table_name='product_connections' and column_name ilike '%secret%' and column_name <> 'secret_ref'`), '0')
-  refuses(`set role service_role; select append_event('${E}','product.connected@1',${person},${j({ ...conn('76000000-0000-4000-8000-000000000043'), server: 'http://mail.example.com' })})`, /check constraint/)
+  refuses(`set role service_role; select append_event('${E}','product.connected@1',${person},${j({ ...conn('76000000-0000-4000-8000-000000000043'), supersedes: C2, server: 'http://mail.example.com' })})`, /check constraint/)
   append(E, 'product.disconnected@1', person, { id: C2 })
   assert.equal(sql(`select count(*) from product_connections where estate_id='${E}' and removed_at is null`), '0')
 })

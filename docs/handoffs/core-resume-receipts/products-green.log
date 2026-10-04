@@ -1,0 +1,47 @@
+✔ vault: put sends the value on stdin only; a second put rotates; read brings it back through a pipe, never an argv (3868.599375ms)
+✔ vault: a value that resolves outside the vault is refused, and so is a missing one (2014.7585ms)
+✔ vault: without Project Observatory the answer is a refusal with that reason (168.03975ms)
+✔ connect: the link is exactly what Fabric Inbox parses, and the state is single-use (1617.161792ms)
+✔ connect: denied and failed are recorded; a browser, a wrong state, an expired state and a non-https server are refused (980.791ms)
+✔ a closed hub (no published door token) opens neither the callback nor any external door (222.422583ms)
+✔ connect: without the vault the callback answers 503, so the product revokes the key (373.821334ms)
+✔ agent.call forwards inside the grant: three headers, narrowed to the granted mailboxes, a child span, the interop envelope (1860.91075ms)
+✔ agent.call outside the grant is access-required with the request arguments, and nothing is sent (68.564834ms)
+✔ a call with no mailbox argument is narrowed at the product to the granted ones (484.648208ms)
+✔ a workspace setup runs without the narrowing header only when its own grant names it (61.546375ms)
+✔ not connected: product-not-connected, nothing read from the vault (0.668708ms)
+✔ idempotencyKey: a retry returns the first answer and sends nothing; the same key for another call is refused (234.714208ms)
+✔ a product that refuses Fabric's key is said as product-refused, and the secret is in no message (8.407541ms)
+✔ a product that redirects ANY request — the SDK's GET stream included — is refused, and the other origin never sees the key (236.314416ms)
+✔ the deadline holds for the whole exchange: a product that never answers is unreachable within the timeout (544.387542ms)
+✔ ER-1: a product that runs the tool but answers after the deadline: the forward says the call reached it, and the hub never sends that key again (1020.361375ms)
+✔ ER-11: a product error that echoes its headers: neither the secret nor the client id is in the message (180.553792ms)
+✔ a narrowing entry carrying a separator or a line break is refused before anything is sent (5.45675ms)
+✔ a vault that cannot hand over the key: the agent hears a plain sentence, never the vault's own output (1.080458ms)
+✔ connect: a callback whose body does not arrive in time is answered 408, and the hub is not held open (314.522708ms)
+✔ finding 4: create_address forwards only the address's own fields; forwardTo needs its own grant for that address; anything else is refused (172.211083ms)
+✔ finding 5: a refusal made before forwarding is not remembered — Allow, then the same idempotencyKey reaches the product (509.364583ms)
+✔ finding 5: the idempotency memory is per binding — one binding cannot evict another's answers (1924.551791ms)
+✔ connect: a failed record answers non-2xx after the secret went to a slot of its own — the live connection's slot is untouched (251.623958ms)
+✔ connect: a secret the vault would not keep is never recorded, so no client id is left beside another key's secret (144.759083ms)
+✔ connect: a product already connected is reconnected only when the operator chose Reconnect (2.606042ms)
+✔ ER-6: a vault slower than the product's deadline is answered non-2xx and NOTHING is recorded — Fabric is never "connected" to a key the product revoked (1106.184125ms)
+✔ ER-6: a record that lands after the deadline is withdrawn; a Reconnect says the previous connection is gone (954.110375ms)
+✔ ER-6: the secret is stored first, in a slot of its own, and only then recorded — a failed record leaves the live connection's slot untouched (3.088625ms)
+✔ ER-6: a vault that would not keep the secret answers 503 and records nothing (4.243458ms)
+✔ DA-6: two estates on one Mac each keep their own secret — connecting in one never overwrites the other's (8.0875ms)
+✔ DA-7: the product's own Deny and failure are journalled as product.connect.refused@1 (6.662875ms)
+✔ UX-6: "waiting" ends with the connect state — after 10 minutes with no answer the outcome is failed, no-answer (0.501875ms)
+✔ UX-7: a connect that cannot start says why as a code, naming nothing by its id (0.252916ms)
+✔ vault: six slow reads at once leave an unrelated file read fast (no FIFO open on the thread pool) (4157.467708ms)
+✔ vault: a run that exits 0 without handing the key over is a refusal, not a call that never ends (1809.094583ms)
+✔ vault: the read asks the vault only — `run` carries --vault-only (2862.036791ms)
+✔ ER-6: a narrowed call to a Fabric Inbox server older than 0.9.0 is refused before anything runs; a workspace setup is not narrowed and still goes (932.384417ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 29179.031042

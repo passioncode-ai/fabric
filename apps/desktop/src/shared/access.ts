@@ -63,11 +63,21 @@ const WORKSPACE_SETUP: Record<string, SetupSpec> = {
   }
 }
 
+// OWN PROPERTIES ONLY (ER-7, verification iteration 2 for 0.3.1). Every table here is indexed with agent
+// input, and a plain object answers `constructor` from Object.prototype: `resourceArguments('constructor')`
+// threw (read as a retryable hub-unavailable), and `constructor` reached the operator's prompt as a tool.
+// Lookups go through `own`, and a name that is the prototype's own is refused as invalid wherever it appears.
+const own = <T>(table: Readonly<Record<string, T>>, key: string): T | undefined =>
+  Object.prototype.hasOwnProperty.call(table, key) ? table[key] : undefined
+/** Names an object inherits: never a capability, never an input key Fabric forwards. */
+const PROTOTYPE_NAMES: ReadonlySet<string> = new Set(['__proto__', 'constructor', 'prototype'])
+const namesPrototype = (capability: string): boolean => capability.split('.').some((part) => PROTOTYPE_NAMES.has(part))
+
 /** `create_address.forward_to` → its tool and what it allows; null for anything that is not a known extra. */
 function setupExtra(capability: string): { tool: string; field: string; plain: string } | null {
   const dot = capability.indexOf('.')
   if (dot < 0) return null
-  const spec = WORKSPACE_SETUP[capability.slice(0, dot)]
+  const spec = own(WORKSPACE_SETUP, capability.slice(0, dot))
   if (!spec) return null
   for (const [field, e] of Object.entries(spec.extras))
     if (e.suffix === capability.slice(dot + 1)) return { tool: capability.slice(0, dot), field, plain: e.plain }
@@ -177,7 +187,7 @@ export function displayResource(resource: string): string {
 export function plainCapability(capability: string): string {
   const extra = setupExtra(capability)
   if (extra) return extra.plain
-  const said = PLAIN[capability]
+  const said = own(PLAIN, capability)
   if (!said) return `use “${oneLine(capability, 128)}” (a tool Fabric does not know and cannot describe)`
   return SENDS_MAIL.has(capability) && !/\bsend/.test(said) ? `${said}, which sends mail` : said
 }
@@ -204,10 +214,11 @@ export function normaliseAccessRequest(input: {
   if (input.capabilities.length > 32) return { ok: false, reason: 'ask for at most 32 capabilities in one request' }
   const caps = new Set<string>()
   for (const c of input.capabilities) {
-    if (typeof c !== 'string' || !CAPABILITY_PATTERN.test(c)) return { ok: false, reason: `${JSON.stringify(c)} is not a capability name (the product's tool name)` }
+    if (typeof c !== 'string' || !CAPABILITY_PATTERN.test(c) || namesPrototype(c)) return { ok: false, reason: `${JSON.stringify(c)} is not a capability name (the product's tool name)` }
     const dot = c.indexOf('.')
-    if (dot > 0 && WORKSPACE_SETUP[c.slice(0, dot)] && !setupExtra(c))
-      return { ok: false, reason: `${c} is not something Fabric can grant for ${c.slice(0, dot)} (it grants: ${Object.values(WORKSPACE_SETUP[c.slice(0, dot)].extras).map((e) => `${c.slice(0, dot)}.${e.suffix}`).join(', ')})` }
+    const setupOf = dot > 0 ? own(WORKSPACE_SETUP, c.slice(0, dot)) : undefined
+    if (setupOf && !setupExtra(c))
+      return { ok: false, reason: `${c} is not something Fabric can grant for ${c.slice(0, dot)} (it grants: ${Object.values(setupOf.extras).map((e) => `${c.slice(0, dot)}.${e.suffix}`).join(', ')})` }
     caps.add(c)
   }
   if (!Array.isArray(input.resources) || input.resources.length === 0)
@@ -273,21 +284,45 @@ export function requestSignature(ask: Pick<AccessAsk, 'agentId' | 'callee' | 'ca
 }
 
 /**
+ * Keys that name a mailbox when Fabric does not read them (ER-6, verification iteration 2 for 0.3.1),
+ * compared lower-case with `_` and `-` removed. Fabric reads a mailbox ONLY as `accountId` (that exact
+ * key, a string) and the account lists `accounts`, `hide`, `show` (arrays). Before, a call naming its
+ * mailbox under any other key — `address`, `account`, a string `accounts`, `AccountId`, `forwardTo` —
+ * named no resource, was "covered" by any grant of the capability and went out with the admin key,
+ * narrowed only by a header a Fabric Inbox server before 0.9.0 ignores. Now such a key is refused: what
+ * Fabric cannot check, it does not forward. A workspace setup's own fields and extras (`create_address`'s
+ * `forwardTo`) are read by the setup rule below, not here.
+ */
+const MAILBOX_KEYS: ReadonlySet<string> = new Set([
+  'account', 'accounts', 'accountid', 'address', 'addresses', 'email', 'emails', 'mailbox', 'mailboxes',
+  'mailboxid', 'forwardto', 'hide', 'show'
+])
+const READ_AS_LIST: ReadonlySet<string> = new Set(['accounts', 'hide', 'show'])
+const keyShape = (key: string): string => key.toLowerCase().replace(/[_-]/g, '')
+
+/**
  * Every mailbox a call names, wherever it names it: any `accountId` at any depth, and the account
  * lists (`accounts`, `hide`, `show`). Fails closed on a value it cannot read — an argument Fabric
- * cannot check is not an argument Fabric forwards. A workspace setup names the address it creates.
+ * cannot check is not an argument Fabric forwards — and on a mailbox named under any other key (ER-6).
+ * A workspace setup names the address it creates.
  */
 export function resourceArguments(
   capability: string,
   input: Record<string, unknown>
 ): { ok: true; resources: string[]; workspace: string | null; requires: string[] } | { ok: false; reason: string } {
+  if (namesPrototype(capability)) return { ok: false, reason: `${capability} is not a capability name (the product's tool name)` }
   const extra = setupExtra(capability)
   if (extra) return { ok: false, reason: `${capability} is a permission Fabric grants, not a tool; call ${extra.tool} with ${extra.field}` }
+  const setup = own(WORKSPACE_SETUP, capability)
   const found = new Set<string>()
   let bad: string | null = null
-  const visit = (value: unknown, key: string | null, depth: number): void => {
+  const visit = (value: unknown, key: string | null, depth: number, top: boolean): void => {
     if (bad || depth > 16) {
       if (!bad && depth > 16) bad = 'the input nests deeper than Fabric checks'
+      return
+    }
+    if (key !== null && PROTOTYPE_NAMES.has(key)) {
+      bad = `the input carries a key named ${key}, which Fabric does not forward`
       return
     }
     if (key === 'accountId') {
@@ -296,7 +331,11 @@ export function resourceArguments(
       else found.add(n)
       return
     }
-    if ((key === 'accounts' || key === 'hide' || key === 'show') && Array.isArray(value)) {
+    if (key !== null && READ_AS_LIST.has(key)) {
+      if (!Array.isArray(value)) {
+        bad = `${key} must be a list of mailboxes (cloudflare:<address> or gmail:<id>); Fabric cannot check ${JSON.stringify(value)}`
+        return
+      }
       for (const v of value) {
         const n = typeof v === 'string' ? normaliseInboxAccount(v) : null
         if (!n) { bad = `${key} names ${JSON.stringify(v)}, which is not a mailbox Fabric can check`; return }
@@ -304,20 +343,25 @@ export function resourceArguments(
       }
       return
     }
-    if (Array.isArray(value)) for (const v of value) visit(v, null, depth + 1)
-    else if (value && typeof value === 'object') for (const [k, v] of Object.entries(value)) visit(v, k, depth + 1)
+    // A setup's own fields and extras are its rule's to read (below); anything else naming a mailbox is refused.
+    const setupField = top && setup && key !== null && (setup.own.includes(key) || Object.prototype.hasOwnProperty.call(setup.extras, key))
+    if (key !== null && !setupField && MAILBOX_KEYS.has(keyShape(key))) {
+      bad = `${key} names a mailbox under a key Fabric does not read; name it as accountId (or the accounts list) so Fabric can check it against your grant`
+      return
+    }
+    if (Array.isArray(value)) for (const v of value) visit(v, null, depth + 1, false)
+    else if (value && typeof value === 'object') for (const [k, v] of Object.entries(value)) visit(v, k, depth + 1, depth === 0)
   }
-  visit(input, null, 0)
+  visit(input, null, 0, true)
   if (bad) return { ok: false, reason: bad }
   let workspace: string | null = null
   const requires: string[] = []
-  const setup = WORKSPACE_SETUP[capability]
   if (setup) {
     workspace = setup.resource(input)
     if (!workspace) return { ok: false, reason: `${capability} must name the address it creates (localPart and domain)` }
     for (const key of Object.keys(input)) {
       if (setup.own.includes(key)) continue
-      const e = setup.extras[key]
+      const e = own(setup.extras, key)
       if (!e) return { ok: false, reason: `${capability} through Fabric takes ${[...setup.own, ...Object.keys(setup.extras)].join(', ')}; ${key} is not forwarded, because the operator was not shown it` }
       if (input[key] !== undefined) requires.push(`${capability}.${e.suffix}`)
     }
@@ -391,6 +435,32 @@ export function accessRefusal(input: { agentId: string; callee: string; capabili
 }
 
 export const PRODUCT_NAMES: Record<string, string> = { 'fabric-inbox': 'Fabric Inbox' }
+
+/**
+ * The server that first applies `X-Fabric-Accounts`, as it names itself at initialize (ER-6, verification
+ * iteration 2 for 0.3.1). Fabric Inbox's MCP server answers `serverInfo` {name: 'fabric-inbox', version:
+ * <its package version>} (`workers/mcp/handler.ts`); the narrowing header arrived with fabric-inbox#18,
+ * before the 0.9.0 version bump — every source that says 0.9.0 or later carries it, 0.8.2 does not. A
+ * narrowed call is forwarded only to a server that says it is at least this; anything else, a pre-release
+ * of it included, is refused before the tool call is sent.
+ */
+export const NARROWING_SINCE: Readonly<Record<string, { server: string; version: string }>> = {
+  'fabric-inbox': { server: 'fabric-inbox', version: '0.9.0' }
+}
+export const narrowingSinceOf = (product: string): { server: string; version: string } | undefined => own(NARROWING_SINCE, product)
+
+/** Whether `version` is at least `min` (x.y.z); a pre-release counts as below its release, anything unreadable as below. */
+export function versionAtLeast(version: unknown, min: string): boolean {
+  const parse = (v: string): [number, number, number, boolean] | null => {
+    const m = /^(\d{1,9})\.(\d{1,9})\.(\d{1,9})(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$/.exec(v)
+    return m ? [Number(m[1]), Number(m[2]), Number(m[3]), m[4] !== undefined] : null
+  }
+  const a = typeof version === 'string' ? parse(version) : null
+  const b = parse(min)
+  if (!a || !b) return false
+  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return (a[i] as number) > (b[i] as number)
+  return !a[3]
+}
 export const productName = (id: string): string => PRODUCT_NAMES[id] ?? id
 
 type RegistrySnapshot = { name?: string; installed_by?: string; repository?: string | null }

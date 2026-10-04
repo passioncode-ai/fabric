@@ -1,0 +1,10 @@
+✔ DA-5 every queue/standing-denial duplicate refusal leaves a bounded operation receipt (7.844542ms)
+✔ ER-3 restarting the hub recognizes a valid credential before any successful authentication (1.174958ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21.554166

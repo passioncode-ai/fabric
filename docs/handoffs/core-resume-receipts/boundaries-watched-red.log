@@ -1,0 +1,47 @@
+  (chain applied WITHOUT 20261004000080_hub_authority_boundaries.sql — a watched-failure run, not a receipt)
+FAIL DA-6 plaintext poll secret is refused before journal insertion: Missing expected exception.
+FAIL DA-6 plaintext credential is refused before journal insertion: The validation function is expected to return "true". Received false
+
+Caught error:
+
+Error: Command failed: /opt/homebrew/opt/postgresql@17/bin/psql postgresql://postgres@localhost:58480/fabric_dispatch_test_hub_boundaries?host=%2Fvar%2Ffolders%2F3r%2Fyrdx_c051cv22q3r3k0ylvdm0000gn%2FT%2Ffabric-hub_boundaries-d9Wu8i -X -q -t -A -v ON_ERROR_STOP=1
+ERROR:  that binding has no unclaimed credential
+CONTEXT:  PL/pgSQL function apply_hub_access(journal) line 131 at RAISE
+SQL statement "SELECT apply_hub_access(e)"
+PL/pgSQL function apply_projections(journal) line 25 at PERFORM
+SQL statement "SELECT apply_projections(v_event)"
+PL/pgSQL function append_event(uuid,text,jsonb,jsonb,text,uuid,uuid,uuid) line 30 at PERFORM
+
+FAIL DA-6 plaintext product secret is refused before journal insertion: Missing expected exception.
+FAIL DA-4 binding/request/grant ids have one spelling: The validation function is expected to return "true". Received false
+
+Caught error:
+
+Error: Command failed: /opt/homebrew/opt/postgresql@17/bin/psql postgresql://postgres@localhost:58480/fabric_dispatch_test_hub_boundaries?host=%2Fvar%2Ffolders%2F3r%2Fyrdx_c051cv22q3r3k0ylvdm0000gn%2FT%2Ffabric-hub_boundaries-d9Wu8i -X -q -t -A -v ON_ERROR_STOP=1
+ERROR:  access.requested@1 names no live binding of this estate as the one asking. An incremental request comes from a credential this estate holds; a first request carries no binding.
+CONTEXT:  PL/pgSQL function refuse_foreign_hub_identity(uuid,text,jsonb) line 57 at RAISE
+SQL statement "SELECT refuse_foreign_hub_identity(p_estate_id, p_type, p_payload)"
+PL/pgSQL function refuse_foreign_identity(uuid,text,jsonb,uuid) line 79 at PERFORM
+SQL statement "SELECT refuse_foreign_identity(p_estate_id, p_type, p_payload, p_project_id)"
+PL/pgSQL function append_event(uuid,text,jsonb,jsonb,text,uuid,uuid,uuid) line 24 at PERFORM
+
+FAIL ER-2 replacement requires the exact live connection id: Missing expected exception.
+FAIL DA-2 restored pending request loses its poll verifier and cannot be decided: Expected values to be strictly equal:
++ actual - expected
+
++ 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+- 'none'
+
+file:///Users/sshlg/DATA/_worktrees/hub-v2-core-resume/apps/desktop/test/hub-authority-boundaries-db.test.mjs:43
+ if(failed)throw new Error(failed+' boundary tests failed')
+                 ^
+
+Error: 6 boundary tests failed
+    at file:///Users/sshlg/DATA/_worktrees/hub-v2-core-resume/apps/desktop/test/hub-authority-boundaries-db.test.mjs:43:18
+    at withOwnedPostgres (file:///Users/sshlg/DATA/_worktrees/hub-v2-core-resume/apps/desktop/test/helpers/owned-postgres.mjs:65:12)
+    at file:///Users/sshlg/DATA/_worktrees/hub-v2-core-resume/apps/desktop/test/hub-authority-boundaries-db.test.mjs:5:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v26.8.2
