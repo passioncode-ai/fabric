@@ -1,0 +1,37 @@
+
+ RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
+
+ ❯ src/renderer/src/AgentAccessPanel.test.tsx (27 tests | 1 failed | 26 skipped) 73ms
+   × I3 independent: a delayed pre-disconnect poll cannot replace the post-disconnect reading 72ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3 independent: a delayed pre-disconnect poll cannot replace the post-disconnect reading
+AssertionError: expected <button type="button" …(1)></button> to be null
+
+- Expected:
+null
+
++ Received:
+<button
+  class="btn btn-ghost"
+  type="button"
+>
+  Reconnect
+</button>
+
+ ❯ src/renderer/src/AgentAccessPanel.test.tsx:338:63
+    336|   expect(screen.getByRole('button', { name: 'Connect' })).toBeTruthy()
+    337|   await reactAct(async () => reads[1].resolve(live(null)))
+    338|   expect(screen.queryByRole('button', { name: 'Reconnect' })).toBeNull…
+       |                                                               ^
+    339| })
+    340|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 26 skipped (27)
+   Start at  13:32:05
+   Duration  769ms (transform 113ms, setup 84ms, import 121ms, tests 73ms, environment 422ms)

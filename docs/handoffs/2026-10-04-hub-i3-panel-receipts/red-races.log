@@ -1,0 +1,947 @@
+
+ RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop
+
+ ❯ src/renderer/src/AgentAccessPanel.test.tsx (33 tests | 7 failed | 26 skipped) 147ms
+   × I3 independent: a delayed pre-disconnect poll cannot replace the post-disconnect reading 76ms
+   × I3: an obsolete poll failure cannot hide the fresh post-disconnect read 16ms
+   × I3: invalidates the old poll before the success completion during mutation 14ms
+   × I3: invalidates the old poll before the failure completion during mutation 11ms
+   × I3: a failed latest read stays unreadable when an older successful empty list arrives, and Retry recovers 5ms
+   × I3: effect cleanup cancels the first StrictMode read even when setup starts again 16ms
+   × I3: a late failed act after unmount does not start a follow-up read 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3 independent: a delayed pre-disconnect poll cannot replace the post-disconnect reading
+AssertionError: expected <button type="button" …(1)></button> to be null
+
+- Expected:
+null
+
++ Received:
+<button
+  class="btn btn-ghost"
+  type="button"
+>
+  Reconnect
+</button>
+
+ ❯ src/renderer/src/AgentAccessPanel.test.tsx:339:63
+    337|   expect(screen.getByRole('button', { name: 'Connect' })).toBeTruthy()
+    338|   await reactAct(async () => reads[1].resolve(live(null)))
+    339|   expect(screen.queryByRole('button', { name: 'Reconnect' })).toBeNull…
+       |                                                               ^
+    340| })
+    341|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3: an obsolete poll failure cannot hide the fresh post-disconnect read
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Connect"
+
+Here are the accessible roles:
+
+  complementary:
+
+  Name "Agent access":
+  [36m<aside[39m
+    [33maria-label[39m=[32m"Agent access"[39m
+    [33mclass[39m=[32m"ceo-panel"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"panel-head"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Agent access":
+  [36m<h2[39m
+    [33mclass[39m=[32m"panel-title"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Close":
+  [36m<button[39m
+    [33mclass[39m=[32m"btn btn-ghost"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Try again":
+  [36m<button[39m
+    [33mclass[39m=[32m"btn btn-ghost"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"muted"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  status:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"muted"[39m
+    [33mrole[39m=[32m"status"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  alert:
+
+  Name "":
+  [36m<div[39m
+    [33mclass[39m=[32m"banner banner-warn"[39m
+    [33mrole[39m=[32m"alert"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<aside[39m
+      [33maria-label[39m=[32m"Agent access"[39m
+      [33mclass[39m=[32m"ceo-panel"[39m
+    [36m>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"panel"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"panel-head"[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"panel-title"[39m
+          [36m>[39m
+            [0mAgent access[0m
+          [36m</h2>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"toolbar toolbar-end"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-ghost"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mClose[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+          [33mrole[39m=[32m"status"[39m
+        [36m>[39m
+          [0mFabric no longer uses its key for Fabric Inbox. The key stays valid in Fabric Inbox → Agent access until you revoke it there.[0m
+        [36m</p>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"banner banner-warn"[39m
+          [33mrole[39m=[32m"alert"[39m
+        [36m>[39m
+          [36m<span>[39m
+            [36m<span>[39m
+              [0mAgent access could not be read. This is not a list with nothing in it.[0m
+            [36m</span>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"muted access-detail"[39m
+            [36m>[39m
+              [0mWhat Fabric saw: old poll failed[0m
+            [36m</span>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"banner-actions"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-ghost"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mTry again[0m
+            [36m</button>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</section>[39m
+    [36m</aside>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/renderer/src/AgentAccessPanel.test.tsx:354:17
+    352|   await reactAct(async () => {})
+    353|   await reactAct(async () => oldPoll.reject(new Error('old poll failed…
+    354|   expect(screen.getByRole('button', { name: 'Connect' })).toBeTruthy()
+       |                 ^
+    355|   expect(screen.queryByText(en['access.unreadable'])).toBeNull()
+    356| })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3: invalidates the old poll before the success completion during mutation
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Reconnect"
+
+Here are the accessible roles:
+
+  complementary:
+
+  Name "Agent access":
+  [36m<aside[39m
+    [33maria-label[39m=[32m"Agent access"[39m
+    [33mclass[39m=[32m"ceo-panel"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"panel-head"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Agent access":
+  [36m<h2[39m
+    [33mclass[39m=[32m"panel-title"[39m
+  [36m/>[39m
+
+  Name "Products":
+  [36m<h3[39m
+    [33mclass[39m=[32m"task-history-head"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  Name "Waiting for your answer":
+  [36m<h3[39m
+    [33mclass[39m=[32m"task-history-head"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  Name "Agents with access":
+  [36m<h3[39m
+    [33mclass[39m=[32m"task-history-head"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  Name "Denied requests":
+  [36m<h3[39m
+    [33mclass[39m=[32m"task-history-head"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Close":
+  [36m<button[39m
+    [33mclass[39m=[32m"btn btn-ghost"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Connect":
+  [36m<button[39m
+    [33maria-disabled[39m=[32m"true"[39m
+    [33mclass[39m=[32m"btn"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"muted"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"muted"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"empty"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"empty"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"empty"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  strong:
+
+  Name "":
+  [36m<strong />[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<aside[39m
+      [33maria-label[39m=[32m"Agent access"[39m
+      [33mclass[39m=[32m"ceo-panel"[39m
+    [36m>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"panel"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"panel-head"[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"panel-title"[39m
+          [36m>[39m
+            [0mAgent access[0m
+          [36m</h2>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"toolbar toolbar-end"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-ghost"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mClose[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mAgents reach Fabric at http://127.0.0.1:47070.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+        [36m>[39m
+          [0mProducts[0m
+        [36m</h3>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"access-card"[39m
+          [33mdata-product[39m=[32m"fabric-inbox"[39m
+        [36m>[39m
+          [36m<p>[39m
+            [36m<strong>[39m
+              [0mFabric Inbox[0m
+            [36m</strong>[39m
+            [0m [0m
+            [36m<span[39m
+              [33mclass[39m=[32m"muted"[39m
+            [36m>[39m
+              [0mnot connected[0m
+            [36m</span>[39m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"access-acts"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"toolbar"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33maria-disabled[39m=[32m"true"[39m
+                [33mclass[39m=[32m"btn"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0mConnect[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+        [36m>[39m
+          [0mWaiting for your answer[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo agent is waiting for an answer.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+        [36m>[39m
+          [0mAgents with access[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo agent has access through Fabric.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+        [36m>[39m
+          [0mDenied requests[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo request is denied.[0m
+        [36m</p>[39m
+      [36m</section>[39m
+    [36m</aside>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/renderer/src/AgentAccessPanel.test.tsx:369:17
+    367|   fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }))
+    368|   await reactAct(async () => completion === 'success' ? oldPoll.resolv…
+    369|   expect(screen.getByRole('button', { name: 'Reconnect' }).getAttribut…
+       |                 ^
+    370|   expect(screen.queryByText(en['access.unreadable'])).toBeNull()
+    371|   await reactAct(async () => vi.advanceTimersByTime(4000))
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3: invalidates the old poll before the failure completion during mutation
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Reconnect"
+
+Here are the accessible roles:
+
+  complementary:
+
+  Name "Agent access":
+  [36m<aside[39m
+    [33maria-label[39m=[32m"Agent access"[39m
+    [33mclass[39m=[32m"ceo-panel"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"panel-head"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Agent access":
+  [36m<h2[39m
+    [33mclass[39m=[32m"panel-title"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Close":
+  [36m<button[39m
+    [33mclass[39m=[32m"btn btn-ghost"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Try again":
+  [36m<button[39m
+    [33mclass[39m=[32m"btn btn-ghost"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"muted"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  alert:
+
+  Name "":
+  [36m<div[39m
+    [33mclass[39m=[32m"banner banner-warn"[39m
+    [33mrole[39m=[32m"alert"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<aside[39m
+      [33maria-label[39m=[32m"Agent access"[39m
+      [33mclass[39m=[32m"ceo-panel"[39m
+    [36m>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"panel"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"panel-head"[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"panel-title"[39m
+          [36m>[39m
+            [0mAgent access[0m
+          [36m</h2>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"toolbar toolbar-end"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-ghost"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mClose[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.[0m
+        [36m</p>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"banner banner-warn"[39m
+          [33mrole[39m=[32m"alert"[39m
+        [36m>[39m
+          [36m<span>[39m
+            [36m<span>[39m
+              [0mAgent access could not be read. This is not a list with nothing in it.[0m
+            [36m</span>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"muted access-detail"[39m
+            [36m>[39m
+              [0mWhat Fabric saw: old poll failed[0m
+            [36m</span>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"banner-actions"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-ghost"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mTry again[0m
+            [36m</button>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</section>[39m
+    [36m</aside>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/renderer/src/AgentAccessPanel.test.tsx:369:17
+    367|   fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }))
+    368|   await reactAct(async () => completion === 'success' ? oldPoll.resolv…
+    369|   expect(screen.getByRole('button', { name: 'Reconnect' }).getAttribut…
+       |                 ^
+    370|   expect(screen.queryByText(en['access.unreadable'])).toBeNull()
+    371|   await reactAct(async () => vi.advanceTimersByTime(4000))
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3: a failed latest read stays unreadable when an older successful empty list arrives, and Retry recovers
+TestingLibraryElementError: Unable to find an element with the text: Agent access could not be read. This is not a list with nothing in it.. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<aside[39m
+      [33maria-label[39m=[32m"Agent access"[39m
+      [33mclass[39m=[32m"ceo-panel"[39m
+    [36m>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"panel"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"panel-head"[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"panel-title"[39m
+          [36m>[39m
+            [0mAgent access[0m
+          [36m</h2>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"toolbar toolbar-end"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-ghost"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mClose[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mAgents reach Fabric at http://127.0.0.1:47070.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+        [36m>[39m
+          [0mProducts[0m
+        [36m</h3>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"access-card"[39m
+          [33mdata-product[39m=[32m"fabric-inbox"[39m
+        [36m>[39m
+          [36m<p>[39m
+            [36m<strong>[39m
+              [0mFabric Inbox[0m
+            [36m</strong>[39m
+            [0m [0m
+            [36m<span[39m
+              [33mclass[39m=[32m"muted"[39m
+            [36m>[39m
+              [0mnot connected[0m
+            [36m</span>[39m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"access-acts"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"toolbar"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"btn"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0mConnect[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+        [36m>[39m
+          [0mWaiting for your answer[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo agent is waiting for an answer.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+        [36m>[39m
+          [0mAgents with access[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo agent has access through Fabric.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+        [36m>[39m
+          [0mDenied requests[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo request is denied.[0m
+        [36m</p>[39m
+      [36m</section>[39m
+    [36m</aside>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/renderer/src/AgentAccessPanel.test.tsx:391:17
+    389|   expect(screen.getByText(en['access.unreadable'])).toBeTruthy()
+    390|   await reactAct(async () => older.resolve(overview()))
+    391|   expect(screen.getByText(en['access.unreadable'])).toBeTruthy()
+       |                 ^
+    392|   expect(screen.queryByText(en['access.agents.none'])).toBeNull()
+    393|   fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3: effect cleanup cancels the first StrictMode read even when setup starts again
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Reconnect"
+
+Here are the accessible roles:
+
+  complementary:
+
+  Name "Agent access":
+  [36m<aside[39m
+    [33maria-label[39m=[32m"Agent access"[39m
+    [33mclass[39m=[32m"ceo-panel"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"panel-head"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Agent access":
+  [36m<h2[39m
+    [33mclass[39m=[32m"panel-title"[39m
+  [36m/>[39m
+
+  Name "Products":
+  [36m<h3[39m
+    [33mclass[39m=[32m"task-history-head"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  Name "Waiting for your answer":
+  [36m<h3[39m
+    [33mclass[39m=[32m"task-history-head"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  Name "Agents with access":
+  [36m<h3[39m
+    [33mclass[39m=[32m"task-history-head"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  Name "Denied requests":
+  [36m<h3[39m
+    [33mclass[39m=[32m"task-history-head"[39m
+    [33mtabindex[39m=[32m"-1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "Close":
+  [36m<button[39m
+    [33mclass[39m=[32m"btn btn-ghost"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  Name "Connect":
+  [36m<button[39m
+    [33mclass[39m=[32m"btn"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"muted"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"muted"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p />[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"empty"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"empty"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"empty"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  strong:
+
+  Name "":
+  [36m<strong />[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<aside[39m
+      [33maria-label[39m=[32m"Agent access"[39m
+      [33mclass[39m=[32m"ceo-panel"[39m
+    [36m>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"panel"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"panel-head"[39m
+        [36m>[39m
+          [36m<h2[39m
+            [33mclass[39m=[32m"panel-title"[39m
+          [36m>[39m
+            [0mAgent access[0m
+          [36m</h2>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"toolbar toolbar-end"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-ghost"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mClose[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</header>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.[0m
+        [36m</p>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"muted"[39m
+        [36m>[39m
+          [0mAgents reach Fabric at http://127.0.0.1:47070.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+        [36m>[39m
+          [0mProducts[0m
+        [36m</h3>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"access-card"[39m
+          [33mdata-product[39m=[32m"fabric-inbox"[39m
+        [36m>[39m
+          [36m<p>[39m
+            [36m<strong>[39m
+              [0mFabric Inbox[0m
+            [36m</strong>[39m
+            [0m [0m
+            [36m<span[39m
+              [33mclass[39m=[32m"muted"[39m
+            [36m>[39m
+              [0mnot connected[0m
+            [36m</span>[39m
+          [36m</p>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"access-acts"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"toolbar"[39m
+            [36m>[39m
+              [36m<button[39m
+                [33mclass[39m=[32m"btn"[39m
+                [33mtype[39m=[32m"button"[39m
+              [36m>[39m
+                [0mConnect[0m
+              [36m</button>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+        [36m>[39m
+          [0mWaiting for your answer[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo agent is waiting for an answer.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+        [36m>[39m
+          [0mAgents with access[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo agent has access through Fabric.[0m
+        [36m</p>[39m
+        [36m<h3[39m
+          [33mclass[39m=[32m"task-history-head"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+        [36m>[39m
+          [0mDenied requests[0m
+        [36m</h3>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"empty"[39m
+        [36m>[39m
+          [0mNo request is denied.[0m
+        [36m</p>[39m
+      [36m</section>[39m
+    [36m</aside>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ ../../../fabric-claude-recovery-20261004/node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/renderer/src/AgentAccessPanel.test.tsx:405:17
+    403|   await screen.findByRole('button', { name: 'Reconnect' })
+    404|   await reactAct(async () => cancelled.resolve(overview()))
+    405|   expect(screen.getByRole('button', { name: 'Reconnect' })).toBeTruthy…
+       |                 ^
+    406| })
+    407|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+ FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3: a late failed act after unmount does not start a follow-up read
+AssertionError: expected "vi.fn()" to be called 1 times, but got 2 times
+ ❯ src/renderer/src/AgentAccessPanel.test.tsx:415:22
+    413|   panel.unmount()
+    414|   await reactAct(async () => disconnect.reject(new Error('late disconn…
+    415|   expect(h.overview).toHaveBeenCalledTimes(1)
+       |                      ^
+    416| })
+    417|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 26 skipped (33)
+   Start at  13:33:37
+   Duration  879ms (transform 112ms, setup 77ms, import 123ms, tests 147ms, environment 455ms)

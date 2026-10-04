@@ -1,7 +1,8 @@
 // SCR-76 Agent access (SCN-132, SCN-133, ADR-0115). The API is a fake of `window.fabric.hub`; the service
 // behind it is tested against the migrated schema in main (hub-door-db, hub-products).
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act as reactAct, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { StrictMode } from 'react'
 import { AgentAccessPanel } from './AgentAccessPanel'
 import { I18nProvider } from './i18n'
 import { en } from './i18n/en'
@@ -312,3 +313,104 @@ describe('SCR-76 agent access — layout rules (iteration 2)', () => {
    const alert = screen.getByRole('alert')
    expect(alert.querySelector('span > span')?.textContent).not.toContain('ECONNREFUSED')
  })
+
+
+/** I3: reproduce the independent review's overlapping 4-second poll and Disconnect read. */
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  let reject!: (error: Error) => void
+  const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no })
+  return { promise, resolve, reject }
+}
+
+it('I3 independent: a delayed pre-disconnect poll cannot replace the post-disconnect reading', async () => {
+  vi.useFakeTimers()
+  const reads = [deferred<HubOverview>(), deferred<HubOverview>(), deferred<HubOverview>()]
+  let i = 0
+  stub(live(null), { overview: vi.fn(() => reads[i++].promise) })
+  show()
+  await reactAct(async () => reads[0].resolve(live(null)))
+  await reactAct(async () => vi.advanceTimersByTime(4000))
+  fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }))
+  await reactAct(async () => {})
+  await reactAct(async () => reads[2].resolve(overview()))
+  expect(screen.getByRole('button', { name: 'Connect' })).toBeTruthy()
+  await reactAct(async () => reads[1].resolve(live(null)))
+  expect(screen.queryByRole('button', { name: 'Reconnect' })).toBeNull()
+})
+
+
+it('I3: an obsolete poll failure cannot hide the fresh post-disconnect read', async () => {
+  vi.useFakeTimers()
+  const oldPoll = deferred<HubOverview>()
+  const h = stub(live(null))
+  h.overview.mockResolvedValueOnce(live(null)).mockImplementationOnce(() => oldPoll.promise).mockResolvedValue(overview())
+  show()
+  await reactAct(async () => {})
+  await reactAct(async () => vi.advanceTimersByTime(4000))
+  fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }))
+  await reactAct(async () => {})
+  await reactAct(async () => oldPoll.reject(new Error('old poll failed')))
+  expect(screen.getByRole('button', { name: 'Connect' })).toBeTruthy()
+  expect(screen.queryByText(en['access.unreadable'])).toBeNull()
+})
+
+it.each(['success', 'failure'] as const)('I3: invalidates the old poll before the %s completion during mutation', async completion => {
+  vi.useFakeTimers()
+  const oldPoll = deferred<HubOverview>()
+  const disconnect = deferred<{ ok: true }>()
+  const h = stub(live(null), { disconnect: vi.fn(() => disconnect.promise) })
+  h.overview.mockResolvedValueOnce(live(null)).mockImplementationOnce(() => oldPoll.promise).mockResolvedValue(overview())
+  show()
+  await reactAct(async () => {})
+  await reactAct(async () => vi.advanceTimersByTime(4000))
+  fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }))
+  await reactAct(async () => completion === 'success' ? oldPoll.resolve(overview()) : oldPoll.reject(new Error('old poll failed')))
+  expect(screen.getByRole('button', { name: 'Reconnect' }).getAttribute('aria-disabled')).toBe('true')
+  expect(screen.queryByText(en['access.unreadable'])).toBeNull()
+  await reactAct(async () => vi.advanceTimersByTime(4000))
+  expect(h.overview).toHaveBeenCalledTimes(2)
+  await reactAct(async () => disconnect.resolve({ ok: true }))
+  expect(screen.getByRole('button', { name: 'Connect' })).toBeTruthy()
+  expect(h.overview).toHaveBeenCalledTimes(3)
+})
+
+it('I3: a failed latest read stays unreadable when an older successful empty list arrives, and Retry recovers', async () => {
+  vi.useFakeTimers()
+  const older = deferred<HubOverview>()
+  const latest = deferred<HubOverview>()
+  const h = stub(live(null))
+  h.overview.mockResolvedValueOnce(live(null)).mockImplementationOnce(() => older.promise).mockImplementationOnce(() => latest.promise).mockResolvedValue(live(null))
+  show()
+  await reactAct(async () => {})
+  await reactAct(async () => vi.advanceTimersByTime(4000))
+  await reactAct(async () => vi.advanceTimersByTime(4000))
+  await reactAct(async () => latest.reject(new Error('current read failed')))
+  expect(screen.getByText(en['access.unreadable'])).toBeTruthy()
+  await reactAct(async () => older.resolve(overview()))
+  expect(screen.getByText(en['access.unreadable'])).toBeTruthy()
+  expect(screen.queryByText(en['access.agents.none'])).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+  await reactAct(async () => {})
+  expect(screen.getByRole('button', { name: 'Reconnect' })).toBeTruthy()
+})
+
+it('I3: effect cleanup cancels the first StrictMode read even when setup starts again', async () => {
+  const cancelled = deferred<HubOverview>()
+  const h = stub(overview())
+  h.overview.mockImplementationOnce(() => cancelled.promise).mockResolvedValue(live(null))
+  render(<StrictMode><I18nProvider locale="en"><AgentAccessPanel onClose={() => {}} /></I18nProvider></StrictMode>)
+  await screen.findByRole('button', { name: 'Reconnect' })
+  await reactAct(async () => cancelled.resolve(overview()))
+  expect(screen.getByRole('button', { name: 'Reconnect' })).toBeTruthy()
+})
+
+it('I3: a late failed act after unmount does not start a follow-up read', async () => {
+  const disconnect = deferred<{ ok: true }>()
+  const h = stub(live(null), { disconnect: vi.fn(() => disconnect.promise) })
+  const panel = show()
+  fireEvent.click(await screen.findByRole('button', { name: 'Disconnect' }))
+  panel.unmount()
+  await reactAct(async () => disconnect.reject(new Error('late disconnect failure')))
+  expect(h.overview).toHaveBeenCalledTimes(1)
+})

@@ -1,0 +1,2 @@
+node convergence-typescript/lib/tsc.js --noEmit -p tsconfig.node.json: exit 0, no diagnostics
+node convergence-typescript/lib/tsc.js --noEmit -p tsconfig.web.json: exit 0, no diagnostics

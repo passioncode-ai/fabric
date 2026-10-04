@@ -62,6 +62,12 @@ export function AgentAccessPanel({ onClose }: { onClose: () => void }): React.JS
   const [said, setSaid] = useState<Said>(null)
   /** The section the last act changed; its heading takes focus once the panel has read again (UX-7). */
   const [focusTo, setFocusTo] = useState<Section | null>(null)
+  // IPC cannot cancel a dispatched read. Only the newest eligible read in this mounted lifetime
+  // may publish; an act invalidates every pre-act read before main starts changing the facts.
+  const readGeneration = useRef(0)
+  const lifetime = useRef(0)
+  const mounted = useRef(false)
+  const acting = useRef(false)
   const heads = useRef<Partial<Record<Section, HTMLHeadingElement | null>>>({})
   const date = (iso: string): string => new Date(iso).toLocaleDateString(locale)
   useEffect(() => {
@@ -70,37 +76,59 @@ export function AgentAccessPanel({ onClose }: { onClose: () => void }): React.JS
     setFocusTo(null)
   }, [focusTo, view])
 
-  const read = useCallback(async (): Promise<void> => {
+  const read = useCallback(async (afterAct = false): Promise<void> => {
+    if (!mounted.current || (acting.current && !afterAct)) return
+    const generation = ++readGeneration.current
+    const owner = lifetime.current
+    const current = () => mounted.current && lifetime.current === owner && readGeneration.current === generation
     try {
-      setView({ kind: 'read', overview: await window.fabric.hub.overview() })
+      const overview = await window.fabric.hub.overview()
+      if (current()) setView({ kind: 'read', overview })
     } catch (e) {
-      // Not silence: an unreadable list says so, and never reads as "no agent has access". The transport's
-      // wrapper is removed — the operator reads what went wrong, not which IPC channel carried it (UX-7).
-      setView({ kind: 'unreadable', reason: humaniseError(e).detail })
+      // A current failure says unreadable, never an empty list. Obsolete successes and failures
+      // are equally ineligible: neither can replace a newer read or the outcome of an act.
+      if (current()) setView({ kind: 'unreadable', reason: humaniseError(e).detail })
     }
   }, [])
   useEffect(() => {
+    mounted.current = true
+    ++lifetime.current
     void read()
     const timer = setInterval(() => void read(), REFRESH_MS)
-    return () => clearInterval(timer)
+    return () => {
+      mounted.current = false
+      ++lifetime.current
+      ++readGeneration.current
+      clearInterval(timer)
+    }
   }, [read])
 
-  /** One act; `product` names what a connect problem is about; `after` is said when it is done; focus then
-   *  goes to the heading of the section the act changed — the pressed button may be gone (UX-7). */
+  /** One act owns the panel until its fresh read finishes. The synchronous lock also refuses a
+   *  second press before React renders busy; cleanup makes every completion ineligible. */
   const act = async (key: string, run: Act, opts: ActOpts): Promise<void> => {
-    if (busy !== null) return
+    if (!mounted.current || acting.current) return
+    acting.current = true
+    ++readGeneration.current
+    const owner = lifetime.current
+    const current = () => mounted.current && lifetime.current === owner
     setBusy(key)
     setSaid(null)
     try {
       const r = await run()
+      if (!current()) return
       if (!r.ok) setSaid(sayRefused(t, r, opts.product ?? ''))
       else setSaid(opts.after?.(r) ?? null)
     } catch (e) {
-      setSaid({ tone: 'warn', text: t('access.notDoneGeneric'), detail: t('access.saw', { detail: humaniseError(e).detail }) })
+      if (current()) setSaid({ tone: 'warn', text: t('access.notDoneGeneric'), detail: t('access.saw', { detail: humaniseError(e).detail }) })
     } finally {
-      setBusy(null)
-      await read()
-      setFocusTo(opts.section)
+      if (current()) {
+        await read(true)
+        if (current()) {
+          acting.current = false
+          setBusy(null)
+          setFocusTo(opts.section)
+        }
+      }
     }
   }
   /** While an act runs, the buttons say they are unavailable without being disabled: a disabled button
