@@ -30070,7 +30070,7 @@
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "onboarding is an addressable draft; an unsaved draft creates no business Project. A saved Project exposes its purpose and explicit setup state, including deferred PM/executor. Native store/IPC evidence remains separate from target prototype behavior.",
-      "errors_recovery": "an empty name blocks the save with the draft preserved; a failed append leaves the draft editable and shows the error. Late hydration merges saved drafts with current typing without switching away from the new draft; no save runs before hydration. An unreadable file is not replaced by defaults or new typing, and the read problem remains visible beside any dropped-tab notice.",
+      "errors_recovery": "an empty name blocks the save with the draft preserved; a failed append leaves the draft editable and shows the error. Late hydration merges saved drafts with current typing without switching away from the new draft; no save runs before hydration. An unreadable file is not replaced by defaults or new typing. Its saved working-set references remain intact while hydration is pending or storage is unreadable; an unreadable draft is not evidence that its subject was deleted. A recovered last-good copy is explicitly reported before reopening its drafts. New input stays editable without prematurely replacing the saved tabs.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 855
@@ -30620,7 +30620,7 @@
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "The operator resumes the actual addressed work without leaking context, losing drafts or confusing a link with authority.",
-      "errors_recovery": "Read failures retain the last authorised snapshot with age; revocation clears the protected projection. Passive replay does not advance the operator read watermark. A project-only link is not permission to bypass estate membership.",
+      "errors_recovery": "Local draft hydration must complete with a readable snapshot before the saved working set can be replaced. Unreadable draft storage preserves its references and reports recovery-required; it does not describe saved drafts as deleted projects. Read failures retain the last authorised snapshot with age; revocation clears the protected projection. Passive replay does not advance the operator read watermark. A project-only link is not permission to bypass estate membership.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 1641
