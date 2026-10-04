@@ -1,0 +1,90 @@
+{
+  "as_of": "2026-10-04T10:06:52.650386+00:00",
+  "baseline": "47247836",
+  "scope": "Owned PostgreSQL 17 only, standard-library Node; no caller/live database URL",
+  "mutants": [
+    {
+      "command": "FABRIC_UPGRADE_MUTANT=restored-poll node apps/desktop/test/run-hub-upgrade-db.mjs",
+      "exit_code": 1,
+      "semantic_failure_evidence": [
+        "MUTANT restored-poll: owned SQL only, ledger still counts 78; not an acceptance receipt",
+        "PASS cleanup: owned PostgreSQL stopped; socket, dumps and data removed",
+        "AssertionError [ERR_ASSERTION]: Upgrade changes only restored poll verifiers; journal/history/live authority preserved",
+        "+       poll_verifier: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',",
+        "-       poll_verifier: null,",
+        "poll_verifier: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'",
+        "poll_verifier: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',",
+        "poll_verifier: null,"
+      ],
+      "cleanup_verified": true
+    },
+    {
+      "command": "FABRIC_UPGRADE_MUTANT=reconnect-cas node apps/desktop/test/run-hub-upgrade-db.mjs",
+      "exit_code": 1,
+      "semantic_failure_evidence": [
+        "MUTANT reconnect-cas: owned SQL only, ledger still counts 78; not an acceptance receipt",
+        "PASS cleanup: owned PostgreSQL stopped; socket, dumps and data removed",
+        "AssertionError [ERR_ASSERTION]: SQL accepted an operation expected to refuse /supersedes must name the exact live connection/"
+      ],
+      "cleanup_verified": true
+    }
+  ],
+  "normal": [
+    {
+      "command": "node apps/desktop/test/run-hub-upgrade-db.mjs",
+      "exit_code": 0,
+      "observed": [
+        "PASS upgrade 75\u219278: exact migration ledger, preserved estate/journal/projections/live authority, restored pending refused, pg_dump/restore, ACLs/replay and concurrent reconnect CAS",
+        "PASS upgrade 77\u219278: exact migration ledger, preserved estate/journal/projections/live authority, restored pending refused, pg_dump/restore, ACLs/replay and concurrent reconnect CAS",
+        "PASS cleanup: owned PostgreSQL stopped; socket, dumps and data removed",
+        "After strengthened full-table dump/restore snapshot comparison, both 75\u219278 and77\u219278 passed again; owned cleanup confirmed."
+      ]
+    }
+  ],
+  "not_run": [
+    "installed/live DB migration",
+    "real data/private backups",
+    "hosted CI",
+    "release/install",
+    "root converged fast/full gates"
+  ],
+  "postgres_version": "postgres (PostgreSQL) 17.11 (Homebrew)",
+  "focused_checks": [
+    {
+      "command": "node --check apps/desktop/test/run-hub-upgrade-db.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "node --check apps/desktop/test/hub-upgrade-db.test.mjs",
+      "exit_code": 0
+    },
+    {
+      "command": "bash -n scripts/ci.sh",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    {
+      "command": "node apps/desktop/test/hub-upgrade-db.test.mjs without runner context",
+      "exit_code": 2,
+      "observed": "NOT_RUN: use run-hub-upgrade-db.mjs"
+    },
+    {
+      "command": "node scripts/check-regions.mjs",
+      "exit_code": 0,
+      "observed": "PASS code regions: 110 markers, all closed/resolved"
+    },
+    {
+      "command": "bash scripts/check-docs.sh",
+      "exit_code": 0,
+      "observed": [
+        "PASS: PassionCode.ai public narrative",
+        "NOT CHECKED: 3 relative link(s) into the submodule 'workspace', which is not checked out here (private; a public clone cannot initialise it)",
+        "relative Markdown links resolve (525 files inspected)",
+        "PASS: Fabric documentation structure"
+      ]
+    }
+  ]
+}

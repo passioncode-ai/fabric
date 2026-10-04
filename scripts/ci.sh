@@ -541,19 +541,21 @@ if [ "$TIER" = "fast" ]; then
 fi
 
 step "owned-cluster suites: each starts its own PostgreSQL and touches no other database"
-# 2026-10-03 (release review iteration 1, finding 3). Eleven runners apply the whole migration
+# 2026-10-03 (release review iteration 1, finding 3). The runners apply the migration
 # chain to a temporary cluster of their own (initdb, unix socket only, listen_addresses='') and
 # run their suite there; NO tier ran them. They are here, not in the fast tier, for two measured
 # reasons: they need PostgreSQL 17 binaries (FABRIC_PG_BIN, default Homebrew's postgresql@17),
 # which the hosted fast runner does not have, and together they take ~94 s on this Mac
-# (2026-10-03: 3–32 s each, 11 of 11 exit 0). In this tier a runner that cannot run (exit 2,
+# (2026-10-03 measured baseline: 3–32 s each, 11 of 11 exit 0). The hub upgrade rehearsal
+# additionally starts from ledger counts 75 and 77, preserves seeded rows, upgrades to count 78
+# (suffix 80) and dump/restores only its owned cluster. In this tier a runner that cannot run (exit 2,
 # NOT_RUN) fails it: the full tier is the one whose job is the database.
 # Every runner runs even when one fails (release review iteration 2): the step fails once, at the end,
 # naming each runner that did not pass.
 owned_failed=()
 for suite in run-board-deferral-db run-ceo-conversation-db run-ceo-host-sql run-ceo-private-archive-db \
   run-command-ingress-db run-dispatch-db run-managed-launch-db run-managed-stop-db run-releases-db \
-  run-restore-authority-db run-transcript-recovery-db; do
+  run-restore-authority-db run-transcript-recovery-db run-hub-upgrade-db; do
   if ! node "apps/desktop/test/$suite.mjs"; then
     echo "FAIL: $suite (exit non-zero; exit 2 is NOT_RUN — set FABRIC_PG_BIN to PostgreSQL 17 binaries)"
     owned_failed+=("$suite")
