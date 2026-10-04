@@ -9,10 +9,10 @@
 // for `News@Example.com` and a call naming `cloudflare:news@example.com` are the same mailbox, and a
 // spelling cannot carry a call past its grant.
 //
-// A NOTE ON NAMES, recorded because it departs from the contract's text: `fabric-interop/0.1`'s
-// `capabilityName` pattern has no underscore, and Fabric Inbox's tools have one. `agent.call` to a
-// connected product takes the product's tool name as it is (`^[a-z][a-z0-9._-]{1,127}$`); the
-// contract amendment is a carry-over row, not a silent rename.
+// NAMES: fabric-agent-contract df55c8c54a23251342a7ee57ba95642b7eb39e61 includes underscores in
+// the shared capabilityName grammar (`^[a-z][a-z0-9._-]{1,127}$`). The compiled contract regression
+// exercises the four normative surfaces and agent.call's real SDK argument validator. Prototype
+// segments remain refused by the separate consent policy below; valid shape never grants authority.
 
 import type { AccessActRefusal } from './accessActs.ts'
 

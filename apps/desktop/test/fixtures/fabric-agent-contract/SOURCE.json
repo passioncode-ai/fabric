@@ -1,0 +1,97 @@
+{
+  "format": "fabric-contract-test-source/1",
+  "repository": "https://github.com/passioncode-ai/fabric-agent-contract",
+  "version": "0.1.0",
+  "currentCommit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+  "legacyNegativeControlCommit": "2ce392291c6668598d12cd38327e24696b5ca15c",
+  "compiler": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1"
+  },
+  "files": [
+    {
+      "path": "LICENSE",
+      "upstreamPath": "LICENSE",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0"
+    },
+    {
+      "path": "current/positive/interop-agent-call.json",
+      "upstreamPath": "fixtures/positive/interop-agent-call.json",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "sha256": "68c401dce7610c056dea60660ca685a0642db63f0b269ed735c81bd0406f9331"
+    },
+    {
+      "path": "current/positive/manifest-mcp.json",
+      "upstreamPath": "fixtures/positive/manifest-mcp.json",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "sha256": "dfaaa5ec16dcf6843b9122a72d534c6f6b2e1899902952df324a9bb38a055fdb"
+    },
+    {
+      "path": "current/positive/pipeline.json",
+      "upstreamPath": "fixtures/positive/pipeline.json",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "sha256": "162d2e61b971c0a249796df1ad9146d77502135b71da171437681a4260ce829c"
+    },
+    {
+      "path": "current/positive/service-well-known-capabilities.json",
+      "upstreamPath": "fixtures/positive/service-well-known-capabilities.json",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "sha256": "27961da9f655340e3da4949760a2f53c1dd0168e6057a5e84f87633c300bb3af"
+    },
+    {
+      "path": "current/schemas/common.schema.json",
+      "upstreamPath": "schemas/common.schema.json",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "sha256": "8c7c781e2b798a549eaf19175740f5873aa3d51518e3316ee35177c79630209a"
+    },
+    {
+      "path": "current/schemas/interop-agent-call.schema.json",
+      "upstreamPath": "schemas/interop-agent-call.schema.json",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "sha256": "57439b2e6e67b8ec74f38ab855cf951071a762ce8e04f3c6b4a857c0b24c4ce6"
+    },
+    {
+      "path": "current/schemas/interop-capability.schema.json",
+      "upstreamPath": "schemas/interop-capability.schema.json",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "sha256": "16240f19a851d56127e766456561da8a05e1902b321e52d4c7d45a635f13a598"
+    },
+    {
+      "path": "current/schemas/manifest.schema.json",
+      "upstreamPath": "schemas/manifest.schema.json",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "sha256": "02043fc530e13167e682d0699eb0a5e261c9d7b0409203e2e66361f88cbba7b5"
+    },
+    {
+      "path": "current/schemas/pipeline.schema.json",
+      "upstreamPath": "schemas/pipeline.schema.json",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "sha256": "b0ccfbcd5cf874b69a829662bd62a53d9c8b2ffbc2b1555d834b1a518f387b1e"
+    },
+    {
+      "path": "current/schemas/service-common.schema.json",
+      "upstreamPath": "schemas/service-common.schema.json",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "sha256": "3477169eff687d30f72b162631dead9d0f6e53b620ae097e43c65a678b381cb6"
+    },
+    {
+      "path": "current/schemas/service-well-known.schema.json",
+      "upstreamPath": "schemas/service-well-known.schema.json",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "sha256": "c51a6ec9814944d3c7ec5e28dbc10e37063a9eded78c45e2776ccd9ba69f02e3"
+    },
+    {
+      "path": "legacy/schemas/common.schema.json",
+      "upstreamPath": "schemas/common.schema.json",
+      "commit": "2ce392291c6668598d12cd38327e24696b5ca15c",
+      "sha256": "b0b4f7dafa9ccffd345ec319c97cacf65b1983c2da874c63606ca60cab448fd5"
+    },
+    {
+      "path": "legacy/schemas/interop-agent-call.schema.json",
+      "upstreamPath": "schemas/interop-agent-call.schema.json",
+      "commit": "2ce392291c6668598d12cd38327e24696b5ca15c",
+      "sha256": "57439b2e6e67b8ec74f38ab855cf951071a762ce8e04f3c6b4a857c0b24c4ce6"
+    }
+  ]
+}
