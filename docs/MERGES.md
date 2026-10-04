@@ -312,3 +312,6 @@ Release commit for Fabric 0.3.1 on the verified candidate `469b4bc6`: the final-
 
 After the 0.3.1 release commit: `verifiedCandidateProblem` exempts the scheduled workspace pin by its exact shape (`publicationPinProblem`, CO-208; documented in `docs/launch/release-mac.md` step 1) and the release-gate test no longer asserts the hub ledger's state on one day (CO-209); both tests watched failing on a planted defect. Carry-over CO-208/CO-209 closed, CO-179 moved to before 0.3.2, backlog P-08 row, lane 2, Now line and the carry-over count (170 of 209) updated. Landed by fast-forward after the release commit.
 
+### 2026-10-04 · prowl-prerequisites · agent/prowl-prereqs-20261004
+
+Docs-only: the agent registry plan gains proposed rows AR-3.7…AR-3.11 (contract conformance audit, descriptor-service callees through the hub after a new ADR, a capability-queryable registry, remote placements, workflow planning that names missing agents) from the Prowl Agent prerequisites and the operator's direction relayed on 2026-10-04. Their rank against P-08 stays with the operator. Written under the registry-plan lease.
