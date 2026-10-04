@@ -571,6 +571,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     connected: async (product) => (await accessStore.liveConnection(product)) !== null
   })
   const agentCall = createAgentCall({ access, store: accessStore, vault, forward: forwardToProduct, estateId: ACTIVE_ESTATE })
+  // A revoked binding never calls again: its idempotency memory goes at once (DA-3, verification 0.3.1).
+  access.onBindingRevoked((bindingId) => agentCall.forgetBinding(bindingId))
   hub = { registry, access, accessStore, connector, presenter, get doorToken() { return hubState.doorToken }, get down() { return hubState.down } }
   const hubAccess = access
   surface = new AgentSurface({

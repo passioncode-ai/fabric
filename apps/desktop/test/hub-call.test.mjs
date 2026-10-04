@@ -126,4 +126,144 @@ test('ER-11: a throw inside an access tool gives the agent a fixed sentence, nev
   assert.doesNotMatch(JSON.stringify(r), /secret-internal-detail/, 'the exception text reached the agent')
   await client.close()
 })
+
+// ── Verification iteration 2 for 0.3.1 ────────────────────────────────────────────────────────────────
+// ER-1: an idempotencyKey did not stop a second send. A call that was cancelled or timed out AFTER it had
+// reached the product was forgotten, and the tool told the agent to retry with the same key — which sent
+// again. A key whose call may have run is now remembered as outcome-unknown and refused, typed and final.
+function sender({ outcome = 'cancelled', reached, waitMs = 50 } = {}) {
+  const exp = new Date(Date.now() + 1e9).toISOString()
+  const grants = [{ id: 'g1', binding_id: A.id, callee: 'fabric-inbox', capability: 'send_email', resource: 'cloudflare:news@example.com', expires_at: exp, revoked_at: null }]
+  const seen = { executed: 0, spans: [] }
+  let next = { outcome, reached }
+  const call = createAgentCall({
+    access: { liveGrantsOf: async () => grants },
+    store: { liveConnection: async () => ({ id: 'c1', product: 'fabric-inbox', mcp_url: 'https://inbox.example.com/mcp', client_id: 'cid-123', secret_ref: { project: 'fabric', env: 'local', name: 'X' }, removed_at: null }), append: async (t, a, p) => { seen.spans.push(p); return 1 } },
+    vault: { read: async () => ({ ok: true, value: 's' }) },
+    forward: async (req) => {
+      seen.executed++ // the POST reached the product, and it sent the mail
+      await new Promise((r) => setTimeout(r, waitMs))
+      const n = next
+      if (n.outcome === 'succeeded') return { ok: true, result: { structuredContent: { sent: true } }, wallMs: waitMs }
+      if (req.signal?.aborted || n.outcome === 'cancelled') return { ok: false, code: 'cancelled', message: 'hung up', wallMs: waitMs, ...(n.reached === undefined ? {} : { reached: n.reached }) }
+      return { ok: false, code: n.outcome, message: 'the product did not answer within 60s', wallMs: waitMs, ...(n.reached === undefined ? {} : { reached: n.reached }) }
+    },
+    estateId: '00000000-0000-4000-8000-000000000000'
+  })
+  return { call, seen, then: (o) => { next = o } }
+}
+const send = (key = 'K1') => ({ agentId: 'fabric-inbox', capability: 'send_email', input: { accountId: 'cloudflare:news@example.com', to: 'x@example.com', subject: 's', text: 'b' }, idempotencyKey: key })
+
+test('ER-1: a call cancelled after it reached the product is never sent again with the same key', async () => {
+  const w = sender({ outcome: 'cancelled' })
+  const ac = new AbortController()
+  const first = w.call(A, send(), undefined, ac.signal)
+  setTimeout(() => ac.abort(), 10)
+  await first
+  w.then({ outcome: 'succeeded' })
+  const retry = await w.call(A, send(), undefined, new AbortController().signal)
+  assert.equal(code(retry), 'outcome-unknown', 'the retry with the same key was sent again')
+  assert.equal(w.seen.executed, 1, 'the product ran send_email twice')
+  assert.equal(retry.structuredContent.error.data.mayHaveRun, true)
+  assert.match(retry.structuredContent.error.message, /may have run/)
+  assert.match(retry.structuredContent.error.message, /get_send_status/)
+})
+
+test('ER-1: a forward that timed out after it reached the product is outcome-unknown at once, and the same key stays refused', async () => {
+  const w = sender({ outcome: 'product-unreachable', reached: true })
+  const first = await w.call(A, send('K2'), undefined)
+  assert.equal(code(first), 'outcome-unknown', 'a timeout after the call reached the product read as a plain retryable failure')
+  assert.equal(first.structuredContent.error.data.cause, 'product-unreachable')
+  w.then({ outcome: 'succeeded' })
+  const retry = await w.call(A, send('K2'), undefined)
+  assert.equal(code(retry), 'outcome-unknown')
+  assert.equal(w.seen.executed, 1)
+  assert.equal(w.seen.spans.at(0).error_code, 'outcome-unknown', 'the journal span does not say the outcome is unknown')
+})
+
+test('ER-1: a forward that provably sent nothing is said as such, and the same key may try again', async () => {
+  const w = sender({ outcome: 'product-unreachable', reached: false })
+  const first = await w.call(A, send('K3'), undefined)
+  assert.equal(code(first), 'product-unreachable')
+  assert.equal(first.structuredContent.error.data?.mayHaveRun, false)
+  w.then({ outcome: 'succeeded' })
+  const retry = await w.call(A, send('K3'), undefined)
+  assert.equal(retry.isError, undefined, 'a call that never left Fabric could not be retried')
+  assert.equal(w.seen.executed, 2)
+})
+
+test('ER-1: no text tells an agent to retry a call that may have run', async () => {
+  const { hubServerFor } = await import(path.join(SRC, 'hubTools.ts'))
+  const { Client } = await import('@modelcontextprotocol/sdk/client/index.js')
+  const { InMemoryTransport } = await import('@modelcontextprotocol/sdk/inMemory.js')
+  const server = hubServerFor({ kind: 'binding', binding: { id: 'b', agent_id: 'example-agent.default' } }, { access: { liveGrantsOf: async () => [] }, call: async () => ({ content: [] }) })
+  const [a, b] = InMemoryTransport.createLinkedPair()
+  const client = new Client({ name: 't', version: '0' })
+  await Promise.all([server.connect(a), client.connect(b)])
+  const tool = (await client.listTools()).tools.find((t) => t.name === 'agent.call')
+  const text = JSON.stringify(tool)
+  assert.doesNotMatch(text, /retry (it )?with the SAME key|retry it with the same idempotencyKey/i, 'agent.call still advises retrying a call that may have run')
+  assert.match(text, /outcome-unknown/)
+  await client.close()
+  const w = sender({ outcome: 'succeeded' })
+  const gone = await w.call(A, send('K4'), undefined, AbortSignal.abort())
+  assert.equal(code(gone), 'cancelled')
+  assert.doesNotMatch(gone.structuredContent.error.message, /reuse its idempotencyKey/, 'the cancel refusal still advises a retry with the key')
+})
+
+// ER-11: the product's error text — which can echo its request headers — reached the agent; it carried the
+// client id. The agent hears a fixed sentence per code; the product's words go to the operations log.
+test('ER-11: a product error is a fixed sentence to the agent; neither the client id nor the product text reaches it', async () => {
+  const exp = new Date(Date.now() + 1e9).toISOString()
+  const call = createAgentCall({
+    access: { liveGrantsOf: async () => [{ id: 'g1', binding_id: A.id, callee: 'fabric-inbox', capability: 'read_message', resource: 'cloudflare:news@example.com', expires_at: exp, revoked_at: null }] },
+    store: { liveConnection: async () => ({ id: 'c1', mcp_url: 'https://inbox.example.com/mcp', client_id: 'cid-123', secret_ref: {} }), append: async () => 1 },
+    vault: { read: async () => ({ ok: true, value: 's' }) },
+    forward: async () => ({ ok: false, code: 'product-error', message: 'Error POSTing to endpoint: upstream said: CF-Access-Client-Id=cid-123', wallMs: 3, reached: false }),
+    estateId: '00000000-0000-4000-8000-000000000000'
+  })
+  const r = await call(A, args(), undefined)
+  assert.equal(code(r), 'product-error')
+  assert.doesNotMatch(JSON.stringify(r), /cid-123|upstream said|POSTing/, 'the product\'s own error text reached the agent')
+})
+
+// DA-3: the memory kept every produced answer whole, 256 per binding, with no byte bound, and a revoked
+// binding's answers stayed until the app quit (64 calls of a 4 MiB answer pinned 512 MiB).
+function big({ answerBytes, now }) {
+  const exp = new Date(Date.now() + 1e9).toISOString()
+  const seen = { forwards: 0 }
+  const call = createAgentCall({
+    access: { liveGrantsOf: async (b) => [{ id: 'g-' + b.id, binding_id: b.id, callee: 'fabric-inbox', capability: 'read_message', resource: 'cloudflare:news@example.com', expires_at: exp, revoked_at: null }] },
+    store: { liveConnection: async () => ({ id: 'c1', mcp_url: 'https://inbox.example.com/mcp', client_id: 'cid', secret_ref: {} }), append: async () => 1 },
+    vault: { read: async () => ({ ok: true, value: 's' }) },
+    forward: async () => { seen.forwards++; return { ok: true, result: { structuredContent: { body: 'x'.repeat(answerBytes) } }, wallMs: 1 } },
+    estateId: '00000000-0000-4000-8000-000000000000',
+    now
+  })
+  return { call, seen }
+}
+
+test('DA-3: answers are remembered under a byte bound; a call too large to keep is still never sent twice', async () => {
+  const w = big({ answerBytes: 4 * 1024 * 1024 })
+  for (let i = 0; i < 64; i++) await w.call(A, args({ idempotencyKey: `big-${i}` }), undefined)
+  const m = w.call.memory()
+  assert.ok(m.bytes <= 32 * 1024 * 1024, `the memory holds ${m.bytes} bytes of answers`)
+  assert.equal(m.keys, 64, 'a key was forgotten, so its call could be sent twice')
+  const again = await w.call(A, args({ idempotencyKey: 'big-0' }), undefined)
+  assert.equal(code(again), 'answer-not-kept', 'an answer too large to keep was replayed whole or sent again')
+  assert.equal(w.seen.forwards, 64)
+})
+
+test('DA-3: a revoked binding\'s memory is released, and memory past its 24 hours is swept for every binding', async () => {
+  let t = Date.now()
+  const w = big({ answerBytes: 1000, now: () => t })
+  const B = { id: 'b-b', agent_id: 'example-agent.other' }
+  await w.call(A, args({ idempotencyKey: 'a1' }), undefined)
+  await w.call(B, args({ idempotencyKey: 'b1' }), undefined)
+  w.call.forgetBinding(B.id)
+  assert.equal(w.call.memory().keys, 1, 'the revoked binding\'s answers stayed')
+  t += 25 * 60 * 60 * 1000
+  await w.call(B, args({ idempotencyKey: 'b2' }), undefined)
+  assert.equal(w.call.memory().keys, 1, 'another binding\'s expired memory was never swept')
+})
 // #endregion hub-call

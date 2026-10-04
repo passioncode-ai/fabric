@@ -102,3 +102,16 @@ test('an incremental request whose asking credential was revoked is refused in p
   assert.doesNotMatch(d.reason, /door token/, 'the operator is told about a door token')
 })
 // #endregion hub-consent
+
+// DA-3 (verification iteration 2 for 0.3.1): a revoked binding's agent.call memory is dropped at once —
+// the access service tells its listeners after the revocation is recorded.
+test('DA-3: revoking a binding tells the agent.call memory, after the revocation is recorded', async () => {
+  const { access, store } = setup()
+  const asked = await access.request(DOOR, ask())
+  await access.decide(asked.requestId, 'allowed', OPERATOR)
+  const bindingId = (await access.status(DOOR, asked.requestId, asked.pollSecret)).bindingId
+  const told = []
+  access.onBindingRevoked((id) => told.push({ id, journalled: store.events.some((e) => e.type === 'access.binding.revoked@1') }))
+  assert.deepEqual(await access.revokeBinding(bindingId, OPERATOR), { ok: true })
+  assert.deepEqual(told, [{ id: bindingId, journalled: true }], 'the memory was not told the binding was revoked')
+})

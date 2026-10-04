@@ -77,12 +77,18 @@ const POLL_SECRET_TEXT = 'The pollSecret from the fabric.access.request answer t
 const doorStatusSchema = z.object({ requestId: z.string().min(1).max(64), pollSecret: z.string().regex(/^[A-Za-z0-9_-]{43}$/).describe(POLL_SECRET_TEXT) }).strict()
 const bindingStatusSchema = z.object({ requestId: z.string().min(1).max(64), pollSecret: z.string().max(64).optional().describe(`${POLL_SECRET_TEXT}; not needed with a binding credential`) }).strict()
 
+// ER-1 (verification iteration 2 for 0.3.1): the text told an agent that gave up on a call to retry it
+// with the same key, and the hub forgot exactly those keys — so the retry sent twice. Now a key whose call
+// may have run is refused for good, and nothing here advises sending such a call again.
+const IDEMPOTENCY_TEXT =
+  'Your own id for this call. Sent again with the same arguments, the same key returns the first answer and sends nothing (while your grant still covers the call and the product is connected); the same key with other arguments is refused. If a call may have reached the product without an answer (a timeout, a cancel, a lost connection), the answer is outcome-unknown, and every later call with that key is refused outcome-unknown: it may have run, so Fabric never sends it again — and a new key would act twice. Check its effect with the product\'s own read tools (for mail, get_send_status) before you act again. Fabric keeps keys for 24 hours (the 256 most recent per credential) while it runs; hub.json\'s instance changes when Fabric restarts, and a key from before a restart is unknown to it.'
+
 const callSchema = z
   .object({
     agentId: z.string().regex(AGENT_ID_PATTERN).describe('The callee: a connected product, e.g. fabric-inbox'),
     capability: z.string().regex(CAPABILITY_PATTERN).describe('The product tool to call'),
     input: z.record(z.string(), z.unknown()).describe('The tool arguments, exactly as the product takes them'),
-    idempotencyKey: z.string().min(1).max(256).optional().describe('Your own id for this call; a retry with the same key returns the same answer while your grant still covers it. If you gave up on a call (a timeout, a cancel), retry it with the SAME key: it may already have reached the product, and a new key would act twice')
+    idempotencyKey: z.string().min(1).max(256).optional().describe(IDEMPOTENCY_TEXT)
   })
   .strict()
 
@@ -161,7 +167,7 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
       {
         title: 'Call a connected product through Fabric',
         description:
-          'fabric-interop/0.1 C3.5. Fabric checks your grant, narrows the call to the mailboxes you were granted, forwards it with the product\'s own credential (which you never see) and journals the hop. Without a grant the answer is access-required, carrying the fabric.access.request arguments to ask with. Cancelling your request stops the call if it has not reached the product yet; a call you gave up on may have reached it, so retry it with the same idempotencyKey, never a new one.',
+          'fabric-interop/0.1 C3.5. Fabric checks your grant, narrows the call to the mailboxes you were granted, forwards it with the product\'s own credential (which you never see) and journals the hop. The answer is the interop result envelope, the product\'s output in `output` (isError when the product answered with an error); a refusal is isError with {error: {code, message, data?}}. Without a grant the code is access-required, carrying the fabric.access.request arguments to ask with. Cancelling your request stops the call if it has not reached the product yet. A call that may have reached the product without an answer is outcome-unknown (data.mayHaveRun): do not send it again — not with the same idempotencyKey (refused) and not with a new one (it would act twice); check its effect with the product\'s read tools first.',
         inputSchema: callSchema
       },
       async (args, extra) =>
