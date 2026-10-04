@@ -1,0 +1,63 @@
+Window: "Fabric · CO179 synthetic fixture", App: Electron.
+0 standard window Fabric · CO179 synthetic fixture, Secondary Actions: Raise
+	1 container Fabric · CO179 synthetic fixture
+		2 container
+			3 HTML content Fabric, URL: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html
+				4 container
+					5 button Fabric
+					6 button Fixture one
+					7 button Close tab
+					8 button Fixture two
+					9 button Close tab
+					10 text CO179 synthetic test fixture
+					11 text Fabric
+					12 text PassionCode.ai
+					13 container Fabric navigation
+						14 link Description: Fabric, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						15 link Description: Board, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						16 link Description: Planning, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						17 link Description: + Project, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						18 disclosure triangle Manage
+							19 text Manage
+						20 link Description: Fabric help, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+					21 button Talk to Fabric · Conversation not switched on
+						22 image Fabric · personal avatar
+						23 text Fabric
+						24 text Conversation not switched on
+					25 container
+						26 text My workspace  /  Fabric
+						27 toggle button Search, Value: 0
+					28 container
+						29 heading New project, Value: 1
+							30 text New project
+						31 text A project holds repositories, memory and the agents that work in them. The project itself is made only when you create it; a new folder you make for it is created at once.
+						32 container
+							33 text Name
+							34 text field (settable) Name, Value: Fixture one, Placeholder: What is this project called?
+						35 container
+							36 text Purpose
+							37 text field (settable) Purpose, Value: Synthetic fixture purpose, Placeholder: What is it for? One line is enough.
+						38 container Repositories
+							39 text Repositories
+							40 text Sessions start in the primary repository. You can attach more later.
+							41 text No repository attached yet.
+							42 button Choose folder…
+							43 button Create a new folder for it…
+							44 Tick box Start it as a git repository, Value: 1
+						45 container Memory
+							46 text Memory
+							47 text Memory is stored in this machine’s database.
+						48 container
+							49 text Default coding agent What the quick Launch action starts. You can always pick another.
+							50 pop-up button Default coding agent, Value: Claude Code
+								51 (selected) Claude Code
+						52 button Create project
+						53 button Cancel
+	54 close button
+	55 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	56 minimise button
+57 menu bar
+	58 Electron
+	59 Edit
+
+The focused UI element is 34 text field (settable) Name, Value: Fixture one, Placeholder: What is this project called?

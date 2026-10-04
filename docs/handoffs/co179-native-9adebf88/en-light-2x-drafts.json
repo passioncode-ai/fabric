@@ -1,0 +1,21 @@
+{
+  "draft-1": {
+    "projectId": "fixture-project-1",
+    "name": "Проект 📚 — проверка длинного имени",
+    "purpose": "Synthetic fixture purpose",
+    "repoPaths": [
+      "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-bOY8gG/synthetic-repo/bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name-",
+      "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-bOY8gG/synthetic-parent/Проект 📚 — проверка длинного имени"
+    ],
+    "memory": "local",
+    "agent": "claude-code"
+  },
+  "draft-2": {
+    "projectId": "fixture-project-2",
+    "name": "Fixture two",
+    "purpose": "Synthetic fixture purpose",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  }
+}

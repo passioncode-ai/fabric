@@ -1,0 +1,874 @@
+{
+  "format": "fabric-co179-root-native-cua/1",
+  "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+  "productBuild": "2e06e501 unchanged product bytes through 9adebf88",
+  "cases": [
+    {
+      "name": "ru-dark-640",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-gSoJxv",
+      "configuration": {
+        "version": 1,
+        "locale": "ru",
+        "theme": "dark",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 640,
+        "height": 900
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 40,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [],
+        "parent_choose": []
+      }
+    },
+    {
+      "name": "en-light-960",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-8cQRws",
+      "configuration": {
+        "version": 1,
+        "locale": "en",
+        "theme": "light",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "one",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 960,
+        "height": 900
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 91,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [],
+        "parent_choose": []
+      }
+    },
+    {
+      "name": "ru-dark-960",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-w3aJnG",
+      "configuration": {
+        "version": 1,
+        "locale": "ru",
+        "theme": "dark",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "two",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 960,
+        "height": 900
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 48,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [],
+        "parent_choose": []
+      }
+    },
+    {
+      "name": "en-dark-1440",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-Z6Pshj",
+      "configuration": {
+        "version": 1,
+        "locale": "en",
+        "theme": "dark",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 1440,
+        "height": 900
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 45,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [],
+        "parent_choose": []
+      }
+    },
+    {
+      "name": "ru-light-1440",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-l5dL14",
+      "configuration": {
+        "version": 1,
+        "locale": "ru",
+        "theme": "light",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 1440,
+        "height": 900
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 50,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [],
+        "parent_choose": []
+      }
+    },
+    {
+      "name": "en-dark-long-760",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-DfyVA2",
+      "configuration": {
+        "version": 1,
+        "locale": "en",
+        "theme": "dark",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "long",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 760,
+        "height": 1000
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 42,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [],
+        "parent_choose": []
+      }
+    },
+    {
+      "name": "ru-dark-2x",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-7jWfBv",
+      "configuration": {
+        "version": 1,
+        "locale": "ru",
+        "theme": "dark",
+        "zoomFactor": 2,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "long",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 1280,
+        "height": 1000
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 62,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [],
+        "parent_choose": []
+      }
+    },
+    {
+      "name": "en-refusal",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-c5bG7E",
+      "configuration": {
+        "version": 1,
+        "locale": "en",
+        "theme": "light",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "selected",
+        "create": "refuse",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 960,
+        "height": 900
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 59,
+        "blocked_ipc_channels": [],
+        "project_create": [
+          {
+            "at": "2026-10-04T14:31:42.728Z",
+            "fixtureId": "d3a0e19e-0dbb-49cd-b912-6fd2d07dc998",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "projects:create",
+            "request": 27,
+            "args": [
+              {
+                "id": "fixture-project-1",
+                "name": "Fixture one",
+                "purpose": "Synthetic fixture purpose",
+                "repoPaths": [],
+                "memoryBackend": "local",
+                "defaultAgent": "claude-code"
+              }
+            ],
+            "delayMs": 0
+          }
+        ],
+        "folder_create": [],
+        "parent_choose": []
+      }
+    },
+    {
+      "name": "ru-saving",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-7uvDz1",
+      "configuration": {
+        "version": 1,
+        "locale": "ru",
+        "theme": "dark",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 20000,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 960,
+        "height": 900
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 63,
+        "blocked_ipc_channels": [
+          "agents:list",
+          "decisions:list",
+          "diagnostics:read",
+          "digest:read",
+          "goals:list",
+          "harness:read",
+          "memory:misses",
+          "memory:retro",
+          "projects:repo-states",
+          "projects:stats",
+          "repos:list",
+          "tasks:list",
+          "terminal:claims",
+          "transcripts:list"
+        ],
+        "project_create": [
+          {
+            "at": "2026-10-04T14:32:50.819Z",
+            "fixtureId": "1afdff87-f3c2-461c-9569-6f396e93d75f",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "projects:create",
+            "request": 36,
+            "args": [
+              {
+                "id": "fixture-project-1",
+                "name": "Fixture one",
+                "purpose": "Synthetic fixture purpose",
+                "repoPaths": [],
+                "memoryBackend": "local",
+                "defaultAgent": "claude-code"
+              }
+            ],
+            "delayMs": 20000
+          }
+        ],
+        "folder_create": [],
+        "parent_choose": []
+      }
+    },
+    {
+      "name": "en-unread",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-R2Vexu",
+      "configuration": {
+        "version": 1,
+        "locale": "en",
+        "theme": "dark",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 20000,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 960,
+        "height": 900
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 73,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [],
+        "parent_choose": []
+      }
+    },
+    {
+      "name": "en-exists",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-n6AbL3",
+      "configuration": {
+        "version": 1,
+        "locale": "en",
+        "theme": "dark",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "exists",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 960,
+        "height": 900
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 30,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [
+          {
+            "at": "2026-10-04T14:35:09.506Z",
+            "fixtureId": "8207b1d2-dda3-4f9e-bf1d-4d2fe9e7ba49",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "start:create-folder",
+            "request": 29,
+            "args": [
+              {
+                "parent": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-n6AbL3/synthetic-parent",
+                "name": "Fixture one",
+                "git": true
+              }
+            ],
+            "delayMs": 0
+          }
+        ],
+        "parent_choose": [
+          {
+            "at": "2026-10-04T14:35:09.503Z",
+            "fixtureId": "8207b1d2-dda3-4f9e-bf1d-4d2fe9e7ba49",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "start:choose-folder",
+            "request": 28,
+            "args": [
+              "parent",
+              null
+            ],
+            "delayMs": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "ru-outside",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-sg85p4",
+      "configuration": {
+        "version": 1,
+        "locale": "ru",
+        "theme": "dark",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "outside",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 960,
+        "height": 900
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 32,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [
+          {
+            "at": "2026-10-04T14:35:32.495Z",
+            "fixtureId": "81819edc-cd9b-4f0d-bedc-15906bbe22de",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "start:create-folder",
+            "request": 32,
+            "args": [
+              {
+                "parent": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-sg85p4/synthetic-parent",
+                "name": "Fixture one",
+                "git": true
+              }
+            ],
+            "delayMs": 0
+          }
+        ],
+        "parent_choose": [
+          {
+            "at": "2026-10-04T14:35:32.492Z",
+            "fixtureId": "81819edc-cd9b-4f0d-bedc-15906bbe22de",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "start:choose-folder",
+            "request": 31,
+            "args": [
+              "parent",
+              null
+            ],
+            "delayMs": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "en-failed",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-ZrkBea",
+      "configuration": {
+        "version": 1,
+        "locale": "en",
+        "theme": "dark",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "failed",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 960,
+        "height": 900
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 32,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [
+          {
+            "at": "2026-10-04T14:36:02.672Z",
+            "fixtureId": "f0c0b8d8-e34f-4b87-afec-992ccf24b871",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "start:create-folder",
+            "request": 32,
+            "args": [
+              {
+                "parent": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-ZrkBea/synthetic-parent",
+                "name": "Fixture one",
+                "git": true
+              }
+            ],
+            "delayMs": 0
+          }
+        ],
+        "parent_choose": [
+          {
+            "at": "2026-10-04T14:36:02.669Z",
+            "fixtureId": "f0c0b8d8-e34f-4b87-afec-992ccf24b871",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "start:choose-folder",
+            "request": 31,
+            "args": [
+              "parent",
+              null
+            ],
+            "delayMs": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "ru-creating",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-zRUPA6",
+      "configuration": {
+        "version": 1,
+        "locale": "ru",
+        "theme": "dark",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 20000,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 960,
+        "height": 900
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 1,
+        "synthetic_request_count": 183,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [
+          {
+            "at": "2026-10-04T14:36:26.196Z",
+            "fixtureId": "ef3d3215-f3b1-4b2d-b1d4-25a1cbd3f024",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "start:create-folder",
+            "request": 30,
+            "args": [
+              {
+                "parent": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-zRUPA6/synthetic-parent",
+                "name": "Fixture one",
+                "git": true
+              }
+            ],
+            "delayMs": 20000
+          }
+        ],
+        "parent_choose": [
+          {
+            "at": "2026-10-04T14:36:26.193Z",
+            "fixtureId": "ef3d3215-f3b1-4b2d-b1d4-25a1cbd3f024",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "start:choose-folder",
+            "request": 29,
+            "args": [
+              "parent",
+              null
+            ],
+            "delayMs": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "en-cancel",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-RD8jUV",
+      "configuration": {
+        "version": 1,
+        "locale": "en",
+        "theme": "dark",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "cancel",
+        "repos": "cancel",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 960,
+        "height": 900
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 32,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [],
+        "parent_choose": [
+          {
+            "at": "2026-10-04T14:46:38.858Z",
+            "fixtureId": "9f3dab1a-930e-4b77-abaa-2ef1d7ed833a",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "start:choose-folder",
+            "request": 31,
+            "args": [
+              "parent",
+              null
+            ],
+            "delayMs": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "en-light-2x",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-bOY8gG",
+      "configuration": {
+        "version": 1,
+        "locale": "en",
+        "theme": "light",
+        "zoomFactor": 2,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "long",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 1280,
+        "height": 1000
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 90,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [
+          {
+            "at": "2026-10-04T14:47:35.369Z",
+            "fixtureId": "61b06dd6-ad2f-46f9-82b8-ea40ea68df2a",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "start:create-folder",
+            "request": 59,
+            "args": [
+              {
+                "parent": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-bOY8gG/synthetic-parent",
+                "name": "Проект 📚 — проверка длинного имени",
+                "git": true
+              }
+            ],
+            "delayMs": 0
+          }
+        ],
+        "parent_choose": [
+          {
+            "at": "2026-10-04T14:47:35.366Z",
+            "fixtureId": "61b06dd6-ad2f-46f9-82b8-ea40ea68df2a",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "start:choose-folder",
+            "request": 58,
+            "args": [
+              "parent",
+              null
+            ],
+            "delayMs": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "ru-light-2x",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-YAP7f0",
+      "configuration": {
+        "version": 1,
+        "locale": "ru",
+        "theme": "light",
+        "zoomFactor": 2,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "long",
+        "create": "ok",
+        "backends": "unavailable",
+        "runners": "mixed",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 1280,
+        "height": 1000
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 58,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [],
+        "parent_choose": []
+      }
+    },
+    {
+      "name": "en-dark-640",
+      "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-lEXNxs",
+      "configuration": {
+        "version": 1,
+        "locale": "en",
+        "theme": "dark",
+        "zoomFactor": 1,
+        "drafts": "restored",
+        "folder": "ok",
+        "repos": "selected",
+        "create": "ok",
+        "backends": "none",
+        "runners": "none",
+        "folderDelayMs": 0,
+        "createDelayMs": 0,
+        "backendDelayMs": 0,
+        "draftDelayMs": 0,
+        "timeoutMs": 120000,
+        "width": 640,
+        "height": 900
+      },
+      "checks": {
+        "native_renderer_loaded": true,
+        "exact_product_source_and_build_pins": true,
+        "network_requests_blocked": [],
+        "fixture_timeouts": 0,
+        "synthetic_request_count": 65,
+        "blocked_ipc_channels": [],
+        "project_create": [],
+        "folder_create": [
+          {
+            "at": "2026-10-04T14:24:28.688Z",
+            "fixtureId": "85a4f6f0-4fa9-4a17-b101-fec2485ef77c",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "start:create-folder",
+            "request": 52,
+            "args": [
+              {
+                "parent": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-lEXNxs/synthetic-parent",
+                "name": "Fixture one",
+                "git": false
+              }
+            ],
+            "delayMs": 0
+          }
+        ],
+        "parent_choose": [
+          {
+            "at": "2026-10-04T14:24:28.686Z",
+            "fixtureId": "85a4f6f0-4fa9-4a17-b101-fec2485ef77c",
+            "sourceRevision": "9adebf88964df6e3cffb13c016863ca981459674",
+            "kind": "request",
+            "channel": "start:choose-folder",
+            "request": 51,
+            "args": [
+              "parent",
+              null
+            ],
+            "delayMs": 0
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+Window: "Fabric · CO179 synthetic fixture", App: Electron.
+0 standard window Fabric · CO179 synthetic fixture, Secondary Actions: Raise
+	1 container Fabric · CO179 synthetic fixture
+		2 container
+			3 HTML content Fabric, URL: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html
+				4 container
+					5 button Fabric
+					6 button Fixture one
+					7 button Close tab
+					8 button Fixture two
+					9 button Close tab
+					10 text CO179 synthetic test fixture
+					11 container Fabric navigation
+					12 button Talk to Fabric · Conversation not switched on
+						13 image Fabric · personal avatar
+						14 text Fabric
+						15 text Conversation not switched on
+					16 container
+						17 text My workspace  /  Fabric
+						18 toggle button Search, Value: 0
+					19 container
+						20 heading New project, Value: 1
+							21 text New project
+						22 text A project holds repositories, memory and the agents that work in them. The project itself is made only when you create it; a new folder you make for it is created at once.
+						23 container
+							24 text Name
+							25 text field (settable) Name, Value: Fixture one, Placeholder: What is this project called?
+						26 container
+							27 text Purpose
+							28 text field (settable) Purpose, Value: Synthetic fixture purpose, Placeholder: What is it for? One line is enough.
+						29 container Repositories
+							30 text Repositories
+							31 text Sessions start in the primary repository. You can attach more later.
+							32 text /private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-DfyVA2/synthetic-repo/bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name- PRIMARY
+							33 button Remove
+							34 button Choose folder…
+							35 button Create a new folder for it…
+							36 Tick box Start it as a git repository, Value: 1
+						37 Memory
+							38 text Memory
+							39 container
+								40 radio button Local Stored in this machine’s database., Value: 1
+								41 text Local Stored in this machine’s database.
+							42 container
+								43 radio button (disabled) Cloud Hosted estates are not built yet. This becomes available with them., Value: 0
+								44 text Cloud Hosted estates are not built yet. This becomes available with them.
+						45 container
+							46 text Default coding agent What the quick Launch action starts. You can always pick another.
+							47 pop-up button Default coding agent, Value: Claude Code
+								48 (selected) Claude Code
+						49 button Create project
+						50 button Cancel
+	51 close button
+	52 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	53 minimise button
+54 menu bar
+	55 Electron
+	56 Edit
+
+The focused UI element is 25 text field (settable) Name, Value: Fixture one, Placeholder: What is this project called?

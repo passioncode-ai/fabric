@@ -1,0 +1,68 @@
+Window: "Fabric · CO179 synthetic fixture", App: Electron.
+0 standard window Fabric · CO179 synthetic fixture, Secondary Actions: Raise
+	1 container Fabric · CO179 synthetic fixture
+		2 container
+			3 HTML content Fabric, URL: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html
+				4 container
+					5 button Fabric
+					6 button Fixture one
+					7 button Закрыть вкладку
+					8 button Fixture two
+					9 button Закрыть вкладку
+					10 text CO179 synthetic test fixture
+					11 text Fabric
+					12 text PassionCode.ai
+					13 container Навигация Fabric
+						14 link Description: Fabric, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						15 link Description: Доска, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						16 link Description: Планирование, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						17 link Description: + Проект, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						18 disclosure triangle Управление
+							19 text Управление
+						20 link Description: Помощь Fabric, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+					21 button Поговорить с Fabric · Разговор не включён
+						22 image Fabric · персональный аватар
+						23 text Fabric
+						24 text Разговор не включён
+					25 container
+						26 text Моё пространство  /  Fabric
+						27 toggle button Поиск
+					28 container
+						29 heading Новый проект
+							30 text Новый проект
+						31 text Проект держит репозитории, память и агентов, которые в них работают. Сам проект появляется, только когда вы его создадите; новая папка для него создаётся сразу.
+						32 container
+							33 text Название
+							34 text field (settable) Название, Value: Fixture one
+						35 container
+							36 text Назначение
+							37 text field (settable) Назначение, Value: Synthetic fixture purpose
+						38 container Репозитории
+							39 text Репозитории
+							40 text Сессии стартуют в основном репозитории. Остальные можно добавить позже.
+							41 text Репозиторий пока не привязан.
+							42 button Выбрать папку…
+							43 button Создать для него новую папку…
+							44 Tick box Сразу сделать git-репозиторием
+						45 Память
+							46 text Память
+							47 container
+								48 radio button Локально Хранится в базе данных этой машины.
+								49 text Локально Хранится в базе данных этой машины.
+							50 container
+								51 radio button (disabled) Облако Облачных эстейтов пока нет. Эта возможность появится вместе с ними.
+								52 text Облако Облачных эстейтов пока нет. Эта возможность появится вместе с ними.
+						53 container
+							54 text Агент для кода по умолчанию Его запускает быстрая кнопка «Запустить». Всегда можно выбрать другого.
+							55 pop-up button Агент для кода по умолчанию, Value: Claude Code
+								56 (selected) Claude Code
+						57 button (disabled) Создаём…
+						58 button Отмена
+	59 close button
+	60 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	61 minimise button
+62 menu bar
+	63 Electron
+	64 Edit
+
+The focused UI element is 3 HTML content Fabric, URL: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html

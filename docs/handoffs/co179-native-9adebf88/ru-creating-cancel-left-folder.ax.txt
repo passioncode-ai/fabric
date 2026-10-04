@@ -1,0 +1,103 @@
+Window: "Fabric · CO179 synthetic fixture", App: Electron.
+0 standard window Fabric · CO179 synthetic fixture, Secondary Actions: Raise
+	1 container Fabric · CO179 synthetic fixture
+		2 container
+			3 HTML content Fabric, URL: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html
+				4 container
+					5 button Fabric
+					6 button Fixture two
+					7 button Закрыть вкладку
+					8 text CO179 synthetic test fixture
+					9 text Fabric
+					10 text PassionCode.ai
+					11 container Навигация Fabric
+						12 link Description: Fabric, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						13 link Description: Доска, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						14 link Description: Планирование, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						15 link Description: + Проект, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+						16 disclosure triangle Управление
+							17 text Управление
+						18 link Description: Помощь Fabric, Value: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html#
+					19 button Поговорить с Fabric · Разговор не включён
+						20 image Fabric · персональный аватар
+						21 text Fabric
+						22 text Разговор не включён
+					23 text Моё пространство  /  Fabric
+					24 toggle button Поиск, Value: 0
+					25 container
+						26 image Fabric · персональный аватар
+						27 text ВАШ FABRIC · CEO
+						28 heading Fabric, Value: 2
+							29 text Fabric
+						30 button Мой облик
+						31 text Ритм работы
+						32 button 28 дней ↗
+							33 text 28 дней
+							34 text ↗
+						35 content list Активность за 28 дней
+							36 container 07.09 · нет данных на этом экране
+							37 container 08.09 · нет данных на этом экране
+							38 container 09.09 · нет данных на этом экране
+							39 container 10.09 · нет данных на этом экране
+							40 container 11.09 · нет данных на этом экране
+							41 container 12.09 · нет данных на этом экране
+							42 container 13.09 · нет данных на этом экране
+							43 container 14.09 · нет данных на этом экране
+							44 container 15.09 · нет данных на этом экране
+							45 container 16.09 · нет данных на этом экране
+							46 container 17.09 · нет данных на этом экране
+							47 container 18.09 · нет данных на этом экране
+							48 container 19.09 · нет данных на этом экране
+							49 container 20.09 · нет данных на этом экране
+							50 container 21.09 · нет данных на этом экране
+							51 container 22.09 · нет данных на этом экране
+							52 container 23.09 · нет данных на этом экране
+							53 container 24.09 · нет данных на этом экране
+							54 container 25.09 · нет данных на этом экране
+							55 container 26.09 · нет данных на этом экране
+							56 container 27.09 · нет данных на этом экране
+							57 container 28.09 · нет данных на этом экране
+							58 container 29.09 · нет данных на этом экране
+							59 container 30.09 · нет данных на этом экране
+							60 container 01.10 · нет данных на этом экране
+							61 container 02.10 · нет данных на этом экране
+							62 container 03.10 · нет данных на этом экране
+							63 container 04.10 · нет данных на этом экране
+						64 text 0 решений · 0 результатов Журнал ещё не прочитан
+					65 container Первый шаг
+						66 text ГДЕ ОСТАНОВИЛИСЬ
+						67 heading Первый шаг, Value: 3
+							68 text Первый шаг
+						69 text читаем журнал…
+						70 button Создать первый проект
+					71 container На доске
+						72 text СНАЧАЛА ВАЖНОЕ
+						73 heading На доске, Value: 3
+							74 text На доске
+						75 button Разобрать доску →
+						76 text читаю эстейт…
+						77 text Требует вашего участия
+					78 container Мои проекты
+						79 text ПРОДОЛЖИТЬ РАБОТУ
+						80 heading Мои проекты, Value: 3
+							81 text Мои проекты
+						82 button + Проект
+						83 container
+							84 text Пока пусто. Проект объединяет свои репозитории, память, агентов, которые в нём работают, и процессы, по которым они работают.
+							85 button Создать первый проект
+					86 disclosure triangle Ещё на этой странице
+						87 text Ещё на этой странице
+					88 container Live Действия агентов
+						89 heading Live Действия агентов, Value: 3
+							90 text Live Действия агентов
+						91 toggle button Пауза ленты, Value: 0
+						92 text читаем журнал…
+						93 button Вся активность →
+	94 close button
+	95 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	96 minimise button
+97 menu bar
+	98 Electron
+	99 Edit
+
+The focused UI element is 3 HTML content Fabric, URL: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html

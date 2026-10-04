@@ -1,0 +1,20 @@
+{
+  "draft-1": {
+    "projectId": "fixture-project-1",
+    "name": "Fixture one",
+    "purpose": "Synthetic fixture purpose",
+    "repoPaths": [
+      "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-YAP7f0/synthetic-repo/bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name-bounded-long-repository-name-"
+    ],
+    "memory": "local",
+    "agent": "claude-code"
+  },
+  "draft-2": {
+    "projectId": "fixture-project-2",
+    "name": "Fixture two",
+    "purpose": "Synthetic fixture purpose",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  }
+}

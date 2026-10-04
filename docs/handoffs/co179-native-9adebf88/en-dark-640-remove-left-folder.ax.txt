@@ -1,0 +1,55 @@
+Window: "Fabric · CO179 synthetic fixture", App: Electron.
+0 standard window Fabric · CO179 synthetic fixture, Secondary Actions: Raise
+	1 container Fabric · CO179 synthetic fixture
+		2 container
+			3 HTML content Fabric, URL: file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/out/renderer/index.html
+				4 container
+					5 button Fabric
+					6 button Fixture one
+					7 button Close tab
+					8 button Fixture two
+					9 button Close tab
+					10 text CO179 synthetic test fixture
+					11 container Fabric navigation
+					12 button Talk to Fabric · Conversation not switched on
+						13 image Fabric · personal avatar
+						14 text Fabric
+						15 text Conversation not switched on
+					16 container
+						17 text My workspace  /  Fabric
+						18 toggle button Search, Value: 0
+					19 container
+						20 heading New project, Value: 1
+							21 text New project
+						22 text A project holds repositories, memory and the agents that work in them. The project itself is made only when you create it; a new folder you make for it is created at once.
+						23 container
+							24 text Name
+							25 text field (settable) Name, Value: Fixture one, Placeholder: What is this project called?
+						26 container
+							27 text Purpose
+							28 text field (settable) Purpose, Value: Synthetic fixture purpose, Placeholder: What is it for? One line is enough.
+						29 container Repositories
+							30 text Repositories
+							31 text Sessions start in the primary repository. You can attach more later.
+							32 text No repository attached yet.
+							33 button Choose folder…
+							34 button Create a new folder for it…
+							35 Tick box Start it as a git repository, Value: 0
+							36 text The folder /private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-lEXNxs/synthetic-parent/Fixture one stays on disk; Fabric does not delete folders.
+						37 container
+							38 text Default coding agent What the quick Launch action starts. You can always pick another.
+							39 pop-up button Default coding agent
+						40 button Create project
+						41 button Cancel
+	42 close button
+	43 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	44 minimise button
+45 menu bar
+	46 Electron
+	47 Edit
+
+Selected text: ```
+Synthetic fixture purpose
+```
+
+Note: Pay special attention to the content selected by the user. If the user asks a question or refers to the content they are looking at on-screen, they might be referring to the selected content (but they might be referring to something else that's visible, too).

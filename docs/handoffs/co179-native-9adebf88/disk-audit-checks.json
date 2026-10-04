@@ -1,0 +1,27 @@
+{
+  "status": "PASS bounded assertions only",
+  "checks": {
+    "en-exists": "exists",
+    "ru-outside": "outside",
+    "en-failed": "failed",
+    "cancel": "parent chooser null; no folder command",
+    "ru-creating": {
+      "delay_seconds": 20.002,
+      "command_requests": 1
+    },
+    "ru-saving": {
+      "delay_seconds": 20.003,
+      "command_requests": 1
+    },
+    "en-unread": {
+      "delay_seconds": 20.009,
+      "command_requests": 1
+    },
+    "refusal": "one request; no successful response; native error and fields preserved",
+    "parent_before_folder": "all three successful synthetic folder cases",
+    "native_checkbox_and_non_ascii": "audited git=false and Cyrillic+emoji folder name",
+    "network": "no blocked outbound network attempts recorded"
+  },
+  "native_review_status": "REJECTED initial en-light-960 launcher occlusion; repair pending",
+  "scope": "synthetic IPC + production renderer/preload/local-draft; production main/provider/DB/chooser NOT_RUN"
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "name": "ru-dark-640",
+    "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-gSoJxv"
+  },
+  {
+    "name": "en-light-960",
+    "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-8cQRws"
+  },
+  {
+    "name": "ru-dark-960",
+    "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-w3aJnG"
+  },
+  {
+    "name": "en-dark-1440",
+    "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-Z6Pshj"
+  },
+  {
+    "name": "ru-light-1440",
+    "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-l5dL14"
+  },
+  {
+    "name": "en-dark-long-760",
+    "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-DfyVA2"
+  },
+  {
+    "name": "ru-dark-2x",
+    "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-7jWfBv"
+  },
+  {
+    "name": "en-refusal",
+    "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-c5bG7E"
+  },
+  {
+    "name": "ru-saving",
+    "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-7uvDz1"
+  },
+  {
+    "name": "en-unread",
+    "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-R2Vexu"
+  },
+  {
+    "name": "ru-light-2x",
+    "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-YAP7f0"
+  },
+  {
+    "name": "en-dark-640",
+    "fixture": "/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-co179-fixture-lEXNxs"
+  }
+]

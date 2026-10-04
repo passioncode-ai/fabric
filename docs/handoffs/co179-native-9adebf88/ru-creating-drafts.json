@@ -1,0 +1,10 @@
+{
+  "draft-2": {
+    "projectId": "fixture-project-2",
+    "name": "Fixture two",
+    "purpose": "Synthetic fixture purpose",
+    "repoPaths": [],
+    "memory": "local",
+    "agent": "claude-code"
+  }
+}
