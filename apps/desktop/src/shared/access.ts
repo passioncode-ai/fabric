@@ -489,7 +489,7 @@ export function agentName(agentId: string, registry: RegistrySnapshot | null | u
  * `previousLost`: a Reconnect whose new key was withdrawn after it had already replaced the old record.
  */
 export const CONNECT_PROBLEM_CODES = [
-  'hub-off', 'already-connected', 'busy', 'live-unreadable', 'not-installed', 'no-flow', 'late', 'no-answer',
+  'hub-off', 'already-connected', 'connection-changed', 'busy', 'live-unreadable', 'not-installed', 'no-flow', 'late', 'no-answer',
   'no_server', 'sign_in_required', 'mint_failed', 'unknown', 'invalid-delivery', 'record-failed', 'vault',
   'deadline', 'withdrawn', 'withdraw-failed', 'not-connected'
 ] as const

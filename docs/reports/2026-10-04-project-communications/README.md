@@ -29,6 +29,12 @@ report:
     - name: "MCP host validation maintainer discussion"
       url: "https://github.com/modelcontextprotocol/typescript-sdk/issues/2489"
       read_at: 2026-10-04
+    - name: "A2A specification snapshot"
+      url: "https://github.com/a2aproject/A2A/blob/fe182ee3c053d2e6a3ad2576c959fa5f7d8b5d07/docs/specification.md"
+      read_at: 2026-10-04
+    - name: "A2A idempotency developer discussion"
+      url: "https://github.com/a2aproject/A2A/discussions/1857"
+      read_at: 2026-10-04
     - name: "W3C Trace Context"
       url: "https://www.w3.org/TR/trace-context/"
       read_at: 2026-10-04
@@ -38,6 +44,8 @@ report:
   supersedes: []
   consumers: [fabric, fabric-agent-contract, fabric-agent-adapter, fabric-dashboards, fabric-switchboard, project-observatory, fabric-workspace]
 ---
+
+<sub>ssheleg skills — task-pipeline · agent-sync · project-reports · agent-interop · agent-orchestrator · telegram-bots · claude-history-ingest · copywriting</sub>
 
 # Project communication: research and architecture proposal
 
@@ -91,7 +99,7 @@ MCP exposes scoped board commands/queries while the journal defines their durabl
 ## Canonical identities and contract
 
 Address = `(estate_id, project_id, capability?)`; never cwd, PID, bot username or session ID.
-A registered `consumer_id` has server-authenticated `session_id`, provider, project, lease
+A registered `consumer_id` has server-authenticated `session_id`, project and lease. Managed provider provenance comes from the owned runtime; an external provider label remains an assertion until adapter evidence verifies it. Each registration has lease
 expiry and monotonically increasing generation. Session replacement is an explicit CAS
 transition. Multiple sessions may be visible, but a delivery has one current fenced owner.
 An expired owner can neither acknowledge nor complete the next owner's delivery.
@@ -112,12 +120,30 @@ an attributed result/artifact receipt. Delivery attempt states preserve `written
 proves no effect. Safe replay means same logical identity plus durable deduplication;
 unknown non-idempotent effects require reconciliation rather than blind resending.
 
-Queue queries are cursor-based and paginated, with bounded page/body limits. Notifications
+Queue queries are cursor-based and paginated, with bounded page/body limits. Cross-project messages require participant-authorized readers or participant-edge projections: neither an estate-wide table exemption nor one project_id equality provides sender/recipient privacy. Generic estate journal replay cannot be exposed unchanged to project consumers. Notifications
 are a latency optimization; persisted polling is the recovery path. Default proposed poll
 interval is 30 seconds with jitter/backoff, immediately on startup and before dependent work.
 An agent doing a long tool call need not interrupt it; expiry and operator visibility must
 make delayed service explicit. Checkpoints only advance after durable handling/acknowledgement.
 Discovery provides no consent to execute requests. Current hub bindings grant product-call authority, not project communication participation: COM requires separately enrolled project communication capabilities. Existing acknowledge_delivery validates session/digest but does not supply the new consumer-generation fence; it must not be reused unchanged for replacement.
+
+## A2A boundary and durable delivery
+
+The [A2A specification snapshot](https://github.com/a2aproject/A2A/blob/fe182ee3c053d2e6a3ad2576c959fa5f7d8b5d07/docs/specification.md)
+permits implementations to make SendMessage idempotent; this is not an unconditional
+exactly-once effect guarantee. The [maintainer-hosted developer discussion](https://github.com/a2aproject/A2A/discussions/1857)
+raises duplicate delivery and cancellation semantics as protocol gaps; proposals there
+are not normative requirements. Fabric must retain its own transactional deduplication,
+accepted-work generation fences and explicit unknown-effect reconciliation.
+
+The [task lifecycle snapshot](https://github.com/a2aproject/A2A/blob/fe182ee3c053d2e6a3ad2576c959fa5f7d8b5d07/docs/topics/life-of-a-task.md)
+distinguishes messages from committed tasks and keeps terminal tasks terminal. A follow-up
+can create another task in the same context. Our design consequence: board thread identity,
+request identity, delivery attempt and runtime session remain separate; replacing a responder
+cannot restart a terminal request or relabel an unknown external effect as safe to repeat.
+COM-01 must document a future A2A mapping against a named version, with unsupported
+semantics explicit. Local Claude/Codex consumers first use Fabric's admitted command API;
+an A2A peer bridge is optional and cannot choose estate authority through context IDs.
 
 ## Telegram findings and design consequences
 
@@ -139,6 +165,10 @@ again at implementation and record capability receipts without recording tokens.
 the same transaction. The transport records `(board_event_id, bot_id, chat_id, topic_id,
 telegram_message_id, attempt_id)` and maps replies back to the canonical thread. A Telegram
 send timeout is unknown; it cannot roll back the board or imply exactly-once visible posting.
+Bot API provides neither a general sent-history query nor a send idempotency key: an unknown
+visible post blocks automatic retry until explicit reconciliation. Multiple participating bots
+may receive the same external message; deduplicate by chat/message identity in addition to
+per-bot update_id. [Detailed transport packet](../2026-10-04-telegram-board-transport/README.md).
 Use stable event markers, reconciliation and explicit duplicate visibility where the API
 cannot prove send identity. The inbound body is untrusted content. Actor authorization uses
 numeric IDs and an enrolled chat/topic mapping; display names and mentions grant no rights.
@@ -181,3 +211,20 @@ The SDK maintainer [host validation thread](https://github.com/modelcontextproto
 reports userinfo parsing pitfalls. The local ingress therefore uses exact raw loopback Host
 and rejects browser Origin, rather than treating parsed hostnames as a trust boundary. This
 finding applies immediately to hub recovery, not only future communication work.
+
+Core implementation inventory: [dated source map and COM-01–03 packet](../../../docs/handoffs/2026-10-04-comms-core-research.md).
+
+---
+
+**Made with [ssheleg skills](https://github.com/ssheleg/sshlg-skills)**
+
+- [`task-pipeline`](https://github.com/ssheleg/task-pipeline) — bounded the recovery and COM task packets
+- [`agent-sync`](https://github.com/ssheleg/agent-sync) — protected shared registers with Git leases
+- `project-reports` — created versioned research reports — not a skill this family ships
+- [`agent-interop`](https://github.com/ssheleg/agent-stack) — defined protocol and authority boundaries
+- [`agent-orchestrator`](https://github.com/ssheleg/agent-stack) — separated orchestration ownership
+- [`telegram-bots`](https://github.com/ssheleg/telegram-dev) — checked current bot transport semantics
+- `claude-history-ingest` — recovered the interrupted Claude context — not a skill this family ships
+- [`copywriting`](https://github.com/ssheleg/super-ux) — reviewed schema recovery and connection messages
+
+<sub>A star on [the bundle](https://github.com/ssheleg/sshlg-skills) helps.</sub>

@@ -39,8 +39,8 @@ across the five levels, every finding fixed or ruled (operator's rule of 2026-10
 
 ## Open
 
-- Iterations 2 and 3: fresh reviewers, the same five levels, against this branch's head once merged (or the branch
-  itself), without reading iteration 1 first.
+- Iteration2 reports are complete; recover/disposition their fixes, then review iteration3 independently
+  across the same five levels at the exact converged SHA before comparing earlier findings.
 - CO-193, CO-194, CO-195, CO-196, CO-197 (carry-over ledger).
 - After iteration 3: bump `apps/desktop/package.json` to 0.3.1, point `docs/launch/release-gate.json` at the 0.3.1
   ledger, rename `## 0.3.1 (unreleased)` to `## 0.3.1`, the full tier green at the release commit, tag from CI.

@@ -10,17 +10,21 @@ Original dirty Claude worktrees and unrelated Dashboards audit were preserved. A
 agent owns the original common backlog; this branch adds a declared canonical COM source rather
 than overwriting that agent's register. Private consumer artifacts stay in their private owner.
 
-Completed root changes: exact raw loopback Host and browser Origin ingress guard; batch refusal;
-vault worker bound (4 running, 64 waiting), single-flight engine resolution, queued cancellation;
-release preflight requires one exact finalized nonempty version changelog entry.
-Actually run: 45 hub surface/product tests PASS, desktop typecheck PASS; release-input tests
-12 PASS. These receipts precede core/surface convergence. They are not installed/live/release proof.
+Integrated: core `18f30594`, `9ab28854`, `c69a1d85`; surface `beda3c85`; core/Telegram research and all28 DO/PL disposition packets. Original dirty worktrees preserved.
+Root changes: exact loopback Host/browserOrigin guard, batch refusal, preloaded credential
+hints with live authentication; vault4running/64waiting and cancellable reads; release
+preflight finalized changelog and verified candidate SHA/runtime-diff guard; schema recovery
+procedure; changed-state reconnect copy with no false connected claim; bounded operations receipt.
+Actually run: products51PASS/0FAIL; release-input/gate21PASS/0FAIL/0SKIP. Root focused
+receipts precede the next final convergence. Docs/prototype failures were reproduced/corrected;
+seeded75/77→78 rehearsal passed with both semantic mutants; fast/full convergence remains
+pending. Native Node/Electron backend-view8groups each pass after running the existing
+postinstall missed by --ignore-scripts; no runtime ownership rule changed.
 
-Next exact task: integrate pushed core ancestors `18f30594`, `9ab28854`, `c69a1d85`, preserving
-root vault implementation; integrate surface continuation after its receipt. Wire preloaded
-credential verifier hint at ingress startup (authentication remains live), reconcile shared types,
-then run focused and required full disposable-database checks. Archive and dispose every
-iteration-2 finding; independent iteration 3 and release candidate preparation remain open.
+Next exact task: complete remaining owner-source corrections and hub finding dispositions,
+run required fast/full on exact converged candidate, integrate independently verified seeded
+upgrade packet; then five fresh independent iteration3 reviews. Ledger and report are
+[recovery entry](../reports/2026-10-04-hub-recovery/README.md). Release remains blocked.
 
 Communication status: design proposal and COM-01–14 task contexts only; implementation open.
 Current product bindings do not authorize COM participation. Next COM task is contract/source

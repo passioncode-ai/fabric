@@ -847,7 +847,7 @@ test('V2 ER-2: a connection appearing during vault write is never superseded by 
     assert.equal(r.status, 409)
     assert.equal(await store.liveConnection('fabric-inbox'), live)
     assert.deepEqual(store.events, [])
-    assert.equal(c.connector.lastOutcome('fabric-inbox').problem.code, 'already-connected')
+    assert.equal(c.connector.lastOutcome('fabric-inbox').problem.code, 'connection-changed')
   } finally { await c.surface.stop() }
 })
 
@@ -865,6 +865,20 @@ test('V2 ER-2: reconnect names the exact connection approved, not a later replac
     assert.equal(r.status, 409)
     assert.equal(await store.liveConnection('fabric-inbox'), replacement)
     assert.equal(store.events.length, 0)
+  } finally { await c.surface.stop() }
+})
+
+test('V2 ER-2: disconnect during reconnect refuses with changed-state copy, never claims it is connected', async () => {
+  const store = connectionStore()
+  store.connections.set('old', { id: 'old', product: 'fabric-inbox', removed_at: null })
+  const c = await connectorOn({ store, vault: memoryVault() })
+  try {
+    const state = await c.stateOf({ reconnect: true })
+    store.connections.get('old').removed_at = 'disconnected'
+    assert.equal((await deliver(c.origin, delivery(state))).status, 409)
+    assert.equal(await store.liveConnection('fabric-inbox'), null)
+    assert.equal(store.events.length, 0)
+    assert.equal(c.connector.lastOutcome('fabric-inbox').problem.code, 'connection-changed')
   } finally { await c.surface.stop() }
 })
 

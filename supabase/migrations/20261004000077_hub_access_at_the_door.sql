@@ -63,7 +63,7 @@
 --
 -- Schema 77: an export names 77; import accepts 66 to 77 (ADR-0079 decision 5, as 67–76 did).
 
--- #region hub-access-at-the-door — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#3-grants-are-standing-narrow-and-revocable
+-- #region hub-access-at-the-door — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#verification-iteration-2-clarifications--2026-10-04
 
 insert into event_types (type, projects, note) values
   ('product.connect.refused@1', false, 'a cloud product''s own consent prompt was refused by the operator, or failed (no server, sign-in required, key not minted); Fabric connected nothing');

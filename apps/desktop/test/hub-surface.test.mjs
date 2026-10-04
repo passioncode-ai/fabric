@@ -119,7 +119,7 @@ test('ER-8: the agent-facing text says to use the published origin verbatim, nev
 test('V2 ER-3: hostile Host and browser Origin are refused before any credential lookup', async (t) => {
   const { surface, lookups } = await hub({ budgetCalls: 5 })
   t.after(() => surface.stop())
-  for (const headers of [{host: 'attacker.example'}, {origin: 'http://attacker.example'}, {origin: 'null'}]) {
+  for (const headers of [{host: 'attacker.example'}, {host: `attacker.example@127.0.0.1:${new URL(surface.origin).port}`}, {host: `127.0.0.1:${Number(new URL(surface.origin).port) + 1}`}, {origin: 'http://attacker.example'}, {origin: 'null'}]) {
     const status = await new Promise((resolve, reject) => {
       const req = request(`${surface.origin}/mcp`, {method:'POST',headers:{authorization:'Bearer attacker','content-type':'application/json',...headers}}, res => {res.resume();res.on('end',()=>resolve(res.statusCode))})
       req.on('error',reject);req.end(JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/list'}))

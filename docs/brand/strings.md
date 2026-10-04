@@ -594,3 +594,7 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `access.hub.off.port-taken` | Another program holds the hub’s port. Close it, or choose a free port with FABRIC_HUB_PORT, then quit and reopen Fabric. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.hub.off.not-started` | The hub could not start. Quit and reopen Fabric to try again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.notDoneGeneric` | Not done. Try again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+
+| `startup.schema-behind-recovery` | Stop all writers and make a verified backup first. Follow docs/launch/release-mac.md#upgrading-an-existing-database before running supabase migration up --local in {stackPath}, then retry. Fabric has not started its workspace services. | apps/desktop/src/main/schemaReadiness.ts | SCN-095 | proposed |
+
+| `access.connect.connection-changed` | The connection to {name} changed while you were answering. Check its current state, then connect again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | implemented; native acceptance pending |

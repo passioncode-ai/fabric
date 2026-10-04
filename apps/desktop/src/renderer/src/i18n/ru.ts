@@ -374,6 +374,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'access.refused.unavailable': 'Fabric не смог прочитать или записать доступ агентов. Попробуйте снова.',
   'access.connect.hub-off': 'Хаб Fabric не слушает, поэтому {name} некуда передать ключ.',
   'access.connect.already-connected': '{name} уже подключён; чтобы заменить ключ, выберите «Переподключить».',
+  'access.connect.connection-changed': 'Подключение к {name} изменилось, пока вы отвечали. Проверьте его текущее состояние и подключитесь снова.',
   'access.connect.busy': 'Подключение к {name} уже ждёт вашего ответа там.',
   'access.connect.live-unreadable': 'Fabric не смог прочитать, подключён ли уже {name}.',
   'access.connect.not-installed': 'Не удалось открыть {name}. Установлено ли его приложение?',

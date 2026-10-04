@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-04 · `claude-hub-recovery` · codex/claude-recovery-20261004 → main (pending)
+- run: r-r6a4c865e0; base:41f994a7; integration pending exact candidate gates/review, not a landed main change
+- scope: recovered core and surface source packets, ingress/vault/release guards, upgrade procedure, iteration2 archive/status, COM execution source and Telegram research, living map
+- summary: task-owned isolated source converges interrupted Claude work; original dirty worktrees preserved. Full gate, owning-source corrections and independentI3 remain open. Human approvals still gate signed release; no installed/live migration or COM deployment claimed.
+
 ### 2026-10-03 · `release-approval-amended` · docs/release-approval-amended → main
 - run: r-cc7db4880; base: 45572b65; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
 - scope: ADR-0113 (amends ADR-0111's approval rule), `docs/launch/release-mac.md` step 4, `.github/workflows/release.yml` comment, P-03 in `docs/evidence/backlog.md`, ADR index, DOCMAP, a note in the 2026-10-03 handoff, the pipeline reservation moves 0112 -> 0114, the mockup receipt for the backlog re-pinned (M131 byte-identical), living map

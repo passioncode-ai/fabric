@@ -159,8 +159,12 @@ each as `{name, url, auth: {secret, header}}` with upstream keys in `secrets/` a
 and **three roles** — `docs`, `full`, `research` — each a bearer key stored as a sha256 in
 the generated config, with `deny_tools` per role.
 
-That is the provider manifest, the credential store and per-hop authorization, running. The
-fabric's `mcp` transport is a client of it, not a reimplementation of it.
+That was the provider manifest, credential store and per-hop authorization measured on
+2026-08-25. **Historical snapshot, superseded:** the machine gateway has been off since
+2026-09-14. [ADR-0105](../adr/0105-agent-memory-lives-in-project-observatory.md) retired its
+route; [ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md) defines the current consent hub for registered local
+agents. Session-declared product servers remain refused under CO-194. This snapshot does
+not establish a currently running gateway.
 
 ---
 

@@ -1,0 +1,46 @@
+{
+  "source_session": "6e9796fb-140d-49a8-a649-2e1bdc93321e",
+  "scope": "historical independent iteration-2 reports, not checks executed by recovery root",
+  "files": [
+    {
+      "name": "ux",
+      "baseline": "2927a087",
+      "original_sha256": "e94896df15dc8a157d3d576cb6b1a3806f0506d15c44b6df7e7339a62f9b3350",
+      "published_sha256": "9c75034a538aa409eeb08ec2f08bc5422b01b56cdcff871eb8ef5c15fdec9489",
+      "privacy": "operator-home/worktree paths and private consumer names replaced; findings and original execution claims unchanged",
+      "published_path": "iteration-2/2026-10-04-ux.md"
+    },
+    {
+      "name": "errors",
+      "baseline": "2927a087",
+      "original_sha256": "8c242a440ebb4011fd62e9c6bb3352e98aa40c5c1101ade35cd9c1a4a2474465",
+      "published_sha256": "1c3b5b8e0b6aaa030eccbe19c68dabc764ca9661866fede0831be6f2e4378cb4",
+      "privacy": "operator-home/worktree paths and private consumer names replaced; findings and original execution claims unchanged",
+      "published_path": "iteration-2/2026-10-04-errors.md"
+    },
+    {
+      "name": "docs",
+      "baseline": "2927a087",
+      "original_sha256": "f53dbc486f4d8be74fbb313df1d5cec9de25b9b14219297166579424d1ba16e5",
+      "published_sha256": "9c4a69857dd6035db7c6c298dc91cd217d9191f04181e3944958daccde97164e",
+      "privacy": "operator-home/worktree paths and private consumer names replaced; findings and original execution claims unchanged",
+      "published_path": "iteration-2/2026-10-04-docs.md"
+    },
+    {
+      "name": "data",
+      "baseline": "2927a087",
+      "original_sha256": "0e9d3233dc2acc6014330a035d73df66bacf3bbcb64b33de7620d38cae7bb812",
+      "published_sha256": "0e9d3233dc2acc6014330a035d73df66bacf3bbcb64b33de7620d38cae7bb812",
+      "privacy": "operator-home/worktree paths and private consumer names replaced; findings and original execution claims unchanged",
+      "published_path": "iteration-2/2026-10-04-data.md"
+    },
+    {
+      "name": "plan",
+      "baseline": "2927a087",
+      "original_sha256": "f10f69ee6c974703543d2fb176808f260f0bd17c272e800affaa6d3ec9b85368",
+      "published_sha256": "0b08b26aac7c278650d1c3d673e6e468a331258643d22d89f16faaffe754983e",
+      "privacy": "operator-home/worktree paths and private consumer names replaced; findings and original execution claims unchanged; one relative runbook link relocated to the same owning target",
+      "published_path": "iteration-2/2026-10-04-plan.md"
+    }
+  ]
+}

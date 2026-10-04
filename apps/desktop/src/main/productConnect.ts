@@ -415,11 +415,12 @@ export class ProductConnector {
         if ('error' in currentRead) throw currentRead.error
         current = currentRead.value
       } catch (e) {
+        ops.failed('connect.callback-live-read', e, { product })
         this.failed(product, at, { code: 'live-unreadable', detail: (e as Error).message }, 'the current connection could not be read')
         return write(res, 503, { error: 'live_unreadable' })
       }
       if ((current?.id ?? null) !== pending.supersedes) {
-        this.failed(product, at, { code: 'already-connected' }, 'the connection changed while the product was answering; reconnect from its current state')
+        this.failed(product, at, { code: 'connection-changed' }, 'the connection changed while the product was answering; reconnect from its current state')
         return write(res, 409, { error: 'connection_changed' })
       }
 

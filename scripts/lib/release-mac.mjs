@@ -93,6 +93,34 @@ export function releaseCommitProblem(git) {
   }
 }
 
+/** Bind the verification ledger to a reviewed ancestor; later runtime/build changes require review again. */
+export function verifiedCandidateProblem({ version, gateText }, git) {
+  let gate
+  try { gate = JSON.parse(gateText) } catch { return 'the release gate has no readable verified commit' }
+  if (gate.version !== version || !/^[0-9a-f]{40}$/.test(gate.verifiedCommit ?? ''))
+    return 'the release gate must name the exact verified commit for this version'
+  try { git(['merge-base', '--is-ancestor', gate.verifiedCommit, 'HEAD']) } catch {
+    return 'the verified commit is not an ancestor of the release candidate'
+  }
+  const metadata = new Set(['CHANGELOG.md', 'docs/launch/release-gate.json', gate.ledger,
+    'docs/MERGES.md', 'docs/reports/map.html', 'docs/handoffs/2026-10-04-claude-recovery.md'])
+  let changed
+  try { changed = git(['diff', '--name-only', gate.verifiedCommit, 'HEAD']).trim().split('\n').filter(Boolean) } catch {
+    return 'the verified commit difference could not be inspected'
+  }
+  const unverified = changed.filter(p => p !== 'apps/desktop/package.json' && !metadata.has(p))
+  if (unverified.length) return `unverified changes follow the verified commit: ${unverified.slice(0, 10).join(', ')}`
+  if (changed.includes('apps/desktop/package.json')) {
+    try {
+      const before = JSON.parse(git(['show', `${gate.verifiedCommit}:apps/desktop/package.json`]))
+      const after = JSON.parse(git(['show', 'HEAD:apps/desktop/package.json']))
+      delete before.version; delete after.version
+      if (JSON.stringify(before) !== JSON.stringify(after)) return 'the desktop package changed beyond version after verification'
+    } catch { return 'the verified desktop package comparison failed' }
+  }
+  return null
+}
+
 /** What `codesign -dvv <app>` printed (it writes to stderr): the leaf authority, the team, the runtime flag. */
 export function signatureOf(text) {
   const authority = /^Authority=(.+)$/m.exec(text)?.[1]?.trim()

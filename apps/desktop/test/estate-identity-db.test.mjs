@@ -541,7 +541,7 @@ test('the name rule trims exactly the whitespace the form trims (JS String#trim)
 })
 // #endregion canonical-ids-at-the-door
 
-// #region hub-access-at-the-door — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#3-grants-are-standing-narrow-and-revocable
+// #region hub-access-at-the-door — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#verification-iteration-2-clarifications--2026-10-04
 // Migration 77 (verification 0.3.1, DA-1): the hub's four creates are keyed on a global id like every
 // create above. Before 77, B's `access.requested@1` with A's id was ACCEPTED and journalled a fact no
 // projection of B shows (`on conflict (id) do nothing`), and the binding, grant and connection creates

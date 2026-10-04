@@ -7,12 +7,28 @@ import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { builderConfig, builderIdentity, changelogProblem, parseReleaseArgs, releaseCommitProblem, signatureOf, tagProblem } from '../lib/release-mac.mjs'
+import { builderConfig, builderIdentity, changelogProblem, parseReleaseArgs, releaseCommitProblem, signatureOf, tagProblem, verifiedCandidateProblem } from '../lib/release-mac.mjs'
 
 test('a release requires exactly one finalized changelog entry for its exact version', () => {
   assert.equal(changelogProblem({ version: '0.3.1', text: '# Changelog\n\n## 0.3.1\n\nDelivered hub.\n\n## 0.3.0\nPrevious.\n' }), null)
   for (const text of ['# Changelog\n## 0.3.1 — unreleased\n', '# Changelog\n## 0.3.10\n', '# Changelog\n## 0.3.1\n## 0.3.1\n', '# Changelog\n## 0.3.1\n\n## 0.3.0\nPrevious.'])
     assert.match(changelogProblem({ version: '0.3.1', text }), /changelog/i)
+})
+
+test('new releases bind to a verified ancestor; only version and named release metadata can follow it', () => {
+  const gate={version:'0.3.1',ledger:'docs/evidence/plans/hub.md',verifiedCommit:'a'.repeat(40)}
+  const runner=(paths='', extra={})=>args=>{
+    if(args[0]==='merge-base') {if(extra.foreign)throw Error('foreign');return ''}
+    if(args[0]==='diff')return paths
+    if(args[0]==='show')return JSON.stringify({name:'desktop',version:args[1].startsWith('HEAD:')?'0.3.1':'0.3.0',...(extra.packageChanged&&args[1].startsWith('HEAD:')?{scripts:{build:'unexpected'}}:{})})
+    throw Error('unexpected git command')
+  }
+  const check=(g,git)=>verifiedCandidateProblem({version:'0.3.1',gateText:JSON.stringify(g)},git)
+  assert.match(check({...gate,verifiedCommit:null},runner()),/verified commit/i)
+  assert.match(check(gate,runner('',{foreign:true})),/ancestor/i)
+  assert.equal(check(gate,runner('apps/desktop/package.json\nCHANGELOG.md\ndocs/launch/release-gate.json\ndocs/evidence/plans/hub.md')),null)
+  assert.match(check(gate,runner('apps/desktop/src/main/agentSurface.ts')),/unverified/i)
+  assert.match(check(gate,runner('apps/desktop/package.json',{packageChanged:true})),/beyond version/i)
 })
 
 // Fake identities only: a team id is ten upper-case characters, and none of these is a real one.

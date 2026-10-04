@@ -21,19 +21,19 @@ Not released yet: the version bump and the tag follow the third verification ite
   **Settings → Agent access** lists products, waiting requests, agents with their grants (Revoke, Revoke all)
   and standing denials (Clear).
 - **Fabric Inbox connects once, by its own consent.** Connect opens the Fabric Inbox app; its key goes to
-  Project Observatory's vault, never into Fabric's database or logs. Requires the Fabric Inbox **server** at
-  Worker version `4fd02b75` or later, which carries fabric-inbox#24 (a comma is never part of an account id);
-  the Fabric Inbox 0.9.0 app supplies the connect link.
+  Project Observatory's vault, never into Fabric's database or logs. Requires a compatible Fabric Inbox **server** with account narrowing (fabric-inbox#24);
+  runtime name/version ≥0.9.0 is checked. Independent deployed-source and live acceptance remain
+  CO-195 / [fabric-inbox#26](https://github.com/passioncode-ai/fabric-inbox/issues/26). The0.9.0 app supplies the connect link.
 - **Hardening from the first verification iteration:** a per-request poll secret, so only the agent that asked
   can read its answer and collect its credential; the registry reads regular files only and never blocks the
   app; the connect callback answers the product within its 10 seconds or keeps nothing; hub authority restored
   from an archive comes back revoked, for you to approve again; each estate keeps its own product secret slot;
   the consent, grant and queue wording is in English and Russian.
-- **Schema 75 → 77** (migrations 76 and 77). An estate opened by 0.3.1 cannot be opened by 0.3.0.
+- **Schema 75 → 78** (migrations 76, 77 and filename suffix80; schema version is the migration count). An estate opened by 0.3.1 cannot be opened by 0.3.0.
 - **Not done yet:** `agent.call` takes product tool names the agent contract's `capabilityName` pattern refuses
   (CO-193); a session Fabric starts cannot reach a product through Fabric (CO-194); no live end-to-end run with
-  the Fabric Inbox app yet (CO-195); the knowledge base does not describe the hub (CO-196); the workspace
-  publication is stale (CO-197).
+  the Fabric Inbox app yet (CO-195); the knowledge base needs final released facts (CO-196); final-source workspace
+  publication and acceptance remain open (CO-197).
 
 ## 0.3.0
 

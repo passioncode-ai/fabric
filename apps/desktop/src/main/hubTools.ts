@@ -1,4 +1,4 @@
-// #region hub-tools — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#2-an-agent-is-admitted-by-device-style-consent-not-by-a-pasted-key
+// #region hub-tools — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#verification-iteration-2-clarifications--2026-10-04
 // The tools an EXTERNAL agent sees (ADR-0115 §1–§2, §5). What a principal may do is decided by which
 // server it is given, not by checks inside a shared one: the door token's server has exactly two
 // tools, a binding's has four, and neither has any `fabric_*` session tool — so a tool added to the

@@ -27,6 +27,9 @@ export function readBuildManifestCandidates(files: readonly string[]): ManifestR
   return readManifest(null)
 }
 
+const stackPath = '~/Library/Application Support/Fabric/stack'
+const schemaBehindRecovery = 'Stop all writers and make a verified backup first. Follow docs/launch/release-mac.md#upgrading-an-existing-database before running supabase migration up --local in {stackPath}, then retry. Fabric has not started its workspace services.'
+
 const positiveInteger = (value: unknown): value is number =>
   typeof value === 'number' && Number.isSafeInteger(value) && value > 0
 
@@ -79,7 +82,7 @@ export async function withSchemaReadiness<T>(input: {
   if (performance.now() >= deadline || !response || response.error != null || !positiveInteger(response.data))
     throw new SchemaReadinessError('The database schema could not be verified. Check the local stack and retry.')
   if (response.data < contract.minimum)
-    throw new SchemaReadinessError(`The database schema is ${response.data}; this build requires ${contract.minimum}–${contract.maximum}. Stop all writers and make a verified backup first. Follow docs/launch/release-mac.md#upgrading-an-existing-database before running supabase migration up --local in ~/Library/Application Support/Fabric/stack, then retry. Fabric has not started its workspace services.`)
+    throw new SchemaReadinessError(`The database schema is ${response.data}; this build requires ${contract.minimum}–${contract.maximum}. ${schemaBehindRecovery.replace('{stackPath}', stackPath)}`)
   if (response.data > contract.maximum)
     throw new SchemaReadinessError(`The database schema is ${response.data}; this build supports ${contract.minimum}–${contract.maximum}. Install a compatible build, then retry. Fabric has not started its workspace services.`)
   return start()

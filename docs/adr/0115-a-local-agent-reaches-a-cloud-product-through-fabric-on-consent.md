@@ -312,3 +312,51 @@ The decision stands. These are the behaviours iteration 1 found missing or unsaf
     `cancelled` (with the same `idempotencyKey`); the others need the operator or a different request. HTTP: 401 for
     an unknown or revoked credential, 429 with `retry-after` when a budget is spent, 503 with `retry-after` when the
     hub cannot check credentials.
+
+## Verification iteration 2 clarifications — 2026-10-04
+
+These amendments supersede conflicting wire/availability wording in amendment 19; the original
+record above remains as historical decision context.
+
+20. **The forwarded answer is an interop envelope.** `agent.call` returns the
+    `fabric-interop/0.1` result envelope with product output in `output`, not a bare product answer.
+    A product-declared error is that envelope with `outcome: failed` and `isError: true`.
+    A Fabric refusal is instead `isError: true` plus `{error:{code,message,data?}}`.
+    Agents distinguish these shapes before reading `error.code`.
+21. **An uncertain call is never promised safe retry.** Once `tools/call` may have been written,
+    a failure records `outcome-unknown` for that idempotency key. The key cannot send again even
+    after cache expiry; bounded retained/tombstoned memory may refuse new keys when full. Cancellation
+    before any tool-call write may retry with the same key; cancellation/timeout after the boundary
+    requires reconciliation. Runtime memory is not durable across process replacement; callers must
+    reconcile side effects after restart. Revocation clears retained results, not prior effect facts.
+22. **The listener admits native loopback clients.** Host must equal the published loopback address
+    and port exactly; a request bearing browser Origin is refused before credential lookup. JSON-RPC
+    batches are refused, so one budget charge cannot admit hundreds of tools. Existing verifier hints
+    preload before listening to avoid unknown-token floods locking out a valid key after restart;
+    a hint only skips the unknown budget, while live authentication still checks revocation.
+    HTTP 421 is wrong Host, 403 browser Origin, 400 batch/malformed envelope, 413 oversized body,
+    401 invalid/revoked credential, 429 budget, and 503 unavailable credential verification.
+23. **Product scope is checked before forwarding.** Narrowed calls require the product's initialized
+    server identity and supported narrowing version (Fabric Inbox >=0.9.0). A missing/older claim is
+    `product-outdated` before a tool call. Version evidence is a compatibility check, not an attestation
+    of arbitrary remote code. Exact origin and configured product trust remain required.
+24. **Storage boundaries enforce writer promises.** Candidate migration filename suffix 80 (schema
+    count 78) checks canonical IDs, event-key allowlists and reconnect predecessor CAS; archive replay
+    retains history while removing pending poll authority. A restored request cannot gain a credential
+    merely by retaining its source polling secret. Connector serialization complements DB CAS and does
+    not replace it. Restore acceptance is checked through owned disposable-PG fixtures.
+25. **Vault demand is bounded.** At most four secret reads run at a time, with a bounded waiting queue.
+    Engine location/interpreter resolution is single-flight; credential values are never cached there.
+    Cancellation leaves the wait queue and aborts a running handover. A full queue is a refusal, not
+    an unbounded process or main-loop stall.
+26. **Discovery is not process identity.** `hub.json` PID liveness distinguishes absence from a running
+    process, but cannot prove that a reused PID belongs to Fabric. Clients use the origin verbatim and
+    authenticate the scoped call; they must not infer authority from PID, bot name or registry visibility.
+    Project communication enrollment is a separately scoped future capability, not an automatic extension
+    of the product-call binding described here.
+
+27. **Tool names retain the documented contract deviation until the owner publishes it.** Fabric
+    accepts MCP product tool-name underscores under CO-193 / [fabric-agent-contract#8](https://github.com/passioncode-ai/fabric-agent-contract/issues/8).
+    Strict clients using the previous published capability-name schema refuse those arguments.
+    The owner correction must cover both the shared definition and manifest capability declarations;
+    issue existence or a pushed source branch does not prove published contract/client compatibility.

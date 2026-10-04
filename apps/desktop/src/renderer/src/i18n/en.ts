@@ -934,6 +934,7 @@ export const en = {
   'access.refused.unavailable': 'Fabric could not read or write agent access just now. Try again.',
   'access.connect.hub-off': 'Fabric’s hub is not listening, so {name} would have nowhere to deliver its key.',
   'access.connect.already-connected': '{name} is already connected; reconnect it to replace its key.',
+  'access.connect.connection-changed': 'The connection to {name} changed while you were answering. Check its current state, then connect again.',
   'access.connect.busy': 'A connection to {name} is already waiting for your answer there.',
   'access.connect.live-unreadable': 'Fabric could not read whether {name} is already connected.',
   'access.connect.not-installed': '{name} could not be opened. Is its app installed?',

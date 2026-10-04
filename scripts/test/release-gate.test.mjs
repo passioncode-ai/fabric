@@ -18,15 +18,18 @@ test('a gate for another version, or none, refuses', () => {
   assert.match(releaseGateProblems({ version: '0.4.0', gateText, ledgerText: ledger(iteration(1), iteration(2), iteration(3)) })[0], /names version 0.3.0, the app is 0.4.0/)
   assert.match(releaseGateProblems({ version: '0.3.0', gateText: '', ledgerText: '' })[0], /missing or not JSON/)
 })
-test('the real gate file and ledger refuse while iteration 3 has not started', async (t) => {
+test('the real gate names the app version and cannot clear an unstarted iteration', async () => {
   const { readFileSync } = await import('node:fs')
   const root = new URL('../../', import.meta.url)
   const gt = readFileSync(new URL('docs/launch/release-gate.json', root), 'utf8')
   const gate = JSON.parse(gt)
   const ledgerText = readFileSync(new URL(gate.ledger, root), 'utf8')
-  if (!/^## Iteration 3\s*\n+_Not started\._/m.test(ledgerText)) { t.skip('iteration 3 has started; the gate is judged by the cases above'); return }
+  assert.equal(gate.version, JSON.parse(readFileSync(new URL('apps/desktop/package.json', root), 'utf8')).version)
   const p = releaseGateProblems({ version: gate.version, gateText: gt, ledgerText })
-  assert.ok(p.length > 0, 'the gate must not be clear before iteration 3 closes')
+  for (let n=1;n<=3;n++) {
+    const unfinished=new RegExp(`^## Iteration ${n}\\s*\\n+_Not started\\._`,'m').test(ledgerText)
+    if(unfinished) assert.ok(p.includes(`iteration ${n} has not started`), `unstarted iteration ${n} was cleared`)
+  }
 })
 
 test('the verdict is computed: an open row, a second heading, a hidden blocking line, a missing report link or a ledger outside docs/ refuse', () => {
@@ -71,6 +74,7 @@ test('the real files: 0.3.0\'s ledger clears only 0.3.0, and the hub\'s ledger d
   assert.deepEqual(releaseGateProblems({ version: '0.3.0', gateText: gateFor('0.3.0', old), ledgerText: read(old) }), [])
   assert.ok(releaseGateProblems({ version: '0.3.1', gateText: gateFor('0.3.1', old), ledgerText: read(old) }).some((x) => x.includes('does not name version 0.3.1')))
   const hubText = read(hub)
-  assert.ok(releaseGateProblems({ version: '0.3.1', gateText: gateFor('0.3.1', hub), ledgerText: hubText }).length > 0 || /^## Iteration 3\s*$/m.test(hubText) && !/_Not started\._/.test(hubText),
-    'the hub ledger must not clear 0.3.1 while an iteration is open')
+  const problems=releaseGateProblems({ version: '0.3.1', gateText: gateFor('0.3.1', hub), ledgerText: hubText })
+  for(let n=1;n<=3;n++) if(new RegExp(`^## Iteration ${n}\\s*\\n+_Not started\\._`,'m').test(hubText))
+    assert.ok(problems.includes(`iteration ${n} has not started`), `hub iteration ${n} must not clear before starting`)
 })

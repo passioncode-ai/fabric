@@ -42,6 +42,13 @@ build signed anywhere but the `release` environment is a debug build that is nev
    [`2026-10-04-hub-verification.md`](../evidence/plans/2026-10-04-hub-verification.md), and the bump to
    0.3.1 points the gate at it (`scripts/lib/release-gate.mjs`, tested by
    `scripts/test/release-gate.test.mjs`).
+   Preflight also requires exactly one nonempty finalized `## X.Y.Z` changelog entry.
+   The gate names `verifiedCommit`, a full commit SHA reviewed by the final iteration. It must
+   be an ancestor of the release commit. After it, only named release metadata and the desktop
+   package version may change; runtime/build/dependency changes require a new verified candidate.
+   The package comparison rejects changes beyond `version`. Checked by
+   `scripts/lib/release-mac.mjs#verifiedCandidateProblem` and release-input regression tests.
+   The current historical 0.3.0 gate has no candidate pin; it is not permission to rerelease 0.3.0.
 2. **Push the tag** on the release commit: `git tag -a vX.Y.Z <commit on main> -m "Fabric X.Y.Z" && git push origin vX.Y.Z`.
    A published release is never rewritten; a fix is a new tag.
 3. **`preflight`** runs without secrets: `node scripts/release-mac.mjs --check-only --tag vX.Y.Z` refuses
@@ -114,3 +121,67 @@ because this repository was private then.
 [`fabric-v0.2.0`](https://github.com/passioncode-ai/passioncode-ai.github.io/releases/tag/fabric-v0.2.0) and
 offered on [passioncode.ai/fabric](https://passioncode.ai/fabric/#download) (site PRs #7 and #8, Worker version
 `3726c08e-4a39-4d3b-8678-2edcb58c3716`).
+
+## Upgrading an existing database
+
+This section is the upgrade procedure, **not an executed upgrade receipt**. Fabric never migrates
+an existing database automatically. The 0.3.1 candidate's compiled contract admits schema **78**
+(the number of applied migration files); the newest migration's filename ends in **80** because
+other work reserved filenames. Do not use `max(version)` or a filename suffix as schema readiness.
+The actual guard is `public.schema_version()` against `src/shared/schemaContract.json`.
+
+1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
+   no writers: inspect the registered services and database connections. Do not upgrade beneath
+   another running session. Keep the installed 0.3.0 database at schema 75 until a verified signed
+   0.3.1 build is available. First install that build, attempt startup once so its bundled stack is
+   copied, then quit: readiness refuses old data before domain services start.
+2. Make a private backup outside the checkout before any migration. The local stack uses loopback
+   database port 54322. The following commands prompt for the existing database password; never
+   put it in argv or a tracked file. A prepared private mode-600 PGPASSFILE is also supported by
+   PostgreSQL. Name the backup deliberately and retain the dump, existing build, stack config and
+   journal event count together. Dumps contain private data; do not attach them to issues.
+
+   ```sh
+   umask 077
+   mkdir -p "$HOME/Library/Application Support/Fabric/backups"
+   PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
+     pg_dump --password --format=custom \
+     --file="$HOME/Library/Application Support/Fabric/backups/pre-0.3.1.dump"
+   PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
+     psql --password -v ON_ERROR_STOP=1 \
+     -c 'select public.schema_version(); select count(*) from public.journal;'
+   ```
+
+   Confirm the actual local stack port before using this example; another configured stack needs
+   its own connection settings. `pg_restore --list <dump>` verifies the archive can be parsed;
+   only restoring it into a disposable database proves it can be restored.
+3. Restore the dump into a **separate disposable stack**, with its own project id, port block and
+   volumes. Never point a rehearsal at `fabric` or ports 54321/54322. Apply the installed candidate's
+   migration set there; compare schema_version, journal count and replayed projections. Exercise
+   an existing estate's queries and the new authority boundaries. Restored hub requests must not
+   collect old source credentials or authorize pending work. The coordinated `scripts/ci.sh full`
+   uses disposable data, but its synthetic fixture is not a rehearsal of this private dump. Record
+   those checks separately. Do not proceed if the backup restore or candidate rehearsal fails.
+4. With writers still stopped and the verified backup retained, apply to the working bundled stack:
+
+   ```sh
+   cd "$HOME/Library/Application Support/Fabric/stack"
+   supabase migration up --local
+   PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
+     psql --password -v ON_ERROR_STOP=1 \
+     -c 'select public.schema_version(); select count(*) from public.journal;'
+   ```
+
+   `schema_version()` must equal the installed build's minimum/maximum (78 for this candidate).
+   Compare the journal count with the backup receipt; do not accept a startup error as a successful
+   migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
+   restart enrolled writers one by one. Record installed version/build and actual read/effect results.
+5. If migration or startup acceptance fails, stop all writers again. Preserve the failed database
+   and diagnostics privately, restore the tested backup into a clean compatible stack, and install
+   the corresponding old signed build. Do not run old code on a newer schema or try to reverse
+   journal/projector changes with ad hoc SQL. A restored archive's history is not fresh authority;
+   follow the restore boundary and reconnect/consent as required. Document the exact rollback receipt.
+
+The schema-behind startup message names this section and the command, but is not authorization to
+skip backup/rehearsal. Acceptance of the 75→78 and 77→78 seeded rehearsal belongs to the converged
+verification ledger. Live private-dump rehearsal and live upgrade remain operator-state checks.

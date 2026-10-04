@@ -2,6 +2,8 @@
 
 **Status:** accepted · 2026-09-05 · supersedes nothing · M127
 
+**Successor note, 2026-10-04:** superseded by [ADR-0105](0105-agent-memory-lives-in-project-observatory.md). The replacement local registered-agent route is specified by [ADR-0115](0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md). The machine-gateway implementation below is historical, not the current route.
+
 ## Context
 
 A session sees Fabric's tools and nothing else. The bundle writes one server and
