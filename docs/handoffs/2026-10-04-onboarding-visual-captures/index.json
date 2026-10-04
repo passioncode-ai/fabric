@@ -1,0 +1,533 @@
+{
+  "tier": "source-bound-hidden-test-host-rendering-not-native-UI-acceptance",
+  "captures": [
+    {
+      "id": "before-balanced-en-640x900",
+      "mode": "balanced",
+      "locale": "en",
+      "viewport": [
+        640,
+        900
+      ],
+      "source_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "capture": {
+        "file": "page.png",
+        "sha256": "cc734acd890730780bd5422f834e536fdc7a381921ddc84a163b9222ffef4db5",
+        "bytes": 137411,
+        "pixels": {
+          "width": 1280,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-i8PWpw",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "before-balanced-en-640x900.json",
+      "image": "before-balanced-en-640x900.png"
+    },
+    {
+      "id": "before-balanced-en-960x900",
+      "mode": "balanced",
+      "locale": "en",
+      "viewport": [
+        960,
+        900
+      ],
+      "source_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "capture": {
+        "file": "page.png",
+        "sha256": "e53122513a12bc8d8a522b9da8eac31adbf9c7a2c93030555d23b2cc3feb69d6",
+        "bytes": 180533,
+        "pixels": {
+          "width": 1920,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-mGNQqu",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "before-balanced-en-960x900.json",
+      "image": "before-balanced-en-960x900.png"
+    },
+    {
+      "id": "before-balanced-en-1440x900",
+      "mode": "balanced",
+      "locale": "en",
+      "viewport": [
+        1440,
+        900
+      ],
+      "source_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "capture": {
+        "file": "page.png",
+        "sha256": "c0018fe7f135547b67ec13ee2782d4fd649a268702e1cd256916b27e07afecb7",
+        "bytes": 222185,
+        "pixels": {
+          "width": 2880,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-Q398zW",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "before-balanced-en-1440x900.json",
+      "image": "before-balanced-en-1440x900.png"
+    },
+    {
+      "id": "before-balanced-ru-640x900",
+      "mode": "balanced",
+      "locale": "ru",
+      "viewport": [
+        640,
+        900
+      ],
+      "source_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "capture": {
+        "file": "page.png",
+        "sha256": "479a2f6867e9a88cc446311fc9479a04d2acea3408c1bb1d0d8871f8fc1dd135",
+        "bytes": 160652,
+        "pixels": {
+          "width": 1280,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-Q9zYQR",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "before-balanced-ru-640x900.json",
+      "image": "before-balanced-ru-640x900.png"
+    },
+    {
+      "id": "before-balanced-ru-960x900",
+      "mode": "balanced",
+      "locale": "ru",
+      "viewport": [
+        960,
+        900
+      ],
+      "source_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "capture": {
+        "file": "page.png",
+        "sha256": "c61787ceabee25d88095086d3adb110a7ff935c8cd3df67ad3bf7e0006c58a34",
+        "bytes": 222321,
+        "pixels": {
+          "width": 1920,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-UHVKkJ",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "before-balanced-ru-960x900.json",
+      "image": "before-balanced-ru-960x900.png"
+    },
+    {
+      "id": "before-balanced-ru-1440x900",
+      "mode": "balanced",
+      "locale": "ru",
+      "viewport": [
+        1440,
+        900
+      ],
+      "source_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "capture": {
+        "file": "page.png",
+        "sha256": "46db6da8231cbcf701dcc535a37d15d0114c1c66cd7e410de04e9ccc03f0c8b1",
+        "bytes": 233031,
+        "pixels": {
+          "width": 2880,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-rTbHOs",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "before-balanced-ru-1440x900.json",
+      "image": "before-balanced-ru-1440x900.png"
+    },
+    {
+      "id": "before-long-repos-en-760x1000",
+      "mode": "long-repos",
+      "locale": "en",
+      "viewport": [
+        760,
+        1000
+      ],
+      "source_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "capture": {
+        "file": "page.png",
+        "sha256": "aa0d5964ebd860bd3174ca69c434d90b1826837bace7c63e74abcaf38489c466",
+        "bytes": 222387,
+        "pixels": {
+          "width": 1520,
+          "height": 2000
+        },
+        "configuredContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "actualContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-IBI9Pr",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "before-long-repos-en-760x1000.json",
+      "image": "before-long-repos-en-760x1000.png"
+    },
+    {
+      "id": "before-long-repos-ru-760x1000",
+      "mode": "long-repos",
+      "locale": "ru",
+      "viewport": [
+        760,
+        1000
+      ],
+      "source_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "capture": {
+        "file": "page.png",
+        "sha256": "f8e836665ed443766d9d597b1edf9d4ec37f8cb982ac3b27c20cdbe35e41e11e",
+        "bytes": 229489,
+        "pixels": {
+          "width": 1520,
+          "height": 2000
+        },
+        "configuredContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "actualContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-6A1NAJ",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "before-long-repos-ru-760x1000.json",
+      "image": "before-long-repos-ru-760x1000.png"
+    },
+    {
+      "id": "after-balanced-en-640x900",
+      "mode": "balanced",
+      "locale": "en",
+      "viewport": [
+        640,
+        900
+      ],
+      "source_revision": "d454dc7dd6e0774281e8ad4653d00e43c8415ebe",
+      "capture": {
+        "file": "page.png",
+        "sha256": "7c1d5b81f699e3ab2052d2935c2b11686b57510130b5aca9feb0fce3904348ff",
+        "bytes": 156514,
+        "pixels": {
+          "width": 1280,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-BqtnWh",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "after-balanced-en-640x900.json",
+      "image": "after-balanced-en-640x900.png"
+    },
+    {
+      "id": "after-balanced-en-960x900",
+      "mode": "balanced",
+      "locale": "en",
+      "viewport": [
+        960,
+        900
+      ],
+      "source_revision": "d454dc7dd6e0774281e8ad4653d00e43c8415ebe",
+      "capture": {
+        "file": "page.png",
+        "sha256": "92baa69f7db653b2158231248878a371fec4d3f5abbf1b1ec189055d9d158c76",
+        "bytes": 207435,
+        "pixels": {
+          "width": 1920,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-dc17SR",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "after-balanced-en-960x900.json",
+      "image": "after-balanced-en-960x900.png"
+    },
+    {
+      "id": "after-balanced-en-1440x900",
+      "mode": "balanced",
+      "locale": "en",
+      "viewport": [
+        1440,
+        900
+      ],
+      "source_revision": "d454dc7dd6e0774281e8ad4653d00e43c8415ebe",
+      "capture": {
+        "file": "page.png",
+        "sha256": "043e6332206f5c2047b5b7a88d11a09288344a92fb3e619331ba4a1d0ccc146a",
+        "bytes": 214162,
+        "pixels": {
+          "width": 2880,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-6qCvWL",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "after-balanced-en-1440x900.json",
+      "image": "after-balanced-en-1440x900.png"
+    },
+    {
+      "id": "after-balanced-ru-640x900",
+      "mode": "balanced",
+      "locale": "ru",
+      "viewport": [
+        640,
+        900
+      ],
+      "source_revision": "d454dc7dd6e0774281e8ad4653d00e43c8415ebe",
+      "capture": {
+        "file": "page.png",
+        "sha256": "079e61bbf44699f9aabb616fd32bbd3d71daade2bdef5f4c0b5a3a54ee84b3b3",
+        "bytes": 150250,
+        "pixels": {
+          "width": 1280,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 640,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-BcUpl6",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "after-balanced-ru-640x900.json",
+      "image": "after-balanced-ru-640x900.png"
+    },
+    {
+      "id": "after-balanced-ru-960x900",
+      "mode": "balanced",
+      "locale": "ru",
+      "viewport": [
+        960,
+        900
+      ],
+      "source_revision": "d454dc7dd6e0774281e8ad4653d00e43c8415ebe",
+      "capture": {
+        "file": "page.png",
+        "sha256": "d816fe15117db3dda0a5a2184d5c994d4a6b2dbb4a569e97b6878e405b4bb0e9",
+        "bytes": 217259,
+        "pixels": {
+          "width": 1920,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 960,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-eos97W",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "after-balanced-ru-960x900.json",
+      "image": "after-balanced-ru-960x900.png"
+    },
+    {
+      "id": "after-balanced-ru-1440x900",
+      "mode": "balanced",
+      "locale": "ru",
+      "viewport": [
+        1440,
+        900
+      ],
+      "source_revision": "d454dc7dd6e0774281e8ad4653d00e43c8415ebe",
+      "capture": {
+        "file": "page.png",
+        "sha256": "46b3e3852a142d055577a07ee5b05ac01d3044148aefad83491e7cb5ab1dcd1c",
+        "bytes": 223775,
+        "pixels": {
+          "width": 2880,
+          "height": 1800
+        },
+        "configuredContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "actualContentSize": {
+          "width": 1440,
+          "height": 900
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-V1LeL2",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "after-balanced-ru-1440x900.json",
+      "image": "after-balanced-ru-1440x900.png"
+    },
+    {
+      "id": "after-long-repos-en-760x1000",
+      "mode": "long-repos",
+      "locale": "en",
+      "viewport": [
+        760,
+        1000
+      ],
+      "source_revision": "d454dc7dd6e0774281e8ad4653d00e43c8415ebe",
+      "capture": {
+        "file": "page.png",
+        "sha256": "0e6c97f3dd6c62e517bd8e62090397c376d522f8358868781aa5878d09476e03",
+        "bytes": 217402,
+        "pixels": {
+          "width": 1520,
+          "height": 2000
+        },
+        "configuredContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "actualContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-HdUdKu",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "after-long-repos-en-760x1000.json",
+      "image": "after-long-repos-en-760x1000.png"
+    },
+    {
+      "id": "after-long-repos-ru-760x1000",
+      "mode": "long-repos",
+      "locale": "ru",
+      "viewport": [
+        760,
+        1000
+      ],
+      "source_revision": "d454dc7dd6e0774281e8ad4653d00e43c8415ebe",
+      "capture": {
+        "file": "page.png",
+        "sha256": "62f67383d720d02bf5ca1d7a2847bf5d10f7cce7582b388609f3de17a2d11bed",
+        "bytes": 221580,
+        "pixels": {
+          "width": 1520,
+          "height": 2000
+        },
+        "configuredContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "actualContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "fixture_ownership_id": "fabric-co179-fixture-JFbX5H",
+      "host_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+      "receipt": "after-long-repos-ru-760x1000.json",
+      "image": "after-long-repos-ru-760x1000.png"
+    }
+  ]
+}

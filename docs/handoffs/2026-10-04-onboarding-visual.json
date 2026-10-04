@@ -12,18 +12,80 @@
     "apps/desktop/src/renderer/src/Onboarding.launch.css": "1280ed94ab47a8874f22bbe8459911f787e7ca931475f080c9bc4b0c7dc17cd9"
   },
   "checks": [
-    {"command": "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/Onboarding.test.tsx src/renderer/src/onboardingDraft.persist.test.tsx", "exit": 0, "files": 2, "tests": 17, "duration_seconds": 6.67, "tier": "controlled-renderer-and-disk-not-native", "notice": "Existing Canvas getContext not implemented emitted twice."},
-    {"command": "pnpm --filter @fabric/desktop typecheck", "exit": 0},
-    {"command": "pnpm --filter @fabric/desktop build", "exit": 0},
-    {"command": "node scripts/check-design.mjs", "exit": 0, "scope_limit": "Type/spacing and class registry only inspect the configured two shared sheets; separate local audit is required."},
-    {"command": "node scripts/check-regions.mjs", "exit": 0, "markers": 114},
-    {"command": "git diff --check", "exit": 0},
-    {"check": "Exact baseline equality after removing local CSS import and reverting root modifier class", "passed": true},
-    {"check": "Local selector containment and token-derived type/spacing declaration audit", "passed": true, "selector_groups": 25}
+    {
+      "command": "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/Onboarding.test.tsx src/renderer/src/onboardingDraft.persist.test.tsx",
+      "exit": 0,
+      "files": 2,
+      "tests": 17,
+      "duration_seconds": 6.67,
+      "tier": "controlled-renderer-and-disk-not-native",
+      "notice": "Existing Canvas getContext not implemented emitted twice."
+    },
+    {
+      "command": "pnpm --filter @fabric/desktop typecheck",
+      "exit": 0
+    },
+    {
+      "command": "pnpm --filter @fabric/desktop build",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/check-design.mjs",
+      "exit": 0,
+      "scope_limit": "Type/spacing and class registry only inspect the configured two shared sheets; separate local audit is required."
+    },
+    {
+      "command": "node scripts/check-regions.mjs",
+      "exit": 0,
+      "markers": 114
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    },
+    {
+      "check": "Exact baseline equality after removing local CSS import and reverting root modifier class",
+      "passed": true
+    },
+    {
+      "check": "Local selector containment and token-derived type/spacing declaration audit",
+      "passed": true,
+      "selector_groups": 25
+    }
   ],
-  "negative_control": {"mutation": "disabled={!b.available} to disabled={false} in owned Onboarding source", "command": "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/Onboarding.test.tsx", "exit": 1, "expected_failure": "cannot be picked test at line 68", "candidate_restored_byte_equal": true},
-  "not_run_by_author": ["repository fast gate", "canonical UX lint/map convergence", "native visual matrix", "native keyboard/AX/VoiceOver", "200 percent text", "hosted CI", "production userData", "release/install"],
+  "negative_control": {
+    "mutation": "disabled={!b.available} to disabled={false} in owned Onboarding source",
+    "command": "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/Onboarding.test.tsx",
+    "exit": 1,
+    "expected_failure": "cannot be picked test at line 68",
+    "candidate_restored_byte_equal": true
+  },
+  "not_run_by_author": [
+    "repository fast gate",
+    "canonical UX lint/map convergence",
+    "native visual matrix",
+    "native keyboard/AX/VoiceOver",
+    "200 percent text",
+    "hosted CI",
+    "production userData",
+    "release/install"
+  ],
   "native_acceptance_owner": "root coordinating session",
   "fixture_owner": "contract_adoption independent isolated branch",
-  "claims": {"CO179_closed": false, "AD02_passed": false, "integrated": false, "released": false}
+  "claims": {
+    "CO179_closed": false,
+    "AD02_passed": false,
+    "integrated": false,
+    "released": false
+  },
+  "rendering_evidence": {
+    "index": "2026-10-04-onboarding-visual-captures/index.json",
+    "captures": 16,
+    "pairs": 8,
+    "tier": "source-bound-hidden-test-host-rendering-not-native-UI-acceptance",
+    "candidate_revision": "d454dc7dd6e0774281e8ad4653d00e43c8415ebe",
+    "fixture_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
+    "visual_judgment": "held-suspected-lede-overflow-RU-long-repo-760; geometry-and-correction-pending",
+    "source_frozen_until_measured_root_cause": true
+  }
 }
