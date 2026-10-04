@@ -1,0 +1,52 @@
+{
+  "base_rejected_source": "8babdd15afca8afb04e1860eaa3db6abbd8a5341",
+  "original_independent_review": "5847458132614dc41feaf19ac8459c2b4c8f4b8e",
+  "author_replay": {
+    "probes": 17,
+    "matched": 17,
+    "prior_three_red_CLI_exits": [
+      1,
+      1,
+      1
+    ]
+  },
+  "combined_supported_node_suite": {
+    "runtime": "24.10.0",
+    "tests": 27,
+    "pass": 27,
+    "skip": 0,
+    "exit": 0
+  },
+  "strengthened_no_writes_control": {
+    "tests": 1,
+    "pass": 1,
+    "exit": 0,
+    "comparison": "all repository file paths and SHA-256 excluding Git internals"
+  },
+  "full_fast": {
+    "exit": 1,
+    "gate": "root-owned design-map top-iteration change"
+  },
+  "regions": {
+    "exit": 0,
+    "markers": 109
+  },
+  "python_syntax_exit": 0,
+  "source_sha256": {
+    "scripts/build-unified-plan.py": "876c16dd1d0f9a2af60383f4d8840c459417d70e6009e4be91b31b74760e8381",
+    "scripts/unified-plan.mjs": "187dff92b82af1cb5767bab1a0f43fb46ad281ac884dc3a5244f92740498ef4e",
+    "scripts/unified-canonical-sources.mjs": "de9fa6a8d7dbdae3c5f980ad1ac2760cf624641a1bde90c1060470c6d1ce03b5",
+    "scripts/test/build-unified-plan.test.mjs": "08e56fc6ce00e8a053df2c4271cc8bc9851b4a3c557dd7fc6dfb68fd4d98dba0",
+    "scripts/test/unified-plan.test.mjs": "2865cdfc555ef852c06b432bc6f0c2d1e05e64037dcdc83cbad55ca7c3228abc"
+  },
+  "guarded_paths_changed": [],
+  "task_owned_leases_taken": [],
+  "owner_reconciliation": "planned input contract only; not implemented or active",
+  "independent_exact_SHA_recheck": "PENDING",
+  "not_run": [
+    "hosted CI",
+    "native acceptance",
+    "product/live runtime",
+    "workspace publication"
+  ]
+}

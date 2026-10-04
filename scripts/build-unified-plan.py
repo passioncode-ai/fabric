@@ -39,21 +39,27 @@ def priority(ids, lane):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output', required=True, help='New repository-relative report directory; the dated input cut is never overwritten')
+    parser.add_argument('--output', help='New repository-relative report directory; the dated input cut is never overwritten')
     parser.add_argument('--source-revision', required=True, help='Full committed Fabric SHA whose input bytes have been reconciled by the owner')
-    parser.add_argument('--privacy-deny-file', required=True, help='Local-only JSON array of private literal identifiers; never copied into outputs')
+    parser.add_argument('--privacy-deny-file', help='Local-only JSON array of private literal identifiers; never copied into outputs')
+    parser.add_argument('--emit-plan', action='store_true', help='Reconstruct expected plan as JSON on stdout; never create or modify an output directory')
     args = parser.parse_args()
-    relative_output = Path(args.output)
-    if relative_output.is_absolute() or '..' in relative_output.parts or not args.output.startswith('docs/reports/'):
-        raise SystemExit('Output must be a repository-relative docs/reports directory')
-    output = ROOT / relative_output
-    if ROOT.resolve() not in output.resolve().parents:
-        raise SystemExit('Output escapes repository through a linked parent')
-    if output.resolve() == REPORT.resolve() or (output / 'plan.json').exists() or (output / 'audit-graph.json').exists() or (output / 'cold-packets').exists():
-        raise SystemExit('Refusing to overwrite a dated input or existing generated cut; choose a new output directory')
+    if not args.emit_plan and (not args.output or not args.privacy_deny_file):
+        parser.error('generation requires --output and --privacy-deny-file')
+    if not args.emit_plan:
+        relative_output = Path(args.output)
+        if relative_output.is_absolute() or '..' in relative_output.parts or not args.output.startswith('docs/reports/'):
+            raise SystemExit('Output must be a repository-relative docs/reports directory')
+        output = ROOT / relative_output
+        if ROOT.resolve() not in output.resolve().parents:
+            raise SystemExit('Output escapes repository through a linked parent')
+        if output.resolve() == REPORT.resolve() or (output / 'plan.json').exists() or (output / 'audit-graph.json').exists() or (output / 'cold-packets').exists():
+            raise SystemExit('Refusing to overwrite a dated input or existing generated cut; choose a new output directory')
     if not re.fullmatch(r'[a-f0-9]{40}', args.source_revision):
         raise SystemExit('Source revision must be a full immutable commit SHA')
-    inventory_command = ['node', str(ROOT / 'scripts/unified-plan.mjs'), 'inventory', '--source-revision', args.source_revision, '--privacy-deny-file', args.privacy_deny_file]
+    inventory_command = ['node', str(ROOT / 'scripts/unified-plan.mjs'), 'inventory', '--source-revision', args.source_revision]
+    if args.privacy_deny_file:
+        inventory_command += ['--privacy-deny-file', args.privacy_deny_file]
     inventory = json.loads(subprocess.check_output(inventory_command, cwd=ROOT, text=True))
     text = (ROOT / 'docs/evidence/backlog.md').read_text()
     section = text.split('<!-- general-plan:begin -->')[1].split('<!-- general-plan:end -->')[0]
@@ -229,7 +235,7 @@ def main():
             raise SystemExit('Input is absent from the source revision: ' + path)
         if hashlib.sha256(committed).hexdigest() != sha(ROOT / path):
             raise SystemExit('Input is uncommitted or differs from source revision: ' + path)
-    deny = load(Path(args.privacy_deny_file))
+    deny = load(Path(args.privacy_deny_file)) if args.privacy_deny_file else []
     if not isinstance(deny, list) or any(not isinstance(token, str) or not token.strip() for token in deny):
         raise SystemExit('Privacy deny file must contain an array of nonempty literal strings')
     for path in sorted(sources):
@@ -247,6 +253,9 @@ def main():
         'lanes': lanes, 'sources': [{'path': p, 'sha256': sha(ROOT / p), 'commit': args.source_revision} for p in sorted(sources)],
         'tasks': tasks, 'impacts': load(REPORT / 'impacts.json'),
     }
+    if args.emit_plan:
+        print(json.dumps(plan, ensure_ascii=False, separators=(',', ':')))
+        return
     output.mkdir(parents=True, exist_ok=True)
     (output / 'plan.json').write_text(json.dumps(plan, ensure_ascii=False, indent=2) + '\n')
     # Adapter projection for the installed pipeline's cold-reader and collision audit.
