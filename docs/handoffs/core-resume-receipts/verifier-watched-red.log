@@ -1,0 +1,19 @@
+✔ DA-5 every queue/standing-denial duplicate refusal leaves a bounded operation receipt (66.26525ms)
+✖ ER-3 restarting the hub recognizes a valid credential before any successful authentication (0.88525ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 355.763334
+
+✖ failing tests:
+
+test at apps/desktop/test/hub-access-refusals.test.mjs:23:1
+✖ ER-3 restarting the hub recognizes a valid credential before any successful authentication (0.88525ms)
+  TypeError: service.primeCredentialVerifiers is not a function
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/hub-v2-core-resume/apps/desktop/test/hub-access-refusals.test.mjs:29:16)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)

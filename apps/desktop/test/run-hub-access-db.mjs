@@ -7,5 +7,6 @@ import { withOwnedPostgres, runAgainst } from './helpers/owned-postgres.mjs'
 withOwnedPostgres({ name: 'hub_access', port: 58476, supabaseDefaults: true }, ({ url, bin }) => {
   runAgainst(url, bin, new URL('./hub-access-db.test.mjs', import.meta.url).pathname)
   runAgainst(url, bin, new URL('./hub-door-db.test.mjs', import.meta.url).pathname)
+  runAgainst(url, bin, new URL('./hub-authority-boundaries-db.test.mjs', import.meta.url).pathname)
   console.log('PASS full migration chain, the hub access projection refuses impossible transitions on isolated PostgreSQL')
 })

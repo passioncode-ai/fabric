@@ -22,6 +22,13 @@
 // echoes a header back (ER-11, verification iteration 2 for 0.3.1); the hub hands the agent a fixed sentence
 // and keeps this message for the operations log.
 //
+// A NARROWED CALL GOES ONLY TO A SERVER THAT NARROWS (ER-6, verification iteration 2 for 0.3.1). The header
+// is a request the product may ignore: a Fabric Inbox server before 0.9.0 does, and then a grant for one
+// mailbox read every mailbox with the admin key. After initialize, and before the tool call, the server's
+// own `serverInfo` must name `narrowingSince.server` at `narrowingSince.version` or later; otherwise the
+// call is `product-outdated`, nothing ran, and the operator is told to update the server. Checked on every
+// call, so a server redeployed to an older version is caught the next time, not at the next connect.
+//
 // WHETHER THE CALL LEFT FABRIC IS SAID, NOT GUESSED (ER-1, verification iteration 2). A failure carries
 // `reached`: false only when the exchange ended before the tool call was handed to the transport — the
 // connect (initialize) failed, was refused or was redirected, the deadline fell during it, or the caller had
@@ -29,6 +36,7 @@
 // product may have run the tool, and the hub refuses to send that idempotency key again.
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
+import { versionAtLeast } from '../shared/access.ts'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 
 export interface ForwardRequest {
@@ -37,6 +45,8 @@ export interface ForwardRequest {
   clientSecret: string
   /** The X-Fabric-Accounts list, or null for a workspace setup. Never an empty list. */
   narrowing: string[] | null
+  /** The server, and its least version, that applies the narrowing (ER-6); absent, a narrowed call is refused. */
+  narrowingSince?: { server: string; version: string }
   capability: string
   input: Record<string, unknown>
   traceparent: string
@@ -66,6 +76,7 @@ export type ForwardAnswer =
 const UNSAFE_IN_HEADER = /[,\r\n\0]/
 
 class RedirectRefused extends Error {}
+class Outdated extends Error {}
 
 export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnswer> {
   const started = Date.now()
@@ -135,6 +146,16 @@ export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnsw
   })
   const exchange = (async () => {
     await client.connect(transport)
+    if (req.narrowing !== null) {
+      const need = req.narrowingSince
+      const info = client.getServerVersion()
+      if (!need || !info || info.name !== need.server || !versionAtLeast(info.version, need.version))
+        throw new Outdated(
+          need
+            ? `the server says it is ${info ? `${String(info.name).slice(0, 64)} ${String(info.version).slice(0, 64)}` : 'nothing'}; narrowing needs ${need.server} ${need.version} or later, so the call was not sent`
+            : 'Fabric knows no server version that narrows this product, so a narrowed call was not sent'
+        )
+    }
     callSent = true
     const result = (await client.callTool(
       { name: req.capability, arguments: req.input, _meta: { traceparent: req.traceparent } },
@@ -153,6 +174,7 @@ export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnsw
     return { ok: true, result, wallMs: Date.now() - started }
   } catch (e) {
     const reached = callSent
+    if (e instanceof Outdated) return { ok: false, code: 'product-outdated', message: scrub(e.message), wallMs: Date.now() - started, reached: false }
     if (hungUp) return { ok: false, code: 'cancelled', message: 'the caller hung up; the exchange was abandoned', wallMs: Date.now() - started, reached }
     if (redirected) return { ok: false, code: 'product-refused', message: scrub(redirected), wallMs: Date.now() - started, reached }
     if (timedOut) return { ok: false, code: 'product-unreachable', message: `the product did not answer within ${timeout / 1000}s`, wallMs: Date.now() - started, reached }

@@ -376,7 +376,7 @@ test('idempotencyKey: a retry returns the first answer and sends nothing; the sa
 
 test('a product that refuses Fabric\'s key is said as product-refused, and the secret is in no message', async () => {
   const inbox = await fakeInbox()
-  const r = await forwardToProduct({ mcpUrl: inbox.url, clientId: 'abc.access', clientSecret: 'wrong-' + SECRET, narrowing: ['cloudflare:news@example.com'], capability: 'read_message', input: {}, traceparent: TRACE, timeoutMs: 5000 })
+  const r = await forwardToProduct({ mcpUrl: inbox.url, clientId: 'abc.access', clientSecret: 'wrong-' + SECRET, narrowing: ['cloudflare:news@example.com'], narrowingSince: { server: 'fabric-inbox', version: '0.9.0' }, capability: 'read_message', input: {}, traceparent: TRACE, timeoutMs: 5000 })
   assert.equal(r.ok, false)
   assert.equal(r.code, 'product-refused')
   assert.ok(!r.message.includes(SECRET))
@@ -402,7 +402,7 @@ async function redirectingProduct() {
     const chunks = []
     for await (const c of req) chunks.push(c)
     const body = chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : undefined
-    const server = new McpServer({ name: 'fabric-inbox', version: '0' })
+    const server = new McpServer({ name: 'fabric-inbox', version: '0.9.0' })
     server.registerTool('list_messages', { inputSchema: { accountId: z.string().optional() } }, async () => ({ content: [{ type: 'text', text: 'ok' }], structuredContent: { messages: [] } }))
     // Stateful enough that the initialized notification is answered 202 — the answer that makes the SDK open its GET stream.
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })
@@ -417,7 +417,7 @@ async function redirectingProduct() {
 test('a product that redirects ANY request — the SDK\'s GET stream included — is refused, and the other origin never sees the key', async () => {
   const p = await redirectingProduct()
   try {
-    const r = await forwardToProduct({ mcpUrl: p.url, clientId: 'abc.access', clientSecret: SECRET, narrowing: ['cloudflare:news@example.com'], capability: 'list_messages', input: {}, traceparent: TRACE, timeoutMs: 5000 })
+    const r = await forwardToProduct({ mcpUrl: p.url, clientId: 'abc.access', clientSecret: SECRET, narrowing: ['cloudflare:news@example.com'], narrowingSince: { server: 'fabric-inbox', version: '0.9.0' }, capability: 'list_messages', input: {}, traceparent: TRACE, timeoutMs: 5000 })
     await new Promise((resolve) => setTimeout(resolve, 200))
     assert.deepEqual(p.elsewhere, [], 'the redirect target received a request')
     assert.equal(r.ok, false, 'a product that redirected was answered as if nothing happened')
@@ -447,7 +447,7 @@ test('the deadline holds for the whole exchange: a product that never answers is
 test('ER-1: a product that runs the tool but answers after the deadline: the forward says the call reached it, and the hub never sends that key again', async () => {
   const inbox = await fakeInbox({ slowCallMs: 1500 })
   try {
-    const r = await forwardToProduct({ mcpUrl: inbox.url, clientId: 'abc.access', clientSecret: SECRET, narrowing: ['cloudflare:news@example.com'], capability: 'read_message', input: { accountId: 'news@example.com', messageId: 'm' }, traceparent: TRACE, timeoutMs: 500 })
+    const r = await forwardToProduct({ mcpUrl: inbox.url, clientId: 'abc.access', clientSecret: SECRET, narrowing: ['cloudflare:news@example.com'], narrowingSince: { server: 'fabric-inbox', version: '0.9.0' }, capability: 'read_message', input: { accountId: 'news@example.com', messageId: 'm' }, traceparent: TRACE, timeoutMs: 500 })
     assert.equal(r.ok, false)
     assert.equal(r.code, 'product-unreachable')
     assert.equal(r.reached, true, 'a call the product received was said not to have reached it')
@@ -472,7 +472,7 @@ test('ER-1: a product that runs the tool but answers after the deadline: the for
 test('ER-11: a product error that echoes its headers: neither the secret nor the client id is in the message', async () => {
   const inbox = await fakeInbox({ echo500: true })
   try {
-    const r = await forwardToProduct({ mcpUrl: inbox.url, clientId: 'abc.access', clientSecret: SECRET, narrowing: ['cloudflare:news@example.com'], capability: 'read_message', input: { accountId: 'news@example.com', messageId: 'm' }, traceparent: TRACE, timeoutMs: 3000 })
+    const r = await forwardToProduct({ mcpUrl: inbox.url, clientId: 'abc.access', clientSecret: SECRET, narrowing: ['cloudflare:news@example.com'], narrowingSince: { server: 'fabric-inbox', version: '0.9.0' }, capability: 'read_message', input: { accountId: 'news@example.com', messageId: 'm' }, traceparent: TRACE, timeoutMs: 3000 })
     assert.equal(r.ok, false)
     assert.doesNotMatch(r.message, /abc\.access/, 'the client id reached the message')
     assert.ok(!r.message.includes(SECRET))
@@ -838,4 +838,32 @@ test('vault: the read asks the vault only — `run` carries --vault-only', async
   const runs = readFileSync(o.log, 'utf8').trim().split('\n').map((l) => JSON.parse(l)).filter((a) => a[0].endsWith('use_secret.py') && a[1] === 'run')
   assert.equal(runs.length, 1)
   assert.ok(runs[0].slice(0, runs[0].indexOf('--')).includes('--vault-only'), `run was called without --vault-only: ${runs[0].slice(1, 7).join(' ')}`)
+})
+
+// ── ER-6 (verification iteration 2 for 0.3.1): X-Fabric-Accounts exists from Fabric Inbox 0.9.0 on; an older
+// server ignores it, so a narrowed call reached every mailbox with the admin key. The server says what it is
+// at initialize (`serverInfo`: fabric-inbox and its package version); a narrowed call to anything older than
+// 0.9.0, or to a server that does not say, is refused before the tool call is sent.
+test('ER-6: a narrowed call to a Fabric Inbox server older than 0.9.0 is refused before anything runs; a workspace setup is not narrowed and still goes', async () => {
+  const old = await fakeInbox({ version: '0.8.2' })
+  try {
+    const since = { server: 'fabric-inbox', version: '0.9.0' }
+    const r = await forwardToProduct({ mcpUrl: old.url, clientId: 'abc.access', clientSecret: SECRET, narrowing: ['cloudflare:news@example.com'], narrowingSince: since, capability: 'list_messages', input: {}, traceparent: TRACE, timeoutMs: 3000 })
+    assert.equal(r.ok, false, 'a server that ignores X-Fabric-Accounts was sent a narrowed call')
+    assert.equal(r.code, 'product-outdated')
+    assert.equal(r.reached, false)
+    assert.equal(old.seen.length, 0, 'the tool call reached an outdated server')
+    const rc = await fakeInbox({ version: '0.9.0-rc.1' })
+    const pre = await forwardToProduct({ mcpUrl: rc.url, clientId: 'abc.access', clientSecret: SECRET, narrowing: ['cloudflare:news@example.com'], narrowingSince: since, capability: 'list_messages', input: {}, traceparent: TRACE, timeoutMs: 3000 })
+    assert.equal(pre.code, 'product-outdated', 'a pre-release is read as below its release (fail closed)')
+    rc.close()
+    const unsaid = await forwardToProduct({ mcpUrl: old.url, clientId: 'abc.access', clientSecret: SECRET, narrowing: ['cloudflare:news@example.com'], capability: 'list_messages', input: {}, traceparent: TRACE, timeoutMs: 3000 })
+    assert.equal(unsaid.code, 'product-outdated', 'a narrowed call with no known narrowing version was sent')
+    const setup = await forwardToProduct({ mcpUrl: old.url, clientId: 'abc.access', clientSecret: SECRET, narrowing: null, narrowingSince: since, capability: 'create_address', input: { localPart: 'n', domain: 'example.com' }, traceparent: TRACE, timeoutMs: 3000 })
+    assert.equal(setup.ok, true)
+  } finally { old.close() }
+  const h = await hubCall([grant('list_messages', 'cloudflare:news@example.com')])
+  const r = await h.call(binding, { agentId: 'fabric-inbox', capability: 'list_messages', input: {} }, undefined)
+  assert.equal(r.isError, undefined, 'a 0.9.0 server was refused')
+  h.inbox.close()
 })

@@ -54,7 +54,7 @@
 // read from the vault or sent once it has fired, and the span says `cancelled`.
 
 import { createHash, randomBytes } from 'node:crypto'
-import { accessRefusal, coverage, productName, resourceArguments, CONNECTABLE_PRODUCTS } from '../shared/access.ts'
+import { accessRefusal, coverage, narrowingSinceOf, productName, resourceArguments, CONNECTABLE_PRODUCTS } from '../shared/access.ts'
 import type { AccessService } from './accessService.ts'
 import type { AccessActor, AccessStore, BindingRow, ConnectionRow } from './accessStore.ts'
 import type { AgentCallArgs, ToolAnswer } from './hubTools.ts'
@@ -277,7 +277,7 @@ export function createAgentCall(deps: HubCallDeps) {
       return { answer: replay, keep: 'answer' }
     }
     if (signal?.aborted) return cancelledBefore(base, cover.grantIds, started)
-    const secret = await deps.vault.read(connection.secret_ref, signal)
+    const secret = await deps.vault.read(connection.secret_ref, { signal })
     if (!secret.ok) {
       if (signal?.aborted) return cancelledBefore(base, cover.grantIds, started)
       await span({ ...base, outcome: 'failed', error_code: 'product-credential-unavailable', grant_ids: cover.grantIds, wall_ms: now() - started })
@@ -289,7 +289,7 @@ export function createAgentCall(deps: HubCallDeps) {
     if (signal?.aborted) return cancelledBefore(base, cover.grantIds, started)
     const forwarded = await deps.forward({
       mcpUrl: connection.mcp_url, clientId: connection.client_id, clientSecret: secret.value,
-      narrowing: cover.narrowing, capability: args.capability, input: args.input, traceparent, signal
+      narrowing: cover.narrowing, narrowingSince: narrowingSinceOf(args.agentId), capability: args.capability, input: args.input, traceparent, signal
     })
     const narrowing = cover.narrowing
     if (!forwarded.ok) {

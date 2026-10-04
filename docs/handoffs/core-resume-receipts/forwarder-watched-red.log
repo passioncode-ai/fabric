@@ -1,0 +1,29 @@
+✖ ER-6: a narrowed call to a Fabric Inbox server older than 0.9.0 is refused before anything runs; a workspace setup is not narrowed and still goes (2011.86575ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2186.896625
+
+✖ failing tests:
+
+test at apps/desktop/test/hub-products.test.mjs:847:1
+✖ ER-6: a narrowed call to a Fabric Inbox server older than 0.9.0 is refused before anything runs; a workspace setup is not narrowed and still goes (2011.86575ms)
+  AssertionError [ERR_ASSERTION]: a server that ignores X-Fabric-Accounts was sent a narrowed call
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/hub-v2-core-resume/apps/desktop/test/hub-products.test.mjs:852:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
