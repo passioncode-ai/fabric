@@ -44,7 +44,8 @@ export type VaultAnswer<T extends object = object> = ({ ok: true } & T) | { ok: 
 
 export interface VaultPort {
   put(slot: SecretSlot, value: string): Promise<VaultAnswer>
-  read(slot: SecretSlot): Promise<VaultAnswer<{ value: string }>>
+  /** `signal`: the caller that wanted the value has gone; a read still waiting for its turn gives up. */
+  read(slot: SecretSlot, signal?: AbortSignal): Promise<VaultAnswer<{ value: string }>>
 }
 
 interface Engine {

@@ -18,7 +18,15 @@
 // guarded fetch joins to every request's own signal, and the exchange is raced against it, so `timeoutMs`
 // bounds connect, the call and the GET stream alike.
 //
-// Every message that leaves here has the secret removed from it, in case a product ever echoes a header back.
+// Every message that leaves here has the secret AND the client id removed from it, in case a product ever
+// echoes a header back (ER-11, verification iteration 2 for 0.3.1); the hub hands the agent a fixed sentence
+// and keeps this message for the operations log.
+//
+// WHETHER THE CALL LEFT FABRIC IS SAID, NOT GUESSED (ER-1, verification iteration 2). A failure carries
+// `reached`: false only when the exchange ended before the tool call was handed to the transport — the
+// connect (initialize) failed, was refused or was redirected, the deadline fell during it, or the caller had
+// gone. From the moment `tools/call` may have been written to the wire, a failure is `reached: true`: the
+// product may have run the tool, and the hub refuses to send that idempotency key again.
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
@@ -45,7 +53,14 @@ export interface ForwardedResult {
 
 export type ForwardAnswer =
   | { ok: true; result: ForwardedResult; wallMs: number }
-  | { ok: false; code: 'product-unreachable' | 'product-refused' | 'product-error' | 'cancelled'; message: string; wallMs: number }
+  | {
+      ok: false
+      code: 'product-unreachable' | 'product-refused' | 'product-error' | 'product-outdated' | 'cancelled'
+      message: string
+      wallMs: number
+      /** Whether the tool call may have left Fabric. Absent is read as true by the hub (fail closed). */
+      reached?: boolean
+    }
 
 /** A narrowing entry the product reads as exactly one account: no list separator, no line break. */
 const UNSAFE_IN_HEADER = /[,\r\n\0]/
@@ -54,13 +69,17 @@ class RedirectRefused extends Error {}
 
 export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnswer> {
   const started = Date.now()
-  const scrub = (text: string): string => text.split(req.clientSecret).join('«redacted»').slice(0, 500)
+  const scrub = (text: string): string => {
+    let t = text.split(req.clientSecret).join('«redacted»')
+    if (req.clientId) t = t.split(req.clientId).join('«client id»')
+    return t.slice(0, 500)
+  }
   if (req.narrowing !== null && req.narrowing.length === 0)
-    return { ok: false, code: 'product-error', message: 'an empty narrowing list would be refused by the product; nothing was sent', wallMs: 0 }
+    return { ok: false, code: 'product-error', message: 'an empty narrowing list would be refused by the product; nothing was sent', wallMs: 0, reached: false }
   // The header is a comma-separated list: an entry carrying a comma would name a second mailbox, and a
   // line break would end the header. Coverage only ever produces normalised ids; this holds if it did not.
   if (req.narrowing?.some((a) => UNSAFE_IN_HEADER.test(a)))
-    return { ok: false, code: 'product-error', message: 'a narrowing entry carries a separator or a line break; nothing was sent', wallMs: 0 }
+    return { ok: false, code: 'product-error', message: 'a narrowing entry carries a separator or a line break; nothing was sent', wallMs: 0, reached: false }
   const headers: Record<string, string> = {
     'CF-Access-Client-Id': req.clientId,
     'CF-Access-Client-Secret': req.clientSecret,
@@ -71,7 +90,9 @@ export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnsw
   let redirected: string | null = null
   let timedOut = false
   let hungUp = false
-  if (req.signal?.aborted) return { ok: false, code: 'cancelled', message: 'the caller hung up before anything was sent', wallMs: 0 }
+  /** Set the moment the tool call is handed to the transport: from then on it may have run. */
+  let callSent = false
+  if (req.signal?.aborted) return { ok: false, code: 'cancelled', message: 'the caller hung up before anything was sent', wallMs: 0, reached: false }
   const onHangUp = (): void => {
     hungUp = true
     controller.abort()
@@ -114,6 +135,7 @@ export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnsw
   })
   const exchange = (async () => {
     await client.connect(transport)
+    callSent = true
     const result = (await client.callTool(
       { name: req.capability, arguments: req.input, _meta: { traceparent: req.traceparent } },
       undefined,
@@ -130,9 +152,10 @@ export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnsw
     const result = await Promise.race([exchange, deadline])
     return { ok: true, result, wallMs: Date.now() - started }
   } catch (e) {
-    if (hungUp) return { ok: false, code: 'cancelled', message: 'the caller hung up; the exchange was abandoned', wallMs: Date.now() - started }
-    if (redirected) return { ok: false, code: 'product-refused', message: scrub(redirected), wallMs: Date.now() - started }
-    if (timedOut) return { ok: false, code: 'product-unreachable', message: `the product did not answer within ${timeout / 1000}s`, wallMs: Date.now() - started }
+    const reached = callSent
+    if (hungUp) return { ok: false, code: 'cancelled', message: 'the caller hung up; the exchange was abandoned', wallMs: Date.now() - started, reached }
+    if (redirected) return { ok: false, code: 'product-refused', message: scrub(redirected), wallMs: Date.now() - started, reached }
+    if (timedOut) return { ok: false, code: 'product-unreachable', message: `the product did not answer within ${timeout / 1000}s`, wallMs: Date.now() - started, reached }
     const message = scrub(String((e as Error).message ?? e))
     const status = (e as { code?: unknown }).code
     const refused = status === 401 || status === 403 || /\b(401|403)\b|Unauthorized|Forbidden|redirect/i.test(message)
@@ -141,7 +164,8 @@ export async function forwardToProduct(req: ForwardRequest): Promise<ForwardAnsw
       ok: false,
       code: refused ? 'product-refused' : unreachable ? 'product-unreachable' : 'product-error',
       message,
-      wallMs: Date.now() - started
+      wallMs: Date.now() - started,
+      reached
     }
   } finally {
     clearTimeout(timer)

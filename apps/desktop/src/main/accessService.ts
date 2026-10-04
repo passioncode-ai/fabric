@@ -99,12 +99,19 @@ export class AccessService {
   private now: () => number
   private random: (bytes: number) => Buffer
   private chain: Promise<unknown> = Promise.resolve()
+  private revokedListeners = new Set<(bindingId: string) => void>()
 
   // Assigned in the body: Node's type-stripping loader rejects parameter properties.
   constructor(deps: AccessServiceDeps) {
     this.deps = deps
     this.now = deps.now ?? Date.now
     this.random = deps.random ?? randomBytes
+  }
+
+  /** Told once a binding is revoked: whatever is kept in memory for it can go (DA-3, the agent.call memory). */
+  onBindingRevoked(listener: (bindingId: string) => void): () => void {
+    this.revokedListeners.add(listener)
+    return () => this.revokedListeners.delete(listener)
   }
 
   /** Every write runs one at a time: two answers to one request cannot both land. */
@@ -300,6 +307,13 @@ export class AccessService {
       const b = await this.deps.store.binding(bindingId)
       if (!b || b.revoked_at) return refuse('not-live', 'that credential is not live (already revoked, or no such credential)')
       await this.deps.store.append('access.binding.revoked@1', actor, { binding_id: bindingId })
+      for (const listener of this.revokedListeners) {
+        try {
+          listener(bindingId)
+        } catch (e) {
+          ops.failed('hub.access.revoked-listener', e, { binding_id: bindingId }) // the revocation stands either way
+        }
+      }
       ops.record({ op: 'hub.access.binding-revoked', outcome: 'ok', detail: { binding_id: bindingId, agent_id: b.agent_id }, ctx: { correlationId: ops.correlate() } })
       return { ok: true }
     })

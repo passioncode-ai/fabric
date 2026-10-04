@@ -237,7 +237,9 @@ test('connect: without the vault the callback answers 503, so the product revoke
 })
 
 // ── a fake Fabric Inbox MCP server: checks the Access headers, narrows by X-Fabric-Accounts
-async function fakeInbox() {
+// `version` is what the server says it is at initialize (Fabric Inbox's package version); `slowCallMs` holds
+// every tools/call that long AFTER the tool ran; `echo500` answers tools/call 500 with the request's headers.
+async function fakeInbox({ version = '0.9.0', slowCallMs = 0, echo500 = false } = {}) {
   const seen = []
   const http = createServer(async (req, res) => {
     const headers = { id: req.headers['cf-access-client-id'], secret: req.headers['cf-access-client-secret'], accounts: req.headers['x-fabric-accounts'] ?? null }
@@ -246,8 +248,10 @@ async function fakeInbox() {
     for await (const c of req) chunks.push(c)
     const body = chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : undefined
     if (body?.method === 'tools/call') seen.push({ ...headers, tool: body.params.name, arguments: body.params.arguments, traceparent: body.params._meta?.traceparent })
+    if (body?.method === 'tools/call' && echo500) { res.writeHead(500, { 'content-type': 'text/plain' }).end(`upstream said: CF-Access-Client-Id=${headers.id}`); return }
+    if (body?.method === 'tools/call' && slowCallMs) await new Promise((r) => setTimeout(r, slowCallMs))
     const narrowed = headers.accounts ? headers.accounts.split(',') : null
-    const server = new McpServer({ name: 'fabric-inbox', version: '0' })
+    const server = new McpServer({ name: 'fabric-inbox', version })
     server.registerTool('read_message', { inputSchema: { accountId: z.string(), messageId: z.string() } }, async (a) =>
       narrowed && !narrowed.includes(a.accountId.startsWith('gmail:') ? a.accountId : `cloudflare:${a.accountId.replace(/^cloudflare:/, '').toLowerCase()}`)
         ? { content: [{ type: 'text', text: '{"error":"forbidden"}' }], isError: true }
@@ -435,7 +439,44 @@ test('the deadline holds for the whole exchange: a product that never answers is
     assert.equal(r.ok, false)
     assert.equal(r.code, 'product-unreachable')
     assert.match(r.message, /did not answer within/)
+    assert.equal(r.reached, false, 'a product that never answered initialize was said to have been reached')
   } finally { for (const s of sockets) s.destroy(); silent.close() }
+})
+
+// ── ER-1 (verification iteration 2 for 0.3.1): a tool that ran, but whose answer came after the deadline
+test('ER-1: a product that runs the tool but answers after the deadline: the forward says the call reached it, and the hub never sends that key again', async () => {
+  const inbox = await fakeInbox({ slowCallMs: 1500 })
+  try {
+    const r = await forwardToProduct({ mcpUrl: inbox.url, clientId: 'abc.access', clientSecret: SECRET, narrowing: ['cloudflare:news@example.com'], capability: 'read_message', input: { accountId: 'news@example.com', messageId: 'm' }, traceparent: TRACE, timeoutMs: 500 })
+    assert.equal(r.ok, false)
+    assert.equal(r.code, 'product-unreachable')
+    assert.equal(r.reached, true, 'a call the product received was said not to have reached it')
+    const events = []
+    const call = createAgentCall({
+      access: { liveGrantsOf: async () => [grant('read_message', 'cloudflare:news@example.com')] },
+      store: { liveConnection: async () => ({ id: 'c-1', product: 'fabric-inbox', server: 'https://mail.example.com', mcp_url: inbox.url, key_id: 'k', client_id: 'abc.access', level: 'admin', send: 'send', key_expires_at: null, secret_ref: slot, connected_at: '', removed_at: null }), append: async (type, actor, payload) => { events.push(payload); return events.length } },
+      vault: { read: async () => ({ ok: true, value: SECRET }) },
+      forward: (req) => forwardToProduct({ ...req, timeoutMs: 500 }),
+      estateId: 'estate-1'
+    })
+    const a = { agentId: 'fabric-inbox', capability: 'read_message', input: { accountId: 'news@example.com', messageId: 'm' }, idempotencyKey: 'deadline-1' }
+    const first = await call(binding, a, undefined)
+    assert.equal(first.structuredContent.error.code, 'outcome-unknown')
+    const again = await call(binding, a, undefined)
+    assert.equal(again.structuredContent.error.code, 'outcome-unknown')
+    assert.equal(inbox.seen.length, 2, 'the hub sent the call a second time (one direct forward above, one through the hub)')
+  } finally { inbox.close() }
+})
+
+// ── ER-11: a product's error that echoes the request's headers carries no client id out of the forwarder
+test('ER-11: a product error that echoes its headers: neither the secret nor the client id is in the message', async () => {
+  const inbox = await fakeInbox({ echo500: true })
+  try {
+    const r = await forwardToProduct({ mcpUrl: inbox.url, clientId: 'abc.access', clientSecret: SECRET, narrowing: ['cloudflare:news@example.com'], capability: 'read_message', input: { accountId: 'news@example.com', messageId: 'm' }, traceparent: TRACE, timeoutMs: 3000 })
+    assert.equal(r.ok, false)
+    assert.doesNotMatch(r.message, /abc\.access/, 'the client id reached the message')
+    assert.ok(!r.message.includes(SECRET))
+  } finally { inbox.close() }
 })
 
 test('a narrowing entry carrying a separator or a line break is refused before anything is sent', async () => {
