@@ -50,6 +50,32 @@
         "tier": "source-bound-rendering-evidence",
         "timing": "initial form before synthetic bridge probes"
       }
+    },
+    {
+      "receipt": "corrected-long-repos-ru-760x1000.json",
+      "image": "corrected-long-repos-ru-760x1000.png",
+      "fixture_host_revision": "991524a368158a063a99c048685b246573971f34",
+      "source_revision": "65b1dd25ba1360da0da34b5d9c92885952c9fbe7",
+      "capture": {
+        "file": "page.png",
+        "sha256": "1dbdd93dc1003d654976a4d9df922b38c52525b6bbad6ba58c410ffb77b62f73",
+        "bytes": 151590,
+        "pixels": {
+          "width": 1520,
+          "height": 2000
+        },
+        "configuredContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "actualContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      },
+      "pixel_review": "INVALID paired visual proof: PNG shows EstateHome, later observed geometry shows Onboarding; retained historical capture-boundary failure"
     }
   ]
 }

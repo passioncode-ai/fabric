@@ -63,7 +63,7 @@
   "not_run_by_author": [
     "repository fast gate",
     "canonical UX lint/map convergence",
-    "native visual matrix",
+    "independent native interaction and combined-source visual acceptance",
     "native keyboard/AX/VoiceOver",
     "200 percent text",
     "hosted CI",
@@ -81,16 +81,17 @@
   "rendering_evidence": {
     "index": "2026-10-04-onboarding-visual-captures/index.json",
     "captures": 16,
-    "pairs": 8,
+    "pairs": 6,
     "tier": "source-bound-hidden-test-host-rendering-not-native-UI-acceptance",
     "candidate_revision": "d454dc7dd6e0774281e8ad4653d00e43c8415ebe",
     "fixture_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
-    "visual_judgment": "held-suspected-lede-overflow-RU-long-repo-760; geometry-and-correction-pending",
-    "source_frozen_until_measured_root_cause": true,
-    "valid_pairs_after_review": 6
+    "visual_judgment": "historical rejected source; horizontal hypothesis later disproved; narrow scroll containment repaired at65b",
+    "source_frozen_until_measured_root_cause": false,
+    "valid_pairs_after_review": 6,
+    "planned_pairs": 8
   },
   "correction_iteration_1": {
-    "status": "source-authored-geometry-recheck-pending",
+    "status": "source-authored-stable-rendering-and-geometry-passed-native-interaction-pending",
     "horizontal_overflow_hypothesis": "disproved by991 host measured all scroll widths equal client widths",
     "confirmed_problem": "Narrow block workbench lets app-main exceed clipped window and provides no internal scroll extent",
     "scope": "existing<=768 breakpoint only, workbench:has(.onboarding-launch) column flex, sidebar flex none, main flexible/min-height0",
@@ -100,6 +101,36 @@
     "build_exit": 0,
     "design_exit": 0,
     "regions_exit": 0,
-    "geometry_index": "2026-10-04-onboarding-visual-geometry/index.json"
+    "geometry_index": "2026-10-04-onboarding-visual-geometry/index.json",
+    "typecheck_exit": 0,
+    "local_style_audit": {
+      "modifier_qualified_selector_groups": 28,
+      "type_spacing_tokens": true,
+      "existing_768_breakpoint_reused": true
+    },
+    "source_revision": "65b1dd25ba1360da0da34b5d9c92885952c9fbe7",
+    "diagnostic_geometry": {
+      "main_bottom": 1000,
+      "main_client_height": 835,
+      "main_scroll_height": 1152,
+      "state_boundary_limit": "991 corrected PNG shows EstateHome while later geometry shows form; temporally mismatched, no paired visual acceptance"
+    }
+  },
+  "stable_rendering_evidence": {
+    "index": "2026-10-04-onboarding-visual-stable/index.json",
+    "captures": 16,
+    "valid_pairs": 8,
+    "personally_inspected_pngs": 16,
+    "fixture_revision": "4df3079e01dd3493bf8ae302549de603257f4a26",
+    "host_sha256": "afd35dd2d5d1c12f3f2f8d3a9a402cd9181b460ec0a3f2017eb748e0b352fffb",
+    "candidate_revision": "65b1dd25ba1360da0da34b5d9c92885952c9fbe7",
+    "capture_boundaries_equal": 16,
+    "source_delta_exactly": [
+      "renderer/src/Onboarding.launch.css",
+      "renderer/src/Onboarding.tsx"
+    ],
+    "candidate_main_within_viewport": 8,
+    "candidate_scroll_extent_present": 8,
+    "tier": "actual-hidden-Electron44-initial-rendered-viewport-not-native-user-interaction-acceptance"
   }
 }
