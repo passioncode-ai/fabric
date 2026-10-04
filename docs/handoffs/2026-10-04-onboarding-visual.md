@@ -195,14 +195,20 @@ Each capture requires the exact configured form and unchanged geometry for at
 least 500ms, a paint boundary before/after capture and equal before/after state.
 The receipts' `observed.initial` equals that capture-boundary snapshot. All
 16 PNG hashes, client dimensions and boundaries were independently checked.
+The remote branch resolved to evidence commit
+`13b272fb85d7ec2e28a534099d3285bb3b1c6a68`. A fresh sparse remote
+checkout returned all 78 task-owned files byte-equal; all 35 historical/stable
+PNG hash receipts and entry links resolved. This is durable delivery, not
+integration or release. Subsequent receipt-only commits preserve that source.
+
 Across all eight pairs, production source pins differ in exactly Onboarding.tsx
 and the new local stylesheet; App source and other production files remain
 at the ff7 baseline. This is independent of root's later draft-recovery fix.
 
 Measured corrected `.app-main` ends at the viewport in all eight candidate
 cases and has scrollHeight greater than clientHeight. At RU640 its bounds are
-bottom 900, clientHeight 735, scrollHeight 1097; at RU long-path760, bottom1000,
-clientHeight835, scrollHeight1152. All measured scroll widths equal client
+bottom 900, clientHeight 735, scrollHeight 1097; at RU long-path760, bottom 1000,
+clientHeight 835, scrollHeight 1152. All measured scroll widths equal client
 widths. The full synthetic path and Remove button visibly coexist in both
 long-path candidates. Only the initial viewport was captured: actual native
 scrolling to lower controls, keyboard/AX/VoiceOver, 200% text, busy/refusal and
