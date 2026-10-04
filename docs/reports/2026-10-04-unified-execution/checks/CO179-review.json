@@ -1,0 +1,12 @@
+{
+  "dossier": "docs/evidence/plans/unified-leaves/CO-179.json",
+  "sha256": "626a37d322a3cc7f9d8ed5ec5eb004f8b67f85a0a4ce637c933ac0b10a4fb09c",
+  "independent_review": "PASS after two defects corrected",
+  "sources_verified": 24,
+  "source_provenance": "23 committed-identical;1 working-cut/backlog with baseline digest",
+  "corrections": [
+    "full native-state matrix NOT_RUN until isolated fixture capability exists",
+    "git checkbox transient; no new persistence promised"
+  ],
+  "implementation": "BLOCKED; native acceptance and accepted design mapping required"
+}

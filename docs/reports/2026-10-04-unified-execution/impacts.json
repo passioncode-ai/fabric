@@ -1,0 +1,152 @@
+[
+  {
+    "id": "I-01",
+    "targets": [
+      "P-08"
+    ],
+    "severity": "blocking",
+    "disposition": "open",
+    "evidence": "CO179 source row deadline + start/adoption research SA-F7",
+    "action": "Release owner must resolve next-release deadline before0.3.1",
+    "resolution": "Still open, exact canonical CO179 decision controls release; no new release authority granted. Research/report publication is independent; CO-197 is not blocked by this product-release deadline.",
+    "source_date": "2026-10-04",
+    "acknowledgement": "included in root convergence; release-owner decision required"
+  },
+  {
+    "id": "I-02",
+    "targets": [
+      "P-06",
+      "P-07"
+    ],
+    "severity": "advisory",
+    "disposition": "incorporated",
+    "evidence": "migrations77 present; ADR0115 and learning spec",
+    "action": "Use actual schema head, append/read authority and existing hub auth",
+    "resolution": "Agents-memory packets include current head, FK/RLS/append-door negatives and existing binding/grant port.",
+    "source_date": "2026-10-04",
+    "acknowledgement": "coordinator reviewed peer finding and packet resolution"
+  },
+  {
+    "id": "I-03",
+    "targets": [
+      "P-07"
+    ],
+    "severity": "blocking",
+    "disposition": "incorporated",
+    "evidence": "agents-memory primary source scan controls",
+    "action": "Fixed only on fresh complete successful source receipt",
+    "resolution": "P07 packet preserves source error/offline/stale/partial as unknown; scope mismatch cannot resolve.",
+    "source_date": "2026-10-04",
+    "acknowledgement": "coordinator reviewed peer finding and packet resolution"
+  },
+  {
+    "id": "I-04",
+    "targets": [
+      "N1",
+      "M199.acceptance"
+    ],
+    "severity": "advisory",
+    "disposition": "incorporated",
+    "evidence": "https://code.claude.com/docs/en/authentication; historical Keychain issues",
+    "action": "Repeat exact-build account isolation passport",
+    "resolution": "N1 metadata read only; account A→B→A acceptance remains unverified and separately scoped.",
+    "source_date": "2026-10-04",
+    "acknowledgement": "coordinator reviewed peer finding and packet resolution"
+  },
+  {
+    "id": "I-05",
+    "targets": [
+      "P-08",
+      "AR-3"
+    ],
+    "severity": "blocking",
+    "disposition": "open",
+    "evidence": "https://modelcontextprotocol.io/specification/2025-06-18/basic/transports, lines84–86 vs V1-30",
+    "action": "Reconcile custom stop-forward contract with MCP explicit cancellation semantics",
+    "resolution": "Release owner must choose/test the actual supported transport before compliance claim; report does not declare existing code defective.",
+    "source_date": "2026-10-04",
+    "acknowledgement": "included in root convergence; release-owner decision required"
+  },
+  {
+    "id": "I-06",
+    "targets": [
+      "FR-A",
+      "AD04"
+    ],
+    "severity": "blocking",
+    "disposition": "incorporated",
+    "evidence": "Canonical AD02 native receipt CO187",
+    "action": "Do not infer native acceptance from P01/P03",
+    "resolution": "Native AD02 prerequisite retained in FR-A/AD04 packets; source/component receipts not upgraded.",
+    "source_date": "2026-10-04",
+    "acknowledgement": "coordinator reviewed peer finding and packet resolution"
+  },
+  {
+    "id": "I-07",
+    "targets": [
+      "S11"
+    ],
+    "severity": "advisory",
+    "disposition": "incorporated",
+    "evidence": "ADR0090 versus historical S11 card",
+    "action": "Reconcile current organisation/product names before copy",
+    "resolution": "S11 packet starts from current glossary/brand, not historic recipe.",
+    "source_date": "2026-10-04",
+    "acknowledgement": "coordinator reviewed peer finding and packet resolution"
+  },
+  {
+    "id": "I-08",
+    "targets": [
+      "P-06"
+    ],
+    "severity": "advisory",
+    "disposition": "retracted",
+    "evidence": "Researcher initial count hypothesis; corrected after exact catalogue read",
+    "action": "Do not treat six-event count as defect",
+    "resolution": "Six agent events are correctly counted; only memory attribution/retired support remains research input.",
+    "source_date": "2026-10-04",
+    "acknowledgement": "coordinator reviewed peer finding and packet resolution"
+  },
+  {
+    "id": "I-09",
+    "targets": [
+      "P-06",
+      "P-07",
+      "CO-025"
+    ],
+    "severity": "advisory",
+    "disposition": "incorporated",
+    "evidence": "Claude SDK official canUseTool documentation + issues30983/470",
+    "action": "Question timeout/empty result never equals approval",
+    "resolution": "Version-specific explicit question/confirmation probes travel with horizon and learning packets.",
+    "source_date": "2026-10-04",
+    "acknowledgement": "coordinator reviewed peer finding and packet resolution"
+  },
+  {
+    "id": "I-10",
+    "targets": [
+      "CO-059"
+    ],
+    "severity": "advisory",
+    "disposition": "incorporated",
+    "evidence": "https://docs.cedarpolicy.com/auth/authorization.html",
+    "action": "Verify full Cedar context mapping respects accepted ADR0023 indeterminate refusal",
+    "resolution": "CO079 is already resolved; open CO059 carries full context mapping. No current policy-engine defect inferred.",
+    "source_date": "2026-10-04",
+    "acknowledgement": "coordinator reviewed peer finding and packet resolution"
+  },
+  {
+    "id": "I-11",
+    "targets": [
+      "CO-179",
+      "AD02"
+    ],
+    "severity": "advisory",
+    "disposition": "incorporated",
+    "evidence": "Independent cold review of CO179 dossier against adoption-native-harness.mjs and Onboarding.tsx; twofiles17pure tests pass",
+    "action": "Keep native fullstate matrix NOT_RUN; separate test-only disposable fixture prerequisite. Preserve transient git checkbox rather than invent persisted Draft.git.",
+    "resolution": "CO179 dossier corrected, fixture leaf bounded separately, implementation still blocked; no native/product acceptance promoted.",
+    "source_date": "2026-10-04",
+    "acknowledgement": "root + affected researcher + independent reviewer PASS after correction"
+  }
+]

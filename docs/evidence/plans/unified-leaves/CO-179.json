@@ -1,0 +1,622 @@
+{
+  "schema": "fabric-bounded-leaf-dossier/1",
+  "id": "CO-179.prepare",
+  "canonical_parent": "CO-179",
+  "as_of": "2026-10-04",
+  "declared_output_path": "docs/evidence/plans/unified-leaves/CO-179.json",
+  "preparation_status": "complete-with-explicit-implementation-blockers",
+  "implementation_status": "blocked",
+  "canonical_status_unchanged": true,
+  "objective": "Prepare one bounded visual containment leaf for the existing native New project form before the next release after0.3.0, preserving all draft/folder/authority behavior.",
+  "current_receipts": {
+    "canonical_CO179": {
+      "source": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md:190",
+      "state": "open",
+      "deadline": "before the next release after0.3.0"
+    },
+    "AD02": {
+      "path": "docs/launch/adoption/receipts/AD02.json",
+      "status": "blocked",
+      "proofTier": "pure",
+      "predicate": "native-acceptance-pending",
+      "conclusion": "Renderer+disk regression exists; actual native restart acceptance pending. Cannot consume as passed native."
+    },
+    "native_acceptance_this_prepare": "NOT_RUN",
+    "code_change_this_prepare": "none",
+    "focused_form_and_draft_suite": {
+      "command": "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/Onboarding.test.tsx src/renderer/src/onboardingDraft.persist.test.tsx",
+      "exit_code": 0,
+      "test_files": 2,
+      "tests_passed": 17,
+      "proof_tier": "jsdom/pure actual renderer+controlled IPC+disk, not native Electron",
+      "started_local": "2026-10-04 11:40:38",
+      "duration_seconds": 24.7,
+      "limits": [
+        "HTMLCanvasElement getContext not implemented emitted twice; no canvas package installed; this receipt is no native/full-state/visual acceptance.",
+        "Fixture-host prerequisite not implemented; unsupported native state matrix remains NOT_RUN."
+      ]
+    }
+  },
+  "decisions_already_made": [
+    {
+      "source": "docs/adr/0100-first-run-and-start-paths.md §4; docs/ux/screens.md:539,1733",
+      "decision": "Current shipped New project route is draft-backed SCR73 with required name until CEO-first R0 target exists. Restyle this form; no second wizard and no removal of current name requirement."
+    },
+    {
+      "source": "apps/desktop/src/renderer/src/Onboarding.tsx:34–39,99–122",
+      "decision": "Shell owns Draft, form patches it; save sends same projectId/name/purpose/repoPaths/memory/defaultAgent via projects.create."
+    },
+    {
+      "source": "apps/desktop/src/renderer/src/components/Button.tsx",
+      "decision": "Native button semantics, type=button default, explicit submit, monochrome brand state roles and focus behavior remain."
+    },
+    {
+      "source": "apps/desktop/src/renderer/src/Onboarding.tsx:200–248; Onboarding.test.tsx",
+      "decision": "Unavailable memory backend remains visible with its actual reason and disabled; single declared backend is statement; future available second backend restores choice automatically."
+    },
+    {
+      "source": "apps/desktop/src/renderer/src/Onboarding.tsx:60–97; docs/ux/screens.md:1733–1751",
+      "decision": "Folder creation requires chosen parent; remove/cancel does not delete created folder and left-on-disk notice remains visible."
+    },
+    {
+      "source": "apps/desktop/src/renderer/src/Onboarding.tsx:63",
+      "decision": "git is useState(true) component-local, not part of App Draft or persisted draft contract. Preserve default/local interaction only; persistence would be separate behavior change."
+    }
+  ],
+  "alternatives_and_exclusions": [
+    {
+      "alternative": "Rewrite App draft storage, hydration or create coordinator while restyling",
+      "ruling": "excluded; independent data/authority change needs another leaf"
+    },
+    {
+      "alternative": "Copy all .lp CSS into a second global theme or edit all shared components",
+      "ruling": "excluded; bounded form reuses current declared launch tokens/classes or a reviewed isolated modifier; no new palette/typography/token constants"
+    },
+    {
+      "alternative": "Replace radios/select with clickable divs or bespoke fake controls",
+      "ruling": "excluded; native labels, checked/disabled keyboard states and submit semantics retained"
+    },
+    {
+      "alternative": "Hide refusal, pending, unavailable-backend reason or left-on-disk notice under disclosure",
+      "ruling": "excluded; critical truth remains visible"
+    },
+    {
+      "alternative": "Complete all AD20 shell redesign or M187 screen sweep",
+      "ruling": "excluded; only SCR73 visual containment"
+    },
+    {
+      "alternative": "Change source semantics into old one-Project-related-sources wizard",
+      "ruling": "excluded; no routing, scan identity, Project ownership or new metadata gate change"
+    }
+  ],
+  "minimum_implementation_leaf": {
+    "id": "CO-179.1",
+    "title": "Contain SCR73 in existing launch visual language without changing draft behavior",
+    "kind": "visual-refinement",
+    "dispatch": "blocked",
+    "canonical_ids": [
+      "CO-179"
+    ],
+    "why": "Existing Onboarding uses older .onboarding/.field/.choice presentation while neighboring StartPaths uses reviewed .lp tokens. Next release has explicit deadline; preserving draft semantics must be proved independently.",
+    "module_owner": "native project-entry surface; App remains sole draft owner; trusted main folder/create producers unchanged",
+    "observable_result": "New project form visually belongs to current start routes in RU/EN. Existing persisted Draft fields name/purpose/repoPaths/memory/agent and projectId retain tab-switch/save-refusal/restart behavior. The git checkbox remains component-local with existing default true; no promise that its changed value survives unmount/restart. Control outcomes remain identical.",
+    "read_manifest": [
+      {
+        "path": "docs/evidence/backlog.md",
+        "sha256": "3135378f808cca85b5408b13f54159b8e6818ab2d7f9258eef7f25644a17d608",
+        "access": "read-only",
+        "provenance": "working-cut",
+        "base_revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba",
+        "base_sha256": "8725d7c73d0be3eacbe1ad72d0f418e44c11dff794877c7a53f9a09074988c19",
+        "receipt": "SHA256 binds inspected working bytes; these bytes are not asserted to belong to base_revision."
+      },
+      {
+        "path": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+        "sha256": "50a73374b7305a1b092333940b299d1595c33ed63b1d0fd1a41e6a9476b8db51",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "docs/adr/0100-first-run-and-start-paths.md",
+        "sha256": "e9c36c52956b9b6128bb604aad428abd0d108e207626405f6914f715fa8fe3bb",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "docs/ux/scenarios.md",
+        "sha256": "6c30974330bcf1c654318ede288a683c19f69a8fae5d3efeb3e1ae30e22a88a1",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "docs/ux/flows.md",
+        "sha256": "f2dd06b5c3cb0150f7e3072b7bd73c274c96722987c1dcc195533c467f45b7fa",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "docs/ux/screens.md",
+        "sha256": "c732d0e56e28519583989ead1abc73321c15289f15d4d1a32de6318e256a95b4",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "docs/brand/README.md",
+        "sha256": "811b34b07ed54db0ea9fff03b4d4ec24fd1781bd18d9ba3a332bba792350d4ba",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "docs/brand/ui.md",
+        "sha256": "2adfc8e404a452e66e546d5f5de9ffed305c9ad61278a86b1b2b569248c01510",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "docs/launch/adoption/receipts/AD02.json",
+        "sha256": "12b74a7a8a3d1ad4719f24fda323473b3040f7ceb24ac4a7d0ae12fa167a99cd",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/src/renderer/src/Onboarding.tsx",
+        "sha256": "36b0e2281c589eaf343d5b431c7632441413d27c6c39b5e909ec32eadb66ff26",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+        "sha256": "98c6f82425c7f4b643e837364d08362d0252d53c328791938164090101408940",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
+        "sha256": "6439cf164d5529dce43a9311c34b1598fca8ad47d7b43c7e0583d4ccd49927d8",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/src/renderer/src/components/Button.tsx",
+        "sha256": "62b65ae70bc2c15652370d88a45c473dc4fbaff5a86e586e8caa290dcad6e26a",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/src/renderer/src/components/Field.tsx",
+        "sha256": "5a6e5b68aea54203a3f9e5183b7c0ae1eca5ea90c97f9dc4c4a5b79ecbeffd23",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/src/renderer/src/styles.css",
+        "sha256": "f1b8b80d1d906baa99ce01ee87ef21e538e23c3226abfebd3d82cbb35dbf75b6",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/src/renderer/src/components.css",
+        "sha256": "093995837165b4609b94dedce2d5fa93a3c858c93951cd89690bb68d04dd643d",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/src/renderer/src/start/start.css",
+        "sha256": "6f4f7b536e32ed3287d1b96bb2c9183ae2a126d2b07732bc743858af1b076d0f",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
+        "sha256": "281d159c72379eac642de3fa132b30436eacff9a41f9b73230272c1473eb27e2",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/src/renderer/src/launch/launch.css",
+        "sha256": "224d6aad44019b5c577a99e5e86acb97292df8b6c18f1f2af906c02454f3a5ad",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/src/renderer/src/tokens.app.css",
+        "sha256": "7269b4f436f10ab29be36afa77f1115e3a0aa6744532e2a4cf3d17bb8436e022",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/test/adoption-native-harness.mjs",
+        "sha256": "70d30c128845453e27f94589dd9585cdef197982064583459f1c6dac98384f52",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/src/shared/types.ts",
+        "sha256": "93f5032b9dcef5e20866bba20745709cec8698ae21866925db7ce20878ff897c",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/src/preload/index.ts",
+        "sha256": "543cedd1887f255289a03df76ee97ce6fedb758765f86f7d06773cc9cf807c11",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      },
+      {
+        "path": "apps/desktop/src/shared/startPaths.ts",
+        "sha256": "86b4708e45bdf3ad843db92e1724642668e3eb42803a5aa3236728f148d191c6",
+        "access": "read-only",
+        "provenance": "committed-identical",
+        "revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba"
+      }
+    ],
+    "edit_targets": [
+      "apps/desktop/src/renderer/src/Onboarding.tsx"
+    ],
+    "optional_create_targets": [
+      {
+        "path": "apps/desktop/src/renderer/src/Onboarding.launch.css",
+        "condition": "Only if accepted sheleg-design mapping cannot be expressed using existing launch classes; token references only, scoped root selector; exact source contract and import require review."
+      },
+      {
+        "path": "apps/desktop/src/renderer/src/Onboarding.visual.test.tsx",
+        "condition": "Only for missing meaningful semantic/control regressions found during implementation; no class-name or implementation-mirroring tests."
+      }
+    ],
+    "conditional_test_edit_targets": [
+      "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+      "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx"
+    ],
+    "excluded_write_targets": [
+      "apps/desktop/src/renderer/src/App.tsx",
+      "apps/desktop/src/main/onboardingDrafts.ts",
+      "apps/desktop/src/main/index.ts",
+      "apps/desktop/src/preload/index.ts",
+      "apps/desktop/src/shared/types.ts",
+      "packages/schema",
+      "packages/journal",
+      "apps/desktop/src/renderer/src/components/Button.tsx",
+      "apps/desktop/src/renderer/src/components/Field.tsx",
+      "apps/desktop/src/renderer/src/launch/launch.css"
+    ],
+    "integration_documentation_owner": "Root under existing shared-file/resource lease updates SCR73 visual state evidence, map changelog/stamp, handoff and canonical CO179 receipt in same iteration; implementation agent does not independently edit them.",
+    "dependencies": [
+      {
+        "id": "AD02",
+        "required_status": "passed",
+        "required_tier": "native",
+        "carries": "Actual isolated Electron four-draft quit/restart + early typing + empty first save + unreadable recovery receipt at current source/build. Existing blocked/pure receipt is insufficient."
+      },
+      {
+        "id": "CO-179.visual-mapping",
+        "required_status": "reviewed",
+        "required_tier": "design-judgment",
+        "carries": "sheleg-design maps current SCR73 layout/control states onto existing launch classes/tokens, retaining behavior; no new user text. Record exact modifier decision before code."
+      },
+      {
+        "id": "CO-179.fixture",
+        "required_status": "passed",
+        "required_tier": "test-host-native-capability",
+        "carries": "Separate disposable fixture controls exact real preload IPC channels with typed synthetic outcomes, delayed responses and isolated App draft disk; no production main, live stack/DB/provider/repo picker or external filesystem effects. Current AD02 host cannot supply full matrix."
+      }
+    ],
+    "implementation_steps": [
+      "Acquire exact task/resource writer claim for Onboarding target and any reviewed create/test targets; read source hashes and check no concurrent holder.",
+      "After dependency receipts exist, inspect current native form and adjacent StartPaths across empty/typed/busy/error/backend states; materialize minimal visual mapping through sheleg-design.",
+      "Apply reviewed launch shell/heading/panel/action/field styling locally; retain semantic Field/FieldGroup labels and native input/radio/checkbox/select elements. Avoid shared component/theme edits.",
+      "Retain controlled draft patch, save/create payload, disabled/busy gates, folder-created notice and off-screen draft owner exactly. Do not add effects or change asynchronous producers.",
+      "Run focused behavior/draft suite. For native draft persistence use existing AD02 host only; for full visual/control state matrix require separate CO-179.fixture passed receipt before launching current compiled renderer/preload. Every uncovered case remains NOT_RUN until its injected handler/state is proved.",
+      "Root integrates source-bound docs/map and runs fast gates; attach source/build/screenshots/actual proof tiers before closing CO179."
+    ],
+    "positive_checks": [
+      {
+        "command": "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/Onboarding.test.tsx src/renderer/src/onboardingDraft.persist.test.tsx",
+        "proves": "Current form memory/folder semantics and real renderer+disk draft regressions, pure tier only"
+      },
+      {
+        "command": "pnpm --filter @fabric/desktop typecheck",
+        "proves": "Type safety of same native control/patch interface"
+      },
+      {
+        "command": "pnpm --filter @fabric/desktop build",
+        "proves": "Renderer/main build used by subsequent isolated native fixture"
+      },
+      {
+        "command": "node scripts/check-regions.mjs",
+        "proves": "Any changed feature region documentation resolves"
+      },
+      {
+        "command": "python3 docs/ux/lint.py",
+        "proves": "Canonical UX consistency; root-owned propagation if visual contract changed"
+      },
+      {
+        "command": "bash scripts/ci.sh fast",
+        "proves": "Repository source gates only, not native acceptance"
+      }
+    ],
+    "negative_controls": [
+      {
+        "case": "Late hydration overwrites typing or four restored drafts collide",
+        "exercise": "Existing onboardingDraft.persist tests at exact source; test-owned mutation of hydration merge/draft ID restoration must make focused suite fail if guard edited. Never mutate production userData.",
+        "expected": "Typed value and four unique IDs preserved; deliberately injected regression observed failing."
+      },
+      {
+        "case": "Radio/card styling makes unavailable cloud memory selectable",
+        "exercise": "Current Onboarding.test shows reason and disabled input; local test mutation disabled flag false must fail selection assertion.",
+        "expected": "Unavailable backend visibly explained and cannot change draft memory."
+      },
+      {
+        "case": "Button component/class rewrite accidentally submits on folder/remove/cancel",
+        "exercise": "Fixture select/remove/cancel/folder action without Save; projects.create spy remains0; then single explicit Save produces same input payload. Add semantic regression only if current suite lacks this path.",
+        "expected": "No unrequested Project; canceled/failed action preserves draft."
+      },
+      {
+        "case": "CSS containment makes pending/refusal/left-on-disk or long path unreachable",
+        "exercise": "After separate CO-179.fixture passes, use test-only controlled IPC/state injection for SCR73 640/960/1440, 200% text, RU/EN, Tab/ShiftTab/radio/select/checkbox/submit/cancel and long nonASCII paths. Current AD02 host cannot supply folder/create/backend matrix; those cases remain NOT_RUN. Deliberately hide critical callout only in owned fixture, native reviewer must reject.",
+        "expected": "All current controls/critical states reachable and labelled, no loss at narrow width; failure capture includes exact build/source."
+      },
+      {
+        "case": "Restyle strips accessibility label or active focus",
+        "exercise": "Actual native keyboard focus path and label association; remove Field input id only in isolated test patch, focused accessibility control assertion must fail.",
+        "expected": "Label targets actual control; status/alert state remains conveyed; no empty meaningless icon control."
+      }
+    ],
+    "native_matrix": {
+      "runtime": "owned isolated adoption-native-harness, never production main/userData",
+      "preparation_command": "node apps/desktop/test/adoption-native-harness.mjs --prepare restored",
+      "launch_command": "pnpm --filter @fabric/desktop exec electron test/adoption-native-harness.mjs --fixture <exact-directory-printed-by-prepare>",
+      "additional_fixture_modes": [
+        "empty",
+        "corrupt"
+      ],
+      "locales": [
+        "ru",
+        "en"
+      ],
+      "widths": [
+        640,
+        960,
+        1440
+      ],
+      "text_scale_percent": [
+        100,
+        200
+      ],
+      "screenshots": "test-owned fixture only; record source/build pins and actual observed control state",
+      "notes": "Existing preparation/launch command remains valid only for AD02 draft host; no actual native case executed in this preparation. Full CO179 matrix waits for disposable test-only state-injection fixture, not operator DB/stack.",
+      "required_states": [
+        "empty",
+        "typed",
+        "creating",
+        "exists",
+        "outside",
+        "failed",
+        "created",
+        "left-on-disk",
+        "saving",
+        "memory-unread",
+        "memory-none",
+        "memory-statement",
+        "memory-disabled-choice"
+      ],
+      "coverage_status": "NOT_RUN; current AD02 draft harness is insufficient for full CO179 native state matrix",
+      "current_AD02_harness_scope": "Only actual App/preload/draft/settings persistence with unrelated reads seeded; rejects all unregistered IPC and is explicitly not project-create/provider/folder-handler acceptance.",
+      "current_AD02_harness_potential_cases": [
+        "draft-tab restarts",
+        "empty/restored/corrupt draft state",
+        "late draft read via --delay-drafts-ms",
+        "typing and pure memory-none from terminalMemoryBackends=[]"
+      ],
+      "current_AD02_harness_observed_cases_this_prepare": [],
+      "uncovered_states_until_test_fixture_capability": [
+        "creating",
+        "exists",
+        "outside",
+        "failed with controlled typed folder response",
+        "created",
+        "left-on-disk",
+        "saving controlled delayed create",
+        "memory-unread controlled delayed backend read",
+        "memory-statement",
+        "memory-disabled-choice",
+        "available/unavailable runner select"
+      ],
+      "full_matrix_launch_command": "NOT_AVAILABLE until CO-179.fixture has scoped test-only implementation and immutable acceptance receipt; do not improvise production handlers into AD02 harness"
+    },
+    "definition_of_done": [
+      "Accepted sheleg-design mapping and passed current AD02 native receipt precede implementation dispatch.",
+      "Same persisted Draft identity/name/purpose/repoPaths/memory/agent fields and save payload/folder/backend semantics. Git checkbox retains current local default/interaction only. Named focused tests and meaningful negative controls observed.",
+      "Actual isolated native RU/EN visual+keyboard+text-scale matrix recorded only after its exact test-host capabilities are evidenced; AD02 host covers draft persistence only. Folder/create/backend/runner matrix remains NOT_RUN before CO-179.fixture. Exact source/build pins and restart retained.",
+      "Root-owned source documentation/map/handoff and fast gates current in same iteration; canonical CO179 closes only on its own receipt."
+    ],
+    "rollback": "Revert only local form visual mapping and optional scoped stylesheet/import. Preserve App draft storage, IDs, all user draft files, journal and created filesystem folders. No database migration or dependency installation.",
+    "stop_conditions": [
+      "AD02 still blocked/pure or stale source/build receipt: do not implement/dispatched complete native claim.",
+      "Visual mapping would require shared component/global CSS behavior changes or data/create/routing modifications: stop and propose separate leaf.",
+      "No exact task/resource lease, concurrent Onboarding writer, source hash drift: stop and rebase/review.",
+      "Native CUA permissions absent: record NOT_RUN and retain capability blocked; pure tests cannot replace window receipt.",
+      "Any product text change: route through brand copywriting against current brand pack; no improvised text in this leaf.",
+      "CO-179.fixture missing or unsupported injected channel/state: full visual/control matrix remains NOT_RUN, no expansion of CO179 product scope or use of live DB/stack to compensate."
+    ],
+    "authority": "Existing requested bounded repository work only; no release tag, live schema migration, package install, source-system write, remote provider model call, audio capture or messages to others.",
+    "resume": "Read this leaf and exact blocked AD02 receipt, current source hashes, then obtain actual native draft and visual-mapping receipts; implement only admitted local visual boundary."
+  },
+  "preparation_validation": {
+    "command": "python3 source-existence/hash + dossier field validation inline",
+    "result": "PASS",
+    "fields": [
+      "canonical parent",
+      "actual declared output path",
+      "source revisions/digests",
+      "current proof-tier blockers",
+      "minimal leaf write/read sets",
+      "dependencies with carried contract",
+      "steps",
+      "positive/negative validation",
+      "DoD",
+      "rollback",
+      "stop/resume"
+    ],
+    "product_tests": {
+      "focused_suite": {
+        "command": "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/Onboarding.test.tsx src/renderer/src/onboardingDraft.persist.test.tsx",
+        "exit_code": 0,
+        "test_files": 2,
+        "tests_passed": 17,
+        "proof_tier": "jsdom/pure actual renderer+controlled IPC+disk, not native Electron",
+        "started_local": "2026-10-04 11:40:38",
+        "duration_seconds": 24.7,
+        "limits": [
+          "HTMLCanvasElement getContext not implemented emitted twice; no canvas package installed; this receipt is no native/full-state/visual acceptance.",
+          "Fixture-host prerequisite not implemented; unsupported native state matrix remains NOT_RUN."
+        ]
+      },
+      "full_product_suite": "NOT_RUN",
+      "native_visual_restart": "NOT_RUN"
+    },
+    "native_visual_restart": "NOT_RUN",
+    "operator_review": "no new authority requested",
+    "source_provenance": {
+      "committed-identical": 23,
+      "working-cut": 1
+    },
+    "harness_coverage_correction": "Current AD02 handler map read: options/backends=[] and default-deny unregistered IPC. Unsupported full visual state matrix explicitly NOT_RUN; separate test-only CO179.fixture prerequisite dossier included."
+  },
+  "handoff_to_root": {
+    "write_under_held_lease": "docs/evidence/plans/unified-leaves/CO-179.json",
+    "do_not_write_to": "docs/evidence/plans/unified-leaves/CO-179.prepare.json",
+    "reason": "CLI-selected output is CO-179.json. Coordinator persists reviewed dossier under its held shared-file lease.",
+    "first_next_task": "Persist preparation only under lease. Actual AD02 native receipt, sheleg-design mapping and separately scoped CO179.fixture capability remain prerequisites; no native/full-state acceptance inferred."
+  },
+  "base_revision": "7b54dbaa7938933d25ef7e4017cb11500add3eba",
+  "source_cut": "Working-tree byte cut; each read manifest entry independently distinguishes identical committed bytes from uncommitted source bytes.",
+  "fixture_prerequisite_dossier": {
+    "id": "CO-179.fixture",
+    "kind": "test-host-capability",
+    "status": "designed-not-implemented",
+    "dispatch": "design-gated",
+    "parent": "CO-179",
+    "outcome": "One disposable Electron test host exposing current production renderer/preload to controlled synthetic folder/create/backend/runner responses and actual isolated draft storage so full SCR73 state matrix can be observed.",
+    "scope_separation": "Separate prerequisite leaf, not extra CO-179.1 product write authority. Do not edit product main/preload/IPC declarations or current AD02 draft harness just to make it pass.",
+    "create_targets": [
+      "apps/desktop/test/onboarding-visual-native-harness.mjs",
+      "apps/desktop/test/onboarding-visual-native-harness.test.mjs"
+    ],
+    "read_targets": [
+      "apps/desktop/test/adoption-native-harness.mjs",
+      "apps/desktop/src/shared/types.ts",
+      "apps/desktop/src/shared/startPaths.ts",
+      "apps/desktop/src/preload/index.ts",
+      "apps/desktop/src/renderer/src/Onboarding.tsx",
+      "apps/desktop/src/main/onboardingDrafts.ts",
+      "apps/desktop/src/main/localState.ts"
+    ],
+    "expected_handlers": [
+      {
+        "ipc_key": "startChooseFolder",
+        "channel": "start:choose-folder",
+        "expected_contract": "Read-only synthetic selected test-owned parent string or null cancellation; purpose must parent. No native live OS chooser, grant mutation or arbitrary path acceptance."
+      },
+      {
+        "ipc_key": "startCreateFolder",
+        "channel": "start:create-folder",
+        "expected_contract": "Typed NewFolderResult from shared/startPaths for ok path or invalid-name/exists/outside/failed. Created synthetic path restricted to fixture root; controlled delayed resolution models creating. No production mkdir/git or external folders."
+      },
+      {
+        "ipc_key": "reposChoose",
+        "channel": "repos:choose",
+        "expected_contract": "Synthetic fixture-root repoPaths[] or canceled[]/controlled throw; no user filesystem chooser."
+      },
+      {
+        "ipc_key": "projectsCreate",
+        "channel": "projects:create",
+        "expected_contract": "Record exact CreateProjectInput; synthesize ProjectRow shape from shared/types at current revision, controlled delay and refusal; scoped in-memory fixture record only, no DB/journal/network."
+      },
+      {
+        "ipc_key": "terminalMemoryBackends",
+        "channel": "terminal:memory-backends",
+        "expected_contract": "Typed MemoryBackendOption[] for none, one available statement, one available+one unavailable choice with reason, two available choices; explicitly bounded delayed response for unread."
+      },
+      {
+        "ipc_key": "terminalOptions",
+        "channel": "terminal:options",
+        "expected_contract": "Typed LaunchOption[] including available/unavailable coding runner and null-program terminal excluded by real renderer; no actual executor process."
+      }
+    ],
+    "state_configuration": "Fixture config schema names known scenario modes and delayed handlers; reject unknown keys/channels/types. Validate typed input/result shapes against current types without inventing new product interface. Each response logs channel, safe input/result/state and revision in fixture audit. Late response must retain initiating draft/window ownership.",
+    "containment": [
+      "Mandatory owner marker and direct test-owned temp root,0700 directories/0600 fixture files; reject missing marker, outside root and symlink targets.",
+      "Separate userData/sessionData/logs/crashDumps and in-memory BrowserSession; deny network/permissions/window-open/navigation just as AD02 host.",
+      "Load only built real renderer/preload plus bounded actual draft/local-state modules; never import production main/index.",
+      "Default-deny unregistered IPC remains; strict allowlist includes only declared synthetic cases and required read stubs.",
+      "No Supabase start, live database call, provider spawn/auth, repo pick or external filesystem write. Synthetic ProjectRow is a fixture, not production create acceptance."
+    ],
+    "steps": [
+      "Specify scenario-config schema and exact synthetic handler allowlist from existing IPC/type definitions; retain source/build pins.",
+      "Implement disposable host in new test-only file, reusing containment design of AD02 without broadening existing harness.",
+      "Add focused fixture-boundary tests: wrong root/missing marker/unknown channel/invalid config fail closed; response mode/delay/audit deterministic; no production-main import, DB/provider/network/subprocess effects.",
+      "Before any CO179 full native matrix, verify host initializes actual compiled renderer/preload at exact source/build and each required injected state is visible; log synthetic proof tier."
+    ],
+    "validation_commands": [
+      {
+        "command": "node --test apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+        "exists_now": false,
+        "status": "NOT_RUN until test-only leaf creates it",
+        "proves": "Synthetic host contracts and effect-containment negatives"
+      },
+      {
+        "command": "node --check apps/desktop/test/onboarding-visual-native-harness.mjs",
+        "exists_now": false,
+        "status": "NOT_RUN until file created",
+        "proves": "Host syntax only"
+      }
+    ],
+    "negative_controls": [
+      "Unknown/unregistered IPC rejected, no fallback production handler.",
+      "Fixture config/root missing, wrong marker, symlink or outside selected synthetic root refused.",
+      "Synthetic project-create response must not write journal/DB; deny network/subprocess spies catch any effect.",
+      "Delayed backend/create response maps only initiating fixture request/draft.",
+      "Invalid result shape or unsupported scenario blocked rather than claimed covered."
+    ],
+    "definition_of_done": [
+      "Exactly declared test-only files, reviewed source/build pinning, controlled required state modes and negative containment tests recorded.",
+      "Native host capability receipt distinguishes synthetic UI-state observation from real production main/data/effect acceptance.",
+      "Full CO179 native matrix cannot be marked covered by unregistered/missing handler, empty options/backend stubs or thrown default refusal."
+    ],
+    "rollback": "Remove only test-owned host/config/files/processes after fixture receipt; never alter operator app data, DB, source grants or current AD02 harness contract.",
+    "stop_conditions": [
+      "Current source/type/build drift: reprepare and semantic review.",
+      "Test capability requires live DB/stack/provider/account or arbitrary filesystem effect: refuse and redesign fixture.",
+      "Need product/preload/IPC modification to inject test states: separate decision; do not silently expand CO179 scope."
+    ],
+    "resume": "Read this prerequisite dossier and current expected handler types, bind test-only writer under lease, implement/disprove containment before full UI-state acceptance."
+  },
+  "context_partition": {
+    "primary": "CO179.1 leaf, decisions/current receipts and digest manifest",
+    "appendix": "fixture_prerequisite_dossier contains separately scoped test-host capability; consumers read it on prerequisite boundary",
+    "unit": "UTF-8 JSON bytes",
+    "tokens": "NOT_MEASURED"
+  }
+}

@@ -4,6 +4,13 @@ import { planProblems, PLAN_BEGIN, PLAN_END } from '../lib/plan-ids.mjs'
 const plan = (rows) => `# Backlog\n${PLAN_BEGIN}\n| Lane | Outcome | Delivers |\n|---|---|---|\n${rows}\n${PLAN_END}\n`
 const LEDGER = { 'docs/evidence/specs/2026-08-16-software-fabric-carryover.md': '| # | What | Status |\n|---|---|---|\n' }
 const docs = { ...LEDGER, 'docs/evidence/plans/x.md': '| AR-7 | conversion |\n### N1 · real providers\n', 'docs/launch/adoption/packets/AD00.md': '# AD00' }
+test('communication IDs resolve only from owning work rows; missing and closed work refuse', () => {
+  const b = plan('| 13 · Project communications | Board and optional mirror | COM-01, COM-14 |')
+  const f = { ...docs, 'docs/evidence/plans/com.md': '| ID | Packet | Status |\n|---|---|---|\n| COM-01 | Contract | open |\n| COM-14 | Acceptance | open |' }
+  assert.deepEqual(planProblems(b, f), [])
+  assert.ok(planProblems(b, { ...f, 'docs/evidence/plans/com.md': f['docs/evidence/plans/com.md'].replace('| COM-14 | Acceptance | open |', '') }).some(p => /COM-14.*no document/.test(p)))
+  assert.ok(planProblems(b, { ...f, 'docs/evidence/plans/com.md': f['docs/evidence/plans/com.md'].replace('Acceptance | open', 'Acceptance | closed') }).some(p => /COM-14.*finished/.test(p)))
+})
 test('resolves ids defined by a row, a heading and a file, and the plan\'s own P-rows', () => {
   const b = plan('| P-01 | first run | AR-7, N1, AD00 |')
   assert.deepEqual(planProblems(b, { ...docs, 'docs/evidence/backlog.md': b }), [])

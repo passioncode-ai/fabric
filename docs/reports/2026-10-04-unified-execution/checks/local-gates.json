@@ -1,0 +1,21 @@
+{
+  "previous_failure": {
+    "command": "VITEST_MAX_WORKERS=4 bash scripts/ci.sh fast",
+    "exit": 1,
+    "failed_gate": "build-plan-projection.mjs --check",
+    "cause": "New source-bound context paragraph changed backlog digest; canonical status rows unchanged. Generated projection needs regeneration.",
+    "correction": "node scripts/build-plan-projection.mjs; final canonical fast rerun required",
+    "observed_prior_scope": "types/docs/registers/internal queue13/pure/native adapter and fixture tests passed before projection gate; not a full fast pass",
+    "not_run_browser": "No CUA browsers available; CI browser suites need FABRIC_PLAYWRIGHT_MODULE/FABRIC_CHROME",
+    "hosted_ci": "NOT_RUN nightly policy"
+  },
+  "final": {
+    "command": "VITEST_MAX_WORKERS=4 bash scripts/ci.sh fast",
+    "exit": 0,
+    "output_marker": "fast tier green. The stack-backed probes did not run",
+    "log_sha256": "e9b1c9b269166f3da9c5e3373a2c66f1bbdc753bacd250621f5fc3004d29c3dd",
+    "browser_suites": "NOT_RUN; required module/Chrome absent",
+    "scope": "canonical local fast gate; not full stack, hosted/nightly, packaged build or actual provider/native acceptance"
+  },
+  "post_gate_seal": "Only receipt/wording/map stamp sealed; code unchanged. Publisher validates immutable source again before export and pin."
+}

@@ -1,0 +1,239 @@
+{
+  "baseline": "41f994a709990ad72621fa834768a8833e7d93e1",
+  "constraints": [
+    "ADR-0101 canonical source owns every delivery status; snapshot is dispatch design only.",
+    "P-08 external owners retain their worktrees; no agent may infer release approval, live migration or cleanup permission from research.",
+    "Project identity, role, consent, receipts and history survive agent/provider changes; private restored history grants no standing authority.",
+    "Source hashes checked before dispatch. Prepare leaves are design work; held parents need reviewed leaf and current dependency/authority receipt.",
+    "One task lease plus exact resource claim per guarded file; isolated worktree; shared generated outputs integrated by one owner.",
+    "Native/provider/hosted/packaged/product observations remain separate proof tiers; unknown, timeout, source error or partial read never equals success.",
+    "Public Fabric report excludes private commercial designs, credential values and transcript raw exports."
+  ],
+  "source_pins": [
+    {
+      "path": "CONTEXT.md",
+      "sha256": "216b4729418f21afeafb057227b2f802725e306f3586a05c1c3c38a270568fb5"
+    },
+    {
+      "path": "docs/AGENT_SYNC.md",
+      "sha256": "0de6ecfd0a80f9a1090d031e5b0b46ec8ef12295ec77149da7016a20b3ace641"
+    },
+    {
+      "path": "docs/adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md",
+      "sha256": "fde67d30c687fc422a5d868403047b77efcf8629dd56b884b55c4d44b6dae73e"
+    },
+    {
+      "path": "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md",
+      "sha256": "6fe81aee78d064078bd93640752c87c6acd5e8bae92c16b3f06ebd4c75efcb99"
+    },
+    {
+      "path": "docs/architecture/system-contract.md",
+      "sha256": "7daf5121cb7ecc0f8ba771053a0f45f6191268c3bfaf752e083e112fdbce65bc"
+    },
+    {
+      "path": "docs/evidence/backlog.md",
+      "sha256": "3135378f808cca85b5408b13f54159b8e6818ab2d7f9258eef7f25644a17d608"
+    },
+    {
+      "path": "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+      "sha256": "150d680acd625d3fb73bbc62af4edb3afff3cafda9dd080ab1d58eabe51685b5"
+    },
+    {
+      "path": "docs/ux/vision.md",
+      "sha256": "b49ff2c9b4af97b5f4fa56183ee8a703e2e3a607f86c1c368746e95517cc444c"
+    }
+  ],
+  "task": {
+    "id": "P-06.1",
+    "canonical_ids": [
+      "P-06.1",
+      "P-06"
+    ],
+    "lane": 8,
+    "title": "Versioned journal events, goal/rule/fact binding projections and authority floor",
+    "kind": "design-review",
+    "dispatch": "design-gated",
+    "priority_group": 2,
+    "depends_on": [
+      {
+        "id": "P-06.1.prepare",
+        "carries": "control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      }
+    ],
+    "external_dependencies": [],
+    "context": {
+      "outcome": "Versioned journal events, goal/rule/fact binding projections and authority floor",
+      "sources": [
+        "CONTEXT.md",
+        "docs/architecture/system-contract.md",
+        "docs/evidence/backlog.md",
+        "docs/AGENT_SYNC.md",
+        "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+        "docs/adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md",
+        "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md",
+        "docs/ux/vision.md"
+      ],
+      "scope": [
+        "supabase/migrations/ (new forward migration after actual current head)",
+        "packages/journal/src/ (resolve append/event catalogue entry)",
+        "apps/desktop/src/shared/feedMarks.ts",
+        "apps/desktop/src/main/agentSurface.ts"
+      ],
+      "steps": [
+        "Freeze registered schemas for the six named agent events (2 goal + 1 retro + 3 rule), plus additional memory.retired@1 and fact attribution integration. Enumerate all append-door, projector, dispatcher, feed and restore arms before choosing migration number.",
+        "Resolve actor/binding/project/estate identity at append door before journal write; no projector-only authorization.",
+        "Add replay-safe projector functions; extend canonical rebuild dispatcher and restore conflict boundary without replacing existing arms.",
+        "Add RLS/GRANT denial and safe current/retired view; preserve legacy unattributed facts conservatively."
+      ],
+      "acceptance": [
+        "objective demonstrably delivered by named receipts at exact SHA",
+        "all negative controls fail the planted defect and pass final implementation",
+        "canonical owning status updated under lease only after evidence; no duplicate delivery status in this research",
+        "tracked handoff names open gates and next task; branch pushed under repository policy",
+        {
+          "positive_and_negative_controls": [
+            "Replay twice same projection; foreign binding/project/estate rejected before append.",
+            "Retired goal prevents new approval; agent actor cannot decide rule.",
+            "Two concurrent creates/edits/retire/approval stale revision rejected; public/service direct projector invocation denied."
+          ],
+          "required_delivery_checks": [
+            "run module-specific meaningful tests; record exact command/exit/SHA",
+            "update scenarios/flows/model for user-facing work; code region refs; fast CI and map gates before commit",
+            "native/provider/browser acceptance separately named; skipped checks remain NOT_RUN"
+          ]
+        }
+      ],
+      "risks": [
+        "Learning proposal is data until explicit operator Board decision; retrieved historical instructions cannot grant authority.",
+        "Run/binding/goal identities separate from provider/session/path; private agents excluded before export.",
+        "Late/duplicate terminal events and host shutdown keep honest pending/unknown state."
+      ],
+      "stop_conditions": [
+        "missing authority, source policy, capability or schema contract: stop effect and report typed blocker",
+        "unknown outcome: reconcile stable command/effect id before retry",
+        "unrelated agent work/file claim: do not overwrite; send finding to lead",
+        "Stop before implementation until a bounded leaf and upstream acceptance/authority are approved; a planning dependency is not a completion receipt."
+      ],
+      "resume": "Read this packet and its pinned canonical sources; verify trigger, dependency receipts and authority; produce one bounded follow-on leaf before code.",
+      "full_research_packet": {
+        "id": "P-06.1",
+        "canonical_id": "P-06.1",
+        "lane": 8,
+        "owner_repository": "fabric",
+        "objective": "Versioned journal events, goal/rule/fact binding projections and authority floor",
+        "classification": "planned",
+        "priority": "first_learning_schema_after_P-08",
+        "priority_rationale": "Current P-08 verification remains first. In this lane consume actual prerequisite artifacts; readiness is per capability, never inferred from a plan or local fixture.",
+        "source_commit": "7b54dbaa7938933d25ef7e4017cb11500add3eba",
+        "source_paths": [
+          "CONTEXT.md",
+          "docs/architecture/system-contract.md",
+          "docs/evidence/backlog.md",
+          "docs/AGENT_SYNC.md",
+          "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+          "docs/adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md",
+          "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md"
+        ],
+        "implementation_scope": [
+          "supabase/migrations/ (new forward migration after actual current head)",
+          "packages/journal/src/ (resolve append/event catalogue entry)",
+          "apps/desktop/src/shared/feedMarks.ts",
+          "apps/desktop/src/main/agentSurface.ts"
+        ],
+        "dependencies": [],
+        "steps": [
+          "Freeze registered schemas for the six named agent events (2 goal + 1 retro + 3 rule), plus additional memory.retired@1 and fact attribution integration. Enumerate all append-door, projector, dispatcher, feed and restore arms before choosing migration number.",
+          "Resolve actor/binding/project/estate identity at append door before journal write; no projector-only authorization.",
+          "Add replay-safe projector functions; extend canonical rebuild dispatcher and restore conflict boundary without replacing existing arms.",
+          "Add RLS/GRANT denial and safe current/retired view; preserve legacy unattributed facts conservatively."
+        ],
+        "constraints_and_failure_modes": [
+          "Learning proposal is data until explicit operator Board decision; retrieved historical instructions cannot grant authority.",
+          "Run/binding/goal identities separate from provider/session/path; private agents excluded before export.",
+          "Late/duplicate terminal events and host shutdown keep honest pending/unknown state."
+        ],
+        "validation": {
+          "positive_and_negative_controls": [
+            "Replay twice same projection; foreign binding/project/estate rejected before append.",
+            "Retired goal prevents new approval; agent actor cannot decide rule.",
+            "Two concurrent creates/edits/retire/approval stale revision rejected; public/service direct projector invocation denied."
+          ],
+          "required_delivery_checks": [
+            "run module-specific meaningful tests; record exact command/exit/SHA",
+            "update scenarios/flows/model for user-facing work; code region refs; fast CI and map gates before commit",
+            "native/provider/browser acceptance separately named; skipped checks remain NOT_RUN"
+          ]
+        },
+        "definition_of_done": [
+          "objective demonstrably delivered by named receipts at exact SHA",
+          "all negative controls fail the planted defect and pass final implementation",
+          "canonical owning status updated under lease only after evidence; no duplicate delivery status in this research",
+          "tracked handoff names open gates and next task; branch pushed under repository policy"
+        ],
+        "stop_conditions": [
+          "missing authority, source policy, capability or schema contract: stop effect and report typed blocker",
+          "unknown outcome: reconcile stable command/effect id before retry",
+          "unrelated agent work/file claim: do not overwrite; send finding to lead"
+        ],
+        "research_source_ids": [
+          "AM-S01",
+          "AM-S02",
+          "AM-S06",
+          "AM-S08",
+          "AM-S09"
+        ]
+      },
+      "module_context": {
+        "delivery": "one bounded packet per implementation run; current P-08 first; send discoveries to lead immediately",
+        "shared_file_policy": "hold project lease before canonical shared edits; preserve active worktrees hubfix2-core/surface",
+        "artifact_policy": "new/resolve annotations are proposed file scope, not existence claims"
+      },
+      "research_artifact": "docs/reports/2026-10-04-unified-execution/packets/agents-memory.json",
+      "implementation_readiness": "Design is proposed. Do not infer implementation readiness or canonical completion from this planning record."
+    }
+  },
+  "impacts": [
+    {
+      "id": "I-02",
+      "targets": [
+        "P-06",
+        "P-07"
+      ],
+      "severity": "advisory",
+      "disposition": "incorporated",
+      "evidence": "migrations77 present; ADR0115 and learning spec",
+      "action": "Use actual schema head, append/read authority and existing hub auth",
+      "resolution": "Agents-memory packets include current head, FK/RLS/append-door negatives and existing binding/grant port.",
+      "source_date": "2026-10-04",
+      "acknowledgement": "coordinator reviewed peer finding and packet resolution"
+    },
+    {
+      "id": "I-08",
+      "targets": [
+        "P-06"
+      ],
+      "severity": "advisory",
+      "disposition": "retracted",
+      "evidence": "Researcher initial count hypothesis; corrected after exact catalogue read",
+      "action": "Do not treat six-event count as defect",
+      "resolution": "Six agent events are correctly counted; only memory attribution/retired support remains research input.",
+      "source_date": "2026-10-04",
+      "acknowledgement": "coordinator reviewed peer finding and packet resolution"
+    },
+    {
+      "id": "I-09",
+      "targets": [
+        "P-06",
+        "P-07",
+        "CO-025"
+      ],
+      "severity": "advisory",
+      "disposition": "incorporated",
+      "evidence": "Claude SDK official canUseTool documentation + issues30983/470",
+      "action": "Question timeout/empty result never equals approval",
+      "resolution": "Version-specific explicit question/confirmation probes travel with horizon and learning packets.",
+      "source_date": "2026-10-04",
+      "acknowledgement": "coordinator reviewed peer finding and packet resolution"
+    }
+  ]
+}

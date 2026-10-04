@@ -1,0 +1,133 @@
+
+[1m── types[0m
+Scope: 3 of 4 workspace projects
+packages/journal typecheck$ tsc --noEmit
+packages/schema typecheck$ echo 'schema: SQL only, nothing to typecheck'
+packages/schema typecheck: schema: SQL only, nothing to typecheck
+packages/schema typecheck: Done
+packages/journal typecheck: Done
+apps/desktop typecheck$ tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json
+apps/desktop typecheck: Done
+
+[1m── interface: tokens, strings, the component set[0m
+$ node scripts/check-design.mjs && node scripts/build-brand-icons.mjs --check && node scripts/build-brand-pack.mjs --check
+  ok   palette: no raw colour outside the token layer
+  ok   passioncode: vendored tokens match PassionCode 1.1.0 @ 6085d10
+  ok   passioncode: 17 colour, focus and state roles resolve to --pc-* roles
+  ok   mockups: every colour is a token and every variable is defined
+  ok   focus: every focus outline uses --app-focus
+  ok   passioncode: every page that inlines the app aliases also inlines the design system
+  ok   passioncode: 3 generated pages define the design system before the app aliases
+  ok   type + space: every size comes from the token ladders
+  ok   strings: 1618 keys in the primary registry
+  ok   strings: every key used by a component exists
+  ok   component set: every class in the stylesheets is declared by an owner
+  ok   strings: no literal interface text in components
+  ok   strings: all 99 registered event types have a sentence
+  ok   strings: and no sentence describes an event that cannot happen
+  ok   strings: all 71 event types the code appends are registered
+  ok   strings: all 1618 registry keys are reachable from a component
+  ok   i18n: bilingual ratchet holds — ru covers 1618/1618 keys, 0 in the shrinking baseline, no monolingual additions
+  ok   evidence: all 16 anchors name a section the screens render
+
+PASS: interface tokens and strings
+PASS: 15 brand icon SVGs match the master
+PASS: 27 raster brand assets match the manifest
+PASS launch.css carries the prototype's launch rules, in its order
+
+[1m── documentation: structure, links, scenarios, brand, registers[0m
+$ node --test scripts/test/workspace-snapshot.test.mjs scripts/test/workspace-release.test.mjs && node --test scripts/test/product-model.test.mjs && node scripts/check-product-model.mjs && node scripts/sync-product-ux.mjs --check && node scripts/build-product-report.mjs --check && node scripts/build-mockup-coverage.mjs --check && node scripts/test/check-system-model.test.mjs && node scripts/check-system-model.mjs && node scripts/build-system-map.mjs --check && node scripts/test/check-design-map.test.mjs && node scripts/check-design-map.mjs && bash scripts/check-docs.sh && bash scripts/check-narrative.sh && python3 scripts/check-project-schemas.py && python3 docs/ux/lint.py && python3 docs/brand/lint.py && node scripts/check-vocabulary.mjs && node scripts/check-registers.mjs && node --test scripts/test/plan-ids.test.mjs && node scripts/check-plan-ids.mjs
+warning: adding embedded git repository: workspace
+hint: You've added another git repository inside your current repository.
+hint: Clones of the outer repository will not contain the contents of
+hint: the embedded repository and will not know how to obtain it.
+hint: If you meant to add a submodule, use:
+hint:
+hint: 	git submodule add <url> workspace
+hint:
+hint: If you added this path by mistake, you can remove it from the
+hint: index with:
+hint:
+hint: 	git rm --cached workspace
+hint:
+hint: See "git help submodule" for more information.
+hint: Disable this message with "git config set advice.addEmbeddedRepo false"
+✔ healthy old source/build/release and pending releases cannot certify publication (0.686ms)
+To /var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-child-remote-pE4tER
+ * [new branch]      main -> main
+fatal: Not a valid commit name ffffffffffffffffffffffffffffffffffffffff
+fatal: Not a valid commit name ffffffffffffffffffffffffffffffffffffffff
+✔ actual publisher resumes a failed parent push without creating a second snapshot or commit (9552.199834ms)
+✔ a published source that is not in this history is a new publication, not an error (408.732375ms)
+✔ the common backlog includes root source registers without exporting hidden configuration (0.844ms)
+✔ immutable source snapshot excludes runtime/secrets and ignores dirty working bytes (298.121166ms)
+✔ symlinks and sensitive paths inside allowed sources fail closed (464.862167ms)
+✔ export reproduces source, removes obsolete generated entries and detects tampering (384.613791ms)
+✔ export never overwrites an unmanaged content directory (941.04875ms)
+✔ publication-only pin has no content cycle; later code-only edit invalidates publication (884.882416ms)
+✔ wrong gitlink and false digest cannot pass the receipt check (1551.695917ms)
+✔ mutable source refs and incomplete deployment receipts fail before source comparison (1185.588208ms)
+✔ ignored historical logs cannot disappear between local validation and the published Git commit (2477.684ms)
+✔ committed snapshot verification preserves Unicode paths instead of Git display quoting (1010.323916ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10070.930083
+✔ AD00: registry bodies stop at any equal or senior heading, even at EOF (2.070125ms)
+✔ AD00: duplicate registry identities fail before projection (0.70925ms)
+✔ AD00: real registry projection does not attach global appendices to SCR-63 (35.054834ms)
+✔ AD00: fenced headings are content and appendix metadata cannot upgrade a record (0.658375ms)
+✔ AD00: only explicitly keyed refinements extend their named owners (3.518625ms)
+✔ AD00: appendix examples are ignored and mixed-owner keys keep explicit cross references (0.240042ms)
+✔ complete model and pinned evidence pass without filesystem access (3.242292ms)
+✔ canonical status is read from the owning section, not a later scenario (0.200833ms)
+✔ canonical screen cannot disappear from the report (0.135ms)
+✔ canonical scenario omission is not hidden by copied counts (0.117625ms)
+✔ screen default cannot point at a non-existing renderer (0.645541ms)
+✔ alias cycle is rejected (0.188792ms)
+✔ four graph meanings cannot collapse into three destinations (0.121625ms)
+✔ journey cannot show another screen under the original label (0.441792ms)
+✔ branch must originate at an actual step (0.301417ms)
+✔ fixture route cannot silently fall back to the first project (0.7305ms)
+✔ fixture question cannot borrow a task from another project (0.147333ms)
+✔ fixture run ordinal must exist (0.108208ms)
+✔ active infrastructure task still needs acceptance (0.315458ms)
+✔ active context cannot be removed while active list remains (0.287709ms)
+✔ forged audit source hash fails against pinned git blob (0.357625ms)
+✔ true file hash does not excuse a fabricated excerpt (0.195958ms)
+✔ source range beyond actual blob is rejected (0.128334ms)
+✔ receipt cannot read an absolute path (0.131334ms)
+✔ prototype cannot upgrade canonical draft to implemented (0.073833ms)
+✔ target model cannot claim a runtime audit (0.033083ms)
+✔ active task set must come from independent engineering catalog (0.033958ms)
+✔ invented later task is not legitimised by its own context row (0.054167ms)
+✔ source link cannot point at another commit than the verified receipt (0.198166ms)
+✔ an empty acceptance string does not constitute a usable test (0.135208ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 127.038
+PASS product model: {"screens":76,"views":111,"scenarios":133,"flows":76,"journeys":40,"findings":32,"active_tasks":58,"task_contexts":108,"pinned_receipts":87,"repinned_receipts":87,"stale_receipts":76,"verified_git_blobs":31,"source_io_checked":true}
+Scope: canonical crosswalk, fixture routes and pinned audit receipts; not product/runtime acceptance. Generated HTML parity: node scripts/build-product-report.mjs --check
+PASS UX projections match canonical registries
+PASS product.html matches its canonical inputs
+file://<owned-worktree>/scripts/build-mockup-coverage.mjs:17
+ for(const receipt of row.evidence){if(!receipt.sha256)continue;const bytes=readFileSync(path.join(root,receipt.file));if(createHash('sha256').update(bytes).digest('hex')!==receipt.sha256)throw new Error('Re-review changed mockup source '+row.id+': '+receipt.file)}
+                                                                                                                                                                                                  ^
+
+Error: Re-review changed mockup source SRC-02: docs/evidence/backlog.md
+    at file://<owned-worktree>/scripts/build-mockup-coverage.mjs:17:195
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v26.8.2
+[ELIFECYCLE] Command failed with exit code 1.

@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "source_commit": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
-  "workspace_commit": "b105e4ff78e62c65abfe0bbb95b2e8955d807b7c",
-  "content_digest": "6492bc882524ae9f0e1a328401d661a04c701d0ef818e04fbbfa7dbeff63f166",
+  "source_commit": "b85c9c3cb5dc7e3876c358539bcde578759e731f",
+  "workspace_commit": "898a3cb4af9bd9dfa8b507fce28bdb008295596c",
+  "content_digest": "e925d3430b2c222a379dec19d5e60fe25e2ad28a60b642f077b599d5a03f0879",
   "heroku_app": "passioncode-fabric-workspace",
-  "release": 147,
-  "fabric_digest": "57b2d067f391de3535dadd6df19a62664ce86a89d14d80beb7fe8b1fbb587f21",
+  "release": 149,
+  "fabric_digest": "7e1b12f38e6366ee856f0e212f9f5a8260210898a14fe88d41f7fc83a0bb130c",
   "sources": [
     {
       "id": "org-index",
@@ -16,8 +16,8 @@
     {
       "id": "fabric-agent-contract",
       "repository": "https://github.com/passioncode-ai/fabric-agent-contract",
-      "commit": "71cdd6ed461a177e17aa2db7f5ed2059a537543e",
-      "files_digest": "4b59537b5551369c75682c9f4e716c8360e168c48756414127e4981fdb14cc6b"
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "files_digest": "a088be34eff9c212d18c5b458cf181a34a4d252a7c5dc87735f3551321277883"
     },
     {
       "id": "fabric-agent-adapter",

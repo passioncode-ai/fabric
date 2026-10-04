@@ -9,7 +9,7 @@
 
 export const PLAN_BEGIN = '<!-- general-plan:begin -->'
 export const PLAN_END = '<!-- general-plan:end -->'
-const FORMS = String.raw`V1-M\d+|AR-\d+(?:\.\d+)?|CO-\d+|M\d+(?:\.[a-z0-9-]+)?|L\d+[a-z]?|S\d+|AD\d{2}|OX-\d{2}|D\d{2}|N\d+|P-\d{2}|FR-[A-G]|MEM-P\d|F\d+`
+const FORMS = String.raw`V1-M\d+|AR-\d+(?:\.\d+)?|CO-\d+|COM-\d{2}|M\d+(?:\.[a-z0-9-]+)?|L\d+[a-z]?|S\d+|AD\d{2}|OX-\d{2}|D\d{2}|N\d+|P-\d{2}|FR-[A-G]|MEM-P\d|F\d+`
 const ID = new RegExp(String.raw`\b(?:${FORMS})(?![\w.-]*\w)`, 'g')
 const WHOLE_ID = new RegExp(String.raw`^(?:${FORMS})$`)
 /** A status cell that closes the work it describes. */

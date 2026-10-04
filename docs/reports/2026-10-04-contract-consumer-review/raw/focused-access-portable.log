@@ -1,0 +1,10 @@
+Absolute local review path redacted as <review-worktree>; other output unchanged.
+
+ RUN  v4.1.11 <review-worktree>/apps/desktop
+
+
+ Test Files  2 passed (2)
+      Tests  42 passed (42)
+   Start at  14:14:09
+   Duration  719ms (transform 96ms, setup 191ms, import 100ms, tests 16ms, environment 954ms)
+

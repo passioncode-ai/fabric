@@ -1,0 +1,25 @@
+✔ communication IDs resolve only from owning work rows; missing and closed work refuse (2.086833ms)
+✔ resolves ids defined by a row, a heading and a file, and the plan's own P-rows (0.120667ms)
+✔ refuses an id nothing defines (the planted dangling id) (0.114ms)
+✔ an id defined only inside the plan block itself does not count as defined (0.215291ms)
+✔ a missing block is a problem, not a pass (0.049792ms)
+✔ refuses an id-shaped token the gate does not know, instead of skipping it (0.078833ms)
+✔ a lane that cites no work is a problem (0.090833ms)
+✔ a lane that schedules finished work is a problem (0.298583ms)
+✔ knows the plan ids the repository uses: FR-A, MEM-P1, F7, OX-03 (0.167959ms)
+✔ a prerequisite that starts with "Passed …" is not a finished status (0.421875ms)
+✔ every closing word the workspace knows is finished here too, bold or dated (0.102084ms)
+✔ an adoption packet that passed — by its Status line or its receipt — is finished (0.104291ms)
+✔ a P-id resolves only from the plan table, never from a persona heading of the same id (0.053583ms)
+﹣ the closing vocabulary agrees with the workspace normaliser wherever that says done or cancelled (0.281666ms) # the workspace submodule is not initialised
+✔ the status column is read by its header, with the workspace prefix rule: "closed … by", "resolved finally", "shipped on", "done in PR" (0.427916ms)
+✔ every open carry-over row is cited by some lane (0.089333ms)
+✔ a missing ledger, a ledger without a status column, a bold id, an indented row and escaped pipes all count (0.104708ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 43.8115

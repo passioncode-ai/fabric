@@ -1,0 +1,6 @@
+{
+  "original_sha256": "89ea278a99c4191f84016d663d44f01352bfe5783d10a66377ca5a7cd338d55f",
+  "sanitized_sha256": "f6a3623deef6e3131ed8cb188accb2746302fdb9c6255e234570a01678ead7b3",
+  "exit": 1,
+  "boundary": "local report-only fast stops at design-map freshness; parent explicitly owns shared map integration; no gate waiver"
+}

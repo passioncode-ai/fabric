@@ -1,0 +1,1299 @@
+{
+  "as_of_utc": "2026-10-04T11:47:18.611481+00:00",
+  "report_base": "81498b26ea2cb88249c4964630765ed4f4b47c4c",
+  "observed_root_head": "7011ce429d2593951b9d99940f78ab5850f17309",
+  "root_dirty_status": " M apps/desktop/package.json\n M apps/desktop/src/main/accessStore.ts\n M apps/desktop/src/main/agentSurface.ts\n M apps/desktop/src/main/ceoPrivateArchive.ts\n M apps/desktop/src/main/consentPresenter.ts\n M apps/desktop/src/main/hubTools.ts\n M apps/desktop/test/ceo-private-archive-codec.test.mjs\n M apps/desktop/test/ceo-private-archive-db.test.mjs\n M apps/desktop/test/consent-presenter.test.mjs\n M apps/desktop/test/helpers/access-memstore.mjs\n M apps/desktop/test/hub-access-service.test.mjs\n M apps/desktop/test/hub-door-db.test.mjs\n M apps/desktop/test/hub-surface.test.mjs\n M apps/desktop/test/private-history-db.test.mjs\n M docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md\n M docs/evidence/plans/2026-10-04-hub-verification.md\n M docs/evidence/plans/2026-10-04-project-communications.md\n M docs/launch/harness-r0/ceo-private-archive.md\n M docs/launch/release-mac.md\nA  docs/reports/2026-10-04-hub-i3-data/README.md\nA  docs/reports/2026-10-04-hub-i3-data/raw/focused-native-3b.log\nA  docs/reports/2026-10-04-hub-i3-data/raw/hub-access-3b.log\nA  docs/reports/2026-10-04-hub-i3-data/raw/hub-upgrade-3b.log\nA  docs/reports/2026-10-04-hub-i3-data/raw/independent-data-probe-3b.log\nA  docs/reports/2026-10-04-hub-i3-data/raw/independent-data-probe.mjs\nA  docs/reports/2026-10-04-hub-i3-data/raw/independent-denial-probe-3b.log\nA  docs/reports/2026-10-04-hub-i3-data/raw/independent-denial-probe.mjs\nA  docs/reports/2026-10-04-hub-i3-data/raw/private-archive-3b-public.log\nA  docs/reports/2026-10-04-hub-i3-docs/README.md\nA  docs/reports/2026-10-04-hub-i3-docs/raw/.gitkeep\nA  docs/reports/2026-10-04-hub-i3-docs/raw/check-1.log\nA  docs/reports/2026-10-04-hub-i3-docs/raw/check-2.log\nA  docs/reports/2026-10-04-hub-i3-docs/raw/check-3.log\nA  docs/reports/2026-10-04-hub-i3-docs/raw/check-4.log\nA  docs/reports/2026-10-04-hub-i3-docs/raw/checks.json\nA  docs/reports/2026-10-04-hub-i3-docs/raw/reproduce-doc-promises.jsonl\nA  docs/reports/2026-10-04-hub-i3-docs/raw/reproduce-doc-promises.mjs\nA  docs/reports/2026-10-04-hub-i3-errors/README.md\nA  docs/reports/2026-10-04-hub-i3-errors/raw/.gitkeep\nA  docs/reports/2026-10-04-hub-i3-errors/raw/probes.jsonl\nA  docs/reports/2026-10-04-hub-i3-errors/raw/probes.mjs\nA  docs/reports/2026-10-04-hub-i3-errors/raw/probes.stderr\nA  docs/reports/2026-10-04-hub-i3-errors/raw/receipt.json\nA  docs/reports/2026-10-04-hub-i3-plan/README.md\nA  docs/reports/2026-10-04-hub-i3-plan/raw/.gitkeep\nA  docs/reports/2026-10-04-hub-i3-plan/raw/checks.json\nA  docs/reports/2026-10-04-hub-i3-plan/raw/fast-sanitization.json\nA  docs/reports/2026-10-04-hub-i3-plan/raw/fast.exit\nA  docs/reports/2026-10-04-hub-i3-plan/raw/fast.sanitized.log\nA  docs/reports/2026-10-04-hub-i3-plan/raw/owner-issues.json\nA  docs/reports/2026-10-04-hub-i3-plan/raw/release-gate-probe.json\nA  docs/reports/2026-10-04-hub-i3-plan/raw/release-gate-probe.mjs\nA  docs/reports/2026-10-04-hub-i3-plan/raw/source-excerpts.json\nA  docs/reports/2026-10-04-hub-i3-plan/raw/source-review.json\nA  docs/reports/2026-10-04-hub-i3-ux/README.md\nA  docs/reports/2026-10-04-hub-i3-ux/raw/.gitkeep\nA  docs/reports/2026-10-04-hub-i3-ux/raw/brand-lint.log\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-baseline.json\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-baseline.log\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-empty-en-dark.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-empty-en-light.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-empty-ru-dark.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-empty-ru-light.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-failed-en-dark.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-failed-en-light.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-failed-ru-dark.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-failed-ru-light.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-long-en-dark.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-long-en-light.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-long-ru-dark.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-long-ru-light.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-review.mjs\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-unreadable-en-dark.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-unreadable-en-light.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-unreadable-ru-dark.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/browser-unreadable-ru-light.png\nA  docs/reports/2026-10-04-hub-i3-ux/raw/captures.json\nA  docs/reports/2026-10-04-hub-i3-ux/raw/node-baseline.log\nA  docs/reports/2026-10-04-hub-i3-ux/raw/panel-baseline.log\nA  docs/reports/2026-10-04-hub-i3-ux/raw/panel-independent.test.tsx\nA  docs/reports/2026-10-04-hub-i3-ux/raw/presenter-baseline.log\nA  docs/reports/2026-10-04-hub-i3-ux/raw/presenter-independent.test.mjs\nA  docs/reports/2026-10-04-hub-i3-ux/raw/source.json\nA  docs/reports/2026-10-04-hub-i3-ux/raw/ux-lint.log\nA  docs/reports/2026-10-04-hub-i3-ux/raw/vitest-baseline.log\n M docs/reports/map.html\n M docs/reports/product.html\n M docs/ux/product-model.json\n M docs/ux/scenarios.md\n M scripts/ci.sh\n?? docs/handoffs/2026-10-04-hub-i3-root.md\n?? docs/handoffs/hub-i3-ingress-archive-receipts/\n",
+  "policy": "read-only snapshot; parent may change immediately; author receipts are not independent acceptance",
+  "i3_reports": {
+    "errors": "ae94574ad99fb1c0e98dbe16ef5cc01abb9f2cd6",
+    "docs": "43ef216270d48712d07af450d50c9c13fce3221d",
+    "data": "d286d3cf4ab2cee837ce6fd001799ac725a0a0e3",
+    "ux": "b3fd19597132dc7db72de86ca6895a06c81cfade",
+    "plan": "7291c1c9fbd842e1befff147429761266cd95c36"
+  },
+  "source_files": [
+    {
+      "path": "apps/desktop/src/main/agentSurface.ts",
+      "sha256": "b5f7315ba6ea9ea023fc2ed30288f8475b8f4cd2ed4b72e2647ebfcdd608e4e4",
+      "differs_from_report_base": true,
+      "excerpts": [
+        {
+          "line": 145,
+          "text": "  lease: { owner_session: string; expires_at: string } | null,"
+        },
+        {
+          "line": 152,
+          "text": "        new Date(lease.expires_at).getTime() > now)"
+        },
+        {
+          "line": 166,
+          "text": "    if (new Date(lease.expires_at).getTime() > now)"
+        },
+        {
+          "line": 177,
+          "text": "  if (new Date(lease.expires_at).getTime() <= now)"
+        },
+        {
+          "line": 180,
+          "text": "      reason: `your claim expired at ${lease.expires_at} \u2014 a stale attempt does not publish; re-claim and re-publish`"
+        },
+        {
+          "line": 206,
+          "text": "  bodyReadMs: number"
+        },
+        {
+          "line": 213,
+          "text": "  bodyReadMs: 10_000"
+        },
+        {
+          "line": 312,
+          "text": "  private externalPending = new Map<string, number>()"
+        },
+        {
+          "line": 313,
+          "text": "  private externalPendingTotal = 0"
+        },
+        {
+          "line": 391,
+          "text": "      if (bound6 instanceof Error) {"
+        },
+        {
+          "line": 509,
+          "text": "      if (token && hub && (await this.handleExternal(token, hub, req, res, ctx, attempt))) return"
+        },
+        {
+          "line": 558,
+          "text": "      body = await readJson(req, this.limits.bodyReadMs)"
+        },
+        {
+          "line": 560,
+          "text": "      if (e instanceof BodyTooLarge) {"
+        },
+        {
+          "line": 564,
+          "text": "      if (e instanceof BodyReadTimeout) {"
+        },
+        {
+          "line": 694,
+          "text": "  private async handleExternal("
+        },
+        {
+          "line": 705,
+          "text": "    const pending = this.externalPending.get(admissionKey) ?? 0"
+        },
+        {
+          "line": 706,
+          "text": "    if (pending >= Math.max(1, Math.min(32, this.limits.budgetCalls)) || this.externalPendingTotal >= 128) {"
+        },
+        {
+          "line": 710,
+          "text": "    this.externalPending.set(admissionKey, pending + 1)"
+        },
+        {
+          "line": 711,
+          "text": "    this.externalPendingTotal++"
+        },
+        {
+          "line": 750,
+          "text": "        body = await readJson(req, this.limits.bodyReadMs)"
+        },
+        {
+          "line": 752,
+          "text": "        if (e instanceof BodyTooLarge) {"
+        },
+        {
+          "line": 756,
+          "text": "        if (e instanceof BodyReadTimeout) {"
+        },
+        {
+          "line": 790,
+          "text": "      const remaining = (this.externalPending.get(admissionKey) ?? 1) - 1"
+        },
+        {
+          "line": 791,
+          "text": "      if (remaining) this.externalPending.set(admissionKey, remaining)"
+        },
+        {
+          "line": 792,
+          "text": "      else this.externalPending.delete(admissionKey)"
+        },
+        {
+          "line": 793,
+          "text": "      this.externalPendingTotal--"
+        },
+        {
+          "line": 906,
+          "text": "  /** A server instance bound to one scope: the tools close over it, so no tool"
+        },
+        {
+          "line": 1090,
+          "text": "                started_at: s.startedAt,"
+        },
+        {
+          "line": 1356,
+          "text": "      // The sharpest instance of IMP-04, and it was mine. A failed read made"
+        },
+        {
+          "line": 1517,
+          "text": "          .select('leases', 'owner_session,expires_at')"
+        },
+        {
+          "line": 1523,
+          "text": "          (held as { owner_session: string; expires_at: string } | null) ?? null,"
+        },
+        {
+          "line": 1559,
+          "text": "                     fence: (held as { expires_at?: string } | null)?.expires_at ?? null }"
+        },
+        {
+          "line": 1566,
+          "text": "          .select('leases', 'owner_session,expires_at')"
+        },
+        {
+          "line": 1570,
+          "text": "            new Date(settled.expires_at as string).getTime() > Date.now() &&"
+        },
+        {
+          "line": 1588,
+          "text": "          'Claim a task before working on it, so another agent does not start the same work. The claim expires \u2014 if you are still on it when it does, claim again. Refused when someone else holds it, and it tells you who and until when.',"
+        },
+        {
+          "line": 1606,
+          "text": "          .select('leases', 'owner_session,expires_at')"
+        },
+        {
+          "line": 1609,
+          "text": "        const live = held && new Date(held.expires_at as string).getTime() > Date.now()"
+        },
+        {
+          "line": 1615,
+          "text": "            until: held.expires_at"
+        },
+        {
+          "line": 1618,
+          "text": "        const expiresAt = new Date(Date.now() + (minutes ?? 30) * 60_000).toISOString()"
+        },
+        {
+          "line": 1627,
+          "text": "            idempotency_key: `${scope.sessionId}:${taskId}:${expiresAt}`,"
+        },
+        {
+          "line": 1628,
+          "text": "            expires_at: expiresAt,"
+        },
+        {
+          "line": 1639,
+          "text": "          .select('leases', 'owner_session,expires_at')"
+        },
+        {
+          "line": 1656,
+          "text": "            .select('leases', 'work_id,owner_session,expires_at,write_scopes')"
+        },
+        {
+          "line": 1662,
+          "text": "                new Date(n.expires_at as string).getTime() > Date.now())"
+        },
+        {
+          "line": 1668,
+          "text": "        return json({ claimed: true, task_id: taskId, until: settled.expires_at,"
+        },
+        {
+          "line": 2215,
+          "text": "            .select('leases', 'work_id,owner_session,expires_at,write_scopes')"
+        },
+        {
+          "line": 2225,
+          "text": "            until: l.expires_at,"
+        },
+        {
+          "line": 2226,
+          "text": "            expired: new Date(l.expires_at as string).getTime() <= now,"
+        },
+        {
+          "line": 2294,
+          "text": "async function readJson(req: IncomingMessage, timeoutMs: number): Promise<unknown> {"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/accessStore.ts",
+      "sha256": "0b5a81cf1edfe31d89ef7dbc1d8cb9e1ebe4e5e3b9853905328571da2b52a8ee",
+      "differs_from_report_base": true,
+      "excerpts": [
+        {
+          "line": 28,
+          "text": "  expires_at: string"
+        },
+        {
+          "line": 29,
+          "text": "  status: 'pending' | 'allowed' | 'denied'"
+        },
+        {
+          "line": 56,
+          "text": "  expires_at: string"
+        },
+        {
+          "line": 69,
+          "text": "  key_expires_at: string | null"
+        },
+        {
+          "line": 80,
+          "text": " * 0.3.1): expiry is read from `expires_at` and never written, so an unanswered request stays `pending`"
+        },
+        {
+          "line": 110,
+          "text": "  requests(filter: RequestFilter): Promise<AccessRequestRow[]>"
+        },
+        {
+          "line": 126,
+          "text": "  'id,agent_id,callee,capabilities,resources,reason,registry,asked_by_binding,poll_verifier,requested_at,expires_at,status,decided_at,decided_by,granted_binding_id,credential_claimed_at,denial_cleared_at'"
+        },
+        {
+          "line": 128,
+          "text": "const GRANT_COLUMNS = 'id,binding_id,request_id,agent_id,callee,capability,resource,decided_at,expires_at,revoked_at'"
+        },
+        {
+          "line": 129,
+          "text": "const CONNECTION_COLUMNS = 'id,product,server,mcp_url,key_id,client_id,level,send,key_expires_at,secret_ref,connected_at,removed_at'"
+        },
+        {
+          "line": 150,
+          "text": "  if (filter.liveAt) q = q.gt('expires_at', filter.liveAt)"
+        },
+        {
+          "line": 161,
+          "text": "    async requests(filter) {"
+        },
+        {
+          "line": 167,
+          "text": "      // again. Read all matching rows under the shared 50,000-row fail-closed ceiling."
+        },
+        {
+          "line": 171,
+          "text": "        gt: filter.liveAt ? [['expires_at', filter.liveAt]] : [],"
+        },
+        {
+          "line": 201,
+          "text": "        gt: filter.liveAt ? [['expires_at', filter.liveAt]] : [],"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/ceoPrivateArchive.ts",
+      "sha256": "9c64bb9e148a69335b7bced61fc30da60ac692b35eabd7c2b298f0ac9c9b2f8b",
+      "differs_from_report_base": true,
+      "excerpts": [
+        {
+          "line": 25,
+          "text": "export const PRIVATE_ARCHIVE_LIMITS = Object.freeze({ sourceSchemas: Object.freeze([66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78] as const), privateBytes: 8 * 1024 * 1024,"
+        },
+        {
+          "line": 33,
+          "text": "export interface CeoPrivateArchive { schema: typeof PRIVATE_ARCHIVE_SCHEMA; archive_id: string; source_schema_version: 66 | 67 | 68 | 69 | 70 | 71 | 72 | 73 | 74 | 75 | 76 | 77 | 78; owner_person_id: string; estate_archive: PrivateEstateManifest; retention: 'no-deletion-v1'; conversations: PrivateConversation[]; messages: PrivateMessage[]; operations: PrivateOperation[]; tombstones: []; archive_digest: string }"
+        },
+        {
+          "line": 69,
+          "text": "  if ((m.eventCount as number) > PRIVATE_ARCHIVE_LIMITS.events) fail('too_large')"
+        },
+        {
+          "line": 114,
+          "text": "  const L = PRIVATE_ARCHIVE_LIMITS"
+        },
+        {
+          "line": 192,
+          "text": "  const L = PRIVATE_ARCHIVE_LIMITS"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/consentPresenter.ts",
+      "sha256": "4e4186d0b6df6c8c589f2d747f1553a82245d3be6b5a41f1931a441890a08f73",
+      "differs_from_report_base": true,
+      "excerpts": [
+        {
+          "line": 9,
+          "text": "// pending requests, so it leaves when it is answered or expires). Clicking the notification \u2014 or the"
+        },
+        {
+          "line": 29,
+          "text": "  isFocused(): boolean"
+        },
+        {
+          "line": 44,
+          "text": "  decide: (requestId: string, decision: 'allowed' | 'denied') => Promise<{ ok: true } | { ok: false; reason: string; code?: AccessActRefusal }>"
+        },
+        {
+          "line": 50,
+          "text": "  stillPending: (requestId: string) => Promise<boolean>"
+        },
+        {
+          "line": 84,
+          "text": "    return w && w.isFocused() ? w : null"
+        },
+        {
+          "line": 127,
+          "text": "        if (Date.parse(request.row.expires_at) <= (this.deps.now ?? Date.now)()) continue"
+        },
+        {
+          "line": 128,
+          "text": "        let pending = false"
+        },
+        {
+          "line": 130,
+          "text": "          pending = await this.deps.stillPending(request.row.id)"
+        },
+        {
+          "line": 135,
+          "text": "          pending = true"
+        },
+        {
+          "line": 137,
+          "text": "        if (pending && Date.parse(request.row.expires_at) > (this.deps.now ?? Date.now)()) break"
+        },
+        {
+          "line": 148,
+          "text": "      const decision = response === 1 ? 'allowed' : 'denied'"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/main/hubTools.ts",
+      "sha256": "d8b0572f6ef3fb16840e1e7afccad6ed33e26a715b89ffc40df15d4e2e6e7283",
+      "differs_from_report_base": true,
+      "excerpts": [
+        {
+          "line": 66,
+          "text": "    agentId: z.string().regex(AGENT_ID_PATTERN).describe('Your registry id: a provider id, or a service id with an optional .instance'),"
+        },
+        {
+          "line": 84,
+          "text": "  'Your own id for this call. Sent again with the same arguments, the same key returns the first answer and sends nothing (while your grant still covers the call and the product is connected); the same key with other arguments is refused. If a call may have reached the product without an answer (a timeout, a cancel, a lost connection), the answer is outcome-unknown, and every later call with that key is refused outcome-unknown: it may have run, so Fabric never sends it again \u2014 and a new key would act twice. Check its effect with the product\\'s own read tools (for mail, get_send_status) before you act again. Fabric retains up to 256 keys per binding and refuses fresh keys when full; answered keys expire after 24 hours, uncertain keys remain for this process lifetime. hub.json\\'s startedAt and pid are observational restart markers, not agent identity or authority; a key from before a restart is unknown to Fabric, so reconcile its effect before retrying.'"
+        },
+        {
+          "line": 123,
+          "text": "          ? answer({ requestId: r.requestId, status: r.status, expiresAt: r.expiresAt, ...(r.pollSecret ? { pollSecret: r.pollSecret } : {}), note: r.note })"
+        },
+        {
+          "line": 133,
+          "text": "        'pending, allowed, denied or expired. Through the door, send the requestId with the pollSecret of the answer that created it; a wrong or missing pollSecret reads as an unknown request. The first read after Allow carries the binding credential exactly once, and only within 10 minutes of the decision; store it in your vault.' + VERIFY_HUB,"
+        },
+        {
+          "line": 160,
+          "text": "            grants: grants.map((g) => ({ callee: g.callee, capability: g.capability, resource: g.resource, expiresAt: g.expires_at }))"
+        }
+      ]
+    },
+    {
+      "path": "apps/desktop/src/renderer/src/AgentAccessPanel.tsx",
+      "sha256": "e686f1ce7160b8f93566c4e82a4a1c20f8be3373b80afd29550276c31a8e50b1",
+      "differs_from_report_base": true,
+      "excerpts": [
+        {
+          "line": 29,
+          "text": "/** \"expires in N min\", from the request's own expiry (UX-9). */"
+        },
+        {
+          "line": 30,
+          "text": "function expiresIn(t: Say, expiresAt: string, now: number): string {"
+        },
+        {
+          "line": 31,
+          "text": "  const minutes = Math.ceil((Date.parse(expiresAt) - now) / 60_000)"
+        },
+        {
+          "line": 32,
+          "text": "  return minutes <= 1 ? t('access.pending.expiresSoon') : t('access.pending.expires', { minutes })"
+        },
+        {
+          "line": 50,
+          "text": "  const keeps = p.connection !== null && !(last.outcome === 'failed' && (last.problem?.previousLost || last.problem?.code === 'withdraw-failed'))"
+        },
+        {
+          "line": 52,
+          "text": "  if (last.outcome === 'denied') return [{ tone: 'note', text: t('access.products.denied', { name: p.name }) }, ...kept]"
+        },
+        {
+          "line": 67,
+          "text": "  const readGeneration = useRef(0)"
+        },
+        {
+          "line": 81,
+          "text": "    const generation = ++readGeneration.current"
+        },
+        {
+          "line": 83,
+          "text": "    const current = () => mounted.current && lifetime.current === owner && readGeneration.current === generation"
+        },
+        {
+          "line": 94,
+          "text": "    mounted.current = true"
+        },
+        {
+          "line": 99,
+          "text": "      mounted.current = false"
+        },
+        {
+          "line": 101,
+          "text": "      ++readGeneration.current"
+        },
+        {
+          "line": 110,
+          "text": "    acting.current = true"
+        },
+        {
+          "line": 111,
+          "text": "    ++readGeneration.current"
+        },
+        {
+          "line": 113,
+          "text": "    const current = () => mounted.current && lifetime.current === owner"
+        },
+        {
+          "line": 127,
+          "text": "          acting.current = false"
+        },
+        {
+          "line": 223,
+          "text": "                            {line} <span className=\"muted\">{t('access.agents.until', { date: date(g.expiresAt) })}</span>"
+        },
+        {
+          "line": 273,
+          "text": "      <p className=\"muted\">{expiresIn(t, r.expiresAt, Date.now())}</p>"
+        },
+        {
+          "line": 275,
+          "text": "        <Button tone=\"ghost\" aria-label={t('access.denyFor', { name })} {...waiting} onClick={() => void act(`deny:${r.requestId}`, () => window.fabric.hub.decide(r.requestId, 'denied'), { product: r.product, section: 'pending' })}>{t('access.deny')}</Button>"
+        }
+      ]
+    },
+    {
+      "path": "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md",
+      "sha256": "1c7a7ac31146415b5daf9a24fb34d007c9810850523a4182df98291986882ba8",
+      "differs_from_report_base": true,
+      "excerpts": [
+        {
+          "line": 50,
+          "text": "  \"doorTokenFile\": \"<path, 0600>\", \"pid\": 0, \"startedAt\": \"<iso>\" }"
+        },
+        {
+          "line": 73,
+          "text": "4. **The agent polls.** `fabric.access.status {requestId}` returns `pending`, `allowed`, `denied` or"
+        },
+        {
+          "line": 74,
+          "text": "   `expired`. A request expires after 10 minutes. On Allow, the first status read returns the"
+        },
+        {
+          "line": 90,
+          "text": "**Deny** writes a refusal. The same request is then answered `denied` until the operator clears it."
+        },
+        {
+          "line": 105,
+          "text": "   - `state` is 22\u2013128 characters, single use, and expires in 10 minutes."
+        },
+        {
+          "line": 112,
+          "text": "   level, send, expiresAt}, clientSecret}` to the callback."
+        },
+        {
+          "line": 114,
+          "text": "   - Deny is delivered as `{state, outcome:\"denied\"}`."
+        },
+        {
+          "line": 214,
+          "text": "   the vault slot is switched. A vault that refuses the secret has that record withdrawn. A connected product"
+        },
+        {
+          "line": 245,
+          "text": "    `denied`, the product may deliver `{state, outcome:\"failed\", error}` (`no_server`, `sign_in_required`,"
+        },
+        {
+          "line": 272,
+          "text": "    the answer is not 2xx, so the product revokes its key; a record that itself lands late is withdrawn at once"
+        },
+        {
+          "line": 273,
+          "text": "    (`product.disconnected@1`). This replaces amendment 4's record-first order. **Reconnect:** a failed or slow vault"
+        },
+        {
+          "line": 275,
+          "text": "    the outcome then says the previous connection was lost (`withdrawn`, `previousLost`) and asks to connect again."
+        },
+        {
+          "line": 300,
+          "text": "    | `fabric.access.request` (door, binding) | `{agentId, callee, capabilities[], resources[], reason}` | `{requestId, status: pending\\|denied, expiresAt, pollSecret?, note}` |"
+        },
+        {
+          "line": 301,
+          "text": "    | `fabric.access.status` (door: + `pollSecret`; binding) | `{requestId, pollSecret}` | `{requestId, status: pending\\|allowed\\|denied\\|expired, expiresAt, credential?, bindingId?, grants?, note}` |"
+        },
+        {
+          "line": 302,
+          "text": "    | `fabric.access.grants` (binding) | `{}` | `{agentId, grants: [{callee, capability, resource, expiresAt}]}` |"
+        },
+        {
+          "line": 318,
+          "text": "These amendments supersede conflicting wire/availability wording in amendment 19; the original"
+        },
+        {
+          "line": 321,
+          "text": "20. **The forwarded answer is an interop envelope.** `agent.call` returns the"
+        },
+        {
+          "line": 326,
+          "text": "21. **An uncertain call is never promised safe retry.** Once `tools/call` may have been written,"
+        },
+        {
+          "line": 330,
+          "text": "    requires reconciliation. Runtime memory is not durable across process replacement; callers must"
+        },
+        {
+          "line": 331,
+          "text": "    reconcile side effects after restart. Revocation clears retained results, not prior effect facts."
+        },
+        {
+          "line": 332,
+          "text": "22. **The listener admits native loopback clients.** Host must equal the published loopback address"
+        },
+        {
+          "line": 339,
+          "text": "23. **Product scope is checked before forwarding.** Narrowed calls require the product's initialized"
+        },
+        {
+          "line": 343,
+          "text": "24. **Storage boundaries enforce writer promises.** Candidate migration filename suffix 80 (schema"
+        },
+        {
+          "line": 344,
+          "text": "    count 78) checks canonical IDs, event-key allowlists and reconnect predecessor CAS; archive replay"
+        },
+        {
+          "line": 348,
+          "text": "25. **Vault demand is bounded.** At most four secret reads run at a time, with a bounded waiting queue."
+        },
+        {
+          "line": 352,
+          "text": "26. **Discovery is not process identity.** `hub.json` PID liveness distinguishes absence from a running"
+        },
+        {
+          "line": 358,
+          "text": "27. **Tool names retain the documented contract deviation until the owner publishes it.** Fabric"
+        },
+        {
+          "line": 368,
+          "text": "28. **Late-record withdrawal can fail.** This supersedes amendment 13's unconditional"
+        },
+        {
+          "line": 369,
+          "text": "    \u201cnothing is recorded / withdrawn at once\u201d wording. The connector attempts to withdraw"
+        },
+        {
+          "line": 370,
+          "text": "    a record that landed after timeout/disconnection. If the withdrawal append fails, the"
+        },
+        {
+          "line": 371,
+          "text": "    outcome is `withdraw-failed`; the record may remain and a superseded predecessor is"
+        },
+        {
+          "line": 372,
+          "text": "    not restored by that claim. SCN-133 and `productConnect.ts` symbol `withdraw` expose this"
+        },
+        {
+          "line": 374,
+          "text": "29. **Ingress and response processing are bounded before side effects can be repeated.**"
+        },
+        {
+          "line": 383,
+          "text": "    not claimed MCP limits. See `agentSurface.ts` symbols `handleExternal`, `readJson`;"
+        },
+        {
+          "line": 386,
+          "text": "30. **Current private archives admit schema count 78.** The producer in migration suffix80"
+        },
+        {
+          "line": 387,
+          "text": "    names `schema_version()` = 78; native admission explicitly qualifies 78 while retaining"
+        },
+        {
+          "line": 390,
+          "text": "    See `ceoPrivateArchive.ts` symbol `PRIVATE_ARCHIVE_LIMITS` and"
+        },
+        {
+          "line": 392,
+          "text": "31. **Consent remains serialized across reads.** The prompt owns its single-flight guard"
+        },
+        {
+          "line": 395,
+          "text": "    are paged under a stable order; a failed or over-50,000-row read refuses rather than"
+        }
+      ]
+    },
+    {
+      "path": "docs/launch/release-mac.md",
+      "sha256": "cb3bccaf1492a53af08cfb9e249a348da98374bcbfe1cee172ed0ab6c7bf265d",
+      "differs_from_report_base": true,
+      "excerpts": [
+        {
+          "line": 123,
+          "text": "`3726c08e-4a39-4d3b-8678-2edcb58c3716`)."
+        },
+        {
+          "line": 128,
+          "text": "an existing database automatically. The 0.3.1 candidate's compiled contract admits schema **78**"
+        },
+        {
+          "line": 175,
+          "text": "   `schema_version()` must equal the installed build's minimum/maximum (78 for this candidate)."
+        },
+        {
+          "line": 186,
+          "text": "skip backup/rehearsal. Acceptance of the 75\u219278 and 77\u219278 seeded rehearsal belongs to the converged"
+        }
+      ]
+    },
+    {
+      "path": "docs/evidence/plans/2026-10-04-project-communications.md",
+      "sha256": "d5b8737571bdec5874564d701c6e9c1ee3690b3162ae25c68d54be6ea5f129b0",
+      "differs_from_report_base": true,
+      "excerpts": [
+        {
+          "line": 105,
+          "text": "be reassigned; accepted unknown-effect work needs reconciliation/handoff policy."
+        },
+        {
+          "line": 139,
+          "text": "reconciling unknown effect, historical search, Telegram enrollment and stopping discussion loops."
+        },
+        {
+          "line": 153,
+          "text": "history persists; dropped subscription recovers; cross-estate navigation denied; keyboard and"
+        },
+        {
+          "line": 165,
+          "text": "response is unknown/reconciled rather than declared delivered; 429 respects retry_after; revoked"
+        }
+      ]
+    },
+    {
+      "path": "scripts/test/release-gate.test.mjs",
+      "sha256": "51b9183e1bce118886c37184bd3468771145346094fe771f5efbedb989bfef3b",
+      "differs_from_report_base": false,
+      "excerpts": [
+        {
+          "line": 21,
+          "text": "test('the real gate names the app version and cannot clear an unstarted iteration', async () => {"
+        },
+        {
+          "line": 30,
+          "text": "    const unfinished=new RegExp(`^## Iteration ${n}\\\\s*\\\\n+_Not started\\\\._`,'m').test(ledgerText)"
+        },
+        {
+          "line": 31,
+          "text": "    if(unfinished) assert.ok(p.includes(`iteration ${n} has not started`), `unstarted iteration ${n} was cleared`)"
+        }
+      ]
+    }
+  ],
+  "pending_author_receipts": [
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/archive-green2.log",
+      "sha256": "91bd0cda2f938ef37321eae7696197c06d3b6356102077af97136e56ecbe9443",
+      "summary": [
+        "PASS full migration chain applied, schema_version 78",
+        "PASS 19 helpers and 2 tables unreachable by every role; 4 command(s) reachable by service_role only",
+        "PASS 7 companion vectors: byte-identical canonical strings and digests in SQL",
+        "PASS 4 ordinary archives and the original-bytes case accepted by SQL",
+        "PASS 13 ordinary-journal refusals, each one fixed code from ARCHIVE_REASON_CODES, no body or digest in the message",
+        "PASS budget parity with the codec: depth 32 passes, 33 refuses; keys are not nodes",
+        "PASS 9 companion refusals with the codec's codes",
+        "PASS migration 66 base: 7 groups on an owned cluster; restore, export and import commands NOT_RUN (A1-3, A1-4)",
+        "PASS owner restores into a fresh Estate, owns it at revision 1; the archived founder is never a member, before or after rebuild",
+        "PASS exact retry returns the original receipt; any change under the same operation is idempotency_conflict",
+        "PASS two concurrent identical requests: one target, one original receipt and one repeat",
+        "PASS a legacy boundary is never upgraded; the legacy entry point keeps its A0 guarantee over the shared body",
+        "PASS member, missing Person, forged actor, stale revision, existing target or shell, source=target, edited, malformed and colliding archives: refused, zero rows",
+        "PASS a revision moved by a concurrent change_membership is refused under the row lock, and the retry at the new revision succeeds",
+        "PASS restore_estate_verified: 6 groups on an owned cluster; active-Estate selection and restart NOT_RUN (A1-6, N1)",
+        "PASS cleanup: owned PostgreSQL stopped; socket and data directory removed"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/standing-denial-cap-baseline.log",
+      "sha256": "f23b4edae090c9dd5fc8c30f12cd28c272ac04457592b17a044b268939b31a87",
+      "summary": [
+        "PASS incremental consent: the binding asks for more, the operator is asked again, the grants join the same credential",
+        "PASS asking again for what the binding already holds extends that grant: one live grant, a later expiry, no duplicate",
+        "PASS Deny stands until cleared: the same request answers denied without prompting; cleared, it prompts again",
+        "PASS a request nobody answered expires after ten minutes and can no longer be decided",
+        "PASS a binding reads only its own requests; the door cannot collect an incremental grant",
+        "PASS revoking a grant removes it from the next answer; revoking the binding closes the door to that credential",
+        "PASS a session Fabric starts keeps its one-shot bearer: one initialize, the second refused, no hub tool",
+        "PASS a port in use is an error naming it, never a quiet move to another port",
+        "PASS 500 unanswered expired requests: the caps still hold and the live requests are still listed",
+        "PASS 502 standing denials: oldest still refuses without prompting and is visible to clear",
+        "PASS more than 1000 grants and 500 bindings: every live grant is listed, covers its call and can be revoked; the newest live credential is listed",
+        "PASS a hub port another program holds: the hub is down with its reason, sessions still initialise, the door stays closed",
+        "{\"status\":\"PASS\",\"cases\":19}",
+        "PASS DA-6 plaintext poll secret is refused before journal insertion",
+        "PASS DA-6 plaintext credential is refused before journal insertion",
+        "PASS DA-6 plaintext product secret is refused before journal insertion",
+        "PASS DA-4 binding/request/grant ids have one spelling",
+        "PASS ER-2 replacement requires the exact live connection id",
+        "PASS DA-2 restored pending request loses its poll verifier and cannot be decided",
+        "PASS full migration chain, the hub access projection refuses impossible transitions on isolated PostgreSQL"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/archive-green3.log",
+      "sha256": "54bb6beacf5024736f3845524b8ff14fbed2bec0e44bb3ac427a6b698f9f5c2e",
+      "summary": [
+        "PASS exact retry returns the original receipt; any change under the same operation is idempotency_conflict",
+        "PASS two concurrent identical requests: one target, one original receipt and one repeat",
+        "PASS a legacy boundary is never upgraded; the legacy entry point keeps its A0 guarantee over the shared body",
+        "PASS member, missing Person, forged actor, stale revision, existing target or shell, source=target, edited, malformed and colliding archives: refused, zero rows",
+        "PASS a revision moved by a concurrent change_membership is refused under the row lock, and the retry at the new revision succeeds",
+        "PASS restore_estate_verified: 6 groups on an owned cluster; active-Estate selection and restart NOT_RUN (A1-6, N1)",
+        "PASS export: stale refused, real history decodes in the codec with the same digest, alias and ownership kept, foreign and re-sealed journals refused",
+        "PASS two owners import in both orders into one restored Estate; zero pending requests, no journal event; neither can read the other",
+        "PASS concurrent imports by two owners both commit, each once",
+        "PASS lost reply \u2192 receipt \u2192 retry returns the original; not_found for an unknown operation; a second import conflicts; a historical repeat creates no pending row",
+        "PASS A\u2192B\u2192C keeps the original Estate, re-binds the source digest, and no journal holds private text",
+        "PASS edited (with and without re-sealing), truncated, unattested, stale-target, foreign, malformed, deep, oversize, wrong-manifest, wrong-target and colliding archives, a forced mid-import failure and a raw append: refused, zero rows",
+        "PASS private export, import and receipt: 6 groups across 7 databases of one owned cluster; native file handling NOT_RUN (A1-6)",
+        "PASS export takes the real ordinary archive, the SQL companion and the codec's decode into three private files",
+        "PASS a refused export leaves no partial directory and lists nothing",
+        "PASS a lost restore reply is resolved by the same operation: one target, history imported, zero pending requests",
+        "PASS a lost import reply is resolved by the same import operation: one receipt, one copy of each message",
+        "PASS another Person's archive, a missing directory, an unknown operation and no held identity: refused, zero rows",
+        "PASS private history in main: 5 groups on an owned cluster; the running app NOT_RUN (N1)",
+        "PASS cleanup: owned PostgreSQL stopped; socket and data directory removed"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/consent-expiry-mutant.log",
+      "sha256": "914b323868bdb831c33c4d5cc173a1a8b75f8c11972cc5bf8e8a4a7b72135677",
+      "summary": [
+        "\u2139 tests 13",
+        "\u2139 pass 12",
+        "\u2139 fail 1",
+        "      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/archive-schema78-mutant.log",
+      "sha256": "2c00c9dca80993e78962a910c9970be5fbb87b8987de9ff65347887b990045f8",
+      "summary": []
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/denial-db-red2.log",
+      "sha256": "130e3322a31d7aeab2338e78aea425ff4c1abc89982beb5ab7d66902b37b7390",
+      "summary": [
+        "{\"status\":\"PASS\",\"cases\":17}",
+        "PASS the door token reaches exactly the two asking tools, and nothing of a session",
+        "PASS an unknown bearer and a near-miss of the door token are refused 401",
+        "PASS an agent the registry does not know is refused before any prompt",
+        "PASS a request reaches the operator once, naming the agent as the registry knows it; a retry is the same request",
+        "PASS Allow: the first status read carries the credential once; the second does not",
+        "PASS the binding reaches its four tools, lists exactly its grants, and no session tool",
+        "PASS a field beyond the contract's four is refused, so nothing can ride in the arguments",
+        "PASS incremental consent: the binding asks for more, the operator is asked again, the grants join the same credential",
+        "PASS asking again for what the binding already holds extends that grant: one live grant, a later expiry, no duplicate",
+        "PASS Deny stands until cleared: the same request answers denied without prompting; cleared, it prompts again",
+        "PASS a request nobody answered expires after ten minutes and can no longer be decided",
+        "PASS a binding reads only its own requests; the door cannot collect an incremental grant",
+        "PASS revoking a grant removes it from the next answer; revoking the binding closes the door to that credential",
+        "PASS a session Fabric starts keeps its one-shot bearer: one initialize, the second refused, no hub tool",
+        "PASS a port in use is an error naming it, never a quiet move to another port",
+        "PASS 500 unanswered expired requests: the caps still hold and the live requests are still listed",
+        "FAIL 502 standing denials: oldest still refuses without prompting and is visible to clear",
+        "PASS more than 1000 grants and 500 bindings: every live grant is listed, covers its call and can be revoked; the newest live credential is listed",
+        "PASS a hub port another program holds: the hub is down with its reason, sessions still initialise, the door stays closed"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/archive-schema78-baseline.log",
+      "sha256": "e8663c938a990ff2689ca915b0b3352112e1226354faa7a34a360ab5e8f5e7bc",
+      "summary": [
+        "PASS CeoPrivateArchive@1 codec: 7 golden archives, 4 ordinary digests, 71 frozen refusals and vectors"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/body-admission-mutant.log",
+      "sha256": "95cee75484896d03ed6eec6187664638cb6b1c5987e21ccb97f00fbf4cb2a8c4",
+      "summary": [
+        "\u2139 tests 1",
+        "\u2139 pass 0",
+        "\u2139 fail 1"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/mutation-additional-results.json",
+      "sha256": "3bc4b35872df1e5123092bc0ef1f2da6310890025848c17e0069fb9a509a8b91",
+      "summary": [
+        "    \"case\": \"standing-denial-cap\",",
+        "    \"baselineExit\": 0,",
+        "    \"mutantExit\": 1",
+        "    \"case\": \"consent-singleflight\",",
+        "    \"baselineExit\": 0,",
+        "    \"mutantExit\": 1",
+        "    \"case\": \"consent-expiry\",",
+        "    \"baselineExit\": 0,",
+        "    \"mutantExit\": 1",
+        "    \"case\": \"consent-focus\",",
+        "    \"baselineExit\": 0,",
+        "    \"mutantExit\": 1"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/consent-focus-baseline.log",
+      "sha256": "8875e9b3a7b589a62eb617696a56d35996d87afd4aaaddf6bf416959f0e30611",
+      "summary": [
+        "\u2139 tests 13",
+        "\u2139 pass 13",
+        "\u2139 fail 0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/consent-green.log",
+      "sha256": "3df0962dd77cb5579a7cb69694a1913fdc6819daa26c0beb37e7bd2eefbc1e88",
+      "summary": [
+        "\u2139 tests 13",
+        "\u2139 pass 13",
+        "\u2139 fail 0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/consent-singleflight-baseline.log",
+      "sha256": "e052aba64c813a564780ae10c5ff8bf0d0508fcdc581c6aa42a347f4e71931a9",
+      "summary": [
+        "\u2139 tests 13",
+        "\u2139 pass 13",
+        "\u2139 fail 0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/body-deadline-mutant.log",
+      "sha256": "3578a6abd2dd0bb8d0cc7c6ae2f090c893d76298159f325e9be2dfd354a0225a",
+      "summary": [
+        "\u2139 tests 1",
+        "\u2139 pass 0",
+        "\u2139 fail 1"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/codec-red.log",
+      "sha256": "2c00c9dca80993e78962a910c9970be5fbb87b8987de9ff65347887b990045f8",
+      "summary": []
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/consent-red.log",
+      "sha256": "147f0f28bd1487bdc03178566c8a18251cb12f82d95cbf0e405f50a65ead27b0",
+      "summary": [
+        "\u2139 tests 13",
+        "\u2139 pass 10",
+        "\u2139 fail 3",
+        "      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)",
+        "      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {",
+        "      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {",
+        "      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/body-red.log",
+      "sha256": "785ff4f2f02839b4896abbabbf1bdc992aacda02e8d11948ab7bc3b281b1f6dd",
+      "summary": [
+        "\u2139 tests 11",
+        "\u2139 pass 9",
+        "\u2139 fail 2",
+        "      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/consent-singleflight-mutant.log",
+      "sha256": "a6a94eefbc2e1b60a196dc2da98473794cad99df2bad35e3b6560ca7864fd90e",
+      "summary": [
+        "\u2139 tests 13",
+        "\u2139 pass 12",
+        "\u2139 fail 1",
+        "      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)",
+        "      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/checks.json",
+      "sha256": "2675a2f9104b835cffbeee082103cd79fca23f9670aa0669fa3885f7abb47c44",
+      "summary": [
+        "      \"cases\": ["
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/consent-singleflight-mutant-initial-cancelled.log",
+      "sha256": "41ccdbb6845dd4b136613aa63f6dbb68af49b62ba09c6e9c077e9c59f52fde27",
+      "summary": [
+        "\u2139 tests 3",
+        "\u2139 pass 0",
+        "\u2139 fail 1"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/codec-green.log",
+      "sha256": "e8663c938a990ff2689ca915b0b3352112e1226354faa7a34a360ab5e8f5e7bc",
+      "summary": [
+        "PASS CeoPrivateArchive@1 codec: 7 golden archives, 4 ordinary digests, 71 frozen refusals and vectors"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/body-admission-baseline.log",
+      "sha256": "189aeafbd80f6e4696eeffe262b05b242a8fc410bae695e991b0aa2e637533ec",
+      "summary": [
+        "\u2139 tests 1",
+        "\u2139 pass 1",
+        "\u2139 fail 0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/denial-db-green.log",
+      "sha256": "f23b4edae090c9dd5fc8c30f12cd28c272ac04457592b17a044b268939b31a87",
+      "summary": [
+        "PASS incremental consent: the binding asks for more, the operator is asked again, the grants join the same credential",
+        "PASS asking again for what the binding already holds extends that grant: one live grant, a later expiry, no duplicate",
+        "PASS Deny stands until cleared: the same request answers denied without prompting; cleared, it prompts again",
+        "PASS a request nobody answered expires after ten minutes and can no longer be decided",
+        "PASS a binding reads only its own requests; the door cannot collect an incremental grant",
+        "PASS revoking a grant removes it from the next answer; revoking the binding closes the door to that credential",
+        "PASS a session Fabric starts keeps its one-shot bearer: one initialize, the second refused, no hub tool",
+        "PASS a port in use is an error naming it, never a quiet move to another port",
+        "PASS 500 unanswered expired requests: the caps still hold and the live requests are still listed",
+        "PASS 502 standing denials: oldest still refuses without prompting and is visible to clear",
+        "PASS more than 1000 grants and 500 bindings: every live grant is listed, covers its call and can be revoked; the newest live credential is listed",
+        "PASS a hub port another program holds: the hub is down with its reason, sessions still initialise, the door stays closed",
+        "{\"status\":\"PASS\",\"cases\":19}",
+        "PASS DA-6 plaintext poll secret is refused before journal insertion",
+        "PASS DA-6 plaintext credential is refused before journal insertion",
+        "PASS DA-6 plaintext product secret is refused before journal insertion",
+        "PASS DA-4 binding/request/grant ids have one spelling",
+        "PASS ER-2 replacement requires the exact live connection id",
+        "PASS DA-2 restored pending request loses its poll verifier and cannot be decided",
+        "PASS full migration chain, the hub access projection refuses impossible transitions on isolated PostgreSQL"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/consent-focus-mutant-initial-cancelled.log",
+      "sha256": "98e0414bf3a1ae7f38924db7e1b25bd1a59bffbfd24610dac17026efc5069687",
+      "summary": [
+        "\u2139 tests 2",
+        "\u2139 pass 0",
+        "\u2139 fail 0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/consent-expiry-baseline-initial-cancelled.log",
+      "sha256": "2a475c0991215415ae9cea73adcff205f77daf576b30ddbba0d09e3bca057a0d",
+      "summary": [
+        "\u2139 tests 1",
+        "\u2139 pass 0",
+        "\u2139 fail 0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/archive-green.log",
+      "sha256": "0fffd3032307584ea5bf89373c35ab9e9701b8a1ab0eacceff0366ad543a464d",
+      "summary": [
+        "PASS full migration chain applied, schema_version 78",
+        "PASS 19 helpers and 2 tables unreachable by every role; 4 command(s) reachable by service_role only",
+        "PASS 7 companion vectors: byte-identical canonical strings and digests in SQL",
+        "PASS 4 ordinary archives and the original-bytes case accepted by SQL",
+        "PASS 13 ordinary-journal refusals, each one fixed code from ARCHIVE_REASON_CODES, no body or digest in the message",
+        "PASS budget parity with the codec: depth 32 passes, 33 refuses; keys are not nodes",
+        "PASS 9 companion refusals with the codec's codes",
+        "PASS migration 66 base: 7 groups on an owned cluster; restore, export and import commands NOT_RUN (A1-3, A1-4)",
+        "PASS owner restores into a fresh Estate, owns it at revision 1; the archived founder is never a member, before or after rebuild",
+        "PASS exact retry returns the original receipt; any change under the same operation is idempotency_conflict",
+        "PASS two concurrent identical requests: one target, one original receipt and one repeat",
+        "PASS a legacy boundary is never upgraded; the legacy entry point keeps its A0 guarantee over the shared body",
+        "PASS member, missing Person, forged actor, stale revision, existing target or shell, source=target, edited, malformed and colliding archives: refused, zero rows",
+        "PASS a revision moved by a concurrent change_membership is refused under the row lock, and the retry at the new revision succeeds",
+        "PASS restore_estate_verified: 6 groups on an owned cluster; active-Estate selection and restart NOT_RUN (A1-6, N1)",
+        "PASS cleanup: owned PostgreSQL stopped; socket and data directory removed"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/standing-denial-cap-mutant.log",
+      "sha256": "6303f50a0105885e3c7010611a54f66f765963657a741abbcf6c54533dac0779",
+      "summary": [
+        "{\"status\":\"PASS\",\"cases\":17}",
+        "PASS the door token reaches exactly the two asking tools, and nothing of a session",
+        "PASS an unknown bearer and a near-miss of the door token are refused 401",
+        "PASS an agent the registry does not know is refused before any prompt",
+        "PASS a request reaches the operator once, naming the agent as the registry knows it; a retry is the same request",
+        "PASS Allow: the first status read carries the credential once; the second does not",
+        "PASS the binding reaches its four tools, lists exactly its grants, and no session tool",
+        "PASS a field beyond the contract's four is refused, so nothing can ride in the arguments",
+        "PASS incremental consent: the binding asks for more, the operator is asked again, the grants join the same credential",
+        "PASS asking again for what the binding already holds extends that grant: one live grant, a later expiry, no duplicate",
+        "PASS Deny stands until cleared: the same request answers denied without prompting; cleared, it prompts again",
+        "PASS a request nobody answered expires after ten minutes and can no longer be decided",
+        "PASS a binding reads only its own requests; the door cannot collect an incremental grant",
+        "PASS revoking a grant removes it from the next answer; revoking the binding closes the door to that credential",
+        "PASS a session Fabric starts keeps its one-shot bearer: one initialize, the second refused, no hub tool",
+        "PASS a port in use is an error naming it, never a quiet move to another port",
+        "PASS 500 unanswered expired requests: the caps still hold and the live requests are still listed",
+        "FAIL 502 standing denials: oldest still refuses without prompting and is visible to clear",
+        "PASS more than 1000 grants and 500 bindings: every live grant is listed, covers its call and can be revoked; the newest live credential is listed",
+        "PASS a hub port another program holds: the hub is down with its reason, sessions still initialise, the door stays closed"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/body-green.log",
+      "sha256": "b82d162a4fee7289c0e57f0f0a08e01edf521be10c9c9ab67db03ee0498890a2",
+      "summary": [
+        "\u2139 tests 11",
+        "\u2139 pass 11",
+        "\u2139 fail 0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/consent-focus-baseline-initial-cancelled.log",
+      "sha256": "002f6837859566e254f254cf0b863e47244a9d8a4ed68158395f769dae12dba8",
+      "summary": [
+        "\u2139 tests 2",
+        "\u2139 pass 0",
+        "\u2139 fail 0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/consent-singleflight-baseline-initial-cancelled.log",
+      "sha256": "d29419f7d9ae45716b4bbad2fa2d0231e98b3a3afb607d0d5117c071519b4830",
+      "summary": [
+        "\u2139 tests 3",
+        "\u2139 pass 0",
+        "\u2139 fail 0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/mutation-additional-initial.json",
+      "sha256": "a9499858c1b1eef7e729d65ead4e5cf4f07a39321a73b22b2b08f8e275209b39",
+      "summary": [
+        "    \"case\": \"standing-denial-cap\",",
+        "    \"baselineExit\": 0,",
+        "    \"mutantExit\": 1",
+        "    \"case\": \"consent-singleflight\",",
+        "    \"baselineExit\": 1,",
+        "    \"mutantExit\": 1",
+        "    \"case\": \"consent-expiry\",",
+        "    \"baselineExit\": 1,",
+        "    \"mutantExit\": 1",
+        "    \"case\": \"consent-focus\",",
+        "    \"baselineExit\": 1,",
+        "    \"mutantExit\": 1"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/denial-red.log",
+      "sha256": "54c45711ea58c858b43682dab28713eb56f6bdddafb8f07cd37bcf3032554328",
+      "summary": [
+        "\u2139 tests 8",
+        "\u2139 pass 7",
+        "\u2139 fail 1",
+        "      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/body-deadline-baseline.log",
+      "sha256": "c66921593ee1bfe9c5101555c7e56c2645e3428709bec186687a4212868662eb",
+      "summary": [
+        "\u2139 tests 1",
+        "\u2139 pass 1",
+        "\u2139 fail 0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/consent-expiry-mutant-initial-cancelled.log",
+      "sha256": "b47a3d8181eed52f72588338871280dcc2cd7d6567a216001e380fab851477f7",
+      "summary": [
+        "\u2139 tests 1",
+        "\u2139 pass 0",
+        "\u2139 fail 0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/denial-green.log",
+      "sha256": "62f404bb15a595e5947a0b50c040ac4981d344023458b6e685fc1d42f8dd718a",
+      "summary": [
+        "\u2139 tests 8",
+        "\u2139 pass 8",
+        "\u2139 fail 0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/mutation-results.json",
+      "sha256": "05be5964e29bcbb7abe4470a0d3f631ff0885e4d81a9d3c587bec98bd8bdc51c",
+      "summary": [
+        "    \"case\": \"body-admission\",",
+        "    \"baselineExit\": 0,",
+        "    \"mutantExit\": 1",
+        "    \"case\": \"body-deadline\",",
+        "    \"baselineExit\": 0,",
+        "    \"mutantExit\": 1",
+        "    \"case\": \"archive-schema78\",",
+        "    \"baselineExit\": 0,",
+        "    \"mutantExit\": 1"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/consent-expiry-baseline.log",
+      "sha256": "a95fe0c18ccfb38ab358ec3afb00e68a0051da36733dcb3c3ff563fa90eb1b9b",
+      "summary": [
+        "\u2139 tests 13",
+        "\u2139 pass 13",
+        "\u2139 fail 0"
+      ]
+    },
+    {
+      "path": "docs/handoffs/hub-i3-ingress-archive-receipts/consent-focus-mutant.log",
+      "sha256": "91d917fdbeba6eed1fd60a9a5cb8bef70944378c3c6bb110a954c6a2bbecdf04",
+      "summary": [
+        "\u2139 tests 13",
+        "\u2139 pass 12",
+        "\u2139 fail 1",
+        "      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {"
+      ]
+    },
+    {
+      "path": "docs/handoffs/2026-10-04-hub-i3-panel-receipts/green-ui.log",
+      "sha256": "392a757c6dd030831f65fc3d4f3522c8310b641609ab1d9ca8782809539fa3aa",
+      "summary": [
+        " Test Files  4 passed (4)",
+        "      Tests  79 passed (79)",
+        "   Duration  1.29s (transform 511ms, setup 333ms, import 566ms, tests 1.04s, environment 1.69s)"
+      ]
+    },
+    {
+      "path": "docs/handoffs/2026-10-04-hub-i3-panel-receipts/red-races.log",
+      "sha256": "eee24d9d002fb72cc4f8e17b9f18acc05d05a4f56bbfbdabb80933076d5d8d3f",
+      "summary": [
+        " \u276f src/renderer/src/AgentAccessPanel.test.tsx (33 tests | 7 failed | 26 skipped) 147ms",
+        "\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 7 \u23af\u23af\u23af\u23af\u23af\u23af\u23af",
+        " FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3 independent: a delayed pre-disconnect poll cannot replace the post-disconnect reading",
+        " FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3: an obsolete poll failure cannot hide the fresh post-disconnect read",
+        " FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3: invalidates the old poll before the success completion during mutation",
+        " FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3: invalidates the old poll before the failure completion during mutation",
+        " FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3: a failed latest read stays unreadable when an older successful empty list arrives, and Retry recovers",
+        "TestingLibraryElementError: Unable to find an element with the text: Agent access could not be read. This is not a list with nothing in it.. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.",
+        " FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3: effect cleanup cancels the first StrictMode read even when setup starts again",
+        " FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3: a late failed act after unmount does not start a follow-up read",
+        " Test Files  1 failed (1)",
+        "      Tests  7 failed | 26 skipped (33)",
+        "   Duration  879ms (transform 112ms, setup 77ms, import 123ms, tests 147ms, environment 455ms)"
+      ]
+    },
+    {
+      "path": "docs/handoffs/2026-10-04-hub-i3-panel-receipts/typecheck.log",
+      "sha256": "c7a3f8d7c38686472f813f6215d446cfcc7251cddacd7f6a4fd4a2becaa35e5b",
+      "summary": []
+    },
+    {
+      "path": "docs/handoffs/2026-10-04-hub-i3-panel-receipts/red-independent.log",
+      "sha256": "a73b8ebcaf30d1d517816232c867f293d32bd597b44d591fc9b5b2412521148a",
+      "summary": [
+        " \u276f src/renderer/src/AgentAccessPanel.test.tsx (27 tests | 1 failed | 26 skipped) 73ms",
+        "\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af",
+        " FAIL  src/renderer/src/AgentAccessPanel.test.tsx > I3 independent: a delayed pre-disconnect poll cannot replace the post-disconnect reading",
+        " Test Files  1 failed (1)",
+        "      Tests  1 failed | 26 skipped (27)",
+        "   Duration  769ms (transform 113ms, setup 84ms, import 121ms, tests 73ms, environment 422ms)"
+      ]
+    }
+  ],
+  "parent_publication_receipt": {
+    "schema": 1,
+    "source_commit": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+    "workspace_commit": "b105e4ff78e62c65abfe0bbb95b2e8955d807b7c",
+    "content_digest": "6492bc882524ae9f0e1a328401d661a04c701d0ef818e04fbbfa7dbeff63f166",
+    "heroku_app": "passioncode-fabric-workspace",
+    "release": 147,
+    "fabric_digest": "57b2d067f391de3535dadd6df19a62664ce86a89d14d80beb7fe8b1fbb587f21",
+    "sources": [
+      {
+        "id": "org-index",
+        "repository": "https://github.com/passioncode-ai/org-index",
+        "commit": "44dbca21877028c7a39da7182335215f8c019589",
+        "files_digest": "c114792a45fb0a87226aee2caf1ae0fc28654fb63f5f780a39ee2410f513f43d"
+      },
+      {
+        "id": "fabric-agent-contract",
+        "repository": "https://github.com/passioncode-ai/fabric-agent-contract",
+        "commit": "71cdd6ed461a177e17aa2db7f5ed2059a537543e",
+        "files_digest": "4b59537b5551369c75682c9f4e716c8360e168c48756414127e4981fdb14cc6b"
+      },
+      {
+        "id": "fabric-agent-adapter",
+        "repository": "https://github.com/passioncode-ai/fabric-agent-adapter",
+        "commit": "46acc8bb774dbdb1e27022e566bcd0076221bea9",
+        "files_digest": "29e6d8ba38e066d583e1212dc3478ff83a238945c55919e98a66e15c6ec66157"
+      },
+      {
+        "id": "fabric-inbox",
+        "repository": "https://github.com/passioncode-ai/fabric-inbox",
+        "commit": "90138c4aa17050f214b29fb5ad10aa9c6e86fb17",
+        "files_digest": "44e3028381b8d14e3ca6fba60a011fd389b81284d5909c41d9c580f4e1c1ea7f"
+      },
+      {
+        "id": "fabric-switchboard",
+        "repository": "https://github.com/passioncode-ai/fabric-switchboard",
+        "commit": "5e275caf50436f6a95eabad9c8e16bedade1ffe5",
+        "files_digest": "dab23a580eac820fc62c7fddd5930aa2ef996b4b1d1507881fd40204ef6cf9dd"
+      },
+      {
+        "id": "fabric-vr",
+        "repository": "https://github.com/passioncode-ai/fabric-vr",
+        "commit": "3d6179f2a69f9cbe7ab169405e7f5ff48ae52293",
+        "files_digest": "e7ca4197f2e8058fc8229476179b5cb37136319f57a550a720af918cc1de8d38"
+      },
+      {
+        "id": "fabric-dashboards",
+        "repository": "https://github.com/passioncode-ai/fabric-dashboards",
+        "commit": "f7e806919c81f88d0fc7129c355c06c7036387ef",
+        "files_digest": "28507ee4d41c0f72b0c1a0171b4dfe0ca6882259c67ea8db24d81fa07b442bde"
+      },
+      {
+        "id": "project-observatory-dashboard",
+        "repository": "https://github.com/passioncode-ai/project-observatory-dashboard",
+        "commit": "fb0350d081f2af53d5a18fa1dae67836774cf047",
+        "files_digest": "37cf6cb1c26a76d1e7ad30ccc267210693ac8cdbff61e191c65e6102f43dcaa9"
+      },
+      {
+        "id": "project-observatory-contract",
+        "repository": "https://github.com/passioncode-ai/project-observatory-contract",
+        "commit": "573fe9c2a0153540347399e2c241065e889dbc15",
+        "files_digest": "3b59c398cd94e24506b0669091f33201f8adf1a277943d04c36ed4758031e154"
+      },
+      {
+        "id": "passioncode",
+        "repository": "https://github.com/passioncode-ai/passioncode",
+        "commit": "e0035d56a9a9c1b9e78036c8eab036e30c291c0a",
+        "files_digest": "1da0054489c66858c930cf03659829c41a77051200d2fb358410506b7dd39e6b"
+      },
+      {
+        "id": "passioncode-ai.github.io",
+        "repository": "https://github.com/passioncode-ai/passioncode-ai.github.io",
+        "commit": "25e138ff127bb6b7145ce30914f00178c71560e7",
+        "files_digest": "c12d0e68af314d735a7149dd3957fdecbe37d39da36a4cccc1ef1cb9586c2ce8"
+      },
+      {
+        "id": "okolos",
+        "repository": "https://github.com/passioncode-ai/okolos",
+        "commit": "3323946fc4b8bb0f3e565b19bcfad1d72611ffb7",
+        "files_digest": "e972bee4d3a71df60e1570b284ded59318ee85783569db22986d13c593362ec4"
+      },
+      {
+        "id": "org-github",
+        "repository": "https://github.com/passioncode-ai/.github",
+        "commit": "42b17014c92da9372ec43272ff877a737aa7c48a",
+        "files_digest": "9eb658f9a633ccb062ac9c006e1ecab947328c146ca1d5a2ca6ecb2794294169"
+      }
+    ]
+  },
+  "guarded_edits_by_reporter": []
+}

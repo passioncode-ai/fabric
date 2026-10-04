@@ -1,0 +1,37 @@
+✖ communication IDs resolve only from owning work rows; missing and closed work refuse (2.376667ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 43.436667
+
+✖ failing tests:
+
+test at scripts/test/plan-ids.test.mjs:7:1
+✖ communication IDs resolve only from owning work rows; missing and closed work refuse (2.376667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'lane "13 · Project communications" names "COM-01", which is not a work id of a form the plan knows',
+  +   'lane "13 · Project communications" names "COM-14", which is not a work id of a form the plan knows',
+  +   'lane "13 · Project communications" cites no work',
+  +   'the plan cites no work at all'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/scripts/test/plan-ids.test.mjs:10:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'lane "13 · Project communications" names "COM-01", which is not a work id of a form the plan knows', 'lane "13 · Project communications" names "COM-14", which is not a work id of a form the plan knows', 'lane "13 · Project communications" cites no work', 'the plan cites no work at all' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

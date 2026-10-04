@@ -1,0 +1,1181 @@
+{
+  "fabricSource": "7011ce429d2593951b9d99940f78ab5850f17309",
+  "contractSource": "2ce392291c6668598d12cd38327e24696b5ca15c",
+  "servedSchema": {
+    "type": "object",
+    "properties": {
+      "agentId": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]{1,62}(\\.[a-z][a-z0-9-]{0,31})?$",
+        "description": "The callee: a connected product, e.g. fabric-inbox"
+      },
+      "capability": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9._-]{1,127}$",
+        "description": "The product tool to call"
+      },
+      "input": {
+        "type": "object",
+        "propertyNames": {
+          "type": "string"
+        },
+        "additionalProperties": {},
+        "description": "The tool arguments, exactly as the product takes them"
+      },
+      "idempotencyKey": {
+        "description": "Your own id for this call. Sent again with the same arguments, the same key returns the first answer and sends nothing (while your grant still covers the call and the product is connected); the same key with other arguments is refused. If a call may have reached the product without an answer (a timeout, a cancel, a lost connection), the answer is outcome-unknown, and every later call with that key is refused outcome-unknown: it may have run, so Fabric never sends it again — and a new key would act twice. Check its effect with the product's own read tools (for mail, get_send_status) before you act again. Fabric keeps keys for 24 hours (the 256 most recent per credential) while it runs; hub.json's instance changes when Fabric restarts, and a key from before a restart is unknown to it.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256
+      }
+    },
+    "required": [
+      "agentId",
+      "capability",
+      "input"
+    ],
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "additionalProperties": false
+  },
+  "normative": [
+    {
+      "id": "underscore",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "dotted",
+      "schema": "manifest.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "two",
+      "schema": "manifest.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "maximum",
+      "schema": "manifest.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "maximum-underscore",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "leading-underscore",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "one",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "too-long",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "uppercase",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "space",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "slash",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "colon",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "number",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "type"
+      ]
+    },
+    {
+      "id": "prototype",
+      "schema": "manifest.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "prototype-dotted",
+      "schema": "manifest.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "middle-newline",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-LF",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-CR",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-CRLF",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-LS",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-PS",
+      "schema": "manifest.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "underscore",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "dotted",
+      "schema": "interop-agent-call.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "two",
+      "schema": "interop-agent-call.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "maximum",
+      "schema": "interop-agent-call.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "maximum-underscore",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "leading-underscore",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "one",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "too-long",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "uppercase",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "space",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "slash",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "colon",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "number",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "type"
+      ]
+    },
+    {
+      "id": "prototype",
+      "schema": "interop-agent-call.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "prototype-dotted",
+      "schema": "interop-agent-call.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "middle-newline",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-LF",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-CR",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-CRLF",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-LS",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-PS",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "underscore",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "dotted",
+      "schema": "pipeline.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "two",
+      "schema": "pipeline.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "maximum",
+      "schema": "pipeline.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "maximum-underscore",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "leading-underscore",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "one",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "too-long",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "uppercase",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "space",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "slash",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "colon",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "number",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "type"
+      ]
+    },
+    {
+      "id": "prototype",
+      "schema": "pipeline.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "prototype-dotted",
+      "schema": "pipeline.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "middle-newline",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-LF",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-CR",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-CRLF",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-LS",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-PS",
+      "schema": "pipeline.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "underscore",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "dotted",
+      "schema": "service-well-known.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "two",
+      "schema": "service-well-known.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "maximum",
+      "schema": "service-well-known.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "maximum-underscore",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "leading-underscore",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "one",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "too-long",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "uppercase",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "space",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "slash",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "colon",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "number",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "type"
+      ]
+    },
+    {
+      "id": "prototype",
+      "schema": "service-well-known.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "prototype-dotted",
+      "schema": "service-well-known.schema.json",
+      "valid": true,
+      "errors": []
+    },
+    {
+      "id": "middle-newline",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-LF",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-CR",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-CRLF",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-LS",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "terminal-PS",
+      "schema": "service-well-known.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "unknown-field",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "additionalProperties",
+        "pattern"
+      ]
+    },
+    {
+      "id": "wrong-input-array",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern",
+        "type"
+      ]
+    },
+    {
+      "id": "wrong-input-null",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern",
+        "type"
+      ]
+    },
+    {
+      "id": "wrong-id",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern",
+        "pattern"
+      ]
+    },
+    {
+      "id": "empty-key",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern",
+        "minLength"
+      ]
+    },
+    {
+      "id": "maximum-key",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern"
+      ]
+    },
+    {
+      "id": "over-key",
+      "schema": "interop-agent-call.schema.json",
+      "valid": false,
+      "errors": [
+        "pattern",
+        "maxLength"
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "id": "underscore",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "receive_project_message",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": true,
+      "normalisedRequest": true,
+      "error": null,
+      "isError": false,
+      "responseText": "accepted"
+    },
+    {
+      "id": "dotted",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "demo.run",
+        "input": {}
+      },
+      "compiledCall": true,
+      "realSdkAccepted": true,
+      "normalisedRequest": true,
+      "error": null,
+      "isError": false,
+      "responseText": "accepted"
+    },
+    {
+      "id": "two",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "ab",
+        "input": {}
+      },
+      "compiledCall": true,
+      "realSdkAccepted": true,
+      "normalisedRequest": true,
+      "error": null,
+      "isError": false,
+      "responseText": "accepted"
+    },
+    {
+      "id": "maximum",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "input": {}
+      },
+      "compiledCall": true,
+      "realSdkAccepted": true,
+      "normalisedRequest": true,
+      "error": null,
+      "isError": false,
+      "responseText": "accepted"
+    },
+    {
+      "id": "maximum-underscore",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "a_______________________________________________________________________________________________________________________________",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": true,
+      "normalisedRequest": true,
+      "error": null,
+      "isError": false,
+      "responseText": "accepted"
+    },
+    {
+      "id": "leading-underscore",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "_leading",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid string: must match pattern /^[a-z][a-z0-9._-]{1,127}$/ at capability"
+    },
+    {
+      "id": "one",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "a",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid string: must match pattern /^[a-z][a-z0-9._-]{1,127}$/ at capability"
+    },
+    {
+      "id": "too-long",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid string: must match pattern /^[a-z][a-z0-9._-]{1,127}$/ at capability"
+    },
+    {
+      "id": "uppercase",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "Uppercase",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid string: must match pattern /^[a-z][a-z0-9._-]{1,127}$/ at capability"
+    },
+    {
+      "id": "space",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "bad space",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid string: must match pattern /^[a-z][a-z0-9._-]{1,127}$/ at capability"
+    },
+    {
+      "id": "slash",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "bad/name",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid string: must match pattern /^[a-z][a-z0-9._-]{1,127}$/ at capability"
+    },
+    {
+      "id": "colon",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "bad:name",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid string: must match pattern /^[a-z][a-z0-9._-]{1,127}$/ at capability"
+    },
+    {
+      "id": "number",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": 42,
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid input: expected string, received number at capability"
+    },
+    {
+      "id": "prototype",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "constructor",
+        "input": {}
+      },
+      "compiledCall": true,
+      "realSdkAccepted": true,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": false,
+      "responseText": "accepted"
+    },
+    {
+      "id": "prototype-dotted",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "demo.constructor",
+        "input": {}
+      },
+      "compiledCall": true,
+      "realSdkAccepted": true,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": false,
+      "responseText": "accepted"
+    },
+    {
+      "id": "middle-newline",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "read\nmessage",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid string: must match pattern /^[a-z][a-z0-9._-]{1,127}$/ at capability"
+    },
+    {
+      "id": "terminal-LF",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "read_message\n",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid string: must match pattern /^[a-z][a-z0-9._-]{1,127}$/ at capability"
+    },
+    {
+      "id": "terminal-CR",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "read_message\r",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid string: must match pattern /^[a-z][a-z0-9._-]{1,127}$/ at capability"
+    },
+    {
+      "id": "terminal-CRLF",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "read_message\r\n",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid string: must match pattern /^[a-z][a-z0-9._-]{1,127}$/ at capability"
+    },
+    {
+      "id": "terminal-LS",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "read_message ",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid string: must match pattern /^[a-z][a-z0-9._-]{1,127}$/ at capability"
+    },
+    {
+      "id": "terminal-PS",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "read_message ",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid string: must match pattern /^[a-z][a-z0-9._-]{1,127}$/ at capability"
+    },
+    {
+      "id": "unknown-field",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "read_message",
+        "input": {},
+        "extra": true
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": null,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Unrecognized key: \"extra\""
+    },
+    {
+      "id": "wrong-input-array",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "read_message",
+        "input": []
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": null,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid input: expected record, received array at input"
+    },
+    {
+      "id": "wrong-input-null",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "read_message",
+        "input": null
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": null,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid input: expected record, received null at input"
+    },
+    {
+      "id": "wrong-id",
+      "arguments": {
+        "agentId": "Invalid Agent",
+        "capability": "read_message",
+        "input": {}
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": null,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Invalid string: must match pattern /^[a-z][a-z0-9-]{1,62}(\\.[a-z][a-z0-9-]{0,31})?$/ at agentId"
+    },
+    {
+      "id": "empty-key",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "read_message",
+        "input": {},
+        "idempotencyKey": ""
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": null,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Too small: expected string to have >=1 characters at idempotencyKey"
+    },
+    {
+      "id": "maximum-key",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "read_message",
+        "input": {},
+        "idempotencyKey": "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+      },
+      "compiledCall": false,
+      "realSdkAccepted": true,
+      "normalisedRequest": null,
+      "error": null,
+      "isError": false,
+      "responseText": "accepted"
+    },
+    {
+      "id": "over-key",
+      "arguments": {
+        "agentId": "example-agent",
+        "capability": "read_message",
+        "input": {},
+        "idempotencyKey": "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+      },
+      "compiledCall": false,
+      "realSdkAccepted": false,
+      "normalisedRequest": null,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool agent.call: Too big: expected string to have <=256 characters at idempotencyKey"
+    }
+  ],
+  "sessionTools": [
+    "fabric_whoami",
+    "fabric_stage_report",
+    "fabric_agents_list",
+    "fabric_tasks_list",
+    "fabric_memory_search",
+    "fabric_transcripts_search",
+    "fabric_memory_remember",
+    "fabric_task_create",
+    "fabric_task_handoff",
+    "fabric_task_claim",
+    "fabric_task_release",
+    "fabric_task_move",
+    "fabric_task_note",
+    "fabric_question_ask",
+    "fabric_question_check",
+    "fabric_task_link",
+    "fabric_task_brief",
+    "fabric_task_accept",
+    "fabric_heartbeat",
+    "fabric_effect_report",
+    "fabric_effect_request",
+    "fabric_leases_list"
+  ],
+  "sessionCases": [
+    {
+      "id": "stage-positive",
+      "handlerWrote": true,
+      "error": null,
+      "isError": false,
+      "responseText": "{\n  \"recorded\": true,\n  \"seq\": 1,\n  \"as\": \"claim\"\n}"
+    },
+    {
+      "id": "stage-negative",
+      "handlerWrote": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Input validation error: Invalid arguments for tool fabric_stage_report: Invalid input: expected string, received number at stage"
+    },
+    {
+      "id": "no-agent-call",
+      "handlerWrote": false,
+      "error": null,
+      "isError": true,
+      "responseText": "MCP error -32602: Tool agent.call not found"
+    }
+  ]
+}

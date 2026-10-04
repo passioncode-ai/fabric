@@ -56,6 +56,8 @@ node scripts/repin-public-history.mjs --summary >/dev/null
 node --test scripts/test/sibling-commits.test.mjs
 node scripts/check-sibling-commits.mjs
 node scripts/check-adoption-plan.mjs
+# Unified execution context: source drift, coverage and cross-task findings block dispatch.
+node --test scripts/test/unified-plan.test.mjs
 node scripts/check-adoption-bindings.mjs
 # Existed since the R0 operator audit and nothing ran it (the FA-10 class).
 node scripts/check-operator-plan.mjs

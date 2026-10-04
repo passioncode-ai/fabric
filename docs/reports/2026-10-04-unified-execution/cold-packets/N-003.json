@@ -1,0 +1,49 @@
+{
+  "schema_version": "execution-packet/1",
+  "node": "N-003",
+  "id": "P-08",
+  "intent": "Finish owned hub verification before0.3.1 release",
+  "inputs": [
+    {
+      "address": "docs/evidence/backlog.md",
+      "sha256": "3135378f808cca85b5408b13f54159b8e6818ab2d7f9258eef7f25644a17d608"
+    },
+    {
+      "address": "docs/launch/release-mac.md",
+      "sha256": "0d1199c31496de494531a0634916baf44073a97f750d3b291dceda5868ef5000"
+    },
+    {
+      "address": "docs/evidence/plans/2026-10-04-hub-verification.md",
+      "sha256": "7d00a8b7fd4fd1e216c91c4fe8cf821d8c178501e28a251abd21e362696d11aa"
+    },
+    {
+      "address": "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md",
+      "sha256": "6fe81aee78d064078bd93640752c87c6acd5e8bae92c16b3f06ebd4c75efcb99"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/P-08.review.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/P-08.review.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "Existing releaseGateProblems clears0.3.1 only after3 independent closed iterations.",
+    "Full CI exact release SHA, packaged smoke, notarization, attestation and verified download all have independent receipts."
+  ],
+  "guards": [
+    "Stop on stale digest, changed upstream contract, missing receipt or required authority."
+  ],
+  "resume": "Fetch source refs, acquire own lease, inspect exact upstream receipt and first missing check."
+}

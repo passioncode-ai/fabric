@@ -1,0 +1,34 @@
+{
+  "fabric-agent-contract#9": {
+    "html_url": "https://github.com/passioncode-ai/fabric-agent-contract/pull/9",
+    "state": "closed",
+    "merged_at": "2026-10-04T10:13:09Z",
+    "merge_commit_sha": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+    "updated_at": "2026-10-04T10:13:09Z"
+  },
+  "fabric-workspace#33": {
+    "html_url": "https://github.com/passioncode-ai/fabric-workspace/pull/33",
+    "state": "closed",
+    "merged_at": "2026-10-04T11:19:25Z",
+    "merge_commit_sha": "3f725d37490a753ce5e06673fb3a98395ce9a845",
+    "updated_at": "2026-10-04T11:19:26Z"
+  },
+  "fabric-inbox#26": {
+    "html_url": "https://github.com/passioncode-ai/fabric-inbox/issues/26",
+    "state": "open",
+    "merged_at": null,
+    "merge_commit_sha": null,
+    "updated_at": "2026-10-04T09:48:16Z"
+  },
+  "current_workspace_manifest": {
+    "workspace_source_commit": "898a3cb4af9bd9dfa8b507fce28bdb008295596c",
+    "blob_sha": "107fc7d590a956e5ef0411c13fac1dcd2fa91cc7",
+    "path": "content/manifest.json",
+    "fabric_source": {
+      "repository": "https://github.com/passioncode-ai/fabric",
+      "commit": "b85c9c3cb5dc7e3876c358539bcde578759e731f"
+    },
+    "exported_at": "2026-10-04T12:11:06+02:00",
+    "content_digest": "e925d3430b2c222a379dec19d5e60fe25e2ad28a60b642f077b599d5a03f0879"
+  }
+}

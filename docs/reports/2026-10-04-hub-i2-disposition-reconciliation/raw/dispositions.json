@@ -1,0 +1,562 @@
+[
+  {
+    "canonical_id": "V2-1",
+    "display_id": "V2-01",
+    "source_id": "UX-1",
+    "original_finding": "blocking \u2014 the queue's Allow/Deny answer leaks into the NEXT access request opened in the same detail pane",
+    "prior_ledger_disposition": "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate",
+    "state": "S",
+    "owner": "surface",
+    "receipt_and_remaining_action": "BoardScreen entry-ref keys; two-request Allow/Deny regression, surface red-inherited/green-ui. I3 presenter concurrency is separate P work."
+  },
+  {
+    "canonical_id": "V2-2",
+    "display_id": "V2-02",
+    "source_id": "UX-2",
+    "original_finding": "blocking \u2014 Reconnect: no \"waiting\" state, and an immediate false claim that Fabric stopped using the live key",
+    "prior_ledger_disposition": "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate",
+    "state": "S+P",
+    "owner": "surface/root",
+    "receipt_and_remaining_action": "AgentAccessPanel waiting Reconnect preserves predecessor; V2 reconnect tests + browser. UX-I3-02 overview ordering corrected in root commit 7011ce42, author green-ui79; fresh review pending."
+  },
+  {
+    "canonical_id": "V2-3",
+    "display_id": "V2-03",
+    "source_id": "UX-3",
+    "original_finding": "blocking \u2014 a long mailbox runs out of the card on both Allow surfaces; the operator cannot read the whole resource being granted",
+    "prior_ledger_disposition": "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate",
+    "state": "S",
+    "owner": "surface",
+    "receipt_and_remaining_action": "AgentAccessPanel/ObligationActs wrapping; component CSS + browser scrollWidth<=clientWidth+1, surface browser.log. Native geometry remains NOT_RUN."
+  },
+  {
+    "canonical_id": "V2-4",
+    "display_id": "V2-04",
+    "source_id": "UX-4",
+    "original_finding": "non-blocking \u2014 `.lp-facts` override flattens every fact grid in the launch screens",
+    "prior_ledger_disposition": "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate",
+    "state": "S",
+    "owner": "surface",
+    "receipt_and_remaining_action": "launch.css lp-access-facts preserves dl.lp-facts grid; BoardScreen CSS test + computed browser display:grid."
+  },
+  {
+    "canonical_id": "V2-5",
+    "display_id": "V2-05",
+    "source_id": "UX-5",
+    "original_finding": "non-blocking \u2014 English machine text inside Russian sentences on the connect/unreadable lines",
+    "prior_ledger_disposition": "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate",
+    "state": "S",
+    "owner": "surface",
+    "receipt_and_remaining_action": "accessWords localized meaning separated from machine detail; V2 UX-5 tests, surface green-ui72. Brand warnings remain advisory debt."
+  },
+  {
+    "canonical_id": "V2-6",
+    "display_id": "V2-06",
+    "source_id": "UX-6",
+    "original_finding": "non-blocking \u2014 the late-record-not-withdrawn outcome contradicts itself and carries a Fabric-authored English instruction",
+    "prior_ledger_disposition": "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate",
+    "state": "S+P",
+    "owner": "surface/root",
+    "receipt_and_remaining_action": "productConnect.withdraw returns withdraw-failed; accessWords/UI + late-withdrawal regression. I3-DO-03 unconditional ADR promise requires pending root amendment28."
+  },
+  {
+    "canonical_id": "V2-7",
+    "display_id": "V2-07",
+    "source_id": "UX-7",
+    "original_finding": "non-blocking (a11y) \u2014 focus is dropped to `<body>` on every act",
+    "prior_ledger_disposition": "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate",
+    "state": "S+P",
+    "owner": "surface/root",
+    "receipt_and_remaining_action": "Panel heading/Board named completion focus; V2 UX-7 + browser focus. New ordering correction 7011ce42 must preserve focus; native VoiceOver NOT_RUN."
+  },
+  {
+    "canonical_id": "V2-8",
+    "display_id": "V2-08",
+    "source_id": "UX-8",
+    "original_finding": "non-blocking (a11y) \u2014 \"Allow and connect Fabric Inbox\" is announced as \"Allow Research desk\"",
+    "prior_ledger_disposition": "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate",
+    "state": "S",
+    "owner": "surface",
+    "receipt_and_remaining_action": "ObligationActs accessible Allow name includes visible Allow and connect and agent; accessWords/acts regression, surface green-ui."
+  },
+  {
+    "canonical_id": "V2-9",
+    "display_id": "V2-09",
+    "source_id": "UX-9",
+    "original_finding": "non-blocking \u2014 Connect stays enabled while the product is already waiting",
+    "prior_ledger_disposition": "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate",
+    "state": "S+P",
+    "owner": "surface/root",
+    "receipt_and_remaining_action": "Panel Connect/Reconnect disabled while pending; V2 UI/browser. Old poll can restore connected state: 7011ce42 author fix awaits independent UX recheck."
+  },
+  {
+    "canonical_id": "V2-10",
+    "display_id": "V2-10",
+    "source_id": "UX-10",
+    "original_finding": "non-blocking \u2014 narrow window: product acts overflow the card",
+    "prior_ledger_disposition": "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate",
+    "state": "S",
+    "owner": "surface",
+    "receipt_and_remaining_action": "AgentAccessPanel toolbar wraps at narrow width; CSS test and bounded real-renderer browser matrix."
+  },
+  {
+    "canonical_id": "V2-11",
+    "display_id": "V2-11",
+    "source_id": "UX-11",
+    "original_finding": "non-blocking \u2014 copy",
+    "prior_ledger_disposition": "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate",
+    "state": "S+P",
+    "owner": "surface/root",
+    "receipt_and_remaining_action": "Denied asked-to fragment, Settings self-link, RU quotes, Allow button wording, current-key and native message-question corrected in accessWords/locale/presenter; presenter10 + panel tests. New UX-I3-01/03/04 prompt races root pending."
+  },
+  {
+    "canonical_id": "V2-12",
+    "display_id": "V2-12",
+    "source_id": "ER-1",
+    "original_finding": "`idempotencyKey` does not prevent a second send after a cancel or a timeout \u2014 high (blocking for the contract claim)",
+    "prior_ledger_disposition": "fixed `0a340e8a`: unknown-write tombstone; product failure/cancel/deadline regressions",
+    "state": "S+P",
+    "owner": "core/root",
+    "receipt_and_remaining_action": "hubCall retained uncertain effects; 81498b26 capacity no-eviction/unknown lifetime + postprocessing effect tracking. hub-call-i3 tests22/products51, baseline20fail and9 mutants. Fresh errors/docs recheck and converged gates pending; restart/answered24h reconcile boundary retained."
+  },
+  {
+    "canonical_id": "V2-13",
+    "display_id": "V2-13",
+    "source_id": "ER-2",
+    "original_finding": "two connect attempts begun before the first lands both succeed; the first admin key is orphaned and stays valid \u2014 medium-high",
+    "prior_ledger_disposition": "fixed `d29bcf98`, `7f35c16c`: DB predecessorCAS plus connector serialization; changed-state race root regression51pass",
+    "state": "S",
+    "owner": "core/surface",
+    "receipt_and_remaining_action": "productConnect begin/callback serialization plus migration suffix80 predecessor CAS; V2 ER-2x4 + authority-boundaries exact-current-id group; combined products51 author receipt. No real Inbox acceptance."
+  },
+  {
+    "canonical_id": "V2-14",
+    "display_id": "V2-14",
+    "source_id": "ER-3",
+    "original_finding": "no Host/Origin check on the hub port: a web page (DNS rebinding) or any process can lock binding credentials out \u2014 medium",
+    "prior_ledger_disposition": "fixed `56032339`: preloaded verifier hints/live authentication; root exact Host/Origin ingress",
+    "state": "S+P",
+    "owner": "root",
+    "receipt_and_remaining_action": "agentSurface exact Host/Origin, accessService verifier hint/live auth; hub-surface and ER-3 restart hint tests. I3-E4 partial body admission/deadline root pending; body-green11/mutations author receipts only."
+  },
+  {
+    "canonical_id": "V2-15",
+    "display_id": "V2-15",
+    "source_id": "ER-4",
+    "original_finding": "every `agent.call` spawns five processes on the main thread, unbounded: measured 0.34 s / 0.83 s event-loop stalls \u2014 medium",
+    "prior_ledger_disposition": "fixed `e607596a`: vault4running/64waiting, queued/running cancellation and launcher single-flight",
+    "state": "S",
+    "owner": "root",
+    "receipt_and_remaining_action": "observatoryVault max4 running/64 waiting, abort queues/runs and engine single-flight; vault/launcher tests in recovery gate at402a98e2. No arbitrary-process throughput claim."
+  },
+  {
+    "canonical_id": "V2-16",
+    "display_id": "V2-16",
+    "source_id": "ER-5",
+    "original_finding": "a JSON-RPC batch spends one budget call for any number of tool calls: the external budget is bypassed \u2014 medium-high",
+    "prior_ledger_disposition": "fixed `e607596a`: JSON-RPC batch refusal before admitted callbacks",
+    "state": "S",
+    "owner": "root",
+    "receipt_and_remaining_action": "agentSurface JSON-RPC arrays refused before admitted callbacks; hub-surface batch-budget regression, e607596a/402a98e2 source."
+  },
+  {
+    "canonical_id": "V2-17",
+    "display_id": "V2-17",
+    "source_id": "ER-6",
+    "original_finding": "Fabric never checks that the product honours `X-Fabric-Accounts`; against a Fabric Inbox server before 0.9.0 the narrowing is void and one mailbox's grant reads every mailbox \u2014 medium-high",
+    "prior_ledger_disposition": "fixed `d29bcf98`: per-call initialized server identity/version compatibility; live source attestation remains CO-195",
+    "state": "S+E",
+    "owner": "core/Inbox",
+    "receipt_and_remaining_action": "productForwarder initialized name/version check each narrowed call + alias refusal; old unsafe server watched-red, products39 then51. CO-195/Inbox#26 still owns source-attested runtime enforcement and real connected-product acceptance."
+  },
+  {
+    "canonical_id": "V2-18",
+    "display_id": "V2-18",
+    "source_id": "ER-7",
+    "original_finding": "prototype-named capabilities throw inside the access rules and come back as a retryable `hub-unavailable` \u2014 low",
+    "prior_ledger_disposition": "fixed `d29bcf98`: own-property input/capability reads, access regression28pass",
+    "state": "S",
+    "owner": "core",
+    "receipt_and_remaining_action": "shared/access own-property tool/input tables refuse prototype names; access-watched-red3fail, access test28pass in core packet."
+  },
+  {
+    "canonical_id": "V2-19",
+    "display_id": "V2-19",
+    "source_id": "ER-8",
+    "original_finding": "the grant reads are capped at the 1 000 OLDEST rows, and dead grants never leave them: a live grant can be invisible in Settings and refused by Revoke \u2014 medium",
+    "prior_ledger_disposition": "fixed `73e8995e`: complete live grant/binding paging and direct grant-id revocation",
+    "state": "S+P",
+    "owner": "core/root",
+    "receipt_and_remaining_action": "accessStore complete live grant/binding paging + direct grant-id lookup; hub-door real-store >1000grants/>500bindings receipt. New DATA-I3-02 standing-denial paging is separate root pending, not closed by grant test."
+  },
+  {
+    "canonical_id": "V2-20",
+    "display_id": "V2-20",
+    "source_id": "ER-9",
+    "original_finding": "a callback refused before its state is read leaves the attempt \"waiting\" for 10 minutes \u2014 low",
+    "prior_ledger_disposition": "fixed `7f35c16c`: invalidcallback settles only its waiting attempt",
+    "state": "S",
+    "owner": "surface",
+    "receipt_and_remaining_action": "productConnect invalid callback body/type/state settles only current pending attempt; four V2 ER-9 tests red8/green8 connector packet."
+  },
+  {
+    "canonical_id": "V2-21",
+    "display_id": "V2-21",
+    "source_id": "ER-10",
+    "original_finding": "the contract's pid check cannot tell Fabric from a reused pid \u2014 info",
+    "prior_ledger_disposition": "ruled AR-3.1 / ADR-0115 amendment26: PIDliveness is no identity proof; no authority from discovery",
+    "state": "R",
+    "owner": "root",
+    "receipt_and_remaining_action": "ADR0115 amendment26 and AR-3.1: PID liveness gives no cryptographic identity/authority; authenticated scoped route only. I3-DO-02 nonexistent instance guidance is corrected in pending hubTools:84; no added identity claim."
+  },
+  {
+    "canonical_id": "V2-22",
+    "display_id": "V2-22",
+    "source_id": "ER-11",
+    "original_finding": "the product's error text reaches the agent, client id included \u2014 info",
+    "prior_ledger_disposition": "fixed `0a340e8a`: product error client-id/secret stripped, fixed agent-facing failure",
+    "state": "S+P",
+    "owner": "core",
+    "receipt_and_remaining_action": "productForwarder fixed tool-error envelope; 81498b26 strips credential echoes in success keys/strings and ops diagnostics. I3 actual MCP tool error/diagnostic tests in22pass, mutation red; fresh independent privacy recheck pending."
+  },
+  {
+    "canonical_id": "V2-23",
+    "display_id": "V2-23",
+    "source_id": "DO-1",
+    "original_finding": "MEDIUM \u2014 Reconnect tells the operator \"Fabric no longer uses the previous key\" before anything changed",
+    "prior_ledger_disposition": "candidate correction present; pending converged docs gate and owning-source disposition",
+    "state": "S+P",
+    "owner": "surface/root",
+    "receipt_and_remaining_action": "Same code/tests as V2-02; predecessor statement fixed by7f35c16c. UX-I3-02 stale overview could contradict it; 7011ce42 authored fix not accepted independently."
+  },
+  {
+    "canonical_id": "V2-24",
+    "display_id": "V2-24",
+    "source_id": "DO-2",
+    "original_finding": "MEDIUM \u2014 ADR-0115 amendment 19 (the agent-facing wire contract) misdescribes `agent.call`'s answer",
+    "prior_ledger_disposition": "candidate correction present; pending converged docs gate and owning-source disposition",
+    "state": "S",
+    "owner": "root",
+    "receipt_and_remaining_action": "ADR0115 iteration2 clarification amendment20 explicitly supersedes19 envelope claim; hubTools region/wire output and hub-call envelope tests. Product-declared error vs Fabric refusal retained; I3 retention/privacy defects covered V2-12/22."
+  },
+  {
+    "canonical_id": "V2-25",
+    "display_id": "V2-25",
+    "source_id": "DO-3",
+    "original_finding": "LOW/MEDIUM \u2014 CO-197 (and CHANGELOG 0.3.1 \"the workspace publication is stale\") are false at the candidate",
+    "prior_ledger_disposition": "candidate correction present; pending converged docs gate and owning-source disposition",
+    "state": "S+E",
+    "owner": "root/publication",
+    "receipt_and_remaining_action": "CHANGELOG and CO-197 re-scope recovered scheduler to final-source publication (402a98e2). Current parent receipt still Fabric1e8b2e20/workspaceb105e4ff; final merged source publication/require-child/deployed identity still open CO-197."
+  },
+  {
+    "canonical_id": "V2-26",
+    "display_id": "V2-26",
+    "source_id": "DO-4",
+    "original_finding": "LOW \u2014 ADR-0105 hands the gateway.ts removal to AR-3.1; ADR-0115 keeps gateway; nobody tracks it",
+    "prior_ledger_disposition": "candidate correction present; pending converged docs gate and owning-source disposition",
+    "state": "R?",
+    "owner": "root/AR-3.1",
+    "receipt_and_remaining_action": "AR-3.1 now explicitly tracks retained gateway.ts/ServerSource removal OR appended compatibility decision; ADR0105 still-open promise unchanged. Proposed scoped nonblocking ruling to canonical AR-3.1, not code removal; root must record chosen disposition."
+  },
+  {
+    "canonical_id": "V2-27",
+    "display_id": "V2-27",
+    "source_id": "DO-5",
+    "original_finding": "LOW \u2014 ADR-0034 itself carries no supersede mark; the index carries two different supersede claims",
+    "prior_ledger_disposition": "candidate correction present; pending converged docs gate and owning-source disposition",
+    "state": "S",
+    "owner": "root",
+    "receipt_and_remaining_action": "ADR0034:5 dated successor note cites0105 then0115 route; ADR index scope matches accepted successor. Preserve original historical decision;402a98e2 source/docs structural gate."
+  },
+  {
+    "canonical_id": "V2-28",
+    "display_id": "V2-28",
+    "source_id": "DO-6",
+    "original_finding": "LOW \u2014 \"an agent's call was passed to a product\" has no string-registry row (the hub's only one)",
+    "prior_ledger_disposition": "candidate correction present; pending converged docs gate and owning-source disposition",
+    "state": "S",
+    "owner": "surface",
+    "receipt_and_remaining_action": "brand/strings event.hub.call.forwarded row; en/ru message. Surface brand/design exit0, advisory warnings remain."
+  },
+  {
+    "canonical_id": "V2-29",
+    "display_id": "V2-29",
+    "source_id": "DO-7",
+    "original_finding": "LOW \u2014 \"record-failed\" copy is false in the one path where the record DID land",
+    "prior_ledger_disposition": "candidate correction present; pending converged docs gate and owning-source disposition",
+    "state": "S+P",
+    "owner": "surface/root",
+    "receipt_and_remaining_action": "withdraw-failed truthful existing-record/revoked-key text + late-withdrawal product test. I3-DO-03 pending amendment28 must supersede unconditional old ADR claim."
+  },
+  {
+    "canonical_id": "V2-30",
+    "display_id": "V2-30",
+    "source_id": "DO-8",
+    "original_finding": "LOW \u2014 ru term for \"binding credential\" is not one term",
+    "prior_ledger_disposition": "candidate correction present; pending converged docs gate and owning-source disposition",
+    "state": "S",
+    "owner": "surface",
+    "receipt_and_remaining_action": "ru locale one binding-credential term + terminology row; brand/design bilingual checks7f35c16c."
+  },
+  {
+    "canonical_id": "V2-31",
+    "display_id": "V2-31",
+    "source_id": "DO-9",
+    "original_finding": "LOW/MEDIUM \u2014 the 2026-10-03 hub handoff still orders inheritors to keep \"record before secret\"",
+    "prior_ledger_disposition": "candidate correction present; pending converged docs gate and owning-source disposition",
+    "state": "S",
+    "owner": "surface",
+    "receipt_and_remaining_action": "2026-10-03-hub-consent handoff secret-first/8-second append/10-minute claim window corrected; productConnect deadline tests. Historical checks remain dated."
+  },
+  {
+    "canonical_id": "V2-32",
+    "display_id": "V2-32",
+    "source_id": "DO-10",
+    "original_finding": "LOW \u2014 the 2026-10-04 handoff and plan P-08 describe the pre-merge state; P-08 names schema 76",
+    "prior_ledger_disposition": "candidate correction present; pending converged docs gate and owning-source disposition",
+    "state": "M",
+    "owner": "root/backlog",
+    "receipt_and_remaining_action": "2026-10-04-hub-verification handoff names squash2927a087 and recovered I2. Canonical P-08 still schema76/deleted branch at814; parent promised lease correction after main merge. I3-PLAN-02 stays open until actual canonical edit."
+  },
+  {
+    "canonical_id": "V2-33",
+    "display_id": "V2-33",
+    "source_id": "DO-11",
+    "original_finding": "LOW \u2014 three region markers point at a section that does not describe their code",
+    "prior_ledger_disposition": "candidate correction present; pending converged docs gate and owning-source disposition",
+    "state": "S",
+    "owner": "core/surface/root",
+    "receipt_and_remaining_action": "AgentRegistry region registry-design; hubTools:1, migration77:66 and estate-identity-db:544 now iteration2 clarification anchor. check-regions112pass in814 author receipt; structural target resolves, semantics read here."
+  },
+  {
+    "canonical_id": "V2-34",
+    "display_id": "V2-34",
+    "source_id": "DO-12",
+    "original_finding": "LOW \u2014 \"Worker version 4fd02b75 \u2026 carries fabric-inbox#24\" rests on timing, and that is not said",
+    "prior_ledger_disposition": "candidate correction present; pending converged docs gate and owning-source disposition",
+    "state": "S+E",
+    "owner": "root/Inbox",
+    "receipt_and_remaining_action": "CO-195/CHANGELOG now state UUID deployment only, runtime >=0.9 compatibility not source attestation. Inbox#26 open; actual narrowing deploy proof + live acceptance still missing. Historical UUID or later language must remain explicitly historical."
+  },
+  {
+    "canonical_id": "V2-35",
+    "display_id": "V2-35",
+    "source_id": "DO-13",
+    "original_finding": "LOW \u2014 agent-composition.md still says Fabric's MCP transport is a client of the running agentgateway",
+    "prior_ledger_disposition": "candidate correction present; pending converged docs gate and owning-source disposition",
+    "state": "S",
+    "owner": "root",
+    "receipt_and_remaining_action": "agent-composition:163\u2013167 marks measured2026-08-25 gateway snapshot historical/superseded; current mcp table139 cites0115, session route CO-194 remains open."
+  },
+  {
+    "canonical_id": "V2-36",
+    "display_id": "V2-36",
+    "source_id": "DO-14",
+    "original_finding": "LOW \u2014 two consent/status lines say less, or other, than the code does",
+    "prior_ledger_disposition": "candidate correction present; pending converged docs gate and owning-source disposition",
+    "state": "S+P",
+    "owner": "surface/root",
+    "receipt_and_remaining_action": "Consent words identify Fabric binding credential/grants/unseen product key and cause-specific hub remediation; presenter/panel bilingual tests. Native prompt race fixes pending; native/VoiceOver acceptance not implied."
+  },
+  {
+    "canonical_id": "V2-37",
+    "display_id": "V2-37",
+    "source_id": "DA-1",
+    "original_finding": "BLOCKING \u2014 live grants and live credentials the operator cannot see or revoke (capped, oldest-first reads)",
+    "prior_ledger_disposition": "fixed `d29bcf98`: authority boundary and complete-read tests in core receipt",
+    "state": "S+P",
+    "owner": "core/root",
+    "receipt_and_remaining_action": "Same complete live authority paging/direct lookup asV2-19; real-store18 + boundary6 in core receipts. DATA-I3-02 denied history paging remains distinct pending root fix."
+  },
+  {
+    "canonical_id": "V2-38",
+    "display_id": "V2-38",
+    "source_id": "DA-2",
+    "original_finding": "MEDIUM (non-blocking) \u2014 a restored pending request is still decidable, and the SOURCE's poll secret collects the credential in the target",
+    "prior_ledger_disposition": "fixed `d29bcf98`: authority boundary and complete-read tests in core receipt",
+    "state": "S+P",
+    "owner": "core/root",
+    "receipt_and_remaining_action": "suffix80 append door refuses new decisions against restored requests; projector clears poll verifier incl repair. Six boundary groups + seeded75/77\u219278 rehearsal. Native schema78 archive admission fails frozen3b; root pending codec/export-import qualification required."
+  },
+  {
+    "canonical_id": "V2-39",
+    "display_id": "V2-39",
+    "source_id": "DA-3",
+    "original_finding": "MEDIUM (non-blocking) \u2014 the agent.call idempotency memory keeps product answers whole, unbounded in size, and past revocation",
+    "prior_ledger_disposition": "fixed `d29bcf98`: authority boundary and complete-read tests in core receipt",
+    "state": "S+P",
+    "owner": "core",
+    "receipt_and_remaining_action": "814 hubCall boundedProductOutput depth64/nodes100k/4MiB, transport8MiB; binding retirement clears results not effect facts incl inflight race. Actual deep MCP/cycle/oversize/revoke fixtures22pass + mutants. Fresh errors/data/docs recheck still required."
+  },
+  {
+    "canonical_id": "V2-40",
+    "display_id": "V2-40",
+    "source_id": "DA-4",
+    "original_finding": "LOW \u2014 migration 74's one-spelling rule does not reach the hub keys the door now reads",
+    "prior_ledger_disposition": "fixed `d29bcf98`: authority boundary and complete-read tests in core receipt",
+    "state": "S",
+    "owner": "core",
+    "receipt_and_remaining_action": "suffix80 canonical binding_id/request_id/grant_id/supersedes/grants[].id append-door extension; DA-4 authority-boundaries group watched-red/current-green; history replay retained."
+  },
+  {
+    "canonical_id": "V2-41",
+    "display_id": "V2-41",
+    "source_id": "DA-5",
+    "original_finding": "LOW \u2014 the hub's own refusals of an ask leave no trace",
+    "prior_ledger_disposition": "fixed `d29bcf98`: authority boundary and complete-read tests in core receipt",
+    "state": "S",
+    "owner": "core",
+    "receipt_and_remaining_action": "accessService bounded operations receipt on standing-denial/duplicate/cap ask refusals; DA-5 hub-access-refusals test watched-red then2pass. No claim of product-side acceptance."
+  },
+  {
+    "canonical_id": "V2-42",
+    "display_id": "V2-42",
+    "source_id": "DA-6",
+    "original_finding": "LOW \u2014 hash-only storage is the writer's promise, not the schema's, for three hub events",
+    "prior_ledger_disposition": "fixed `d29bcf98`: authority boundary and complete-read tests in core receipt",
+    "state": "S",
+    "owner": "core",
+    "receipt_and_remaining_action": "suffix80 closed payload key allowlists for requested/credential.claimed/product.connected; DA-6 three plaintext refusals before journal insert + owned PG receipts/ACLs. No application-only hash promise."
+  },
+  {
+    "canonical_id": "V2-43",
+    "display_id": "V2-43",
+    "source_id": "PL-1",
+    "original_finding": "P-08 names the wrong schema target for the live database (migration 76; the build needs 77)",
+    "prior_ledger_disposition": "open: owning-source/action receipt required; see exact DO/PL disposition",
+    "state": "P",
+    "owner": "root/backlog",
+    "receipt_and_remaining_action": "schemaContract78; migration filenames76/77/80; AR-3.1 corrected at402. P-08 remains76. Update canonical row to schema_version count78 under lease; native archive78 pending qualification also release-blocking."
+  },
+  {
+    "canonical_id": "V2-44",
+    "display_id": "V2-44",
+    "source_id": "PL-2",
+    "original_finding": "The live-database upgrade order the plan cites is not in the runbook it cites, and the app does not give the command the runbook promises",
+    "prior_ledger_disposition": "open: owning-source/action receipt required; see exact DO/PL disposition",
+    "state": "S+P",
+    "owner": "root",
+    "receipt_and_remaining_action": "schemaReadiness command + release-mac upgrade section125 stop/install/backup/rehearse/migrate/count/rollback; seeded75/77 and physical dump restore receipts69352850/d723e5cd. I3-DO-04 wrong src/shared path fixed only root pending; native archive78 convergence pending. No live upgrade run."
+  },
+  {
+    "canonical_id": "V2-45",
+    "display_id": "V2-45",
+    "source_id": "PL-3",
+    "original_finding": "The release notes extractor publishes an \"(unreleased)\" section, and nothing refuses a release whose CHANGELOG was not renamed",
+    "prior_ledger_disposition": "open: owning-source/action receipt required; see exact DO/PL disposition",
+    "state": "S",
+    "owner": "root",
+    "receipt_and_remaining_action": "release-mac changelogProblem requires exactly finalized version heading; release-mac.test regression. Frozen3b independent release-helper21pass. Keep0.3.1 unreleased until actual gates close."
+  },
+  {
+    "canonical_id": "V2-46",
+    "display_id": "V2-46",
+    "source_id": "PL-4",
+    "original_finding": "CO-197's evidence and next step describe a state main had already left before the squash landed",
+    "prior_ledger_disposition": "open: owning-source/action receipt required; see exact DO/PL disposition",
+    "state": "S+E",
+    "owner": "root/publication",
+    "receipt_and_remaining_action": "CO-197 now describes scheduler repaired8cbf4144/5debbb54, final-source publish remains. Parent receipt source1e8b2e20 release147 observed, not candidate814. Publish clean converged main + child/parent receipts/require-child/hosted identity."
+  },
+  {
+    "canonical_id": "V2-47",
+    "display_id": "V2-47",
+    "source_id": "PL-5",
+    "original_finding": "CO-196's evidence is stale against fabric-workspace origin/main",
+    "prior_ledger_disposition": "open: owning-source/action receipt required; see exact DO/PL disposition",
+    "state": "M",
+    "owner": "workspace/root",
+    "receipt_and_remaining_action": "WorkspacePR33 merged3f725d3 corrects living order/hub facts/owner source links; historical AR checkpoint unchanged. CO-196 canonical row still says those corrections needed; root must annotate merge and narrow remaining Fabric-at-release/publication obligations."
+  },
+  {
+    "canonical_id": "V2-48",
+    "display_id": "V2-48",
+    "source_id": "PL-6",
+    "original_finding": "Fabric Inbox 0.9.0 is published but its owning page still lists 0.8.2, and CO-196 gates that on Fabric's release",
+    "prior_ledger_disposition": "open: owning-source/action receipt required; see exact DO/PL disposition",
+    "state": "S+E",
+    "owner": "workspace/root",
+    "receipt_and_remaining_action": "Workspace3f725 knowledge/products Inbox0.9.0 primary release + SHA256SUMS/.asc, living Fabric released0.3.0/source0.3.1 separate. Workspace Node24 gate64pass and fresh sparse clone. Fabric release update/published finalKB remain CO-196; current source correction not gated on release."
+  },
+  {
+    "canonical_id": "V2-49",
+    "display_id": "V2-49",
+    "source_id": "PL-7",
+    "original_finding": "\"Worker version 4fd02b75 carries fabric-inbox#24\" has no commit receipt in any repository",
+    "prior_ledger_disposition": "open: owning-source/action receipt required; see exact DO/PL disposition",
+    "state": "S+E",
+    "owner": "Inbox/root",
+    "receipt_and_remaining_action": "Provenance wording corrected; Inbox#26 still open source-attested narrowing. Deployment4fd UUID cannot provecommit; desktop0.9 tag behind#24 by4. Real prompt/key/narrowed call/revoke remains CO-195; do not close from semver."
+  },
+  {
+    "canonical_id": "V2-50",
+    "display_id": "V2-50",
+    "source_id": "PL-8",
+    "original_finding": "P-08 and the Now line still place iteration 1 \"on `agent/hub-0.3.1-verification`\", a branch that no longer exists",
+    "prior_ledger_disposition": "open: owning-source/action receipt required; see exact DO/PL disposition",
+    "state": "P",
+    "owner": "root/backlog",
+    "receipt_and_remaining_action": "P-08 and Now stale deleted-I1-branch text observed814. Replace with landed2927a087 plus current convergence/fresh I3 status under owner lease, preserve dated snapshots."
+  },
+  {
+    "canonical_id": "V2-51",
+    "display_id": "V2-51",
+    "source_id": "PL-9",
+    "original_finding": "Lane 2's entry rule still describes 0.3.0's entry, not P-08's",
+    "prior_ledger_disposition": "open: owning-source/action receipt required; see exact DO/PL disposition",
+    "state": "P",
+    "owner": "root/backlog",
+    "receipt_and_remaining_action": "Lane2 still P-01/P-03 rule. Use P-08 exact three fresh five-level iterations, everyID fixed/ruled, matching verified source/full gate/version notes; retain separate upgrade/CO197 receipts."
+  },
+  {
+    "canonical_id": "V2-52",
+    "display_id": "V2-52",
+    "source_id": "PL-10",
+    "original_finding": "The release-gate test's \"real files\" guard is now permanently skipped, and the replacement assertion is weaker than its message",
+    "prior_ledger_disposition": "open: owning-source/action receipt required; see exact DO/PL disposition",
+    "state": "P",
+    "owner": "root",
+    "receipt_and_remaining_action": "release-gate.test removed skip/OR but real hub test only checks _Not started_. Started-openI3 causes no assert! Require explicit unfinished/open rows ->problems.length>0 and closed-final discriminator; synthetic open-row tests retained. I3-PLAN-05 helper accepts nonexistent single reports: manual five-level exact-SHA coverage or strengthen validator."
+  },
+  {
+    "canonical_id": "V2-53",
+    "display_id": "V2-53",
+    "source_id": "PL-11",
+    "original_finding": "The gate does not bind the ledger to the commits it verified",
+    "prior_ledger_disposition": "open: owning-source/action receipt required; see exact DO/PL disposition",
+    "state": "S+P",
+    "owner": "root",
+    "receipt_and_remaining_action": "verifiedCandidateProblem requires full40hex ancestor, rejects runtime/build diff, permits named release metadata/package-version-only changes; release-mac.test ancestry/runtime/version negatives. Actual verifiedCommit still cannot be filled until final independent source review; current0.3.0 gate unchanged."
+  },
+  {
+    "canonical_id": "V2-54",
+    "display_id": "V2-54",
+    "source_id": "PL-12",
+    "original_finding": "The iteration-1 handoff's status and next task are false on `main`",
+    "prior_ledger_disposition": "open: owning-source/action receipt required; see exact DO/PL disposition",
+    "state": "S",
+    "owner": "surface/root",
+    "receipt_and_remaining_action": "2026-10-04-hub-verification handoff status/next/Open now I1landed2927, I2 reports complete/fixes recovering, I3notclosed; source remains0.3.0. No historical execution rewritten."
+  },
+  {
+    "canonical_id": "V2-55",
+    "display_id": "V2-55",
+    "source_id": "PL-13",
+    "original_finding": "The 0.3.1 ledger's \"fixed\" receipts cite pre-squash commits that are not on `main`",
+    "prior_ledger_disposition": "open: owning-source/action receipt required; see exact DO/PL disposition",
+    "state": "S",
+    "owner": "root",
+    "receipt_and_remaining_action": "Ledger I1 exit append names squash2927a087cac61c02f16f41d9bebfdc7403fc577c/PR8 and refs/pull/8/head for historical hashes. Source import not rewrite dated reports; fresh checkout uses squash."
+  },
+  {
+    "canonical_id": "V2-56",
+    "display_id": "V2-56",
+    "source_id": "PL-14",
+    "original_finding": "Re-check of iteration 1's PL-9 (ruled CO-193): the owning repository still has nothing",
+    "prior_ledger_disposition": "open: owning-source/action receipt required; see exact DO/PL disposition",
+    "state": "R+E",
+    "owner": "contract/adapter/Fabric",
+    "receipt_and_remaining_action": "Contract#8/PR9 mergeddf55c8c5, shared definition across4surfaces,258tests. Prior nonblocking CO-193 ruling remains scoped; adopter argument validation open. Adapter#31 must preserve allowed old selected immutable bundle revisions, newdefaultdf55, reject forged/unknown/mismatch; Fabric local pattern compiled-schema receipt pending. Dashboards18descriptorfixtures byte-equaldf55: preserve SOURCE provenance; no blind repin."
+  }
+]

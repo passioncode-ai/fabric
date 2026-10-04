@@ -1,0 +1,14 @@
+Commands and actually observed results,2026-10-04
+
+python3 raw/check-reconciliation.py
+PASS:56 unique ordered rows (UX11 ER11 DO14 DA6 PL14),original finding retention,all receipts/owners/states,5 immutable report objects,15 local links,guarded edits none
+Evidence states: {'S': 24, 'S+P': 17, 'S+E': 6, 'R': 1, 'R?': 1, 'M': 2, 'P': 4, 'R+E': 1}
+
+reports.py check README.md
+reports check: 1 отчёт(ов), с ошибками 0
+
+git diff --check:exit0
+local fast:exit1,design-map shared-owner refresh required; sanitized log/digest retained
+release helper baseline:20pass0fail1skip(electron-builder absent),Node26.8.2
+Observatory agent_updates.py check:exit0,empty output; no stable runtime session id/noACK
+No guarded edits/no acquired leases; parent owns shared map/ledger/wikiindex.

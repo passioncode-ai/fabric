@@ -1,0 +1,15 @@
+{
+  "control": "old normative immutable revision, deliberately not current-source evidence",
+  "contractSource": "2ce392291c6668598d12cd38327e24696b5ca15c",
+  "observedMismatches": [
+    "underscore",
+    "maximum-underscore",
+    "maximum-key"
+  ],
+  "expectedMismatches": [
+    "underscore",
+    "maximum-underscore",
+    "maximum-key"
+  ],
+  "matched": true
+}
