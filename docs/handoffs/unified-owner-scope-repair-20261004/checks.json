@@ -1,0 +1,52 @@
+{
+  "rejected_source": "537ca82d90e7bb814a907209cb303bbed8633e1e",
+  "original_independent_rejection": "9a1a07fc5d993ffcf53c891681fa4b04746b1d3c",
+  "author_branch_base": "93c2d6abccde04d844af5b11bf09528dc577abbe",
+  "before_red": {
+    "assertion_exit": 1,
+    "fixture_compiler_exit": 0,
+    "meaning": "Changed unpinned directory descendant wrongly accepted at rejected source"
+  },
+  "frozen_checks": {
+    "node": "24.10.0",
+    "command": "node --test scripts/test/unified-plan.test.mjs scripts/test/build-unified-plan.test.mjs",
+    "exit": 0,
+    "tests": 38,
+    "pass": 38,
+    "skip": 0
+  },
+  "source_sha256": {
+    "scripts/build-unified-plan.py": "19af50bc4133ffabbfc6451d9d29ca7301000f184b5857fba5b8fad73d48faa1",
+    "scripts/unified-plan.mjs": "642046d7a5b747e6632703b1bda34c8bc6e68840442f3216bf8a8be60a0a5272",
+    "scripts/unified-canonical-sources.mjs": "de9fa6a8d7dbdae3c5f980ad1ac2760cf624641a1bde90c1060470c6d1ce03b5",
+    "scripts/test/build-unified-plan.test.mjs": "52b1b74f6cca39dff6c4ce5767d0dd35ce07f10568ef5a138f41da22744ae754"
+  },
+  "regions": {
+    "exit": 0,
+    "markers": 122
+  },
+  "python_compile": {
+    "exit": 0
+  },
+  "diff_check": {
+    "exit": 0
+  },
+  "fast": {
+    "command": "bash scripts/ci.sh fast",
+    "node": "24.10.0",
+    "exit": 1,
+    "failure": "Map sources changed; root owns guarded map refresh"
+  },
+  "privacy": {
+    "artifacts_scanned": 10,
+    "proposal_basis_blobs_scanned": 11,
+    "matches": 0
+  },
+  "proposal_basis": "2e06e5013595ec96b52b85cae2c486050632565b",
+  "actual_owner_source": "ABSENT",
+  "current_pointer_activation": "NOT_RUN",
+  "guarded_edits": [],
+  "leases_taken": [],
+  "independent_repair_acceptance": "PENDING_EXACT_SOURCE_REVIEW",
+  "native_full_live_hosted_release_acceptance": "NOT_RUN"
+}

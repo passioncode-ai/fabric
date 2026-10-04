@@ -1,0 +1,26 @@
+Command: PATH=<Node24>/bin:$PATH bash scripts/ci.sh fast
+Exit: 1
+Full local log sha256: 7519cedd1c279873d350a4e4fdc153d3d610dd7f221f75c08d198b930f97c6b6
+
+PASS requested: same iteration refined source check; exit=0
+PASS parser-regression: valid uppercase HREF to nonexistent anchor refuses; exit=1
+PASS parser-regression: quoted greater-than before broken href refuses; exit=1
+PASS parser-regression: valid single-quoted special changelog attributes refresh successfully; exit=0
+PASS publication-boundary: directory submodule projection and skill link refresh; exit=0
+PASS publication-boundary: initialized projection checks; exit=0
+PASS publication-boundary: publication-only output does not stale its own source map; exit=0
+PASS publication-boundary: uninitialized submodule keeps symlink fingerprint stable; exit=0
+
+Initial map: no committed map baseline; no old anchors to compare.
+file://<owning-checkout>/scripts/check-design-map.mjs:79
+  if (stamp.fingerprint !== fingerprint || stamp.source_files !== files.length || stamp.iteration !== iteration) throw new Error('Map sources changed: update the map and its top changelog entry, review the affected sections, then run node scripts/check-design-map.mjs --refresh')
+                                                                                                                       ^
+
+Error: Map sources changed: update the map and its top changelog entry, review the affected sections, then run node scripts/check-design-map.mjs --refresh
+    at file://<owning-checkout>/scripts/check-design-map.mjs:79:120
+    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:691:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.10.0
+[ELIFECYCLE] Command failed with exit code 1.

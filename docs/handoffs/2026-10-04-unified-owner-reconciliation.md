@@ -2,6 +2,8 @@
 
 # Current source-owner reconciliation — 2026-10-04
 
+**Source correction:** the original directory scope implementation was independently rejected. The [scope repair](2026-10-04-unified-owner-scope-repair.md) adds complete descendant contracts and mandatory explicit `output_scope`. Earlier test/replay receipts below remain historical.
+
 Objective: make the unified derived queue useful for already authorized bounded work while preserving current scope and every parent acceptance gate. This source implementation follows the accepted deterministic parity repair. Root owns the fixed source publication, current basis, guarded registers/map and final pointer. This branch contains compiler/tests plus an unguarded proposed input; it creates no actual owner source or current pointer.
 
 ## Source-owned current input
