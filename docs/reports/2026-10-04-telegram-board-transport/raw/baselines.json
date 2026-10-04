@@ -1,0 +1,34 @@
+{
+  "fabric": {
+    "baseline": "41f994a709990ad72621fa834768a8833e7d93e1",
+    "origin": "https://github.com/passioncode-ai/fabric"
+  },
+  "adapter": {
+    "baseline": "46acc8bb774dbdb1e27022e566bcd0076221bea9",
+    "version": "0.7.0",
+    "plugin_version": "0.7.0",
+    "contract_lock": {
+      "contract": "fabric-agent-contract",
+      "version": "0.1.0",
+      "repository": "https://github.com/passioncode-ai/fabric-agent-contract",
+      "commit": "2ce392291c6668598d12cd38327e24696b5ca15c"
+    }
+  },
+  "contract": {
+    "main_observed": "71cdd6ed461a177e17aa2db7f5ed2059a537543e",
+    "used": "2ce392291c6668598d12cd38327e24696b5ca15c"
+  },
+  "proposed_source_files": {
+    "adapter": [
+      "plugins/fabric-agent-adapter/skills/building-fabric-services/scripts/telegram_transport.py",
+      "plugins/fabric-agent-adapter/skills/building-fabric-services/references/telegram-transport.md",
+      "test/test_telegram_transport.py",
+      "test/fixtures/telegram-transport/"
+    ],
+    "fabric": [
+      "apps/desktop/src/main/communications/telegramBridge.ts",
+      "scripts/test/telegram-bridge.test.mjs"
+    ]
+  },
+  "status": "Research only; new implementation files are proposals"
+}

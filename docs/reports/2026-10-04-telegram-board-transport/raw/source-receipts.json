@@ -1,0 +1,109 @@
+{
+  "scope": "Public source retrieval metadata; no bot API calls or credentials",
+  "receipts": [
+    {
+      "id": "features",
+      "url": "https://core.telegram.org/bots/features#bot-to-bot-communication",
+      "retrieved_at": "2026-10-04T09:45:48.689640+00:00",
+      "http_status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 116993,
+      "sha256": "68e2c6d94c944f3447adaf708653c9eb21e90146509fe675cb93f8a36deb65c7"
+    },
+    {
+      "id": "api",
+      "url": "https://core.telegram.org/bots/api",
+      "retrieved_at": "2026-10-04T09:45:49.165297+00:00",
+      "http_status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 860075,
+      "sha256": "10c7534e2b25791271ef8c4acda8bc89585272602e4fa8cda1c0c8c2d3990637"
+    },
+    {
+      "id": "changelog",
+      "url": "https://core.telegram.org/bots/api-changelog",
+      "retrieved_at": "2026-10-04T09:45:49.501576+00:00",
+      "http_status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 215396,
+      "sha256": "1dd23f457ae9e80483e9f0a76bfee5697c68448661cd04446807aaa4b7e65bfa"
+    },
+    {
+      "id": "faq",
+      "url": "https://core.telegram.org/bots/faq",
+      "retrieved_at": "2026-10-04T09:45:49.680424+00:00",
+      "http_status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 20117,
+      "sha256": "ce4312ca13647a6a14b154cba4f41e4bd89094723632ff234c963b9b8a0d5f2c"
+    },
+    {
+      "id": "update-identity",
+      "url": "https://api.github.com/repos/tdlib/telegram-bot-api/issues/837/comments",
+      "retrieved_at": "2026-10-04T09:45:49.993022+00:00",
+      "http_status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 5558,
+      "sha256": "d19fb6f9291b6de76a8c0c5276a8b1bb4c7f7122ede5dbcf054f619637000834",
+      "maintainer_comments": [
+        {
+          "id": 4141729842,
+          "author": "levlam",
+          "association": "CONTRIBUTOR",
+          "created_at": "2026-03-27T10:45:23Z",
+          "url": "https://github.com/tdlib/telegram-bot-api/issues/837#issuecomment-4141729842"
+        },
+        {
+          "id": 4148673594,
+          "author": "levlam",
+          "association": "CONTRIBUTOR",
+          "created_at": "2026-03-28T19:31:42Z",
+          "url": "https://github.com/tdlib/telegram-bot-api/issues/837#issuecomment-4148673594"
+        }
+      ]
+    },
+    {
+      "id": "webhook-retry",
+      "url": "https://api.github.com/repos/tdlib/telegram-bot-api/issues/211/comments",
+      "retrieved_at": "2026-10-04T09:45:50.309201+00:00",
+      "http_status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 5494,
+      "sha256": "58398a82af8edd9a7fb1b7b0d8b3467cd0a302b5e3bb988d537008785926b882",
+      "maintainer_comments": [
+        {
+          "id": 992486596,
+          "author": "levlam",
+          "association": "CONTRIBUTOR",
+          "created_at": "2021-12-13T13:40:32Z",
+          "url": "https://github.com/tdlib/telegram-bot-api/issues/211#issuecomment-992486596"
+        },
+        {
+          "id": 992701320,
+          "author": "levlam",
+          "association": "CONTRIBUTOR",
+          "created_at": "2021-12-13T17:23:40Z",
+          "url": "https://github.com/tdlib/telegram-bot-api/issues/211#issuecomment-992701320"
+        }
+      ]
+    },
+    {
+      "id": "single-poller",
+      "url": "https://api.github.com/repos/python-telegram-bot/python-telegram-bot/issues/1143/comments",
+      "retrieved_at": "2026-10-04T09:45:50.623528+00:00",
+      "http_status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 4208,
+      "sha256": "320025e95f565ad24be01f7305742b86b4c461e3c63b88eaf03317d841d673b7",
+      "maintainer_comments": [
+        {
+          "id": 400432755,
+          "author": "jsmnbom",
+          "association": "MEMBER",
+          "created_at": "2018-06-26T19:23:18Z",
+          "url": "https://github.com/python-telegram-bot/python-telegram-bot/issues/1143#issuecomment-400432755"
+        }
+      ]
+    }
+  ]
+}

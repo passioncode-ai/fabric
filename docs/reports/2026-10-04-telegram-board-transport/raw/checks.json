@@ -1,0 +1,46 @@
+{
+  "scope": "Research source packet only; no implementation, live provider or Bot API acceptance",
+  "checks": [
+    {
+      "command": "reports.py check docs/reports/2026-10-04-telegram-board-transport",
+      "exit_code": 0,
+      "observed": "1 report, 0 errors"
+    },
+    {
+      "command": "bash scripts/check-docs.sh (initial)",
+      "exit_code": 1,
+      "observed": "Two links to the not-yet-written raw/checks.json failed; report structure checks otherwise completed. This planted absence was fixed by writing the receipt."
+    },
+    {
+      "command": "bash scripts/check-docs.sh",
+      "exit_code": 0,
+      "observed_tail": "warn  B022 scripts/product/memory-workspace.mjs:0: \"\u0421\u043d\u0438\u043c\u043e\u043a \u0441\u043e\u0431\u0440\u0430\u043d Fabric \u043f\u0440\u0438 \u0437\u0430\u043f\u0443\u0441\u043a\u0435. \u041d\u0430\u0442\u0438\u0432\u043d\u0430\u044f \u0441\u0442\u0435\u043d\u043e\u0433\u0440\u0430\u043c\u043c\u0430 \u0437\u0434\u0435\u0441\u044c \u043d\u0435 \u0437\u0430\u0433\u0440\u0443\u0436\u0435\u043d\u0430.\" is in the code with no registry row -- agree it or retire it\nwarn  B022 scripts/product/memory-workspace.mjs:0: \"button primary\" is in the code with no registry row -- agree it or retire it\nwarn  B022 scripts/product/memory-workspace.mjs:0: \">\u041f\u0440\u043e\u0434\u043e\u043b\u0436\u0430\u0439\u0442\u0435 \u0441 \u0442\u043e\u0433\u043e, \u0447\u0442\u043e \u0443\u0436\u0435 \u0438\u0437\u0432\u0435\u0441\u0442\u043d\u043e</h2><p>\u041d\u0430\u0439\u0434\u0438\u0442\u0435 \u043f\u0440\u043e\u0448\u043b\u0443\u044e \u0440\u0430\u0431\u043e\u0442\u0443, \u043f\u0440\u043e\u0432\u0435\u0440\u044c\u0442\u0435 \u0438\u0441\u0442\u043e\u0447\u043d\u0438\u043a \u0438 \u0432\u0435\u0440\u043d\u0438\u0442\u0435 \u0435\u0433\u043e \u0432 \u0440\u0430\u0437\u0433\u043e\u0432\u043e\u0440.</p></header><div class=\" is in the code with no registry row -- agree it or retire it\nwarn  B022 scripts/product/memory-workspace.mjs:0: \">\u0421\u043e\u0441\u0442\u043e\u044f\u043d\u0438\u0435 \u043c\u0430\u043a\u0435\u0442\u0430</small></div>`:''}<div class=\" is in the code with no registry row -- agree it or retire it\nwarn  B022 scripts/product/memory-workspace.mjs:0: \"><section class=\" is in the code with no registry row -- agree it or retire it\nwarn  B022 scripts/product/memory-workspace.mjs:0: \" aria-label=\" is in the code with no registry row -- agree it or retire it\n\n0 error(s), 1462 warning(s)\nok: brand contract gate passes\nnote:  [U057] 23 of 76 flows carry an inherited verdict, all of them in the shrinking baseline\nnote:  [U078] 1 superseded screen record(s) compared against the index\nOK \u2014 docs/ux is consistent (<repo>/docs/ux)\nok: UX register gate passes (warnings are advisory \u2014 see docs/evidence/backlog.md for their causes)\nNOT CHECKED: 3 relative link(s) into the submodule 'workspace', which is not checked out here (private; a public clone cannot initialise it)\nrelative Markdown links resolve (520 files inspected)\nok: relative Markdown links resolve\nPASS: Fabric documentation structure\n"
+    },
+    {
+      "command": "node scripts/check-design-map.mjs",
+      "exit_code": 1,
+      "observed_tail": "\nfile://<repo>/scripts/check-design-map.mjs:67\n  if ((sourceChanged || contentChanged) && attrs(previousTree, 'data-iteration').includes(iteration)) throw new Error('Changed iteration reuses the committed top entry: add a NEW top changelog entry. Repeated refresh within an uncommitted iteration is allowed.')\n                                                                                                            ^\n\nError: Changed iteration reuses the committed top entry: add a NEW top changelog entry. Repeated refresh within an uncommitted iteration is allowed.\n    at file://<repo>/scripts/check-design-map.mjs:67:109\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v26.8.2"
+    },
+    {
+      "command": "bash scripts/ci.sh fast",
+      "exit_code": 1,
+      "observed_tail": "\u001b[1m\u2500\u2500 types\u001b[0m\nScope: 3 of 4 workspace projects\nScope: all 4 workspace projects\n[ERR_PNPM_UNSAFE_MODULES_DIR] Refusing to remove the modules directory at \"<operator-home>/DATA/fabric/apps/desktop/node_modules\" because its resolved target is not a strict subdirectory of the project root at \"<repo>/apps/desktop\".\n[ERROR] Command failed with exit code 1: '<operator-home>/Library/pnpm/package-manager-store/v11/links/@pnpm/exe/11.21.0/2c890601dedcc05c6c55482ecd83b362d7844a6026d88580ad4a9aeede839f27/node_modules/@pnpm/exe/pnpm' install\n\npnpm: Command failed with exit code 1: '<operator-home>/Library/pnpm/package-manager-store/v11/links/@pnpm/exe/11.21.0/2c890601dedcc05c6c55482ecd83b362d7844a6026d88580ad4a9aeede839f27/node_modules/@pnpm/exe/pnpm' install\n    at getFinalError (file://<operator-home>/Library/pnpm/package-manager-store/v11/links/@pnpm/exe/11.21.0/2c890601dedcc05c6c55482ecd83b362d7844a6026d88580ad4a9aeede839f27/node_modules/@pnpm/exe/dist/pnpm.mjs:89024:14)\n    at makeError (file://<operator-home>/Library/pnpm/package-manager-store/v11/links/@pnpm/exe/11.21.0/2c890601dedcc05c6c55482ecd83b362d7844a6026d88580ad4a9aeede839f27/node_modules/@pnpm/exe/dist/pnpm.mjs:91331:21)\n    at getSyncResult (file://<operator-home>/Library/pnpm/package-manager-store/v11/links/@pnpm/exe/11.21.0/2c890601dedcc05c6c55482ecd83b362d7844a6026d88580ad4a9aeede839f27/node_modules/@pnpm/exe/dist/pnpm.mjs:93175:10)\n    at spawnSubprocessSync (file://<operator-home>/Library/pnpm/package-manager-store/v11/links/@pnpm/exe/11.21.0/2c890601dedcc05c6c55482ecd83b362d7844a6026d88580ad4a9aeede839f27/node_modules/@pnpm/exe/dist/pnpm.mjs:93135:14)\n    at execaCoreSync (file://<operator-home>/Library/pnpm/package-manager-store/v11/links/@pnpm/exe/11.21.0/2c890601dedcc05c6c55482ecd83b362d7844a6026d88580ad4a9aeede839f27/node_modules/@pnpm/exe/dist/pnpm.mjs:93065:23)\n    at callBoundExeca (file://<operator-home>/Library/pnpm/package-manager-store/v11/links/@pnpm/exe/11.21.0/2c890601dedcc05c6c55482ecd83b362d7844a6026d88580ad4a9aeede839f27/node_modules/@pnpm/exe/dist/pnpm.mjs:95593:23)\n    at boundExeca (file://<operator-home>/Library/pnpm/package-manager-store/v11/links/@pnpm/exe/11.21.0/2c890601dedcc05c6c55482ecd83b362d7844a6026d88580ad4a9aeede839f27/node_modules/@pnpm/exe/dist/pnpm.mjs:95570:49)\n    at sync2 (file://<operator-home>/Library/pnpm/package-manager-store/v11/links/@pnpm/exe/11.21.0/2c890601dedcc05c6c55482ecd83b362d7844a6026d88580ad4a9aeede839f27/node_modules/@pnpm/exe/dist/pnpm.mjs:95729:10)\n    at runPnpmCli (file://<operator-home>/Library/pnpm/package-manager-store/v11/links/@pnpm/exe/11.21.0/2c890601dedcc05c6c55482ecd83b362d7844a6026d88580ad4a9aeede839f27/node_modules/@pnpm/exe/dist/pnpm.mjs:269870:5)\n    at runDepsStatusCheck (file://<operator-home>/Library/pnpm/package-manager-store/v11/links/@pnpm/exe/11.21.0/2c890601dedcc05c6c55482ecd83b362d7844a6026d88580ad4a9aeede839f27/node_modules/@pnpm/exe/dist/pnpm.mjs:271638:7)\n"
+    }
+  ],
+  "not_run": [
+    "implementation/failure fixtures",
+    "live capability matrix",
+    "Claude/Codex clients",
+    "hosted CI",
+    "deploy/release/install",
+    "workspace publication",
+    "report index mutation"
+  ],
+  "coordinator_followup": [
+    "converged design-map iteration/refresh/check",
+    "converged Fabric fast/full gate",
+    "report index and workspace source publication"
+  ],
+  "dependency_note": "The fast attempt stopped before tests at pnpm refusing borrowed node_modules symlinks. All symlinks created by this source-packet run were removed; no shared dependency directory was changed. Converged fast is still required.",
+  "residue": "Tracked source-packet worktree/branch retained for coordinator; no service, bot, HTTP listener, lease, database or background job started."
+}
