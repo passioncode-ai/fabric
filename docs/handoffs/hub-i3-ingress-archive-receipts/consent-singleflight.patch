@@ -1,0 +1,10 @@
+--- a/apps/desktop/src/main/consentPresenter.ts
++++ b/apps/desktop/src/main/consentPresenter.ts
+@@ -120,7 +120,6 @@
+     if (this.showing) return
+     if (!this.inFront()) return
+     // Own the queue before the first await, not only while a native sheet is visible.
+-    this.showing = true
+     let request: ConsentRequest | undefined
+     try {
+       while ((request = this.queue.shift())) {

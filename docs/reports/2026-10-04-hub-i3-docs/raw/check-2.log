@@ -1,0 +1,34 @@
+✔ three iterations, each closed with none blocking, clear the release (1.606667ms)
+✔ an iteration not started, or ending with a blocking finding, refuses (0.259708ms)
+✔ a gate for another version, or none, refuses (0.116042ms)
+✔ the real gate names the app version and cannot clear an unstarted iteration (2.151084ms)
+✔ the verdict is computed: an open row, a second heading, a hidden blocking line, a missing report link or a ledger outside docs/ refuse (0.396333ms)
+✔ a finding row in any spelling is read, and "fixed?" is not a disposition (confirmation pass) (0.311875ms)
+✔ the ledger must name the version it clears in its title: 0.3.0's closed ledger refuses a 0.3.1 gate (0.588625ms)
+✔ the real files: 0.3.0's ledger clears only 0.3.0, and the hub's ledger does not clear 0.3.1 before its iterations close (1.769292ms)
+✔ a release requires exactly one finalized changelog entry for its exact version (0.576625ms)
+✔ new releases bind to a verified ancestor; only version and named release metadata can follow it (0.230458ms)
+✔ the identity comes from --identity, --identity=, or FABRIC_SIGN_IDENTITY; never from a default (0.120291ms)
+✔ the flags: --check-only and --tag; an unknown flag or a flag without its value refuses (0.195125ms)
+✔ electron-builder is given the name without its certificate-type prefix, which it refuses (0.063416ms)
+✔ a certificate that cannot sign a Developer ID download refuses, and so does an empty name (0.074875ms)
+✔ the tag names the version the commit carries, or a rehearsal of it; no tag is a local debug build (0.098292ms)
+✔ the signature read back from codesign names its authority and team; anything but Developer ID refuses (0.439791ms)
+✔ the commit: main's tip, or a tag on main checked out by CI, is released; a commit not on main refuses (252.716333ms)
+✔ the commit: without an origin/main to compare with, the release refuses rather than guesses (214.401542ms)
+✔ no team id or identity is written into the release config or the release script (it comes from CI) (0.72375ms)
+  • loaded configuration  file=<local-path>
+  • loaded parent configuration  file=<local-path>
+  • loaded configuration  file=<local-temp-path>
+  • loaded parent configuration  file=<local-path>
+  • loaded parent configuration  file=<local-path>
+✔ electron-builder resolves the release as a signed DMG with the identity CI gave, and unsigned without it (103.754917ms)
+✔ electron-builder never publishes by itself; the workflow publish job does (0.137042ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 620.858375

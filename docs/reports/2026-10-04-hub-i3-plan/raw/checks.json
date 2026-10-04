@@ -1,0 +1,49 @@
+[
+  {
+    "command": "node scripts/unified-plan.mjs check",
+    "ref": "4b992f587255ca2e2aa87536707075c6ebcfa40e",
+    "exit": 0,
+    "result": "PASS: 12 lanes, 582 packets; sources, coverage, dependencies and impacts valid"
+  },
+  {
+    "command": "node --test scripts/test/unified-plan.test.mjs",
+    "ref": "4b992f587255ca2e2aa87536707075c6ebcfa40e",
+    "exit": 0,
+    "pass": 13,
+    "fail": 0,
+    "skip": 0
+  },
+  {
+    "command": "node --test scripts/test/release-gate.test.mjs scripts/test/release-mac.test.mjs",
+    "ref": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "exit": 0,
+    "pass": 20,
+    "fail": 0,
+    "skip": 1,
+    "skip_reason": "electron-builder not installed in isolated worktree"
+  },
+  {
+    "command": "releaseGateProblems synthetic three-iteration ledger, one unresolved report link each",
+    "ref": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "exit": 0,
+    "result": {
+      "problems": []
+    },
+    "scope": "demonstrates structural gate does not validate five fresh levels or link existence"
+  },
+  {
+    "command": "agent_updates.py check",
+    "ref": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "exit": 0,
+    "stdout": "",
+    "ack": "NOT_CLAIMED; no stable runtime session ID exposed"
+  },
+  {
+    "command": "bash scripts/ci.sh fast",
+    "ref": "3b2878fc9283db5fc9a81697ba8538a01630b8d9 plus delegated report files",
+    "exit": 1,
+    "failed_gate": "design-map freshness",
+    "message": "Changed iteration reuses the committed top entry: add a NEW top changelog entry",
+    "scope": "isolated report branch; coordinator owns central map update; not full candidate result"
+  }
+]

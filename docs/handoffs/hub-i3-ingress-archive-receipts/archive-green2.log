@@ -1,0 +1,54 @@
+PASS full migration chain applied, schema_version 78
+PASS 19 helpers and 2 tables unreachable by every role; 4 command(s) reachable by service_role only
+PASS 7 companion vectors: byte-identical canonical strings and digests in SQL
+PASS 4 ordinary archives and the original-bytes case accepted by SQL
+PASS 13 ordinary-journal refusals, each one fixed code from ARCHIVE_REASON_CODES, no body or digest in the message
+PASS budget parity with the codec: depth 32 passes, 33 refuses; keys are not nodes
+PASS 9 companion refusals with the codec's codes
+PASS migration 66 base: 7 groups on an owned cluster; restore, export and import commands NOT_RUN (A1-3, A1-4)
+PASS owner restores into a fresh Estate, owns it at revision 1; the archived founder is never a member, before or after rebuild
+PASS exact retry returns the original receipt; any change under the same operation is idempotency_conflict
+PASS two concurrent identical requests: one target, one original receipt and one repeat
+PASS a legacy boundary is never upgraded; the legacy entry point keeps its A0 guarantee over the shared body
+PASS member, missing Person, forged actor, stale revision, existing target or shell, source=target, edited, malformed and colliding archives: refused, zero rows
+PASS a revision moved by a concurrent change_membership is refused under the row lock, and the retry at the new revision succeeds
+PASS restore_estate_verified: 6 groups on an owned cluster; active-Estate selection and restart NOT_RUN (A1-6, N1)
+file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/src/main/archiveJson.ts:20
+export const archiveFail = (code                    = 'invalid_archive')        => { throw new ArchiveFormatError(code) }
+                                                                                           ^
+
+ArchiveFormatError: unsupported_schema
+    at archiveFail (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/src/main/archiveJson.ts:20:92)
+    at inspect (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/src/main/ceoPrivateArchive.ts:116:122)
+    at decodePrivateArchive (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/src/main/ceoPrivateArchive.ts:183:18)
+    at file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/private-history-db.test.mjs:59:18
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  code: 'unsupported_schema'
+}
+
+Node.js v26.8.2
+PASS cleanup: owned PostgreSQL stopped; socket and data directory removed
+node:internal/errors:999
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /opt/homebrew/Cellar/node/26.8.2/bin/node --experimental-strip-types /Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/private-history-db.test.mjs
+    at genericNodeError (node:internal/errors:999:15)
+    at wrappedFn (node:internal/errors:544:14)
+    at checkExecSyncError (node:child_process:942:11)
+    at execFileSync (node:child_process:978:15)
+    at file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/run-ceo-private-archive-db.mjs:33:5
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  status: 1,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 71628,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v26.8.2

@@ -1,0 +1,39 @@
+
+ RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/fabric-hub-i3-ux-20261004/apps/desktop
+
+stdout | src/renderer/src/_i3-review.test.tsx > independent: a delayed pre-disconnect poll cannot replace the post-disconnect reading
+{"case":"late-poll-after-disconnect","buttons":["Close","Reconnect","Disconnect"]}
+
+ ❯ src/renderer/src/_i3-review.test.tsx (1 test | 1 failed) 74ms
+   × independent: a delayed pre-disconnect poll cannot replace the post-disconnect reading 73ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/renderer/src/_i3-review.test.tsx > independent: a delayed pre-disconnect poll cannot replace the post-disconnect reading
+AssertionError: expected <button type="button" …(1)></button> to be null
+
+- Expected:
+null
+
++ Received:
+<button
+  class="btn btn-ghost"
+  type="button"
+>
+  Reconnect
+</button>
+
+ ❯ src/renderer/src/_i3-review.test.tsx:9:929
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  13:28:35
+   Duration  715ms (transform 96ms, setup 74ms, import 101ms, tests 74ms, environment 391ms)
+
+undefined
+/Users/sshlg/DATA/_worktrees/fabric-hub-i3-ux-20261004/apps/desktop:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/renderer/src/_i3-review.test.tsx

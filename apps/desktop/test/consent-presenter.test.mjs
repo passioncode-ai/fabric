@@ -136,3 +136,48 @@ test('UX-3: requests queued while Fabric was in the background are shown when it
   await settle()
   assert.equal(h.log.filter((e) => e[0] === 'box').length, 1)
 })
+
+test('I3: pending reads are single-flight before any sheet is opened', async (t) => {
+  let release
+  const gate = new Promise(resolve => {release=resolve})
+  const reads=[]
+  const h=harness({pending:id=>{reads.push(id);return gate}})
+  t.after(()=>release(true))
+  h.p.present({row:row('r1'),connected:true})
+  h.p.present({row:row('r2'),connected:true})
+  h.p.resume()
+  assert.deepEqual(reads,['r1'])
+  release(true)
+  await settle();await settle()
+  assert.equal(h.log.filter(e=>e[0]==='box').length,2, 'both queued requests are shown sequentially')
+})
+
+test('I3: focus lost while pending read waits keeps the request queued until resume', async (t) => {
+  let release
+  const gate=new Promise(resolve=>{release=resolve})
+  const h=harness({pending:()=>gate})
+  t.after(()=>release(true))
+  h.p.present({row:row('r1'),connected:true})
+  h.win.focused=false
+  release(true)
+  await settle()
+  assert.equal(h.log.filter(e=>e[0]==='box').length,0)
+  assert.equal(h.p.waiting(),1)
+  h.win.focused=true;h.p.resume()
+  await settle()
+  assert.equal(h.log.filter(e=>e[0]==='box').length,1)
+})
+
+test('I3: a request expiring during a pending read never opens a sheet', async (t) => {
+  let release
+  const gate=new Promise(resolve=>{release=resolve})
+  const h=harness({pending:()=>gate})
+  const request=row('r1')
+  t.after(()=>release(true))
+  h.p.present({row:request,connected:true})
+  request.expires_at=new Date(Date.now()-1000).toISOString()
+  release(true)
+  await settle()
+  assert.equal(h.log.filter(e=>e[0]==='box').length,0)
+  assert.equal(h.p.waiting(),0)
+})

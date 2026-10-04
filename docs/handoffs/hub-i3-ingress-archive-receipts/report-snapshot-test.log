@@ -1,0 +1,22 @@
+✔ dated report metadata identifies frozen snapshots without exempting living or malformed entries (0.620583ms)
+✔ every data row of a declared table is found, whatever the header says (0.357542ms)
+✔ a table this register does not declare is not counted (0.101042ms)
+✔ a header row is never counted as data (0.10775ms)
+✔ a malformed row is RETURNED, never skipped (0.113208ms)
+✔ a wide prefix, a prefix with a digit, and a two-letter prefix all parse (0.046875ms)
+✔ an escaped pipe inside a cell does not shift the columns (0.062ms)
+✔ the never-watched numerator over the fixture is three (0.355792ms)
+✔ the first token is read through markdown emphasis (0.15775ms)
+✔ a word nobody declared answers null, and never a guess (0.215166ms)
+✔ a decision that left a remainder still carries work (0.046583ms)
+✔ a settled row does not (0.035875ms)
+✔ every declared word says what it means, so the vocabulary can be printed (0.044541ms)
+✔ the two halves of the vocabulary are both non-empty (0.03875ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 44.141458

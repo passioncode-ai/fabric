@@ -1,0 +1,15 @@
+✖ I3: focus lost while pending read waits keeps the request queued until resume (1.94725ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 0
+ℹ cancelled 2
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4.363209
+
+✖ failing tests:
+
+test at apps/desktop/test/consent-presenter.test.mjs:155:1
+✖ I3: focus lost while pending read waits keeps the request queued until resume (1.94725ms)
+  'Promise resolution is still pending but the event loop has already resolved'

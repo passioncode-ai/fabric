@@ -1,0 +1,21 @@
+✔ a visible window: the prompt has a parent, Deny is the default, Allow is decided (22.991333ms)
+✔ closing the prompt is a Deny (21.060208ms)
+✔ Allow for a product not yet connected also starts its connect flow (20.871416ms)
+✔ in the background: a notification, no prompt, until it is clicked (44.721584ms)
+✔ one prompt at a time, in order; a request answered elsewhere or expired is skipped (43.668375ms)
+✔ UX-3: a window that is open but not focused gets a notification, and the prompt appears when the window comes forward (41.831333ms)
+✔ UX-5: an Allow whose product could not be opened is followed by a message saying so — the Allow stands (42.989583ms)
+✔ UX-11: an answer that was not recorded is a warning, phrased from its code (44.458ms)
+✔ UX-2: the native prompt speaks the operator's language (21.92825ms)
+✔ UX-3: requests queued while Fabric was in the background are shown when its window gets focus again (42.640208ms)
+✔ I3: pending reads are single-flight before any sheet is opened (44.317084ms)
+✔ I3: focus lost while pending read waits keeps the request queued until resume (44.567834ms)
+✔ I3: a request expiring during a pending read never opens a sheet (21.509208ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 460.848041

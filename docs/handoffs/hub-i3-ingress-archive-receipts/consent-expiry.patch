@@ -1,0 +1,11 @@
+--- a/apps/desktop/src/main/consentPresenter.ts
++++ b/apps/desktop/src/main/consentPresenter.ts
+@@ -134,7 +134,7 @@
+           ops.failed('hub.consent.pending-read', e, { request_id: request.row.id })
+           pending = true
+         }
+-        if (pending && Date.parse(request.row.expires_at) > (this.deps.now ?? Date.now)()) break
++        if (pending) break
+       }
+       if (!request) return
+       // Authority and the parent may change while the read waits. Keep a live request queued

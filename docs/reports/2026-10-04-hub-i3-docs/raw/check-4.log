@@ -1,0 +1,17 @@
+ok: decision home is docs/adr/
+ok: ADR numbers are unique
+ok: canonical documentation homes exist
+ok: public surfaces contain no internal product-economics language
+ok: public product spelling is consistent
+ok: toolkit positioning, product readiness, category and slogan match across 7 surfaces
+PASS: PassionCode.ai public narrative
+ok: public narrative gate passes
+
+0 error(s), 1472 warning(s)
+ok: brand contract gate passes
+OK — docs/ux is consistent (<local-path>)
+ok: UX register gate passes (warnings are advisory — see docs/evidence/backlog.md for their causes)
+NOT CHECKED: 3 relative link(s) into the submodule 'workspace', which is not checked out here (private; a public clone cannot initialise it)
+relative Markdown links resolve (537 files inspected)
+ok: relative Markdown links resolve
+PASS: Fabric documentation structure

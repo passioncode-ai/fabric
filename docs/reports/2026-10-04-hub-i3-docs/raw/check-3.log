@@ -1,0 +1,23 @@
+✔ ER-5: a remembered idempotency key is not replayed once the grant is revoked (2.64775ms)
+✔ ER-5: a remembered idempotency key is not replayed once the product is disconnected (0.508ms)
+✔ ER-5: while the grant and the connection hold, the same key still replays and sends nothing (0.427292ms)
+✔ ER-11: an input nested past 16 levels is invalid-arguments before anything is hashed, with its span (1.057708ms)
+✔ ER-11: a throw inside the hop is a failed span and a fixed sentence; the cause is not handed to the agent (0.279ms)
+✔ ER-13: an agent that has already hung up reads no key and sends nothing; the span says cancelled (0.16975ms)
+✔ ER-13: the caller's signal reaches the forward, so hanging up mid-call aborts it (101.807417ms)
+✔ ER-11: a throw inside an access tool gives the agent a fixed sentence, never the exception text (11.809084ms)
+✔ ER-1: a call cancelled after it reached the product is never sent again with the same key (51.643792ms)
+✔ ER-1: a forward that timed out after it reached the product is outcome-unknown at once, and the same key stays refused (52.636166ms)
+✔ ER-1: a forward that provably sent nothing is said as such, and the same key may try again (104.103375ms)
+✔ ER-1: no text tells an agent to retry a call that may have run (3.493583ms)
+✔ ER-11: a product error is a fixed sentence to the agent; neither the client id nor the product text reaches it (0.187625ms)
+✔ DA-3: answers are remembered under a byte bound; a call too large to keep is still never sent twice (490.27725ms)
+✔ DA-3: a revoked binding's memory is released, and memory past its 24 hours is swept for every binding (0.255958ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 959.663083

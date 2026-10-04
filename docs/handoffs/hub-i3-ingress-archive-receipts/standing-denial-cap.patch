@@ -1,0 +1,11 @@
+--- a/apps/desktop/src/main/accessStore.ts
++++ b/apps/desktop/src/main/accessStore.ts
+@@ -172,7 +172,7 @@
+         orderBy: ['requested_at', 'id']
+       })
+       if (all.failed) throw new Error(`the access requests could not be read: ${all.failed}`)
+-      return all.rows.reverse() as unknown as AccessRequestRow[]
++      return all.rows.reverse().slice(0,500) as unknown as AccessRequestRow[]
+     },
+     async countRequests(filter) {
+       const answer = await narrowed(store.select('access_requests', 'id', { count: 'exact', head: true }), filter)

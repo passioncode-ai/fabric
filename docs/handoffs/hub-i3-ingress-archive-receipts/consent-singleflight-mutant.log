@@ -1,0 +1,48 @@
+✔ a visible window: the prompt has a parent, Deny is the default, Allow is decided (22.404708ms)
+✔ closing the prompt is a Deny (20.861667ms)
+✔ Allow for a product not yet connected also starts its connect flow (20.420625ms)
+✔ in the background: a notification, no prompt, until it is clicked (44.298041ms)
+✔ one prompt at a time, in order; a request answered elsewhere or expired is skipped (43.840833ms)
+✔ UX-3: a window that is open but not focused gets a notification, and the prompt appears when the window comes forward (44.75425ms)
+✔ UX-5: an Allow whose product could not be opened is followed by a message saying so — the Allow stands (44.500417ms)
+✔ UX-11: an answer that was not recorded is a warning, phrased from its code (43.352417ms)
+✔ UX-2: the native prompt speaks the operator's language (22.419583ms)
+✔ UX-3: requests queued while Fabric was in the background are shown when its window gets focus again (44.402084ms)
+✖ I3: pending reads are single-flight before any sheet is opened (1.066542ms)
+✔ I3: focus lost while pending read waits keeps the request queued until resume (41.091417ms)
+✔ I3: a request expiring during a pending read never opens a sheet (22.360958ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 12
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 419.054875
+
+✖ failing tests:
+
+test at apps/desktop/test/consent-presenter.test.mjs:140:1
+✖ I3: pending reads are single-flight before any sheet is opened (1.066542ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'r1',
+  +   'r2'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/consent-presenter.test.mjs:149:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [Array],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

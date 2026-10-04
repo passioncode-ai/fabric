@@ -1,0 +1,19 @@
+PASS CeoPrivateArchive@1 codec: 7 golden archives, 4 ordinary digests, 70 frozen refusals and vectors
+✔ apps/desktop/test/ceo-private-archive-codec.test.mjs (116.186583ms)
+✔ DA-5 every queue/standing-denial duplicate refusal leaves a bounded operation receipt (2.636667ms)
+✔ ER-3 restarting the hub recognizes a valid credential before any successful authentication (0.476709ms)
+✔ ER-2: only the asker that CREATED a request holds its poll secret; an identical ask gets no handle to its status or credential (3.173208ms)
+✔ ER-2: the poll secret is stored only as its hash, in the request event (0.195041ms)
+✔ DA-8: an allowed first request keeps listing the grants it gave after an incremental Allow re-grants one of them (0.40925ms)
+✔ ER-12: an Allow whose credential was never collected within the claim window is not listed as an agent with access (0.281167ms)
+✔ operator acts answer with a code the window can phrase, and an English reason for the log (0.362458ms)
+✔ an incremental request whose asking credential was revoked is refused in plain words, with its code (0.243792ms)
+✔ DA-3: revoking a binding tells the agent.call memory, after the revocation is recorded (0.201333ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 119.91475

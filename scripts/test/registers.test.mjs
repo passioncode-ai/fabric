@@ -16,6 +16,17 @@
 // disposition.
 
 import { test } from 'node:test'
+import { isDatedReportSnapshot } from '../lib/registers.mjs'
+
+test('dated report metadata identifies frozen snapshots without exempting living or malformed entries', () => {
+  const p = 'docs/reports/2026-10-04-hub-i3-data/README.md'
+  const text = '---\nreport:\n  id: fabric/example\n  as_of: 2026-10-04\n  sources:\n    - path: raw/check.log\n---\n# Review\n'
+  assert.equal(isDatedReportSnapshot(p, text), true)
+  for (const malformed of [text.replace('as_of: 2026-10-04', 'as_of: 2026-10-03'), text.replace('report:', 'other:'), text.replace('  sources:', '  missing:'), '# Report\n'])
+    assert.equal(isDatedReportSnapshot(p, malformed), false)
+  for (const living of ['docs/reports/map.md', 'docs/reports/README.md', 'docs/reports/2026-10-04-hub-i3-data/current.md'])
+    assert.equal(isDatedReportSnapshot(living, text), false)
+})
 import assert from 'node:assert/strict'
 import { classify, tableRows } from '../lib/registers.mjs'
 import { DISPOSITIONS, carriesWork, dispositionOf, tokenOf, vocabulary } from '../lib/disposition.mjs'

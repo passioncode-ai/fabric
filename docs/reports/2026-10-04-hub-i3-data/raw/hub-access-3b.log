@@ -1,0 +1,44 @@
+PASS the nine event types are registered and the four tables exist with RLS on
+PASS no API role reads or writes the access tables; the service role reads them and writes none
+PASS a request projects as pending; an allow writes the binding (no verifier yet) and one grant per capability × resource
+PASS a decided request cannot be decided again, and an allow cannot grant what was not asked
+PASS a grant without an expiry, or expiring before it was decided, is refused (ADR-0115 §6)
+PASS an expired request cannot be decided; a denial stands until cleared, and clears once
+PASS a credential is claimed once: the verifier is set, a second claim is refused
+PASS another estate cannot decide, claim or revoke this estate's rows by naming their ids
+PASS revoking a grant stops that grant; revoking the binding stops all of them
+PASS a product connection keeps metadata and the vault slot only; a reconnect supersedes, a disconnect removes
+PASS one live grant per binding, callee, capability and resource: a second allow of the same extends it, never duplicates it
+PASS a connection names a vault slot and never a value: secret_ref is exactly {project, env, name} (DA-4)
+PASS a request lives ten minutes and a grant at most a year, as the hub writes them (DA-4)
+PASS a span carries the documented fields only, never the arguments (DA-4)
+PASS a request may carry the sha256 of its poll secret; nothing else in that column (ER-2)
+PASS the product's own No is journalled, projected nowhere; the connected note says the secret is stored first (DA-7, DO-5)
+PASS a replay of the chain leaves every row as it was (rebuild is idempotent)
+{"status":"PASS","cases":17}
+PASS the door token reaches exactly the two asking tools, and nothing of a session
+PASS an unknown bearer and a near-miss of the door token are refused 401
+PASS an agent the registry does not know is refused before any prompt
+PASS a request reaches the operator once, naming the agent as the registry knows it; a retry is the same request
+PASS Allow: the first status read carries the credential once; the second does not
+PASS the binding reaches its four tools, lists exactly its grants, and no session tool
+PASS a field beyond the contract's four is refused, so nothing can ride in the arguments
+PASS incremental consent: the binding asks for more, the operator is asked again, the grants join the same credential
+PASS asking again for what the binding already holds extends that grant: one live grant, a later expiry, no duplicate
+PASS Deny stands until cleared: the same request answers denied without prompting; cleared, it prompts again
+PASS a request nobody answered expires after ten minutes and can no longer be decided
+PASS a binding reads only its own requests; the door cannot collect an incremental grant
+PASS revoking a grant removes it from the next answer; revoking the binding closes the door to that credential
+PASS a session Fabric starts keeps its one-shot bearer: one initialize, the second refused, no hub tool
+PASS a port in use is an error naming it, never a quiet move to another port
+PASS 500 unanswered expired requests: the caps still hold and the live requests are still listed
+PASS more than 1000 grants and 500 bindings: every live grant is listed, covers its call and can be revoked; the newest live credential is listed
+PASS a hub port another program holds: the hub is down with its reason, sessions still initialise, the door stays closed
+{"status":"PASS","cases":18}
+PASS DA-6 plaintext poll secret is refused before journal insertion
+PASS DA-6 plaintext credential is refused before journal insertion
+PASS DA-6 plaintext product secret is refused before journal insertion
+PASS DA-4 binding/request/grant ids have one spelling
+PASS ER-2 replacement requires the exact live connection id
+PASS DA-2 restored pending request loses its poll verifier and cannot be decided
+PASS full migration chain, the hub access projection refuses impossible transitions on isolated PostgreSQL

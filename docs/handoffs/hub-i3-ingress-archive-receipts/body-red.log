@@ -1,0 +1,62 @@
+✖ I3: incomplete bodies are admitted under a bounded credential concurrency (210.178416ms)
+✖ I3: incomplete body expires, closes and releases its admission slot (1503.75625ms)
+✔ I3: aborted incomplete body releases its admission slot (80.423625ms)
+✔ ER-7: one agent spending the door budget does not lock another agent out of asking (19.449166ms)
+✔ ER-7: unknown bearers are budgeted before they cost a credential lookup (31.753833ms)
+✔ V2 ER-3: existing binding survives an unknown-token flood after ingress restart, revocation still refuses (7.211875ms)
+✔ ER-8: the hub holds its port on [::1] as well, so localhost reaches Fabric and not a squatter (1.637959ms)
+✔ ER-8: [::1] taken by another program refuses the hub port, as 127.0.0.1 taken does (0.430875ms)
+✔ ER-8: the agent-facing text says to use the published origin verbatim, never localhost (1.770375ms)
+✔ V2 ER-3: hostile Host and browser Origin are refused before any credential lookup (3.8345ms)
+✔ V2 ER-5: JSON-RPC batches are rejected before creating a hub transport (1.273333ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 9
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1864.708792
+
+✖ failing tests:
+
+test at apps/desktop/test/hub-surface.test.mjs:53:1
+✖ I3: incomplete bodies are admitted under a bounded credential concurrency (210.178416ms)
+  AssertionError [ERR_ASSERTION]: excess incomplete bodies must be refused before parsing
+  + actual - expected
+  
+  + []
+  - [
+  -   429,
+  -   429,
+  -   429,
+  -   429
+  - ]
+  
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/hub-surface.test.mjs:60:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [Array],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/hub-surface.test.mjs:63:1
+✖ I3: incomplete body expires, closes and releases its admission slot (1503.75625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'HUNG' !== 408
+  
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/hub-surface.test.mjs:68:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'HUNG',
+    expected: 408,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

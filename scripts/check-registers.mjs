@@ -38,7 +38,7 @@
 // gate also RECOMPUTES the counts the documents assert and fails on a mismatch.
 
 import { cell, cells } from './lib/markdown-table.mjs'
-import { classify, tableRows } from './lib/registers.mjs'
+import { classify, tableRows, isDatedReportSnapshot } from './lib/registers.mjs'
 import { carriesWork, dispositionOf, vocabulary } from './lib/disposition.mjs'
 import { insideUnchecked, uncheckedSubmodules } from './lib/submodules.mjs'
 import { readFileSync, existsSync } from 'node:fs'
@@ -139,7 +139,7 @@ const files = []
  * reporting "all citations resolve" is the same green-over-nothing failure this
  * file exists to prevent.
  */
-const isSnapshot = (rel) => rel.startsWith('docs/audit/') || /\d{4}-\d{2}-\d{2}/.test(path.basename(rel))
+const isSnapshot = (rel) => rel.startsWith('docs/audit/') || /\d{4}-\d{2}-\d{2}/.test(path.basename(rel)) || isDatedReportSnapshot(rel, read(rel))
 
 const snapshots = []
 for (const d of DOCS) {

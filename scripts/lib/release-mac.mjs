@@ -6,6 +6,8 @@
 // A person may run the same script with their own identity to debug the build; that build is never
 // published.
 
+import { validatedReviewArtifactPaths } from './release-gate.mjs'
+
 const PREFIX = 'Developer ID Application:'
 // Every certificate-type prefix electron-builder knows (app-builder-lib macCodeSign.js
 // `appleCertificatePrefixes`), plus the two current Apple names it does not: only the first can sign
@@ -94,7 +96,7 @@ export function releaseCommitProblem(git) {
 }
 
 /** Bind the verification ledger to a reviewed ancestor; later runtime/build changes require review again. */
-export function verifiedCandidateProblem({ version, gateText }, git) {
+export function verifiedCandidateProblem({ version, gateText, readCommitted }, git) {
   let gate
   try { gate = JSON.parse(gateText) } catch { return 'the release gate has no readable verified commit' }
   if (gate.version !== version || !/^[0-9a-f]{40}$/.test(gate.verifiedCommit ?? ''))
@@ -104,6 +106,7 @@ export function verifiedCandidateProblem({ version, gateText }, git) {
   }
   const metadata = new Set(['CHANGELOG.md', 'docs/launch/release-gate.json', gate.ledger,
     'docs/MERGES.md', 'docs/reports/map.html', 'docs/handoffs/2026-10-04-claude-recovery.md'])
+  if (gate.reviewReceipts) for (const p of validatedReviewArtifactPaths(gate, version, readCommitted)) metadata.add(p)
   let changed
   try { changed = git(['diff', '--name-only', gate.verifiedCommit, 'HEAD']).trim().split('\n').filter(Boolean) } catch {
     return 'the verified commit difference could not be inspected'

@@ -1,0 +1,51 @@
+[
+  {
+    "html_url": "https://github.com/passioncode-ai/fabric-agent-adapter/issues/31",
+    "state": "open",
+    "title": "COM-04/08/09/12: scoped consumer adapters and optional Telegram transport",
+    "updated_at": "2026-10-04T10:54:50Z",
+    "closed_at": null
+  },
+  {
+    "html_url": "https://github.com/passioncode-ai/fabric-dashboards/issues/26",
+    "state": "open",
+    "title": "COM-11/12: communication service health and Fabric board links",
+    "updated_at": "2026-10-04T10:54:52Z",
+    "closed_at": null
+  },
+  {
+    "html_url": "https://github.com/passioncode-ai/fabric-switchboard/issues/36",
+    "state": "open",
+    "title": "COM-11/12: provider provenance for project responder replacement",
+    "updated_at": "2026-10-04T10:54:54Z",
+    "closed_at": null
+  },
+  {
+    "html_url": "https://github.com/passioncode-ai/project-observatory-dashboard/issues/146",
+    "state": "open",
+    "title": "COM-10/12: privacy-scoped communication attribution and read-only analysis",
+    "updated_at": "2026-10-04T10:54:56Z",
+    "closed_at": null
+  },
+  {
+    "html_url": "https://github.com/passioncode-ai/passioncode-ai.github.io/issues/37",
+    "state": "open",
+    "title": "COM-13: public ownership guide and actual communication screenshots",
+    "updated_at": "2026-10-04T10:54:58Z",
+    "closed_at": null
+  },
+  {
+    "html_url": "https://github.com/passioncode-ai/fabric-agent-contract/issues/8",
+    "state": "open",
+    "title": "Allow product tool names with underscores in hub agent.call schema",
+    "updated_at": "2026-10-04T09:48:15Z",
+    "closed_at": null
+  },
+  {
+    "html_url": "https://github.com/passioncode-ai/fabric-inbox/issues/26",
+    "state": "open",
+    "title": "Attest runtime narrowing source and expose a compatible capability revision",
+    "updated_at": "2026-10-04T09:48:16Z",
+    "closed_at": null
+  }
+]

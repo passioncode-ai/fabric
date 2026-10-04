@@ -1,0 +1,12 @@
+{
+  "source_baseline": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+  "source_path": "scripts/lib/release-gate.mjs",
+  "source_sha256": "4a5fae4583738e5dc9ac57d8b755a18ec68532afa132c953038ab0d1380b30c3",
+  "gate": {
+    "version": "0.3.1",
+    "ledger": "docs/ledger.md"
+  },
+  "ledger": "# Fabric 0.3.1\n\n## Iteration 1\n[only reviewer](review/iteration-1/single.md)\n\nExit for iteration 1: closed. Blocking findings open: none.\n\n## Iteration 2\n[only reviewer](review/iteration-2/single.md)\n\nExit for iteration 2: closed. Blocking findings open: none.\n\n## Iteration 3\n[only reviewer](review/iteration-3/single.md)\n\nExit for iteration 3: closed. Blocking findings open: none.\n",
+  "problems": [],
+  "scope": "Pure text check only; no tag, workflow, publication or live release action."
+}

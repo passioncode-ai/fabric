@@ -1,0 +1,19 @@
+{
+  "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+  "files": {
+    "AGENTS.md": "80f6bdf7f1d1a5f05eb40f2b7911732b9b3c5b3ea7c85dc45e3ff527dd50f9ec",
+    "docs/ux/scenarios.md": "446f8b8bb202199db9c5023e3f862aeb471235747e4b6821ee89d26cb5a3066a",
+    "docs/ux/foundation.md": "2e5f7de8a3599acd591130ead2fd879c273fa103cb1b8331f7ce8ec0b6f64a06",
+    "docs/ux/flows.md": "b3ce5dab21f61563846996dcaeef49951cc67b5ede219e4ec1b78997cd478273",
+    "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md": "486b8832f9ffa570046a7478daca03f7cb9c2139a90d0a3a0ba9060637c9d5da",
+    "apps/desktop/src/renderer/src/AgentAccessPanel.tsx": "10036e3f8f423bf3d8fe0dc552283f6f8a56923794fb0c44df881c4c6e738103",
+    "apps/desktop/src/main/consentPresenter.ts": "095aaf7e1354e56b343cbc1d32b2c3dee593968938b6106436bb81a2a6f43211",
+    "apps/desktop/src/main/hubTools.ts": "a4cc8781424231bf64536549760da1350c92d4024a2ff9875c57b74a03918ce2",
+    "apps/desktop/src/main/hubCall.ts": "6c5d06734bb5856f856cda525ed8d2d1acf26767f1780ad4a573c8fc62df7853",
+    "apps/desktop/src/main/productConnect.ts": "8a0a5578b293c218a101bf24d6cc12986e02749e8042bc1c80b5e135f86ebb52",
+    "apps/desktop/src/shared/access.ts": "4454e55f2be07aced251182ba5283f34d3309abae0cdddf96d4745b23c10866e",
+    "apps/desktop/src/renderer/src/i18n/en.ts": "56fe77734888b5f839daf3d2df4069ea3d7a0ccbe7f77bc2b80b2adec4cb5b96",
+    "apps/desktop/src/renderer/src/i18n/ru.ts": "481b78ba1159193f86a268718758781c49a3644465b4c27514658cc44c3fe048"
+  },
+  "scope": "independent review; report only; no live product consent or credentials"
+}

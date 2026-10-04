@@ -1,0 +1,4 @@
+PASS upgrade 75→78: exact migration ledger, preserved estate/journal/projections/live authority, restored pending refused, pg_dump/restore, ACLs/replay and concurrent reconnect CAS
+PASS upgrade 77→78: exact migration ledger, preserved estate/journal/projections/live authority, restored pending refused, pg_dump/restore, ACLs/replay and concurrent reconnect CAS
+PASS owned hub upgrade rehearsal; suffix80 is migration count78, no existing database addressed
+PASS cleanup: owned PostgreSQL stopped; socket, dumps and data removed

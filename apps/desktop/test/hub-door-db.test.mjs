@@ -297,6 +297,29 @@ await test('500 unanswered expired requests: the caps still hold and the live re
   assert.equal(ov.pending.length, 3, 'the live requests were not listed for the operator')
 })
 
+// I3: standing denials remain authoritative and clearable past a gateway's capped page.
+await test('502 standing denials: oldest still refuses without prompting and is visible to clear', async () => {
+  const { execFileSync } = await import('node:child_process')
+  const E4=randomUUID(), oldest=randomUUID()
+  const psql=input=>execFileSync('psql',[url,'-X','-q','-t','-A','-v','ON_ERROR_STOP=1'],{input,encoding:'utf8'}).trim()
+  const appendDenied=(id,resource)=>`select append_event('${E4}','access.requested@1','{"kind":"system","id":"fabric-hub"}'::jsonb,
+    jsonb_build_object('id',${id},'agent_id','example-agent.default','callee','fabric-inbox','capabilities',jsonb_build_array('list_messages'),
+      'resources',jsonb_build_array(${resource}),'reason','r','registry','{}'::jsonb,'binding_id',null,'poll_verifier',repeat('a',64),'expires_at',(now()+interval '10 minutes')::text));
+    select append_event('${E4}','access.decided@1','{"kind":"person","id":"operator"}'::jsonb,jsonb_build_object('request_id',${id},'decision','denied'));`
+  psql(`set role service_role; ${appendDenied(`'${oldest}'::uuid`,"'cloudflare:standing-old@example.com'")}`)
+  psql(`set role service_role; do $$ declare r uuid; begin for i in 1..501 loop r=gen_random_uuid();
+    ${appendDenied('r',"'cloudflare:later'||i||'@example.com'").replaceAll('select append_event','perform append_event')}
+    end loop; end $$;`)
+  const capped=createPsqlRest(url,{maxRows:100})
+  const prompts=[]
+  const service=new AccessService({store:createAccessStore({db:capped,journal:createJournal(capped),estateId:E4}),registry,present:r=>prompts.push(r),connected:async()=>true})
+  const again=await service.request({kind:'door'},ask({capabilities:['list_messages'],resources:['standing-old@example.com']}))
+  assert.equal(again.status,'denied');assert.equal(again.requestId,oldest);assert.equal(prompts.length,0)
+  assert.ok((await service.overview()).denials.some(r=>r.requestId===oldest || r.id===oldest))
+  assert.equal((await service.clearDenial(oldest,OPERATOR)).ok,true)
+  assert.equal((await service.request({kind:'door'},ask({capabilities:['list_messages'],resources:['standing-old@example.com']}))).status,'pending')
+})
+
 // ── ER-8 / DA-1 (verification iteration 2 for 0.3.1): the grant and binding reads went through the gateway's
 // 1000-row cap, oldest first. Read through `maxRows: 1000` exactly as PostgREST answers: one never-collected
 // Allow of 32 tools × 32 mailboxes (1024 live grants), then a small agent's one grant, decided later; and

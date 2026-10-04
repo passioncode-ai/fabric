@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /Users/sshlg/DATA/_worktrees/fabric-hub-i3-ux-20261004/apps/desktop
+
+
+ Test Files  3 passed (3)
+      Tests  68 passed (68)
+   Start at  13:25:14
+   Duration  1.01s (transform 208ms, setup 264ms, import 225ms, tests 341ms, environment 1.23s)
+

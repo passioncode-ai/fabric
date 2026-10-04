@@ -118,26 +118,29 @@ export class ConsentPresenter {
 
   private async next(): Promise<void> {
     if (this.showing) return
-    const parent = this.parentWindow()
-    if (!parent) return
-    const now = (this.deps.now ?? Date.now)()
-    let request: ConsentRequest | undefined
-    while ((request = this.queue.shift())) {
-      if (Date.parse(request.row.expires_at) <= now) continue
-      let pending = false
-      try {
-        pending = await this.deps.stillPending(request.row.id)
-      } catch (e) {
-        // Shown anyway: a decision on a request that was already answered is refused by the service
-        // with its reason, which is better than a request the operator never sees.
-        ops.failed('hub.consent.pending-read', e, { request_id: request.row.id })
-        pending = true
-      }
-      if (pending) break
-    }
-    if (!request) return
+    if (!this.inFront()) return
+    // Own the queue before the first await, not only while a native sheet is visible.
     this.showing = true
+    let request: ConsentRequest | undefined
     try {
+      while ((request = this.queue.shift())) {
+        if (Date.parse(request.row.expires_at) <= (this.deps.now ?? Date.now)()) continue
+        let pending = false
+        try {
+          pending = await this.deps.stillPending(request.row.id)
+        } catch (e) {
+          // Shown anyway: a decision on a request that was already answered is refused by the service
+          // with its reason, which is better than a request the operator never sees.
+          ops.failed('hub.consent.pending-read', e, { request_id: request.row.id })
+          pending = true
+        }
+        if (pending && Date.parse(request.row.expires_at) > (this.deps.now ?? Date.now)()) break
+      }
+      if (!request) return
+      // Authority and the parent may change while the read waits. Keep a live request queued
+      // if the operator moved away; the next focus/resume event will retry its pending read.
+      const parent = this.inFront()
+      if (!parent) { this.queue.unshift(request); return }
       const say = this.say()
       const facts = this.facts(request)
       const text = consentPrompt(say, facts)
@@ -159,11 +162,11 @@ export class ConsentPresenter {
       }
       this.deps.changed?.()
     } catch (e) {
-      ops.failed('hub.consent.prompt', e, { request_id: request.row.id })
+      ops.failed('hub.consent.prompt', e, { request_id: request?.row.id })
     } finally {
       this.showing = false
     }
-    if (this.queue.length) void this.next()
+    if (this.queue.length && this.inFront()) void this.next()
   }
 }
 // #endregion hub-consent-prompt

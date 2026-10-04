@@ -38,6 +38,47 @@ const rpc = async (surface, token, method, params) => {
 }
 const askArgs = (agentId) => ({ agentId, callee: 'fabric-inbox', capabilities: ['read_message'], resources: ['news@example.com'], reason: 'digest' })
 
+function partial(surface, token = DOOR) {
+  const req = request(`${surface.origin}/mcp`, {method:'POST', headers:{authorization:`Bearer ${token}`, 'content-type':'application/json', 'content-length':'1000'}})
+  const response = new Promise((resolve, reject) => {
+    req.on('response', res => { res.resume(); res.on('end', () => resolve(res.statusCode)) })
+    req.on('error', reject)
+  })
+  // Aborted fixture clients are expected when cleanup cuts a held body.
+  response.catch(() => {})
+  req.write('{')
+  return {req, response}
+}
+
+test('I3: incomplete bodies are admitted under a bounded credential concurrency', async (t) => {
+  const {surface} = await hub({budgetCalls:2, bodyReadMs:1000})
+  const clients = Array.from({length:6}, () => partial(surface))
+  t.after(async () => { clients.forEach(c => c.req.destroy()); await surface.stop() })
+  const settled = []
+  clients.forEach(c => c.response.then(status => settled.push(status), () => {}))
+  await new Promise(resolve => setTimeout(resolve, 200))
+  assert.deepEqual(settled.sort(), [429,429,429,429], 'excess incomplete bodies must be refused before parsing')
+})
+
+test('I3: incomplete body expires, closes and releases its admission slot', async (t) => {
+  const {surface} = await hub({budgetCalls:1, bodyReadMs:50})
+  const client = partial(surface)
+  t.after(async () => {client.req.destroy(); await surface.stop()})
+  const status = await Promise.race([client.response, new Promise(resolve => setTimeout(() => resolve('HUNG'), 1500))])
+  assert.equal(status, 408)
+  assert.equal((await rpc(surface, DOOR, 'tools/list', {})).status, 200)
+})
+
+test('I3: aborted incomplete body releases its admission slot', async (t) => {
+  const {surface} = await hub({budgetCalls:1, bodyReadMs:1000})
+  const client = partial(surface)
+  t.after(async () => {client.req.destroy(); await surface.stop()})
+  await new Promise(resolve => setTimeout(resolve, 30))
+  client.req.destroy()
+  await new Promise(resolve => setTimeout(resolve, 30))
+  assert.equal((await rpc(surface, DOOR, 'tools/list', {})).status, 200)
+})
+
 test('ER-7: one agent spending the door budget does not lock another agent out of asking', async () => {
   const { surface } = await hub({ budgetCalls: 5, budgetWindowMs: 60_000 })
   const first = await rpc(surface, DOOR, 'tools/call', { name: 'fabric.access.request', arguments: askArgs('example-agent') })

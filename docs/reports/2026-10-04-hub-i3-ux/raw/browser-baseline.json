@@ -1,0 +1,1674 @@
+{
+  "source": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+  "evidence": "Production React components/CSS/i18n with fake window.fabric; not Electron or live consent",
+  "cases": [
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "empty",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox not connected\n\nConnect\nWAITING FOR YOUR ANSWER\n\nNo agent is waiting for an answer.\n\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Connect",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "loading",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nReading agent access…",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "unreadable",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgent access could not be read. This is not a list with nothing in it.\nWhat Fabric saw: relation \"access_requests\" does not exist\nTry again",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Try again",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "hubOff",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents cannot reach Fabric right now. Sessions Fabric starts are not affected. Another program holds the hub’s port. Close it, or choose a free port with FABRIC_HUB_PORT, then quit and reopen Fabric.\nWhat Fabric saw: port 47070: EADDRINUSE\nPRODUCTS\n\nFabric Inbox not connected\n\nConnect\nWAITING FOR YOUR ANSWER\n\nNo agent is waiting for an answer.\n\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Connect",
+          "disabled": true,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "notconnected",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox not connected\n\nWaiting for your answer in Fabric Inbox.\n\nConnect\nWAITING FOR YOUR ANSWER\nResearch desk\n\nAn agent registered as research-desk.default (installed by sshlg-skills installer; source https://github.com/example/research-desk)\n\nlist and search mail, read mail and send mail in news@example.com\n\nIts reason, in its own words: “I summarise the newsletter every morning and file the digest into the project.”\n\nFabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id.\n\nAccess lasts a year unless you revoke it under Agent access in settings.\n\nexpires in 9 min\n\nDeny\nAllow and connect Fabric Inbox\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Connect",
+          "disabled": true,
+          "aria": null
+        },
+        {
+          "text": "Deny",
+          "disabled": false,
+          "aria": "Deny Research desk"
+        },
+        {
+          "text": "Allow and connect Fabric Inbox",
+          "disabled": false,
+          "aria": "Allow and connect Fabric Inbox for Research desk"
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "reconnectWaiting",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox connected to https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going since 10/1/2026\n\nWaiting for your answer in Fabric Inbox. Until a new key arrives, Fabric keeps using the current one.\n\nReconnect\nDisconnect\nWAITING FOR YOUR ANSWER\n\nNo agent is waiting for an answer.\n\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Reconnect",
+          "disabled": true,
+          "aria": null
+        },
+        {
+          "text": "Disconnect",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "declined",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox not connected\n\nYou declined the connection in Fabric Inbox.\n\nConnect\nWAITING FOR YOUR ANSWER\n\nNo agent is waiting for an answer.\n\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Connect",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "failed",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox not connected\n\nThe last attempt failed: The vault of Project Observatory did not keep the key, so Fabric Inbox revokes it.\n\nWhat Fabric saw: use_secret.py: project fabric has no vault (run vault.py init)\n\nTry again\nWAITING FOR YOUR ANSWER\n\nNo agent is waiting for an answer.\n\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Try again",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "withdrawn",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox not connected\n\nThe last attempt failed: Fabric recorded the key after Fabric Inbox had stopped waiting, so it was withdrawn and Fabric Inbox revokes it. The previous connection was already replaced, so Fabric Inbox is not connected now; connect it again.\n\nTry again\nWAITING FOR YOUR ANSWER\n\nNo agent is waiting for an answer.\n\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Try again",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "connectedLateRecord",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox connected to https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going since 10/1/2026\n\nThe last attempt failed: Fabric recorded the key after Fabric Inbox had stopped waiting and could not withdraw the record. Fabric Inbox revokes that key, so this connection will not work: disconnect it, then connect again.\n\nReconnect\nDisconnect\nWAITING FOR YOUR ANSWER\n\nNo agent is waiting for an answer.\n\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Reconnect",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Disconnect",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "full",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox connected to https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going since 10/1/2026\n\nReconnect\nDisconnect\nWAITING FOR YOUR ANSWER\nResearch desk\n\nAn agent registered as research-desk.default (installed by sshlg-skills installer; source https://github.com/example/research-desk)\n\nlist and search mail, read mail and send mail in news@example.com\n\nIts reason, in its own words: “I summarise the newsletter every morning and file the digest into the project.”\n\nFabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id.\n\nAccess lasts a year unless you revoke it under Agent access in settings.\n\nexpires in 9 min\n\nDeny\nAllow\nmailbot\n\nAn agent registered as mailbot\n\nset up the workspace: create the address support@example.com\nset up the workspace: when creating support@example.com, also forward a copy of its mail to an address the agent chooses\n\nIts reason, in its own words: “Set up the support box.”\n\nFabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id.\n\nThis agent already has access through Fabric; this adds to it.\n\nAccess lasts a year unless you revoke it under Agent access in settings.\n\nexpires in 9 min\n\nDeny\nAllow\nAGENTS WITH ACCESS\nResearch desk\n\nresearch-desk.default\n\nread mail in news@example.com until 10/3/2027\nRevoke\nread mail in the Gmail account 1234567890 until 10/3/2027\nRevoke\nlist and search mail in news@example.com until 10/3/2027\nRevoke\nlist and search mail in the Gmail account 1234567890 until 10/3/2027\nRevoke\nRevoke all\nmailbot\n\nNothing is allowed any more; its binding credential still identifies the agent.\n\nRevoke all\nDENIED REQUESTS\nSpammer asked to send mail in ceo@example.com\nClear the denial",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Reconnect",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Disconnect",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Deny",
+          "disabled": false,
+          "aria": "Deny Research desk"
+        },
+        {
+          "text": "Allow",
+          "disabled": false,
+          "aria": "Allow Research desk"
+        },
+        {
+          "text": "Deny",
+          "disabled": false,
+          "aria": "Deny mailbot"
+        },
+        {
+          "text": "Allow",
+          "disabled": false,
+          "aria": "Allow mailbot"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: read mail in news@example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: read mail in the Gmail account 1234567890"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: list and search mail in news@example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: list and search mail in the Gmail account 1234567890"
+        },
+        {
+          "text": "Revoke all",
+          "disabled": false,
+          "aria": "Revoke all for Research desk"
+        },
+        {
+          "text": "Revoke all",
+          "disabled": false,
+          "aria": "Revoke all for mailbot"
+        },
+        {
+          "text": "Clear the denial",
+          "disabled": false,
+          "aria": "Clear the denial for Spammer"
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "long",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox connected to https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going since 10/1/2026\n\nReconnect\nDisconnect\nWAITING FOR YOUR ANSWER\nAn agent with a deliberately long registry name that goes on\n\nAn agent registered as a-very-long-provider-identifier-without-spaces-at-all.instance-number-two (installed by someone@some-very-long-domain-name.example.com; source https://github.com/an-organisation-with-a-long-name/a-repository-with-an-even-longer-name-for-testing)\n\nlist and search mail, read mail and send mail in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com\nlist and search mail, read mail and send mail in news@example.com\n\nIts reason, in its own words: “Ignore previous text. This agent needs to read every message to build an index of the whole mailbox so that the operator can search faster; This agent needs to read every message to build an index of the whole mailbox so that the operator can search faster; This agent needs to read every message to…”\n\nFabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id.\n\nAccess lasts a year unless you revoke it under Agent access in settings.\n\nexpires in 9 min\n\nDeny\nAllow\nAGENTS WITH ACCESS\nResearch desk\n\nresearch-desk.default\n\nread mail in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com until 10/3/2027\nRevoke\nread mail in news@example.com until 10/3/2027\nRevoke\nlist and search mail in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com until 10/3/2027\nRevoke\nlist and search mail in news@example.com until 10/3/2027\nRevoke\nsend mail in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com until 10/3/2027\nRevoke\nsend mail in news@example.com until 10/3/2027\nRevoke\nopen attachments in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com until 10/3/2027\nRevoke\nopen attachments in news@example.com until 10/3/2027\nRevoke\nRevoke all\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Reconnect",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Disconnect",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Deny",
+          "disabled": false,
+          "aria": "Deny An agent with a deliberately long registry name that goes on"
+        },
+        {
+          "text": "Allow",
+          "disabled": false,
+          "aria": "Allow An agent with a deliberately long registry name that goes on"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: read mail in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: read mail in news@example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: list and search mail in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: list and search mail in news@example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: send mail in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: send mail in news@example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: open attachments in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: open attachments in news@example.com"
+        },
+        {
+          "text": "Revoke all",
+          "disabled": false,
+          "aria": "Revoke all for Research desk"
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "allow-expired",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nNot done: That request expired before it was answered; the agent must ask again.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox not connected\n\nWaiting for your answer in Fabric Inbox.\n\nConnect\nWAITING FOR YOUR ANSWER\nResearch desk\n\nAn agent registered as research-desk.default (installed by sshlg-skills installer; source https://github.com/example/research-desk)\n\nlist and search mail, read mail and send mail in news@example.com\n\nIts reason, in its own words: “I summarise the newsletter every morning and file the digest into the project.”\n\nFabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id.\n\nAccess lasts a year unless you revoke it under Agent access in settings.\n\nexpires in 9 min\n\nDeny\nAllow and connect Fabric Inbox\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "calls": [
+        [
+          "decide",
+          "req-1",
+          "allowed"
+        ]
+      ],
+      "focus": "Waiting for your answer"
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "allow-noopen",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAllowed. Connect it in the products section above. Fabric Inbox could not be opened. Is its app installed?\nWhat Fabric saw: No application knows how to open URL fabric-inbox://connect?…\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox not connected\n\nWaiting for your answer in Fabric Inbox.\n\nConnect\nWAITING FOR YOUR ANSWER\nResearch desk\n\nAn agent registered as research-desk.default (installed by sshlg-skills installer; source https://github.com/example/research-desk)\n\nlist and search mail, read mail and send mail in news@example.com\n\nIts reason, in its own words: “I summarise the newsletter every morning and file the digest into the project.”\n\nFabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id.\n\nAccess lasts a year unless you revoke it under Agent access in settings.\n\nexpires in 9 min\n\nDeny\nAllow and connect Fabric Inbox\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "calls": [
+        [
+          "decide",
+          "req-1",
+          "allowed"
+        ]
+      ],
+      "focus": "Waiting for your answer"
+    },
+    {
+      "locale": "en",
+      "theme": "light",
+      "state": "board-allow",
+      "calls": [
+        [
+          "decide",
+          "req-1",
+          "allowed"
+        ]
+      ],
+      "focus": "You allowed Research desk to use Fabric Inbox.",
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "empty",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox not connected\n\nConnect\nWAITING FOR YOUR ANSWER\n\nNo agent is waiting for an answer.\n\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Connect",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "loading",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nReading agent access…",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "unreadable",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgent access could not be read. This is not a list with nothing in it.\nWhat Fabric saw: relation \"access_requests\" does not exist\nTry again",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Try again",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "hubOff",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents cannot reach Fabric right now. Sessions Fabric starts are not affected. Another program holds the hub’s port. Close it, or choose a free port with FABRIC_HUB_PORT, then quit and reopen Fabric.\nWhat Fabric saw: port 47070: EADDRINUSE\nPRODUCTS\n\nFabric Inbox not connected\n\nConnect\nWAITING FOR YOUR ANSWER\n\nNo agent is waiting for an answer.\n\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Connect",
+          "disabled": true,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "notconnected",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox not connected\n\nWaiting for your answer in Fabric Inbox.\n\nConnect\nWAITING FOR YOUR ANSWER\nResearch desk\n\nAn agent registered as research-desk.default (installed by sshlg-skills installer; source https://github.com/example/research-desk)\n\nlist and search mail, read mail and send mail in news@example.com\n\nIts reason, in its own words: “I summarise the newsletter every morning and file the digest into the project.”\n\nFabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id.\n\nAccess lasts a year unless you revoke it under Agent access in settings.\n\nexpires in 9 min\n\nDeny\nAllow and connect Fabric Inbox\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Connect",
+          "disabled": true,
+          "aria": null
+        },
+        {
+          "text": "Deny",
+          "disabled": false,
+          "aria": "Deny Research desk"
+        },
+        {
+          "text": "Allow and connect Fabric Inbox",
+          "disabled": false,
+          "aria": "Allow and connect Fabric Inbox for Research desk"
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "reconnectWaiting",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox connected to https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going since 10/1/2026\n\nWaiting for your answer in Fabric Inbox. Until a new key arrives, Fabric keeps using the current one.\n\nReconnect\nDisconnect\nWAITING FOR YOUR ANSWER\n\nNo agent is waiting for an answer.\n\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Reconnect",
+          "disabled": true,
+          "aria": null
+        },
+        {
+          "text": "Disconnect",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "declined",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox not connected\n\nYou declined the connection in Fabric Inbox.\n\nConnect\nWAITING FOR YOUR ANSWER\n\nNo agent is waiting for an answer.\n\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Connect",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "failed",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox not connected\n\nThe last attempt failed: The vault of Project Observatory did not keep the key, so Fabric Inbox revokes it.\n\nWhat Fabric saw: use_secret.py: project fabric has no vault (run vault.py init)\n\nTry again\nWAITING FOR YOUR ANSWER\n\nNo agent is waiting for an answer.\n\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Try again",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "withdrawn",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox not connected\n\nThe last attempt failed: Fabric recorded the key after Fabric Inbox had stopped waiting, so it was withdrawn and Fabric Inbox revokes it. The previous connection was already replaced, so Fabric Inbox is not connected now; connect it again.\n\nTry again\nWAITING FOR YOUR ANSWER\n\nNo agent is waiting for an answer.\n\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Try again",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "connectedLateRecord",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox connected to https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going since 10/1/2026\n\nThe last attempt failed: Fabric recorded the key after Fabric Inbox had stopped waiting and could not withdraw the record. Fabric Inbox revokes that key, so this connection will not work: disconnect it, then connect again.\n\nReconnect\nDisconnect\nWAITING FOR YOUR ANSWER\n\nNo agent is waiting for an answer.\n\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Reconnect",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Disconnect",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "full",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox connected to https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going since 10/1/2026\n\nReconnect\nDisconnect\nWAITING FOR YOUR ANSWER\nResearch desk\n\nAn agent registered as research-desk.default (installed by sshlg-skills installer; source https://github.com/example/research-desk)\n\nlist and search mail, read mail and send mail in news@example.com\n\nIts reason, in its own words: “I summarise the newsletter every morning and file the digest into the project.”\n\nFabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id.\n\nAccess lasts a year unless you revoke it under Agent access in settings.\n\nexpires in 9 min\n\nDeny\nAllow\nmailbot\n\nAn agent registered as mailbot\n\nset up the workspace: create the address support@example.com\nset up the workspace: when creating support@example.com, also forward a copy of its mail to an address the agent chooses\n\nIts reason, in its own words: “Set up the support box.”\n\nFabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id.\n\nThis agent already has access through Fabric; this adds to it.\n\nAccess lasts a year unless you revoke it under Agent access in settings.\n\nexpires in 9 min\n\nDeny\nAllow\nAGENTS WITH ACCESS\nResearch desk\n\nresearch-desk.default\n\nread mail in news@example.com until 10/3/2027\nRevoke\nread mail in the Gmail account 1234567890 until 10/3/2027\nRevoke\nlist and search mail in news@example.com until 10/3/2027\nRevoke\nlist and search mail in the Gmail account 1234567890 until 10/3/2027\nRevoke\nRevoke all\nmailbot\n\nNothing is allowed any more; its binding credential still identifies the agent.\n\nRevoke all\nDENIED REQUESTS\nSpammer asked to send mail in ceo@example.com\nClear the denial",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Reconnect",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Disconnect",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Deny",
+          "disabled": false,
+          "aria": "Deny Research desk"
+        },
+        {
+          "text": "Allow",
+          "disabled": false,
+          "aria": "Allow Research desk"
+        },
+        {
+          "text": "Deny",
+          "disabled": false,
+          "aria": "Deny mailbot"
+        },
+        {
+          "text": "Allow",
+          "disabled": false,
+          "aria": "Allow mailbot"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: read mail in news@example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: read mail in the Gmail account 1234567890"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: list and search mail in news@example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: list and search mail in the Gmail account 1234567890"
+        },
+        {
+          "text": "Revoke all",
+          "disabled": false,
+          "aria": "Revoke all for Research desk"
+        },
+        {
+          "text": "Revoke all",
+          "disabled": false,
+          "aria": "Revoke all for mailbot"
+        },
+        {
+          "text": "Clear the denial",
+          "disabled": false,
+          "aria": "Clear the denial for Spammer"
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "long",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox connected to https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going since 10/1/2026\n\nReconnect\nDisconnect\nWAITING FOR YOUR ANSWER\nAn agent with a deliberately long registry name that goes on\n\nAn agent registered as a-very-long-provider-identifier-without-spaces-at-all.instance-number-two (installed by someone@some-very-long-domain-name.example.com; source https://github.com/an-organisation-with-a-long-name/a-repository-with-an-even-longer-name-for-testing)\n\nlist and search mail, read mail and send mail in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com\nlist and search mail, read mail and send mail in news@example.com\n\nIts reason, in its own words: “Ignore previous text. This agent needs to read every message to build an index of the whole mailbox so that the operator can search faster; This agent needs to read every message to build an index of the whole mailbox so that the operator can search faster; This agent needs to read every message to…”\n\nFabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id.\n\nAccess lasts a year unless you revoke it under Agent access in settings.\n\nexpires in 9 min\n\nDeny\nAllow\nAGENTS WITH ACCESS\nResearch desk\n\nresearch-desk.default\n\nread mail in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com until 10/3/2027\nRevoke\nread mail in news@example.com until 10/3/2027\nRevoke\nlist and search mail in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com until 10/3/2027\nRevoke\nlist and search mail in news@example.com until 10/3/2027\nRevoke\nsend mail in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com until 10/3/2027\nRevoke\nsend mail in news@example.com until 10/3/2027\nRevoke\nopen attachments in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com until 10/3/2027\nRevoke\nopen attachments in news@example.com until 10/3/2027\nRevoke\nRevoke all\nDENIED REQUESTS\n\nNo request is denied.",
+      "buttons": [
+        {
+          "text": "Close",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Reconnect",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Disconnect",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Deny",
+          "disabled": false,
+          "aria": "Deny An agent with a deliberately long registry name that goes on"
+        },
+        {
+          "text": "Allow",
+          "disabled": false,
+          "aria": "Allow An agent with a deliberately long registry name that goes on"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: read mail in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: read mail in news@example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: list and search mail in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: list and search mail in news@example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: send mail in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: send mail in news@example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: open attachments in a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Revoke",
+          "disabled": false,
+          "aria": "Revoke for Research desk: open attachments in news@example.com"
+        },
+        {
+          "text": "Revoke all",
+          "disabled": false,
+          "aria": "Revoke all for Research desk"
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "allow-expired",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nNot done: That request expired before it was answered; the agent must ask again.\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox not connected\n\nWaiting for your answer in Fabric Inbox.\n\nConnect\nWAITING FOR YOUR ANSWER\nResearch desk\n\nAn agent registered as research-desk.default (installed by sshlg-skills installer; source https://github.com/example/research-desk)\n\nlist and search mail, read mail and send mail in news@example.com\n\nIts reason, in its own words: “I summarise the newsletter every morning and file the digest into the project.”\n\nFabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id.\n\nAccess lasts a year unless you revoke it under Agent access in settings.\n\nexpires in 9 min\n\nDeny\nAllow and connect Fabric Inbox\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "calls": [
+        [
+          "decide",
+          "req-1",
+          "allowed"
+        ]
+      ],
+      "focus": "Waiting for your answer"
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "allow-noopen",
+      "text": "AGENT ACCESS\nClose\n\nAgents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory.\n\nAllowed. Connect it in the products section above. Fabric Inbox could not be opened. Is its app installed?\nWhat Fabric saw: No application knows how to open URL fabric-inbox://connect?…\n\nAgents reach Fabric at http://127.0.0.1:47070.\n\nPRODUCTS\n\nFabric Inbox not connected\n\nWaiting for your answer in Fabric Inbox.\n\nConnect\nWAITING FOR YOUR ANSWER\nResearch desk\n\nAn agent registered as research-desk.default (installed by sshlg-skills installer; source https://github.com/example/research-desk)\n\nlist and search mail, read mail and send mail in news@example.com\n\nIts reason, in its own words: “I summarise the newsletter every morning and file the digest into the project.”\n\nFabric checked that an agent with this id is installed on this Mac. It cannot prove which program sent the request: any program running as you could use that id.\n\nAccess lasts a year unless you revoke it under Agent access in settings.\n\nexpires in 9 min\n\nDeny\nAllow and connect Fabric Inbox\nAGENTS WITH ACCESS\n\nNo agent has access through Fabric.\n\nDENIED REQUESTS\n\nNo request is denied.",
+      "calls": [
+        [
+          "decide",
+          "req-1",
+          "allowed"
+        ]
+      ],
+      "focus": "Waiting for your answer"
+    },
+    {
+      "locale": "en",
+      "theme": "dark",
+      "state": "board-allow",
+      "calls": [
+        [
+          "decide",
+          "req-1",
+          "allowed"
+        ]
+      ],
+      "focus": "You allowed Research desk to use Fabric Inbox.",
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "empty",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nПодключить\nЖДУТ ВАШЕГО ОТВЕТА\n\nНи один агент не ждёт ответа.\n\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Подключить",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "loading",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nЧитаем доступ агентов…",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "unreadable",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nНе удалось прочитать доступ агентов. Это не пустой список.\nЧто увидел Fabric: relation \"access_requests\" does not exist\nПопробовать снова",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Попробовать снова",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "hubOff",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nСейчас агенты не могут обратиться к Fabric. Сессии, которые запускает Fabric, это не затрагивает. Порт хаба занят другой программой. Закройте её или выберите свободный порт через FABRIC_HUB_PORT, затем закройте и снова откройте Fabric.\nЧто увидел Fabric: port 47070: EADDRINUSE\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nПодключить\nЖДУТ ВАШЕГО ОТВЕТА\n\nНи один агент не ждёт ответа.\n\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Подключить",
+          "disabled": true,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "notconnected",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nЖдём вашего ответа в Fabric Inbox.\n\nПодключить\nЖДУТ ВАШЕГО ОТВЕТА\nResearch desk\n\nАгент, зарегистрированный как research-desk.default (установил sshlg-skills installer; источник https://github.com/example/research-desk)\n\nпросматривать и искать почту, читать почту и отправлять почту в news@example.com\n\nЕго причина, его словами: «I summarise the newsletter every morning and file the digest into the project.»\n\nFabric проверил, что агент с этим идентификатором установлен на этом Mac. Он не может доказать, какая программа прислала запрос: любая программа, запущенная от вашего имени, может назваться этим идентификатором.\n\nДоступ действует год, если вы не отзовёте его в «Настройки → Доступ агентов».\n\nистекает через 9 мин\n\nОтказать\nРазрешить и подключить Fabric Inbox\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Подключить",
+          "disabled": true,
+          "aria": null
+        },
+        {
+          "text": "Отказать",
+          "disabled": false,
+          "aria": "Отказать: Research desk"
+        },
+        {
+          "text": "Разрешить и подключить Fabric Inbox",
+          "disabled": false,
+          "aria": "Разрешить и подключить Fabric Inbox: Research desk"
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "reconnectWaiting",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox подключён к https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going с 01.10.2026\n\nЖдём вашего ответа в Fabric Inbox. Пока не придёт новый ключ, Fabric пользуется текущим.\n\nПереподключить\nОтключить\nЖДУТ ВАШЕГО ОТВЕТА\n\nНи один агент не ждёт ответа.\n\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Переподключить",
+          "disabled": true,
+          "aria": null
+        },
+        {
+          "text": "Отключить",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "declined",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nВы отклонили подключение в Fabric Inbox.\n\nПодключить\nЖДУТ ВАШЕГО ОТВЕТА\n\nНи один агент не ждёт ответа.\n\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Подключить",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "failed",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nПоследняя попытка не удалась: Хранилище Project Observatory не сохранило ключ, поэтому Fabric Inbox его отзывает.\n\nЧто увидел Fabric: use_secret.py: project fabric has no vault (run vault.py init)\n\nПопробовать снова\nЖДУТ ВАШЕГО ОТВЕТА\n\nНи один агент не ждёт ответа.\n\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Попробовать снова",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "withdrawn",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nПоследняя попытка не удалась: Fabric записал ключ, когда Fabric Inbox уже перестал ждать, поэтому запись отозвана, а Fabric Inbox отзывает ключ. Прежнее подключение уже было заменено, поэтому сейчас Fabric Inbox не подключён; подключите его снова.\n\nПопробовать снова\nЖДУТ ВАШЕГО ОТВЕТА\n\nНи один агент не ждёт ответа.\n\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Попробовать снова",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "connectedLateRecord",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox подключён к https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going с 01.10.2026\n\nПоследняя попытка не удалась: Fabric записал ключ, когда Fabric Inbox уже перестал ждать, и не смог отменить запись. Fabric Inbox отзывает этот ключ, поэтому подключение работать не будет: отключите его и подключите снова.\n\nПереподключить\nОтключить\nЖДУТ ВАШЕГО ОТВЕТА\n\nНи один агент не ждёт ответа.\n\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Переподключить",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Отключить",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "full",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox подключён к https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going с 01.10.2026\n\nПереподключить\nОтключить\nЖДУТ ВАШЕГО ОТВЕТА\nResearch desk\n\nАгент, зарегистрированный как research-desk.default (установил sshlg-skills installer; источник https://github.com/example/research-desk)\n\nпросматривать и искать почту, читать почту и отправлять почту в news@example.com\n\nЕго причина, его словами: «I summarise the newsletter every morning and file the digest into the project.»\n\nFabric проверил, что агент с этим идентификатором установлен на этом Mac. Он не может доказать, какая программа прислала запрос: любая программа, запущенная от вашего имени, может назваться этим идентификатором.\n\nДоступ действует год, если вы не отзовёте его в «Настройки → Доступ агентов».\n\nистекает через 9 мин\n\nОтказать\nРазрешить\nmailbot\n\nАгент, зарегистрированный как mailbot\n\nнастроить рабочее пространство: создать адрес support@example.com\nнастроить рабочее пространство: при создании support@example.com также пересылать копию его почты на адрес, который выберет агент\n\nЕго причина, его словами: «Set up the support box.»\n\nFabric проверил, что агент с этим идентификатором установлен на этом Mac. Он не может доказать, какая программа прислала запрос: любая программа, запущенная от вашего имени, может назваться этим идентификатором.\n\nУ этого агента уже есть доступ через Fabric; этот запрос его расширяет.\n\nДоступ действует год, если вы не отзовёте его в «Настройки → Доступ агентов».\n\nистекает через 9 мин\n\nОтказать\nРазрешить\nАГЕНТЫ С ДОСТУПОМ\nResearch desk\n\nresearch-desk.default\n\nчитать почту в news@example.com до 03.10.2027\nОтозвать\nчитать почту в аккаунте Gmail 1234567890 до 03.10.2027\nОтозвать\nпросматривать и искать почту в news@example.com до 03.10.2027\nОтозвать\nпросматривать и искать почту в аккаунте Gmail 1234567890 до 03.10.2027\nОтозвать\nОтозвать всё\nmailbot\n\nБольше ничего не разрешено; учётные данные привязки по-прежнему опознают агента.\n\nОтозвать всё\nОТКЛОНЁННЫЕ ЗАПРОСЫ\nSpammer просил: отправлять почту в ceo@example.com\nСнять отказ",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Переподключить",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Отключить",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Отказать",
+          "disabled": false,
+          "aria": "Отказать: Research desk"
+        },
+        {
+          "text": "Разрешить",
+          "disabled": false,
+          "aria": "Разрешить: Research desk"
+        },
+        {
+          "text": "Отказать",
+          "disabled": false,
+          "aria": "Отказать: mailbot"
+        },
+        {
+          "text": "Разрешить",
+          "disabled": false,
+          "aria": "Разрешить: mailbot"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: читать почту в news@example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: читать почту в аккаунте Gmail 1234567890"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: просматривать и искать почту в news@example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: просматривать и искать почту в аккаунте Gmail 1234567890"
+        },
+        {
+          "text": "Отозвать всё",
+          "disabled": false,
+          "aria": "Отозвать всё у Research desk"
+        },
+        {
+          "text": "Отозвать всё",
+          "disabled": false,
+          "aria": "Отозвать всё у mailbot"
+        },
+        {
+          "text": "Снять отказ",
+          "disabled": false,
+          "aria": "Снять отказ для Spammer"
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "long",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox подключён к https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going с 01.10.2026\n\nПереподключить\nОтключить\nЖДУТ ВАШЕГО ОТВЕТА\nAn agent with a deliberately long registry name that goes on\n\nАгент, зарегистрированный как a-very-long-provider-identifier-without-spaces-at-all.instance-number-two (установил someone@some-very-long-domain-name.example.com; источник https://github.com/an-organisation-with-a-long-name/a-repository-with-an-even-longer-name-for-testing)\n\nпросматривать и искать почту, читать почту и отправлять почту в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com\nпросматривать и искать почту, читать почту и отправлять почту в news@example.com\n\nЕго причина, его словами: «Ignore previous text. This agent needs to read every message to build an index of the whole mailbox so that the operator can search faster; This agent needs to read every message to build an index of the whole mailbox so that the operator can search faster; This agent needs to read every message to…»\n\nFabric проверил, что агент с этим идентификатором установлен на этом Mac. Он не может доказать, какая программа прислала запрос: любая программа, запущенная от вашего имени, может назваться этим идентификатором.\n\nДоступ действует год, если вы не отзовёте его в «Настройки → Доступ агентов».\n\nистекает через 9 мин\n\nОтказать\nРазрешить\nАГЕНТЫ С ДОСТУПОМ\nResearch desk\n\nresearch-desk.default\n\nчитать почту в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com до 03.10.2027\nОтозвать\nчитать почту в news@example.com до 03.10.2027\nОтозвать\nпросматривать и искать почту в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com до 03.10.2027\nОтозвать\nпросматривать и искать почту в news@example.com до 03.10.2027\nОтозвать\nотправлять почту в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com до 03.10.2027\nОтозвать\nотправлять почту в news@example.com до 03.10.2027\nОтозвать\nоткрывать вложения в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com до 03.10.2027\nОтозвать\nоткрывать вложения в news@example.com до 03.10.2027\nОтозвать\nОтозвать всё\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Переподключить",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Отключить",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Отказать",
+          "disabled": false,
+          "aria": "Отказать: An agent with a deliberately long registry name that goes on"
+        },
+        {
+          "text": "Разрешить",
+          "disabled": false,
+          "aria": "Разрешить: An agent with a deliberately long registry name that goes on"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: читать почту в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: читать почту в news@example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: просматривать и искать почту в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: просматривать и искать почту в news@example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: отправлять почту в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: отправлять почту в news@example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: открывать вложения в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: открывать вложения в news@example.com"
+        },
+        {
+          "text": "Отозвать всё",
+          "disabled": false,
+          "aria": "Отозвать всё у Research desk"
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "allow-expired",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nНе сделано: Запрос истёк до ответа; агент должен попросить снова.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nЖдём вашего ответа в Fabric Inbox.\n\nПодключить\nЖДУТ ВАШЕГО ОТВЕТА\nResearch desk\n\nАгент, зарегистрированный как research-desk.default (установил sshlg-skills installer; источник https://github.com/example/research-desk)\n\nпросматривать и искать почту, читать почту и отправлять почту в news@example.com\n\nЕго причина, его словами: «I summarise the newsletter every morning and file the digest into the project.»\n\nFabric проверил, что агент с этим идентификатором установлен на этом Mac. Он не может доказать, какая программа прислала запрос: любая программа, запущенная от вашего имени, может назваться этим идентификатором.\n\nДоступ действует год, если вы не отзовёте его в «Настройки → Доступ агентов».\n\nистекает через 9 мин\n\nОтказать\nРазрешить и подключить Fabric Inbox\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "calls": [
+        [
+          "decide",
+          "req-1",
+          "allowed"
+        ]
+      ],
+      "focus": "Ждут вашего ответа"
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "allow-noopen",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nРазрешено, но не подключено: Не удалось открыть Fabric Inbox. Установлено ли его приложение? Подключите его в разделе «Продукты» выше.\nЧто увидел Fabric: No application knows how to open URL fabric-inbox://connect?…\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nЖдём вашего ответа в Fabric Inbox.\n\nПодключить\nЖДУТ ВАШЕГО ОТВЕТА\nResearch desk\n\nАгент, зарегистрированный как research-desk.default (установил sshlg-skills installer; источник https://github.com/example/research-desk)\n\nпросматривать и искать почту, читать почту и отправлять почту в news@example.com\n\nЕго причина, его словами: «I summarise the newsletter every morning and file the digest into the project.»\n\nFabric проверил, что агент с этим идентификатором установлен на этом Mac. Он не может доказать, какая программа прислала запрос: любая программа, запущенная от вашего имени, может назваться этим идентификатором.\n\nДоступ действует год, если вы не отзовёте его в «Настройки → Доступ агентов».\n\nистекает через 9 мин\n\nОтказать\nРазрешить и подключить Fabric Inbox\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "calls": [
+        [
+          "decide",
+          "req-1",
+          "allowed"
+        ]
+      ],
+      "focus": "Ждут вашего ответа"
+    },
+    {
+      "locale": "ru",
+      "theme": "light",
+      "state": "board-allow",
+      "calls": [
+        [
+          "decide",
+          "req-1",
+          "allowed"
+        ]
+      ],
+      "focus": "Research desk: доступ к Fabric Inbox разрешён.",
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "empty",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nПодключить\nЖДУТ ВАШЕГО ОТВЕТА\n\nНи один агент не ждёт ответа.\n\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Подключить",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "loading",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nЧитаем доступ агентов…",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "unreadable",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nНе удалось прочитать доступ агентов. Это не пустой список.\nЧто увидел Fabric: relation \"access_requests\" does not exist\nПопробовать снова",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Попробовать снова",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "hubOff",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nСейчас агенты не могут обратиться к Fabric. Сессии, которые запускает Fabric, это не затрагивает. Порт хаба занят другой программой. Закройте её или выберите свободный порт через FABRIC_HUB_PORT, затем закройте и снова откройте Fabric.\nЧто увидел Fabric: port 47070: EADDRINUSE\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nПодключить\nЖДУТ ВАШЕГО ОТВЕТА\n\nНи один агент не ждёт ответа.\n\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Подключить",
+          "disabled": true,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "notconnected",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nЖдём вашего ответа в Fabric Inbox.\n\nПодключить\nЖДУТ ВАШЕГО ОТВЕТА\nResearch desk\n\nАгент, зарегистрированный как research-desk.default (установил sshlg-skills installer; источник https://github.com/example/research-desk)\n\nпросматривать и искать почту, читать почту и отправлять почту в news@example.com\n\nЕго причина, его словами: «I summarise the newsletter every morning and file the digest into the project.»\n\nFabric проверил, что агент с этим идентификатором установлен на этом Mac. Он не может доказать, какая программа прислала запрос: любая программа, запущенная от вашего имени, может назваться этим идентификатором.\n\nДоступ действует год, если вы не отзовёте его в «Настройки → Доступ агентов».\n\nистекает через 9 мин\n\nОтказать\nРазрешить и подключить Fabric Inbox\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Подключить",
+          "disabled": true,
+          "aria": null
+        },
+        {
+          "text": "Отказать",
+          "disabled": false,
+          "aria": "Отказать: Research desk"
+        },
+        {
+          "text": "Разрешить и подключить Fabric Inbox",
+          "disabled": false,
+          "aria": "Разрешить и подключить Fabric Inbox: Research desk"
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "reconnectWaiting",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox подключён к https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going с 01.10.2026\n\nЖдём вашего ответа в Fabric Inbox. Пока не придёт новый ключ, Fabric пользуется текущим.\n\nПереподключить\nОтключить\nЖДУТ ВАШЕГО ОТВЕТА\n\nНи один агент не ждёт ответа.\n\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Переподключить",
+          "disabled": true,
+          "aria": null
+        },
+        {
+          "text": "Отключить",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "declined",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nВы отклонили подключение в Fabric Inbox.\n\nПодключить\nЖДУТ ВАШЕГО ОТВЕТА\n\nНи один агент не ждёт ответа.\n\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Подключить",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "failed",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nПоследняя попытка не удалась: Хранилище Project Observatory не сохранило ключ, поэтому Fabric Inbox его отзывает.\n\nЧто увидел Fabric: use_secret.py: project fabric has no vault (run vault.py init)\n\nПопробовать снова\nЖДУТ ВАШЕГО ОТВЕТА\n\nНи один агент не ждёт ответа.\n\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Попробовать снова",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "withdrawn",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nПоследняя попытка не удалась: Fabric записал ключ, когда Fabric Inbox уже перестал ждать, поэтому запись отозвана, а Fabric Inbox отзывает ключ. Прежнее подключение уже было заменено, поэтому сейчас Fabric Inbox не подключён; подключите его снова.\n\nПопробовать снова\nЖДУТ ВАШЕГО ОТВЕТА\n\nНи один агент не ждёт ответа.\n\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Попробовать снова",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "connectedLateRecord",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox подключён к https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going с 01.10.2026\n\nПоследняя попытка не удалась: Fabric записал ключ, когда Fabric Inbox уже перестал ждать, и не смог отменить запись. Fabric Inbox отзывает этот ключ, поэтому подключение работать не будет: отключите его и подключите снова.\n\nПереподключить\nОтключить\nЖДУТ ВАШЕГО ОТВЕТА\n\nНи один агент не ждёт ответа.\n\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Переподключить",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Отключить",
+          "disabled": false,
+          "aria": null
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "full",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox подключён к https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going с 01.10.2026\n\nПереподключить\nОтключить\nЖДУТ ВАШЕГО ОТВЕТА\nResearch desk\n\nАгент, зарегистрированный как research-desk.default (установил sshlg-skills installer; источник https://github.com/example/research-desk)\n\nпросматривать и искать почту, читать почту и отправлять почту в news@example.com\n\nЕго причина, его словами: «I summarise the newsletter every morning and file the digest into the project.»\n\nFabric проверил, что агент с этим идентификатором установлен на этом Mac. Он не может доказать, какая программа прислала запрос: любая программа, запущенная от вашего имени, может назваться этим идентификатором.\n\nДоступ действует год, если вы не отзовёте его в «Настройки → Доступ агентов».\n\nистекает через 9 мин\n\nОтказать\nРазрешить\nmailbot\n\nАгент, зарегистрированный как mailbot\n\nнастроить рабочее пространство: создать адрес support@example.com\nнастроить рабочее пространство: при создании support@example.com также пересылать копию его почты на адрес, который выберет агент\n\nЕго причина, его словами: «Set up the support box.»\n\nFabric проверил, что агент с этим идентификатором установлен на этом Mac. Он не может доказать, какая программа прислала запрос: любая программа, запущенная от вашего имени, может назваться этим идентификатором.\n\nУ этого агента уже есть доступ через Fabric; этот запрос его расширяет.\n\nДоступ действует год, если вы не отзовёте его в «Настройки → Доступ агентов».\n\nистекает через 9 мин\n\nОтказать\nРазрешить\nАГЕНТЫ С ДОСТУПОМ\nResearch desk\n\nresearch-desk.default\n\nчитать почту в news@example.com до 03.10.2027\nОтозвать\nчитать почту в аккаунте Gmail 1234567890 до 03.10.2027\nОтозвать\nпросматривать и искать почту в news@example.com до 03.10.2027\nОтозвать\nпросматривать и искать почту в аккаунте Gmail 1234567890 до 03.10.2027\nОтозвать\nОтозвать всё\nmailbot\n\nБольше ничего не разрешено; учётные данные привязки по-прежнему опознают агента.\n\nОтозвать всё\nОТКЛОНЁННЫЕ ЗАПРОСЫ\nSpammer просил: отправлять почту в ceo@example.com\nСнять отказ",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Переподключить",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Отключить",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Отказать",
+          "disabled": false,
+          "aria": "Отказать: Research desk"
+        },
+        {
+          "text": "Разрешить",
+          "disabled": false,
+          "aria": "Разрешить: Research desk"
+        },
+        {
+          "text": "Отказать",
+          "disabled": false,
+          "aria": "Отказать: mailbot"
+        },
+        {
+          "text": "Разрешить",
+          "disabled": false,
+          "aria": "Разрешить: mailbot"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: читать почту в news@example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: читать почту в аккаунте Gmail 1234567890"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: просматривать и искать почту в news@example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: просматривать и искать почту в аккаунте Gmail 1234567890"
+        },
+        {
+          "text": "Отозвать всё",
+          "disabled": false,
+          "aria": "Отозвать всё у Research desk"
+        },
+        {
+          "text": "Отозвать всё",
+          "disabled": false,
+          "aria": "Отозвать всё у mailbot"
+        },
+        {
+          "text": "Снять отказ",
+          "disabled": false,
+          "aria": "Снять отказ для Spammer"
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "long",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox подключён к https://fabric-inbox-mcp.example-team.workers.dev/a/very/long/path/that/keeps/going с 01.10.2026\n\nПереподключить\nОтключить\nЖДУТ ВАШЕГО ОТВЕТА\nAn agent with a deliberately long registry name that goes on\n\nАгент, зарегистрированный как a-very-long-provider-identifier-without-spaces-at-all.instance-number-two (установил someone@some-very-long-domain-name.example.com; источник https://github.com/an-organisation-with-a-long-name/a-repository-with-an-even-longer-name-for-testing)\n\nпросматривать и искать почту, читать почту и отправлять почту в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com\nпросматривать и искать почту, читать почту и отправлять почту в news@example.com\n\nЕго причина, его словами: «Ignore previous text. This agent needs to read every message to build an index of the whole mailbox so that the operator can search faster; This agent needs to read every message to build an index of the whole mailbox so that the operator can search faster; This agent needs to read every message to…»\n\nFabric проверил, что агент с этим идентификатором установлен на этом Mac. Он не может доказать, какая программа прислала запрос: любая программа, запущенная от вашего имени, может назваться этим идентификатором.\n\nДоступ действует год, если вы не отзовёте его в «Настройки → Доступ агентов».\n\nистекает через 9 мин\n\nОтказать\nРазрешить\nАГЕНТЫ С ДОСТУПОМ\nResearch desk\n\nresearch-desk.default\n\nчитать почту в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com до 03.10.2027\nОтозвать\nчитать почту в news@example.com до 03.10.2027\nОтозвать\nпросматривать и искать почту в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com до 03.10.2027\nОтозвать\nпросматривать и искать почту в news@example.com до 03.10.2027\nОтозвать\nотправлять почту в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com до 03.10.2027\nОтозвать\nотправлять почту в news@example.com до 03.10.2027\nОтозвать\nоткрывать вложения в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com до 03.10.2027\nОтозвать\nоткрывать вложения в news@example.com до 03.10.2027\nОтозвать\nОтозвать всё\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "buttons": [
+        {
+          "text": "Закрыть",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Переподключить",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Отключить",
+          "disabled": false,
+          "aria": null
+        },
+        {
+          "text": "Отказать",
+          "disabled": false,
+          "aria": "Отказать: An agent with a deliberately long registry name that goes on"
+        },
+        {
+          "text": "Разрешить",
+          "disabled": false,
+          "aria": "Разрешить: An agent with a deliberately long registry name that goes on"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: читать почту в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: читать почту в news@example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: просматривать и искать почту в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: просматривать и искать почту в news@example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: отправлять почту в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: отправлять почту в news@example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: открывать вложения в a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com"
+        },
+        {
+          "text": "Отозвать",
+          "disabled": false,
+          "aria": "Отозвать у Research desk: открывать вложения в news@example.com"
+        },
+        {
+          "text": "Отозвать всё",
+          "disabled": false,
+          "aria": "Отозвать всё у Research desk"
+        }
+      ],
+      "overflow": [],
+      "errors": []
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "allow-expired",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nНе сделано: Запрос истёк до ответа; агент должен попросить снова.\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nЖдём вашего ответа в Fabric Inbox.\n\nПодключить\nЖДУТ ВАШЕГО ОТВЕТА\nResearch desk\n\nАгент, зарегистрированный как research-desk.default (установил sshlg-skills installer; источник https://github.com/example/research-desk)\n\nпросматривать и искать почту, читать почту и отправлять почту в news@example.com\n\nЕго причина, его словами: «I summarise the newsletter every morning and file the digest into the project.»\n\nFabric проверил, что агент с этим идентификатором установлен на этом Mac. Он не может доказать, какая программа прислала запрос: любая программа, запущенная от вашего имени, может назваться этим идентификатором.\n\nДоступ действует год, если вы не отзовёте его в «Настройки → Доступ агентов».\n\nистекает через 9 мин\n\nОтказать\nРазрешить и подключить Fabric Inbox\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "calls": [
+        [
+          "decide",
+          "req-1",
+          "allowed"
+        ]
+      ],
+      "focus": "Ждут вашего ответа"
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "allow-noopen",
+      "text": "ДОСТУП АГЕНТОВ\nЗакрыть\n\nАгенты, зарегистрированные на этом Mac, могут попросить доступ к подключённому продукту через Fabric. Вы решаете один раз на запрос; Fabric сверяет каждый вызов с тем, что вы разрешили, а ключ продукта хранит в хранилище Project Observatory.\n\nРазрешено, но не подключено: Не удалось открыть Fabric Inbox. Установлено ли его приложение? Подключите его в разделе «Продукты» выше.\nЧто увидел Fabric: No application knows how to open URL fabric-inbox://connect?…\n\nАгенты обращаются к Fabric по адресу http://127.0.0.1:47070.\n\nПРОДУКТЫ\n\nFabric Inbox не подключён\n\nЖдём вашего ответа в Fabric Inbox.\n\nПодключить\nЖДУТ ВАШЕГО ОТВЕТА\nResearch desk\n\nАгент, зарегистрированный как research-desk.default (установил sshlg-skills installer; источник https://github.com/example/research-desk)\n\nпросматривать и искать почту, читать почту и отправлять почту в news@example.com\n\nЕго причина, его словами: «I summarise the newsletter every morning and file the digest into the project.»\n\nFabric проверил, что агент с этим идентификатором установлен на этом Mac. Он не может доказать, какая программа прислала запрос: любая программа, запущенная от вашего имени, может назваться этим идентификатором.\n\nДоступ действует год, если вы не отзовёте его в «Настройки → Доступ агентов».\n\nистекает через 9 мин\n\nОтказать\nРазрешить и подключить Fabric Inbox\nАГЕНТЫ С ДОСТУПОМ\n\nНи у одного агента нет доступа через Fabric.\n\nОТКЛОНЁННЫЕ ЗАПРОСЫ\n\nОтклонённых запросов нет.",
+      "calls": [
+        [
+          "decide",
+          "req-1",
+          "allowed"
+        ]
+      ],
+      "focus": "Ждут вашего ответа"
+    },
+    {
+      "locale": "ru",
+      "theme": "dark",
+      "state": "board-allow",
+      "calls": [
+        [
+          "decide",
+          "req-1",
+          "allowed"
+        ]
+      ],
+      "focus": "Research desk: доступ к Fabric Inbox разрешён.",
+      "errors": []
+    }
+  ]
+}

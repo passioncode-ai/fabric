@@ -1,0 +1,62 @@
+✔ I3 capacity preserves unknown key and refuses fresh effect (12.324834ms)
+✔ I3 capacity preserves answered key and refuses fresh effect (10.117459ms)
+✔ I3 capacity preserves ran key and refuses fresh effect (109.05775ms)
+✔ I3 all inflight keys occupy admission slots (12.604459ms)
+✔ I3 unproven thrown forward retains unknown and hides raw error (0.360416ms)
+✔ I3 revoked during vault await prevents dispatch (0.291ms)
+✔ I3 expired during vault await prevents dispatch (0.143041ms)
+✔ I3 disconnected during vault await prevents dispatch (0.091292ms)
+✔ I3 reconnected during vault await prevents dispatch (0.107917ms)
+✔ I3 errors before dispatch remain retryable (0.30175ms)
+✔ I3 expired remembered keys release capacity only after 24 hours (9.989167ms)
+✔ I3 actual MCP 6500-deep result retains unknown without second tools/call (25.401125ms)
+✔ I3 actual MCP tool error is fixed text without echoed credentials (7.403833ms)
+✔ I3 successful product output strips credential echoes and stays replayable (0.242125ms)
+✔ I3 cyclic/unserializable/oversize result retains unknown (3.276208ms)
+✔ I3 unknown key never expires in the current process (0.23625ms)
+✔ I3 thrown and returned product diagnostics never expose credential in operations (0.213458ms)
+✔ I3 product depth and node limits refuse before serializing a usable answer (2.556416ms)
+✔ I3 forwarder bounds actual MCP response bytes before SDK decode (39.169208ms)
+✔ I3 binding retirement discards cached output and retains effect facts (0.323458ms)
+✔ I3 inflight completion cannot recache a retired binding answer (0.093209ms)
+✔ I3 retiring a binding during vault await refuses even a stale grant snapshot (0.081958ms)
+✔ ER-5: a remembered idempotency key is not replayed once the grant is revoked (2.512792ms)
+✔ ER-5: a remembered idempotency key is not replayed once the product is disconnected (0.584208ms)
+✔ ER-5: while the grant and the connection hold, the same key still replays and sends nothing (0.393375ms)
+✔ ER-11: an input nested past 16 levels is invalid-arguments before anything is hashed, with its span (0.850208ms)
+✔ ER-11: a throw inside the hop is a failed span and a fixed sentence; the cause is not handed to the agent (0.21025ms)
+✔ ER-13: an agent that has already hung up reads no key and sends nothing; the span says cancelled (0.153083ms)
+✔ ER-13: the caller's signal reaches the forward, so hanging up mid-call aborts it (101.280875ms)
+✔ ER-11: a throw inside an access tool gives the agent a fixed sentence, never the exception text (7.324083ms)
+✔ ER-1: a call cancelled after it reached the product is never sent again with the same key (50.530875ms)
+✔ ER-1: a forward that timed out after it reached the product is outcome-unknown at once, and the same key stays refused (52.661417ms)
+✔ ER-1: a forward that provably sent nothing is said as such, and the same key may try again (102.049542ms)
+✔ ER-1: no text tells an agent to retry a call that may have run (3.094833ms)
+✔ ER-11: a product error is a fixed sentence to the agent; neither the client id nor the product text reaches it (0.178792ms)
+✔ DA-3: answers are remembered under a byte bound; a call too large to keep is still never sent twice (48.929917ms)
+✔ DA-3: revoke drops answer bytes, retains effect facts and refuses replay; settled TTL is swept by another live binding (0.541666ms)
+✖ DA-3: aggregate cached bytes stay bounded without erasing effect keys (118.344167ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 37
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 775.346625
+
+✖ failing tests:
+
+test at apps/desktop/test/hub-call.test.mjs:278:1
+✖ DA-3: aggregate cached bytes stay bounded without erasing effect keys (118.344167ms)
+  AssertionError [ERR_ASSERTION]: fixture never exercised the total cache limit
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/hub-call.test.mjs:282:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

@@ -1,0 +1,102 @@
+{
+  "baseline": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+  "sourceBytes": {
+    "apps/desktop/src/main/agentSurface.ts": "b5f7315ba6ea9ea023fc2ed30288f8475b8f4cd2ed4b72e2647ebfcdd608e4e4",
+    "apps/desktop/src/main/accessStore.ts": "0b5a81cf1edfe31d89ef7dbc1d8cb9e1ebe4e5e3b9853905328571da2b52a8ee",
+    "apps/desktop/src/main/consentPresenter.ts": "4e4186d0b6df6c8c589f2d747f1553a82245d3be6b5a41f1931a441890a08f73",
+    "apps/desktop/src/main/ceoPrivateArchive.ts": "9c64bb9e148a69335b7bced61fc30da60ac692b35eabd7c2b298f0ac9c9b2f8b",
+    "apps/desktop/src/main/hubTools.ts": "d8b0572f6ef3fb16840e1e7afccad6ed33e26a715b89ffc40df15d4e2e6e7283",
+    "apps/desktop/src/main/hubCall.ts": "f0af9012125709481e068018f97dda02d6752d8c3fb3ca61fe7c512295da2625",
+    "apps/desktop/test/hub-call.test.mjs": "15aa6b77f33cdfcfeefb5713682aac7000afb6a60d6b596a33c829c831ad94c7",
+    "scripts/lib/release-gate.mjs": "080218fe21903a1b2c8b25655ae436d2f87c4eb4e2ceece9f71a40ea493e9e34",
+    "scripts/lib/release-mac.mjs": "ce86a0dabc7f546c04c87075162ebc4cdecdd16a604019b3b817b6b7562458fc",
+    "scripts/release-mac.mjs": "31fee7ebef9e3112cae36e64cb44f6aa2d37cb219ebf0414f9956abda5ad8d0e",
+    "scripts/lib/registers.mjs": "587afdcb1a89229090110485f9a5e7c9b34763c10381eee29a1c3719eec16d73",
+    "scripts/check-registers.mjs": "25ac82eeeb0aa36dff85fae358a290e5cbfcc16bfe8ac6b6f6dac4a80a473fc5"
+  },
+  "focused": [
+    {
+      "command": "node --experimental-strip-types --test-force-exit apps/desktop/test/hub-surface.test.mjs",
+      "exit": 0,
+      "passed": 11
+    },
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/consent-presenter.test.mjs",
+      "exit": 0,
+      "passed": 13
+    },
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/hub-access-service.test.mjs",
+      "exit": 0,
+      "passed": 8
+    },
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/ceo-private-archive-codec.test.mjs",
+      "exit": 0,
+      "goldenArchives": 7,
+      "refusalsAndVectors": 71
+    },
+    {
+      "command": "FABRIC_PG_BIN=/opt/homebrew/opt/postgresql@17/bin node apps/desktop/test/run-ceo-private-archive-db.mjs",
+      "exit": 0,
+      "groups": [
+        7,
+        6,
+        6,
+        5
+      ],
+      "scope": "owned Unix-only PostgreSQL and native main process file handling"
+    },
+    {
+      "command": "FABRIC_PG_BIN=/opt/homebrew/opt/postgresql@17/bin node apps/desktop/test/run-hub-access-db.mjs",
+      "exit": 0,
+      "cases": [
+        17,
+        19,
+        6
+      ],
+      "scope": "owned PostgreSQL; actual capped PostgREST-shaped bridge, no real operator"
+    },
+    {
+      "command": "node --experimental-strip-types --test apps/desktop/test/hub-call.test.mjs apps/desktop/test/hub-call-i3.test.mjs",
+      "exit": 0,
+      "passed": 38,
+      "scope": "owned synthetic call/cache and I3 authority fixtures"
+    },
+    {
+      "command": "node --test scripts/test/release-gate.test.mjs scripts/test/release-mac.test.mjs",
+      "exit": 0,
+      "passed": 27,
+      "skipped": 0
+    },
+    {
+      "command": "node --test scripts/test/registers.test.mjs",
+      "exit": 0,
+      "scope": "dated snapshot metadata plus existing register fixtures"
+    }
+  ],
+  "notRun": [
+    "converged full tier",
+    "independent exact replacement SHA acceptance",
+    "live installed app/database upgrade",
+    "protected release approval",
+    "real Inbox source-attested call",
+    "Telegram real chat"
+  ],
+  "aggregateCacheMutation": {
+    "baselineExit": 0,
+    "mutantExit": 1,
+    "assertion": "cached output exceeds its aggregate bound",
+    "removed": "reduceToBound() call in settle",
+    "moduleSha256": "f0af9012125709481e068018f97dda02d6752d8c3fb3ca61fe7c512295da2625",
+    "testSha256": "15aa6b77f33cdfcfeefb5713682aac7000afb6a60d6b596a33c829c831ad94c7",
+    "initial240KiBFixture": "NOT_MEANINGFUL: baseline already failed because per-answer cache rejected duplicated serialization"
+  },
+  "fastTier": {
+    "command": "FABRIC_PG_BIN=/opt/homebrew/opt/postgresql@17/bin bash scripts/ci.sh fast",
+    "exit": 0,
+    "log": "fast7.log",
+    "logSha256": "646c962cce25b8f103cc14ab7a141f2235c87732579f2a168cc160253f5aab29",
+    "scope": "authored converged working source before metadata-only receipt addition; full disposable stack NOT_RUN"
+  }
+}

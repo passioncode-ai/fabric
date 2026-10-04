@@ -1,0 +1,40 @@
+✔ PL10: three fabricated closures with nonexistent single reports refuse (1.402917ms)
+✔ exact candidate receipts for all five levels across three closed iterations clear (1.779042ms)
+✔ validated declared reports may follow the verified source; undeclared, altered and executable paths refuse (0.840375ms)
+✔ artifact reader must be supplied by the committed-file owner (0.166708ms)
+✔ missing report or receipt, wrong bytes and unreadable JSON refuse (0.694292ms)
+✔ schema, count, missing or duplicate levels and reused artifacts refuse (1.313791ms)
+✔ receipt binds version, level, iteration, report and exact candidate; final candidate matches verifiedCommit (1.325292ms)
+✔ same declared reviewerRun across levels or iterations refuses, without proving independence (0.325375ms)
+✔ structured closure refuses open/missing findings, nonclosed status and nonempty blockers (1.263792ms)
+✔ invalid paths are refused before the owner is asked to read them (0.791667ms)
+✔ ledger closure is computed as well: open rows, duplicate headings, hidden exits and version near-misses refuse (1.079791ms)
+✔ the existing hub ledger unconditionally refuses, whether iteration 3 says Started or Not started (1.7785ms)
+✔ historical 0.3.0 ledger remains readable but its legacy text does not qualify a release (2.287375ms)
+✔ real Git-object reader refuses disk-only artifacts and preserves exact committed report bytes (798.670417ms)
+✔ a release requires exactly one finalized changelog entry for its exact version (0.65075ms)
+✔ new releases bind to a verified ancestor; only version and named release metadata can follow it (0.323625ms)
+✔ the identity comes from --identity, --identity=, or FABRIC_SIGN_IDENTITY; never from a default (0.231833ms)
+✔ the flags: --check-only and --tag; an unknown flag or a flag without its value refuses (0.294292ms)
+✔ electron-builder is given the name without its certificate-type prefix, which it refuses (0.086583ms)
+✔ a certificate that cannot sign a Developer ID download refuses, and so does an empty name (0.104958ms)
+✔ the tag names the version the commit carries, or a rehearsal of it; no tag is a local debug build (0.145875ms)
+✔ the signature read back from codesign names its authority and team; anything but Developer ID refuses (0.60525ms)
+✔ the commit: main's tip, or a tag on main checked out by CI, is released; a commit not on main refuses (238.390833ms)
+✔ the commit: without an origin/main to compare with, the release refuses rather than guesses (205.1005ms)
+✔ no team id or identity is written into the release config or the release script (it comes from CI) (1.42225ms)
+  • loaded configuration  file=/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.release.yml
+  • loaded parent configuration  file=/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.yml
+  • loaded configuration  file=/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/release-config-3u7kCa/electron-builder.ci.json
+  • loaded parent configuration  file=/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.release.yml
+  • loaded parent configuration  file=/Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/electron-builder.yml
+✔ electron-builder resolves the release as a signed DMG with the identity CI gave, and unsigned without it (129.933375ms)
+✔ electron-builder never publishes by itself; the workflow publish job does (0.1135ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 862.1705

@@ -1,0 +1,62 @@
+{
+  "reviewed_candidate": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+  "observed_main": "4b992f587255ca2e2aa87536707075c6ebcfa40e",
+  "workspace_pr33_merge": "3f725d37490a753ce5e06673fb3a98395ce9a845",
+  "graph": {
+    "baseline": "41f994a709990ad72621fa834768a8833e7d93e1",
+    "lanes": 12,
+    "packets": 582,
+    "canonical_ids": 250,
+    "source_pins": 59,
+    "COM_ids": [],
+    "COM_sources": [],
+    "manifest_COM_sources": [],
+    "P08_nodes": [
+      {
+        "id": "UP-01",
+        "dispatch": "done",
+        "canonical_ids": [
+          "P-08"
+        ],
+        "evidence": {
+          "path": "docs/reports/2026-10-04-unified-execution/checks/execution.json",
+          "sha256": "083a56a40607dc31fe3ea8e58293ee2f392808a6916fa380ff70d6adaa9c5efa"
+        }
+      },
+      {
+        "id": "P-08.preflight",
+        "dispatch": "done",
+        "canonical_ids": [
+          "P-08"
+        ],
+        "evidence": {
+          "path": "docs/reports/2026-10-04-unified-execution/checks/execution.json",
+          "sha256": "083a56a40607dc31fe3ea8e58293ee2f392808a6916fa380ff70d6adaa9c5efa"
+        }
+      },
+      {
+        "id": "P-08",
+        "dispatch": "owned-elsewhere",
+        "canonical_ids": [
+          "P-08"
+        ],
+        "evidence": null
+      }
+    ],
+    "report_files": 610
+  },
+  "merge_preview": {
+    "command": "git merge-tree --write-tree 3b2878fc 4b992f5",
+    "exit": 1,
+    "tree": "421e2cabd215fb90cbd2f95323a3bea2bae2abb9",
+    "conflicts": [
+      "docs/reports/completeness.html",
+      "docs/reports/map.html"
+    ],
+    "preserved": [
+      "COM source manifest",
+      "verifiedCandidateProblem",
+      "changelogProblem"
+    ]
+  }
+}

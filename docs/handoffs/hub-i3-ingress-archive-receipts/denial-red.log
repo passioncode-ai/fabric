@@ -1,0 +1,37 @@
+✔ ER-2: only the asker that CREATED a request holds its poll secret; an identical ask gets no handle to its status or credential (2.79625ms)
+✔ ER-2: the poll secret is stored only as its hash, in the request event (0.168375ms)
+✔ DA-8: an allowed first request keeps listing the grants it gave after an incremental Allow re-grants one of them (0.355167ms)
+✔ ER-12: an Allow whose credential was never collected within the claim window is not listed as an agent with access (0.26975ms)
+✔ operator acts answer with a code the window can phrase, and an English reason for the log (0.35275ms)
+✔ an incremental request whose asking credential was revoked is refused in plain words, with its code (0.236375ms)
+✔ DA-3: revoking a binding tells the agent.call memory, after the revocation is recorded (0.192542ms)
+✖ I3: a standing denial survives 501 later denials and remains clearable (59.0285ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 68.713375
+
+✖ failing tests:
+
+test at apps/desktop/test/hub-access-service.test.mjs:119:1
+✖ I3: a standing denial survives 501 later denials and remains clearable (59.0285ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'pending'
+  - 'denied'
+  
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/hub-access-service.test.mjs:130:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'pending',
+    expected: 'denied',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,4 @@
+{
+  "original_sha256": "5fc2376e73fc6c1251c1a3dff939496b457f8ff400235e4f0ca92709273a5fa0",
+  "sanitization": "replace reviewer absolute home/worktree path with <review-worktree>; no result lines changed"
+}

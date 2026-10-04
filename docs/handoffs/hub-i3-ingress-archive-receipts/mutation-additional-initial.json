@@ -1,0 +1,50 @@
+[
+  {
+    "case": "standing-denial-cap",
+    "command": [
+      "node",
+      "apps/desktop/test/run-hub-access-db.mjs"
+    ],
+    "baselineExit": 0,
+    "mutantExit": 1
+  },
+  {
+    "case": "consent-singleflight",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "--test-force-exit",
+      "--test-name-pattern",
+      "pending reads are single-flight",
+      "apps/desktop/test/consent-presenter.test.mjs"
+    ],
+    "baselineExit": 1,
+    "mutantExit": 1
+  },
+  {
+    "case": "consent-expiry",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "--test-force-exit",
+      "--test-name-pattern",
+      "request expiring",
+      "apps/desktop/test/consent-presenter.test.mjs"
+    ],
+    "baselineExit": 1,
+    "mutantExit": 1
+  },
+  {
+    "case": "consent-focus",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "--test-force-exit",
+      "--test-name-pattern",
+      "focus lost",
+      "apps/desktop/test/consent-presenter.test.mjs"
+    ],
+    "baselineExit": 1,
+    "mutantExit": 1
+  }
+]

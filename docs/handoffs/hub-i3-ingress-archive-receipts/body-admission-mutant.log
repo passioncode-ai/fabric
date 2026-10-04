@@ -1,0 +1,35 @@
+✖ I3: incomplete bodies are admitted under a bounded credential concurrency (210.19425ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 212.304833
+
+✖ failing tests:
+
+test at apps/desktop/test/hub-surface.test.mjs:53:1
+✖ I3: incomplete bodies are admitted under a bounded credential concurrency (210.19425ms)
+  AssertionError [ERR_ASSERTION]: excess incomplete bodies must be refused before parsing
+  + actual - expected
+  
+  + []
+  - [
+  -   429,
+  -   429,
+  -   429,
+  -   429
+  - ]
+  
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/hub-surface.test.mjs:60:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [Array],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

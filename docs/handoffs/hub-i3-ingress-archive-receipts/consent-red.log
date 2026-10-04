@@ -1,0 +1,82 @@
+✔ a visible window: the prompt has a parent, Deny is the default, Allow is decided (24.063375ms)
+✔ closing the prompt is a Deny (22.529459ms)
+✔ Allow for a product not yet connected also starts its connect flow (22.443334ms)
+✔ in the background: a notification, no prompt, until it is clicked (44.014542ms)
+✔ one prompt at a time, in order; a request answered elsewhere or expired is skipped (44.223416ms)
+✔ UX-3: a window that is open but not focused gets a notification, and the prompt appears when the window comes forward (42.179916ms)
+✔ UX-5: an Allow whose product could not be opened is followed by a message saying so — the Allow stands (43.456875ms)
+✔ UX-11: an answer that was not recorded is a warning, phrased from its code (43.9985ms)
+✔ UX-2: the native prompt speaks the operator's language (22.466458ms)
+✔ UX-3: requests queued while Fabric was in the background are shown when its window gets focus again (42.868917ms)
+✖ I3: pending reads are single-flight before any sheet is opened (1.392958ms)
+✖ I3: focus lost while pending read waits keeps the request queued until resume (22.42625ms)
+✖ I3: a request expiring during a pending read never opens a sheet (20.251833ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 10
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 400.224541
+
+✖ failing tests:
+
+test at apps/desktop/test/consent-presenter.test.mjs:140:1
+✖ I3: pending reads are single-flight before any sheet is opened (1.392958ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'r1',
+  +   'r2'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/consent-presenter.test.mjs:149:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [Array],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/consent-presenter.test.mjs:155:1
+✖ I3: focus lost while pending read waits keeps the request queued until resume (22.42625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/consent-presenter.test.mjs:164:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/consent-presenter.test.mjs:171:1
+✖ I3: a request expiring during a pending read never opens a sheet (20.251833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/consent-presenter.test.mjs:181:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

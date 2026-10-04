@@ -106,7 +106,7 @@ export interface GrantFilter {
 
 export interface AccessStore {
   request(id: string): Promise<AccessRequestRow | null>
-  /** Newest first, at most 500. */
+  /** All matching requests, newest first; a failed/oversize page fails the whole read. */
   requests(filter: RequestFilter): Promise<AccessRequestRow[]>
   /** How many requests match — a count, never the length of a capped page. */
   countRequests(filter: RequestFilter): Promise<number>
@@ -159,8 +159,20 @@ export function createAccessStore(deps: { db: SupabaseClient; journal: Journal; 
       return read(await store.select('access_requests', REQUEST_COLUMNS).eq('id', id).maybeSingle(), 'the access request') as AccessRequestRow | null
     },
     async requests(filter) {
-      const q = narrowed(store.select('access_requests', REQUEST_COLUMNS), filter)
-      return (read(await q.order('requested_at', { ascending: false }).limit(500), 'the access requests') ?? []) as AccessRequestRow[]
+      const eq: Array<readonly [string, string]> = []
+      if (filter.status) eq.push(['status', filter.status])
+      if (filter.agentId) eq.push(['agent_id', filter.agentId])
+      if (filter.callee) eq.push(['callee', filter.callee])
+      // Standing denial is authority, not a display page: an omitted old denial could prompt
+      // again. Read all matching rows under the shared 50,000-row fail-closed ceiling.
+      const all = await store.selectAll('access_requests', REQUEST_COLUMNS, {
+        eq,
+        isNull: filter.standingOnly ? ['denial_cleared_at'] : [],
+        gt: filter.liveAt ? [['expires_at', filter.liveAt]] : [],
+        orderBy: ['requested_at', 'id']
+      })
+      if (all.failed) throw new Error(`the access requests could not be read: ${all.failed}`)
+      return all.rows.reverse() as unknown as AccessRequestRow[]
     },
     async countRequests(filter) {
       const answer = await narrowed(store.select('access_requests', 'id', { count: 'exact', head: true }), filter)

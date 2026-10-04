@@ -487,6 +487,8 @@ export function createAgentCall(deps: HubCallDeps) {
     const answering = perform(binding, args, meta, signal)
     entry.settled = answering.then((o) => {
       try { settle(binding.id, key, entry, o) } catch {
+        // Cache-copy failure preserves an explicit unknown replay outcome. Raw product errors may
+        // contain credentials, so expose only this fixed outcome rather than logging their payload.
         drop(entry)
         entry.state = 'unknown'
         entry.kept = outcomeUnknown(args.agentId, args.capability, 'product-error')

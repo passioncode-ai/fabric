@@ -128,7 +128,7 @@ This section is the upgrade procedure, **not an executed upgrade receipt**. Fabr
 an existing database automatically. The 0.3.1 candidate's compiled contract admits schema **78**
 (the number of applied migration files); the newest migration's filename ends in **80** because
 other work reserved filenames. Do not use `max(version)` or a filename suffix as schema readiness.
-The actual guard is `public.schema_version()` against `src/shared/schemaContract.json`.
+The actual guard is `public.schema_version()` against [the compiled schema contract](../../apps/desktop/src/shared/schemaContract.json).
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath

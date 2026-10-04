@@ -1,0 +1,15 @@
+✖ I3: a request expiring during a pending read never opens a sheet (1.652125ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 0
+ℹ cancelled 1
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3.498708
+
+✖ failing tests:
+
+test at apps/desktop/test/consent-presenter.test.mjs:171:1
+✖ I3: a request expiring during a pending read never opens a sheet (1.652125ms)
+  'Promise resolution is still pending but the event loop has already resolved'

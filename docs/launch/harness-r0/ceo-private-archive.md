@@ -661,3 +661,19 @@ files. No guarded register or ADR was edited; no UI or visual design was changed
 ---
 
 **Made with [ssheleg skills](https://github.com/ssheleg/sshlg-skills)**
+
+
+## Schema-78 compatibility qualification — 2026-10-04
+
+This dated qualification extends the native codec allowlist through schema count78, produced by
+migration filename suffix80; it does not rewrite the earlier frozen codec snapshot. The explicit
+66–78 allowlist and type are in `apps/desktop/src/main/ceoPrivateArchive.ts` symbol
+`PRIVATE_ARCHIVE_LIMITS`. The next unqualified schema79 refuses before digest admission.
+
+`FABRIC_PG_BIN=/opt/homebrew/opt/postgresql@17/bin node apps/desktop/test/run-ceo-private-archive-db.mjs`
+completed exit0 on the I3 correction sources: current SQL export decodes natively, two owners
+import without crossing private history, lost replies recover their original receipts, and native
+main-process file handling roundtrips on an owned Unix-only cluster. The exact output is in
+[the root I3 receipt](../../handoffs/hub-i3-ingress-archive-receipts/archive-green3.log).
+The real running app and the operator database remain NOT_RUN. `ceo-private-archive-codec.test.mjs`
+also preserves77 acceptance and79 refusal; removing78 is caught by a recorded guard-removal patch.

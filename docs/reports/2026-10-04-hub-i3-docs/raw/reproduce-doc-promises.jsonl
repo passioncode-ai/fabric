@@ -1,0 +1,3 @@
+{"case":"expiry","forwards":2,"expectedByADR21":1}
+{"case":"capacity","retryForwardDelta":1,"expectedByADR21":0}
+{"case":"effect-facts-after-forget","forwards":2,"expectedByADR21":1,"caveat":"Direct injected call; HTTP authorization after revocation is not tested here."}

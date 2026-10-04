@@ -115,3 +115,21 @@ test('DA-3: revoking a binding tells the agent.call memory, after the revocation
   assert.deepEqual(await access.revokeBinding(bindingId, OPERATOR), { ok: true })
   assert.deepEqual(told, [{ id: bindingId, journalled: true }], 'the memory was not told the binding was revoked')
 })
+
+test('I3: a standing denial survives 501 later denials and remains clearable', async () => {
+  const {access,shown,tick}=setup()
+  let oldest
+  for(let i=0;i<502;i++) {
+    const r=await access.request(DOOR,ask({resources:[`mail${i}@example.com`]}))
+    assert.equal(r.status,'pending')
+    if(!i) oldest=r
+    assert.equal((await access.decide(r.requestId,'denied',OPERATOR)).ok,true)
+    tick(1)
+  }
+  const prompts=shown.length
+  assert.equal((await access.request(DOOR,ask({resources:['mail0@example.com']}))).status,'denied')
+  assert.equal(shown.length,prompts, 'standing denial must not prompt again')
+  assert.ok((await access.overview()).denials.some(r=>r.requestId===oldest.requestId || r.id===oldest.requestId), 'old denial must remain visible for clearing')
+  assert.equal((await access.clearDenial(oldest.requestId,OPERATOR)).ok,true)
+  assert.equal((await access.request(DOOR,ask({resources:['mail0@example.com']}))).status,'pending')
+})

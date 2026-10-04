@@ -1,0 +1,11 @@
+--- a/apps/desktop/src/main/agentSurface.ts
++++ b/apps/desktop/src/main/agentSurface.ts
+@@ -2309,7 +2309,7 @@
+       chunks.push(chunk)
+     }
+     const end = () => { cleanup(); resolve(Buffer.concat(chunks).toString('utf8')) }
+-    const timer = setTimeout(() => { req.pause(); failed(new BodyReadTimeout()) }, timeoutMs)
++    const timer = setTimeout(() => { req.pause(); failed(new BodyReadTimeout()) }, 60_000)
+     req.on('data', data); req.once('end', end); req.once('aborted', aborted); req.once('error', failed)
+   })
+   if (!raw) return undefined

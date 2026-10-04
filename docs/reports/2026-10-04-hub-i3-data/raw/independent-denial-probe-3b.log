@@ -1,0 +1,4 @@
+CANDIDATE 3b2878fc9283db5fc9a81697ba8538a01630b8d9
+MEASURE standing denials501; denial read500; oldest exact denied request repeated=pending; new prompts=1
+CONTROL newest exact denied request repeated=denied; new prompts=1
+LIMIT model: actual AccessService plus capped in-memory AccessStore; SQL pagination source independently read; no real UI or gateway

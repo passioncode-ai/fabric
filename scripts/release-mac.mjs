@@ -57,15 +57,16 @@ if (JSON.parse(readFileSync(path.join(desktop, 'package.json'), 'utf8')).version
   if (notOnMain) fail(notOnMain)
   const badTag = tagProblem({ tag: args.tag, version })
   if (badTag) fail(badTag)
-  const atHead = (p) => { try { return out('git', ['show', `HEAD:${p}`], { cwd: root }) } catch { return '' } }
+  // Hash review artifacts over exact committed bytes, including terminal newlines.
+  const atHead = (p) => { try { return execFileSync('git', ['show', `HEAD:${p}`], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }) } catch { return '' } }
   const gateText = atHead('docs/launch/release-gate.json')
   const ledgerPath = (() => { try { return JSON.parse(gateText).ledger } catch { return null } })()
   const ledgerText = typeof ledgerPath === 'string' && /^docs\/[\w./-]+\.md$/.test(ledgerPath) && !ledgerPath.includes('..') ? atHead(ledgerPath) : ''
-  const problems = releaseGateProblems({ version, gateText, ledgerText })
+  const problems = releaseGateProblems({ version, gateText, ledgerText, readCommitted: atHead })
   if (problems.length) fail(`the release gate is not clear:\n  ${problems.join('\n  ')}`)
   const changelog = changelogProblem({ version, text: atHead('CHANGELOG.md') })
   if (changelog) fail(changelog)
-  const unverified = verifiedCandidateProblem({ version, gateText }, (a) => out('git', a, { cwd: root }))
+  const unverified = verifiedCandidateProblem({ version, gateText, readCommitted: atHead }, (a) => out('git', a, { cwd: root }))
   if (unverified) fail(unverified)
 }
 const commit = out('git', ['rev-parse', 'HEAD'], { cwd: root })

@@ -360,3 +360,38 @@ record above remains as historical decision context.
     Strict clients using the previous published capability-name schema refuse those arguments.
     The owner correction must cover both the shared definition and manifest capability declarations;
     issue existence or a pushed source branch does not prove published contract/client compatibility.
+
+
+<a id="verification-iteration-3-corrections-2026-10-04"></a>
+## Verification iteration 3 corrections — 2026-10-04
+
+28. **Late-record withdrawal can fail.** This supersedes amendment 13's unconditional
+    “nothing is recorded / withdrawn at once” wording. The connector attempts to withdraw
+    a record that landed after timeout/disconnection. If the withdrawal append fails, the
+    outcome is `withdraw-failed`; the record may remain and a superseded predecessor is
+    not restored by that claim. SCN-133 and `productConnect.ts` symbol `withdraw` expose this
+    recovery state; it is not a successful connection receipt.
+29. **Ingress and response processing are bounded before side effects can be repeated.**
+    External requests reserve admission before credential lookup/body parsing: at most
+    min(32, configured call budget) per bearer and 128 across this listener. Receiving one
+    JSON body has a 10-second default deadline; 408/413 close the request connection.
+    Door per-agent/poll window buckets remain independent. After a vault await, forwarding
+    rechecks live grant/time/connection and cancellation. Product response transport is
+    capped at 8 MiB before SDK decoding; copied successful output additionally uses a
+    4 MiB JSON, depth-64 and 100,000-node limit. Product-declared error payloads do not reach
+    the caller; success credential echoes are scrubbed. These bounds are Fabric choices,
+    not claimed MCP limits. See `agentSurface.ts` symbols `handleExternal`, `readJson`;
+    `hubCall.ts` symbols `perform`, `hop`, `boundedProductOutput`; `productForwarder.ts`
+    symbol `MAX_PRODUCT_RESPONSE_BYTES`, and the I3 regression suites.
+30. **Current private archives admit schema count 78.** The producer in migration suffix80
+    names `schema_version()` = 78; native admission explicitly qualifies 78 while retaining
+    66–77 and refusing 79. Qualification is supported by an owned SQL export → native
+    decode → import/receipt chain, not by widening admission to arbitrary future versions.
+    See `ceoPrivateArchive.ts` symbol `PRIVATE_ARCHIVE_LIMITS` and
+    `run-ceo-private-archive-db.mjs`; no operator database was migrated.
+31. **Consent remains serialized across reads.** The prompt owns its single-flight guard
+    before the pending-state await, then rechecks expiry and the current focused parent.
+    Losing focus keeps a live request queued for resume. All matching standing denials
+    are paged under a stable order; a failed or over-50,000-row read refuses rather than
+    dropping an old denial. See `ConsentPresenter.next`, `AccessStore.requests` and their
+    I3 independent/focused fixtures. Native visual and screen-reader acceptance remains separate.

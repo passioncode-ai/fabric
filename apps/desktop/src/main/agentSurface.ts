@@ -191,7 +191,7 @@ export interface AgentScope {
 }
 
 /**
- * The three numbers that decide how a credential behaves over time. Defaults are
+ * The limits that decide how a credential behaves over time. Defaults are
  * chosen for one honest agent working at human pace, not for a benchmark: an
  * agent that reports a stage, searches memory and records a finding uses single
  * digits a minute. A credential that reaches the budget is in a loop.
@@ -202,12 +202,15 @@ export interface AgentSurfaceLimits {
   /** Calls one credential may make per window. */
   budgetCalls: number
   budgetWindowMs: number
+  /** Maximum time to receive one JSON body, independent of the HTTP server timeout. */
+  bodyReadMs: number
 }
 
 export const DEFAULT_LIMITS: AgentSurfaceLimits = {
   claimWindowMs: 120_000,
   budgetCalls: 120,
-  budgetWindowMs: 60_000
+  budgetWindowMs: 60_000,
+  bodyReadMs: 10_000
 }
 
 export interface AgentSurfaceDeps {
@@ -305,6 +308,9 @@ export class AgentSurface {
   private deps: AgentSurfaceDeps
   private now: () => number
   private limits: AgentSurfaceLimits
+  /** Bounded in-flight requests; hashes identify buckets without retaining raw credentials. */
+  private externalPending = new Map<string, number>()
+  private externalPendingTotal = 0
 
   // Assigned in the body rather than declared as a parameter property: Node's
   // type-stripping loader rejects parameter properties, and this class is
@@ -549,10 +555,14 @@ export class AgentSurface {
 
     let body: unknown
     try {
-      body = await readJson(req)
+      body = await readJson(req, this.limits.bodyReadMs)
     } catch (e) {
       if (e instanceof BodyTooLarge) {
-        AgentSurface.refuse(res, 413, 'request body too large', {}, attempt)
+        AgentSurface.refuse(res, 413, 'request body too large', {'connection':'close'}, attempt)
+        return
+      }
+      if (e instanceof BodyReadTimeout) {
+        AgentSurface.refuse(res, 408, 'request body deadline exceeded', {'connection':'close'}, attempt)
         return
       }
       throw e
@@ -689,72 +699,99 @@ export class AgentSurface {
     ctx: AttemptContext,
     attempt: { refused(reason: string): void; saw(body: unknown): void }
   ): Promise<boolean> {
-    let principal: HubPrincipal | null = null
-    const door = hub.doorToken()
-    if (door && sameToken(token, door)) principal = { kind: 'door' }
-    else {
-      const bearerHash = createHash('sha256').update(token, 'utf8').digest('hex')
-      // Unknown bearers share one small budget, spent BEFORE the lookup: each would otherwise cost a
-      // database read with no budget at all (ER-7). A bearer that authenticated before is not held back.
-      if (!hub.access.knownCredential(token) && !this.knownBearers.has(bearerHash) && !this.spend('unknown-bearers', Math.max(1, Math.ceil(this.limits.budgetCalls / 4)))) {
-        AgentSurface.refuse(res, 429, 'too many unknown credentials; try again later', { 'retry-after': String(Math.max(1, Math.ceil(this.limits.budgetWindowMs / 1000))) }, attempt)
-        return true
-      }
-      try {
-        const binding = await hub.access.authenticate(token)
-        if (binding) {
-          principal = { kind: 'binding', binding }
-          if (this.knownBearers.size >= 1024) this.knownBearers.clear()
-          this.knownBearers.add(bearerHash)
-        } else this.knownBearers.delete(bearerHash)
-      } catch (e) {
-        // Not "unknown credential": the credential could not be CHECKED, and an agent told it is
-        // unknown would discard a valid one. 503 says try again.
-        ops.failed('agentSurface.hub-authenticate', e)
-        AgentSurface.refuse(res, 503, 'the hub cannot check credentials right now; try again', { 'retry-after': '5' }, attempt)
-        return true
-      }
+    // Admission is BEFORE credential lookup/body parsing: a partial body otherwise holds a
+    // request outside every budget. Door poll buckets remain separate after parsing (ER-7).
+    const admissionKey = createHash('sha256').update(token, 'utf8').digest('hex')
+    const pending = this.externalPending.get(admissionKey) ?? 0
+    if (pending >= Math.max(1, Math.min(32, this.limits.budgetCalls)) || this.externalPendingTotal >= 128) {
+      AgentSurface.refuse(res, 429, 'too many concurrent requests', {'connection':'close', 'retry-after':'1'}, attempt)
+      return true
     }
-    if (!principal) return false
-
-    let body: unknown
+    this.externalPending.set(admissionKey, pending + 1)
+    this.externalPendingTotal++
     try {
-      body = await readJson(req)
-    } catch (e) {
-      if (e instanceof BodyTooLarge) {
-        AgentSurface.refuse(res, 413, 'request body too large', {}, attempt)
+      let principal: HubPrincipal | null = null
+      const door = hub.doorToken()
+      if (door && sameToken(token, door)) principal = { kind: 'door' }
+      else {
+        const bearerHash = createHash('sha256').update(token, 'utf8').digest('hex')
+        // Unknown bearers share one small budget, spent BEFORE the lookup: each would otherwise cost a
+        // database read with no budget at all (ER-7). A bearer that authenticated before is not held back.
+        if (!hub.access.knownCredential(token) && !this.knownBearers.has(bearerHash) && !this.spend('unknown-bearers', Math.max(1, Math.ceil(this.limits.budgetCalls / 4)))) {
+          AgentSurface.refuse(res, 429, 'too many unknown credentials; try again later', { 'retry-after': String(Math.max(1, Math.ceil(this.limits.budgetWindowMs / 1000))) }, attempt)
+          return true
+        }
+        try {
+          const binding = await hub.access.authenticate(token)
+          if (binding) {
+            principal = { kind: 'binding', binding }
+            if (this.knownBearers.size >= 1024) this.knownBearers.clear()
+            this.knownBearers.add(bearerHash)
+          } else this.knownBearers.delete(bearerHash)
+        } catch (e) {
+          // Not "unknown credential": the credential could not be CHECKED, and an agent told it is
+          // unknown would discard a valid one. 503 says try again.
+          ops.failed('agentSurface.hub-authenticate', e)
+          AgentSurface.refuse(res, 503, 'the hub cannot check credentials right now; try again', { 'retry-after': '5' }, attempt)
+          return true
+        }
+      }
+      if (!principal) return false
+
+      // Global door/binding window admission precedes body consumption. The door's per-agent
+      // window is charged only once its request identifies an agent or poll (below).
+      const ingressKey = principal.kind === 'door' ? 'door' : `binding:${principal.binding.id}`
+      if (!this.spend(ingressKey, this.limits.budgetCalls * (principal.kind === 'door' ? 5 : 1))) {
+        AgentSurface.refuse(res, 429, 'call budget exhausted before body admission', {'connection':'close', 'retry-after':String(Math.max(1, Math.ceil(this.limits.budgetWindowMs / 1000)))}, attempt)
         return true
       }
-      throw e
-    }
-    attempt.saw(body)
-    if (Array.isArray(body)) {
-      AgentSurface.refuse(res, 400, 'JSON-RPC batches are not accepted', {}, attempt)
-      return true
-    }
+      let body: unknown
+      try {
+        body = await readJson(req, this.limits.bodyReadMs)
+      } catch (e) {
+        if (e instanceof BodyTooLarge) {
+          AgentSurface.refuse(res, 413, 'request body too large', {'connection':'close'}, attempt)
+          return true
+        }
+        if (e instanceof BodyReadTimeout) {
+          AgentSurface.refuse(res, 408, 'request body deadline exceeded', {'connection':'close'}, attempt)
+          return true
+        }
+        throw e
+      }
+      attempt.saw(body)
+      if (Array.isArray(body)) {
+        AgentSurface.refuse(res, 400, 'JSON-RPC batches are not accepted', {}, attempt)
+        return true
+      }
 
-    // The door's bucket is the request being polled, or the agent asking — never the whole door (ER-7).
-    const key = principal.kind === 'door' ? `door:${doorBucket(body)}` : `binding:${principal.binding.id}`
-    ctx.sessionId = principal.kind === 'door' ? 'door' : key
-    const overDoor = principal.kind === 'door' && !this.spend('door', this.limits.budgetCalls * 5)
-    if (overDoor || !this.spend(key, this.limits.budgetCalls)) {
-      const now = this.now()
-      const bucket = this.externalBudget.get(overDoor ? 'door' : key)
-      const retryIn = bucket ? Math.ceil((bucket.windowStart + this.limits.budgetWindowMs - now) / 1000) : 1
-      ops.record({ op: 'agentSurface.budgetExhausted', outcome: 'ok', level: 'warn', detail: { principal: overDoor ? 'door' : key, calls: this.limits.budgetCalls, retry_in_s: retryIn }, ctx: { correlationId: ctx.correlationId, estateId: this.deps.estateId } })
-      AgentSurface.refuse(res, 429, `call budget exhausted: ${this.limits.budgetCalls} calls per ${this.limits.budgetWindowMs / 1000}s. Retry in ${retryIn}s.`, { 'retry-after': String(Math.max(1, retryIn)) }, attempt)
+      // The door's bucket is the request being polled, or the agent asking — never the whole door (ER-7).
+      const key = principal.kind === 'door' ? `door:${doorBucket(body)}` : `binding:${principal.binding.id}`
+      ctx.sessionId = principal.kind === 'door' ? 'door' : key
+      if (principal.kind === 'door' && !this.spend(key, this.limits.budgetCalls)) {
+        const now = this.now()
+        const bucket = this.externalBudget.get(key)
+        const retryIn = bucket ? Math.ceil((bucket.windowStart + this.limits.budgetWindowMs - now) / 1000) : 1
+        ops.record({ op: 'agentSurface.budgetExhausted', outcome: 'ok', level: 'warn', detail: { principal: key, calls: this.limits.budgetCalls, retry_in_s: retryIn }, ctx: { correlationId: ctx.correlationId, estateId: this.deps.estateId } })
+        AgentSurface.refuse(res, 429, `call budget exhausted: ${this.limits.budgetCalls} calls per ${this.limits.budgetWindowMs / 1000}s. Retry in ${retryIn}s.`, { 'retry-after': String(Math.max(1, retryIn)) }, attempt)
+        return true
+      }
+      const server = hub.tools(principal)
+      const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })
+      res.on('close', () => {
+        // Each request owns its server and transport; both end with the response.
+        void transport.close()
+        void server.close()
+      })
+      await server.connect(transport)
+      await transport.handleRequest(req, res, body)
       return true
+    } finally {
+      const remaining = (this.externalPending.get(admissionKey) ?? 1) - 1
+      if (remaining) this.externalPending.set(admissionKey, remaining)
+      else this.externalPending.delete(admissionKey)
+      this.externalPendingTotal--
     }
-    const server = hub.tools(principal)
-    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })
-    res.on('close', () => {
-      // Each request owns its server and transport; both end with the response.
-      void transport.close()
-      void server.close()
-    })
-    await server.connect(transport)
-    await transport.handleRequest(req, res, body)
-    return true
   }
 
   /**
@@ -2250,23 +2287,34 @@ export class BodyTooLarge extends Error {
   }
 }
 
-async function readJson(req: IncomingMessage): Promise<unknown> {
-  const chunks: Buffer[] = []
-  let size = 0
-  for await (const chunk of req) {
-    size += (chunk as Buffer).length
-    // REFUSED, not truncated. A truncated body parses to undefined and the agent
-    // is told its call was malformed, which sends it to fix a message that was
-    // fine — the failure has to name its own cause.
-    if (size > MAX_BODY_BYTES) throw new BodyTooLarge()
-    chunks.push(chunk as Buffer)
-  }
-  const raw = Buffer.concat(chunks).toString('utf8')
+class BodyReadTimeout extends Error {
+  constructor() { super('request body deadline exceeded') }
+}
+
+async function readJson(req: IncomingMessage, timeoutMs: number): Promise<unknown> {
+  // Event listeners can be removed on timeout without leaving an iterator blocked on next().
+  // The caller sends Connection: close, so the bounded refusal reaches the peer before closure.
+  const raw = await new Promise<string>((resolve, reject) => {
+    const chunks: Buffer[] = []
+    let size = 0
+    const cleanup = () => {
+      clearTimeout(timer)
+      req.off('data', data); req.off('end', end); req.off('aborted', aborted); req.off('error', failed)
+    }
+    const failed = (error: Error) => { cleanup(); reject(error) }
+    const aborted = () => failed(new Error('request body aborted'))
+    const data = (chunk: Buffer) => {
+      size += chunk.length
+      if (size > MAX_BODY_BYTES) { req.pause(); failed(new BodyTooLarge()); return }
+      chunks.push(chunk)
+    }
+    const end = () => { cleanup(); resolve(Buffer.concat(chunks).toString('utf8')) }
+    const timer = setTimeout(() => { req.pause(); failed(new BodyReadTimeout()) }, timeoutMs)
+    req.on('data', data); req.once('end', end); req.once('aborted', aborted); req.once('error', failed)
+  })
   if (!raw) return undefined
-  try {
-    return JSON.parse(raw)
-  } catch (e) {
-        ops.failed('agentSurface.optional-read', e)
+  try { return JSON.parse(raw) } catch (e) {
+    ops.failed('agentSurface.optional-read', e)
     return undefined
   }
 }

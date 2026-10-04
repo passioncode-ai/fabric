@@ -15,7 +15,7 @@ Architecture context: [RPT fabric/2026-10-04-project-communications §Canonical 
 3. Prepare the 0.3.1 release candidate/upgrade evidence and the human protected-environment
    approval request. Never represent local tests, pushed branches or a rehearsal as a release.
 4. Implement COM-01 → COM-02 → COM-03 → COM-04; research remaining packets in parallel,
-   reporting dependencies to the current implementer immediately. COM-05 can follow COM-02.
+   reporting dependencies to the current implementer immediately. COM-05 follows both COM-02 and COM-03.
 5. COM-06 and COM-07 produce operator acceptance; COM-08/09 add optional Telegram transport.
    COM-10/11 provide analysis and compatibility; COM-12/13/14 finish ecosystem rollout.
 6. Private consumer M0/W0 documentation recovery has its own canonical queue and review;
@@ -47,9 +47,13 @@ ready packet. Dependency work may proceed while a release approval or owned-file
 | COM-09 | Telegram replies and agent discussion | P1 | COM-03, COM-04, COM-08 | open |
 | COM-10 | Attribution and Observatory analysis | P1 | COM-02, COM-03 | open |
 | COM-11 | Service monitoring and provider provenance | P1 | COM-03, COM-07 | open |
-| COM-12 | Cross-repository protocol rollout | P1 | COM-04, COM-09, COM-11 | open |
+| COM-12 | Cross-repository protocol rollout | P1 | COM-04, COM-11; COM-09 only for Telegram-enabled rollout | open |
 | COM-13 | Public docs, website and screenshot evidence | P2 | COM-07, COM-12 | open |
-| COM-14 | Failure acceptance, builds and installation | P0 release gate | COM-07, COM-09, COM-10, COM-12 | open |
+| COM-14 | Failure acceptance, builds and installation | P0 release gate | COM-07, COM-10, COM-12; COM-09 only for Telegram-enabled artifacts | open |
+
+The core board/adapters/attribution/monitoring release can pass COM-12/14 with Telegram disabled.
+A build that advertises Telegram requires COM-08/09 and their transport-specific acceptance before
+that feature is enabled; disabled transport is explicitly recorded, never silently graded green.
 
 ## Shared implementation context
 
@@ -204,6 +208,17 @@ already-running session read it: record explicit per-session acknowledgements wh
 Claude and Codex capability receipts; no private consumer names in public artifacts; each module
 has one writable task source. **Resume:** inspect org-index/repositories.json and current open issues
 before creating duplicates; check active edit claims before owner register changes.
+
+**Delivery snapshot 2026-10-04:** owner issues are published: [Adapter #31](https://github.com/passioncode-ai/fabric-agent-adapter/issues/31),
+[Dashboards #26](https://github.com/passioncode-ai/fabric-dashboards/issues/26),
+[Switchboard #36](https://github.com/passioncode-ai/fabric-switchboard/issues/36),
+[Observatory #146](https://github.com/passioncode-ai/project-observatory-dashboard/issues/146),
+[site #37](https://github.com/passioncode-ai/passioncode-ai.github.io/issues/37).
+The shared knowledge packet is integrated in [Workspace PR #33](https://github.com/passioncode-ai/fabric-workspace/pull/33),
+merge `3f725d37490a753ce5e06673fb3a98395ce9a845`; its issue-body/commit receipts are in
+[the owning handoff](https://github.com/passioncode-ai/fabric-workspace/blob/3f725d37490a753ce5e06673fb3a98395ce9a845/docs/handoffs/2026-10-04-hub-com-knowledge.md).
+Existing-session read/acknowledgment, runtime implementation, installed adapter bytes and
+publication of this final Fabric source are still open. This partial delivery does not close COM-12.
 
 ## COM-13 — public product explanation and screenshots
 

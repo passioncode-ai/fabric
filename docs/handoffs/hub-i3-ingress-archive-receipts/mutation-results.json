@@ -1,0 +1,39 @@
+[
+  {
+    "case": "body-admission",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "--test-force-exit",
+      "--test-name-pattern",
+      "incomplete bodies are admitted",
+      "apps/desktop/test/hub-surface.test.mjs"
+    ],
+    "baselineExit": 0,
+    "mutantExit": 1
+  },
+  {
+    "case": "body-deadline",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "--test-force-exit",
+      "--test-name-pattern",
+      "incomplete body expires",
+      "apps/desktop/test/hub-surface.test.mjs"
+    ],
+    "baselineExit": 0,
+    "mutantExit": 1
+  },
+  {
+    "case": "archive-schema78",
+    "command": [
+      "node",
+      "--experimental-strip-types",
+      "--test-force-exit",
+      "apps/desktop/test/ceo-private-archive-codec.test.mjs"
+    ],
+    "baselineExit": 0,
+    "mutantExit": 1
+  }
+]

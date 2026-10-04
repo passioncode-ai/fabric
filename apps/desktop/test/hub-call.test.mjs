@@ -244,7 +244,8 @@ function big({ answerBytes, now }) {
 }
 
 test('DA-3: answers are remembered under a byte bound; a call too large to keep is still never sent twice', async () => {
-  const w = big({ answerBytes: 4 * 1024 * 1024 })
+  // Accepted by the bounded product decoder, but too large for the separate answer cache.
+  const w = big({ answerBytes: 300 * 1024 })
   for (let i = 0; i < 64; i++) await w.call(A, args({ idempotencyKey: `big-${i}` }), undefined)
   const m = w.call.memory()
   assert.ok(m.bytes <= 32 * 1024 * 1024, `the memory holds ${m.bytes} bytes of answers`)
@@ -254,16 +255,35 @@ test('DA-3: answers are remembered under a byte bound; a call too large to keep 
   assert.equal(w.seen.forwards, 64)
 })
 
-test('DA-3: a revoked binding\'s memory is released, and memory past its 24 hours is swept for every binding', async () => {
+test('DA-3: revoke drops answer bytes, retains effect facts and refuses replay; settled TTL is swept by another live binding', async () => {
   let t = Date.now()
   const w = big({ answerBytes: 1000, now: () => t })
   const B = { id: 'b-b', agent_id: 'example-agent.other' }
   await w.call(A, args({ idempotencyKey: 'a1' }), undefined)
   await w.call(B, args({ idempotencyKey: 'b1' }), undefined)
+  const before = w.call.memory().bytes
   w.call.forgetBinding(B.id)
-  assert.equal(w.call.memory().keys, 1, 'the revoked binding\'s answers stayed')
+  assert.equal(w.call.memory().keys, 2, 'revocation erased remembered effect facts')
+  assert.ok(w.call.memory().bytes > 0 && w.call.memory().bytes < before, 'revocation failed to release answer bytes')
+  assert.equal(code(await w.call(B, args({ idempotencyKey: 'b1' }), undefined)), 'binding-revoked')
+  assert.equal(w.seen.forwards, 2)
   t += 25 * 60 * 60 * 1000
-  await w.call(B, args({ idempotencyKey: 'b2' }), undefined)
+  assert.equal(code(await w.call(B, args({ idempotencyKey: 'b2' }), undefined)), 'binding-revoked')
+  const C = { id: 'b-c', agent_id: 'example-agent.third' }
+  await w.call(C, args({ idempotencyKey: 'c1' }), undefined)
   assert.equal(w.call.memory().keys, 1, 'another binding\'s expired memory was never swept')
+  assert.equal(code(await w.call(B, args({ idempotencyKey: 'b1' }), undefined)), 'binding-revoked', 'expiry reopened a retired principal')
+  assert.equal(w.seen.forwards, 3)
+})
+test('DA-3: aggregate cached bytes stay bounded without erasing effect keys', async () => {
+  // ToolAnswer keeps structured content and its text representation: use ~240 KiB per cache entry.
+  const w = big({ answerBytes: 120 * 1024 })
+  for (let i = 0; i < 200; i++) await w.call(A, args({ idempotencyKey: `aggregate-${i}` }), undefined)
+  assert.equal(w.call.memory().keys, 200)
+  assert.ok(w.call.memory().bytes > 30 * 1024 * 1024, 'fixture never exercised the total cache limit')
+  assert.ok(w.call.memory().bytes <= 32 * 1024 * 1024, 'cached output exceeds its aggregate bound')
+  assert.equal(code(await w.call(A, args({ idempotencyKey: 'aggregate-0' }), undefined)), 'answer-not-kept')
+  assert.equal(code(await w.call(A, args({ idempotencyKey: 'aggregate-199' }), undefined)), null)
+  assert.equal(w.seen.forwards, 200, 'cache pressure sent a remembered effect again')
 })
 // #endregion hub-call

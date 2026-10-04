@@ -22,6 +22,15 @@ import { cell, cells } from './markdown-table.mjs'
 
 const SEPARATOR = /^\|[\s:|-]+\|\s*$/
 
+/** Dated report entry points are snapshots only with matching report metadata. */
+export function isDatedReportSnapshot(rel, text) {
+  const match = /^docs\/reports\/(\d{4}-\d{2}-\d{2})-[^/]+\/README\.md$/.exec(rel)
+  if (!match) return false
+  const header = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(text)?.[1] ?? ''
+  return /^report:\s*$/m.test(header) && /^  id:\s*\S+/m.test(header) &&
+    new RegExp(`^  as_of: ${match[1]}\\s*$`, 'm').test(header) && /^  sources:\s*$/m.test(header)
+}
+
 /**
  * The columns of a row, in the form every comparison here wants them.
  *

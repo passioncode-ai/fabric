@@ -1,0 +1,30 @@
+{
+  "reviewedSource": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+  "originalBaseline": "67a5dc42d19357f82156f51dcab7d42db0b0e9df",
+  "command": "node --experimental-strip-types docs/reports/2026-10-04-hub-i3-errors/raw/probes.mjs > docs/reports/2026-10-04-hub-i3-errors/raw/probes.jsonl 2> docs/reports/2026-10-04-hub-i3-errors/raw/probes.stderr",
+  "exit": 1,
+  "runtime": {
+    "node": "v26.8.2",
+    "pnpm": "11.21.0"
+  },
+  "observedSummary": {
+    "total": 19,
+    "failed": 6,
+    "passed": 13
+  },
+  "rederivedSummary": {
+    "total": 19,
+    "failed": 6,
+    "passed": 13
+  },
+  "sha256": {
+    "probes.mjs": "914949bdf3c83c46bf392ea4c772109af11605008f3ed26f50acb4f775aaa1ee",
+    "probes.jsonl": "2d75cc468ecd7c58d0437ea40695cac7e88372ab7c8eefdffb884a3a7f7040ca",
+    "probes.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "scope": "synthetic ephemeral loopback fixtures and controlled authority/vault doubles only",
+  "productSourceEdited": false,
+  "liveProductTests": false,
+  "authorRecoveryReportsUsed": false,
+  "rootOwnsMapLedgerAndIndex": true
+}

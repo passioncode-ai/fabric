@@ -1,0 +1,40 @@
+✔ a visible window: the prompt has a parent, Deny is the default, Allow is decided (22.610792ms)
+✔ closing the prompt is a Deny (22.263959ms)
+✔ Allow for a product not yet connected also starts its connect flow (22.355833ms)
+✔ in the background: a notification, no prompt, until it is clicked (44.610834ms)
+✔ one prompt at a time, in order; a request answered elsewhere or expired is skipped (43.6265ms)
+✔ UX-3: a window that is open but not focused gets a notification, and the prompt appears when the window comes forward (43.790166ms)
+✔ UX-5: an Allow whose product could not be opened is followed by a message saying so — the Allow stands (43.832167ms)
+✔ UX-11: an answer that was not recorded is a warning, phrased from its code (42.08075ms)
+✔ UX-2: the native prompt speaks the operator's language (21.870625ms)
+✔ UX-3: requests queued while Fabric was in the background are shown when its window gets focus again (44.479959ms)
+✔ I3: pending reads are single-flight before any sheet is opened (43.178667ms)
+✔ I3: focus lost while pending read waits keeps the request queued until resume (43.42875ms)
+✖ I3: a request expiring during a pending read never opens a sheet (22.947375ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 12
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 464.341833
+
+✖ failing tests:
+
+test at apps/desktop/test/consent-presenter.test.mjs:171:1
+✖ I3: a request expiring during a pending read never opens a sheet (22.947375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/sshlg/DATA/_worktrees/fabric-hub-i3-fixes-20261004/apps/desktop/test/consent-presenter.test.mjs:181:10)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

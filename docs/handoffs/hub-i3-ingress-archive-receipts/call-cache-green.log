@@ -1,0 +1,46 @@
+✔ I3 capacity preserves unknown key and refuses fresh effect (14.014875ms)
+✔ I3 capacity preserves answered key and refuses fresh effect (11.334125ms)
+✔ I3 capacity preserves ran key and refuses fresh effect (122.582833ms)
+✔ I3 all inflight keys occupy admission slots (13.572875ms)
+✔ I3 unproven thrown forward retains unknown and hides raw error (0.371208ms)
+✔ I3 revoked during vault await prevents dispatch (0.327042ms)
+✔ I3 expired during vault await prevents dispatch (0.15775ms)
+✔ I3 disconnected during vault await prevents dispatch (0.117041ms)
+✔ I3 reconnected during vault await prevents dispatch (0.132083ms)
+✔ I3 errors before dispatch remain retryable (0.201208ms)
+✔ I3 expired remembered keys release capacity only after 24 hours (10.29725ms)
+✔ I3 actual MCP 6500-deep result retains unknown without second tools/call (28.270625ms)
+✔ I3 actual MCP tool error is fixed text without echoed credentials (7.587708ms)
+✔ I3 successful product output strips credential echoes and stays replayable (0.265167ms)
+✔ I3 cyclic/unserializable/oversize result retains unknown (3.447625ms)
+✔ I3 unknown key never expires in the current process (0.223292ms)
+✔ I3 thrown and returned product diagnostics never expose credential in operations (0.220208ms)
+✔ I3 product depth and node limits refuse before serializing a usable answer (2.453375ms)
+✔ I3 forwarder bounds actual MCP response bytes before SDK decode (42.72325ms)
+✔ I3 binding retirement discards cached output and retains effect facts (0.469458ms)
+✔ I3 inflight completion cannot recache a retired binding answer (0.157708ms)
+✔ I3 retiring a binding during vault await refuses even a stale grant snapshot (0.086375ms)
+✔ ER-5: a remembered idempotency key is not replayed once the grant is revoked (3.013625ms)
+✔ ER-5: a remembered idempotency key is not replayed once the product is disconnected (0.638166ms)
+✔ ER-5: while the grant and the connection hold, the same key still replays and sends nothing (0.519ms)
+✔ ER-11: an input nested past 16 levels is invalid-arguments before anything is hashed, with its span (1.654ms)
+✔ ER-11: a throw inside the hop is a failed span and a fixed sentence; the cause is not handed to the agent (0.380667ms)
+✔ ER-13: an agent that has already hung up reads no key and sends nothing; the span says cancelled (1.93625ms)
+✔ ER-13: the caller's signal reaches the forward, so hanging up mid-call aborts it (102.200958ms)
+✔ ER-11: a throw inside an access tool gives the agent a fixed sentence, never the exception text (9.010917ms)
+✔ ER-1: a call cancelled after it reached the product is never sent again with the same key (53.2815ms)
+✔ ER-1: a forward that timed out after it reached the product is outcome-unknown at once, and the same key stays refused (52.656042ms)
+✔ ER-1: a forward that provably sent nothing is said as such, and the same key may try again (103.495334ms)
+✔ ER-1: no text tells an agent to retry a call that may have run (3.8475ms)
+✔ ER-11: a product error is a fixed sentence to the agent; neither the client id nor the product text reaches it (0.233833ms)
+✔ DA-3: answers are remembered under a byte bound; a call too large to keep is still never sent twice (51.798833ms)
+✔ DA-3: revoke drops answer bytes, retains effect facts and refuses replay; settled TTL is swept by another live binding (0.296042ms)
+✔ DA-3: aggregate cached bytes stay bounded without erasing effect keys (79.612584ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 808.974333

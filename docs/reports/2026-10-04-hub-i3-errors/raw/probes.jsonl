@@ -1,0 +1,20 @@
+{"name":"unknown replay within capacity sends once","pass":true,"observed":{"count":1,"code":"outcome-unknown"}}
+{"name":"unknown replay after 256 newer calls must not send twice","pass":false,"observed":{"count":2,"totalCalls":258,"code":"outcome-unknown","memory":{"keys":256,"bytes":0,"bindings":1}}}
+{"name":"throw after dispatch must preserve unknown key","pass":false,"observed":{"count":2,"code":"hub-unavailable","message":"Fabric could not complete this call just now. Nothing was sent. The operator can see why in Fabric's operations log; try again later."}}
+{"name":"revocation during vault await prevents dispatch","pass":false,"observed":{"dispatched":1,"code":null,"outcome":"succeeded"}}
+{"name":"caller cancellation before vault resolves prevents dispatch","pass":true,"observed":{"dispatched":0,"code":"cancelled"}}
+{"name":"parallel matching key dispatches once","pass":true,"observed":{"dispatched":1}}
+{"name":"host mismatch refused before auth","pass":true,"observed":{"status":421,"body":"{\"error\":\"the Host does not name this Fabric loopback listener\"}"}}
+{"name":"browser origin refused before auth","pass":true,"observed":{"status":403,"body":"{\"error\":\"browser origins cannot call the Fabric agent surface\"}"}}
+{"name":"batch refused","pass":true,"observed":{"status":400,"body":"{\"error\":\"JSON-RPC batches are not accepted\"}"}}
+{"name":"oversized envelope gives explicit 413","pass":true,"observed":{"status":413,"body":"{\"error\":\"request body too large\"}"}}
+{"name":"stalled bodies do not bypass admission budget","pass":false,"observed":{"pending":6,"budgetCalls":2,"heldMs":250}}
+{"name":"late vault completion leaves no live connection","pass":true,"observed":{"status":504,"live":null,"events":[]}}
+{"name":"late append is withdrawn","pass":true,"observed":{"status":504,"live":null,"events":["product.connected@1","product.disconnected@1"]}}
+{"name":"second consent during callback refused busy","pass":true,"observed":{"code":"busy"}}
+{"name":"forward deadline before initialization says unreached","pass":true,"observed":{"ok":false,"code":"product-unreachable","message":"the product did not answer within 0.03s","wallMs":31,"reached":false}}
+{"name":"actual deep product answer does not cause duplicate write","pass":false,"observed":{"toolCalls":2,"first":"hub-unavailable","second":"hub-unavailable","message":"Fabric could not complete this call just now. Nothing was sent. The operator can see why in Fabric's operations log; try again later."}}
+{"name":"product tool error cannot disclose callee secret","pass":false,"observed":{"toolCalls":1,"disclosed":true,"clientIdDisclosed":true,"outcome":"failed"}}
+{"name":"changed connection predecessor refuses callback without replacing","pass":true,"observed":{"status":409,"sameLive":true,"writes":0}}
+{"name":"release pin accepts metadata-only and refuses runtime change","pass":true,"observed":{"metadata":null,"runtime":"unverified changes follow the verified commit: apps/desktop/src/main/hubCall.ts"}}
+{"summary":{"total":19,"failed":6,"passed":13}}

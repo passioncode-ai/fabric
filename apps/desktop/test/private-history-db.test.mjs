@@ -53,7 +53,7 @@ const exportFrom = (c, e, person, archive, revision = 1) => c.rpc(`ceo_export_pr
 const A0 = ordinaryOf(src, S)
 const exportU = exportFrom(src, S, U, A0), exportV = exportFrom(src, S, V, A0)
 assert.equal(exportU.ok, true); assert.equal(exportV.ok, true)
-assert.equal(exportU.archive.source_schema_version, 77, 'an export names the schema it was taken from (migration 77)')
+assert.equal(exportU.archive.source_schema_version, Number(src.sql('set role service_role;select schema_version()')), 'an export names the actual applied source schema')
 const bytes = a => new TextEncoder().encode(JSON.stringify(a))
 const decodedU = decodePrivateArchive(bytes(exportU.archive)), decodedV = decodePrivateArchive(bytes(exportV.archive))
 assert.equal(decodedU.digest, exportU.archive.archive_digest, 'SQL and the codec agree on the digest of a real export')

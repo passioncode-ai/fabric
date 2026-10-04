@@ -1,0 +1,11 @@
+--- a/apps/desktop/src/main/consentPresenter.ts
++++ b/apps/desktop/src/main/consentPresenter.ts
+@@ -139,7 +139,7 @@
+       if (!request) return
+       // Authority and the parent may change while the read waits. Keep a live request queued
+       // if the operator moved away; the next focus/resume event will retry its pending read.
+-      const parent = this.inFront()
++      const parent = this.parentWindow()
+       if (!parent) { this.queue.unshift(request); return }
+       const say = this.say()
+       const facts = this.facts(request)

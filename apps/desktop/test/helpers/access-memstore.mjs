@@ -14,7 +14,7 @@ export function memStore({ now = () => Date.now() } = {}) {
     async request(id) { this.reads++; return requests.get(id) ?? null },
     async requests(f) {
       this.reads++
-      return [...requests.values()].filter((r) => matches(r, f)).sort((a, b) => Date.parse(b.requested_at) - Date.parse(a.requested_at)).slice(0, 500)
+      return [...requests.values()].filter((r) => matches(r, f)).sort((a, b) => Date.parse(b.requested_at) - Date.parse(a.requested_at) || b.id.localeCompare(a.id))
     },
     async countRequests(f) { this.reads++; return [...requests.values()].filter((r) => matches(r, f)).length },
     async binding(id) { return bindings.get(id) ?? null },

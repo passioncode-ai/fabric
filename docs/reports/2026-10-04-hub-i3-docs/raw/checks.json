@@ -1,0 +1,22 @@
+[
+  {
+    "command": "node scripts/check-regions.mjs",
+    "exitCode": 0,
+    "output": "check-1.log"
+  },
+  {
+    "command": "node --test scripts/test/release-gate.test.mjs scripts/test/release-mac.test.mjs",
+    "exitCode": 0,
+    "output": "check-2.log"
+  },
+  {
+    "command": "node --test apps/desktop/test/hub-call.test.mjs",
+    "exitCode": 0,
+    "output": "check-3.log"
+  },
+  {
+    "command": "bash scripts/check-docs.sh",
+    "exitCode": 0,
+    "output": "check-4.log"
+  }
+]

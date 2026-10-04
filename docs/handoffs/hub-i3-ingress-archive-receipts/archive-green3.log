@@ -1,0 +1,29 @@
+PASS full migration chain applied, schema_version 78
+PASS 19 helpers and 2 tables unreachable by every role; 4 command(s) reachable by service_role only
+PASS 7 companion vectors: byte-identical canonical strings and digests in SQL
+PASS 4 ordinary archives and the original-bytes case accepted by SQL
+PASS 13 ordinary-journal refusals, each one fixed code from ARCHIVE_REASON_CODES, no body or digest in the message
+PASS budget parity with the codec: depth 32 passes, 33 refuses; keys are not nodes
+PASS 9 companion refusals with the codec's codes
+PASS migration 66 base: 7 groups on an owned cluster; restore, export and import commands NOT_RUN (A1-3, A1-4)
+PASS owner restores into a fresh Estate, owns it at revision 1; the archived founder is never a member, before or after rebuild
+PASS exact retry returns the original receipt; any change under the same operation is idempotency_conflict
+PASS two concurrent identical requests: one target, one original receipt and one repeat
+PASS a legacy boundary is never upgraded; the legacy entry point keeps its A0 guarantee over the shared body
+PASS member, missing Person, forged actor, stale revision, existing target or shell, source=target, edited, malformed and colliding archives: refused, zero rows
+PASS a revision moved by a concurrent change_membership is refused under the row lock, and the retry at the new revision succeeds
+PASS restore_estate_verified: 6 groups on an owned cluster; active-Estate selection and restart NOT_RUN (A1-6, N1)
+PASS export: stale refused, real history decodes in the codec with the same digest, alias and ownership kept, foreign and re-sealed journals refused
+PASS two owners import in both orders into one restored Estate; zero pending requests, no journal event; neither can read the other
+PASS concurrent imports by two owners both commit, each once
+PASS lost reply → receipt → retry returns the original; not_found for an unknown operation; a second import conflicts; a historical repeat creates no pending row
+PASS A→B→C keeps the original Estate, re-binds the source digest, and no journal holds private text
+PASS edited (with and without re-sealing), truncated, unattested, stale-target, foreign, malformed, deep, oversize, wrong-manifest, wrong-target and colliding archives, a forced mid-import failure and a raw append: refused, zero rows
+PASS private export, import and receipt: 6 groups across 7 databases of one owned cluster; native file handling NOT_RUN (A1-6)
+PASS export takes the real ordinary archive, the SQL companion and the codec's decode into three private files
+PASS a refused export leaves no partial directory and lists nothing
+PASS a lost restore reply is resolved by the same operation: one target, history imported, zero pending requests
+PASS a lost import reply is resolved by the same import operation: one receipt, one copy of each message
+PASS another Person's archive, a missing directory, an unknown operation and no held identity: refused, zero rows
+PASS private history in main: 5 groups on an owned cluster; the running app NOT_RUN (N1)
+PASS cleanup: owned PostgreSQL stopped; socket and data directory removed

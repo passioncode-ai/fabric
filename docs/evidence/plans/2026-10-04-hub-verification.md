@@ -198,4 +198,19 @@ See [all DO/PL dispositions](../../handoffs/2026-10-04-hub-docs-plan-disposition
 
 ## Iteration 3
 
-_Not started._
+In progress, independent frozen baseline `3b2878fc9283db5fc9a81697ba8538a01630b8d9`.
+The baseline is rejected. Fresh reviewer reports are immutable snapshots; fixing source does not
+rewrite their verdict. Each reviewer must append an exact-replacement-SHA recheck before exit.
+
+| Level | Independent source/report | Current result |
+|---|---|---|
+| Errors | [ae94574a](https://github.com/passioncode-ai/fabric/blob/ae94574ad99fb1c0e98dbe16ef5cc01abb9f2cd6/docs/reports/2026-10-04-hub-i3-errors/README.md) | request changes: uncertain-key eviction/deep-reply duplicate effects, credential disclosure, partial-body admission, stale vault-await authority |
+| Documentation | [43ef2162](https://github.com/passioncode-ai/fabric/blob/43ef216270d48712d07af450d50c9c13fce3221d/docs/reports/2026-10-04-hub-i3-docs/README.md) | block: recovery/guidance/runtime mismatch; unknown `instance`, late withdrawal wording, path and schema admission |
+| Data | [d286d3cf](https://github.com/passioncode-ai/fabric/blob/d286d3cf4ab2cee837ce6fd001799ac725a0a0e3/docs/reports/2026-10-04-hub-i3-data/README.md) | fail: schema78 native archive rejection and old standing denial re-prompt after capped read |
+| UX | fresh independent review underway | confirmed prompt overlap/expiry/focus and stale overview after Disconnect; author correction/recheck pending |
+| Plan | fresh independent review underway | current-main graph does not cover COM source, P-08 drift and optional Telegram dependency corrected before recompile; replacement recheck pending |
+
+Core author correction [81498b26](../../handoffs/2026-10-04-hub-i3-core.md) is an author receipt,
+not independent acceptance. Root ingress/archive/prompt/denial corrections are in convergence.
+The full tier on the rejected frozen baseline exited1 at the private-archive suite; its later
+stack-backed suites did not run. Focused owned upgrade/access successes do not close that full gate.

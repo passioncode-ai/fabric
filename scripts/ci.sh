@@ -291,6 +291,7 @@ node --experimental-strip-types apps/desktop/test/consent-presenter.test.mjs
 # agent.call past its happy path (replay after revoke, a throw, a hang-up), the door's budgets and ports.
 node --experimental-strip-types apps/desktop/test/hub-access-service.test.mjs
 node --experimental-strip-types apps/desktop/test/hub-call.test.mjs
+node --experimental-strip-types apps/desktop/test/hub-call-i3.test.mjs
 node --experimental-strip-types --test-force-exit apps/desktop/test/hub-surface.test.mjs
 
 step "owned databases: the SQL contract and the reads, on a cluster this run creates and removes"

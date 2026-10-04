@@ -128,7 +128,8 @@ const canon = raw => `select ceo_private_archive_canonical(${jsonb(raw)})`
 const edit = (raw, fn) => { const a = JSON.parse(raw); fn(a); return JSON.stringify(a) }
 refuses('companion wrong schema', canon(edit(empty, a => { a.schema = 'CeoPrivateArchive@2' })), 'unsupported_schema')
 refuses('companion wrong source schema', canon(edit(empty, a => { a.source_schema_version = 65 })), 'unsupported_schema')
-refuses('companion unqualified later source schema', canon(edit(empty, a => { a.source_schema_version = 78 })), 'unsupported_schema')
+assert.equal(refusal(canon(edit(empty, a => { a.source_schema_version = files.length }))), 'accepted', 'companion current applied source schema is qualified')
+refuses('companion unqualified later source schema', canon(edit(empty, a => { a.source_schema_version = files.length + 1 })), 'unsupported_schema')
 refuses('companion non-empty tombstones', canon(edit(empty, a => { a.tombstones = [{}] })), 'invalid_archive')
 refuses('companion unknown field', canon(edit(empty, a => { a.extra = true })), 'invalid_archive')
 refuses('companion unknown operation kind', canon(edit(unicode, a => { a.operations[0].kind = 'close' })), 'invalid_archive')

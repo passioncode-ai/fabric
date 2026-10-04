@@ -1,0 +1,290 @@
+[
+  {
+    "file": "browser-empty-en-light.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=empty&l=en&t=light",
+    "scenario": "SCN-132",
+    "state": "empty",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "en",
+    "theme": "light",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:29:47.761Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-unreadable-en-light.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=unreadable&l=en&t=light",
+    "scenario": "SCN-132",
+    "state": "unreadable",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "en",
+    "theme": "light",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:29:48.308Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-failed-en-light.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=failed&l=en&t=light",
+    "scenario": "SCN-133",
+    "state": "failed",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "en",
+    "theme": "light",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:29:49.656Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-long-en-light.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=long&l=en&t=light",
+    "scenario": "SCN-132",
+    "state": "long",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "en",
+    "theme": "light",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:29:50.740Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-empty-en-dark.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=empty&l=en&t=dark",
+    "scenario": "SCN-132",
+    "state": "empty",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "en",
+    "theme": "dark",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:29:52.027Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-unreadable-en-dark.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=unreadable&l=en&t=dark",
+    "scenario": "SCN-132",
+    "state": "unreadable",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "en",
+    "theme": "dark",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:29:52.564Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-failed-en-dark.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=failed&l=en&t=dark",
+    "scenario": "SCN-133",
+    "state": "failed",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "en",
+    "theme": "dark",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:29:53.882Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-long-en-dark.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=long&l=en&t=dark",
+    "scenario": "SCN-132",
+    "state": "long",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "en",
+    "theme": "dark",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:29:54.947Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-empty-ru-light.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=empty&l=ru&t=light",
+    "scenario": "SCN-132",
+    "state": "empty",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "ru",
+    "theme": "light",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:29:56.226Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-unreadable-ru-light.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=unreadable&l=ru&t=light",
+    "scenario": "SCN-132",
+    "state": "unreadable",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "ru",
+    "theme": "light",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:29:56.775Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-failed-ru-light.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=failed&l=ru&t=light",
+    "scenario": "SCN-133",
+    "state": "failed",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "ru",
+    "theme": "light",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:29:58.117Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-long-ru-light.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=long&l=ru&t=light",
+    "scenario": "SCN-132",
+    "state": "long",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "ru",
+    "theme": "light",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:29:59.181Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-empty-ru-dark.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=empty&l=ru&t=dark",
+    "scenario": "SCN-132",
+    "state": "empty",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "ru",
+    "theme": "dark",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:30:00.455Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-unreadable-ru-dark.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=unreadable&l=ru&t=dark",
+    "scenario": "SCN-132",
+    "state": "unreadable",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "ru",
+    "theme": "dark",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:30:00.995Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-failed-ru-dark.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=failed&l=ru&t=dark",
+    "scenario": "SCN-133",
+    "state": "failed",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "ru",
+    "theme": "dark",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:30:02.325Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  },
+  {
+    "file": "browser-long-ru-dark.png",
+    "revision": "3b2878fc9283db5fc9a81697ba8538a01630b8d9",
+    "route": "http://127.0.0.1:5299/?s=long&l=ru&t=dark",
+    "scenario": "SCN-132",
+    "state": "long",
+    "viewport": {
+      "width": 760,
+      "height": 1000,
+      "devicePixelRatio": 1
+    },
+    "locale": "ru",
+    "theme": "dark",
+    "motion": "reduced",
+    "capturedAt": "2026-10-04T11:30:03.391Z",
+    "source": "Playwright Chromium production-component harness",
+    "fonts": "document.fonts.ready awaited"
+  }
+]

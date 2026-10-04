@@ -1,0 +1,14 @@
+CANDIDATE 3b2878fc9283db5fc9a81697ba8538a01630b8d9
+PASS independent chain migration count78, Unix socket only
+PASS independent principal ACL matrix under Supabase default privileges
+PASS SQL-produced archive source_schema_version78, SQL canonical validation accepted
+MEASURE native admission of actual SQL export: unsupported_schema
+ERROR:  that binding has no unclaimed credential
+CONTEXT:  PL/pgSQL function apply_hub_access(journal) line 135 at RAISE
+SQL statement "SELECT apply_hub_access(e)"
+PL/pgSQL function apply_projections(journal) line 25 at PERFORM
+SQL statement "SELECT apply_projections(v_event)"
+PL/pgSQL function append_event(uuid,text,jsonb,jsonb,text,uuid,uuid,uuid) line 30 at PERFORM
+PASS independent second credential claim refuses atomically, first verifier retained
+PASS independent live access projection rebuild is byte-equivalent JSON
+PASS owned cluster stopped and removed; no live database targeted
