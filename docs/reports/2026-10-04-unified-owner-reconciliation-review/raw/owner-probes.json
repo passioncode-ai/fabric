@@ -1,0 +1,762 @@
+{
+  "candidate": "537ca82d90e7bb814a907209cb303bbed8633e1e",
+  "pinnedParser": "898a3cb4af9bd9dfa8b507fce28bdb008295596c",
+  "fixtureRevision": "6de1328e289ca9260c9ba2ba742e6802018c7109",
+  "results": [
+    {
+      "name": "absent-owner-keeps-inherited-holds",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 18 held/dispatch/design records, 15 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "absent-owner-no-current-authority",
+      "observed": null,
+      "expected": null,
+      "matched": true
+    },
+    {
+      "name": "absent-owner-empty-frontier",
+      "observed": 0,
+      "expected": 0,
+      "matched": true
+    },
+    {
+      "name": "current-owner-compile",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 17 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "one-bounded-candidate-only",
+      "observed": [
+        "P-01.qualify-source"
+      ],
+      "expected": [
+        "P-01.qualify-source"
+      ],
+      "matched": true
+    },
+    {
+      "name": "all-inherited-acceptance-still-held",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "no-parent-done",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "owner-input-full-source-pin",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "derived-suppress-owner-check",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "P-01.qualify-source: unpinned context source docs/evidence/plans/unified-current-reconciliation.json\ncompiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-suppress-owner-next",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "P-01.qualify-source: unpinned context source docs/evidence/plans/unified-current-reconciliation.json\ncompiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-suppress-owner-packet",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "P-01.qualify-source: unpinned context source docs/evidence/plans/unified-current-reconciliation.json\ncompiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-suppress-owner-impacts",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "P-01.qualify-source: unpinned context source docs/evidence/plans/unified-current-reconciliation.json\ncompiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-remove-owner-task-check",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-remove-owner-task-next",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-remove-owner-task-packet",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-remove-owner-task-impacts",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-parent-done-check",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-parent-done-next",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-parent-done-packet",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-parent-done-impacts",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-release-claim-check",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-release-claim-next",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-release-claim-packet",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-release-claim-impacts",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-tasks-claim-check",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-tasks-claim-next",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-tasks-claim-packet",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "derived-tasks-claim-impacts",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "dirty-owner-refuses-frontier",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "expected graph reconstruction: Dirty or forged reconciliation source receipt: docs/evidence/plans/unified-current-reconciliation.json\nsource changed: docs/evidence/plans/unified-current-reconciliation.json\n"
+      }
+    },
+    {
+      "name": "missing-discovered-owner-refuses-frontier",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "P-01.qualify-source: source missing docs/evidence/plans/unified-current-reconciliation.json\nexpected graph reconstruction: Reconciliation source missing or not committed at selected revision\nsource unreadable: docs/evidence/plans/unified-current-reconciliation.json\n"
+      }
+    },
+    {
+      "name": "source-release-actions-refused",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation owner authority cannot grant release or live operations\n"
+      }
+    },
+    {
+      "name": "source-source-done-refused",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation packet fields invalid; no derived status or done authority is accepted\n"
+      }
+    },
+    {
+      "name": "source-source-tasks-capability-refused",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation packet fields invalid; no derived status or done authority is accepted\n"
+      }
+    },
+    {
+      "name": "source-renamed-subject-refused",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation bounded task cannot rename or collide with its owner identity\n"
+      }
+    },
+    {
+      "name": "source-cross-owner-refused",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Unknown or cross-owner reconciliation identity\n"
+      }
+    },
+    {
+      "name": "source-unknown-proof-tier-refused",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Invalid reconciliation dependency\n"
+      }
+    },
+    {
+      "name": "source-cross-workspace-scope-refused",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Unsafe or cross-owner reconciliation path\n"
+      }
+    },
+    {
+      "name": "receipt-null-valid",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 17 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "receipt-null-frontier",
+      "observed": [],
+      "expected": [],
+      "matched": true
+    },
+    {
+      "name": "receipt-NOT_RUN-valid",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 18 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "receipt-NOT_RUN-frontier",
+      "observed": [],
+      "expected": [],
+      "matched": true
+    },
+    {
+      "name": "receipt-FAIL-valid",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 18 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "receipt-FAIL-frontier",
+      "observed": [],
+      "expected": [],
+      "matched": true
+    },
+    {
+      "name": "receipt-PASS-valid",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 18 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "receipt-PASS-frontier",
+      "observed": [
+        "P-01.qualify-source"
+      ],
+      "expected": [
+        "P-01.qualify-source"
+      ],
+      "matched": true
+    },
+    {
+      "name": "receipt-foreign-owner-refused",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation receipt has forged subject, basis, scope or proof tier\n"
+      }
+    },
+    {
+      "name": "receipt-wrong-subject-refused",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation receipt has forged subject, basis, scope or proof tier\n"
+      }
+    },
+    {
+      "name": "receipt-old-basis-refused",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation receipt has forged subject, basis, scope or proof tier\n"
+      }
+    },
+    {
+      "name": "receipt-rebound-scope-refused",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation receipt has forged subject, basis, scope or proof tier\n"
+      }
+    },
+    {
+      "name": "receipt-focused-as-native-refused",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation receipt has forged subject, basis, scope or proof tier\n"
+      }
+    },
+    {
+      "name": "receipt-tasks-as-proof-refused",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation receipt has forged subject, basis, scope or proof tier\n"
+      }
+    },
+    {
+      "name": "changed-descendant-in-existing-directory-scope-refused",
+      "observed": false,
+      "expected": true,
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 17 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "changed-descendant-directory-not-ready",
+      "observed": [
+        false
+      ],
+      "expected": [
+        true
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "{\n  \"ready\": [\n    {\n      \"id\": \"P-01.qualify-source\",\n      \"title\": \"Example-agent bounded qualification\",\n      \"kind\": \"bounded-source-work\",\n      \"priority_group\": 0,\n      \"unblocks\": 0\n    }\n  ],\n  \"held\": [\n    {\n      \"id\": \"UP-01\",\n      \"reasons\": [\n        \"design-gated\"\n      ]\n    },\n    {\n      \"id\": \"P-01.parent\",\n      \"reasons\": [\n        \"design-gated\",\n        \"requires P-01.parent.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance\"\n      ]\n    },\n    {\n      \"id\": \"COM-01\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"COM-02\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"COM-03\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"COM-04\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"COM-05\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"COM-06\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"COM-07\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"COM-08\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"COM-09\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"COM-10\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"COM-11\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"COM-12\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"COM-13\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"COM-14\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"source.ed7ea10cf593bc84\",\n      \"reasons\": [\n        \"owned-elsewhere\"\n      ]\n    },\n    {\n      \"id\": \"P-01.parent.prepare\",\n      \"reasons\": [\n        \"design-gated\"\n      ]\n    }\n  ]\n}\n",
+        "stderr": ""
+      }
+    }
+  ]
+}
