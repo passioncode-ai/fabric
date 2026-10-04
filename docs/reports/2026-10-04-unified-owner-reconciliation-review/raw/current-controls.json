@@ -1,0 +1,86 @@
+{
+  "candidate": "537ca82d90e7bb814a907209cb303bbed8633e1e",
+  "pinnedParser": "898a3cb4af9bd9dfa8b507fce28bdb008295596c",
+  "compilerControlRevision": null,
+  "fixtureRevision": "f4c1857d2871ec17164535357757e4062d8d275c",
+  "results": [
+    {
+      "name": "bounded-owner-positive-compile",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 17 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "fixed-owner-source-discovered",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "one-bounded-owner-ready",
+      "observed": [
+        "P-01.qualify-source"
+      ],
+      "expected": [
+        "P-01.qualify-source"
+      ],
+      "matched": true
+    },
+    {
+      "name": "source-done-refuses-before-output",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation packet fields invalid; no derived status or done authority is accepted\n"
+      }
+    },
+    {
+      "name": "release-grant-refuses-before-output",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation owner authority cannot grant release or live operations\n"
+      }
+    },
+    {
+      "name": "tasks-capability-refuses-before-output",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation packet fields invalid; no derived status or done authority is accepted\n"
+      }
+    }
+  ]
+}

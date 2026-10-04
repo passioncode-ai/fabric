@@ -1,0 +1,84 @@
+{
+  "candidate": "537ca82d90e7bb814a907209cb303bbed8633e1e",
+  "pinnedParser": "898a3cb4af9bd9dfa8b507fce28bdb008295596c",
+  "compilerControlRevision": "edad4f6b553d6dfa7c56466461fb0f6dd9df8cac",
+  "fixtureRevision": "1ae85c50f5f9269d928d4055c3c2e432f24b64e5",
+  "results": [
+    {
+      "name": "bounded-owner-positive-compile",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 18 held/dispatch/design records, 15 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "fixed-owner-source-discovered",
+      "observed": false,
+      "expected": true,
+      "matched": false
+    },
+    {
+      "name": "one-bounded-owner-ready",
+      "observed": [],
+      "expected": [
+        "P-01.qualify-source"
+      ],
+      "matched": false
+    },
+    {
+      "name": "source-done-refuses-before-output",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 18 held/dispatch/design records, 15 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "release-grant-refuses-before-output",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 18 held/dispatch/design records, 15 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "tasks-capability-refuses-before-output",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 18 held/dispatch/design records, 15 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    }
+  ]
+}
