@@ -95,6 +95,10 @@ for d in "${PATH_PARTS[@]}"; do
   case "$NEEDED_DIRS" in *":$d:"*) case ":$JOB_PATH:" in *":$d:"*) ;; *) JOB_PATH="${JOB_PATH:+$JOB_PATH:}$d" ;; esac ;; esac
 done
 for d in /usr/bin /bin /usr/sbin /sbin; do case ":$JOB_PATH:" in *":$d:"*) ;; *) JOB_PATH="$JOB_PATH:$d" ;; esac; done
+# launchd gives a job no locale. PostgreSQL refuses to start without one on macOS ("postmaster became
+# multithreaded during startup"), so every owned-cluster runner of the fast gate failed in the job while it
+# passed in the shell (2026-10-03 13:12Z to 2026-10-04 01:05Z). The job carries the shell's LANG.
+JOB_LANG="${LANG:-en_US.UTF-8}"
 cat >"$PLIST" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -106,6 +110,7 @@ cat >"$PLIST" <<PLIST
   <key>WorkingDirectory</key><string>$CHECKOUT</string>
   <key>EnvironmentVariables</key><dict>
     <key>PATH</key><string>$JOB_PATH</string>
+    <key>LANG</key><string>$JOB_LANG</string>
     <key>FABRIC_WORKSPACE_SYNC_CHECKOUT</key><string>$CHECKOUT</string>
     <key>FABRIC_WORKSPACE_SYNC_LOG</key><string>$LOG</string>
   </dict>
@@ -113,7 +118,10 @@ cat >"$PLIST" <<PLIST
   <key>RunAtLoad</key><false/>
   <key>LowPriorityIO</key><true/>
   <key>Nice</key><integer>10</integer>
-  <key>ProcessType</key><string>Background</string>
+  <!-- Standard, not Background: Background confines the job to efficiency cores and throttles it, and the fast
+       gate it runs has deadlines inside (vitest test and worker timeouts) — at load ~30 three tests timed out
+       (2026-10-04). Nice and LowPriorityIO keep it polite to the person. -->
+  <key>ProcessType</key><string>Standard</string>
   <!-- Longer than the job's own stop path (it kills its step groups and writes its status). -->
   <key>ExitTimeOut</key><integer>30</integer>
   <key>StandardOutPath</key><string>$LOG</string>

@@ -66,34 +66,55 @@ The plan everyone works to: [general development plan](../evidence/backlog.md#ge
   real Electron process was still alive 20 s after SIGTERM) and passes on the coordinator.
 
 ## Open — exact next task
-0. **Other repositories' lifecycle packets** (each an open PR, not merged, not released): fabric-agent-adapter
-   #28 (0.7.0), passioncode #30 (0.1.23, pins the adapter after its release), fabric-dashboards #21,
-   fabric-switchboard #23 (0.5.4, after the owning session's 0.5.3-beta.1), project-observatory-dashboard
-   #125 (rebase after `feat/macos-notarize`, regenerate the inventory), fabric-inbox #12, plus okolos and
-   fabric-vr when their runs report. local-lifecycle BL-1075 landed in sshlg-personal-os `948aa8cb` and the
-   broker was reinstalled (all four apps recognised again).
-1. **Land on `main`** by fast-forward after `bash scripts/ci.sh fast` on the branch head: write the
-   `docs/MERGES.md` entry inside the change (AGENTS.md iteration contract), refresh the map, push `main`,
-   then `node scripts/workspace.mjs sync` and the fabric-workspace PR for `knowledge/plans.md` (AR-1
-   partial, AR-2 in lane 6, a link to the general plan and its Now/Next) and, after publication,
-   `knowledge/products.md` (Fabric 0.3.0).
-2. **P-03 — Fabric 0.3.0, released from CI** ([ADR-0111](../adr/0111-fabric-is-released-from-ci.md),
-   [runbook](../launch/release-mac.md)). `apps/desktop/package.json` is 0.3.0 and `docs/launch/release-gate.json`
-   names 0.3.0 and the verification ledger. Rehearse first, on a commit of `main`:
-   `git tag -a v0.3.0-rc.1 <commit> -m … && git push origin v0.3.0-rc.1`, then
-   `gh workflow run release.yml --ref v0.3.0-rc.1 -f publish=false` (preflight: the commit is on `origin/main`,
-   the tag equals the version, the gate is clear). Then the annotated tag `v0.3.0` on the same commit; the
-   `macos` and `publish` jobs each wait for a release approver who is not the tag's author (khurss or
-   svlab93 when the tag is pushed from the operator's account). It publishes a prerelease in
-   passioncode-ai/fabric with the DMG, `SHA256SUMS` + `.asc` and Sigstore attestations. Then install it in
-   /Applications, walk it, and point `fabric/release.json` in passioncode-ai.github.io at
-   `https://github.com/passioncode-ai/fabric/releases/download/v0.3.0/Fabric-0.3.0-arm64.dmg` with the
-   SHA-256 from `SHA256SUMS`. Signing never happens on this machine (rules §11).
-3. After 0.3.0 is on main and released: tell the lifecycle broker's owner (sshlg-personal-os, BL-1076) so
-   it enrols fabric.desktop with `backgroundLaunch: true` (CO-192).
+Done on 2026-10-04: **Fabric 0.3.0 released** (P-03) — tag `v0.3.0` on `5193022c`, prerelease in
+passioncode-ai/fabric, verified (SHA256SUMS, GPG, attestation, notarization), installed in /Applications,
+served by passioncode.ai; the operator's live database migrated 69 → 75 after a dump
+(`~/DATA/_backups/fabric-local-db/fabric-live-schema69-20261004-015446.dump`, 0600) and a rehearsal on a
+copy; fabric#4 and fabric#5 verified on the released build and closed.
+
+1. **P-08 — Fabric 0.3.1 with the hub** (ADR-0115): the fabric-dashboards session runs its verification
+   on `agent/hub-0.3.1-verification`. 0.3.0 requires exactly schema 75: migration 76 reaches the live
+   database only after 0.3.1 is installed, with the same backup → rehearsal → `supabase migration up`.
+2. **P-06.1 and P-07.1** ([ADR-0109](../adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md),
+   [spec](../evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md)): the learning loop's data
+   model and the `fabric://` door.
+3. **The other products' lifecycle PRs**, each recorded in its own board (2026-10-04 sweep): dashboards
+   #21 (FD-03), inbox #12 (B-46, conflicts with `main`), okolos #11 (B-136, mergeable), vr #9 (B-272,
+   conflicts with `main`), switchboard #23 (SB-27), adapter #28 (FAA-01, rebase onto 0.6.3), launcher #30
+   (PC-03, renumber to 0.1.28). On each rebase keep `main`'s board rows.
+4. The broker's `backgroundLaunch` enrolment for Fabric is BL-1077 in sshlg-personal-os (awaits the
+   operator's go).
+5. **okolos B-139** has a deadline: a fresh feed snapshot must be committed before 2026-10-13T11:42Z, or
+   `pnpm package:check` fails in CI.
+
+### Backlog consolidation, 2026-10-04 — where each board lives
+
+Every unfinished item, open PR and issue was recorded in its owner's board. The common backlog
+(<https://wiki.passioncode.ai/backlog>) is generated from these boards. `node scripts/workspace.mjs lag`
+reported all 13 sources current at 01:36Z, with fabric-vr one commit within grace.
+
+| Repository | Board | Landed at | Rows |
+|---|---|---|---|
+| fabric | `docs/evidence/backlog.md` | `82e4bc06`, `c7388fa9` | P-03 done, P-08; CO-191/192 closed |
+| fabric-workspace | `knowledge/plans.md`, `knowledge/products.md` | `e39620c` (#32) | Fabric 0.3.0, Now P-08 |
+| org-index | `BACKLOG.md` (X-rows) | #35 (peer project-observatory-ce) | X-26…X-30; X-28 covers fabric-workspace #14 and org-index #31 |
+| fabric-dashboards | `docs/backlog.md` | `6679100` | FD-03…FD-08 |
+| fabric-switchboard | its board | `9685a49` | SB-27…SB-30 |
+| fabric-inbox | `docs/evidence/backlog.md` | `8881962` | B-41…B-46 (now has a Status column) |
+| okolos | `docs/backlog.md` | `02f9a61`, `9bdd8e4d` | B-134, B-135 (done → Observatory OBS-32), B-138…B-141 |
+| fabric-vr | `docs/evidence/backlog.md` | `8176144`, `9f6f311`, `d5eebcb` | B-261…B-273; DEC-0105 amends DEC-0104 |
+| fabric-agent-adapter | its board | `e2899c8` | FAA-01…FAA-05 |
+| fabric-agent-contract | its board | `71cdd6e` | CT-01 |
+| passioncode | its board | `69de003`, `afcced7` | PC-03…PC-06, PC-08, PC-09 |
+| project-observatory-dashboard | `docs/backlog.md` | `071760c` (#141), `0419742f` (#143) | OBS-14…OBS-30, OBS-32 |
+| passioncode-ai.github.io | its board | `8ed6d1c`, `25e138f` | SITE-006 closed, SITE-009/010 |
+
+The scheduled publication (`ai.passioncode.fabric-workspace-sync`) failed every run from 2026-10-03 13:12Z
+until 2026-10-04 01:23Z. Its first successful run since then ended `published` at 01:35Z. The causes and
+fixes are recorded in [ADR-0106 § third amendment](../adr/0106-fabric-adopts-the-product-lifecycle-contract.md#third-amendment--the-scheduled-sync-in-launchds-environment-2026-10-04).
 
 ## Human steps
-- Approve the 0.3.0 release jobs in the protected `release` environment: khurss or svlab93 (not the tag's author).
+- Releases: any member of `release-approvers` approves the protected `release` environment, the tag's pusher included ([ADR-0113](../adr/0113-any-release-approver-may-approve-the-tag-pusher-included.md)).
 - CO-181: whether to remove the test residue from the live local database
   (`node scripts/residue-report.mjs` counts it read-only; nothing has been deleted).
 

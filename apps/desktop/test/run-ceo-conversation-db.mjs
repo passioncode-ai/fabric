@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
+import { pgEnv } from './helpers/pg-env.mjs'
 
 const bin = process.env.FABRIC_PG_BIN ?? '/opt/homebrew/opt/postgresql@17/bin'
 if (!existsSync(path.join(bin, 'initdb'))) {
@@ -13,7 +14,7 @@ if (!existsSync(path.join(bin, 'initdb'))) {
 const dir = mkdtempSync(path.join(tmpdir(), 'fabric-ceo-'))
 const data = path.join(dir, 'data'), nonce = randomUUID(), port = '58464'
 const run = (name, args) => execFileSync(path.join(bin, name), args, {
-  encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']
+  encoding: 'utf8', env: pgEnv(), stdio: ['ignore', 'pipe', 'pipe']
 })
 let started = false
 try {

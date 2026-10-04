@@ -139,7 +139,7 @@ Fabric follows the organization's [lifecycle contract](https://github.com/passio
 | The routine/chain cycle and the notifier | the app | 60 s each (`TICK_MS`, `NOTIFY_MS`) | run while the main process runs; start nothing once quitting | quitting (`quit.onQuit`) |
 | Quota reading | the renderer | every 60 s, served from a 2 min reading; a missing or refused credential is held (10 min, or until the screen is unlocked) | — | the app |
 | Local Supabase stack (Docker) | the app's first start (`supabase start -x …`) | — | **keeps running** between launches, by design: the operator's data lives in it and a cold start takes minutes. Only the services Fabric calls run (`src/main/stackServices.ts`) | `supabase stop`, by the operator |
-| `ai.passioncode.fabric-workspace-sync` (launchd) | `scripts/install-workspace-sync.sh` | every 2 h, 110 min watchdog (`superviseJob`), machine-wide publication lock | — | `scripts/install-workspace-sync.sh --uninstall [--purge]` |
+| `ai.passioncode.fabric-workspace-sync` (launchd) | `scripts/install-workspace-sync.sh` | every 2 h, 110 min watchdog (`superviseJob`), machine-wide publication lock; runs with a minimal `PATH` in the shell's order and the shell's `LANG` (PostgreSQL will not start without a locale) | — | `scripts/install-workspace-sync.sh --uninstall [--purge]` |
 
 Fabric honours `--background` (CO-192): a fresh launch with it opens no splash and no window and takes no
 focus until the person activates the app — the machine's lifecycle broker passes it to targets enrolled with
