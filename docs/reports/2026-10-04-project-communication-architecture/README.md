@@ -382,6 +382,11 @@ not zero. Trace IDs correlate evidence and never grant authority.
 
 ## Reproduction and corrections
 
+A fresh depth-1 clone of the pushed branch at `0b319c3fab445889e1366ff87d6fc784c92391fb`
+passed the tracked-artifact/link/model verifier without dependency installation;
+[cold-check.json](raw/cold-check.json) records its hashes and exact commit. This receipt
+commit adds no production implementation or gate closure.
+
 Run `python3 docs/reports/2026-10-04-project-communication-architecture/raw/race_model.py`.
 Each `--mutant generation|attempt|expiry|epoch|unknown` invocation must exit one. The source
 capture is read-only but intentionally performs online fetches; do not mistake rerunning it

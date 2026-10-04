@@ -73,5 +73,22 @@
     "hosted suite dispatch",
     "wiki index publication"
   ],
-  "local_only": "Dependency symlinks and diagnostic temp logs are excluded; task-owned raw receipts are sanitized."
+  "local_only": "Dependency symlinks and diagnostic temp logs are excluded; task-owned raw receipts are sanitized.",
+  "post_commit_checks": [
+    {
+      "command": "node scripts/check-regions.mjs",
+      "exit_code": 0,
+      "closed_regions": 130
+    },
+    {
+      "command": "python3 raw/verify_cold.py in fresh depth-1 clone from authorized origin branch",
+      "exit_code": 0,
+      "commit": "0b319c3fab445889e1366ff87d6fc784c92391fb",
+      "artifact_files": 13,
+      "links_resolve": true,
+      "model_pass": 12,
+      "failing_guard_removals": 5,
+      "receipt": "cold-check.json"
+    }
+  ]
 }

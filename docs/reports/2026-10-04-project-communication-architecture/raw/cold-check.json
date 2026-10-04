@@ -1,0 +1,25 @@
+{
+  "commit": "0b319c3fab445889e1366ff87d6fc784c92391fb",
+  "artifact_files": 13,
+  "links_resolve": true,
+  "model_cases_passed": 12,
+  "guard_removals_failed": 5,
+  "dependencies_required": false,
+  "file_sha256": {
+    "docs/reports/2026-10-04-project-communication-architecture/README.md": "341671b1eab30ede8b719d2a1a68c63803e084a106ec790cd15ce98cfc29176b",
+    "docs/handoffs/2026-10-04-project-comms-implementation-packets.md": "be153ac7088e839c72da359f37eb5f9b9959d1ab304d70b49acc445416ac951b",
+    "docs/reports/2026-10-04-project-communication-architecture/raw/docs-check.log": "1b179f8a0a7226e4a7525cad86bc5804b2e3aa087260d4d10ee52e45f769eb22",
+    "docs/reports/2026-10-04-project-communication-architecture/raw/capture_sources.py": "1c68dd8bfbd201d194541d64dfa6d7a134905a2a8088f25c78a3c814ecf5f25b",
+    "docs/reports/2026-10-04-project-communication-architecture/raw/fast.log": "ec73c86062aed822bb6f5429c6e91fad63d197889639240e7cadc938a649826e",
+    "docs/reports/2026-10-04-project-communication-architecture/raw/online-sources.json": "4ecdc3091b12f2de5592a14eef443c968aaeb741faef2d61370e296e1fd04b83",
+    "docs/reports/2026-10-04-project-communication-architecture/raw/race-green.json": "8e71dd38c42295429046bed9cac065abe7a8579ed94e480fd4aaf7e6773240b2",
+    "docs/reports/2026-10-04-project-communication-architecture/raw/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/reports/2026-10-04-project-communication-architecture/raw/verify_cold.py": "e13f74b14f1a7fcad84b59d666bb31b90f6e339707786d2501052e9fb9ff3a13",
+    "docs/reports/2026-10-04-project-communication-architecture/raw/race_model.py": "49f844bf891337343ba5cfc57b6abac53ae918beba22eb5209667863aa686bc7",
+    "docs/reports/2026-10-04-project-communication-architecture/raw/verification.json": "3a39201d591c3b9b45e3457d120cdb7af7f087fbf8fa4bd84c2ab724d9ae8e2d",
+    "docs/reports/2026-10-04-project-communication-architecture/raw/repository-sources.json": "826262d25e8e97085c3eb79caef4b372cda141f4dc04dfb7d68aee65f22933e6",
+    "docs/reports/2026-10-04-project-communication-architecture/raw/race-guard-removal.json": "d7fb355246aaf8061a3323dbac1b907acc5ffaacda1c98209e3cdf5124dad1bc"
+  },
+  "remote_branch": "origin/codex/project-comms-architecture-20261004",
+  "remote_clone": true
+}
