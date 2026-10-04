@@ -102,6 +102,12 @@ or physical UI acceptance. Full project gates remain with root integration.
 all references resolved. `git diff --check` exited 0. Only this handoff,
 `scripts/lib/release-gate.mjs` and `scripts/test/release-gate.test.mjs` are changed.
 
+A fresh depth-1 sparse checkout from the pushed branch at
+`c6d2db98b6a1661e9a7f92b702dbf46fb542340b` resolved this handoff and the owned
+sources plus their ledger inputs. `node --test scripts/test/release-gate.test.mjs`
+there exited 0: 13 passed, zero skipped. The task-owned temporary checkout was
+removed afterward; the owning Git branch remains the durable delivery location.
+
 ## Resume
 
 Next: root integrates this author branch, supplies the raw `HEAD:path` loader in
