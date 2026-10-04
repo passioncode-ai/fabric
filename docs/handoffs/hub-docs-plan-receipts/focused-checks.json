@@ -1,0 +1,14 @@
+{
+  "baseline": "472478364d41226c95c61c109ef9fc679b221adf",
+  "command": "node --test scripts/test/release-gate.test.mjs scripts/test/release-mac.test.mjs",
+  "exit_code": 0,
+  "tests": 20,
+  "pass": 18,
+  "fail": 0,
+  "skip": 2,
+  "skips": [
+    "old real gate-file guard: gate names closed 0.3.0 ledger",
+    "electron-builder not installed in isolated worktree"
+  ],
+  "scope": "Committed baseline helpers only. Does not test root dirty verifiedCandidateProblem patch."
+}

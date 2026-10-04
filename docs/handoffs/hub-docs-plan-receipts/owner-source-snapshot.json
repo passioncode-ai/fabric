@@ -1,0 +1,117 @@
+{
+  "fetched_at": "2026-10-04T09:49:57.556313+00:00",
+  "command_scope": "gh API read-only committed main sources; issues created after empty-list recheck on parent authorization",
+  "refs": {
+    "fabric": "8ff1450ba3b2845a9162cc2fb183a04b895ad363",
+    "fabric-agent-contract": "71cdd6ed461a177e17aa2db7f5ed2059a537543e",
+    "fabric-inbox": "90138c4aa17050f214b29fb5ad10aa9c6e86fb17",
+    "fabric-workspace": "b105e4ff78e62c65abfe0bbb95b2e8955d807b7c"
+  },
+  "contract": {
+    "capabilityName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9.-]{1,127}$"
+    },
+    "interopCapabilityRef": {
+      "$ref": "common.schema.json#/$defs/capabilityName"
+    }
+  },
+  "inbox_release": {
+    "publishedAt": "2026-10-03T22:41:49Z",
+    "tagName": "v0.9.0",
+    "url": "https://github.com/passioncode-ai/fabric-inbox/releases/tag/v0.9.0"
+  },
+  "inbox_compare": {
+    "ahead_by": 0,
+    "behind_by": 4,
+    "status": "behind"
+  },
+  "pr8": {
+    "merge_commit_sha": "2927a087cac61c02f16f41d9bebfdc7403fc577c",
+    "merged_at": "2026-10-04T06:54:25Z",
+    "state": "closed"
+  },
+  "issues": {
+    "fabric-agent-contract": {
+      "createdAt": "2026-10-04T09:48:15Z",
+      "number": 8,
+      "state": "OPEN",
+      "title": "Allow product tool names with underscores in hub agent.call schema",
+      "url": "https://github.com/passioncode-ai/fabric-agent-contract/issues/8"
+    },
+    "fabric-inbox": {
+      "createdAt": "2026-10-04T09:48:16Z",
+      "number": 26,
+      "state": "OPEN",
+      "title": "Attest runtime narrowing source and expose a compatible capability revision",
+      "url": "https://github.com/passioncode-ai/fabric-inbox/issues/26"
+    }
+  },
+  "workspace": {
+    "tracked_receipt": {
+      "source_commit": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07",
+      "workspace_commit": "bc44081f14c530abc1e0e38db5fc8efcfbeafb99",
+      "release": 146,
+      "content_digest": "6c79988fac7c4883a6237860dbd5b52a73f62232276bff068004e5ecb0635e5a"
+    },
+    "remote_manifest": {
+      "source": {
+        "repository": "https://github.com/passioncode-ai/fabric",
+        "commit": "1e8b2e20739ab6bb211eaa20dbb2dcd69139cf07"
+      },
+      "content_digest": "6492bc882524ae9f0e1a328401d661a04c701d0ef818e04fbbfa7dbeff63f166",
+      "exported_at": "2026-10-04T09:21:50+02:00"
+    },
+    "local_sync": {
+      "started_at": "2026-10-04T09:34:21.667Z",
+      "ended_at": "2026-10-04T09:43:24.856Z",
+      "outcome": "published",
+      "reason": "source fabric-switchboard is stale"
+    },
+    "products_matching_lines": [
+      {
+        "line": 38,
+        "text": "| **Fabric** 0.3.0 (prerelease, [built and signed in CI](https://github.com/passioncode-ai/fabric/releases/tag/v0.3.0)) | [passioncode.ai/fabric/download/macos](https://passioncode.ai/fabric/download/macos) \u2192 DMG (Developer ID, notarized) | Fabric's own MCP entry for other agents arrives with its hub (plan AR-3); today you work with it in the app | the app opens and lists your projects |"
+      },
+      {
+        "line": 41,
+        "text": "| **Fabric Inbox** 0.8.2 | `gh release download v0.8.2 -R passioncode-ai/fabric-inbox --pattern 'Fabric-Inbox-*.dmg' --pattern 'Fabric-Inbox-*.dmg.sha256'` then `shasum -a 256 -c Fabric-Inbox-*.dmg.sha256` (public repository) | agents connect to the server the app creates: `<your server>/mcp` (see its README); an agent key needs the server token's **Access: Service Tokens \u00b7 Edit** permission; since 0.8 the server also reads the domains of other Cloudflare accounts connected with their own token | `tools/list` \u2192 65 tools |"
+      },
+      {
+        "line": 77,
+        "text": "Fabric's own northbound MCP entry for other agents (plan AR-3); Fabric VR (relay, Fabric ADR-0088); Okolos, the launcher and the site have no MCP surface. Project Observatory's MCP over HTTP is not built, so the adapter probe's five interop rules run over stdio in its own tests."
+      }
+    ],
+    "plans_matching_lines": [
+      {
+        "line": 5,
+        "text": "2026-09-30 planning checkpoint, not a live status override; follow its source plan before"
+      },
+      {
+        "line": 27,
+        "text": "**Now:** P-08, Fabric 0.3.1 with the hub"
+      },
+      {
+        "line": 31,
+        "text": "AR-2 is in progress; the 2026-09-30 table keeps its date and is not a status override."
+      },
+      {
+        "line": 64,
+        "text": "all after Fabric's own Now line (P-03, then P-06.1/P-07.1) and reusing AR-3. A packet that starts"
+      }
+    ]
+  },
+  "worker_local_log": {
+    "path": "~/.wrangler/logs/wrangler-2026-10-03_21-16-20_061.log",
+    "entries": [
+      {
+        "line": 892,
+        "text": "Current Version ID: 4fd02b75-3453-49ad-bab2-cc10c7a020a1"
+      }
+    ]
+  },
+  "issue_list_recheck_before_creation": {
+    "fabric-agent-contract": [],
+    "fabric-inbox": []
+  }
+}
