@@ -112,4 +112,3 @@ NOT_RUN here: native CUA actions, VoiceOver, final combined-source user scrollin
 full native state matrix, whole-repository fast gate, canonical UX/map updates,
 hosted CI, installation/release and production userData. The2x fixture uses
 Electron zoom, not a separate OS text-size setting. No full WCAG claim.
-

@@ -214,4 +214,3 @@ Not measurable — 3 hooks whose calls overlap, so elapsed time covers work othe
   - vite:worker load (5 calls)
   - vite:worker-import-meta-url transform (4 calls)
 See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
-

@@ -111,7 +111,8 @@
     "regions_exit": 0,
     "regions": 131,
     "diff_check_exit": 0,
-    "driver_syntax_exit": 0
+    "driver_syntax_exit": 0,
+    "staged_whitespace_correction": "Initial staged check exit2 for extra trailing blank lines in README and accepted-build log; normalized trailing whitespace only. PNGs/source/build receipts unchanged."
   },
   "root_native_recheck_required": [
     "960 initial EN/RU light single-memory form and sidebar launcher bounds",
