@@ -1,0 +1,32 @@
+{
+  "candidate": "2e06e5013595ec96b52b85cae2c486050632565b",
+  "before_app_control": "5f4eb908a07a723e5959ff5f5311119549e4bd0a",
+  "node": "v26.8.2",
+  "pnpm": "11.21.0",
+  "focused_tests": {
+    "passed": 25,
+    "skipped": 0,
+    "log": "source-tests.log"
+  },
+  "before_control": {
+    "failed": 3,
+    "passed": 1,
+    "pnpm_reported_exit": 1,
+    "log": "before-control-tests.log"
+  },
+  "typecheck": {
+    "exit": 0,
+    "log": "typecheck.log"
+  },
+  "map_fixture": {
+    "passed": 23,
+    "log": "map-existing-tests.log"
+  },
+  "native_launch": "NOT_RUN",
+  "source_sha256": {
+    "apps/desktop/src/renderer/src/App.tsx": "8aca50d0cd3aa4ac7a715064889a8c949742558f3d0b231e3c48b2ffbee917ec",
+    "apps/desktop/src/renderer/src/Onboarding.tsx": "895ea04e3c61af11f61eced27d41c1e62d53a945ea05167b617d734b92565f10",
+    "apps/desktop/test/adoption-native-harness.mjs": "5d6a28eba37954c91655bb92fb1c7e0e05ee828573752ca1441a2371fa0eaed3",
+    "scripts/check-design-map.mjs": "725c2285933ccb535737c650741ad7af227730eb3699a95c9082f2c0ca108372"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "candidate": "2e06e5013595ec96b52b85cae2c486050632565b",
+  "results": [
+    {
+      "mode": "restored",
+      "exit": 0,
+      "fixture_mode": "0o700",
+      "isolated_user_data": true,
+      "source_module_pins": 8,
+      "build_pins": 190,
+      "seeded_tabs": 2,
+      "native_launch": "NOT_RUN"
+    },
+    {
+      "mode": "corrupt",
+      "exit": 0,
+      "fixture_mode": "0o700",
+      "isolated_user_data": true,
+      "source_module_pins": 8,
+      "build_pins": 190,
+      "seeded_tabs": 2,
+      "native_launch": "NOT_RUN"
+    },
+    {
+      "mode": "empty",
+      "exit": 0,
+      "fixture_mode": "0o700",
+      "isolated_user_data": true,
+      "source_module_pins": 8,
+      "build_pins": 190,
+      "seeded_tabs": 0,
+      "native_launch": "NOT_RUN"
+    },
+    {
+      "mode": "unknown",
+      "exit": 1,
+      "refusal": true
+    }
+  ],
+  "native_launch": "NOT_RUN"
+}

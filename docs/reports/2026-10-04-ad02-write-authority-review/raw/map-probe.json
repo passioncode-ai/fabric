@@ -1,0 +1,40 @@
+{
+  "candidate": "2e06e5013595ec96b52b85cae2c486050632565b",
+  "control": "5f4eb908a07a723e5959ff5f5311119549e4bd0a",
+  "neutral_only": true,
+  "results": [
+    {
+      "name": "old-anchor-control",
+      "committed_baseline_bytes": 1100181,
+      "exit": 0,
+      "stdout": "Initial map: no committed map baseline; no old anchors to compare.\nStamped reviewed source bytes. This command does not review or update map content.\nPASS: map source stamp (2 files), 3 unique anchors and 1 link targets. Prose accuracy, completeness, external URLs and Markdown fragments are not verified.\n",
+      "current_map_unchanged": false,
+      "ENOBUFS_present": false,
+      "anchor_refusal_present": false,
+      "false_initial_baseline": true,
+      "source_sha256": "67880cb0de12ff88ae2d761ac27350aec47ff17ea26c69a810c91eeb7c6735bb"
+    },
+    {
+      "name": "candidate-anchor-control",
+      "committed_baseline_bytes": 1100181,
+      "exit": 1,
+      "stdout": "",
+      "current_map_unchanged": true,
+      "ENOBUFS_present": false,
+      "anchor_refusal_present": true,
+      "false_initial_baseline": false,
+      "source_sha256": "725c2285933ccb535737c650741ad7af227730eb3699a95c9082f2c0ca108372"
+    },
+    {
+      "name": "candidate-buffer-failclosed",
+      "committed_baseline_bytes": 17000181,
+      "exit": 1,
+      "stdout": "",
+      "current_map_unchanged": true,
+      "ENOBUFS_present": true,
+      "anchor_refusal_present": false,
+      "false_initial_baseline": false,
+      "source_sha256": "725c2285933ccb535737c650741ad7af227730eb3699a95c9082f2c0ca108372"
+    }
+  ]
+}

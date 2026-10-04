@@ -1,0 +1,120 @@
+
+ RUN  v4.1.11 <review-root>/apps/desktop
+
+Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+ ❯ src/renderer/src/ad02-independent-review.test.tsx (4 tests | 3 failed) 342ms
+     × awaits delayed tab restoration while preserving newly typed input 179ms
+     × a rejected initial draft read never grants write authority 97ms
+     × StrictMode effect reattachment shares one initial snapshot 29ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/renderer/src/ad02-independent-review.test.tsx > independent initial working-set authority > awaits delayed tab restoration while preserving newly typed input
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 2 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      Object {
+        "active": null,
+        "tabs": Array [],
+      },
+    ]
+
+  2nd vi.fn() call:
+
+    Array [
+      Object {
+        "active": Object {
+          "id": "draft-189ccdf3-0a58-4355-9c28-b1721bcbf461",
+          "kind": "draft",
+        },
+        "tabs": Array [
+          Object {
+            "id": "draft-189ccdf3-0a58-4355-9c28-b1721bcbf461",
+            "kind": "draft",
+          },
+        ],
+      },
+    ]
+
+
+Number of calls: 2
+
+ ❯ src/renderer/src/ad02-independent-review.test.tsx:87:32
+     85|     fireEvent.change(screen.getByPlaceholderText(en['onboarding.namePl…
+     86|     await waitFor(() => expect(save.mock.calls.some(([drafts]) => Obje…
+     87|     expect(api.tabs.write).not.toHaveBeenCalled()
+       |                                ^
+     88|     await act(async () => { finish({tabs:[{kind:'draft',id:'tab-1'}],a…
+     89|     await waitFor(() => expect(api.tabs.write).toHaveBeenCalled())
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  src/renderer/src/ad02-independent-review.test.tsx > independent initial working-set authority > a rejected initial draft read never grants write authority
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 2 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      Object {
+        "active": null,
+        "tabs": Array [],
+      },
+    ]
+
+  2nd vi.fn() call:
+
+    Array [
+      Object {
+        "active": Object {
+          "id": "draft-81a09f14-e25f-48d4-b1b5-e4e2d7cf4417",
+          "kind": "draft",
+        },
+        "tabs": Array [
+          Object {
+            "id": "draft-81a09f14-e25f-48d4-b1b5-e4e2d7cf4417",
+            "kind": "draft",
+          },
+        ],
+      },
+    ]
+
+
+Number of calls: 2
+
+ ❯ src/renderer/src/ad02-independent-review.test.tsx:104:32
+    102|     fireEvent.change(screen.getByPlaceholderText(en['onboarding.namePl…
+    103|     await act(async () => { await new Promise(resolve => setTimeout(re…
+    104|     expect(api.tabs.write).not.toHaveBeenCalled()
+       |                                ^
+    105|     expect(save).not.toHaveBeenCalled()
+    106|     expect(api.drafts.read).toHaveBeenCalledTimes(1)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  src/renderer/src/ad02-independent-review.test.tsx > independent initial working-set authority > StrictMode effect reattachment shares one initial snapshot
+AssertionError: expected "vi.fn()" to be called 1 times, but got 3 times
+ ❯ src/renderer/src/ad02-independent-review.test.tsx:113:29
+    111|     await screen.findByDisplayValue('Atlas')
+    112|     await waitFor(() => expect(api.tabs.write).toHaveBeenCalled())
+    113|     expect(api.drafts.read).toHaveBeenCalledTimes(1)
+       |                             ^
+    114|     const last=api.tabs.write.mock.calls.at(-1)![0] as {tabs:Array<{id…
+    115|     expect(last.tabs).toEqual([{kind:'draft',id:'tab-1'}])
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 1 passed (4)
+   Start at  15:52:44
+   Duration  8.29s (transform 5.49s, setup 134ms, import 7.02s, tests 342ms, environment 672ms)
+
+undefined
+<review-root>/apps/desktop:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run src/renderer/src/ad02-independent-review.test.tsx
