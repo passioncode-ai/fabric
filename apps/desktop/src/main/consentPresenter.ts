@@ -18,7 +18,7 @@
 import { pendingFacts } from '../shared/access.ts'
 import type { ConnectProblem } from '../shared/access.ts'
 import type { AccessActRefusal } from '../shared/accessActs.ts'
-import { consentPrompt, sayActRefusal, sayConnectProblem, type Say } from '../shared/accessWords.ts'
+import { consentPrompt, sayActRefusal, sayConnectDetail, sayConnectProblem, type Say } from '../shared/accessWords.ts'
 import { translator } from '../renderer/src/i18n/translate.ts'
 import type { ConsentRequest } from './accessService.ts'
 import { ops } from './opsSink.ts'
@@ -90,7 +90,7 @@ export class ConsentPresenter {
     else {
       const say = this.say()
       const text = consentPrompt(say, this.facts(request))
-      const shown = this.deps.notify(text.message, say('access.prompt.notify'), () => this.bringForward())
+      const shown = this.deps.notify(text.statement, say('access.prompt.notify'), () => this.bringForward())
       ops.record({ op: 'hub.consent.notified', outcome: 'ok', level: shown ? 'info' : 'warn', detail: { request_id: request.row.id, shown }, ctx: { correlationId: ops.correlate() } })
     }
   }
@@ -152,7 +152,9 @@ export class ConsentPresenter {
           // The Allow stands; the operator is told the product did not open, and where to connect it (UX-5).
           ops.record({ op: 'hub.consent.connect', outcome: 'failed', level: 'warn', detail: { product: request.row.callee, reason: started.reason }, ctx: { correlationId: ops.correlate() } })
           const problem = started.problem ? sayConnectProblem(say, started.problem, facts.product) : started.reason
-          await this.deps.showMessageBox(parent, { type: 'warning', title: say('access.prompt.connectTitle'), message: say('access.allowedConnect', { problem }), detail: '', buttons: [say('access.prompt.ok')], defaultId: 0, cancelId: 0, noLink: true })
+          // The machine's words are the box's detail, never inside the sentence (iteration 2, UX-5).
+          const saw = started.problem ? sayConnectDetail(say, started.problem) : null
+          await this.deps.showMessageBox(parent, { type: 'warning', title: say('access.prompt.connectTitle'), message: say('access.allowedConnect', { problem }), detail: saw ?? '', buttons: [say('access.prompt.ok')], defaultId: 0, cancelId: 0, noLink: true })
         }
       }
       this.deps.changed?.()

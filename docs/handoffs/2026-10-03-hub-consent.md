@@ -32,17 +32,16 @@ header — while the product's key stays in Project Observatory's vault.
 - **S3 consent** — `accessService.ts`, `consentPresenter.ts`: unknown agent refused before any prompt; a
   request expires in 10 minutes; native prompt with a parent window, or a notification and an `access` row
   in the queue (SCR-41) with Allow/Deny; Deny stands until cleared; the credential is minted on the first
-  status read after Allow (exactly once, restart-safe); incremental consent; Settings → Agent access
+  status read within 10 minutes of Allow (exactly once, restart-safe; amendment 12); incremental consent; Settings → Agent access
   (`AgentAccessPanel.tsx`) lists products, waiting requests, grants with Revoke and denials with Clear.
 - **S4 products** — `productConnect.ts` (link, single-use state, callback on the same server, 503 without
   Observatory), `observatoryVault.ts` (put/rotate on stdin; read only from a vault slot, through a named
   pipe), `productForwarder.ts` + `hubCall.ts` (grant coverage, `X-Fabric-Accounts`, redirects refused, one
   `hub.call.forwarded@1` span per hop as a child of `_meta.traceparent`, the interop envelope, idempotency).
-- **The security review's rules** an inheritor must keep — reconnect only by the operator's Reconnect, record
-  before secret, one live grant per binding/callee/capability/resource, idempotency per binding, `create_address`
+- **The security review's rules** an inheritor must keep — reconnect only by the operator's Reconnect, secret first in its own slot, then the record inside the 8-second deadline (amendment 13), one live grant per binding/callee/capability/resource, idempotency per binding, `create_address`
   extras as their own capabilities — are written in ADR-0115's
   [Amendments 1–5](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#amendments--security-review-of-pr-7-2026-10-03);
-  what the 0.3.1 verification changed follows them in the same ADR.
+  what the 0.3.1 verification changed follows them in the same ADR. Iteration 1 added migration 77 beside 76 and landed as `2927a087` (PR #8); see the [verification handoff](2026-10-04-hub-verification.md).
 
 ## Checks run
 

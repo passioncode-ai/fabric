@@ -1,0 +1,170 @@
+✖ V2 ER-2: simultaneous begin calls open one consent, including while its callback is storing (25.707083ms)
+✖ V2 ER-2: a connection appearing during vault write is never superseded by first-use consent (500.157875ms)
+✖ V2 ER-2: reconnect names the exact connection approved, not a later replacement (41.315167ms)
+✖ V2 ER-2: successful reconnect journals its approved predecessor id (41.188458ms)
+✖ V2 ER-9: content type settles a single waiting attempt immediately (59.714833ms)
+✖ V2 ER-9: malformed JSON settles a single waiting attempt immediately (4.699542ms)
+✖ V2 ER-9: JSON array settles a single waiting attempt immediately (22.559833ms)
+✖ V2 ER-9: a valid state with an unknown outcome fails immediately (2.70475ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 0
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 714.355583
+
+✖ failing tests:
+
+test at apps/desktop/test/hub-products.test.mjs:780:1
+✖ V2 ER-2: simultaneous begin calls open one consent, including while its callback is storing (25.707083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  2 !== 1
+
+      at TestContext.<anonymous> (file://<worktree>/apps/desktop/test/hub-products.test.mjs:787:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/hub-products.test.mjs:799:1
+✖ V2 ER-2: a connection appearing during vault write is never superseded by first-use consent (500.157875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  200 !== 409
+
+      at TestContext.<anonymous> (file://<worktree>/apps/desktop/test/hub-products.test.mjs:806:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/hub-products.test.mjs:813:1
+✖ V2 ER-2: reconnect names the exact connection approved, not a later replacement (41.315167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  200 !== 409
+
+      at TestContext.<anonymous> (file://<worktree>/apps/desktop/test/hub-products.test.mjs:824:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/hub-products.test.mjs:830:1
+✖ V2 ER-2: successful reconnect journals its approved predecessor id (41.188458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  undefined !== 'old'
+
+      at TestContext.<anonymous> (file://<worktree>/apps/desktop/test/hub-products.test.mjs:836:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'old',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/hub-products.test.mjs:844:4
+✖ V2 ER-9: content type settles a single waiting attempt immediately (59.714833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'waiting'
+  - 'failed'
+
+      at TestContext.<anonymous> (file://<worktree>/apps/desktop/test/hub-products.test.mjs:850:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'waiting',
+    expected: 'failed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/hub-products.test.mjs:844:4
+✖ V2 ER-9: malformed JSON settles a single waiting attempt immediately (4.699542ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'waiting'
+  - 'failed'
+
+      at TestContext.<anonymous> (file://<worktree>/apps/desktop/test/hub-products.test.mjs:850:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'waiting',
+    expected: 'failed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/hub-products.test.mjs:844:4
+✖ V2 ER-9: JSON array settles a single waiting attempt immediately (22.559833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'waiting'
+  - 'failed'
+
+      at TestContext.<anonymous> (file://<worktree>/apps/desktop/test/hub-products.test.mjs:850:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'waiting',
+    expected: 'failed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/desktop/test/hub-products.test.mjs:856:1
+✖ V2 ER-9: a valid state with an unknown outcome fails immediately (2.70475ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'no-answer'
+  - 'invalid-delivery'
+
+      at TestContext.<anonymous> (file://<worktree>/apps/desktop/test/hub-products.test.mjs:860:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'no-answer',
+    expected: 'invalid-delivery',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

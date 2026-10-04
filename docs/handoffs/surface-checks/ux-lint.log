@@ -1,0 +1,3 @@
+note:  [U057] 23 of 76 flows carry an inherited verdict, all of them in the shrinking baseline
+note:  [U078] 1 superseded screen record(s) compared against the index
+OK — docs/ux is consistent (<worktree>/docs/ux)

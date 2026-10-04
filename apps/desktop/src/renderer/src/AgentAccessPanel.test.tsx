@@ -6,10 +6,12 @@ import { AgentAccessPanel } from './AgentAccessPanel'
 import { I18nProvider } from './i18n'
 import { en } from './i18n/en'
 import { ru } from './i18n/ru'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { agentFacts, askLines, type HubOverview } from '../../shared/access'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.useRealTimers() })
-const fill = (s: string, v: Record<string, string | number>) => Object.entries(v).reduce((x, [k, val]) => x.replace(`{${k}}`, String(val)), s)
+const fill = (s: string, v: Record<string, string | number>) => Object.entries(v).reduce((x, [k, val]) => x.split(`{${k}}`).join(String(val)), s)
 
 const agent = agentFacts('example-agent.default', { name: 'Example agent', installed_by: 'example-installer', repository: null })
 const connected = { server: 'https://inbox.example.com', level: 'admin', connectedAt: '2026-10-03T09:00:00Z', keyExpiresAt: null }
@@ -28,6 +30,8 @@ const overview = (over: Partial<HubOverview> = {}): HubOverview => ({
   denials: [],
   ...over
 })
+const live = (lastAttempt: HubOverview['products'][number]['lastAttempt']) =>
+  overview({ products: [{ product: 'fabric-inbox', name: 'Fabric Inbox', connection: connected, lastAttempt }] })
 function stub(first: HubOverview, over: Record<string, unknown> = {}) {
   const hub = {
     overview: vi.fn(async () => first),
@@ -84,10 +88,11 @@ describe('SCR-76 agent access', () => {
   it('UX-4 / UX-5: Allow says it also connects the product; an Allow whose product did not open says so, the Allow standing', async () => {
     stub(overview({ pending: [pending({ connected: false })] }), { decide: vi.fn(async () => ({ ok: true, connect: { problem: { code: 'not-installed', detail: 'no handler' } } })) })
     show()
-    const allow = await screen.findByRole('button', { name: 'Allow Example agent' })
+    const allow = await screen.findByRole('button', { name: 'Allow and connect Fabric Inbox for Example agent' })
     expect(allow.textContent).toBe('Allow and connect Fabric Inbox')
     fireEvent.click(allow)
-    await screen.findByText(/^Allowed\. To connect it, open Agent access in settings\. It did not connect: Fabric Inbox could not be opened\. Is its app installed\? no handler$/)
+    await screen.findByText(fill(en['access.allowedConnectHere'], { problem: fill(en['access.connect.not-installed'], { name: 'Fabric Inbox' }) }))
+    expect(screen.getByText(fill(en['access.saw'], { detail: 'no handler' }))).toBeTruthy()
     expect(screen.queryByText(/^Not done/)).toBeNull()
   })
 
@@ -151,7 +156,8 @@ describe('SCR-76 agent access', () => {
   it('a closed hub says so in words, the machine\'s reason second; Connect is not offered while nothing could take the answer', async () => {
     stub(overview({ hub: { listening: false, reason: 'port 47070 is in use' } }))
     show()
-    await screen.findByText(en['access.hub.off'])
+    // Said per cause since iteration 2 (DO-14); a hub-down without a cause reads as "could not start".
+    await screen.findByText(`${en['access.hub.off']} ${en['access.hub.off.not-started']}`)
     expect(screen.getByText(fill(en['access.hub.offDetail'], { reason: 'port 47070 is in use' }))).toBeTruthy()
     expect((screen.getByRole('button', { name: en['access.products.connect'] }) as HTMLButtonElement).disabled).toBe(true)
   })
@@ -178,4 +184,131 @@ describe('SCR-76 agent access', () => {
       text = text.split(v).join(' ')
     expect(text.match(/[A-Za-z]{3,}/g) ?? []).toEqual([])
   })
+
+  // ── verification iteration 2 for 0.3.1 ──────────────────────────────────────────────────────────────
+
+  it('UX-2 / DO-1: Reconnect says nothing about the key when it is clicked — the previous connection is still the live one', async () => {
+    const h = stub(live(null))
+    show()
+    fireEvent.click(await screen.findByRole('button', { name: en['access.products.reconnect'] }))
+    await waitFor(() => expect(h.connect).toHaveBeenCalledWith('fabric-inbox', { reconnect: true }))
+    await waitFor(() => expect(h.overview.mock.calls.length).toBeGreaterThan(1))
+    expect(screen.queryByText(fill(en['access.products.keyStays'], { name: 'Fabric Inbox' }))).toBeNull()
+    expect(screen.queryByText(/no longer uses/)).toBeNull()
+  })
+
+  it('UX-2: while a Reconnect waits, the panel says so and that the current key stays in use; Reconnect waits too', async () => {
+    stub(live({ outcome: 'waiting', at: '2026-10-04T09:00:00Z', reconnect: true }))
+    show()
+    await screen.findByText(fill(en['access.products.waitingReconnect'], { name: 'Fabric Inbox' }))
+    expect((screen.getByRole('button', { name: en['access.products.reconnect'] }) as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  it('UX-2: only once the new key is in use does it say the previous key stays valid in the product', async () => {
+    stub(live({ outcome: 'connected', at: '2026-10-04T09:00:00Z', reconnect: true }))
+    show()
+    await screen.findByText(fill(en['access.products.reconnected'], { name: 'Fabric Inbox' }))
+  })
+
+  it('UX-2: a Reconnect the product declined, or that failed, keeps the current connection and says so', async () => {
+    stub(live({ outcome: 'denied', at: '2026-10-04T09:00:00Z' }))
+    show()
+    await screen.findByText(fill(en['access.products.denied'], { name: 'Fabric Inbox' }))
+    expect(screen.getByText(en['access.products.keptCurrent'])).toBeTruthy()
+  })
+
+  it('UX-6: a late record that could not be withdrawn says the connection will not work — never that Fabric kept it', async () => {
+    stub(live({ outcome: 'failed', at: '2026-10-04T09:00:00Z', problem: { code: 'withdraw-failed' } }))
+    show()
+    await screen.findByText(fill(en['access.products.failed'], { reason: fill(en['access.connect.withdraw-failed'], { name: 'Fabric Inbox' }) }))
+    expect(screen.queryByText(en['access.products.keptCurrent'])).toBeNull()
+  })
+
+  it('UX-9: Connect is not offered a second time while the product is already waiting for an answer', async () => {
+    stub(overview({ products: [{ product: 'fabric-inbox', name: 'Fabric Inbox', connection: null, lastAttempt: { outcome: 'waiting', at: '2026-10-04T09:00:00Z' } }] }))
+    show()
+    await screen.findByText(fill(en['access.products.waiting'], { name: 'Fabric Inbox' }))
+    expect((screen.getByRole('button', { name: en['access.products.connect'] }) as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  it('UX-5: in ru the machine\'s words are a line of their own, never inside a Russian sentence', async () => {
+    const detail = 'use_secret.py: project fabric has no vault (run vault.py init)'
+    stub(overview({ products: [{ product: 'fabric-inbox', name: 'Fabric Inbox', connection: null, lastAttempt: { outcome: 'failed', at: '2026-10-04T09:00:00Z', problem: { code: 'vault', detail } } }] }))
+    show('ru')
+    const sentence = await screen.findByText(fill(ru['access.products.failed']!, { reason: fill(ru['access.connect.vault']!, { name: 'Fabric Inbox' }) }))
+    expect(sentence.textContent).not.toContain('use_secret.py')
+    expect(screen.getByText(fill(ru['access.saw']!, { detail }))).toBeTruthy()
+  })
+
+  it('UX-5: an unreadable overview says so in the operator\'s language; the database\'s words are a line of their own', async () => {
+    stub(overview(), { overview: vi.fn(async () => { throw new Error('relation "access_requests" does not exist') }) })
+    show('ru')
+    await screen.findByText(ru['access.unreadable']!)
+    expect(screen.getByText(fill(ru['access.saw']!, { detail: 'relation "access_requests" does not exist' }))).toBeTruthy()
+  })
+
+  it('DO-14 / UX-5: a closed hub says what to do for ITS cause, in the operator\'s language; the machine\'s fact is the second line', async () => {
+    stub(overview({ hub: { listening: false, reason: 'port 47070 is claimed by the registered agent mailbot. Move that agent…', code: 'port-claimed', fact: 'port 47070: mailbot' } }))
+    show('ru')
+    await screen.findByText(`${ru['access.hub.off']} ${ru['access.hub.off.port-claimed']}`)
+    expect(screen.getByText(fill(ru['access.hub.offDetail']!, { reason: 'port 47070: mailbot' }))).toBeTruthy()
+    expect(screen.queryByText(/Move that agent/)).toBeNull()
+  })
+
+  it('UX-11: a denial reads as what the agent asked; an Allow that did not connect points to Products here, not to the screen it is on', async () => {
+    stub(overview({ denials: [{ requestId: 'r9', agent, callee: 'fabric-inbox', ask: askLines({ capabilities: ['send_email'], resources: ['cloudflare:ceo@example.com'] }), deniedAt: null }] }))
+    const { container } = show()
+    await screen.findByText(en['access.denials.title'])
+    expect(container.textContent).toContain(fill(en['access.denials.asked'], { asks: 'send mail in ceo@example.com' }))
+    expect(en['access.allowedConnectHere']).not.toMatch(/in settings/)
+  })
+
+  it('UX-7: after an act, focus lands on the section it changed, not on the document body', async () => {
+    stub(overview({ pending: [pending()] }))
+    show()
+    fireEvent.click(await screen.findByRole('button', { name: 'Allow Example agent' }))
+    await waitFor(() => expect(document.activeElement).not.toBe(document.body))
+    expect(document.activeElement?.textContent).toBe(en['access.pending.title'])
+  })
 })
+
+// The panel's own CSS, cascaded by jsdom from the app's real stylesheets (UX-3, UX-10).
+describe('SCR-76 agent access — layout rules (iteration 2)', () => {
+  const sheets = ['styles.css', 'components.css']
+  const withStyles = () => {
+    for (const f of sheets) {
+      const el = document.createElement('style')
+      el.dataset.test = 'sheet'
+      el.textContent = readFileSync(path.join(process.cwd(), 'src/renderer/src', f), 'utf8')
+      document.head.appendChild(el)
+    }
+  }
+  afterEach(() => { for (const el of document.querySelectorAll('style[data-test="sheet"]')) el.remove() })
+  const long = 'cloudflare:a.really.long.local.part.for.testing@subdomain.of.a.long.domain.example.com'
+
+  it('UX-3: a long mailbox wraps inside the card on the Allow surface — the whole resource being granted can be read', async () => {
+    withStyles()
+    stub(overview({ pending: [pending({ ask: askLines({ capabilities: ['read_message'], resources: [long] }) })] }))
+    const { container } = show()
+    await screen.findByText(/a\.really\.long\.local\.part/)
+    for (const el of [container.querySelector('.access-asks li'), container.querySelector('.access-card p')] as HTMLElement[])
+      expect(getComputedStyle(el).overflowWrap, el.outerHTML.slice(0, 60)).toBe('anywhere')
+  })
+
+  it('UX-10: in a narrow window a product card\'s acts wrap rather than run out of the card', async () => {
+    withStyles()
+    stub(live(null))
+    const { container } = show()
+    await screen.findByRole('button', { name: en['access.products.reconnect'] })
+    expect(getComputedStyle(container.querySelector('.access-acts .toolbar') as HTMLElement).flexWrap).toBe('wrap')
+  })
+})
+
+ it('V2 UX-5: a thrown act keeps raw machine diagnostics outside the Russian sentence', async () => {
+   stub(overview(), { connect: async () => { throw new Error('socket ECONNREFUSED') } })
+   show('ru')
+   fireEvent.click(await screen.findByRole('button', { name: ru['access.products.connect'] }))
+   await waitFor(() => expect(screen.getByRole('alert').querySelector('.access-detail')?.textContent).toContain('ECONNREFUSED'))
+   const alert = screen.getByRole('alert')
+   expect(alert.querySelector('span > span')?.textContent).not.toContain('ECONNREFUSED')
+ })

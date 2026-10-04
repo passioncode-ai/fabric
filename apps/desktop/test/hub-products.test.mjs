@@ -715,6 +715,24 @@ test('ER-6: a record that lands after the deadline is withdrawn; a Reconnect say
   } finally { await c.surface.stop() }
 })
 
+// Verification iteration 2 for 0.3.1, UX-6 / DO-7: a late record that could not be withdrawn was reported as
+// `record-failed` ("Fabric could not record the connection") with an English instruction as its detail —
+// but the record HAD landed, so the card said "connected" and "could not record" at once.
+test('UX-6 / DO-7: a late record that could not be withdrawn has its own code and carries no English instruction', async () => {
+  const store = connectionStore({ beforeAppend: (type) => {
+    if (type === 'product.connected@1') return late(500)
+    if (type === 'product.disconnected@1') throw new Error('journal down')
+  } })
+  const c = await connectorOn({ store, vault: memoryVault(), deadlineMs: 250 })
+  try {
+    const r = await deliver(c.origin, delivery(await c.stateOf()))
+    assert.ok(r.status >= 400, `answered ${r.status}`)
+    await late(700)
+    assert.notEqual(await store.liveConnection('fabric-inbox'), null, 'the fixture must leave the late record standing')
+    assert.deepEqual(c.connector.lastOutcome('fabric-inbox').problem, { code: 'withdraw-failed' })
+  } finally { await c.surface.stop() }
+})
+
 test('ER-6: the secret is stored first, in a slot of its own, and only then recorded — a failed record leaves the live connection\'s slot untouched', async () => {
   const order = []
   const store = connectionStore({ beforeAppend: (type) => { order.push(type); throw new Error('journal down') } })
@@ -796,6 +814,91 @@ test('UX-7: a connect that cannot start says why as a code, naming nothing by it
     assert.equal(r.ok, false)
     assert.equal(r.problem.code, 'already-connected')
     assert.doesNotMatch(r.reason, /fabric-inbox/)
+  } finally { await c.surface.stop() }
+})
+
+// Iteration 2: an answer may replace only the connection the operator chose at begin.
+test('V2 ER-2: simultaneous begin calls open one consent, including while its callback is storing', async () => {
+  let releasePut
+  const store = connectionStore()
+  const vault = memoryVault({ beforePut: () => new Promise(r => { releasePut = r }) })
+  const c = await connectorOn({ store, vault })
+  try {
+    const begins = await Promise.all([c.connector.begin(FABRIC_INBOX), c.connector.begin(FABRIC_INBOX)])
+    assert.equal(begins.filter(r => r.ok).length, 1)
+    assert.equal(begins.find(r => !r.ok).problem.code, 'busy')
+    assert.equal(c.opened.length, 1)
+    const pending = deliver(c.origin, delivery(new URL(c.opened[0]).searchParams.get('state')))
+    while (!releasePut) await late(5)
+    assert.equal((await c.connector.begin(FABRIC_INBOX, { reconnect: true })).problem.code, 'busy')
+    releasePut()
+    assert.equal((await pending).status, 200)
+    assert.equal(store.events[0].payload.supersedes, null)
+  } finally { releasePut?.(); await c.surface.stop() }
+})
+
+test('V2 ER-2: a connection appearing during vault write is never superseded by first-use consent', async () => {
+  const live = { id: 'c-arrived', product: 'fabric-inbox', removed_at: null }
+  const store = connectionStore()
+  const vault = memoryVault({ beforePut: () => store.connections.set(live.id, live) })
+  const c = await connectorOn({ store, vault })
+  try {
+    const r = await deliver(c.origin, delivery(await c.stateOf()))
+    assert.equal(r.status, 409)
+    assert.equal(await store.liveConnection('fabric-inbox'), live)
+    assert.deepEqual(store.events, [])
+    assert.equal(c.connector.lastOutcome('fabric-inbox').problem.code, 'already-connected')
+  } finally { await c.surface.stop() }
+})
+
+test('V2 ER-2: reconnect names the exact connection approved, not a later replacement', async () => {
+  const store = connectionStore()
+  store.connections.set('old', { id: 'old', product: 'fabric-inbox', removed_at: null })
+  const vault = memoryVault()
+  const c = await connectorOn({ store, vault })
+  try {
+    const state = await c.stateOf({ reconnect: true })
+    store.connections.get('old').removed_at = 'other-reconnect'
+    const replacement = { id: 'other', product: 'fabric-inbox', removed_at: null }
+    store.connections.set('other', replacement)
+    const r = await deliver(c.origin, delivery(state))
+    assert.equal(r.status, 409)
+    assert.equal(await store.liveConnection('fabric-inbox'), replacement)
+    assert.equal(store.events.length, 0)
+  } finally { await c.surface.stop() }
+})
+
+test('V2 ER-2: successful reconnect journals its approved predecessor id', async () => {
+  const store = connectionStore()
+  store.connections.set('old', { id: 'old', product: 'fabric-inbox', removed_at: null })
+  const c = await connectorOn({ store, vault: memoryVault() })
+  try {
+    assert.equal((await deliver(c.origin, delivery(await c.stateOf({ reconnect: true })))).status, 200)
+    assert.equal(store.events[0].payload.supersedes, 'old')
+  } finally { await c.surface.stop() }
+})
+
+for (const [label, headers, body] of [
+  ['content type', { 'content-type': 'text/plain' }, 'bad'],
+  ['malformed JSON', { 'content-type': 'application/json' }, '{'],
+  ['JSON array', { 'content-type': 'application/json' }, '[]']
+]) test(`V2 ER-9: ${label} settles a single waiting attempt immediately`, async () => {
+  const c = await connectorOn({ store: connectionStore(), vault: memoryVault() })
+  try {
+    const state = await c.stateOf()
+    const r = await fetch(`${c.origin}/fabric/v1/connect/fabric-inbox`, { method: 'POST', headers, body })
+    assert.ok(r.status >= 400)
+    assert.equal(c.connector.lastOutcome('fabric-inbox').outcome, 'failed')
+    assert.equal(c.connector.lastOutcome('fabric-inbox').problem.code, 'invalid-delivery')
+    assert.equal((await deliver(c.origin, delivery(state))).status, 400, 'failed attempt state remains replayable')
+  } finally { await c.surface.stop() }
+})
+
+test('V2 ER-9: a valid state with an unknown outcome fails immediately', async () => {
+  const c = await connectorOn({ store: connectionStore(), vault: memoryVault() })
+  try {
+    assert.equal((await deliver(c.origin, { state: await c.stateOf(), outcome: 'nonsense' })).status, 400)
+    assert.equal(c.connector.lastOutcome('fabric-inbox').problem.code, 'invalid-delivery')
   } finally { await c.surface.stop() }
 })
 

@@ -491,7 +491,7 @@ export function agentName(agentId: string, registry: RegistrySnapshot | null | u
 export const CONNECT_PROBLEM_CODES = [
   'hub-off', 'already-connected', 'busy', 'live-unreadable', 'not-installed', 'no-flow', 'late', 'no-answer',
   'no_server', 'sign_in_required', 'mint_failed', 'unknown', 'invalid-delivery', 'record-failed', 'vault',
-  'deadline', 'withdrawn', 'not-connected'
+  'deadline', 'withdrawn', 'withdraw-failed', 'not-connected'
 ] as const
 export type ConnectProblemCode = (typeof CONNECT_PROBLEM_CODES)[number]
 export interface ConnectProblem { code: ConnectProblemCode; detail?: string; previousLost?: boolean }
@@ -545,9 +545,15 @@ export function pendingFacts(r: RequestRowLike, connected: boolean): PendingRequ
 }
 
 /** What the operator's Agent access list shows (Settings → Agent access). No sentence crosses IPC. */
+/** Why the hub is not listening: the port setting is invalid, a registered agent claims the port, another
+ *  program holds it, or the surface could not start for another reason. */
+export type HubDownCode = 'port-setting' | 'port-claimed' | 'port-taken' | 'not-started'
+
 export interface HubOverview {
-  /** `reason` is the machine's own words, shown only as a secondary detail under a localised line. */
-  hub: { listening: true; origin: string } | { listening: false; reason: string }
+  /** `reason` is the machine's own words (with Fabric's English instruction, as sessions are told).
+   *  `code` says which cause, so the panel phrases the remedy in the operator's language, and `fact` is the
+   *  machine's observation with no instruction in it — the panel's second line (iteration 2, DO-14, UX-5). */
+  hub: { listening: true; origin: string } | { listening: false; reason: string; code?: HubDownCode; fact?: string }
   products: Array<{
     product: string
     name: string

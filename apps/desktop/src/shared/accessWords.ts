@@ -63,14 +63,27 @@ export const sayQueueTitle = (t: Say, x: { agent: AgentFacts; product: string })
 export const sayAllow = (t: Say, x: { connected: boolean; product: string }): string =>
   x.connected ? t('access.allow') : t('access.allowConnect', { product: x.product })
 
+/** The Allow button's accessible name: its visible words, then whose request it answers — "label in name",
+ *  so a screen reader hears that Allow also connects the product and voice control can say what it reads
+ *  (verification iteration 2 for 0.3.1, UX-8). */
+export const sayAllowFor = (t: Say, x: { connected: boolean; product: string }, name: string): string =>
+  x.connected ? t('access.allowFor', { name }) : t('access.allowConnectFor', { product: x.product, name })
+
 export function sayActRefusal(t: Say, code: AccessActRefusal): string {
   return t(`access.refused.${code}` as StringKey)
 }
 
-/** Why connecting did not happen; the machine's own words, when there are any, come after. */
+/** Why connecting did not happen, in the operator's language only. The machine's own words, when there are
+ *  any, are NOT placed inside this sentence (iteration 2, UX-5): `sayConnectDetail` gives them a line of
+ *  their own, introduced as what Fabric saw. */
 export function sayConnectProblem(t: Say, problem: ConnectProblem, product: string): string {
-  const said = t(`access.connect.${problem.code}` as StringKey, { name: product, detail: problem.detail ?? '' })
+  const said = t(`access.connect.${problem.code}` as StringKey, { name: product })
   return problem.previousLost ? `${said} ${t('access.connect.previousLost', { name: product })}` : said
+}
+
+/** The machine's words behind a connect problem, as their own secondary line; null when there are none. */
+export function sayConnectDetail(t: Say, problem: ConnectProblem): string | null {
+  return problem.detail ? t('access.saw', { detail: problem.detail }) : null
 }
 
 /**
@@ -86,7 +99,7 @@ export function consentPrompt(t: Say, input: {
   reason: string
   connected: boolean
   incremental: boolean
-}): { title: string; message: string; detail: string; buttons: [string, string]; defaultId: 0; cancelId: 0 } {
+}): { title: string; message: string; statement: string; detail: string; buttons: [string, string]; defaultId: 0; cancelId: 0 } {
   const name = shownName(input.agent)
   const product = input.product
   const detail = [
@@ -94,17 +107,20 @@ export function consentPrompt(t: Say, input: {
     ...input.ask.map((l) => `• ${sayAsk(t, l)}`),
     '',
     t('access.prompt.reasonLead'),
-    `“${input.reason}”`,
+    t('access.prompt.quoted', { reason: input.reason }),
     '',
     sayFloor(t),
     '',
     input.incremental ? sayIncremental(t) : t('access.prompt.credential', { product }),
     t('access.lasts'),
-    ...(input.connected ? [] : ['', t('access.prompt.notConnected', { product })])
+    ...(input.connected ? [] : ['', t('access.prompt.notConnected', { product, allow: sayAllow(t, input) })])
   ].join('\n')
   return {
     title: t('access.prompt.title', { name, product }),
-    message: t('access.prompt.message', { name, product }),
+    // macOS draws no title on a message box, so the bold line is the QUESTION (iteration 2, UX-11); the
+    // statement is what a notification says when the window is not in front.
+    message: t('access.prompt.title', { name, product }),
+    statement: t('access.prompt.message', { name, product }),
     detail,
     buttons: [t('access.deny'), sayAllow(t, input)],
     defaultId: 0,

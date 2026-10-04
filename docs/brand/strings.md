@@ -458,7 +458,7 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `access.close` | Close | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.what` | Agents registered on this Mac can ask to use a connected product through Fabric. You decide once per request; Fabric checks every call against what you allowed and keeps the product’s key in the vault of Project Observatory. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.loading` | Reading agent access… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
-| `access.unreadable` | Agent access could not be read: {reason}. This is not a list with nothing in it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.unreadable` | Agent access could not be read. This is not a list with nothing in it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.retry` | Try again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.notDone` | Not done: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.hub.on` | Agents reach Fabric at {origin}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
@@ -485,10 +485,10 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `access.deniedHere` | Denied | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.denials.title` | Denied requests | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.denials.clear` | Clear the denial | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
-| `access.hub.off` | Agents cannot reach Fabric right now. Sessions Fabric starts are not affected. Free the port, then quit and reopen Fabric. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.hub.off` | Agents cannot reach Fabric right now. Sessions Fabric starts are not affected. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.hub.offDetail` | What Fabric saw: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.products.title` | Products | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
-| `access.products.keyStays` | Fabric no longer uses the previous key. It stays valid in {name} → Agent access until you revoke it there. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.products.keyStays` | Fabric no longer uses its key for {name}. The key stays valid in {name} → Agent access until you revoke it there. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.products.tryAgain` | Try again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.agents.noGrants` | Nothing is allowed any more; its binding credential still identifies the agent. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.denials.none` | No request is denied. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
@@ -544,8 +544,8 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `access.prompt.message` | {name} asks to use {product} through Fabric | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.prompt.asks` | {origin} asks to: | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.prompt.reasonLead` | Its reason, in its own words: | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
-| `access.prompt.credential` | If you allow, the agent gets its own credential for {product} through Fabric. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
-| `access.prompt.notConnected` | {product} is not connected to Fabric yet. Allow also opens {product}, which asks you to connect it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.prompt.credential` | If you allow, the agent gets its own binding credential for Fabric. It reaches {product} only for what you allow and never sees {product}’s key. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.prompt.notConnected` | {product} is not connected to Fabric yet. “{allow}” also opens {product}, which asks you to connect it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.prompt.notify` | Open Fabric to allow or deny. It also waits in your queue. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.prompt.notRecordedTitle` | Not recorded | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.prompt.notRecorded` | Your answer was not recorded | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
@@ -560,8 +560,8 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `access.connect.hub-off` | Fabric’s hub is not listening, so {name} would have nowhere to deliver its key. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.connect.already-connected` | {name} is already connected; reconnect it to replace its key. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.connect.busy` | A connection to {name} is already waiting for your answer there. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
-| `access.connect.live-unreadable` | Fabric could not read whether {name} is already connected. {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
-| `access.connect.not-installed` | {name} could not be opened. Is its app installed? {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.live-unreadable` | Fabric could not read whether {name} is already connected. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.not-installed` | {name} could not be opened. Is its app installed? | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.connect.no-flow` | Fabric has no way to connect {name} yet. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.connect.late` | {name} answered after the 10-minute window. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.connect.no-answer` | No answer came from {name} within 10 minutes. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
@@ -569,10 +569,28 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `access.connect.sign_in_required` | {name} needs you to sign in again; it has opened its sign-in. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.connect.mint_failed` | {name} could not make the key. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.connect.unknown` | {name} reported a failure Fabric does not recognise. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
-| `access.connect.invalid-delivery` | {name} delivered a key Fabric cannot use. {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
-| `access.connect.record-failed` | Fabric could not record the connection, so {name} revokes the key. {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
-| `access.connect.vault` | The vault of Project Observatory did not keep the key, so {name} revokes it. {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.invalid-delivery` | {name} delivered a key Fabric cannot use. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.record-failed` | Fabric could not record the connection, so {name} revokes the key. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.connect.vault` | The vault of Project Observatory did not keep the key, so {name} revokes it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.connect.deadline` | Fabric could not keep the key within the 10 seconds {name} waits, so {name} revokes it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.connect.withdrawn` | Fabric recorded the key after {name} had stopped waiting, so it was withdrawn and {name} revokes it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.connect.not-connected` | {name} is not connected. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.connect.previousLost` | The previous connection was already replaced, so {name} is not connected now; connect it again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+
+| `event.hub.call.forwarded@1` | an agent’s call was passed to a product | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `access.saw` | What Fabric saw: {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.allowConnectFor` | Allow and connect {product} for {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.allowedConnectHere` | Allowed. Connect it in the products section above. {problem} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.queue.allowed` | You allowed {name} to use {product}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.queue.denied` | You denied {name} access to {product}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.products.waitingReconnect` | Waiting for your answer in {name}. Until a new key arrives, Fabric keeps using the current one. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.products.reconnected` | Fabric now uses the new key. The previous key stays valid in {name} → Agent access until you revoke it there. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.products.keptCurrent` | Fabric keeps using the current connection. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.denials.asked` | asked to {asks} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.prompt.quoted` | “{reason}” | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.connect.withdraw-failed` | Fabric recorded the key after {name} had stopped waiting and could not withdraw the record. {name} revokes that key, so this connection will not work: disconnect it, then connect again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.hub.off.port-setting` | Correct or remove the hub port setting FABRIC_HUB_PORT (a port from 1024 to 65535), then quit and reopen Fabric. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.hub.off.port-claimed` | A registered agent claims the hub’s port. Move that agent to another port, or choose a free one for Fabric with FABRIC_HUB_PORT, then quit and reopen Fabric. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.hub.off.port-taken` | Another program holds the hub’s port. Close it, or choose a free port with FABRIC_HUB_PORT, then quit and reopen Fabric. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.hub.off.not-started` | The hub could not start. Quit and reopen Fabric to try again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.notDoneGeneric` | Not done. Try again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |

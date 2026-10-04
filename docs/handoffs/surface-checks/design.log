@@ -1,0 +1,20 @@
+  ok   palette: no raw colour outside the token layer
+  ok   passioncode: vendored tokens match PassionCode 1.1.0 @ 6085d10
+  ok   passioncode: 17 colour, focus and state roles resolve to --pc-* roles
+  ok   mockups: every colour is a token and every variable is defined
+  ok   focus: every focus outline uses --app-focus
+  ok   passioncode: every page that inlines the app aliases also inlines the design system
+  ok   passioncode: 3 generated pages define the design system before the app aliases
+  ok   type + space: every size comes from the token ladders
+  ok   strings: 1634 keys in the primary registry
+  ok   strings: every key used by a component exists
+  ok   component set: every class in the stylesheets is declared by an owner
+  ok   strings: no literal interface text in components
+  ok   strings: all 99 registered event types have a sentence
+  ok   strings: and no sentence describes an event that cannot happen
+  ok   strings: all 71 event types the code appends are registered
+  ok   strings: all 1634 registry keys are reachable from a component
+  ok   i18n: bilingual ratchet holds — ru covers 1634/1634 keys, 0 in the shrinking baseline, no monolingual additions
+  ok   evidence: all 16 anchors name a section the screens render
+
+PASS: interface tokens and strings

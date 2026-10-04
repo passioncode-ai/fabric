@@ -32,7 +32,7 @@ import { createObservatoryVault } from './observatoryVault.ts'
 import { FABRIC_INBOX, ProductConnector } from './productConnect.ts'
 import { forwardToProduct } from './productForwarder.ts'
 import { ConsentPresenter } from './consentPresenter.ts'
-import { CONNECTABLE_PRODUCTS, agentFacts, askLines, pendingFacts, productName, type ConnectProblem, type HubActResult, type HubOverview } from '../shared/access.ts'
+import { CONNECTABLE_PRODUCTS, agentFacts, askLines, pendingFacts, productName, type ConnectProblem, type HubActResult, type HubDownCode, type HubOverview } from '../shared/access.ts'
 import { translator } from '../renderer/src/i18n/translate.ts'
 import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
 import { createBundleCompiler } from './sessionBundle'
@@ -309,6 +309,8 @@ let hub: {
   doorToken: string | null
   /** Why the hub is not listening, when it is not. */
   down: string | null
+  downCode: HubDownCode | undefined
+  downFact: string | undefined
 } | null = null
 let mainWindow: BrowserWindow | null = null
 // One owner for quitting (CO-191, lifecycle LC-01): the re-quit after the drain runs on a
@@ -528,7 +530,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   quit.onQuit(stopWatching)
   const accessStore = createAccessStore({ db, journal, estateId: ACTIVE_ESTATE })
   const vault = createObservatoryVault()
-  const hubState = { doorToken: null as string | null, down: null as string | null }
+  const hubState = { doorToken: null as string | null, down: null as string | null, downCode: undefined as HubDownCode | undefined, downFact: undefined as string | undefined }
   const connector = new ProductConnector({
     store: accessStore,
     vault,
@@ -573,7 +575,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   const agentCall = createAgentCall({ access, store: accessStore, vault, forward: forwardToProduct, estateId: ACTIVE_ESTATE })
   // A revoked binding never calls again: its idempotency memory goes at once (DA-3, verification 0.3.1).
   access.onBindingRevoked((bindingId) => agentCall.forgetBinding(bindingId))
-  hub = { registry, access, accessStore, connector, presenter, get doorToken() { return hubState.doorToken }, get down() { return hubState.down } }
+  hub = { registry, access, accessStore, connector, presenter, get doorToken() { return hubState.doorToken }, get down() { return hubState.down }, get downCode() { return hubState.downCode }, get downFact() { return hubState.downFact } }
   const hubAccess = access
   surface = new AgentSurface({
     db, journal, ptys: () => ptys, policy, estateId: ACTIVE_ESTATE,
@@ -597,7 +599,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
       const w = withdrawHub(dirs.root)
       if (!w.removed) ops.record({ op: 'hub.withdraw', outcome: 'ok', level: 'warn', detail: { reason: w.reason }, ctx: { correlationId: ops.correlate() } })
     })
-  } else hubState.down = started.down
+  } else { hubState.down = started.down; hubState.downCode = started.downCode; hubState.downFact = started.downFact }
   // #endregion hub-wiring
 
   // Every repository attached to any project in this estate. Rebuilt from the
@@ -3000,7 +3002,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     }
     // FACTS, never sentences (UX-2): the renderer phrases every line in the operator's language.
     return {
-      hub: h.doorToken ? { listening: true, origin: surface.origin } : { listening: false, reason: h.down ?? 'the hub is not listening' },
+      hub: h.doorToken ? { listening: true, origin: surface.origin } : { listening: false, reason: h.down ?? 'the hub is not listening', code: h.downCode, fact: h.downFact },
       products,
       pending: ov.pending.map((r) => pendingFacts(r, connected.get(r.callee) ?? false)),
       agents: ov.bindings.map((b) => ({

@@ -1,0 +1,16 @@
+✔ V2 ER-2: simultaneous begin calls open one consent, including while its callback is storing (17.956916ms)
+✔ V2 ER-2: a connection appearing during vault write is never superseded by first-use consent (5.724916ms)
+✔ V2 ER-2: reconnect names the exact connection approved, not a later replacement (3.292542ms)
+✔ V2 ER-2: successful reconnect journals its approved predecessor id (1.324917ms)
+✔ V2 ER-9: content type settles a single waiting attempt immediately (2.836125ms)
+✔ V2 ER-9: malformed JSON settles a single waiting attempt immediately (2.404625ms)
+✔ V2 ER-9: JSON array settles a single waiting attempt immediately (3.73425ms)
+✔ V2 ER-9: a valid state with an unknown outcome fails immediately (3.089458ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 44.034291

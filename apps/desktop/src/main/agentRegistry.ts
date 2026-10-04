@@ -1,4 +1,4 @@
-// #region agent-registry — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#1-one-door-a-second-way-in
+// #region agent-registry — docs: docs/evidence/specs/2026-09-29-agent-registry-design.md#3-registry-req-01-req-02-req-10
 // The registry READER (ADR-0115 S1, AR-2.2): the agents registered on this machine, read from
 // the two directories the Fabric Agent Contract names — `services/` (fabric-service/0.1
 // descriptors) and `providers/` (fabric-provider/0.1 entries) — into one in-memory registry keyed

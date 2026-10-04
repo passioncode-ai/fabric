@@ -113,6 +113,8 @@ interface PendingState {
   createdAt: number
   /** The operator chose Reconnect: a live connection exists and this attempt replaces it on success. */
   reconnect: boolean
+  /** Connection the operator chose to replace; null for a first connection. */
+  supersedes: string | null
 }
 
 /**
@@ -169,6 +171,9 @@ export class ProductConnector {
   private callbackDeadlineMs: number
   private pending = new Map<string, PendingState>()
   private last = new Map<string, ConnectOutcome>()
+  /** Admission and consumed callbacks also own the product while they await I/O. */
+  private starting = new Set<string>()
+  private processing = new Set<string>()
 
   // Assigned in the body: Node's type-stripping loader rejects parameter properties.
   constructor(deps: ProductConnectorDeps) {
@@ -202,7 +207,7 @@ export class ProductConnector {
     if (last?.outcome !== 'waiting') return last
     const now = this.now()
     this.prune(now)
-    if ([...this.pending.values()].some((p) => p.spec.product === product)) return last
+    if (this.starting.has(product) || this.processing.has(product) || [...this.pending.values()].some((p) => p.spec.product === product)) return last
     const at = new Date(Date.parse(last.since) + CONNECT_STATE_TTL_MS).toISOString()
     this.failed(product, at, { code: 'no-answer' }, `no answer from ${productName(product)} within 10 minutes`)
     return this.last.get(product) ?? null
@@ -223,25 +228,28 @@ export class ProductConnector {
     const name = productName(spec.product)
     const refuse = (code: ConnectProblemCode, reason: string, detail?: string): BeginAnswer => ({ ok: false, problem: detail ? { code, detail } : { code }, reason })
     if (!this.deps.origin()) return refuse('hub-off', `the hub is not listening, so ${name} would have nowhere to deliver its key`)
-    if (!opts.reconnect) {
-      let live: Awaited<ReturnType<AccessStore['liveConnection']>>
-      try {
-        live = await this.deps.store.liveConnection(spec.product)
-      } catch (e) {
-        // A read that fails is not "not connected": opening the product could replace a live key.
-        ops.failed('connect.live-read', e, { product: spec.product })
-        return refuse('live-unreadable', `whether ${name} is already connected could not be read: ${(e as Error).message}`, (e as Error).message)
-      }
-      if (live) return refuse('already-connected', `${name} is already connected; reconnect it to replace its key`)
-    }
-    const now = this.now()
-    this.prune(now)
-    if ([...this.pending.values()].filter((p) => p.spec.product === spec.product).length >= 3)
+    this.prune(this.now())
+    if (this.starting.has(spec.product) || this.processing.has(spec.product) || [...this.pending.values()].some(p => p.spec.product === spec.product))
       return refuse('busy', `a connection to ${name} is already waiting for its answer`)
+    // Taken before the first await: simultaneous IPC decisions must open one consent, not two.
+    this.starting.add(spec.product)
+    let live: Awaited<ReturnType<AccessStore['liveConnection']>>
+    try {
+      live = await this.deps.store.liveConnection(spec.product)
+    } catch (e) {
+      ops.failed('connect.live-read', e, { product: spec.product })
+      return refuse('live-unreadable', `whether ${name} is already connected could not be read`, (e as Error).message)
+    } finally {
+      this.starting.delete(spec.product)
+    }
+    // No await between releasing admission and retaining its state.
+    if (live && !opts.reconnect) return refuse('already-connected', `${name} is already connected; reconnect it to replace its key`)
+    const now = this.now()
     const state = this.random(32).toString('base64url')
     const reconnect = opts.reconnect === true
-    this.pending.set(state, { spec, createdAt: now, reconnect })
+    this.pending.set(state, { spec, createdAt: now, reconnect, supersedes: live?.id ?? null })
     const link = this.linkFor(spec, state)
+    this.settle({ product: spec.product, outcome: 'waiting', since: new Date(now).toISOString(), reconnect })
     try {
       await this.deps.openExternal(link)
     } catch (e) {
@@ -253,7 +261,6 @@ export class ProductConnector {
       return { ok: false, problem, reason }
     }
     ops.record({ op: 'connect.begin', outcome: 'ok', detail: { product: spec.product, reconnect }, ctx: { correlationId: ops.correlate() } })
-    this.settle({ product: spec.product, outcome: 'waiting', since: new Date(now).toISOString(), reconnect })
     return { ok: true, expiresAt: new Date(now + CONNECT_STATE_TTL_MS).toISOString() }
   }
 
@@ -294,131 +301,166 @@ export class ProductConnector {
       write(res, status, { error })
     }
     if (req.headers.origin !== undefined) return fail(403, 'a browser cannot deliver a key')
-    if (!/^application\/json\b/i.test(req.headers['content-type'] ?? '')) return fail(415, 'expected application/json')
+    // An Origin is not a product callback and cannot cancel legitimate consent. Malformed delivery on
+    // the app path fails the unique attempt immediately instead of claiming another ten minutes' wait.
+    const invalid = (status: number, error: string): void => {
+      const waiting = [...this.pending.entries()].filter(([, p]) => p.spec.product === product)
+      if (waiting.length === 1 && !this.processing.has(product)) {
+        this.pending.delete(waiting[0][0])
+        this.failed(product, new Date(this.now()).toISOString(), { code: 'invalid-delivery', detail: error }, `${name} delivered an invalid answer`)
+      }
+      fail(status, error)
+    }
+    if (!/^application\/json\b/i.test(req.headers['content-type'] ?? '')) return invalid(415, 'expected application/json')
     const read = await readBounded(req, MAX_CALLBACK_BYTES, Math.min(this.bodyTimeoutMs, this.callbackDeadlineMs))
     if (!read.ok) {
       // The connection is closed after the answer: a sender that is still trickling bytes is not waited on.
       res.once('finish', () => req.destroy())
-      return fail(read.status, read.error)
+      return invalid(read.status, read.error)
     }
     let body: Record<string, unknown>
     try {
       const parsed = JSON.parse(read.raw) as unknown
-      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return fail(400, 'expected a JSON object')
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return invalid(400, 'expected a JSON object')
       body = parsed as Record<string, unknown>
     } catch {
-      return fail(400, 'the body is not JSON') // a refusal with its reason is the record
+      return invalid(400, 'the body is not JSON') // a refusal with its reason is the record
     }
     const state = typeof body.state === 'string' ? body.state : ''
     const pending = /^[A-Za-z0-9_-]{22,128}$/.test(state) ? this.pending.get(state) : undefined
     // SPENT before anything is awaited: a replay of this POST finds nothing.
-    if (pending) this.pending.delete(state)
+    if (pending?.spec.product === product) this.pending.delete(state)
     if (!pending || pending.spec.product !== product) return fail(400, 'unknown or already used state')
-    const at = new Date(this.now()).toISOString()
-    if (this.now() - pending.createdAt > CONNECT_STATE_TTL_MS) {
-      this.failed(product, at, { code: 'late' }, `${name} answered after the 10-minute window`)
-      return fail(400, 'the state expired')
-    }
-
-    if (body.outcome === 'denied') {
-      this.settle({ product, outcome: 'denied', at })
-      ops.record({ op: 'connect.callback', outcome: 'ok', detail: { product, outcome: 'denied' }, ctx: { correlationId: ops.correlate() } })
-      await this.journalRefusal(product, 'denied', null)
-      return write(res, 200, { ok: true })
-    }
-    if (body.outcome === 'failed') {
-      const error = typeof body.error === 'string' && FAILURES.has(body.error) ? body.error : 'unknown'
-      const reasons: Record<string, string> = {
-        no_server: `${name} has no server set up yet`,
-        sign_in_required: `${name} needs you to sign in again; it has opened its sign-in`,
-        mint_failed: `${name} could not make the key`,
-        unknown: `${name} reported a failure Fabric does not recognise`
+    this.processing.add(product)
+    try {
+      const at = new Date(this.now()).toISOString()
+      if (this.now() - pending.createdAt > CONNECT_STATE_TTL_MS) {
+        this.failed(product, at, { code: 'late' }, `${name} answered after the 10-minute window`)
+        return fail(400, 'the state expired')
       }
-      this.failed(product, at, { code: error as ConnectProblemCode }, reasons[error])
-      ops.record({ op: 'connect.callback', outcome: 'ok', level: 'warn', detail: { product, outcome: 'failed', error }, ctx: { correlationId: ops.correlate() } })
-      await this.journalRefusal(product, 'failed', error)
-      return write(res, 200, { ok: true })
-    }
-    if (body.outcome !== 'connected') return fail(400, 'unknown outcome')
 
-    const key = body.key as Record<string, unknown> | undefined
-    const secret = body.clientSecret
-    const problems: string[] = []
-    if (!isHttps(body.server)) problems.push('server must be an https URL')
-    if (!isHttps(body.mcpUrl)) problems.push('mcpUrl must be an https URL')
-    if (!key || typeof key !== 'object') problems.push('key is missing')
-    else {
-      if (typeof key.id !== 'string' || !key.id || key.id.length > 200) problems.push('key.id')
-      if (typeof key.clientId !== 'string' || !key.clientId || key.clientId.length > 400) problems.push('key.clientId')
-      if (key.level !== pending.spec.level) problems.push(`key.level must be ${pending.spec.level}`)
-      if (key.send !== 'drafts' && key.send !== 'send') problems.push('key.send')
-      if (key.expiresAt !== null && key.expiresAt !== undefined && (typeof key.expiresAt !== 'string' || Number.isNaN(Date.parse(key.expiresAt)))) problems.push('key.expiresAt')
-    }
-    if (typeof secret !== 'string' || !secret || secret.length > 4096) problems.push('clientSecret')
-    if (problems.length) {
-      this.failed(product, at, { code: 'invalid-delivery', detail: problems.join(', ') }, `${name} delivered a key Fabric cannot use (${problems.join(', ')})`)
-      return fail(400, `invalid delivery: ${problems.join(', ')}`)
-    }
-    const k = key as { id: string; clientId: string; level: string; send: string; expiresAt?: string | null }
-    const id = randomUUID()
-    const slot = secretSlotFor(pending.spec, this.deps.estateId, id)
-    const tooLate = (stage: string): void => {
-      ops.record({ op: 'connect.callback', outcome: 'failed', level: 'error', detail: { product, stage, refused: 'deadline', key_id: k.id, connection_id: id, deadline_ms: this.callbackDeadlineMs }, ctx: { correlationId: ops.correlate() } })
-      this.failed(product, at, { code: 'deadline' }, `Fabric could not keep the key within ${name}'s 10 seconds (stage: ${stage})`)
-      write(res, 504, { error: 'deadline' })
-    }
+      if (body.outcome === 'denied') {
+        this.settle({ product, outcome: 'denied', at })
+        ops.record({ op: 'connect.callback', outcome: 'ok', detail: { product, outcome: 'denied' }, ctx: { correlationId: ops.correlate() } })
+        await this.journalRefusal(product, 'denied', null)
+        return write(res, 200, { ok: true })
+      }
+      if (body.outcome === 'failed') {
+        const error = typeof body.error === 'string' && FAILURES.has(body.error) ? body.error : 'unknown'
+        const reasons: Record<string, string> = {
+          no_server: `${name} has no server set up yet`,
+          sign_in_required: `${name} needs you to sign in again; it has opened its sign-in`,
+          mint_failed: `${name} could not make the key`,
+          unknown: `${name} reported a failure Fabric does not recognise`
+        }
+        this.failed(product, at, { code: error as ConnectProblemCode }, reasons[error])
+        ops.record({ op: 'connect.callback', outcome: 'ok', level: 'warn', detail: { product, outcome: 'failed', error }, ctx: { correlationId: ops.correlate() } })
+        await this.journalRefusal(product, 'failed', error)
+        return write(res, 200, { ok: true })
+      }
+      if (body.outcome !== 'connected') {
+        this.failed(product, at, { code: 'invalid-delivery', detail: 'unknown outcome' }, `${name} delivered an unknown outcome`)
+        return fail(400, 'unknown outcome')
+      }
 
-    // 1. THE SECRET, into a slot no live connection reads.
-    const put = this.deps.vault.put(slot, secret as string)
-    const stored = await Promise.race([put, deadline])
-    if (stored === 'late') {
-      // The put may still finish: its slot is named by no record, and the product revokes the key.
-      put.then((r) => ops.record({ op: 'connect.callback', outcome: 'ok', level: 'warn', detail: { product, stage: 'vault-after-deadline', stored: r.ok, connection_id: id }, ctx: { correlationId: ops.correlate() } }), () => undefined)
-      return tooLate('vault')
-    }
-    if (!stored.ok) {
-      this.failed(product, at, { code: 'vault', detail: stored.reason }, `the key was not kept: ${stored.reason}`)
-      ops.record({ op: 'connect.callback', outcome: 'failed', level: 'error', detail: { product, stage: 'vault', reason: stored.reason, key_id: k.id, connection_id: id }, ctx: { correlationId: ops.correlate() } })
-      return write(res, 503, { error: 'vault_unavailable', reason: stored.reason })
-    }
-    if (isLate()) return tooLate('vault')
+      const key = body.key as Record<string, unknown> | undefined
+      const secret = body.clientSecret
+      const problems: string[] = []
+      if (!isHttps(body.server)) problems.push('server must be an https URL')
+      if (!isHttps(body.mcpUrl)) problems.push('mcpUrl must be an https URL')
+      if (!key || typeof key !== 'object') problems.push('key is missing')
+      else {
+        if (typeof key.id !== 'string' || !key.id || key.id.length > 200) problems.push('key.id')
+        if (typeof key.clientId !== 'string' || !key.clientId || key.clientId.length > 400) problems.push('key.clientId')
+        if (key.level !== pending.spec.level) problems.push(`key.level must be ${pending.spec.level}`)
+        if (key.send !== 'drafts' && key.send !== 'send') problems.push('key.send')
+        if (key.expiresAt !== null && key.expiresAt !== undefined && (typeof key.expiresAt !== 'string' || Number.isNaN(Date.parse(key.expiresAt)))) problems.push('key.expiresAt')
+      }
+      if (typeof secret !== 'string' || !secret || secret.length > 4096) problems.push('clientSecret')
+      if (problems.length) {
+        this.failed(product, at, { code: 'invalid-delivery', detail: problems.join(', ') }, `${name} delivered a key Fabric cannot use (${problems.join(', ')})`)
+        return fail(400, `invalid delivery: ${problems.join(', ')}`)
+      }
+      const k = key as { id: string; clientId: string; level: string; send: string; expiresAt?: string | null }
+      const id = randomUUID()
+      const slot = secretSlotFor(pending.spec, this.deps.estateId, id)
+      const tooLate = (stage: string): void => {
+        ops.record({ op: 'connect.callback', outcome: 'failed', level: 'error', detail: { product, stage, refused: 'deadline', key_id: k.id, connection_id: id, deadline_ms: this.callbackDeadlineMs }, ctx: { correlationId: ops.correlate() } })
+        this.failed(product, at, { code: 'deadline' }, `Fabric could not keep the key within ${name}'s 10 seconds (stage: ${stage})`)
+        write(res, 504, { error: 'deadline' })
+      }
 
-    // 2. THE RECORD, only now — and withdrawn if it lands after the product stopped waiting.
-    const appended = this.deps.store.append('product.connected@1', this.deps.actor(), {
-      id, product, server: body.server, mcp_url: body.mcpUrl, key_id: k.id, client_id: k.clientId,
-      level: k.level, send: k.send, key_expires_at: k.expiresAt ?? null, secret_ref: slot
-    }).then(() => 'recorded' as const, (e: unknown) => ({ error: e as Error }))
-    const recorded = await Promise.race([appended, deadline])
-    if (recorded !== 'late' && recorded !== 'recorded') {
-      ops.failed('connect.record', recorded.error, { product, key_id: k.id })
-      this.failed(product, at, { code: 'record-failed', detail: recorded.error.message }, `the connection could not be recorded: ${recorded.error.message}`)
-      return write(res, 500, { error: 'record_failed' })
-    }
-    if (recorded === 'late' || isLate()) {
-      write(res, 504, { error: 'deadline' })
-      const landed = recorded === 'recorded' ? 'recorded' : await appended
-      if (landed !== 'recorded') {
-        ops.failed('connect.record', landed.error, { product, key_id: k.id, after: 'deadline' })
-        this.failed(product, at, { code: 'deadline' }, `Fabric could not record the key within ${name}'s 10 seconds`)
+      // 1. THE SECRET, into a slot no live connection reads.
+      const put = this.deps.vault.put(slot, secret as string)
+      const stored = await Promise.race([put, deadline])
+      if (stored === 'late') {
+        // The put may still finish: its slot is named by no record, and the product revokes the key.
+        put.then((r) => ops.record({ op: 'connect.callback', outcome: 'ok', level: 'warn', detail: { product, stage: 'vault-after-deadline', stored: r.ok, connection_id: id }, ctx: { correlationId: ops.correlate() } }), () => undefined)
+        return tooLate('vault')
+      }
+      if (!stored.ok) {
+        this.failed(product, at, { code: 'vault', detail: stored.reason }, `the key was not kept: ${stored.reason}`)
+        ops.record({ op: 'connect.callback', outcome: 'failed', level: 'error', detail: { product, stage: 'vault', reason: stored.reason, key_id: k.id, connection_id: id }, ctx: { correlationId: ops.correlate() } })
+        return write(res, 503, { error: 'vault_unavailable', reason: stored.reason })
+      }
+      if (isLate()) return tooLate('vault')
+
+      // A delivery replaces only the connection chosen when the operator opened consent. The schema
+      // checks this same predecessor atomically at append, closing the read/append race across processes.
+      let current: Awaited<ReturnType<AccessStore['liveConnection']>>
+      try {
+        const readLive = this.deps.store.liveConnection(product).then(value => ({ value }), error => ({ error: error as Error }))
+        const currentRead = await Promise.race([readLive, deadline])
+        if (currentRead === 'late' || isLate()) return tooLate('live-read')
+        if ('error' in currentRead) throw currentRead.error
+        current = currentRead.value
+      } catch (e) {
+        this.failed(product, at, { code: 'live-unreadable', detail: (e as Error).message }, 'the current connection could not be read')
+        return write(res, 503, { error: 'live_unreadable' })
+      }
+      if ((current?.id ?? null) !== pending.supersedes) {
+        this.failed(product, at, { code: 'already-connected' }, 'the connection changed while the product was answering; reconnect from its current state')
+        return write(res, 409, { error: 'connection_changed' })
+      }
+
+      // 2. THE RECORD, only now — and withdrawn if it lands after the product stopped waiting.
+      const appended = this.deps.store.append('product.connected@1', this.deps.actor(), {
+        id, product, supersedes: pending.supersedes, server: body.server, mcp_url: body.mcpUrl, key_id: k.id, client_id: k.clientId,
+        level: k.level, send: k.send, key_expires_at: k.expiresAt ?? null, secret_ref: slot
+      }).then(() => 'recorded' as const, (e: unknown) => ({ error: e as Error }))
+      const recorded = await Promise.race([appended, deadline])
+      if (recorded !== 'late' && recorded !== 'recorded') {
+        ops.failed('connect.record', recorded.error, { product, key_id: k.id })
+        this.failed(product, at, { code: 'record-failed', detail: recorded.error.message }, `the connection could not be recorded: ${recorded.error.message}`)
+        return write(res, 500, { error: 'record_failed' })
+      }
+      if (recorded === 'late' || isLate()) {
+        write(res, 504, { error: 'deadline' })
+        const landed = recorded === 'recorded' ? 'recorded' : await appended
+        if (landed !== 'recorded') {
+          ops.failed('connect.record', landed.error, { product, key_id: k.id, after: 'deadline' })
+          this.failed(product, at, { code: 'deadline' }, `Fabric could not record the key within ${name}'s 10 seconds`)
+          return
+        }
+        let withdrawn = true
+        try {
+          await this.deps.store.append('product.disconnected@1', this.deps.actor(), { id })
+        } catch (e) {
+          withdrawn = false
+          ops.failed('connect.withdraw', e, { product, connection_id: id, key_id: k.id })
+        }
+        ops.record({ op: 'connect.callback', outcome: 'failed', level: 'error', detail: { product, stage: 'record-after-deadline', connection_id: id, key_id: k.id, withdrawn, reconnect: pending.reconnect }, ctx: { correlationId: ops.correlate() } })
+        const problem: ConnectProblem = withdrawn
+          ? (pending.reconnect ? { code: 'withdrawn', previousLost: true } : { code: 'withdrawn' })
+          // The record DID land and stays: its own code, phrased by the operator's screens (iteration 2, UX-6 / DO-7).
+          : { code: 'withdraw-failed' }
+        this.failed(product, at, problem, withdrawn ? 'the key was recorded after the product stopped waiting, and was withdrawn' : 'the late record could not be withdrawn')
         return
       }
-      let withdrawn = true
-      try {
-        await this.deps.store.append('product.disconnected@1', this.deps.actor(), { id })
-      } catch (e) {
-        withdrawn = false
-        ops.failed('connect.withdraw', e, { product, connection_id: id, key_id: k.id })
-      }
-      ops.record({ op: 'connect.callback', outcome: 'failed', level: 'error', detail: { product, stage: 'record-after-deadline', connection_id: id, key_id: k.id, withdrawn, reconnect: pending.reconnect }, ctx: { correlationId: ops.correlate() } })
-      const problem: ConnectProblem = withdrawn
-        ? (pending.reconnect ? { code: 'withdrawn', previousLost: true } : { code: 'withdrawn' })
-        : { code: 'record-failed', detail: 'the late record could not be withdrawn; disconnect it in Settings → Agent access' }
-      this.failed(product, at, problem, withdrawn ? 'the key was recorded after the product stopped waiting, and was withdrawn' : 'the late record could not be withdrawn')
-      return
-    }
-    ops.record({ op: 'connect.callback', outcome: 'ok', detail: { product, outcome: 'connected', connection_id: id, key_id: k.id, level: k.level, reconnect: pending.reconnect }, ctx: { correlationId: ops.correlate() } })
-    this.settle({ product, outcome: 'connected', at, reconnect: pending.reconnect })
-    write(res, 200, { ok: true })
+      ops.record({ op: 'connect.callback', outcome: 'ok', detail: { product, outcome: 'connected', connection_id: id, key_id: k.id, level: k.level, reconnect: pending.reconnect }, ctx: { correlationId: ops.correlate() } })
+      this.settle({ product, outcome: 'connected', at, reconnect: pending.reconnect })
+      write(res, 200, { ok: true })
+    } finally { this.processing.delete(product) }
   }
 
   /**

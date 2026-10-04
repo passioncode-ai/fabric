@@ -309,7 +309,12 @@ button:disabled { opacity: .4; cursor: default; }
 /* Agent access (SCR-76): one bordered card per product, request and agent; the text owns the width and
    the acts take their own line under it, so a narrow panel never squeezes the words into a column (UX-1). */
 .access-card { border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-2); margin-bottom: var(--space-2); display: flex; flex-direction: column; gap: var(--space-1); }
-.access-card p { margin: 0; }
+.access-card { min-width: 0; }
+/* Iteration 2 for 0.3.1: an address or an id is one unbreakable token; it wraps inside the card, so the whole
+   resource being granted can be read (UX-3), and a card's acts wrap in a narrow window (UX-10). */
+.access-card p { margin: 0; overflow-wrap: anywhere; }
+.access-asks li { overflow-wrap: anywhere; }
+.access-acts .toolbar { flex-wrap: wrap; }
 .access-name { margin: 0; font-size: var(--app-fs-body); }
 .access-asks { margin: 0; padding-left: var(--space-3); }
 .access-url { overflow-wrap: anywhere; }

@@ -16,11 +16,12 @@ const row = (id, extra = {}) => ({
 
 function harness({ visible = true, focused = visible, answers = [1], pending = () => true, connect = { ok: true }, decide = { ok: true }, say } = {}) {
   const log = []
+  const details = []
   let win = { visible, focused, destroyed: false, isVisible: () => win.visible, isMinimized: () => false, isFocused: () => win.focused, isDestroyed: () => win.destroyed, show: () => { win.visible = true; log.push('show') }, focus: () => { win.focused = true; log.push('focus') } }
   const replies = [...answers]
   const p = new ConsentPresenter({
     window: () => win,
-    showMessageBox: async (parent, o) => { log.push(['box', parent === win, o.buttons.join('|'), o.defaultId, o.cancelId, o.message, o.type]); return { response: replies.shift() ?? 0 } },
+    showMessageBox: async (parent, o) => { log.push(['box', parent === win, o.buttons.join('|'), o.defaultId, o.cancelId, o.message, o.type]); details.push(o.detail); return { response: replies.shift() ?? 0 } },
     notify: (title, body, onClick) => { log.push(['notify', title]); harness.click = onClick; return true },
     openWindow: () => log.push('open'),
     decide: async (id, d) => { log.push(['decide', id, d]); return decide },
@@ -28,7 +29,7 @@ function harness({ visible = true, focused = visible, answers = [1], pending = (
     stillPending: async (id) => pending(id),
     ...(say ? { say: () => say } : {})
   })
-  return { p, log, get win() { return win } }
+  return { p, log, details, get win() { return win } }
 }
 const settle = () => new Promise((r) => setTimeout(r, 20))
 
@@ -36,7 +37,7 @@ test('a visible window: the prompt has a parent, Deny is the default, Allow is d
   const h = harness({ answers: [1] })
   h.p.present({ row: row('r1'), connected: true })
   await settle()
-  assert.deepEqual(h.log[0], ['box', true, 'Deny|Allow', 0, 0, 'Example agent asks to use Fabric Inbox through Fabric', 'question'])
+  assert.deepEqual(h.log[0], ['box', true, 'Deny|Allow', 0, 0, 'Allow Example agent to use Fabric Inbox?', 'question'])
   assert.deepEqual(h.log[1], ['decide', 'r1', 'allowed'])
   assert.equal(h.log.length, 2, 'nothing else happened — no connect for a connected product')
 })
@@ -64,7 +65,7 @@ test('in the background: a notification, no prompt, until it is clicked', async 
   assert.equal(h.p.waiting(), 1)
   harness.click()
   await settle()
-  assert.deepEqual(h.log.slice(1), ['show', 'focus', ['box', true, 'Deny|Allow', 0, 0, 'Example agent asks to use Fabric Inbox through Fabric', 'question'], ['decide', 'r1', 'allowed']])
+  assert.deepEqual(h.log.slice(1), ['show', 'focus', ['box', true, 'Deny|Allow', 0, 0, 'Allow Example agent to use Fabric Inbox?', 'question'], ['decide', 'r1', 'allowed']])
 })
 
 test('one prompt at a time, in order; a request answered elsewhere or expired is skipped', async () => {
@@ -102,6 +103,9 @@ test('UX-5: an Allow whose product could not be opened is followed by a message 
   assert.ok(follow, 'the operator was told nothing')
   assert.equal(follow[6], 'warning')
   assert.match(follow[5], /^Allowed\. To connect it, open Agent access in settings\. It did not connect: Fabric Inbox could not be opened/)
+  // Iteration 2, UX-5: the machine's words are the box's detail, never inside the sentence.
+  assert.doesNotMatch(follow[5], /no handler/)
+  assert.equal(h.details[1], 'What Fabric saw: no handler')
 })
 
 test('UX-11: an answer that was not recorded is a warning, phrased from its code', async () => {
@@ -117,7 +121,8 @@ test('UX-2: the native prompt speaks the operator\'s language', async () => {
   h.p.present({ row: row('r1'), connected: false })
   await settle()
   const box = h.log.find((e) => e[0] === 'box')
-  assert.equal(box[5], 'Example agent просит доступ к Fabric Inbox через Fabric')
+  // Iteration 2, UX-11: macOS draws no title, so the bold line is the question.
+  assert.equal(box[5], 'Разрешить Example agent доступ к Fabric Inbox?')
   assert.equal(box[2], 'Отказать|Разрешить и подключить Fabric Inbox')
 })
 

@@ -1,9 +1,9 @@
 # Handoff — Fabric 0.3.1 (the hub) verification, iteration 1 (2026-10-04)
 
-**Status: iteration 1 closed on branch `agent/hub-0.3.1-verification` (from `main` at `67a5dc42`), pull request
-"fix(hub): verification iteration 1 for 0.3.1 (ADR-0115)" open against `main`, not merged.** Iterations 2 and 3 have
-not started. The version is still 0.3.0 and nothing is tagged: 0.3.0 is released separately from `5193022c`
-(plan P-03); the bump to 0.3.1 comes after iteration 3 (plan P-08).
+**Status (recovery 2026-10-04): iteration 1 landed on main as squash `2927a087` (PR #8).**
+Its individual pre-squash receipts belong to PR #8, available through `refs/pull/8/head`.
+Iteration 2 reviewers completed their read-only reports; their fixes are being recovered from the interrupted
+Claude worktrees. Iteration 3 has not closed. The application remains 0.3.0: a pushed recovery branch is not a release.
 
 Entry point: the ledger, [2026-10-04-hub-verification.md](../evidence/plans/2026-10-04-hub-verification.md) — its
 `## Iteration 1` table names every finding (V1-1…V1-56), its commit and the test that now catches it.
@@ -21,7 +21,7 @@ across the five levels, every finding fixed or ruled (operator's rule of 2026-10
   (ER-1), the per-request poll secret (ER-2), the callback deadline with the secret stored first (ER-6/DO-9), migration
   77 at the door (DA-1) and across a restore (DA-2), a secret slot per estate and connection (DA-6).
 - Every other finding fixed except three cross-repository ones, ruled: CO-193 (fabric-agent-contract), CO-196
-  (fabric-workspace knowledge pages), CO-197 (workspace publication / sync under load).
+  (fabric-workspace knowledge pages), CO-197 (publication at the final source SHA; the original under-load diagnosis is superseded by sync recovery).
 - Schema 77 (migration `20261004000077_hub_access_at_the_door.sql`); the task-pipeline persistence contract re-reserved
   its two migrations to 78/79.
 - ADR-0115 amendments 6–19; CONTEXT gains Poll secret; CHANGELOG `## 0.3.1 (unreleased)`; plan P-08; design map lane
@@ -51,5 +51,6 @@ Recorded with their outcomes in the ledger's iteration 1 section ("Gates on the 
 
 ## Next task
 
-Merge the iteration-1 pull request after review, then start **iteration 2** of the 0.3.1 ledger: five fresh
-reviewers against the merged head, reports into `docs/evidence/plans/2026-10-04-hub-verification/iteration-2/`.
+Converge the core, surface and root iteration-2 recovery patches, run the combined gates, and disposition the
+iteration-2 ledger under its lease. Then conduct iteration 3 independently at the converged SHA. The surface
+packet is [surface-resume.md](surface-resume.md); it identifies focused checks and outstanding acceptance gates.
