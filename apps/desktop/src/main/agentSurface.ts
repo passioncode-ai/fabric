@@ -339,8 +339,11 @@ export class AgentSurface {
   async start(opts: { port?: number } = {}): Promise<void> {
     if (this.http) return
     // V2 ER-3: after restart, valid bindings must not share the unknown-token lookup bucket.
-    // This snapshot is only a budget hint; every request still authenticates against live state.
-    await this.deps.hub?.access.primeCredentialVerifiers()
+    // This snapshot is only a budget hint; every request still authenticates against live state, so a warm-up
+    // that fails costs the hint, never the surface sessions depend on (I3 E-3).
+    try { await this.deps.hub?.access.primeCredentialVerifiers() } catch (e) {
+      ops.failed('agentSurface.prime-credential-verifiers', e, { note: 'known bindings share the unknown-bearer budget until they authenticate' })
+    }
     // M104 — NOT fire-and-forget. `void this.handle(...)` with three reachable
     // throws inside meant a rejection left `res` unwritten: the agent blocked
     // until its own timeout with its call budget already spent, and the main
@@ -683,6 +686,7 @@ export class AgentSurface {
     return true
   }
 
+  // #region hub-external-ingress — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#1-one-door-a-second-way-in
   /**
    * An external principal (ADR-0115): the door token, or a binding credential. Returns false when the
    * bearer is neither, so the caller refuses it exactly as it refuses any unknown bearer.
@@ -709,6 +713,19 @@ export class AgentSurface {
     }
     this.externalPending.set(admissionKey, pending + 1)
     this.externalPendingTotal++
+    // Released exactly once — when the request ends OR when the caller goes away. The SDK never settles
+    // handleRequest for a response closed under it, so a slot freed only after it leaked one per hang-up
+    // until the credential (or the whole hub) was refused 429 (I3 E-2).
+    let released = false
+    const release = (): void => {
+      if (released) return
+      released = true
+      const remaining = (this.externalPending.get(admissionKey) ?? 1) - 1
+      if (remaining) this.externalPending.set(admissionKey, remaining)
+      else this.externalPending.delete(admissionKey)
+      this.externalPendingTotal--
+    }
+    const closed = new Promise<void>((resolve) => res.once('close', () => { release(); resolve() }))
     try {
       let principal: HubPrincipal | null = null
       const door = hub.doorToken()
@@ -784,15 +801,13 @@ export class AgentSurface {
         void server.close()
       })
       await server.connect(transport)
-      await transport.handleRequest(req, res, body)
+      await Promise.race([transport.handleRequest(req, res, body), closed])
       return true
     } finally {
-      const remaining = (this.externalPending.get(admissionKey) ?? 1) - 1
-      if (remaining) this.externalPending.set(admissionKey, remaining)
-      else this.externalPending.delete(admissionKey)
-      this.externalPendingTotal--
+      release()
     }
   }
+  // #endregion hub-external-ingress
 
   /**
    * M46 — record that memory was asked, and what it returned, INCLUDING nothing.
@@ -1294,7 +1309,10 @@ export class AgentSurface {
             )
         }
       },
-      async ({ claim, sourceRef, kind, category, about, occurrence, supersedes }) => {
+      async ({ claim, sourceRef, kind, category, about, occurrence, supersedes: asked }) => {
+        // The schema accepts any UUID spelling; the journal stores canonical lower case (migration 80), so an
+        // upper-case id is canonicalised here instead of reaching the database as a raw refusal (I3 A-1).
+        const supersedes = asked?.toLowerCase()
         const id = randomUUID()
         assertAgentReference(about?.key)
         const normalised = normaliseAbout(about)

@@ -26,7 +26,7 @@
 // refused before listening, and a port in use is an error with its reason — never a quiet move.
 
 import type { HubDownCode } from '../shared/access.ts'
-import { closeSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeSync, chmodSync } from 'node:fs'
+import { closeSync, constants as fsc, fstatSync, fsyncSync, lstatSync, mkdirSync, openSync, readSync, renameSync, rmSync, writeSync, chmodSync } from 'node:fs'
 import { randomBytes } from 'node:crypto'
 import path from 'node:path'
 import { ops } from './opsSink.ts'
@@ -109,12 +109,37 @@ export function publishHub(opts: {
   return { doorToken, document, hubFile, doorTokenFile }
 }
 
+/** hub.json is read at quit, before anything can stop a blocked main thread (I3 E-1): a FIFO, a device or a
+ *  symlink planted there must be refused, never opened for a blocking read or followed. Small and bounded. */
+const HUB_DOCUMENT_MAX_BYTES = 64 * 1024
+function readHubDocument(file: string): string | null {
+  if (!lstatSync(file).isFile()) return null
+  const fd = openSync(file, fsc.O_RDONLY | fsc.O_NONBLOCK | (fsc.O_NOFOLLOW ?? 0) | (fsc.O_NOCTTY ?? 0))
+  try {
+    const st = fstatSync(fd)
+    if (!st.isFile() || st.size > HUB_DOCUMENT_MAX_BYTES) return null
+    const buf = Buffer.alloc(HUB_DOCUMENT_MAX_BYTES + 1)
+    let got = 0
+    for (;;) {
+      const n = readSync(fd, buf, got, buf.length - got, null)
+      if (n === 0) break
+      got += n
+      if (got > HUB_DOCUMENT_MAX_BYTES) return null
+    }
+    return buf.subarray(0, got).toString('utf8')
+  } finally {
+    closeSync(fd)
+  }
+}
+
 /** Remove both files — only when `hub.json` still names this process. */
 export function withdrawHub(root: string, pid: number = process.pid): { removed: boolean; reason?: string } {
   const { hubFile, doorTokenFile } = hubPaths(root)
   let current: Partial<HubDocument> | null = null
   try {
-    current = JSON.parse(readFileSync(hubFile, 'utf8')) as Partial<HubDocument>
+    const text = readHubDocument(hubFile)
+    if (text === null) return { removed: false, reason: 'hub.json is not a regular file; left in place' }
+    current = JSON.parse(text) as Partial<HubDocument>
   } catch (e) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') return { removed: false, reason: 'no hub.json to remove' }
     ops.failed('hub.withdraw-read', e, { file: hubFile })

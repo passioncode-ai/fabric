@@ -1,0 +1,78 @@
+{
+  "level": "errors",
+  "candidateCommit": "130b5510011a0f15858642838fc906ad4af4bf67",
+  "findings": [
+    {
+      "id": "E-1",
+      "blocking": true,
+      "title": "A FIFO at hub.json hangs Fabric's quit for good; the quit deadline and reaper are never armed",
+      "evidence": "hub.ts:117 withdrawHub reads hub.json with readFileSync (no regular-file check, no O_NONBLOCK); index.ts:597-599 runs it as a quit stop; quit.ts:95-101 runs every stop before arming the 10 s deadline and the 15 s outside reaper. Probe p1-withdraw-fifo.mjs: a regular hub.json was withdrawn in 1 ms; with a FIFO it was still blocked at 5000 ms and was SIGKILLed. Probe p2-quit-order.mjs printed: stop, then 'deadline armed 10000ms', then 'reaper armed 15000ms'.",
+      "fix": "Read hub.json like agentRegistry.readRegularFile (lstat, O_NONBLOCK open, fstat isFile, bounded read), or compare a stat with the inode and startedAt kept in memory. Arm the deadline and the reaper in quit.ts before running stops. Add a FIFO-plant test."
+    },
+    {
+      "id": "E-2",
+      "blocking": true,
+      "title": "Every external request whose caller hangs up keeps its admission slot for ever; 32 lock out a credential, 128 close the hub",
+      "evidence": "agentSurface.ts:706-794 releases externalPending and externalPendingTotal only in the finally after 'await transport.handleRequest' (line 787). In JSON-response mode, MCP SDK 1.30.0 webStandardStreamableHttp.js:578-595 settles that promise only through resolveJson, and close() (771-787), which res 'close' calls at agentSurface.ts:781, never calls it. Probe p8-hangup-slot-leak.mjs: after 32 hung-up agent.calls the slots were {thisCredential:32,total:32}, and the next valid request got 429 'too many concurrent requests'. Control p8-control.mjs: a waited call releases its slot (0/0).",
+      "fix": "Release the slot exactly once, on res 'close' or 'finish', or in the finally (a guarded release()); alternatively race handleRequest against res 'close'. Add a test: N+1 hung-up calls, then a valid call answers 200."
+    },
+    {
+      "id": "E-3",
+      "blocking": false,
+      "title": "A failed live-bindings read at start (a budget hint) also takes down the session surface",
+      "evidence": "agentSurface.ts:343 awaits primeCredentialVerifiers() before creating any server; the fallback surface.start() in hub.ts:173-179 throws the same way. Probe p7-prime-failure.mjs: startHub returned open:false, not-started, and the session surface endpoint was '' (0.3.0 had no DB dependency here).",
+      "fix": "Catch the prime failure in start(), log it with ops.failed, and continue listening."
+    },
+    {
+      "id": "E-4",
+      "blocking": false,
+      "title": "A repeated stop after a scope change answers 'refused' although the first write may have run",
+      "evidence": "claudeProviderControl.ts:194 runs the scope check before the cached return at :198; codexProviderControl.ts:168 before :172. Probe p6-stop-repeat-scope.mjs: first 'outcome_unknown request_timeout', writes 1; repeat after the scope change 'refused scope_changed', writes 1.",
+      "fix": "Return cached or pending before the scope check, or map scope_changed to outcome_unknown once canonicalCommand is set. Test both controllers."
+    },
+    {
+      "id": "E-5",
+      "blocking": false,
+      "title": "A poller that hung up still consumes the one-time binding credential; later polls say it was handed over",
+      "evidence": "hubTools.ts:136-143 does not pass extra.signal to access.status. accessService.ts:268-275 mints the credential, appends access.credential.claimed@1 and returns it unconditionally. accessService.ts:263 then tells later polls the credential was handed over once.",
+      "fix": "Pass the signal, check signal.aborted inside the serial job before minting, and change the note to 'issued to the first read; if you did not receive it, ask again'."
+    },
+    {
+      "id": "E-6",
+      "blocking": false,
+      "title": "A POST carrying no state can end the operator's pending connect attempt",
+      "evidence": "productConnect.ts:306-320 deletes the single pending state on a malformed delivery before reading any state. Probe p3-callback-cancel.mjs: a stateless text/plain POST got 415 and lastOutcome became failed/invalid-delivery; the product's genuine delivery with the real state then got 400 'unknown or already used state', so the key is revoked. This is intended by the earlier V2 ER-9 test.",
+      "fix": "Settle an attempt only from a delivery that carries its valid state; log stateless malformed posts and do nothing else."
+    },
+    {
+      "id": "E-7",
+      "blocking": false,
+      "title": "Keyless agent.call has no duplicate guard, and its outcome-unknown text names a key never sent; answered keys re-send after 24 h",
+      "evidence": "hubCall.ts:451 forwards every keyless call; hubCall.ts:185-191 says 'this idempotencyKey is refused'; hubCall.ts:71 and :459-461 expire answered keys after 24 h (documented). Probe p5-idem.mjs: 'retry K +24h ... sent 2'; a keyless repeat after outcome-unknown reached 'sent 4'.",
+      "fix": "Require idempotencyKey for SENDS_MAIL capabilities (or all agent.call), and word the keyless outcome-unknown separately."
+    },
+    {
+      "id": "E-8",
+      "blocking": false,
+      "title": "Every fabric.access.request re-reads the whole registry synchronously, with no cap on the number of files",
+      "evidence": "accessService.ts:158 calls refresh() per request; agentRegistry.ts:283 and :249-268 read every file synchronously with no file-count cap; the door admits up to 600 requests/min. Probe p4-registry-cost.mjs: 20 files 0.6 ms; 1000 files 29.7 ms; 1000 x 60 KiB 57.0 ms per refresh on the main thread.",
+      "fix": "Cap the entry count, and debounce or mtime-gate refresh() on the request path."
+    },
+    {
+      "id": "E-9",
+      "blocking": false,
+      "title": "Hub database calls have no deadline, and all access writes, operator revocations included, share one serial chain",
+      "evidence": "index.ts:477-479 creates the Supabase client with no fetch timeout (undici defaults of about 300 s apply); accessStore.ts passes no abortSignal; accessService.ts:119-123 serializes request, status, decide and revoke. Read only; not measured with a stalled PostgREST.",
+      "fix": "Add a per-call abortSignal(AbortSignal.timeout(...)) in accessStore; consider letting operator acts not queue behind agent polls."
+    }
+  ],
+  "notRun": [
+    "scripts/ci.sh (forbidden by the brief; a full run was in progress)",
+    "DB-backed tests: run-hub-access-db, hub-door-db, hub-upgrade-db, hub-authority-boundaries-db, restore-authority-db; migrations 76/77/80 on a live stack",
+    "Real Fabric Inbox forward and connect; a real Project Observatory vault",
+    "Packaged Electron app: consent dialog, and a real quit with the E-1 FIFO plant",
+    "Renderer vitest suites (UI, outside this level)",
+    "A stalled-PostgREST probe for E-9"
+  ],
+  "verdict": "request-changes"
+}

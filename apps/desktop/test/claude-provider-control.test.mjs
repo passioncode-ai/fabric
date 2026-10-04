@@ -95,7 +95,9 @@ await test('missing, rebound, reopened or regressing owned state fences cancella
   for(const mutate of [s=>{s.tasks=[]},s=>{s.tasks[0].messageUuid='other'},s=>{s.sourceSequence--},s=>{s.observation.cursor--}]){
     const f=fixture(),original=f.state,calls=[],h=harness({fixture:f,transport:{requestControl:async request=>{calls.push(request);const next=structuredClone(f.state);mutate(next);f.state=next;return ack(1)}}})
     assert.equal((await h.control.requestStop(h.cmd,h.allowed)).status,'outcome_unknown');f.state=original
-    assert.equal((await h.control.requestStop(h.cmd,h.allowed)).status,'refused');assert.equal(calls.length,1)
+    // Still fenced (no second write), but an attempted command answers unknown, never "refused" (I3 E-4).
+    const again=await h.control.requestStop(h.cmd,h.allowed)
+    assert.equal(again.status,'outcome_unknown');assert.equal(again.reasonCode,'scope_changed');assert.equal(calls.length,1)
   }
   const f=fixture();f.feed(patch('child'));const h=harness({fixture:f});const next=structuredClone(f.state);next.tasks[0].terminal=null;f.state=next
   assert.equal((await h.control.requestStop(h.cmd,h.allowed)).status,'refused');assert.equal(h.calls.length,0)

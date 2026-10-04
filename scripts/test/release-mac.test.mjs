@@ -176,3 +176,12 @@ test('electron-builder never publishes by itself; the workflow publish job does'
   const src = readFileSync(new URL('../release-mac.mjs', import.meta.url), 'utf8')
   assert.match(src, /'electron-builder', '--mac', '--config', config, '--publish', 'never'\]/)
 })
+
+test('I3 P-2: a finalized changelog keeps no unreleased heading or not-released wording for its version', () => {
+  const ok = '# Changelog\n\n## 0.3.1\n\n- The hub.\n\n## 0.3.0\n\n- CI releases.\n'
+  assert.equal(changelogProblem({ version: '0.3.1', text: ok }), null)
+  // Renamed, but the old heading was left beside it.
+  assert.match(changelogProblem({ version: '0.3.1', text: ok.replace('## 0.3.0', '## 0.3.1 (unreleased)\n\n- stale\n\n## 0.3.0') }), /unreleased/)
+  // Renamed only: the section still says it is not released.
+  assert.match(changelogProblem({ version: '0.3.1', text: ok.replace('- The hub.', 'Not released yet: the tag follows verification.\n\n- The hub.') }), /not released/i)
+})

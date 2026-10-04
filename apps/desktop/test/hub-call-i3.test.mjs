@@ -115,3 +115,13 @@ test('I3 retiring a binding during vault await refuses even a stale grant snapsh
  const running=call(binding,args('retire-vault'));await entered.promise;call.forgetBinding(binding.id);held.resolve();const result=await running
  assert.equal(code(result),'binding-revoked');assert.equal(sends,0)
 })
+test('I3 E-7: a keyless call that may have run says no key protects a repeat, never "this idempotencyKey"',async()=>{
+ const call=fixture(async()=>({ok:false,code:'product-unreachable',message:'lost',reached:true,wallMs:1}))
+ const keyless={...args('unused')};delete keyless.idempotencyKey
+ const answer=await call(binding,keyless);const text=JSON.stringify(answer)
+ assert.equal(code(answer),'outcome-unknown')
+ assert.doesNotMatch(text,/this idempotencyKey/)
+ assert.match(text,/carried no idempotencyKey/)
+ const keyed=JSON.stringify(await call(binding,args('keyed')))
+ assert.match(keyed,/this idempotencyKey is refused from now on/)
+})

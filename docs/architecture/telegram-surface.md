@@ -283,7 +283,7 @@ app, from tools, or by asking another agent — and sends it.
 | A schedule | ✅ | `routines`, M132 |
 | An event trigger | ✅ | the journal, plus the routine tick |
 | Calling another agent | ✅ | chains — with the loop bound and the named-thing rule already enforced |
-| Reaching an external tool | ✅ | ~~the machine gateway, ADR-0034~~ — **superseded by [ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)** (noted 2026-10-04): the gateway is off since 2026-09-14; a registered external agent goes through Fabric's hub; a session Fabric starts has no product route yet (CO-194) |
+| Reaching an external tool | ⚠️ partial — external agents only; a session Fabric starts has no product route yet (CO-194; release review I3 D-12, 2026-10-05) | ~~the machine gateway, ADR-0034~~ — **superseded by [ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)** (noted 2026-10-04): the gateway is off since 2026-09-14; a registered external agent goes through Fabric's hub; a session Fabric starts has no product route yet (CO-194) |
 | **Delivering the result to Telegram** | ❌ | the one new part |
 
 So a notifier is `routine + agent + delivery target + template`, and the new

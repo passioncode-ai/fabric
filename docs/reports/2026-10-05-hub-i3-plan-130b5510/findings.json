@@ -1,0 +1,84 @@
+{
+  "level": "plan",
+  "candidateCommit": "130b5510011a0f15858642838fc906ad4af4bf67",
+  "findings": [
+    {
+      "id": "P-1",
+      "blocking": true,
+      "title": "The release gate does not bind iterations 1 and 2, or the ledger, to real commits",
+      "evidence": "scripts/lib/release-gate.mjs:42-44 checks only that each iteration's candidateCommit is 40 hex characters, and only iteration 3 is compared with verifiedCommit. scripts/lib/release-mac.mjs:99-106 checks ancestry for verifiedCommit alone. The ledger text is never compared with any commit (release-gate.mjs:107-132). The title check at release-gate.mjs:110-111 accepts any title that contains the version. Probe scratchpad/i3/plan/probe-gate.mjs (exit 0, output in probe-gate.out.json) used the candidate's own libraries. releaseGateProblems returned [] for each of these: iterations 1 and 2 naming commits that do not exist (1111…, 2222…); all three iterations naming the same commit; a ledger with no finding rows and receipts with empty findings; reviewerRun labels that differ only in suffix; and a ledger titled 'Fabric 0.3.0 (not 0.3.1)'. P-08 (docs/evidence/backlog.md:90) and lane 2 (backlog.md:69) both state that 'three independent iterations' qualify the release. The gate the release relies on cannot tell three iterations from one, or from receipts written after the fact.",
+      "fix": "In release-mac.mjs, where git is available, require each iteration's candidateCommit to exist (git cat-file -e). Require candidate(1) to be an ancestor of candidate(2), candidate(2) an ancestor of candidate(3), and candidate(3) to equal verifiedCommit; candidates may be equal only when a disposition rules it. Require the ledger's iteration-N section to name candidate(N) in full. Anchor the title check to the whole version token so the title cannot also name another version. Add negative tests for each case in probe-gate.mjs."
+    },
+    {
+      "id": "P-2",
+      "blocking": true,
+      "title": "The 0.3.1 CHANGELOG section, which becomes the published notes, misstates what ships",
+      "evidence": "CHANGELOG.md:9-36 lists only the hub. The candidate also ships these user-facing changes since v0.3.0 (5193022c): c93523ec reads provider sign-in status at first run (CO-176.1, apps/desktop/src/main/executorAuth.ts +96, FirstRun.tsx) and gives each ticked repository its own Project in the scan (CO-180.1); 71aa07d8 and 4c85dd35 contain the onboarding launcher and narrow-window scrolling; 2e06e501 preserves draft authority; c93523ec also stops a repeated provider stop from answering refused/deadline. CHANGELOG.md:11-12 says 'Not released yet: the version bump and the tag follow the third verification iteration'. Runbook step 1 (docs/launch/release-mac.md:29-31) says only to rename the heading, so that sentence would be published. In probe-gate.out.json, 'notes body after rename still says' shows the sentence survives and changelogProblem returns null. changelogProblem also returns null when '## 0.3.1' and '## 0.3.1 (unreleased)' coexist (release-mac.mjs lib:71-82). The P-08 row (backlog.md:90) likewise describes the release as the hub only.",
+      "fix": "Before the tag (the CHANGELOG is exempt metadata after verifiedCommit, so no re-verification is needed): add the Start/onboarding and provider-stop entries, remove the 'Not released yet' paragraph, and change runbook step 1 to 'rename the heading and finalize the body'. Make changelogProblem refuse any remaining '## <version> (unreleased)' or '## Unreleased' heading next to the finalized one. Add a line to P-08 naming the non-hub content that ships in 0.3.1."
+    },
+    {
+      "id": "P-3",
+      "blocking": false,
+      "title": "The P-08 status and the Now line are stale at the candidate, and the candidate is named nowhere",
+      "evidence": "backlog.md:90 says 'repaired ff7eb7f3 is pushed on codex/hub-i3-fixes-20261004 … current main integration/full/rechecks pending'. The Now line (backlog.md:92) says 'converge hub corrections with current main'. That convergence is this commit, 130b5510: a merge of 844561b9 and main 0791f6a4, on origin agent/p08-converge-20261004 and not on origin/main. git ls-remote shows codex/hub-i3-fixes-20261004 now at 844561b9, not ff7eb7f3. Neither 130b5510 nor agent/p08-converge-20261004 appears in the plan. The open draft PR passioncode-ai/fabric#11 still has head 3b2878fc, the candidate the plan itself records as rejected in I3, and describes it as the release vehicle.",
+      "fix": "Update P-08 to name the current candidate (130b5510, agent/p08-converge-20261004), what was run on it (fast exit 0 per the merge message; full and the I3 reviews pending) and its landing route. Close PR #11, or retarget it to the convergence branch, so that no open PR presents a rejected candidate."
+    },
+    {
+      "id": "P-4",
+      "blocking": false,
+      "title": "Lane 13 sits outside the lane table, and the plan and knowledge base still say twelve lanes",
+      "evidence": "The lane 13 row is at docs/evidence/backlog.md:95, after the P-row table, the Now line and a prose paragraph, but inside the general-plan markers. scripts/check-plan-ids.mjs passes (exit 0) because it reads between the markers. Rendered Markdown shows it as stray pipe text, not as a lane. workspace/knowledge/plans.md:13 says 'twelve lanes'. unified-plan check reports 'lane count drift' and 'lane 13: canonical coverage drift'.",
+      "fix": "Move the lane 13 row directly under lane 12 in the lane table. Update the knowledge base to 'thirteen lanes' through a fabric-workspace PR (CO-196)."
+    },
+    {
+      "id": "P-5",
+      "blocking": false,
+      "title": "The plan's dispatch context points at a superseded cut, and no unified cut validates at the candidate",
+      "evidence": "backlog.md:55-63 cites docs/reports/2026-10-04-unified-execution as the dispatch context and says 'node scripts/unified-plan.mjs check refuses missing coverage or changed inputs'. At 130b5510, `node scripts/unified-plan.mjs check` exits 1 with 645 lines (COM-01…14 'uncovered canonical work', 'lane count drift', source revision mismatches), and `next` also exits 1. The superseding cut docs/reports/2026-10-04-unified-converged-1fd05937 (README.md:15 'supersedes: [fabric/2026-10-04-unified-execution]') exits 1 with --report: 'Dirty or forged reconciliation source receipt: apps/desktop/package.json' and nine changed sources. docs/reports/2026-10-04-cleanup-start has no plan.json (ENOENT), so it cannot be checked.",
+      "fix": "Point the backlog paragraph at the current cut, or say outright that no cut is valid at the candidate. Recompile the cut at the final integrated commit before release, so that `next` is reproducible on the released source."
+    },
+    {
+      "id": "P-6",
+      "blocking": false,
+      "title": "The release runbook omits the mandatory reviewReceipts packet and carries stale site facts",
+      "evidence": "docs/launch/release-mac.md:33-50 describes the ledger checks and verifiedCommit but not that the gate refuses unless gate.reviewReceipts uses schema fabric-release-reviews/1 with 3×5 report/receipt pairs (release-gate.mjs:29-35). The runbook also does not say that receipts must sit under docs/reports/ or docs/evidence/reviews/ to be exempt after verifiedCommit (release-mac lib:89-93, 107-109), nor how iterations 1 and 2 get receipts when they ran before the schema existed. The receipt contract lives only in docs/handoffs/release-review-receipts-20261004/README.md. Step 9 (release-mac.md:84-86) says the site 'still points at the 0.2.0 prerelease' and gives 'first CI release' instructions, but P-03 (backlog.md:85) and workspace/knowledge/products.md:38 record passioncode.ai serving 0.3.0.",
+      "fix": "Document the receipt packet: its fields, the path rule and the iteration-1/2 provenance rule (fresh I1/I2 receipts vs. ruled historical ones). Rewrite step 9 for a subsequent release."
+    },
+    {
+      "id": "P-7",
+      "blocking": false,
+      "title": "Missing spaces before numbers in owner text and in the to-be-published notes",
+      "evidence": "backlog.md:69 'published0.3.0'; backlog.md:90 'Fabric0.3.1', 'schema78', 'suffix80', 'verified0.3.1', 'rejected3b2878fc', 'exit0', 'schema75'; backlog.md:92 'lane5'. CHANGELOG.md:26 'The0.9.0' and :32 'suffix80'. Carry-over CO-193/196/197 rows: 'main907acb…', 'Source0.7.0', 'Fabric7011', 'merged3f725d…', 'main484600a…', 'repairedff7eb7f3'. A byte dump of backlog.md:90 shows plain 'Fabric0' (66 61 62 72 69 63 30) with no hidden space character. Commit ids glued to words also defeat search for them.",
+      "fix": "Restore the spaces. A text normaliser stripped them, so check the tool that produced these edits."
+    },
+    {
+      "id": "P-8",
+      "blocking": false,
+      "title": "Carry-over rows disagree with what the candidate ships and with P-08",
+      "evidence": "The CO-176 row (carryover.md:187) says sign-in 'is not built', and P-01 (backlog.md:83) says 'sign-in deferred (CO-176)'. But c93523ec ships CO-176.1, a bounded sign-in status observer (executorAuth.ts). The CO-179 row (carryover.md:190) is about restyling the New project form; P-08 calls CO-179 'visual/native containment before the next release'. CO-179 is scheduled in both lane 1 and lane 2 (backlog.md:68-69). P-02 (backlog.md:84) says 'the release gate reads the ledger clear', but at the candidate the gate refuses that ledger: 'legacy ledger text is not release qualification' (probe 'HEAD gate problems').",
+      "fix": "Annotate CO-176 with CO-176.1's delivery and what remains. Restate CO-179's release-blocking scope in its own row and keep it in one lane. Qualify P-02's clause as historical, at the commit where it held."
+    },
+    {
+      "id": "P-9",
+      "blocking": false,
+      "title": "The changelog's Fabric Inbox compatibility sentence reads as if 0.9.0 suffices",
+      "evidence": "CHANGELOG.md:24-26: 'Requires a compatible Fabric Inbox server with account narrowing (fabric-inbox#24); runtime name/version ≥0.9.0 is checked.' CO-195 (carryover.md:206) records that v0.9.0 does not contain #24 (behind by 4) and that narrowing is unattested. fabric-inbox#26 is OPEN (gh issue view 26). gh release list shows v0.9.0 is still the latest Inbox release.",
+      "fix": "Say plainly that the version check does not prove narrowing, and that a source-attested narrowing server (fabric-inbox#26) is required."
+    },
+    {
+      "id": "P-10",
+      "blocking": false,
+      "title": "A dead branch reference and a one-off exemption in the generic gate",
+      "evidence": "CO-195 (carryover.md:206) cites fabric-inbox branch `agent/hub-connect`; `gh api repos/passioncode-ai/fabric-inbox/branches/agent/hub-connect` returns 404. scripts/lib/release-mac.mjs:108 hard-codes 'docs/handoffs/2026-10-04-claude-recovery.md' into the metadata set that every future release may change after verification.",
+      "fix": "Cite the merged PR or commit instead of the deleted branch. Move the one-off path out of the generic exemption, or put it in a declared list in release-gate.json."
+    }
+  ],
+  "notRun": [
+    "scripts/ci.sh fast/full (forbidden by the brief)",
+    "scripts/check-docs.sh (not in the allowed read-only list)",
+    "release-mac.mjs --check-only (it fetches origin/main into the review worktree's refs; the equivalent library calls were run in memory instead)",
+    "Any release, tag, signing, installation or DB upgrade/rehearsal",
+    "Reading the hub ledger docs/evidence/plans/2026-10-04-hub-verification.md, earlier I3 reports and the disposition handoffs before the findings were written (see the report's comparison section)"
+  ],
+  "verdict": "request-changes"
+}

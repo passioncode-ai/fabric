@@ -35,7 +35,9 @@ function fixture({ dir = mkdtempSync(path.join(tmpdir(), 'fabric-ceo-binding-'))
   // (ceoConversationHost.ts, pendingGuard). The fixture keeps that rule, or the queue proves nothing.
   let checking = false
   const guard = async () => { if (checking) return null; checking = true; try { await new Promise(r => setTimeout(r, 5)); return state.valid && !state.revokedAtCheck ? held : null } finally { checking = false } }
-  const service = createCeoConversationService({ rootDir: dir, rpc, online: () => true, timeoutMs: 400,
+  // 3 s, not 400 ms: a loaded host overran 400 ms on a local draft save and answered local_save_unknown
+  // (fast gate, 2026-10-05); the sends that must time out still do, against an RPC that never answers.
+  const service = createCeoConversationService({ rootDir: dir, rpc, online: () => true, timeoutMs: 3000,
     identity: { held: () => state.valid ? held : null, guard } })
   const serviceCalls = []
   const counted = Object.fromEntries(Object.entries(service).map(([k, fn]) => [k, (...a) => { serviceCalls.push(k); return fn(...a) }]))

@@ -40,6 +40,10 @@ function reviewProblems(gate, version, readCommitted) {
     if (matches.length !== 1) { problems.push(`reviewReceipts must name iteration ${n} exactly once`); continue }
     const iteration = matches[0]
     if (!SHA.test(iteration.candidateCommit ?? '')) problems.push(`iteration ${n} must name an exact candidate commit`)
+    // Three iterations are three reviews of three successive candidates; one commit named three times is one
+    // review counted thrice (I3 P-1). Existence and ancestry are checked against git by release-mac.
+    else if (packet.iterations.some(other => other !== iteration && other?.candidateCommit === iteration.candidateCommit))
+      problems.push(`iteration ${n} must name a distinct candidate commit`)
     if (n === ITERATIONS && (!SHA.test(gate.verifiedCommit ?? '') || iteration.candidateCommit !== gate.verifiedCommit))
       problems.push('iteration 3 candidate must equal the exact verifiedCommit')
     if (!Array.isArray(iteration.reviews) || iteration.reviews.length !== REVIEW_LEVELS.length) {
@@ -109,6 +113,9 @@ export function releaseGateProblems({ version, gateText, ledgerText, readCommitt
   const title = lines.find((l) => /^# /.test(l)) ?? ''
   const exact = new RegExp(String.raw`(?<![\d.])${version.replace(/\./g, '\\.')}(?![\d]|\.\d)`)
   if (!exact.test(title)) problems.push(`the ledger ${gate.ledger} does not name version ${version} in its title ("${title.replace(/^# /, '')}"); each release is cleared by its own ledger`)
+  const others = (title.match(/(?<![\d.])\d+\.\d+\.\d+(?![\d]|\.\d)/g) ?? []).filter(v => v !== version)
+  if (others.length) problems.push(`the ledger ${gate.ledger} title names another version (${others.join(', ')}); it must name ${version} alone`)
+  const candidates = new Map((gate.reviewReceipts?.iterations ?? []).filter(it => SHA.test(it?.candidateCommit ?? '')).map(it => [it.iteration, it.candidateCommit]))
   for (let n = 1; n <= ITERATIONS; n++) {
     const starts = lines.flatMap((l, i) => (new RegExp(String.raw`^## Iteration ${n}\s*$`).test(l) ? [i] : []))
     if (starts.length !== 1) { problems.push(`the ledger has ${starts.length} "## Iteration ${n}" headings; exactly one is required`); continue }
@@ -117,6 +124,9 @@ export function releaseGateProblems({ version, gateText, ledgerText, readCommitt
     const body = lines.slice(from, next < 0 ? lines.length : next)
     const text = body.join('\n')
     if (/_Not started\._/.test(text)) { problems.push(`iteration ${n} has not started`); continue }
+    // The ledger section says which commit it reviewed, so receipts written for another commit cannot close it (I3 P-1).
+    if (candidates.has(n) && !text.includes(candidates.get(n)))
+      problems.push(`iteration ${n} of the ledger does not name its candidate commit ${candidates.get(n)} in full`)
     for (const row of body) {
       if (!row.trim().startsWith('|')) continue
       const cells = cellsOf(row)

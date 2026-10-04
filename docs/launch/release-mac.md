@@ -28,8 +28,9 @@ build signed anywhere but the `release` environment is a debug build that is nev
 
 1. **Land, then release.** The release pull request lands on `main` first: `version` in
    [`apps/desktop/package.json`](../../apps/desktop/package.json) is `X.Y.Z`, the `## X.Y.Z (unreleased)` (or `## Unreleased`) section of
-   [`CHANGELOG.md`](../../CHANGELOG.md) is renamed `## X.Y.Z` (it becomes the release notes), and
-   `bash scripts/ci.sh fast` is green.
+   [`CHANGELOG.md`](../../CHANGELOG.md) is renamed `## X.Y.Z` **and finalized** (it becomes the release notes:
+   no "(unreleased)" heading for the version may remain, and the section may not say it is not released yet —
+   preflight refuses both, `scripts/lib/release-mac.mjs#changelogProblem`), and `bash scripts/ci.sh fast` is green.
    **The release gate.** [`docs/launch/release-gate.json`](release-gate.json) names the version and the
    verification ledger that clears it ([general plan](../evidence/backlog.md#general-development-plan),
    P-02). The script refuses a tree with any file flagged skip-worktree or assume-unchanged, takes the
@@ -49,6 +50,21 @@ build signed anywhere but the `release` environment is a debug build that is nev
    The package comparison rejects changes beyond `version`. Checked by
    `scripts/lib/release-mac.mjs#verifiedCandidateProblem` and release-input regression tests.
    The current historical 0.3.0 gate has no candidate pin; it is not permission to rerelease 0.3.0.
+   **Review receipts.** The gate also carries `reviewReceipts` (schema `fabric-release-reviews/1`): three
+   iterations, each naming its exact `candidateCommit` and five reviews, one per level (`ux`, `errors`, `docs`,
+   `data`, `plan`). Each review names a report (`.md`) and a receipt (`.json`) under `docs/reports/` or
+   `docs/evidence/reviews/`, committed in the release commit. A receipt names the schema, version, iteration,
+   level, report path and candidate, the report's SHA-256, a `reviewerRun` used nowhere else, `status: closed`, an
+   empty `blockingFindingsOpen` and every finding with a disposition and evidence. The three candidates are distinct
+   commits that exist in this repository, each an ancestor of the next; iteration 3's equals `verifiedCommit`; and
+   each ledger section names its candidate in full (`scripts/lib/release-gate.mjs`, the history checks in
+   `scripts/lib/release-mac.mjs#verifiedCandidateProblem`). Reports written for iterations 1 and 2 before this
+   packet existed are committed as their reports and receipts for their own candidates. Reviewer independence is
+   not machine-checkable: the gate only refuses a reused `reviewerRun`.
+   After `verifiedCommit` only these may change: `CHANGELOG.md`, `docs/launch/release-gate.json`, the ledger,
+   `docs/MERGES.md`, `docs/reports/map.html`, the declared review reports and receipts, the Markdown documents
+   under `docs/handoffs/` or `docs/reports/` that the gate lists in `releaseMetadata`, and the desktop package
+   `version`.
 2. **Push the tag** on the release commit: `git tag -a vX.Y.Z <commit on main> -m "Fabric X.Y.Z" && git push origin vX.Y.Z`.
    A published release is never rewritten; a fix is a new tag.
 3. **`preflight`** runs without secrets: `node scripts/release-mac.mjs --check-only --tag vX.Y.Z` refuses
@@ -82,8 +98,9 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `psql "$DB_URL" -v ON_ERROR_STOP=1 -v estate=<new uuid> -v lang=en -f scripts/fixtures/launch-estate.sql`
    — never from an estate a walk has already written into.
 9. **The website is the website's change.** `passioncode-ai/passioncode-ai.github.io` serves
-   `/fabric/download/macos` from its `fabric/release.json`, which still points at the 0.2.0 prerelease in
-   the website repository (valid). For the first CI release, the website's own pull request sets `tag`
+   `/fabric/download/macos` from its `fabric/release.json`, which points at Fabric's own `v0.3.0` release
+   (read 2026-10-05 through the GitHub contents API: `tag` `v0.3.0`, `repository` `passioncode-ai/fabric`, the
+   `Fabric-0.3.0-arm64.dmg` download and its `sha256`). For each CI release, the website's own pull request sets `tag`
    `vX.Y.Z`, `repository` `passioncode-ai/fabric`, `releaseUrl`
    `https://github.com/passioncode-ai/fabric/releases/tag/vX.Y.Z`, `downloads.macos`
    `https://github.com/passioncode-ai/fabric/releases/download/vX.Y.Z/Fabric-X.Y.Z-arm64.dmg` and `sha256` from the
@@ -141,19 +158,25 @@ The actual guard is `public.schema_version()` against [the compiled schema contr
    PostgreSQL. Name the backup deliberately and retain the dump, existing build, stack config and
    journal event count together. Dumps contain private data; do not attach them to issues.
 
+   The stack runs PostgreSQL 17, and `pg_dump` refuses to dump a server newer than itself: use a
+   PostgreSQL 17 client, not whatever `pg_dump` is first on `PATH` (on the operator's Mac that is 14.24,
+   measured 2026-10-04). Homebrew's `postgresql@17` installs one at the path below; check it first.
+
    ```sh
    umask 077
+   PGBIN=/opt/homebrew/opt/postgresql@17/bin
+   "$PGBIN/pg_dump" --version   # must print 17.x
    mkdir -p "$HOME/Library/Application Support/Fabric/backups"
    PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
-     pg_dump --password --format=custom \
+     "$PGBIN/pg_dump" --password --format=custom \
      --file="$HOME/Library/Application Support/Fabric/backups/pre-0.3.1.dump"
    PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
-     psql --password -v ON_ERROR_STOP=1 \
+     "$PGBIN/psql" --password -v ON_ERROR_STOP=1 \
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
    Confirm the actual local stack port before using this example; another configured stack needs
-   its own connection settings. `pg_restore --list <dump>` verifies the archive can be parsed;
+   its own connection settings. `"$PGBIN/pg_restore" --list <dump>` verifies the archive can be parsed;
    only restoring it into a disposable database proves it can be restored.
 3. Restore the dump into a **separate disposable stack**, with its own project id, port block and
    volumes. Never point a rehearsal at `fabric` or ports 54321/54322. Apply the installed candidate's

@@ -38,7 +38,7 @@ describe('the prompt in English says what the 0.3.0 prompt said', () => {
     expect(t.detail).toContain('An agent registered as example-agent.default (installed by example-installer; source https://github.com/example/example-agent) asks to:')
     expect(t.detail).toContain('• list and search mail and read mail in news@example.com')
     expect(t.detail).toContain('“summarise the newsletter”')
-    expect(t.detail).toContain('It cannot prove which program sent the request')
+    expect(t.detail).toContain('Fabric cannot prove which program sent the request')
     expect(t.detail).toContain('Access lasts a year unless you revoke it under Agent access in settings.')
     expect(t.buttons).toEqual(['Deny', 'Allow'])
     expect([t.defaultId, t.cancelId]).toEqual([0, 0])

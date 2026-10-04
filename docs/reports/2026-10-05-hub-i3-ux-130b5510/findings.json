@@ -1,0 +1,25 @@
+{
+  "level": "ux",
+  "candidateCommit": "130b5510011a0f15858642838fc906ad4af4bf67",
+  "findings": [
+    {"id": "U-1", "blocking": false, "title": "Deny creates a standing denial, but the native prompt, the queue and the SCR-76 card never say so; 'Denied requests' does not explain what Clear does", "evidence": "shared/accessWords.ts consentPrompt (no denial line; defaultId 0, cancelId 0); ObligationActs.tsx AccessActs; AgentAccessPanel.tsx PendingCard and the denials section; docs/ux/flows.md:2255 'Denied until cleared in SCR-76'; docs/ux/scenarios.md:3226", "fix": "Add one localised line (en+ru) to the prompt detail, queue facts and pending card: 'If you deny, Fabric answers this same request \"denied\" until you clear it under Agent access'. Add one explaining line under Denied requests."},
+    {"id": "U-2", "blocking": false, "title": "The queue result after an Allow whose product did not open says 'allowed' twice and has an ambiguous 'it'", "evidence": "launch/ObligationActs.tsx:154-156 concatenates access.queue.allowed + access.allowedConnect; i18n/en.ts:878, i18n/ru.ts:318; SCN-132 quotes 'Allowed. Fabric Inbox did not connect: …'", "fix": "Add a dedicated key (en+ru): 'You allowed {name} to use {product}. {product} did not connect: {problem} Connect it under Settings → Agent access.'"},
+    {"id": "U-3", "blocking": false, "title": "The ru first-run sign-in strings use «Исполнитель» against the brand term «агент для кода» on the same step; the en/ru authenticated string has no final period", "evidence": "i18n/ru.ts:1583-1587 vs ru.ts:1568-1569; docs/brand/terminology.md:24,39; i18n/en.ts:1713", "fix": "Replace with «Агент для кода сообщает…», «…в аккаунт агента для кода…»; add the periods"},
+    {"id": "U-4", "blocking": false, "title": "The product card's Connect/Try again/Reconnect/Disconnect buttons do not name their product to a screen reader, although SCR-76 says every button names whose it is", "evidence": "AgentAccessPanel.tsx:192-196; docs/ux/screens.md:1791", "fix": "Add aria-labels with the visible words first (e.g. 'Reconnect Fabric Inbox') through new en+ru keys, or narrow the screens.md sentence"},
+    {"id": "U-5", "blocking": false, "title": "SCR-76 gives no named result after a plain Allow or Deny (the card vanishes), while the queue says 'You allowed X to use Y'", "evidence": "AgentAccessPanel.tsx:275 (Deny has no after), :276 afterAllow returns null without a problem; compare ObligationActs.tsx:156", "fix": "Set an info `said` from access.queue.allowed / access.queue.denied after a successful decision"},
+    {"id": "U-6", "blocking": false, "title": "The subject of the same-user floor disclosure is an ambiguous pronoun on the consent path", "evidence": "i18n/en.ts:880 '…on this Mac. It cannot prove…'; i18n/ru.ts:320 '…на этом Mac. Он не может доказать…'", "fix": "'Fabric cannot prove which program sent the request…' / «Fabric не может доказать…»"},
+    {"id": "U-7", "blocking": false, "title": "Literal ru on the sign-in-required connect failure", "evidence": "i18n/ru.ts:385 «…; он открыл свой вход.»", "fix": "«{name} просит войти снова и уже открыл окно входа.»"},
+    {"id": "U-8", "blocking": false, "title": "first.exec.note is no longer rendered but is still registered as implemented; the Installed/Ready legend is gone", "evidence": "start/FirstRun.tsx:184 renders start.executor.auth.note; no non-registry use of first.exec.note in apps/desktop/src or scripts; docs/brand/strings.md:265", "fix": "Remove the key and its strings.md row, or keep the legend beside the auth note"}
+  ],
+  "notRun": [
+    "Native visual acceptance of the packaged app (native consent sheet and follow-ups, OS notification click-through, focus/resume showing the queued prompt)",
+    "Live light/dark rendering of SCR-76, the SCR-41 access row and SCR-70 auth rows (only token use was checked)",
+    "Real narrow-window and long-text rendering in Electron (jsdom tests only)",
+    "VoiceOver and live keyboard traversal",
+    "ru locale switch in the running app, including the main-process prompt locale",
+    "Live Fabric Inbox connect/reconnect/disconnect with the Project Observatory vault",
+    "Live first-run sign-in status against the installed Claude Code/Codex builds",
+    "scripts/ci.sh, check-design-map.mjs, check-registers.mjs, check-docs.sh (excluded on purpose)"
+  ],
+  "verdict": "approve"
+}

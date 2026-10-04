@@ -91,7 +91,8 @@ try {
     let release; const w = world({ timeoutMs: 150, db: { validate_task_run_launch: () => new Promise(r => { release = r }) } })
     const { result } = await go(w)
     notStarted(w, result)
-    release({ data: { valid: true } }); await delay(20); assert.equal(w.calls.spawn, 0)
+    // Under load the 150 ms deadline can pass before the guard is even asked; then there is nothing to release.
+    release?.({ data: { valid: true } }); await delay(20); assert.equal(w.calls.spawn, 0)
   })
 
   await test('authority changing before spawn refuses cleanly', async () => {

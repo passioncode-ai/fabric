@@ -1,6 +1,7 @@
 // hub.json and the door token (ADR-0115 §1), on a real filesystem: modes, atomic contents, rotation on
 // every start, and removal only by the process that wrote them. Pure — no database, no Electron.
-import { mkdtempSync, readFileSync, statSync, writeFileSync, existsSync } from 'node:fs'
+import { mkdtempSync, readFileSync, statSync, writeFileSync, existsSync, mkdirSync, rmSync, symlinkSync } from 'node:fs'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import assert from 'node:assert/strict'
@@ -47,6 +48,30 @@ test('withdraw removes both files only when hub.json names this process', () => 
   assert.deepEqual(withdrawHub(root, 1111), { removed: true })
   assert.ok(!existsSync(p.hubFile) && !existsSync(p.doorTokenFile))
   assert.equal(withdrawHub(root, 1111).removed, false)
+})
+
+test('withdraw never blocks on, follows or removes a hub.json that is not a regular file (I3 E-1)', () => {
+  // A FIFO planted at hub.json used to hang the quit forever: withdraw read it with a blocking readFileSync
+  // before any quit deadline was armed. Run in a child with a hard timeout so the old code fails, not hangs.
+  const root = path.join(mkdtempSync(path.join(tmpdir(), 'fabric-hub-')), 'ai.passioncode.fabric')
+  mkdirSync(root, { recursive: true, mode: 0o700 })
+  const hubFile = path.join(root, 'hub.json')
+  execFileSync('mkfifo', [hubFile])
+  const script = 'const { withdrawHub } = await import(' + JSON.stringify(path.resolve(import.meta.dirname, '../src/main/hub.ts')) + '); process.stdout.write(JSON.stringify(withdrawHub(' + JSON.stringify(root) + ', 4242)))'
+  const run = spawnSync(process.execPath, ['--experimental-strip-types', '--input-type=module', '-e', script], { encoding: 'utf8', timeout: 5000 })
+  assert.equal(run.signal, null, 'withdraw blocked on a FIFO at hub.json (killed by the 5 s timeout)')
+  const answer = JSON.parse(run.stdout)
+  assert.equal(answer.removed, false)
+  assert.match(answer.reason, /not a regular file/)
+  assert.ok(existsSync(hubFile), 'a planted special file is left in place, never removed blindly')
+  rmSync(hubFile)
+  // A symlink at hub.json is not followed either, even when it points at a file naming this process.
+  const elsewhere = path.join(root, '..', 'elsewhere.json')
+  writeFileSync(elsewhere, JSON.stringify({ pid: 4242 }))
+  symlinkSync(elsewhere, hubFile)
+  const linked = withdrawHub(root, 4242)
+  assert.equal(linked.removed, false)
+  assert.ok(existsSync(elsewhere), 'the link target is untouched')
 })
 
 test('the port: default, FABRIC_HUB_PORT, refused when malformed or claimed by a registered agent', () => {

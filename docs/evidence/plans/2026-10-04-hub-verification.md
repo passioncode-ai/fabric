@@ -214,3 +214,67 @@ Core author correction [81498b26](../../handoffs/2026-10-04-hub-i3-core.md) is a
 not independent acceptance. Root ingress/archive/prompt/denial corrections are in convergence.
 The full tier on the rejected frozen baseline exited1 at the private-archive suite; its later
 stack-backed suites did not run. Focused owned upgrade/access successes do not close that full gate.
+
+### Replacement candidate `130b5510` — 2026-10-05
+
+The coordinator's corrections were converged with main as `130b5510011a0f15858642838fc906ad4af4bf67`
+(branch `agent/p08-converge-20261004`). On that exact commit `FABRIC_PG_BIN=/opt/homebrew/opt/postgresql@17/bin
+bash scripts/ci.sh full` exited 0 in 1279 s on a disposable stack (removed on exit; the live stack was not
+addressed), and five fresh reviewers, each in a context that had not seen this ledger, reviewed it:
+[ux](../../reports/2026-10-05-hub-i3-ux-130b5510/README.md) approve,
+[errors](../../reports/2026-10-05-hub-i3-errors-130b5510/README.md) request changes,
+[docs](../../reports/2026-10-05-hub-i3-docs-130b5510/README.md) request changes,
+[data](../../reports/2026-10-05-hub-i3-data-130b5510/README.md) approve,
+[plan](../../reports/2026-10-05-hub-i3-plan-130b5510/README.md) request changes. They found 47 findings, 6 blocking.
+The fixes are on `agent/p08-i3-fixes-20261005`; every finding has a disposition below. Iteration 3 exits only after
+each level's exact-SHA recheck of the fixed candidate; its receipts then go into `docs/launch/release-gate.json`.
+
+| ID | Source | Finding | Disposition |
+|---|---|---|---|
+| V3-1 | UX U-1 (non-blocking) | Deny creates a standing denial, but the native prompt, the queue and the SCR-76 card never say so; 'Denied requests' does not explain what Clear does | fixed: `access.denyStands` on the prompt, the queue row and SCR-76, `access.denials.note`; SCN-133 rationale; ObligationActs/AgentAccessPanel/accessWords tests |
+| V3-2 | UX U-2 (non-blocking) | The queue result after an Allow whose product did not open says 'allowed' twice and has an ambiguous 'it' | fixed: one key `access.queue.allowedNotConnected`; ObligationActs tests |
+| V3-3 | UX U-3 (non-blocking) | The ru first-run sign-in strings use «Исполнитель» against the brand term «агент для кода» on the same step; the en/ru authenticated string has no final period | fixed: ru «агент для кода», periods in en/ru; StartPaths tests |
+| V3-4 | UX U-4 (non-blocking) | The product card's Connect/Try again/Reconnect/Disconnect buttons do not name their product to a screen reader, although SCR-76 says every button names whose it is | fixed: the product card's toolbar is a group named after the product (`Toolbar` `label`); SCR-76 sentence narrowed; AgentAccessPanel test "I3 U-4" |
+| V3-5 | UX U-5 (non-blocking) | SCR-76 gives no named result after a plain Allow or Deny (the card vanishes), while the queue says 'You allowed X to use Y' | ruled CO-207: the outcome is already said in the queue row; a refinement of SCR-76 |
+| V3-6 | UX U-6 (non-blocking) | The subject of the same-user floor disclosure is an ambiguous pronoun on the consent path | fixed: "Fabric cannot prove…" in en/ru; accessWords test |
+| V3-7 | UX U-7 (non-blocking) | Literal ru on the sign-in-required connect failure | fixed: ru «…и уже открыл окно входа» |
+| V3-8 | UX U-8 (non-blocking) | first.exec.note is no longer rendered but is still registered as implemented; the Installed/Ready legend is gone | fixed: `first.exec.note` removed from en/ru and the string registry |
+| V3-9 | Errors E-1 (blocking) | A FIFO at hub.json hangs Fabric's quit for good; the quit deadline and reaper are never armed | fixed: `withdrawHub` reads hub.json only as a bounded regular file (O_NONBLOCK, O_NOFOLLOW) and refuses special files; quit arms its deadline and reaper before any stop; hub-files test "I3 E-1" (watched: killed by its 5 s timeout on the old code) and quit test "I3 E-1" |
+| V3-10 | Errors E-2 (blocking) | Every external request whose caller hangs up keeps its admission slot for ever; 32 lock out a credential, 128 close the hub | fixed: the admission slot is released exactly once, on request end or caller close, and handleRequest races the close; hub-surface test "I3 E-2" (watched failing on the old code) |
+| V3-11 | Errors E-3 (non-blocking) | A failed live-bindings read at start (a budget hint) also takes down the session surface | fixed: a failed verifier warm-up is logged and the surface still listens; hub-surface test "I3 E-3" (watched failing) |
+| V3-12 | Errors E-4 (non-blocking) | A repeated stop after a scope change answers 'refused' although the first write may have run | fixed: after a scope change an attempted stop answers outcome_unknown/scope_changed, never refused; claude-provider-control test updated (watched failing on the old controllers) |
+| V3-13 | Errors E-5 (non-blocking) | A poller that hung up still consumes the one-time binding credential; later polls say it was handed over | fixed: an aborted status read mints no credential, the next read collects it; hub-access-service test "I3 E-5" (watched failing) |
+| V3-14 | Errors E-6 (non-blocking) | A POST carrying no state can end the operator's pending connect attempt | ruled CO-203: reverses the recorded V2 ER-9 behaviour; the effect is a failed connect the operator retries, never a wrong key |
+| V3-15 | Errors E-7 (non-blocking) | Keyless agent.call has no duplicate guard, and its outcome-unknown text names a key never sent; answered keys re-send after 24 h | fixed: a keyless outcome-unknown answer says no key protects a repeat; hub-call-i3 test "I3 E-7" (watched failing). Requiring a key for mail is ruled CO-204 |
+| V3-16 | Errors E-8 (non-blocking) | Every fabric.access.request re-reads the whole registry synchronously, with no cap on the number of files | ruled CO-205: bounded by one Mac's registry today; cap with the registry work |
+| V3-17 | Errors E-9 (non-blocking) | Hub database calls have no deadline, and all access writes, operator revocations included, share one serial chain | ruled CO-206: not measured; needs a stalled-database probe first |
+| V3-18 | Documentation D-1 (blocking) | CHANGELOG misstates the schema boundary ('an estate opened by 0.3.1 cannot be opened by 0.3.0') and omits that upgrading is a manual procedure | fixed: CHANGELOG says 0.3.1 refuses a database below 78 and 0.3.0 cannot open a migrated one; the startup error links the runbook by absolute URL; schema-readiness test |
+| V3-19 | Documentation D-2 (blocking) | Runbook backup uses PATH pg_dump; on this Mac that is 14.24 against a PostgreSQL 17 stack | fixed: the runbook backs up with the PostgreSQL 17 client and checks its version first |
+| V3-20 | Documentation D-3 (non-blocking) | Runbook rehearsal (step 3) and rollback restore (step 5) are not executable as written | ruled CO-198: untested commands are not written into a data runbook; required before the live migration |
+| V3-21 | Documentation D-4 (non-blocking) | Release steps omit the reviewReceipts (fabric-release-reviews/1) gate and the post-verification metadata allowlist | fixed: runbook step 1 documents the review-receipt packet and the files allowed after verifiedCommit |
+| V3-22 | Documentation D-5 (non-blocking) | ADR-0105's hop and credential model disagrees with ADR-0115 and the code; ADR-0034 supersession lineage stated three ways | fixed: ADR-0105 amendment (the hop is ADR-0115's standing connection) and ADR-0115 amendment 36 |
+| V3-23 | Documentation D-6 (non-blocking) | 'Answers within 10 s or keeps nothing' stated unconditionally despite amendment 28 (withdraw-failed) | fixed: CHANGELOG, productConnect.ts header and FLW-76 state the withdraw-failed exception |
+| V3-24 | Documentation D-7 (non-blocking) | ADR-0115 cites symbols that do not exist at the candidate | fixed: ADR-0115 amendment 32 |
+| V3-25 | Documentation D-8 (non-blocking) | The 'one place' error-code contract is incomplete | fixed: ADR-0115 amendment 33, the full answer table with retry rules |
+| V3-26 | Documentation D-9 (non-blocking) | Region coverage/anchors: external ingress in agentSurface.ts unfenced; migration 77/80 and productConnect regions anchor to sections that do not describe the fenced code | fixed: hub-external-ingress region added; migration 77/80 and productConnect regions repointed; check-regions 150 markers |
+| V3-27 | Documentation D-10 (non-blocking) | README owned-cluster runner counts stale (15/11 vs 16/12) | fixed: README says sixteen runners, twelve in the full tier |
+| V3-28 | Documentation D-11 (non-blocking) | Amendment 22 Host rule narrower than code | fixed: ADR-0115 amendment 34 |
+| V3-29 | Documentation D-12 (non-blocking) | telegram-surface.md still marks 'Reaching an external tool' as available | fixed: telegram-surface.md marks external tools partial (CO-194) |
+| V3-30 | Documentation D-13 (non-blocking) | Reserved migration suffixes 78/79 will apply out of order; hazard not recorded | ruled CO-199: renumbering belongs to the reserving workstream; no 78/79 file exists |
+| V3-31 | Documentation D-14 (non-blocking) | Missing spaces in operator-facing text | fixed: spaces restored in CHANGELOG, the ADR index, the CO-193/196/197 rows, ceo-private-archive.md and the map's entries |
+| V3-32 | Documentation D-15 (non-blocking) | P-08 backlog status lags the candidate | fixed: P-08 row names the converged candidate, the full tier and the review state |
+| V3-33 | Data A-1 (non-blocking) | Migration 80 widens canonical-id refusal to supersedes/request_id/binding_id/grant_id for every event type; agent memory corrections naming an upper-case fact id (accepted by 0.… | fixed: fabric_memory_remember canonicalises `supersedes`; agent-surface test (stack-backed, full tier) |
+| V3-34 | Data A-2 (non-blocking) | Suffix 80 above reserved 78/79: future 78/79 would be out-of-order on upgraded DBs and run after 80 there but before 80 on fresh installs, diverging redefined functions under th… | ruled CO-199: see D-13 |
+| V3-35 | Data A-3 (non-blocking) | hub.call.forwarded@1 journalled per hop including refusals (<=120/min/credential); private export/verified restore cap is 65,536 events, reachable in about 9 h by one looping bi… | ruled CO-200: changes the journal contract of hub.call.forwarded@1 |
+| V3-36 | Data A-4 (non-blocking) | 77/80 refusals live inside the projector and run on replay; any 76/77 dev DB holding a now-refused event cannot rebuild; migration 80 header overstates 'outside replay' | ruled CO-201: an applied migration's text is not edited; the claim is corrected in the register and the upgrade procedure gains a journal scan with CO-198 |
+| V3-37 | Data A-5 (non-blocking) | Restored standing denials keep auto-refusing in the restored estate (restriction only, not authority) | ruled CO-202: an ADR-0115 decision for the operator |
+| V3-38 | Plan P-1 (blocking) | The release gate does not bind iterations 1 and 2, or the ledger, to real commits | fixed: the gate refuses one commit named for three iterations and a ledger section that does not name its candidate or a title naming another version; release-mac checks the candidates exist and form one ancestry chain; release-gate tests "I3 P-1" (watched failing) |
+| V3-39 | Plan P-2 (blocking) | The 0.3.1 CHANGELOG section, which becomes the published notes, misstates what ships | fixed: CHANGELOG lists everything 0.3.1 ships; changelogProblem refuses a leftover unreleased heading or not-released wording; the runbook says rename and finalize; release-mac test "I3 P-2" (watched failing) |
+| V3-40 | Plan P-3 (non-blocking) | The P-08 status and the Now line are stale at the candidate, and the candidate is named nowhere | fixed: P-08 row and the Now line name the candidate, its branch and the checks; draft PR #11 is superseded by the converged branch |
+| V3-41 | Plan P-4 (non-blocking) | Lane 13 sits outside the lane table, and the plan and knowledge base still say twelve lanes | fixed: lane 13 moved into the lane table |
+| V3-42 | Plan P-5 (non-blocking) | The plan's dispatch context points at a superseded cut, and no unified cut validates at the candidate | fixed: the dispatch context names the current cut and says it is recompiled at the final integrated commit |
+| V3-43 | Plan P-6 (non-blocking) | The release runbook omits the mandatory reviewReceipts packet and carries stale site facts | fixed: runbook documents the review packet; step 9 states the website's current release.json (v0.3.0) |
+| V3-44 | Plan P-7 (non-blocking) | Missing spaces before numbers in owner text and in the to-be-published notes | fixed: see D-14 |
+| V3-45 | Plan P-8 (non-blocking) | Carry-over rows disagree with what the candidate ships and with P-08 | fixed: CO-176 records the shipped CO-176.1 leaf; P-02 marked historical. CO-179 in lanes 1 and 2 is not a defect: each lane cites its own part (restyle; release containment) |
+| V3-46 | Plan P-9 (non-blocking) | The changelog's Fabric Inbox compatibility sentence reads as if 0.9.0 suffices | fixed: CHANGELOG says a version check does not prove narrowing |
+| V3-47 | Plan P-10 (non-blocking) | A dead branch reference and a one-off exemption in the generic gate | fixed: CO-195 cites fabric-inbox#18; release-only documents are declared in the gate (`releaseMetadata`), not hard-coded; release-gate test "I3 P-10" |

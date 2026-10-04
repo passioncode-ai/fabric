@@ -2278,6 +2278,7 @@ flowchart TD
  L -->|no answer in 10 min| W[SCR-76 says no answer; Try again]
  K -->|vault missing, refused or too slow| F[Nothing recorded; the product revokes the key; SCR-76 says why]
  K -->|recorded after the deadline| G[Record withdrawn; a Reconnect says the product is not connected now]
+ G -->|withdrawal itself fails| X[Record stays; SCR-76 says the late record could not be withdrawn]
  K --> S[SCR-76 shows connected; only successful Reconnect says previous key is no longer used]
  S -->|Disconnect| D[Fabric stops using it; the key stays valid in the product until revoked there]
 ```

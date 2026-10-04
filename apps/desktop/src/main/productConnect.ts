@@ -1,4 +1,4 @@
-// #region product-connect — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#4-a-product-is-connected-once-by-the-products-own-consent
+// #region product-connect — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#verification-iteration-3-corrections--2026-10-04
 // Connecting a cloud product once, by the product's own consent (ADR-0115 §4). Fabric opens the
 // product's connect link; the product's app asks the operator and, on Allow, mints a key through the
 // owner's own session and POSTs it to the loopback callback named in the link. Nothing is copied by a
@@ -17,7 +17,9 @@
 // ONE DEADLINE, BELOW THE PRODUCT'S (verification iteration 1 for 0.3.1, ER-6). The product revokes the key
 // unless the callback answers 2xx within 10 s, so the whole callback — body, vault, record — runs inside
 // `callbackDeadlineMs` (8 s). Past it, or once the product has hung up, Fabric answers non-2xx and records
-// nothing; Fabric is never left "connected" to a key the product has already revoked.
+// nothing; Fabric is never left "connected" to a key the product has already revoked — with one exception
+// (ADR-0115 amendment 28): a record that landed late is withdrawn, and if that withdrawal itself fails
+// (`withdraw-failed`) the record stays and the operator is told so (I3 D-6).
 //
 // THE SECRET FIRST, IN A SLOT OF ITS OWN, THEN THE RECORD (DA-6). Each connection's secret has its own vault
 // slot, named by the estate and the connection: `FABRIC_INBOX_CLIENT_SECRET_<ESTATE>_<CONNECTION>` (hex,

@@ -179,3 +179,47 @@ test('V2 ER-5: JSON-RPC batches are rejected before creating a hub transport', a
   assert.equal(res.status,400)
   assert.match(await res.text(), /batch/i)
 })
+
+test('I3 E-2: a caller that hangs up mid-call gives its admission slot back', async (t) => {
+  // A request whose caller disconnects used to hold its slot for ever: the slot was released only after
+  // transport.handleRequest settled, which the SDK never does once the response is closed. 32 hang-ups
+  // then locked the credential out (429) until a restart.
+  const CRED = 'B'.repeat(43)
+  const binding = { id: '22222222-2222-4222-8222-222222222222', agent_id: 'example-agent', revoked_at: null }
+  const access = { primeCredentialVerifiers: async () => {}, knownCredential: (x) => x === CRED,
+    authenticate: async (x) => (x === CRED ? binding : null), liveGrantsOf: async () => [] }
+  // agent.call stand-in: ends when the caller's signal fires (as forwardToProduct does) or after 300 ms.
+  const call = (_b, _args, _meta, signal) => new Promise((resolve) => {
+    const done = () => resolve({ content: [{ type: 'text', text: '{}' }], structuredContent: { error: { code: 'cancelled' } }, isError: true })
+    signal?.addEventListener('abort', done, { once: true }); setTimeout(done, 300)
+  })
+  const surface = new AgentSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e',
+    hub: { doorToken: () => DOOR, access, tools: (p) => hubServerFor(p, { access, call }) } })
+  await surface.start()
+  t.after(() => surface.stop())
+  const body = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'agent.call', arguments: { agentId: 'fabric-inbox', capability: 'read_message', input: { accountId: 'cloudflare:news@example.com', messageId: 'm' }, idempotencyKey: 'k' } } })
+  const headers = { authorization: 'Bearer ' + CRED, 'content-type': 'application/json', accept: 'application/json, text/event-stream' }
+  const hangUp = () => new Promise((resolve) => {
+    const req = request(surface.origin + '/mcp', { method: 'POST', headers: { ...headers, 'content-length': Buffer.byteLength(body) } })
+    req.on('error', () => resolve()); req.on('response', (r) => { r.resume(); r.on('end', resolve) })
+    req.end(body); setTimeout(() => { req.destroy(); resolve() }, 60)
+  })
+  for (let i = 0; i < 33; i++) await hangUp()
+  await new Promise((r) => setTimeout(r, 700))
+  assert.equal(surface.externalPendingTotal, 0, 'every hung-up request released its admission slot')
+  const r = await fetch(surface.origin + '/mcp', { method: 'POST', headers, body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }) })
+  assert.equal(r.status, 200, 'the same valid credential is admitted after the hang-ups')
+  await r.text()
+})
+
+test('I3 E-3: a failed credential-verifier warm-up is a hint lost, not a surface lost', async (t) => {
+  // primeCredentialVerifiers only seeds the unknown-bearer budget; a database that cannot answer it at
+  // start used to throw out of start(), so sessions lost their surface too.
+  const access = { primeCredentialVerifiers: async () => { throw new Error('database unavailable') },
+    knownCredential: () => false, authenticate: async () => null, liveGrantsOf: async () => [] }
+  const surface = new AgentSurface({ db: null, journal: null, ptys: () => undefined, estateId: 'e',
+    hub: { doorToken: () => DOOR, access, tools: (p) => hubServerFor(p, { access }) } })
+  await surface.start()
+  t.after(() => surface.stop())
+  assert.match(surface.origin, /^http:\/\/127\.0\.0\.1:\d+$/, 'the surface listens although the warm-up failed')
+})

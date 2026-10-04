@@ -382,11 +382,20 @@ else fail('memory search returned ' + facts.facts.length)
     fail('the correction did not name what it replaced')
   else ok('an agent can record a correction that names what it replaces')
 
+  // I3 A-1 — an id the schema accepts in upper case is a correction too, not a raw database refusal:
+  // migration 80 stores canonical lower-case ids, so the tool canonicalises before it writes.
+  const third = await call('fabric_memory_remember', {
+    claim: 'the build runs on Node 24.18', sourceRef: 'package.json', supersedes: second.id.toUpperCase()
+  })
+  if (third.correction?.status !== 'superseded' || third.correction?.previousRef !== second.id)
+    fail('an upper-case supersedes id was not applied as a correction: ' + JSON.stringify(third))
+  else ok('an upper-case supersedes id corrects the canonical fact')
+
   const current = await call('fabric_memory_search', { query: 'build runs on Node' })
   const claims = (current.facts ?? []).map((f) => f.claim)
-  if (claims.includes('the build runs on Node 22'))
+  if (claims.includes('the build runs on Node 22') || claims.includes('the build runs on Node 24'))
     fail('a corrected fact still answers as though nothing had changed')
-  else if (!claims.includes('the build runs on Node 24'))
+  else if (!claims.includes('the build runs on Node 24.18'))
     fail('the correction itself is not returned: ' + JSON.stringify(claims))
   else ok('search returns what is true now, not what was true before')
 

@@ -32,7 +32,8 @@ await test('a schema behind names the actual bundled-stack upgrade command and r
   await assert.rejects(withSchemaReadiness(input(N-1),start),error=>{
     assert.match(error.message,/supabase migration up --local/)
     assert.match(error.message,/Library\/Application Support\/Fabric\/stack/)
-    assert.match(error.message,/release-mac\.md#upgrading-an-existing-database/)
+    // An absolute link: a DMG user has no checkout to open a repository path in (I3 D-1).
+    assert.match(error.message,/https:\/\/github\.com\/passioncode-ai\/Fabric\/blob\/main\/docs\/launch\/release-mac\.md#upgrading-an-existing-database/)
     assert.match(error.message,/backup/i)
     return true
   })

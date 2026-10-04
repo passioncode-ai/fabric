@@ -185,7 +185,7 @@ export function AgentAccessPanel({ onClose }: { onClose: () => void }): React.JS
                       {line.detail && <p className="muted access-detail">{line.detail}</p>}
                     </Fragment>
                   ))}
-                  <div className="access-acts"><Toolbar>
+                  <div className="access-acts"><Toolbar label={p.name}>
                     {p.connection
                       ? <>
                           {/* Reconnect only opens the product: the current key stays in use until a new one is delivered, so nothing is said about the key here (UX-2). */}
@@ -232,6 +232,7 @@ export function AgentAccessPanel({ onClose }: { onClose: () => void }): React.JS
               })}
 
             <h3 className="task-history-head" tabIndex={-1} ref={head('denials')}>{t('access.denials.title')}</h3>
+            <p className="muted">{t('access.denials.note')}</p>
             {view.overview.denials.length === 0
               ? <EmptyState read>{t('access.denials.none')}</EmptyState>
               : view.overview.denials.map((d) => {
@@ -270,6 +271,7 @@ function PendingCard({ r, t, waiting, act }: {
       <p className="muted">{sayFloor(t)}</p>
       {r.incremental && <p className="muted">{sayIncremental(t)}</p>}
       <p className="muted">{t('access.lasts')}</p>
+      <p className="muted">{t('access.denyStands')}</p>
       <p className="muted">{expiresIn(t, r.expiresAt, Date.now())}</p>
       <div className="access-acts"><Toolbar>
         <Button tone="ghost" aria-label={t('access.denyFor', { name })} {...waiting} onClick={() => void act(`deny:${r.requestId}`, () => window.fabric.hub.decide(r.requestId, 'denied'), { product: r.product, section: 'pending' })}>{t('access.deny')}</Button>

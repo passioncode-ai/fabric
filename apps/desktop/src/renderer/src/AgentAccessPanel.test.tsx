@@ -1,7 +1,7 @@
 // SCR-76 Agent access (SCN-132, SCN-133, ADR-0115). The API is a fake of `window.fabric.hub`; the service
 // behind it is tested against the migrated schema in main (hub-door-db, hub-products).
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { act as reactAct, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act as reactAct, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { StrictMode } from 'react'
 import { AgentAccessPanel } from './AgentAccessPanel'
 import { I18nProvider } from './i18n'
@@ -59,6 +59,9 @@ describe('SCR-76 agent access', () => {
     expect(screen.getByText(en['access.denials.none'])).toBeTruthy()
     expect(screen.getByText(en['access.products.title'])).toBeTruthy()
     expect(screen.getByText(fill(en['access.hub.on'], { origin: 'http://127.0.0.1:47070' }))).toBeTruthy()
+    // I3 U-4: a screen reader hears whose Connect it is from the group the button sits in.
+    const group = screen.getByRole('group', { name: 'Fabric Inbox' })
+    expect(within(group).getByRole('button', { name: en['access.products.connect'] })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: en['access.products.connect'] }))
     await waitFor(() => expect(h.connect).toHaveBeenCalledWith('fabric-inbox'))
   })

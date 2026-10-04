@@ -92,16 +92,17 @@ export function createQuitCoordinator(o: QuitOptions): QuitCoordinator {
   const begin = (): void => {
     if (quitting) return
     quitting = true
-    for (const stop of stops.splice(0)) runStop(stop)
     // The deadline is the promise LC-01 makes: whatever stalls — a drain, a renderer that
     // cancels unload, Electron's teardown — the process ends. Unref'd so it never keeps an
-    // otherwise finished process alive.
+    // otherwise finished process alive. Both guards are armed BEFORE the stops run: a stop that
+    // blocks the main thread can only be ended by the outside guard (I3 E-1).
     const timer = setTimer(() => { o.onDeadline?.(); o.app.exit(QUIT_DEADLINE_EXIT_CODE) }, hardDeadlineMs)
     timer.unref?.()
     try { o.armReaper?.(QUIT_REAPER_MS) } catch (e) {
       // The outside guard is a second line; the in-process deadline above still stands.
       o.onSchedulerError?.(e)
     }
+    for (const stop of stops.splice(0)) runStop(stop)
   }
 
   return {

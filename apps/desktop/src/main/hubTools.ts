@@ -133,10 +133,10 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
         'pending, allowed, denied or expired. Through the door, send the requestId with the pollSecret of the answer that created it; a wrong or missing pollSecret reads as an unknown request. The first read after Allow carries the binding credential exactly once, and only within 10 minutes of the decision; store it in your vault.' + VERIFY_HUB,
       inputSchema: principal.kind === 'door' ? doorStatusSchema : bindingStatusSchema
     },
-    async (args: Record<string, unknown>) =>
+    async (args: Record<string, unknown>, extra: unknown) =>
       guard('access.status', async () => {
         const { requestId, pollSecret } = args as { requestId: string; pollSecret?: string }
-        const r = await deps.access.status(principal, requestId, pollSecret)
+        const r = await deps.access.status(principal, requestId, pollSecret, (extra as { signal?: AbortSignal } | undefined)?.signal)
         if (!r.ok) return refusal('unknown-request', r.refused)
         const { ok: _ok, ...rest } = r
         return answer(rest as Record<string, unknown>)

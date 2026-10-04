@@ -182,11 +182,15 @@ function notSent(code: string, callee: string, capability: string): string {
 }
 
 /** The answer to a call that may have run (ER-1): typed, final, and it says how to find out. */
-function outcomeUnknown(callee: string, capability: string, cause: string): ToolAnswer {
+function outcomeUnknown(callee: string, capability: string, cause: string, keyed = true): ToolAnswer {
   const name = productName(callee)
+  // A keyless call has no key to refuse: saying "this idempotencyKey" would promise a guard that does not exist (I3 E-7).
+  const guard = keyed
+    ? 'Do not send it again — this idempotencyKey is refused from now on, and a new key would act twice.'
+    : 'Do not send it again: this call carried no idempotencyKey, so Fabric cannot recognise a repeat and a second send would act twice.'
   return refusal(
     'outcome-unknown',
-    `${capability} may have run in ${name}: the call may have reached it and no usable answer is available (${cause}). Do not send it again — this idempotencyKey is refused from now on, and a new key would act twice. Check its effect with ${name}'s own read tools (for mail, get_send_status) before you act again.`,
+    `${capability} may have run in ${name}: the call may have reached it and no usable answer is available (${cause}). ${guard} Check its effect with ${name}'s own read tools (for mail, get_send_status) before you act again.`,
     { cause, mayHaveRun: true }
   )
 }
@@ -278,7 +282,7 @@ export function createAgentCall(deps: HubCallDeps) {
       ops.failed('hub.call', effect.mayHaveRun ? new Error('forward or product answer processing failed') : e, { callee: args.agentId, capability: args.capability })
       if (effect.mayHaveRun) {
         await span({ ...base, outcome: 'failed', error_code: 'outcome-unknown', grant_ids: [], wall_ms: now() - started })
-        return { answer: outcomeUnknown(args.agentId, args.capability, 'product-error'), keep: 'unknown' }
+        return { answer: outcomeUnknown(args.agentId, args.capability, 'product-error', Boolean(args.idempotencyKey)), keep: 'unknown' }
       }
       await span({ ...base, outcome: 'failed', error_code: 'hub-unavailable', grant_ids: [], wall_ms: now() - started })
       return before(refusal('hub-unavailable', 'Fabric could not complete this call just now. Nothing was sent. The operator can see why in Fabric\'s operations log; try again later.'))
@@ -369,7 +373,7 @@ export function createAgentCall(deps: HubCallDeps) {
         grant_ids: cover.grantIds, narrowing: narrowing ?? 'workspace', wall_ms: forwarded.wallMs
       })
       ops.record({ op: 'hub.call', outcome: 'failed', level: 'warn', detail: { callee: args.agentId, capability: args.capability, code: forwarded.code, may_have_run: mayHaveRun, product_said: productText, span_written: written }, ctx: { correlationId: ops.correlate() } })
-      if (mayHaveRun) return { answer: outcomeUnknown(args.agentId, args.capability, hungUp ? 'cancelled' : forwarded.code), keep: 'unknown' }
+      if (mayHaveRun) return { answer: outcomeUnknown(args.agentId, args.capability, hungUp ? 'cancelled' : forwarded.code, Boolean(args.idempotencyKey)), keep: 'unknown' }
       if (hungUp) return { answer: refusal('cancelled', 'the call was cancelled by its caller before it reached the product; nothing was sent', { mayHaveRun: false }), keep: 'forget' }
       // Nothing left Fabric: a retry, with this key or another, must reach the product again.
       return before(refusal(forwarded.code, notSent(forwarded.code, args.agentId, args.capability), { mayHaveRun: false }))

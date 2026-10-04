@@ -28,7 +28,7 @@ export function readBuildManifestCandidates(files: readonly string[]): ManifestR
 }
 
 const stackPath = '~/Library/Application Support/Fabric/stack'
-const schemaBehindRecovery = 'Stop all writers and make a verified backup first. Follow docs/launch/release-mac.md#upgrading-an-existing-database before running supabase migration up --local in {stackPath}, then retry. Fabric has not started its workspace services.'
+const schemaBehindRecovery = 'Stop all writers and make a verified backup first. Follow https://github.com/passioncode-ai/Fabric/blob/main/docs/launch/release-mac.md#upgrading-an-existing-database before running supabase migration up --local in {stackPath}, then retry. Fabric has not started its workspace services.'
 
 const positiveInteger = (value: unknown): value is number =>
   typeof value === 'number' && Number.isSafeInteger(value) && value > 0

@@ -76,8 +76,15 @@ export function changelogProblem({ version, text }) {
   if (starts.length !== 1) return `the changelog must have exactly one finalized "## ${version}" entry (found ${starts.length})`
   const from = starts[0] + 1
   const next = lines.findIndex((line, i) => i >= from && /^## /.test(line))
-  if (!lines.slice(from, next < 0 ? lines.length : next).some(line => line.trim()))
+  const body = lines.slice(from, next < 0 ? lines.length : next)
+  if (!body.some(line => line.trim()))
     return `the changelog entry for ${version} is empty`
+  // Renaming the heading is not finalizing the notes (I3 P-2): a leftover "(unreleased)" heading for this
+  // version, or a section that still says it is not released, would be published as the release notes.
+  if (lines.some(line => new RegExp(`^## ${escaped}\\s*\\(unreleased\\)`, 'i').test(line.trim())))
+    return `the changelog still has an unreleased heading for ${version} beside the finalized one`
+  if (body.some(line => /not released yet|\(unreleased\)/i.test(line)))
+    return `the changelog entry for ${version} still says it is not released; finalize the notes before tagging`
   return null
 }
 
@@ -105,7 +112,11 @@ export function verifiedCandidateProblem({ version, gateText, readCommitted }, g
     return 'the verified commit is not an ancestor of the release candidate'
   }
   const metadata = new Set(['CHANGELOG.md', 'docs/launch/release-gate.json', gate.ledger,
-    'docs/MERGES.md', 'docs/reports/map.html', 'docs/handoffs/2026-10-04-claude-recovery.md'])
+    'docs/MERGES.md', 'docs/reports/map.html'])
+  // Other release-only documents are declared per release in the gate, never hard-coded for every future
+  // release (I3 P-10): Markdown under docs/handoffs/ or docs/reports/, nothing executable.
+  for (const p of Array.isArray(gate.releaseMetadata) ? gate.releaseMetadata : [])
+    if (typeof p === 'string' && /^docs\/(?:handoffs|reports)\/[\w./-]+\.md$/.test(p) && !p.split('/').includes('..')) metadata.add(p)
   if (gate.reviewReceipts) for (const p of validatedReviewArtifactPaths(gate, version, readCommitted)) metadata.add(p)
   let changed
   try { changed = git(['diff', '--name-only', gate.verifiedCommit, 'HEAD']).trim().split('\n').filter(Boolean) } catch {
@@ -120,6 +131,19 @@ export function verifiedCandidateProblem({ version, gateText, readCommitted }, g
       delete before.version; delete after.version
       if (JSON.stringify(before) !== JSON.stringify(after)) return 'the desktop package changed beyond version after verification'
     } catch { return 'the verified desktop package comparison failed' }
+  }
+  // The three review iterations are three successive candidates in this history: each exists, and each is an
+  // ancestor of the next (I3 P-1). The gate's pure check only sees that they are distinct hex strings.
+  const chain = (gate.reviewReceipts?.iterations ?? []).slice().sort((a, b) => a.iteration - b.iteration)
+  for (const it of chain) {
+    let kind = ''
+    try { kind = String(git(['cat-file', '-t', it.candidateCommit])).trim() } catch { kind = '' }
+    if (kind !== 'commit') return `review iteration ${it.iteration} candidate ${it.candidateCommit} does not exist in this repository`
+  }
+  for (let i = 1; i < chain.length; i++) {
+    try { git(['merge-base', '--is-ancestor', chain[i - 1].candidateCommit, chain[i].candidateCommit]) } catch {
+      return `review iteration ${chain[i - 1].iteration} candidate is not an ancestor of iteration ${chain[i].iteration}'s`
+    }
   }
   return null
 }

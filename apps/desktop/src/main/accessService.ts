@@ -229,7 +229,7 @@ export class AccessService {
    * the poll secret of the creating answer is required (ER-2); a wrong or missing one reads exactly like
    * an unknown id, so the answer says nothing about another agent's request.
    */
-  status(principal: HubPrincipal, requestId: string, pollSecret?: string): Promise<StatusAnswer> {
+  status(principal: HubPrincipal, requestId: string, pollSecret?: string, signal?: AbortSignal): Promise<StatusAnswer> {
     return this.serial(async () => {
       const row = typeof requestId === 'string' && /^[0-9a-f-]{36}$/.test(requestId) ? await this.deps.store.request(requestId) : null
       const mine = row && (principal.kind === 'door'
@@ -265,6 +265,8 @@ export class AccessService {
       if (!row.decided_at || now - Date.parse(row.decided_at) > CREDENTIAL_CLAIM_WINDOW_MS)
         return { ...base, note: 'Allowed, but the credential was not collected within 10 minutes of the decision. Ask again.' }
 
+      // Shown once: a caller that has gone would spend it unseen (I3 E-5). Nothing is minted; the next read collects it.
+      if (signal?.aborted) return { ...base, note: 'Allowed; the read that would have carried the credential was cancelled before it was issued. Read the status again to collect it.' }
       const credential = this.random(32).toString('base64url')
       await this.deps.store.append('access.credential.claimed@1', HUB_ACTOR, { binding_id: bindingId, request_id: row.id, verifier: verifierOf(credential) })
       this.credentialVerifiers.add(verifierOf(credential))

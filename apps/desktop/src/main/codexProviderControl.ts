@@ -165,7 +165,8 @@ export function createCodexProviderControl(ports:CodexControlPorts):Validation<C
     if(!checked.ok)return Promise.resolve(base(obj(input)&&id(input.commandId)?input.commandId:'invalid','refused',checked.reasonCode))
     const command=checked.value
     if(canonicalCommand&&canonical(canonicalCommand)!==canonical(command))return Promise.resolve(base(command.commandId,'refused','canonical_command_conflict'))
-    if(!scopedAllowed(stillAllowed,command.issuedCursor))return Promise.resolve(base(command.commandId,'refused','scope_changed'))
+    // A changed scope never reveals a stored answer, but an attempted command is not "refused" either (I3 E-4).
+    if(!scopedAllowed(stillAllowed,command.issuedCursor))return Promise.resolve(base(command.commandId,cached||pending?'outcome_unknown':'refused','scope_changed'))
     if(canonicalCommand&&canonical(canonicalCommand)!==canonical(command))return Promise.resolve(base(command.commandId,'refused','canonical_command_conflict'))
     // A repeat writes nothing: its stored or in-flight outcome is the answer, and a refusal here
     // would tell the caller nothing was sent after a write may already have happened.

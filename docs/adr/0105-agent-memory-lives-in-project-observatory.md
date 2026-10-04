@@ -98,3 +98,21 @@ Fabric's gateway, and that embeddings use a local model by default and OpenAI pe
   (PB-033) and privacy scopes (PB-070). External exposure must not ship before both.
 - **`org-index/repositories.json`** names `project-observatory-dashboard` as the agent-memory
   provider in the same change that lands `memory/0.1` (M7).
+
+## Amendment — the Observatory hop takes ADR-0115's shape (2026-10-05)
+
+Release review of Fabric 0.3.1, iteration 3 (docs D-5), and a question from the Observatory agent-memory work
+(PB-137, N-016): decision 3 said Observatory "re-verifies the binding on the credential Fabric mints for the
+call". The hub that shipped in 0.3.1 ([ADR-0115](0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)
+§5 and amendment 36) does not mint per call: a callee is a **connected product** with a standing connection whose
+credential Fabric holds in Project Observatory's vault and presents in headers, narrowed by a product header that
+the callee intersects with the key's own scope and can only narrow. Read decision 3 as "the credential Fabric
+**presents** for the call"; Observatory still re-verifies the binding at its own edge and redacts on egress.
+
+- Observatory's `access-bindings/1` (a bearer's SHA-256 mapped to a binding) fits this shape.
+- Its narrowing header follows `X-Fabric-Accounts`: `X-Fabric-Projects`, a comma list that is never empty and
+  holds no separator or line break inside an entry; absent means a workspace-level call, which runs only when the
+  grant names that capability itself.
+- Observatory is not a hub callee yet: on 0.3.1 `agent.call` routes only to Fabric Inbox
+  (`apps/desktop/src/shared/access.ts` `CONNECTABLE_PRODUCTS`). Making it one is this record's M8.
+- What replaced ADR-0034's machine gateway is ADR-0115, in every document that names it.

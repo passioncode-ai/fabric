@@ -152,7 +152,7 @@ function AccessActs({ access, onError, reload, onDecided }: {
         if (problem) { setConnectProblem(problem); setSaw(detail) }
         setState(decision)
         onDecided?.(problem
-          ? `${t('access.queue.allowed', { name, product: access.product })} ${t('access.allowedConnect', { problem })}`
+          ? t('access.queue.allowedNotConnected', { name, product: access.product, problem })
           : t(decision === 'allowed' ? 'access.queue.allowed' : 'access.queue.denied', { name, product: access.product }), detail)
       } else {
         setState('open')
@@ -182,6 +182,7 @@ function AccessActs({ access, onError, reload, onDecided }: {
         <p className="lp-meta">{sayFloor(t)}</p>
         {access.incremental && <p className="lp-meta">{sayIncremental(t)}</p>}
         <p className="lp-meta">{t('access.lasts')}</p>
+        <p className="lp-meta">{t('access.denyStands')}</p>
       </div>
       <div className="lp-actions">
         <button type="button" className="lp-button" aria-label={t('access.denyFor', { name })} aria-disabled={state === 'deciding' ? true : undefined} onClick={() => void decide('denied')}>{t('access.deny')}</button>

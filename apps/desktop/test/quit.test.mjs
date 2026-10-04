@@ -122,6 +122,17 @@ test('quitting arms the outside guard once, past the in-process deadline', () =>
   assert.deepEqual(armed, [15_000])
 })
 
+test('the deadline and the outside guard are armed before any stop runs (I3 E-1)', () => {
+  // A stop that blocks the main thread (a FIFO read, say) must already be covered by the outside guard:
+  // arming it after the stops left a blocking stop with nothing to end it.
+  const order = []
+  const q = createQuitCoordinator({ app: { quit() {}, exit() {} }, ready: () => true, shutdown: () => new Promise(() => {}),
+    setTimer: () => { order.push('deadline'); return {} }, armReaper: () => order.push('reaper') })
+  q.onQuit(() => order.push('stop'))
+  q.beforeQuit({ preventDefault() {} })
+  assert.deepEqual(order, ['deadline', 'reaper', 'stop'])
+})
+
 test('the outside guard ends a process whose event loop no longer runs', { skip: process.platform === 'win32' }, async () => {
   // A child arms the real reaper with a short delay, then blocks its own event loop forever — the shape of
   // a teardown that stalls after the last window is gone. Only something outside it can end it.

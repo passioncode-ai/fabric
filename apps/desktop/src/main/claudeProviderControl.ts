@@ -191,7 +191,9 @@ export function createClaudeProviderControl(ports: ClaudeControlPorts): Validati
     } catch { /* Invalid input is reported as a fixed refusal, never serialized into diagnostics. */ return Promise.resolve(base('invalid', 'refused', 'invalid_stop_command')) }
     const conflict = () => canonicalCommand !== null && canonical(canonicalCommand) !== canonical(command)
     if (conflict()) return Promise.resolve(base(command.commandId, 'refused', 'canonical_command_conflict'))
-    if (!scopedAllowed(authority, command.issuedCursor)) return Promise.resolve(base(command.commandId, 'refused', 'scope_changed'))
+    // A changed scope never reveals a stored answer, but once this command was attempted it is not "refused"
+    // either: the write may already have happened (I3 E-4).
+    if (!scopedAllowed(authority, command.issuedCursor)) return Promise.resolve(base(command.commandId, cached || pending ? 'outcome_unknown' : 'refused', 'scope_changed'))
     if (conflict()) return Promise.resolve(base(command.commandId, 'refused', 'canonical_command_conflict'))
     // A repeat writes nothing: its stored or in-flight outcome is the answer, and a refusal here
     // would tell the caller nothing was sent after a write may already have happened.

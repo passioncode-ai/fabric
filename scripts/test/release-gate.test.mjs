@@ -12,7 +12,8 @@ import { verifiedCandidateProblem } from '../lib/release-mac.mjs'
 const schema = 'fabric-release-reviews/1'
 const levels = ['ux', 'errors', 'docs', 'data', 'plan']
 const candidate = 'a'.repeat(40)
-const iteration = n => `## Iteration ${n}\n\n| ID | Disposition |\n|---|---|\n| V${n}-1 | fixed: test receipt |\n\nExit for iteration ${n}: closed. Blocking findings open: none.\n`
+const sha = n => n === 3 ? candidate : String(n).repeat(40)
+const iteration = n => `## Iteration ${n}\n\nCandidate: \`${sha(n)}\`.\n\n| ID | Disposition |\n|---|---|\n| V${n}-1 | fixed: test receipt |\n\nExit for iteration ${n}: closed. Blocking findings open: none.\n`
 const ledger = (...parts) => `# Ledger — Fabric 0.3.1\n\n${parts.join('\n')}`
 function fixture() {
   const artifacts = new Map()
@@ -42,6 +43,43 @@ function refuses(mutate, pattern) {
   assert.ok(problems.some(p => pattern.test(p)), problems.join('\n'))
 }
 
+// #region release-gate-iteration-binding-test — docs: docs/launch/release-mac.md#how-a-release-is-made
+test('I3 P-1: one commit cannot stand for three iterations', () => {
+  refuses(f => { for (const it of f.gate.reviewReceipts.iterations) it.candidateCommit = candidate
+    for (const [p, text] of f.artifacts) if (p.endsWith('.json')) { const r = JSON.parse(text); r.candidateCommit = candidate; f.artifacts.set(p, JSON.stringify(r)) } },
+  /distinct candidate commit/)
+})
+test('I3 P-1: each ledger iteration names its exact candidate commit', () => {
+  refuses(f => { f.ledgerText = f.ledgerText.replace(`Candidate: \`${'1'.repeat(40)}\`.`, 'Candidate: see the receipts.') }, /iteration 1 of the ledger does not name its candidate/)
+})
+test('I3 P-1: a ledger title naming another version refuses', () => {
+  refuses(f => { f.ledgerText = f.ledgerText.replace('# Ledger — Fabric 0.3.1', '# Ledger — Fabric 0.3.0 (not 0.3.1)') }, /names another version/)
+})
+test('I3 P-1: iteration commits must exist and follow one another in history', () => {
+  const f = fixture(), missing = '1'.repeat(40)
+  const verify = git => verifiedCandidateProblem({ version: '0.3.1', gateText: JSON.stringify(f.gate), readCommitted: p => f.artifacts.get(p) }, git)
+  const base = { exists: () => true, ancestor: () => true }
+  const fake = o => args => {
+    if (args[0] === 'cat-file') { if (!o.exists(args[2])) throw new Error('missing'); return 'commit\n' }
+    if (args[0] === 'merge-base') { if (!o.ancestor(args[2], args[3])) throw new Error('not ancestor'); return '' }
+    if (args[0] === 'diff') return ''
+    return assert.fail('unexpected git call ' + args.join(' '))
+  }
+  assert.equal(verify(fake(base)), null)
+  assert.match(verify(fake({ ...base, exists: sha => sha !== missing })), /iteration 1 candidate .* does not exist/)
+  assert.match(verify(fake({ ...base, ancestor: (a, b) => !(a === missing && b === '2'.repeat(40)) })), /iteration 1 candidate is not an ancestor of iteration 2/)
+})
+test('I3 P-10: release-only documents are declared in the gate, not exempt for every release', () => {
+  const f = fixture(), doc = 'docs/handoffs/2026-10-04-claude-recovery.md'
+  const git = args => args[0] === 'diff' ? doc : args[0] === 'cat-file' ? 'commit\n' : ''
+  const verify = () => verifiedCandidateProblem({ version: '0.3.1', gateText: JSON.stringify(f.gate), readCommitted: p => f.artifacts.get(p) }, git)
+  assert.match(verify(), /unverified changes follow the verified commit/)
+  f.gate.releaseMetadata = [doc]
+  assert.equal(verify(), null)
+  f.gate.releaseMetadata = ['scripts/release-mac.mjs']
+  assert.match(verify(), /unverified/)
+})
+// #endregion release-gate-iteration-binding-test
 test('PL10: three fabricated closures with nonexistent single reports refuse', () => {
   const fake = '# Fabric 0.3.1\n' + [1, 2, 3].map(n => `\n## Iteration ${n}\n[only reviewer](review/iteration-${n}/nonexistent.md)\n\nExit for iteration ${n}: closed. Blocking findings open: none.\n`).join('')
   assert.ok(releaseGateProblems({ version: '0.3.1', gateText: JSON.stringify({ version: '0.3.1', ledger: 'docs/ledger.md' }), ledgerText: fake }).length > 0)
@@ -51,7 +89,7 @@ test('exact candidate receipts for all five levels across three closed iteration
 })
 test('validated declared reports may follow the verified source; undeclared, altered and executable paths refuse', () => {
   const f = fixture(), report = first(f).report
-  const git = args => args[0] === 'merge-base' ? '' : args[0] === 'diff' ? report : assert.fail('unexpected git call')
+  const git = args => args[0] === 'merge-base' ? '' : args[0] === 'cat-file' ? 'commit\n' : args[0] === 'diff' ? report : assert.fail('unexpected git call')
   const verify = () => verifiedCandidateProblem({ version: '0.3.1', gateText: JSON.stringify(f.gate), readCommitted: p => f.artifacts.get(p) }, git)
   assert.equal(verify(), null)
   f.artifacts.set(report, 'changed bytes')

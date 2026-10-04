@@ -133,3 +133,16 @@ test('I3: a standing denial survives 501 later denials and remains clearable', a
   assert.equal((await access.clearDenial(oldest.requestId,OPERATOR)).ok,true)
   assert.equal((await access.request(DOOR,ask({resources:['mail0@example.com']}))).status,'pending')
 })
+
+test('I3 E-5: a status read whose caller has gone does not spend the one-time credential', async () => {
+  // The credential is shown once. A poller that hung up used to have it minted and recorded anyway, so the
+  // next poll said "handed over once" and the agent never held it.
+  const { access } = setup()
+  const r = await access.request(DOOR, ask())
+  await access.decide(r.requestId, 'allowed', OPERATOR)
+  const gone = new AbortController(); gone.abort()
+  const lost = await access.status(DOOR, r.requestId, r.pollSecret, gone.signal)
+  assert.equal(lost.credential, undefined, 'nothing is minted for a caller that has gone')
+  const kept = await access.status(DOOR, r.requestId, r.pollSecret)
+  assert.match(kept.credential, /^[A-Za-z0-9_-]{43}$/, 'the next read still collects it')
+})

@@ -395,3 +395,52 @@ record above remains as historical decision context.
     are paged under a stable order; a failed or over-50,000-row read refuses rather than
     dropping an old denial. See `ConsentPresenter.next`, `AccessStore.requests` and their
     I3 independent/focused fixtures. Native visual and screen-reader acceptance remains separate.
+
+## Verification iteration 3 at `130b5510` — 2026-10-05
+
+Five fresh independent reviews of the converged candidate `130b5510` (ux, errors, docs, data, plan;
+reports and receipts in the [hub ledger](../evidence/plans/2026-10-04-hub-verification.md#iteration-3)).
+These amendments record what the record got wrong and what the code now does.
+
+32. **Names in this record (docs D-7).** The facts a waiting request shows are built by
+    `apps/desktop/src/shared/access.ts#pendingFacts` (earlier text said `consentFacts`). A late connect record is
+    withdrawn inside `apps/desktop/src/main/productConnect.ts` (the delivery handler's own withdrawal step; there
+    is no separate `withdraw` symbol), and amendment 28's `withdraw-failed` outcome is the one exception to "keeps
+    nothing it could not confirm".
+33. **`agent.call` answers, in one table (docs D-8).** Every refusal carries `error.code` and a `mayHaveRun` flag.
+
+    | Code | May have run | What the agent does |
+    |---|---|---|
+    | `invalid-arguments` | no | fix the input; nothing was sent |
+    | `unknown-callee` | no | the callee is not a connected product Fabric routes to; do not retry |
+    | `access-required` | no | ask with `fabric.access.request`; nothing was sent |
+    | `binding-revoked` | no | the credential was revoked; ask again |
+    | `product-not-connected` | no | the operator connects the product; retry afterwards |
+    | `product-credential-unavailable` | no | the vault could not be read; retry later |
+    | `product-outdated` | no | the product's server is older than Fabric supports; the operator updates it |
+    | `hub-unavailable` | no | Fabric failed before forwarding; retry later |
+    | `cancelled` | no | the caller cancelled before the call reached the product; retry is safe |
+    | `idempotency-conflict` | no | the key was used for a different call; use a new key for a new call |
+    | `idempotency-capacity` | no | too many remembered keys; retry later |
+    | `outcome-unknown` | yes | never send it again under the same key, and a new key would act twice; check the effect with the product's read tools |
+    | `answer-not-kept` | yes | the call ran and its answer was too large to keep; do not send it again |
+    | `product-error` (in the answer) | yes | the product answered with an error; check its effect before retrying |
+
+    A call without an `idempotencyKey` has no duplicate guard; its `outcome-unknown` answer says so instead of
+    naming a key (errors E-7). Whether mail-sending capabilities must require a key is CO-204.
+34. **Host (docs D-11).** Amendment 22's rule admits `127.0.0.1:<port>` and `[::1]:<port>`, the two loopbacks the
+    hub listens on; anything else is 421.
+35. **What the code now does (errors E-1…E-5, data A-1).**
+    - Quitting arms its in-process deadline and the outside reaper **before** any stop runs, and `hub.json` is
+      withdrawn only if it is a regular file read non-blocking and bounded; a FIFO, a device or a symlink planted
+      there is refused and left in place (E-1).
+    - An external request's admission slot is released exactly once, when the request ends or when its caller
+      goes away; a hang-up no longer leaks a slot (E-2).
+    - A failed warm-up of the known-binding verifiers costs the budget hint, never the surface (E-3).
+    - A repeated stop of an already attempted Claude Code or Codex command answers its stored outcome; after a
+      scope change it answers `outcome_unknown`/`scope_changed`, never `refused` (E-4).
+    - A status read whose caller has gone mints no credential; the next read collects it (E-5).
+    - `fabric_memory_remember` canonicalises an upper-case `supersedes` id before the journal sees it (A-1).
+36. **ADR-0105's hop is this record's hop (docs D-5).** Observatory as a hub callee will be a connected product in
+    this record's sense: a standing connection whose credential Fabric holds and presents, narrowed by a product
+    header, not a credential minted per call. ADR-0105 carries the matching amendment.

@@ -113,6 +113,7 @@ export function consentPrompt(t: Say, input: {
     '',
     input.incremental ? sayIncremental(t) : t('access.prompt.credential', { product }),
     t('access.lasts'),
+    t('access.denyStands'),
     ...(input.connected ? [] : ['', t('access.prompt.notConnected', { product, allow: sayAllow(t, input) })])
   ].join('\n')
   return {
