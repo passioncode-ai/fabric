@@ -1,0 +1,26 @@
+{
+  "source_revision": "1fd059377baaba7904dc73682d9007affe4284e6",
+  "lanes": 13,
+  "canonical_rows": 557,
+  "planning_records": 895,
+  "source_pins": 143,
+  "ready_ids": [
+    "P-08.qualify-source"
+  ],
+  "held_records": 894,
+  "owner_basis_revision": "54cefbbf0c9b71ad0c403689b90c790ceb7ed139",
+  "parent_acceptance": "OPEN",
+  "full_tier": "NOT_RUN",
+  "production_com_runtime": "NOT_IMPLEMENTED",
+  "initial_generation_attempt": {
+    "result": "REFUSED",
+    "reason": "invalid full immutable revision",
+    "outputs_created_by_compiler": false
+  },
+  "commands": [
+    "python3 scripts/build-unified-plan.py --source-revision 1fd059377baaba7904dc73682d9007affe4284e6 --output docs/reports/2026-10-04-unified-converged-1fd05937 --privacy-deny-file LOCAL_ONLY",
+    "node scripts/unified-plan.mjs --report docs/reports/2026-10-04-unified-converged-1fd05937 check",
+    "node scripts/unified-plan.mjs --report docs/reports/2026-10-04-unified-converged-1fd05937 next",
+    "node scripts/unified-plan.mjs --report docs/reports/2026-10-04-unified-converged-1fd05937 packet P-08.qualify-source"
+  ]
+}

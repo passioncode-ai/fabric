@@ -1,0 +1,81 @@
+{
+  "schema_version": "execution-packet/1",
+  "source_revision": "1fd059377baaba7904dc73682d9007affe4284e6",
+  "dispatch": "design-gated",
+  "research_source_revision": "41f994a709990ad72621fa834768a8833e7d93e1",
+  "node": "N-721",
+  "id": "P-06.4.prepare",
+  "intent": "One cold-reader implementation or acceptance leaf for P-06.4, or a precise trigger/authority/dependency refusal.",
+  "inputs": [
+    {
+      "address": "CONTEXT.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "216b4729418f21afeafb057227b2f802725e306f3586a05c1c3c38a270568fb5"
+    },
+    {
+      "address": "docs/architecture/system-contract.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "7daf5121cb7ecc0f8ba771053a0f45f6191268c3bfaf752e083e112fdbce65bc"
+    },
+    {
+      "address": "docs/evidence/backlog.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+    },
+    {
+      "address": "docs/AGENT_SYNC.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "0de6ecfd0a80f9a1090d031e5b0b46ec8ef12295ec77149da7016a20b3ace641"
+    },
+    {
+      "address": "docs/evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "150d680acd625d3fb73bbc62af4edb3afff3cafda9dd080ab1d58eabe51685b5"
+    },
+    {
+      "address": "docs/adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "fde67d30c687fc422a5d868403047b77efcf8629dd56b884b55c4d44b6dae73e"
+    },
+    {
+      "address": "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "1c7a7ac31146415b5daf9a24fb34d007c9810850523a4182df98291986882ba8"
+    },
+    {
+      "address": "docs/ux/vision.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "b49ff2c9b4af97b5f4fa56183ee8a703e2e3a607f86c1c368746e95517cc444c"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/P-06.4.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/P-06.4.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "Named dossier exists and answers all eight cold-reader questions; source refs resolve and match their hashes.",
+    "Cold independent reviewer can execute the scoped checks without planning chat; unavailable checks remain NOT_RUN, and unresolved prerequisite prevents implementation dispatch."
+  ],
+  "guards": [
+    "missing authority, source policy, capability or schema contract: stop effect and report typed blocker",
+    "unknown outcome: reconcile stable command/effect id before retry",
+    "unrelated agent work/file claim: do not overwrite; send finding to lead",
+    "Stop before implementation until a bounded leaf and upstream acceptance/authority are approved; a planning dependency is not a completion receipt.",
+    "Reconcile a current bounded owner packet before dispatch; new source hashes do not renew historical acceptance"
+  ],
+  "resume": "Read this packet and its pinned canonical sources; verify trigger, dependency receipts and authority; produce one bounded follow-on leaf before code."
+}

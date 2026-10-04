@@ -1,0 +1,52 @@
+{
+  "schema_version": "execution-packet/1",
+  "source_revision": "1fd059377baaba7904dc73682d9007affe4284e6",
+  "dispatch": "design-gated",
+  "research_source_revision": "41f994a709990ad72621fa834768a8833e7d93e1",
+  "node": "N-192",
+  "id": "CO-045",
+  "intent": "**A deployed third-party agent is a sandbox problem, not a trust tier.** §8's tiers cover a provider the user hosts themselves; deploying their code onto infrastructure we are responsible for is a different obligation",
+  "inputs": [
+    {
+      "address": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "c2ff476db93bfe988382e3e8197a828dc0b17d6f2616c2a5803c43a7c07c1c39"
+    },
+    {
+      "address": "docs/evidence/backlog.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+    },
+    {
+      "address": "docs/ux/vision.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "b49ff2c9b4af97b5f4fa56183ee8a703e2e3a607f86c1c368746e95517cc444c"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/CO-045.review.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/CO-045.review.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "One source-bound explicit disposition and bounded next packet; exact trigger/authority attached. Implementation requires theme contract, measured dependencies and common delivery gates."
+  ],
+  "guards": [
+    "Recorded-only row has no reopened trigger.",
+    "Stop before implementation until a bounded leaf and upstream acceptance/authority are approved; a planning dependency is not a completion receipt."
+  ],
+  "resume": "Read this packet and its pinned canonical sources; verify trigger, dependency receipts and authority; produce one bounded follow-on leaf before code."
+}

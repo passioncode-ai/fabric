@@ -1,0 +1,474 @@
+{
+  "schema_version": "execution-packet/1",
+  "source_revision": "1fd059377baaba7904dc73682d9007affe4284e6",
+  "dispatch": "candidate",
+  "research_source_revision": "41f994a709990ad72621fa834768a8833e7d93e1",
+  "node": "N-895",
+  "id": "P-08.qualify-source",
+  "intent": "Qualify the assembled committed hub and CO-179 source at the stated basis; collect scoped native, full disposable and independent results while parent tasks and release gates remain open",
+  "inputs": [
+    {
+      "address": "AGENTS.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "80f6bdf7f1d1a5f05eb40f2b7911732b9b3c5b3ea7c85dc45e3ff527dd50f9ec"
+    },
+    {
+      "address": "apps/desktop/package.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "e5109dd89a24d998d492d1342fe383c29d9f6f180d340aeed7bc4c5ec4d5bfc0"
+    },
+    {
+      "address": "apps/desktop/src/main/accessStore.ts",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "0b5a81cf1edfe31d89ef7dbc1d8cb9e1ebe4e5e3b9853905328571da2b52a8ee"
+    },
+    {
+      "address": "apps/desktop/src/main/agentSurface.ts",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "b5f7315ba6ea9ea023fc2ed30288f8475b8f4cd2ed4b72e2647ebfcdd608e4e4"
+    },
+    {
+      "address": "apps/desktop/src/main/ceoPrivateArchive.ts",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "9c64bb9e148a69335b7bced61fc30da60ac692b35eabd7c2b298f0ac9c9b2f8b"
+    },
+    {
+      "address": "apps/desktop/src/main/consentPresenter.ts",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "4e4186d0b6df6c8c589f2d747f1553a82245d3be6b5a41f1931a441890a08f73"
+    },
+    {
+      "address": "apps/desktop/src/main/hubCall.ts",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "f0af9012125709481e068018f97dda02d6752d8c3fb3ca61fe7c512295da2625"
+    },
+    {
+      "address": "apps/desktop/src/main/hubTools.ts",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "d8b0572f6ef3fb16840e1e7afccad6ed33e26a715b89ffc40df15d4e2e6e7283"
+    },
+    {
+      "address": "apps/desktop/src/main/productForwarder.ts",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "cfd56164bf50bef4c74adc483a74a593e254bfc13dc3bc412be496cae551cb11"
+    },
+    {
+      "address": "apps/desktop/src/renderer/src/AgentAccessPanel.test.tsx",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "5d341c3cdc39ad70d0d3137bfa3cff18257948b82993eca72a1479887a9377af"
+    },
+    {
+      "address": "apps/desktop/src/renderer/src/AgentAccessPanel.tsx",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "e686f1ce7160b8f93566c4e82a4a1c20f8be3373b80afd29550276c31a8e50b1"
+    },
+    {
+      "address": "apps/desktop/src/renderer/src/App.tsx",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "8aca50d0cd3aa4ac7a715064889a8c949742558f3d0b231e3c48b2ffbee917ec"
+    },
+    {
+      "address": "apps/desktop/src/renderer/src/Onboarding.launch.css",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "4949e5603177dc1374850b85ab7c33a2fcd940f682a9b95b9ee5ee5ca13a9cff"
+    },
+    {
+      "address": "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "7931e1f89b9f75ee8b3a58b5eced54fe08578b6115fea86180f70217114540db"
+    },
+    {
+      "address": "apps/desktop/src/renderer/src/Onboarding.tsx",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "895ea04e3c61af11f61eced27d41c1e62d53a945ea05167b617d734b92565f10"
+    },
+    {
+      "address": "apps/desktop/src/renderer/src/components/registry.ts",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "b44d6d19383e3b20cf3f30cdaf7578e9045e673c033cf0abfa794b7a9c99d70e"
+    },
+    {
+      "address": "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "92015dd42cee4f65a77ed0ca27259983e217e31466256e57b7154916a795b3f7"
+    },
+    {
+      "address": "apps/desktop/src/shared/access.ts",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "441110570fb98528a3665e659c93f1247913b78a55d42969810c0cff86b8251a"
+    },
+    {
+      "address": "apps/desktop/test/adoption-native-harness.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "5d6a28eba37954c91655bb92fb1c7e0e05ee828573752ca1441a2371fa0eaed3"
+    },
+    {
+      "address": "apps/desktop/test/ceo-private-archive-codec.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "f44fa558f141fa0ddb18646ff6f21ad701b03090acc04835d0fa5d1b15ef3e40"
+    },
+    {
+      "address": "apps/desktop/test/ceo-private-archive-db.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "920af692da774233311418fcba0a321041ec4490bb1c944906898b700aaf5038"
+    },
+    {
+      "address": "apps/desktop/test/consent-presenter.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "a50a680af75f49c3269fed1ea77fda2843cae46f933337e655b26aaa71c5c88e"
+    },
+    {
+      "address": "apps/desktop/test/contract-consumer-fixtures.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "ba709333ba1cc87711015a13edfee44d9abff8914a1d11678cfb15e35bce7318"
+    },
+    {
+      "address": "apps/desktop/test/contract-consumer.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "672c8330eb259c24525e9388323f510ef4f2515ff20a4fdc7885a5fa6a737992"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/LICENSE",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/README.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "134e1c8dbb9280b723b6b22be3996539a8a3fbefbc6dd8892695a923e85810d9"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/SOURCE.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "1b4f5d03650a3097eb3ea65b837e99cc03f24025e021e25c77694041c07930e2"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/current/positive/interop-agent-call.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "68c401dce7610c056dea60660ca685a0642db63f0b269ed735c81bd0406f9331"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/current/positive/manifest-mcp.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "dfaaa5ec16dcf6843b9122a72d534c6f6b2e1899902952df324a9bb38a055fdb"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/current/positive/pipeline.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "162d2e61b971c0a249796df1ad9146d77502135b71da171437681a4260ce829c"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/current/positive/service-well-known-capabilities.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "27961da9f655340e3da4949760a2f53c1dd0168e6057a5e84f87633c300bb3af"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/common.schema.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "8c7c781e2b798a549eaf19175740f5873aa3d51518e3316ee35177c79630209a"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/interop-agent-call.schema.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "57439b2e6e67b8ec74f38ab855cf951071a762ce8e04f3c6b4a857c0b24c4ce6"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/interop-capability.schema.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "16240f19a851d56127e766456561da8a05e1902b321e52d4c7d45a635f13a598"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/manifest.schema.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "02043fc530e13167e682d0699eb0a5e261c9d7b0409203e2e66361f88cbba7b5"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/pipeline.schema.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "b0ccfbcd5cf874b69a829662bd62a53d9c8b2ffbc2b1555d834b1a518f387b1e"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/service-common.schema.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "3477169eff687d30f72b162631dead9d0f6e53b620ae097e43c65a678b381cb6"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/current/schemas/service-well-known.schema.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "c51a6ec9814944d3c7ec5e28dbc10e37063a9eded78c45e2776ccd9ba69f02e3"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/legacy/schemas/common.schema.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "b0b4f7dafa9ccffd345ec319c97cacf65b1983c2da874c63606ca60cab448fd5"
+    },
+    {
+      "address": "apps/desktop/test/fixtures/fabric-agent-contract/legacy/schemas/interop-agent-call.schema.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "57439b2e6e67b8ec74f38ab855cf951071a762ce8e04f3c6b4a857c0b24c4ce6"
+    },
+    {
+      "address": "apps/desktop/test/helpers/access-memstore.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "63230890db58b8a442b94dfefea094efde02fc8b31dcfa1a786b89a8dd160ba7"
+    },
+    {
+      "address": "apps/desktop/test/hub-access-service.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "015c92e62480156846dd1e6d69e1c06b1a99303e8779a3684d18a87c60f6b72e"
+    },
+    {
+      "address": "apps/desktop/test/hub-call-i3.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "816b3c3c69682e2286bb1fdb1ccf6099e75e06cde6a24d1ed83e71bb1f049760"
+    },
+    {
+      "address": "apps/desktop/test/hub-call.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "15aa6b77f33cdfcfeefb5713682aac7000afb6a60d6b596a33c829c831ad94c7"
+    },
+    {
+      "address": "apps/desktop/test/hub-door-db.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "358d44bab513f83d9598828072bdd860acc69de3f1c5d27451a52522b79f4131"
+    },
+    {
+      "address": "apps/desktop/test/hub-products.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "2f44417f8d6a2501b8da6c2a8571c549ed0869acfa61cdef39737e2ebecf158d"
+    },
+    {
+      "address": "apps/desktop/test/hub-surface.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "c464ff9e59399ac07ecb2a4b3ea5d978b8793836bbb803086d92c6b7923fbce1"
+    },
+    {
+      "address": "apps/desktop/test/onboarding-reason-negative-control.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "ce8af70bab2f04005423c42eb541e390c1dfc9960f1f2e94d657920d4d25b11c"
+    },
+    {
+      "address": "apps/desktop/test/onboarding-visual-native-harness.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "07629730a0e4b24cde6fe425a67770708a436fa4507e98cfb81b0b6d530a75d7"
+    },
+    {
+      "address": "apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "11a8a73b404bd00be021bee14d8ad5c48d3f7b903fbaa8902c060dbccc1698b2"
+    },
+    {
+      "address": "apps/desktop/test/private-history-db.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "378a53d59773e5e517cbe78fb47c1aee2720fe02b6e21f0c32d844e31abf504f"
+    },
+    {
+      "address": "docs/evidence/backlog.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+    },
+    {
+      "address": "docs/evidence/plans/unified-leaves/CO-179.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "626a37d322a3cc7f9d8ed5ec5eb004f8b67f85a0a4ce637c933ac0b10a4fb09c"
+    },
+    {
+      "address": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "c2ff476db93bfe988382e3e8197a828dc0b17d6f2616c2a5803c43a7c07c1c39"
+    },
+    {
+      "address": "docs/handoffs/2026-10-04-assembled-qualification.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "ddef2959859aac5d747ab693604db539a94ad9a4521ed4a9b6dd74acc30787b7"
+    },
+    {
+      "address": "docs/handoffs/2026-10-04-co179-native-review/review.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "1e5a3b2cc18a79ced7fb9dedfc413b6564e7efad73861a6fe5f3163f0de22d71"
+    },
+    {
+      "address": "docs/launch/release-gate.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "ab3443057091521c30680a7d22f1cb00a3bb857c0cb10a2aae0a94aac1cb0ab6"
+    },
+    {
+      "address": "docs/launch/release-mac.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "cb3bccaf1492a53af08cfb9e249a348da98374bcbfe1cee172ed0ab6c7bf265d"
+    },
+    {
+      "address": "docs/reports/2026-10-04-unified-execution/impacts.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "df26bf5078b04db64279dbbf0b6b6abd57f82181a98b7e2a46315fda65abf717"
+    },
+    {
+      "address": "docs/reports/2026-10-04-unified-owner-reconciliation-recheck/raw/checks.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "0839c60f2bfc2e6c6865e828cc415bd089b90be0ef23f109bc3c576fecbade56"
+    },
+    {
+      "address": "docs/ux/product-model.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "8e3f134b04219d48b59f4d78e621e6d502e5a7dfbe1aba79e236576b05e97858"
+    },
+    {
+      "address": "docs/ux/scenarios.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "7d5da5eef952df0cb851b836e21edcad93aa008c9b5e73f9c8641ddba1972108"
+    },
+    {
+      "address": "pnpm-lock.yaml",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "b452d830770a8ef28e4fc1e973d87388856fcf49e3363144c58186b7624f66f6"
+    },
+    {
+      "address": "scripts/build-unified-plan.py",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "19af50bc4133ffabbfc6451d9d29ca7301000f184b5857fba5b8fad73d48faa1"
+    },
+    {
+      "address": "scripts/check-design-map.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "725c2285933ccb535737c650741ad7af227730eb3699a95c9082f2c0ca108372"
+    },
+    {
+      "address": "scripts/check-registers.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "25ac82eeeb0aa36dff85fae358a290e5cbfcc16bfe8ac6b6f6dac4a80a473fc5"
+    },
+    {
+      "address": "scripts/ci.sh",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "0eaed03d7cf59ae07bdfcc0c4afeaa4af55046ddb5236226c3c53fa4392bd2f5"
+    },
+    {
+      "address": "scripts/lib/plan-ids.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "0720da1eb951f3927fb6b961c70e20c13d5f2fc31e6fe11e07f5bb6967f8c270"
+    },
+    {
+      "address": "scripts/lib/registers.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "587afdcb1a89229090110485f9a5e7c9b34763c10381eee29a1c3719eec16d73"
+    },
+    {
+      "address": "scripts/lib/release-gate.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "080218fe21903a1b2c8b25655ae436d2f87c4eb4e2ceece9f71a40ea493e9e34"
+    },
+    {
+      "address": "scripts/lib/release-mac.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "ce86a0dabc7f546c04c87075162ebc4cdecdd16a604019b3b817b6b7562458fc"
+    },
+    {
+      "address": "scripts/release-mac.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "31fee7ebef9e3112cae36e64cb44f6aa2d37cb219ebf0414f9956abda5ad8d0e"
+    },
+    {
+      "address": "scripts/test/build-unified-plan.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "52b1b74f6cca39dff6c4ce5767d0dd35ce07f10568ef5a138f41da22744ae754"
+    },
+    {
+      "address": "scripts/test/check-design-map.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "f6f91be2c640099337e6b2b674caf82662d65148f756cf0231b3fec443f55228"
+    },
+    {
+      "address": "scripts/test/plan-ids.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "5c9df09c8e8b9c36a55cf3f355c32ad97a42bbefd00ea412b836fe5d784efac3"
+    },
+    {
+      "address": "scripts/test/registers.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "02a9dffbd12e00f8cfa7ee9a2148dfeff15095a8162fd57a6b388b6593908b7d"
+    },
+    {
+      "address": "scripts/test/release-gate.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "77db5011084b1f2120f0667fb8d50227546426dfabe46bbf96146b7331b4383d"
+    },
+    {
+      "address": "scripts/test/unified-plan.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "2865cdfc555ef852c06b432bc6f0c2d1e05e64037dcdc83cbad55ca7c3228abc"
+    },
+    {
+      "address": "scripts/unified-canonical-sources.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "de9fa6a8d7dbdae3c5f980ad1ac2760cf624641a1bde90c1060470c6d1ce03b5"
+    },
+    {
+      "address": "scripts/unified-plan.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "642046d7a5b747e6632703b1bda34c8bc6e68840442f3216bf8a8be60a0a5272"
+    },
+    {
+      "address": "toolchain.lock.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "8ffc86d22c30b47586a39f61930556cc38cd7960a063a750629c5b924ea80554"
+    },
+    {
+      "address": "docs/evidence/plans/unified-current-reconciliation.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "e6b9fef2c524f7fc10bcdd803af8396e0daf0d6d03855b4f04db8b271865b099"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "apps/desktop/src/renderer/src/App.tsx",
+      "apps/desktop/src/renderer/src/Onboarding.tsx",
+      "apps/desktop/src/renderer/src/components/registry.ts",
+      "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+      "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
+      "apps/desktop/test/adoption-native-harness.mjs",
+      "apps/desktop/src/renderer/src/Onboarding.launch.css",
+      "apps/desktop/test/onboarding-visual-native-harness.mjs",
+      "apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+      "docs/handoffs/p08-source-qualification"
+    ],
+    "input_targets": [
+      "apps/desktop/src/renderer/src/App.tsx",
+      "apps/desktop/src/renderer/src/Onboarding.tsx",
+      "apps/desktop/src/renderer/src/components/registry.ts",
+      "apps/desktop/src/renderer/src/Onboarding.test.tsx",
+      "apps/desktop/src/renderer/src/onboardingDraft.persist.test.tsx",
+      "apps/desktop/test/adoption-native-harness.mjs",
+      "apps/desktop/src/renderer/src/Onboarding.launch.css",
+      "apps/desktop/test/onboarding-visual-native-harness.mjs",
+      "apps/desktop/test/onboarding-visual-native-harness.test.mjs"
+    ],
+    "new_output_targets": [
+      "docs/handoffs/p08-source-qualification"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "apps/desktop/src/renderer/src/App.tsx",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "One committed bounded source candidate plus scoped executed-check receipts and unresolved prerequisites",
+    "Native and visual evidence is bound to the exact same committed source/build; different-build and partial evidence remain scoped limitations",
+    "Five independent reports and full tier are collected for root assessment; this preparation never marks P-08/CO-179 done or release-ready"
+  ],
+  "guards": [
+    "Stop on changed subject bytes, missing claim, stale/unknown receipt or unauthorized scope",
+    "Stop before release approval, tag, signing/publishing deployment, installed operator database mutation or production/workspace publication",
+    "Do not edit guarded root registers, ledger or map from this bounded child",
+    "Stop before release approval, tag, deployment, production publication or operator database mutation; this packet does not accept its canonical parent"
+  ],
+  "resume": "Read the committed current entry and exact source/build receipts, claim the named resources, then execute P-08.qualify-source only; parent gates stay open"
+}

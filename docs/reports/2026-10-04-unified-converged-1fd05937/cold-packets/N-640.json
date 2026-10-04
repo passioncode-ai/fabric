@@ -1,0 +1,66 @@
+{
+  "schema_version": "execution-packet/1",
+  "source_revision": "1fd059377baaba7904dc73682d9007affe4284e6",
+  "dispatch": "design-gated",
+  "research_source_revision": "41f994a709990ad72621fa834768a8833e7d93e1",
+  "node": "N-640",
+  "id": "FR-D.prepare",
+  "intent": "One cold-reader implementation or acceptance leaf for FR-D, or a precise trigger/authority/dependency refusal.",
+  "inputs": [
+    {
+      "address": "docs/evidence/backlog.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+    },
+    {
+      "address": "docs/ux/vision.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "b49ff2c9b4af97b5f4fa56183ee8a703e2e3a607f86c1c368746e95517cc444c"
+    },
+    {
+      "address": "docs/ux/scenarios.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "7d5da5eef952df0cb851b836e21edcad93aa008c9b5e73f9c8641ddba1972108"
+    },
+    {
+      "address": "docs/launch/first-release-strategy.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "28c000412204185162ce25c2a321c342aebf13767fa901825bfcd331cb764aa9"
+    },
+    {
+      "address": "docs/launch/agent-first-contract.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "c7caf1f8c34756b4a3febbddaba29d1db2f326f62d7ea71765c53bcd39aadabf"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/FR-D.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/FR-D.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "Named dossier exists and answers all eight cold-reader questions; source refs resolve and match their hashes.",
+    "Cold independent reviewer can execute the scoped checks without planning chat; unavailable checks remain NOT_RUN, and unresolved prerequisite prevents implementation dispatch."
+  ],
+  "guards": [
+    "Source HEAD or dependency receipt digest changed: rebase and semantic review before dispatch.",
+    "Exact file owner or required scope/grant unavailable: stop, send evidence + affected current tasks to lead; no speculative store or authority.",
+    "Native/user proof unavailable: record NOT_RUN/blocked; pure green cannot consume higher-tier edge.",
+    "Stop before implementation until a bounded leaf and upstream acceptance/authority are approved; a planning dependency is not a completion receipt.",
+    "Reconcile a current bounded owner packet before dispatch; new source hashes do not renew historical acceptance"
+  ],
+  "resume": "Read this complete packet, current canonical source row, source-head/digest and dependency receipts; run named negative path first."
+}

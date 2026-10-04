@@ -1,0 +1,63 @@
+{
+  "schema_version": "execution-packet/1",
+  "source_revision": "1fd059377baaba7904dc73682d9007affe4284e6",
+  "dispatch": "design-gated",
+  "research_source_revision": "41f994a709990ad72621fa834768a8833e7d93e1",
+  "node": "N-034",
+  "id": "CO-178",
+  "intent": "Set Russian form of Estate in brand pack before string sweep",
+  "inputs": [
+    {
+      "address": "docs/evidence/backlog.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+    },
+    {
+      "address": "docs/ux/vision.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "b49ff2c9b4af97b5f4fa56183ee8a703e2e3a607f86c1c368746e95517cc444c"
+    },
+    {
+      "address": "docs/ux/scenarios.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "7d5da5eef952df0cb851b836e21edcad93aa008c9b5e73f9c8641ddba1972108"
+    },
+    {
+      "address": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "c2ff476db93bfe988382e3e8197a828dc0b17d6f2616c2a5803c43a7c07c1c39"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/CO-178.review.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/CO-178.review.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "One accepted Russian term and live-string consistency, operator terminology decision recorded.",
+    "python3 docs/brand/lint.py",
+    "bash scripts/check-narrative.sh",
+    "bash scripts/ci.sh fast"
+  ],
+  "guards": [
+    "Source HEAD or dependency receipt digest changed: rebase and semantic review before dispatch.",
+    "Exact file owner or required scope/grant unavailable: stop, send evidence + affected current tasks to lead; no speculative store or authority.",
+    "Native/user proof unavailable: record NOT_RUN/blocked; pure green cannot consume higher-tier edge.",
+    "Stop before implementation until a bounded leaf and upstream acceptance/authority are approved; a planning dependency is not a completion receipt.",
+    "Reconcile a current bounded owner packet before dispatch; new source hashes do not renew historical acceptance"
+  ],
+  "resume": "Read this complete packet, current canonical source row, source-head/digest and dependency receipts; run named negative path first."
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": "execution-packet/1",
+  "source_revision": "1fd059377baaba7904dc73682d9007affe4284e6",
+  "dispatch": "owned-elsewhere",
+  "research_source_revision": "41f994a709990ad72621fa834768a8833e7d93e1",
+  "node": "N-581",
+  "id": "CO-110",
+  "intent": "Owner reconciles one bounded source-addressed packet for CO-110",
+  "inputs": [
+    {
+      "address": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "c2ff476db93bfe988382e3e8197a828dc0b17d6f2616c2a5803c43a7c07c1c39"
+    },
+    {
+      "address": "docs/backlog-sources.json",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "a66a54d260c48c7d9fbdfb171f3ab95f9f7b604e31d6f5f7e5665b75ace2b84a"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/handoffs/unified-source-reconciliation/CO-110.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/handoffs/unified-source-reconciliation/CO-110.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "Source-qualified identity and immutable source revision resolve; all original prerequisites are preserved.",
+    "A newly catalogued row stays held until the owner has reviewed its bounded packet and dependency receipts."
+  ],
+  "guards": [
+    "Stop before dispatch, implementation or private-plan copying; source review is owned elsewhere."
+  ],
+  "resume": "Open the canonical source URL and request owner reconciliation; preserve source dependencies, privacy and current hub convergence gate."
+}

@@ -1,0 +1,61 @@
+{
+  "schema_version": "execution-packet/1",
+  "source_revision": "1fd059377baaba7904dc73682d9007affe4284e6",
+  "dispatch": "design-gated",
+  "research_source_revision": "41f994a709990ad72621fa834768a8833e7d93e1",
+  "node": "N-139",
+  "id": "S5",
+  "intent": "Sourced topic→immutable post draft→per-post approval→observed publication",
+  "inputs": [
+    {
+      "address": "docs/evidence/backlog.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+    },
+    {
+      "address": "docs/architecture/iterations.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "41808e5dde8e9e5668466f1210c3124a40cb21a9ab1f711aec9e7a760de53c96"
+    },
+    {
+      "address": "docs/ux/vision.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "b49ff2c9b4af97b5f4fa56183ee8a703e2e3a607f86c1c368746e95517cc444c"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/S5.review.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/S5.review.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "One sourced draft approved on exact bytes and published with observed provider receipt; planted no-grant and duplicate/retry checks pass; no standing-grant adoption implied.",
+    "Positive fixture exercises actual producer→consumer boundary on isolated test stack.",
+    "Each new gate is observed red with a planted violation; record exact test/command/build and result.",
+    "Changed post/media/account after approval invalidates grant.",
+    "No/expired/replayed grant refuses dispatch.",
+    "Accepted publish plus lost response becomes unknown pending lookup, never blind repost.",
+    "Sources with injection instructions treated as untrusted research content."
+  ],
+  "guards": [
+    "Missing required account/channel/provider/effect target or authority; leave precise blocked receipt.",
+    "A dependency marked historical shipped has no current acceptance; remeasure rather than bypass.",
+    "New event/schema change needed outside this bounded packet: reconcile owning spec before implementation.",
+    "Stop before implementation until a bounded leaf and upstream acceptance/authority are approved; a planning dependency is not a completion receipt.",
+    "Reconcile a current bounded owner packet before dispatch; new source hashes do not renew historical acceptance"
+  ],
+  "resume": "Read this packet and its pinned canonical sources; verify trigger, dependency receipts and authority; produce one bounded follow-on leaf before code."
+}

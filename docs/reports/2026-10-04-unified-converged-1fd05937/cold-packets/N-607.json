@@ -1,0 +1,58 @@
+{
+  "schema_version": "execution-packet/1",
+  "source_revision": "1fd059377baaba7904dc73682d9007affe4284e6",
+  "dispatch": "design-gated",
+  "research_source_revision": "41f994a709990ad72621fa834768a8833e7d93e1",
+  "node": "N-607",
+  "id": "CO-197.prepare",
+  "intent": "One cold-reader implementation or acceptance leaf for CO-197, or a precise trigger/authority/dependency refusal.",
+  "inputs": [
+    {
+      "address": "docs/evidence/backlog.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+    },
+    {
+      "address": "docs/launch/release-mac.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "cb3bccaf1492a53af08cfb9e249a348da98374bcbfe1cee172ed0ab6c7bf265d"
+    },
+    {
+      "address": "docs/evidence/plans/2026-10-04-hub-verification.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "bfe0b2a40e2a0dcd59af17f0bfb18e0d343c47ef98fed5b1ab7df57a16f69607"
+    },
+    {
+      "address": "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "1c7a7ac31146415b5daf9a24fb34d007c9810850523a4182df98291986882ba8"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/CO-197.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/CO-197.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "Named dossier exists and answers all eight cold-reader questions; source refs resolve and match their hashes.",
+    "Cold independent reviewer can execute the scoped checks without planning chat; unavailable checks remain NOT_RUN, and unresolved prerequisite prevents implementation dispatch."
+  ],
+  "guards": [
+    "Stop on stale digest, changed upstream contract, missing receipt or required authority.",
+    "Reconcile a current bounded owner packet before dispatch; new source hashes do not renew historical acceptance"
+  ],
+  "resume": "Fetch source refs, acquire own lease, inspect exact upstream receipt and first missing check."
+}

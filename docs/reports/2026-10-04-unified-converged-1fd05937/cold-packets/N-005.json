@@ -1,0 +1,78 @@
+{
+  "schema_version": "execution-packet/1",
+  "source_revision": "1fd059377baaba7904dc73682d9007affe4284e6",
+  "dispatch": "design-gated",
+  "research_source_revision": "41f994a709990ad72621fa834768a8833e7d93e1",
+  "node": "N-005",
+  "id": "CO-182",
+  "intent": "Design disposable-stack ownership for the two manual native/handshake probes",
+  "inputs": [
+    {
+      "address": "docs/evidence/backlog.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+    },
+    {
+      "address": "docs/launch/release-mac.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "cb3bccaf1492a53af08cfb9e249a348da98374bcbfe1cee172ed0ab6c7bf265d"
+    },
+    {
+      "address": "docs/evidence/plans/2026-10-04-hub-verification.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "bfe0b2a40e2a0dcd59af17f0bfb18e0d343c47ef98fed5b1ab7df57a16f69607"
+    },
+    {
+      "address": "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "1c7a7ac31146415b5daf9a24fb34d007c9810850523a4182df98291986882ba8"
+    },
+    {
+      "address": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "c2ff476db93bfe988382e3e8197a828dc0b17d6f2616c2a5803c43a7c07c1c39"
+    },
+    {
+      "address": "apps/desktop/test/chat-activation-native.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "d1cf29302931c8a5268dc380bf27e48b01e2b027930e60ff1fdf71e7ae183a18"
+    },
+    {
+      "address": "apps/desktop/test/handshake-e2e.test.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "0fd402ce71edc795d66926edb2e7c8241f4b9e9536c6733c4d33a0f89f444278"
+    },
+    {
+      "address": "scripts/test-stack.mjs",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "3dfbdcb1c3fbe0847f2c4fd9691d48b941f349281e10c7dd63d8a96346f6c2b5"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/CO-182.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/CO-182.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "Cold leaf names exact producer/consumer environment, owned native userData, disposable project/ports/DB, teardown and refusal of live stack.",
+    "Both probe files remain NOT_RUN until owned native harness exists; no test data is written to operator estate."
+  ],
+  "guards": [
+    "Stop on stale digest, changed upstream contract, missing receipt or required authority.",
+    "Reconcile a current bounded owner packet before dispatch; new source hashes do not renew historical acceptance"
+  ],
+  "resume": "Fetch source refs, acquire own lease, inspect exact upstream receipt and first missing check."
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": "execution-packet/1",
+  "source_revision": "1fd059377baaba7904dc73682d9007affe4284e6",
+  "dispatch": "design-gated",
+  "research_source_revision": "41f994a709990ad72621fa834768a8833e7d93e1",
+  "node": "N-010",
+  "id": "AD04",
+  "intent": "Один durable create и восстановление неизвестного исхода",
+  "inputs": [
+    {
+      "address": "docs/launch/adoption/packets/AD04.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "595a5df96eeec6ed53761db0074944c459c4656bf587be5e4fcd447b2ab328f2"
+    },
+    {
+      "address": "docs/launch/adoption/contracts.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "10376db95f30108ccfd57e7cf399703331b5be34b6ec3a02c8a0188b789072b0"
+    },
+    {
+      "address": "docs/launch/first-release-strategy.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "28c000412204185162ce25c2a321c342aebf13767fa901825bfcd331cb764aa9"
+    },
+    {
+      "address": "docs/evidence/backlog.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "7f0bc6b26a1f9a2fef5091073959436f36ee809dde8e52c90951d0bb6e052598"
+    },
+    {
+      "address": "docs/ux/vision.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "b49ff2c9b4af97b5f4fa56183ee8a703e2e3a607f86c1c368746e95517cc444c"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "commit": "1fd059377baaba7904dc73682d9007affe4284e6",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/AD04.review.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/AD04.review.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "Stable request ID + immutable payload fingerprint, journal before effects, atomic result/reconciliation semantics pinned.",
+    "Partial repository attach возвращает конкретный остаток; edited retry требует новой update команды после reconcile.",
+    "Immutable ProjectCreateReceipt at native tier; command/output, source commit, actual missing checks and stop/resume recorded. All named negatives exercised.",
+    "node --test apps/desktop/test/onboarding-drafts.test.mjs",
+    "node scripts/check-adoption-bindings.mjs",
+    "node scripts/check-adoption-plan.mjs",
+    "python3 docs/ux/lint.py",
+    "bash scripts/ci.sh fast"
+  ],
+  "guards": [
+    "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+    "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+    "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+    "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча.",
+    "Source HEAD or dependency receipt digest changed: rebase and semantic review before dispatch.",
+    "Exact file owner or required scope/grant unavailable: stop, send evidence + affected current tasks to lead; no speculative store or authority.",
+    "Native/user proof unavailable: record NOT_RUN/blocked; pure green cannot consume higher-tier edge.",
+    "Stop before implementation until a bounded leaf and upstream acceptance/authority are approved; a planning dependency is not a completion receipt.",
+    "Reconcile a current bounded owner packet before dispatch; new source hashes do not renew historical acceptance"
+  ],
+  "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+}
