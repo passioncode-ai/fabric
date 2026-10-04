@@ -1,0 +1,29 @@
+{
+  "schema": "fabric-author-preparation-receipt/1",
+  "task": "CO-179.1",
+  "as_of": "2026-10-04",
+  "baseline": "ff7eb7f3a955fc43a30b302c1a68e3fee2d896c0",
+  "branch": "codex/onboarding-visual-20261004",
+  "status": "unmerged-author-preparation-native-acceptance-pending",
+  "dossier_revision": "484600",
+  "prerequisite_deviation": "Root explicitly authorizes reversible isolated source preparation while AD02 remains blocked/pure; canonical dispatch/integration/closure remains held.",
+  "source_pins": {
+    "apps/desktop/src/renderer/src/Onboarding.tsx": "b152cd298affbde9333f197fd74a750c030a35d3835cd94e897006830d5697e1",
+    "apps/desktop/src/renderer/src/Onboarding.launch.css": "1280ed94ab47a8874f22bbe8459911f787e7ca931475f080c9bc4b0c7dc17cd9"
+  },
+  "checks": [
+    {"command": "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/Onboarding.test.tsx src/renderer/src/onboardingDraft.persist.test.tsx", "exit": 0, "files": 2, "tests": 17, "duration_seconds": 6.67, "tier": "controlled-renderer-and-disk-not-native", "notice": "Existing Canvas getContext not implemented emitted twice."},
+    {"command": "pnpm --filter @fabric/desktop typecheck", "exit": 0},
+    {"command": "pnpm --filter @fabric/desktop build", "exit": 0},
+    {"command": "node scripts/check-design.mjs", "exit": 0, "scope_limit": "Type/spacing and class registry only inspect the configured two shared sheets; separate local audit is required."},
+    {"command": "node scripts/check-regions.mjs", "exit": 0, "markers": 114},
+    {"command": "git diff --check", "exit": 0},
+    {"check": "Exact baseline equality after removing local CSS import and reverting root modifier class", "passed": true},
+    {"check": "Local selector containment and token-derived type/spacing declaration audit", "passed": true, "selector_groups": 25}
+  ],
+  "negative_control": {"mutation": "disabled={!b.available} to disabled={false} in owned Onboarding source", "command": "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/Onboarding.test.tsx", "exit": 1, "expected_failure": "cannot be picked test at line 68", "candidate_restored_byte_equal": true},
+  "not_run_by_author": ["repository fast gate", "canonical UX lint/map convergence", "native visual matrix", "native keyboard/AX/VoiceOver", "200 percent text", "hosted CI", "production userData", "release/install"],
+  "native_acceptance_owner": "root coordinating session",
+  "fixture_owner": "contract_adoption independent isolated branch",
+  "claims": {"CO179_closed": false, "AD02_passed": false, "integrated": false, "released": false}
+}

@@ -1,0 +1,164 @@
+/* SCR-73 / SCN-129: the existing draft form in the launch visual language.
+ * Owned by Onboarding.tsx; every selector is contained by its local modifier.
+ * Native controls, shared component semantics and the shell scroller remain. */
+.onboarding.onboarding-launch {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: calc(var(--space-6) * 24);
+  margin-inline: auto;
+  padding: var(--space-4);
+  color: var(--app-ink);
+  font-size: var(--app-fs-body);
+  line-height: var(--app-lh-body);
+}
+
+.onboarding-launch *,
+.onboarding-launch *::before,
+.onboarding-launch *::after {
+  box-sizing: border-box;
+}
+
+.onboarding-launch > header {
+  margin-bottom: var(--space-5);
+}
+
+.onboarding-launch > header h1 {
+  margin: 0;
+  font-size: var(--app-fs-title);
+  letter-spacing: var(--app-track-title);
+}
+
+.onboarding-launch > header p {
+  margin: var(--space-2) 0 0;
+  max-width: 100%;
+}
+
+.onboarding-launch > form {
+  min-width: 0;
+  padding: var(--space-5);
+  background: var(--app-panel);
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-panel);
+}
+
+.onboarding-launch .field {
+  min-width: 0;
+  margin-bottom: var(--space-5);
+  gap: var(--space-2);
+}
+
+.onboarding-launch .field > .field-label {
+  color: var(--app-ink);
+  font-size: var(--app-fs-body);
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.onboarding-launch .field > input,
+.onboarding-launch .field > select {
+  width: 100%;
+  min-width: 0;
+  min-height: calc(var(--space-5) + var(--space-4));
+  padding: var(--space-2) var(--space-3);
+  background: var(--app-bg);
+  border-color: var(--app-line-strong);
+  border-radius: var(--app-radius-control);
+  font-size: var(--app-fs-body);
+}
+
+.onboarding-launch .field-hint,
+.onboarding-launch .field-problem,
+.onboarding-launch .field > p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.onboarding-launch .repo-list {
+  min-width: 0;
+  gap: var(--space-2);
+}
+
+.onboarding-launch .repo-list .empty {
+  padding: var(--space-3);
+  background: var(--app-bg);
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-control);
+}
+
+.onboarding-launch .repo-list .row {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.onboarding-launch .repo-list .row-main {
+  flex-basis: 50%;
+  overflow-wrap: anywhere;
+}
+
+.onboarding-launch .repo-list .row-trail {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.onboarding-launch .toolbar,
+.onboarding-launch .field-actions {
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.onboarding-launch .field-actions > label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  font-size: var(--app-fs-caption);
+}
+
+.onboarding-launch input:is([type='checkbox'], [type='radio']) {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.onboarding-launch .choice-row {
+  gap: var(--space-2);
+}
+
+.onboarding-launch .choice {
+  min-width: 0;
+  background: var(--app-bg);
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.onboarding-launch .choice:has(input:checked:not(:disabled)) {
+  border-color: var(--app-accent);
+}
+
+.onboarding-launch .choice > input {
+  margin-top: var(--space-1);
+}
+
+.onboarding-launch .choice > span {
+  min-width: 0;
+  gap: var(--space-1);
+  overflow-wrap: anywhere;
+}
+
+.onboarding-launch .btn {
+  min-height: calc(var(--space-5) + var(--space-3));
+  max-width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--app-fs-caption);
+  line-height: var(--app-lh-body);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.onboarding-launch > form > .toolbar {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--app-line);
+}
