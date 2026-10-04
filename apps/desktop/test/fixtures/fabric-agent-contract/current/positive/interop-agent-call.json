@@ -1,0 +1,8 @@
+{
+  "agentId": "example-writer",
+  "capability": "copy.write",
+  "input": {
+    "topic": "titles"
+  },
+  "idempotencyKey": "run-1:draft"
+}

@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/pipeline.schema.json",
+  "title": "Pipeline (pipeline/0.1)",
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "scope",
+    "stages"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,62}$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "scope": {
+      "enum": [
+        "project",
+        "estate"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "$ref": "#/$defs/stage"
+      }
+    }
+  },
+  "if": {
+    "properties": {
+      "version": {
+        "type": "integer",
+        "minimum": 2
+      }
+    },
+    "required": [
+      "version"
+    ]
+  },
+  "then": {
+    "required": [
+      "reason"
+    ],
+    "properties": {
+      "reason": true
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "stage": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,62}$"
+        },
+        "capability": {
+          "$ref": "common.schema.json#/$defs/capabilityName"
+        },
+        "checker": {
+          "type": "boolean"
+        },
+        "needs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,62}$"
+          }
+        },
+        "produces": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,62}$"
+        },
+        "preferred": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "effect": {
+          "$ref": "common.schema.json#/$defs/effectClass"
+        }
+      },
+      "if": {
+        "not": {
+          "required": [
+            "checker"
+          ],
+          "properties": {
+            "checker": {
+              "const": true
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "capability"
+        ],
+        "properties": {
+          "capability": true
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

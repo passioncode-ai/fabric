@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/interop-agent-call.schema.json",
+  "title": "fabric-interop/0.1 hub agent.call arguments",
+  "type": "object",
+  "required": [
+    "agentId",
+    "capability",
+    "input"
+  ],
+  "properties": {
+    "agentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,62}(\\.[a-z][a-z0-9-]{0,31})?$"
+    },
+    "capability": {
+      "$ref": "common.schema.json#/$defs/capabilityName"
+    },
+    "input": {
+      "type": "object"
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,38 @@
+{
+  "id": "article-publish",
+  "version": 3,
+  "scope": "estate",
+  "reason": "checker before publish",
+  "stages": [
+    {
+      "id": "research",
+      "capability": "research.topics",
+      "preferred": "claude-code",
+      "produces": "ranked-topics"
+    },
+    {
+      "id": "draft",
+      "capability": "copy.write",
+      "needs": [
+        "research"
+      ],
+      "produces": "draft"
+    },
+    {
+      "id": "check",
+      "checker": true,
+      "needs": [
+        "draft"
+      ],
+      "produces": "verdict"
+    },
+    {
+      "id": "publish",
+      "capability": "site.publish",
+      "needs": [
+        "check"
+      ],
+      "effect": "publish"
+    }
+  ]
+}

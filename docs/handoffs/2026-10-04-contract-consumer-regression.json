@@ -1,0 +1,86 @@
+{
+  "format": "fabric-contract-consumer-validation/1",
+  "asOf": "2026-10-04",
+  "base": "7011ce429d2593951b9d99940f78ab5850f17309",
+  "branch": "codex/co193-consumer-regression-20261004",
+  "scope": "source-only focused author checks; root owns converged gate",
+  "currentContract": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+  "legacyNegativeControl": "2ce392291c6668598d12cd38327e24696b5ca15c",
+  "checks": [
+    {
+      "command": "node --experimental-strip-types apps/desktop/test/contract-consumer.test.mjs",
+      "phase": "RED before implementation",
+      "exitCode": 1,
+      "observedFailure": "missing pinned compiled normative regression source; local regex tests are insufficient",
+      "probe": "assert.ok(existsSync(new URL('./fixtures/fabric-agent-contract/SOURCE.json', import.meta.url))) before fixtures existed"
+    },
+    {
+      "command": "pnpm --filter @fabric/desktop test:contract-consumer",
+      "phase": "GREEN",
+      "exitCode": 0,
+      "tests": 9,
+      "pass": 9,
+      "skip": 0,
+      "compiledNameCases": 84,
+      "compiledExtraCallCases": 7,
+      "realSDKArgumentCases": 28,
+      "legacyDifferences": [
+        "underscore",
+        "maximum-underscore",
+        "maximum-key"
+      ],
+      "plantedDrift": "current/schemas/common.schema.json capabilityName.pattern replaced by .*; loadPinnedFixtures throws pinned schema/fixture byte drift before compilePinnedSchemas runs"
+    },
+    {
+      "command": "pnpm --filter @fabric/desktop exec vitest run src/shared/access.test.ts src/shared/accessWords.test.ts",
+      "exitCode": 0,
+      "files": 2,
+      "tests": 42,
+      "pass": 42
+    },
+    {
+      "command": "pnpm --filter @fabric/desktop typecheck",
+      "exitCode": 0,
+      "checks": [
+        "tsconfig.node.json",
+        "tsconfig.web.json"
+      ]
+    },
+    {
+      "command": "node scripts/check-regions.mjs",
+      "exitCode": 0,
+      "stdout": "PASS code regions: 112 marker(s), every one closed and every docs reference resolves"
+    },
+    {
+      "command": "bash -n scripts/ci.sh",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "check": "Compare SOURCE.json files against git show <commit>:<upstreamPath> and SHA-256",
+      "exitCode": 0,
+      "blobs": 14,
+      "equal": 14
+    },
+    {
+      "check": "Resolve app and CI focused command",
+      "exitCode": 0
+    }
+  ],
+  "notRun": [
+    "full bash scripts/ci.sh fast (root owns converged source)",
+    "full desktop test chain",
+    "real CLI",
+    "native app",
+    "live products/grants",
+    "hosted CI",
+    "release",
+    "installation",
+    "wiki sync",
+    "report index"
+  ],
+  "firstNextTask": "Root imports author source, reconciles app/CI chains, imports independent packet unchanged, requests exact-SHA independent review, and runs converged source gate."
+}
