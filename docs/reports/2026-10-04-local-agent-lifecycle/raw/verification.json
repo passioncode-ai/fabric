@@ -89,5 +89,6 @@
   "working_diff": {
     "command": "git diff --check",
     "exit": 0
-  }
+  },
+  "delivery_receipt": "raw/delivery.json"
 }

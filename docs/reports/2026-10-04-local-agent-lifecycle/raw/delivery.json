@@ -1,0 +1,24 @@
+{
+  "as_of": "2026-10-04",
+  "source_commit": "e45bf14236a7e862cfa848d68d61e537751ce4fd",
+  "branch": "codex/com-local-lifecycle-research-20261004",
+  "remote": "https://github.com/passioncode-ai/fabric",
+  "remote_head_verified": "e45bf14236a7e862cfa848d68d61e537751ce4fd",
+  "fresh_remote_checkout": true,
+  "matched_authored_files": 10,
+  "sha256": {
+    "docs/reports/2026-10-04-local-agent-lifecycle/README.md": "a83f1eafae9a6fd2837ba49bab74f0470e3675514c2e35a509eaaa1cdcd3a0df",
+    "docs/reports/2026-10-04-local-agent-lifecycle/packets/negative-cases.json": "926803e034014917a64e2790d290bf0980dccbd94383c78ec41f3ec40805ab0b",
+    "docs/reports/2026-10-04-local-agent-lifecycle/packets/packets.json": "0cfa8ad97edff8774937e4927a1babc314507171b71651653ea37135400304f8",
+    "docs/reports/2026-10-04-local-agent-lifecycle/raw/sources.json": "78fa87d94cd47ae370137118cf5319f4349d09fbbabcc4ac44203d8df93abff3",
+    "docs/reports/2026-10-04-local-agent-lifecycle/raw/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/reports/2026-10-04-local-agent-lifecycle/raw/local-probes.json": "3ee3e38ac1b58e6a9cb31a6be96e8c1e97c2bd616b8a58756a1fd9dc34011bf6",
+    "docs/reports/2026-10-04-local-agent-lifecycle/raw/capture_static.py": "7277764d90a206334b1537880cda69c3d9b6779a366f46610659edd12eaf86d1",
+    "docs/reports/2026-10-04-local-agent-lifecycle/raw/verification.json": "2b0bd9a740afc4351487e270f8f63166398fe0a483578bd3c67f48a5312df459",
+    "docs/reports/2026-10-04-local-agent-lifecycle/raw/check_packet.py": "9540082a646df071fc253d3dcc637855bad92d0402ca9c400f3e835e39740423",
+    "docs/handoffs/2026-10-04-com-local-lifecycle-packets.md": "ce93457c987b508a64e8d080566f9ee5ab5ce2fdd198f065dc134cdc35209f8b"
+  },
+  "cold_artifact_checker_exit": 0,
+  "cold_report_header_exit": 0,
+  "scope": "Access and static research artifact validation only. No runtime, independent review, merge, COM release or all-session ACK claim. Final receipt commit separately remote verified by handoff author."
+}
