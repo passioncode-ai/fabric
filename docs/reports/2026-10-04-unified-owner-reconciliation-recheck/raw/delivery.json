@@ -1,0 +1,12 @@
+{
+  "report_commit": "eeadfe5ec1b6837fb31b93e94c1106da32705e8f",
+  "remote_branch": "codex/unified-owner-reconciliation-recheck-20261004",
+  "remote_resolved_commit": "eeadfe5ec1b6837fb31b93e94c1106da32705e8f",
+  "cold_clone_HEAD": "eeadfe5ec1b6837fb31b93e94c1106da32705e8f",
+  "cold_report_metadata_exit": 0,
+  "cold_report_metadata_output": "reports check: 1 \u043e\u0442\u0447\u0451\u0442(\u043e\u0432), \u0441 \u043e\u0448\u0438\u0431\u043a\u0430\u043c\u0438 0",
+  "tracked_artifacts_byte_equal": 17,
+  "candidate_source": "cf16bc851d14e42b9df683b16928acba38d9b589",
+  "scope": "report-only handoff; no merge/activation/release",
+  "wiki_index": "NOT_RUN_ROOT_OWNED"
+}

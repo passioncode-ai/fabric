@@ -9,3 +9,5 @@ Completed: original descendant refusal, ignored/untracked/symlink/FIFO/type/dele
 Open/prerequisites: the proposal still uses stale basis2e06e501. Parent completion, native/full/live/hosted/release acceptance and MCP Tasks client negotiation are separate and unexecuted here. Root owns the wiki index.
 
 Exact next task: root integrates accepted source under its normal policy, freezes its final native/test-host source, refreshes every proposal input/authority/dependency/phase ref and explicit output target, validates the bounded packet and prerequisite scope, then separately decides guarded owner publication, recompile and pointer activation. The review grants no automatic activation or parent acceptance.
+
+[Cold delivery receipt](../reports/2026-10-04-unified-owner-reconciliation-recheck/raw/delivery.json) binds the first pushed report commit and verifies remote resolution, metadata and17 artifact byte comparisons.
