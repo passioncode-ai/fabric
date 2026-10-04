@@ -1,0 +1,554 @@
+{
+  "candidate": "cf16bc851d14e42b9df683b16928acba38d9b589",
+  "pinnedParser": "898a3cb4af9bd9dfa8b507fce28bdb008295596c",
+  "compilerControlRevision": "537ca82d90e7bb814a907209cb303bbed8633e1e",
+  "fixtureRevision": "88c9e7362ad1c97f2930a4e60d911d3246ee5286",
+  "results": [
+    {
+      "name": "complete-directory-positive",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "positive-one-ready-leaf",
+      "observed": [
+        "P-01.qualify-source"
+      ],
+      "expected": [
+        "P-01.qualify-source"
+      ],
+      "matched": true
+    },
+    {
+      "name": "packet-all-reference-pins",
+      "observed": false,
+      "expected": true,
+      "matched": false
+    },
+    {
+      "name": "cold-all-reference-pins",
+      "observed": false,
+      "expected": true,
+      "matched": false
+    },
+    {
+      "name": "cold-explicit-input-targets",
+      "expected": [
+        "docs/example-subject"
+      ],
+      "matched": false
+    },
+    {
+      "name": "cold-explicit-new-output-targets",
+      "expected": [
+        "docs/example-agent-new-receipts"
+      ],
+      "matched": false
+    },
+    {
+      "name": "original-omitted-descendant-changed",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 19 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "missing-explicit-output-field",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "changed-descendant",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Dirty or forged reconciliation source receipt: docs/example-subject/a.js\n"
+      }
+    },
+    {
+      "name": "added-committed-descendant",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "deleted-committed-descendant",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Missing or oversized reconciliation source receipt: docs/example-subject/a.js\n"
+      }
+    },
+    {
+      "name": "untracked-descendant",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "ignored-descendant",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "symlink-descendant",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "fifo-descendant",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "file-to-directory",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Missing or oversized reconciliation source receipt: docs/example-subject/a.js\n"
+      }
+    },
+    {
+      "name": "hidden-descendant",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "added-257-descendants",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "directory-1025-entry-bound",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "output-glob-path",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Unsafe or cross-owner reconciliation path\n"
+      }
+    },
+    {
+      "name": "output-parent-traversal",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Unsafe or cross-owner reconciliation path\n"
+      }
+    },
+    {
+      "name": "output-cross-workspace",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Unsafe or cross-owner reconciliation path\n"
+      }
+    },
+    {
+      "name": "missing-basis-descendant-ref",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 19 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "grandfathered-file-as-output",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 19 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "missing-input-not-output",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "live-output-exists",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "output-input-overlap",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "output-output-overlap",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "output-symlink-parent",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Linked reconciliation input refused\n"
+      }
+    },
+    {
+      "name": "output-live-file-parent",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "scope-symlink-root",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Linked reconciliation input refused\n"
+      }
+    },
+    {
+      "name": "output-forged-status",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation packet fields invalid; no derived status or done authority is accepted\n"
+      }
+    },
+    {
+      "name": "output-release-grant",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation owner authority cannot grant release or live operations\n"
+      }
+    },
+    {
+      "name": "immutable-directory-257-file-bound",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "output-historical-file-parent",
+      "observed": [
+        false,
+        true
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "no-parent-completion",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    }
+  ]
+}

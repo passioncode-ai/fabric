@@ -1,0 +1,72 @@
+{
+  "candidate": "cf16bc851d14e42b9df683b16928acba38d9b589",
+  "rejected_source": "537ca82d90e7bb814a907209cb303bbed8633e1e",
+  "original_rejection_report": "9a1a07fc5d993ffcf53c891681fa4b04746b1d3c",
+  "parser": "898a3cb4af9bd9dfa8b507fce28bdb008295596c",
+  "node": "v26.8.2",
+  "python": "Python 3.14.7",
+  "source_toolchain_profile": "darwin-arm64-node26-local",
+  "source_sha256": {
+    "scripts/build-unified-plan.py": "19af50bc4133ffabbfc6451d9d29ca7301000f184b5857fba5b8fad73d48faa1",
+    "scripts/unified-plan.mjs": "642046d7a5b747e6632703b1bda34c8bc6e68840442f3216bf8a8be60a0a5272",
+    "scripts/unified-canonical-sources.mjs": "de9fa6a8d7dbdae3c5f980ad1ac2760cf624641a1bde90c1060470c6d1ce03b5",
+    "scripts/test/build-unified-plan.test.mjs": "52b1b74f6cca39dff6c4ce5767d0dd35ce07f10568ef5a138f41da22744ae754",
+    "scripts/test/unified-plan.test.mjs": "2865cdfc555ef852c06b432bc6f0c2d1e05e64037dcdc83cbad55ca7c3228abc"
+  },
+  "independent": {
+    "filesystem-probes": {
+      "expectations": 36,
+      "matched": 36,
+      "failed": 0,
+      "helper_exit": 0,
+      "aggregate_expectation_exit": 0,
+      "assertion_exit": 0
+    },
+    "before-537-probes": {
+      "expectations": 36,
+      "matched": 13,
+      "failed": 23,
+      "helper_exit": 0,
+      "aggregate_expectation_exit": 1,
+      "assertion_exit": 1
+    },
+    "owner-probes": {
+      "expectations": 53,
+      "matched": 53,
+      "failed": 0,
+      "helper_exit": 0,
+      "aggregate_expectation_exit": 0,
+      "assertion_exit": 0
+    },
+    "phase-pins-probes": {
+      "expectations": 51,
+      "matched": 51,
+      "failed": 0,
+      "helper_exit": 0,
+      "aggregate_expectation_exit": 0,
+      "assertion_exit": 0
+    },
+    "prior-17-probes": {
+      "expectations": 17,
+      "matched": 17,
+      "failed": 0,
+      "helper_exit": 0,
+      "aggregate_expectation_exit": 0,
+      "assertion_exit": 0
+    }
+  },
+  "author_suite_replay": {
+    "command": "node --test scripts/test/unified-plan.test.mjs scripts/test/build-unified-plan.test.mjs",
+    "exit": 0,
+    "tests": 38,
+    "pass": 38,
+    "skip": 0
+  },
+  "actual_owner_source": "ABSENT",
+  "current_pointer": "ABSENT",
+  "proposal_basis": "2e06e5013595ec96b52b85cae2c486050632565b",
+  "owner_activation": "NOT_RUN",
+  "parent_native_full_hosted_release_tasks_client_acceptance": "NOT_RUN",
+  "guarded_edits": [],
+  "wiki_index": "NOT_RUN_ROOT_OWNED"
+}

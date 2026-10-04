@@ -1,0 +1,560 @@
+{
+  "candidate": "cf16bc851d14e42b9df683b16928acba38d9b589",
+  "pinnedParser": "898a3cb4af9bd9dfa8b507fce28bdb008295596c",
+  "compilerControlRevision": null,
+  "fixtureRevision": "039209b2dd5544140ca91b06bcc7936ac92ce155",
+  "results": [
+    {
+      "name": "complete-directory-positive",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 19 held/dispatch/design records, 20 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "positive-one-ready-leaf",
+      "observed": [
+        "P-01.qualify-source"
+      ],
+      "expected": [
+        "P-01.qualify-source"
+      ],
+      "matched": true
+    },
+    {
+      "name": "packet-all-reference-pins",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "cold-all-reference-pins",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "cold-explicit-input-targets",
+      "observed": [
+        "docs/example-subject"
+      ],
+      "expected": [
+        "docs/example-subject"
+      ],
+      "matched": true
+    },
+    {
+      "name": "cold-explicit-new-output-targets",
+      "observed": [
+        "docs/example-agent-new-receipts"
+      ],
+      "expected": [
+        "docs/example-agent-new-receipts"
+      ],
+      "matched": true
+    },
+    {
+      "name": "original-omitted-descendant-changed",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation basis does not cover canonical/context/current scoped files\n"
+      }
+    },
+    {
+      "name": "missing-explicit-output-field",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation packet fields invalid; no derived status or done authority is accepted\n"
+      }
+    },
+    {
+      "name": "changed-descendant",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Dirty or forged reconciliation source receipt: docs/example-subject/a.js\n"
+      }
+    },
+    {
+      "name": "added-committed-descendant",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation scope inventory differs from immutable basis\n"
+      }
+    },
+    {
+      "name": "deleted-committed-descendant",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Missing or oversized reconciliation source receipt: docs/example-subject/a.js\n"
+      }
+    },
+    {
+      "name": "untracked-descendant",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation scope inventory differs from immutable basis\n"
+      }
+    },
+    {
+      "name": "ignored-descendant",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation scope inventory differs from immutable basis\n"
+      }
+    },
+    {
+      "name": "symlink-descendant",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Linked reconciliation input refused\n"
+      }
+    },
+    {
+      "name": "fifo-descendant",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Linked or nonregular reconciliation live scope entry refused\n"
+      }
+    },
+    {
+      "name": "file-to-directory",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Missing or oversized reconciliation source receipt: docs/example-subject/a.js\n"
+      }
+    },
+    {
+      "name": "hidden-descendant",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Unsafe or cross-owner reconciliation path\n"
+      }
+    },
+    {
+      "name": "added-257-descendants",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation scope inventory differs from immutable basis\n"
+      }
+    },
+    {
+      "name": "directory-1025-entry-bound",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation scope traversal exceeds bound\n"
+      }
+    },
+    {
+      "name": "output-glob-path",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Unsafe or cross-owner reconciliation path\n"
+      }
+    },
+    {
+      "name": "output-parent-traversal",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Unsafe or cross-owner reconciliation path\n"
+      }
+    },
+    {
+      "name": "output-cross-workspace",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Unsafe or cross-owner reconciliation path\n"
+      }
+    },
+    {
+      "name": "missing-basis-descendant-ref",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation basis does not cover canonical/context/current scoped files\n"
+      }
+    },
+    {
+      "name": "grandfathered-file-as-output",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "New reconciliation output already exists in immutable tree\n"
+      }
+    },
+    {
+      "name": "missing-input-not-output",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Missing reconciliation input scope; declare new outputs explicitly\n"
+      }
+    },
+    {
+      "name": "live-output-exists",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "New reconciliation output already exists in live tree\n"
+      }
+    },
+    {
+      "name": "output-input-overlap",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Overlapping reconciliation input or output scopes refused\n"
+      }
+    },
+    {
+      "name": "output-output-overlap",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Overlapping reconciliation input or output scopes refused\n"
+      }
+    },
+    {
+      "name": "output-symlink-parent",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Linked reconciliation input refused\n"
+      }
+    },
+    {
+      "name": "output-live-file-parent",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Non-directory reconciliation output parent refused\n"
+      }
+    },
+    {
+      "name": "scope-symlink-root",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Linked reconciliation input refused\n"
+      }
+    },
+    {
+      "name": "output-forged-status",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation packet fields invalid; no derived status or done authority is accepted\n"
+      }
+    },
+    {
+      "name": "output-release-grant",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation owner authority cannot grant release or live operations\n"
+      }
+    },
+    {
+      "name": "immutable-directory-257-file-bound",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Reconciliation scope inventory exceeds bound\n"
+      }
+    },
+    {
+      "name": "output-historical-file-parent",
+      "observed": [
+        true,
+        false
+      ],
+      "expected": [
+        true,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Non-directory reconciliation immutable output parent refused\n"
+      }
+    },
+    {
+      "name": "no-parent-completion",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    }
+  ]
+}
