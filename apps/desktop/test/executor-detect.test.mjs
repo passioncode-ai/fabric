@@ -30,7 +30,10 @@ const rows = await detectExecutors(
     { id: 'aider', label: 'Aider', program: 'aider', connected: false },
     { id: 'dir', label: 'Dir', program: 'dirprog', connected: false }
   ],
-  { env, timeoutMs: 800 }
+  // The hung probe must have STARTED its child before the deadline, or there is no child to prove dead:
+  // at load ~80 a shell took longer than 800 ms to reach the spawn (the 2026-10-04 sync failed on ENOENT).
+  // The hung program sleeps 30 s, so a 5 s deadline still proves "unresponsive on timeout".
+  { env, timeoutMs: 5000 }
 )
 const by = Object.fromEntries(rows.map((r) => [r.id, r]))
 
@@ -51,11 +54,12 @@ assert.equal(by['dir'].state, 'missing', 'a directory of that name on PATH is no
 assert.equal(by['claude-code'].connected, true)
 assert.equal(by['codex'].connected, false, 'found is not the same as connected to Fabric')
 // The hung probe's CHILD is gone too: the whole process group was killed on the timeout.
-await new Promise((r) => setTimeout(r, 200))
 const childPid = Number(readFileSync(path.join(bin, 'child.pid'), 'utf8'))
-let alive = true
-try { process.kill(childPid, 0) } catch { alive = false }
-assert.equal(alive, false, 'a hung probe leaves no child process running')
+const isAlive = () => { try { process.kill(childPid, 0); return true } catch { return false } }
+// The group was sent SIGKILL; under load the kernel may take a moment to reap, so wait for it rather than
+// a fixed 200 ms. A child that survives 5 s was not in the killed group.
+for (const until = Date.now() + 5000; isAlive() && Date.now() < until;) await new Promise((r) => setTimeout(r, 50))
+assert.equal(isAlive(), false, 'a hung probe leaves no child process running')
 const missingRows = await detectExecutors([{ id: 'claude-code', label: 'Claude Code', program: 'claude', connected: true }], { env: { PATH: '/nonexistent' } })
 assert.equal(missingRows[0].install, 'curl -fsSL https://claude.ai/install.sh | bash', "a missing Claude Code is offered the vendor's native installer")
 
