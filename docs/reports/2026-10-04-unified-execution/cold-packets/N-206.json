@@ -1,0 +1,44 @@
+{
+  "schema_version": "execution-packet/1",
+  "node": "N-206",
+  "id": "CO-064",
+  "intent": "**Projects have no lifecycle states and no dependency projection.** `proposed → active → dormant → archived`: dormant pauses routines (a sleeping project burning quota is silent), archived requires that no active binding in another project points at this proje",
+  "inputs": [
+    {
+      "address": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "sha256": "50a73374b7305a1b092333940b299d1595c33ed63b1d0fd1a41e6a9476b8db51"
+    },
+    {
+      "address": "docs/evidence/backlog.md",
+      "sha256": "3135378f808cca85b5408b13f54159b8e6818ab2d7f9258eef7f25644a17d608"
+    },
+    {
+      "address": "docs/ux/vision.md",
+      "sha256": "b49ff2c9b4af97b5f4fa56183ee8a703e2e3a607f86c1c368746e95517cc444c"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/CO-064.review.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/CO-064.review.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "One source-bound explicit disposition and bounded next packet; exact trigger/authority attached. Implementation requires theme contract, measured dependencies and common delivery gates."
+  ],
+  "guards": [
+    "Stop before implementation until a bounded leaf and upstream acceptance/authority are approved; a planning dependency is not a completion receipt."
+  ],
+  "resume": "Read this packet and its pinned canonical sources; verify trigger, dependency receipts and authority; produce one bounded follow-on leaf before code."
+}

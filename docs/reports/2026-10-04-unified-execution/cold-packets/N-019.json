@@ -1,0 +1,66 @@
+{
+  "schema_version": "execution-packet/1",
+  "node": "N-019",
+  "id": "AD13",
+  "intent": "Реальный voice capture → правка → отправка",
+  "inputs": [
+    {
+      "address": "docs/launch/adoption/packets/AD13.md",
+      "sha256": "3ad4fe4c419097b072e429a8d9175b175cc32d79d93c31b68ebc3ef65cb1a97b"
+    },
+    {
+      "address": "docs/launch/adoption/contracts.md",
+      "sha256": "10376db95f30108ccfd57e7cf399703331b5be34b6ec3a02c8a0188b789072b0"
+    },
+    {
+      "address": "docs/launch/first-release-strategy.md",
+      "sha256": "28c000412204185162ce25c2a321c342aebf13767fa901825bfcd331cb764aa9"
+    },
+    {
+      "address": "docs/evidence/backlog.md",
+      "sha256": "3135378f808cca85b5408b13f54159b8e6818ab2d7f9258eef7f25644a17d608"
+    },
+    {
+      "address": "docs/ux/vision.md",
+      "sha256": "b49ff2c9b4af97b5f4fa56183ee8a703e2e3a607f86c1c368746e95517cc444c"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/AD13.review.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/AD13.review.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "Capture ID/durable local receipt до STT; review/edit сохраняют original; запись до send не Task.",
+    "Scope pinned во время capture; закрытие/переключение отменяет безопасно; compound intent имеет честные per-action outcomes.",
+    "Immutable VoiceInputReceipt at native tier; command/output, source commit, actual missing checks and stop/resume recorded. All named negatives exercised.",
+    "node --test scripts/test/calm-context.test.mjs",
+    "node scripts/check-adoption-bindings.mjs",
+    "node scripts/check-adoption-plan.mjs",
+    "python3 docs/ux/lint.py",
+    "bash scripts/ci.sh fast"
+  ],
+  "guards": [
+    "Нет принятого producer/типизированного контракта: вернуть конкретный вопрос upstream, не придумывать store.",
+    "Изменился baseline source digest: rebase и semantic re-review; не применять blind patch.",
+    "Нет upstream receipt или оно только prototype, когда нужен runtime: packet не dispatchable.",
+    "Выход за write candidates или scope/grant: сначала обновить конкретный boundary; не расширять молча.",
+    "Source HEAD or dependency receipt digest changed: rebase and semantic review before dispatch.",
+    "Exact file owner or required scope/grant unavailable: stop, send evidence + affected current tasks to lead; no speculative store or authority.",
+    "Native/user proof unavailable: record NOT_RUN/blocked; pure green cannot consume higher-tier edge.",
+    "Stop before implementation until a bounded leaf and upstream acceptance/authority are approved; a planning dependency is not a completion receipt."
+  ],
+  "resume": "Прочитать README → contracts → packet → upstream receipts. Зафиксировать base/head, dirty status, lease и exact next failing check."
+}

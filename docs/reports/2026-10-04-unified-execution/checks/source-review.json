@@ -1,0 +1,7 @@
+{
+  "source": "docs/evidence/backlog.md",
+  "change": "only10-line context link inserted before general-plan table; canonical lane ids and all owning statuses preserved",
+  "reviewed_projection": "SRC-02 Profile/onboarding historical mockup claim remains unchanged; current source digest recomputed after semantic comparison",
+  "receipt_updates": 1,
+  "not_a_claim": "No UI/mockup runtime coverage added by report link"
+}

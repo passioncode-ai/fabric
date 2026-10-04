@@ -1,0 +1,196 @@
+{
+  "as_of": "2026-10-04",
+  "source_commit": "7b54dbaa7938933d25ef7e4017cb11500add3eba",
+  "method": "Opened primary official documents and developer-authored GitHub issues via web tools. Short quotes only; claims and limitations are paraphrases. No live account/login/paid model turn, no source code mutation.",
+  "sources": [
+    {
+      "id": "AM-S01",
+      "kind": "official_spec",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/transports",
+      "title": "MCP transport security",
+      "fetched_at": "2026-10-04",
+      "excerpt": "Servers MUST validate the Origin header",
+      "claim": "Local HTTP requires Origin validation, loopback bind and authentication; lost stream is not cancellation.",
+      "applies_to": [
+        "P-08",
+        "AR-3",
+        "P-07.2"
+      ],
+      "limitations": "Rolling docs/issues are research evidence, not installed-build/product acceptance."
+    },
+    {
+      "id": "AM-S02",
+      "kind": "official_spec",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "title": "MCP security boundaries",
+      "fetched_at": "2026-10-04",
+      "excerpt": "MCP Servers MUST NOT use sessions for authentication.",
+      "claim": "Authorize each inbound request; session handles are transport state, not principal credentials; do not forward arbitrary upstream credentials.",
+      "applies_to": [
+        "AR-3.1",
+        "AR-3.5",
+        "P-07.2"
+      ],
+      "limitations": "Rolling docs/issues are research evidence, not installed-build/product acceptance."
+    },
+    {
+      "id": "AM-S03",
+      "kind": "official_docs",
+      "url": "https://code.claude.com/docs/en/authentication",
+      "title": "Claude credential namespace",
+      "fetched_at": "2026-10-04",
+      "excerpt": "keys the macOS Keychain entry to that directory too",
+      "claim": "Current official documentation describes config-directory-scoped Keychain storage and 0600 file fallback. This conflicts temporally with old singleton findings; exact installed build remains unverified.",
+      "applies_to": [
+        "N1",
+        "M199.ui",
+        "M199.acceptance"
+      ],
+      "limitations": "Rolling docs/issues are research evidence, not installed-build/product acceptance."
+    },
+    {
+      "id": "AM-S04",
+      "kind": "developer_issue",
+      "url": "https://github.com/anthropics/claude-code/issues/70697",
+      "title": "Historical Claude profile isolation report",
+      "fetched_at": "2026-10-04",
+      "excerpt": "all Claude Code processes",
+      "claim": "Reporter observed shared macOS Keychain, refresh races and wrong-account quota on June 25 2026; closure as duplicate is not evidence of a fix.",
+      "applies_to": [
+        "M199.acceptance"
+      ],
+      "limitations": "Rolling docs/issues are research evidence, not installed-build/product acceptance."
+    },
+    {
+      "id": "AM-S05",
+      "kind": "developer_issue",
+      "url": "https://github.com/anthropics/claude-code/issues/20553",
+      "title": "Related profile isolation thread",
+      "fetched_at": "2026-10-04",
+      "excerpt": "",
+      "claim": "Developer-authored bug discussion on cross-profile OAuth isolation. Read with version/platform context; retain negative controls rather than adopt workarounds on operator credentials.",
+      "applies_to": [
+        "M199.acceptance"
+      ],
+      "limitations": "Rolling docs/issues are research evidence, not installed-build/product acceptance."
+    },
+    {
+      "id": "AM-S06",
+      "kind": "vendor_engineering",
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Bounded context and selective retrieval",
+      "fetched_at": "2026-10-04",
+      "excerpt": "the smallest possible set of high-signal tokens",
+      "claim": "Use references and selective retrieval; compaction can discard critical detail. Supports bounded cited packs and separate research workers, not unbounded prompt injection or native cross-provider session portability.",
+      "applies_to": [
+        "MEM-P2",
+        "MEM-P3",
+        "MEM-P4",
+        "MEM-P5",
+        "AR-10"
+      ],
+      "limitations": "Rolling docs/issues are research evidence, not installed-build/product acceptance."
+    },
+    {
+      "id": "AM-S07",
+      "kind": "vendor_engineering",
+      "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+      "title": "Durable incremental handoff",
+      "fetched_at": "2026-10-04",
+      "excerpt": "choose the highest-priority feature",
+      "claim": "Structured progress and Git history help fresh agents resume; one feature and verification per iteration reduce false completion. Supports a central plan with bounded packets.",
+      "applies_to": [
+        "N1",
+        "MEM-P5",
+        "M175"
+      ],
+      "limitations": "Rolling docs/issues are research evidence, not installed-build/product acceptance."
+    },
+    {
+      "id": "AM-S08",
+      "kind": "developer_issue",
+      "url": "https://github.com/anthropics/claude-code/issues/10232",
+      "title": "Compaction loses critical instructions",
+      "fetched_at": "2026-10-04",
+      "excerpt": "Auto-compact context summarization loses critical instructions and workarounds",
+      "claim": "Reporter documents instruction loss; use as an adversarial fixture and reassert pinned protocol/rules after compaction, not a universal rate estimate.",
+      "applies_to": [
+        "MEM-P4",
+        "P-06.4",
+        "M175"
+      ],
+      "limitations": "Rolling docs/issues are research evidence, not installed-build/product acceptance."
+    },
+    {
+      "id": "AM-S09",
+      "kind": "research_paper",
+      "url": "https://arxiv.org/abs/2303.11366",
+      "title": "Reflexion primary paper",
+      "fetched_at": "2026-10-04",
+      "excerpt": "linguistic feedback",
+      "claim": "The authors study reflection plus episodic text memory without weight updates. Their benchmark does not establish Fabric improvement; require local held-out evaluation, contrast evidence and Board approval.",
+      "applies_to": [
+        "P-06",
+        "M184",
+        "M176"
+      ],
+      "limitations": "Rolling docs/issues are research evidence, not installed-build/product acceptance."
+    },
+    {
+      "id": "AM-S10",
+      "kind": "official_docs",
+      "url": "https://www.postgresql.org/docs/current/textsearch-controls.html",
+      "title": "PostgreSQL lexical text search",
+      "fetched_at": "2026-10-04",
+      "excerpt": "",
+      "claim": "FTS uses parsed lexemes, configurations and explicit ranking; language normalization and identifier behavior must be corpus-tested. Index all covered sources; bound returned bytes separately.",
+      "applies_to": [
+        "MEM-P2",
+        "AR-10"
+      ],
+      "limitations": "Rolling docs/issues are research evidence, not installed-build/product acceptance."
+    },
+    {
+      "id": "AM-S11",
+      "kind": "official_docs",
+      "url": "https://www.postgresql.org/docs/current/pgtrgm.html",
+      "title": "PostgreSQL trigram fallback",
+      "fetched_at": "2026-10-04",
+      "excerpt": "",
+      "claim": "pg_trgm offers similarity and indexed matching; it is an optional measured fallback for identifiers/substrings, not semantic truth or a replacement for scope filters.",
+      "applies_to": [
+        "MEM-P2"
+      ],
+      "limitations": "Rolling docs/issues are research evidence, not installed-build/product acceptance."
+    },
+    {
+      "id": "AM-S12",
+      "kind": "developer_issue",
+      "url": "https://github.com/modelcontextprotocol/modelcontextprotocol/issues/3370",
+      "title": "Origin interoperability discussion",
+      "fetched_at": "2026-10-04",
+      "excerpt": "",
+      "claim": "Developer reports native Origin-absent requests working while browser clients are refused. A remote deployment discussion does not justify relaxing Fabric local-origin checks.",
+      "applies_to": [
+        "P-08",
+        "P-07.2"
+      ],
+      "limitations": "Rolling docs/issues are research evidence, not installed-build/product acceptance."
+    },
+    {
+      "id": "AM-S13",
+      "kind": "official_source",
+      "url": "https://github.com/openai/codex/blob/main/codex-rs/app-server/README.md",
+      "title": "Codex app-server protocol",
+      "fetched_at": "2026-10-04",
+      "excerpt": "",
+      "claim": "Primary app-server README is rolling main. Pin generated schema to installed CLI and match thread/turn identities and explicit notifications; no portable native Claude session claim.",
+      "applies_to": [
+        "N1",
+        "MEM-P5",
+        "M199.acceptance"
+      ],
+      "limitations": "Rolling docs/issues are research evidence, not installed-build/product acceptance."
+    }
+  ]
+}

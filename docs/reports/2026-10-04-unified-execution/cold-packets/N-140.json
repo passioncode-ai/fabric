@@ -1,0 +1,53 @@
+{
+  "schema_version": "execution-packet/1",
+  "node": "N-140",
+  "id": "S6",
+  "intent": "Inbound feedback becomes scoped evidence, a response draft and source-backed custdev synthesis",
+  "inputs": [
+    {
+      "address": "docs/evidence/backlog.md",
+      "sha256": "3135378f808cca85b5408b13f54159b8e6818ab2d7f9258eef7f25644a17d608"
+    },
+    {
+      "address": "docs/architecture/iterations.md",
+      "sha256": "41808e5dde8e9e5668466f1210c3124a40cb21a9ab1f711aec9e7a760de53c96"
+    },
+    {
+      "address": "docs/ux/vision.md",
+      "sha256": "b49ff2c9b4af97b5f4fa56183ee8a703e2e3a607f86c1c368746e95517cc444c"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/S6.review.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/S6.review.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "One inbound message produces typed scoped artifact and draft; custdev report directly cites available sources; outbound action and sensitive-data requirements have separate receipts.",
+    "Positive fixture exercises actual producer→consumer boundary on isolated test stack.",
+    "Each new gate is observed red with a planted violation; record exact test/command/build and result.",
+    "Repeated inbound id creates one logical feedback item.",
+    "No source/permission cannot produce fabricated custdev quotes.",
+    "Deleted/restricted message cannot leak via archive/index/report.",
+    "Draft response is not sent without explicit channel effect authority."
+  ],
+  "guards": [
+    "Missing required account/channel/provider/effect target or authority; leave precise blocked receipt.",
+    "A dependency marked historical shipped has no current acceptance; remeasure rather than bypass.",
+    "New event/schema change needed outside this bounded packet: reconcile owning spec before implementation.",
+    "Stop before implementation until a bounded leaf and upstream acceptance/authority are approved; a planning dependency is not a completion receipt."
+  ],
+  "resume": "Read this packet and its pinned canonical sources; verify trigger, dependency receipts and authority; produce one bounded follow-on leaf before code."
+}

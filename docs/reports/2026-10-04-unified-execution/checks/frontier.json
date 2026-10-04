@@ -1,0 +1,3904 @@
+{
+  "ready": [
+    {
+      "id": "CO-197.prepare",
+      "title": "Prepare bounded leaf: Publish reviewed source iteration with exact parent/child identity",
+      "kind": "activation-design",
+      "priority_group": 0,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-182",
+      "title": "Design disposable-stack ownership for the two manual native/handshake probes",
+      "kind": "design",
+      "priority_group": 0,
+      "unblocks": 0
+    },
+    {
+      "id": "N1.prepare",
+      "title": "Prepare bounded leaf: Prove bundle → admission → delivery/ACK → observed Stop on each real exact-build CLI",
+      "kind": "activation-design",
+      "priority_group": 1,
+      "unblocks": 1
+    },
+    {
+      "id": "P-06.1.prepare",
+      "title": "Prepare bounded leaf: Versioned journal events, goal/rule/fact binding projections and authority floor",
+      "kind": "activation-design",
+      "priority_group": 2,
+      "unblocks": 1
+    },
+    {
+      "id": "P-06.2.prepare",
+      "title": "Prepare bounded leaf: Host-observed run-end half and bounded retro tool",
+      "kind": "activation-design",
+      "priority_group": 2,
+      "unblocks": 1
+    },
+    {
+      "id": "P-06.3.prepare",
+      "title": "Prepare bounded leaf: Distinct-run recurrence and operator Board rule decision",
+      "kind": "activation-design",
+      "priority_group": 2,
+      "unblocks": 1
+    },
+    {
+      "id": "P-06.4.prepare",
+      "title": "Prepare bounded leaf: Approved instruction revision and bounded cited pack",
+      "kind": "activation-design",
+      "priority_group": 2,
+      "unblocks": 1
+    },
+    {
+      "id": "P-06.5.prepare",
+      "title": "Prepare bounded leaf: Reachable agent goals/rules/insights surfaces",
+      "kind": "activation-design",
+      "priority_group": 2,
+      "unblocks": 1
+    },
+    {
+      "id": "P-06.6.prepare",
+      "title": "Prepare bounded leaf: Contract/adapter learning target and privacy schema",
+      "kind": "activation-design",
+      "priority_group": 2,
+      "unblocks": 1
+    },
+    {
+      "id": "P-06.prepare",
+      "title": "Prepare bounded leaf: Close P-06 only through all required child receipts",
+      "kind": "activation-design",
+      "priority_group": 2,
+      "unblocks": 1
+    },
+    {
+      "id": "P-07.1.prepare",
+      "title": "Prepare bounded leaf: Untrusted deep link to operator-confirmed proposal or agent route",
+      "kind": "activation-design",
+      "priority_group": 2,
+      "unblocks": 1
+    },
+    {
+      "id": "P-07.2.prepare",
+      "title": "Prepare bounded leaf: Learning read/write tools through existing consent hub",
+      "kind": "activation-design",
+      "priority_group": 2,
+      "unblocks": 1
+    },
+    {
+      "id": "P-07.3.prepare",
+      "title": "Prepare bounded leaf: Dashboards learning view and Fix handoff",
+      "kind": "activation-design",
+      "priority_group": 2,
+      "unblocks": 1
+    },
+    {
+      "id": "P-07.4.prepare",
+      "title": "Prepare bounded leaf: Observatory confirmed finding handoff and valid verification",
+      "kind": "activation-design",
+      "priority_group": 2,
+      "unblocks": 1
+    },
+    {
+      "id": "P-07.prepare",
+      "title": "Prepare bounded leaf: Close P-07 only through all required child receipts",
+      "kind": "activation-design",
+      "priority_group": 2,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-176.prepare",
+      "title": "Prepare bounded leaf: Verify coding-agent sign-in per exact installed CLI build",
+      "kind": "activation-design",
+      "priority_group": 11,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-177.prepare",
+      "title": "Prepare bounded leaf: Define persistent revocable scan grant before any scheduled rescan",
+      "kind": "activation-design",
+      "priority_group": 11,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-178.prepare",
+      "title": "Prepare bounded leaf: Set Russian form of Estate in brand pack before string sweep",
+      "kind": "activation-design",
+      "priority_group": 11,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-180.prepare",
+      "title": "Prepare bounded leaf: Align r0 source/discovery target views to checklist-per-project",
+      "kind": "activation-design",
+      "priority_group": 11,
+      "unblocks": 1
+    },
+    {
+      "id": "P-01.prepare",
+      "title": "Prepare bounded leaf: Close start-path remainder without relabeling FR/AD native acceptance",
+      "kind": "activation-design",
+      "priority_group": 11,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-168.prepare",
+      "title": "Prepare bounded leaf: Retain canonical carryover and close only the exact remaining child acceptance set",
+      "kind": "activation-design",
+      "priority_group": 13,
+      "unblocks": 1
+    },
+    {
+      "id": "FR-A.prepare",
+      "title": "Prepare bounded leaf: Finish persona/entry defaults and repeat routing",
+      "kind": "activation-design",
+      "priority_group": 13,
+      "unblocks": 1
+    },
+    {
+      "id": "FR-B.prepare",
+      "title": "Prepare bounded leaf: Expose early observed readiness without circular Project prerequisite",
+      "kind": "activation-design",
+      "priority_group": 13,
+      "unblocks": 1
+    },
+    {
+      "id": "FR-C.prepare",
+      "title": "Prepare bounded leaf: Integrate picker, immutable create and scoped observation",
+      "kind": "activation-design",
+      "priority_group": 13,
+      "unblocks": 1
+    },
+    {
+      "id": "FR-D.prepare",
+      "title": "Prepare bounded leaf: Deliver sourced first insight and exact return",
+      "kind": "activation-design",
+      "priority_group": 13,
+      "unblocks": 1
+    },
+    {
+      "id": "FR-E.prepare",
+      "title": "Prepare bounded leaf: Observe stop and safe three-mode continuation",
+      "kind": "activation-design",
+      "priority_group": 13,
+      "unblocks": 1
+    },
+    {
+      "id": "FR-F.prepare",
+      "title": "Prepare bounded leaf: Compose durable CEO interaction, voice, Board and one useful cycle",
+      "kind": "activation-design",
+      "priority_group": 13,
+      "unblocks": 1
+    },
+    {
+      "id": "FR-G.prepare",
+      "title": "Prepare bounded leaf: Close native walking skeleton and measured value before calling CEO-first release ready",
+      "kind": "activation-design",
+      "priority_group": 13,
+      "unblocks": 1
+    },
+    {
+      "id": "AD02.prepare",
+      "title": "Prepare bounded leaf: Сохранить native черновики при новом старте",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD03.prepare",
+      "title": "Prepare bounded leaf: Единый target-сценарий создания",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD04.prepare",
+      "title": "Prepare bounded leaf: Один durable create и восстановление неизвестного исхода",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD05.prepare",
+      "title": "Prepare bounded leaf: Минимальный порт источника и честное отсутствие данных",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD06.prepare",
+      "title": "Prepare bounded leaf: Первый полезный checkpoint на своём проекте",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD07.prepare",
+      "title": "Prepare bounded leaf: Возврат: общий снимок и прочитанная граница",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD08.prepare",
+      "title": "Prepare bounded leaf: Одинаковый возврат в Home, Project и Fabric",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD09.prepare",
+      "title": "Prepare bounded leaf: Durable текстовый разговор и общий command path",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD10.prepare",
+      "title": "Prepare bounded leaf: Composer: понятный scope, shortcuts и сохранность ввода",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD11.prepare",
+      "title": "Prepare bounded leaf: Исправление атрибуции и точные ссылки на разговор",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD12.prepare",
+      "title": "Prepare bounded leaf: Выбрать и проверить STT-порт для R0",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD13.prepare",
+      "title": "Prepare bounded leaf: Реальный voice capture → правка → отправка",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD14.prepare",
+      "title": "Prepare bounded leaf: Доска: решение и возврат отложенного",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD15.prepare",
+      "title": "Prepare bounded leaf: Минимальная настройка допущенного исполнителя",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD15.readiness.prepare",
+      "title": "Prepare bounded leaf: Factor immutable observed executor readiness before Project creation, breaking legacy AD15→AD04→AD05 ordering",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD16.prepare",
+      "title": "Prepare bounded leaf: Один Run без ручной имитации механики",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD17.prepare",
+      "title": "Prepare bounded leaf: Один понятный повторяемый цикл",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD18.prepare",
+      "title": "Prepare bounded leaf: Durable прогресс знакомства из результата",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD19.prepare",
+      "title": "Prepare bounded leaf: Плавное знакомство в точке потребности",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD20.prepare",
+      "title": "Prepare bounded leaf: Спокойная оболочка и честная пустота",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD21.prepare",
+      "title": "Prepare bounded leaf: Потребностные входы к глубине и приглашению",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD22.prepare",
+      "title": "Prepare bounded leaf: Интеграционная приёмка всех обязательных R0 путей",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD23.prepare",
+      "title": "Prepare bounded leaf: Пилот ценности и следующее решение по данным",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "AD24.prepare",
+      "title": "Prepare bounded leaf: Найти проекты в выбранной папке",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-166.prepare",
+      "title": "Prepare bounded leaf: Retain canonical carryover and close only the exact remaining child acceptance set",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-167.prepare",
+      "title": "Prepare bounded leaf: Retain canonical carryover and close only the exact remaining child acceptance set",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-187.prepare",
+      "title": "Prepare bounded leaf: Retain canonical carryover and close only the exact remaining child acceptance set",
+      "kind": "activation-design",
+      "priority_group": 14,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-186.prepare",
+      "title": "Prepare bounded leaf: Resolve canonical carry-over CO-186",
+      "kind": "activation-design",
+      "priority_group": 15,
+      "unblocks": 1
+    },
+    {
+      "id": "M199.acceptance.prepare",
+      "title": "Prepare bounded leaf: Live certified A→B→A with native identity/context and independent effect receipts",
+      "kind": "activation-design",
+      "priority_group": 15,
+      "unblocks": 1
+    },
+    {
+      "id": "M199.ui.prepare",
+      "title": "Prepare bounded leaf: Wire remaining account IPC/settings/SCR-63 and attributed usage polling",
+      "kind": "activation-design",
+      "priority_group": 15,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-1.1.prepare",
+      "title": "Prepare bounded leaf: `interop.md` + schemas: capabilities as tools, jobs, result envelope with usage, elicitation → interaction point, trace context, hub `agent.call` (C3)",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-1.2.prepare",
+      "title": "Prepare bounded leaf: `provider.md` + schema for `providers/` entries (C1)",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-1.3.prepare",
+      "title": "Prepare bounded leaf: `runners.md` + schema for the runner catalogue (C2)",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-1.4.prepare",
+      "title": "Prepare bounded leaf: `pipeline.md` + schema and the compatibility rule PL-1…PL-4 (C4), with a reference checker",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-1.5.prepare",
+      "title": "Prepare bounded leaf: Fix G-07 (manifest ↔ descriptor cross-check rule), G-08 (one extension key spelling), G-11 (one contract pin across repositories), G-12 (profile names in CONTEXT match the schema)",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-1.6.prepare",
+      "title": "Prepare bounded leaf: Adapter kits emit trace context and job handles; `building-fabric-services` and `adapting-projects-to-fabric` teach interop; new `providers/` writer in the kit",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-1.prepare",
+      "title": "Prepare bounded leaf: Deliver registry-plan module 1 through its child packets",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-10.1.prepare",
+      "title": "Prepare bounded leaf: CEO `query_memory` with citations; Russian full-text configuration and no length cap; context packs produced; `agents/trap` export (M183) — SCN-124/125",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-10.prepare",
+      "title": "Prepare bounded leaf: Deliver registry-plan module 10 through its child packets",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-11.1.prepare",
+      "title": "Prepare bounded leaf: One migration row per existing agent — Project Observatory, then each of the operator's own agents in its private repository: manifest, capabilities, jobs, trace propagation, `providers/` or service descriptor; conformance probe PASS",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-11.prepare",
+      "title": "Prepare bounded leaf: Deliver registry-plan module 11 through its child packets",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-2.1.prepare",
+      "title": "Prepare bounded leaf: Runner catalogue data + detection (catalogued argv only, timeout, no shell)",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-2.2.prepare",
+      "title": "Prepare bounded leaf: Readers for `services/` (shared service-host code extracted from Fabric Dashboards into a package both apps use) and `providers/`",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-2.3.prepare",
+      "title": "Prepare bounded leaf: `registry.observed@1` event, projection, feed sentence; Fabric agents as entries",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-2.4.prepare",
+      "title": "Prepare bounded leaf: SCR-05 as the registry (three groups, problems, primary actions) — SCN-098…102",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-2.5.prepare",
+      "title": "Prepare bounded leaf: `fabric-dashboards://service/<id>.<instance>` URL scheme in Fabric Dashboards; \"Open dashboard\" in Fabric — SCN-101",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-2.6.prepare",
+      "title": "Prepare bounded leaf: Observatory `machine.mcp.inventory` capability; SCR-66 MCP servers — SCN-103/104",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-2.prepare",
+      "title": "Prepare bounded leaf: Deliver registry-plan module 2 through its child packets",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-4.1.prepare",
+      "title": "Prepare bounded leaf: `CeoContext@2` (view, route, selection) + context chip; ADR for the context shape",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-4.2.prepare",
+      "title": "Prepare bounded leaf: Micro-controls (rename, drag within a lane, toggle, pin) with the rule and undo — SCN-111",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-4.prepare",
+      "title": "Prepare bounded leaf: Deliver registry-plan module 4 through its child packets",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-5.1.prepare",
+      "title": "Prepare bounded leaf: `pipelines`, `pipeline_stages` tables (grants + RLS like migration 4), events, projector functions",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-5.2.prepare",
+      "title": "Prepare bounded leaf: CEO composition, graph view on SCR-49, PL-1…PL-4 in Fabric, project/global scope — SCN-112…114",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-5.prepare",
+      "title": "Prepare bounded leaf: Deliver registry-plan module 5 through its child packets",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-6.1.prepare",
+      "title": "Prepare bounded leaf: `trace.span@1`, assembly across routed hops and reported spans; SCR-67 drawn with the shared graph renderer — SCN-115/116",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-6.prepare",
+      "title": "Prepare bounded leaf: Deliver registry-plan module 6 through its child packets",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-7.1.prepare",
+      "title": "Prepare bounded leaf: Agent production pipeline inside Fabric (intake → base or project → manifest → evals → install → admission → canary) — SCN-121…123",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-7.prepare",
+      "title": "Prepare bounded leaf: Deliver registry-plan module 7 through its child packets",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-8.1.prepare",
+      "title": "Prepare bounded leaf: Fabric tools registry, tool host over the hub, SCR-68 — SCN-117/118",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-8.prepare",
+      "title": "Prepare bounded leaf: Deliver registry-plan module 8 through its child packets",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-9.1.prepare",
+      "title": "Prepare bounded leaf: Optimizer agent (routine over traces), proposals on SCR-69 — SCN-119/120",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "AR-9.prepare",
+      "title": "Prepare bounded leaf: Deliver registry-plan module 9 through its child packets",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-188.prepare",
+      "title": "Prepare bounded leaf: Resolve canonical carry-over CO-188",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-193.prepare",
+      "title": "Prepare bounded leaf: Resolve canonical carry-over CO-193",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-194.prepare",
+      "title": "Prepare bounded leaf: Resolve canonical carry-over CO-194",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-195.prepare",
+      "title": "Prepare bounded leaf: Resolve canonical carry-over CO-195",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-196.prepare",
+      "title": "Prepare bounded leaf: Resolve canonical carry-over CO-196",
+      "kind": "activation-design",
+      "priority_group": 16,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-183.prepare",
+      "title": "Prepare bounded leaf: Resolve canonical carry-over CO-183",
+      "kind": "activation-design",
+      "priority_group": 17,
+      "unblocks": 1
+    },
+    {
+      "id": "MEM-P0.prepare",
+      "title": "Prepare bounded leaf: подтвердить baseline и зафиксировать расширения",
+      "kind": "activation-design",
+      "priority_group": 17,
+      "unblocks": 1
+    },
+    {
+      "id": "MEM-P1.prepare",
+      "title": "Prepare bounded leaf: устойчивый захват и правдивое покрытие",
+      "kind": "activation-design",
+      "priority_group": 17,
+      "unblocks": 1
+    },
+    {
+      "id": "MEM-P2.prepare",
+      "title": "Prepare bounded leaf: поиск и адресное чтение сессий",
+      "kind": "activation-design",
+      "priority_group": 17,
+      "unblocks": 1
+    },
+    {
+      "id": "MEM-P3.prepare",
+      "title": "Prepare bounded leaf: отложенные резюме, необязательные для R0",
+      "kind": "activation-design",
+      "priority_group": 17,
+      "unblocks": 1
+    },
+    {
+      "id": "MEM-P4.prepare",
+      "title": "Prepare bounded leaf: контекст следующего запуска",
+      "kind": "activation-design",
+      "priority_group": 17,
+      "unblocks": 1
+    },
+    {
+      "id": "MEM-P5.prepare",
+      "title": "Prepare bounded leaf: продолжение через того же или другого исполнителя",
+      "kind": "activation-design",
+      "priority_group": 17,
+      "unblocks": 1
+    },
+    {
+      "id": "MEM-P6.prepare",
+      "title": "Prepare bounded leaf: workspace памяти и CEO",
+      "kind": "activation-design",
+      "priority_group": 17,
+      "unblocks": 1
+    },
+    {
+      "id": "MEM-P7.prepare",
+      "title": "Prepare bounded leaf: приёмка, эксплуатация и жизненный цикл",
+      "kind": "activation-design",
+      "priority_group": 17,
+      "unblocks": 1
+    },
+    {
+      "id": "M153.prepare",
+      "title": "Prepare bounded leaf: Implement M153 canonical manager-loop task without expanding authority",
+      "kind": "activation-design",
+      "priority_group": 18,
+      "unblocks": 1
+    },
+    {
+      "id": "M157.prepare",
+      "title": "Prepare bounded leaf: Implement M157 canonical manager-loop task without expanding authority",
+      "kind": "activation-design",
+      "priority_group": 18,
+      "unblocks": 1
+    },
+    {
+      "id": "M158.prepare",
+      "title": "Prepare bounded leaf: Implement M158 canonical manager-loop task without expanding authority",
+      "kind": "activation-design",
+      "priority_group": 18,
+      "unblocks": 1
+    },
+    {
+      "id": "M166.prepare",
+      "title": "Prepare bounded leaf: Implement M166 canonical manager-loop task without expanding authority",
+      "kind": "activation-design",
+      "priority_group": 18,
+      "unblocks": 1
+    },
+    {
+      "id": "M167.prepare",
+      "title": "Prepare bounded leaf: Implement M167 canonical manager-loop task without expanding authority",
+      "kind": "activation-design",
+      "priority_group": 18,
+      "unblocks": 1
+    },
+    {
+      "id": "M169.prepare",
+      "title": "Prepare bounded leaf: Implement M169 canonical manager-loop task without expanding authority",
+      "kind": "activation-design",
+      "priority_group": 18,
+      "unblocks": 1
+    },
+    {
+      "id": "M171.prepare",
+      "title": "Prepare bounded leaf: Implement M171 canonical manager-loop task without expanding authority",
+      "kind": "activation-design",
+      "priority_group": 18,
+      "unblocks": 1
+    },
+    {
+      "id": "M175.prepare",
+      "title": "Prepare bounded leaf: Implement M175 canonical manager-loop task without expanding authority",
+      "kind": "activation-design",
+      "priority_group": 18,
+      "unblocks": 1
+    },
+    {
+      "id": "M183.local.prepare",
+      "title": "Prepare bounded leaf: Implement M183.local canonical manager-loop task without expanding authority",
+      "kind": "activation-design",
+      "priority_group": 18,
+      "unblocks": 1
+    },
+    {
+      "id": "M183.prepare",
+      "title": "Prepare bounded leaf: Close M183 only through all required child receipts",
+      "kind": "activation-design",
+      "priority_group": 18,
+      "unblocks": 1
+    },
+    {
+      "id": "M183.upstream.prepare",
+      "title": "Prepare bounded leaf: Implement M183.upstream canonical manager-loop task without expanding authority",
+      "kind": "activation-design",
+      "priority_group": 18,
+      "unblocks": 1
+    },
+    {
+      "id": "M184.prepare",
+      "title": "Prepare bounded leaf: Implement M184 canonical manager-loop task without expanding authority",
+      "kind": "activation-design",
+      "priority_group": 18,
+      "unblocks": 1
+    },
+    {
+      "id": "M194.prepare",
+      "title": "Prepare bounded leaf: Implement M194 canonical manager-loop task without expanding authority",
+      "kind": "activation-design",
+      "priority_group": 18,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-144.prepare",
+      "title": "Prepare bounded leaf: Show surviving read age and freshness on quota/repository/facts",
+      "kind": "activation-design",
+      "priority_group": 19,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-145.prepare",
+      "title": "Prepare bounded leaf: Introduce display receipts before minimumCursor consumption",
+      "kind": "activation-design",
+      "priority_group": 19,
+      "unblocks": 1
+    },
+    {
+      "id": "CO-185.prepare",
+      "title": "Prepare bounded leaf: Replace offset full-read paging with stable scoped keyset cursor",
+      "kind": "activation-design",
+      "priority_group": 19,
+      "unblocks": 1
+    },
+    {
+      "id": "L3c.prepare",
+      "title": "Prepare bounded leaf: Restore Board filter/selection on Back and exact ?item= route",
+      "kind": "activation-design",
+      "priority_group": 19,
+      "unblocks": 1
+    },
+    {
+      "id": "M187.prepare",
+      "title": "Prepare bounded leaf: Keep main data/action visible and use one accessible disclosure primitive",
+      "kind": "activation-design",
+      "priority_group": 19,
+      "unblocks": 1
+    },
+    {
+      "id": "M98.prepare",
+      "title": "Prepare bounded leaf: Extract one responsibility seam without length-based feature blockade",
+      "kind": "activation-design",
+      "priority_group": 19,
+      "unblocks": 1
+    },
+    {
+      "id": "S11.prepare",
+      "title": "Prepare bounded leaf: Complete current ADR0090 terminology and hierarchy sweep",
+      "kind": "activation-design",
+      "priority_group": 19,
+      "unblocks": 1
+    },
+    {
+      "id": "S4.prepare",
+      "title": "Prepare bounded leaf: One read-only connector and observer closes a real finding→proposal→verified outcome loop",
+      "kind": "activation-design",
+      "priority_group": 20,
+      "unblocks": 1
+    },
+    {
+      "id": "S5.prepare",
+      "title": "Prepare bounded leaf: Sourced topic→immutable post draft→per-post approval→observed publication",
+      "kind": "activation-design",
+      "priority_group": 20,
+      "unblocks": 1
+    },
+    {
+      "id": "S6.prepare",
+      "title": "Prepare bounded leaf: Inbound feedback becomes scoped evidence, a response draft and source-backed custdev synthesis",
+      "kind": "activation-design",
+      "priority_group": 20,
+      "unblocks": 1
+    },
+    {
+      "id": "V1-M1.prepare",
+      "title": "Prepare bounded leaf: Console context and durable answer delivery at the exact agent/task/run",
+      "kind": "activation-design",
+      "priority_group": 21,
+      "unblocks": 1
+    },
+    {
+      "id": "V1-M2.prepare",
+      "title": "Prepare bounded leaf: Inbox separates unmet obligations from read history and preserves display-derived cursor",
+      "kind": "activation-design",
+      "priority_group": 21,
+      "unblocks": 1
+    },
+    {
+      "id": "V1-M3.prepare",
+      "title": "Prepare bounded leaf: Dashboard next-due and read-only cycle inspection with honest app-off state",
+      "kind": "activation-design",
+      "priority_group": 21,
+      "unblocks": 1
+    },
+    {
+      "id": "V1-M4.prepare",
+      "title": "Prepare bounded leaf: Decision citations, closed/current/next plan and previous requests resolve to exact evidence",
+      "kind": "activation-design",
+      "priority_group": 21,
+      "unblocks": 1
+    },
+    {
+      "id": "V1-M5.prepare",
+      "title": "Prepare bounded leaf: Cold context return golden path measured on live-capability-equivalent isolated estate",
+      "kind": "activation-design",
+      "priority_group": 21,
+      "unblocks": 1
+    },
+    {
+      "id": "V1-M6.prepare",
+      "title": "Prepare bounded leaf: Fabric identity and explainable profile progress from measured evidence",
+      "kind": "activation-design",
+      "priority_group": 21,
+      "unblocks": 1
+    },
+    {
+      "id": "V1-M7.prepare",
+      "title": "Prepare bounded leaf: Evidence timeline marks current point and graph orientation passes monotonicity gate",
+      "kind": "activation-design",
+      "priority_group": 21,
+      "unblocks": 1
+    }
+  ],
+  "held": [
+    {
+      "id": "P-08",
+      "reasons": [
+        "owned-elsewhere",
+        "impact I-01",
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "CO-181",
+      "reasons": [
+        "operator-gated"
+      ]
+    },
+    {
+      "id": "CO-197",
+      "reasons": [
+        "design-gated",
+        "requires CO-197.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD02",
+      "reasons": [
+        "design-gated",
+        "requires AD02.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD03",
+      "reasons": [
+        "design-gated",
+        "requires AD03.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD04",
+      "reasons": [
+        "design-gated",
+        "requires AD04.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD05",
+      "reasons": [
+        "design-gated",
+        "requires AD05.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD06",
+      "reasons": [
+        "design-gated",
+        "requires AD06.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD07",
+      "reasons": [
+        "design-gated",
+        "requires AD07.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD09",
+      "reasons": [
+        "design-gated",
+        "requires AD09.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD08",
+      "reasons": [
+        "design-gated",
+        "requires AD08.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD10",
+      "reasons": [
+        "design-gated",
+        "requires AD10.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD11",
+      "reasons": [
+        "design-gated",
+        "requires AD11.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD12",
+      "reasons": [
+        "design-gated",
+        "requires AD12.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD13",
+      "reasons": [
+        "design-gated",
+        "requires AD13.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD14",
+      "reasons": [
+        "design-gated",
+        "requires AD14.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD15",
+      "reasons": [
+        "design-gated",
+        "requires AD15.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD16",
+      "reasons": [
+        "design-gated",
+        "requires AD16.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD17",
+      "reasons": [
+        "design-gated",
+        "requires AD17.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD18",
+      "reasons": [
+        "design-gated",
+        "requires AD18.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD19",
+      "reasons": [
+        "design-gated",
+        "requires AD19.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD20",
+      "reasons": [
+        "design-gated",
+        "requires AD20.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD21",
+      "reasons": [
+        "design-gated",
+        "requires AD21.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD24",
+      "reasons": [
+        "design-gated",
+        "requires AD24.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD22",
+      "reasons": [
+        "design-gated",
+        "requires AD22.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD23",
+      "reasons": [
+        "design-gated",
+        "requires AD23.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "P-01",
+      "reasons": [
+        "design-gated",
+        "requires P-01.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-176",
+      "reasons": [
+        "design-gated",
+        "requires CO-176.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-177",
+      "reasons": [
+        "design-gated",
+        "requires CO-177.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-178",
+      "reasons": [
+        "design-gated",
+        "requires CO-178.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-179",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-180",
+      "reasons": [
+        "design-gated",
+        "requires CO-180.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "FR-A",
+      "reasons": [
+        "design-gated",
+        "requires FR-A.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "FR-B",
+      "reasons": [
+        "design-gated",
+        "requires FR-B.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "FR-C",
+      "reasons": [
+        "design-gated",
+        "requires FR-C.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "FR-D",
+      "reasons": [
+        "design-gated",
+        "requires FR-D.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "FR-E",
+      "reasons": [
+        "design-gated",
+        "requires FR-E.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "FR-F",
+      "reasons": [
+        "design-gated",
+        "requires FR-F.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "FR-G",
+      "reasons": [
+        "design-gated",
+        "requires FR-G.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M98",
+      "reasons": [
+        "design-gated",
+        "requires M98.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M187",
+      "reasons": [
+        "design-gated",
+        "requires M187.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "S11",
+      "reasons": [
+        "design-gated",
+        "requires S11.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "L3c",
+      "reasons": [
+        "design-gated",
+        "requires L3c.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-144",
+      "reasons": [
+        "design-gated",
+        "requires CO-144.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-145",
+      "reasons": [
+        "design-gated",
+        "requires CO-145.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-185",
+      "reasons": [
+        "design-gated",
+        "requires CO-185.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-166",
+      "reasons": [
+        "design-gated",
+        "requires CO-166.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-167",
+      "reasons": [
+        "design-gated",
+        "requires CO-167.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-168",
+      "reasons": [
+        "design-gated",
+        "requires CO-168.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-187",
+      "reasons": [
+        "design-gated",
+        "requires CO-187.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AD15.readiness",
+      "reasons": [
+        "design-gated",
+        "requires AD15.readiness.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "N1",
+      "reasons": [
+        "design-gated",
+        "requires N1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M199.ui",
+      "reasons": [
+        "design-gated",
+        "requires M199.ui.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M199.acceptance",
+      "reasons": [
+        "design-gated",
+        "requires M199.acceptance.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-1.1",
+      "reasons": [
+        "design-gated",
+        "requires AR-1.1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-1.2",
+      "reasons": [
+        "design-gated",
+        "requires AR-1.2.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-1.3",
+      "reasons": [
+        "design-gated",
+        "requires AR-1.3.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-1.4",
+      "reasons": [
+        "design-gated",
+        "requires AR-1.4.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-1.5",
+      "reasons": [
+        "design-gated",
+        "requires AR-1.5.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-1.6",
+      "reasons": [
+        "design-gated",
+        "requires AR-1.6.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-2.1",
+      "reasons": [
+        "design-gated",
+        "requires AR-2.1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-2.2",
+      "reasons": [
+        "design-gated",
+        "requires AR-2.2.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-2.3",
+      "reasons": [
+        "design-gated",
+        "requires AR-2.3.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-2.4",
+      "reasons": [
+        "design-gated",
+        "requires AR-2.4.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-2.5",
+      "reasons": [
+        "design-gated",
+        "requires AR-2.5.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-2.6",
+      "reasons": [
+        "design-gated",
+        "requires AR-2.6.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-3.1",
+      "reasons": [
+        "design-gated",
+        "requires AR-3.1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance",
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "AR-3.2",
+      "reasons": [
+        "design-gated",
+        "requires AR-3.2.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance",
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "AR-3.3",
+      "reasons": [
+        "design-gated",
+        "requires AR-3.3.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance",
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "AR-3.4",
+      "reasons": [
+        "design-gated",
+        "requires AR-3.4.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance",
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "AR-3.5",
+      "reasons": [
+        "design-gated",
+        "requires AR-3.5.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance",
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "AR-3.6",
+      "reasons": [
+        "design-gated",
+        "requires AR-3.6.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance",
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "AR-4.1",
+      "reasons": [
+        "design-gated",
+        "requires AR-4.1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-4.2",
+      "reasons": [
+        "design-gated",
+        "requires AR-4.2.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-5.1",
+      "reasons": [
+        "design-gated",
+        "requires AR-5.1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-5.2",
+      "reasons": [
+        "design-gated",
+        "requires AR-5.2.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-6.1",
+      "reasons": [
+        "design-gated",
+        "requires AR-6.1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-7.1",
+      "reasons": [
+        "design-gated",
+        "requires AR-7.1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-8.1",
+      "reasons": [
+        "design-gated",
+        "requires AR-8.1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-9.1",
+      "reasons": [
+        "design-gated",
+        "requires AR-9.1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-10.1",
+      "reasons": [
+        "design-gated",
+        "requires AR-10.1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-11.1",
+      "reasons": [
+        "design-gated",
+        "requires AR-11.1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-1",
+      "reasons": [
+        "design-gated",
+        "requires AR-1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-2",
+      "reasons": [
+        "design-gated",
+        "requires AR-2.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-3",
+      "reasons": [
+        "design-gated",
+        "requires AR-3.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance",
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "AR-4",
+      "reasons": [
+        "design-gated",
+        "requires AR-4.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-5",
+      "reasons": [
+        "design-gated",
+        "requires AR-5.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-6",
+      "reasons": [
+        "design-gated",
+        "requires AR-6.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-7",
+      "reasons": [
+        "design-gated",
+        "requires AR-7.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-8",
+      "reasons": [
+        "design-gated",
+        "requires AR-8.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-9",
+      "reasons": [
+        "design-gated",
+        "requires AR-9.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-10",
+      "reasons": [
+        "design-gated",
+        "requires AR-10.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-11",
+      "reasons": [
+        "design-gated",
+        "requires AR-11.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "MEM-P0",
+      "reasons": [
+        "design-gated",
+        "requires MEM-P0.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "MEM-P1",
+      "reasons": [
+        "design-gated",
+        "requires MEM-P1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "MEM-P2",
+      "reasons": [
+        "design-gated",
+        "requires MEM-P2.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "MEM-P3",
+      "reasons": [
+        "design-gated",
+        "requires MEM-P3.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "MEM-P4",
+      "reasons": [
+        "design-gated",
+        "requires MEM-P4.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "MEM-P5",
+      "reasons": [
+        "design-gated",
+        "requires MEM-P5.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "MEM-P6",
+      "reasons": [
+        "design-gated",
+        "requires MEM-P6.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "MEM-P7",
+      "reasons": [
+        "design-gated",
+        "requires MEM-P7.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M153",
+      "reasons": [
+        "design-gated",
+        "requires M153.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M158",
+      "reasons": [
+        "design-gated",
+        "requires M158.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M157",
+      "reasons": [
+        "design-gated",
+        "requires M157.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M184",
+      "reasons": [
+        "design-gated",
+        "requires M184.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M183.local",
+      "reasons": [
+        "design-gated",
+        "requires M183.local.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M183.upstream",
+      "reasons": [
+        "design-gated",
+        "requires M183.upstream.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M166",
+      "reasons": [
+        "design-gated",
+        "requires M166.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M167",
+      "reasons": [
+        "design-gated",
+        "requires M167.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M169",
+      "reasons": [
+        "design-gated",
+        "requires M169.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M171",
+      "reasons": [
+        "design-gated",
+        "requires M171.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M194",
+      "reasons": [
+        "design-gated",
+        "requires M194.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M175",
+      "reasons": [
+        "design-gated",
+        "requires M175.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "P-06.1",
+      "reasons": [
+        "design-gated",
+        "requires P-06.1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "P-06.2",
+      "reasons": [
+        "design-gated",
+        "requires P-06.2.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "P-06.3",
+      "reasons": [
+        "design-gated",
+        "requires P-06.3.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "P-06.4",
+      "reasons": [
+        "design-gated",
+        "requires P-06.4.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "P-06.5",
+      "reasons": [
+        "design-gated",
+        "requires P-06.5.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "P-06.6",
+      "reasons": [
+        "design-gated",
+        "requires P-06.6.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "P-07.1",
+      "reasons": [
+        "design-gated",
+        "requires P-07.1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "P-07.2",
+      "reasons": [
+        "design-gated",
+        "requires P-07.2.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "P-07.3",
+      "reasons": [
+        "design-gated",
+        "requires P-07.3.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "P-07.4",
+      "reasons": [
+        "design-gated",
+        "requires P-07.4.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "P-06",
+      "reasons": [
+        "design-gated",
+        "requires P-06.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "P-07",
+      "reasons": [
+        "design-gated",
+        "requires P-07.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "M183",
+      "reasons": [
+        "design-gated",
+        "requires M183.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-186",
+      "reasons": [
+        "design-gated",
+        "requires CO-186.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-188",
+      "reasons": [
+        "design-gated",
+        "requires CO-188.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-193",
+      "reasons": [
+        "design-gated",
+        "requires CO-193.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-194",
+      "reasons": [
+        "design-gated",
+        "requires CO-194.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-195",
+      "reasons": [
+        "design-gated",
+        "requires CO-195.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-196",
+      "reasons": [
+        "design-gated",
+        "requires CO-196.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-183",
+      "reasons": [
+        "design-gated",
+        "requires CO-183.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "S4",
+      "reasons": [
+        "design-gated",
+        "requires S4.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "S5",
+      "reasons": [
+        "design-gated",
+        "requires S5.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "S6",
+      "reasons": [
+        "design-gated",
+        "requires S6.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "V1-M1",
+      "reasons": [
+        "design-gated",
+        "requires V1-M1.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "V1-M2",
+      "reasons": [
+        "design-gated",
+        "requires V1-M2.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "V1-M3",
+      "reasons": [
+        "design-gated",
+        "requires V1-M3.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "V1-M4",
+      "reasons": [
+        "design-gated",
+        "requires V1-M4.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "V1-M5",
+      "reasons": [
+        "design-gated",
+        "requires V1-M5.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "V1-M6",
+      "reasons": [
+        "design-gated",
+        "requires V1-M6.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "V1-M7",
+      "reasons": [
+        "design-gated",
+        "requires V1-M7.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-112",
+      "reasons": [
+        "design-gated",
+        "requires CO-112.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-158",
+      "reasons": [
+        "design-gated",
+        "requires CO-158.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-165",
+      "reasons": [
+        "design-gated",
+        "requires CO-165.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-169",
+      "reasons": [
+        "design-gated",
+        "requires CO-169.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-173",
+      "reasons": [
+        "design-gated",
+        "requires CO-173.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-175",
+      "reasons": [
+        "design-gated",
+        "requires CO-175.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-001",
+      "reasons": [
+        "design-gated",
+        "requires CO-001.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-003",
+      "reasons": [
+        "design-gated",
+        "requires CO-003.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-004",
+      "reasons": [
+        "design-gated",
+        "requires CO-004.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-005",
+      "reasons": [
+        "design-gated",
+        "requires CO-005.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-006",
+      "reasons": [
+        "design-gated",
+        "requires CO-006.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-007",
+      "reasons": [
+        "design-gated",
+        "requires CO-007.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-008",
+      "reasons": [
+        "design-gated",
+        "requires CO-008.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-009",
+      "reasons": [
+        "design-gated",
+        "requires CO-009.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-010",
+      "reasons": [
+        "design-gated",
+        "requires CO-010.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-011",
+      "reasons": [
+        "design-gated",
+        "requires CO-011.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-012",
+      "reasons": [
+        "design-gated",
+        "requires CO-012.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-014",
+      "reasons": [
+        "design-gated",
+        "requires CO-014.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-015",
+      "reasons": [
+        "design-gated",
+        "requires CO-015.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-016",
+      "reasons": [
+        "design-gated",
+        "requires CO-016.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-017",
+      "reasons": [
+        "design-gated",
+        "requires CO-017.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-018",
+      "reasons": [
+        "design-gated",
+        "requires CO-018.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-019",
+      "reasons": [
+        "design-gated",
+        "requires CO-019.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-020",
+      "reasons": [
+        "design-gated",
+        "requires CO-020.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-022",
+      "reasons": [
+        "design-gated",
+        "requires CO-022.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-023",
+      "reasons": [
+        "design-gated",
+        "requires CO-023.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-024",
+      "reasons": [
+        "design-gated",
+        "requires CO-024.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-025",
+      "reasons": [
+        "design-gated",
+        "requires CO-025.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-026",
+      "reasons": [
+        "design-gated",
+        "requires CO-026.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-027",
+      "reasons": [
+        "design-gated",
+        "requires CO-027.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-029",
+      "reasons": [
+        "design-gated",
+        "requires CO-029.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-030",
+      "reasons": [
+        "design-gated",
+        "requires CO-030.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-031",
+      "reasons": [
+        "design-gated",
+        "requires CO-031.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-032",
+      "reasons": [
+        "design-gated",
+        "requires CO-032.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-033",
+      "reasons": [
+        "design-gated",
+        "requires CO-033.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-034",
+      "reasons": [
+        "design-gated",
+        "requires CO-034.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-035",
+      "reasons": [
+        "design-gated",
+        "requires CO-035.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-036",
+      "reasons": [
+        "design-gated",
+        "requires CO-036.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-037",
+      "reasons": [
+        "design-gated",
+        "requires CO-037.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-038",
+      "reasons": [
+        "design-gated",
+        "requires CO-038.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-039",
+      "reasons": [
+        "design-gated",
+        "requires CO-039.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-040",
+      "reasons": [
+        "design-gated",
+        "requires CO-040.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-043",
+      "reasons": [
+        "design-gated",
+        "requires CO-043.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-044",
+      "reasons": [
+        "design-gated",
+        "requires CO-044.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-045",
+      "reasons": [
+        "design-gated",
+        "requires CO-045.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-050",
+      "reasons": [
+        "design-gated",
+        "requires CO-050.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-051",
+      "reasons": [
+        "design-gated",
+        "requires CO-051.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-052",
+      "reasons": [
+        "design-gated",
+        "requires CO-052.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-053",
+      "reasons": [
+        "design-gated",
+        "requires CO-053.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-054",
+      "reasons": [
+        "design-gated",
+        "requires CO-054.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-055",
+      "reasons": [
+        "design-gated",
+        "requires CO-055.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-056",
+      "reasons": [
+        "design-gated",
+        "requires CO-056.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-057",
+      "reasons": [
+        "design-gated",
+        "requires CO-057.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-059",
+      "reasons": [
+        "design-gated",
+        "requires CO-059.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-060",
+      "reasons": [
+        "design-gated",
+        "requires CO-060.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-061",
+      "reasons": [
+        "design-gated",
+        "requires CO-061.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-062",
+      "reasons": [
+        "design-gated",
+        "requires CO-062.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-063",
+      "reasons": [
+        "design-gated",
+        "requires CO-063.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-064",
+      "reasons": [
+        "design-gated",
+        "requires CO-064.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-065",
+      "reasons": [
+        "design-gated",
+        "requires CO-065.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-066",
+      "reasons": [
+        "design-gated",
+        "requires CO-066.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-067",
+      "reasons": [
+        "design-gated",
+        "requires CO-067.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-069",
+      "reasons": [
+        "design-gated",
+        "requires CO-069.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-070",
+      "reasons": [
+        "design-gated",
+        "requires CO-070.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-071",
+      "reasons": [
+        "design-gated",
+        "requires CO-071.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-072",
+      "reasons": [
+        "design-gated",
+        "requires CO-072.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-073",
+      "reasons": [
+        "design-gated",
+        "requires CO-073.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-074",
+      "reasons": [
+        "design-gated",
+        "requires CO-074.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-078",
+      "reasons": [
+        "design-gated",
+        "requires CO-078.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-080",
+      "reasons": [
+        "design-gated",
+        "requires CO-080.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-081",
+      "reasons": [
+        "design-gated",
+        "requires CO-081.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-082",
+      "reasons": [
+        "design-gated",
+        "requires CO-082.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-083",
+      "reasons": [
+        "design-gated",
+        "requires CO-083.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-084",
+      "reasons": [
+        "design-gated",
+        "requires CO-084.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-085",
+      "reasons": [
+        "design-gated",
+        "requires CO-085.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-086",
+      "reasons": [
+        "design-gated",
+        "requires CO-086.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-087",
+      "reasons": [
+        "design-gated",
+        "requires CO-087.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-088",
+      "reasons": [
+        "design-gated",
+        "requires CO-088.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-089",
+      "reasons": [
+        "design-gated",
+        "requires CO-089.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-090",
+      "reasons": [
+        "design-gated",
+        "requires CO-090.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-091",
+      "reasons": [
+        "design-gated",
+        "requires CO-091.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-092",
+      "reasons": [
+        "design-gated",
+        "requires CO-092.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-094",
+      "reasons": [
+        "design-gated",
+        "requires CO-094.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-095",
+      "reasons": [
+        "design-gated",
+        "requires CO-095.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-097",
+      "reasons": [
+        "design-gated",
+        "requires CO-097.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-098",
+      "reasons": [
+        "design-gated",
+        "requires CO-098.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-099",
+      "reasons": [
+        "design-gated",
+        "requires CO-099.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-100",
+      "reasons": [
+        "design-gated",
+        "requires CO-100.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-101",
+      "reasons": [
+        "design-gated",
+        "requires CO-101.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-102",
+      "reasons": [
+        "design-gated",
+        "requires CO-102.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-103",
+      "reasons": [
+        "design-gated",
+        "requires CO-103.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-104",
+      "reasons": [
+        "design-gated",
+        "requires CO-104.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-105",
+      "reasons": [
+        "design-gated",
+        "requires CO-105.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-106",
+      "reasons": [
+        "design-gated",
+        "requires CO-106.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-107",
+      "reasons": [
+        "design-gated",
+        "requires CO-107.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-108",
+      "reasons": [
+        "design-gated",
+        "requires CO-108.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-109",
+      "reasons": [
+        "design-gated",
+        "requires CO-109.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-111",
+      "reasons": [
+        "design-gated",
+        "requires CO-111.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-113",
+      "reasons": [
+        "design-gated",
+        "requires CO-113.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-114",
+      "reasons": [
+        "design-gated",
+        "requires CO-114.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-115",
+      "reasons": [
+        "design-gated",
+        "requires CO-115.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-116",
+      "reasons": [
+        "design-gated",
+        "requires CO-116.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-117",
+      "reasons": [
+        "design-gated",
+        "requires CO-117.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-119",
+      "reasons": [
+        "design-gated",
+        "requires CO-119.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-120",
+      "reasons": [
+        "design-gated",
+        "requires CO-120.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-121",
+      "reasons": [
+        "design-gated",
+        "requires CO-121.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-122",
+      "reasons": [
+        "design-gated",
+        "requires CO-122.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-123",
+      "reasons": [
+        "design-gated",
+        "requires CO-123.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-124",
+      "reasons": [
+        "design-gated",
+        "requires CO-124.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-126",
+      "reasons": [
+        "design-gated",
+        "requires CO-126.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-127",
+      "reasons": [
+        "design-gated",
+        "requires CO-127.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-128",
+      "reasons": [
+        "design-gated",
+        "requires CO-128.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-129",
+      "reasons": [
+        "design-gated",
+        "requires CO-129.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-130",
+      "reasons": [
+        "design-gated",
+        "requires CO-130.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-131",
+      "reasons": [
+        "design-gated",
+        "requires CO-131.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-132",
+      "reasons": [
+        "design-gated",
+        "requires CO-132.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-133",
+      "reasons": [
+        "design-gated",
+        "requires CO-133.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-134",
+      "reasons": [
+        "design-gated",
+        "requires CO-134.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-135",
+      "reasons": [
+        "design-gated",
+        "requires CO-135.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-136",
+      "reasons": [
+        "design-gated",
+        "requires CO-136.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-137",
+      "reasons": [
+        "design-gated",
+        "requires CO-137.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-138",
+      "reasons": [
+        "design-gated",
+        "requires CO-138.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-139",
+      "reasons": [
+        "design-gated",
+        "requires CO-139.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-140",
+      "reasons": [
+        "design-gated",
+        "requires CO-140.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-141",
+      "reasons": [
+        "design-gated",
+        "requires CO-141.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-142",
+      "reasons": [
+        "design-gated",
+        "requires CO-142.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-143",
+      "reasons": [
+        "design-gated",
+        "requires CO-143.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-146",
+      "reasons": [
+        "design-gated",
+        "requires CO-146.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-147",
+      "reasons": [
+        "design-gated",
+        "requires CO-147.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-148",
+      "reasons": [
+        "design-gated",
+        "requires CO-148.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-149",
+      "reasons": [
+        "design-gated",
+        "requires CO-149.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-150",
+      "reasons": [
+        "design-gated",
+        "requires CO-150.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-151",
+      "reasons": [
+        "design-gated",
+        "requires CO-151.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-152",
+      "reasons": [
+        "design-gated",
+        "requires CO-152.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-153",
+      "reasons": [
+        "design-gated",
+        "requires CO-153.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-154",
+      "reasons": [
+        "design-gated",
+        "requires CO-154.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-155",
+      "reasons": [
+        "design-gated",
+        "requires CO-155.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-156",
+      "reasons": [
+        "design-gated",
+        "requires CO-156.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-157",
+      "reasons": [
+        "design-gated",
+        "requires CO-157.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-159",
+      "reasons": [
+        "design-gated",
+        "requires CO-159.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-160",
+      "reasons": [
+        "design-gated",
+        "requires CO-160.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-162",
+      "reasons": [
+        "design-gated",
+        "requires CO-162.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-163",
+      "reasons": [
+        "design-gated",
+        "requires CO-163.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-164",
+      "reasons": [
+        "design-gated",
+        "requires CO-164.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-170",
+      "reasons": [
+        "design-gated",
+        "requires CO-170.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-189",
+      "reasons": [
+        "design-gated",
+        "requires CO-189.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "CO-190",
+      "reasons": [
+        "design-gated",
+        "requires CO-190.prepare: control: reviewed bounded leaf plus dependency/authority receipt; preparation alone is not implementation acceptance"
+      ]
+    },
+    {
+      "id": "AR-3.1.prepare",
+      "reasons": [
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "AR-3.2.prepare",
+      "reasons": [
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "AR-3.3.prepare",
+      "reasons": [
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "AR-3.4.prepare",
+      "reasons": [
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "AR-3.5.prepare",
+      "reasons": [
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "AR-3.6.prepare",
+      "reasons": [
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "AR-3.prepare",
+      "reasons": [
+        "impact I-05"
+      ]
+    },
+    {
+      "id": "CO-112.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-158.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-165.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-169.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-173.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-175.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-001.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-003.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-004.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-005.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-006.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-007.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-008.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-009.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-010.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-011.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-012.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-014.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-015.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-016.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-017.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-018.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-019.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-020.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-022.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-023.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-024.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-025.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-026.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-027.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-029.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-030.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-031.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-032.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-033.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-034.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-035.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-036.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-037.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-038.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-039.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-040.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-043.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-044.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-045.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-050.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-051.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-052.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-053.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-054.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-055.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-056.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-057.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-059.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-060.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-061.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-062.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-063.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-064.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-065.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-066.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-067.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-069.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-070.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-071.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-072.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-073.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-074.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-078.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-080.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-081.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-082.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-083.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-084.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-085.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-086.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-087.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-088.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-089.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-090.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-091.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-092.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-094.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-095.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-097.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-098.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-099.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-100.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-101.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-102.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-103.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-104.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-105.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-106.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-107.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-108.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-109.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-111.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-113.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-114.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-115.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-116.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-117.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-119.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-120.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-121.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-122.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-123.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-124.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-126.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-127.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-128.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-129.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-130.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-131.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-132.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-133.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-134.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-135.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-136.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-137.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-138.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-139.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-140.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-141.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-142.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-143.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-146.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-147.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-148.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-149.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-150.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-151.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-152.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-153.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-154.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-155.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-156.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-157.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-159.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-160.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-162.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-163.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-164.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-170.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-189.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    },
+    {
+      "id": "CO-190.prepare",
+      "reasons": [
+        "design-gated"
+      ]
+    }
+  ]
+}

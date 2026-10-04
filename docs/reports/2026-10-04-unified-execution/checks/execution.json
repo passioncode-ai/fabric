@@ -1,0 +1,47 @@
+{
+  "as_of": "2026-10-04",
+  "source_revision": "41f994a709990ad72621fa834768a8833e7d93e1",
+  "checks": [
+    {
+      "command": "node --test scripts/test/unified-plan.test.mjs",
+      "exit": 0,
+      "tests": 13,
+      "pass": 13,
+      "negative_controls": "absence/coverage/source drift/unpinned source/empty impact/evidence missing or changed/contract invalidation/dependency cycle/unsafe path/human gate"
+    },
+    {
+      "command": "real releaseGateProblems for0.3.1 ledger",
+      "release_ready": false,
+      "problems": [
+        "iteration 2 has not started",
+        "iteration 3 has not started"
+      ]
+    },
+    {
+      "command": "claude --version",
+      "exit": 0,
+      "version": "2.1.289"
+    },
+    {
+      "command": "codex --version",
+      "exit": 0,
+      "version": "0.160.0"
+    },
+    {
+      "command": "pnpm --filter @fabric/desktop exec vitest run src/renderer/src/Onboarding.test.tsx src/renderer/src/onboardingDraft.persist.test.tsx",
+      "executor": "two independent research/review agents",
+      "exit": 0,
+      "files": 2,
+      "tests": 17,
+      "proof_tier": "pure/jsdom; canvas warning retained; NOT native acceptance"
+    }
+  ],
+  "not_run": [
+    "real provider model turn and full N1 matrix",
+    "native AD02 acceptance",
+    "P08 release/install/live migration",
+    "hosted nightly CI",
+    "other products runtime re-acceptance",
+    "visual browser review of changed map: CUA browser inventory empty"
+  ]
+}

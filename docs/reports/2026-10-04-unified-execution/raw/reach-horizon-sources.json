@@ -1,0 +1,292 @@
+{
+  "as_of": "2026-10-04",
+  "source_head": "7b54dbaa7938933d25ef7e4017cb11500add3eba",
+  "method": "Official primary documentation + primary developer issues/forum/release evidence; issue reports are scoped reproduction leads. No external account mutation or native acceptance run.",
+  "sources": [
+    {
+      "id": "RH01",
+      "title": "Cloudflare API rate limits",
+      "url": "https://developers.cloudflare.com/fundamentals/api/reference/limits/",
+      "kind": "official-documentation",
+      "fetched_at": "2026-10-04",
+      "claim": "Global user/account-token allowance 1200 per five minutes; cumulative use; Retry-After and rate-limit headers inform backoff.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH02",
+      "title": "Google Analytics Data API quotas",
+      "url": "https://developers.google.com/analytics/devguides/reporting/data/v1/quotas",
+      "kind": "official-documentation",
+      "fetched_at": "2026-10-04",
+      "claim": "Standard Core property allowance is 40000 tokens/hour; project-property allowance 14000/hour; request returnPropertyQuota=true.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH03",
+      "title": "Search Console usage limits",
+      "url": "https://developers.google.com/webmaster-tools/limits?hl=en",
+      "kind": "official-documentation",
+      "fetched_at": "2026-10-04",
+      "claim": "Load and QPS/QPM quotas are separate; method-specific limits must be read before scheduling.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH04",
+      "title": "CloudEvents specification",
+      "url": "https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md",
+      "kind": "official-specification",
+      "fetched_at": "2026-10-04",
+      "claim": "source plus id identifies an event; event envelope alone does not provide exactly-once effects.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH05",
+      "title": "Temporal external-call idempotency discussion",
+      "url": "https://community.temporal.io/t/activity-external-call-idempotency/7543",
+      "kind": "primary-maintainer-forum",
+      "fetched_at": "2026-10-04",
+      "claim": "Maintainer explains that ambiguous timeout cannot yield exactly-once non-idempotent external actions without result lookup or upstream idempotency.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH06",
+      "title": "Temporal workflow determinism",
+      "url": "https://docs.temporal.io/workflow-definition",
+      "kind": "official-documentation",
+      "fetched_at": "2026-10-04",
+      "claim": "Replay requires deterministic workflow control flow; LLM/API/database calls belong in activities.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH07",
+      "title": "Temporal schedule overlap and catch-up",
+      "url": "https://github.com/temporalio/documentation/blob/main/docs/encyclopedia/workflow/schedule.mdx",
+      "kind": "official-documentation",
+      "fetched_at": "2026-10-04",
+      "claim": "Overlap and catchup-window policies are explicit; paused executions still count as open.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH08",
+      "title": "Postiz license",
+      "url": "https://github.com/gitroomhq/postiz-app/blob/main/LICENSE",
+      "kind": "primary-license",
+      "fetched_at": "2026-10-04",
+      "claim": "Upstream license is AGPLv3; adoption needs a reviewed boundary, not an assumption that IPC automatically settles licensing.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH09",
+      "title": "Postiz releases",
+      "url": "https://github.com/gitroomhq/postiz-app/releases",
+      "kind": "primary-developer-release",
+      "fetched_at": "2026-10-04",
+      "claim": "Developer release notes report pending-post workflow work to avoid duplicates. Pin version and measure behaviour before choosing an adapter.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH10",
+      "title": "Anthropic SDK question demo",
+      "url": "https://github.com/anthropics/claude-agent-sdk-demos/blob/main/ask-user-question-previews/README.md",
+      "kind": "official-example",
+      "fetched_at": "2026-10-04",
+      "claim": "Current official example receives AskUserQuestion through canUseTool; historical CO-025 assertion needs build-specific reconciliation.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH11",
+      "title": "AskUserQuestion empty-answer issue 30983",
+      "url": "https://github.com/anthropics/claude-code/issues/30983",
+      "kind": "primary-developer-issue",
+      "fetched_at": "2026-10-04",
+      "claim": "Reporter reproduces auto-empty answers on SDK 0.2.63; closed as not planned does not prove fix on installed Fabric runner.",
+      "limitations": "Issue report on one build, not independent reproduction or blanket product claim."
+    },
+    {
+      "id": "RH12",
+      "title": "canUseTool timeout issue 470",
+      "url": "https://github.com/anthropics/claude-agent-sdk-typescript/issues/470",
+      "kind": "primary-developer-issue",
+      "fetched_at": "2026-10-04",
+      "claim": "Reporter describes callback watchdog destroying control channel on SDK 0.3.233 / 0.3.260.",
+      "limitations": "Open report; not reproduced in this task and does not assert a defect in Fabric."
+    },
+    {
+      "id": "RH13",
+      "title": "Electron IPC security",
+      "url": "https://github.com/electron/electron/blob/main/docs/tutorial/security.md",
+      "kind": "official-documentation",
+      "fetched_at": "2026-10-04",
+      "claim": "Validate IPC senderFrame; third-party frames can send IPC; renderer isolation is not main-process authorization.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH14",
+      "title": "OAuth for native apps RFC8252",
+      "url": "https://www.rfc-editor.org/info/rfc8252/",
+      "kind": "official-specification",
+      "fetched_at": "2026-10-04",
+      "claim": "Use external browser, PKCE and loopback IP literal for native loopback redirect; bound listener lifetime.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH15",
+      "title": "OWASP SSRF prevention",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html",
+      "kind": "primary-security-guidance",
+      "fetched_at": "2026-10-04",
+      "claim": "Validate target and resolved IP; address redirect and DNS rebinding risks rather than filtering URL text only.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH16",
+      "title": "Supabase RLS",
+      "url": "https://supabase.com/docs/guides/database/postgres/row-level-security",
+      "kind": "official-documentation",
+      "fetched_at": "2026-10-04",
+      "claim": "user_metadata is user-editable; app_metadata safer for authorization; JWT role changes remain stale until refresh.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH17",
+      "title": "WCAG 2.2",
+      "url": "https://www.w3.org/TR/wcag/",
+      "kind": "official-standard",
+      "fetched_at": "2026-10-04",
+      "claim": "Reflow, programmatic status, keyboard/focus and accessible names require meaningful UI acceptance.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH18",
+      "title": "Cedar authorization algorithm",
+      "url": "https://docs.cedarpolicy.com/auth/authorization.html",
+      "kind": "official-documentation",
+      "fetched_at": "2026-10-04",
+      "claim": "Default deny and forbid precedence coexist with skip-on-error; diagnostics can coexist with Allow.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH19",
+      "title": "Restate author explanation",
+      "url": "https://restate.dev/blog/why-we-built-restate",
+      "kind": "primary-author-article",
+      "fetched_at": "2026-10-04",
+      "claim": "Durability persists results but external side-effect attempts can repeat before durable recording.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH20",
+      "title": "Google search spam policies",
+      "url": "https://developers.google.com/search/docs/essentials/spam-policies",
+      "kind": "official-policy",
+      "fetched_at": "2026-10-04",
+      "claim": "Link manipulation and scaled abusive content remain an explicit business-risk activation gate.",
+      "limitations": "External documentation or report is not proof of Fabric runtime acceptance."
+    },
+    {
+      "id": "RH21",
+      "title": "EDPB design/default guidance",
+      "url": "https://www.edpb.europa.eu/sites/default/files/consultation/edpb_guidelines_201904_dataprotection_by_design_and_by_default.pdf",
+      "kind": "regulator-guidance",
+      "fetched_at": "2026-10-04",
+      "claim": "Purpose limitation, minimisation and systematic retention/deletion procedures affect support/member/knowledge design.",
+      "limitations": "Guidance informs a requirements checklist; legal decisions remain open with canonical operator authority."
+    }
+  ],
+  "local_inputs": [
+    {
+      "path": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "sha256": "50a73374b7305a1b092333940b299d1595c33ed63b1d0fd1a41e6a9476b8db51"
+    },
+    {
+      "path": "docs/evidence/backlog.md",
+      "sha256": "8725d7c73d0be3eacbe1ad72d0f418e44c11dff794877c7a53f9a09074988c19"
+    },
+    {
+      "path": "docs/architecture/iterations.md",
+      "sha256": "41808e5dde8e9e5668466f1210c3124a40cb21a9ab1f711aec9e7a760de53c96"
+    },
+    {
+      "path": "docs/architecture/work-producing-agents.md",
+      "sha256": "0c19f2dd68fa4baaea23502486c90f2bf1896e83096f65fe6780586047b4f53e"
+    },
+    {
+      "path": "docs/ux/vision.md",
+      "sha256": "b49ff2c9b4af97b5f4fa56183ee8a703e2e3a607f86c1c368746e95517cc444c"
+    },
+    {
+      "path": "docs/ux/scenarios.md",
+      "sha256": "6c30974330bcf1c654318ede288a683c19f69a8fae5d3efeb3e1ae30e22a88a1"
+    },
+    {
+      "path": "docs/ux/plans/2026-09-12-v1-execution-plan.md",
+      "sha256": "6cc93ae4cc64f1ba9668480da1df0a100317beab6702e04aff12699d1a84f4ed"
+    },
+    {
+      "path": "docs/adr/0023-policy-is-an-embedded-decision-port-that-never-grants-on-uncertainty.md",
+      "sha256": "4bb714d04b48592c113ad625fcc7ffa3ee57793cbbf5f514a080abc1db75e915"
+    },
+    {
+      "path": "docs/adr/0028-one-effects-algebra-and-the-floor-lives-in-the-schema.md",
+      "sha256": "214ca38fb9b3c08cea1a9a242552f8b02f848bd863f68c7e83bf757b7cfeccff"
+    },
+    {
+      "path": "apps/desktop/src/main/policy.ts",
+      "sha256": "7ade55267d8250579d7039b3f253ea7ad8c653b58fab3c7c5448514eb5e83696"
+    },
+    {
+      "path": "docs/architecture/provider-accounts.md",
+      "sha256": "cdedda7e2ec8797c8c4d2a37723c34e32044b6b5e28b3a74764ee7158e1aecc2"
+    },
+    {
+      "path": "docs/audit/2026-09-09-final/packets/M199.acceptance.md",
+      "sha256": "5ff0a0a4b8559ac1122533951dfe3a2ec6a9916c48bcf2f3eaace0bcb19b12a0"
+    },
+    {
+      "path": "apps/desktop/src/main/providerAccounts.ts",
+      "sha256": "25c8ebd91b7fa3321f267d8c989f2dc7ead3b813bb62cffa4819c4e613f4920b"
+    },
+    {
+      "path": "apps/desktop/src/main/switchCoordinator.ts",
+      "sha256": "451981808705743b5781ae643fa331235720489c35f17d877343702165404a6e"
+    }
+  ],
+  "counts": {
+    "external_sources": 21,
+    "horizon_ids": 147,
+    "execution_packets": 10,
+    "roadmap_tracks": 5,
+    "roadmap_ids": 153,
+    "recorded_only_co": 9,
+    "activation_design_co": 138
+  },
+  "validation": {
+    "canonical_lane12_set": "PASS: 147 exact distinct ids",
+    "execution_packets": "PASS: S4 S5 S6 and V1-M1..V1-M7 present",
+    "roadmap": "PASS: 153 distinct named M rows / 5 tracks; historical count154 not copied",
+    "source_ids": "PASS: all packet source refs resolve to 21 primary sources",
+    "scope_files": "PASS: all exact source/scope paths exist",
+    "canonical_receipts": "PASS: every horizon/M row points to line containing its id",
+    "report_links": "PASS: all local Markdown targets resolve",
+    "limitations": "No product tests/provider/native/live effects performed",
+    "cold_context_samples": "PASS: CO112/CO059 exact source/code/payload/negative/DoD; S4 explicit source directives and observation envelope",
+    "closed_CO079": "PASS: not a horizon packet; Accepted ADR0023/0028 preserved, full-context remainder CO059"
+  },
+  "corrections": [
+    {
+      "subject": "Cedar scope",
+      "closed_id": "CO-079",
+      "source": "docs/adr/0023-policy-is-an-embedded-decision-port-that-never-grants-on-uncertainty.md",
+      "corrected_impact": "Accepted engine/indeterminate semantics already exist; external skip-on-error evidence belongs to OPEN CO-059 full-context integration verification, not engine choice/reopening."
+    },
+    {
+      "subject": "Cold context sample review",
+      "ids": [
+        "CO-112",
+        "CO-059",
+        "S4"
+      ],
+      "result": "Exact owning design/ADR/code files, source directives, payload shape/dependencies, steps and negative controls expanded."
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "schema_version": "execution-packet/1",
+  "node": "N-005",
+  "id": "CO-182",
+  "intent": "Design disposable-stack ownership for the two manual native/handshake probes",
+  "inputs": [
+    {
+      "address": "docs/evidence/backlog.md",
+      "sha256": "3135378f808cca85b5408b13f54159b8e6818ab2d7f9258eef7f25644a17d608"
+    },
+    {
+      "address": "docs/launch/release-mac.md",
+      "sha256": "0d1199c31496de494531a0634916baf44073a97f750d3b291dceda5868ef5000"
+    },
+    {
+      "address": "docs/evidence/plans/2026-10-04-hub-verification.md",
+      "sha256": "7d00a8b7fd4fd1e216c91c4fe8cf821d8c178501e28a251abd21e362696d11aa"
+    },
+    {
+      "address": "docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md",
+      "sha256": "6fe81aee78d064078bd93640752c87c6acd5e8bae92c16b3f06ebd4c75efcb99"
+    },
+    {
+      "address": "docs/evidence/specs/2026-08-16-software-fabric-carryover.md",
+      "sha256": "50a73374b7305a1b092333940b299d1595c33ed63b1d0fd1a41e6a9476b8db51"
+    },
+    {
+      "address": "apps/desktop/test/chat-activation-native.test.mjs",
+      "sha256": "d1cf29302931c8a5268dc380bf27e48b01e2b027930e60ff1fdf71e7ae183a18"
+    },
+    {
+      "address": "apps/desktop/test/handshake-e2e.test.mjs",
+      "sha256": "0fd402ce71edc795d66926edb2e7c8241f4b9e9536c6733c4d33a0f89f444278"
+    },
+    {
+      "address": "scripts/test-stack.mjs",
+      "sha256": "3dfbdcb1c3fbe0847f2c4fd9691d48b941f349281e10c7dd63d8a96346f6c2b5"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/CO-182.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/CO-182.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "Cold leaf names exact producer/consumer environment, owned native userData, disposable project/ports/DB, teardown and refusal of live stack.",
+    "Both probe files remain NOT_RUN until owned native harness exists; no test data is written to operator estate."
+  ],
+  "guards": [
+    "Stop on stale digest, changed upstream contract, missing receipt or required authority."
+  ],
+  "resume": "Fetch source refs, acquire own lease, inspect exact upstream receipt and first missing check."
+}

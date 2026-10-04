@@ -1,0 +1,74 @@
+{
+  "schema_version": "execution-packet/1",
+  "node": "N-110",
+  "id": "M183.local",
+  "intent": "Implement M183.local canonical manager-loop task without expanding authority",
+  "inputs": [
+    {
+      "address": "CONTEXT.md",
+      "sha256": "216b4729418f21afeafb057227b2f802725e306f3586a05c1c3c38a270568fb5"
+    },
+    {
+      "address": "docs/architecture/system-contract.md",
+      "sha256": "7daf5121cb7ecc0f8ba771053a0f45f6191268c3bfaf752e083e112fdbce65bc"
+    },
+    {
+      "address": "docs/evidence/backlog.md",
+      "sha256": "3135378f808cca85b5408b13f54159b8e6818ab2d7f9258eef7f25644a17d608"
+    },
+    {
+      "address": "docs/AGENT_SYNC.md",
+      "sha256": "0de6ecfd0a80f9a1090d031e5b0b46ec8ef12295ec77149da7016a20b3ace641"
+    },
+    {
+      "address": "docs/reports/system.html",
+      "sha256": "a542d264e930c6cbcc4c6dba2bdfc3a3b50c9efb8be27733723f365825106575"
+    },
+    {
+      "address": "docs/ux/vision.md",
+      "sha256": "b49ff2c9b4af97b5f4fa56183ee8a703e2e3a607f86c1c368746e95517cc444c"
+    }
+  ],
+  "decision_refs": [
+    {
+      "address": "docs/adr/0101-the-general-development-plan.md",
+      "sha256": "892bc6996986a927fca13e065c5151ca928de62aff4a9e9bb59c2238daa71c4d"
+    }
+  ],
+  "source_scope": {
+    "edit_targets": [
+      "docs/evidence/plans/unified-leaves/M183.local.review.json"
+    ]
+  },
+  "outputs": [
+    {
+      "path": "docs/evidence/plans/unified-leaves/M183.local.review.json",
+      "contract": "bounded leaf or explicit refusal, not canonical completion"
+    }
+  ],
+  "acceptance": [
+    "objective demonstrably delivered by named receipts at exact SHA",
+    "all negative controls fail the planted defect and pass final implementation",
+    "canonical owning status updated under lease only after evidence; no duplicate delivery status in this research",
+    "tracked handoff names open gates and next task; branch pushed under repository policy",
+    {
+      "positive_and_negative_controls": [
+        "Execute each named positive/negative fixture in embedded canonical task card.",
+        "Foreign scope, superseded citation, changed grant/policy, replay and cancellation around commit each tested.",
+        "No-basis settlement and agent self-application refused even at highest trust."
+      ],
+      "required_delivery_checks": [
+        "run module-specific meaningful tests; record exact command/exit/SHA",
+        "update scenarios/flows/model for user-facing work; code region refs; fast CI and map gates before commit",
+        "native/provider/browser acceptance separately named; skipped checks remain NOT_RUN"
+      ]
+    }
+  ],
+  "guards": [
+    "missing authority, source policy, capability or schema contract: stop effect and report typed blocker",
+    "unknown outcome: reconcile stable command/effect id before retry",
+    "unrelated agent work/file claim: do not overwrite; send finding to lead",
+    "Stop before implementation until a bounded leaf and upstream acceptance/authority are approved; a planning dependency is not a completion receipt."
+  ],
+  "resume": "Read this packet and its pinned canonical sources; verify trigger, dependency receipts and authority; produce one bounded follow-on leaf before code."
+}
