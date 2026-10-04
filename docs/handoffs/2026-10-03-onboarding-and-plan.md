@@ -78,14 +78,15 @@ copy; fabric#4 and fabric#5 verified on the released build and closed.
 2. **P-06.1 and P-07.1** ([ADR-0109](../adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md),
    [spec](../evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md)): the learning loop's data
    model and the `fabric://` door.
-3. **The other products' lifecycle PRs**, each recorded in its own board (2026-10-04 sweep): dashboards
-   #21 (FD-03), inbox #12 (B-46, conflicts with `main`), okolos #11 (B-136, mergeable), vr #9 (B-272,
-   conflicts with `main`), switchboard #23 (SB-27), adapter #28 (FAA-01, rebase onto 0.6.3), launcher #30
-   (PC-03, renumber to 0.1.28). On each rebase keep `main`'s board rows.
+3. **The lifecycle PRs have landed in every product** (2026-10-04, with each repository's full gate green):
+   adapter #28 `88308f3`, launcher #30 `78f83cb`, switchboard #23 `f0b8d7f`, dashboards #21 `56eccde`,
+   okolos #11 `abf77b5`, inbox #12 `dc532a0`, vr #9 `3d6179f`. The merged branches are deleted. Three
+   releases are waiting for the release flow and the operator's approval: adapter 0.7.0 (FAA-06), then
+   launcher 0.1.28 (PC-11) with the adapter re-pinned (PC-10), and switchboard `v0.5.4-beta.1` (SB-34).
+   Okolos: the feed agent is installed (B-138); snapshot v54 is committed (B-139), and the snapshot's
+   14-day limit now falls on 2026-10-18.
 4. The broker's `backgroundLaunch` enrolment for Fabric is BL-1077 in sshlg-personal-os (awaits the
    operator's go).
-5. **okolos B-139** has a deadline: a fresh feed snapshot must be committed before 2026-10-13T11:42Z, or
-   `pnpm package:check` fails in CI.
 
 ### Backlog consolidation, 2026-10-04 — where each board lives
 
