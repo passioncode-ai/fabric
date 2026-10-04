@@ -1,0 +1,34 @@
+✔ real research inputs compile all manifest sources, keep 14 COM rows held and preserve the dated input (5121.251583ms)
+ℹ {"canonical_rows":557,"COM_rows":14,"source_pins":70,"derived_records":894,"ready":0}
+✔ a changed canonical source cannot be assigned the old immutable revision (937.261459ms)
+✔ private input sentinel is refused before writing and never echoed into diagnostics (1522.87ms)
+✔ private metadata remains in its owning source and cannot be copied through a full research packet (1398.128958ms)
+✔ recompilation refuses to overwrite an existing cut or the historical input directory (491.054417ms)
+✔ missing or locally changed pinned common parser stops compilation (600.252167ms)
+✔ complete packet preserves program constraints and exact leaf context (68.426667ms)
+✔ omitted canonical work cannot pass the coverage gate (65.393125ms)
+✔ changed source blocks a previously complete packet (64.189667ms)
+✔ every context source is pinned; an untargeted blocking finding is refused (66.651667ms)
+✔ blocking finding stops only its affected task until explicitly resolved (51.878334ms)
+✔ cycles, missing payloads and unknown dependencies are refused (95.960292ms)
+✔ unknown impact targets, path escape and empty cold context are refused (63.619291ms)
+✔ external owner and human gate do not become runnable with a delivered message (50.062708ms)
+✔ canonical priority precedes computed downstream count; dependency requires done proof (52.799708ms)
+✔ a missing or changed completion receipt fails validation (95.85475ms)
+✔ a new blocking impact invalidates completed prerequisite satisfaction (50.66425ms)
+✔ write scope cannot escape the repo directly or through a linked parent (76.655292ms)
+✔ a broad unreviewed parent cannot be promoted to candidate by dropping dependencies (75.801625ms)
+✔ a newly declared canonical source cannot hide outside the general-plan lanes (62.886916ms)
+✔ source pins cannot substitute a different or forged immutable commit (54.905333ms)
+✔ identical IDs in different canonical files retain both owner identities (122.887416ms)
+✔ held canonical source references cannot become executable by removing dependencies (60.677ms)
+✔ one current pointer selects only a report path and explicit selection stays reproducible (49.20425ms)
+✔ privacy diagnostics redact matching source paths without echoing a private literal (0.297833ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10127.949916

@@ -1,0 +1,154 @@
+{
+  "candidate": "8babdd15afca8afb04e1860eaa3db6abbd8a5341",
+  "pinnedParser": "898a3cb4af9bd9dfa8b507fce28bdb008295596c",
+  "fixtureRevision": "b08902dc08c8074383273edd0946e398b58da620",
+  "results": [
+    {
+      "name": "production-parser-compile",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 18 held/dispatch/design records, 15 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "baseline-validation",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "PASS: 1 lanes, 18 packets; sources, coverage, dependencies and impacts valid\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "all-15-source-qualified-COM-rows",
+      "observed": 15,
+      "expected": 15,
+      "matched": true
+    },
+    {
+      "name": "colliding-COM-01-has-two-keys",
+      "observed": 2,
+      "expected": 2,
+      "matched": true
+    },
+    {
+      "name": "all-input-pins-use-committed-revision",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "inherited-candidate-and-done-held",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "empty-frontier-stays-held",
+      "observed": 0,
+      "expected": 0,
+      "matched": true
+    },
+    {
+      "name": "omitted-COM-row-rejected",
+      "observed": true,
+      "expected": true,
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "uncovered canonical task: COM-14 (docs/evidence/communication.md)\n"
+      }
+    },
+    {
+      "name": "historical-proof-repromoted-candidate",
+      "observed": false,
+      "expected": true,
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "PASS: 1 lanes, 18 packets; sources, coverage, dependencies and impacts valid\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "historical-proof-repromoted-done",
+      "observed": false,
+      "expected": true,
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "PASS: 1 lanes, 18 packets; sources, coverage, dependencies and impacts valid\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "historical-proof-rebound-to-current",
+      "observed": false,
+      "expected": true,
+      "matched": false,
+      "detail": {
+        "exit": 0,
+        "stdout": "PASS: 1 lanes, 18 packets; sources, coverage, dependencies and impacts valid\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "wrong-pin-revision-rejected",
+      "observed": true,
+      "expected": true,
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "source revision mismatch: docs/adr/0101-the-general-development-plan.md\n"
+      }
+    },
+    {
+      "name": "research-byte-drift-rejected",
+      "observed": true,
+      "expected": true,
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "source changed: docs/reports/2026-10-04-unified-execution/packets/start-adoption.json\n"
+      }
+    },
+    {
+      "name": "pointer-status-authority-rejected",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "pointer-path-escape-rejected",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "dirty-input-compile-rejected",
+      "observed": true,
+      "expected": true,
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "invalid current plan pointer; it contains only schema and report path\nTraceback (most recent call last):\n  File \"/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-independent-compiler-PdMMKx/scripts/build-unified-plan.py\", line 286, in <module>\n    main()\n    ~~~~^^\n  File \"/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-independent-compiler-PdMMKx/scripts/build-unified-plan.py\", line 57, in main\n    inventory = json.loads(subprocess.check_output(inventory_command, cwd=ROOT, text=True))\n                           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py\", line 473, in check_output\n    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,\n           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n               **kwargs).stdout\n               ^^^^^^^^^\n  File \"/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py\", line 578, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['node', '/private/var/folders/3r/yrdx_c051cv22q3r3k0ylvdm0000gn/T/fabric-independent-compiler-PdMMKx/scripts/unified-plan.mjs', 'inventory', '--source-revision', 'b08902dc08c8074383273edd0946e398b58da620', '--privacy-deny-file', 'privacy.local.json']' returned non-zero exit status 1.\n"
+      }
+    },
+    {
+      "name": "dirty-rejection-before-output",
+      "observed": false,
+      "expected": false,
+      "matched": true
+    }
+  ]
+}
