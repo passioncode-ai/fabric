@@ -9,7 +9,7 @@
   "prerequisite_deviation": "Root explicitly authorizes reversible isolated source preparation while AD02 remains blocked/pure; canonical dispatch/integration/closure remains held.",
   "source_pins": {
     "apps/desktop/src/renderer/src/Onboarding.tsx": "b152cd298affbde9333f197fd74a750c030a35d3835cd94e897006830d5697e1",
-    "apps/desktop/src/renderer/src/Onboarding.launch.css": "1280ed94ab47a8874f22bbe8459911f787e7ca931475f080c9bc4b0c7dc17cd9"
+    "apps/desktop/src/renderer/src/Onboarding.launch.css": "b39754425565bd044447ca47db30ead128538c414d850a0fbc88ad7dbd5ed1fc"
   },
   "checks": [
     {
@@ -86,6 +86,20 @@
     "candidate_revision": "d454dc7dd6e0774281e8ad4653d00e43c8415ebe",
     "fixture_revision": "07b4626dec8d0713433ce60c4b34b06284e43544",
     "visual_judgment": "held-suspected-lede-overflow-RU-long-repo-760; geometry-and-correction-pending",
-    "source_frozen_until_measured_root_cause": true
+    "source_frozen_until_measured_root_cause": true,
+    "valid_pairs_after_review": 6
+  },
+  "correction_iteration_1": {
+    "status": "source-authored-geometry-recheck-pending",
+    "horizontal_overflow_hypothesis": "disproved by991 host measured all scroll widths equal client widths",
+    "confirmed_problem": "Narrow block workbench lets app-main exceed clipped window and provides no internal scroll extent",
+    "scope": "existing<=768 breakpoint only, workbench:has(.onboarding-launch) column flex, sidebar flex none, main flexible/min-height0",
+    "focused_test_exit": 0,
+    "focused_tests": 17,
+    "focused_duration_seconds": 6.38,
+    "build_exit": 0,
+    "design_exit": 0,
+    "regions_exit": 0,
+    "geometry_index": "2026-10-04-onboarding-visual-geometry/index.json"
   }
 }

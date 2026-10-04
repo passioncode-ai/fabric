@@ -529,5 +529,15 @@
       "receipt": "after-long-repos-ru-760x1000.json",
       "image": "after-long-repos-ru-760x1000.png"
     }
-  ]
+  ],
+  "review": {
+    "all_pngs_visually_inspected": true,
+    "invalid_onboarding_frame_ids": [
+      "before-balanced-en-640x900",
+      "before-balanced-en-960x900"
+    ],
+    "invalid_reason": "Capture race: actual PNG is FirstRun or EstateHome while later probe sees Onboarding.",
+    "valid_initial_pairs": 6,
+    "visual_acceptance": "HELD-suspected-RU760-lede-overflow-awaiting-geometry"
+  }
 }

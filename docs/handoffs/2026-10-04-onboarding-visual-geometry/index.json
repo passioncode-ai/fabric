@@ -1,0 +1,55 @@
+{
+  "tier": "source-bound-hidden-test-host-layout-measurement-not-native-UI-acceptance",
+  "entries": [
+    {
+      "receipt": "before-long-repos-ru-760x1000.json",
+      "image": "before-long-repos-ru-760x1000.png",
+      "fixture_host_revision": "991524a368158a063a99c048685b246573971f34",
+      "source_revision": "991524a368158a063a99c048685b246573971f34",
+      "capture": {
+        "file": "page.png",
+        "sha256": "2859ff72418a150bc1531c9d1d8fd64e27617c0059c23954063d9ec672e8b7ba",
+        "bytes": 229023,
+        "pixels": {
+          "width": 1520,
+          "height": 2000
+        },
+        "configuredContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "actualContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      }
+    },
+    {
+      "receipt": "initial-long-repos-ru-760x1000.json",
+      "image": "initial-long-repos-ru-760x1000.png",
+      "fixture_host_revision": "991524a368158a063a99c048685b246573971f34",
+      "source_revision": "08432cba75a1e1627ae60945d58ce906df17bb8c",
+      "capture": {
+        "file": "page.png",
+        "sha256": "79428a3c50543a1edcc799e2f8dd3c6634e9ecf1407cf0e1229bdb02ba24a10b",
+        "bytes": 222297,
+        "pixels": {
+          "width": 1520,
+          "height": 2000
+        },
+        "configuredContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "actualContentSize": {
+          "width": 760,
+          "height": 1000
+        },
+        "tier": "source-bound-rendering-evidence",
+        "timing": "initial form before synthetic bridge probes"
+      }
+    }
+  ]
+}

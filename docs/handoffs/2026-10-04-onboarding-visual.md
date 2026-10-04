@@ -129,6 +129,15 @@ scroll reachability, keyboard/AX/VoiceOver, busy/refusal/left-on-disk rendering
 or 200% text coverage. The real runner menu excludes the program-null terminal
 and keeps Codex unavailable; the probe asserts those outcomes.
 
+All 16 initial PNGs were actually inspected. Two before captures are invalid
+Onboarding comparisons: `before-balanced-en-640x900` shows FirstRun and
+`before-balanced-en-960x900` shows EstateHome, despite later `probe.initial`
+reporting the form. There are six valid initial pairs, not eight. This is a
+test-capture timing race, reported immediately to the fixture owner and root.
+The next host must verify the expected stable form and draft tabs at the capture
+boundary, before and after capture; the initial PNGs and raw receipts remain
+unchanged historical evidence of that failure.
+
 Visual review found a suspected right-edge lede overflow in the initial
 long-repository RU760 candidate. This observation rejects visual completion
 pending a bounded read-only geometry probe and local repair. Root authorized
@@ -140,6 +149,33 @@ Existing accessibility association seam, independently reported upstream:
 and does not assign `aria-describedby` on its select. `Field.tsx:20–22,25–35`
 provides that argument and hint ID. It predates the candidate and remains
 unchanged here; root owns the bounded association fix and fresh native checks.
+
+## Measured correction plan — iteration 1
+
+The two [RU760 geometry receipts](2026-10-04-onboarding-visual-geometry/)
+use exact fixture host `991524a368158a063a99c048685b246573971f34` and fresh
+fixtures. Both PNGs were inspected and show the expected actual form. Geometry
+**disproves** the suspected horizontal lede overflow: all measured document,
+main, content, form and row scroll widths equal their client widths; the lede's
+right edge is728 within the760 client. No horizontal wrapping patch is justified.
+
+It instead exposes an existing narrow-layout scroll containment defect. At the
+existing <=768 launch breakpoint, the workbench becomes `display:block`.
+The real `.app-main` grows with content rather than occupying the remaining
+window: baseline y164.78125/height1057.75/bottom1222.53125; initial candidate
+y164.78125/height1152.0625/bottom1316.84375, against1000 client height. Its
+scrollHeight equals clientHeight, so the extra content does not create a scroll
+extent inside that intended scroller. The root clips its overflow. This prevents
+the required lower controls from being reached at that width.
+
+Root authorized bounded correction. Before editing: retain the existing768
+breakpoint, and only for a workbench containing `.onboarding-launch`, use a
+column flex frame, fixed-size sidebar region and flexible/min-height0 app-main.
+The existing `.app-main` remains the sole scroller. No global launch/theme rule,
+native control, executable form logic, copy or canonical map is changed. Verify
+actual resulting main bounds/scroll extent using the hardened state-boundary
+host, repeat the same matrix and inspect real PNGs. Initial receipts remain
+historical; root independently accepts native interaction after convergence.
 
 Root's exact next task is to combine the final pushed candidate
 with the independently pushed bounded fixture, build fresh artifacts, perform

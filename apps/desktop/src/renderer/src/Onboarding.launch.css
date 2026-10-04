@@ -162,3 +162,22 @@
   padding-top: var(--space-4);
   border-top: 1px solid var(--app-line);
 }
+
+/* Launch's narrow block frame otherwise grows past the clipped app window.
+ * Keep the existing sole app-main scroller, bounded to the remaining height.
+ * This ancestor projection applies only while this form is the active view. */
+@media (max-width: 768px) {
+  .launch-root .workbench:has(.onboarding-launch) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .launch-root .workbench:has(.onboarding-launch) > .app-sidebar {
+    flex: none;
+  }
+
+  .launch-root .workbench:has(.onboarding-launch) > .app-main {
+    flex: 1;
+    min-height: 0;
+  }
+}
