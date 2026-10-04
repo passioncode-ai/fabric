@@ -1,0 +1,56 @@
+{
+  "model_only": true,
+  "mutant": "none",
+  "passed": 12,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "generation CAS fences delayed former owner",
+      "passed": true
+    },
+    {
+      "case": "claim UUID fences same-generation reclaim",
+      "passed": true
+    },
+    {
+      "case": "DB clock expiry fences delayed dispatch",
+      "passed": true
+    },
+    {
+      "case": "former worker resumed through completion is refused",
+      "passed": true
+    },
+    {
+      "case": "replacement cannot reissue an already begun effect",
+      "passed": true
+    },
+    {
+      "case": "cancel before/after begin preserves distinct effect facts",
+      "passed": true
+    },
+    {
+      "case": "lost receipt and provider replacement replay one logical command",
+      "passed": true
+    },
+    {
+      "case": "retired namespace floor prevents resend after compaction",
+      "passed": true
+    },
+    {
+      "case": "unknown retained across time and fresh-key pressure",
+      "passed": true
+    },
+    {
+      "case": "restored historical consumer never grants live dispatch",
+      "passed": true
+    },
+    {
+      "case": "participant feed is dense and omits foreign metadata",
+      "passed": true
+    },
+    {
+      "case": "fetch is not read ACK/agent acceptance/effect completion",
+      "passed": true
+    }
+  ]
+}

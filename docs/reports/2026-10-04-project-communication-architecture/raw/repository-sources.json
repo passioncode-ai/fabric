@@ -1,0 +1,1321 @@
+{
+  "retrieved_at": "2026-10-04T14:16:13.586266+00:00",
+  "files": [
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "packages/journal/src/index.ts",
+      "sha256": "4d620477f1567a25535a86f933d5937850091deb430f5f25b5a6df13f76f3e31",
+      "matches": [
+        {
+          "line": 2,
+          "text": "// append() is the only write path (it calls the append_event RPC, the single"
+        },
+        {
+          "line": 3,
+          "text": "// writer); replay() reads the journal table \u2014 Realtime, when it arrives, is a"
+        },
+        {
+          "line": 7,
+          "text": "// Migration 7 gives append_event a `lock_timeout`, so a writer that cannot get"
+        },
+        {
+          "line": 8,
+          "text": "// the per-estate lock fails with 55P03 instead of waiting forever (measured"
+        },
+        {
+          "line": 49,
+          "text": "replay(estateId: string, fromSeq: number, limit?: number): Promise<JournalEvent[]>"
+        },
+        {
+          "line": 67,
+          "text": "export const LOCK_NOT_AVAILABLE = '55P03'"
+        },
+        {
+          "line": 87,
+          "text": "const { data, error } = await db.rpc('append_event', {"
+        },
+        {
+          "line": 100,
+          "text": "throw new Error(`append_event(${e.type}) failed: ${error.message}`)"
+        },
+        {
+          "line": 109,
+          "text": "`append_event(${e.type}) gave up after ${maxAttempts} attempts contending ` +"
+        },
+        {
+          "line": 114,
+          "text": "async replay(estateId: string, fromSeq: number, limit = 500): Promise<JournalEvent[]> {"
+        },
+        {
+          "line": 122,
+          "text": "if (error) throw new Error(`journal replay failed: ${error.message}`)"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "apps/desktop/src/shared/scope.ts",
+      "sha256": "a88bf5e35fb0765f9ed289b46e2f69ec61491d3b7681ff2bf882149f249f5b36",
+      "matches": [
+        {
+          "line": 58,
+          "text": "| { private: string }"
+        },
+        {
+          "line": 70,
+          "text": "export const TABLE_SCOPE: Record<string, TableScope> = {"
+        },
+        {
+          "line": 71,
+          "text": "estate_restore_boundaries: { private: 'protected restore provenance; dedicated current-membership-authorized reader only' },"
+        },
+        {
+          "line": 72,
+          "text": "ceo_conversations: { private: 'private Person/subject identity; dedicated CEO authorization only' },"
+        },
+        {
+          "line": 73,
+          "text": "ceo_private_contents: { private: 'immutable private discussion; dedicated owner-authorized reader only' },"
+        },
+        {
+          "line": 74,
+          "text": "ceo_messages: { private: 'private ordered message identities; dedicated CEO reader only' },"
+        },
+        {
+          "line": 75,
+          "text": "ceo_operations: { private: 'private canonical intent and receipt; dedicated CEO commands only' },"
+        },
+        {
+          "line": 76,
+          "text": "ceo_pending_requests: { private: 'private pending input, not execution authority; dedicated CEO commands only' },"
+        },
+        {
+          "line": 77,
+          "text": "ceo_receipt_refs: { private: 'opaque replay projection; journal is the permitted public receipt surface' },"
+        },
+        {
+          "line": 78,
+          "text": "ceo_write_authorizations: { private: 'transaction-only authorization; no generic reader or writer' },"
+        },
+        {
+          "line": 79,
+          "text": "declared_import_authorizations: { private: 'transaction-only exemption of import_declared_snapshot from the agent-name rule (migration 73); no generic reader or writer' },"
+        },
+        {
+          "line": 80,
+          "text": "ceo_private_import_receipts: { private: 'one Person\\'s private import receipt; dedicated owner-authorized receipt reader only' },"
+        },
+        {
+          "line": 81,
+          "text": "ceo_content_provenance: { private: 'where one Person\\'s imported text came from; written by the import command, read by the private export only' },"
+        },
+        {
+          "line": 116,
+          "text": "transcript_recovery_authorizations: { private: 'transaction-only authorization for recover_transcript; no generic reader or writer' },"
+        },
+        {
+          "line": 166,
+          "text": "`\\`${table}\\` has no entry in TABLE_SCOPE, so there is no way to narrow it to one estate. ` +"
+        },
+        {
+          "line": 175,
+          "text": "const policy = TABLE_SCOPE[table]"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "apps/desktop/src/main/scopedStore.ts",
+      "sha256": "0db4e2002f715968a42937fccb722e2c3c0a55fed0121508b43472f448fb698e",
+      "matches": [
+        {
+          "line": 35,
+          "text": "export function createScopedStore(db: SupabaseClient, scope: Scope) {"
+        },
+        {
+          "line": 114,
+          "text": "async selectAll<Table extends string, Columns extends string>("
+        },
+        {
+          "line": 199,
+          "text": "return createScopedStore(db, { kind: 'project', estateId: parent.estateId, projectId })"
+        },
+        {
+          "line": 202,
+          "text": "export type ScopedStore = ReturnType<typeof createScopedStore>"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "apps/desktop/src/main/agentSurface.ts",
+      "sha256": "b5f7315ba6ea9ea023fc2ed30288f8475b8f4cd2ed4b72e2647ebfcdd608e4e4",
+      "matches": [
+        {
+          "line": 185,
+          "text": "export interface AgentScope {"
+        },
+        {
+          "line": 200,
+          "text": "/** How long a minted credential may sit before its session initialises. */"
+        },
+        {
+          "line": 242,
+          "text": "access: Pick<AccessService, 'authenticate' | 'primeCredentialVerifiers' | 'knownCredential'>"
+        },
+        {
+          "line": 262,
+          "text": "mintedAt: number"
+        },
+        {
+          "line": 343,
+          "text": "await this.deps.hub?.access.primeCredentialVerifiers()"
+        },
+        {
+          "line": 414,
+          "text": "mint(projectId: string, sessionId: string, taskId: string | null): AgentScope {"
+        },
+        {
+          "line": 425,
+          "text": "mintedAt: now,"
+        },
+        {
+          "line": 520,
+          "text": "// A credential minted for a session that never arrived is not a credential"
+        },
+        {
+          "line": 523,
+          "text": "if (st.claimedAt === null && now - st.mintedAt > this.limits.claimWindowMs) {"
+        },
+        {
+          "line": 601,
+          "text": "const mcp = this.serverFor(st.scope)"
+        },
+        {
+          "line": 603,
+          "text": "// goes out. Letting the transport mint it meant `st.transport` and"
+        },
+        {
+          "line": 908,
+          "text": "private serverFor(scope: AgentScope): McpServer {"
+        },
+        {
+          "line": 914,
+          "text": "// was minted for, and a tool added tomorrow inherits the boundary instead of"
+        },
+        {
+          "line": 2077,
+          "text": "// The credential-scoped store built at the top of `serverFor`: the lookup is"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "apps/desktop/src/main/accessService.ts",
+      "sha256": "2f9970c001859e56ab8a8f26b6360f1ad5718711e977d959eb1bde852afc6571",
+      "matches": [
+        {
+          "line": 125,
+          "text": "/** Prime rate-limit hints once at hub start. These are never authority: authenticate still reads live state. */"
+        },
+        {
+          "line": 126,
+          "text": "async primeCredentialVerifiers(): Promise<void> {"
+        },
+        {
+          "line": 134,
+          "text": "knownCredential(credential: string): boolean {"
+        },
+        {
+          "line": 138,
+          "text": "/** The binding a presented credential names, or null. A revoked binding authenticates nothing. */"
+        },
+        {
+          "line": 139,
+          "text": "async authenticate(credential: string): Promise<BindingRow | null> {"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "apps/desktop/src/main/hubCall.ts",
+      "sha256": "f0af9012125709481e068018f97dda02d6752d8c3fb3ca61fe7c512295da2625",
+      "matches": [
+        {
+          "line": 1,
+          "text": "// #region hub-call \u2014 docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#5-every-forwarded-call-is-narrowed-twice"
+        },
+        {
+          "line": 11,
+          "text": "//   5. the call is forwarded narrowed to the granted mailboxes (`X-Fabric-Accounts`), or \u2014 a workspace"
+        },
+        {
+          "line": 13,
+          "text": "//      thing's own fields plus each extra (`create_address.forward_to`, \u2026) granted for that address;"
+        },
+        {
+          "line": 14,
+          "text": "//   6. one journal span per hop (`hub.call.forwarded@1`), a child of the caller's `_meta.traceparent`,"
+        },
+        {
+          "line": 30,
+          "text": "// before forwarding (no grant yet, not connected, no key, a caller gone before the forward) is forgotten"
+        },
+        {
+          "line": 31,
+          "text": "// and re-decided on the retry (security review of PR #7, finding 5). A forward that provably sent nothing"
+        },
+        {
+          "line": 34,
+          "text": "// the call went out, and a forwarder that does not say \u2014 MAY HAVE RUN: it is answered `outcome-unknown`,"
+        },
+        {
+          "line": 47,
+          "text": "// remain and the binding is retired permanently (`forgetBinding`, called after durable revocation)."
+        },
+        {
+          "line": 57,
+          "text": "// A CALLER THAT HANGS UP stops the hop (ER-13): the MCP request's signal reaches the forward, nothing is"
+        },
+        {
+          "line": 98,
+          "text": "forward: (req: ForwardRequest) => Promise<ForwardAnswer>"
+        },
+        {
+          "line": 169,
+          "text": "/** The agent's sentence for a forward that provably sent nothing (ER-11): fixed per code, never the product's text. */"
+        },
+        {
+          "line": 207,
+          "text": "await deps.store.append('hub.call.forwarded@1', HUB_ACTOR, fields)"
+        },
+        {
+          "line": 235,
+          "text": "{ claim: `what ${input.callee} did`, reason: 'Fabric forwarded the call and carries the product\\'s answer; it did not observe the effect itself' },"
+        },
+        {
+          "line": 249,
+          "text": "* decided again (grants, connection) and, where it would have been forwarded, answered from memory."
+        },
+        {
+          "line": 276,
+          "text": "// A forward or result-processing exception proves no absence of effect. Never expose its raw"
+        },
+        {
+          "line": 278,
+          "text": "ops.failed('hub.call', effect.mayHaveRun ? new Error('forward or product answer processing failed') : e, { callee: args.agentId, capability: args.capability })"
+        },
+        {
+          "line": 288,
+          "text": "/** A caller that hung up before the forward: nothing left Fabric, so the key is forgotten. */"
+        },
+        {
+          "line": 340,
+          "text": "// exact connection whose credential was read, immediately before entering the forwarder."
+        },
+        {
+          "line": 356,
+          "text": "const forwarded = await deps.forward({"
+        },
+        {
+          "line": 361,
+          "text": "if (!forwarded.ok) {"
+        },
+        {
+          "line": 362,
+          "text": "effect.mayHaveRun = forwarded.reached !== false"
+        },
+        {
+          "line": 363,
+          "text": "const productText = logLine(scrubProductText(forwarded.message, secret.value, connection.client_id))"
+        },
+        {
+          "line": 364,
+          "text": "// A forwarder that does not say whether the call left Fabric is read as \"it may have\" \u2014 fail closed."
+        },
+        {
+          "line": 365,
+          "text": "const mayHaveRun = forwarded.reached !== false"
+        },
+        {
+          "line": 366,
+          "text": "const hungUp = forwarded.code === 'cancelled' || signal?.aborted === true"
+        },
+        {
+          "line": 368,
+          "text": "...base, outcome: hungUp ? 'cancelled' : 'failed', error_code: mayHaveRun ? 'outcome-unknown' : forwarded.code,"
+        },
+        {
+          "line": 369,
+          "text": "grant_ids: cover.grantIds, narrowing: narrowing ?? 'workspace', wall_ms: forwarded.wallMs"
+        },
+        {
+          "line": 371,
+          "text": "ops.record({ op: 'hub.call', outcome: 'failed', level: 'warn', detail: { callee: args.agentId, capability: args.capability, code: forwarded.code, may_have_run: mayHaveRun, product_said: productText, span_written: written }, ctx: { correlationId: ops.correlate() } })"
+        },
+        {
+          "line": 372,
+          "text": "if (mayHaveRun) return { answer: outcomeUnknown(args.agentId, args.capability, hungUp ? 'cancelled' : forwarded.code), keep: 'unknown' }"
+        },
+        {
+          "line": 375,
+          "text": "return before(refusal(forwarded.code, notSent(forwarded.code, args.agentId, args.capability), { mayHaveRun: false }))"
+        },
+        {
+          "line": 379,
+          "text": "const output = forwarded.result.isError"
+        },
+        {
+          "line": 381,
+          "text": ": boundedProductOutput(forwarded.result.structuredContent ?? { content: forwarded.result.content ?? [] }, secret.value, connection.client_id)"
+        },
+        {
+          "line": 382,
+          "text": "const outcome = forwarded.result.isError ? 'failed' : 'succeeded'"
+        },
+        {
+          "line": 383,
+          "text": "const written = await span({ ...base, outcome, error_code: forwarded.result.isError ? 'product-error' : null, grant_ids: cover.grantIds, narrowing: narrowing ?? 'workspace', wall_ms: forwarded.wallMs })"
+        },
+        {
+          "line": 384,
+          "text": "ops.record({ op: 'hub.call', outcome: 'ok', detail: { callee: args.agentId, capability: args.capability, product_outcome: outcome, wall_ms: forwarded.wallMs, span_written: written }, ctx: { correlationId: ops.correlate() } })"
+        },
+        {
+          "line": 385,
+          "text": "return { answer: answer(envelope({ callId, outcome, binding, callee: args.agentId, capability: args.capability, narrowing, grantIds: cover.grantIds, output, wallMs: forwarded.wallMs, traceparent, spanWritten: written }), forwarded.result.isError === true), keep: 'answer' }"
+        },
+        {
+          "line": 471,
+          "text": "// Decided again against the live grants and connection; where it would be forwarded, the memory"
+        },
+        {
+          "line": 506,
+          "text": "function forgetBinding(bindingId: string): void {"
+        },
+        {
+          "line": 523,
+          "text": "return Object.assign(agentCall, { forgetBinding, memory })"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "apps/desktop/src/main/continuationDelivery.ts",
+      "sha256": "2a90f9fa17e16a43bfb61fb608b9c657496c63afcd5d9bcb5b4b246061cb02bc",
+      "matches": [
+        {
+          "line": 27,
+          "text": "type WriteResult = { state: 'written' | 'failed_before_write' | 'outcome_unknown'; reason?: string }"
+        },
+        {
+          "line": 34,
+          "text": "options?: { beforeWrite?: () => Promise<boolean> }): Promise<WriteResult>"
+        },
+        {
+          "line": 52,
+          "text": "const { data, error } = await deps.db.rpc('continuation_dispatch', {"
+        },
+        {
+          "line": 71,
+          "text": "return { taskId, deliveryId, state: state === 'outcome_unknown' ? 'outcome_unknown' : 'rejected', deliveryState: String(state),"
+        },
+        {
+          "line": 72,
+          "text": "says: state === 'outcome_unknown'"
+        },
+        {
+          "line": 88,
+          "text": "beforeWrite: async () => {"
+        },
+        {
+          "line": 97,
+          "text": "write = { state: 'outcome_unknown' }"
+        },
+        {
+          "line": 100,
+          "text": "if (write.state === 'written' && !boundaryEntered) write = { state: 'outcome_unknown' }"
+        },
+        {
+          "line": 109,
+          "text": "return result(taskId, deliveryId, { state: 'outcome_unknown' })"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "apps/desktop/src/main/deliveryQueue.ts",
+      "sha256": "162a7ad61547c244338186569787bb8acd46495dfab0ecc9a953e4abe31b27a4",
+      "matches": [
+        {
+          "line": 5,
+          "text": "state: 'written' | 'failed_before_write' | 'outcome_unknown'"
+        },
+        {
+          "line": 8,
+          "text": "export type DeliveryWriteOptions = { beforeWrite?: () => Promise<boolean> }"
+        },
+        {
+          "line": 26,
+          "text": "private generation = 0"
+        },
+        {
+          "line": 63,
+          "text": "this.generation++"
+        },
+        {
+          "line": 71,
+          "text": "this.consumedGeneration = this.generation"
+        },
+        {
+          "line": 94,
+          "text": "if (this.closed || !head || head.gating || this.generation <= this.consumedGeneration) return"
+        },
+        {
+          "line": 104,
+          "text": "if (this.generation <= this.consumedGeneration) return"
+        },
+        {
+          "line": 106,
+          "text": "if (item.options.beforeWrite) {"
+        },
+        {
+          "line": 107,
+          "text": "const observedGeneration = this.generation"
+        },
+        {
+          "line": 111,
+          "text": "try { allowed = await item.options.beforeWrite() } catch { /* Never expose callback errors or credentials. */ }"
+        },
+        {
+          "line": 124,
+          "text": "if (this.generation !== observedGeneration || this.consumedGeneration !== consumedGeneration) {"
+        },
+        {
+          "line": 131,
+          "text": "if (this.generation <= this.consumedGeneration) return"
+        },
+        {
+          "line": 132,
+          "text": "this.consumedGeneration = this.generation"
+        },
+        {
+          "line": 138,
+          "text": "this.finish(item, { state: 'outcome_unknown', reason: 'pty_write_failed' })"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "apps/desktop/src/main/policy.ts",
+      "sha256": "7ade55267d8250579d7039b3f253ea7ad8c653b58fab3c7c5448514eb5e83696",
+      "matches": [
+        {
+          "line": 103,
+          "text": "/** The permit `beginDispatch` returns: what the caller cites when it comes back"
+        },
+        {
+          "line": 424,
+          "text": "async beginDispatch("
+        },
+        {
+          "line": 449,
+          "text": "await this.spendGrant(request, decision)"
+        },
+        {
+          "line": 510,
+          "text": "private async spendGrant(request: EffectRequest, decision: Decision): Promise<void> {"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "apps/desktop/src/main/authContext.ts",
+      "sha256": "f4fcd405c64de6eb583ab3f647b033d3b8c94495afabb4cb91d24d0547fdd3de",
+      "matches": [
+        {
+          "line": 4,
+          "text": "* M199.auth. Three ports the card names \u2014 `resolveAuthContext`, `verifyIdentity`,"
+        },
+        {
+          "line": 35,
+          "text": "export interface AuthContext {"
+        },
+        {
+          "line": 42,
+          "text": "authRevision: number"
+        },
+        {
+          "line": 50,
+          "text": "export type Resolution = AuthContext | Blocked"
+        },
+        {
+          "line": 54,
+          "text": "authRevision: number"
+        },
+        {
+          "line": 77,
+          "text": "export function createAuthContexts(deps: AuthDeps) {"
+        },
+        {
+          "line": 124,
+          "text": "return { contextRef: randomUUID(), verdict, env: cleaned, authRevision: current }"
+        },
+        {
+          "line": 128,
+          "text": "resolveAuthContext: resolve,"
+        },
+        {
+          "line": 175,
+          "text": "authRevision: current,"
+        },
+        {
+          "line": 191,
+          "text": "authRevision: current,"
+        },
+        {
+          "line": 199,
+          "text": "authRevision: current,"
+        },
+        {
+          "line": 203,
+          "text": "return { status: 'refreshed', authRevision: next, reason: `one writer, one new revision (${next})` }"
+        },
+        {
+          "line": 205,
+          "text": "return { status: 'failed', authRevision: current, reason: String(e) }"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "apps/desktop/src/shared/board.ts",
+      "sha256": "3e4c00b9d0539be5171f1d6f1452ba082ca8e073b816b0ba04fa13e3c580f057",
+      "matches": [
+        {
+          "line": 1,
+          "text": "// The Board: one ranked list of the two things that end differently (M151)."
+        },
+        {
+          "line": 16,
+          "text": "// questions as derived and they can never be answered, only worked around; treat"
+        },
+        {
+          "line": 31,
+          "text": "rankBoard,"
+        },
+        {
+          "line": 38,
+          "text": "export interface BoardQuestion {"
+        },
+        {
+          "line": 55,
+          "text": "export interface BoardEntry {"
+        },
+        {
+          "line": 62,
+          "text": "* `attentionOf`, so the Board's refs read `review:review:t1` and"
+        },
+        {
+          "line": 78,
+          "text": "/** Authored resolves by an ANSWER; derived leaves when the state changes."
+        },
+        {
+          "line": 80,
+          "text": "origin: 'authored' | 'derived'"
+        },
+        {
+          "line": 105,
+          "text": "questions: readonly BoardQuestion[]"
+        },
+        {
+          "line": 109,
+          "text": "}): BoardEntry[] {"
+        },
+        {
+          "line": 110,
+          "text": "const fromQuestions: BoardEntry[] = input.questions.map((q) => {"
+        },
+        {
+          "line": 136,
+          "text": "const fromAttention: BoardEntry[] = input.attention.map((a) => {"
+        },
+        {
+          "line": 141,
+          "text": "origin: 'derived',"
+        },
+        {
+          "line": 159,
+          "text": "return rankBoard("
+        },
+        {
+          "line": 161,
+          "text": ").map(({ id: _id, ...e }) => e as BoardEntry)"
+        },
+        {
+          "line": 164,
+          "text": "export interface BoardCut {"
+        },
+        {
+          "line": 165,
+          "text": "items: BoardEntry[]"
+        },
+        {
+          "line": 174,
+          "text": "export function cutBoard(items: readonly BoardEntry[], limit: number): BoardCut {"
+        },
+        {
+          "line": 188,
+          "text": "export function scopeBoard(items: readonly BoardEntry[], projectId: string): BoardEntry[] {"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "apps/desktop/src/shared/readEnvelope.ts",
+      "sha256": "c5376f46f132d351ddb773db6738aa57b457cbafdb6e13b14da883f2ef9331c1",
+      "matches": [
+        {
+          "line": 26,
+          "text": "export type SourceStatus = 'ok' | 'error' | 'not_configured' | 'not_supported'"
+        },
+        {
+          "line": 33,
+          "text": "status: SourceStatus"
+        },
+        {
+          "line": 50,
+          "text": "export interface ReadEnvelope<T> {"
+        },
+        {
+          "line": 54,
+          "text": "freshness: Freshness"
+        },
+        {
+          "line": 68,
+          "text": "'a ReadEnvelope needs at least one source receipt: an answer carrying no measurement ' +"
+        },
+        {
+          "line": 81,
+          "text": "freshness?: Freshness"
+        },
+        {
+          "line": 82,
+          "text": "}): ReadEnvelope<T> {"
+        },
+        {
+          "line": 100,
+          "text": "// Unknown by default. A read that has not established its own freshness"
+        },
+        {
+          "line": 102,
+          "text": "freshness: input.freshness ?? 'unknown',"
+        },
+        {
+          "line": 118,
+          "text": "export function whole<T>(e: ReadEnvelope<T>): T | null {"
+        },
+        {
+          "line": 139,
+          "text": "export function refusedBy<T>(e: ReadEnvelope<T>): string | null {"
+        },
+        {
+          "line": 150,
+          "text": "export function unmetMandatory<T>(e: ReadEnvelope<T>, mandatory: string[]): string[] {"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "apps/desktop/src/main/agentRegistry.ts",
+      "sha256": "ea55a8de4fb8fd2c72a042b281a089308333cf27200be0d92acdc26bb0a4f518",
+      "matches": [
+        {
+          "line": 50,
+          "text": "const SERVICE_FIELDS = new Set(['protocol', 'id', 'instance', 'name', 'summary', 'placement', 'origin', 'auth', 'lifecycle', 'paths', 'commands', 'source', 'fabricManifest', 'installedAt', 'installedBy', 'extensions'])"
+        },
+        {
+          "line": 57,
+          "text": "export interface RegistryEntry {"
+        },
+        {
+          "line": 87,
+          "text": "entries: RegistryEntry[]"
+        },
+        {
+          "line": 92,
+          "text": "export type Resolution = { ok: true; entry: RegistryEntry } | { ok: false; reason: string }"
+        },
+        {
+          "line": 165,
+          "text": "const problems = unknownFields(d, SERVICE_FIELDS)"
+        },
+        {
+          "line": 272,
+          "text": "entry: RegistryEntry"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "apps/desktop/src/shared/providerCapabilityMatrix.ts",
+      "sha256": "022e197741338feef03b871e8accb206927ff0eb2c413fd7416835ac93442f54",
+      "matches": [
+        {
+          "line": 28,
+          "text": "export const PINNED_BUILDS = {"
+        },
+        {
+          "line": 33,
+          "text": "export const HISTORICAL_PINNED_BUILDS = { 'claude-code': '2.1.236', 'codex-cli': '0.152.1' } as const"
+        },
+        {
+          "line": 213,
+          "text": "cliBuild: PINNED_BUILDS[row.provider as keyof typeof PINNED_BUILDS],"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "supabase/migrations/20260927000062_managed_stop.sql",
+      "sha256": "af24f5285e17459f6c233a95ac360b9a1737e29706e48a0e89cc2be4e84b96c7",
+      "matches": [
+        {
+          "line": 250,
+          "text": "values(p_estate_id,t.project_id,p_task_id,p_session_id,p_session_id::text,clock_timestamp()+interval '10 minutes',array['task'],coalesce(t.seq,0));"
+        },
+        {
+          "line": 288,
+          "text": "update leases set expires_at=clock_timestamp()+interval '10 minutes' where estate_id=p_estate_id and work_id=r.task_id and owner_session=p_session_id;"
+        },
+        {
+          "line": 321,
+          "text": "update leases set owner_session=p_session_id,expires_at=clock_timestamp()+interval '10 minutes'"
+        },
+        {
+          "line": 369,
+          "text": "create or replace function continuation_dispatch("
+        },
+        {
+          "line": 371,
+          "text": "p_run_id uuid, p_session_id uuid, p_digest text, p_claim_id uuid, p_action text,"
+        },
+        {
+          "line": 374,
+          "text": "declare d deliveries; c continuation_dispatches; r task_runs; v_state text;"
+        },
+        {
+          "line": 379,
+          "text": "or p_session_id is null or p_action is null or p_claim_id is null or p_digest is null or p_digest !~ '^[0-9a-f]{32}$' then"
+        },
+        {
+          "line": 387,
+          "text": "select * into c from continuation_dispatches where delivery_id=p_delivery_id;"
+        },
+        {
+          "line": 411,
+          "text": "if c.state='reserved' and c.lease_until>clock_timestamp() then"
+        },
+        {
+          "line": 427,
+          "text": "insert into continuation_dispatches(delivery_id,estate_id,project_id,task_run_id,claim_id,state,lease_until)"
+        },
+        {
+          "line": 428,
+          "text": "values(p_delivery_id,p_estate_id,r.project_id,p_run_id,p_claim_id,'reserved',clock_timestamp()+interval '60 seconds')"
+        },
+        {
+          "line": 429,
+          "text": "on conflict(delivery_id) do update set claim_id=p_claim_id,state='reserved',"
+        },
+        {
+          "line": 430,
+          "text": "lease_until=clock_timestamp()+interval '60 seconds',updated_at=clock_timestamp();"
+        },
+        {
+          "line": 434,
+          "text": "if c.claim_id is distinct from p_claim_id or c.estate_id is distinct from p_estate_id or c.task_run_id is distinct from p_run_id then"
+        },
+        {
+          "line": 438,
+          "text": "if c.state<>'reserved' or c.lease_until<=clock_timestamp() then"
+        },
+        {
+          "line": 446,
+          "text": "update continuation_dispatches set state='write_started',updated_at=clock_timestamp() where delivery_id=p_delivery_id;"
+        },
+        {
+          "line": 458,
+          "text": "update continuation_dispatches set state=v_state,updated_at=clock_timestamp() where delivery_id=p_delivery_id;"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "supabase/migrations/20260927000064_private_ceo_conversations.sql",
+      "sha256": "2f099ca322301f7239d3832a5d550b0218b853939b5268f95f49df9804911cda",
+      "matches": [
+        {
+          "line": 12,
+          "text": "create table ceo_private_contents ("
+        },
+        {
+          "line": 43,
+          "text": "revoke all on ceo_conversations from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 44,
+          "text": "alter table ceo_private_contents enable row level security;"
+        },
+        {
+          "line": 45,
+          "text": "revoke all on ceo_private_contents from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 47,
+          "text": "revoke all on ceo_messages from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 49,
+          "text": "revoke all on ceo_operations from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 51,
+          "text": "revoke all on ceo_pending_requests from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 53,
+          "text": "revoke all on ceo_receipt_refs from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 55,
+          "text": "revoke all on ceo_write_authorizations from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 61,
+          "text": "create trigger ceo_content_immutable before update or delete on ceo_private_contents for each row execute function ceo_primary_immutable();"
+        },
+        {
+          "line": 123,
+          "text": "create function ceo_authorized(e uuid,u uuid,r bigint) returns boolean language plpgsql security definer set search_path=public as $$"
+        },
+        {
+          "line": 258,
+          "text": "if not ceo_authorized(p_estate_id,p_person_id,p_revision) or not ceo_actor_valid(p_actor,p_person_id) then"
+        },
+        {
+          "line": 294,
+          "text": "if not ceo_authorized(p_estate_id,p_person_id,p_revision) or not ceo_actor_valid(p_actor,p_person_id) then"
+        },
+        {
+          "line": 324,
+          "text": "insert into ceo_private_contents values(content,p_estate_id,p_person_id,p_envelope,digest);"
+        },
+        {
+          "line": 341,
+          "text": "if not ceo_authorized(p_estate_id,p_person_id,p_revision) then return jsonb_build_object('ok',false,'reason_code','unavailable'); end if;"
+        },
+        {
+          "line": 351,
+          "text": "from ceo_messages m left join ceo_private_contents b on b.id=m.content_id and b.estate_id=p_estate_id and b.person_id=p_person_id"
+        },
+        {
+          "line": 364,
+          "text": "if not ceo_authorized(p_estate_id,p_person_id,p_revision) or not exists(select 1 from ceo_conversations where"
+        },
+        {
+          "line": 374,
+          "text": "revoke all on function ceo_primary_immutable() from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 375,
+          "text": "revoke all on function ceo_uuid(jsonb) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 376,
+          "text": "revoke all on function ceo_integer(jsonb) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 377,
+          "text": "revoke all on function ceo_send_error(jsonb) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 378,
+          "text": "revoke all on function ceo_frame(text) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 379,
+          "text": "revoke all on function ceo_send_canonical(uuid,uuid,jsonb) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 380,
+          "text": "revoke all on function ceo_authorized(uuid,uuid,bigint) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 381,
+          "text": "revoke all on function ceo_actor_valid(jsonb,uuid) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 382,
+          "text": "revoke all on function ceo_subject(uuid,text,uuid) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 383,
+          "text": "revoke all on function apply_ceo_receipt(journal) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 384,
+          "text": "revoke all on function ceo_append(uuid,text,jsonb,jsonb) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 385,
+          "text": "revoke all on function ceo_open_conversation(uuid,uuid,bigint,jsonb,uuid,uuid,text,uuid) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 386,
+          "text": "revoke all on function ceo_send_message(uuid,uuid,bigint,jsonb,jsonb) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 387,
+          "text": "revoke all on function ceo_read_conversation(uuid,uuid,bigint,uuid,bigint,integer) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 388,
+          "text": "revoke all on function ceo_send_receipt(uuid,uuid,bigint,uuid,uuid) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 393,
+          "text": "revoke all on function ceo_json_bytes(jsonb) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 394,
+          "text": "revoke all on function ceo_has_capacity(uuid) from public,anon,authenticated,service_role;"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "supabase/migrations/20260927000065_restore_authority_boundary.sql",
+      "sha256": "600c21a3c51843915dc1afdb8a623d962f1dba1738145fac069d1fa19c4080a8",
+      "matches": [
+        {
+          "line": 28,
+          "text": "create function record_estate_restore_boundary(p_target uuid,p_source uuid,p_events jsonb)"
+        },
+        {
+          "line": 53,
+          "text": "create function restore_estate_internal("
+        },
+        {
+          "line": 98,
+          "text": "perform record_estate_restore_boundary(p_target_estate,p_source_estate,p_events);"
+        },
+        {
+          "line": 161,
+          "text": "select restore_estate_internal(p_target_estate,p_source_estate,p_name,p_events)"
+        },
+        {
+          "line": 303,
+          "text": "revoke execute on function record_estate_restore_boundary(uuid,uuid,jsonb) from public,anon,authenticated,service_role;"
+        },
+        {
+          "line": 304,
+          "text": "revoke execute on function restore_estate_internal(uuid,uuid,text,jsonb) from public,anon,authenticated,service_role;"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric",
+      "commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+      "path": "docs/evidence/plans/2026-10-04-project-communications.md",
+      "sha256": "d5b8737571bdec5874564d701c6e9c1ee3690b3162ae25c68d54be6ea5f129b0",
+      "matches": [
+        {
+          "line": 20,
+          "text": "COM-10/11 provide analysis and compatibility; COM-12/13/14 finish ecosystem rollout."
+        },
+        {
+          "line": 50,
+          "text": "| COM-12 | Cross-repository protocol rollout | P1 | COM-04, COM-11; COM-09 only for Telegram-enabled rollout | open |"
+        },
+        {
+          "line": 51,
+          "text": "| COM-13 | Public docs, website and screenshot evidence | P2 | COM-07, COM-12 | open |"
+        },
+        {
+          "line": 52,
+          "text": "| COM-14 | Failure acceptance, builds and installation | P0 release gate | COM-07, COM-10, COM-12; COM-09 only for Telegram-enabled artifacts | open |"
+        },
+        {
+          "line": 54,
+          "text": "The core board/adapters/attribution/monitoring release can pass COM-12/14 with Telegram disabled."
+        },
+        {
+          "line": 200,
+          "text": "## COM-12 \u2014 cross-repository protocol rollout"
+        },
+        {
+          "line": 221,
+          "text": "publication of this final Fabric source are still open. This partial delivery does not close COM-12."
+        },
+        {
+          "line": 233,
+          "text": "## COM-14 \u2014 failure acceptance, builds and installation"
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/fabric-agent-contract",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "path": "src/extensions.ts",
+      "sha256": "bd31132628b2eb510df0626dbf5bc8bea611056654c8182cd3bf877b34de2e30",
+      "lines": 17
+    },
+    {
+      "repository": "passioncode-ai/fabric-agent-contract",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "path": "schemas/coordination.schema.json",
+      "sha256": "2f400263c678adb9bba50f171e4c184a2b582e4effde8cf37a4ba89bf4a11d00",
+      "lines": 44
+    },
+    {
+      "repository": "passioncode-ai/fabric-agent-contract",
+      "commit": "df55c8c54a23251342a7ee57ba95642b7eb39e61",
+      "path": "schemas/interop-job-handle.schema.json",
+      "sha256": "9b8b20bc978c0be4b75b42dd98af7b82586b6642983117248a1d5b2041c53645",
+      "lines": 28
+    },
+    {
+      "repository": "passioncode-ai/fabric-agent-adapter",
+      "commit": "907acb286abe55c627bfeb4500906b76d0284e81",
+      "path": "fabric-contract.lock.json",
+      "sha256": "cdf44cdd378abc605ca2742f7319944b37f0784dfedd3c5b69ae3d4754e90c6d",
+      "lines": 6
+    },
+    {
+      "repository": "passioncode-ai/fabric-agent-adapter",
+      "commit": "907acb286abe55c627bfeb4500906b76d0284e81",
+      "path": "plugins/fabric-agent-adapter/skills/building-fabric-services/scripts/fabric_interop.py",
+      "sha256": "9d60c5fb9dc7b0bfcd3e57b5a19097fc9ee107809a433cf8ed943b59f494c557",
+      "lines": 492
+    },
+    {
+      "repository": "passioncode-ai/fabric-dashboards",
+      "commit": "f7e806919c81f88d0fc7129c355c06c7036387ef",
+      "path": "src/core/monitor.ts",
+      "sha256": "4d9391e80b58eb994b1dc4610a894e2f01c92f96a5ab40fc5cbc4f96191e648a",
+      "lines": 605
+    },
+    {
+      "repository": "passioncode-ai/fabric-dashboards",
+      "commit": "f7e806919c81f88d0fc7129c355c06c7036387ef",
+      "path": "packages/service-host/src/links.ts",
+      "sha256": "17eef307cfa547150e9d96f929ddc7ceb3e3e49ff6d69075966304a052bf4fca",
+      "lines": 35
+    },
+    {
+      "repository": "passioncode-ai/fabric-switchboard",
+      "commit": "5e275caf50436f6a95eabad9c8e16bedade1ffe5",
+      "path": "crates/switchboard-runtime/src/launch.rs",
+      "sha256": "ccabc360d8088252e20063848119347d438b0ff856a01eef5555f86aee65a0dd",
+      "lines": 1859
+    },
+    {
+      "repository": "passioncode-ai/fabric-switchboard",
+      "commit": "5e275caf50436f6a95eabad9c8e16bedade1ffe5",
+      "path": "docs/packets/session-supervisor.md",
+      "sha256": "f7a8e9a0c0345db26048028c9a7e7ff103e9d813976ae452097ee5c368794cc5",
+      "lines": 12
+    },
+    {
+      "repository": "passioncode-ai/fabric-workspace",
+      "commit": "fc19159515e23feee3b9b1438ec92775f0c960ed",
+      "path": "knowledge/vision.md",
+      "sha256": "c1af99f9cfaf681848205735957f2f2dfbd61bb1bb3cb72e6e654fff78b5c773",
+      "lines": 44
+    },
+    {
+      "repository": "passioncode-ai/fabric-workspace",
+      "commit": "fc19159515e23feee3b9b1438ec92775f0c960ed",
+      "path": "knowledge/principles.md",
+      "sha256": "b7514d3941ece55ef2a71bccd85e3236d9b25028dd69a3193d298c8ce73f648d",
+      "lines": 55
+    },
+    {
+      "repository": "passioncode-ai/fabric-workspace",
+      "commit": "fc19159515e23feee3b9b1438ec92775f0c960ed",
+      "path": "knowledge/rules.md",
+      "sha256": "9b91852c996616368795e126e4aef8f0a7025c3bc5f74f537b697c0bf3342e63",
+      "lines": 192
+    },
+    {
+      "repository": "passioncode-ai/passioncode-ai.github.io",
+      "commit": "25e138ff127bb6b7145ce30914f00178c71560e7",
+      "path": "fabric/index.html",
+      "sha256": "baf99e78d286107020a28caeb4d380542c155bdf51e80d1cbee2e9606fcea0ef",
+      "lines": 50
+    },
+    {
+      "repository": "passioncode-ai/passioncode-ai.github.io",
+      "commit": "25e138ff127bb6b7145ce30914f00178c71560e7",
+      "path": "fabric/release.json",
+      "sha256": "e0630c3ad8d5cb7d0f387d1860078138634e89e17860693a24a85701739afbdf",
+      "lines": 10
+    },
+    {
+      "repository": "passioncode-ai/project-observatory-dashboard",
+      "commit": "fb0350d081f2af53d5a18fa1dae67836774cf047",
+      "relevant_paths": [
+        "docs/design/FABRIC-INTEROP.md",
+        "docs/design/FABRIC-SERVICE.md",
+        "observatory/engine/fabric_service.py",
+        "observatory/engine/tests/fabric_interop.py",
+        "observatory/engine/tests/test_fabric_service.py"
+      ]
+    },
+    {
+      "repository": "passioncode-ai/project-observatory-dashboard",
+      "commit": "fb0350d081f2af53d5a18fa1dae67836774cf047",
+      "path": "observatory/engine/fabric_service.py",
+      "sha256": "86862f3ce93d52e30206130c193f221ec18e3eca6a8b7ac0625817241d205c3b",
+      "lines": 679,
+      "matches": [
+        {
+          "line": 1,
+          "text": "# Vendored from passioncode-ai/fabric-agent-adapter f31c2b2792f7 (fabric-agent-adapter 0.5.0),"
+        },
+        {
+          "line": 39,
+          "text": "PROTOCOL = \"fabric-service/0.1\""
+        },
+        {
+          "line": 40,
+          "text": "EXTENSION_KEY = \"https://fabric.passioncode.ai/agent-contract/extensions/service/0.1\""
+        },
+        {
+          "line": 418,
+          "text": "(fabric-interop/0.1 C3.4 c); fabric_interop.trace_ids(traceparent) gives both.\"\"\""
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/project-observatory-dashboard",
+      "commit": "fb0350d081f2af53d5a18fa1dae67836774cf047",
+      "path": "docs/design/FABRIC-INTEROP.md",
+      "sha256": "2ec84d6c766d8e7946b16d373078e7dfb8aa4b18a2097524bff1c286ec4b0018",
+      "lines": 126,
+      "matches": [
+        {
+          "line": 1,
+          "text": "# The MCP server speaks fabric-interop/0.1"
+        },
+        {
+          "line": 3,
+          "text": "Status: implemented on branch `agent/fabric-interop`. The protocol is `fabric-interop/0.1`, section"
+        },
+        {
+          "line": 5,
+          "text": "Agent Contract's `docs/specification/interop.md` at commit `9cd778eb6f14` \u2014 DEC-0016 with the"
+        },
+        {
+          "line": 7,
+          "text": "vendored, byte for byte, in `observatory/engine/fabric/interop-schemas/` (digests in its README,"
+        },
+        {
+          "line": 9,
+          "text": "`observatory/engine/tests/test_interop.py` (suite `interop`) and"
+        },
+        {
+          "line": 14,
+          "text": "Fabric calls one agent from another through its own MCP hub. For the observatory, as a provider,"
+        },
+        {
+          "line": 15,
+          "text": "that means: every capability of `fabric-agent.json` is an MCP tool under the capability's own"
+        },
+        {
+          "line": 23,
+          "text": "| `interop.py` | trace context (`Span`, `span_for`), tool definitions from the manifest, annotations, the result envelope |"
+        },
+        {
+          "line": 59,
+          "text": "validated against the contract's `interop-job.schema.json`: `result` exactly when completed,"
+        },
+        {
+          "line": 92,
+          "text": "- **Two served output schemas carry one keyword the published bytes do not.** MCP clients require"
+        },
+        {
+          "line": 97,
+          "text": "(`interop.object_rooted`); every branch is an object, so the accepted values are unchanged. A"
+        },
+        {
+          "line": 106,
+          "text": "are the probe's MCP rules over HTTP: this MCP server is stdio, the always-on HTTP server has no"
+        },
+        {
+          "line": 107,
+          "text": "`/mcp` surface, so `check_service.py`'s `interop.tools-match`, `interop.job-tools`,"
+        },
+        {
+          "line": 108,
+          "text": "`interop.unknown-job` and `interop.trace-propagation` report NOT_RUN (\"no MCP surface\"). The"
+        },
+        {
+          "line": 109,
+          "text": "rules themselves are checked over stdio by `test_interop.py`."
+        }
+      ]
+    },
+    {
+      "repository": "passioncode-ai/project-observatory-dashboard",
+      "commit": "fb0350d081f2af53d5a18fa1dae67836774cf047",
+      "path": "docs/design/FABRIC-SERVICE.md",
+      "sha256": "d300617757ee3ea6f69cc964de20294bb07c1da54da6a6f2539bc6d9051152f2",
+      "lines": 174,
+      "matches": [
+        {
+          "line": 22,
+          "text": "| Who calls it | the operator's browser (the dashboard); a local host reading the well-known document and the events feed; agents keep using the MCP server over stdio, unchanged |"
+        },
+        {
+          "line": 138,
+          "text": "descriptor has no supervisor) and the five `interop.*` rules that need an MCP surface over"
+        },
+        {
+          "line": 139,
+          "text": "HTTP, which this stdio server does not have ([FABRIC-INTEROP.md](FABRIC-INTEROP.md));"
+        },
+        {
+          "line": 140,
+          "text": "`interop.manifest-link` and `interop.events-trace` PASS."
+        },
+        {
+          "line": 144,
+          "text": "## Vendored parts"
+        },
+        {
+          "line": 149,
+          "text": "| `observatory/engine/tests/check_service.py`, `observatory/engine/tests/fabric_interop.py` | the same commit, `scripts/check_service.py` and `scripts/fabric_interop.py` (the probe imports it) |"
+        }
+      ]
+    }
+  ]
+}

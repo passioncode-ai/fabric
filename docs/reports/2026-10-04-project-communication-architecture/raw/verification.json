@@ -1,0 +1,77 @@
+{
+  "as_of": "2026-10-04",
+  "recorded_at": "2026-10-04T14:33:19.098263+00:00",
+  "source_commit": "2e06e5013595ec96b52b85cae2c486050632565b",
+  "scope": "research/design only",
+  "checks": [
+    {
+      "command": "python3 raw/race_model.py",
+      "exit_code": 0,
+      "cases_passed": 12,
+      "production_acceptance": false
+    },
+    {
+      "command": "python3 raw/race_model.py --mutant <generation|attempt|expiry|epoch|unknown>",
+      "variants": 5,
+      "expected_exit_code": 1,
+      "all_failed_assertions": true
+    },
+    {
+      "command": "reports.py check <report README>",
+      "exit_code": 0,
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "command": "bash scripts/check-docs.sh",
+      "exit_code": 0,
+      "relative_markdown_files_checked": 571,
+      "submodule_links_not_checked": 3,
+      "receipt": "docs-check.log",
+      "receipt_retention": "first 8/last 20 lines; full sanitized output SHA256 in excerpt"
+    },
+    {
+      "command": "pnpm_config_verify_deps_before_run=false bash scripts/ci.sh fast",
+      "exit_code": 1,
+      "passed_before_failure": [
+        "workspace typechecks",
+        "design/brand gates",
+        "workspace/product model tests"
+      ],
+      "failure": "scripts/sync-product-ux.mjs:80: UX projection stale",
+      "inputs_equal_frozen_source": {
+        "scripts/sync-product-ux.mjs": true,
+        "docs/ux/scenarios.md": true,
+        "docs/ux/flows.md": true,
+        "docs/ux/screens.md": true,
+        "docs/ux/product-model.json": true
+      },
+      "receipt": "fast.log"
+    },
+    {
+      "command": "node scripts/check-design-map.mjs",
+      "exit_code": 1,
+      "failure": "Changed iteration reuses the committed top entry",
+      "disposition": "Root owns guarded integration/map refresh; unchanged here"
+    }
+  ],
+  "initial_fast_attempts": [
+    {
+      "exit_code": 1,
+      "reason": "pnpm11 automatic install refused dependency symlink outside root with ERR_PNPM_UNSAFE_MODULES_DIR",
+      "disposition": "No dependency removal performed. Controlled rerun disabled auto-install using the actual pnpm_config environment name from local pnpm source."
+    }
+  ],
+  "not_run": [
+    "COM production implementation",
+    "DB/RLS integration",
+    "native qualification",
+    "actual Claude/Codex COM ACK",
+    "live provider",
+    "Telegram bot exchange",
+    "full tier",
+    "hosted suite dispatch",
+    "wiki index publication"
+  ],
+  "local_only": "Dependency symlinks and diagnostic temp logs are excluded; task-owned raw receipts are sanitized."
+}

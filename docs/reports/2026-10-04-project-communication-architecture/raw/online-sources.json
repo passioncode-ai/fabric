@@ -1,0 +1,101 @@
+[
+  {
+    "name": "MCP specification",
+    "url": "https://modelcontextprotocol.io/specification/2026-07-28",
+    "final_url": "https://modelcontextprotocol.io/specification/2026-07-28",
+    "retrieved_at": "2026-10-04T14:16:13.586266+00:00",
+    "status": 200,
+    "bytes": 322526,
+    "sha256": "f2b28206a69d1d2eb4b8bb74da27cc7ad52d6700313f0fa423213a5b09a71c09"
+  },
+  {
+    "name": "MCP Tasks extension",
+    "url": "https://modelcontextprotocol.io/extensions/tasks/overview",
+    "final_url": "https://modelcontextprotocol.io/extensions/tasks/overview",
+    "retrieved_at": "2026-10-04T14:16:13.586266+00:00",
+    "status": 200,
+    "bytes": 380676,
+    "sha256": "8911e2300265b193e112426039a00d73ab2a3ae64af992fc4e7e4f732832d954"
+  },
+  {
+    "name": "PostgreSQL17 SELECT",
+    "url": "https://www.postgresql.org/docs/17/sql-select.html",
+    "final_url": "https://www.postgresql.org/docs/17/sql-select.html",
+    "retrieved_at": "2026-10-04T14:16:13.586266+00:00",
+    "status": 200,
+    "bytes": 118021,
+    "sha256": "2c7c38b8effa49a21ce8bf49fa3a40fb8c3630a8da4944de50043959132688d4"
+  },
+  {
+    "name": "PostgreSQL17 transaction isolation",
+    "url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+    "final_url": "https://www.postgresql.org/docs/17/transaction-iso.html",
+    "retrieved_at": "2026-10-04T14:16:13.586266+00:00",
+    "status": 200,
+    "bytes": 47624,
+    "sha256": "d8f3fc9391bf1463a46c13b6a22dc80aa00b6058e16eb182e34f1a7baecc9bca"
+  },
+  {
+    "name": "PostgreSQL17 NOTIFY",
+    "url": "https://www.postgresql.org/docs/17/sql-notify.html",
+    "final_url": "https://www.postgresql.org/docs/17/sql-notify.html",
+    "retrieved_at": "2026-10-04T14:16:13.586266+00:00",
+    "status": 200,
+    "bytes": 22720,
+    "sha256": "8748db7d7d68eabe42e5f656a99e102ffbe0e32b4109d18a85f3cde242439e16"
+  },
+  {
+    "name": "Telegram Bot API",
+    "url": "https://core.telegram.org/bots/api",
+    "final_url": "https://core.telegram.org/bots/api",
+    "retrieved_at": "2026-10-04T14:16:13.586266+00:00",
+    "status": 200,
+    "bytes": 860075,
+    "sha256": "34971c296106b09c973dd66e9cbf923a0ba9e110dd40baf9ad5feddc2771c0e5"
+  },
+  {
+    "name": "Telegram features",
+    "url": "https://core.telegram.org/bots/features",
+    "final_url": "https://core.telegram.org/bots/features",
+    "retrieved_at": "2026-10-04T14:16:13.586266+00:00",
+    "status": 200,
+    "bytes": 116992,
+    "sha256": "cb63f6d953d4b00ada2d0bef88d46b34495be777e8cb66e0d7f90c1564730ffd"
+  },
+  {
+    "name": "Telegram changelog",
+    "url": "https://core.telegram.org/bots/api-changelog",
+    "final_url": "https://core.telegram.org/bots/api-changelog",
+    "retrieved_at": "2026-10-04T14:16:13.586266+00:00",
+    "status": 200,
+    "bytes": 215396,
+    "sha256": "0a0eefaa0b62ae5d8a7fd1833808787b6eae79e5e4257d77af4ddeadd9b255d5"
+  },
+  {
+    "url": "https://github.com/timgit/pg-boss/pull/890#issuecomment-5624267303",
+    "author": "timgit",
+    "author_association": "OWNER",
+    "created_at": "2026-09-10T19:28:08Z",
+    "updated_at": "2026-09-10T19:28:08Z",
+    "retrieved_at": "2026-10-04T14:16:13.586266+00:00",
+    "body_sha256": "5b159e0ccd85f840c1a11ea3e90416fd0f401a1aaa05a679871e2d31814ae786"
+  },
+  {
+    "url": "https://github.com/timgit/pg-boss/pull/890#issuecomment-5625222211",
+    "author": "kibertoad",
+    "author_association": "CONTRIBUTOR",
+    "created_at": "2026-09-10T20:47:24Z",
+    "updated_at": "2026-09-10T21:13:12Z",
+    "retrieved_at": "2026-10-04T14:16:13.586266+00:00",
+    "body_sha256": "4ec583ab97c2731f5282bc1603df8491cb81d996b5c5107e288e4c346dd4bde7"
+  },
+  {
+    "url": "https://github.com/tdlib/telegram-bot-api/issues/837#issuecomment-4141729842",
+    "author": "levlam",
+    "author_association": "CONTRIBUTOR",
+    "created_at": "2026-03-27T10:45:23Z",
+    "updated_at": "2026-03-27T10:45:23Z",
+    "retrieved_at": "2026-10-04T14:16:13.586266+00:00",
+    "body_sha256": "bf23dbe61598b5f4593b14b39b058f977751df181ca10930e07e11a12b78bdf1"
+  }
+]

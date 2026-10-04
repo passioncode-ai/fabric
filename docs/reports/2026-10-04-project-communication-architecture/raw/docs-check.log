@@ -1,0 +1,32 @@
+Retained excerpt: first 8 and last 20 lines of documentation structure output.
+Full output SHA-256: feb7b9cacd213fef899a4e6033c5ff0fb89476d59f8481082ddc17a8d583506b
+
+ok: decision home is docs/adr/
+ok: ADR numbers are unique
+ok: canonical documentation homes exist
+ok: public surfaces contain no internal product-economics language
+ok: public product spelling is consistent
+ok: toolkit positioning, product readiness, category and slogan match across 7 surfaces
+PASS: PassionCode.ai public narrative
+ok: public narrative gate passes
+[omitted 1468 advisory/structure lines]
+warn  B022 apps/desktop/src/main/schemaReadiness.ts:0: "the build manifest could not be read" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/main/schemaReadiness.ts:0: "~/Library/Application Support/Fabric/stack" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/main/schemaReadiness.ts:0: "FabricSchemaContract@1" is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/main/schemaReadiness.ts:0: "The compiled database schema contract is invalid. Install a verified build." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/main/schemaReadiness.ts:0: "The build manifest is missing or unreadable. Install a verified build, then restart Fabric." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/main/schemaReadiness.ts:0: "The build manifest does not match the compiled database schema contract. Rebuild or install a verified build, then restart Fabric." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/main/schemaReadiness.ts:0: "The database schema check deadline is invalid." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/main/schemaReadiness.ts:0: "The database schema check timed out. Check the local stack and retry." is in the code with no registry row -- agree it or retire it
+warn  B022 apps/desktop/src/main/schemaReadiness.ts:0: "The database schema could not be verified. Check the local stack and retry." is in the code with no registry row -- agree it or retire it
+
+0 error(s), 1472 warning(s)
+ok: brand contract gate passes
+note:  [U057] 23 of 76 flows carry an inherited verdict, all of them in the shrinking baseline
+note:  [U078] 1 superseded screen record(s) compared against the index
+OK — docs/ux is consistent (<research-checkout>/docs/ux)
+ok: UX register gate passes (warnings are advisory — see docs/evidence/backlog.md for their causes)
+NOT CHECKED: 3 relative link(s) into the submodule 'workspace', which is not checked out here (private; a public clone cannot initialise it)
+relative Markdown links resolve (571 files inspected)
+ok: relative Markdown links resolve
+PASS: Fabric documentation structure
