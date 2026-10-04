@@ -34,13 +34,16 @@ setInterval(()=>{},1000)\n`, { mode: 0o600 })
 const pattern = /^\s*listening on:\s*ws:\/\/127\.0\.0\.1:(\d+)\s*$/
 const boundary = createProcessBoundary(), tracked = [], registries = []
 const delay = ms => new Promise(r => setTimeout(r, ms))
-const until = async (fn, label) => { const deadline = performance.now() + 4000; while (performance.now() < deadline) { if (await fn()) return; await delay(10) } throw Error(label) }
+// Generous waits for outcomes this file is not timing (the same load fix as owned-backend-process-registry,
+// 2026-10-03): at load ~60 a 1.5 s spawn deadline reported outcome_unknown for a healthy spawn. The
+// listener deadline tests pass their own short timeoutMs explicitly.
+const until = async (fn, label) => { const deadline = performance.now() + 20000; while (performance.now() < deadline) { if (await fn()) return; await delay(10) } throw Error(label) }
 let serial = 10
 function registry({ mode = 'listen', listener = { pattern }, root = path.join(dir, 'root-' + serial++) } = {}) {
   mkdirSync(root, { recursive: true, mode: 0o700 }); const calls = { spawn: 0 }
   const native = { spawn: (...args) => { calls.spawn++; const child = spawn(...args), t = { child, exited: false }; tracked.push(t); child.once('exit', () => t.exited = true); child.on('error', () => {}); return child },
     boundary, fdIdentity: () => 'fd', write: () => 0 }
-  const r = createOwnedBackendProcessRegistry({ rootDir: root, estateId: estate, recipe: { executable, executableSha256: hash, argv: [fixture, mode], cwd: dir, env: { HOME: dir } }, timeoutMs: 1500, authority: () => ({ personId: id(2), revision: 1 }), ...(listener ? { listener } : {}) }, native)
+  const r = createOwnedBackendProcessRegistry({ rootDir: root, estateId: estate, recipe: { executable, executableSha256: hash, argv: [fixture, mode], cwd: dir, env: { HOME: dir } }, timeoutMs: 15000, authority: () => ({ personId: id(2), revision: 1 }), ...(listener ? { listener } : {}) }, native)
   registries.push(r); return { registry: r, calls, root }
 }
 const admission = () => { const n = serial++; return { admitted: true, project_id: id(3), task_id: id(n), task_run_id: id(n + 1000), session_id: id(n + 2000), run_ordinal: 1 } }

@@ -66,31 +66,23 @@ The plan everyone works to: [general development plan](../evidence/backlog.md#ge
   real Electron process was still alive 20 s after SIGTERM) and passes on the coordinator.
 
 ## Open — exact next task
-0. **Other repositories' lifecycle packets** (each an open PR, not merged, not released): fabric-agent-adapter
-   #28 (0.7.0), passioncode #30 (0.1.23, pins the adapter after its release), fabric-dashboards #21,
-   fabric-switchboard #23 (0.5.4, after the owning session's 0.5.3-beta.1), project-observatory-dashboard
-   #125 (rebase after `feat/macos-notarize`, regenerate the inventory), fabric-inbox #12, plus okolos and
-   fabric-vr when their runs report. local-lifecycle BL-1075 landed in sshlg-personal-os `948aa8cb` and the
-   broker was reinstalled (all four apps recognised again).
-1. **Land on `main`** by fast-forward after `bash scripts/ci.sh fast` on the branch head: write the
-   `docs/MERGES.md` entry inside the change (AGENTS.md iteration contract), refresh the map, push `main`,
-   then `node scripts/workspace.mjs sync` and the fabric-workspace PR for `knowledge/plans.md` (AR-1
-   partial, AR-2 in lane 6, a link to the general plan and its Now/Next) and, after publication,
-   `knowledge/products.md` (Fabric 0.3.0).
-2. **P-03 — Fabric 0.3.0, released from CI** ([ADR-0111](../adr/0111-fabric-is-released-from-ci.md),
-   [runbook](../launch/release-mac.md)). `apps/desktop/package.json` is 0.3.0 and `docs/launch/release-gate.json`
-   names 0.3.0 and the verification ledger. Rehearse first, on a commit of `main`:
-   `git tag -a v0.3.0-rc.1 <commit> -m … && git push origin v0.3.0-rc.1`, then
-   `gh workflow run release.yml --ref v0.3.0-rc.1 -f publish=false` (preflight: the commit is on `origin/main`,
-   the tag equals the version, the gate is clear). Then the annotated tag `v0.3.0` on the same commit; the
-   `macos` and `publish` jobs each wait for a release approver who is not the tag's author (khurss or
-   svlab93 when the tag is pushed from the operator's account). It publishes a prerelease in
-   passioncode-ai/fabric with the DMG, `SHA256SUMS` + `.asc` and Sigstore attestations. Then install it in
-   /Applications, walk it, and point `fabric/release.json` in passioncode-ai.github.io at
-   `https://github.com/passioncode-ai/fabric/releases/download/v0.3.0/Fabric-0.3.0-arm64.dmg` with the
-   SHA-256 from `SHA256SUMS`. Signing never happens on this machine (rules §11).
-3. After 0.3.0 is on main and released: tell the lifecycle broker's owner (sshlg-personal-os, BL-1076) so
-   it enrols fabric.desktop with `backgroundLaunch: true` (CO-192).
+Done on 2026-10-04: **Fabric 0.3.0 released** (P-03) — tag `v0.3.0` on `5193022c`, prerelease in
+passioncode-ai/fabric, verified (SHA256SUMS, GPG, attestation, notarization), installed in /Applications,
+served by passioncode.ai; the operator's live database migrated 69 → 75 after a dump
+(`~/DATA/_backups/fabric-local-db/fabric-live-schema69-20261004-015446.dump`, 0600) and a rehearsal on a
+copy; fabric#4 and fabric#5 verified on the released build and closed.
+
+1. **P-08 — Fabric 0.3.1 with the hub** (ADR-0115): the fabric-dashboards session runs its verification
+   on `agent/hub-0.3.1-verification`. 0.3.0 requires exactly schema 75: migration 76 reaches the live
+   database only after 0.3.1 is installed, with the same backup → rehearsal → `supabase migration up`.
+2. **P-06.1 and P-07.1** ([ADR-0109](../adr/0109-agent-learning-lives-in-fabric-and-problems-become-proposals.md),
+   [spec](../evidence/specs/2026-10-03-agent-learning-loop-and-fix-in-fabric.md)): the learning loop's data
+   model and the `fabric://` door.
+3. **The other products' lifecycle PRs** — each has a row in its own board (2026-10-04 sweep): dashboards
+   #21 (FD-03), inbox #12, okolos #11, vr #9, switchboard #23 (SB-27), adapter #28 (FAA-01, rebase onto
+   0.6.3), launcher #30 (PC-03, renumber to 0.1.28).
+4. The broker's `backgroundLaunch` enrolment for Fabric is BL-1077 in sshlg-personal-os (awaits the
+   operator's go).
 
 ## Human steps
 - Approve the 0.3.0 release jobs in the protected `release` environment: khurss or svlab93 (not the tag's author).
