@@ -1,0 +1,58 @@
+{
+  "base_revision": "edad4f6b553d6dfa7c56466461fb0f6dd9df8cac",
+  "proposed_owner_basis": "2e06e5013595ec96b52b85cae2c486050632565b",
+  "node": "24.10.0",
+  "focused_compiler_and_public_structural": {
+    "command": "node --test scripts/test/unified-plan.test.mjs scripts/test/build-unified-plan.test.mjs",
+    "exit": 0,
+    "tests": 34,
+    "pass": 34,
+    "skip": 0
+  },
+  "owner_counter_controls": {
+    "tests": 7,
+    "pass": 7
+  },
+  "original_independent_helper_author_replay": {
+    "review_revision": "5847458132614dc41feaf19ac8459c2b4c8f4b8e",
+    "tests": 17,
+    "pass": 17,
+    "independent_acceptance": false
+  },
+  "regions": {
+    "exit": 0,
+    "markers": 122
+  },
+  "python_compile": {
+    "exit": 0
+  },
+  "diff_check": {
+    "exit": 0
+  },
+  "fast": {
+    "command": "pnpm check:fast",
+    "exit": 1,
+    "first_failure": "Map sources changed; root owns guarded map refresh"
+  },
+  "privacy": {
+    "task_owned_artifacts_scanned": 9,
+    "proposed_basis_blobs_scanned": 11,
+    "matches": 0
+  },
+  "source_sha256": {
+    "scripts/build-unified-plan.py": "86c7e346971fd59f4e20d2d870a994d6e11bd0442970e59555677be76aeff6b3",
+    "scripts/unified-plan.mjs": "642046d7a5b747e6632703b1bda34c8bc6e68840442f3216bf8a8be60a0a5272",
+    "scripts/unified-canonical-sources.mjs": "de9fa6a8d7dbdae3c5f980ad1ac2760cf624641a1bde90c1060470c6d1ce03b5",
+    "scripts/test/build-unified-plan.test.mjs": "d280ca51b3fa15850b1178a75c8c2730f59645c81a8f8d36998e9dbf130db2a3"
+  },
+  "guarded_edits": [],
+  "leases_taken": [],
+  "actual_fixed_owner_source_created": false,
+  "owner_publication": "PENDING_ROOT_FINAL_BASIS_REFRESH_AND_SOURCE_COMMIT",
+  "actual_queue_activation": "NOT_RUN",
+  "hosted_full_ci": "NOT_RUN",
+  "native_product": "NOT_RUN",
+  "full_disposable_product": "NOT_RUN",
+  "live_runtime": "NOT_RUN",
+  "release_or_parent_acceptance": "NOT_GRANTED"
+}

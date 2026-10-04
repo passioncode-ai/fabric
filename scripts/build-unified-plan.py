@@ -37,6 +37,151 @@ def priority(ids, lane):
     return 10 + lane
 
 
+# #region current-owner-reconciliation — docs: docs/handoffs/2026-10-04-unified-owner-reconciliation.md#source-owned-current-input
+# A fixed source-owned instruction is independent of editable graph fields.
+RECONCILIATION = 'docs/evidence/plans/unified-current-reconciliation.json'
+
+
+def owner_path(path):
+    if not isinstance(path, str) or len(path) > 700 or not re.fullmatch(r'[A-Za-z0-9_./-]+', path) or any(p in ['', '.', '..'] or p.startswith('.') for p in path.split('/')) or path.startswith('workspace/'):
+        raise SystemExit('Unsafe or cross-owner reconciliation path')
+    cursor = ROOT
+    for part in path.split('/'):
+        cursor = cursor / part
+        if cursor.is_symlink():
+            raise SystemExit('Linked reconciliation input refused')
+    return cursor
+
+
+def git_bytes(revision, path):
+    if not isinstance(revision, str) or not re.fullmatch(r'[a-f0-9]{40}', revision):
+        raise SystemExit('Reconciliation requires a full immutable revision')
+    owner_path(path)
+    try:
+        return subprocess.check_output(['git', 'show', revision + ':' + path], cwd=ROOT, stderr=subprocess.DEVNULL)
+    except subprocess.CalledProcessError:
+        raise SystemExit('Reconciliation reference is absent from its immutable revision: ' + path)
+
+
+def exact_ref(ref, inputs):
+    if not isinstance(ref, dict) or set(ref) != {'path', 'revision', 'sha256'} or not isinstance(ref['sha256'], str) or not re.fullmatch(r'[a-f0-9]{64}', ref['sha256']):
+        raise SystemExit('Invalid reconciliation source receipt')
+    path = owner_path(ref['path'])
+    if not path.is_file() or path.stat().st_size > 32 * 1024 * 1024:
+        raise SystemExit('Missing or oversized reconciliation source receipt: ' + ref['path'])
+    raw = path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != ref['sha256'] or raw != git_bytes(ref['revision'], ref['path']):
+        raise SystemExit('Dirty or forged reconciliation source receipt: ' + ref['path'])
+    inputs.add(ref['path'])
+    return raw
+
+
+def owner_packets(inventory, revision):
+    path = owner_path(RECONCILIATION)
+    present_at_revision = subprocess.run(['git', 'cat-file', '-e', revision + ':' + RECONCILIATION], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+    if not present_at_revision and not path.exists():
+        return [], set(), None
+    if not present_at_revision or not path.is_file():
+        raise SystemExit('Reconciliation source missing or not committed at selected revision')
+    inputs = set()
+    raw = exact_ref({'path': RECONCILIATION, 'revision': revision, 'sha256': sha(path)}, inputs)
+    source = json.loads(raw)
+    repo = inventory['repository']
+    if set(source) != {'schema', 'repository', 'packets'} or source['schema'] != 'unified-owner-reconciliation/1' or source['repository'] != repo or not isinstance(source['packets'], list) or len(source['packets']) > 64:
+        raise SystemExit('Invalid or cross-owner reconciliation source')
+    by_key = {row['key']: row for row in inventory['tasks']}
+    tasks, used = [], set()
+    required = {'id', 'canonical_key', 'related_canonical_keys', 'basis_revision', 'basis_sources', 'operation', 'title', 'context', 'rollback', 'authority', 'dependencies', 'acceptance_gates', 'impact_scope'}
+    for packet in source['packets']:
+        if not isinstance(packet, dict) or set(packet) != required:
+            raise SystemExit('Reconciliation packet fields invalid; no derived status or done authority is accepted')
+        row = by_key.get(packet['canonical_key'])
+        if not row or not isinstance(packet['related_canonical_keys'], list):
+            raise SystemExit('Unknown or cross-owner reconciliation identity')
+        rows = [row] + [by_key.get(key) for key in packet['related_canonical_keys']]
+        if any(r is None for r in rows) or len({r['key'] for r in rows}) != len(rows):
+            raise SystemExit('Unknown or duplicate related reconciliation identity')
+        tid = packet['id']
+        if not isinstance(tid, str) or not re.fullmatch(re.escape(row['id']) + r'\.[a-z][a-z0-9-]{1,60}', tid) or tid in used:
+            raise SystemExit('Reconciliation bounded task cannot rename or collide with its owner identity')
+        used.add(tid)
+        if packet['operation'] not in ['source-preparation', 'qualification', 'bounded-design'] or not isinstance(packet['title'], str) or not packet['title'].strip() or not packet['rollback']:
+            raise SystemExit('Reconciliation is bounded source/design work only, with rollback')
+        basis = packet['basis_revision']
+        git_bytes(basis, row['path'])
+        if subprocess.run(['git', 'merge-base', '--is-ancestor', basis, revision], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
+            raise SystemExit('Reconciliation basis is not an ancestor of selected source')
+        basis_paths = set()
+        if not isinstance(packet['basis_sources'], list) or len(packet['basis_sources']) > 256:
+            raise SystemExit('Reconciliation basis source count is invalid')
+        for ref in packet['basis_sources']:
+            if ref['revision'] != basis or ref['path'] in basis_paths:
+                raise SystemExit('Reconciliation basis receipts must share one immutable revision without duplicates')
+            exact_ref(ref, inputs); basis_paths.add(ref['path'])
+        ctx = packet['context']
+        fields = {'outcome', 'sources', 'scope', 'steps', 'acceptance', 'risks', 'stop_conditions', 'resume'}
+        if not isinstance(ctx, dict) or set(ctx) != fields or any(not ctx[k] for k in fields) or any(not isinstance(ctx[k], list) for k in fields - {'outcome', 'resume'}):
+            raise SystemExit('Reconciliation needs complete bounded cold context')
+        if len(ctx['scope']) > 64 or len(ctx['sources']) > 256 or any(not isinstance(value, str) or not value.strip() for key in fields - {'outcome', 'resume'} for value in ctx[key]):
+            raise SystemExit('Reconciliation context is oversized or not textual')
+        for value in ctx['scope'] + ctx['sources']:
+            owner_path(value)
+        required_basis = {r['path'] for r in rows} | set(ctx['sources']) | {p for p in ctx['scope'] if owner_path(p).is_file()}
+        if not required_basis.issubset(basis_paths):
+            raise SystemExit('Reconciliation basis does not cover canonical/context/current scoped files')
+        authority = packet['authority']
+        if not isinstance(authority, dict) or set(authority) != {'kind', 'repository', 'actions', 'standing', 'requested_source'} or authority['kind'] != 'source-owner-bounded-work' or authority['repository'] != repo or not isinstance(authority['actions'], list) or not authority['actions'] or not set(authority['actions']).issubset({'design', 'code', 'check', 'commit', 'push'}):
+            raise SystemExit('Reconciliation owner authority cannot grant release or live operations')
+        for field, expected in [('standing', 'AGENTS.md'), ('requested_source', row['path'])]:
+            if authority[field]['path'] != expected or authority[field]['revision'] != basis:
+                raise SystemExit('Reconciliation authority must bind standing AGENTS and original owner source')
+            exact_ref(authority[field], inputs)
+        if not isinstance(packet['acceptance_gates'], list) or not packet['acceptance_gates'] or any(set(gate) != {'id', 'requirement', 'required_for'} or not gate['id'] or not gate['requirement'] or gate['required_for'] != 'parent-acceptance' for gate in packet['acceptance_gates']):
+            raise SystemExit('Reconciliation must retain separate parent acceptance gates without status claims')
+        nonblocking = []
+        if not isinstance(packet['impact_scope'], list):
+            raise SystemExit('Reconciliation impact applicability must be explicit')
+        impacts_path = (REPORT / 'impacts.json').relative_to(ROOT).as_posix()
+        current_impacts = {impact['id']: impact for impact in load(ROOT / impacts_path)}
+        for decision in packet['impact_scope']:
+            if set(decision) != {'id', 'effect', 'reason', 'source'} or decision['id'] in nonblocking or decision['effect'] != 'parent-acceptance-only' or not decision['reason'] or packet['operation'] not in ['source-preparation', 'qualification']:
+                raise SystemExit('Invalid or excessive reconciliation impact applicability')
+            if decision['source']['path'] != impacts_path or decision['source']['revision'] != basis:
+                raise SystemExit('Impact applicability must bind the exact owning impact input')
+            exact_ref(decision['source'], inputs)
+            impact = current_impacts.get(decision['id'])
+            if not impact or impact['severity'] != 'blocking' or impact['disposition'] != 'open' or not any(r['id'] in impact['targets'] for r in rows):
+                raise SystemExit('Impact applicability cannot clear unknown or unrelated impacts')
+            nonblocking.append(decision['id'])
+        holds = []
+        if not isinstance(packet['dependencies'], list):
+            raise SystemExit('Reconciliation dependencies must be explicit')
+        for dep in packet['dependencies']:
+            if dep.get('kind') == 'source-input' and set(dep) == {'kind', 'purpose', 'ref'} and dep['purpose']:
+                exact_ref(dep['ref'], inputs)
+            elif dep.get('kind') == 'scoped-acceptance' and set(dep) == {'kind', 'subject_key', 'scope', 'proof_tier', 'receipt'} and dep['scope'] and dep['proof_tier'] in ['source', 'focused', 'native', 'disposable', 'independent']:
+                if dep['subject_key'] not in {r['key'] for r in rows}:
+                    raise SystemExit('Scoped dependency is outside declared owner identities')
+                if dep['receipt'] is None:
+                    holds.append('Missing scoped acceptance: ' + dep['scope']); continue
+                receipt = json.loads(exact_ref(dep['receipt'], inputs))
+                expected = {'schema': 'unified-scoped-receipt/1', 'repository': repo, 'subject_key': dep['subject_key'], 'basis_revision': basis, 'scope': dep['scope'], 'proof_tier': dep['proof_tier']}
+                if set(receipt) != set(expected) | {'result'} or any(receipt.get(k) != v for k, v in expected.items()) or receipt.get('result') not in ['PASS', 'FAIL', 'NOT_RUN']:
+                    raise SystemExit('Reconciliation receipt has forged subject, basis, scope or proof tier')
+                if receipt['result'] != 'PASS':
+                    holds.append('Scoped acceptance ' + receipt['result'] + ': ' + dep['scope'])
+            else:
+                raise SystemExit('Invalid reconciliation dependency')
+        current = dict(ctx)
+        current['sources'] = list(dict.fromkeys(ctx['sources'] + [r['path'] for r in rows] + [RECONCILIATION]))
+        current['owner_reconciliation'] = packet
+        current['owner_holds'] = holds
+        current['stop_conditions'] = ctx['stop_conditions'] + ['Stop before release approval, tag, deployment, production publication or operator database mutation; this packet does not accept its canonical parent']
+        tasks.append({'id': tid, 'canonical_ids': [r['id'] for r in rows], 'canonical_keys': [r['key'] for r in rows], 'lane': 0, 'title': packet['title'], 'kind': 'bounded-source-work', 'dispatch': 'design-gated' if holds else 'candidate', 'priority_group': 0, 'depends_on': [], 'external_dependencies': packet['dependencies'], 'preparation_only_impacts': nonblocking, 'context': current})
+    return tasks, inputs, {'path': RECONCILIATION, 'commit': revision, 'sha256': sha(path), 'packet_ids': [t['id'] for t in tasks]}
+
+# #endregion current-owner-reconciliation
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', help='New repository-relative report directory; the dated input cut is never overwritten')
@@ -213,7 +358,13 @@ def main():
                 task['historical_evidence'].setdefault('scope', 'Historical input check only; consult the unchanged receipt for proof tier and NOT_RUN limitations')
             task['dispatch'] = 'design-gated'
             task['context']['stop_conditions'].append('Reconcile a current bounded owner packet before dispatch; new source hashes do not renew historical acceptance')
-    sources = {p.split('#')[0] for t in tasks for p in t['context']['sources']}
+    current_tasks, owner_inputs, owner_source = owner_packets(inventory, args.source_revision)
+    if {t['id'] for t in tasks} & {t['id'] for t in current_tasks}:
+        raise SystemExit('Reconciliation graph task identity collides with inherited graph')
+    for task in current_tasks:
+        task['lane'] = next((lane['number'] for lane in lanes if task['canonical_ids'][0] in lane['canonical_ids']), 0)
+    tasks += current_tasks
+    sources = {p.split('#')[0] for t in tasks for p in t['context']['sources']} | owner_inputs
     sources |= {t['context']['research_artifact'] for t in tasks if 'research_artifact' in t['context']}
     sources |= {s['path'] for s in inventory['sources']}
     sources |= {'scripts/build-unified-plan.py', 'scripts/unified-plan.mjs', 'scripts/unified-canonical-sources.mjs'}
@@ -247,7 +398,7 @@ def main():
             raise SystemExit('Private metadata refused: ' + label)
     plan = {
         'schema': 1, 'as_of': '2026-10-04', 'baseline': args.source_revision,
-        'research_input': REPORT.relative_to(ROOT).as_posix(), 'research_source_revision': historical_revision, 'reconciliation': 'Inherited dispatch and completion proofs held pending current bounded owner context; canonical owner queue remains authoritative', 'canonical_inventory': inventory,
+        'owner_reconciliation': owner_source, 'research_input': REPORT.relative_to(ROOT).as_posix(), 'research_source_revision': historical_revision, 'reconciliation': 'Inherited dispatch and completion proofs held pending current bounded owner context; canonical owner queue remains authoritative', 'canonical_inventory': inventory,
         'goal': 'Project coherence through sourced observation, accountable work, consent, independent verification and learning; P-08 Now, P-06.1/P-07.1 Next; N1 parallel subject to its own real-provider prerequisites.',
         'constraints': ['ADR-0101 canonical source owns every delivery status; snapshot is dispatch design only.', 'P-08 external owners retain their worktrees; no agent may infer release approval, live migration or cleanup permission from research.', 'Project identity, role, consent, receipts and history survive agent/provider changes; private restored history grants no standing authority.', 'Source hashes checked before dispatch. Prepare leaves are design work; held parents need reviewed leaf and current dependency/authority receipt.', 'One task lease plus exact resource claim per guarded file; isolated worktree; shared generated outputs integrated by one owner.', 'Native/provider/hosted/packaged/product observations remain separate proof tiers; unknown, timeout, source error or partial read never equals success.', 'Public Fabric report excludes private commercial designs, credential values and transcript raw exports.'],
         'lanes': lanes, 'sources': [{'path': p, 'sha256': sha(ROOT / p), 'commit': args.source_revision} for p in sorted(sources)],
@@ -277,13 +428,13 @@ def main():
                 prior_packet.unlink()
             continue
         ctx = t['context']
-        unit_path = ctx['scope'][0] if t['id'].endswith('.prepare') or t['kind'] in ['design', 'canonical-source-review'] else f'docs/evidence/plans/unified-leaves/{t["id"]}.review.json'
+        unit_path = ctx['scope'][0] if t['id'].endswith('.prepare') or t['kind'] in ['design', 'canonical-source-review', 'bounded-source-work'] else f'docs/evidence/plans/unified-leaves/{t["id"]}.review.json'
         # Broad parents audit as spec-review units, not product edits. Their product
         # scope travels as context; no two parallel design units edit one dossier.
         leaf = {'schema_version': 'execution-packet/1', 'source_revision': args.source_revision, 'dispatch': t['dispatch'], 'research_source_revision': historical_revision, 'node': nid, 'id': t['id'], 'intent': ctx['outcome'],
                 'inputs': [{'address': p, 'commit': args.source_revision, 'sha256': sha(ROOT / p.split('#')[0])} for p in ctx['sources']],
                 'decision_refs': [{'address': 'docs/adr/0101-the-general-development-plan.md', 'commit': args.source_revision, 'sha256': sha(ROOT / 'docs/adr/0101-the-general-development-plan.md')}],
-                'source_scope': {'edit_targets': [unit_path]},
+                'source_scope': {'edit_targets': ctx['scope'] if t['kind'] == 'bounded-source-work' else [unit_path]},
                 'outputs': [{'path': unit_path, 'contract': 'bounded leaf or explicit refusal, not canonical completion'}],
                 'acceptance': ctx['acceptance'], 'guards': ctx['stop_conditions'], 'resume': ctx['resume']}
         (out / f'{nid}.json').write_text(json.dumps(leaf, ensure_ascii=False, indent=2) + '\n')
