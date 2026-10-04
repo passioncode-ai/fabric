@@ -1,0 +1,644 @@
+{
+  "candidate": "a95bb28746573af0f2007b4186e3d2a1f83fa764",
+  "pinnedParser": "898a3cb4af9bd9dfa8b507fce28bdb008295596c",
+  "fixtureRevision": "82e70c13c8129650bd21ef382d4abdabe0d6e65d",
+  "results": [
+    {
+      "name": "production-parser-compile",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "Compiled 1 direction lanes, 16 source-qualified canonical rows, 18 held/dispatch/design records, 15 revision-bound source pins into docs/reports/review-neutral-cut\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "baseline-validation",
+      "observed": 0,
+      "expected": 0,
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stdout": "PASS: 1 lanes, 18 packets; sources, coverage, dependencies and impacts valid\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "all-15-source-qualified-COM-rows",
+      "observed": 15,
+      "expected": 15,
+      "matched": true
+    },
+    {
+      "name": "colliding-COM-01-has-two-keys",
+      "observed": 2,
+      "expected": 2,
+      "matched": true
+    },
+    {
+      "name": "all-input-pins-use-committed-revision",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "inherited-candidate-and-done-held",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "empty-frontier-stays-held",
+      "observed": 0,
+      "expected": 0,
+      "matched": true
+    },
+    {
+      "name": "markers-removed-check-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "markers-removed-next-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "markers-removed-packet-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "markers-removed-impacts-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "identity-substituted-check-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "NEW-99.prepare: canonical identity lacks its owner source\ncompiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "identity-substituted-next-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "NEW-99.prepare: canonical identity lacks its owner source\ncompiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "identity-substituted-packet-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "NEW-99.prepare: canonical identity lacks its owner source\ncompiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "identity-substituted-impacts-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "NEW-99.prepare: canonical identity lacks its owner source\ncompiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "historical-done-check-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "historical-done-next-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "historical-done-packet-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "historical-done-impacts-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "scope-rebound-check-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "scope-rebound-next-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "scope-rebound-packet-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "scope-rebound-impacts-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "suffix-renamed-check-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "suffix-renamed-next-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "suffix-renamed-packet-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "suffix-renamed-impacts-refuses-before-stdout",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "emit-plan-docs/reports/2026-10-04-unified-execution-pure",
+      "observed": [
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "expected": [
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "name": "emit-plan-docs/reports/review-neutral-cut-pure",
+      "observed": [
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "expected": [
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "name": "emit-plan-docs/reports/absent-output-pure",
+      "observed": [
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "expected": [
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "name": "emit-plan-fixture/absolute-output-pure",
+      "observed": [
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "expected": [
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 0,
+        "stderr": ""
+      }
+    },
+    {
+      "name": "generation-missing-privacy-refused",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "generation-missing-privacy-no-output",
+      "observed": false,
+      "expected": false,
+      "matched": true
+    },
+    {
+      "name": "internal-inventory-no-dispatch-authority",
+      "observed": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "matched": true
+    },
+    {
+      "name": "internal-inventory-short-sha-refused",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "canonical inventory requires an immutable source revision\n"
+      }
+    },
+    {
+      "name": "explicit-missing-privacy-refuses-before-frontier",
+      "observed": [
+        true,
+        true
+      ],
+      "expected": [
+        true,
+        true
+      ],
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ENOENT: no such file or directory, open 'absent-privacy.local.json'\n"
+      }
+    },
+    {
+      "name": "omitted-COM-row-rejected",
+      "observed": true,
+      "expected": true,
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\nuncovered canonical task: COM-14 (docs/evidence/communication.md)\n"
+      }
+    },
+    {
+      "name": "historical-proof-repromoted-candidate",
+      "observed": true,
+      "expected": true,
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "historical-proof-repromoted-done",
+      "observed": true,
+      "expected": true,
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "historical-proof-rebound-to-current",
+      "observed": true,
+      "expected": true,
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\n"
+      }
+    },
+    {
+      "name": "wrong-pin-revision-rejected",
+      "observed": true,
+      "expected": true,
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "compiled graph differs from committed inputs; regenerate rather than edit derived authority\nsource revision mismatch: docs/adr/0101-the-general-development-plan.md\n"
+      }
+    },
+    {
+      "name": "research-byte-drift-rejected",
+      "observed": true,
+      "expected": true,
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "expected graph reconstruction: Input is uncommitted or differs from source revision: docs/reports/2026-10-04-unified-execution/packets/start-adoption.json\nsource changed: docs/reports/2026-10-04-unified-execution/packets/start-adoption.json\n"
+      }
+    },
+    {
+      "name": "pointer-status-authority-rejected",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "pointer-path-escape-rejected",
+      "observed": true,
+      "expected": true,
+      "matched": true
+    },
+    {
+      "name": "dirty-input-compile-rejected",
+      "observed": true,
+      "expected": true,
+      "matched": true,
+      "detail": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": "Input is uncommitted or differs from source revision: docs/evidence/communication.md\n"
+      }
+    },
+    {
+      "name": "dirty-rejection-before-output",
+      "observed": false,
+      "expected": false,
+      "matched": true
+    }
+  ]
+}
