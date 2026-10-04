@@ -219,6 +219,18 @@ owned fixture path using the Electron44 command above. Root must rebuild its cur
 renderer/preload and prepare fresh fixtures before CUA interaction. This proves synthetic fixture
 capability only; native zoom is not VoiceOver, whole-WCAG, styled matrix or AD02 acceptance.
 
+## Pushed theme/zoom source replay
+
+Exact theme/zoom code `9592a4d26f68f253a973c9c407f4a4bc9465dcf6` was pushed and its remote
+branch verified. The clean authenticated cold checkout fetched and advanced with fast-forward
+only, then passed 21/21 containment tests, zero skips. Two fresh native captures from that exact
+commit passed: EN light/1 and RU dark/2, both 1280×1000 physical content size. Their exact seeded
+pre/post state, actual browser zoom, theme and scaled CSS viewport match. Host provenance and
+both durable PNG hashes were verified; the cold tree stayed clean. The
+[remote replay receipt](2026-10-04-onboarding-native-fixture-theme-zoom-remote.json) retains actual
+capture boundaries. This final receipt-only commit keeps the host code unchanged. Root owns
+fresh assembled-source captures and independent CUA/accessibility acceptance.
+
 ## Exact next task
 
 Root/visual author: import the immutable two host files into the owning checkout, build that

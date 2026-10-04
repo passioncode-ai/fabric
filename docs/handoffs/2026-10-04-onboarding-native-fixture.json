@@ -275,5 +275,20 @@
     "visualAcceptance": "NOT_RUN",
     "VoiceOverAcceptance": "NOT_RUN",
     "wholeWCAGAcceptance": "NOT_RUN"
+  },
+  "themeAndZoomRemoteReplay": {
+    "sourceCommit": "9592a4d26f68f253a973c9c407f4a4bc9465dcf6",
+    "authenticatedFetchExitCode": 0,
+    "fastForwardOnlyExitCode": 0,
+    "containmentTests": 21,
+    "containmentPass": 21,
+    "containmentSkip": 0,
+    "nativeCases": 2,
+    "nativePass": 2,
+    "sourcePins": 472,
+    "buildPins": 190,
+    "PNGHashesVerified": 2,
+    "treeClean": true,
+    "receipt": "2026-10-04-onboarding-native-fixture-theme-zoom-remote.json"
   }
 }
