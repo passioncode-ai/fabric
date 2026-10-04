@@ -236,7 +236,7 @@ export interface AgentSurfaceDeps {
 export interface HubIngress {
   /** The current door token; null while none is published. */
   doorToken: () => string | null
-  access: Pick<AccessService, 'authenticate'>
+  access: Pick<AccessService, 'authenticate' | 'primeCredentialVerifiers' | 'knownCredential'>
   /** A server holding exactly the tools this principal may use. */
   tools: (principal: HubPrincipal) => HubServer
   /** `POST /fabric/v1/connect/<product>`: a product delivering its key (ADR-0115 §4). */
@@ -332,6 +332,9 @@ export class AgentSurface {
    */
   async start(opts: { port?: number } = {}): Promise<void> {
     if (this.http) return
+    // V2 ER-3: after restart, valid bindings must not share the unknown-token lookup bucket.
+    // This snapshot is only a budget hint; every request still authenticates against live state.
+    await this.deps.hub?.access.primeCredentialVerifiers()
     // M104 — NOT fire-and-forget. `void this.handle(...)` with three reachable
     // throws inside meant a rejection left `res` unwritten: the agent blocked
     // until its own timeout with its call budget already spent, and the main
@@ -693,7 +696,7 @@ export class AgentSurface {
       const bearerHash = createHash('sha256').update(token, 'utf8').digest('hex')
       // Unknown bearers share one small budget, spent BEFORE the lookup: each would otherwise cost a
       // database read with no budget at all (ER-7). A bearer that authenticated before is not held back.
-      if (!this.knownBearers.has(bearerHash) && !this.spend('unknown-bearers', Math.max(1, Math.ceil(this.limits.budgetCalls / 4)))) {
+      if (!hub.access.knownCredential(token) && !this.knownBearers.has(bearerHash) && !this.spend('unknown-bearers', Math.max(1, Math.ceil(this.limits.budgetCalls / 4)))) {
         AgentSurface.refuse(res, 429, 'too many unknown credentials; try again later', { 'retry-after': String(Math.max(1, Math.ceil(this.limits.budgetWindowMs / 1000))) }, attempt)
         return true
       }

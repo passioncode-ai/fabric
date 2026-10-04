@@ -28,6 +28,16 @@ await test('old, new, unknown and malformed schemas have zero domain effects',as
     assert.deepEqual(effects,[])
   }
 })
+await test('a schema behind names the actual bundled-stack upgrade command and runbook',async()=>{
+  await assert.rejects(withSchemaReadiness(input(N-1),start),error=>{
+    assert.match(error.message,/supabase migration up --local/)
+    assert.match(error.message,/Library\/Application Support\/Fabric\/stack/)
+    assert.match(error.message,/release-mac\.md#upgrading-an-existing-database/)
+    assert.match(error.message,/backup/i)
+    return true
+  })
+  assert.deepEqual(effects,[])
+})
 await test('missing packaged, malformed and stale present manifests never query or start',async()=>{
   for(const manifest of [readManifest(null),readManifest({}),readManifest(fixture({schemaMin:53})),
     ...[NaN,'64',null,-1,0,Infinity,{},[]].flatMap(v=>[readManifest(fixture({schemaMin:v})),readManifest(fixture({schemaMax:v}))])]){

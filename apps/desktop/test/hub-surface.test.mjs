@@ -7,6 +7,7 @@
 // #region hub-consent — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#1-one-door-a-second-way-in
 import assert from 'node:assert/strict'
 import { createServer, request } from 'node:http'
+import { createHash } from 'node:crypto'
 import path from 'node:path'
 import test from 'node:test'
 import { memStore, fakeRegistry } from './helpers/access-memstore.mjs'
@@ -17,8 +18,7 @@ const { hubServerFor } = await import(path.join(SRC, 'hubTools.ts'))
 const { AccessService } = await import(path.join(SRC, 'accessService.ts'))
 
 const DOOR = 'D'.repeat(43)
-async function hub(limits = {}) {
-  const store = memStore()
+async function hub(limits = {}, store = memStore()) {
   const lookups = { n: 0 }
   const access = new AccessService({ store, registry: fakeRegistry(['example-agent', 'other-agent']), present: () => {}, connected: async () => true })
   const counted = Object.assign(Object.create(access), { authenticate: async (t) => { lookups.n++; return access.authenticate(t) } })
@@ -58,6 +58,18 @@ test('ER-7: unknown bearers are budgeted before they cost a credential lookup', 
   assert.ok(codes.includes(429), `unknown bearers were never refused 429: ${[...new Set(codes)].join(',')}`)
   assert.ok(lookups.n < 60, `every one of 60 unknown bearers cost a lookup (${lookups.n})`)
   await surface.stop()
+})
+
+test('V2 ER-3: existing binding survives an unknown-token flood after ingress restart, revocation still refuses', async (t) => {
+  const store=memStore(), credential='c'.repeat(43)
+  const binding={id:'existing',agent_id:'example-agent',verifier:createHash('sha256').update(credential).digest('hex'),revoked_at:null}
+  store.maps.bindings.set(binding.id,binding)
+  const {surface}=await hub({budgetCalls:5,budgetWindowMs:60_000},store)
+  t.after(()=>surface.stop())
+  for(let i=0;i<5;i++) await rpc(surface, `${String(i).padStart(2,'0')}${'x'.repeat(41)}`, 'tools/list',{})
+  assert.equal((await rpc(surface,credential,'tools/list',{})).status,200)
+  binding.revoked_at=new Date().toISOString()
+  assert.equal((await rpc(surface,credential,'tools/list',{})).status,401)
 })
 
 test('ER-8: the hub holds its port on [::1] as well, so localhost reaches Fabric and not a squatter', async () => {

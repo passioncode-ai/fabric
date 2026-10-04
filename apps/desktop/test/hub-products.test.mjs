@@ -119,7 +119,7 @@ const open = { closed: false }
 async function hubWith(connector) {
   const surface = new AgentSurface({
     db: null, journal: null, ptys: () => undefined, estateId: 'e',
-    hub: { doorToken: () => (open.closed ? null : 'd'.repeat(43)), access: { authenticate: async () => null }, tools: () => { throw new Error('no tools here') }, callback: (p, req, res) => connector.callback(p, req, res) }
+    hub: { doorToken: () => (open.closed ? null : 'd'.repeat(43)), access: { authenticate: async () => null, primeCredentialVerifiers: async () => {}, knownCredential: () => false }, tools: () => { throw new Error('no tools here') }, callback: (p, req, res) => connector.callback(p, req, res) }
   })
   await surface.start()
   return surface
