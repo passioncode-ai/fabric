@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "source_commit": "8cbf4144ab918252250c807c9948ef6231f67a91",
-  "workspace_commit": "73531581c8abf62c24ac75d4840b5e82725c4360",
-  "content_digest": "29870542f9468db0700d9269d762e18de40eaf04c744a2e0262245086fce2190",
+  "source_commit": "964de96004a0c57f351e96291b2ce0b69a1d8433",
+  "workspace_commit": "6397dce3117bbacddd22089802c74668d134eeff",
+  "content_digest": "1a5b46bd11f7cccce63ddc0907758fa0c0b5e29be38af164987d77ddc0a618ed",
   "heroku_app": "passioncode-fabric-workspace",
-  "release": 144,
-  "fabric_digest": "5fd09d167d9faac82f2d80ae8ff2e7dc4c92024b256e5b209743df57e3052dce",
+  "release": 145,
+  "fabric_digest": "20451dbd368eb2008d9ebbd7bc9e2f513dd5a408cd1effaa28e8cef3693b4d6f",
   "sources": [
     {
       "id": "org-index",
@@ -40,8 +40,8 @@
     {
       "id": "fabric-vr",
       "repository": "https://github.com/passioncode-ai/fabric-vr",
-      "commit": "9f6f3118fd3541e9d960e4e4f3896405b5b14176",
-      "files_digest": "54bfb413bd6cc498b8dc35d46e3461c5d078b5ef62c90885da21c8868f0905a9"
+      "commit": "d5eebcb62212c4a4bd3e7f895b8b87e82a062e8d",
+      "files_digest": "c68d132e4e80cd44ccc46ab45645a610be9c9033a8d3cf1613a39604b807b215"
     },
     {
       "id": "fabric-dashboards",
