@@ -185,6 +185,40 @@ One fresh native EN640×900 replay from that exact pushed commit also exited 0 w
 pre/post-capture state. The cold checkout remained clean. This receipt-only follow-up preserves
 those exact code bytes and does not replace independent assembled-candidate acceptance.
 
+## Follow-up: explicit fixture themes and real browser zoom
+
+The historical `07b4626`, `991524a`, `4df3079e` and `b9515579` cuts remain preserved. This
+extension changes only the two test-host sources and their owning receipts. Configuration now
+admits `theme: 'dark' | 'light'` and numeric `zoomFactor: 1 | 2`, defaulting to the earlier dark/1
+behavior. Preparation seeds the isolated settings through the existing product validator; the
+renderer applies its real theme. No settings mutation is admitted after launch. The native window
+uses Electron's actual `webPreferences.zoomFactor`, verifies `webContents.getZoomFactor()` and
+records that API result at both capture boundaries. It does not resize text or inject styles.
+
+Three RED tests demonstrated missing defaults and acceptance of a wrong actual theme or browser
+zoom. A fourth RED test showed missing `--theme` and `--zoom-factor` values silently fell back;
+explicit supported CLI values are now required. The final containment suite passes **21/21**,
+zero skips. Configuration rejects invented/system theme, string/fractional/zero/3x zoom, and
+unknown fields; capture rejects actual theme/zoom disagreement. Existing unregistered privileged
+IPC refusal and fixture containment remain green.
+
+The [theme/zoom native slice](2026-10-04-onboarding-native-fixture-theme-zoom.json) binds four
+fresh actual Electron44 cases to exact source/build/host hashes: EN dark/1, EN light/1, RU dark/2
+and RU light/2. All exit 0, retaining exact seeded state and equal settled before/after capture
+geometry. Expected CSS viewport dimensions divide physical content dimensions by browser zoom:
+the two RU cases have a real 1280×1000 content window, browser zoom 2, and CSS viewport 640×500.
+Device pixel ratio is also recorded. The author inspected the actual
+[EN light PNG](2026-10-04-onboarding-native-fixture-en-light-1x.png) and
+[RU dark 2x PNG](2026-10-04-onboarding-native-fixture-ru-dark-2x.png): both show seeded Onboarding
+form/tabs with the configured theme/scale. Later form controls are below the initial 2x viewport;
+there is no control reachability or above-fold acceptance claim.
+
+Preparation example: `node apps/desktop/test/onboarding-visual-native-harness.mjs --prepare
+balanced --locale ru --theme light --zoom-factor 2 --width 1280 --height 1000`. Launch the printed
+owned fixture path using the Electron44 command above. Root must rebuild its current assembled
+renderer/preload and prepare fresh fixtures before CUA interaction. This proves synthetic fixture
+capability only; native zoom is not VoiceOver, whole-WCAG, styled matrix or AD02 acceptance.
+
 ## Exact next task
 
 Root/visual author: import the immutable two host files into the owning checkout, build that

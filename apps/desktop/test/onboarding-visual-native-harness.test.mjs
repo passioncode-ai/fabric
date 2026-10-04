@@ -187,4 +187,39 @@ test('stable capture takes geometry at equal before and after state boundaries',
   assert.deepEqual(result.before, readyForm)
   assert.ok(result.stableMs>=20)
 })
+test('explicit fixture theme and real zoom modes preserve defaults and seed owned settings', async () => {
+  assert.equal(DEFAULT_CONFIG.theme, 'dark'); assert.equal(DEFAULT_CONFIG.zoomFactor, 1)
+  for (const theme of ['dark','light']) for (const zoomFactor of [1,2]) {
+    const root = prepared('balanced', {theme,zoomFactor})
+    assert.equal(marker(root).config.theme, theme); assert.equal(marker(root).config.zoomFactor, zoomFactor)
+    const host = createFixtureHost(root)
+    assert.equal((await host.invoke(host.IPC.settingsRead)).theme, theme)
+    await assert.rejects(host.invoke(host.IPC.settingsWrite, [{theme:theme==='dark'?'light':'dark'}]), /unregistered/)
+    assert.equal((await host.invoke(host.IPC.settingsRead)).theme, theme)
+  }
+  for (const changed of [{theme:'system'},{theme:'invented'},{zoomFactor:1.5},{zoomFactor:'2'},{zoomFactor:0},{zoomFactor:3}])
+    assert.throws(() => validateConfig({...DEFAULT_CONFIG,...changed}))
+})
+test('capture boundary rejects wrong actual theme', async () => {
+  const expected = {...readyForm,theme:'light',zoomFactor:2}
+  for (const changed of [{theme:'dark'}])
+    await assert.rejects(captureWithStableForm({read:async()=>({...expected,...changed}),paint:async()=>{},
+      capture:async()=>({page:'wrong-theme-or-zoom'}),expected,timeoutMs:100,settleMs:20}), /NOT_READY/)
+  const accepted = await captureWithStableForm({read:async()=>expected,paint:async()=>{},capture:async()=>({page:'light-2x'}),
+    expected,timeoutMs:150,settleMs:20})
+  assert.equal(accepted.before.theme,'light'); assert.equal(accepted.before.zoomFactor,2)
+})
+test('capture boundary rejects wrong actual browser zoom', async () => {
+  const expected = {...readyForm,theme:'light',zoomFactor:2}
+  await assert.rejects(captureWithStableForm({read:async()=>({...expected,zoomFactor:1}),paint:async()=>{},
+    capture:async()=>({page:'wrong-browser-zoom'}),expected,timeoutMs:100,settleMs:20}), /NOT_READY/)
+})
+test('theme and zoom CLI flags require explicit supported values', () => {
+  const failures=[]
+  for (const args of [['--theme','invented'],['--zoom-factor','1.5'],['--theme'],['--zoom-factor']]) {
+    const result=require('node:child_process').spawnSync(process.execPath,[path.join(desktop,'test/onboarding-visual-native-harness.mjs'),'--prepare','balanced',...args],{encoding:'utf8',timeout:15000})
+    if(result.status===0) {roots.push(JSON.parse(result.stdout).fixture);failures.push(args)}
+  }
+  assert.deepEqual(failures,[], 'unsupported or missing presentation CLI value accepted')
+})
 // #endregion onboarding-fixture-containment

@@ -29,7 +29,7 @@ function text(value, maximum = 512, allowEmpty = false) {
   assert.ok(typeof value === 'string' && value.length <= maximum && (allowEmpty || value.length > 0) && !/[\u0000-\u001f]/.test(value), 'bounded fixture string required')
 }
 const oneOf = (value, values) => assert.ok(values.includes(value), `unsupported fixture mode: ${value}`)
-export const DEFAULT_CONFIG = Object.freeze({ version: 1, locale: 'en', drafts: 'restored',
+export const DEFAULT_CONFIG = Object.freeze({ version: 1, locale: 'en', theme: 'dark', zoomFactor: 1, drafts: 'restored',
   folder: 'ok', repos: 'selected', create: 'ok', backends: 'unavailable', runners: 'mixed',
   folderDelayMs: 0, createDelayMs: 0, backendDelayMs: 0, draftDelayMs: 0,
   timeoutMs: 60000, width: 1280, height: 900 })
@@ -43,6 +43,7 @@ export const SCENARIOS = Object.freeze({ balanced: {}, none: { backends: 'none',
 export function validateConfig(value) {
   exact(value, Object.keys(DEFAULT_CONFIG), 'config')
   assert.equal(value.version, 1)
+  oneOf(value.theme, ['dark', 'light']); oneOf(value.zoomFactor, [1, 2])
   oneOf(value.locale, ['en', 'ru']); oneOf(value.drafts, ['restored', 'empty', 'corrupt'])
   oneOf(value.folder, ['ok', 'cancel', 'invalid-name', 'exists', 'outside', 'failed'])
   oneOf(value.repos, ['selected', 'long', 'cancel', 'throw']); oneOf(value.create, ['ok', 'refuse'])
@@ -226,7 +227,7 @@ export function prepareFixture(config) {
       fs.writeFileSync(path.join(userData, file), '{broken CO179 fixture', { mode: 0o600 })
   }
   const tabs = config.drafts === 'empty' ? { tabs: [], active: null } : { tabs: [{ kind: 'draft', id: 'draft-1' }, { kind: 'draft', id: 'draft-2' }], active: { kind: 'draft', id: 'draft-1' } }
-  const settings = { ...p.types.APP_SETTINGS_DEFAULTS, theme: 'dark', locale: config.locale, keepAwake: 'never', workspace: { path: null, git: 'declined' }, tabs }
+  const settings = { ...p.types.APP_SETTINGS_DEFAULTS, theme: config.theme, locale: config.locale, keepAwake: 'never', workspace: { path: null, git: 'declined' }, tabs }
   assert.equal(p.localState.writeLocal(spec('settings.json', p.types.APP_SETTINGS_DEFAULTS, p.appSettings.validateSettings), settings).status, 'committed')
   const marker = { format: 'fabric-co179-test-fixture/1', id: randomUUID(), desktop, sourceRevision: gitRevision(),
     createdAt: new Date().toISOString(), hostPin: digest(fileURLToPath(import.meta.url)), config, sourcePins: sources, buildPins: builds, modulePins: modules }
@@ -373,7 +374,7 @@ export async function captureWithStableForm({ read, paint, capture, expected, ti
   assert.ok(Number.isInteger(settleMs) && settleMs >= 10 && settleMs < timeoutMs)
   const matches = value => {
     if (!value || value.formCount !== 1) return false
-    for (const key of ['formCount', 'formVisible', 'inputValues', 'tabLabels', 'activeTab', 'selectValue', 'repoPaths', 'agentOptions', 'radios'])
+    for (const key of ['theme', 'zoomFactor', 'formCount', 'formVisible', 'inputValues', 'tabLabels', 'activeTab', 'selectValue', 'repoPaths', 'agentOptions', 'radios'])
       if (Object.hasOwn(expected, key) && JSON.stringify(value[key]) !== JSON.stringify(expected[key])) return false
     for (const [key, valueExpected] of Object.entries(expected.geometry?.document ?? {}))
       if (value.geometry?.document?.[key] !== valueExpected) return false
@@ -427,7 +428,7 @@ async function launch(candidate, probe) {
   })
   win = new BrowserWindow({ width: marker.config.width, height: marker.config.height, useContentSize: true, show: !probe,
     title: 'Fabric · CO179 synthetic fixture', webPreferences: { preload: path.join(desktop, 'out/preload/index.cjs'),
-      contextIsolation: true, sandbox: true, nodeIntegration: false, webviewTag: false, backgroundThrottling: false, session: isolated } })
+      contextIsolation: true, sandbox: true, nodeIntegration: false, webviewTag: false, backgroundThrottling: false, zoomFactor: marker.config.zoomFactor, session: isolated } })
   for (const channel of Object.values(host.IPC)) ipcMain.handle(channel, async (event, ...args) => {
     assert.ok(event.sender === win.webContents && event.senderFrame === win.webContents.mainFrame, 'foreign IPC sender')
     return host.invoke(channel, args)
@@ -441,6 +442,7 @@ async function launch(candidate, probe) {
   Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'CO179 fixture', submenu: [{ role: 'quit' }] }, { role: 'editMenu' }]))
   app.on('window-all-closed', () => app.quit()); app.on('before-quit', () => clearTimeout(deadline))
   await win.loadFile(path.join(desktop, 'out/renderer/index.html'))
+  assert.equal(win.webContents.getZoomFactor(), marker.config.zoomFactor, 'actual Electron browser zoom mismatch')
   host.audit({ kind: 'renderer-loaded', electron: process.versions.electron, sourceRevision: marker.sourceRevision })
   console.log(JSON.stringify({ fixture: root, sourceRevision: marker.sourceRevision, synthetic: true, pid: process.pid }))
   if (probe) {
@@ -449,7 +451,7 @@ async function launch(candidate, probe) {
     const read = () => win.webContents.executeJavaScript(`(() => {
       const node = document.querySelector('.onboarding'); if (!node) return {formCount:0};
       const form=node.querySelector('form'); const rect=form?.getBoundingClientRect();
-      const initial = { formCount:node.querySelectorAll('form').length, formVisible:!!rect && rect.width>0 && rect.height>0 && getComputedStyle(form).visibility!=='hidden',
+      const initial = { theme:document.documentElement.getAttribute('data-theme'), formCount:node.querySelectorAll('form').length, formVisible:!!rect && rect.width>0 && rect.height>0 && getComputedStyle(form).visibility!=='hidden',
         tabLabels:[...document.querySelectorAll('.tabbar .tab-label')].map(n=>n.textContent),
         activeTab:document.querySelector('.tabbar .tab-btn.active .tab-label')?.textContent ?? null,
         selectValue:node.querySelector('select')?.value ?? '',
@@ -457,7 +459,7 @@ async function launch(candidate, probe) {
         radios:[...node.querySelectorAll('input[type=radio]')].map(n=>({disabled:n.disabled,checked:n.checked})),
         agentOptions:[...node.querySelectorAll('select option')].map(n=>({value:n.value,disabled:n.disabled})), text:node.innerText,
         geometry: { document:{clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth,
-          clientHeight:document.documentElement.clientHeight,scrollHeight:document.documentElement.scrollHeight,innerWidth,innerHeight},
+          clientHeight:document.documentElement.clientHeight,scrollHeight:document.documentElement.scrollHeight,innerWidth,innerHeight,devicePixelRatio},
           nodes:['.app-main','.content','.onboarding','.onboarding header','.onboarding header h1','.onboarding p','.onboarding form','.onboarding .repo-list .row','.onboarding .repo-list .row-main']
             .flatMap(selector=>[...document.querySelectorAll(selector)].slice(0,16).map((element,index)=>{
               const rect=element.getBoundingClientRect(); const css=getComputedStyle(element);
@@ -467,15 +469,15 @@ async function launch(candidate, probe) {
                   overflowX:css.overflowX,overflowY:css.overflowY,fontSize:css.fontSize,whiteSpace:css.whiteSpace,overflowWrap:css.overflowWrap,wordBreak:css.wordBreak}};
             })).slice(0,64) } };
       return initial;
-    })()`)
+    })()`).then(value => ({...value,zoomFactor:win.webContents.getZoomFactor()}))
     const coding = runnerRows(marker.config.runners).filter(row => row.program !== null)
-    const expected = { formCount:1,formVisible:true,inputValues:['Fixture one','Synthetic fixture purpose'],
+    const expected = { theme:marker.config.theme,zoomFactor:marker.config.zoomFactor,formCount:1,formVisible:true,inputValues:['Fixture one','Synthetic fixture purpose'],
       tabLabels:['Fixture one','Fixture two'],activeTab:'Fixture one',selectValue:coding.length?'claude-code':'',
       repoPaths:marker.config.repos==='long'?[path.join(root,'synthetic-repo','bounded-long-repository-name-'.repeat(7))]:[],
       agentOptions:coding.map(row=>({value:row.id,disabled:!row.available})),
       radios:marker.config.backendDelayMs===0 && ['two','unavailable'].includes(marker.config.backends)
         ? [{disabled:false,checked:true},{disabled:marker.config.backends==='unavailable',checked:false}] : [],
-      geometry:{document:{innerWidth:marker.config.width,innerHeight:marker.config.height}} }
+      geometry:{document:{innerWidth:Math.round(marker.config.width/marker.config.zoomFactor),innerHeight:Math.round(marker.config.height/marker.config.zoomFactor)}} }
     await win.webContents.executeJavaScript('document.fonts.ready.then(() => true)')
     const paint = () => win.webContents.executeJavaScript(`new Promise((resolve,reject)=>{
       const timeout=setTimeout(()=>reject(Error('NOT_READY: no renderer paint frame')),1000);
@@ -487,7 +489,7 @@ async function launch(candidate, probe) {
     assert.ok(png.length > 0 && png.length <= 20 * 1024 * 1024, 'bounded PNG capture required')
     const captureFile = ownedPath(root, path.join(root, 'page.png'))
     fs.writeFileSync(captureFile, png, { mode: 0o600 })
-    const capture = { file: 'page.png', sha256: sha(png), bytes: png.length, pixels: image.getSize(),
+    const capture = { theme:marker.config.theme,configuredZoomFactor:marker.config.zoomFactor,actualBrowserZoomFactor:win.webContents.getZoomFactor(), file: 'page.png', sha256: sha(png), bytes: png.length, pixels: image.getSize(),
       configuredContentSize: { width: marker.config.width, height: marker.config.height },
       actualContentSize: Object.fromEntries(['width','height'].map((key,index) => [key,win.getContentSize()[index]])),
       tier: 'source-bound-rendering-evidence', timing: 'stable exact seeded form before synthetic bridge probes',
@@ -517,17 +519,21 @@ const direct = process.argv[1] && fs.existsSync(process.argv[1]) && fs.realpathS
 if (direct) {
   try {
     const args = process.argv.slice(2); const flag = key => { const i = args.indexOf(key); return i < 0 ? undefined : args[i + 1] }
-    for (const key of ['--prepare', '--fixture', '--locale', '--width', '--height', '--probe']) assert.ok(args.filter(value => value === key).length <= 1, 'duplicate harness argument')
-    assert.ok(args.every((value, i) => ['--prepare', '--fixture', '--locale', '--width', '--height', '--probe'].includes(value) || (i > 0 && ['--prepare', '--fixture', '--locale', '--width', '--height'].includes(args[i - 1]))), 'unknown harness argument')
+    if (args.includes('--theme')) oneOf(flag('--theme'), ['dark','light'])
+    if (args.includes('--zoom-factor')) oneOf(flag('--zoom-factor'), ['1','2'])
+    for (const key of ['--prepare', '--fixture', '--locale', '--theme', '--zoom-factor', '--width', '--height', '--probe']) assert.ok(args.filter(value => value === key).length <= 1, 'duplicate harness argument')
+    assert.ok(args.every((value, i) => ['--prepare', '--fixture', '--locale', '--theme', '--zoom-factor', '--width', '--height', '--probe'].includes(value) || (i > 0 && ['--prepare', '--fixture', '--locale', '--theme', '--zoom-factor', '--width', '--height'].includes(args[i - 1]))), 'unknown harness argument')
     if (flag('--prepare')) {
       assert.ok(!args.includes('--fixture') && !args.includes('--probe'), 'prepare cannot launch')
       const overrides = {}
       if (flag('--locale')) overrides.locale = flag('--locale')
+      if (flag('--theme')) overrides.theme = flag('--theme')
+      if (flag('--zoom-factor')) overrides.zoomFactor = Number(flag('--zoom-factor'))
       if (flag('--width')) overrides.width = Number(flag('--width'))
       if (flag('--height')) overrides.height = Number(flag('--height'))
       const config = scenarioConfig(flag('--prepare'), overrides)
       console.log(JSON.stringify({ fixture: prepareFixture(config), synthetic: true, instruction: 'Launch only this test host with Electron44 --fixture; --probe is host capability, not visual acceptance.' }))
-    } else { assert.ok(!['--locale', '--width', '--height'].some(key => args.includes(key)), 'locale and viewport belong to preparation'); void launch(flag('--fixture'), args.includes('--probe')).catch(error => {
+    } else { assert.ok(!['--locale', '--theme', '--zoom-factor', '--width', '--height'].some(key => args.includes(key)), 'locale and viewport belong to preparation'); void launch(flag('--fixture'), args.includes('--probe')).catch(error => {
       console.error(String(error)); process.exitCode = 1; require('electron').app.exit(1)
     }) }
   } catch (error) {

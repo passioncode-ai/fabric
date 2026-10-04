@@ -215,5 +215,65 @@
       "treeClean": true
     },
     "treeClean": true
+  },
+  "themeAndZoom": {
+    "historicalStableCode": "4df3079e01dd3493bf8ae302549de603257f4a26",
+    "red": [
+      {
+        "command": "node --test --test-name-pattern='explicit fixture theme|wrong actual' apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+        "exitCode": 1,
+        "tests": 3,
+        "failed": 3
+      },
+      {
+        "command": "node --test --test-name-pattern='theme and zoom CLI' apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+        "exitCode": 1,
+        "tests": 1,
+        "failed": 1,
+        "observed": "both missing theme and missing zoom CLI values accepted"
+      }
+    ],
+    "green": {
+      "command": "node --test apps/desktop/test/onboarding-visual-native-harness.test.mjs",
+      "exitCode": 0,
+      "tests": 21,
+      "pass": 21,
+      "skip": 0
+    },
+    "defaultPreserved": {
+      "theme": "dark",
+      "zoomFactor": 1
+    },
+    "themeModes": [
+      "dark",
+      "light"
+    ],
+    "browserZoomFactors": [
+      1,
+      2
+    ],
+    "hostSha256": "07629730a0e4b24cde6fe425a67770708a436fa4507e98cfb81b0b6d530a75d7",
+    "nativeCases": 4,
+    "nativePass": 4,
+    "receipt": "2026-10-04-onboarding-native-fixture-theme-zoom.json",
+    "pngs": [
+      {
+        "path": "2026-10-04-onboarding-native-fixture-en-light-1x.png",
+        "sha256": "505955c64b2a3c0a4013360af61d0fb80533a51f0bbe3fdde12bba995f77d896",
+        "actualPixelsInspected": true,
+        "scope": "fixture theme and real zoom state only"
+      },
+      {
+        "path": "2026-10-04-onboarding-native-fixture-ru-dark-2x.png",
+        "sha256": "54b63ed596158133589bd8d0e44853325848cf42cd3aa54fcceda0f88b0e768e",
+        "actualPixelsInspected": true,
+        "scope": "fixture theme and real zoom state only"
+      }
+    ],
+    "productionEdits": false,
+    "settingsMutationAfterLaunch": false,
+    "visualAcceptance": "NOT_RUN",
+    "VoiceOverAcceptance": "NOT_RUN",
+    "wholeWCAGAcceptance": "NOT_RUN"
   }
 }
