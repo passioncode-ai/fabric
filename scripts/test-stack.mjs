@@ -140,7 +140,12 @@ export function startWithOneRetry(start, beforeRetry) {
   return start()
 }
 
-export async function up(dir) {
+/**
+ * Make `dir` a disposable stack and start it. Options, for the upgrade rehearsal (CO-198):
+ * `migrationsDir` — where the migration files come from (default: this checkout's); `migrationCount` —
+ * apply only the first N (a fixture shaped like an older release); `seed` — run seed.sql (default yes).
+ */
+export async function up(dir, { migrationsDir = path.join(REPO_ROOT, 'supabase', 'migrations'), migrationCount = null, seed = true } = {}) {
   const live = liveStack()
   const abs = path.resolve(dir)
   mkdirSync(abs, { recursive: true })
@@ -154,8 +159,12 @@ export async function up(dir) {
     writeFileSync(path.join(abs, MARKER), JSON.stringify({ projectId, base, createdAt: new Date().toISOString(), source: REPO_ROOT }, null, 2) + '\n')
     const sb = path.join(abs, 'supabase')
     mkdirSync(sb)
-    cpSync(path.join(REPO_ROOT, 'supabase', 'migrations'), path.join(sb, 'migrations'), { recursive: true })
-    for (const f of ['seed.sql']) if (existsSync(path.join(REPO_ROOT, 'supabase', f))) cpSync(path.join(REPO_ROOT, 'supabase', f), path.join(sb, f))
+    const files = readdirSync(migrationsDir).filter(f => f.endsWith('.sql')).sort()
+    if (migrationCount !== null && (!Number.isInteger(migrationCount) || migrationCount < 0 || migrationCount > files.length))
+      throw new Error(`migrationCount ${migrationCount} is not between 0 and the ${files.length} files in ${migrationsDir}`)
+    mkdirSync(path.join(sb, 'migrations'))
+    for (const f of files.slice(0, migrationCount ?? files.length)) cpSync(path.join(migrationsDir, f), path.join(sb, 'migrations', f))
+    if (seed) for (const f of ['seed.sql']) if (existsSync(path.join(REPO_ROOT, 'supabase', f))) cpSync(path.join(REPO_ROOT, 'supabase', f), path.join(sb, f))
     writeFileSync(path.join(sb, 'config.toml'), plan.config)
     const log = path.join(abs, 'stack.log')
     say(`starting ${projectId} on API ${plan.apiPort}, DB ${plan.dbPort} (live stack: API ${live.apiPort}, DB ${live.dbPort}, untouched); log ${log}`)

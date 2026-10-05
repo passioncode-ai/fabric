@@ -1,0 +1,56 @@
+{
+  "format": "FabricUpgradeRehearsal@1",
+  "at": "2026-10-05T16:14:31.588Z",
+  "dump": {
+    "file": "fixture-75.dump",
+    "sha256": "86945506890fd990f82cc5c048ec84d3288d10e5f0a27113aefadebb958c9195",
+    "bytes": 989118
+  },
+  "candidate": {
+    "ref": "v0.3.1",
+    "commit": "0b6dd1d03e1c9c4b2c57c5195587622d652c53e5",
+    "migrations": 78,
+    "admits": 78
+  },
+  "stack": {
+    "projectId": "fabric_test_fe34da81",
+    "kept": false
+  },
+  "tools": {
+    "client": "pg_restore (PostgreSQL) 17.11 (Homebrew)",
+    "supabase": "2.114.0"
+  },
+  "before": {
+    "schemaVersion": 75,
+    "journal": 6,
+    "tables": 53
+  },
+  "after": {
+    "schemaVersion": 78,
+    "journal": 6,
+    "tables": 57
+  },
+  "verdict": "PASS",
+  "failures": [],
+  "notes": [
+    "table event_types gained rows: 89 → 99 (a migration backfilled it)",
+    "table access_bindings is new (0 rows)",
+    "table access_grants is new (0 rows)",
+    "table access_requests is new (0 rows)",
+    "table product_connections is new (0 rows)"
+  ],
+  "seconds": {
+    "stack": 115,
+    "restore": 3,
+    "migrate": 3
+  },
+  "skippedFromRestore": [
+    "DEFAULT ACL public DEFAULT PRIVILEGES FOR SEQUENCES supabase_admin",
+    "DEFAULT ACL public DEFAULT PRIVILEGES FOR FUNCTIONS supabase_admin",
+    "DEFAULT ACL public DEFAULT PRIVILEGES FOR TABLES supabase_admin"
+  ],
+  "notCovered": [
+    "the restored estate is not opened in the Fabric app here: start the installed build against the upgraded working stack (runbook step 4)",
+    "restored hub requests, source credentials and pending work are checked by the app's restore boundary, not by this rehearsal"
+  ]
+}
