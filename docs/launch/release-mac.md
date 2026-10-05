@@ -182,10 +182,25 @@ The actual guard is `public.schema_version()` against [the compiled schema contr
    Confirm the actual local stack port before using this example; another configured stack needs
    its own connection settings. `"$PGBIN/pg_restore" --list <dump>` verifies the archive can be parsed;
    only restoring it into a disposable database proves it can be restored.
-3. Restore the dump into a **separate disposable stack** (the executable commands for this step and step 5 are
-   not written yet — CO-198 — so until then this rehearsal is a manual, recorded check), with its own project id, port block and
-   volumes. Never point a rehearsal at `fabric` or ports 54321/54322. Apply the installed candidate's
-   migration set there; compare schema_version, journal count and replayed projections. Exercise
+3. Rehearse the upgrade on the dump in a **separate disposable stack** (CO-198), from a Fabric source checkout
+   with Docker and the Supabase CLI:
+
+   ```sh
+   FABRIC_PG_BIN=/opt/homebrew/opt/postgresql@17/bin \
+     node scripts/rehearse-upgrade.mjs --from 75 --ref v0.3.1 \
+     --dump "$HOME/Library/Application Support/Fabric/backups/pre-0.3.1.dump"
+   ```
+
+   It starts a stack with its own project id, port block and volumes and **no** migrations (Supabase's roles,
+   extensions and auth only), restores the dump's `public` schema and migration ledger, copies in the
+   candidate's migrations (`--ref`: the release tag, read with `git archive`) and applies them with
+   `supabase migration up --local`, the command of step 4. It compares `schema_version()` (must equal the
+   candidate's admitted schema), the journal count (must not change) and every public table's row count
+   (none may lose rows), writes a mode-600 receipt beside the dump (`<dump>.rehearsal.json`: numbers and the
+   dump's sha256, never a row), removes the stack and exits 0 only on PASS. It never addresses `fabric` or
+   ports 54321/54322. Proven on a synthetic 0.3.0-shaped dump (`--make-fixture 75`; receipt in
+   [the CO-198 record](../handoffs/2026-10-05-co198-upgrade-rehearsal.md)). What it does not prove, it says in the
+   receipt: open the restored estate in the app only after step 4. Exercise
    an existing estate's queries and the new authority boundaries. Restored hub requests must not
    collect old source credentials or authorize pending work. The coordinated `scripts/ci.sh full`
    uses disposable data, but its synthetic fixture is not a rehearsal of this private dump. Record
@@ -207,7 +222,10 @@ The actual guard is `public.schema_version()` against [the compiled schema contr
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.
 5. If migration or startup acceptance fails, stop all writers again. Preserve the failed database
    and diagnostics privately, restore the tested backup into a clean compatible stack, and install
-   the corresponding old signed build. Do not run old code on a newer schema or try to reverse
+   the corresponding old signed build. The restore half is the one step 3 exercised (a stack with no
+   migrations, then `pg_restore --schema public --schema supabase_migrations --single-transaction` and
+   `supabase migration up --local` to the OLD build's migrations); it has not been run against the working
+   stack itself, so record each command and its output as the rollback receipt. Do not run old code on a newer schema or try to reverse
    journal/projector changes with ad hoc SQL. A restored archive's history is not fresh authority;
    follow the restore boundary and reconnect/consent as required. Document the exact rollback receipt.
 
