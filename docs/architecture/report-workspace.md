@@ -69,7 +69,9 @@ so no personal token is copied into CI. The publishing agent performs the combin
 
 Exporter selection is executable in `scripts/workspace-snapshot.mjs`: tracked `docs/`,
 `assets/brand/`, `registry/`, and root `README.md`, `CONTEXT.md`, `AGENTS.md`; the receipt
-is excluded. It refuses symlinks and sensitive path names. It does not read `.env`, the
+is excluded, and so are git's bookkeeping files `.gitkeep`, `.gitignore` and `.gitattributes`
+(`scripts/workspace-snapshot.mjs#gitBookkeeping`), which carry no document and which the host cannot serve.
+Any other dot-segment path still fails the export. It refuses symlinks and sensitive path names. It does not read `.env`, the
 source repository root as a web directory, runtime databases or agent transcripts outside
 the selected docs. This path boundary is not a semantic anonymizer: internal reports may
 contain private source excerpts and audit findings, hence authenticated publication.

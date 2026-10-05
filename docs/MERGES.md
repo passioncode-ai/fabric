@@ -315,3 +315,8 @@ After the 0.3.1 release commit: `verifiedCandidateProblem` exempts the scheduled
 ### 2026-10-04 · prowl-prerequisites · agent/prowl-prereqs-20261004
 
 Docs-only: the agent registry plan gains proposed rows AR-3.7…AR-3.11 (contract conformance audit, descriptor-service callees through the hub after a new ADR, a capability-queryable registry, remote placements, workflow planning that names missing agents) from the Prowl Agent prerequisites and the operator's direction relayed on 2026-10-04. Their rank against P-08 stays with the operator. Written under the registry-plan lease.
+
+### 2026-10-05 · workspace-dotfiles · agent/workspace-dotfiles-20261005
+
+`node scripts/workspace.mjs publish` threw "Export refuses a path the workspace host cannot serve" on `docs/reports/2026-10-04-ad02-write-authority-review/raw/.gitignore`: 22 git bookkeeping files (`.gitkeep`, `.gitignore`) in dated report folders reached main with the P-08 landing, none of them in the last published source `26df61bc`. The exporter now leaves out exactly `.gitkeep`, `.gitignore` and `.gitattributes` (`gitBookkeeping`), every other dotfile still refuses; `workspace-snapshot.test.mjs` (in no CI tier until now) joins the fast tier with a build of HEAD's snapshot, both watched failing on the old code. `docs/architecture/report-workspace.md` states the rule.
+

@@ -392,6 +392,15 @@ step "workspace sources: every tool repository, pinned to its own commit"
 # under repos/<id>/. Fixture repositories only — no network, no private access.
 node --test scripts/test/workspace-sources.test.mjs scripts/test/workspace-release.test.mjs
 
+step "workspace snapshot: this commit can be exported as it stands"
+# 2026-10-05. Dated report folders brought raw/.gitkeep and raw/.gitignore to main, and the
+# next `workspace.mjs publish` threw on a path the host cannot serve — at publication, hours
+# after the merge, with the scheduled sync failing the same way. The snapshot test was in no
+# tier. Now it runs, and HEAD's snapshot is built in memory (no network, nothing written), so
+# an unexportable path fails here instead.
+node --test scripts/test/workspace-snapshot.test.mjs
+node --input-type=module -e "import {snapshot} from './scripts/workspace-snapshot.mjs'; const s=snapshot('.'); console.log('PASS workspace snapshot of HEAD: '+s.manifest.files.length+' files')"
+
 step "mockups: the prototype draws every state it offers"
 # 2026-09-12. `#state-select` listed «Пусто» for all 72 views and 66 of them returned the
 # POPULATED screen: only `denied` and `loading` routed to the generic body, and each module

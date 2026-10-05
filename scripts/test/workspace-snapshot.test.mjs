@@ -19,6 +19,14 @@ test('immutable source snapshot excludes runtime/secrets and ignores dirty worki
 test('symlinks and sensitive paths inside allowed sources fail closed',()=>{
  for(const evil of ['link','secret']){const {root}=fixture();if(evil==='link')symlinkSync('/etc/passwd',path.join(root,'docs/link'));else write(root,'docs/.env','SECRET');commit(root);assert.throws(()=>snapshot(root),/refuses/)}
 })
+test('git bookkeeping files in a report folder are not documents and do not stop the export; other dotfiles still refuse',()=>{
+ // 2026-10-05: raw/.gitkeep and raw/.gitignore in dated report folders reached main and every publish then threw,
+ // because the workspace host serves no dot-segment path. They carry no document, so they are left out by name.
+ const {root}=fixture();write(root,'docs/reports/r/raw/.gitkeep','');write(root,'docs/reports/r/raw/.gitignore','*.local.log\n');write(root,'docs/reports/r/raw/.gitattributes','* text\n');write(root,'docs/reports/r/raw/probe.json','{}');commit(root)
+ const s=snapshot(root);assert.equal(s.blobs.has('docs/reports/r/raw/probe.json'),true)
+ for(const p of ['docs/reports/r/raw/.gitkeep','docs/reports/r/raw/.gitignore','docs/reports/r/raw/.gitattributes'])assert.equal(s.blobs.has(p),false,p)
+ for(const evil of ['docs/reports/r/.npmrc','docs/.hidden/notes.md','docs/reports/r/.gitkeep.md']){const f=fixture();write(f.root,evil,'x');commit(f.root);assert.throws(()=>snapshot(f.root),/refuses/,evil)}
+})
 test('export reproduces source, removes obsolete generated entries and detects tampering',()=>{
  const {root,ref}=fixture(),target=repo(),s=snapshot(root,ref);writeSnapshot(target,s);verifyContent(target,s.manifest)
  write(target,'content/docs/obsolete.md','old');assert.throws(()=>verifyContent(target,s.manifest),/does not match/)

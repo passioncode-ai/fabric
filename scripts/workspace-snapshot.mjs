@@ -6,7 +6,10 @@ import path from 'node:path'
 
 export const receiptPath='docs/workspace-receipt.json'
 export const publicationOnly=p=>p==='workspace'||p.startsWith('workspace/')||p===receiptPath
-export const selected=p=>!publicationOnly(p)&&(p.startsWith('docs/')||p.startsWith('assets/brand/')||p.startsWith('registry/')||['README.md','CONTEXT.md','AGENTS.md'].includes(p))
+// Git's own bookkeeping (an empty folder's .gitkeep, a report's raw/.gitignore) is not a document, and the host
+// serves no dot-segment path: left out by exact name, while every other dotfile still fails the export.
+export const gitBookkeeping=p=>/(^|\/)\.git(?:keep|ignore|attributes)$/.test(p)
+export const selected=p=>!publicationOnly(p)&&!gitBookkeeping(p)&&(p.startsWith('docs/')||p.startsWith('assets/brand/')||p.startsWith('registry/')||['README.md','CONTEXT.md','AGENTS.md'].includes(p))
 export const sha=b=>createHash('sha256').update(b).digest('hex')
 // Bounded and non-interactive (lifecycle LC-02/LC-03, review m9): a local git call that waits on a person or a
 // lock never holds a publication forever.
