@@ -307,3 +307,8 @@ Round 2 (`agent/p08-i3-round2-20261005`): all five reviewers approved their rech
 ### 2026-10-05 · release-0.3.1 · agent/release-0.3.1 (on 469b4bc6)
 
 Release commit for Fabric 0.3.1 on the verified candidate `469b4bc6`: the final-recheck sections of the five iteration-3 reports, the fifteen review receipts, the ledger's iteration-3 exit, `docs/launch/release-gate.json` (version 0.3.1, verifiedCommit, reviewReceipts), the desktop package version 0.3.1 and the finalized `## 0.3.1` changelog. Only release metadata changes after the verified commit. Tagging and the human approval follow.
+
+### 2026-10-05 · post-release-0.3.1 · agent/post-release-031 (on 0b6dd1d0)
+
+After the 0.3.1 release commit: `verifiedCandidateProblem` exempts the scheduled workspace pin by its exact shape (`publicationPinProblem`, CO-208; documented in `docs/launch/release-mac.md` step 1) and the release-gate test no longer asserts the hub ledger's state on one day (CO-209); both tests watched failing on a planted defect. Carry-over CO-208/CO-209 closed, CO-179 moved to before 0.3.2, backlog P-08 row, lane 2, Now line and the carry-over count (170 of 209) updated. Landed by fast-forward after the release commit.
+

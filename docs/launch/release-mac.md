@@ -65,7 +65,10 @@ build signed anywhere but the `release` environment is a debug build that is nev
    After `verifiedCommit` only these may change: `CHANGELOG.md`, `docs/launch/release-gate.json`, the ledger,
    `docs/MERGES.md`, `docs/reports/map.html`, the declared review reports and receipts, the Markdown documents
    under `docs/handoffs/` or `docs/reports/` that the gate lists in `releaseMetadata`, and the desktop package
-   `version`.
+   `version`. The scheduled workspace publication may also land between the two: a new `workspace` submodule
+   pin with its `docs/workspace-receipt.json` passes only in that exact shape — the path still a gitlink, the
+   receipt schema 1 and naming the pinned commit (CO-208, `publicationPinProblem`). Anything else under those
+   names is refused like any other change.
 2. **Push the tag** on the release commit: `git tag -a vX.Y.Z <commit on main> -m "Fabric X.Y.Z" && git push origin vX.Y.Z`.
    A published release is never rewritten; a fix is a new tag.
 3. **`preflight`** runs without secrets: `node scripts/release-mac.mjs --check-only --tag vX.Y.Z` refuses

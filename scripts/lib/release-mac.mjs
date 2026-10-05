@@ -105,6 +105,28 @@ export function releaseCommitProblem(git) {
   }
 }
 
+// The scheduled workspace publication (`node scripts/workspace.mjs publish`, every 2 h) commits a new
+// pin of the private `workspace` submodule and its receipt straight to main. Neither is built into the app —
+// no workflow checks the submodule out — so a pin landing between the verified commit and the release commit
+// is not a change to what was reviewed (CO-208). Exempt only that exact shape: the submodule stays a gitlink
+// on both sides, and the receipt is still a schema-1 receipt naming the pinned commit.
+const PUBLICATION_PIN = ['workspace', 'docs/workspace-receipt.json']
+
+function publicationPinProblem(changed, verifiedCommit, git) {
+  const gitlink = (commit) => {
+    try { return /^160000 commit ([0-9a-f]{40})\t/.exec(String(git(['ls-tree', commit, '--', 'workspace'])))?.[1] ?? null } catch { return null }
+  }
+  if (changed.includes('workspace') && (!gitlink(verifiedCommit) || !gitlink('HEAD')))
+    return 'the workspace path changed after verification and is no longer only a submodule pin'
+  if (changed.includes('docs/workspace-receipt.json')) {
+    let receipt = null
+    try { receipt = JSON.parse(git(['show', 'HEAD:docs/workspace-receipt.json'])) } catch { receipt = null }
+    if (receipt?.schema !== 1 || !/^[0-9a-f]{40}$/.test(receipt?.workspace_commit ?? '') || receipt.workspace_commit !== gitlink('HEAD'))
+      return 'the workspace receipt changed after verification and does not describe the pinned workspace commit'
+  }
+  return null
+}
+
 /** Bind the verification ledger to a reviewed ancestor; later runtime/build changes require review again. */
 export function verifiedCandidateProblem({ version, gateText, readCommitted }, git) {
   let gate
@@ -125,8 +147,10 @@ export function verifiedCandidateProblem({ version, gateText, readCommitted }, g
   try { changed = git(['diff', '--name-only', gate.verifiedCommit, 'HEAD']).trim().split('\n').filter(Boolean) } catch {
     return 'the verified commit difference could not be inspected'
   }
-  const unverified = changed.filter(p => p !== 'apps/desktop/package.json' && !metadata.has(p))
+  const unverified = changed.filter(p => p !== 'apps/desktop/package.json' && !PUBLICATION_PIN.includes(p) && !metadata.has(p))
   if (unverified.length) return `unverified changes follow the verified commit: ${unverified.slice(0, 10).join(', ')}`
+  const pinProblem = publicationPinProblem(changed, gate.verifiedCommit, git)
+  if (pinProblem) return pinProblem
   if (changed.includes('apps/desktop/package.json')) {
     try {
       const before = JSON.parse(git(['show', `${gate.verifiedCommit}:apps/desktop/package.json`]))

@@ -154,10 +154,16 @@ test('ledger closure is computed as well: open rows, duplicate headings, hidden 
   for (const title of ['0.3.0', '0.3.10', '10.3.1', '0.3.1.2'])
     refuses(f => f.ledgerText = f.ledgerText.replace('Fabric 0.3.1', `Fabric ${title}`), /does not name version 0.3.1/)
 })
-test('the existing hub ledger unconditionally refuses, whether iteration 3 says Started or Not started', () => {
+test('the hub ledger refuses whenever its iteration 3 is not finished, whether it says Started or Not started', () => {
+  // The ledger is a dated record that finishes at the release commit, so this test rewrites its iteration 3
+  // instead of asserting the file's state on a given day: the earlier form turned false at the 0.3.1 release
+  // commit itself, which by construction may not change a test (CO-209).
   const root = new URL('../../', import.meta.url)
   const hubText = readFileSync(new URL('docs/evidence/plans/2026-10-04-hub-verification.md', root), 'utf8')
-  for (const text of [hubText, hubText.replace(/_Not started\._/g, 'Started; findings remain open.')]) {
+  const third = /^## Iteration 3\b[^\n]*\n[\s\S]*?(?=^## |(?![\s\S]))/m
+  assert.match(hubText, third, 'the hub ledger has an iteration 3 section')
+  const unfinished = body => hubText.replace(third, `## Iteration 3\n${body}\n\n`)
+  for (const text of [unfinished('_Not started._'), unfinished('Started; findings remain open.')]) {
     const f = fixture(); f.ledgerText = text
     const problems = check(f)
     assert.ok(problems.length > 0, 'existing unfinished hub ledger cleared')

@@ -31,6 +31,27 @@ test('new releases bind to a verified ancestor; only version and named release m
   assert.match(check(gate,runner('apps/desktop/package.json',{packageChanged:true})),/beyond version/i)
 })
 
+test('a scheduled workspace pin after the verified commit is not an unverified change (CO-208)', () => {
+  const gate={version:'0.3.1',verifiedCommit:'a'.repeat(40),ledger:'docs/evidence/plans/hub.md'}
+  const pinned='c'.repeat(40)
+  const runner=({paths, link=()=>pinned, receipt={schema:1,workspace_commit:pinned}})=>args=>{
+    if(args[0]==='merge-base')return ''
+    if(args[0]==='diff')return paths
+    if(args[0]==='ls-tree'){const sha=link(args[1]);return sha?`160000 commit ${sha}\tworkspace\n`:`100644 blob ${'d'.repeat(40)}\tworkspace\n`}
+    if(args[0]==='show'&&args[1]==='HEAD:docs/workspace-receipt.json')return typeof receipt==='string'?receipt:JSON.stringify(receipt)
+    throw Error('unexpected git command '+args.join(' '))
+  }
+  const check=git=>verifiedCandidateProblem({version:'0.3.1',gateText:JSON.stringify(gate)},git)
+  const pin='workspace\ndocs/workspace-receipt.json\nCHANGELOG.md'
+  assert.equal(check(runner({paths:pin})),null)
+  // The exemption is for the pin's exact shape, never for the path names alone.
+  assert.match(check(runner({paths:pin,link:c=>c==='HEAD'?null:pinned})),/no longer only a submodule pin/)
+  assert.match(check(runner({paths:pin,receipt:{schema:1,workspace_commit:'e'.repeat(40)}})),/does not describe the pinned/)
+  assert.match(check(runner({paths:pin,receipt:'not json'})),/does not describe the pinned/)
+  assert.match(check(runner({paths:pin+'\nworkspace/knowledge/rules.md'})),/unverified/)
+  assert.match(check(runner({paths:pin+'\n.gitmodules'})),/unverified/)
+})
+
 // Fake identities only: a team id is ten upper-case characters, and none of these is a real one.
 const ID = 'Developer ID Application: Example Org (ABCDE12345)'
 
