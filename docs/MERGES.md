@@ -358,3 +358,19 @@ COM-02.1, the project board's durable core, under ADR-0117. `supabase/migrations
 - **Tests.** `apps/desktop/test/project-board-db.test.mjs` passes 12/12 on an owned cluster and fails without the migration. `hub-upgrade-db` stays the 0.3.1 rehearsal (count 78) and now also migrates 78→79 preserving every row.
 - **Records.** The pipeline migration reservation moves to 82/83. Amendment 1 to ADR-0117 makes the glossary term "Project board", because the app already calls its task board «Доска»; the feed sentences speak of messages between projects. CO-212: a restored estate keeps board events without messages. The runbook says `main` needs 79. README lists 17 owned-cluster runners.
 
+### 2026-10-05 · com02-participant-tools · agent/com02-board-tools-20261005
+
+COM-02.2. A session's surface registers `com.submit`, `com.list`, `com.get`, `com.read_ack` and `com.status` through `apps/desktop/src/main/boardTools.ts`, served by `apps/desktop/src/main/boardService.ts`.
+
+- **Contract behaviour:**
+  - identity is taken from the scope;
+  - the input schema is open, so a forged field is refused in the contract's form rather than stripped;
+  - the digest is the contract's canonical form;
+  - the cursor is an `opaqueId` holding the seq plus an HMAC bound to estate, reader, filter and run;
+  - a read failure answers `not_available`, never an empty page.
+- **Tests and gates.** `board-service.test.mjs` passes 8 tests, including Fabric's schema against the contract catalogue's comms-submit verdicts. `agent-surface.test.mjs` runs the flow end to end on the disposable stack. `check-surface-tools.mjs` now reads `boardTools.ts` and `com.*` names (27 tools). `operating-surfaces.md` §10.
+- **Fixes in COM-02.1's migration, before landing:**
+  - `board_bodies` references `board_messages` by `(message_id, estate_id)` (found by `check-references.mjs`);
+  - capability names follow the contract's `capabilityName`;
+  - `replyTo` is allowed on any kind and required of a reply, as the contract says.
+

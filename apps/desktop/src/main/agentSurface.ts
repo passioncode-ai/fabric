@@ -66,6 +66,8 @@ import { beginAttempt, type AttemptContext } from './toolTrace.ts'
 import { mayChain } from '../shared/loopBound.ts'
 import { PHASES, WAITING_PHASES } from '../shared/liveness.ts'
 import { fileProposal } from './commands/proposalCommands.ts'
+import { createBoard, type Board } from './boardService.ts'
+import { registerBoardTools } from './boardTools.ts'
 import { TERMINAL, mayMove, type TaskState } from '../shared/ladder.ts'
 import type { Journal } from '@fabric/journal'
 import type { PtyManager } from './pty'
@@ -311,6 +313,8 @@ export class AgentSurface {
   /** Bounded in-flight requests; hashes identify buckets without retaining raw credentials. */
   private externalPending = new Map<string, number>()
   private externalPendingTotal = 0
+  /** The project board's participant half (COM-02.2, ADR-0117); its cursor key lives for this run only. */
+  private board: Board
 
   // Assigned in the body rather than declared as a parameter property: Node's
   // type-stripping loader rejects parameter properties, and this class is
@@ -319,6 +323,7 @@ export class AgentSurface {
     this.deps = deps
     this.now = deps.now ?? Date.now
     this.limits = { ...DEFAULT_LIMITS, ...(deps.limits ?? {}) }
+    this.board = createBoard({ rpc: (fn, args) => deps.db.rpc(fn, args) })
   }
 
   /** The address a session's mcp.json points at. Empty until start() resolves. */
@@ -2247,6 +2252,14 @@ export class AgentSurface {
         })
       }
     )
+
+    // The project board (COM-02.2, ADR-0117 §3): a session Fabric started takes part as its own Project, a
+    // trusted principal. Identity is closed over the scope, so no argument can name another Project.
+    registerBoardTools(server, this.board, () => ({
+      estateId: scope.estateId,
+      projectId: scope.projectId,
+      principal: { kind: 'agent', id: scope.sessionId, provenance: 'trusted' }
+    }))
 
     return server
   }

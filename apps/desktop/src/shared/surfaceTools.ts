@@ -29,6 +29,12 @@ export interface SurfaceTool {
 
 export const SURFACE_TOOLS: readonly SurfaceTool[] = [
   { name: 'fabric_whoami', purpose: 'Who this session is, what project it is in, and the rules it works under', records: false },
+  // Messaging between projects (COM-02.2, ADR-0117). Not "the board" on screen: that word is the task board's.
+  { name: 'com.submit', purpose: 'Send a message or a request to other projects — addressed to a project, never to a session', records: true },
+  { name: 'com.list', purpose: 'Read what other projects sent this project, oldest first; reading marks nothing as read', records: false },
+  { name: 'com.get', purpose: 'Read one message sent between projects', records: false },
+  { name: 'com.read_ack', purpose: 'Mark a message from another project as read', records: true },
+  { name: 'com.status', purpose: 'Whether messaging between projects works right now, and how much is unread', records: false },
   { name: 'fabric_agents_list', purpose: 'The other sessions in this project — what each claims and what Fabric observed', records: false },
   { name: 'fabric_stage_report', purpose: 'Say where you are in the work, as a claim beside what Fabric observes', records: true },
   { name: 'fabric_memory_search', purpose: 'What this project already knows about itself', records: true },
