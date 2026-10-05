@@ -59,8 +59,19 @@ const RULES: Rule[] = [
   },
   {
     name: 'authorization',
-    re: /\b((?:proxy-)?authorization\s*:\s*(?:bearer|basic)\s+)(\[redacted: authorization\](?=$|[\s"',;)}\]]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|[^\s"',;]+)/gi,
+    // Also the JSON spelling, `"Authorization": "Bearer …"`: a Kilo session's whole config, the
+    // session bearer included, sits in `KILO_CONFIG_CONTENT`, so an `env` printed in that session
+    // showed it unredacted (audit 2026-10-05 A6-005).
+    re: /\b((?:proxy-)?authorization"?\s*:\s*"?(?:bearer|basic)\s+)(\[redacted: authorization\](?=$|[\s"',;)}\]]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|[^\s"',;]+)/gi,
     keep: (m) => `${m[1]}[redacted: authorization]`
+  },
+  {
+    name: 'header-credential',
+    // A credential header with no scheme word: the gateway's `x-agw-key` role key in the same Kilo
+    // config, and every `x-…-key` / `x-…-token` / `api-key` header spelled like it. The header name
+    // is kept, the value is not.
+    re: /\b((?:x-[a-z0-9-]*(?:key|token|secret)[a-z0-9-]*|api-key)"?\s*:\s*"?)(\[redacted: header-credential\](?=$|[\s"',;)}\]]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|[^\s"',;]+)/gi,
+    keep: (m) => `${m[1]}[redacted: header-credential]`
   },
   { name: 'anthropic-key', re: /\bsk-ant-[A-Za-z0-9_-]{16,}/g },
   { name: 'openai-key', re: /\bsk-(?!ant-)[A-Za-z0-9_-]{20,}/g },

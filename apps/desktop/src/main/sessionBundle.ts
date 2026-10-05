@@ -301,7 +301,13 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
                 ]
               },
               brief: agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE,
-              mode: modeConfig?.acpMode === 'bypass' ? 'bypass' : 'ask'
+              mode: modeConfig?.acpMode === 'bypass' ? 'bypass' : 'ask',
+              // The project's granted gateway servers, each with its hop's role key (audit 2026-10-05
+              // A6-004: they were dropped, so a Hermes agent created with servers reached none of them).
+              // The shell sends them only to an agent that takes HTTP MCP, and says so otherwise.
+              grants: plan.grant
+                .filter((g) => g.name !== 'fabric')
+                .map((g) => ({ type: 'http', name: g.name, url: g.url, headers: [{ name: 'x-agw-key', value: g.key }] }))
             }
             return {
               dir,

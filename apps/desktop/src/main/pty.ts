@@ -328,6 +328,16 @@ export class PtyManager {
           verdict.config
         )) ?? null)
       : null
+    // Audit 2026-10-05 A6-006: for these adapters the session's permissions travel IN the bundle (Kilo's
+    // Ask is a config fragment, and Kilo's own default allows everything; a Hermes session is the ACP
+    // shell itself). With no bundle — the agent surface is not running — the agent would start with
+    // its own defaults while the journal recorded the mode the person chose. Refused, and said why.
+    const adapter = descriptor?.surfaceAdapter
+    if (option.connectsToSurface && !bundle && (adapter === 'config-content-env' || adapter === 'acp-session'))
+      throw new Error(
+        `${option.label} was not started: Fabric's agent surface is not running, and this agent's permissions ` +
+        `and connection are given with it. Start the session again once the surface is up (Settings → Agent access).`
+      )
     let pty: IPty
     try {
       if (beforeSpawn && !await beforeSpawn()) throw new Error('launch authority changed')

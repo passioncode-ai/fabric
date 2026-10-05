@@ -224,8 +224,23 @@ export function listDirectory(dir: string, roots: FileRoots, scope?: string): { 
   return { entries, truncated: raw.length - kept.length }
 }
 
-function hash(content: string): string {
+function hash(content: string | Buffer): string {
   return createHash('sha256').update(content).digest('hex')
+}
+
+/**
+ * The text a file holds, or null when it is not text: a NUL byte, or bytes that are not valid UTF-8.
+ * Audit 2026-10-05 A4-001 (P0): every file opened as UTF-8, binaries included, and a save — even with
+ * no edit — wrote the lossy decoded string back (a 10-byte PNG header came back as 14 bytes). The
+ * decoder is fatal and keeps a byte-order mark, so text that is returned re-encodes to the same bytes.
+ */
+export function textOf(bytes: Buffer): string | null {
+  if (bytes.includes(0)) return null
+  try {
+    return new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes)
+  } catch {
+    return null // Not valid UTF-8: the caller answers "not text", which is the whole point of asking.
+  }
 }
 
 const LANGUAGES: Record<string, string> = {
@@ -270,36 +285,43 @@ export function readFile(file: string, roots: FileRoots, scope?: string): FilePa
   file = roots.resolve(file, scope)
   const size = statSync(file).size
   if (size > MAX_BYTES) throw new Error(`file is too large to open (${size} bytes)`)
-  const content = readFileSync(file, 'utf8')
+  const bytes = readFileSync(file)
+  const content = textOf(bytes)
   return {
     path: file,
     name: path.basename(file),
-    content,
-    hash: hash(content),
+    // A file that is not text is opened read-only with no content: the editor shows why and offers
+    // the system's own app, and nothing in Fabric can write a decoded copy of it back.
+    content: content ?? '',
+    text: content !== null,
+    hash: hash(bytes),
     language: LANGUAGES[path.extname(file).toLowerCase()] ?? 'plaintext'
   }
 }
 
 /**
- * `expectedHash` is what the caller saw when it opened the file. When the disk
- * has moved on, nothing is written and the current content comes back for the
- * caller to diff. `force` is the operator's decision after seeing that diff.
+ * `expectedHash` is the version the caller last SAW: the one it opened, or — after a conflict — the
+ * disk version it was shown in the diff. When the disk has moved on from it, nothing is written and
+ * the current content comes back for the caller to diff. There is no path that skips the compare:
+ * audit 2026-10-05 A2-003 found "Keep mine and save" did, so an agent's edit made after the diff was
+ * shown was overwritten without ever being displayed. The operator's grant authorises overwriting
+ * the version they saw, not whatever is on disk by the time the write lands.
  */
 export function writeFile(
   file: string,
   content: string,
   expectedHash: string,
   roots: FileRoots,
-  force = false,
   scope?: string
 ): WriteResult {
   file = roots.resolve(file, scope)
-  if (!force) {
-    const onDisk = readFileSync(file, 'utf8')
-    if (hash(onDisk) !== expectedHash) {
-      return { ok: false, reason: 'changed-on-disk', current: onDisk, currentHash: hash(onDisk) }
-    }
+  const bytes = readFileSync(file)
+  const onDisk = textOf(bytes)
+  if (onDisk === null) return { ok: false, reason: 'not-text' }
+  if (hash(bytes) !== expectedHash) {
+    return { ok: false, reason: 'changed-on-disk', current: onDisk, currentHash: hash(bytes) }
   }
-  writeFileSync(file, content, 'utf8')
-  return { ok: true, hash: hash(content) }
+  const next = Buffer.from(content, 'utf8')
+  writeFileSync(file, next)
+  return { ok: true, hash: hash(next) }
 }

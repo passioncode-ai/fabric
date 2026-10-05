@@ -3737,7 +3737,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       // comes back for the operator to look at. A grant means the operator has
       // seen the diff and asked for the overwrite by name — so policy decides,
       // and the write happens only if it says so.
-      if (!grantId) return writeFile(file, content, expectedHash, fileRoots, false, scope)
+      if (!grantId) return writeFile(file, content, expectedHash, fileRoots, scope)
 
       const request = {
         estateId: ACTIVE_ESTATE,
@@ -3761,7 +3761,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       // lines leaves `outcome_unknown`, which is the truth — the old code left
       // no row at all, so an overwritten file looked like one never written.
       const dispatch = await policy.beginDispatch(request, decision)
-      const result = writeFile(file, content, expectedHash, fileRoots, true, scope)
+      const result = writeFile(file, content, expectedHash, fileRoots, scope)
       await policy.observeEffect(request, dispatch, {
         outcome: result.ok ? 'succeeded' : 'failed_known',
         // Fabric performed this act itself, so the evidence is its own return

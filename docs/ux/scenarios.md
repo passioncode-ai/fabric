@@ -764,7 +764,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **Errors & recovery:** a resolution that fails to persist retries without double-resuming the node (idempotent by question id); policy `indeterminate` is shown as a denial with diagnostics, never as pending.
 - **Telemetry:** `question_resolved` with question_id, verdict, action_class, waited_seconds, floored:boolean — no payload content
 - **Status:** draft
-- **Coverage:** `apps/desktop/src/main/policy.ts`, `apps/desktop/src/renderer/src/launch/ObligationActs.tsx`, `apps/desktop/test/policy.test.mjs`
+- **Coverage:** `apps/desktop/src/main/policy.ts`, `apps/desktop/src/renderer/src/launch/ObligationActs.tsx`, `apps/desktop/test/policy.test.mjs` — the grant policy and the attention acts only. The escalation itself is not built: no blocking `canUseTool`, no `node.asked@1`, no Refuse-with-reason that fails a node as resumable, no 30-minute expiry, no resume after a grant (audit 2026-10-05 A2-005, [CO-217](../evidence/specs/2026-08-16-software-fabric-carryover.md)).
 - **Product:** unobserved
 
 
@@ -974,11 +974,19 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
      overwritten. A banner states what happened and the window shows a side-by-side diff of
      the version on disk against the operator's.
   5. Operator chooses: take the version on disk, or keep their own and save over it. Either
-     choice is explicit; there is no third path where one silently wins.
+     choice is explicit; there is no third path where one silently wins. "Keep mine and save"
+     overwrites exactly the disk version the diff showed: if an agent changed the file again
+     after that, the diff comes back with the newer version instead of writing over it. When
+     the banner appears the focus moves to its sentence, never to one of the two actions, so a
+     keystroke typed as it appears decides nothing.
 - **Expected result:** a file can be edited beside working agents without either side losing
   work by surprise.
 - **Alt paths:** the file can be opened in the system editor instead; a file too large to
-  open says so rather than hanging. Fabric quits, is stopped or crashes while the file has unsaved
+  open says so rather than hanging. A file that is not text (a NUL byte, or bytes that are not
+  valid UTF-8 — an image, a PDF, an archive) opens read-only with a sentence saying so and
+  Open in system editor; it has no Save and Fabric never writes it. Saving an untouched buffer
+  writes nothing, and a save keeps the same editor, so what is typed while it is in flight stays
+  in the buffer and stays marked unsaved. Fabric quits, is stopped or crashes while the file has unsaved
   changes -> nothing waits and nothing is lost: the unsaved buffer was kept as the operator typed
   (ADR-0106), and the next time the file opens a banner says "Unsaved changes from {time} were kept"
   with Restore them / Discard them. When the file changed on disk since, restoring opens the same

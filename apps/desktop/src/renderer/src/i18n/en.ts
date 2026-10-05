@@ -681,6 +681,8 @@ export const en = {
   'editor.conflict': 'This file changed on disk while you were editing. Compare the two and choose.',
   'editor.takeDisk': 'Take the version on disk',
   'editor.takeMine': 'Keep mine and save',
+  'editor.notText': 'This file is not text (it holds binary data or is not UTF-8), so Fabric shows it read-only and never writes it. Open it in its own app with “Open in system editor”.',
+  'editor.notTextOnDisk': 'The file on disk is no longer text, so nothing was written. Your edit is still here; copy it out before closing.',
   'editor.dismiss': 'Dismiss',
   'editor.retry': 'Try again',
 

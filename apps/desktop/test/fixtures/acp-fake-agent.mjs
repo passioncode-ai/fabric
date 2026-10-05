@@ -35,6 +35,21 @@ createInterface({ input: process.stdin }).on('line', async (line) => {
       update('sess-fixture', `permission:${answer?.outcome?.optionId ?? answer?.outcome?.outcome}`)
       return send({ id: m.id, result: { stopReason: 'end_turn' } })
     }
+    if (text.includes('LONG')) {
+      update('sess-fixture', 'long turn started')
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      update('sess-fixture', 'long turn done')
+      return send({ id: m.id, result: { stopReason: 'end_turn' } })
+    }
+    if (text.includes('LATEASK')) {
+      update('sess-fixture', 'thinking before asking')
+      await new Promise((resolve) => setTimeout(resolve, 300))
+      const answer = await ask('session/request_permission', { sessionId: 'sess-fixture', toolCall: { toolCallId: 't2', title: 'Run a command' },
+        options: [{ optionId: 'yes-once', name: 'Allow', kind: 'allow_once' }, { optionId: 'no-once', name: 'Reject', kind: 'reject_once' }] })
+      record({ permissionAnswer: answer })
+      update('sess-fixture', `permission:${answer?.outcome?.optionId ?? answer?.outcome?.outcome}`)
+      return send({ id: m.id, result: { stopReason: 'end_turn' } })
+    }
     if (text.includes('SLOW')) {
       update('sess-fixture', 'working slowly')
       await new Promise((resolve) => { cancelled = resolve })

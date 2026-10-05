@@ -156,3 +156,24 @@ no HTTP MCP, took the bridge, and made 4 authorised requests (`raw/probes/hermes
 It is the first runner connected over ACP. **Cline 3.0.46** answers `initialize` but asks for sign-in before
 any session, and its package vanished twice on this machine after a run; it stays a not-connected runner
 until a probe opens its session (§4).
+
+### Amendment 3 — 2026-10-06: what the release-0.3.2 audit changed in the drive
+
+The audit of the 0.3.2 candidate ([RPT fabric/2026-10-05-release-032-audit](../reports/2026-10-05-release-032-audit/README.md))
+found five places where the drive of §1–§5 did not hold. These rules now apply, each with a test in
+`apps/desktop/test/acp-shell.test.mjs`, `mcp-stdio-bridge.test.mjs` or `pty-launch-failure.test.mjs`:
+
+- **A turn has no deadline** (A6-001). `session/prompt` waits for the agent's answer, Ctrl-C
+  (`session/cancel`) or the agent's exit. With the generic 120 s deadline, a long turn was printed as an
+  error while the agent kept working, and the next line went out as a second, concurrent prompt.
+- **A permission question reads only what is typed after it** (A7-007). A line typed ahead during a turn
+  stays a prompt. `y` picks `allow_always` when that is the only allow on offer.
+- **A stop or a quit ends the agent's process group** (A7-003). The shell handles SIGTERM and SIGHUP
+  with the same cancel → end of input → SIGTERM → SIGKILL escalation, signalling the agent's group. The
+  agent runs detached, so a signal to the PTY's group never reached it.
+- **The project's granted servers go with the surface** (A6-004) when the agent takes HTTP MCP. An agent
+  on the stdio bridge is told which granted servers it cannot reach. One transient surface error is
+  answered to the agent as that request's error, and only a refused credential closes the bridge (A6-007).
+- **A mode carried in the bundle never launches without it** (A6-006). For `config-content-env` and
+  `acp-session`, a launch with no bundle (the surface is down) is refused and says why. Before, Kilo
+  started with its own allow-all default while the journal recorded `ask`.

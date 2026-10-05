@@ -66,6 +66,22 @@ describe('redaction', () => {
 })
 
 describe('standard authorization headers', () => {
+  it('removes the bearer and the role key from a Kilo session config printed as JSON (audit A6-005)', () => {
+    const config = JSON.stringify({ mcp: {
+      search: { type: 'remote', url: 'http://127.0.0.1:4000/mcp/search', headers: { 'x-agw-key': 'role-key-opaque-123' } },
+      fabric: { type: 'remote', url: 'http://127.0.0.1:47070/mcp', headers: { Authorization: 'Bearer opaque-session-token' } }
+    } })
+    const result = redact(`KILO_CONFIG_CONTENT=${config}`)
+    expect(result.text).not.toContain('opaque-session-token')
+    expect(result.text).not.toContain('role-key-opaque-123')
+    expect(result.text).toContain('"Authorization":"Bearer [redacted: authorization]"')
+    expect(result.text).toContain('"x-agw-key":"[redacted: header-credential]"')
+    expect(redact(result.text).text).toBe(result.text)
+    expect(redact('X-MCP-Token: abc123secret').text).toBe('X-MCP-Token: [redacted: header-credential]')
+    // Prose that merely names the header is left alone.
+    expect(redact('the x-agw-key header carries the role key').text).toBe('the x-agw-key header carries the role key')
+  })
+
   it('removes opaque Bearer and Basic credentials while keeping context', () => {
     for (const header of ['Authorization: Bearer', 'proxy-authorization: Basic']) {
       const result = redact(`${header} synthetic-opaque\nordinary`)

@@ -20,13 +20,25 @@ const code = await runAcpShell(spec, {
   input: process.stdin,
   output: process.stdout,
   onInterrupt(listener) { process.on('SIGINT', listener) },
+  // A stop or a quit signals the PTY's group, which the agent is not in: the shell ends it.
+  onTerminate(listener) { process.on('SIGTERM', listener); process.on('SIGHUP', listener) },
   spawnAgent() {
     // Its own process group: Ctrl-C at the terminal reaches the shell, which cancels the turn.
     const child = spawn(command[0], command.slice(1), { cwd: spec.cwd, env: process.env, stdio: ['pipe', 'pipe', 'pipe'], detached: true })
     return {
       stdin: child.stdin, stdout: child.stdout, stderr: child.stderr,
-      kill: (signal) => { try { child.kill(signal) } catch { /* already gone */ } },
-      onExit: (listener) => { child.on('exit', (c) => listener(c)); child.on('error', () => listener(127)) }
+      // The whole group: the agent's own children (tools, the stdio bridge) end with it.
+      kill: (signal) => {
+        try { if (child.pid) process.kill(-child.pid, signal); else child.kill(signal) } catch { /* already gone */ }
+      },
+      onExit: (listener) => {
+        child.on('exit', (c) => listener(c))
+        child.on('error', (e) => {
+          // Spawning failed (no such program, not executable): said here, because no exit follows.
+          process.stdout.write(`\nFabric could not start the agent \`${command[0]}\`: ${e.message}\n`)
+          listener(127)
+        })
+      }
     }
   }
 })

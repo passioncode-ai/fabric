@@ -10,6 +10,8 @@ import { AGENTS } from '../src/shared/agents.ts'
 import { randomUUID } from 'node:crypto'
 import { PtyLaunchFailure, retainFailedLaunch } from '../src/main/launchFailure.ts'
 AGENTS.push({ ...AGENTS.find(a => a.id === 'shell'), id: 'launch-fixture', connectsToSurface: true, surfaceAdapter: 'mcp-config-flag', resultChannel: 'surface' })
+for (const adapter of ['config-content-env', 'acp-session'])
+  AGENTS.push({ ...AGENTS.find(a => a.id === 'shell'), id: `bundle-only-${adapter}`, label: `Fixture ${adapter}`, connectsToSurface: true, surfaceAdapter: adapter, resultChannel: 'surface' })
 
 // Launch references are immutable authority, not free text to rewrite later.
 // Refuse before bundle preparation, native spawn, capture or journalling.
@@ -87,6 +89,18 @@ for (const running of [true, false]) {
 assert.equal(await retainFailedLaunch(Error('before spawn'), {
   track() { throw Error('unexpected tracking') }, get() { throw Error('unexpected read') }, close() { throw Error('unexpected close') }
 }), false)
+// Audit 2026-10-05 A6-006: an agent whose permissions travel in the bundle is never started without
+// one (the surface down → no bundle → Kilo's own allow-all default under a journalled "ask").
+for (const adapter of ['config-content-env', 'acp-session']) {
+  let spawned = 0, appended = 0
+  const manager = new PtyManager({ append: async () => { appended++; return { seq: 1 } } }, randomUUID(), { onData() {}, onExit() {} },
+    { compile: async () => null, discard() {} }, () => { spawned++; throw Error('must not spawn') },
+    { open() {}, write() {} }, () => ({ kind: 'person', id: 'operator' }))
+  await assert.rejects(manager.open(randomUUID(), process.cwd(), `bundle-only-${adapter}`), /agent surface is not running/)
+  assert.equal(spawned, 0, `${adapter}: nothing started`)
+  assert.equal(appended, 0, `${adapter}: nothing journalled as opened`)
+  assert.equal(manager.list().length, 0)
+}
 console.log('PASS launch failure: journal/spool/kill/revoke faults retain exact process identity and observation; no false stopped receipt')
 // Same durable session ID reaches bundle and PTY; an in-flight compile cannot
 // admit a second local open under the same identity. Authority is rechecked

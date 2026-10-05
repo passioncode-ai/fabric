@@ -34,6 +34,8 @@ export interface AcpSessionSpec {
   brief: string
   /** How a permission request is answered. */
   mode: 'ask' | 'bypass'
+  /** The project's granted gateway servers (HTTP only: they live on the machine's gateway). */
+  grants?: Extract<AcpMcpServer, { type: 'http' }>[]
 }
 
 export interface AgentProcess {
@@ -53,6 +55,14 @@ export interface AcpShellIo {
   spawnAgent(): AgentProcess
   /** Ctrl-C at the terminal. The agent runs in its own process group, so only the shell hears it. */
   onInterrupt?(listener: () => void): void
+  /**
+   * SIGTERM or SIGHUP to the shell — a session stop or the app's quit. The agent sits in its own
+   * process group, so a signal to the PTY's group never reaches it: the shell must end it (audit
+   * 2026-10-05 A7-003 — the agent and its children were orphaned to launchd).
+   */
+  onTerminate?(listener: () => void): void
+  /** Request deadlines; a test shortens them. A turn (`session/prompt`) never has one. */
+  timeouts?: { requestMs?: number; authMs?: number }
 }
 
 export const ACP_PROTOCOL_VERSION = 1
@@ -79,12 +89,20 @@ export function automaticChoice(mode: AcpSessionSpec['mode'], options: unknown):
   return allow && typeof allow.optionId === 'string' ? allow.optionId : null
 }
 
-/** The option a person's answer selects: `y` allows once, anything else rejects once. */
+/**
+ * The option a person's answer selects: `y` allows once, anything else rejects once. An agent that
+ * offers only `allow_always` gets that for `y` (audit 2026-10-05 A7-007 — `y` was sent as
+ * `cancelled`), and one that offers only `reject_always` gets that for anything else.
+ */
 export function answeredChoice(answer: string, options: unknown): string | null {
   if (!Array.isArray(options)) return null
-  const wanted = /^\s*y(es)?\s*$/i.test(answer) ? ['allow_once'] : ['reject_once', 'reject_always']
-  const hit = options.filter(record).find((o) => wanted.includes(String(o.kind)))
-  return hit && typeof hit.optionId === 'string' ? hit.optionId : null
+  const offered = options.filter(record)
+  const wanted = /^\s*y(es)?\s*$/i.test(answer) ? ['allow_once', 'allow_always'] : ['reject_once', 'reject_always']
+  for (const kind of wanted) {
+    const hit = offered.find((o) => o.kind === kind)
+    if (hit && typeof hit.optionId === 'string') return hit.optionId
+  }
+  return null
 }
 
 /** One line of what the agent did, or null for an update a person does not need to see. */
@@ -116,14 +134,14 @@ export function isAuthRequired(error: unknown): boolean {
 }
 
 /** A minimal JSON-RPC 2.0 peer over newline-delimited JSON, bounded per frame. */
-function peer(proc: AgentProcess, handlers: {
+function peer(proc: AgentProcess, defaultTimeoutMs: number, handlers: {
   request(method: string, params: unknown): Promise<unknown>
   notification(method: string, params: unknown): void
   closed(): void
 }) {
   let serial = 0
   let buffer = ''
-  const pending = new Map<number, { resolve(v: unknown): void; reject(e: Error): void; timer: ReturnType<typeof setTimeout> }>()
+  const pending = new Map<number, { resolve(v: unknown): void; reject(e: Error): void; timer: ReturnType<typeof setTimeout> | undefined }>()
   const send = (message: Json): void => { proc.stdin.write(JSON.stringify({ jsonrpc: '2.0', ...message }) + '\n') }
   proc.stdout.setEncoding('utf8')
   proc.stdout.on('data', (chunk: string) => {
@@ -163,10 +181,12 @@ function peer(proc: AgentProcess, handlers: {
     handlers.closed()
   })
   return {
-    request(method: string, params: unknown, timeoutMs: number = REQUEST_TIMEOUT_MS): Promise<unknown> {
+    /** `timeoutMs: null` waits for the answer, the agent's exit or nothing — a turn ends that way. */
+    request(method: string, params: unknown, timeoutMs: number | null = defaultTimeoutMs): Promise<unknown> {
       const id = ++serial
       return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => { pending.delete(id); reject(new Error(`${method} did not answer`)) }, timeoutMs)
+        const timer = timeoutMs === null ? undefined
+          : setTimeout(() => { pending.delete(id); reject(new Error(`${method} did not answer`)) }, timeoutMs)
         pending.set(id, { resolve, reject, timer })
         send({ id, method, params })
       })
@@ -192,9 +212,16 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
   lines.on('close', () => { inputClosed = true; for (const w of waiting.splice(0)) w('') })
   const nextLine = (): Promise<string | null> =>
     queued.length ? Promise.resolve(queued.shift()!) : inputClosed ? Promise.resolve(null) : new Promise((resolve) => waiting.push((l) => resolve(inputClosed && l === '' ? null : l)))
+  /**
+   * The next line typed AFTER now, ahead of any other waiter; lines typed earlier stay queued as
+   * prompts. A permission question reads this way: audit 2026-10-05 A7-007 found a line typed ahead
+   * during a turn answered the next question before the person had seen it.
+   */
+  const freshLine = (): Promise<string | null> =>
+    inputClosed ? Promise.resolve(null) : new Promise((resolve) => waiting.unshift((l) => resolve(inputClosed && l === '' ? null : l)))
 
   let sessionId: string | null = null
-  const rpc = peer(proc, {
+  const rpc = peer(proc, io.timeouts?.requestMs ?? REQUEST_TIMEOUT_MS, {
     async request(method, params) {
       if (method === 'session/request_permission') {
         const p = record(params) ? params : {}
@@ -202,7 +229,7 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
         const auto = automaticChoice(spec.mode, p.options)
         if (auto) return { outcome: { outcome: 'selected', optionId: auto } }
         out(`\n\x1b[33mThe agent asks to: ${String(call.title ?? call.toolCallId ?? 'use a tool')}. Allow once? [y/N] \x1b[39m`)
-        const answer = await nextLine()
+        const answer = await freshLine()
         const chosen = answer === null ? null : answeredChoice(answer, p.options)
         return chosen ? { outcome: { outcome: 'selected', optionId: chosen } } : { outcome: { outcome: 'cancelled' } }
       }
@@ -219,7 +246,9 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
 
   // The end of a session: cancel it on the agent's side, close the agent's input (an ACP agent ends
   // on EOF), then SIGTERM after the grace and SIGKILL after another — within the app's quit drain.
-  const stop = async (code: number): Promise<number> => {
+  let stopping: Promise<number> | null = null
+  const stop = (code: number): Promise<number> => (stopping ??= end(code))
+  const end = async (code: number): Promise<number> => {
     if (sessionId) rpc.notify('session/cancel', { sessionId })
     lines.close()
     if (exited === undefined) {
@@ -232,6 +261,8 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
     return code
   }
 
+  io.onTerminate?.(() => { void stop(143) })
+
   let init: unknown
   try {
     init = await rpc.request('initialize', {
@@ -239,13 +270,21 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
       clientCapabilities: { fs: { readTextFile: false, writeTextFile: false }, terminal: false },
       clientInfo: { name: 'fabric', title: 'Fabric', version: '0' }
     })
-  } catch {
-    out('\nFabric could not start an ACP session with this agent: it did not answer `initialize`.\n')
+  } catch (error) {
+    // Told to the person at this terminal, with its cause (an agent that never started, one that closed
+    // its output, one that did not answer); exit code 2 reaches the journal through the PTY's exit record.
+    const cause = error instanceof Error && error.message ? error.message : 'no answer'
+    out(`\nFabric could not start an ACP session with this agent: \`initialize\` failed (${cause}).\n`)
     return stop(2)
   }
   const surface = surfaceFor(init, spec)
+  const grants = spec.grants ?? []
+  const overHttp = 'type' in surface
+  const servers: AcpMcpServer[] = overHttp ? [surface, ...grants] : [surface]
+  if (!overHttp && grants.length)
+    out(`\x1b[33mFabric: this agent takes no HTTP MCP servers, so the project's ${grants.length} granted server(s) (${grants.map((g) => g.name).join(', ')}) are not reachable in this session.\x1b[39m\n`)
   const openSession = async (): Promise<string | null> => {
-    const created = await rpc.request('session/new', { cwd: spec.cwd ?? process.cwd(), mcpServers: [surface] })
+    const created = await rpc.request('session/new', { cwd: spec.cwd ?? process.cwd(), mcpServers: servers })
     return record(created) && typeof created.sessionId === 'string' ? created.sessionId : null
   }
   const methods = record(init) && Array.isArray(init.authMethods) ? init.authMethods.filter(record) : []
@@ -265,19 +304,25 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
     const method = methods[pick - 1]
     if (!method || typeof method.id !== 'string') { out('\nThe session was not opened.\n'); return stop(3) }
     try {
-      await rpc.request('authenticate', { methodId: method.id }, AUTH_TIMEOUT_MS)
+      await rpc.request('authenticate', { methodId: method.id }, io.timeouts?.authMs ?? AUTH_TIMEOUT_MS)
       sessionId = await openSession()
     } catch (again) {
+      // The shell's only reader is the person at this terminal: the failure is told there, and the
+      // session ends with exit code 3, which the PTY's own exit record carries to the journal.
       out(`\nSigning in did not open a session${again instanceof Error && again.message ? `: ${again.message}` : ''}.\n`)
       return stop(3)
     }
   }
   if (!sessionId) { out('\nThe agent opened no session (no session id).\n'); return stop(3) }
-  out(`\x1b[2mFabric: connected through ${'type' in surface ? 'HTTP' : 'the stdio bridge'}; sending the session brief.\x1b[22m\n`)
+  out(`\x1b[2mFabric: connected through ${overHttp ? 'HTTP' : 'the stdio bridge'}${overHttp && grants.length ? ` with ${grants.length} granted server(s)` : ''}; sending the session brief.\x1b[22m\n`)
 
   let turn: Promise<unknown> | null = null
   const prompt = (text: string): Promise<unknown> => {
-    turn = rpc.request('session/prompt', { sessionId, prompt: [{ type: 'text', text }] })
+    // No deadline: a turn — permission waits included — takes as long as it takes, and ends by its
+    // answer, by Ctrl-C (`session/cancel`) or by the agent's exit (audit 2026-10-05 A6-001: at 120 s
+    // the turn was printed as an error while the agent kept working, and the next line was sent as
+    // a second, concurrent prompt).
+    turn = rpc.request('session/prompt', { sessionId, prompt: [{ type: 'text', text }] }, null)
       .then((r) => { const reason = record(r) ? r.stopReason : null; out(`\n\x1b[2m(${String(reason ?? 'done')})\x1b[22m\n> `) },
         (e: unknown) => { out(`\n\x1b[31mThe turn ended with an error: ${e instanceof Error ? e.message : 'unknown'}\x1b[39m\n> `) })
       .finally(() => { turn = null })

@@ -12,8 +12,10 @@ if (!url || !authorization) {
 }
 // The credential is read once and removed from this process's environment.
 delete process.env.FABRIC_BRIDGE_AUTHORIZATION
-await relay({
-  agent: new StdioServerTransport(),
-  surface: new StreamableHTTPClientTransport(new URL(url), { requestInit: { headers: { Authorization: authorization } } })
-}, (line) => process.stderr.write(line + '\n'))
+const agent = new StdioServerTransport()
+const surface = new StreamableHTTPClientTransport(new URL(url), { requestInit: { headers: { Authorization: authorization } } })
+// The SDK's stdio server transport does not report the agent closing its end (audit 2026-10-05 A6-029):
+// the end of stdin is the agent leaving, so the HTTP session is ended and the bridge exits.
+process.stdin.once('end', () => { void surface.terminateSession().catch(() => {}).finally(() => agent.close()) })
+await relay({ agent, surface }, (line) => process.stderr.write(line + '\n'))
 process.exit(0)

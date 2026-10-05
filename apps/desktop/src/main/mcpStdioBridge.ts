@@ -28,7 +28,21 @@ export async function relay({ agent, surface }: BridgeEnds, log: (line: string) 
     log(`fabric-bridge: ${why}`)
     Promise.allSettled([agent.close(), surface.close()]).then(() => done())
   }
-  agent.onmessage = (message) => { surface.send(message).catch(() => closeBoth('the surface refused a message')) }
+  // A failed relay is answered to the agent as that request's error and the bridge goes on: one
+  // transient 5xx used to close it, ending Fabric's tools for the rest of the session (audit
+  // 2026-10-05 A6-007). Only a refused credential (401/403) ends it, since nothing later can succeed.
+  agent.onmessage = (message) => {
+    surface.send(message).catch((error: unknown) => {
+      const status = (error as { code?: unknown } | null)?.code
+      if (status === 401 || status === 403) return closeBoth(`the surface refused the session credential (HTTP ${status})`)
+      const id = (message as { id?: unknown }).id
+      const reason = error instanceof Error && error.message ? error.message : 'no answer'
+      log(`fabric-bridge: a message did not reach the surface: ${reason}`)
+      if (typeof id === 'string' || typeof id === 'number')
+        agent.send({ jsonrpc: '2.0', id, error: { code: -32603, message: `Fabric's surface did not take this request: ${reason}` } })
+          .catch(() => closeBoth('the agent side is gone'))
+    })
+  }
   surface.onmessage = (message) => { agent.send(message).catch(() => closeBoth('the agent side is gone')) }
   agent.onclose = () => closeBoth('the agent closed the bridge')
   surface.onclose = () => closeBoth('the surface closed the session')

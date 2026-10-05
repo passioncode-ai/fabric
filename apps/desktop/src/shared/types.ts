@@ -112,7 +112,10 @@ export interface FilePayload {
   path: string
   name: string
   content: string
-  /** sha256 of the content as read — the caller returns it on write. */
+  /** False when the file is not text (a NUL byte or invalid UTF-8): `content` is empty and the file
+   *  is never written from the editor (audit 2026-10-05 A4-001). */
+  text: boolean
+  /** sha256 of the bytes as read — the caller returns it on write. */
   hash: string
   language: string
 }
@@ -120,6 +123,8 @@ export interface FilePayload {
 export type WriteResult =
   | { ok: true; hash: string }
   | { ok: false; reason: 'changed-on-disk'; current: string; currentHash: string }
+  /** The file on disk is not text (any more): the editor never writes over it. */
+  | { ok: false; reason: 'not-text' }
   /** M139 — policy refused the overwrite; `detail` is its own words, not a stack. */
   | { ok: false; reason: 'refused'; detail: string }
 

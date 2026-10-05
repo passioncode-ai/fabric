@@ -55,6 +55,17 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
   const editor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
   const diffEditor = useRef<monaco.editor.IStandaloneDiffEditor | null>(null)
   const [file, setFile] = useState<FilePayload | null>(null)
+  /**
+   * What the buffer is compared against, and the hash a save presents: the version last read or
+   * written. Kept in a ref, not in `file`, because changing `file` re-creates Monaco — audit
+   * 2026-10-05 A2-002 found every save did, dropping keystrokes typed while it was in flight along
+   * with undo history and the cursor.
+   */
+  const base = useRef<{ content: string; hash: string }>({ content: '', hash: '' })
+  /** What the next editor Monaco creates starts with (after a conflict is settled, not `file.content`). */
+  const seed = useRef<string>('')
+  /** Focused when a conflict appears: the banner's sentence, never one of its two actions. */
+  const conflictText = useRef<HTMLSpanElement | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [writeError, setWriteError] = useState<string | null>(null)
   const [dirty, setDirty] = useState(false)
@@ -86,7 +97,11 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
     window.fabric.files
       .read(filePath)
       .then(async (f) => {
+        base.current = { content: f.content, hash: f.hash }
+        seed.current = f.content
         setFile(f)
+        // A file that is not text has no buffer, so there is nothing kept to offer either.
+        if (!f.text) return
         const kept = await window.fabric.files.recoveryRead(filePath).catch(() => null)
         // Only a buffer that differs from the file is worth offering; an identical one is just tidied away.
         if (kept && kept.content !== f.content) setRecovered(kept)
@@ -97,11 +112,11 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
 
   // The plain editor.
   useEffect(() => {
-    if (!file || !host.current || conflict) return
+    if (!file || !file.text || !host.current || conflict) return
     defineThemes()
     const dark = document.documentElement.getAttribute('data-theme') !== 'light'
     const ed = monaco.editor.create(host.current, {
-      value: file.content,
+      value: seed.current,
       language: file.language,
       theme: dark ? 'fabric-dark' : 'fabric-light',
       automaticLayout: true,
@@ -117,17 +132,19 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
     ed.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => void save(false))
     ed.focus()
     const sub = ed.onDidChangeModelContent(() => {
-      const isDirty = ed.getValue() !== file.content
+      const isDirty = ed.getValue() !== base.current.content
       setDirty(isDirty)
       setSaved(false)
       // Kept as the person types, a moment after they pause: a quit or a crash then loses nothing.
       if (keepTimer.current) clearTimeout(keepTimer.current)
       // Never while a kept buffer is still being offered: that one is the person's until they choose.
       if (recoveredRef.current) return
-      keepTimer.current = setTimeout(() => keepNow(isDirty ? ed.getValue() : null, file.hash), 800)
+      keepTimer.current = setTimeout(() => keepNow(isDirty ? ed.getValue() : null, base.current.hash), 800)
     })
     return () => {
       if (keepTimer.current) clearTimeout(keepTimer.current)
+      // Whatever the editor holds now is what the next one starts from (a conflict re-creates it).
+      seed.current = ed.getValue()
       sub.dispose()
       ed.dispose()
       editor.current = null
@@ -149,9 +166,12 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
     })
     de.setModel({
       original: monaco.editor.createModel(conflict.current, file.language),
-      modified: monaco.editor.createModel(pendingContent.current ?? file.content, file.language)
+      modified: monaco.editor.createModel(pendingContent.current ?? seed.current, file.language)
     })
     diffEditor.current = de
+    // The sentence takes the focus, not a button: the banner appears while the person is typing, and
+    // both actions overwrite one side (audit 2026-10-05 A2-004 — the next Space took the disk version).
+    conflictText.current?.focus()
     return () => {
       de.getModel()?.original.dispose()
       de.getModel()?.modified.dispose()
@@ -163,7 +183,7 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
   const pendingContent = useRef<string | null>(null)
 
   const save = async (force = false): Promise<void> => {
-    if (!file) return
+    if (!file || !file.text) return
     // Never synthesise content. When the editor that owns the buffer is gone —
     // it is disposed while the diff is on screen — writing '' would truncate the
     // file, which is the one outcome this whole conflict path exists to prevent.
@@ -171,6 +191,8 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
       ? (diffEditor.current?.getModel()?.modified.getValue() ?? pendingContent.current)
       : (editor.current?.getValue() ?? null)
     if (content === null || content === undefined) return
+    // Nothing changed, nothing is written: Cmd+S on an untouched buffer used to write it back.
+    if (!force && content === base.current.content) return
     pendingContent.current = content
     try {
       // M139 — overwriting what changed on disk is a floored effect, so the
@@ -181,7 +203,7 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
       const result = await window.fabric.files.write(
         filePath,
         content,
-        conflict?.currentHash ?? file.hash,
+        conflict?.currentHash ?? base.current.hash,
         grant?.grantId
       )
       if (result.ok) {
@@ -196,10 +218,14 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
         const state = afterSave(content, editor.current?.getValue() ?? content)
         // Saved and clean: nothing left to recover. Still dirty: keep what is beyond the save.
         keepNow(state.dirty ? (editor.current?.getValue() ?? null) : null, result.hash)
-        setFile({ ...file, content, hash: result.hash })
+        base.current = { content, hash: result.hash }
+        // After a conflict the plain editor is created again, from what was just written.
+        if (force) seed.current = content
         setConflict(null)
         setDirty(state.dirty)
         setSaved(state.saved)
+      } else if (result.reason === 'not-text') {
+        setWriteError(t('editor.notTextOnDisk'))
       } else if (result.reason === 'refused') {
         // Shown in the operator's own banner with policy's own words. An
         // authority that refuses silently is indistinguishable from one that
@@ -223,7 +249,7 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
   useEffect(() => {
     const onBeforeUnload = (e: BeforeUnloadEvent): void => {
       // Whatever happens next — the person's choice, a quit, a signal — the last keystrokes are kept.
-      if (dirty && !leaving.current && file && editor.current) window.fabric.files.recoveryFlush(filePath, editor.current.getValue(), file.hash)
+      if (dirty && !leaving.current && file && editor.current) window.fabric.files.recoveryFlush(filePath, editor.current.getValue(), base.current.hash)
       if (!closeWouldLoseWork({ dirty, saved }, leaving.current)) return
       e.preventDefault()
       e.returnValue = false
@@ -245,12 +271,12 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
 
   const restore = (): void => {
     if (!recovered) return
-    if (recovered.baseHash === file.hash) editor.current?.setValue(recovered.content)
+    if (recovered.baseHash === base.current.hash) editor.current?.setValue(recovered.content)
     else {
       // The file changed on disk since the buffer was kept: show both, exactly as a save conflict does,
       // so restoring can never silently overwrite what is on disk now.
       pendingContent.current = recovered.content
-      setConflict({ current: file.content, currentHash: file.hash })
+      setConflict({ current: base.current.content, currentHash: base.current.hash })
     }
     setRecovered(null)
   }
@@ -263,13 +289,13 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
           actions={
             <>
               <Button onClick={restore}>{t('editor.restoreKept')}</Button>
-              <Button tone="ghost" onClick={() => { keepNow(null, file.hash); setRecovered(null) }}>
+              <Button tone="ghost" onClick={() => { keepNow(null, base.current.hash); setRecovered(null) }}>
                 {t('editor.discardKept')}
               </Button>
             </>
           }
         >
-          {t(recovered.baseHash === file.hash ? 'editor.keptBuffer' : 'editor.keptBufferChanged', { time: new Date(recovered.at).toLocaleString() })}
+          {t(recovered.baseHash === base.current.hash ? 'editor.keptBuffer' : 'editor.keptBufferChanged', { time: new Date(recovered.at).toLocaleString() })}
         </Banner>
       )}
       {closing && (
@@ -284,7 +310,7 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
                 tone="danger"
                 onClick={() => {
                   leaving.current = true
-                  if (file) keepNow(null, file.hash)
+                  if (file) keepNow(null, base.current.hash)
                   window.close()
                 }}
               >
@@ -302,9 +328,11 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
         <Toolbar align="end">
           {dirty && !conflict && <StateChip tone="warn">{t('editor.unsaved')}</StateChip>}
           {saved && <StateChip tone="good">{t('editor.saved')}</StateChip>}
-          <Button onClick={() => void save(false)} disabled={!!conflict || !dirty}>
-            {t('editor.save')}
-          </Button>
+          {file.text && (
+            <Button onClick={() => void save(false)} disabled={!!conflict || !dirty}>
+              {t('editor.save')}
+            </Button>
+          )}
           {/* M109 — the answer is READ. `shell.openPath` resolves to an error
               string and the contract used to declare `Promise<void>`, so a file
               that would not open looked exactly like one that did: the button
@@ -346,13 +374,11 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
             <>
               <Button
                 tone="ghost"
-                // The focus is load-bearing, not decoration: this banner appears
-                // while the operator is typing, and "take what is on disk" is the
-                // destructive half of the choice.
-                ref={(el: HTMLButtonElement | null) => el?.focus()}
                 onClick={() => {
+                  base.current = { content: conflict.current, hash: conflict.currentHash }
+                  seed.current = conflict.current
+                  pendingContent.current = null
                   setConflict(null)
-                  setFile({ ...file, content: conflict.current, hash: conflict.currentHash })
                   setDirty(false)
                   // The person chose the disk: a kept buffer of the other side is no longer theirs to recover.
                   keepNow(null, conflict.currentHash)
@@ -364,11 +390,15 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
             </>
           }
         >
-          {t('editor.conflict')}
+          <span tabIndex={-1} ref={conflictText}>{t('editor.conflict')}</span>
         </Banner>
       )}
 
-      <div className="editor-host" ref={host} />
+      {file.text ? (
+        <div className="editor-host" ref={host} />
+      ) : (
+        <EmptyState read>{t('editor.notText')}</EmptyState>
+      )}
     </div>
   )
 }
