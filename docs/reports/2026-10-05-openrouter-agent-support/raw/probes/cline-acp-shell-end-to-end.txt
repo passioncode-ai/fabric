@@ -1,0 +1,5 @@
+agent: cline --acp 
+shell exit: killed
+shell output (tail):
+Fabric could not start an ACP session with this agent: it did not answer `initialize`.
+server: {"refused":0,"served":0}
