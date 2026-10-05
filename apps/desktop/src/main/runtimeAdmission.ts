@@ -38,6 +38,12 @@ export const MEASURED_RUNTIMES: readonly RuntimeTuple[] = Object.freeze(([
   // Homebrew Node 26.8.2, the development and CI runtime; code in libnode.147.dylib.
   { runtime: 'node', electron: null, node: '26.8.2', uv: '1.52.1', modules: '147', platform: 'darwin', arch: 'arm64',
     codeSha256: '88ff1063ca8ecdba021e48a56905d8b4c9af8874b654bafd164a562d2134b3d3' },
+  // Homebrew Node 26.10.0, the development and CI runtime from 2026-10-05 (a Homebrew upgrade
+  // replaced 26.8.2). Re-measured that day: all 17 registry groups pass. The native view host
+  // suite failed its first group identically on 26.10.0 and 26.8.2 at load ~130–155 (environmental,
+  // not this runtime); its 14-group receipt is re-taken at normal load (docs/launch/harness-r0/checks.md).
+  { runtime: 'node', electron: null, node: '26.10.0', uv: '1.53.0', modules: '147', platform: 'darwin', arch: 'arm64',
+    codeSha256: '80335f41c8d19799b203b1831ed51e900c21ef986e38479c69bd4381aedac3db' },
 ] satisfies RuntimeTuple[]).map(t => Object.freeze(t)))
 
 const KEYS: readonly (keyof RuntimeTuple)[] = ['runtime', 'electron', 'node', 'uv', 'modules', 'platform', 'arch', 'codeSha256']

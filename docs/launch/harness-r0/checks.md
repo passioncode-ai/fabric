@@ -768,6 +768,23 @@ Electron main process (no window; `process.type` `browser`).
 Code binaries hashed for `MEASURED_RUNTIMES`: `Electron Framework` `3e7bf674…e38c` (201 MB, 0.38 s),
 `libnode.147.dylib` `88ff1063…b3d3`. NOT_RUN: the packaged, hardened app (N1).
 
+## Node 26.10.0 runtime · 2026-10-05
+
+A Homebrew upgrade (installing `hermes-agent`) replaced the development and CI runtime, Node 26.8.2, with
+26.10.0; `runtime-admission.test.mjs` then failed closed ("this runtime is not in the measured list"),
+as designed. Re-measured under 26.10.0:
+
+| Command | Result |
+|---|---|
+| `node -e 'runtimeTuple()'` | Node 26.10.0, libuv 1.53.0, modules 147, darwin arm64; `libnode.147.dylib` `80335f41…c3db` |
+| `node --experimental-strip-types test/owned-backend-process-registry.test.mjs` | PASS, 17 groups |
+| `node --experimental-strip-types test/native-view-host.test.mjs` | FAIL at the first group (`outcome_unknown`, not `attached`), three tries; **the same failure on Node 26.8.2**, two tries, load average 130–155 |
+| `node --experimental-strip-types test/runtime-admission.test.mjs` | PASS |
+
+The tuple is admitted on the registry's receipt, which is what `isMeasuredRuntime` gates. The native view
+host's 14-group receipt is open: re-run it at normal load on both runtimes before calling 26.10.0 fully
+measured.
+
 ## Host → HTTP → SQL composition · 2026-09-28
 
 First-slice plan C0. `pnpm --dir apps/desktop test:ceo-host-sql` (registered beside
