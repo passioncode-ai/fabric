@@ -30014,7 +30014,7 @@
       "screen_refs": [
         "SCR-24"
       ],
-      "coverage": "`apps/desktop/src/main/policy.ts`, `apps/desktop/src/renderer/src/launch/ObligationActs.tsx`, `apps/desktop/test/policy.test.mjs` — the grant policy and the attention acts only. The escalation itself is not built: no blocking `canUseTool`, no `node.asked@1`, no Refuse-with-reason that fails a node as resumable, no 30-minute expiry, no resume after a grant (audit 2026-10-05 A2-005, [CO-217](../evidence/specs/2026-08-16-software-fabric-carryover.md)).",
+      "coverage": "`apps/desktop/src/main/policy.ts`, `apps/desktop/src/renderer/src/launch/ObligationActs.tsx`, `apps/desktop/test/policy.test.mjs` — the grant policy and the attention acts only. The escalation itself is not built: no blocking `canUseTool`, no `node.asked@1`, no Refuse-with-reason that fails a node as resumable, no 30-minute expiry, no resume after a grant (audit 2026-10-05 A2-005, CO-217 in `docs/evidence/specs/2026-08-16-software-fabric-carryover.md`).",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "escalation is the exception and every resolution carries a receipt; nothing floored happens silently and nothing floored defaults open.",
