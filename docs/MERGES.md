@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-05 · `commercial-path` · agent/commercial-path-20261005 → main (pending)
+- run: commercial-path-20261005; base: 08eafb4b; integration pending review of the pull request, not a landed main change
+- scope: `COMMERCIAL-LICENSE.md` (the fabric-workspace template byte for byte), README `## License`, the living map's changelog
+- summary: the commercial licence is requested through https://passioncode.ai/business/ (commercial@passioncode.ai); security reports stay at contact@passioncode.ai.
+
 ### 2026-10-04 · `claude-hub-recovery` · codex/claude-recovery-20261004 → main (pending)
 - run: r-r6a4c865e0; base:41f994a7; integration pending exact candidate gates/review, not a landed main change
 - scope: recovered core and surface source packets, ingress/vault/release guards, upgrade procedure, iteration2 archive/status, COM execution source and Telegram research, living map

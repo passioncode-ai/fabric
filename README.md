@@ -311,7 +311,7 @@ node scripts/residue-report.mjs --json     # machine-readable
 
 Open source under the [GNU AGPL-3.0](LICENSE) ([ADR-0092](docs/adr/0092-every-repository-is-agpl-3-0-or-commercial.md)).
 A [commercial license](COMMERCIAL-LICENSE.md) is available for use that does not meet the AGPL's
-terms — contact@passioncode.ai. Contributions are accepted under [CLA.md](CLA.md). While this
+terms — [passioncode.ai/business](https://passioncode.ai/business/). Contributions are accepted under [CLA.md](CLA.md). While this
 repository is private, the Fabric binary is distributed under the commercial terms; whether to
 publish the source is open (knowledge base licensing CO-KB-01).
 
