@@ -374,3 +374,21 @@ COM-02.2. A session's surface registers `com.submit`, `com.list`, `com.get`, `co
   - capability names follow the contract's `capabilityName`;
   - `replyTo` is allowed on any kind and required of a reply, as the contract says.
 
+### 2026-10-05 · usage-analytics · agent/analytics-20261005
+
+passioncode-ai/fabric#12, P-09, roadmap RM-13. `apps/desktop/src/main/analytics.ts`:
+- the shared `PassionCode/installation.json` is created once by hard-link, never repaired, and keeps unknown fields;
+- the shared switch;
+- `app_installed`, `app_started` and `app_active` carry counts only, through `cleanProps` with a fixed list of known kinds;
+- delivery follows the Aptabase ingestion contract (batches of 25, retry 60 s then 10 min on transport/429/5xx, drop on 400/404, at most 200 waiting, dropped at 23 h), with an `analytics.flush` line per send.
+
+Wiring:
+- main counts projects, connected products and agents with access, and leaves an unreadable count out;
+- `analytics:status` and `analytics:set-enabled` IPC;
+- `UsageCountsSetting` on SCR-52, with en/ru strings;
+- the App Key comes only from `FABRIC_ANALYTICS_APP_KEY` at build time (`electron.vite.config.ts` `define`). `release.yml` passes the `release` environment secret, which was set from the vault (`sshlg-analytics/prod/APTABASE_APP_KEY_FABRIC`) without printing it.
+
+Tests: `test/analytics.test.mjs` (11, a synthetic server: no planted identifier leaves, a 6-process creation race, fail-closed file, opt-out, delivery rules, once-only events) and `UsageCountsSetting.test.tsx` (4).
+
+Docs: `docs/ANALYTICS.md`, the README section, the AGENTS.md lifecycle row and SCN-134 (scenarios → product model → product report). Ships with 0.3.2.
+

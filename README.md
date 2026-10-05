@@ -307,6 +307,13 @@ node scripts/residue-report.mjs            # the live stack, from supabase/confi
 node scripts/residue-report.mjs --json     # machine-readable
 ```
 
+## Usage analytics
+
+A release build of Fabric sends anonymous usage counts: installs, days of use, and how many projects, products
+and agents are connected. It never sends names, paths, ids or content. One switch, Settings → *Share
+anonymous usage counts*, turns this off for every PassionCode app on the Mac. Source builds send nothing. What
+is sent, where and how: [docs/ANALYTICS.md](docs/ANALYTICS.md).
+
 ## License
 
 Open source under the [GNU AGPL-3.0](LICENSE) ([ADR-0092](docs/adr/0092-every-repository-is-agpl-3-0-or-commercial.md)).

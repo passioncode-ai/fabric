@@ -1113,9 +1113,9 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 
 ### SCR-52: Настройки рабочего пространства
 - **Purpose:** Настроить тему, локаль, поведение пробуждения, хранение и допустимые проектные ограничения.
-- **Elements:** Глобальная настройка → проектный override → проверка сужения прав → новая ревизия. Повышение прав не следует из настройки интерфейса.
+- **Elements:** Глобальная настройка → проектный override → проверка сужения прав → новая ревизия. Повышение прав не следует из настройки интерфейса. Переключатель «Делиться анонимными счётчиками использования» — один для всех приложений PassionCode (SCN-134, [ANALYTICS.md](../ANALYTICS.md)).
 - **Primary action:** Глобальная настройка
-- **Scenarios:** SCN-071
+- **Scenarios:** SCN-071, SCN-134
 - **Flows:** FLW-40
 - **Implementation tasks:** M72, M73, M152
 - **Prototype:** [Адрес макета](../reports/product.html#view-estate-settings); контракт [mockup-contract.md](mockup-contract.md).

@@ -7644,6 +7644,7 @@
         "M152"
       ],
       "scenario_ids": [
+        "SCN-134",
         "SCN-071",
         "SCN-095",
         "SCN-097"
@@ -23506,7 +23507,8 @@
         "FLW-40"
       ],
       "coverage_scenario_ids": [
-        "SCN-071"
+        "SCN-071",
+        "SCN-134"
       ],
       "coverage_flow_ids": [
         "FLW-40"
@@ -32055,6 +32057,25 @@
         "file": "docs/ux/scenarios.md",
         "line": 3236
       }
+    },
+    {
+      "id": "SCN-134",
+      "title": "See that Fabric shares anonymous usage counts, and turn them off for every PassionCode app",
+      "flow_ids": [
+        "FLW-40"
+      ],
+      "screen_refs": [
+        "SCR-52"
+      ],
+      "coverage": "apps/desktop/src/main/analytics.ts, apps/desktop/src/renderer/src/UsageCountsSetting.tsx",
+      "registry_status": "draft",
+      "product_observation": "unobserved",
+      "expected_result": "The person knows what leaves the Mac and has one switch for all PassionCode apps.",
+      "errors_recovery": "a send that fails is retried after 60 s, then every 10 min, and dropped after 23 h; nothing is shown to the person, and each attempt is one `analytics.flush` line in the operations log.",
+      "source": {
+        "file": "docs/ux/scenarios.md",
+        "line": 3258
+      }
     }
   ],
   "flows": [
@@ -32969,7 +32990,8 @@
       "mermaid_source": "flowchart TD\n N0[\"Screen: SCR-52 · Выбрать локальные предпочтения установки\"] --> N1\n N1[\"Screen: SCR-52 · Сохранить тему, язык и awake policy\"] --> N2\n N2[\"Screen: SCR-52 · Открыть отдельно политику Estate\"] --> N3\n N3[\"Screen: SCR-52 · Проверить trust и сужающий override проекта\"] --> N4\n N4[\"Screen: SCR-52 · Сохранить новую ревизию политики\"]\n N2 -->|отказ / неполные данные| R[\"UI preference не выдаёт полномочий; lid limitation и отсутствие фонового процесса названы.\"]\n R --> N0",
       "status": "target_or_mixed_not_coverage_claim",
       "scenario_ids": [
-        "SCN-071"
+        "SCN-071",
+        "SCN-134"
       ]
     },
     {

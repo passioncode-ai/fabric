@@ -104,6 +104,10 @@ const api: FabricApi = {
     list: () => ipcRenderer.invoke(IPC.attentionList),
     grant: (input) => ipcRenderer.invoke(IPC.attentionGrant, input)
   },
+  analytics: {
+    status: () => ipcRenderer.invoke(IPC.analyticsStatus),
+    setEnabled: (enabled) => ipcRenderer.invoke(IPC.analyticsSetEnabled, enabled)
+  },
   hub: {
     overview: () => ipcRenderer.invoke(IPC.hubOverview),
     decide: (requestId, decision) => ipcRenderer.invoke(IPC.hubDecide, requestId, decision),
