@@ -1,6 +1,6 @@
 # Claude recovery and project communications — execution spine
 
-Owner: Fabric. Status as of 2026-10-05: recovery done and 0.3.1's release commit on main (steps 1–3 below; tagging is the operator's); COM-01's contract accepted, its Fabric half and COM-02 next.
+Owner: Fabric. Status as of 2026-10-05: recovery done and 0.3.1's release commit on main (steps 1–3 below; tagging is the operator's); COM-01 closed by ADR-0117; COM-02 next.
 This source owns `COM-*` task status only. The existing hub verification ledger owns its findings;
 private consumer queues stay private. No existing backlog row is duplicated here.
 Architecture context: [RPT fabric/2026-10-04-project-communications §Canonical identities and contract](../../reports/2026-10-04-project-communications/README.md#canonical-identities-and-contract).
@@ -36,7 +36,7 @@ ready packet. Dependency work may proceed while a release approval or owned-file
 
 | ID | Packet | Priority | Depends on | Status |
 |---|---|---|---|---|
-| COM-01 | Contract and source map | P0 | Hub convergence | open — the contract half is accepted: `fabric-project-comms/0.1`, DEC-0022 on fabric-agent-contract `main` `d4c8831` (operator accepted C1–C9, 2026-10-05). Fabric's half remains: the adoption ADR, the vendored contract fixture repinned from `df55c8c` and the migration/API names |
+| COM-01 | Contract and source map | P0 | Hub convergence | closed — contract `fabric-project-comms/0.1` is DEC-0022 on fabric-agent-contract `d4c8831` (operator accepted C1–C9, 2026-10-05); Fabric adopts it in [ADR-0117](../../adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) (names, enrollment, leases, restore); the vendored contract fixture is repinned to `d4c8831` with all 17 comms verdicts checked (`apps/desktop/test/contract-consumer.test.mjs`) |
 | COM-02 | Durable board and project mailbox | P0 | COM-01 | open |
 | COM-03 | Consumer identity, replacement and fences | P0 | COM-02 | open |
 | COM-04 | Claude/Codex consumer adapters | P0 | COM-03 | open |

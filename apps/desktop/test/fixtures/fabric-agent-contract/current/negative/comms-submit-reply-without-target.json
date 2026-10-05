@@ -1,0 +1,20 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "reply-2026-10-04-0002"
+  },
+  "thread": {
+    "id": "thr_8Hc2kQ9xA1"
+  },
+  "kind": "reply",
+  "body": {
+    "text": "Done: 41.2 % on 2026-09-27 cohort, query attached."
+  },
+  "artifacts": [
+    {
+      "id": "https://example.com/artifacts/retention.sql",
+      "contentHash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "label": "retention.sql"
+    }
+  ]
+}

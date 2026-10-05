@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-common.schema.json",
+  "title": "Project communication shared definitions (fabric-project-comms/0.1, DEC-0022 proposed)",
+  "$defs": {
+    "protocol": {
+      "const": "fabric-project-comms/0.1"
+    },
+    "projectId": {
+      "description": "A Project's server-issued id. Data, not authority.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$"
+    },
+    "opaqueId": {
+      "description": "A thread, message, request, delivery, attempt or cursor id issued by the board.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{8,128}$"
+    },
+    "idempotency": {
+      "type": "object",
+      "required": [
+        "epoch",
+        "key"
+      ],
+      "properties": {
+        "epoch": {
+          "description": "The namespace epoch the board issued; a retired epoch is refused (idempotency_window_expired).",
+          "type": "integer",
+          "minimum": 1
+        },
+        "key": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "messageKind": {
+      "enum": [
+        "message",
+        "request",
+        "reply",
+        "finding",
+        "announcement"
+      ]
+    },
+    "requestState": {
+      "enum": [
+        "queued",
+        "claimed",
+        "accepted",
+        "in_progress",
+        "completed",
+        "failed_known",
+        "cancelled",
+        "expired",
+        "outcome_unknown"
+      ]
+    },
+    "effectState": {
+      "enum": [
+        "not_started",
+        "started",
+        "succeeded_observed",
+        "failed_observed",
+        "unknown"
+      ]
+    },
+    "transportState": {
+      "enum": [
+        "pending",
+        "written",
+        "failed_before_write",
+        "outcome_unknown"
+      ]
+    },
+    "provenance": {
+      "description": "trusted: the board verified the principal (managed session, enrollment); asserted: the principal said so.",
+      "enum": [
+        "trusted",
+        "asserted"
+      ]
+    },
+    "principal": {
+      "type": "object",
+      "required": [
+        "kind",
+        "id",
+        "provenance"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "agent",
+            "person",
+            "operator"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        }
+      },
+      "additionalProperties": false
+    },
+    "body": {
+      "type": "object",
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "description": "At most 65536 UTF-8 bytes; the board refuses a larger body before hashing or storing it.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536
+        },
+        "format": {
+          "enum": [
+            "text/plain",
+            "text/markdown"
+          ],
+          "default": "text/plain"
+        }
+      },
+      "additionalProperties": false
+    },
+    "artifactRef": {
+      "type": "object",
+      "required": [
+        "id",
+        "contentHash"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "common.schema.json#/$defs/uri"
+        },
+        "contentHash": {
+          "$ref": "common.schema.json#/$defs/sha256"
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 120
+        }
+      },
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "type": "array",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/artifactRef"
+      }
+    },
+    "refusalCode": {
+      "enum": [
+        "invalid_arguments",
+        "body_too_large",
+        "not_authorized",
+        "authority_changed",
+        "unsupported_capability",
+        "unsupported_operation",
+        "not_available",
+        "idempotency_conflict",
+        "idempotency_window_expired",
+        "capacity_exceeded",
+        "digest_conflict",
+        "revision_conflict",
+        "fenced",
+        "lease_expired",
+        "invalid_transition",
+        "reconcile_required",
+        "observation_required",
+        "cursor_reset_required",
+        "immutable_participants"
+      ]
+    }
+  }
+}

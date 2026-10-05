@@ -203,6 +203,13 @@
               "items": {
                 "$ref": "common.schema.json#/$defs/capabilityName"
               }
+            },
+            "auth": {
+              "description": "DEC-0024. descriptor (default): the MCP surface takes the descriptor's token in its header. own: it authenticates its callers with credentials of its own (a token per agent, a gateway's caller identity); the descriptor's token is the host's and is not an MCP credential.",
+              "enum": [
+                "descriptor",
+                "own"
+              ]
             }
           },
           "additionalProperties": false
@@ -217,6 +224,18 @@
               "$ref": "service-common.schema.json#/$defs/originPath"
             },
             "stream": {
+              "$ref": "service-common.schema.json#/$defs/originPath"
+            }
+          },
+          "additionalProperties": false
+        },
+        "usage": {
+          "type": "object",
+          "required": [
+            "path"
+          ],
+          "properties": {
+            "path": {
               "$ref": "service-common.schema.json#/$defs/originPath"
             }
           },

@@ -1,0 +1,26 @@
+{
+  "idempotency": {
+    "epoch": 3,
+    "key": "req-2026-10-04-0001"
+  },
+  "thread": {
+    "new": {
+      "participants": [
+        "proj-analytics",
+        "proj-growth"
+      ],
+      "subject": "Weekly retention numbers"
+    }
+  },
+  "kind": "request",
+  "body": {
+    "text": "Please compute 7-day retention for the iOS app and attach the query.",
+    "format": "text/plain"
+  },
+  "request": {
+    "target": "proj-analytics",
+    "capability": "analytics.retention",
+    "deadline": "2026-10-05T12:00:00Z"
+  },
+  "sender": "proj-growth"
+}

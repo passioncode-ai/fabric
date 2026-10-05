@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "oops",
+    "message": "Something went wrong.",
+    "retryable": true
+  }
+}

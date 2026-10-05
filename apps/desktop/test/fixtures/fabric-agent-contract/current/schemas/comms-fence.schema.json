@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-fence.schema.json",
+  "title": "The fence every responder mutation carries (fabric-project-comms/0.1)",
+  "description": "Carried by com.accept, com.renew, com.progress, com.effect_begin, com.complete and a responder's com.reply. Principal and authority revision come from the endpoint; the board rechecks them and the database lease atomically with the transition.",
+  "type": "object",
+  "required": [
+    "request",
+    "generation",
+    "attempt",
+    "digest",
+    "idempotency"
+  ],
+  "properties": {
+    "request": {
+      "$ref": "comms-common.schema.json#/$defs/opaqueId"
+    },
+    "generation": {
+      "description": "The responder slot generation the claim was taken under; a replaced responder is fenced.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "attempt": {
+      "description": "The attempt id com.claim returned; a renewed expired claim gets a new one.",
+      "$ref": "comms-common.schema.json#/$defs/opaqueId"
+    },
+    "digest": {
+      "description": "The request's semantic digest; a different one is digest_conflict.",
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "expectedRevision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "idempotency": {
+      "$ref": "comms-common.schema.json#/$defs/idempotency"
+    }
+  },
+  "additionalProperties": false
+}

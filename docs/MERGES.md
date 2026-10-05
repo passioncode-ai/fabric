@@ -332,3 +332,14 @@ Docs-only: the agent registry plan gains proposed rows AR-3.7…AR-3.11 (contrac
 
 `native-view-lifecycle.test.mjs` hung 2 runs in 20 at load ~100 ("unsettled top-level await" in `ci.sh full` at `5a3f4715`). A late open's cleanup gets its own budget, the fixture's `timeoutMs`, and the groups that needed a timeout used 5 ms. A scheduler stall past that made the product correctly give up on the cleanup (`view_cleanup_unconfirmed`), while the test awaited it with no bound. Budgets are now 300 ms where a timeout must happen and 1000 ms elsewhere, and every awaited cleanup is bounded by `within(…)` and names itself. The test still catches a removed late-open compensation ("the scoped disposal of a late open did not happen within 10 s"), and 30 consecutive runs under load passed. CO-210 records the real-Electron dialog quit that outlived its 45 s bound at load 103. COM-01's contract half is accepted as DEC-0022 (fabric-agent-contract `d4c8831`). The plan, lane 13 and the Now line name its Fabric half and COM-02 next.
 
+### 2026-10-05 · com01-adr-0117 · agent/com01-fabric-half-20261005
+
+COM-01's Fabric half. ADR-0117 adopts `fabric-project-comms/0.1` (DEC-0022, fabric-agent-contract `d4c8831`):
+- the journal is the board's only truth, and mirrors are projections;
+- board enrollment is a grant separate from ADR-0115 product bindings;
+- leases and fences use database time, with the recheck inside the committing statement;
+- restore keeps history only;
+- names are reserved: `comms.*` events, `board_*` tables, a migration suffix above `…080`.
+
+The vendored contract fixture is repinned from `df55c8c` by the new `scripts/repin-agent-contract.mjs`, which copies exactly `expectedPaths` from the commit's Git objects. It adds the 8 comms schemas, the contract's `catalogue.json` and its 7 positive and 10 negative comms fixtures; `service-well-known.schema.json` gained 19 additive lines. The consumer test checks every graded comms verdict and fails when a planted schema lets a forged sender through. CONTEXT gains Board, Board request and Responder slot. COM-01 is closed; COM-02 is next.
+

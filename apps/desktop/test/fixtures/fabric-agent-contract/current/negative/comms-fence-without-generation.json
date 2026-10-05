@@ -1,0 +1,10 @@
+{
+  "request": "req_A1b2C3d4E5",
+  "attempt": "att_Zx9Cv8Bn7M",
+  "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "expectedRevision": 3,
+  "idempotency": {
+    "epoch": 3,
+    "key": "accept-req_A1b2C3d4E5-1"
+  }
+}

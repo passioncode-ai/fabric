@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-message.schema.json",
+  "title": "A message as a participant reads it (fabric-project-comms/0.1)",
+  "type": "object",
+  "required": [
+    "id",
+    "thread",
+    "kind",
+    "sender",
+    "at",
+    "digest"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "comms-common.schema.json#/$defs/opaqueId"
+    },
+    "thread": {
+      "$ref": "comms-common.schema.json#/$defs/opaqueId"
+    },
+    "kind": {
+      "$ref": "comms-common.schema.json#/$defs/messageKind"
+    },
+    "sender": {
+      "type": "object",
+      "required": [
+        "project",
+        "principal"
+      ],
+      "properties": {
+        "project": {
+          "$ref": "comms-common.schema.json#/$defs/projectId"
+        },
+        "principal": {
+          "$ref": "comms-common.schema.json#/$defs/principal"
+        }
+      },
+      "additionalProperties": false
+    },
+    "at": {
+      "$ref": "common.schema.json#/$defs/timestamp"
+    },
+    "digest": {
+      "description": "The semantic digest the board computed at submit.",
+      "$ref": "common.schema.json#/$defs/sha256"
+    },
+    "body": {
+      "$ref": "comms-common.schema.json#/$defs/body"
+    },
+    "redacted": {
+      "description": "An authorized redaction removed the body; identity and digest stay.",
+      "type": "boolean"
+    },
+    "replyTo": {
+      "$ref": "comms-common.schema.json#/$defs/opaqueId"
+    },
+    "request": {
+      "type": "object",
+      "required": [
+        "id",
+        "target",
+        "capability",
+        "state",
+        "effect"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "comms-common.schema.json#/$defs/opaqueId"
+        },
+        "target": {
+          "$ref": "comms-common.schema.json#/$defs/projectId"
+        },
+        "capability": {
+          "$ref": "common.schema.json#/$defs/capabilityName"
+        },
+        "state": {
+          "$ref": "comms-common.schema.json#/$defs/requestState"
+        },
+        "effect": {
+          "$ref": "comms-common.schema.json#/$defs/effectState"
+        },
+        "deadline": {
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "$ref": "comms-common.schema.json#/$defs/artifacts"
+    }
+  },
+  "additionalProperties": false,
+  "if": {
+    "properties": {
+      "redacted": {
+        "const": true
+      }
+    },
+    "required": [
+      "redacted"
+    ]
+  },
+  "then": {
+    "properties": {
+      "body": false
+    }
+  },
+  "else": {
+    "properties": {
+      "body": true
+    },
+    "required": [
+      "body"
+    ]
+  }
+}

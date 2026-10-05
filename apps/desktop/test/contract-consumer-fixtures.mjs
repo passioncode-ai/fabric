@@ -8,16 +8,32 @@ import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
 
 export const fixtureRoot = fileURLToPath(new URL('./fixtures/fabric-agent-contract/', import.meta.url))
-export const CURRENT_COMMIT = 'df55c8c54a23251342a7ee57ba95642b7eb39e61'
+export const CURRENT_COMMIT = 'd4c88315c290033867574ba0f5cc5069693077e0'
 export const LEGACY_COMMIT = '2ce392291c6668598d12cd38327e24696b5ca15c'
 export const schemaPrefix = 'https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/'
-const currentSchemas = ['common', 'interop-agent-call', 'interop-capability', 'manifest', 'pipeline', 'service-common', 'service-well-known']
-const positiveNames = ['interop-agent-call', 'manifest-mcp', 'pipeline', 'service-well-known-capabilities']
-const expectedPaths = [
+// fabric-project-comms/0.1 (DEC-0022, accepted 2026-10-05) joins at d4c8831: its schemas, and every comms
+// fixture the contract's own catalogue grades, so this consumer is held to the same verdicts.
+export const COMMS_SURFACES = ['comms-complete', 'comms-fence', 'comms-message', 'comms-page', 'comms-refusal', 'comms-status', 'comms-submit']
+const currentSchemas = ['common', 'interop-agent-call', 'interop-capability', 'manifest', 'pipeline', 'service-common', 'service-well-known', 'comms-common', ...COMMS_SURFACES]
+const positiveNames = ['interop-agent-call', 'manifest-mcp', 'pipeline', 'service-well-known-capabilities',
+  'comms-complete', 'comms-fence', 'comms-page', 'comms-refusal', 'comms-status', 'comms-submit-reply', 'comms-submit-request']
+const negativeNames = ['comms-fence-without-generation', 'comms-page-redacted-with-body', 'comms-refusal-unknown-code', 'comms-status-bad-state',
+  'comms-submit-body-too-long', 'comms-submit-forged-estate', 'comms-submit-forged-sender', 'comms-submit-reply-without-target',
+  'comms-submit-request-without-details', 'comms-submit-too-many-artifacts']
+export const expectedPaths = [
   ...currentSchemas.map(name => `current/schemas/${name}.schema.json`),
   ...positiveNames.map(name => `current/positive/${name}.json`),
+  ...negativeNames.map(name => `current/negative/${name}.json`),
+  'current/catalogue.json',
   'legacy/schemas/common.schema.json', 'legacy/schemas/interop-agent-call.schema.json', 'LICENSE'
 ].sort()
+
+/** Where a vendored file lives upstream: the one mapping the loader checks and the repin script copies by. */
+export function upstreamPathOf(path) {
+  if (path === 'LICENSE') return 'LICENSE'
+  if (path === 'current/catalogue.json') return 'fixtures/catalogue.json'
+  return path.replace(/^(current|legacy)\/(positive|negative)\//, 'fixtures/$2/').replace(/^(current|legacy)\//, '')
+}
 
 /** Verify the complete recorded byte set first. Do not compile a partly verified bundle. */
 export function loadPinnedFixtures(root = fixtureRoot) {
@@ -35,9 +51,7 @@ export function loadPinnedFixtures(root = fixtureRoot) {
     assert.ok(path.startsWith(resolve(root) + sep), 'provenance path escapes the fixture root')
     const legacy = file.path.startsWith('legacy/')
     assert.equal(file.commit, legacy ? LEGACY_COMMIT : CURRENT_COMMIT, `${file.path}: wrong source commit`)
-    const upstreamPath = file.path === 'LICENSE' ? 'LICENSE'
-      : file.path.replace(/^(current|legacy)\/positive\//, 'fixtures/positive/').replace(/^(current|legacy)\//, '')
-    assert.equal(file.upstreamPath, upstreamPath, `${file.path}: wrong upstream path`)
+    assert.equal(file.upstreamPath, upstreamPathOf(file.path), `${file.path}: wrong upstream path`)
     const raw = readFileSync(path)
     assert.equal(createHash('sha256').update(raw).digest('hex'), file.sha256, `${file.path}: pinned schema/fixture byte drift`)
     bytes.set(file.path, raw)
@@ -59,5 +73,16 @@ export function compilePinnedSchemas(fixtures, revision = 'current') {
     return [name, validator]
   }))
   return validators
+}
+/** The comms surfaces, compiled the same strict way, keyed by the schema file name the catalogue uses. */
+export function compileCommsValidators(fixtures) {
+  const ajv = new Ajv2020({ allErrors: true, strict: true })
+  addFormats(ajv)
+  for (const name of currentSchemas) ajv.addSchema(fixtures.document(`current/schemas/${name}.schema.json`))
+  return Object.fromEntries(COMMS_SURFACES.map(name => {
+    const validator = ajv.getSchema(`${schemaPrefix}${name}.schema.json`)
+    assert.ok(validator, `compiled normative comms schema is missing: ${name}`)
+    return [`${name}.schema.json`, validator]
+  }))
 }
 // #endregion contract-consumer-fixtures

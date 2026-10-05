@@ -75,7 +75,7 @@ One correction is on record. A first pass deleted twelve branches that still dif
 ## Open — agent work, in order
 
 1. After the tag: CO-197, the knowledge pages say 0.3.1 is released (a `fabric-workspace` PR), then `node scripts/workspace.mjs publish`.
-2. COM-02, the durable board and project mailbox (P0). COM-01 is accepted, so it is Fabric's next product step; COM-03 follows.
+2. COM-02, the durable board and project mailbox (P0), built to [ADR-0117](../adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) §1, §4 and §5. COM-01 closed with that record the same day. COM-03 follows.
 3. CO-179: restyle the New project form (SCR-73) through sheleg-design, before 0.3.2.
 4. 0.3.2 candidates by their own rows: CO-206 (deadline on hub database calls), CO-199 (migration filename order, before any migration with suffix 78/79), CO-200, CO-203, CO-205, CO-207.
 5. `node scripts/unified-plan.mjs check` exits 1 on main: the 2026-10-04 unified-plan slice no longer covers the canonical rows opened since (CO-198… and others, 673 lines). It is context, not a status register, and no CI tier runs it. Either regenerate the slice from its sources or mark it historical.

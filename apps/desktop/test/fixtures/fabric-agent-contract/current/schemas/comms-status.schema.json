@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-status.schema.json",
+  "title": "com.status result: the board's health and a Project's responders (fabric-project-comms/0.1)",
+  "description": "What a host such as Fabric Dashboards reads to show communication health (COM-11) without reading any message.",
+  "type": "object",
+  "required": [
+    "protocol",
+    "board",
+    "responders"
+  ],
+  "properties": {
+    "protocol": {
+      "$ref": "comms-common.schema.json#/$defs/protocol"
+    },
+    "board": {
+      "type": "object",
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "ready",
+            "degraded",
+            "unavailable"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "link": {
+          "description": "Where a person opens the board.",
+          "$ref": "common.schema.json#/$defs/uri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "project": {
+      "$ref": "comms-common.schema.json#/$defs/projectId"
+    },
+    "responders": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "required": [
+          "capability",
+          "state"
+        ],
+        "properties": {
+          "capability": {
+            "$ref": "common.schema.json#/$defs/capabilityName"
+          },
+          "state": {
+            "description": "active: a current enrollment holds the slot; stale: its lease lapsed; absent: no responder.",
+            "enum": [
+              "active",
+              "stale",
+              "absent"
+            ]
+          },
+          "generation": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "leaseExpiresAt": {
+            "$ref": "common.schema.json#/$defs/timestamp"
+          },
+          "provenance": {
+            "$ref": "comms-common.schema.json#/$defs/provenance"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "transport": {
+      "type": "object",
+      "required": [
+        "telegram"
+      ],
+      "properties": {
+        "telegram": {
+          "enum": [
+            "off",
+            "on",
+            "degraded"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "unread": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false
+}

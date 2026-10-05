@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-submit.schema.json",
+  "title": "com.submit arguments (fabric-project-comms/0.1)",
+  "description": "What a caller may say. Estate, sender Project, principal and session come from the authenticated endpoint and are never accepted here: an unknown field is refused.",
+  "type": "object",
+  "required": [
+    "idempotency",
+    "thread",
+    "kind",
+    "body"
+  ],
+  "properties": {
+    "idempotency": {
+      "$ref": "comms-common.schema.json#/$defs/idempotency"
+    },
+    "thread": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "$ref": "comms-common.schema.json#/$defs/opaqueId"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "new"
+          ],
+          "properties": {
+            "new": {
+              "type": "object",
+              "required": [
+                "participants"
+              ],
+              "properties": {
+                "participants": {
+                  "description": "The Projects that may read this thread, fixed at creation; the sender's Project is added by the board.",
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 16,
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "comms-common.schema.json#/$defs/projectId"
+                  }
+                },
+                "subject": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "kind": {
+      "$ref": "comms-common.schema.json#/$defs/messageKind"
+    },
+    "body": {
+      "$ref": "comms-common.schema.json#/$defs/body"
+    },
+    "replyTo": {
+      "$ref": "comms-common.schema.json#/$defs/opaqueId"
+    },
+    "request": {
+      "type": "object",
+      "required": [
+        "target",
+        "capability"
+      ],
+      "properties": {
+        "target": {
+          "$ref": "comms-common.schema.json#/$defs/projectId"
+        },
+        "capability": {
+          "$ref": "common.schema.json#/$defs/capabilityName"
+        },
+        "deadline": {
+          "$ref": "common.schema.json#/$defs/timestamp"
+        }
+      },
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "$ref": "comms-common.schema.json#/$defs/artifacts"
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "request"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "request": true
+        },
+        "required": [
+          "request"
+        ]
+      },
+      "else": {
+        "properties": {
+          "request": false
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "reply"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "replyTo": true
+        },
+        "required": [
+          "replyTo"
+        ]
+      }
+    }
+  ]
+}

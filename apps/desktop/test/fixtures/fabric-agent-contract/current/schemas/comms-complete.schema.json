@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-complete.schema.json",
+  "title": "com.complete arguments (fabric-project-comms/0.1)",
+  "type": "object",
+  "required": [
+    "fence",
+    "outcome"
+  ],
+  "properties": {
+    "fence": {
+      "$ref": "comms-fence.schema.json"
+    },
+    "outcome": {
+      "type": "object",
+      "required": [
+        "state",
+        "observed"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "completed",
+            "failed_known"
+          ]
+        },
+        "observed": {
+          "description": "The responder observed the effect's result. An effect that began and was not observed stays unknown (observation_required).",
+          "type": "boolean"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "evidence": {
+          "$ref": "comms-common.schema.json#/$defs/artifacts"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

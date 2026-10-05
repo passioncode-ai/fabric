@@ -9,7 +9,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { hubServerFor } from '../src/main/hubTools.ts'
 import { normaliseAccessRequest } from '../src/shared/access.ts'
 import { AgentSurface } from '../src/main/agentSurface.ts'
-import { compilePinnedSchemas, fixtureRoot, loadPinnedFixtures } from './contract-consumer-fixtures.mjs'
+import { compileCommsValidators, compilePinnedSchemas, fixtureRoot, loadPinnedFixtures } from './contract-consumer-fixtures.mjs'
 
 const fixtures = loadPinnedFixtures()
 const current = compilePinnedSchemas(fixtures)
@@ -140,6 +140,25 @@ test('session tools are a separate surface with no agent.call', async () => {
     assert.equal(absent.isError, true)
     assert.equal(written, 1, 'invalid session requests write no journal event')
   })
+})
+
+test('every comms fixture the contract grades gets the same verdict from the pinned schemas (DEC-0022)', () => {
+  const comms = compileCommsValidators(fixtures)
+  const graded = fixtures.document('current/catalogue.json').filter(entry => /^(positive|negative)\/comms-/.test(entry.path))
+  const vendored = new Set(fixtures.source.files.map(file => file.upstreamPath))
+  // A comms fixture the contract grades but this copy left out would be a verdict silently skipped.
+  assert.deepEqual(graded.map(entry => 'fixtures/' + entry.path).filter(path => !vendored.has(path)), [])
+  assert.equal(graded.length, 17)
+  for (const entry of graded) {
+    const validate = comms[entry.schema]
+    assert.ok(validate, `${entry.name}: no compiled comms schema ${entry.schema}`)
+    const valid = validate(fixtures.document('current/' + entry.path))
+    assert.equal(valid, entry.valid, `${entry.name}: ${JSON.stringify(validate.errors)}`)
+    if (!entry.valid && entry.keyword) assert.ok(validate.errors.some(error => error.keyword === entry.keyword), `${entry.name}: expected ${entry.keyword}, got ${JSON.stringify(validate.errors)}`)
+  }
+  // The board takes estate and sender from the authenticated endpoint, never the payload (C-rules, project-comms.md).
+  const forged = graded.filter(entry => /forged/.test(entry.name)).map(entry => entry.valid)
+  assert.deepEqual(forged, [false, false])
 })
 
 test('planted schema byte drift refuses before compilation; no regex or revision fallback', () => {

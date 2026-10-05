@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-refusal.schema.json",
+  "title": "A typed refusal (fabric-project-comms/0.1)",
+  "type": "object",
+  "required": [
+    "error"
+  ],
+  "properties": {
+    "error": {
+      "type": "object",
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "comms-common.schema.json#/$defs/refusalCode"
+        },
+        "message": {
+          "description": "One sentence; never names a hidden Project, a participant set or a body.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

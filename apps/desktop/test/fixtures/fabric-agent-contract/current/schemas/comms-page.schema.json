@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/comms-page.schema.json",
+  "title": "com.list result: one page of a Project's feed (fabric-project-comms/0.1)",
+  "type": "object",
+  "required": [
+    "protocol",
+    "audience",
+    "snapshot",
+    "messages",
+    "cursor"
+  ],
+  "properties": {
+    "protocol": {
+      "$ref": "comms-common.schema.json#/$defs/protocol"
+    },
+    "audience": {
+      "type": "object",
+      "required": [
+        "project",
+        "grant"
+      ],
+      "properties": {
+        "project": {
+          "$ref": "comms-common.schema.json#/$defs/projectId"
+        },
+        "grant": {
+          "description": "participant: the threads this Project takes part in; project-history: also the whole retained history of those threads, by explicit grant.",
+          "enum": [
+            "participant",
+            "project-history"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "snapshot": {
+      "type": "object",
+      "required": [
+        "readAt"
+      ],
+      "properties": {
+        "readAt": {
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "stale": {
+          "description": "The board answered from a projection it knows is behind.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "messages": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "$ref": "comms-message.schema.json"
+      }
+    },
+    "cursor": {
+      "description": "Opaque, bound to this reader, its grant revision, the filter and the restore epoch; null when the snapshot is exhausted.",
+      "oneOf": [
+        {
+          "$ref": "comms-common.schema.json#/$defs/opaqueId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

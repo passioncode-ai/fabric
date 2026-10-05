@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "fenced",
+    "message": "This claim belongs to an earlier responder generation.",
+    "retryable": false
+  }
+}
