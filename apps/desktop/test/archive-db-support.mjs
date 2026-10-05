@@ -3,6 +3,7 @@
 // are checked before the first statement.
 import assert from 'node:assert/strict'
 import { execFileSync, spawn } from 'node:child_process'
+import { runPsqlAsync } from './bounded-psql.mjs'
 import { readFileSync, readdirSync, realpathSync } from 'node:fs'
 import path from 'node:path'
 
@@ -22,12 +23,9 @@ export const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 export function connect({ dir, bin }, db) {
   const args = ['-h', dir, '-p', '58467', '-U', 'postgres', '-d', db, '-X', '-q', '-t', '-A', '-v', 'ON_ERROR_STOP=1']
   const sql = input => execFileSync(path.join(bin, 'psql'), args, { input, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim()
-  const sqlAsync = input => new Promise((resolve, reject) => {
-    const p = spawn(path.join(bin, 'psql'), args, { stdio: ['pipe', 'pipe', 'pipe'] })
-    let out = '', err = ''
-    p.stdout.on('data', d => { out += d }); p.stderr.on('data', d => { err += d })
-    p.on('close', code => code === 0 ? resolve(out.trim()) : reject(new Error(err)))
-    p.stdin.end(input)
+  const sqlAsync = input => runPsqlAsync(path.join(bin, 'psql'), args, input).then(r => {
+    if (r.code !== 0) throw new Error(r.stderr)
+    return r.stdout.trim()
   })
   return { sql, sqlAsync, rpc: q => JSON.parse(sql('set role service_role;select ' + q)) }
 }

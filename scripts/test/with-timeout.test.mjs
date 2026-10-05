@@ -25,6 +25,11 @@ test('a command past its limit is stopped, named, and exits 124 — with every p
   assert.ok(Date.now() - started < 15000, 'it does not wait for the hang')
   const grand = Number(/GRAND (\d+)/.exec(r.stdout)?.[1])
   assert.ok(grand > 0, 'the grandchild reported its pid')
+  // SIGKILL is delivered, and the orphan reaped by launchd, asynchronously: at load ~100 the pid still
+  // answered kill(0) a moment after the tool returned (ci.sh full, 2026-10-05). Wait up to 5 s for it to
+  // go; a grandchild that really survives the limit is still caught.
+  const until = Date.now() + 5000
+  while (alive(grand) && Date.now() < until) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50)
   assert.equal(alive(grand), false, 'the grandchild did not survive the limit')
 })
 

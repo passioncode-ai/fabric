@@ -13,6 +13,7 @@
 // fail, run that with FABRIC_SKIP_MIGRATION=20261003000070_estate_owned_identity.sql.
 import assert from 'node:assert/strict'
 import { execFileSync, spawn } from 'node:child_process'
+import { runPsqlAsync } from './bounded-psql.mjs'
 
 const url = process.env.FABRIC_DISPATCH_TEST_DATABASE_URL
 if (!url) { console.error('NOT_RUN: use run-estate-identity-db.mjs'); process.exit(2) }
@@ -264,13 +265,8 @@ test('a pair recorded before the rule still replays (the guard is at the door, n
   assert.equal(agentsCalled('scout'), '2', 'the legacy pair did not replay')
 })
 
-const psqlAsync = (input) => new Promise((resolve) => {
-  const child = spawn('psql', [url, '-X', '-q', '-t', '-A', '-v', 'ON_ERROR_STOP=1'], { stdio: ['pipe', 'pipe', 'pipe'] })
-  let err = ''
-  child.stderr.on('data', (d) => { err += d })
-  child.on('close', (code) => resolve({ code, err }))
-  child.stdin.end(input)
-})
+const psqlAsync = (input) => runPsqlAsync('psql', [url, '-X', '-q', '-t', '-A', '-v', 'ON_ERROR_STOP=1'], input)
+  .then(({ code, stderr }) => ({ code, err: stderr }))
 
 const agentRace = await (async () => {
   // Two creates of one name, in two sessions, overlapping: the first holds its transaction open after the

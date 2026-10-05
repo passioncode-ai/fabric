@@ -2,6 +2,7 @@
 // This exercises the real migration under concurrent PostgreSQL connections.
 import assert from 'node:assert/strict'
 import { execFileSync, spawn } from 'node:child_process'
+import { runPsqlAsync } from './bounded-psql.mjs'
 import { readFileSync, readdirSync } from 'node:fs'
 const url=process.env.FABRIC_DISPATCH_TEST_DATABASE_URL
 if(!url) {console.error('NOT_RUN: FABRIC_DISPATCH_TEST_DATABASE_URL must point to an empty isolated PostgreSQL database');process.exit(2)}
@@ -41,7 +42,7 @@ if(full) {
 } else sql(`insert into task_runs values('${R}','${E}','${P}','${T}','${S}','active',1)`)
 const call=(action,claim=A,delivery=D,estate=E,digest='a'.repeat(32))=>`select continuation_dispatch('${estate}','{"kind":"system","id":"test"}','${delivery}','${T}','${R}','${S}','${digest}','${claim}','${action}')`
 const run=(...args)=>JSON.parse(sql(call(...args)))
-const parallel=input=>new Promise((resolve,reject)=>{const p=spawn('psql',[url,'-X','-q','-t','-A','-v','ON_ERROR_STOP=1']);let out='',err='';p.stdout.on('data',x=>out+=x);p.stderr.on('data',x=>err+=x);p.on('close',c=>c?reject(Error(err)):resolve(JSON.parse(out)));p.stdin.end(input)})
+const parallel=input=>runPsqlAsync('psql',[url,'-X','-q','-t','-A','-v','ON_ERROR_STOP=1'],input).then(r=>{if(r.code)throw Error(r.stderr);return JSON.parse(r.stdout)})
 const race=await Promise.all([parallel(call('claim',A)),parallel(call('claim',B))])
 assert.equal(race.filter(x=>x.granted).length,1)
 const winner=race[0].granted?A:B, loser=winner===A?B:A

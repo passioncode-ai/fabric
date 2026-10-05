@@ -4,6 +4,7 @@ import assert from 'node:assert/strict'
 import { createTranscriptStore } from '../src/main/transcripts.ts'
 import { createTranscriptRecovery } from '../src/main/transcriptRecovery.ts'
 import { execFile, execFileSync } from 'node:child_process'
+import { runPsqlAsync } from './bounded-psql.mjs'
 import { readFileSync, readdirSync, realpathSync } from 'node:fs'
 import path from 'node:path'
 
@@ -260,13 +261,10 @@ await test('later @1 known capture keeps its original semantics across replay',(
   assert.deepEqual(row(s),before)
 })
 
-const asyncSql=input=>new Promise((resolve,reject)=>{
-  const proc=execFile(path.join(process.env.FABRIC_TRANSCRIPT_RECOVERY_PG_BIN,'psql'),[
-    '-h',dir,'-p','58440','-U','postgres','-d','fabric_transcript_recovery_test_owned',
-    '-X','-q','-t','-A','-v','ON_ERROR_STOP=1'
-  ],{encoding:'utf8'},(error,stdout)=>error?reject(new Error('Owned concurrent SQL fixture failed')):resolve(stdout.trim()))
-  proc.stdin.end(input)
-})
+const asyncSql=input=>runPsqlAsync(path.join(process.env.FABRIC_TRANSCRIPT_RECOVERY_PG_BIN,'psql'),[
+  '-h',dir,'-p','58440','-U','postgres','-d','fabric_transcript_recovery_test_owned',
+  '-X','-q','-t','-A','-v','ON_ERROR_STOP=1'
+],input,{label:'Owned concurrent SQL fixture'}).then(r=>{if(r.code)throw new Error('Owned concurrent SQL fixture failed');return r.stdout.trim()})
 await test('concurrent same-command and same-session requests return one durable receipt',async()=>{
   const session=open(190),cap=capture('concurrent'),before=count()
   const result=await Promise.all([

@@ -1,6 +1,7 @@
 // Actual owned PostgreSQL: no caller database, model or provider.
 import assert from 'node:assert/strict'
 import {execFileSync,spawn} from 'node:child_process'
+import { runPsqlAsync } from './bounded-psql.mjs'
 import {readFileSync,readdirSync,realpathSync} from 'node:fs'
 import path from 'node:path'
 const dir=process.env.FABRIC_RESTORE_DB_DIR,nonce=process.env.FABRIC_RESTORE_DB_NONCE,bin=process.env.FABRIC_RESTORE_PG_BIN
@@ -59,7 +60,7 @@ const status=(e,u=U,r=1)=>rpc(`read_estate_restore_boundary(${uuid(e)},${uuid(u)
 const rows=q=>JSON.parse(sql(`select coalesce(jsonb_agg(to_jsonb(q)),'[]'::jsonb) from (${q})q`))
 const denied=q=>assert.throws(()=>sql(q),undefined,'SQL boundary must refuse')
 const setup=(e,vRole=null)=>sql(`insert into estates(id,name) values(${uuid(e)},'independent shell');insert into memberships(person_id,estate_id,role) values(${uuid(U)},${uuid(e)},'owner')${vRole?`,(${uuid(V)},${uuid(e)},${lit(vRole)})`:''};`)
-const parallel=input=>new Promise((resolve,reject)=>{const c=spawn(path.join(bin,'psql'),args,{stdio:['pipe','pipe','pipe']});let out='';c.stdout.on('data',b=>out+=b);c.stderr.resume();c.on('error',reject);c.on('exit',code=>code?reject(new Error('owned concurrent SQL failed')):resolve(JSON.parse(out.trim())));c.stdin.end(input)})
+const parallel=input=>runPsqlAsync(path.join(bin,'psql'),args,input,{label:'owned concurrent SQL'}).then(r=>{if(r.code)throw new Error('owned concurrent SQL failed');return JSON.parse(r.stdout.trim())})
 await test('durable marker precedes first archived projection and preserves original journal field values and IDs',()=>{
  const E=id(20);setup(E,'member')
  const events=[...archive(),{...archive(U)[0],seq:3,payload:{name:'second archive fact',owner_person_id:U}}]

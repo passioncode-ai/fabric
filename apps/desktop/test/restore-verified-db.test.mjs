@@ -3,6 +3,7 @@
 // membership, no boundary, no journal row and no projection behind.
 import assert from 'node:assert/strict'
 import { execFileSync, spawn } from 'node:child_process'
+import { runPsqlAsync } from './bounded-psql.mjs'
 import { readFileSync, readdirSync, realpathSync } from 'node:fs'
 import path from 'node:path'
 import { ordinary } from './fixtures/ceo-private-archive/vectors.mjs'
@@ -13,12 +14,9 @@ assert.match(path.basename(dir), /^fabric-ceo-private-archive-[a-zA-Z0-9]+$/)
 assert.equal(readFileSync(path.join(dir, 'owner'), 'utf8'), nonce)
 const args = ['-h', dir, '-p', '58467', '-U', 'postgres', '-d', db, '-X', '-q', '-t', '-A', '-v', 'ON_ERROR_STOP=1']
 const sql = input => execFileSync(path.join(bin, 'psql'), args, { input, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim()
-const sqlAsync = input => new Promise((resolve, reject) => {
-  const p = spawn(path.join(bin, 'psql'), args, { stdio: ['pipe', 'pipe', 'pipe'] })
-  let out = '', err = ''
-  p.stdout.on('data', d => { out += d }); p.stderr.on('data', d => { err += d })
-  p.on('close', code => code === 0 ? resolve(out.trim()) : reject(new Error(err)))
-  p.stdin.end(input)
+const sqlAsync = input => runPsqlAsync(path.join(bin, 'psql'), args, input).then(r => {
+  if (r.code !== 0) throw new Error(r.stderr)
+  return r.stdout.trim()
 })
 assert.equal(realpathSync(sql('show data_directory')), realpathSync(path.join(dir, 'data')))
 assert.equal(sql("select count(*) from pg_tables where schemaname='public'"), '0')

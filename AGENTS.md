@@ -2,6 +2,10 @@
 
 ## Read first
 
+0. The organization's [roadmap](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/roadmap.md)
+   (`workspace/knowledge/roadmap.md` in this checkout): every major feature and release across the
+   organization as `RM-*` tracks, with owner, phase and state. It is the entry point. A Fabric task
+   that serves a track names it, and the track's status is edited only there.
 1. The PassionCode.ai knowledge base — `workspace/knowledge/` in this checkout (the `workspace`
    submodule; `git submodule update --init workspace`), `fabric-workspace/knowledge/` in a clone,
    or [on GitHub](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/README.md): the vision, the principles, how to work, the rules and the

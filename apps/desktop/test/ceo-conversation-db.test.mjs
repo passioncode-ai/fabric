@@ -1,6 +1,7 @@
 // Real owned PostgreSQL, full migration chain. No Supabase/user DB/provider.
 import assert from 'node:assert/strict'
 import { execFileSync, spawn } from 'node:child_process'
+import { runPsqlAsync } from './bounded-psql.mjs'
 import { readFileSync,readdirSync,realpathSync } from 'node:fs'
 import path from 'node:path'
 import { createHash } from 'node:crypto'
@@ -11,7 +12,7 @@ assert.match(path.basename(dir),/^fabric-ceo-[a-zA-Z0-9]+$/)
 assert.equal(readFileSync(path.join(dir,'owner'),'utf8'),nonce)
 const args=['-h',dir,'-p','58464','-U','postgres','-d','fabric_ceo_test_owned','-X','-q','-t','-A','-v','ON_ERROR_STOP=1']
 const sql=input=>execFileSync(path.join(bin,'psql'),args,{input,encoding:'utf8',stdio:['pipe','pipe','pipe']}).trim()
-const parallel=input=>new Promise((resolve,reject)=>{const c=spawn(path.join(bin,'psql'),args,{stdio:['pipe','pipe','pipe']});let out='';c.stdout.on('data',b=>out+=b);c.stderr.resume();c.on('error',reject);c.on('exit',code=>code?reject(new Error('owned concurrent SQL failed')):resolve(JSON.parse(out.trim())));c.stdin.end(input)})
+const parallel=input=>runPsqlAsync(path.join(bin,'psql'),args,input,{label:'owned concurrent SQL'}).then(r=>{if(r.code)throw new Error('owned concurrent SQL failed');return JSON.parse(r.stdout.trim())})
 assert.equal(realpathSync(sql('show data_directory')),realpathSync(path.join(dir,'data')))
 assert.equal(sql('show listen_addresses'),'')
 assert.equal(sql("select count(*) from pg_tables where schemaname='public'"),'0')

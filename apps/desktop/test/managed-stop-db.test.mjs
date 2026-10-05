@@ -1,12 +1,13 @@
 // Trusted-host SQL contract, not proof of native process containment.
 import assert from 'node:assert/strict'
 import {execFileSync,spawn} from 'node:child_process'
+import { runPsqlAsync } from './bounded-psql.mjs'
 const url=process.env.FABRIC_DISPATCH_TEST_DATABASE_URL
 if(!url) {console.error('NOT_RUN: use run-managed-stop-db.mjs');process.exit(2)}
 assert.match(new URL(url).pathname,/^\/fabric_dispatch_test_[a-z0-9_]+$/)
 const sql=input=>execFileSync('psql',[url,'-X','-q','-t','-A','-v','ON_ERROR_STOP=1'],{input,encoding:'utf8'}).trim()
 assert.equal(sql("select count(*) from supabase_migrations.schema_migrations where version='20260927000062'"),'1')
-const parallel=input=>new Promise((resolve,reject)=>{const p=spawn('psql',[url,'-X','-q','-t','-A','-v','ON_ERROR_STOP=1']);let out='',err='';p.stdout.on('data',x=>out+=x);p.stderr.on('data',x=>err+=x);p.on('close',c=>c?reject(Error(err)):resolve(JSON.parse(out)));p.stdin.end(input)})
+const parallel=input=>runPsqlAsync('psql',[url,'-X','-q','-t','-A','-v','ON_ERROR_STOP=1'],input).then(r=>{if(r.code)throw Error(r.stderr);return JSON.parse(r.stdout)})
 const uuid=n=>`20000000-0000-4000-8000-${String(n).padStart(12,'0')}`
 const E=uuid(1),P=uuid(2),actor=`'{"kind":"system","id":"owned-host-fixture"}'`;let n=10
 const call=q=>JSON.parse(sql(q))

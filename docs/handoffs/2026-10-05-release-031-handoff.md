@@ -81,6 +81,13 @@ One correction is on record. A first pass deleted twelve branches that still dif
 5. `node scripts/unified-plan.mjs check` exits 1 on main: the 2026-10-04 unified-plan slice no longer covers the canonical rows opened since (CO-198… and others, 673 lines). It is context, not a status register, and no CI tier runs it. Either regenerate the slice from its sources or mark it historical.
 6. The general development plan's Now line (`docs/evidence/backlog.md#general-development-plan`).
 
+## The organization roadmap (added the same day)
+
+The operator asked for one plan across all repositories. It is fabric-workspace
+`knowledge/roadmap.md` (PR #37), with tracks RM-01…RM-13 and the rules for keeping it. Every
+agent reads it first. Its synchronization findings (stale rows, missing rows, diverging contract
+pins, stale PRs) are each fixed in their owner repository.
+
 ## Next task
 
 Run `python3 ~/.local/share/observatory-agent-updates/agent_updates.py check`, read `docs/evidence/backlog.md#general-development-plan`, and take the first agent item above whose prerequisite is met. COM-02 and CO-179 need no operator step.

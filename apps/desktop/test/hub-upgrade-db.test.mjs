@@ -1,6 +1,7 @@
 // #region hub-upgrade-rehearsal — docs: docs/handoffs/2026-10-04-hub-upgrade-rehearsal.md#owned-upgrade-rehearsal
 import assert from 'node:assert/strict'
 import { execFileSync, spawn } from 'node:child_process'
+import { runPsqlAsync } from './bounded-psql.mjs'
 import { readFileSync, readdirSync, realpathSync, statSync } from 'node:fs'
 import path from 'node:path'
 
@@ -142,13 +143,8 @@ const authority = (db, fixture) => {
   refusal(db, `set role service_role;select append_event(${uuid(target)},'access.decided@1',${json(actor)},${json({ request_id: pending, decision: 'denied' })})`, /restored request has no authority/)
   assert.deepEqual(snapshot(db, ['journal', ...hubTables]), before, 'refused restored pending decision cannot append or change projections')
 }
-const parallel = (db, input) => new Promise((resolve, reject) => {
-  const child = spawn(path.join(bin, 'psql'), args(db), { env, stdio: ['pipe', 'pipe', 'pipe'] })
-  let stdout = '', stderr = ''
-  child.stdout.on('data', b => { stdout += b }); child.stderr.on('data', b => { stderr += b })
-  child.on('error', reject); child.on('exit', code => resolve({ code, stdout: stdout.trim(), stderr }))
-  child.stdin.end(input)
-})
+const parallel = (db, input) => runPsqlAsync(path.join(bin, 'psql'), args(db), input, { env })
+  .then(({ code, stdout, stderr }) => ({ code, stdout: stdout.trim(), stderr }))
 const reconnect = async (db, fixture, base) => {
   const { estate, liveConnection } = fixture, next = id(base), stale = id(base + 1)
   const before = snapshot(db, ['journal', 'product_connections'])

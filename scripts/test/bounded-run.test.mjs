@@ -133,17 +133,29 @@ test('copy-truncate rotation keeps the live file for its writer and bounds every
 })
 
 // Review finding 6: two processes starting together both held the lock in 20 of 20 rounds.
+// Every racer holds what it got until ALL of them have answered, then they exit together. A racer that
+// exited after a fixed 400 ms let a racer that started later under load (node startup at load ~100 took
+// longer) find a DEAD winner and rightly take its lock over — "WON,LOST,WON,LOST" was the test's timing,
+// not two holders at once (2026-10-05, ci.sh full at 51a7e3de).
+async function raceAll(racer, n = 4) {
+  const children = Array.from({ length: n }, () => spawn(process.execPath, ['--input-type=module', '-e', racer], { stdio: ['pipe', 'pipe', 'inherit'] }))
+  const answers = children.map(c => new Promise((resolve) => {
+    let out = ''
+    c.stdout.on('data', (b) => { out += b; if (out === 'WON' || out === 'LOST') resolve(out) })
+    c.on('exit', () => resolve(out))
+  }))
+  const outs = await Promise.all(answers)
+  await Promise.all(children.map(c => new Promise((resolve) => { if (c.exitCode !== null || c.signalCode !== null) return resolve(); c.once('exit', resolve); c.stdin.end() })))
+  return outs
+}
+
 test('of many processes racing for the lock, exactly one holds it — every round', async () => {
   const lib = path.resolve(import.meta.dirname, '../lib/bounded-run.mjs')
   for (let round = 0; round < 10; round++) {
     const dir = tmp()
     const file = path.join(dir, 'publish.lock')
-    const racer = `import { acquireLock } from ${JSON.stringify(lib)}; const l = acquireLock(${JSON.stringify(file)}, { token: 'r' + process.pid }); process.stdout.write(l ? 'WON' : 'LOST'); setTimeout(() => {}, 400)`
-    const runs = Array.from({ length: 4 }, () => new Promise((resolve) => {
-      const c = spawn(process.execPath, ['--input-type=module', '-e', racer], { stdio: ['ignore', 'pipe', 'inherit'] })
-      let out = ''; c.stdout.on('data', (b) => { out += b }); c.on('exit', () => resolve(out))
-    }))
-    const outs = await Promise.all(runs)
+    const racer = `import { acquireLock } from ${JSON.stringify(lib)}; const l = acquireLock(${JSON.stringify(file)}, { token: 'r' + process.pid }); process.stdout.write(l ? 'WON' : 'LOST'); process.stdin.resume(); process.stdin.on('end', () => process.exit(0))`
+    const outs = await raceAll(racer)
     assert.equal(outs.filter((o) => o === 'WON').length, 1, `round ${round}: ${outs.join(',')}`)
     rmSync(dir, { recursive: true, force: true })
   }
@@ -156,11 +168,8 @@ test('a dead holder is taken over by exactly one of several racers', async () =>
     const file = path.join(dir, 'publish.lock')
     const dead = spawn(process.execPath, ['-e', '0']); await new Promise((r) => dead.once('exit', r))
     writeFileSync(file, JSON.stringify({ pid: dead.pid, token: 'crashed', at: 'x' }))
-    const racer = `import { acquireLock } from ${JSON.stringify(lib)}; const l = acquireLock(${JSON.stringify(file)}, { token: 'r' + process.pid }); process.stdout.write(l ? 'WON' : 'LOST'); setTimeout(() => {}, 400)`
-    const outs = await Promise.all(Array.from({ length: 4 }, () => new Promise((resolve) => {
-      const c = spawn(process.execPath, ['--input-type=module', '-e', racer], { stdio: ['ignore', 'pipe', 'inherit'] })
-      let out = ''; c.stdout.on('data', (b) => { out += b }); c.on('exit', () => resolve(out))
-    })))
+    const racer = `import { acquireLock } from ${JSON.stringify(lib)}; const l = acquireLock(${JSON.stringify(file)}, { token: 'r' + process.pid }); process.stdout.write(l ? 'WON' : 'LOST'); process.stdin.resume(); process.stdin.on('end', () => process.exit(0))`
+    const outs = await raceAll(racer)
     assert.equal(outs.filter((o) => o === 'WON').length, 1, `round ${round}: ${outs.join(',')}`)
     rmSync(dir, { recursive: true, force: true })
   }
