@@ -102,6 +102,7 @@ facts stay here; the `workspace` submodule owns the host and maintenance skill. 
 | Workspace publication | `node scripts/workspace.mjs check --require-child` | source age across all non-publication paths, content digest, parent gitlink, child manifest and bytes; combined local check; source and host CI run separately | yes for publication |
 | Design map freshness and links | `node scripts/check-design-map.mjs` | source fingerprint, unique anchors, local link targets and precise top-entry review links; does not prove semantic completeness | yes |
 | Documentation structure | `bash scripts/check-docs.sh` | decision-home uniqueness, ADR ids, required canonical homes, local Markdown links | yes |
+| Commands in living docs | `node scripts/check-pnpm-commands.mjs` (run by `check-docs.sh`) | every backticked `pnpm …` command in a living Markdown file names an existing script of the package it filters; dated records are skipped; a promised script is allowed only while its milestone row is open (`PLANNED`) | yes |
 | Public narrative | `bash scripts/check-narrative.sh` | exact positioning/slogan, required public surfaces, retired names and public-content boundary | yes |
 | Brand contract | `python3 docs/brand/lint.py` | pack integrity, terminology, public claims, register and machine-writing markers | yes |
 | Project schemas | `python3 scripts/check-project-schemas.py` | schema compilation and project boundary fixtures | yes when schemas change |

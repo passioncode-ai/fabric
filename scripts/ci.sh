@@ -27,6 +27,19 @@ cd "$(dirname "$0")/.."
 TIER="${1:-fast}"
 step() { printf '\n\033[1m── %s\033[0m\n' "$1"; }
 
+# 2026-10-05 (lifecycle LC-15). Most suites make git fixtures, stores and stacks with mkdtemp and
+# never remove them: 2 926 fabric-* folders (532 MB) sat in the user temp directory, 1 669 of
+# them over two hours old. Every run now gets one temporary root, exported as TMPDIR (which
+# os.tmpdir() and mktemp read), and removes it on every exit path. The root is short on purpose:
+# owned PostgreSQL clusters put a unix socket under it, and macOS caps that path at 104 bytes.
+ci_tmp="$(mktemp -d /tmp/fabric-ci.XXXXXX)"
+export TMPDIR="$ci_tmp"
+stack_kept=0
+cleanup_tmp() {
+  if [ "$stack_kept" = 1 ]; then echo "WARN: kept $ci_tmp because the disposable stack inside it was not torn down"; else rm -rf "$ci_tmp"; fi
+}
+trap cleanup_tmp EXIT
+
 step "types"
 pnpm -r typecheck
 
@@ -395,10 +408,10 @@ node --test scripts/test/workspace-sources.test.mjs scripts/test/workspace-relea
 step "workspace snapshot: this commit can be exported as it stands"
 # 2026-10-05. Dated report folders brought raw/.gitkeep and raw/.gitignore to main, and the
 # next `workspace.mjs publish` threw on a path the host cannot serve — at publication, hours
-# after the merge, with the scheduled sync failing the same way. The snapshot test was in no
-# tier. Now it runs, and HEAD's snapshot is built in memory (no network, nothing written), so
+# after the merge, with the scheduled sync failing the same way. The snapshot test (run by
+# `pnpm gates:docs` above) builds only fixture repositories, so nothing exported HEAD itself
+# before publication. Now HEAD's snapshot is built in memory (no network, nothing written), so
 # an unexportable path fails here instead.
-node --test scripts/test/workspace-snapshot.test.mjs
 node --input-type=module -e "import {snapshot} from './scripts/workspace-snapshot.mjs'; const s=snapshot('.'); console.log('PASS workspace snapshot of HEAD: '+s.manifest.files.length+' files')"
 
 step "mockups: the prototype draws every state it offers"
@@ -597,8 +610,8 @@ step "a disposable stack — never the operator's"
 # port before any container exists, and `guard` refuses again on the addresses the probes will
 # actually be handed; every probe checks them a third time itself (scripts/lib/test-stack.mjs).
 stack_dir="$(mktemp -d "${TMPDIR:-/tmp}/fabric-test-stack.XXXXXX")"
-cleanup_stack() { node scripts/test-stack.mjs down "$stack_dir" || echo "WARN: the disposable stack in $stack_dir was not removed; run: node scripts/test-stack.mjs down $stack_dir"; }
-trap cleanup_stack EXIT
+cleanup_stack() { node scripts/test-stack.mjs down "$stack_dir" || { stack_kept=1; echo "WARN: the disposable stack in $stack_dir was not removed; run: node scripts/test-stack.mjs down $stack_dir"; }; }
+trap 'cleanup_stack; cleanup_tmp' EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 node scripts/test-stack.mjs up "$stack_dir"

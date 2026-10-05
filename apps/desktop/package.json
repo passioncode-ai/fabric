@@ -21,6 +21,7 @@
     "test:native-view": "node --experimental-strip-types test/native-view-host.test.mjs",
     "test:native-backend": "node --experimental-strip-types test/owned-backend-process-registry.test.mjs && node --experimental-strip-types test/backend-launch.test.mjs && node --experimental-strip-types test/claude-owned-stdio.test.mjs && node --experimental-strip-types test/backend-listener.test.mjs && node --experimental-strip-types test/backend-view.test.mjs",
     "test:runtime-admission": "node --experimental-strip-types test/runtime-admission.test.mjs",
+    "test:contract-consumer": "node --experimental-strip-types test/contract-consumer.test.mjs",
     "test:ceo-db": "node test/run-ceo-conversation-db.mjs",
     "test:ceo-host-sql": "node test/run-ceo-host-sql.mjs",
     "test:archive-db": "node test/run-ceo-private-archive-db.mjs",

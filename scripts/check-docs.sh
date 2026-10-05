@@ -43,6 +43,12 @@ else
   err "public narrative gate failed"
 fi
 
+if node --test "$REPO_ROOT/scripts/test/check-pnpm-commands.test.mjs" >/dev/null && node "$REPO_ROOT/scripts/check-pnpm-commands.mjs"; then
+  ok "pnpm commands in living documents name existing scripts"
+else
+  err "a pnpm command in a living document names no script"
+fi
+
 if python3 "$REPO_ROOT/docs/brand/lint.py"; then
   ok "brand contract gate passes"
 else
