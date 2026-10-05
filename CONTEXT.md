@@ -179,7 +179,8 @@ retired; project routines and history survive them.
 
 <a id="coding-agent"></a>
 **Coding agent** — a program on the operator's machine that writes code in a project folder — Claude
-Code, Codex. The first run's word for what the code calls an executor or runner (`AGENTS`,
+Code, Codex, Kilo Code (and, by [ADR-0119](docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md), every
+runner the catalogue proves). The first run's word for what the code calls an executor or runner (`AGENTS`,
 `shared/agents.ts`); the interface says "coding agent" wherever a runner is meant, and "agent" only for
 the configuration bound into a project. It is *on this machine* when its program is on the PATH,
 *responding* when it also answers `--version`, *connected* when the runner catalogue marks it as handed

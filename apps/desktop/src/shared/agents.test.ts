@@ -72,4 +72,31 @@ describe('the agent registry', () => {
       expect(agent.connectsToSurface ? agent.surfaceAdapter !== 'none' : true).toBe(true)
     expect(describeAgent('claude-code')?.surfaceAdapter).toBe('mcp-config-flag')
   })
+
+  it('a runner told through a session config names its variable and dialect (ADR-0119)', () => {
+    for (const agent of AGENTS)
+      if (agent.surfaceAdapter === 'config-content-env')
+        expect(agent.surfaceConfig?.env, `${agent.id} names no session-config variable`).toMatch(/^[A-Z][A-Z0-9_]*$/)
+    expect(describeAgent('kilo')?.surfaceConfig).toEqual({ env: 'KILO_CONFIG_CONTENT', format: 'kilo' })
+  })
+
+  it('Kilo asks by SETTING its permissions, and its bypass carries the config that allows everything', () => {
+    // Kilo allows every tool by default (measured on 7.4.17), so an 'ask' mode with no
+    // fragment would be a gate that is not there.
+    const ask = mayLaunch('kilo', null)
+    expect(ask.ok).toBe(true)
+    if (ask.ok) {
+      expect(ask.args).toEqual([])
+      expect(ask.config).toEqual({ permission: { edit: 'ask', bash: 'ask', webfetch: 'ask', external_directory: 'ask' } })
+    }
+    const bypass = mayLaunch('kilo', 'bypass')
+    expect(bypass.ok).toBe(true)
+    if (bypass.ok) expect(bypass.config).toEqual({ permission: { '*': 'allow' } })
+    expect(describeAgent('kilo')?.permissionModes.find((m) => m.id === 'bypass')?.containment).toBe('none')
+  })
+
+  it('a flag-only runner hands no session config', () => {
+    const verdict = mayLaunch('claude-code', 'plan')
+    expect(verdict.ok && verdict.config).toBe(null)
+  })
 })

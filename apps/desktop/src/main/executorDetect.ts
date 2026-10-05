@@ -57,10 +57,12 @@ export interface ExecutorProbe { id: string; label: string; program: string; con
 import type { ExecutorRow } from '../shared/startPaths.ts'
 export type { ExecutorRow } from '../shared/startPaths.ts'
 
-/** The vendors' published install commands: Anthropic's native installer, OpenAI's npm package. */
+/** The vendors' published install commands: Anthropic's native installer, OpenAI's and Kilo's npm
+ *  packages (Kilo: https://kilo.ai/docs/cli, read 2026-10-05). */
 const INSTALL: Readonly<Record<string, string>> = {
   'claude-code': 'curl -fsSL https://claude.ai/install.sh | bash',
-  codex: 'npm install -g @openai/codex'
+  codex: 'npm install -g @openai/codex',
+  kilo: 'npm install -g @kilocode/cli'
 }
 
 async function onPath(program: string, envPath: string, { fs, ms }: FsCtx): Promise<string | null> {

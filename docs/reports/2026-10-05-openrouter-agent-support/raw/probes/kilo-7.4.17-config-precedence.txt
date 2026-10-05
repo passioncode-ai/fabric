@@ -1,0 +1,17 @@
+Kilo 7.4.17, macOS, 2026-10-05. `kilo debug config` (resolved configuration), field `permission`.
+
+project kilo.json: {"permission":{"bash":"allow","edit":"allow"}}
+session file (KILO_CONFIG): {"permission":{"bash":"ask","edit":"ask","webfetch":"ask"}}
+
+1. no session config, no project file (Kilo's default plus this machine's global allow-list):
+   {"bash": {"git log *": "allow", … "sed *": "allow"}, "*": {"*": "allow"}}   -> everything allowed
+2. KILO_CONFIG file, no project file:
+   {"bash": "ask", "*": {"*": "allow"}, "edit": "ask", "webfetch": "ask"}
+3. KILO_CONFIG file AND the project kilo.json:
+   {"bash": "allow", "*": {"*": "allow"}, "edit": "allow", "webfetch": "ask"}  -> the project wins over the file
+4. KILO_CONFIG_CONTENT='{"permission":{"*":"ask","bash":"ask","edit":"ask","webfetch":"ask"}}' AND the project kilo.json:
+   {"bash": "ask", "*": "ask", "edit": "ask", "webfetch": "ask"}             -> the content variable wins over the project
+
+Conclusion used by Fabric (agents.ts SurfaceConfig, ADR-0119): the session config travels in
+KILO_CONFIG_CONTENT, so a project file can neither loosen the session's permissions nor redirect the
+`fabric` server's URL while inheriting its Authorization header.

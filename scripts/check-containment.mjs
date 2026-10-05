@@ -14,6 +14,9 @@
 //   2. A mode carrying a known bypass flag is declared `none`. The flags are
 //      named in `containment.ts` so a new one arrives deliberately rather than
 //      inside an args array nobody reads.
+//   3. A mode whose session config allows every tool (`'*': 'allow'`, the way a
+//      `config-content-env` runner such as Kilo is ungated, ADR-0119) is declared
+//      `none` too: its gate lives in the config, not in a flag.
 
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
@@ -46,6 +49,12 @@ for (const m of modes) {
     problems.push(
       `${AGENTS}:${line}  mode '${id}' declares no containment. A missing declaration is not a ` +
         `default — it is a mode nobody decided about, and the floor would treat it as decided.`
+    )
+  else if (/'\*':\s*'allow'/.test(body) && declared !== 'none')
+    problems.push(
+      `${AGENTS}:${line}  mode '${id}' carries a session config that allows every tool ('*': 'allow') ` +
+        `and declares '${declared}'. A runner told through its config (ADR-0119) has its gate in that ` +
+        `config, and this one has none.`
     )
   else if (flags.some((f) => body.includes(f)) && declared !== 'none')
     problems.push(

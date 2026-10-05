@@ -1,0 +1,16 @@
+Kilo 7.4.17 (/opt/homebrew/bin/kilo), macOS, 2026-10-05. `kilo mcp list` with KILO_CONFIG pointing at a
+config whose mcp.fabric is {type: "remote", url: "http://127.0.0.1:47999/mcp", headers: {Authorization:
+"Bearer <probe value>"}, enabled: true}, against probe-mcp-server.mjs (streamable HTTP, 401 unless the
+bearer matches).
+
+== correct bearer
+●  ✓ fabric connected
+│      http://127.0.0.1:47999/mcp
+└  1 server(s)
+
+== wrong bearer
+●  ⚠ fabric needs authentication
+│      http://127.0.0.1:47999/mcp
+└  1 server(s)
+
+server counters at stop: {"refused":6,"served":4}

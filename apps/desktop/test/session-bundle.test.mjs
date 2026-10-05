@@ -351,6 +351,35 @@ else {
   else fail('the none adapter produced args: ' + JSON.stringify(none?.args))
 }
 
+// ADR-0119 / P-10 — a runner told through ONE environment variable holding its whole session
+// config (Kilo: KILO_CONFIG_CONTENT, which outranks the project's own kilo.json).
+{
+  const sidK = randomUUID()
+  const k = await bundles.compile(sidK, randomUUID(), null, 'kilo', 'config-content-env', null,
+    { permission: { edit: 'ask', bash: 'ask' } })
+  const content = k?.env?.KILO_CONFIG_CONTENT
+  let parsed = null
+  try { parsed = JSON.parse(content) } catch { /* reported below */ }
+  if (!parsed) fail('the Kilo session got no parsable KILO_CONFIG_CONTENT: ' + JSON.stringify(k))
+  else {
+    const fabric = parsed.mcp?.fabric
+    if (fabric?.type === 'remote' && fabric.url === surface.endpoint && fabric.headers?.Authorization === 'Bearer tok-' + sidK)
+      ok('Kilo is handed Fabric as a remote server with the bearer of this session')
+    else fail('the Kilo session config does not carry the surface: ' + JSON.stringify(parsed.mcp))
+    if (parsed.permission?.edit === 'ask' && parsed.permission?.bash === 'ask') ok('and the permissions of the chosen mode are in the same document')
+    else fail('the mode fragment did not reach the config: ' + JSON.stringify(parsed.permission))
+    const brief = parsed.instructions?.[0]
+    if (brief && brief.startsWith(path.join(root, 'sessions', sidK)) && (statSync(brief).mode & 0o777) === 0o600 && readFileSync(brief, 'utf8').includes('fabric_whoami'))
+      ok('and the brief with the Fabric preamble is a 0600 file inside the session directory')
+    else fail('the brief is missing, misplaced or readable by others: ' + brief)
+  }
+  if (k && k.args.length === 0 && !JSON.stringify(k.args).includes('tok-')) ok('and nothing goes into the arguments, where any process listing would show the credential')
+  else fail('the Kilo bundle put something in argv: ' + JSON.stringify(k?.args))
+  bundles.discard(sidK)
+  if (revoked.includes(sidK) && !existsSync(path.join(root, 'sessions', sidK))) ok('and discarding it revokes the credential and removes the brief with the directory')
+  else fail('discarding the Kilo bundle left the credential or the directory')
+}
+
 // HAR-R0-01 — compilation owns cleanup until it returns a bundle. These
 // faults hit the real filesystem functions, including partial writes, rather
 // than assuming that PtyManager will receive a bundle when compile rejects.

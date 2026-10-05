@@ -124,3 +124,19 @@ optional; an agent's own memory, skills and sessions are not mirrored into Fabri
   run, and leaks a long-lived credential into a file the agent shares with everything else.
 - **Drive every agent through its print/JSON mode** — loses permissions, cancellation and resume,
   and needs one parser per dialect; kept as a fallback driver for agents without ACP.
+
+## Amendments
+
+### Amendment 1 — 2026-10-05: a terminal session takes its config from the runner's own content variable
+
+§2 covers a runner driven over ACP. A runner the person works with in Fabric's terminal (a PTY session,
+as Claude Code is) is told about Fabric before it starts, by its own per-launch mechanism, never by
+its user configuration. The adapter `config-content-env` does this for a runner that reads a whole
+config document from one environment variable which **outranks the project's own config file**. Kilo
+Code is the first: `KILO_CONFIG_CONTENT` carries the `fabric` server with the session's bearer, the
+brief as an instruction file in the session directory, and the chosen mode's permissions. Measured on
+Kilo 7.4.17 (`raw/probes/kilo-7.4.17-config-precedence.txt`): a project `kilo.json` overrides
+`KILO_CONFIG` (a file) but not `KILO_CONFIG_CONTENT`. Through the file, a project could loosen the
+session's permissions, or point the `fabric` name at another URL that inherits its Authorization header.
+Kilo's own default allows every tool, so its `ask` mode sets the permissions rather than inheriting
+them, and a mode whose config allows everything is declared `none` (`check-containment.mjs` rule 3).

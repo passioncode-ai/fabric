@@ -48,6 +48,13 @@ export interface PermissionMode {
    * into silence would spend the reader's trust once and keep nothing.
    */
   warnKey?: string
+  /**
+   * For a runner told about Fabric through a per-session config (`config-content-env`):
+   * the fragment this mode adds to that config. Kilo's permissions live there, not in
+   * a flag, so its gate is declared here and `check-containment.mjs` reads it: a
+   * fragment that allows everything (`'*': 'allow'`) is declared `none`.
+   */
+  config?: Readonly<Record<string, unknown>>
 }
 
 /**
@@ -64,7 +71,23 @@ export interface PermissionMode {
  * adapter before anyone has written it, and the launch refuses rather than
  * quietly borrowing the flags of whoever went first.
  */
-export type SurfaceAdapter = 'mcp-config-flag' | 'none' | 'unimplemented'
+export type SurfaceAdapter = 'mcp-config-flag' | 'config-content-env' | 'none' | 'unimplemented'
+
+/**
+ * `config-content-env` (ADR-0119): the runner reads a whole config document from one
+ * environment variable, and that document outranks the project's own config file —
+ * MEASURED, not assumed: Kilo 7.4.17 lets a project `kilo.json` override `KILO_CONFIG`
+ * (a file) but not `KILO_CONFIG_CONTENT` (`kilo debug config`, 2026-10-05, report
+ * `raw/probes/kilo-7.4.17-config-precedence.txt`). Through the file, a project could
+ * loosen the session's permissions or point Fabric's server name at another URL that
+ * then inherits its authorization header; through the content variable it can do neither.
+ */
+export interface SurfaceConfig {
+  /** The variable holding the session's config document. */
+  env: string
+  /** Whose config dialect the document is written in. */
+  format: 'kilo'
+}
 
 export interface AgentDescriptor {
   id: string
@@ -81,6 +104,8 @@ export interface AgentDescriptor {
    * branch in the bundle compiler.
    */
   surfaceAdapter: SurfaceAdapter
+  /** Required by `config-content-env`: where and in which dialect the session config goes. */
+  surfaceConfig?: SurfaceConfig
   /**
    * The channel a result comes BACK on (PF-10.01) — the capability that makes
    * an agent an EXECUTOR, not just a process that ran. `surface`: the live
@@ -162,6 +187,41 @@ export const AGENTS: readonly AgentDescriptor[] = [
     resultChannel: 'none',
     defaultMode: null,
     permissionModes: []
+  },
+  {
+    // P-10 / ADR-0119: the first runner connected without Claude Code's flags. Kilo's TUI in
+    // the project directory, told about Fabric by a session config in KILO_CONFIG_CONTENT
+    // (see `SurfaceConfig` for why the content variable and not the file). Probed on Kilo
+    // 7.4.17: the remote MCP entry with its bearer header connects, and a wrong bearer reads
+    // "needs authentication" (report `raw/probes/kilo-7.4.17-mcp-list.txt`).
+    id: 'kilo',
+    label: 'Kilo Code',
+    program: 'kilo',
+    description: 'An agent session in the project directory, connected to Fabric',
+    connectsToSurface: true,
+    surfaceAdapter: 'config-content-env',
+    surfaceConfig: { env: 'KILO_CONFIG_CONTENT', format: 'kilo' },
+    resultChannel: 'surface',
+    defaultMode: 'ask',
+    permissionModes: [
+      // Kilo's own default allows every tool ("*": {"*": "allow"}, measured), so asking is
+      // something this mode SETS, not something it inherits.
+      {
+        id: 'ask',
+        labelKey: 'agent.mode.ask',
+        args: [],
+        containment: 'runner-gated',
+        config: { permission: { edit: 'ask', bash: 'ask', webfetch: 'ask', external_directory: 'ask' } }
+      },
+      {
+        id: 'bypass',
+        labelKey: 'agent.mode.bypass',
+        args: [],
+        containment: 'none',
+        config: { permission: { '*': 'allow' } },
+        warnKey: 'agent.mode.bypassWarn'
+      }
+    ]
   },
   {
     id: 'shell',
@@ -288,7 +348,9 @@ export function verifyHandoff(
   return { status: 'verified', actualLoad: e.loadedDigest, toolCall: e.toolCall, result: 'current' }
 }
 
-export type ModeVerdict = { ok: true; args: readonly string[] } | { ok: false; reason: string }
+export type ModeVerdict =
+  | { ok: true; args: readonly string[]; config: Readonly<Record<string, unknown>> | null }
+  | { ok: false; reason: string }
 
 /**
  * Whether a session may open in this mode, and with what arguments.
@@ -300,10 +362,10 @@ export type ModeVerdict = { ok: true; args: readonly string[] } | { ok: false; r
 export function mayLaunch(agentId: string, modeId: string | null): ModeVerdict {
   const agent = describeAgent(agentId)
   if (!agent) return { ok: false, reason: `unknown agent: ${agentId}` }
-  if (agent.permissionModes.length === 0) return { ok: true, args: [] }
+  if (agent.permissionModes.length === 0) return { ok: true, args: [], config: null }
   const wanted = modeId ?? agent.defaultMode
   const mode = agent.permissionModes.find((m) => m.id === wanted)
   if (!mode) return { ok: false, reason: `${agent.label} has no mode called ${String(wanted)}` }
   if (mode.blockedKey) return { ok: false, reason: mode.blockedKey }
-  return { ok: true, args: mode.args }
+  return { ok: true, args: mode.args, config: mode.config ?? null }
 }

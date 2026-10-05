@@ -1,0 +1,6 @@
+kilo 7.4.17
+bundle args: [] · env keys: KILO_CONFIG_CONTENT
+[0m
+with the compiled config: ●  ✓ fabric connected | └  1 server(s)
+[0m
+with a revoked bearer: ●  ⚠ fabric needs authentication | └  1 server(s)
