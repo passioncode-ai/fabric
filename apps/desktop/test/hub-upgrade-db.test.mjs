@@ -28,7 +28,7 @@ const admitted = JSON.parse(readFileSync(new URL('../src/shared/schemaContract.j
 // from it, and the last step below applies them to the upgraded database and requires every row to survive.
 assert.ok(files.length >= 78, 'the 0.3.1 rehearsal needs the first 78 migrations')
 assert.ok(admitted.minimum >= 78 && admitted.maximum === files.length, 'the app admits the chain this checkout carries')
-assert.deepEqual(files.slice(75), ['20261003000076_hub_access.sql', '20261004000077_hub_access_at_the_door.sql', '20261004000080_hub_authority_boundaries.sql'])
+assert.deepEqual(files.slice(75, 78), ['20261003000076_hub_access.sql', '20261004000077_hub_access_at_the_door.sql', '20261004000080_hub_authority_boundaries.sql'])
 const mutant = process.env.FABRIC_UPGRADE_MUTANT ?? ''
 assert.ok(['', 'restored-poll', 'reconnect-cas'].includes(mutant), 'unknown rehearsal mutant')
 if (mutant) console.log(`MUTANT ${mutant}: owned SQL only, ledger still counts 78; not an acceptance receipt`)

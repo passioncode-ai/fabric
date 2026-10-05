@@ -1101,10 +1101,7 @@ const after = await fetch(surface.endpoint, {
 if (after.status === 401) ok('revoking the session closes its credential immediately')
 else fail('a revoked credential still got ' + after.status)
 
-// cleanup
-await db.from('agent_stages').delete().eq('session_id', sessionId)
-await db.from('memory_facts').delete().eq('project_id', projectId)
-await db.from('projects').delete().eq('id', projectId)
+{
   // COM-02.2 — messaging between projects through the real surface and the board's real SQL (ADR-0117).
   const callBoard = async (c, name, args) => {
     const r = await c.callTool({ name: name, arguments: args })
@@ -1114,6 +1111,18 @@ await db.from('projects').delete().eq('id', projectId)
   const sender = new Client({ name: 'board-sender', version: '0.0.0' })
   await sender.connect(new StreamableHTTPClientTransport(new URL2(surface.endpoint), {
     requestInit: { headers: { Authorization: 'Bearer ' + senderScope.token } }
+  }))
+  // The isolation block's project lives in its own scope; the board needs a target of its own.
+  const otherProject = randomUUID()
+  await journal.append({
+    estateId: ESTATE, type: 'project.created@1',
+    actor: { kind: 'system', id: 'surface-probe' }, projectId: otherProject,
+    payload: { id: otherProject, name: 'a board target' }
+  })
+  const otherScope = surface.mint(otherProject, randomUUID(), null)
+  const otherClient = new Client({ name: 'board-target', version: '0.0.0' })
+  await otherClient.connect(new StreamableHTTPClientTransport(new URL2(surface.endpoint), {
+    requestInit: { headers: { Authorization: 'Bearer ' + otherScope.token } }
   }))
   const thirdProject = randomUUID()
   await journal.append({
@@ -1145,13 +1154,18 @@ await db.from('projects').delete().eq('id', projectId)
   const forged = await callBoard(sender, 'com.submit', Object.assign({}, ask, { idempotency: { epoch: 1, key: 'probe-board-0002' }, estate_id: ESTATE }))
   forged.isError && forged.body.error && forged.body.error.code === 'invalid_arguments' ? ok('a forged estate field is refused, in the form the contract gives a refusal')
     : fail('a forged field was not refused: ' + JSON.stringify(forged.body))
-  const before = await callBoard(otherClient, 'com.status', {})
+  const unreadBefore = await callBoard(otherClient, 'com.status', {})
   const acked = await callBoard(otherClient, 'com.read_ack', { message: sent.body.message })
-  const after = await callBoard(otherClient, 'com.status', {})
-  before.body.board.state === 'ready' && acked.body.ok === true && after.body.unread === before.body.unread - 1
+  const unreadAfter = await callBoard(otherClient, 'com.status', {})
+  unreadBefore.body.board.state === 'ready' && acked.body.ok === true && unreadAfter.body.unread === unreadBefore.body.unread - 1
     ? ok('com.status is ready and an explicit read mark lowers the unread count by one')
-    : fail('status or read mark wrong: ' + JSON.stringify([before.body, acked.body, after.body]))
-  await sender.close(); await third.close()
+    : fail('status or read mark wrong: ' + JSON.stringify([unreadBefore.body, acked.body, unreadAfter.body]))
+  await sender.close(); await third.close(); await otherClient.close()
+}
+// cleanup
+await db.from('agent_stages').delete().eq('session_id', sessionId)
+await db.from('memory_facts').delete().eq('project_id', projectId)
+await db.from('projects').delete().eq('id', projectId)
 await surface.stop()
 process.exit(failures ? 1 : 0)
 `

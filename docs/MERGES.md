@@ -392,3 +392,6 @@ Tests: `test/analytics.test.mjs` (11, a synthetic server: no planted identifier 
 
 Docs: `docs/ANALYTICS.md`, the README section, the AGENTS.md lifecycle row and SCN-134 (scenarios → product model → product report). Ships with 0.3.2.
 
+### 2026-10-05 · board-storage-contract · agent/analytics-20261005
+
+`ci.sh full` at `dddf0128` failed `apps/desktop/src/shared/storageContract.test.ts`: the seven `board_*` tables were absent from the mirror's storage contract. Each is now excluded with its reason, since the mirror must not carry board messages to another estate (CO-212 decides board history). The whole vitest suite passes (148 files, 1697 tests). The same run's node chain failed `ceo-private-archive-codec.test.mjs`: it still called 79 an unqualified later source schema. 79 is now qualified, and 80 is the refused one. COM-02.1 and COM-02.2 alone keep these two red tests, and this commit closes them before landing. The 111 mockup previews are rebuilt by `scripts/build-mockup-previews.mjs`, because `product.html` changed with SCN-134. `hub-upgrade-db.test.mjs` pins the 0.3.1 rehearsal to migrations 76–78 (`files.slice(75, 78)`) now that a 79th file exists.

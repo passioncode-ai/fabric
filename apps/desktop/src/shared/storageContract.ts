@@ -112,6 +112,15 @@ export const NOT_MIRRORED: Readonly<Record<string, string>> = {
   access_bindings: 'verifiers of credentials held by agents on this machine (ADR-0115); carrying one to another estate would admit a credential nobody there issued',
   access_grants: 'standing grants bound to this machine\'s bindings (ADR-0115); without the binding they belong to they authorise nothing, and with it they would widen another estate silently',
   product_connections: 'which cloud products this machine connected by their own consent (ADR-0115); the secret lives in this machine\'s vault, so the row alone would be a connection with no key',
+  // The project board (migration 79, ADR-0117): messages between this estate's Projects. A mirror copy would let a
+  // board message reach another estate or a reader outside its thread; carrying board history is CO-212's decision.
+  board_threads: 'project board threads with fixed participants (ADR-0117); carried, they would show a thread to an estate that has none of its Projects',
+  board_messages: 'project board messages (ADR-0117); readable only by a thread\'s participants through the board commands, never through a file',
+  board_bodies: 'project board message bodies, redactable by design; a mirror copy could not be redacted',
+  board_idempotency: 'receipts of board submits; replayed elsewhere, a key would stand for a message nobody sent there',
+  board_requests: 'request state, a projection of comms.* events, rebuilt from the journal',
+  board_read_marks: 'explicit read marks, a projection of comms.read_acked@1, rebuilt from the journal',
+  board_write_authorizations: 'transaction-only authorization of the board commands; nothing outlives the transaction',
   routines: 'NOT REBUILDABLE from the mirror; a schedule the operator set is lost with it',
   project_repos: 'paths on one machine. They are evidence, not content, and they rebind per machine',
   memory_facts: 'rebuilt from the journal; a file copy would be a second memory that drifts',
