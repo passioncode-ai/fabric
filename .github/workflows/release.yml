@@ -85,6 +85,9 @@ jobs:
           ASC_API_KEY_P8_B64: ${{ secrets.ASC_API_KEY_P8_B64 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          # Usage analytics (docs/ANALYTICS.md): the Aptabase App Key reaches only this release build. Without
+          # the secret the value is empty and the built app sends nothing.
+          FABRIC_ANALYTICS_APP_KEY: ${{ secrets.FABRIC_ANALYTICS_APP_KEY }}
         run: node scripts/release-mac.mjs --tag "$TAG"
       - name: Collect the release files
         run: |

@@ -796,6 +796,7 @@ export type CeoChatReply =
 
 export interface HistoryExport { name: string }
 export interface HistoryArchiveSummary { token: string; taken_at: string; events: number; companion: { conversations: number; messages: number; mine: boolean } | null }
+export interface AnalyticsStatus { availability: 'on' | 'off' | 'unavailable-no-key' | 'unavailable-file' }
 export interface HistoryRestored { operation_id: string; target_estate_id: string; history_restored: true; access_verified: true; private_history: boolean; opened: false }
 export type HistoryReply<T> = ({ ok: true } & T) | { ok: false; state: 'refused' | 'result_unknown'; reason_code: string; operation_id?: string }
 
@@ -1128,6 +1129,15 @@ export interface FabricApi {
     /** Opens the product's connect link. A connected product is connected again only with `reconnect: true`. */
     connect(product: string, opts?: { reconnect?: boolean }): Promise<HubActResult>
     disconnect(product: string): Promise<HubActResult>
+  }
+  /**
+   * Anonymous usage counts (docs/ANALYTICS.md): whether they are sent, and the one switch every PassionCode app
+   * shares. `unavailable-no-key`: a build that sends nothing (not a release build). `unavailable-file`: the
+   * shared installation file could not be read, so nothing is sent and the switch cannot be written.
+   */
+  analytics: {
+    status(): Promise<AnalyticsStatus>
+    setEnabled(enabled: boolean): Promise<AnalyticsStatus>
   }
   goals: {
     list(projectId: string): Promise<GoalRow[]>
@@ -1546,6 +1556,8 @@ export const IPC = {
   terminalMemoryBackends: 'terminal:memory-backends',
   feedReplay: 'feed:replay',
   attentionGrant: 'attention:grant',
+  analyticsStatus: 'analytics:status',
+  analyticsSetEnabled: 'analytics:set-enabled',
   hubOverview: 'hub:overview',
   hubDecide: 'hub:decide',
   hubRevokeGrant: 'hub:revoke-grant',

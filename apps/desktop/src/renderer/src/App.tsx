@@ -32,6 +32,7 @@ import { markOf } from '../../shared/feedMarks.ts'
 import { CeoChat } from './CeoChat'
 import { PrivateHistoryPanel } from './PrivateHistoryPanel'
 import { AgentAccessPanel } from './AgentAccessPanel'
+import { UsageCountsSetting } from './UsageCountsSetting'
 import { BoardPanel } from './BoardPanel'
 import { SearchPanel } from './SearchPanel'
 import { EstateAgents } from './EstateAgents'
@@ -956,6 +957,7 @@ function SettingsBar({
           lid closed on battery. A setting that promises what the OS will not
           do is worse than no setting. */}
       <span className="settings-note">{t('power.note')}</span>
+      <UsageCountsSetting />
     </div>
   )
 }

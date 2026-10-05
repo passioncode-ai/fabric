@@ -392,3 +392,34 @@ The flag was verified against the binary rather than against memory: `claude
 --help` lists `--append-system-prompt`, and a print-mode call with a planted
 codeword returned it. A flag that a runner silently ignores would have passed
 every test written here and delivered nothing.
+
+## 10. Messaging between projects — the participant tools (COM-02.2, ADR-0117)
+
+A session's surface also carries the participant half of `fabric-project-comms/0.1`. It is registered by
+`apps/desktop/src/main/boardTools.ts#registerBoardTools` and served by
+`apps/desktop/src/main/boardService.ts#createBoard`, over the SQL commands of migration 79
+(`20261005000081_project_board.sql`).
+
+| Tool | Does | Journals |
+|---|---|---|
+| `com.submit` | sends a message or a request to other Projects, addressed to a Project and never a session; the same key and message return the same receipt | `comms.message_submitted@1` (ids and digest, never the body) |
+| `com.list` | one page of what the session's Project takes part in, oldest first; the cursor is bound to this reader, filter and run | — (read) |
+| `com.get` | one message; an absent one and another Project's read alike | — (read) |
+| `com.read_ack` | an explicit read mark; reading alone marks nothing | `comms.read_acked@1` |
+| `com.status` | whether the board can be read and the unread count; no responders until COM-03, mirror off | — (read) |
+
+- **Identity comes from the scope.** The session's Project is the sender or reader, and its principal is the
+  session itself, `trusted`. The SDK is handed an open input schema on purpose. The service validates every
+  call against the contract's shapes and answers a refusal in the contract's form. An undeclared field such
+  as a forged `estate_id` is refused, not silently stripped.
+- **Unreadable is not empty.** A board that cannot be read answers `not_available` (`com.list`, `com.get`,
+  `com.submit`) or `board.state: unavailable` (`com.status`), never an empty page.
+- **Not built yet:**
+  - `com.reply` and `com.cancel` (COM-02.3);
+  - the responder tools (COM-03);
+  - enrollment of agents Fabric did not start (ADR-0117 §3);
+  - any screen (COM-06/07).
+
+  `scripts/check-surface-tools.mjs` keeps `apps/desktop/src/shared/surfaceTools.ts` equal to what both
+  modules register.
+

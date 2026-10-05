@@ -583,7 +583,7 @@ step "owned-cluster suites: each starts its own PostgreSQL and touches no other 
 owned_failed=()
 for suite in run-board-deferral-db run-ceo-conversation-db run-ceo-host-sql run-ceo-private-archive-db \
   run-command-ingress-db run-dispatch-db run-managed-launch-db run-managed-stop-db run-releases-db \
-  run-restore-authority-db run-transcript-recovery-db run-hub-upgrade-db; do
+  run-restore-authority-db run-transcript-recovery-db run-hub-upgrade-db run-project-board-db; do
   if ! node "apps/desktop/test/$suite.mjs"; then
     echo "FAIL: $suite (exit non-zero; exit 2 is NOT_RUN — set FABRIC_PG_BIN to PostgreSQL 17 binaries)"
     owned_failed+=("$suite")

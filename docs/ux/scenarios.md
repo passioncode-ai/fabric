@@ -3253,3 +3253,25 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Status:** draft
 - **Coverage:** apps/desktop/src/main/productConnect.ts, apps/desktop/src/main/observatoryVault.ts, apps/desktop/src/renderer/src/AgentAccessPanel.tsx
 - **Product:** unobserved
+
+
+### SCN-134: See that Fabric shares anonymous usage counts, and turn them off for every PassionCode app
+- **Persona:** P-01
+- **Feature:** Settings
+- **Traces:** passioncode-ai/fabric#12, RM-13, FLW-40
+- **Entry point:** Settings (SCR-52) → *Share anonymous usage counts*.
+- **Preconditions:** A release build of Fabric. A source build shows the switch unavailable with the reason.
+- **Steps:**
+  1. The person opens Settings → the switch is on by default in a release build, and its note says what is counted: installs, days of use and how many projects, products and agents are connected; never names, paths or content; one switch for every PassionCode app on this Mac.
+  2. The person turns it off → Fabric writes `analytics: false` into the shared PassionCode file, drops the counts still waiting, and sends nothing more; Fabric Switchboard and Fabric Inbox read the same switch.
+  3. Turning it on again → counts resume with the next event; nothing missed while it was off is sent later.
+- **Expected result:** The person knows what leaves the Mac and has one switch for all PassionCode apps.
+- **Alt paths:** A build without the App Key → the switch is disabled and the note says this build sends nothing. The shared file cannot be read (it does not parse, or its id is not valid) → analytics stays off, the switch is disabled and the note names why; the file is never repaired. The status cannot be read → the note says so, and the switch is disabled rather than shown as off. Another PassionCode app turned the switch → Fabric honours it within the hour.
+- **UI elements:** the checkbox *Share anonymous usage counts*; one note line under it.
+- **States covered:** on, off, unavailable-no-key, unavailable-file, unreadable
+- **Errors & recovery:** a send that fails is retried after 60 s, then every 10 min, and dropped after 23 h; nothing is shown to the person, and each attempt is one `analytics.flush` line in the operations log.
+- **Design rationale:** usage counts are an effect with an owner (the person), a boundary (counts only, release builds only, one shared switch) and a receipt (the operations log), as the vision's alignment test asks.
+- **Telemetry:** none in the journal; the operations log records `analytics.flush`.
+- **Status:** draft
+- **Coverage:** apps/desktop/src/main/analytics.ts, apps/desktop/src/renderer/src/UsageCountsSetting.tsx
+- **Product:** unobserved

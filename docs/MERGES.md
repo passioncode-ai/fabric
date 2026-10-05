@@ -349,3 +349,49 @@ The vendored contract fixture is repinned from `df55c8c` by the new `scripts/rep
 
 **The bounded psql helper.** `ci.sh full` at `9ddc74f0` hung for ten minutes in `ceo-conversation-db.test.mjs`: a concurrent psql never saw EOF. That did not reproduce in five isolated runs, and CO-211 holds the open cause. All ten async psql helpers in the DB suites now use `apps/desktop/test/bounded-psql.mjs`, which kills psql at 120 s and names what was stuck. `bounded-psql.test.mjs` is in the desktop test chain; a planted helper without a deadline is caught. `bounded-run.test.mjs` reported two lock winners at load ~100 ("WON,LOST,WON,LOST"). Its racers exited after a fixed 400 ms, so a racer that started later found a dead winner and legitimately took the lock over. Racers now hold their result until all have answered (`raceAll`). A planted takeover without its claim is still caught. `with-timeout.test.mjs` checked a SIGKILLed grandchild at once, but at load ~100 its pid still answered `kill(0)` until it was delivered and reaped. The test now waits up to 5 s; a survivor still fails it. ADR-0117 was written past the unexecuted pipeline reservation 0116, so under that document's collision rule the reservation moves to ADR-0118 (`agent_sync.py reserve ADR --key pipeline-reservation-after-project-board-20261005`). `test/audit_regressions/fix-pf-06.03.py` is green again.
 
+### 2026-10-05 · com02-board-core · agent/com02-board-sql-20261005
+
+COM-02.1, the project board's durable core, under ADR-0117. `supabase/migrations/20261005000081_project_board.sql` is migration 79 by count; its suffix sorts above `…080` (CO-199). The schema contract now admits 79, and the private archive exports 79 and imports 66–79.
+
+- **Storage.** `board_submit` writes the primary rows (thread, message, body, idempotency receipt) beside `comms.message_submitted@1`, whose payload carries ids and the digest, never the body, so a body stays redactable. `board_requests` and `board_read_marks` are replay-safe projections, and `append_event` refuses `comms.*` from anything but the board's own commands.
+- **Reads and refusals.** `board_list` pages by journal seq for one reader. Refusals are returned in the contract's shape, and absent, foreign and not-a-participant targets read alike.
+- **Tests.** `apps/desktop/test/project-board-db.test.mjs` passes 12/12 on an owned cluster and fails without the migration. `hub-upgrade-db` stays the 0.3.1 rehearsal (count 78) and now also migrates 78→79 preserving every row.
+- **Records.** The pipeline migration reservation moves to 82/83. Amendment 1 to ADR-0117 makes the glossary term "Project board", because the app already calls its task board «Доска»; the feed sentences speak of messages between projects. CO-212: a restored estate keeps board events without messages. The runbook says `main` needs 79. README lists 17 owned-cluster runners.
+
+### 2026-10-05 · com02-participant-tools · agent/com02-board-tools-20261005
+
+COM-02.2. A session's surface registers `com.submit`, `com.list`, `com.get`, `com.read_ack` and `com.status` through `apps/desktop/src/main/boardTools.ts`, served by `apps/desktop/src/main/boardService.ts`.
+
+- **Contract behaviour:**
+  - identity is taken from the scope;
+  - the input schema is open, so a forged field is refused in the contract's form rather than stripped;
+  - the digest is the contract's canonical form;
+  - the cursor is an `opaqueId` holding the seq plus an HMAC bound to estate, reader, filter and run;
+  - a read failure answers `not_available`, never an empty page.
+- **Tests and gates.** `board-service.test.mjs` passes 8 tests, including Fabric's schema against the contract catalogue's comms-submit verdicts. `agent-surface.test.mjs` runs the flow end to end on the disposable stack. `check-surface-tools.mjs` now reads `boardTools.ts` and `com.*` names (27 tools). `operating-surfaces.md` §10.
+- **Fixes in COM-02.1's migration, before landing:**
+  - `board_bodies` references `board_messages` by `(message_id, estate_id)` (found by `check-references.mjs`);
+  - capability names follow the contract's `capabilityName`;
+  - `replyTo` is allowed on any kind and required of a reply, as the contract says.
+
+### 2026-10-05 · usage-analytics · agent/analytics-20261005
+
+passioncode-ai/fabric#12, P-09, roadmap RM-13. `apps/desktop/src/main/analytics.ts`:
+- the shared `PassionCode/installation.json` is created once by hard-link, never repaired, and keeps unknown fields;
+- the shared switch;
+- `app_installed`, `app_started` and `app_active` carry counts only, through `cleanProps` with a fixed list of known kinds;
+- delivery follows the Aptabase ingestion contract (batches of 25, retry 60 s then 10 min on transport/429/5xx, drop on 400/404, at most 200 waiting, dropped at 23 h), with an `analytics.flush` line per send.
+
+Wiring:
+- main counts projects, connected products and agents with access, and leaves an unreadable count out;
+- `analytics:status` and `analytics:set-enabled` IPC;
+- `UsageCountsSetting` on SCR-52, with en/ru strings;
+- the App Key comes only from `FABRIC_ANALYTICS_APP_KEY` at build time (`electron.vite.config.ts` `define`). `release.yml` passes the `release` environment secret, which was set from the vault (`sshlg-analytics/prod/APTABASE_APP_KEY_FABRIC`) without printing it.
+
+Tests: `test/analytics.test.mjs` (11, a synthetic server: no planted identifier leaves, a 6-process creation race, fail-closed file, opt-out, delivery rules, once-only events) and `UsageCountsSetting.test.tsx` (4).
+
+Docs: `docs/ANALYTICS.md`, the README section, the AGENTS.md lifecycle row and SCN-134 (scenarios → product model → product report). Ships with 0.3.2.
+
+### 2026-10-05 · board-storage-contract · agent/analytics-20261005
+
+`ci.sh full` at `dddf0128` failed `apps/desktop/src/shared/storageContract.test.ts`: the seven `board_*` tables were absent from the mirror's storage contract. Each is now excluded with its reason, since the mirror must not carry board messages to another estate (CO-212 decides board history). The whole vitest suite passes (148 files, 1697 tests). The same run's node chain failed `ceo-private-archive-codec.test.mjs`: it still called 79 an unqualified later source schema. 79 is now qualified, and 80 is the refused one. COM-02.1 and COM-02.2 alone keep these two red tests, and this commit closes them before landing. The 111 mockup previews are rebuilt by `scripts/build-mockup-previews.mjs`, because `product.html` changed with SCN-134. `hub-upgrade-db.test.mjs` pins the 0.3.1 rehearsal to migrations 76–78 (`files.slice(75, 78)`) now that a 79th file exists.

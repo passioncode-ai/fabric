@@ -116,7 +116,7 @@ const tools = (await client.listTools()).tools.map((t) => t.name).sort()
 // below; this one is friction: adding a tool to a credentialed security surface
 // should require acknowledging it somewhere a reviewer looks, and two copies
 // that drift together would pass a check comparing only those two.
-const expected = ['fabric_agents_list','fabric_effect_report','fabric_effect_request','fabric_heartbeat','fabric_leases_list','fabric_memory_remember','fabric_memory_search','fabric_question_ask','fabric_question_check','fabric_stage_report','fabric_task_accept','fabric_task_brief','fabric_task_claim','fabric_task_create','fabric_task_handoff','fabric_task_link','fabric_task_move','fabric_task_note','fabric_task_release','fabric_tasks_list','fabric_transcripts_search','fabric_whoami']
+const expected = ['com.get','com.list','com.read_ack','com.status','com.submit','fabric_agents_list','fabric_effect_report','fabric_effect_request','fabric_heartbeat','fabric_leases_list','fabric_memory_remember','fabric_memory_search','fabric_question_ask','fabric_question_check','fabric_stage_report','fabric_task_accept','fabric_task_brief','fabric_task_claim','fabric_task_create','fabric_task_handoff','fabric_task_link','fabric_task_move','fabric_task_note','fabric_task_release','fabric_tasks_list','fabric_transcripts_search','fabric_whoami']
 // The count is COMPUTED from the list. Written beside it as a word, it is one
 // more number that can disagree with the thing it counts.
 if (JSON.stringify(tools) === JSON.stringify(expected))
@@ -1101,6 +1101,67 @@ const after = await fetch(surface.endpoint, {
 if (after.status === 401) ok('revoking the session closes its credential immediately')
 else fail('a revoked credential still got ' + after.status)
 
+{
+  // COM-02.2 — messaging between projects through the real surface and the board's real SQL (ADR-0117).
+  const callBoard = async (c, name, args) => {
+    const r = await c.callTool({ name: name, arguments: args })
+    return { isError: r.isError === true, body: JSON.parse(r.content[0].text) }
+  }
+  const senderScope = surface.mint(projectId, randomUUID(), null)
+  const sender = new Client({ name: 'board-sender', version: '0.0.0' })
+  await sender.connect(new StreamableHTTPClientTransport(new URL2(surface.endpoint), {
+    requestInit: { headers: { Authorization: 'Bearer ' + senderScope.token } }
+  }))
+  // The isolation block's project lives in its own scope; the board needs a target of its own.
+  const otherProject = randomUUID()
+  await journal.append({
+    estateId: ESTATE, type: 'project.created@1',
+    actor: { kind: 'system', id: 'surface-probe' }, projectId: otherProject,
+    payload: { id: otherProject, name: 'a board target' }
+  })
+  const otherScope = surface.mint(otherProject, randomUUID(), null)
+  const otherClient = new Client({ name: 'board-target', version: '0.0.0' })
+  await otherClient.connect(new StreamableHTTPClientTransport(new URL2(surface.endpoint), {
+    requestInit: { headers: { Authorization: 'Bearer ' + otherScope.token } }
+  }))
+  const thirdProject = randomUUID()
+  await journal.append({
+    estateId: ESTATE, type: 'project.created@1',
+    actor: { kind: 'system', id: 'surface-probe' }, projectId: thirdProject,
+    payload: { id: thirdProject, name: 'a third project' }
+  })
+  const thirdScope = surface.mint(thirdProject, randomUUID(), null)
+  const third = new Client({ name: 'board-third', version: '0.0.0' })
+  await third.connect(new StreamableHTTPClientTransport(new URL2(surface.endpoint), {
+    requestInit: { headers: { Authorization: 'Bearer ' + thirdScope.token } }
+  }))
+  const ask = { idempotency: { epoch: 1, key: 'probe-board-0001' }, thread: { new: { participants: [otherProject] } },
+    kind: 'request', body: { text: 'please look at the build' }, request: { target: otherProject, capability: 'probe.look' } }
+  const sent = await callBoard(sender, 'com.submit', ask)
+  sent.body.ok === true && !sent.isError ? ok('com.submit stores a request addressed to another project')
+    : fail('com.submit failed: ' + JSON.stringify(sent.body))
+  const again = await callBoard(sender, 'com.submit', ask)
+  again.body.message === sent.body.message && again.body.repeated === true ? ok('a retry with the same key returns the same message')
+    : fail('a retry did not return the same message: ' + JSON.stringify(again.body))
+  const inbox = await callBoard(otherClient, 'com.list', {})
+  const got = (inbox.body.messages || []).find((m) => m.id === sent.body.message)
+  got && got.sender.project === projectId && got.request.state === 'queued' && inbox.body.audience.project === otherProject
+    ? ok('the target project reads it, queued, with the sender taken from the session')
+    : fail('the target project did not read it: ' + JSON.stringify(inbox.body))
+  const outsider = await callBoard(third, 'com.list', {})
+  Array.isArray(outsider.body.messages) && outsider.body.messages.length === 0 ? ok('a project outside the thread reads nothing')
+    : fail('a project outside the thread read: ' + JSON.stringify(outsider.body))
+  const forged = await callBoard(sender, 'com.submit', Object.assign({}, ask, { idempotency: { epoch: 1, key: 'probe-board-0002' }, estate_id: ESTATE }))
+  forged.isError && forged.body.error && forged.body.error.code === 'invalid_arguments' ? ok('a forged estate field is refused, in the form the contract gives a refusal')
+    : fail('a forged field was not refused: ' + JSON.stringify(forged.body))
+  const unreadBefore = await callBoard(otherClient, 'com.status', {})
+  const acked = await callBoard(otherClient, 'com.read_ack', { message: sent.body.message })
+  const unreadAfter = await callBoard(otherClient, 'com.status', {})
+  unreadBefore.body.board.state === 'ready' && acked.body.ok === true && unreadAfter.body.unread === unreadBefore.body.unread - 1
+    ? ok('com.status is ready and an explicit read mark lowers the unread count by one')
+    : fail('status or read mark wrong: ' + JSON.stringify([unreadBefore.body, acked.body, unreadAfter.body]))
+  await sender.close(); await third.close(); await otherClient.close()
+}
 // cleanup
 await db.from('agent_stages').delete().eq('session_id', sessionId)
 await db.from('memory_facts').delete().eq('project_id', projectId)

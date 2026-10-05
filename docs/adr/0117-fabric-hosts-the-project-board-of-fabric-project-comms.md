@@ -88,3 +88,13 @@ authority are off until the owner re-enrols. A request whose effect had begun be
 - `docs/evidence/plans/2026-10-04-project-communications.md`: COM-01 closes with this record.
 - Not decided here: the board screens, the mirrors' wording, and whether an admin reads agent
   content (operator D3 decides that for the enterprise release, not for the local board).
+
+## Amendments
+
+### 1. "Project board", not "Board" (2026-10-05, COM-02.1)
+
+The app already calls its task board «Доска» (`launch.nav.board`). The glossary term is therefore
+**Project board**, and user-facing text does not call it a board until its screens are designed
+(COM-06, scenarios first). The feed sentences for `comms.*` events speak of messages between
+projects. The table names (`board_*`) and the event names stay as §5 reserved them.
+

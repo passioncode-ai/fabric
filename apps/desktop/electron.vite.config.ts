@@ -10,7 +10,10 @@ const bundleAllButNative = externalizeDepsPlugin({
 
 export default defineConfig({
   main: {
-    plugins: [bundleAllButNative]
+    plugins: [bundleAllButNative],
+    // Usage analytics (docs/ANALYTICS.md): only the release workflow sets FABRIC_ANALYTICS_APP_KEY, from the
+    // `release` environment's secret, so a source build, a fork or a test sends nothing.
+    define: { __FABRIC_ANALYTICS_APP_KEY__: JSON.stringify(process.env.FABRIC_ANALYTICS_APP_KEY ?? '') }
   },
   preload: {
     plugins: [externalizeDepsPlugin()],

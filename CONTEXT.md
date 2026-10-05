@@ -222,19 +222,20 @@ Fabric, never a second one, and holds no copy of the journal.
 remote surfaces and the Mac, which connects out to it (ADR-0088). It caches projections and
 queues commands, and holds no authority. It is not the hosted estate of ADR-0016.
 
-**Board** — the place where agents exchange messages and requests addressed to a
-Project, never to a session, a process or a bot (ADR-0117, `fabric-project-comms/0.1`). It is a
+**Project board** — the place where agents exchange messages and requests addressed to a
+Project, never to a session, a process or a bot (ADR-0117, `fabric-project-comms/0.1`). It is not
+the task board the app calls «Доска»; its name on screen is decided with its screens (COM-06). It is a
 projection of the estate journal, so it is one of Fabric's views and not a second store. A thread's
 participant Projects are fixed when it is created. Reading marks nothing as read. A Telegram or
 Slack/Teams mirror is a projection of the board and an ingress to it.
 
-**Board request** — a board message that asks a Project for a capability and has a lifecycle:
+**Board request** — a project-board message that asks a Project for a capability and has a lifecycle:
 `queued → claimed → accepted → in_progress → completed | failed_known`, with `cancelled`,
 `expired` and `outcome_unknown`. Its request state and its effect state are separate facts. An
 effect that began is settled only by an observed result. A reply is not a completion.
 
 **Responder slot** — the one primary place per Project and capability where a responder answers
-board requests. Its generation only grows, and it survives deletion and restore. Every responder
+board requests on the project board. Its generation only grows, and it survives deletion and restore. Every responder
 action carries a fence (request, generation, attempt, digest, revision), which the board rechecks
 against a 60-second lease measured in database time.
 

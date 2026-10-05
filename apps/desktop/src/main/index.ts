@@ -144,6 +144,8 @@ const AUTOMATION_WINDOW = 200
 import { type AnswerOption } from '../shared/answerCommit'
 import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
+import { createAnalytics, installationPath, type Analytics } from './analytics'
+import { homedir } from 'node:os'
 import { decideProposal } from './commands/proposalCommands.ts'
 import { withDeliveryHeader } from '../shared/deliveryState.ts'
 import { continuationText, routeContinuation, type ContinuationState } from '../shared/continuation.ts'
@@ -371,6 +373,10 @@ const WINDOW_CHROME = {
  * and took focus. Only a fresh launch carries arguments; an open of a running Fabric leaves it as it is.
  */
 const BACKGROUND_LAUNCH = process.argv.includes('--background')
+/** Injected by electron.vite.config.ts from FABRIC_ANALYTICS_APP_KEY at build time; empty in source builds. */
+declare const __FABRIC_ANALYTICS_APP_KEY__: string
+const ANALYTICS_APP_KEY: string | null = (typeof __FABRIC_ANALYTICS_APP_KEY__ === 'string' && __FABRIC_ANALYTICS_APP_KEY__) || null
+let analytics: Analytics | null = null
 /** Set once startup has registered everything a window needs; an activation before that waits for it. */
 let windowReady = false
 let activatedDuringStartup = false
@@ -601,6 +607,45 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     })
   } else { hubState.down = started.down; hubState.downCode = started.downCode; hubState.downFact = started.downFact }
   // #endregion hub-wiring
+
+  // #region usage-analytics-wiring — docs: docs/ANALYTICS.md#which-builds-send
+  // Counts only (passioncode-ai/fabric#12). The App Key exists only in a release build; any other build sends
+  // nothing and Settings shows the switch as unavailable.
+  analytics = createAnalytics({
+    appKey: ANALYTICS_APP_KEY,
+    appVersion: app.getVersion(),
+    packaged: app.isPackaged,
+    osName: process.platform === 'darwin' ? 'macOS' : process.platform === 'win32' ? 'Windows' : 'Linux',
+    installationFile: installationPath(process.platform, process.env, homedir()),
+    stateFile: path.join(app.getPath('userData'), 'analytics-state.json'),
+    fetch: (url, init) => fetch(url, init),
+    log: (line) => ops.record({ op: 'analytics.flush', outcome: line.outcome === 'sent' ? 'ok' : line.outcome === 'kept' ? 'unknown' : 'failed',
+      level: line.outcome === 'sent' ? 'info' : 'warn', detail: line, ctx: { correlationId: ops.correlate() } })
+  })
+  const usageCounts = async (): Promise<Record<string, number>> => {
+    const count = async (q: PromiseLike<{ count: number | null; error: unknown }>): Promise<number | null> => {
+      try { const r = await q; return r.error ? null : (r.count ?? null) } catch (e) {
+        ops.failed('analytics.count', e, { note: 'a usage count could not be read; it is left out of the event' }); return null
+      }
+    }
+    const [projects, products, agents] = await Promise.all([
+      count(db.from('projects').select('id', { count: 'exact', head: true }).eq('estate_id', ACTIVE_ESTATE).eq('status', 'active')),
+      count(db.from('product_connections').select('id', { count: 'exact', head: true }).eq('estate_id', ACTIVE_ESTATE).is('removed_at', null)),
+      count(db.from('access_bindings').select('id', { count: 'exact', head: true }).eq('estate_id', ACTIVE_ESTATE).is('revoked_at', null))
+    ])
+    // An unreadable count is absent, never a zero (an unknown stays unknown).
+    return Object.fromEntries(Object.entries({ projects, products_connected: products, agents_with_access: agents }).filter(([, v]) => v !== null)) as Record<string, number>
+  }
+  void usageCounts().then((c) => analytics?.started(BACKGROUND_LAUNCH ? 'background' : 'ordinary', c))
+  // One `app_active` per UTC day while Fabric runs; the hourly check also notices another app's switch.
+  const activeTimer = setInterval(() => {
+    if (!analytics || analytics.refresh() !== 'on') return
+    void usageCounts().then((c) => analytics?.activeTick(c))
+  }, 3600_000)
+  activeTimer.unref()
+  void usageCounts().then((c) => analytics?.activeTick(c))
+  quit.onQuit(() => { clearInterval(activeTimer); analytics?.stop() })
+  // #endregion usage-analytics-wiring
 
   // Every repository attached to any project in this estate. Rebuilt from the
   // projection rather than remembered, so a detach actually closes the door.
@@ -2973,6 +3018,15 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       })
     }
   )
+
+  // #region usage-analytics-ipc — docs: docs/ANALYTICS.md#the-shared-installation-id
+  handle(IPC.analyticsStatus, async (): Promise<Returns<FabricApi['analytics']['status']>> =>
+    ({ availability: analytics ? analytics.refresh() : (ANALYTICS_APP_KEY ? 'unavailable-file' : 'unavailable-no-key') }))
+  handle(IPC.analyticsSetEnabled, async (_e, enabled: unknown): Promise<Returns<FabricApi['analytics']['setEnabled']>> => {
+    if (typeof enabled !== 'boolean') throw new Error('analytics: the switch takes true or false')
+    return { availability: analytics ? analytics.setEnabled(enabled) : (ANALYTICS_APP_KEY ? 'unavailable-file' : 'unavailable-no-key') }
+  })
+  // #endregion usage-analytics-ipc
 
   // #region hub-ipc — docs: docs/ux/scenarios.md#scn-132-an-external-agent-asks-for-access-and-the-operator-decides
   /** Agent access (ADR-0115, SCR-52 → Agent access): what is waiting, what is granted, what is connected. */

@@ -19,6 +19,8 @@ export const en = {
   'event.product.connect.refused@1': 'a product declined or failed to connect to Fabric',
   'event.product.disconnected@1': 'a product was disconnected from Fabric',
   'event.hub.call.forwarded@1': 'an agent’s call was passed to a product',
+  'event.comms.message_submitted@1': 'a project sent a message to other projects',
+  'event.comms.read_acked@1': 'a project marked a message from another project as read',
   'digest.kind.capture': 'session captured',
   'digest.timeUnknown': 'time unknown',
   'transcripts.endingUnknown': 'Ending not observed',
@@ -760,6 +762,11 @@ export const en = {
   'power.always': 'Always',
   'power.while-working': 'While an agent is working',
   'power.never': 'Never',
+  'analytics.label': 'Share anonymous usage counts',
+  'analytics.note': 'Counts only: installs, days of use and how many projects, products and agents are connected. Never names, paths or content. One switch for every PassionCode app on this Mac.',
+  'analytics.noKey': 'This build sends nothing: only release builds share usage counts.',
+  'analytics.noFile': 'Usage counts are off: the shared PassionCode file could not be read, so nothing is sent.',
+  'analytics.unreadable': 'Whether usage counts are shared could not be read.',
   'power.note':
     'Stops the machine suspending; the screen still sleeps as usual. With the lid closed on battery macOS sleeps anyway.',
 

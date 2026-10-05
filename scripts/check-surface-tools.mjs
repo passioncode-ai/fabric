@@ -26,14 +26,16 @@ const root = new URL('..', import.meta.url).pathname
 const read = (p) => readFileSync(path.join(root, p), 'utf8')
 
 const DECLARED = 'apps/desktop/src/shared/surfaceTools.ts'
+// The project board's tools (COM-02.2) register in their own module; both files are the surface.
 const REGISTERED = 'apps/desktop/src/main/agentSurface.ts'
+const REGISTERED_BOARD = 'apps/desktop/src/main/boardTools.ts'
 
 const problems = []
 const notes = []
 
 // ── what the panel declares ────────────────────────────────────────────────
 const declaredSource = read(DECLARED)
-const declared = [...declaredSource.matchAll(/name:\s*'(fabric_[a-z_]+)'/g)].map((m) => m[1])
+const declared = [...declaredSource.matchAll(/name:\s*'(fabric_[a-z_]+|com\.[a-z_]+)'/g)].map((m) => m[1])
 if (declared.length === 0)
   problems.push(`${DECLARED} declares no tools in a shape this gate can read — it has lost its subject`)
 
@@ -42,9 +44,9 @@ if (declared.length === 0)
 // `registerTool` is called with the name as its first argument, on the line
 // after the call opens. Matched together rather than counted separately: two
 // counts that agree can still be two different sets.
-const registeredSource = read(REGISTERED)
+const registeredSource = read(REGISTERED) + '\n' + read(REGISTERED_BOARD)
 const registered = [
-  ...registeredSource.matchAll(/server\.registerTool\(\s*\n?\s*'(fabric_[a-z_]+)'/g)
+  ...registeredSource.matchAll(/server\.registerTool\(\s*\n?\s*'(fabric_[a-z_]+|com\.[a-z_]+)'/g)
 ].map((m) => m[1])
 if (registered.length === 0)
   problems.push(`${REGISTERED} registers no tools in a shape this gate can read — it has lost half its subject`)

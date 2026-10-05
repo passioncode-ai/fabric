@@ -150,6 +150,9 @@ an existing database automatically. The 0.3.1 candidate's compiled contract admi
 (the number of applied migration files); the newest migration's filename ends in **80** because
 other work reserved filenames. Do not use `max(version)` or a filename suffix as schema readiness.
 The actual guard is `public.schema_version()` against [the compiled schema contract](../../apps/desktop/src/shared/schemaContract.json).
+`main` after the 0.3.1 release commit admits schema **79**: `20261005000081_project_board.sql`, the project
+board's core (ADR-0117, COM-02.1). A build from `main` therefore refuses a database at 78 until the next
+release's upgrade, which is the same procedure with 79 in place of 78. Installed 0.3.1 keeps requiring 78.
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath

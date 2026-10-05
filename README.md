@@ -286,10 +286,10 @@ is running, prints the list so far with the number of suites it never reached, a
 with exit 124 and the command named, so a hung probe cannot keep the tier running forever. A command
 ended by a signal exits 128 plus that signal's number.
 
-Sixteen owned-cluster runners (`apps/desktop/test/run-*-db.mjs` and `run-ceo-host-sql.mjs`) each own a
+Seventeen owned-cluster runners (`apps/desktop/test/run-*-db.mjs` and `run-ceo-host-sql.mjs`) each own a
 temporary PostgreSQL cluster. They need PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default
 `/opt/homebrew/opt/postgresql@17/bin`). Four (`run-estate-identity-db`, `run-read-schema-db`,
-`run-function-privileges-db`, `run-hub-access-db`) run in the fast tier; the other twelve run first in the full tier; every one runs, and the step fails at the end naming each that did not
+`run-function-privileges-db`, `run-hub-access-db`) run in the fast tier; the other thirteen run first in the full tier; every one runs, and the step fails at the end naming each that did not
 pass.
 
 ### Test residue in the live database
@@ -313,6 +313,13 @@ still exists.
 node scripts/residue-report.mjs            # the live stack, from supabase/config.toml
 node scripts/residue-report.mjs --json     # machine-readable
 ```
+
+## Usage analytics
+
+A release build of Fabric sends anonymous usage counts: installs, days of use, and how many projects, products
+and agents are connected. It never sends names, paths, ids or content. One switch, Settings → *Share
+anonymous usage counts*, turns this off for every PassionCode app on the Mac. Source builds send nothing. What
+is sent, where and how: [docs/ANALYTICS.md](docs/ANALYTICS.md).
 
 ## License
 
