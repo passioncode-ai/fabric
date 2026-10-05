@@ -88,6 +88,9 @@ export interface SessionBundle {
   args: string[]
   /** Extra environment (`config-content-env`): the session config, credential included. */
   env?: Record<string, string>
+  /** `acp-session`: the program actually started (Fabric's ACP shell) and its arguments, in place
+   *  of the agent's binary; the agent runs inside it. */
+  command?: { program: string; args: string[] }
 }
 
 export interface BundleCompiler {
@@ -328,7 +331,7 @@ export class PtyManager {
     let pty: IPty
     try {
       if (beforeSpawn && !await beforeSpawn()) throw new Error('launch authority changed')
-      pty = this.spawn(program, [...(bundle?.args ?? []), ...verdict.args], {
+      pty = this.spawn(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args], {
         name: 'xterm-256color',
         cols: 120,
         rows: 32,

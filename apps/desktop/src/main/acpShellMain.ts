@@ -12,8 +12,10 @@ if (!command.length || !raw) {
   process.exit(2)
 }
 const spec = JSON.parse(raw) as AcpSessionSpec
-// Neither the agent nor anything it starts inherits the session document.
+// Neither the agent nor anything it starts inherits the session document, nor the switch that made
+// Electron's binary run this shell as Node (an Electron-based tool the agent starts would break).
 delete process.env.FABRIC_ACP_SESSION
+delete process.env.ELECTRON_RUN_AS_NODE
 const code = await runAcpShell(spec, {
   input: process.stdin,
   output: process.stdout,

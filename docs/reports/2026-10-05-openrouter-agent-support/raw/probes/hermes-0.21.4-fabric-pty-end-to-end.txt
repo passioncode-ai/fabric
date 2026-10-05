@@ -1,0 +1,6 @@
+runner: hermes (mode ask)
+command: node --experimental-strip-types acpShellMain.ts -- hermes acp
+pty exit: 0
+terminal (Fabric lines):
+Fabric: connected through the stdio bridge; sending the session brief.
+server: {"refused":0,"served":4}

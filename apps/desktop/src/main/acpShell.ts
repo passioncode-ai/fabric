@@ -58,6 +58,8 @@ export interface AcpShellIo {
 export const ACP_PROTOCOL_VERSION = 1
 const FRAME_LIMIT = 4 * 1024 * 1024
 const REQUEST_TIMEOUT_MS = 120_000
+/** A browser sign-in takes a person minutes, not a request's two. */
+const AUTH_TIMEOUT_MS = 15 * 60_000
 const KILL_GRACE_MS = 3000
 
 type Json = Record<string, unknown>
@@ -105,6 +107,12 @@ export function describeUpdate(update: unknown): string | null {
     default:
       return null
   }
+}
+
+/** ACP's "authentication required" refusal: code -32000, or a message saying so (agents differ). */
+export function isAuthRequired(error: unknown): boolean {
+  const e = error as { code?: unknown; message?: unknown } | null
+  return e?.code === -32000 || /auth(entication|enticate)? required|call authenticate/i.test(String(e?.message ?? ''))
 }
 
 /** A minimal JSON-RPC 2.0 peer over newline-delimited JSON, bounded per frame. */
@@ -155,10 +163,10 @@ function peer(proc: AgentProcess, handlers: {
     handlers.closed()
   })
   return {
-    request(method: string, params: unknown): Promise<unknown> {
+    request(method: string, params: unknown, timeoutMs: number = REQUEST_TIMEOUT_MS): Promise<unknown> {
       const id = ++serial
       return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => { pending.delete(id); reject(new Error(`${method} did not answer`)) }, REQUEST_TIMEOUT_MS)
+        const timer = setTimeout(() => { pending.delete(id); reject(new Error(`${method} did not answer`)) }, timeoutMs)
         pending.set(id, { resolve, reject, timer })
         send({ id, method, params })
       })
@@ -236,17 +244,35 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
     return stop(2)
   }
   const surface = surfaceFor(init, spec)
-  try {
+  const openSession = async (): Promise<string | null> => {
     const created = await rpc.request('session/new', { cwd: spec.cwd ?? process.cwd(), mcpServers: [surface] })
-    sessionId = record(created) && typeof created.sessionId === 'string' ? created.sessionId : null
-    if (!sessionId) throw new Error('no session id')
-  } catch (error) {
-    const methods = record(init) && Array.isArray(init.authMethods) ? init.authMethods.filter(record) : []
-    const hint = methods.map((m) => String(m.description ?? m.name ?? '')).filter(Boolean).join('; ')
-    out(`\nThe agent did not open a session${error instanceof Error && error.message ? `: ${error.message}` : ''}.` +
-      (hint ? `\nIt may need you to sign in first: ${hint}.` : '') + '\n')
-    return stop(3)
+    return record(created) && typeof created.sessionId === 'string' ? created.sessionId : null
   }
+  const methods = record(init) && Array.isArray(init.authMethods) ? init.authMethods.filter(record) : []
+  try {
+    sessionId = await openSession()
+  } catch (error) {
+    // ACP's sign-in: the agent refuses `session/new` until `authenticate` names one of its methods.
+    // The PERSON picks the method here; Fabric never signs in on their behalf.
+    if (!isAuthRequired(error) || methods.length === 0) {
+      out(`\nThe agent did not open a session${error instanceof Error && error.message ? `: ${error.message}` : ''}.\n`)
+      return stop(3)
+    }
+    out(`\nThe agent asks you to sign in before the session opens:\n` +
+      methods.map((m, i) => `  ${i + 1}. ${String(m.name ?? m.id)}${m.description ? ` — ${String(m.description)}` : ''}`).join('\n') +
+      `\nType a number to sign in that way, or press Enter to close the session: `)
+    const pick = Number.parseInt((await nextLine()) ?? '', 10)
+    const method = methods[pick - 1]
+    if (!method || typeof method.id !== 'string') { out('\nThe session was not opened.\n'); return stop(3) }
+    try {
+      await rpc.request('authenticate', { methodId: method.id }, AUTH_TIMEOUT_MS)
+      sessionId = await openSession()
+    } catch (again) {
+      out(`\nSigning in did not open a session${again instanceof Error && again.message ? `: ${again.message}` : ''}.\n`)
+      return stop(3)
+    }
+  }
+  if (!sessionId) { out('\nThe agent opened no session (no session id).\n'); return stop(3) }
   out(`\x1b[2mFabric: connected through ${'type' in surface ? 'HTTP' : 'the stdio bridge'}; sending the session brief.\x1b[22m\n`)
 
   let turn: Promise<unknown> | null = null

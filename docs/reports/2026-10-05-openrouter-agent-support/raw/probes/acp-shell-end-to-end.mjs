@@ -7,7 +7,7 @@ import { spawn } from 'node:child_process'
 import { copyFileSync, rmSync } from 'node:fs'
 import path from 'node:path'
 const desktop = process.cwd(), [agent, ...agentArgs] = process.argv.slice(2)
-const token = 'tok-e2e-' + process.pid, port = 47900 + (process.pid % 90)
+const token = 'tok-e2e-' + process.pid, port = 48600 + (process.pid % 300)
 const serverFile = path.join(desktop, '.probe-mcp-server.mjs')
 copyFileSync(path.join(import.meta.dirname, 'probe-mcp-server.mjs'), serverFile)
 const server = spawn(process.execPath, [serverFile], { cwd: desktop, env: { ...process.env, PROBE_TOKEN: token, PROBE_PORT: String(port) }, stdio: ['ignore', 'pipe', 'inherit'] })

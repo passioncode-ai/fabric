@@ -71,7 +71,7 @@ export interface PermissionMode {
  * adapter before anyone has written it, and the launch refuses rather than
  * quietly borrowing the flags of whoever went first.
  */
-export type SurfaceAdapter = 'mcp-config-flag' | 'config-content-env' | 'none' | 'unimplemented'
+export type SurfaceAdapter = 'mcp-config-flag' | 'config-content-env' | 'acp-session' | 'none' | 'unimplemented'
 
 /**
  * `config-content-env` (ADR-0119): the runner reads a whole config document from one
@@ -106,6 +106,12 @@ export interface AgentDescriptor {
   surfaceAdapter: SurfaceAdapter
   /** Required by `config-content-env`: where and in which dialect the session config goes. */
   surfaceConfig?: SurfaceConfig
+  /**
+   * Required by `acp-session` (ADR-0119 §1): the arguments that put `program` in its Agent Client
+   * Protocol mode, and the environment it needs there. Fabric's ACP terminal shell starts it with
+   * these and opens the session; `program` stays the binary the machine is checked for.
+   */
+  acp?: { args: readonly string[]; env?: Readonly<Record<string, string>> }
   /**
    * The channel a result comes BACK on (PF-10.01) — the capability that makes
    * an agent an EXECUTOR, not just a process that ran. `surface`: the live
@@ -222,6 +228,45 @@ export const AGENTS: readonly AgentDescriptor[] = [
         warnKey: 'agent.mode.bypassWarn'
       }
     ]
+  },
+  {
+    // P-10 / ADR-0119: driven over ACP by Fabric's terminal shell. Hermes 0.21.4 declares no HTTP
+    // MCP, so its session gets Fabric's stdio bridge; probed end to end on 2026-10-05: through the
+    // bridge it made 4 authorised requests to a bearer-checking surface (report
+    // `raw/probes/hermes-0.21.4-acp-shell-end-to-end.txt`). HERMES_ACP_SKIP_CONFIGURED_MCP keeps the
+    // person's own Hermes MCP servers out of the session, as --strict-mcp-config does for Claude.
+    id: 'hermes',
+    label: 'Hermes Agent',
+    program: 'hermes',
+    description: 'An agent session in the project directory, connected to Fabric',
+    connectsToSurface: true,
+    surfaceAdapter: 'acp-session',
+    acp: { args: ['acp'], env: { HERMES_ACP_SKIP_CONFIGURED_MCP: '1' } },
+    resultChannel: 'surface',
+    defaultMode: 'ask',
+    permissionModes: [
+      // The shell puts each permission the agent asks for to the person at the terminal.
+      { id: 'ask', labelKey: 'agent.mode.ask', args: [], containment: 'runner-gated', config: { acpMode: 'ask' } },
+      { id: 'bypass', labelKey: 'agent.mode.bypass', args: [], containment: 'none', config: { acpMode: 'bypass' }, warnKey: 'agent.mode.bypassWarn' }
+    ]
+  },
+  {
+    // P-10 / ADR-0119: Cline 3.0.46 answers ACP `initialize` (`cline --acp`, probed 2026-10-05) and
+    // declares no HTTP MCP, so it would take the stdio bridge like Hermes. NOT connected yet: its
+    // `session/new` asks for sign-in first, no run here got past it, and on this machine the `cline`
+    // package vanished twice after a run (report `raw/probes/README.txt`). Until a probe connects it,
+    // it runs as itself, like Codex: no surface, and no permission modes — outside ACP its TUI
+    // approves tools on its own (`--auto-approve` defaults to true), so it carries no gate to name.
+    id: 'cline',
+    label: 'Cline',
+    program: 'cline',
+    description: 'A coding agent in the project directory. Not connected to Fabric yet: its ACP session has not been opened on a probed build',
+    connectsToSurface: false,
+    surfaceAdapter: 'none',
+    acp: { args: ['--acp'] },
+    resultChannel: 'none',
+    defaultMode: null,
+    permissionModes: []
   },
   {
     id: 'shell',

@@ -380,6 +380,41 @@ else {
   else fail('discarding the Kilo bundle left the credential or the directory')
 }
 
+// ADR-0119 / P-10 — an ACP runner: the PTY runs Fabric's ACP shell, the agent runs inside it, and the
+// session document (credential included) travels only in FABRIC_ACP_SESSION.
+{
+  const sidH = randomUUID()
+  const h = await bundles.compile(sidH, randomUUID(), null, 'hermes', 'acp-session', null, { acpMode: 'ask' })
+  const argv = h?.command ? [h.command.program, ...h.command.args] : []
+  const sep = argv.indexOf('--')
+  if (sep > 0 && argv[1] === '--experimental-strip-types' && argv[2].endsWith('acpShellMain.ts') && JSON.stringify(argv.slice(sep + 1)) === JSON.stringify(['hermes', 'acp']))
+    ok('the terminal runs the ACP shell, which starts hermes in its ACP mode')
+  else fail('the ACP command is wrong: ' + JSON.stringify(argv))
+  if (!JSON.stringify(argv).includes('tok-')) ok('and no credential is in any argument')
+  else fail('a credential reached argv: ' + JSON.stringify(argv))
+  let spec = null
+  try { spec = JSON.parse(h.env.FABRIC_ACP_SESSION) } catch { /* reported below */ }
+  if (spec && spec.http.url === surface.endpoint && spec.http.headers[0].value === 'Bearer tok-' + sidH && spec.mode === 'ask')
+    ok('the session document carries the surface with the bearer of this session, in ask mode')
+  else fail('the ACP session document is wrong: ' + JSON.stringify(spec))
+  const bridgeEnv = Object.fromEntries((spec?.stdio?.env ?? []).map((e) => [e.name, e.value]))
+  if (spec && path.isAbsolute(spec.stdio.command) && spec.stdio.args.some((a) => a.endsWith('mcpStdioBridgeMain.ts')) && bridgeEnv.FABRIC_BRIDGE_AUTHORIZATION === 'Bearer tok-' + sidH && !spec.stdio.args.join(' ').includes('tok-'))
+    ok('and the stdio bridge it offers an agent without HTTP MCP takes the bearer from its environment')
+  else fail('the bridge entry is wrong: ' + JSON.stringify(spec?.stdio))
+  if (h.env.HERMES_ACP_SKIP_CONFIGURED_MCP === '1') ok('and Hermes skips its own configured MCP servers, as --strict-mcp-config does')
+  else fail('HERMES_ACP_SKIP_CONFIGURED_MCP is not set')
+  const sidB = randomUUID()
+  const b = await bundles.compile(sidB, randomUUID(), null, 'hermes', 'acp-session', null, { acpMode: 'bypass' })
+  if (JSON.parse(b.env.FABRIC_ACP_SESSION).mode === 'bypass') ok('a bypass mode reaches the shell as bypass')
+  else fail('the bypass mode did not reach the shell')
+  bundles.discard(sidB)
+  let refusedCline = null
+  try { await bundles.compile(randomUUID(), randomUUID(), null, 'cline', 'acp-session') } catch (e) { refusedCline = String(e) }
+  if (refusedCline && refusedCline.includes('not a ready Fabric executor')) ok('Cline, not yet connected on a probed build, is refused the surface')
+  else fail('Cline was handed the surface before a probe connected it: ' + refusedCline)
+  bundles.discard(sidH)
+}
+
 // HAR-R0-01 — compilation owns cleanup until it returns a bundle. These
 // faults hit the real filesystem functions, including partial writes, rather
 // than assuming that PtyManager will receive a bundle when compile rejects.

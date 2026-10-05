@@ -140,3 +140,19 @@ Kilo 7.4.17 (`raw/probes/kilo-7.4.17-config-precedence.txt`): a project `kilo.js
 session's permissions, or point the `fabric` name at another URL that inherits its Authorization header.
 Kilo's own default allows every tool, so its `ask` mode sets the permissions rather than inheriting
 them, and a mode whose config allows everything is declared `none` (`check-containment.mjs` rule 3).
+
+### Amendment 2 — 2026-10-05: the ACP shell is the launch path, and sign-in is the person's
+
+§1's driver runs as Fabric's **ACP terminal shell** (`apps/desktop/src/main/acpShell.ts`) inside the
+session's PTY, so an ACP runner appears exactly where Claude Code and Kilo do, with no new window. The
+adapter is `acp-session`; the shell and the stdio bridge (`mcpStdioBridge.ts`) ship as entries of the main
+bundle and run under Electron as Node (`helperProcess.ts`). When an agent's `session/new` answers
+"authentication required", the shell lists the agent's own sign-in methods and calls `authenticate` only
+for the one the person picks; it never signs in on its own.
+
+Probed on 2026-10-05 through the real launch path (bundle compiler → node-pty → shell → agent → bridge →
+a bearer-checking MCP server; `raw/probes/fabric-pty-acp-end-to-end.mjs`): **Hermes Agent 0.21.4** declares
+no HTTP MCP, took the bridge, and made 4 authorised requests (`raw/probes/hermes-0.21.4-fabric-pty-end-to-end.txt`).
+It is the first runner connected over ACP. **Cline 3.0.46** answers `initialize` but asks for sign-in before
+any session, and its package vanished twice on this machine after a run; it stays a not-connected runner
+until a probe opens its session (§4).

@@ -9,6 +9,9 @@ const send = (m) => process.stdout.write(JSON.stringify({ jsonrpc: '2.0', ...m }
 let serial = 1000
 const waiting = new Map()
 let cancelled = null
+let signedIn = process.env.FAKE_ACP_AUTH !== '1'
+// FAKE_ACP_STUBBORN=1: an agent that ignores end of input and SIGTERM, as some CLIs do.
+if (process.env.FAKE_ACP_STUBBORN === '1') process.on('SIGTERM', () => record({ signal: 'SIGTERM ignored' }))
 const ask = (method, params) => new Promise((resolve) => { const id = ++serial; waiting.set(id, resolve); send({ id, method, params }) })
 const update = (sessionId, text) => send({ method: 'session/update', params: { sessionId, update: { sessionUpdate: 'agent_message_chunk', content: { type: 'text', text } } } })
 createInterface({ input: process.stdin }).on('line', async (line) => {
@@ -17,8 +20,11 @@ createInterface({ input: process.stdin }).on('line', async (line) => {
   record({ method: m.method, params: m.params })
   if (m.method === 'session/cancel') { cancelled?.(); return }
   if (m.method === 'initialize')
-    return send({ id: m.id, result: { protocolVersion: 1, agentCapabilities: { loadSession: false, mcpCapabilities: process.env.FAKE_ACP_HTTP === '1' ? { http: true } : {} }, authMethods: [] } })
-  if (m.method === 'session/new') return send({ id: m.id, result: { sessionId: 'sess-fixture' } })
+    return send({ id: m.id, result: { protocolVersion: 1, agentCapabilities: { loadSession: false, mcpCapabilities: process.env.FAKE_ACP_HTTP === '1' ? { http: true } : {} },
+      authMethods: process.env.FAKE_ACP_AUTH === '1' ? [{ id: 'fixture-login', name: 'Sign in to the fixture', description: 'a browser sign-in' }] : [] } })
+  if (m.method === 'authenticate') { signedIn = m.params?.methodId === 'fixture-login'; return send({ id: m.id, result: {} }) }
+  if (m.method === 'session/new')
+    return signedIn ? send({ id: m.id, result: { sessionId: 'sess-fixture' } }) : send({ id: m.id, error: { code: -32000, message: 'Authentication required' } })
   if (m.method === 'session/prompt') {
     const text = m.params.prompt.map((b) => b.text ?? '').join('')
     if (text.includes('WRITE')) {
@@ -38,4 +44,4 @@ createInterface({ input: process.stdin }).on('line', async (line) => {
     return send({ id: m.id, result: { stopReason: 'end_turn' } })
   }
   if (m.id !== undefined) send({ id: m.id, error: { code: -32601, message: 'unknown method' } })
-}).on('close', () => process.exit(0))
+}).on('close', () => { if (process.env.FAKE_ACP_STUBBORN !== '1') process.exit(0); else setInterval(() => {}, 1000) })

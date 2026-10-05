@@ -18,6 +18,7 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { type SurfaceAdapter, describeAgent, executorReadiness } from '../shared/agents.ts'
 import { sessionConfig } from '../shared/sessionConfig.ts'
+import { helperCommand } from './helperProcess.ts'
 import { PREAMBLE } from '../shared/preamble.ts'
 import { redact } from '../shared/redact.ts'
 import { describeRefusals, planServers, type DeclaredServer, type GatewayFacts } from '../shared/servers.ts'
@@ -273,6 +274,40 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
                   })
                 )
               }
+            }
+          }
+          case 'acp-session': {
+            // ADR-0119 §1/§2, P-10: the PTY runs Fabric's ACP terminal shell, which starts the agent
+            // in its ACP mode and opens the session with Fabric's surface — over HTTP when the agent
+            // declares it, else through Fabric's stdio bridge. The session document (credential
+            // included) travels in FABRIC_ACP_SESSION; neither program sees it in an argument, and
+            // each removes it from its own environment once read.
+            const descriptor = describeAgent(optionId)
+            if (!descriptor?.acp || !descriptor.program)
+              throw new Error(`${optionId} declares acp-session but names no ACP mode`)
+            const shell = helperCommand('acp-shell')
+            const bridge = helperCommand('mcp-bridge')
+            const authorization = `Bearer ${scope.token}`
+            const spec = {
+              http: { type: 'http', name: 'fabric', url: deps.surface.endpoint, headers: [{ name: 'Authorization', value: authorization }] },
+              stdio: {
+                name: 'fabric',
+                command: bridge.program,
+                args: bridge.args,
+                env: [
+                  ...Object.entries(bridge.env).map(([name, value]) => ({ name, value })),
+                  { name: 'FABRIC_BRIDGE_URL', value: deps.surface.endpoint },
+                  { name: 'FABRIC_BRIDGE_AUTHORIZATION', value: authorization }
+                ]
+              },
+              brief: agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE,
+              mode: modeConfig?.acpMode === 'bypass' ? 'bypass' : 'ask'
+            }
+            return {
+              dir,
+              args: [],
+              command: { program: shell.program, args: [...shell.args, '--', descriptor.program, ...descriptor.acp.args] },
+              env: { ...shell.env, ...(descriptor.acp.env ?? {}), FABRIC_ACP_SESSION: JSON.stringify(spec) }
             }
           }
           case 'none':

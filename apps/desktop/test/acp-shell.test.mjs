@@ -7,7 +7,7 @@ import { mkdtempSync, readFileSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { PassThrough } from 'node:stream'
-import { runAcpShell, surfaceFor, automaticChoice, answeredChoice, describeUpdate } from '../src/main/acpShell.ts'
+import { runAcpShell, surfaceFor, automaticChoice, answeredChoice, describeUpdate, isAuthRequired } from '../src/main/acpShell.ts'
 
 const AGENT = path.join(import.meta.dirname, 'fixtures/acp-fake-agent.mjs')
 const TOKEN = 'tok-session-credential'
@@ -21,7 +21,7 @@ const spec = (over = {}) => ({
 })
 const live = new Set()
 test.afterEach(() => { for (const end of live) end(); live.clear() })
-const session = (s, { http = true } = {}) => {
+const session = (s, { http = true, env = {} } = {}) => {
   const dir = mkdtempSync(path.join(tmpdir(), 'acp-shell-'))
   const recordFile = path.join(dir, 'record.jsonl')
   const input = new PassThrough(), output = new PassThrough()
@@ -34,7 +34,7 @@ const session = (s, { http = true } = {}) => {
     input, output,
     onInterrupt: (l) => { interrupt = l },
     spawnAgent() {
-      child = spawn(process.execPath, [AGENT], { env: { ...process.env, FAKE_ACP_RECORD: recordFile, FAKE_ACP_HTTP: http ? '1' : '0' }, stdio: ['pipe', 'pipe', 'pipe'] })
+      child = spawn(process.execPath, [AGENT], { env: { ...process.env, FAKE_ACP_RECORD: recordFile, FAKE_ACP_HTTP: http ? '1' : '0', ...env }, stdio: ['pipe', 'pipe', 'pipe'] })
       argv = child.spawnargs
       return { stdin: child.stdin, stdout: child.stdout, stderr: child.stderr, kill: (sig) => child.kill(sig), onExit: (l) => child.on('exit', l) }
     }
@@ -102,6 +102,34 @@ test('Ctrl-C during a turn cancels that turn and the session goes on', async () 
   s.input.end(); await s.done
 })
 
+test('an agent that requires sign-in lists its methods; the person picks one and the session opens', async () => {
+  const s = session(spec(), { env: { FAKE_ACP_AUTH: '1' } })
+  await s.until(() => s.shown().includes('Type a number to sign in'), 'the sign-in choice')
+  assert.match(s.shown(), /1\. Sign in to the fixture — a browser sign-in/)
+  s.input.write('1\n')
+  await s.until(() => s.shown().includes('echo:BRIEF'), 'the brief turn after signing in')
+  assert.deepEqual(s.recorded().find((r) => r.method === 'authenticate').params, { methodId: 'fixture-login' })
+  s.input.end(); assert.equal(await s.done, 0)
+})
+
+test('declining to sign in closes the session with its own exit code, and nothing signs in for the person', async () => {
+  const s = session(spec(), { env: { FAKE_ACP_AUTH: '1' } })
+  await s.until(() => s.shown().includes('Type a number to sign in'), 'the sign-in choice')
+  s.input.write('\n')
+  assert.equal(await s.done, 3)
+  assert.equal(s.recorded().filter((r) => r.method === 'authenticate').length, 0)
+})
+
+test('an agent that ignores end of input and SIGTERM is still ended: the shell does not hang', async () => {
+  const s = session(spec(), { env: { FAKE_ACP_STUBBORN: '1' } })
+  await s.until(() => s.shown().includes('echo:BRIEF'), 'the brief turn')
+  const started = Date.now()
+  s.input.end()
+  assert.equal(await s.done, 0)
+  assert.ok(Date.now() - started < 9000, 'ended within the SIGTERM and SIGKILL grace')
+  assert.ok(s.recorded().some((r) => r.signal), 'it was asked politely first')
+})
+
 test('the small rules: surface choice, automatic choice, answers and what is printed', () => {
   assert.deepEqual(surfaceFor({ agentCapabilities: { mcpCapabilities: { http: true } } }, spec()), spec().http)
   assert.deepEqual(surfaceFor({ agentCapabilities: { mcpCapabilities: { sse: true } } }, spec()), spec().stdio)
@@ -114,5 +142,8 @@ test('the small rules: surface choice, automatic choice, answers and what is pri
   assert.equal(describeUpdate({ sessionUpdate: 'agent_message_chunk', content: { type: 'text', text: 'hi' } }), 'hi')
   assert.match(describeUpdate({ sessionUpdate: 'tool_call', title: 'Read a.md', status: 'pending' }), /Read a\.md/)
   assert.equal(describeUpdate({ sessionUpdate: 'available_commands_update' }), null)
+  assert.equal(isAuthRequired({ code: -32000, message: 'x' }), true)
+  assert.equal(isAuthRequired(new Error('Authentication required: Call authenticate before creating a session.')), true)
+  assert.equal(isAuthRequired(new Error('session/new did not answer')), false)
 })
 // #endregion acp-shell

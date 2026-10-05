@@ -95,6 +95,24 @@ describe('the agent registry', () => {
     expect(describeAgent('kilo')?.permissionModes.find((m) => m.id === 'bypass')?.containment).toBe('none')
   })
 
+  it('an ACP runner names the mode that puts its program in ACP, and asks the person by default (ADR-0119)', () => {
+    for (const agent of AGENTS)
+      if (agent.surfaceAdapter === 'acp-session') {
+        expect(agent.acp?.args.length, `${agent.id} names no ACP arguments`).toBeGreaterThan(0)
+        expect(agent.connectsToSurface).toBe(true)
+      }
+    expect(describeAgent('hermes')?.acp).toEqual({ args: ['acp'], env: { HERMES_ACP_SKIP_CONFIGURED_MCP: '1' } })
+    const ask = mayLaunch('hermes', null)
+    expect(ask.ok && ask.config).toEqual({ acpMode: 'ask' })
+  })
+
+  it('Cline is listed but not connected until a probe opens its ACP session', () => {
+    const cline = describeAgent('cline')
+    expect(cline?.connectsToSurface).toBe(false)
+    expect(cline?.surfaceAdapter).toBe('none')
+    expect(cline?.permissionModes).toEqual([])
+  })
+
   it('a flag-only runner hands no session config', () => {
     const verdict = mayLaunch('claude-code', 'plan')
     expect(verdict.ok && verdict.config).toBe(null)

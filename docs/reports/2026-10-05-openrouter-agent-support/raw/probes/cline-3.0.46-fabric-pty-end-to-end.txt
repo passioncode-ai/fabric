@@ -1,0 +1,6 @@
+runner: cline (mode ask)
+command: node --experimental-strip-types acpShellMain.ts -- cline --acp
+pty exit: killed
+terminal (Fabric lines):
+Fabric could not start an ACP session with this agent: it did not answer `initialize`.
+server: {"refused":0,"served":0}

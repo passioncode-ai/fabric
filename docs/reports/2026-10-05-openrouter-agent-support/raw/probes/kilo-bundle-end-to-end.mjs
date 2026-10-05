@@ -9,7 +9,7 @@ import { randomUUID } from 'node:crypto'
 const desktop = process.cwd()
 const { createBundleCompiler } = await import(path.join(desktop, 'src/main/sessionBundle.ts'))
 const { mayLaunch } = await import(path.join(desktop, 'src/shared/agents.ts'))
-const port = 47998, sid = randomUUID(), token = 'tok-' + sid
+const port = 48950 + (process.pid % 40), sid = randomUUID(), token = 'tok-' + sid
 // The server imports the MCP SDK, which resolves from the desktop package, so it runs from there.
 const serverFile = path.join(desktop, '.probe-mcp-server.mjs')
 copyFileSync(path.join(import.meta.dirname, 'probe-mcp-server.mjs'), serverFile)
