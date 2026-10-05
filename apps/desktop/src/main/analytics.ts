@@ -115,6 +115,17 @@ export function cleanProps(props: Record<string, unknown>): Props {
 }
 
 interface QueuedEvent { timestamp: string; sessionId: string; eventName: string; systemProps: Record<string, unknown>; props: Props; at: number }
+/**
+ * sshlg-growth's contract (its report 2026-10-05-analytics-platform-review, decision 3): it counts
+ * installs by `props.iid` and keeps only events whose `props.environment` is `production` or
+ * `sandbox`. A release build of a release version is `production`; a development build, or a
+ * version with a pre-release suffix (`0.3.2-rc.1`), is `sandbox`. Same rule as Switchboard
+ * (fabric-switchboard#75, `has_prerelease`).
+ */
+export function environmentFor(version: string, packaged: boolean): 'production' | 'sandbox' {
+  return packaged && !/^\d+\.\d+\.\d+-/.test(version) ? 'production' : 'sandbox'
+}
+
 export interface AnalyticsState { installed_at?: string; last_active_day?: string }
 export type FetchLike = (url: string, init: { method: string; headers: Record<string, string>; body: string; signal?: AbortSignal }) => Promise<{ status: number }>
 
@@ -122,6 +133,8 @@ export interface AnalyticsDeps {
   /** Only a release build has one (injected at build time); without it nothing is ever sent. */
   appKey: string | null
   appVersion: string
+  /** Whether this is an installed app rather than a development run (`app.isPackaged`). */
+  packaged?: boolean
   osName: string
   osVersion?: string
   installationFile: string
@@ -178,7 +191,7 @@ export function createAnalytics(deps: AnalyticsDeps) {
     queue.push({
       timestamp: at.toISOString(), sessionId, eventName, at: at.getTime(),
       systemProps: { isDebug: false, osName: deps.osName, ...(deps.osVersion ? { osVersion: deps.osVersion } : {}), appVersion: deps.appVersion, sdkVersion: SDK_VERSION },
-      props: { ...cleanProps(props), install_id: installation.id }
+      props: { ...cleanProps(props), install_id: installation.id, iid: installation.id, environment: environmentFor(deps.appVersion, deps.packaged ?? true) }
     })
     if (queue.length > QUEUE_MAX) queue = queue.slice(queue.length - QUEUE_MAX)
     schedule(0)

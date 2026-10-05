@@ -8,7 +8,7 @@ import path from 'node:path'
 import { spawn } from 'node:child_process'
 import {
   createAnalytics, readOrCreateInstallation, writeAnalyticsSwitch, installationPath, cleanProps,
-  BATCH_MAX, QUEUE_MAX, RETRY_DELAYS_MS
+  BATCH_MAX, QUEUE_MAX, RETRY_DELAYS_MS, environmentFor
 } from '../src/main/analytics.ts'
 
 const dir = () => mkdtempSync(path.join(tmpdir(), 'fabric-analytics-'))
@@ -94,7 +94,16 @@ test('events carry counts and the installation id, never a planted name, path, e
   assert.equal(e.eventName, 'project_added'); assert.equal(e.props.projects, 3); assert.equal(e.props.kind, 'folder')
   assert.equal(e.props.install_id, a.installId()); assert.equal(e.systemProps.isDebug, false); assert.equal(e.systemProps.sdkVersion, 'fabric-analytics@1')
   assert.match(e.sessionId, /^\d{18}$/)
+  assert.equal(e.props.iid, a.installId(), 'sshlg-growth counts installs by props.iid')
+  assert.equal(e.props.environment, 'production', 'a packaged release version is production')
   rmSync(d, { recursive: true, force: true })
+})
+
+test('environment: production only for an installed release version, sandbox otherwise (sshlg-growth decision 3)', () => {
+  assert.equal(environmentFor('0.3.2', true), 'production')
+  assert.equal(environmentFor('0.3.2-rc.1', true), 'sandbox')
+  assert.equal(environmentFor('0.3.2-beta.2', true), 'sandbox')
+  assert.equal(environmentFor('0.3.2', false), 'sandbox', 'a development run is sandbox')
 })
 
 test('cleanProps keeps numbers, booleans and known kinds only — a short lower-case name is still a name', () => {

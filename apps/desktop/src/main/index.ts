@@ -614,6 +614,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   analytics = createAnalytics({
     appKey: ANALYTICS_APP_KEY,
     appVersion: app.getVersion(),
+    packaged: app.isPackaged,
     osName: process.platform === 'darwin' ? 'macOS' : process.platform === 'win32' ? 'Windows' : 'Linux',
     installationFile: installationPath(process.platform, process.env, homedir()),
     stateFile: path.join(app.getPath('userData'), 'analytics-state.json'),

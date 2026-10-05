@@ -20,7 +20,13 @@ Every event carries:
 - the app version and the OS name;
 - an SDK tag (`fabric-analytics@1`);
 - an Aptabase session id;
-- `props.install_id`, the shared installation id below.
+- `props.install_id`, the shared installation id below, and the same value again as `props.iid`: the
+  organization's analytics (sshlg-growth) counts installs by `iid`;
+- `props.environment`: `production` for an installed release version, `sandbox` for a development run or a
+  version with a pre-release suffix (`0.3.2-rc.1`). sshlg-growth keeps only these two values
+  (its report 2026-10-05-analytics-platform-review, decision 3; Switchboard does the same,
+  fabric-switchboard#75). `environmentFor` in `analytics.ts`, test "environment: production only for an
+  installed release version, sandbox otherwise".
 
 Nothing else identifies the machine or the person.
 
@@ -33,7 +39,7 @@ Nothing else identifies the machine or the person.
 A count Fabric cannot read is left out of the event, never sent as zero.
 
 **Never sent:** project, agent, product or person names; e-mail addresses; paths; ids other than
-`install_id`; message or task content; provider answers or errors. Props pass `cleanProps`, which keeps only
+`install_id` (sent twice, as `install_id` and `iid`); message or task content; provider answers or errors. Props pass `cleanProps`, which keeps only
 finite numbers, booleans, and strings from a fixed list of kinds (`KNOWN_KINDS`): a free string could carry a
 name however short it looks. The test "events carry counts and the installation id, never a planted name,
 path, e-mail or id" (`apps/desktop/test/analytics.test.mjs`) plants all four and fails if any reaches the
