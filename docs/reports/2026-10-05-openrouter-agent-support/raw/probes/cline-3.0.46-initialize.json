@@ -1,0 +1,29 @@
+{
+ "jsonrpc": "2.0",
+ "id": 1,
+ "result": {
+  "protocolVersion": 1,
+  "agentCapabilities": {
+   "loadSession": true,
+   "promptCapabilities": {
+    "image": true,
+    "audio": false,
+    "embeddedContext": false
+   }
+  },
+  "agentInfo": {
+   "name": "cline",
+   "version": "3.0.46"
+  },
+  "authMethods": [
+   {
+    "id": "cline",
+    "name": "Sign in with Cline"
+   },
+   {
+    "id": "openai-codex",
+    "name": "Sign in with ChatGPT Subscription"
+   }
+  ]
+ }
+}

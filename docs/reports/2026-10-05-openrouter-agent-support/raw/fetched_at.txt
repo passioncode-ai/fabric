@@ -1,0 +1,5 @@
+source: curl -sL -A 'Mozilla/5.0' https://openrouter.ai/apps
+fetched_at: 2026-10-05T11:32:39Z (apps.html mtime, UTC)
+73832c71be3848b1564e2d97675b86d849ad339bfde4a5f2adaedac6eeee8e10  apps.html
+apps.data.json = the {data:{popular,trending,leaderboards,globalRankingMap}} object decoded from the page's self.__next_f RSC payload
+ranking-*-top200.csv = globalRankingMap.{day,week,month}; share = tokens / sum(top-200 tokens), NOT share of all OpenRouter traffic
