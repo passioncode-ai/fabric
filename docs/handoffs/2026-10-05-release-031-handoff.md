@@ -22,6 +22,7 @@ workspace publication working, and remove stale worktrees and branches.
 
 - `scripts/ci.sh full` at `469b4bc6` (the verified candidate), workspace submodule synced: exit 0, 878 s.
 - `scripts/ci.sh fast` at `b07d4e74`: exit 0. At `c9e8a467`: exit 0.
+- `ci.sh full` at `24d8ea6c` (the temporary-root change) stopped at load average 103 on `quit.test.mjs` "…startup-failure dialog open still quits on SIGTERM": the fixture printed `quit-app: exit 0`, but Electron's native teardown outlived the test's 45 s. The same file passed alone right after (12/12, the dialog case in 9 s, with TMPDIR under `/tmp`). It is recorded as a load flake; the full tier was rerun before landing (see MERGES).
 - At the release commit `0b6dd1d0` itself, `ci.sh fast` stopped on the CO-209 test, which turned false at that commit by design. The commit cannot carry the fix: it may change only release metadata. `b07d4e74` fixes the test.
 - Gate, changelog and verified-candidate checks at `0b6dd1d0`: `[]`, `null`, `null`.
 
@@ -61,7 +62,7 @@ Every one was an ancestor of main, or `git merge-tree --write-tree origin/main <
 | codex/hub-i3-fixes-20261004, agent/p08-converge-20261004, agent/p08-i3-fixes-20261005, agent/p08-i3-round2-20261005, agent/post-release-031, agent/prowl-prereqs-landing | ancestors of main |
 | agent/prowl-prereqs-20261004 | `d4195c1d` (its change re-applied as `3347f232`) |
 
-Kept: `codex/com01-contract-candidate-20261004` (`ac230309`). It is a work-in-progress COM-01 contract draft whose README links files that do not exist. It is raw input for the COM-01 owner, not something to land. Also kept: `agent/release-0.3.1` (`0b6dd1d0`, already on main), until the tag exists.
+Removed after COM-01's acceptance: `codex/com01-contract-candidate-20261004` (`ac230309326f5cc9f69d4038e3b6f57cb1411205`). It was a work-in-progress contract draft with broken links, and the operator accepted COM-01 the same morning as DEC-0022 in fabric-agent-contract (`d4c8831`), which supersedes it. Kept: `agent/release-0.3.1` (`0b6dd1d0`, already on main), until the tag exists.
 
 One correction is on record. A first pass deleted twelve branches that still differed from main: a zsh loop never split the file list, so the comparison always read "no difference". All twelve were restored at their exact tips within minutes and then judged one by one. Eleven were superseded, and one (co193) carried the single line restored here.
 
@@ -69,15 +70,16 @@ One correction is on record. A first pass deleted twelve branches that still dif
 
 1. Push the tag and approve the release: `git tag -a v0.3.1 0b6dd1d0 -m "Fabric 0.3.1" && git push origin v0.3.1`, then approve the `release` environment as a release-approver. CI signs, notarizes and publishes.
 2. Install 0.3.1. Only after that, upgrade the database to schema 78 per `docs/launch/release-mac.md` (backup with the PostgreSQL 17 client first). CO-198 still lacks rehearsal commands.
-3. The decisions carried in the register: CO-177, CO-178, CO-202 (restored standing denial), and the rank of the Prowl rows AR-3.7…AR-3.11 against later work.
+3. The decisions still carried in the register: CO-177, CO-178, CO-202 (restored standing denial), and the rank of the Prowl rows AR-3.7…AR-3.11 against later work. D1–D5 and COM-01 were decided on 2026-10-05; the record is fabric-workspace `4dcf3ee` (`knowledge/plans.md`).
 
 ## Open — agent work, in order
 
 1. After the tag: CO-197, the knowledge pages say 0.3.1 is released (a `fabric-workspace` PR), then `node scripts/workspace.mjs publish`.
-2. CO-179: restyle the New project form (SCR-73) through sheleg-design, before 0.3.2.
-3. 0.3.2 candidates by their own rows: CO-206 (deadline on hub database calls), CO-199 (migration filename order, before any migration with suffix 78/79), CO-200, CO-203, CO-205, CO-207.
-4. The general development plan's Now line (`docs/evidence/backlog.md#general-development-plan`).
+2. COM-02, the durable board and project mailbox (P0). COM-01 is accepted, so it is Fabric's next product step; COM-03 follows.
+3. CO-179: restyle the New project form (SCR-73) through sheleg-design, before 0.3.2.
+4. 0.3.2 candidates by their own rows: CO-206 (deadline on hub database calls), CO-199 (migration filename order, before any migration with suffix 78/79), CO-200, CO-203, CO-205, CO-207.
+5. The general development plan's Now line (`docs/evidence/backlog.md#general-development-plan`).
 
 ## Next task
 
-Run `python3 ~/.local/share/observatory-agent-updates/agent_updates.py check`, read `docs/evidence/backlog.md#general-development-plan`, and take the first agent item above whose prerequisite is met. CO-179 needs no operator step.
+Run `python3 ~/.local/share/observatory-agent-updates/agent_updates.py check`, read `docs/evidence/backlog.md#general-development-plan`, and take the first agent item above whose prerequisite is met. COM-02 and CO-179 need no operator step.

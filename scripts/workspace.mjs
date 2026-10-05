@@ -100,8 +100,27 @@ if(cmd==='status'){
   await run('git',['add','--force','content'],child);await run('git',['commit','-m','Publish Fabric source '+source.slice(0,12)],child)
  }
  verifyCommittedSnapshot(child)
+ // #region workspace-publish-race — docs: docs/architecture/report-workspace.md#publication-races
+ // The gates above take minutes; other sessions commit to the workspace's knowledge/ meanwhile, and
+ // twice on 2026-10-05 the push was rejected after the whole run. A remote that moved only OUTSIDE
+ // content/ is integrated (this commit re-applied on top, then the workspace's own checks again);
+ // one that touched content/ is another publication and is refused. Three attempts, then the error.
+ for(let attempt=1;;attempt++){
+  await run('git',['fetch','origin','main'],child)
+  if(git(child,'rev-list','--count','HEAD..origin/main').toString().trim()!=='0'){
+   const moved=git(child,'diff','--name-only','HEAD...origin/main').toString().split('\n').filter(Boolean)
+   const owned=moved.filter(f=>f==='content'||f.startsWith('content/'))
+   if(owned.length)throw Error('Another publication changed the workspace content while this one ran ('+owned.slice(0,3).join(', ')+'); re-run publish')
+   console.log('The workspace main moved outside content/ during the gates ('+moved.length+' file(s)); re-applying this publication on top')
+   await run('git',['rebase','-q','origin/main'],child)
+   verifyCommittedSnapshot(child)
+   await run('npm',['test'],child)
+   await run('npm',['run','verify:content'],child)
+  }
+  try{await run('git',['push','origin','main'],child);break}catch(e){if(attempt>=3)throw e;console.log('The workspace push was rejected; integrating again ('+attempt+'/3)')}
+ }
+ // #endregion workspace-publish-race
  const ws=git(child,'rev-parse','HEAD').toString().trim()
- await run('git',['push','origin','main'],child)
  await run('git',['push','heroku','main'],child)
  const m=JSON.parse(readFileSync(path.join(child,'content/manifest.json'),'utf8'))
  const verified=await verifyDeployment(c,{source_commit:source,workspace_commit:ws,content_digest:m.content_digest,sources:m.sources??[]})

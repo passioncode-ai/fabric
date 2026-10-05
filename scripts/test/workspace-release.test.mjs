@@ -45,7 +45,9 @@ test('actual publisher resumes a failed parent push without creating a second sn
   served={source:{repository:'https://github.com/passioncode-ai/fabric',commit:source},content_digest:s.manifest.content_digest,deployment:{workspace_commit:ws,release:'v12'}}
   assert.equal(completedPublication(root).source_commit,source);assert.equal(publicationSource(root,child),source)
   write('fake-bin/heroku',`#!/usr/bin/env node\nconst a=process.argv.slice(2);if(a[0]==='config:get')console.log(a[1]==='WORKSPACE_USER'?'fixture':'fixture-test-password');else console.log(JSON.stringify({status:'succeeded',current:true,version:12}));\n`);chmodSync(path.join(root,'fake-bin/heroku'),0o755)
-  write('fake-bin/npm','#!/bin/sh\nexit 0\n');chmodSync(path.join(root,'fake-bin/npm'),0o755)
+  // `npm test` in the workspace doubles as the moment another session commits to it (the race below).
+  const race=path.join(root,'fake-bin/race.sh')
+  write('fake-bin/npm','#!/bin/sh\nif [ -f '+race+' ]; then sh '+race+' || exit 1; rm -f '+race+'; fi\nexit 0\n');chmodSync(path.join(root,'fake-bin/npm'),0o755)
   const run=(resume=true)=>new Promise(resolve=>{const p=spawn(process.execPath,['scripts/workspace.mjs','publish',...(resume?['--resume']:[])],{cwd:root,env:{...process.env,FABRIC_WORKSPACE_STATE_DIR:stateDir,PATH:path.join(root,'fake-bin')+path.delimiter+process.env.PATH}});let out='';p.stdout.on('data',b=>out+=b);p.stderr.on('data',b=>out+=b);p.on('close',code=>resolve({code,out}))})
   git(root,'remote','add','origin',path.join(root,'nonexistent-remote'))
   const failed=await run();assert.notEqual(failed.code,0);assert.equal(git(root,'rev-parse','HEAD').toString().trim(),parent)
@@ -64,6 +66,26 @@ test('actual publisher resumes a failed parent push without creating a second sn
   const hostPublished=await run(false);assert.equal(hostPublished.code,0,hostPublished.out)
   const hostReceipt=JSON.parse(readFileSync(path.join(root,receiptPath),'utf8'));assert.equal(hostReceipt.source_commit,source);assert.equal(hostReceipt.workspace_commit,host);assert.equal(git(child,'rev-parse','HEAD').toString().trim(),host)
   assert.equal(git(root,'status','--porcelain').toString().trim(),'')
+  // 2026-10-05: another session committed to the workspace's knowledge/ while the gates ran, and the push was
+  // rejected after the whole run — twice. Outside content/ the publication now re-applies itself on top.
+  const other=mkdtempSync(path.join(tmpdir(),'fabric-other-session-'));git(other,'clone','-q',childRemote,'.');git(other,'config','user.name','Other');git(other,'config','user.email','other@example.invalid')
+  const otherCommit=(file,text)=>`cd ${other} && git pull -q origin main && mkdir -p $(dirname ${file}) && printf '%s' '${text}' > ${file} && git add -A && git -c core.hooksPath=/dev/null -c commit.gpgsign=false commit -qm other && git push -q origin HEAD:main\n`
+  Object.defineProperty(served.deployment,'workspace_commit',{enumerable:true,configurable:true,get:()=>git(heroku,'rev-parse','main').toString().trim()})
+  write('workspace/server.mjs','// a second reviewed host change');commit(child)
+  writeFileSync(race,otherCommit('knowledge/decisions.md','D1 accepted'))
+  const raced=await run(false);assert.equal(raced.code,0,raced.out);assert.match(raced.out,/moved outside content\/ during the gates/)
+  const afterRace=git(child,'rev-parse','HEAD').toString().trim()
+  assert.equal(git(childRemote,'rev-parse','main').toString().trim(),afterRace)
+  assert.equal(readFileSync(path.join(child,'knowledge/decisions.md'),'utf8'),'D1 accepted','the other session\'s commit is kept, not overwritten')
+  assert.equal(JSON.parse(readFileSync(path.join(root,receiptPath),'utf8')).workspace_commit,afterRace)
+  assert.equal(git(root,'status','--porcelain').toString().trim(),'')
+  // A remote change INSIDE content/ is a second publication: refused, and nothing of ours is pushed.
+  write('workspace/server.mjs','// a third reviewed host change');commit(child)
+  writeFileSync(race,otherCommit('content/stray.md','not ours'))
+  const refused=await run(false);assert.notEqual(refused.code,0);assert.match(refused.out,/Another publication changed the workspace content/)
+  assert.equal(git(childRemote,'rev-parse','main').toString().trim(),git(other,'rev-parse','HEAD').toString().trim(),'the remote holds the other publication, not ours')
+  git(child,'fetch','-q','origin');git(child,'reset','-q','--hard','origin/main')
+  Object.defineProperty(served.deployment,'workspace_commit',{enumerable:true,configurable:true,writable:true,value:git(heroku,'rev-parse','main').toString().trim()})
   const canonical=JSON.parse(readFileSync(path.join(child,'content/manifest.json'),'utf8'))
   for(const patch of [{schema:999},{source:{...canonical.source,repository:'https://wrong.example'}},{exported_at:undefined}]){
    write('workspace/content/manifest.json',JSON.stringify({...canonical,...patch}));const bad=commit(child);write(receiptPath,JSON.stringify({...hostReceipt,workspace_commit:bad}));commit(root)

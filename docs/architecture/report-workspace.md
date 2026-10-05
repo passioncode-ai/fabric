@@ -157,6 +157,17 @@ A push that loses a race with another session fails the run; the next run starts
 | A tool repository moved on | `lag` reports `within-grace` / `stale` | `node scripts/workspace.mjs publish` |
 | A source's history rewritten under its pin | `lag` reports `diverged` | inspect that repository, then publish its new tip |
 | Rollback | previous host + snapshot restored together | follow workspace deployment runbook, retain Git history |
+| The workspace's `main` moved while the gates ran (another session committed knowledge) | outside `content/`: the publication is re-applied on top, the workspace's checks run again and the push is retried, up to three times; inside `content/`: refused as another publication | nothing when integrated; otherwise rerun publish |
+
+### Publication races
+
+A publication fetches the workspace at its start and pushes after the gates, minutes later
+(`scripts/workspace.mjs#workspace-publish-race`). Other sessions commit to the workspace's
+`knowledge/` in that window. Twice on 2026-10-05 the push was rejected after a full run. Such
+commits never touch `content/`, which only a publication writes, so the publisher fetches again
+right before its push and re-applies its commit on top of theirs. It then verifies the committed
+snapshot and runs the workspace's own `npm test` and `verify:content` again before pushing. A
+remote change inside `content/` means a second publication ran, and the publisher refuses.
 
 The source, published snapshot and runtime release are three different revisions. A green
 HTTP health response alone does not identify the running version. No database-backed
