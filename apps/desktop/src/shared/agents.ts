@@ -48,6 +48,13 @@ export interface PermissionMode {
    * into silence would spend the reader's trust once and keep nothing.
    */
   warnKey?: string
+  /**
+   * For a runner told about Fabric through a per-session config (`config-content-env`):
+   * the fragment this mode adds to that config. Kilo's permissions live there, not in
+   * a flag, so its gate is declared here and `check-containment.mjs` reads it: a
+   * fragment that allows everything (`'*': 'allow'`) is declared `none`.
+   */
+  config?: Readonly<Record<string, unknown>>
 }
 
 /**
@@ -64,7 +71,23 @@ export interface PermissionMode {
  * adapter before anyone has written it, and the launch refuses rather than
  * quietly borrowing the flags of whoever went first.
  */
-export type SurfaceAdapter = 'mcp-config-flag' | 'none' | 'unimplemented'
+export type SurfaceAdapter = 'mcp-config-flag' | 'config-content-env' | 'acp-session' | 'none' | 'unimplemented'
+
+/**
+ * `config-content-env` (ADR-0119): the runner reads a whole config document from one
+ * environment variable, and that document outranks the project's own config file —
+ * MEASURED, not assumed: Kilo 7.4.17 lets a project `kilo.json` override `KILO_CONFIG`
+ * (a file) but not `KILO_CONFIG_CONTENT` (`kilo debug config`, 2026-10-05, report
+ * `raw/probes/kilo-7.4.17-config-precedence.txt`). Through the file, a project could
+ * loosen the session's permissions or point Fabric's server name at another URL that
+ * then inherits its authorization header; through the content variable it can do neither.
+ */
+export interface SurfaceConfig {
+  /** The variable holding the session's config document. */
+  env: string
+  /** Whose config dialect the document is written in. */
+  format: 'kilo'
+}
 
 export interface AgentDescriptor {
   id: string
@@ -81,6 +104,14 @@ export interface AgentDescriptor {
    * branch in the bundle compiler.
    */
   surfaceAdapter: SurfaceAdapter
+  /** Required by `config-content-env`: where and in which dialect the session config goes. */
+  surfaceConfig?: SurfaceConfig
+  /**
+   * Required by `acp-session` (ADR-0119 §1): the arguments that put `program` in its Agent Client
+   * Protocol mode, and the environment it needs there. Fabric's ACP terminal shell starts it with
+   * these and opens the session; `program` stays the binary the machine is checked for.
+   */
+  acp?: { args: readonly string[]; env?: Readonly<Record<string, string>> }
   /**
    * The channel a result comes BACK on (PF-10.01) — the capability that makes
    * an agent an EXECUTOR, not just a process that ran. `surface`: the live
@@ -159,6 +190,80 @@ export const AGENTS: readonly AgentDescriptor[] = [
     // is NOT a ready Fabric executor: it runs in the directory but cannot
     // register claim/handoff/memory. When the packet transport lands, this
     // becomes 'packet' and the row gains a trusted-transport check — not before.
+    resultChannel: 'none',
+    defaultMode: null,
+    permissionModes: []
+  },
+  {
+    // P-10 / ADR-0119: the first runner connected without Claude Code's flags. Kilo's TUI in
+    // the project directory, told about Fabric by a session config in KILO_CONFIG_CONTENT
+    // (see `SurfaceConfig` for why the content variable and not the file). Probed on Kilo
+    // 7.4.17: the remote MCP entry with its bearer header connects, and a wrong bearer reads
+    // "needs authentication" (report `raw/probes/kilo-7.4.17-mcp-list.txt`).
+    id: 'kilo',
+    label: 'Kilo Code',
+    program: 'kilo',
+    description: 'An agent session in the project directory, connected to Fabric',
+    connectsToSurface: true,
+    surfaceAdapter: 'config-content-env',
+    surfaceConfig: { env: 'KILO_CONFIG_CONTENT', format: 'kilo' },
+    resultChannel: 'surface',
+    defaultMode: 'ask',
+    permissionModes: [
+      // Kilo's own default allows every tool ("*": {"*": "allow"}, measured), so asking is
+      // something this mode SETS, not something it inherits.
+      {
+        id: 'ask',
+        labelKey: 'agent.mode.ask',
+        args: [],
+        containment: 'runner-gated',
+        config: { permission: { edit: 'ask', bash: 'ask', webfetch: 'ask', external_directory: 'ask' } }
+      },
+      {
+        id: 'bypass',
+        labelKey: 'agent.mode.bypass',
+        args: [],
+        containment: 'none',
+        config: { permission: { '*': 'allow' } },
+        warnKey: 'agent.mode.bypassWarn'
+      }
+    ]
+  },
+  {
+    // P-10 / ADR-0119: driven over ACP by Fabric's terminal shell. Hermes 0.21.4 declares no HTTP
+    // MCP, so its session gets Fabric's stdio bridge; probed end to end on 2026-10-05: through the
+    // bridge it made 4 authorised requests to a bearer-checking surface (report
+    // `raw/probes/hermes-0.21.4-acp-shell-end-to-end.txt`). HERMES_ACP_SKIP_CONFIGURED_MCP keeps the
+    // person's own Hermes MCP servers out of the session, as --strict-mcp-config does for Claude.
+    id: 'hermes',
+    label: 'Hermes Agent',
+    program: 'hermes',
+    description: 'An agent session in the project directory, connected to Fabric',
+    connectsToSurface: true,
+    surfaceAdapter: 'acp-session',
+    acp: { args: ['acp'], env: { HERMES_ACP_SKIP_CONFIGURED_MCP: '1' } },
+    resultChannel: 'surface',
+    defaultMode: 'ask',
+    permissionModes: [
+      // The shell puts each permission the agent asks for to the person at the terminal.
+      { id: 'ask', labelKey: 'agent.mode.ask', args: [], containment: 'runner-gated', config: { acpMode: 'ask' } },
+      { id: 'bypass', labelKey: 'agent.mode.bypass', args: [], containment: 'none', config: { acpMode: 'bypass' }, warnKey: 'agent.mode.bypassWarn' }
+    ]
+  },
+  {
+    // P-10 / ADR-0119: Cline 3.0.46 answers ACP `initialize` (`cline --acp`, probed 2026-10-05) and
+    // declares no HTTP MCP, so it would take the stdio bridge like Hermes. NOT connected yet: its
+    // `session/new` asks for sign-in first, no run here got past it, and on this machine the `cline`
+    // package vanished twice after a run (report `raw/probes/README.txt`). Until a probe connects it,
+    // it runs as itself, like Codex: no surface, and no permission modes — outside ACP its TUI
+    // approves tools on its own (`--auto-approve` defaults to true), so it carries no gate to name.
+    id: 'cline',
+    label: 'Cline',
+    program: 'cline',
+    description: 'A coding agent in the project directory. Not connected to Fabric yet: its ACP session has not been opened on a probed build',
+    connectsToSurface: false,
+    surfaceAdapter: 'none',
+    acp: { args: ['--acp'] },
     resultChannel: 'none',
     defaultMode: null,
     permissionModes: []
@@ -288,7 +393,9 @@ export function verifyHandoff(
   return { status: 'verified', actualLoad: e.loadedDigest, toolCall: e.toolCall, result: 'current' }
 }
 
-export type ModeVerdict = { ok: true; args: readonly string[] } | { ok: false; reason: string }
+export type ModeVerdict =
+  | { ok: true; args: readonly string[]; config: Readonly<Record<string, unknown>> | null }
+  | { ok: false; reason: string }
 
 /**
  * Whether a session may open in this mode, and with what arguments.
@@ -300,10 +407,10 @@ export type ModeVerdict = { ok: true; args: readonly string[] } | { ok: false; r
 export function mayLaunch(agentId: string, modeId: string | null): ModeVerdict {
   const agent = describeAgent(agentId)
   if (!agent) return { ok: false, reason: `unknown agent: ${agentId}` }
-  if (agent.permissionModes.length === 0) return { ok: true, args: [] }
+  if (agent.permissionModes.length === 0) return { ok: true, args: [], config: null }
   const wanted = modeId ?? agent.defaultMode
   const mode = agent.permissionModes.find((m) => m.id === wanted)
   if (!mode) return { ok: false, reason: `${agent.label} has no mode called ${String(wanted)}` }
   if (mode.blockedKey) return { ok: false, reason: mode.blockedKey }
-  return { ok: true, args: mode.args }
+  return { ok: true, args: mode.args, config: mode.config ?? null }
 }

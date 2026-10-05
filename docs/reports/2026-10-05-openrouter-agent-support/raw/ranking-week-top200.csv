@@ -1,0 +1,201 @@
+position,openrouter_rank_field,title,slug,origin_url,categories,total_tokens,share_of_top200_pct,total_requests
+1,2,Hermes Agent,hermes-agent,https://hermes-agent.nousresearch.com/,personal-agent;cli-agent,13956003073896,20.049,133254050
+2,3,Kilo Code,kilo-code,https://kilocode.ai/,cli-agent;ide-extension,7797861228577,11.202,84886881
+3,4,Claude Code,claude-code,https://claude.ai/code,cli-agent,7604295922664,10.924,73215819
+4,5,Cline,cline,https://cline.bot/,ide-extension;cli-agent,7237845145938,10.398,47717485
+5,8,Codex,codex,https://openai.com/codex/,cli-agent,4512268338838,6.482,53220847
+6,9,omp,,https://omp.sh/,cli-agent,3671554324898,5.274,27872365
+7,10,Freebuff,,https://freebuff.com/,,3284806205890,4.719,22279592
+8,11,pi,pi,https://pi.dev/,cli-agent,3254098757841,4.675,29211357
+9,12,Command Code,,https://commandcode.ai/,programming-app;cli-agent;ide-extension;native-app-builder;personal-agent,2748392502377,3.948,32518837
+10,13,DeepSeek Harness,,https://github.com/deepseek-ai/deepseek-harness,,1829785344231,2.629,11621550
+11,14,OpenClaw,openclaw,https://openclaw.ai/,personal-agent;cli-agent,1387603463701,1.993,18132253
+12,17,OpenHands,openhands,https://docs.all-hands.dev/,cli-agent,798078750858,1.147,7696154
+13,18,ZCode,,https://zcode.z.ai/,programming-app,763252550465,1.096,3741745
+14,19,Strix,,https://strix.ai/,cli-agent,572738474906,0.823,4919888
+15,20,ISEKAI ZERO,isekai-zero,https://www.isekai.world/,game,490008391588,0.704,8569159
+16,22,HighLevel,,https://www.gohighlevel.com/,,450542129635,0.647,7766366
+17,23,Lemonade,lemonade,https://lemonade.gg/,programming-app,398403922565,0.572,7186723
+18,24,Nous Research API,nous-research-api,https://api.nousresearch.com/,general-chat,381671634021,0.548,23476293
+19,25,Proto Agent,,https://proto.erp.ai/,personal-agent;general-chat;cli-agent;programming-app;native-app-builder,319183575812,0.459,734336
+20,26,"Hello Minds, powered by Ethoswarm",,https://www.hellominds.ai/,roleplay;personal-agent;creative-writing,317945248111,0.457,2079664
+21,27,Descript,descript,https://descript.com/,video-gen,264418693138,0.38,5373915
+22,28,Cursor,,https://cursor.com/,programming-app;cli-agent,259454494737,0.373,1819217
+23,29,Zed Editor,zed-editor,https://zed.dev/,programming-app,258266701068,0.371,1479037
+24,30,LangChain,langchain,https://docs.langchain.com/,,245352465641,0.352,13009056
+25,31,Janitor AI,janitor-ai,https://janitorai.com/,roleplay,226224165281,0.325,13691495
+26,32,CodeGPT,,https://codegpt.co/,ide-extension;cli-agent;cloud-agent,218974682009,0.315,1645238
+27,33,Aura.agent2.verification_observation_agent,,https://geniusplugin.vercel.app/,,211986195402,0.305,1813519
+28,34,Letta,letta,https://letta.com/,cli-agent;cloud-agent,195840105035,0.281,816664
+29,36,Framer,framer,https://www.framer.com/,,191784597682,0.276,2266436
+30,37,Instaplay,,https://instaplay.ai/,game,165604914599,0.238,643036
+31,38,Craft,craft-rpgs,https://craftrpgs.com/,roleplay;game;creative-writing;writing-assistant,162333559900,0.233,6808463
+32,39,MavenBio,,https://mavenbio.io/,,144261546356,0.207,1955789
+33,40,Portkey AI,portkey-ai,https://portkey.ai/,programming-app,142770052506,0.205,17140740
+34,41,HackerAI,,https://hackerai.co/,,140639698164,0.202,2742845
+35,43,Zoo Code,,https://github.com/Zoo-Code-Org/Zoo-Code,,123864594779,0.178,1071096
+36,44,claude-mem,,https://github.com/thedotmack/claude-mem,,123608576769,0.178,3104872
+37,45,goose,,https://goose-docs.ai/,cloud-agent;cli-agent;programming-app,110411559910,0.159,1122746
+38,46,Open WebUI,open-webui,https://openwebui.com/,general-chat,105063926029,0.151,2004886
+39,47,Mira,mira,https://mira.tg/,personal-agent;video-gen,103556959913,0.149,6650500
+40,48,Websim Builder,,https://websim.com/,,100272101747,0.144,2459860
+41,49,GDevelop,gdevelop,https://gdevelop.io/,native-app-builder,99634821068,0.143,1665114
+42,50,ai-copilot-prod,,https://git.xtools.tv/ml/ai-copilot-prod,,97010093154,0.139,595818
+43,51,Digen AI,,https://agent.digen.ai/,cli-agent;video-gen;cloud-agent,90419702587,0.13,6028038
+44,52,VVV Easy Agent,,https://vvveasy.com/,,89620053632,0.129,2428525
+45,53,gentity-fleet,,https://rootteam.co.jp/,,89495446093,0.129,1305375
+46,54,Chess Reasoner Trace Generator,,https://github.com/chess-reasoner,,87711568688,0.126,23566415
+47,55,SillyTavern,sillytavern,https://sillytavern.app/,roleplay,87413485341,0.126,4419513
+48,57,Hello Haven,,https://hellohaven.ai/,personal-agent,77703910035,0.112,2909623
+49,58,mimocode,,https://mimo.xiaomi.com/coder,programming-app;cli-agent,75086304454,0.108,381734
+50,59,jcode,,https://github.com/jcode,,67937929929,0.098,415503
+51,61,svrn case harness,,https://svrnassetmanager-production.up.railway.app/,,65849790478,0.095,239460
+52,62,Ito,ito,https://www.ito.ai/,cloud-agent,63052874072,0.091,1694200
+53,63,Roo Code,roo-code,https://github.com/RooVetGit/Roo-Cline,ide-extension;cloud-agent,61020490552,0.088,372813
+54,65,Chatbox AI,,https://chatboxai.app/,general-chat,58558549633,0.084,1926524
+55,68,extra.email,extra-email,https://extra.email/,writing-assistant;personal-agent,52681214244,0.076,3555841
+56,69,Trenzel,,https://trenzel.com/,cli-agent,50166382954,0.072,222071
+57,70,nanobot,nanobot,https://github.com/HKUDS/nanobot,personal-agent,49041084541,0.07,543151
+58,72,Halluna,,https://halluna.ai/,roleplay;general-chat,47579997587,0.068,4298975
+59,73,BobAI agents,,https://bobai.puntt.ai/app/BobAI%20agents,,47549669060,0.068,285444
+60,74,Crush,,https://charm.land/,cli-agent,47325413409,0.068,247662
+61,75,Landingsite,,https://app.landingsite.ai/,,47176700950,0.068,284820
+62,76,Context7,,https://context7.com/,,46131590245,0.066,20897265
+63,77,Codewhale,,https://codewhale.net/,,44765999119,0.064,175050
+64,78,llm-gateway,,https://research.outersignal.com/,,42473097722,0.061,8867221
+65,80,v3-local-news-validation-api,,https://newscatcherapi.com/,,40528288702,0.058,8963638
+66,82,Open WebUI plugin for OpenRouter Responses API,,https://github.com/rbb-dev/Open-WebUI-OpenRouter-pipe,general-chat,39305472958,0.056,426048
+67,83,OceanAPI,,https://oceanapi.dev/,,38316782885,0.055,251567
+68,84,rustllm,,https://github.com/corbanvilla/rustllm,,37975327553,0.055,819894
+69,85,Sophia's LoreBary,,https://lorebary.com/,roleplay,37809884807,0.054,1711404
+70,86,Pocket AI,,https://getpocket.ai/,,36208178128,0.052,3013965
+71,87,Pogl builder,,https://play.pogl.com/,,35629327552,0.051,268830
+72,88,LangCC,,https://langcc.local/,,35300044609,0.051,447092
+73,89,Mono Studio visual expansion,,https://aside.com/,,34343195411,0.049,195887
+74,90,Rosebud,,https://rosebud.ai/,,33993627747,0.049,547842
+75,91,DeepWork,,https://cli-agent-bridge.mindoffice.cn/,,33959079279,0.049,250857
+76,92,stateful-safety-it_helpdesk,,https://github.com/jmss-appen/agentic-envs,,32597445584,0.047,915923
+77,93,Ask-Chat.ai,,https://ask-chat.ai/,,32346050279,0.046,2721067
+78,94,Sentry MCP,,https://github.com/getsentry/sentry-mcp,,31272468957,0.045,5284192
+79,95,Letaido,,https://letaido.com/,cloud-agent;personal-agent,31269527675,0.045,634555
+80,96,HammerAI,hammerai,https://www.hammerai.com/,roleplay,31210800860,0.045,8132049
+81,97,HiveTree,,https://hivetree.local/,,31096813695,0.045,753824
+82,98,Qwen Code,qwen-code,https://github.com/QwenLM/qwen-code.git,cli-agent,31037358293,0.045,254217
+83,99,Cherry Studio,,https://cherry-ai.com/,,30715312135,0.044,331564
+84,100,opencase-web,,https://www.opencase.com/,,30498137614,0.044,2461188
+85,101,ConscioussAI,,https://www.conscioussai.com/,,30142624845,0.043,354774
+86,102,HeyDitto,,https://heyditto.ai/,,29285321746,0.042,3167532
+87,103,Chataigne,,https://chataigne.ai/,,29143375185,0.042,1405682
+88,104,claude-proxy,,https://github.com/revoltbots-com/claude-proxy,,29117165784,0.042,461320
+89,105,Agent Zero,agent-zero,https://agent-zero.ai/,cloud-agent,29069403495,0.042,587523
+90,107,Chub AI,chub-ai,https://chub.ai/,roleplay,28733455513,0.041,2049408
+91,108,Legwork,,https://legwork.sh/,,28665249996,0.041,313835
+92,109,Daum,,https://www.daum.net/,,28538415549,0.041,4674299
+93,111,Eastman AI Gateway Content Safety,,https://ai.eastman.com/,,28342448970,0.041,728066
+94,112,LOVE,,https://lab.naturaumana.ai/,,28045985381,0.04,1149921
+95,113,Kimi Code CLI,,https://kimi-code.local/,,27537202428,0.04,153290
+96,114,AI Broker,,https://prod.brokerai.com/,,27447339025,0.039,1768508
+97,115,ppq.ai,,https://ppq.ai/,,27425898040,0.039,514647
+98,117,OrationAI,,https://oration.ai/,,26667495215,0.038,782931
+99,119,Traycer,,https://traycer.ai/,cli-agent;ide-extension,26277373252,0.038,109758
+100,121,browser-use,,https://browser-use.com/,,25423845523,0.037,238032
+101,122,nl-snackpass-ams,,https://github.com/dashmote/dash-ocr-pipeline,,25361105225,0.036,7515163
+102,123,Yeyu AI,,https://yeyu.ai/,,24747970892,0.036,1331934
+103,125,omp,,https://other.aihub-gateway.fbrai.dev/,,24501010619,0.035,181089
+104,126,KoalaBear,,https://i.love.koalas.ai/,,24448750551,0.035,3821160
+105,127,ThetaWave,,https://thetawave.ai/,,24151199834,0.035,7465750
+106,128,Sahasra,stan,https://stan.store/,,23906469751,0.034,750433
+107,129,MiniMax Code,minimax-code,https://agent.minimax.io/,,23832610409,0.034,164617
+108,130,op,,https://openpaths.io/,cli-agent,23735663558,0.034,153989
+109,131,OP.GG,opgg,https://op.gg/,game;general-chat;personal-agent,23244951870,0.033,2245841
+110,132,LibreChat,librechat,https://librechat.ai/,general-chat,23171886556,0.033,734766
+111,133,Rene Eval,,https://rene.co/,,23067458873,0.033,683680
+112,134,Fairfield DM Agent,,https://github.com/fairfield/monorepo,,22978425662,0.033,557886
+113,135,Miniapps.ai,,https://miniapps.ai/,,22700911367,0.033,3259287
+114,136,jev-mcp,,https://github.com/jkudish/jev-mcp,,22248965933,0.032,2586875
+115,137,Buzz POC check,,https://github.com/block/buzz,,22067839767,0.032,252176
+116,138,unit-reason-graph,,https://agent-unit-reason-graph.com/,,22045055474,0.032,2161627
+117,139,marshal-harness,,https://github.com/cowboyinc/marshal-harness,,21327874937,0.031,437196
+118,140,pi,,https://github.com/olixis/pi-openrouter-plus,cli-agent,20476432794,0.029,125941
+119,141,ProVision.ai,,https://provision.ai/,,19948818378,0.029,3304515
+120,142,Bloha,,https://bloha.ai/,,19838587310,0.028,892205
+121,144,Factflow,,https://factflow.ai/,,19552594557,0.028,604377
+122,145,My Dream Companion,,https://www.mydreamcompanion.com/,,19400803058,0.028,2847058
+123,146,SkyrimNet,,https://github.com/SkyrimNet,game,19085093551,0.027,4772390
+124,147,shoemoney,,https://shoemoney.com/,,19021542965,0.027,58791
+125,148,Perplexity AI,,https://perplexity.ai/,,18952995785,0.027,950235
+126,149,Minis App,,https://github.com/OpenMinis/OpenMinis,,18373063672,0.026,137270
+127,150,Sila,,https://silahq.com/,,18032573076,0.026,214826
+128,151,ChainPatrol,,https://app.chainpatrol.io/,,17949117175,0.026,5186450
+129,152,JobLeads LLM,,https://jobleads.com/,personal-agent,17699797886,0.025,1678150
+130,153,m1-judge,,https://shopport.ai/,,17620799113,0.025,1240948
+131,154,Ekko Studio,,https://ekkostudio.xyz/,cli-agent;personal-agent,17602345498,0.025,146984
+132,155,Dulci,,https://ls.dulci.art/,,17499221283,0.025,2420307
+133,156,StoryHearts,,https://lovell-a.com/,,17386988038,0.025,1741822
+134,157,Roomote,,https://roomote.dev/,,17344161976,0.025,115017
+135,158,Dyad,,https://www.dyad.sh/,,17215743812,0.025,205304
+136,159,Honcho Deep Reasoning Analysis,,https://honcho.dev/,,17206370529,0.025,1671060
+137,160,mirasim,,https://mirasim.ai/,,16881627407,0.024,4287608
+138,161,GALC model trial,,https://galco.land/,,16710726307,0.024,1866303
+139,162,MeGPT mind,,https://megpt.app/,,16502642626,0.024,995244
+140,163,pareto-autoresearch,,https://github.com/circuitandchisel/pareto-autoresearch,,16469250534,0.024,273004
+141,164,SuperRouter,,https://superrouter.local/,,16458358487,0.024,109563
+142,165,loadbalance-ia,,https://loadbalance.serendiped.com/,,16458293359,0.024,76410
+143,166,AI Tool Calling Benchmark,,https://zo.computer/,,16382569199,0.024,145688
+144,167,cubrik,,https://app.cubrik.ai/,,15710350369,0.023,336943
+145,168,Forge,,https://forge.humanforce.com/,,15664784510,0.023,158010
+146,169,Continue,,https://www.continue.dev/,,15440631609,0.022,273936
+147,170,Rebel,,https://rebel.mindstone.com/,,15166486144,0.022,276511
+148,171,shapes.inc early room mode,,https://shapes.inc/,roleplay;game,15142999360,0.022,2775225
+149,172,Neo by ProjectDiscovery,,https://neo.projectdiscovery.io/,,14996849993,0.022,159460
+150,173,Delta,,https://delta.dev/,,14926816895,0.021,88627
+151,174,Manifest,,https://manifest.build/,,14819740104,0.021,200943
+152,175,Pipeelo,,https://pipeelo.com/,,14785987071,0.021,607279
+153,176,DILLORA,,https://dillora.com/,,14770684402,0.021,402656
+154,177,Kolk,,https://github.com/SonarSource/sonar-kolk,,14762722669,0.021,108988
+155,178,Skuld Summary Prod,,https://skuld-summary-prod/,,14661702401,0.021,1917269
+156,179,Factory AI Droid,,https://factory.ai/droid,,14499822223,0.021,131996
+157,180,Fliki,,https://fliki.ai/,,14487847199,0.021,2639436
+158,181,Yumina,,https://yumina.app/,,14481996297,0.021,523113
+159,182,pentestcode,,https://github.com/s0ld13rr/pentestcode,,14368300947,0.021,144783
+160,183,ClodHost,,https://clodhost.com/,,14253058245,0.02,116893
+161,184,QwenPaw,,https://qwenpaw.agentscope.io/,,14238026597,0.02,108313
+162,185,Bitsec,,https://bitsec.ai/,,14174249472,0.02,542194
+163,186,wenzhang-gen,,https://github.com/Web3ok/seoxx,,14034074692,0.02,2394204
+164,187,Sahaa,,https://sahaa.bot/,,13800453654,0.02,140612
+165,188,interface,,https://aull.systems/,personal-agent,13746247852,0.02,427813
+166,189,Forge sandbox,,https://forge.osinternal.io/,,13609021275,0.02,138113
+167,190,Raylu,,https://raylu.ai/,,13538211747,0.019,3779372
+168,191,OpenCode,,https://opencode.aihub-gateway.fbrai.dev/,,13507016395,0.019,58223
+169,192,https://muah.ai,,https://muah.ai/,,13423564911,0.019,2260844
+170,193,OpenSquilla,,https://opensquilla.ai/,cli-agent;personal-agent,13409697511,0.019,401733
+171,194,DIS,,https://anec.app/,,13361602211,0.019,9867499
+172,195,Unistream,,https://unistream.unistream.cloud/,,13341725295,0.019,77374
+173,196,Dify.AI,,https://dify.ai/,personal-agent,13322524492,0.019,3341206
+174,197,CoChat,,https://cochat.ai/,general-chat;personal-agent,13242568091,0.019,2578742
+175,198,OpenRouter Maestro,,https://github.com/husamettinulutas/openrouter-maestro,,13077842956,0.019,99027
+176,199,AtomCode,,https://gitcode.com/,cli-agent,13035263852,0.019,56152
+177,200,BuddyPro AI,,https://buddypro.ai/,personal-agent,12983253498,0.019,1047889
+178,201,Curriculum Q&A Demo,,https://kiddom.co/,,12721735988,0.018,584982
+179,202,LUNATALK,,https://lunatalk.chat/,,12681425497,0.018,1328460
+180,203,AIexotic prompt-processing,,https://aiexotic.com/,,12430508617,0.018,874978
+181,204,Vortex Desktop,,https://vortex.spinozalabs.local/,,12379624809,0.018,101794
+182,205,Scammer Get Scammed,,https://kolkata-workers.jataterworldwide.com/,,12338560064,0.018,2363028
+183,206,Bolter,,https://bolter.chat/,,12325264502,0.018,413149
+184,207,Studs.gg,studsgg,https://studs.gg/,cloud-agent;game,12248691831,0.018,361017
+185,208,Tycho,,https://tycho.nsi4.com/,,12190501892,0.018,78521
+186,209,amahub AMA agent (free),,https://free.lane.amahub.ama.one/,,12155296642,0.017,406287
+187,210,AiKit,,https://plataforma.aikit.es/,,12097911289,0.017,311737
+188,211,Shelf Insights,,https://shelfbeta.com/,,12034023474,0.017,793818
+189,212,SkyrimNet,,https://github.com/SkyrimNet-GamePlugin,game,11800082832,0.017,1147304
+190,213,JONI,,https://joni.ai/,cli-agent,11771626723,0.017,126097
+191,214,Cold Eternity harness,,https://cold-eternity.invalid/,,11738217455,0.017,501429
+192,215,VS Code OpenRouter Copilot Extension,,https://github.com/husamettinulutas/openrouter-copilot-model-manager,,11555671488,0.017,72275
+193,216,softsins-buch,,https://softsins.de/,,11479847394,0.016,1629271
+194,217,Coach Libra v4,,https://coachlibra.com/,,11363106839,0.016,214887
+195,220,Rayline,,https://rayline.ai/,cli-agent;cloud-agent,11221622097,0.016,181375
+196,221,RubyLLM,,https://rubyllm.com/,,11112529614,0.016,1071657
+197,222,payready-document-extraction,,https://docs-api.payready.com/,,11098011495,0.016,1685342
+198,223,Octavus,,https://octavus.ai/,,11090006827,0.016,132655
+199,224,CompanyOS,,https://co.youonai.ai/,,10930221597,0.016,27446
+200,225,Fluxgate,,https://fluxgate.cc/,,10895191065,0.016,2514405

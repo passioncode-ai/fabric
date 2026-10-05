@@ -3281,7 +3281,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
   handle(IPC.startExecutors, async (): Promise<Returns<FabricApi['start']['executors']>> =>
     detectExecutors(
-      AGENTS.filter((a) => (a.id === 'claude-code' || a.id === 'codex') && a.program).map((a) => ({ id: a.id, label: a.label, program: a.program as string, connected: a.connectsToSurface })),
+      AGENTS.filter((a) => ['claude-code', 'codex', 'kilo', 'hermes', 'cline'].includes(a.id) && a.program).map((a) => ({ id: a.id, label: a.label, program: a.program as string, connected: a.connectsToSurface })),
       { env: sessionEnvironment(process.env) }
     )
   )

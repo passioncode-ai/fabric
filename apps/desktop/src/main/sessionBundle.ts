@@ -16,7 +16,9 @@
 
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { type SurfaceAdapter, executorReadiness } from '../shared/agents.ts'
+import { type SurfaceAdapter, describeAgent, executorReadiness } from '../shared/agents.ts'
+import { sessionConfig } from '../shared/sessionConfig.ts'
+import { helperCommand } from './helperProcess.ts'
 import { PREAMBLE } from '../shared/preamble.ts'
 import { redact } from '../shared/redact.ts'
 import { describeRefusals, planServers, type DeclaredServer, type GatewayFacts } from '../shared/servers.ts'
@@ -77,7 +79,8 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
        *  before this they did not — every connecting agent got Claude Code's. */
       optionId: string,
       adapter: SurfaceAdapter,
-      agent: { instructions: string; servers: string[] } | null = null
+      agent: { instructions: string; servers: string[] } | null = null,
+      modeConfig: Readonly<Record<string, unknown>> | null = null
     ): Promise<SessionBundle | null> {
       if (!deps.surface.endpoint) return null
 
@@ -243,6 +246,70 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
                 agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE
               ]
             }
+          case 'config-content-env': {
+            // ADR-0119 / P-10: the whole session config travels in ONE variable whose
+            // content outranks the project's config file (`SurfaceConfig` in agents.ts
+            // says why the content and not a file path). The brief rides in a 0600 file
+            // the config names as an instruction, beside mcp.json in the session
+            // directory, so it dies with the session like the credential.
+            const surfaceConfig = describeAgent(optionId)?.surfaceConfig
+            if (!surfaceConfig)
+              throw new Error(`${optionId} declares config-content-env but names no session config`)
+            const briefPath = path.join(dir, 'brief.md')
+            writeFileSync(briefPath, agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE, {
+              encoding: 'utf8',
+              mode: 0o600
+            })
+            return {
+              dir,
+              args: [],
+              env: {
+                [surfaceConfig.env]: JSON.stringify(
+                  sessionConfig(surfaceConfig.format, {
+                    endpoint: deps.surface.endpoint,
+                    token: scope.token,
+                    grants: plan.grant,
+                    instructions: [briefPath],
+                    modeConfig
+                  })
+                )
+              }
+            }
+          }
+          case 'acp-session': {
+            // ADR-0119 §1/§2, P-10: the PTY runs Fabric's ACP terminal shell, which starts the agent
+            // in its ACP mode and opens the session with Fabric's surface — over HTTP when the agent
+            // declares it, else through Fabric's stdio bridge. The session document (credential
+            // included) travels in FABRIC_ACP_SESSION; neither program sees it in an argument, and
+            // each removes it from its own environment once read.
+            const descriptor = describeAgent(optionId)
+            if (!descriptor?.acp || !descriptor.program)
+              throw new Error(`${optionId} declares acp-session but names no ACP mode`)
+            const shell = helperCommand('acp-shell')
+            const bridge = helperCommand('mcp-bridge')
+            const authorization = `Bearer ${scope.token}`
+            const spec = {
+              http: { type: 'http', name: 'fabric', url: deps.surface.endpoint, headers: [{ name: 'Authorization', value: authorization }] },
+              stdio: {
+                name: 'fabric',
+                command: bridge.program,
+                args: bridge.args,
+                env: [
+                  ...Object.entries(bridge.env).map(([name, value]) => ({ name, value })),
+                  { name: 'FABRIC_BRIDGE_URL', value: deps.surface.endpoint },
+                  { name: 'FABRIC_BRIDGE_AUTHORIZATION', value: authorization }
+                ]
+              },
+              brief: agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE,
+              mode: modeConfig?.acpMode === 'bypass' ? 'bypass' : 'ask'
+            }
+            return {
+              dir,
+              args: [],
+              command: { program: shell.program, args: [...shell.args, '--', descriptor.program, ...descriptor.acp.args] },
+              env: { ...shell.env, ...(descriptor.acp.env ?? {}), FABRIC_ACP_SESSION: JSON.stringify(spec) }
+            }
+          }
           case 'none':
             // The agent connects to nothing, so it takes no arguments from us —
             // and no preamble either, which is correct rather than a shortfall:

@@ -86,6 +86,11 @@ export interface SessionBundle {
   dir: string
   /** Extra arguments the program is launched with. */
   args: string[]
+  /** Extra environment (`config-content-env`): the session config, credential included. */
+  env?: Record<string, string>
+  /** `acp-session`: the program actually started (Fabric's ACP shell) and its arguments, in place
+   *  of the agent's binary; the agent runs inside it. */
+  command?: { program: string; args: string[] }
 }
 
 export interface BundleCompiler {
@@ -102,7 +107,9 @@ export interface BundleCompiler {
     optionId: string,
     adapter: SurfaceAdapter,
     /** A created agent's brief and the servers it asked for (M125). */
-    agent?: { instructions: string; servers: string[] } | null
+    agent?: { instructions: string; servers: string[] } | null,
+    /** The chosen mode's fragment of a per-session config (`config-content-env`). */
+    modeConfig?: Readonly<Record<string, unknown>> | null
   ): Promise<SessionBundle | null>
   /**
    * Undo a compile. Called when the session that bundle was for never came into
@@ -317,13 +324,14 @@ export class PtyManager {
           taskId,
           runnerId,
           descriptor?.surfaceAdapter ?? 'unimplemented',
-          agent
+          agent,
+          verdict.config
         )) ?? null)
       : null
     let pty: IPty
     try {
       if (beforeSpawn && !await beforeSpawn()) throw new Error('launch authority changed')
-      pty = this.spawn(program, [...(bundle?.args ?? []), ...verdict.args], {
+      pty = this.spawn(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args], {
         name: 'xterm-256color',
         cols: 120,
         rows: 32,
@@ -334,7 +342,7 @@ export class PtyManager {
         // whatever the agent itself needs — `goose` takes its mode from
         // GOOSE_MODE rather than from a flag, and a descriptor that could not
         // say so is what made "a third agent is one row" false.
-        env: { ...sessionEnvironment(process.env), ...(descriptor?.env ?? {}) }
+        env: { ...sessionEnvironment(process.env), ...(descriptor?.env ?? {}), ...(bundle?.env ?? {}) }
       })
     } catch (e) {
       // The bundle was written and its credential minted before spawn was even

@@ -1,0 +1,7 @@
+agent: kilo acp
+shell exit: 0
+shell output (tail):
+Fabric: connected through HTTP; sending the session brief.
+(end_turn)
+> 
+server: {"refused":0,"served":4}

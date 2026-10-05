@@ -1,0 +1,16 @@
+agent: hermes acp
+shell exit: 0
+shell output (tail):
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': 'No models provided', 'code': 400}, 'user_id': '<org-id>'}
+2026-10-05 15:43:10 [INFO] run_agent: OpenAI client closed (stream_error_cleanup, shared=False, tcp_force_closed=0) thread=Thread-3 (<lambda>):6324236288 provider=openrouter base_url=https://openrouter.ai/api/v1 model=
+2026-10-05 15:43:10 [WARNING] agent.conversation_loop: API call failed (attempt 1/3, not retryable) error_type=BadRequestError thread=acp-agent_0:6290583552 provider=openrouter base_url=https://openrouter.ai/api/v1 model= summary=HTTP 400: No models provided
+⚠️  Attempt 1/3, not retryable failed: HTTP 400: No models provided
+❌ OpenRouter rejected the request and retrying won't help: HTTP 400: No models provided
+   💡 Fix: pick another model (/model), or check `~/.hermes/logs/agent.log`.
+2026-10-05 15:43:10 [ERROR] agent.conversation_loop: Non-retryable client error: Error code: 400 - {'error': {'message': 'No models provided', 'code': 400}, 'user_id': '<org-id>'}
+OpenRouter rejected this request as malformed, so the model didn't answer. Start a clean session with /new or switch models with /model; if it keeps happening, run `hermes doctor`.
+Provider said: HTTP 400: No models provided
+(end_turn)
+> 
+server: {"refused":0,"served":4}

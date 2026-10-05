@@ -57,10 +57,15 @@ export interface ExecutorProbe { id: string; label: string; program: string; con
 import type { ExecutorRow } from '../shared/startPaths.ts'
 export type { ExecutorRow } from '../shared/startPaths.ts'
 
-/** The vendors' published install commands: Anthropic's native installer, OpenAI's npm package. */
+/** The vendors' published install commands: Anthropic's native installer, OpenAI's, Kilo's and
+ *  Cline's npm packages, Nous Research's installer (read 2026-10-05: https://kilo.ai/docs/cli,
+ *  https://docs.cline.bot/usage/cli-overview, https://github.com/NousResearch/hermes-agent). */
 const INSTALL: Readonly<Record<string, string>> = {
   'claude-code': 'curl -fsSL https://claude.ai/install.sh | bash',
-  codex: 'npm install -g @openai/codex'
+  codex: 'npm install -g @openai/codex',
+  kilo: 'npm install -g @kilocode/cli',
+  hermes: 'curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash',
+  cline: 'npm install -g cline'
 }
 
 async function onPath(program: string, envPath: string, { fs, ms }: FsCtx): Promise<string | null> {

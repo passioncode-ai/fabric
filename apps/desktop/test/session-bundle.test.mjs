@@ -351,6 +351,70 @@ else {
   else fail('the none adapter produced args: ' + JSON.stringify(none?.args))
 }
 
+// ADR-0119 / P-10 — a runner told through ONE environment variable holding its whole session
+// config (Kilo: KILO_CONFIG_CONTENT, which outranks the project's own kilo.json).
+{
+  const sidK = randomUUID()
+  const k = await bundles.compile(sidK, randomUUID(), null, 'kilo', 'config-content-env', null,
+    { permission: { edit: 'ask', bash: 'ask' } })
+  const content = k?.env?.KILO_CONFIG_CONTENT
+  let parsed = null
+  try { parsed = JSON.parse(content) } catch { /* reported below */ }
+  if (!parsed) fail('the Kilo session got no parsable KILO_CONFIG_CONTENT: ' + JSON.stringify(k))
+  else {
+    const fabric = parsed.mcp?.fabric
+    if (fabric?.type === 'remote' && fabric.url === surface.endpoint && fabric.headers?.Authorization === 'Bearer tok-' + sidK)
+      ok('Kilo is handed Fabric as a remote server with the bearer of this session')
+    else fail('the Kilo session config does not carry the surface: ' + JSON.stringify(parsed.mcp))
+    if (parsed.permission?.edit === 'ask' && parsed.permission?.bash === 'ask') ok('and the permissions of the chosen mode are in the same document')
+    else fail('the mode fragment did not reach the config: ' + JSON.stringify(parsed.permission))
+    const brief = parsed.instructions?.[0]
+    if (brief && brief.startsWith(path.join(root, 'sessions', sidK)) && (statSync(brief).mode & 0o777) === 0o600 && readFileSync(brief, 'utf8').includes('fabric_whoami'))
+      ok('and the brief with the Fabric preamble is a 0600 file inside the session directory')
+    else fail('the brief is missing, misplaced or readable by others: ' + brief)
+  }
+  if (k && k.args.length === 0 && !JSON.stringify(k.args).includes('tok-')) ok('and nothing goes into the arguments, where any process listing would show the credential')
+  else fail('the Kilo bundle put something in argv: ' + JSON.stringify(k?.args))
+  bundles.discard(sidK)
+  if (revoked.includes(sidK) && !existsSync(path.join(root, 'sessions', sidK))) ok('and discarding it revokes the credential and removes the brief with the directory')
+  else fail('discarding the Kilo bundle left the credential or the directory')
+}
+
+// ADR-0119 / P-10 — an ACP runner: the PTY runs Fabric's ACP shell, the agent runs inside it, and the
+// session document (credential included) travels only in FABRIC_ACP_SESSION.
+{
+  const sidH = randomUUID()
+  const h = await bundles.compile(sidH, randomUUID(), null, 'hermes', 'acp-session', null, { acpMode: 'ask' })
+  const argv = h?.command ? [h.command.program, ...h.command.args] : []
+  const sep = argv.indexOf('--')
+  if (sep > 0 && argv[1] === '--experimental-strip-types' && argv[2].endsWith('acpShellMain.ts') && JSON.stringify(argv.slice(sep + 1)) === JSON.stringify(['hermes', 'acp']))
+    ok('the terminal runs the ACP shell, which starts hermes in its ACP mode')
+  else fail('the ACP command is wrong: ' + JSON.stringify(argv))
+  if (!JSON.stringify(argv).includes('tok-')) ok('and no credential is in any argument')
+  else fail('a credential reached argv: ' + JSON.stringify(argv))
+  let spec = null
+  try { spec = JSON.parse(h.env.FABRIC_ACP_SESSION) } catch { /* reported below */ }
+  if (spec && spec.http.url === surface.endpoint && spec.http.headers[0].value === 'Bearer tok-' + sidH && spec.mode === 'ask')
+    ok('the session document carries the surface with the bearer of this session, in ask mode')
+  else fail('the ACP session document is wrong: ' + JSON.stringify(spec))
+  const bridgeEnv = Object.fromEntries((spec?.stdio?.env ?? []).map((e) => [e.name, e.value]))
+  if (spec && path.isAbsolute(spec.stdio.command) && spec.stdio.args.some((a) => a.endsWith('mcpStdioBridgeMain.ts')) && bridgeEnv.FABRIC_BRIDGE_AUTHORIZATION === 'Bearer tok-' + sidH && !spec.stdio.args.join(' ').includes('tok-'))
+    ok('and the stdio bridge it offers an agent without HTTP MCP takes the bearer from its environment')
+  else fail('the bridge entry is wrong: ' + JSON.stringify(spec?.stdio))
+  if (h.env.HERMES_ACP_SKIP_CONFIGURED_MCP === '1') ok('and Hermes skips its own configured MCP servers, as --strict-mcp-config does')
+  else fail('HERMES_ACP_SKIP_CONFIGURED_MCP is not set')
+  const sidB = randomUUID()
+  const b = await bundles.compile(sidB, randomUUID(), null, 'hermes', 'acp-session', null, { acpMode: 'bypass' })
+  if (JSON.parse(b.env.FABRIC_ACP_SESSION).mode === 'bypass') ok('a bypass mode reaches the shell as bypass')
+  else fail('the bypass mode did not reach the shell')
+  bundles.discard(sidB)
+  let refusedCline = null
+  try { await bundles.compile(randomUUID(), randomUUID(), null, 'cline', 'acp-session') } catch (e) { refusedCline = String(e) }
+  if (refusedCline && refusedCline.includes('not a ready Fabric executor')) ok('Cline, not yet connected on a probed build, is refused the surface')
+  else fail('Cline was handed the surface before a probe connected it: ' + refusedCline)
+  bundles.discard(sidH)
+}
+
 // HAR-R0-01 — compilation owns cleanup until it returns a bundle. These
 // faults hit the real filesystem functions, including partial writes, rather
 // than assuming that PtyManager will receive a bundle when compile rejects.
