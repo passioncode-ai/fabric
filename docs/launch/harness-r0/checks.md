@@ -768,6 +768,26 @@ Electron main process (no window; `process.type` `browser`).
 Code binaries hashed for `MEASURED_RUNTIMES`: `Electron Framework` `3e7bf674…e38c` (201 MB, 0.38 s),
 `libnode.147.dylib` `88ff1063…b3d3`. NOT_RUN: the packaged, hardened app (N1).
 
+## Node 26.10.0 runtime · 2026-10-05
+
+A Homebrew upgrade (installing `hermes-agent`) replaced the development and CI runtime, Node 26.8.2, with
+26.10.0; `runtime-admission.test.mjs` then failed closed ("this runtime is not in the measured list"),
+as designed. Re-measured under 26.10.0:
+
+| Command | Result |
+|---|---|
+| `node -e 'runtimeTuple()'` | Node 26.10.0, libuv 1.53.0, modules 147, darwin arm64; `libnode.147.dylib` `80335f41…c3db` |
+| `node --experimental-strip-types test/owned-backend-process-registry.test.mjs` | PASS, 17 groups |
+| `node --experimental-strip-types test/native-view-host.test.mjs` | PASS, 14 groups (after the fix below); `backend-view.test.mjs` PASS, 8 groups |
+| `node --experimental-strip-types test/runtime-admission.test.mjs` | PASS |
+
+**Correction, the same day.** The view host first failed its first group (`outcome_unknown`, not `attached`) on
+both runtimes, and that was read as load. It was not: the worktree's dependencies had been installed with
+`pnpm install --ignore-scripts`, which leaves node-pty's `prebuilds/darwin-arm64/spawn-helper` without its execute
+bit, so every PTY spawn failed with `posix_spawnp failed`. With the bit restored, all 14 groups pass at load ~43,
+and so does `backend-view.test.mjs` (8 groups). The checkout `ci.sh` normally runs in installs scripts and was
+never affected. Node 26.10.0 is fully measured.
+
 ## Host → HTTP → SQL composition · 2026-09-28
 
 First-slice plan C0. `pnpm --dir apps/desktop test:ceo-host-sql` (registered beside

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/brand-pack/png/transparent/passioncode-icon-256.png" width="128" height="128" alt="PassionCode.ai passion fruit mark">
+  <img src="assets/brand/app-icon/fabric-icon.svg" width="128" height="128" alt="Fabric app icon">
 </p>
 
 # Fabric — the CEO AI agent in the PassionCode.ai toolkit
@@ -13,6 +13,11 @@ the control point up one level.
 
 **Stop managing agents one by one. Start operating projects.**
 
+<p align="center">
+  <img src="assets/readme/fabric-home.jpg" width="720" alt="Fabric home: the rhythm of the last 28 days, where you left off, the topics on the board that need you, your projects and what agents did today. Synthetic demo data.">
+  <br><sub>The Fabric window with a synthetic demo space: no real accounts or repositories.</sub>
+</p>
+
 A Project keeps its purpose, team, Routines, authority, work, Evidence and
 feedback loop together — from zero to one and beyond — while agents and Providers can
 change.
@@ -20,10 +25,10 @@ change.
 **PassionCode.ai is the organization; its toolkit is for AI-native teams.** **Fabric** is the
 product and CEO AI agent: it plans, coordinates agents, runs Projects and works with their data,
 and it grows through its own tools — Fabric Inbox, Fabric Dashboards, Fabric Switchboard,
-Fabric VR — each of which also works on its own (names: [ADR-0090](docs/adr/0090-names-passioncode-is-the-organization-fabric-is-the-ceo-and-its-tools-carry-its-name.md)). **Fabric 0.2.0 is an early preview for macOS on
-Apple silicon**: a signed and notarized DMG, [downloadable from its product page](https://passioncode.ai/fabric/#download);
-its build receipt is [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json). Releases are
-now built and signed only in CI, from a `vX.Y.Z` tag on main, and published here with their notes from
+Fabric VR — each of which also works on its own (names: [ADR-0090](docs/adr/0090-names-passioncode-is-the-organization-fabric-is-the-ceo-and-its-tools-carry-its-name.md)). **Fabric is an early preview for macOS on
+Apple silicon**: each release is a signed and notarized DMG on [GitHub Releases](https://github.com/passioncode-ai/fabric/releases)
+with its notes, checksums and attestation, and the newest one is [downloadable from its product page](https://passioncode.ai/fabric/#download).
+Releases are built and signed only in CI, from a `vX.Y.Z` tag on main, and published here with their notes from
 [`CHANGELOG.md`](CHANGELOG.md) ([procedure](docs/launch/release-mac.md),
 [ADR-0111](docs/adr/0111-fabric-is-released-from-ci.md)). This repository holds
 Fabric and its agent-agnostic technical kernel: portable contracts, durable work, policy,
@@ -80,7 +85,7 @@ repository the day before named a domain as a product's home while that zone hol
 nothing. Nobody chose either of those. That is the gap this project closes: not
 a missing feature, a missing observer.
 
-**Status: early preview (0.2.0).** Vision, ontology, decisions, the measured registry,
+**Status: early preview** — the current version is the newest on [Releases](https://github.com/passioncode-ai/fabric/releases). Vision, ontology, decisions, the measured registry,
 external contracts, project-workspace schemas and UX scenarios exist, and the desktop app
 described under [Local development](#local-development) runs. The high-level
 product/kernel architecture, Bring Your Agent lifecycle and provider-view boundary are
@@ -104,12 +109,14 @@ plan survives as org #1 and builds first.
   Docker and the Supabase CLI for its local stack (below).
 - **Configure:** Fabric uses the Claude Code and Codex logins already on the Mac; no key is typed
   into Fabric. Coordination in this repository needs your own Notion token in `.env.agent-sync`
-  (org-index [ONBOARDING §4](https://github.com/passioncode-ai/org-index/blob/main/ONBOARDING.md#4-agent-tooling)).
+  (org-index [ONBOARDING §4](https://github.com/passioncode-ai/org-index/blob/main/ONBOARDING.md#4-agent-tooling), visible to members of the passioncode-ai organization).
 - **MCP:** every agent session Fabric starts is given Fabric's agent surface automatically — a
   scoped, single-use `mcp.json` per session ([`agentSurface.ts`](apps/desktop/src/main/agentSurface.ts));
   nothing is registered by hand. Fabric's own entry for agents outside it — its northbound MCP
-  with `agent.call`, which `claude mcp add` would register — arrives with plan AR-3 ([plans](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/plans.md)); until then you work with Fabric in the app, and Fabric
-  drives the other products over their MCP servers ([products](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/products.md)).
+  with `agent.call`, which `claude mcp add` would register — arrives with plan AR-3 ([plans](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/plans.md), members only); until then you work with Fabric in the app, and Fabric
+  drives the other products over their MCP servers ([products](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/products.md), members only).
+- **Contribute:** read the organization's [CONTRIBUTING.md](https://github.com/passioncode-ai/.github/blob/main/CONTRIBUTING.md)
+  and this repository's [AGENTS.md](AGENTS.md); contributions are accepted under [CLA.md](CLA.md).
 - **Develop:** `pnpm install`, then `bash scripts/ci.sh fast` (no database) or `full` (with a
   disposable stack, never your live one) — [Local development](#local-development) below.
 
@@ -311,7 +318,6 @@ node scripts/residue-report.mjs --json     # machine-readable
 
 Open source under the [GNU AGPL-3.0](LICENSE) ([ADR-0092](docs/adr/0092-every-repository-is-agpl-3-0-or-commercial.md)).
 A [commercial license](COMMERCIAL-LICENSE.md) is available for use that does not meet the AGPL's
-terms — contact@passioncode.ai. Contributions are accepted under [CLA.md](CLA.md). While this
-repository is private, the Fabric binary is distributed under the commercial terms; whether to
-publish the source is open (knowledge base licensing CO-KB-01).
+terms — contact@passioncode.ai. Contributions are accepted under [CLA.md](CLA.md). This repository
+is public: the source is available under the AGPL-3.0, and the released binary is built from it.
 
