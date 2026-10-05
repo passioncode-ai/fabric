@@ -3,6 +3,12 @@ import { createNativeViewLifecycle, NATIVE_VIEW_LIMITS } from '../src/main/nativ
 const uuid = n => `019a0000-0000-7000-8000-${String(n).padStart(12,'0')}`
 const owner = () => ({fabric:{estateId:uuid(1),projectId:uuid(2),taskId:uuid(3),runId:uuid(4),runOrdinal:1,sessionId:uuid(5)},authority:{personId:uuid(6),revision:1},backend:{ownerId:'backend-1',hostInstanceId:'host-1',bootId:'boot-1',processIdentityRef:'process:'+'a'.repeat(64),connectionId:'connection-1'}})
 const deferred = () => {let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b});return {promise,resolve,reject}}
+// A late cleanup gets its OWN budget, the fixture's timeoutMs, counted from when it starts. Under a scheduler
+// stall longer than that budget the product rightly gives up (view_cleanup_unconfirmed) and the awaited cleanup
+// never comes: at load 100+ a 5 ms budget hung this file 2 runs in 20 (2026-10-05). The groups that need a
+// timeout to happen use 300 ms, the others 1000 ms; every awaited cleanup is bounded and names itself.
+const LATE = 300, CALM = 1000
+const within = (promise, what) => {let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(what+' did not happen within 10 s')),10_000)})]).finally(()=>clearTimeout(timer))}
 let passed=0
 const run=async(name,test)=>{await test();passed++;console.log('PASS '+name)}
 function fixture(overrides={},timeoutMs=100){
@@ -74,9 +80,9 @@ await run('detach coalesces and observed exit wins over a late lost reply',async
 })
 await run('late open after deadline gets only scoped disposal, cannot become attached',async()=>{
  const d=deferred(),done=deferred();let f,lateFence
- f=fixture({openView:async(t,allowed)=>{lateFence=allowed;await d.promise;f.local.set(t.attachment,t);return {ticket:t,opened:true}},disposeView:async(t,allowed)=>{assert(allowed());f.effects.push(['dispose',t.attachment]);done.resolve();return {ticket:t,closed:true}}},5)
+ f=fixture({openView:async(t,allowed)=>{lateFence=allowed;await d.promise;f.local.set(t.attachment,t);return {ticket:t,opened:true}},disposeView:async(t,allowed)=>{assert(allowed());f.effects.push(['dispose',t.attachment]);done.resolve();return {ticket:t,closed:true}}},LATE)
  const result=await f.c.attach('window');assert.equal(result.state,'outcome_unknown');assert.equal(lateFence(),false)
- d.resolve();await done.promise;await Promise.resolve();await Promise.resolve();assert(!f.c.snapshot().views.some(v=>v.state==='attached'));assert.equal(f.effects.length,1)
+ d.resolve();await within(done.promise,'the scoped disposal of a late open');await Promise.resolve();await Promise.resolve();assert(!f.c.snapshot().views.some(v=>v.state==='attached'));assert.equal(f.effects.length,1)
 })
 await run('malformed replies and false/truthy ownership cannot grant an attached view',async()=>{
  for(const bad of [{},1,Promise.resolve(true),Promise.reject(Error('owned'))]){
@@ -120,16 +126,16 @@ await run('output and open receipts recheck state after reentrant local ownershi
 })
 await run('late materialized view is disposed even after earlier exact exit event',async()=>{
  const d=deferred(),disposed=deferred();let f,ticket
- f=fixture({openView:async(t)=>{ticket=t;await d.promise;f.local.set(t.attachment,t);return {ticket:t,opened:true}},disposeView:async(t,allowed)=>{assert(allowed());f.effects.push(['dispose',t.attachment]);f.local.delete(t.attachment);disposed.resolve();return {ticket:t,closed:true}}})
- const p=f.c.attach('window');await Promise.resolve();await Promise.resolve();f.c.viewExited(ticket);d.resolve();await p;await disposed.promise;assert.equal(f.effects.length,1)
+ f=fixture({openView:async(t)=>{ticket=t;await d.promise;f.local.set(t.attachment,t);return {ticket:t,opened:true}},disposeView:async(t,allowed)=>{assert(allowed());f.effects.push(['dispose',t.attachment]);f.local.delete(t.attachment);disposed.resolve();return {ticket:t,closed:true}}},CALM)
+ const p=f.c.attach('window');await Promise.resolve();await Promise.resolve();f.c.viewExited(ticket);d.resolve();await p;await within(disposed.promise,'the disposal of a view materialized after its exit');assert.equal(f.effects.length,1)
  assert.equal(f.c.snapshot().views[0].state,'detached')
 })
 
 await run('late materialization while earlier disposal receipt is pending triggers a second exact cleanup',async()=>{
  const openDone=deferred(),closeReply=deferred(),firstDisposed=deferred();let f,ticket,calls=0
- f=fixture({openView:async(t)=>{ticket=t;f.local.set(t.attachment,t);await openDone.promise;f.local.set(t.attachment,t);return {ticket:t,opened:true}},disposeView:async(t,allowed)=>{assert(allowed());calls++;f.local.delete(t.attachment);if(calls===1){firstDisposed.resolve();await closeReply.promise}return {ticket:t,closed:true}}},100)
+ f=fixture({openView:async(t)=>{ticket=t;f.local.set(t.attachment,t);await openDone.promise;f.local.set(t.attachment,t);return {ticket:t,opened:true}},disposeView:async(t,allowed)=>{assert(allowed());calls++;f.local.delete(t.attachment);if(calls===1){firstDisposed.resolve();await closeReply.promise}return {ticket:t,closed:true}}},CALM)
  const attach=f.c.attach('window');await Promise.resolve();await Promise.resolve()
- const detach=f.c.detach(ticket);await firstDisposed.promise;openDone.resolve();await Promise.resolve();await Promise.resolve();closeReply.resolve()
+ const detach=f.c.detach(ticket);await within(firstDisposed.promise,'the first disposal');openDone.resolve();await Promise.resolve();await Promise.resolve();closeReply.resolve()
  await attach;await detach;assert.equal(calls,2);assert.equal(f.local.size,0);assert.equal(f.c.snapshot().views[0].state,'detached')
 })
 
@@ -144,10 +150,10 @@ await run('recursive host callbacks fail closed without stack recursion or dupli
 await run('late failed open with newly owned handle is compensated after timeout or prior exit',async()=>{
  for(const prior of ['timeout','exit']){
   const d=deferred(),disposed=deferred();let f,ticket
-  f=fixture({openView:async t=>{ticket=t;await d.promise;f.local.set(t.attachment,t);throw Error('late_handshake_failed')},disposeView:async(t,allowed)=>{assert(allowed());f.local.delete(t.attachment);f.effects.push(['dispose',t.attachment]);disposed.resolve();return {ticket:t,closed:true}}},prior==='timeout'?5:100)
+  f=fixture({openView:async t=>{ticket=t;await d.promise;f.local.set(t.attachment,t);throw Error('late_handshake_failed')},disposeView:async(t,allowed)=>{assert(allowed());f.local.delete(t.attachment);f.effects.push(['dispose',t.attachment]);disposed.resolve();return {ticket:t,closed:true}}},prior==='timeout'?LATE:CALM)
   const p=f.c.attach('window');await Promise.resolve();await Promise.resolve()
   if(prior==='timeout')assert.equal((await p).state,'outcome_unknown');else f.c.viewExited(ticket)
-  d.resolve();await disposed.promise;await p;await f.c.detach(ticket)
+  d.resolve();await within(disposed.promise,'the compensation of a late failed open ('+prior+')');await p;await f.c.detach(ticket)
   assert.equal(f.effects.length,1);assert.equal(f.local.size,0);assert.equal(f.c.snapshot().views[0].state,'detached')
  }
 })

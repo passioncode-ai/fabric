@@ -22,7 +22,7 @@ workspace publication working, and remove stale worktrees and branches.
 
 - `scripts/ci.sh full` at `469b4bc6` (the verified candidate), workspace submodule synced: exit 0, 878 s.
 - `scripts/ci.sh fast` at `b07d4e74`: exit 0. At `c9e8a467`: exit 0.
-- `ci.sh full` at `24d8ea6c` (the temporary-root change) stopped at load average 103 on `quit.test.mjs` "…startup-failure dialog open still quits on SIGTERM": the fixture printed `quit-app: exit 0`, but Electron's native teardown outlived the test's 45 s. The same file passed alone right after (12/12, the dialog case in 9 s, with TMPDIR under `/tmp`). It is recorded as a load flake; the full tier was rerun before landing (see MERGES).
+- `ci.sh full` at `24d8ea6c` (the temporary-root change) stopped at load average 103 on `quit.test.mjs` "…startup-failure dialog open still quits on SIGTERM": the fixture printed `quit-app: exit 0`, but Electron's native teardown outlived the test's 45 s. The same file passed alone right after (12/12, the dialog case in 9 s, with TMPDIR under `/tmp`). It is recorded as CO-210. The next full run, at `5a3f4715`, hung in `native-view-lifecycle.test.mjs` (5 ms cleanup budgets under load). That is fixed, and 30 runs under load passed; see MERGES `flake-and-com01`.
 - At the release commit `0b6dd1d0` itself, `ci.sh fast` stopped on the CO-209 test, which turned false at that commit by design. The commit cannot carry the fix: it may change only release metadata. `b07d4e74` fixes the test.
 - Gate, changelog and verified-candidate checks at `0b6dd1d0`: `[]`, `null`, `null`.
 
@@ -78,7 +78,8 @@ One correction is on record. A first pass deleted twelve branches that still dif
 2. COM-02, the durable board and project mailbox (P0). COM-01 is accepted, so it is Fabric's next product step; COM-03 follows.
 3. CO-179: restyle the New project form (SCR-73) through sheleg-design, before 0.3.2.
 4. 0.3.2 candidates by their own rows: CO-206 (deadline on hub database calls), CO-199 (migration filename order, before any migration with suffix 78/79), CO-200, CO-203, CO-205, CO-207.
-5. The general development plan's Now line (`docs/evidence/backlog.md#general-development-plan`).
+5. `node scripts/unified-plan.mjs check` exits 1 on main: the 2026-10-04 unified-plan slice no longer covers the canonical rows opened since (CO-198… and others, 673 lines). It is context, not a status register, and no CI tier runs it. Either regenerate the slice from its sources or mark it historical.
+6. The general development plan's Now line (`docs/evidence/backlog.md#general-development-plan`).
 
 ## Next task
 
