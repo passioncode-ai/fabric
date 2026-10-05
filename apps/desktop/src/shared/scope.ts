@@ -69,6 +69,15 @@ const ESTATE_ONLY: TableScope = { estate: 'estate_id', project: null }
  */
 export const TABLE_SCOPE: Record<string, TableScope> = {
   estate_restore_boundaries: { private: 'protected restore provenance; dedicated current-membership-authorized reader only' },
+  // The project board (migration 79, ADR-0117): a participant reads only through the board commands, which
+  // apply the participant rule; an estate- or project-narrowed generic read would show other Projects' threads.
+  board_threads: { private: 'project board threads; participants read them only through board_list/board_get' },
+  board_messages: { private: 'project board messages; participants read them only through board_list/board_get' },
+  board_bodies: { private: 'project board message bodies, redactable; read only inside the board commands' },
+  board_idempotency: { private: 'project board submit receipts; board_submit only' },
+  board_requests: { private: 'project board request state, a projection; read through board_list/board_get' },
+  board_read_marks: { private: 'project board read marks, a projection; board_read_ack and board_unread only' },
+  board_write_authorizations: { private: 'transaction-only authorization of the board commands; no generic reader or writer' },
   ceo_conversations: { private: 'private Person/subject identity; dedicated CEO authorization only' },
   ceo_private_contents: { private: 'immutable private discussion; dedicated owner-authorized reader only' },
   ceo_messages: { private: 'private ordered message identities; dedicated CEO reader only' },

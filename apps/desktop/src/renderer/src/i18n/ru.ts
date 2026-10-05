@@ -28,6 +28,8 @@ export const ru: Partial<Record<StringKey, string>> = {
   'event.product.connect.refused@1': 'продукт отклонил подключение к Fabric или не смог подключиться',
   'event.product.disconnected@1': 'продукт отключён от Fabric',
   'event.hub.call.forwarded@1': 'вызов агента передан продукту',
+  'event.comms.message_submitted@1': 'проект отправил сообщение другим проектам',
+  'event.comms.read_acked@1': 'проект отметил сообщение другого проекта прочитанным',
   'digest.kind.capture': 'история сохранена',
   'digest.timeUnknown': 'время неизвестно',
   'transcripts.endingUnknown': 'Завершение не подтверждено',

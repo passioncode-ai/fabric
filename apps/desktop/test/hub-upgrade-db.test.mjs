@@ -24,8 +24,10 @@ const actor = { kind: 'system', id: 'hub-upgrade-fixture' }
 const migrations = new URL('../../../supabase/migrations/', import.meta.url)
 const files = readdirSync(migrations).filter(f => f.endsWith('.sql')).sort()
 const admitted = JSON.parse(readFileSync(new URL('../src/shared/schemaContract.json', import.meta.url), 'utf8'))
-assert.equal(files.length, 78, 'This bounded rehearsal is for exactly migration count 78')
-assert.equal(admitted.minimum, 78); assert.equal(admitted.maximum, 78)
+// The rehearsal of 0.3.1's upgrade: migration count 78. Later migrations (79, the project board, ADR-0117) continue
+// from it, and the last step below applies them to the upgraded database and requires every row to survive.
+assert.ok(files.length >= 78, 'the 0.3.1 rehearsal needs the first 78 migrations')
+assert.ok(admitted.minimum >= 78 && admitted.maximum === files.length, 'the app admits the chain this checkout carries')
 assert.deepEqual(files.slice(75), ['20261003000076_hub_access.sql', '20261004000077_hub_access_at_the_door.sql', '20261004000080_hub_authority_boundaries.sql'])
 const mutant = process.env.FABRIC_UPGRADE_MUTANT ?? ''
 assert.ok(['', 'restored-poll', 'reconnect-cas'].includes(mutant), 'unknown rehearsal mutant')
@@ -195,6 +197,10 @@ for (const baseline of [75, 77]) {
   assert.deepEqual(snapshot(restored, [...coreTables, ...hubTables]), replay, 'dump/restore rebuild preserves projection and authority rows')
   authority(restored, fixture)
   await reconnect(restored, fixture, baseline * 100 + 70)
+  const at78 = snapshot(db, [...coreTables, ...hubTables])
+  migrate(db, files.length)
+  assert.deepEqual(snapshot(db, [...coreTables, ...hubTables]), at78, `78→${files.length} must preserve every existing row`)
+  assert.equal(sql(db, 'set role service_role;select schema_version()'), String(files.length))
   console.log(`PASS upgrade ${baseline}→78: exact migration ledger, preserved estate/journal/projections/live authority, restored pending refused, pg_dump/restore, ACLs/replay and concurrent reconnect CAS`)
 }
 console.log('PASS owned hub upgrade rehearsal; suffix80 is migration count78, no existing database addressed')
