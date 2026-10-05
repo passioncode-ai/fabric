@@ -77,9 +77,9 @@ describe('an access request in the queue', () => {
     expect(screen.getByText(en['access.denyStands'])).toBeTruthy()
     cleanup()
     render(<I18nProvider locale="ru"><Harness item={itemOf(true)} /></I18nProvider>)
-    expect(screen.getByText(ru['access.denyStands'])).toBeTruthy()
-    expect(ru['access.denyStands']).toContain(`«${ru['access.deny']}»`)
-    expect(ru['access.denials.note']).toContain(`«${ru['access.denials.clear']}»`)
+    expect(screen.getByText(ru['access.denyStands'] ?? '')).toBeTruthy()
+    expect(ru['access.denyStands'] ?? '').toContain(`«${ru['access.deny']}»`)
+    expect(ru['access.denials.note'] ?? '').toContain(`«${ru['access.denials.clear']}»`)
   })
 
   it('I3 U-2: an Allow whose product did not open reports one sentence to the board, saying allowed once', async () => {
