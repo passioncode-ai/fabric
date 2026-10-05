@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "469b4bc6e957fe491c6563214a56a20c7fb1dd1d",
+  "report": "docs/reports/2026-10-05-hub-i3-data-130b5510/README.md",
+  "reportSha256": "8b469a3cd7edafd18fd9b9efadf9fe75345505f714822efcdf70a930f905ed01",
+  "reviewerRun": "hub-031-i3-data-20261005",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-33",
+      "source": "Data A-1 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fabric_memory_remember canonicalises `supersedes`; agent-surface test (stack-backed, full tier)"
+      ]
+    },
+    {
+      "id": "V3-34",
+      "source": "Data A-2 (non-blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-199: see D-13"
+      ]
+    },
+    {
+      "id": "V3-35",
+      "source": "Data A-3 (non-blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-200: changes the journal contract of hub.call.forwarded@1"
+      ]
+    },
+    {
+      "id": "V3-36",
+      "source": "Data A-4 (non-blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-201: an applied migration's text is not edited; the claim is corrected in the register and the upgrade procedure gains a journal scan with CO-198"
+      ]
+    },
+    {
+      "id": "V3-37",
+      "source": "Data A-5 (non-blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-202: an ADR-0115 decision for the operator"
+      ]
+    },
+    {
+      "id": "V3-59",
+      "source": "Data N-1 (non-blocking, recheck)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both files are byte-identical to `130b5510` again; their original region anchors still resolve"
+      ]
+    }
+  ],
+  "note": "Fresh independent review at 130b5510, rechecked by the same reviewer at 19e5427a and 487caf39; the final candidate differs from 487caf39 only by the workspace-publication pin."
+}

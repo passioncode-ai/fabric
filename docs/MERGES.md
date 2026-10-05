@@ -303,3 +303,7 @@ Iteration 3 of the 0.3.1 verification on the converged candidate `130b5510`: `ci
 The same branch then disposes every iteration-2 row (V2-23…V2-56) against the converged candidate and its fixes, gives iterations 1 and 2 their exit lines, and adds structured review receipts for both under `docs/evidence/reviews/0.3.1/`, assembled from the committed reports and the ledger rows that dispose their findings (no new review).
 
 Round 2 (`agent/p08-i3-round2-20261005`): all five reviewers approved their rechecks at `19e5427a`, where `ci.sh fast` and `ci.sh full` exited 0. Their twelve new non-blocking findings are fixed: ru button names in the standing-denial copy, direct tests for the new strings, the outside quit reaper spawned synchronously, the full `agent.call` answer table and `mayHaveRun` rule, the release-notes process paragraph removed and more unreleased spellings refused, full candidate SHAs in the ledger, the runbook path rule and PostgreSQL 17 client in step 4, spaces in two registers, and the applied migrations 77/80 restored byte-identical.
+
+### 2026-10-05 · release-0.3.1 · agent/release-0.3.1 (on 469b4bc6)
+
+Release commit for Fabric 0.3.1 on the verified candidate `469b4bc6`: the final-recheck sections of the five iteration-3 reports, the fifteen review receipts, the ledger's iteration-3 exit, `docs/launch/release-gate.json` (version 0.3.1, verifiedCommit, reviewReceipts), the desktop package version 0.3.1 and the finalized `## 0.3.1` changelog. Only release metadata changes after the verified commit. Tagging and the human approval follow.

@@ -115,3 +115,16 @@ New findings introduced by the fixes:
 | ID | Severity | Finding |
 |---|---|---|
 | E-10 | non-blocking | The outside quit reaper is armed asynchronously, so a stop that blocks synchronously still disables it; the E-1 reorder's stated guarantee is not delivered |
+
+## Final recheck at the release candidate 469b4bc6 — 2026-10-05
+
+The same reviewer rechecked the second-round fixes at `487caf3944e6155b7c314db2eaa1508ea2d5b19a` and confirmed that the final candidate `469b4bc6e957fe491c6563214a56a20c7fb1dd1d` differs from it only by `docs/workspace-receipt.json`, `workspace` (the scheduled workspace-publication pin), so the verdict carries over. Verdict: **approve**. Structured result: `recheck2.json`.
+
+| Finding | Result | Evidence |
+|---|---|---|
+| E-10 | fixed | quit.ts:20 imports spawn statically; spawnQuitReaper (quit.ts:64) is synchronous and returns void; index.ts:328 calls it inside try/catch. begin() still arms the deadline, then the reaper, then runs the stops. Probe p9b-reaper-sync-stop.mjs (index.ts wiring, one stop that never returns): the child was ended by SIGKILL at 15 074 ms; at 19e5427a it was still alive at 25 003 ms. The original p9 wirin |
+| E-1 | fixed (still holds) | Probe p1: the FIFO hub.json case returned {removed:false, reason:'hub.json is not a regular file; left in place'} in 0 ms, exit 0. Probe p2: deadline, then reaper, then stop. hub-files 6/6. |
+| E-2 | fixed (still holds) | Probe p8: slots 0/0 after 1 and after 32 hung-up calls; the next valid request got 200. hub-surface 13/13. agentSurface.ts is unchanged since 19e5427a. |
+| E-3 | fixed (still holds) | Probe p7: with a failing prime the session surface endpoint is 'http://127.0.0.1:47811/mcp'. hub-surface 'I3 E-3' passes. |
+| E-4 | fixed (still holds) | Probe p6: the repeat after a scope change answered 'outcome_unknown scope_changed' with 1 write. claude- and codex-provider-control exit 0. |
+| E-5 | fixed (still holds) | accessService.ts and hubTools.ts are unchanged since 19e5427a. hub-access-service 9/9 including 'I3 E-5'. |

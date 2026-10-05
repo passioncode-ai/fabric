@@ -124,3 +124,17 @@ New findings introduced by the fixes:
 |---|---|---|
 | D-16 | non-blocking | Amendment 33 claims every refusal carries a mayHaveRun flag; most do not |
 | D-17 | non-blocking | The CHANGELOG 0.3.1 lead paragraph is process text that the new finalization check does not catch |
+
+## Final recheck at the release candidate 469b4bc6 — 2026-10-05
+
+The same reviewer rechecked the second-round fixes at `487caf3944e6155b7c314db2eaa1508ea2d5b19a` and confirmed that the final candidate `469b4bc6e957fe491c6563214a56a20c7fb1dd1d` differs from it only by `docs/workspace-receipt.json`, `workspace` (the scheduled workspace-publication pin), so the verdict carries over. Verdict: **approve**. Structured result: `recheck2.json`.
+
+| Finding | Result | Evidence |
+|---|---|---|
+| D-8 | fixed | ADR-0115 amendment 33's table now has `product-refused` and `product-unreachable` rows (may have run: no). This matches productForwarder.ts returning both with reached:false, which hubCall.ts surfaces as refusal(code, notSent(...), {mayHaveRun:false}). |
+| D-14 | fixed | Amendment 30 now reads 'suffix 80'. ceo-private-archive.md:679 reads 'preserves 77 acceptance and 79 refusal; removing 78'. A grep over ADR-0115, ceo-private-archive.md, CHANGELOG.md and adr/README.md for suffixN/countN/preservesN/andNN/removingN/The0./off20 finds nothing. |
+| D-16 | fixed | Amendment 33 now says: every refusal carries error.code; one that may have reached the product carries mayHaveRun:true; false or no flag means it reached nothing, and early refusals carry no flag. Matches hubCall.ts: outcome-unknown and answer-not-kept carry true; cancelled, idempotency-capacity and the not-sent forward codes carry false; pre-forward refusals carry none. |
+| D-17 | fixed | The process paragraph is gone from the CHANGELOG 0.3.1 section (it now opens with the hub bullet). release-mac.mjs changelogProblem now refuses any 'unreleased' heading, 'not (been) released'/'unreleased' in the body, and process wording ('release pull request', 'renames this heading', 'follow(s) the (third) verification iteration'). Exercised on the candidate CHANGELOG with node: as-is → refused  |
+| D-2 | fixed (note closed) | Step 4 now sets PGBIN=/opt/homebrew/opt/postgresql@17/bin and runs "$PGBIN/psql". |
+| D-3 | ruled-acceptable (accepted; note closed) | Step 3 now says the executable commands for steps 3 and 5 are not written yet (CO-198), so the rehearsal is a manual, recorded check. |
+| D-9 | fixed, migration half ruled | Migrations 77 and 80 are byte-identical to 130b5510 (`git diff --quiet 130b5510 HEAD -- …077… …080…` exit 0). Their original markers, 77 → #verification-iteration-2-clarifications--2026-10-04 and 80 → #3-grants-are-standing-narrow-and-revocable, still resolve (check-regions: 150 markers, exit 0). The anchored sections only loosely describe the fenced SQL, but leaving applied, dated migration text  |

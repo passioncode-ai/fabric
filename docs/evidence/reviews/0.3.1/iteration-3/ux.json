@@ -1,0 +1,95 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "469b4bc6e957fe491c6563214a56a20c7fb1dd1d",
+  "report": "docs/reports/2026-10-05-hub-i3-ux-130b5510/README.md",
+  "reportSha256": "7849e292e9de989d8c632dc18a08fd44ba56238942fcb45b8619a5532d4479be",
+  "reviewerRun": "hub-031-i3-ux-20261005",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-1",
+      "source": "UX U-1 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `access.denyStands` on the prompt, the queue row and SCR-76, `access.denials.note`; SCN-133 rationale; ObligationActs/AgentAccessPanel/accessWords tests"
+      ]
+    },
+    {
+      "id": "V3-2",
+      "source": "UX U-2 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one key `access.queue.allowedNotConnected`; ObligationActs tests"
+      ]
+    },
+    {
+      "id": "V3-3",
+      "source": "UX U-3 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ru «агент для кода», periods in en/ru; StartPaths tests"
+      ]
+    },
+    {
+      "id": "V3-4",
+      "source": "UX U-4 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the product card's toolbar is a group named after the product (`Toolbar` `label`); SCR-76 sentence narrowed; AgentAccessPanel test \"I3 U-4\""
+      ]
+    },
+    {
+      "id": "V3-5",
+      "source": "UX U-5 (non-blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-207: the outcome is already said in the queue row; a refinement of SCR-76"
+      ]
+    },
+    {
+      "id": "V3-6",
+      "source": "UX U-6 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"Fabric cannot prove…\" in en/ru; accessWords test"
+      ]
+    },
+    {
+      "id": "V3-7",
+      "source": "UX U-7 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ru «…и уже открыл окно входа»"
+      ]
+    },
+    {
+      "id": "V3-8",
+      "source": "UX U-8 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `first.exec.note` removed from en/ru and the string registry"
+      ]
+    },
+    {
+      "id": "V3-48",
+      "source": "UX U-9 (non-blocking, recheck)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: «Отказать» and «Снять отказ» are quoted, as the buttons read; ObligationActs test \"I3 U-1/U-9\" asserts the quoted labels equal the button keys"
+      ]
+    },
+    {
+      "id": "V3-49",
+      "source": "UX U-10 (non-blocking, recheck)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: direct tests for `access.denyStands`, `access.denials.note` and the one-sentence `access.queue.allowedNotConnected` board message; the three registry rows tagged SCN-132"
+      ]
+    }
+  ],
+  "note": "Fresh independent review at 130b5510, rechecked by the same reviewer at 19e5427a and 487caf39; the final candidate differs from 487caf39 only by the workspace-publication pin."
+}

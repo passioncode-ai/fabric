@@ -1,0 +1,135 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "469b4bc6e957fe491c6563214a56a20c7fb1dd1d",
+  "report": "docs/reports/2026-10-05-hub-i3-plan-130b5510/README.md",
+  "reportSha256": "645735eeddfe897260d7b2f0bd4a79c4c612deb892cf69c6e01245063c79a7c3",
+  "reviewerRun": "hub-031-i3-plan-20261005",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-38",
+      "source": "Plan P-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the gate refuses one commit named for three iterations and a ledger section that does not name its candidate or a title naming another version; release-mac checks the candidates exist and form one ancestry chain; release-gate tests \"I3 P-1\" (watched failing)"
+      ]
+    },
+    {
+      "id": "V3-39",
+      "source": "Plan P-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG lists everything 0.3.1 ships; changelogProblem refuses a leftover unreleased heading or not-released wording; the runbook says rename and finalize; release-mac test \"I3 P-2\" (watched failing)"
+      ]
+    },
+    {
+      "id": "V3-40",
+      "source": "Plan P-3 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-08 row and the Now line name the candidate, its branch and the checks; draft PR #11 is superseded by the converged branch"
+      ]
+    },
+    {
+      "id": "V3-41",
+      "source": "Plan P-4 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: lane 13 moved into the lane table"
+      ]
+    },
+    {
+      "id": "V3-42",
+      "source": "Plan P-5 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the dispatch context names the current cut and says it is recompiled at the final integrated commit"
+      ]
+    },
+    {
+      "id": "V3-43",
+      "source": "Plan P-6 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: runbook documents the review packet; step 9 states the website's current release.json (v0.3.0)"
+      ]
+    },
+    {
+      "id": "V3-44",
+      "source": "Plan P-7 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: see D-14"
+      ]
+    },
+    {
+      "id": "V3-45",
+      "source": "Plan P-8 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-176 records the shipped CO-176.1 leaf; P-02 marked historical. CO-179 in lanes 1 and 2 is not a defect: each lane cites its own part (restyle; release containment)"
+      ]
+    },
+    {
+      "id": "V3-46",
+      "source": "Plan P-9 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG says a version check does not prove narrowing"
+      ]
+    },
+    {
+      "id": "V3-47",
+      "source": "Plan P-10 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-195 cites fabric-inbox#18; release-only documents are declared in the gate (`releaseMetadata`), not hard-coded; release-gate test \"I3 P-10\""
+      ]
+    },
+    {
+      "id": "V3-54",
+      "source": "Docs D-17 / Plan N-3 (non-blocking, recheck)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the paragraph is removed from the section (the file header explains the process); `changelogProblem` also refuses other unreleased spellings and process wording; release-mac test \"I3 N-3\""
+      ]
+    },
+    {
+      "id": "V3-56",
+      "source": "Plan N-1 (non-blocking, recheck)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both sections name the full SHA"
+      ]
+    },
+    {
+      "id": "V3-57",
+      "source": "Plan N-2 (non-blocking, recheck)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: reports may sit anywhere under `docs/`; only those added after `verifiedCommit` must be under `docs/reports/` or `docs/evidence/reviews/`"
+      ]
+    },
+    {
+      "id": "V3-58",
+      "source": "Plan P-7 (recheck: not fixed)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both rows"
+      ]
+    },
+    {
+      "id": "V3-60",
+      "source": "Plan N-5 (non-blocking, final recheck)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-208: for 0.3.1 the release commit lands on main as one fast-forward before the next scheduled pin and CO-197's publication follows the tag; the lasting exemption of the docs-only publication pin, with a test, is CO-208 (its row is added after the release commit, because the carry-over register is not release metadata)"
+      ]
+    }
+  ],
+  "note": "Fresh independent review at 130b5510, rechecked by the same reviewer at 19e5427a and 487caf39; the final candidate differs from 487caf39 only by the workspace-publication pin."
+}

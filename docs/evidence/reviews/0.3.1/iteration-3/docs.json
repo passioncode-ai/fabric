@@ -1,0 +1,175 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "469b4bc6e957fe491c6563214a56a20c7fb1dd1d",
+  "report": "docs/reports/2026-10-05-hub-i3-docs-130b5510/README.md",
+  "reportSha256": "49fa7c1b480570d12c8640880b702237ed4f5139cbd14565a012300971c84f63",
+  "reviewerRun": "hub-031-i3-docs-20261005",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-18",
+      "source": "Documentation D-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG says 0.3.1 refuses a database below 78 and 0.3.0 cannot open a migrated one; the startup error links the runbook by absolute URL; schema-readiness test"
+      ]
+    },
+    {
+      "id": "V3-19",
+      "source": "Documentation D-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the runbook backs up with the PostgreSQL 17 client and checks its version first"
+      ]
+    },
+    {
+      "id": "V3-20",
+      "source": "Documentation D-3 (non-blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-198: untested commands are not written into a data runbook; required before the live migration"
+      ]
+    },
+    {
+      "id": "V3-21",
+      "source": "Documentation D-4 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: runbook step 1 documents the review-receipt packet and the files allowed after verifiedCommit"
+      ]
+    },
+    {
+      "id": "V3-22",
+      "source": "Documentation D-5 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0105 amendment (the hop is ADR-0115's standing connection) and ADR-0115 amendment 36"
+      ]
+    },
+    {
+      "id": "V3-23",
+      "source": "Documentation D-6 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG, productConnect.ts header and FLW-76 state the withdraw-failed exception"
+      ]
+    },
+    {
+      "id": "V3-24",
+      "source": "Documentation D-7 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0115 amendment 32"
+      ]
+    },
+    {
+      "id": "V3-25",
+      "source": "Documentation D-8 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0115 amendment 33, the full answer table with retry rules"
+      ]
+    },
+    {
+      "id": "V3-26",
+      "source": "Documentation D-9 (non-blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-201 for the applied migrations 77 and 80: their text is not rewritten, so they keep their original markers, which still resolve (V3-59); fixed for the code: the hub-external-ingress region is added and the productConnect region repointed; check-regions 150 markers"
+      ]
+    },
+    {
+      "id": "V3-27",
+      "source": "Documentation D-10 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: README says sixteen runners, twelve in the full tier"
+      ]
+    },
+    {
+      "id": "V3-28",
+      "source": "Documentation D-11 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0115 amendment 34"
+      ]
+    },
+    {
+      "id": "V3-29",
+      "source": "Documentation D-12 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: telegram-surface.md marks external tools partial (CO-194)"
+      ]
+    },
+    {
+      "id": "V3-30",
+      "source": "Documentation D-13 (non-blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-199: renumbering belongs to the reserving workstream; no 78/79 file exists"
+      ]
+    },
+    {
+      "id": "V3-31",
+      "source": "Documentation D-14 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: spaces restored in CHANGELOG, the ADR index, the CO-193/196/197 rows, ceo-private-archive.md and the map's entries"
+      ]
+    },
+    {
+      "id": "V3-32",
+      "source": "Documentation D-15 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-08 row names the converged candidate, the full tier and the review state"
+      ]
+    },
+    {
+      "id": "V3-51",
+      "source": "Docs D-8 (recheck: not fixed)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both rows added to the table with their retry rule"
+      ]
+    },
+    {
+      "id": "V3-52",
+      "source": "Docs D-14 (recheck: not fixed)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0115 amendment 30 and `ceo-private-archive.md`"
+      ]
+    },
+    {
+      "id": "V3-53",
+      "source": "Docs D-16 (non-blocking, recheck)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the rule now says a refusal that may have reached the product carries `mayHaveRun: true`, and one with `false` or no flag reached nothing"
+      ]
+    },
+    {
+      "id": "V3-54",
+      "source": "Docs D-17 / Plan N-3 (non-blocking, recheck)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the paragraph is removed from the section (the file header explains the process); `changelogProblem` also refuses other unreleased spellings and process wording; release-mac test \"I3 N-3\""
+      ]
+    },
+    {
+      "id": "V3-55",
+      "source": "Docs D-2/D-3 notes (recheck)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: step 4 uses `$PGBIN/psql`; step 3 names CO-198 for the missing executable commands"
+      ]
+    }
+  ],
+  "note": "Fresh independent review at 130b5510, rechecked by the same reviewer at 19e5427a and 487caf39; the final candidate differs from 487caf39 only by the workspace-publication pin."
+}

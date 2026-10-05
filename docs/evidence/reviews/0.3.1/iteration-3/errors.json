@@ -1,0 +1,95 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "469b4bc6e957fe491c6563214a56a20c7fb1dd1d",
+  "report": "docs/reports/2026-10-05-hub-i3-errors-130b5510/README.md",
+  "reportSha256": "7b1c1face41206779a3a7502aacdb5c35bde815ed943eb7c0d963bf4c3c5706e",
+  "reviewerRun": "hub-031-i3-errors-20261005",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-9",
+      "source": "Errors E-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `withdrawHub` reads hub.json only as a bounded regular file (O_NONBLOCK, O_NOFOLLOW) and refuses special files; quit arms its deadline and reaper before any stop; hub-files test \"I3 E-1\" (watched: killed by its 5 s timeout on the old code) and quit test \"I3 E-1\""
+      ]
+    },
+    {
+      "id": "V3-10",
+      "source": "Errors E-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the admission slot is released exactly once, on request end or caller close, and handleRequest races the close; hub-surface test \"I3 E-2\" (watched failing on the old code)"
+      ]
+    },
+    {
+      "id": "V3-11",
+      "source": "Errors E-3 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a failed verifier warm-up is logged and the surface still listens; hub-surface test \"I3 E-3\" (watched failing)"
+      ]
+    },
+    {
+      "id": "V3-12",
+      "source": "Errors E-4 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: after a scope change an attempted stop answers outcome_unknown/scope_changed, never refused; claude-provider-control test updated (watched failing on the old controllers)"
+      ]
+    },
+    {
+      "id": "V3-13",
+      "source": "Errors E-5 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: an aborted status read mints no credential, the next read collects it; hub-access-service test \"I3 E-5\" (watched failing)"
+      ]
+    },
+    {
+      "id": "V3-14",
+      "source": "Errors E-6 (non-blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-203: reverses the recorded V2 ER-9 behaviour; the effect is a failed connect the operator retries, never a wrong key"
+      ]
+    },
+    {
+      "id": "V3-15",
+      "source": "Errors E-7 (non-blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a keyless outcome-unknown answer says no key protects a repeat; hub-call-i3 test \"I3 E-7\" (watched failing). Requiring a key for mail is ruled CO-204"
+      ]
+    },
+    {
+      "id": "V3-16",
+      "source": "Errors E-8 (non-blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-205: bounded by one Mac's registry today; cap with the registry work"
+      ]
+    },
+    {
+      "id": "V3-17",
+      "source": "Errors E-9 (non-blocking)",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-206: not measured; needs a stalled-database probe first"
+      ]
+    },
+    {
+      "id": "V3-50",
+      "source": "Errors E-10 (non-blocking, recheck)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `spawnQuitReaper` imports `spawn` statically and spawns synchronously inside `armReaper`; quit test \"I3 E-10\" arms through the coordinator and blocks in a stop (watched: alive after 8 s on the old code)"
+      ]
+    }
+  ],
+  "note": "Fresh independent review at 130b5510, rechecked by the same reviewer at 19e5427a and 487caf39; the final candidate differs from 487caf39 only by the workspace-publication pin."
+}

@@ -132,3 +132,23 @@ New findings introduced by the fixes:
 | N-1 | non-blocking | The hub ledger's Iteration 1 and 2 sections do not name their receipt candidates in full, so the new gate will refuse the real release |
 | N-2 | non-blocking | The runbook's review-artifact path rule contradicts the committed iteration-1 receipts |
 | N-3 | non-blocking | changelogProblem's not-released guard misses the wording the CHANGELOG actually carries |
+
+## Final recheck at the release candidate 469b4bc6 — 2026-10-05
+
+The same reviewer rechecked the second-round fixes at `469b4bc6e957fe491c6563214a56a20c7fb1dd1d` and confirmed that the final candidate `469b4bc6e957fe491c6563214a56a20c7fb1dd1d` differs from it only by `docs/workspace-receipt.json`, `workspace` (the scheduled workspace-publication pin), so the verdict carries over. Verdict: **approve**. Structured result: `recheck2.json`.
+
+| Finding | Result | Evidence |
+|---|---|---|
+| N-1 | fixed | Ledger iteration 1 names `67a5dc42d19357f82156f51dcab7d42db0b0e9df`; iteration 2 names `2927a087cac61c02f16f41d9bebfdc7403fc577c`. Both checks are true in probe-gate-recheck3.out.json. |
+| N-2 | fixed | release-mac.md step 1: review artifacts may sit anywhere under `docs/`; only those added after `verifiedCommit` must be under docs/reports/ or docs/evidence/reviews/. This matches docPath and validatedReviewArtifactPaths. |
+| N-3 | fixed | The process paragraph is removed from the 0.3.1 section; after a rename the first published line is the hub bullet. changelogProblem refuses '## 0.3.1 — unreleased', 'has not been released' and 'Not released yet'. It also refuses process wording (/release pull request\|renames? this heading\|follow(?:s)? the (?:third )?verification iteration/i). The real CHANGELOG, renamed, passes (null). |
+| P-7 | fixed | CO-193 (carryover.md:204) and CO-197 (:208) have no glued word+version or word+SHA tokens; backlog.md, CHANGELOG.md and release-mac.md are clean. One cosmetic 'schema78' remains in the hub ledger's iteration-3 table; it is not on any published surface. |
+| gate-probe | all adversarial cases refuse at 469b4bc6 | probe-gate-recheck.mjs (output probe-gate-recheck3.out.json): the control returns []. Refused: the same commit three times; a ledger naming no candidate, the wrong one or a prefix; a title naming 0.3.0; a nonexistent I1/I2; reversed order. The chain 67a5dc42 → 2927a087 → 469b4bc6 passes. With verifiedCommit=469b4bc6 at HEAD, verifiedCandidateProblem returns null (probe-landing3.mjs). 469b4bc6 cont |
+| receipts-iterations-1-2 | accepted | The 10 committed receipts plus the committed ledger yield zero problems for iterations 1 and 2. With an in-memory iteration 3 at 469b4bc6, the only problems left are 'iteration 3 of the ledger does not name its candidate commit 469b4bc6… in full' and 'iteration 3 must end with its one line "Exit for iteration 3: … Blocking findings open: none."'. That is exactly the iteration-3 receipts and exit l |
+| N-4 (raised in this recheck at 487caf39) | resolved by re-designation | With verifiedCommit=487caf39, the landing merge 469b4bc6 was refused: 'unverified changes follow the verified commit: docs/workspace-receipt.json, workspace' (probe-landing2.mjs). With verifiedCommit=469b4bc6 there is no post-verification diff (probe-landing3.mjs → null), and main 26df61bc is an ancestor. |
+
+New findings:
+
+| ID | Severity | Finding |
+|---|---|---|
+| N-5 | non-blocking | Release-window race: the scheduled workspace pin, and CO-197's publish-before-release order, can make a verified candidate unreleasable |

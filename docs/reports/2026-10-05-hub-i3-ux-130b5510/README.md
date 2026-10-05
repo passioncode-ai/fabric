@@ -109,3 +109,20 @@ New findings introduced by the fixes:
 |---|---|---|
 | U-9 | non-blocking | The new ru 'deny stands' copy quotes buttons that do not exist: «Отклонить» (the button is «Отказать») and «очистите»/«Очистить» (the button is «Снять отказ»). It appears on the native prompt, the queue and SCR-76. |
 | U-10 | non-blocking | No test asserts the U-1/U-2 fixes directly, although the ledger says they are tested; the strings registry tags the consent strings with the wrong scenario |
+
+## Final recheck at the release candidate 469b4bc6 — 2026-10-05
+
+The same reviewer rechecked the second-round fixes at `487caf3944e6155b7c314db2eaa1508ea2d5b19a` and confirmed that the final candidate `469b4bc6e957fe491c6563214a56a20c7fb1dd1d` differs from it only by `docs/workspace-receipt.json`, `workspace` (the scheduled workspace-publication pin), so the verdict carries over. Verdict: **approve**. Structured result: `recheck2.json`.
+
+| Finding | Result | Evidence |
+|---|---|---|
+| U-9 | fixed | ru.ts access.denyStands = «“Отказать” будет отказывать в этом же запросе, пока вы не снимете отказ в «Настройки → Доступ агентов → Отклонённые запросы».», which matches access.deny 'Отказать' and the section title 'Отклонённые запросы'. ru.ts access.denials.note quotes «Снять отказ», which matches access.denials.clear. The en wording is aligned to the real button: 'clear the denial' / 'Clearing th |
+| U-10 | fixed | There are now direct tests. ObligationActs.test.tsx 'I3 U-1/U-9' renders denyStands in en and ru on the queue row. 'I3 U-2' asserts that the board sentence starts with the allowedNotConnected text and contains 'allowed' exactly once. AgentAccessPanel.test.tsx asserts that en['access.denials.note'] is rendered. `vitest -t I3` gives 2 passed. docs/brand/strings.md retags access.denyStands, access.de |
+| U-1 | fixed | Still holds. denyStands is unchanged in the prompt (accessWords.ts), the queue and the PendingCard; the denials note is rendered and now tested. |
+| U-2 | fixed | Still holds, and it is now asserted by 'I3 U-2'. |
+| U-3 | fixed | Still holds: the start.executor.auth.* strings are untouched by 19e5427a..487caf39. |
+| U-4 | fixed | Still holds: Toolbar label / role=group is untouched; the 'I3 U-4' test passes. |
+| U-5 | ruled-acceptable | CO-207 (open), which I accept as before; AgentAccessPanel.tsx is unchanged in this diff. |
+| U-6 | fixed | Still holds: access.floor is unchanged ('Fabric cannot prove…'), and the accessWords test passes. |
+| U-7 | fixed | Still holds: ru access.connect.sign_in_required is unchanged. |
+| U-8 | fixed | Still holds: first.exec.note is still absent, and the renderer typecheck exits 0. |

@@ -133,3 +133,16 @@ New findings introduced by the fixes:
 | ID | Severity | Finding |
 |---|---|---|
 | N-1 | non-blocking | df16fe01 edits the text of applied migrations 77 and 80 (one comment line each: the #region docs anchor), while CO-201 rules 'editing an applied migration's text is avoided' |
+
+## Final recheck at the release candidate 469b4bc6 — 2026-10-05
+
+The same reviewer rechecked the second-round fixes at `487caf3944e6155b7c314db2eaa1508ea2d5b19a` and confirmed that the final candidate `469b4bc6e957fe491c6563214a56a20c7fb1dd1d` differs from it only by `docs/workspace-receipt.json (16+/16-)`, `workspace (gitlink)` (the scheduled workspace-publication pin), so the verdict carries over. Verdict: **approve**. Structured result: `recheck2.json`.
+
+| Finding | Result | Evidence |
+|---|---|---|
+| N-1 | fixed | git diff --quiet 130b5510 487caf39 -- supabase exit 0, and the same against 469b4bc6 exit 0. Blob ids are identical: 77 = 8b2ad1469e81db8bd3d467e4e769fdea3f7aafda, 80 = c6da7d1c6d021dacde262b3115535fd049bf0b5d. The restored anchors still resolve: ADR-0115 headings '### 3. Grants are standing, narrow and revocable' (line 84) and '## Verification iteration 2 clarifications — 2026-10-04' (line 316);  |
+| A-1 | fixed (holds) | agentSurface.ts:1315 `const supersedes = asked?.toLowerCase()` is present at 487caf39 and 469b4bc6. The stack-backed assertion passed in the full tier at 19e5427a: i3fix-full1.log:7913 'ok   an upper-case supersedes id corrects the canonical fact', and that run ended CI_FULL_EXIT=0 SECS=874 (line 8137). agentSurface.ts has not changed since. |
+| A-2 | ruled-acceptable (holds) | CO-199 is still open; no migration with suffix 78 or 79 exists. |
+| A-3 | ruled-acceptable (holds) | CO-200 is still open; hubCall.ts is unchanged since 19e5427a. |
+| A-4 | ruled-acceptable (holds) | CO-201 is still open. Applied-migration text is now byte-identical to 130b5510, so CO-201's stated reason is consistent again. |
+| A-5 | ruled-acceptable (holds) | CO-202 is still open; owned-PG probe P4 still shows no authority surviving a restore. |
