@@ -1,0 +1,103 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "2927a087cac61c02f16f41d9bebfdc7403fc577c",
+  "report": "docs/reports/2026-10-04-hub-recovery/raw/iteration-2/2026-10-04-ux.md",
+  "reportSha256": "9c75034a538aa409eeb08ec2f08bc5422b01b56cdcff871eb8ef5c15fdec9489",
+  "reviewerRun": "hub-031-i2-ux-20261004",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-1",
+      "source": "UX-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate"
+      ]
+    },
+    {
+      "id": "V2-2",
+      "source": "UX-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate"
+      ]
+    },
+    {
+      "id": "V2-3",
+      "source": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate"
+      ]
+    },
+    {
+      "id": "V2-4",
+      "source": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate"
+      ]
+    },
+    {
+      "id": "V2-5",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate"
+      ]
+    },
+    {
+      "id": "V2-6",
+      "source": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate"
+      ]
+    },
+    {
+      "id": "V2-7",
+      "source": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate"
+      ]
+    },
+    {
+      "id": "V2-8",
+      "source": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate"
+      ]
+    },
+    {
+      "id": "V2-9",
+      "source": "UX-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate"
+      ]
+    },
+    {
+      "id": "V2-10",
+      "source": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate"
+      ]
+    },
+    {
+      "id": "V2-11",
+      "source": "UX-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed `7f35c16c`: surface receipt; renderer/harness coverage only, native acceptance remains separate"
+      ]
+    }
+  ],
+  "note": "Assembled 2026-10-05 from the committed report and the ledger rows that dispose its findings; no new review."
+}

@@ -120,9 +120,9 @@ mockup coverage, the plan projection and M131's backlog citation moved by one li
 (`owned-backend-process-registry`, `backend-listener`) at load average ~80; both pass alone under Node and Electron
 and in the green run.
 
-Exit for iteration 1: every finding above is fixed or ruled with a register id. Blocking findings open: none.
+Iteration 1 landed on main as `2927a087cac61c02f16f41d9bebfdc7403fc577c` ([PR #8](https://github.com/passioncode-ai/fabric/pull/8)). Individual earlier hashes are historical PR#8 receipts (`refs/pull/8/head`); the main squash is the fresh-checkout source receipt.
 
-Iteration1 landed on main as `2927a087cac61c02f16f41d9bebfdc7403fc577c` ([PR#8](https://github.com/passioncode-ai/fabric/pull/8)). Individual earlier hashes are historical PR#8 receipts (`refs/pull/8/head`); the main squash is the fresh-checkout source receipt.
+Exit for iteration 1: every finding above is fixed or ruled with a register id. Blocking findings open: none.
 
 ## Iteration 2
 
@@ -131,7 +131,7 @@ Fresh independent reports formed at main `2927a087`, recovered from the interrup
 UX11, errors11, docs14, data6, plan14. The linked reports' historical execution claims are not
 new recovery executions. Current disposition table follows; root code/branch receipts remain
 candidate evidence. Full convergence, seeded upgrade, remaining owning-repository corrections
-and fresh independent iteration3 are still required. **Iteration2 has not exited.**
+and fresh independent iteration 3 were required; all three are recorded below, and iteration 2 exited on 2026-10-05.
 
 | ID | Source | Finding | Disposition |
 |---|---|---|---|
@@ -157,44 +157,45 @@ and fresh independent iteration3 are still required. **Iteration2 has not exited
 | V2-20 | ER-9 | a callback refused before its state is read leaves the attempt "waiting" for 10 minutes — low | fixed `7f35c16c`: invalidcallback settles only its waiting attempt |
 | V2-21 | ER-10 | the contract's pid check cannot tell Fabric from a reused pid — info | ruled AR-3.1 / ADR-0115 amendment26: PIDliveness is no identity proof; no authority from discovery |
 | V2-22 | ER-11 | the product's error text reaches the agent, client id included — info | fixed `0a340e8a`: product error client-id/secret stripped, fixed agent-facing failure |
-| V2-23 | DO-1 | MEDIUM — Reconnect tells the operator "Fabric no longer uses the previous key" before anything changed | candidate correction present; pending converged docs gate and owning-source disposition |
-| V2-24 | DO-2 | MEDIUM — ADR-0115 amendment 19 (the agent-facing wire contract) misdescribes `agent.call`'s answer | candidate correction present; pending converged docs gate and owning-source disposition |
-| V2-25 | DO-3 | LOW/MEDIUM — CO-197 (and CHANGELOG 0.3.1 "the workspace publication is stale") are false at the candidate | candidate correction present; pending converged docs gate and owning-source disposition |
-| V2-26 | DO-4 | LOW — ADR-0105 hands the gateway.ts removal to AR-3.1; ADR-0115 keeps gateway; nobody tracks it | candidate correction present; pending converged docs gate and owning-source disposition |
-| V2-27 | DO-5 | LOW — ADR-0034 itself carries no supersede mark; the index carries two different supersede claims | candidate correction present; pending converged docs gate and owning-source disposition |
-| V2-28 | DO-6 | LOW — "an agent's call was passed to a product" has no string-registry row (the hub's only one) | candidate correction present; pending converged docs gate and owning-source disposition |
-| V2-29 | DO-7 | LOW — "record-failed" copy is false in the one path where the record DID land | candidate correction present; pending converged docs gate and owning-source disposition |
-| V2-30 | DO-8 | LOW — ru term for "binding credential" is not one term | candidate correction present; pending converged docs gate and owning-source disposition |
-| V2-31 | DO-9 | LOW/MEDIUM — the 2026-10-03 hub handoff still orders inheritors to keep "record before secret" | candidate correction present; pending converged docs gate and owning-source disposition |
-| V2-32 | DO-10 | LOW — the 2026-10-04 handoff and plan P-08 describe the pre-merge state; P-08 names schema 76 | candidate correction present; pending converged docs gate and owning-source disposition |
-| V2-33 | DO-11 | LOW — three region markers point at a section that does not describe their code | candidate correction present; pending converged docs gate and owning-source disposition |
-| V2-34 | DO-12 | LOW — "Worker version 4fd02b75 … carries fabric-inbox#24" rests on timing, and that is not said | candidate correction present; pending converged docs gate and owning-source disposition |
-| V2-35 | DO-13 | LOW — agent-composition.md still says Fabric's MCP transport is a client of the running agentgateway | candidate correction present; pending converged docs gate and owning-source disposition |
-| V2-36 | DO-14 | LOW — two consent/status lines say less, or other, than the code does | candidate correction present; pending converged docs gate and owning-source disposition |
+| V2-23 | DO-1 | MEDIUM — Reconnect tells the operator "Fabric no longer uses the previous key" before anything changed | fixed: only a successful Reconnect says the previous key is no longer used (FLW-76; re-checked by the iteration-3 ux review at 130b5510) |
+| V2-24 | DO-2 | MEDIUM — ADR-0115 amendment 19 (the agent-facing wire contract) misdescribes `agent.call`'s answer | fixed: amendment 20 states the interop envelope, and amendment 33 tabulates every `agent.call` answer with its retry rule |
+| V2-25 | DO-3 | LOW/MEDIUM — CO-197 (and CHANGELOG 0.3.1 "the workspace publication is stale") are false at the candidate | fixed: CHANGELOG and CO-197 say only that the final-source publication remains open |
+| V2-26 | DO-4 | LOW — ADR-0105 hands the gateway.ts removal to AR-3.1; ADR-0115 keeps gateway; nobody tracks it | fixed: AR-3.1's row tracks the removal of `apps/desktop/src/main/gateway.ts`; ADR-0105's consequences name it as still open |
+| V2-27 | DO-5 | LOW — ADR-0034 itself carries no supersede mark; the index carries two different supersede claims | fixed: ADR-0034 carries a successor note naming ADR-0105 and ADR-0115 |
+| V2-28 | DO-6 | LOW — "an agent's call was passed to a product" has no string-registry row (the hub's only one) | fixed: `event.hub.call.forwarded@1` has its string-registry row |
+| V2-29 | DO-7 | LOW — "record-failed" copy is false in the one path where the record DID land | fixed: amendment 28 and the connect copy distinguish a late record that was withdrawn from one whose withdrawal failed |
+| V2-30 | DO-8 | LOW — ru term for "binding credential" is not one term | fixed: ru uses «учётные данные привязки» everywhere, as `docs/brand/terminology.md` defines |
+| V2-31 | DO-9 | LOW/MEDIUM — the 2026-10-03 hub handoff still orders inheritors to keep "record before secret" | not a defect: the 2026-10-03 handoff is dated and records its moment; amendments 13 and 28 govern the order now |
+| V2-32 | DO-10 | LOW — the 2026-10-04 handoff and plan P-08 describe the pre-merge state; P-08 names schema 76 | fixed for P-08 (schema 78, converged candidate, iteration-3 state); the 2026-10-04 handoff is dated and records its moment |
+| V2-33 | DO-11 | LOW — three region markers point at a section that does not describe their code | fixed: region markers repointed and the external-ingress region added (iteration 3 D-9; check-regions 150 markers) |
+| V2-34 | DO-12 | LOW — "Worker version 4fd02b75 … carries fabric-inbox#24" rests on timing, and that is not said | fixed: CHANGELOG says a version check does not prove narrowing; the deploy receipt is ruled CO-195 |
+| V2-35 | DO-13 | LOW — agent-composition.md still says Fabric's MCP transport is a client of the running agentgateway | fixed: `docs/architecture/agent-composition.md` marks the gateway route superseded by ADR-0115 |
+| V2-36 | DO-14 | LOW — two consent/status lines say less, or other, than the code does | fixed: the consent and status lines come from the registries and match the code (re-checked by the iteration-3 ux review); the standing denial is now said (iteration 3 U-1) |
 | V2-37 | DA-1 | BLOCKING — live grants and live credentials the operator cannot see or revoke (capped, oldest-first reads) | fixed `d29bcf98`: authority boundary and complete-read tests in core receipt |
 | V2-38 | DA-2 | MEDIUM (non-blocking) — a restored pending request is still decidable, and the SOURCE's poll secret collects the credential in the target | fixed `d29bcf98`: authority boundary and complete-read tests in core receipt |
 | V2-39 | DA-3 | MEDIUM (non-blocking) — the agent.call idempotency memory keeps product answers whole, unbounded in size, and past revocation | fixed `d29bcf98`: authority boundary and complete-read tests in core receipt |
 | V2-40 | DA-4 | LOW — migration 74's one-spelling rule does not reach the hub keys the door now reads | fixed `d29bcf98`: authority boundary and complete-read tests in core receipt |
 | V2-41 | DA-5 | LOW — the hub's own refusals of an ask leave no trace | fixed `d29bcf98`: authority boundary and complete-read tests in core receipt |
 | V2-42 | DA-6 | LOW — hash-only storage is the writer's promise, not the schema's, for three hub events | fixed `d29bcf98`: authority boundary and complete-read tests in core receipt |
-| V2-43 | PL-1 | P-08 names the wrong schema target for the live database (migration 76; the build needs 77) | open: owning-source/action receipt required; see exact DO/PL disposition |
-| V2-44 | PL-2 | The live-database upgrade order the plan cites is not in the runbook it cites, and the app does not give the command the runbook promises | open: owning-source/action receipt required; see exact DO/PL disposition |
-| V2-45 | PL-3 | The release notes extractor publishes an "(unreleased)" section, and nothing refuses a release whose CHANGELOG was not renamed | open: owning-source/action receipt required; see exact DO/PL disposition |
-| V2-46 | PL-4 | CO-197's evidence and next step describe a state main had already left before the squash landed | open: owning-source/action receipt required; see exact DO/PL disposition |
-| V2-47 | PL-5 | CO-196's evidence is stale against fabric-workspace origin/main | open: owning-source/action receipt required; see exact DO/PL disposition |
-| V2-48 | PL-6 | Fabric Inbox 0.9.0 is published but its owning page still lists 0.8.2, and CO-196 gates that on Fabric's release | open: owning-source/action receipt required; see exact DO/PL disposition |
-| V2-49 | PL-7 | "Worker version 4fd02b75 carries fabric-inbox#24" has no commit receipt in any repository | open: owning-source/action receipt required; see exact DO/PL disposition |
-| V2-50 | PL-8 | P-08 and the Now line still place iteration 1 "on `agent/hub-0.3.1-verification`", a branch that no longer exists | open: owning-source/action receipt required; see exact DO/PL disposition |
-| V2-51 | PL-9 | Lane 2's entry rule still describes 0.3.0's entry, not P-08's | open: owning-source/action receipt required; see exact DO/PL disposition |
-| V2-52 | PL-10 | The release-gate test's "real files" guard is now permanently skipped, and the replacement assertion is weaker than its message | open: owning-source/action receipt required; see exact DO/PL disposition |
-| V2-53 | PL-11 | The gate does not bind the ledger to the commits it verified | open: owning-source/action receipt required; see exact DO/PL disposition |
-| V2-54 | PL-12 | The iteration-1 handoff's status and next task are false on `main` | open: owning-source/action receipt required; see exact DO/PL disposition |
-| V2-55 | PL-13 | The 0.3.1 ledger's "fixed" receipts cite pre-squash commits that are not on `main` | open: owning-source/action receipt required; see exact DO/PL disposition |
-| V2-56 | PL-14 | Re-check of iteration 1's PL-9 (ruled CO-193): the owning repository still has nothing | open: owning-source/action receipt required; see exact DO/PL disposition |
+| V2-43 | PL-1 | P-08 names the wrong schema target for the live database (migration 76; the build needs 77) | fixed: P-08, CHANGELOG and AR-3.1 name schema 78 (migrations 76, 77 and suffix 80); re-checked 2026-10-05 by the iteration-3 docs and plan reviews |
+| V2-44 | PL-2 | The live-database upgrade order the plan cites is not in the runbook it cites, and the app does not give the command the runbook promises | fixed for the startup command (`56032339`) and the runbook order (iteration 3 D-2 adds the PostgreSQL 17 client); the executable rehearsal is ruled CO-198 |
+| V2-45 | PL-3 | The release notes extractor publishes an "(unreleased)" section, and nothing refuses a release whose CHANGELOG was not renamed | fixed: `release-mac.mjs#changelogProblem` refuses a leftover unreleased heading and not-released wording (iteration 3 P-2) |
+| V2-46 | PL-4 | CO-197's evidence and next step describe a state main had already left before the squash landed | ruled CO-197: the row carries the current evidence; the final-source publication remains open there |
+| V2-47 | PL-5 | CO-196's evidence is stale against fabric-workspace origin/main | ruled CO-196: the knowledge-base corrections are owned there |
+| V2-48 | PL-6 | Fabric Inbox 0.9.0 is published but its owning page still lists 0.8.2, and CO-196 gates that on Fabric's release | fixed in fabric-workspace: `knowledge/products.md` names Fabric Inbox 0.9.0 (read 2026-10-05 by the iteration-3 plan review) |
+| V2-49 | PL-7 | "Worker version 4fd02b75 carries fabric-inbox#24" has no commit receipt in any repository | ruled CO-195: the deploy receipt is the Fabric Inbox owner's ([fabric-inbox#26](https://github.com/passioncode-ai/fabric-inbox/issues/26)); a version check does not attest source (CHANGELOG says so) |
+| V2-50 | PL-8 | P-08 and the Now line still place iteration 1 "on `agent/hub-0.3.1-verification`", a branch that no longer exists | fixed: the P-08 row and the Now line name the converged candidate and its branch (iteration 3 P-3) |
+| V2-51 | PL-9 | Lane 2's entry rule still describes 0.3.0's entry, not P-08's | fixed: lane 2's entry rule describes P-08's candidate-bound receipts |
+| V2-52 | PL-10 | The release-gate test's "real files" guard is now permanently skipped, and the replacement assertion is weaker than its message | fixed: the release-gate tests carry no skip, and the iteration-3 P-1 tests assert the refusals explicitly |
+| V2-53 | PL-11 | The gate does not bind the ledger to the commits it verified | fixed: `verifiedCandidateProblem` binds the ledger to the verified commit, and the iteration-3 P-1 chain check binds all three iterations |
+| V2-54 | PL-12 | The iteration-1 handoff's status and next task are false on `main` | not a defect: the cited handoff is dated and records its moment (dated documents are not rewritten); the living status is the P-08 row |
+| V2-55 | PL-13 | The 0.3.1 ledger's "fixed" receipts cite pre-squash commits that are not on `main` | fixed: the iteration-1 section records the squash `2927a087` beside the pre-squash receipts |
+| V2-56 | PL-14 | Re-check of iteration 1's PL-9 (ruled CO-193): the owning repository still has nothing | ruled CO-193: [fabric-agent-contract#8](https://github.com/passioncode-ai/fabric-agent-contract/issues/8) owns the underscore capability names |
 
 See [all DO/PL dispositions](../../handoffs/2026-10-04-hub-docs-plan-dispositions.md) and
 [core](../../handoffs/core-resume.md) / [surface](../../handoffs/surface-resume.md) source receipts.
 
+Exit for iteration 2: every finding above is fixed, ruled with a register id or not a defect; the dispositions were re-checked against the converged candidate `130b5510` and its fixes on 2026-10-05. Blocking findings open: none.
 
 ## Iteration 3
 

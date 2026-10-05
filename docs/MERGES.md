@@ -299,3 +299,5 @@ The 0.3.1 verification candidate left by the stopped coordinator (iteration-3 au
 ### 2026-10-05 · p08-i3-fixes · agent/p08-i3-fixes-20261005 (from 130b5510)
 
 Iteration 3 of the 0.3.1 verification on the converged candidate `130b5510`: `ci.sh full` exited 0, and five fresh independent reviews found 47 findings, 6 blocking (errors E-1 quit hang on a FIFO at hub.json, E-2 admission slot leak on hang-up; docs D-1 false schema claim, D-2 backup with an older pg_dump; plan P-1 gate not bound to real iteration commits, P-2 incomplete release notes). All six are fixed with tests watched failing on the old code; 31 non-blocking findings are fixed and 10 are ruled into CO-198…CO-207. ADR-0115 amendments 32–36 and an ADR-0105 amendment align the record with the code. Iteration 3 exits only after exact-SHA rechecks of this branch.
+
+The same branch then disposes every iteration-2 row (V2-23…V2-56) against the converged candidate and its fixes, gives iterations 1 and 2 their exit lines, and adds structured review receipts for both under `docs/evidence/reviews/0.3.1/`, assembled from the committed reports and the ledger rows that dispose their findings (no new review).

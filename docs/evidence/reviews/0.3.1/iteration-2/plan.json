@@ -1,0 +1,127 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "2927a087cac61c02f16f41d9bebfdc7403fc577c",
+  "report": "docs/reports/2026-10-04-hub-recovery/raw/iteration-2/2026-10-04-plan.md",
+  "reportSha256": "0b08b26aac7c278650d1c3d673e6e468a331258643d22d89f16faaffe754983e",
+  "reviewerRun": "hub-031-i2-plan-20261004",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-43",
+      "source": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-08, CHANGELOG and AR-3.1 name schema 78 (migrations 76, 77 and suffix 80); re-checked 2026-10-05 by the iteration-3 docs and plan reviews"
+      ]
+    },
+    {
+      "id": "V2-44",
+      "source": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed for the startup command (`56032339`) and the runbook order (iteration 3 D-2 adds the PostgreSQL 17 client); the executable rehearsal is ruled CO-198"
+      ]
+    },
+    {
+      "id": "V2-45",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `release-mac.mjs#changelogProblem` refuses a leftover unreleased heading and not-released wording (iteration 3 P-2)"
+      ]
+    },
+    {
+      "id": "V2-46",
+      "source": "PL-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-197: the row carries the current evidence; the final-source publication remains open there"
+      ]
+    },
+    {
+      "id": "V2-47",
+      "source": "PL-5",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-196: the knowledge-base corrections are owned there"
+      ]
+    },
+    {
+      "id": "V2-48",
+      "source": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed in fabric-workspace: `knowledge/products.md` names Fabric Inbox 0.9.0 (read 2026-10-05 by the iteration-3 plan review)"
+      ]
+    },
+    {
+      "id": "V2-49",
+      "source": "PL-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-195: the deploy receipt is the Fabric Inbox owner's ([fabric-inbox#26](https://github.com/passioncode-ai/fabric-inbox/issues/26)); a version check does not attest source (CHANGELOG says so)"
+      ]
+    },
+    {
+      "id": "V2-50",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the P-08 row and the Now line name the converged candidate and its branch (iteration 3 P-3)"
+      ]
+    },
+    {
+      "id": "V2-51",
+      "source": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: lane 2's entry rule describes P-08's candidate-bound receipts"
+      ]
+    },
+    {
+      "id": "V2-52",
+      "source": "PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the release-gate tests carry no skip, and the iteration-3 P-1 tests assert the refusals explicitly"
+      ]
+    },
+    {
+      "id": "V2-53",
+      "source": "PL-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `verifiedCandidateProblem` binds the ledger to the verified commit, and the iteration-3 P-1 chain check binds all three iterations"
+      ]
+    },
+    {
+      "id": "V2-54",
+      "source": "PL-12",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: the cited handoff is dated and records its moment (dated documents are not rewritten); the living status is the P-08 row"
+      ]
+    },
+    {
+      "id": "V2-55",
+      "source": "PL-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the iteration-1 section records the squash `2927a087` beside the pre-squash receipts"
+      ]
+    },
+    {
+      "id": "V2-56",
+      "source": "PL-14",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-193: [fabric-agent-contract#8](https://github.com/passioncode-ai/fabric-agent-contract/issues/8) owns the underscore capability names"
+      ]
+    }
+  ],
+  "note": "Assembled 2026-10-05 from the committed report and the ledger rows that dispose its findings; no new review."
+}

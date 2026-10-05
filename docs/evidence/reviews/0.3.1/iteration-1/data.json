@@ -1,0 +1,87 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "67a5dc42d19357f82156f51dcab7d42db0b0e9df",
+  "report": "docs/evidence/plans/2026-10-04-hub-verification/iteration-1/2026-10-04-data.md",
+  "reportSha256": "7e629992c4fda901f4aaa4dce7dfcf62473025dd2ab469821c50341bf6ec4f4d",
+  "reviewerRun": "hub-031-i1-data-20261004",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-7",
+      "source": "DA-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed `36395532` (migration 77): `refuse_foreign_hub_identity` for request, binding, grant and connection ids and a live-binding check on `binding_id`; `estate-identity-db.test.mjs` \"the hub's creates refuse another estate's id…\" (watched: ACCEPTED)"
+      ]
+    },
+    {
+      "id": "V1-8",
+      "source": "DA-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed `36395532`: at or below the restore watermark, bindings and grants project revoked and connections removed; `restore-authority-db.test.mjs` \"restored hub history is history only…\" (watched: a restored binding is live — actual '1', expected '0')"
+      ]
+    },
+    {
+      "id": "V1-9",
+      "source": "DA-6 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: slot `FABRIC_INBOX_CLIENT_SECRET_<ESTATE>_<CONNECTION>`, migration-free; `hub-products.test.mjs` \"DA-6: two estates…\" (watched: both estates got one slot)"
+      ]
+    },
+    {
+      "id": "V1-43",
+      "source": "DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed `36395532`: migration 65's \"restore collided …\"; `restore-authority-db.test.mjs` case"
+      ]
+    },
+    {
+      "id": "V1-44",
+      "source": "DA-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed `36395532`: `secret_ref` exactly {project, env, name}; request ≤ 10 min + 2 min skew; grant ≤ 366 days; span keys closed; `hub-access-db.test.mjs` three cases (watched: expected a refusal)"
+      ]
+    },
+    {
+      "id": "V1-45",
+      "source": "DA-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`: live and newest-first reads, count queries for caps, standing-denial filter in the query; `hub-door-db.test.mjs` 501 stale rows (watched: 5 of 5 asks let through)"
+      ]
+    },
+    {
+      "id": "V1-46",
+      "source": "DA-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed `36395532`, `6b180e8a`: `product.connect.refused@1`; `hub-access-db.test.mjs`, `hub-products.test.mjs` DA-7 (watched: event type missing)"
+      ]
+    },
+    {
+      "id": "V1-47",
+      "source": "DA-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`: status lists the binding's live grants covering the request; `hub-access-service.test.mjs` DA-8 (watched: the first request stopped listing a grant it still holds)"
+      ]
+    },
+    {
+      "id": "V1-48",
+      "source": "DA-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`, `6b180e8a`: `startHub()` in hub.ts; `hub-door-db.test.mjs` blocked-port case"
+      ]
+    }
+  ],
+  "note": "Assembled 2026-10-05 from the committed report and the ledger rows that dispose its findings; no new review."
+}

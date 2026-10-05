@@ -1,0 +1,119 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "67a5dc42d19357f82156f51dcab7d42db0b0e9df",
+  "report": "docs/evidence/plans/2026-10-04-hub-verification/iteration-1/2026-10-04-errors.md",
+  "reportSha256": "eac663cdaedd9f9ff501f8c6ae50db914bf9a2825046ba5cc5f94fb36720cf6d",
+  "reviewerRun": "hub-031-i1-errors-20261004",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-4",
+      "source": "ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`: lstat + regular files only, non-blocking open, bounded read; `agent-registry.test.mjs` \"a FIFO, a link to /dev/zero and a directory…\" (watched: did not return within 5 s)"
+      ]
+    },
+    {
+      "id": "V1-5",
+      "source": "ER-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`, `36395532`: a per-request poll secret (RFC 8628) returned only to the creator, sha256 journalled (`poll_verifier`), required for door status reads; the dedupe answer carries none; `hub-access-service.test.mjs` ER-2 cases (watched: no poll secret in the creating answer) and `hub-door-db.test.mjs` (wrong or missing secret refused)"
+      ]
+    },
+    {
+      "id": "V1-6",
+      "source": "ER-6, DO-9 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: one 8 s deadline over body, vault and record; the secret first, the record only while the deadline holds and the product waits; otherwise non-2xx and nothing kept; ADR-0115 amendment 13 (`d74010ae`); `hub-products.test.mjs` \"ER-6: a vault slower than the product's deadline…\" (watched: answered 200) and three more ER-6 cases"
+      ]
+    },
+    {
+      "id": "V1-21",
+      "source": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`: the FIFO is opened non-blocking (Observatory's `run` closes inherited fds, so a pipe on fd 3 cannot work); `hub-products.test.mjs` vault concurrency case (watched: an unrelated fs read took 726 ms while six key reads waited)"
+      ]
+    },
+    {
+      "id": "V1-22",
+      "source": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`: a deadline on the secret's arrival, refused \"the vault handed nothing over\"; `hub-products.test.mjs` (watched: the read never ended)"
+      ]
+    },
+    {
+      "id": "V1-23",
+      "source": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`: every replay re-checks live grants and the live connection and spends the key otherwise; `hub-call.test.mjs` ER-5 ×3 (watched: a revoked grant still got the remembered answer)"
+      ]
+    },
+    {
+      "id": "V1-24",
+      "source": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`: per-request / per-agent buckets under a door-wide ceiling, a budget for unknown bearers before any read; `hub-surface.test.mjs` ER-7 (watched: 429 !== 200; unknown bearers never refused 429)"
+      ]
+    },
+    {
+      "id": "V1-25",
+      "source": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`: the hub port is held on `[::1]` too; every tool says to use hub.json's origin as written; AGENTS.md; `hub-surface.test.mjs` ER-8 (watched: another program took the port on [::1])"
+      ]
+    },
+    {
+      "id": "V1-26",
+      "source": "ER-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: an account id that is not printable ASCII is refused; `access.test.ts` ER-9 (watched: a zero-width space accepted)"
+      ]
+    },
+    {
+      "id": "V1-27",
+      "source": "ER-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`: `--vault-only` on both; `hub-products.test.mjs` (watched: run was called without --vault-only)"
+      ]
+    },
+    {
+      "id": "V1-28",
+      "source": "ER-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`, `6bd10d6a`: `canonical` bounded at depth 16, a failed span, a fixed sentence in the hop and in the tools' guard; `hub-call.test.mjs` ER-11 ×3 (watched: Maximum call stack size exceeded; the exception text reached the agent)"
+      ]
+    },
+    {
+      "id": "V1-29",
+      "source": "ER-12, DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`: such a binding is not listed; the window is in ADR-0115 amendment 12, CONTEXT, SCN-132 and the status tool's description (`d74010ae`, `6b180e8a`); `hub-access-service.test.mjs` ER-12 (watched: listed as live access)"
+      ]
+    },
+    {
+      "id": "V1-30",
+      "source": "ER-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`: the caller's signal reaches the vault read and the forward; a `cancelled` span; retry with the same key; `hub-call.test.mjs` ER-13 ×2 (watched: the forward was given no signal)"
+      ]
+    }
+  ],
+  "note": "Assembled 2026-10-05 from the committed report and the ledger rows that dispose its findings; no new review."
+}

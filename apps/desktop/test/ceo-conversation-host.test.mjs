@@ -12,7 +12,9 @@ const C=id(3),OP=id(4),MSG=id(5),key='synthetic-key-for-owned-http-fixture'
 const context={schema:'CeoContext@1',mode:'none',selection_revision:0,project_id:null,project_revision:null,estate_seq:0}
 const deferred=()=>{let resolve;return {promise:new Promise(r=>resolve=r),resolve}}
 const resources=[]
-async function fixture({timeoutMs=300,prefix=''}={}){
+// 3 s by default: on a busy disk one fsync'd local draft save measured over 300 ms (2026-10-05) and answered
+// local_save_unknown. Cases ABOUT a deadline pass their own budget explicitly.
+async function fixture({timeoutMs=3000,prefix=''}={}){
  const dir=mkdtempSync(path.join(tmpdir(),'fabric-ceo-host-'))
  const state={subject:{personId:id(2),revision:1,source:'authenticated',role:'owner',displayName:'test',authUser:null},valid:true,online:true,guard:null,onHeld:null,onConnection:null,respond:null}
  const calls=[],sockets=new Set(),accepted=new Map()
@@ -95,8 +97,11 @@ await test('whole-service deadline survives a slow authority read at the actual 
  try{assert.equal((await open(f)).ok,false);assert.equal(writes,0);assert.equal(f.calls.length,0)}finally{http.request=original}
 })
 await test('response timeout closes socket, has no retry and cannot turn late reply into success',async()=>{
- const f=await fixture({timeoutMs:30}),seen=deferred();let response
- f.state.respond=(req,res)=>{response=res;seen.resolve()};const request=open(f);await seen.promise
+ // 1.5 s, not 30 ms: the server holds its answer, so the deadline is still what ends the call, but a loaded host
+ // passed 30 ms before the request reached the server and this await never settled (fast gate hung, 2026-10-05).
+ const f=await fixture({timeoutMs:1500}),seen=deferred();let response
+ f.state.respond=(req,res)=>{response=res;seen.resolve()};const request=open(f)
+ await Promise.race([seen.promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error('the request never reached the owned server')),10_000))])
  const result=await request;assert.equal(result.state,'commit_unknown');assert.equal(f.calls.length,1)
  response.end(JSON.stringify({ok:true,conversation_id:C,revision:0,receipt_seq:1,repeated:false}))
  await new Promise(r=>setTimeout(r,40));assert.equal(f.calls.length,1);assert.equal(f.sockets.size,0)

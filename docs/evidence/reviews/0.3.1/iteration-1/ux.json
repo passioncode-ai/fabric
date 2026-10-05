@@ -1,0 +1,119 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "67a5dc42d19357f82156f51dcab7d42db0b0e9df",
+  "report": "docs/evidence/plans/2026-10-04-hub-verification/iteration-1/2026-10-04-ux.md",
+  "reportSha256": "0f5ddd24c102e1b6d9db6eae2d3328f673dd3ea4bf79e27975eebb9568d1444b",
+  "reviewerRun": "hub-031-i1-ux-20261004",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-2",
+      "source": "UX-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: a card per product, acts on their own line, the URL breaks anywhere; `AgentAccessPanel.test.tsx` \"UX-1 … acts on their own line … in ru\" (watched: expected null to be truthy)"
+      ]
+    },
+    {
+      "id": "V1-3",
+      "source": "UX-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`, `d74010ae`: main sends facts, the renderer phrases them from en/ru (`shared/accessWords.ts`), the native prompt follows the operator's language; the check that keeps it: `accessWords.test.ts` \"UX-2 — in ru, nothing the operator consents on is English\" plus ru scans of the panel and the queue row; `attention.test.ts` (watched: the old title \"Example agent asks to use Fabric Inbox\")"
+      ]
+    },
+    {
+      "id": "V1-10",
+      "source": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: on screen = visible and focused; queued prompts brought forward on focus; `consent-presenter.test.mjs` UX-3 (watched: a sheet opened on a window the operator is not looking at)"
+      ]
+    },
+    {
+      "id": "V1-11",
+      "source": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: \"Allow and connect {product}\" and the one-year line on every surface; `ObligationActs.test.tsx`, `AgentAccessPanel.test.tsx` UX-4 (watched)"
+      ]
+    },
+    {
+      "id": "V1-12",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: its own outcome, settles as allowed with the problem beside it, a follow-up message in the prompt path; `consent-presenter.test.mjs` UX-5 (watched: the operator was told nothing), `ObligationActs.test.tsx` UX-5"
+      ]
+    },
+    {
+      "id": "V1-13",
+      "source": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: waiting only while a connect state lives, then \"no answer came\" with Try again; `hub-products.test.mjs` UX-6 (watched)"
+      ]
+    },
+    {
+      "id": "V1-14",
+      "source": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`, `bc8e6085`: the app's one error-text rule, products by name, hub-off ends \"then quit and reopen Fabric\", plain refusal codes; `hub-products.test.mjs` UX-7 (watched)"
+      ]
+    },
+    {
+      "id": "V1-15",
+      "source": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`, `d74010ae`: facts as a block above, buttons apart (the rules sit outside launch.css's ported block); `ObligationActs.test.tsx` UX-8 (watched)"
+      ]
+    },
+    {
+      "id": "V1-16",
+      "source": "UX-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: a card per request with the agent's name, \"expires in N min\", aria-labels naming whose; `AgentAccessPanel.test.tsx` UX-9 (watched)"
+      ]
+    },
+    {
+      "id": "V1-17",
+      "source": "UX-10, DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: the line after Disconnect/Reconnect, SCN-133 and SCR-76 say Fabric stops using it and it stays valid in the product until revoked there; ADR-0115 amendment 15; `AgentAccessPanel.test.tsx` UX-10 (watched)"
+      ]
+    },
+    {
+      "id": "V1-18",
+      "source": "UX-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: \"Products\", localised dates, no doubled id, empty denials said, warn tone, `warning` box; `AgentAccessPanel.test.tsx` UX-11, `consent-presenter.test.mjs` (watched)"
+      ]
+    },
+    {
+      "id": "V1-19",
+      "source": "UX-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`, `7bb8bede`: the `agent-access` view and its states in the product model, linked from Settings; previews rebuilt (`build-mockup-previews.mjs --check` PASS, 111 views)"
+      ]
+    },
+    {
+      "id": "V1-20",
+      "source": "UX-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: one side-panel state; `sidePanel.test.ts` (watched: the old App held separate open flags)"
+      ]
+    }
+  ],
+  "note": "Assembled 2026-10-05 from the committed report and the ledger rows that dispose its findings; no new review."
+}

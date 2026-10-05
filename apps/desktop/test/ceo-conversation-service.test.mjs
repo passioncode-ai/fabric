@@ -78,7 +78,9 @@ await test('lost SQL reply stays unknown; restart reconciles original IDs withou
  assert.equal(f.calls.filter(x=>x.name==='send').length,1);assert.equal(f.accepted.size,1)
 })
 await test('not-found while first request is late permits only explicit same-input retry; late commit yields one message',async()=>{
- const f=fixture({timeoutMs:150});await freeze(f);const wait=pending();let first
+ // The short budget is for the SEND (its RPC never answers until released below), so the deadline still ends it;
+ // the local saves before and inside it are fsync'd, and a busy disk measured over 150 ms per save on 2026-10-05.
+ const f=fixture();await freeze(f);f.deps.timeoutMs=1500;const wait=pending();let first
  f.state.send=a=>{first=structuredClone(a.p_envelope);return wait.promise}
  const result=await f.service.send(C,OP);assert.equal(result.state,'commit_unknown')
  f.deps.timeoutMs=CEO_TEST_DEFAULT_TIMEOUT_MS

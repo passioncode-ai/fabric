@@ -1,0 +1,111 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "67a5dc42d19357f82156f51dcab7d42db0b0e9df",
+  "report": "docs/evidence/plans/2026-10-04-hub-verification/iteration-1/2026-10-04-plan.md",
+  "reportSha256": "a0ffedf3854ff6d7d877701d8eed1dab14c87497fb9470a5bb26a6580ce35529",
+  "reviewerRun": "hub-031-i1-plan-20261004",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-1",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed `86bc3ccb`: the ledger's title must name the version exactly; this ledger is 0.3.1's; `release-gate.test.mjs` \"the ledger must name the version it clears…\" and \"the real files…\" (watched: the 0.3.0 ledger with a 0.3.1 gate returned no problem)"
+      ]
+    },
+    {
+      "id": "V1-32",
+      "source": "DO-2, PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`: merged as `67a5dc42` (PR #7), measured counts, a new next task; CO-195's trigger updated"
+      ]
+    },
+    {
+      "id": "V1-33",
+      "source": "DO-3, PL-6, PL-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`: files cited without counts; CO-195 says the key was reused"
+      ]
+    },
+    {
+      "id": "V1-40",
+      "source": "DO-12, PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`: AR-3 partial with its scope; AR-2's next prerequisite named; heading unchanged for `backlog-sources.json`"
+      ]
+    },
+    {
+      "id": "V1-49",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`: the entry rule records the hub slices went ahead under ADR-0115"
+      ]
+    },
+    {
+      "id": "V1-50",
+      "source": "PL-4, PL-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`: P-03 in progress, P-08 for 0.3.1 requiring the full tier at the release commit; this iteration's full tier is recorded below"
+      ]
+    },
+    {
+      "id": "V1-51",
+      "source": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`: CO-195 and the CHANGELOG name the server, Worker version `4fd02b75` or later, which carries #24; the 0.9.0 app only supplies the connect link"
+      ]
+    },
+    {
+      "id": "V1-52",
+      "source": "PL-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-196 — not a release blocker: the knowledge base is fabric-workspace's publication; its PR lands with the 0.3.1 release"
+      ]
+    },
+    {
+      "id": "V1-53",
+      "source": "PL-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-193 — not a release blocker: Fabric validates its own schema today; the owner (fabric-agent-contract: `_` in `capabilityName` or a `toolName` field) acts before a second hub client validates against the published schema"
+      ]
+    },
+    {
+      "id": "V1-54",
+      "source": "PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`: a retroactive `## 0.3.0` and a `## 0.3.1 (unreleased)` section (hub, schema 75 → 77, minimum server, what is not done)"
+      ]
+    },
+    {
+      "id": "V1-55",
+      "source": "PL-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-197 — not a release blocker: publication follows the release; the next step is a publish from a clean main and the sync's vitest worker timeouts"
+      ]
+    },
+    {
+      "id": "V1-56",
+      "source": "PL-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`: `--owner passioncode-ai --signer-repo passioncode-ai/.github`"
+      ]
+    }
+  ],
+  "note": "Assembled 2026-10-05 from the committed report and the ledger rows that dispose its findings; no new review."
+}

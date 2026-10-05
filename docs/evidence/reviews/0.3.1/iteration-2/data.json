@@ -1,0 +1,63 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "2927a087cac61c02f16f41d9bebfdc7403fc577c",
+  "report": "docs/reports/2026-10-04-hub-recovery/raw/iteration-2/2026-10-04-data.md",
+  "reportSha256": "0e9d3233dc2acc6014330a035d73df66bacf3bbcb64b33de7620d38cae7bb812",
+  "reviewerRun": "hub-031-i2-data-20261004",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-37",
+      "source": "DA-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed `d29bcf98`: authority boundary and complete-read tests in core receipt"
+      ]
+    },
+    {
+      "id": "V2-38",
+      "source": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed `d29bcf98`: authority boundary and complete-read tests in core receipt"
+      ]
+    },
+    {
+      "id": "V2-39",
+      "source": "DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed `d29bcf98`: authority boundary and complete-read tests in core receipt"
+      ]
+    },
+    {
+      "id": "V2-40",
+      "source": "DA-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed `d29bcf98`: authority boundary and complete-read tests in core receipt"
+      ]
+    },
+    {
+      "id": "V2-41",
+      "source": "DA-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed `d29bcf98`: authority boundary and complete-read tests in core receipt"
+      ]
+    },
+    {
+      "id": "V2-42",
+      "source": "DA-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed `d29bcf98`: authority boundary and complete-read tests in core receipt"
+      ]
+    }
+  ],
+  "note": "Assembled 2026-10-05 from the committed report and the ledger rows that dispose its findings; no new review."
+}

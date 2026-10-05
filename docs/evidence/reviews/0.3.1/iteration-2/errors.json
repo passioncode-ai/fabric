@@ -1,0 +1,103 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "2927a087cac61c02f16f41d9bebfdc7403fc577c",
+  "report": "docs/reports/2026-10-04-hub-recovery/raw/iteration-2/2026-10-04-errors.md",
+  "reportSha256": "1c3b5b8e0b6aaa030eccbe19c68dabc764ca9661866fede0831be6f2e4378cb4",
+  "reviewerRun": "hub-031-i2-errors-20261004",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-12",
+      "source": "ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed `0a340e8a`: unknown-write tombstone; product failure/cancel/deadline regressions"
+      ]
+    },
+    {
+      "id": "V2-13",
+      "source": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed `d29bcf98`, `7f35c16c`: DB predecessorCAS plus connector serialization; changed-state race root regression51pass"
+      ]
+    },
+    {
+      "id": "V2-14",
+      "source": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed `56032339`: preloaded verifier hints/live authentication; root exact Host/Origin ingress"
+      ]
+    },
+    {
+      "id": "V2-15",
+      "source": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed `e607596a`: vault4running/64waiting, queued/running cancellation and launcher single-flight"
+      ]
+    },
+    {
+      "id": "V2-16",
+      "source": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed `e607596a`: JSON-RPC batch refusal before admitted callbacks"
+      ]
+    },
+    {
+      "id": "V2-17",
+      "source": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed `d29bcf98`: per-call initialized server identity/version compatibility; live source attestation remains CO-195"
+      ]
+    },
+    {
+      "id": "V2-18",
+      "source": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed `d29bcf98`: own-property input/capability reads, access regression28pass"
+      ]
+    },
+    {
+      "id": "V2-19",
+      "source": "ER-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed `73e8995e`: complete live grant/binding paging and direct grant-id revocation"
+      ]
+    },
+    {
+      "id": "V2-20",
+      "source": "ER-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed `7f35c16c`: invalidcallback settles only its waiting attempt"
+      ]
+    },
+    {
+      "id": "V2-21",
+      "source": "ER-10",
+      "status": "ruled",
+      "evidence": [
+        "ruled AR-3.1 / ADR-0115 amendment26: PIDliveness is no identity proof; no authority from discovery"
+      ]
+    },
+    {
+      "id": "V2-22",
+      "source": "ER-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed `0a340e8a`: product error client-id/secret stripped, fixed agent-facing failure"
+      ]
+    }
+  ],
+  "note": "Assembled 2026-10-05 from the committed report and the ledger rows that dispose its findings; no new review."
+}

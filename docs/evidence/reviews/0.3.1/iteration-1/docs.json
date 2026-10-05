@@ -1,0 +1,135 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "67a5dc42d19357f82156f51dcab7d42db0b0e9df",
+  "report": "docs/evidence/plans/2026-10-04-hub-verification/iteration-1/2026-10-04-docs.md",
+  "reportSha256": "b719882e97ae98eb6dcf9a426dfd09c369f62282618e0643a43215d5aa05bb43",
+  "reviewerRun": "hub-031-i1-docs-20261004",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-6",
+      "source": "ER-6, DO-9 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: one 8 s deadline over body, vault and record; the secret first, the record only while the deadline holds and the product waits; otherwise non-2xx and nothing kept; ADR-0115 amendment 13 (`d74010ae`); `hub-products.test.mjs` \"ER-6: a vault slower than the product's deadline…\" (watched: answered 200) and three more ER-6 cases"
+      ]
+    },
+    {
+      "id": "V1-17",
+      "source": "UX-10, DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: the line after Disconnect/Reconnect, SCN-133 and SCR-76 say Fabric stops using it and it stays valid in the product until revoked there; ADR-0115 amendment 15; `AgentAccessPanel.test.tsx` UX-10 (watched)"
+      ]
+    },
+    {
+      "id": "V1-29",
+      "source": "ER-12, DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed `bc8e6085`: such a binding is not listed; the window is in ADR-0115 amendment 12, CONTEXT, SCN-132 and the status tool's description (`d74010ae`, `6b180e8a`); `hub-access-service.test.mjs` ER-12 (watched: listed as live access)"
+      ]
+    },
+    {
+      "id": "V1-31",
+      "source": "DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`: amendment 6 states the real outcome (external agents only, CO-194)"
+      ]
+    },
+    {
+      "id": "V1-32",
+      "source": "DO-2, PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`: merged as `67a5dc42` (PR #7), measured counts, a new next task; CO-195's trigger updated"
+      ]
+    },
+    {
+      "id": "V1-33",
+      "source": "DO-3, PL-6, PL-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`: files cited without counts; CO-195 says the key was reused"
+      ]
+    },
+    {
+      "id": "V1-34",
+      "source": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`: amendment 8 cites it by its comment"
+      ]
+    },
+    {
+      "id": "V1-35",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed `36395532`: migration 77 rewrites the note, and the code now does store first (V1-6)"
+      ]
+    },
+    {
+      "id": "V1-36",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed `6b180e8a`: a failed or slow vault keeps the previous connection live; only a late record on Reconnect loses it and says so (`previousLost`); ADR-0115 amendment 13, SCN-133"
+      ]
+    },
+    {
+      "id": "V1-37",
+      "source": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed `d74010ae`: ADR-0115 amendment 19 lists the four tools, every refusal code with whether a retry can succeed, and the HTTP answers"
+      ]
+    },
+    {
+      "id": "V1-38",
+      "source": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`, `6b180e8a`: amendment 8; SCR-41 gains FLW-75 and an `access request` state"
+      ]
+    },
+    {
+      "id": "V1-39",
+      "source": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`, `d74010ae`: marked superseded by ADR-0115; the map's session-launch step corrected"
+      ]
+    },
+    {
+      "id": "V1-40",
+      "source": "DO-12, PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8`: AR-3 partial with its scope; AR-2's next prerequisite named; heading unchanged for `backlog-sources.json`"
+      ]
+    },
+    {
+      "id": "V1-41",
+      "source": "DO-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed `d74010ae`: a top lane records the merge and this iteration"
+      ]
+    },
+    {
+      "id": "V1-42",
+      "source": "DO-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed `59f43ab8` (amendments 7, 9, 10), `6b180e8a` (empty denials said, \"binding credential\"), `d74010ae` (133 rows; the copy defects registering exposed fixed; brand lint 0 errors)"
+      ]
+    }
+  ],
+  "note": "Assembled 2026-10-05 from the committed report and the ledger rows that dispose its findings; no new review."
+}

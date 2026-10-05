@@ -1,0 +1,127 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.1",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "2927a087cac61c02f16f41d9bebfdc7403fc577c",
+  "report": "docs/reports/2026-10-04-hub-recovery/raw/iteration-2/2026-10-04-docs.md",
+  "reportSha256": "9c4a69857dd6035db7c6c298dc91cd217d9191f04181e3944958daccde97164e",
+  "reviewerRun": "hub-031-i2-docs-20261004",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-23",
+      "source": "DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: only a successful Reconnect says the previous key is no longer used (FLW-76; re-checked by the iteration-3 ux review at 130b5510)"
+      ]
+    },
+    {
+      "id": "V2-24",
+      "source": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: amendment 20 states the interop envelope, and amendment 33 tabulates every `agent.call` answer with its retry rule"
+      ]
+    },
+    {
+      "id": "V2-25",
+      "source": "DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG and CO-197 say only that the final-source publication remains open"
+      ]
+    },
+    {
+      "id": "V2-26",
+      "source": "DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: AR-3.1's row tracks the removal of `apps/desktop/src/main/gateway.ts`; ADR-0105's consequences name it as still open"
+      ]
+    },
+    {
+      "id": "V2-27",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0034 carries a successor note naming ADR-0105 and ADR-0115"
+      ]
+    },
+    {
+      "id": "V2-28",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `event.hub.call.forwarded@1` has its string-registry row"
+      ]
+    },
+    {
+      "id": "V2-29",
+      "source": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: amendment 28 and the connect copy distinguish a late record that was withdrawn from one whose withdrawal failed"
+      ]
+    },
+    {
+      "id": "V2-30",
+      "source": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ru uses «учётные данные привязки» everywhere, as `docs/brand/terminology.md` defines"
+      ]
+    },
+    {
+      "id": "V2-31",
+      "source": "DO-9",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: the 2026-10-03 handoff is dated and records its moment; amendments 13 and 28 govern the order now"
+      ]
+    },
+    {
+      "id": "V2-32",
+      "source": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed for P-08 (schema 78, converged candidate, iteration-3 state); the 2026-10-04 handoff is dated and records its moment"
+      ]
+    },
+    {
+      "id": "V2-33",
+      "source": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: region markers repointed and the external-ingress region added (iteration 3 D-9; check-regions 150 markers)"
+      ]
+    },
+    {
+      "id": "V2-34",
+      "source": "DO-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG says a version check does not prove narrowing; the deploy receipt is ruled CO-195"
+      ]
+    },
+    {
+      "id": "V2-35",
+      "source": "DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/architecture/agent-composition.md` marks the gateway route superseded by ADR-0115"
+      ]
+    },
+    {
+      "id": "V2-36",
+      "source": "DO-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the consent and status lines come from the registries and match the code (re-checked by the iteration-3 ux review); the standing denial is now said (iteration 3 U-1)"
+      ]
+    }
+  ],
+  "note": "Assembled 2026-10-05 from the committed report and the ledger rows that dispose its findings; no new review."
+}
