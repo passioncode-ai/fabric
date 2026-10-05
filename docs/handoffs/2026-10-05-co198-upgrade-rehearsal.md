@@ -27,9 +27,16 @@ from schema 75 to 78 after installing 0.3.1, and only after a rehearsal on their
 | the same with `--from 74` | **FAIL**, exit 1: "the restored database reports schema 75, the dump was taken at 74" — [receipt](co198/fixture-75-wrong-from.rehearsal.json) |
 | `docker ps` after each run | no `fabric_test_` container left |
 
+**The operator's own dump (2026-10-05).** The step-2 backup of the live database was taken read-only
+(`pg_dump` inside the database container, no password handled; schema 75; mode 600 under
+`~/Library/Application Support/Fabric/backups/`) and rehearsed against `v0.3.1`: **PASS**, exit 0 — schema
+75 → 78, the journal count unchanged, no table lost a row. Its receipt stays beside the private dump and is not
+committed: this repository is public and the counts describe the operator's estate.
+
 **What it does not prove** (also in every receipt): the restored estate is not opened in the app; the app's restore
 boundary (hub requests, source credentials, pending work) is not exercised; the rollback restore into the working
 stack (step 5) has the same commands as step 3's restore but has not been run against that stack.
 
-**Next task — the operator's.** Install 0.3.1, take the step-2 backup, run the step-3 command above on it; on PASS,
-step 4. CO-198 is narrowed to step 5: its rollback stays a recorded manual check (disposition "partially").
+**Next task — the operator's approval, then step 4.** Steps 2 and 3 are done on the live data; installing 0.3.1 and
+applying the migrations to the working stack (step 4) change the operator's installation and database, so they wait
+for the operator's go-ahead. CO-198 is narrowed to step 5: its rollback stays a recorded manual check (disposition "partially").
