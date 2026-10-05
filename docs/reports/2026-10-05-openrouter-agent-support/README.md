@@ -62,7 +62,7 @@ report:
     - {name: "HackerAI", url: "https://github.com/hackerai-tech/hackerai", read_at: 2026-10-05}
     - {name: "Deep Agents Code CLI", url: "https://docs.langchain.com/oss/deepagents/code/cli-reference", read_at: 2026-10-05}
     - {name: "Fabric baseline", url: "https://github.com/passioncode-ai/fabric/tree/08eafb4b", read_at: 2026-10-05}
-    - {name: "Switchboard baseline", url: "https://github.com/passioncode-ai/fabric-switchboard/tree/ba2c0ac", read_at: 2026-10-05}
+    - {name: "Switchboard baseline", url: "https://github.com/passioncode-ai/fabric-switchboard/tree/a20c4ce", read_at: 2026-10-05}
   produced_by: {agent: "Claude Code (Opus 5.5)", task: "OpenRouter top-30 agent support research"}
   supersedes: []
   consumers: [fabric, fabric-switchboard, fabric-agent-adapter]
@@ -76,7 +76,9 @@ to a host, what Fabric and Switchboard support today, and what to build first.
 
 **Baselines.**
 - Fabric is read at `08eafb4b` (main, 2026-10-05).
-- Switchboard is read at `ba2c0ac` (2026-10-05).
+- Switchboard is read at `a20c4ce` (main, 2026-10-05). The research first read `ba2c0ac`, a work-in-progress branch
+  (`agent/other-agents`) built on `a20c4ce`; every Switchboard line cited below is identical at both (checked with
+  `git show` line by line), so the public commit is cited.
 - The ranking was fetched 2026-10-05T11:32:39Z.
 - Raw data is in [`raw/`](raw/):
   - [`raw/fetched_at.txt`](raw/fetched_at.txt): fetch receipt and sha256.
