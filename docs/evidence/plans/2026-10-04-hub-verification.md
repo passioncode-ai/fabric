@@ -33,7 +33,7 @@ released on 0.3.0's record.
 
 ## Iteration 1
 
-Five fresh reviewers, 2026-10-04, against `67a5dc42` (the squash of PR #7 on `main`). Reports, kept as written
+Five fresh reviewers, 2026-10-04, against `67a5dc42` (`67a5dc42d19357f82156f51dcab7d42db0b0e9df`, the squash of PR #7 on `main`). Reports, kept as written
 (machine worktree paths replaced by `<worktrees>/`; their reproduction scripts stayed outside the repository):
 [scenarios/UX/UI](2026-10-04-hub-verification/iteration-1/2026-10-04-ux.md) (UX-n, screenshots in
 [shots/](2026-10-04-hub-verification/iteration-1/shots/)), [errors and boundaries](2026-10-04-hub-verification/iteration-1/2026-10-04-errors.md) (ER-n),
@@ -126,7 +126,7 @@ Exit for iteration 1: every finding above is fixed or ruled with a register id. 
 
 ## Iteration 2
 
-Fresh independent reports formed at main `2927a087`, recovered from the interrupted Claude run.
+Fresh independent reports formed at main `2927a087` (`2927a087cac61c02f16f41d9bebfdc7403fc577c`), recovered from the interrupted Claude run.
 [Archive and privacy manifest](../../reports/2026-10-04-hub-recovery/README.md) preserve56 findings:
 UX11, errors11, docs14, data6, plan14. The linked reports' historical execution claims are not
 new recovery executions. Current disposition table follows; root code/branch receipts remain
@@ -257,7 +257,7 @@ each level's exact-SHA recheck of the fixed candidate; its receipts then go into
 | V3-23 | Documentation D-6 (non-blocking) | 'Answers within 10 s or keeps nothing' stated unconditionally despite amendment 28 (withdraw-failed) | fixed: CHANGELOG, productConnect.ts header and FLW-76 state the withdraw-failed exception |
 | V3-24 | Documentation D-7 (non-blocking) | ADR-0115 cites symbols that do not exist at the candidate | fixed: ADR-0115 amendment 32 |
 | V3-25 | Documentation D-8 (non-blocking) | The 'one place' error-code contract is incomplete | fixed: ADR-0115 amendment 33, the full answer table with retry rules |
-| V3-26 | Documentation D-9 (non-blocking) | Region coverage/anchors: external ingress in agentSurface.ts unfenced; migration 77/80 and productConnect regions anchor to sections that do not describe the fenced code | fixed: hub-external-ingress region added; migration 77/80 and productConnect regions repointed; check-regions 150 markers |
+| V3-26 | Documentation D-9 (non-blocking) | Region coverage/anchors: external ingress in agentSurface.ts unfenced; migration 77/80 and productConnect regions anchor to sections that do not describe the fenced code | fixed: hub-external-ingress region added and the productConnect region repointed; the applied migrations 77 and 80 keep their original markers (both still resolve), so their text is unchanged (V3-60); check-regions 150 markers |
 | V3-27 | Documentation D-10 (non-blocking) | README owned-cluster runner counts stale (15/11 vs 16/12) | fixed: README says sixteen runners, twelve in the full tier |
 | V3-28 | Documentation D-11 (non-blocking) | Amendment 22 Host rule narrower than code | fixed: ADR-0115 amendment 34 |
 | V3-29 | Documentation D-12 (non-blocking) | telegram-surface.md still marks 'Reaching an external tool' as available | fixed: telegram-surface.md marks external tools partial (CO-194) |
@@ -279,3 +279,22 @@ each level's exact-SHA recheck of the fixed candidate; its receipts then go into
 | V3-45 | Plan P-8 (non-blocking) | Carry-over rows disagree with what the candidate ships and with P-08 | fixed: CO-176 records the shipped CO-176.1 leaf; P-02 marked historical. CO-179 in lanes 1 and 2 is not a defect: each lane cites its own part (restyle; release containment) |
 | V3-46 | Plan P-9 (non-blocking) | The changelog's Fabric Inbox compatibility sentence reads as if 0.9.0 suffices | fixed: CHANGELOG says a version check does not prove narrowing |
 | V3-47 | Plan P-10 (non-blocking) | A dead branch reference and a one-off exemption in the generic gate | fixed: CO-195 cites fabric-inbox#18; release-only documents are declared in the gate (`releaseMetadata`), not hard-coded; release-gate test "I3 P-10" |
+
+### Rechecks at `19e5427a` and the second round — 2026-10-05
+
+Each reviewer rechecked its own findings at `19e5427aabfec4ef23f7131136ffbe2b6ea6c6d1` (the recheck sections of the five reports). All five approve; no blocking finding remains. On that commit `ci.sh fast` exited 0 (595 s, browser suites 16/16) and `ci.sh full` exited 0 (874 s, disposable stack removed; the stack-backed A-1 case passed). The rechecks raised the non-blocking findings below, fixed on `agent/p08-i3-round2-20261005`.
+
+| ID | Source | Finding | Disposition |
+|---|---|---|---|
+| V3-48 | UX U-9 (non-blocking, recheck) | the new ru copy quoted buttons that do not exist («Отклонить», «Очистить») | fixed: «Отказать» and «Снять отказ» are quoted, as the buttons read; ObligationActs test "I3 U-1/U-9" asserts the quoted labels equal the button keys |
+| V3-49 | UX U-10 (non-blocking, recheck) | U-1/U-2 fixes had no direct test; three strings tagged SCN-133 | fixed: direct tests for `access.denyStands`, `access.denials.note` and the one-sentence `access.queue.allowedNotConnected` board message; the three registry rows tagged SCN-132 |
+| V3-50 | Errors E-10 (non-blocking, recheck) | the outside reaper was spawned after an awaited import, so a blocking stop could still prevent it | fixed: `spawnQuitReaper` imports `spawn` statically and spawns synchronously inside `armReaper`; quit test "I3 E-10" arms through the coordinator and blocks in a stop (watched: alive after 8 s on the old code) |
+| V3-51 | Docs D-8 (recheck: not fixed) | amendment 33 left out `product-refused` and `product-unreachable` | fixed: both rows added to the table with their retry rule |
+| V3-52 | Docs D-14 (recheck: not fixed) | two spots still lacked spaces | fixed: ADR-0115 amendment 30 and `ceo-private-archive.md` |
+| V3-53 | Docs D-16 (non-blocking, recheck) | amendment 33 said every refusal carries `mayHaveRun` | fixed: the rule now says a refusal that may have reached the product carries `mayHaveRun: true`, and one with `false` or no flag reached nothing |
+| V3-54 | Docs D-17 / Plan N-3 (non-blocking, recheck) | the CHANGELOG section carried release-process text the not-released check did not catch | fixed: the paragraph is removed from the section (the file header explains the process); `changelogProblem` also refuses other unreleased spellings and process wording; release-mac test "I3 N-3" |
+| V3-55 | Docs D-2/D-3 notes (recheck) | step 4 ran bare `psql`; steps 3 and 5 did not point at CO-198 | fixed: step 4 uses `$PGBIN/psql`; step 3 names CO-198 for the missing executable commands |
+| V3-56 | Plan N-1 (non-blocking, recheck) | the iteration 1 and 2 sections named their candidates only by short SHA | fixed: both sections name the full SHA |
+| V3-57 | Plan N-2 (non-blocking, recheck) | the runbook's path rule contradicted the committed iteration-1 receipts | fixed: reports may sit anywhere under `docs/`; only those added after `verifiedCommit` must be under `docs/reports/` or `docs/evidence/reviews/` |
+| V3-58 | Plan P-7 (recheck: not fixed) | CO-193 and CO-197 still lacked spaces before numbers | fixed: both rows |
+| V3-59 | Data N-1 (non-blocking, recheck) | `df16fe01` had edited comment lines of the applied migrations 77 and 80 | fixed: both files are byte-identical to `130b5510` again; their original region anchors still resolve |

@@ -81,10 +81,13 @@ export function changelogProblem({ version, text }) {
     return `the changelog entry for ${version} is empty`
   // Renaming the heading is not finalizing the notes (I3 P-2): a leftover "(unreleased)" heading for this
   // version, or a section that still says it is not released, would be published as the release notes.
-  if (lines.some(line => new RegExp(`^## ${escaped}\\s*\\(unreleased\\)`, 'i').test(line.trim())))
+  if (lines.some(line => new RegExp(`^## ${escaped}\\b.*\\bunreleased\\b`, 'i').test(line.trim())))
     return `the changelog still has an unreleased heading for ${version} beside the finalized one`
-  if (body.some(line => /not released yet|\(unreleased\)/i.test(line)))
+  if (body.some(line => /\bnot (?:been )?released\b|\bunreleased\b/i.test(line)))
     return `the changelog entry for ${version} still says it is not released; finalize the notes before tagging`
+  // Process wording is for the file's header, not the notes a release publishes (I3 N-3).
+  if (body.some(line => /release pull request|renames? this heading|follow(?:s)? the (?:third )?verification iteration/i.test(line)))
+    return `the changelog entry for ${version} still carries release-process wording; finalize the notes before tagging`
   return null
 }
 

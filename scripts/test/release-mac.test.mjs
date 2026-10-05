@@ -185,3 +185,11 @@ test('I3 P-2: a finalized changelog keeps no unreleased heading or not-released 
   // Renamed only: the section still says it is not released.
   assert.match(changelogProblem({ version: '0.3.1', text: ok.replace('- The hub.', 'Not released yet: the tag follows verification.\n\n- The hub.') }), /not released/i)
 })
+
+test('I3 N-3: other unreleased spellings and process wording are refused too', () => {
+  const ok = '# Changelog\n\n## 0.3.1\n\n- The hub.\n\n## 0.3.0\n\n- CI releases.\n'
+  assert.equal(changelogProblem({ version: '0.3.1', text: ok }), null)
+  assert.match(changelogProblem({ version: '0.3.1', text: ok.replace('## 0.3.0', '## 0.3.1 — unreleased\n\n- stale\n\n## 0.3.0') }) ?? '', /unreleased/)
+  for (const line of ['This version has not been released.', 'The release pull request renames this heading to `## 0.3.1`.'])
+    assert.match(changelogProblem({ version: '0.3.1', text: ok.replace('- The hub.', line + '\n\n- The hub.') }) ?? '', /not released|process/i, line)
+})

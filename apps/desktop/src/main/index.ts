@@ -325,7 +325,7 @@ const quit = createQuitCoordinator({
   onDeadline: () => ops.failed('app.quit-deadline', new Error('quit_deadline'), { note: 'the drain or teardown stalled; the process was ended at the deadline' }),
   onSchedulerError: (e) => ops.failed('app.quit-scheduler-stop', e, { note: 'a scheduler failed to stop; the others were stopped and the quit continues' }),
   // Outside the process: ends it 15 s after quitting began even when Electron's teardown stalls.
-  armReaper: (ms) => { void spawnQuitReaper(ms).catch((e) => ops.failed('app.quit-reaper', e, { note: 'the outside quit guard did not start; the in-process deadline stands' })) }
+  armReaper: (ms) => { try { spawnQuitReaper(ms) } catch (e) { ops.failed('app.quit-reaper', e, { note: 'the outside quit guard did not start; the in-process deadline stands' }) } }
 })
 /** sessionId → taskId, so a session's exit can close the task that opened it. */
 const taskBySession = new Map<string, string>()

@@ -143,6 +143,20 @@ test('the outside guard ends a process whose event loop no longer runs', { skip:
   assert.equal(ended, 'SIGKILL', 'a stalled process outlived the outside guard')
 })
 
+test('a stop that blocks the main thread is still ended by the outside guard armed through the coordinator (I3 E-10)', { skip: process.platform === 'win32' }, async () => {
+  // The reaper used to be spawned after an awaited dynamic import, so a synchronous stop that never returned
+  // kept it from ever starting. Wired exactly as index.ts wires it: armReaper → spawnQuitReaper, then a stop
+  // that blocks forever.
+  const quitTs = path.join(import.meta.dirname, '../src/main/quit.ts')
+  const script = 'const { createQuitCoordinator, spawnQuitReaper } = await import(' + JSON.stringify(quitTs) + ');' +
+    'const q = createQuitCoordinator({ app: { quit() {}, exit() {} }, ready: () => true, shutdown: () => new Promise(() => {}), armReaper: () => spawnQuitReaper(1000) });' +
+    'q.onQuit(() => { for (;;) {} }); q.beforeQuit({ preventDefault() {} })'
+  const child = spawn(process.execPath, ['--experimental-strip-types', '--input-type=module', '-e', script], { stdio: 'ignore' })
+  const ended = await new Promise((resolve) => { const t = setTimeout(() => resolve('alive'), 8000); child.on('exit', (code, signal) => { clearTimeout(t); resolve(signal) }) })
+  if (ended === 'alive') child.kill('SIGKILL')
+  assert.equal(ended, 'SIGKILL', 'a stop blocking the main thread outlived the outside guard')
+})
+
 test('a failing shutdown still lets the quit through', async () => {
   const calls = []
   const q = createQuitCoordinator({ app: { quit: () => calls.push('quit'), exit() {} }, ready: () => true, shutdown: async () => { throw new Error('drain failed') }, setTimer: () => ({}) })

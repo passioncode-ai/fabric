@@ -501,8 +501,8 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `access.clearFor` | Clear the denial for {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.allowedConnect` | Allowed. To connect it, open Agent access in settings. It did not connect: {problem} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.lasts` | Access lasts a year unless you revoke it under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
-| `access.denyStands` | Deny keeps refusing this same request until you clear it in the list of denied requests under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | implemented; native acceptance pending |
-| `access.denials.note` | Fabric refuses a denied request by itself each time the same agent asks for the same access again. Clear lets that agent ask you again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | implemented; native acceptance pending |
+| `access.denyStands` | Deny keeps refusing this same request until you clear the denial in the list of denied requests under Agent access in settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented; native acceptance pending |
+| `access.denials.note` | Fabric refuses a denied request by itself each time the same agent asks for the same access again. Clearing the denial lets that agent ask you again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented; native acceptance pending |
 | `access.floor` | Fabric checked that an agent with this id is installed on this Mac. Fabric cannot prove which program sent the request: any program running as you could use that id. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.incremental` | This agent already has access through Fabric; this adds to it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.origin.plain` | An agent registered as {id} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
@@ -583,7 +583,7 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `access.allowConnectFor` | Allow and connect {product} for {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.allowedConnectHere` | Allowed. Connect it in the products section above. {problem} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.queue.allowed` | You allowed {name} to use {product}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
-| `access.queue.allowedNotConnected` | You allowed {name} to use {product}. To connect it, open Agent access in settings. It did not connect: {problem} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | implemented; native acceptance pending |
+| `access.queue.allowedNotConnected` | You allowed {name} to use {product}. To connect it, open Agent access in settings. It did not connect: {problem} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented; native acceptance pending |
 | `access.queue.denied` | You denied {name} access to {product}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.products.waitingReconnect` | Waiting for your answer in {name}. Until a new key arrives, Fabric keeps using the current one. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.products.reconnected` | Fabric now uses the new key. The previous key stays valid in {name} → Agent access until you revoke it there. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |

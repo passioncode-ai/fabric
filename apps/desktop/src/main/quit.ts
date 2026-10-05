@@ -17,6 +17,7 @@
  *  - quitting stops every registered scheduler first, so nothing starts after quit begins;
  *  - a hard deadline ends the process if shutdown or Electron's own teardown stalls.
  */
+import { spawn } from 'node:child_process'
 
 export interface QuitApp {
   quit(): void
@@ -58,8 +59,9 @@ export const QUIT_DEADLINE_EXIT_CODE = 3
 export const QUIT_REAPER_MS = 15_000
 
 /** The default outside guard: a detached shell that kills this pid unless it has already exited. */
-export async function spawnQuitReaper(afterMs: number): Promise<void> {
-  const { spawn } = await import('node:child_process')
+// Synchronous on purpose (I3 E-10): an awaited import here let a stop that blocks the main thread run before
+// the reaper existed, so nothing outside the process could end it.
+export function spawnQuitReaper(afterMs: number): void {
   const seconds = Math.ceil(afterMs / 1000)
   spawn('/bin/sh', ['-c', `sleep ${seconds}; kill -9 ${process.pid} 2>/dev/null`], { detached: true, stdio: 'ignore' }).unref()
 }

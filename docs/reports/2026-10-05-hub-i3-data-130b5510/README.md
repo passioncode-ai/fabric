@@ -115,3 +115,21 @@ The first probe run had one false failure: my "upper-case id" test value had no 
 ## Verdict
 
 **Approve**, with 0 blocking and 5 non-blocking findings. A-2's renumbering must happen before any migration with suffix 78 or 79 is merged.
+
+## Recheck at the replacement candidate 19e5427a — 2026-10-05
+
+The same reviewer, continuing its own context, rechecked its findings at `19e5427aabfec4ef23f7131136ffbe2b6ea6c6d1`. Verdict: **approve**. Structured result: `recheck.json`.
+
+| Finding | Result | Evidence |
+|---|---|---|
+| A-1 | fixed | agentSurface.ts fabric_memory_remember: `const supersedes = asked?.toLowerCase()` before the append (diff 130b5510..19e5427a, I3 A-1 comment); agent-surface.test.mjs:385-392 sends second.id.toUpperCase() and asserts correction.status==='superseded' and previousRef===second.id (stack-backed; its run in i3fix-full1.log is pending). The other writer (IPC memoryRemember) receives ids read back from th |
+| A-2 | ruled-acceptable | CO-199 is open, with trigger 'before any migration with suffix 78 or 79 is merged' and owner 'the reserving workstream'. A for-each-ref scan of ~/DATA/fabric on 2026-10-05 finds no 78/79 migration file on any ref. Unreachable in 0.3.1. The ruling holds only if that trigger is enforced; the proposed filename-order gate is not implemented yet. |
+| A-3 | ruled-acceptable | CO-200 is open, with trigger 'before an agent other than the operator's own is granted standing access'. The ceiling affects only the private-history export and verified restore; the ordinary backup (restore_estate) has no event cap. Changing the span contract deserves its own decision. |
+| A-4 | ruled-acceptable | CO-201 is open and tied to CO-198 (before the operator's live database moves to 78). v0.3.0 shipped at schema 75 with no hub tables, so no released database holds a now-refused hub event. See N-1: the fix commit nevertheless edited applied-migration text, which contradicts the ruling's own reason. |
+| A-5 | ruled-acceptable | CO-202 is open, trigger 'before restore is offered from the operator's interface for an estate with hub history'. Re-probed at 19e5427a: a restored denial is a restriction only; no binding, grant, connection, verifier or poll authority survives a restore (probe P4). |
+
+New findings introduced by the fixes:
+
+| ID | Severity | Finding |
+|---|---|---|
+| N-1 | non-blocking | df16fe01 edits the text of applied migrations 77 and 80 (one comment line each: the #region docs anchor), while CO-201 rules 'editing an applied migration's text is avoided' |

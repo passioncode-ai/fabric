@@ -107,3 +107,28 @@ I read the earlier review only after my findings were written.
 | I3-PLAN-05 | gate checked only syntactic links | Partly closed. Receipts now enforce artifacts, five levels, hashes and the iteration-3 commit; the iteration 1/2 and ledger binding remains (my P-1). |
 
 The hub ledger's iteration 3 is still "in progress" on the rejected `3b2878fc` and has no exit line, so the gate would correctly refuse it today.
+
+## Recheck at the replacement candidate 19e5427a — 2026-10-05
+
+The same reviewer, continuing its own context, rechecked its findings at `19e5427aabfec4ef23f7131136ffbe2b6ea6c6d1`. Verdict: **approve**. Structured result: `recheck.json`.
+
+| Finding | Result | Evidence |
+|---|---|---|
+| P-1 | fixed | release-gate.mjs now refuses the same commit named for more than one iteration ('must name a distinct candidate commit'), a ledger section that does not contain its candidate in full, and a title that names another version. release-mac lib verifiedCandidateProblem requires each candidate to exist (git cat-file -t) and each to be an ancestor of the next. probe-gate-recheck.out.json: the control cas |
+| P-2 | partially fixed; non-blocking residual | Content fixed: CHANGELOG.md:9-55 now lists sign-in status (CO-176.1), the repeated-stop fix, the onboarding fixes and the schema/upgrade note. Retraction: CO-180.1 changed only the prototype (scripts/product/*, previews), so omitting it is correct. changelogProblem now refuses '## 0.3.1 (unreleased)' beside '## 0.3.1' and a body containing 'Not released yet'. Residual: the section's current first  |
+| P-3 | fixed | backlog.md P-08 status names rejected 3b2878fc, converged 130b5510 on agent/p08-converge-20261004 (full exit 0, 1279 s, five reviews), and the fixes on agent/p08-i3-fixes-20261005. The Now line names the same branch. git ls-remote: that branch is at 19e5427a. Residual outside the repository: draft PR #11 is still OPEN with head 3b2878fc (gh pr list), although ledger V3-40 calls it 'superseded'. It |
+| P-4 | fixed in the repository; knowledge-base wording pending | backlog.md:80 lane 13 now follows lane 12 inside the lane table, before the P-row table header at :82. check-plan-ids exits 0. workspace/knowledge/plans.md:14 still says 'twelve lanes' at the unchanged submodule 9b298e0c. That belongs to the CO-196 release-time KB update. |
+| P-5 | fixed | The backlog dispatch paragraph names unified-converged-1fd05937 as the current cut, says it validated at its own source, that no cut validates at the 0.3.1 candidate, and that the cut is recompiled at the final integrated commit. `unified-plan.mjs check` still exits 1, which the text now states truthfully. |
+| P-6 | fixed (one inaccuracy, see N-2) | release-mac.md step 1 documents reviewReceipts: schema, fields, distinct candidates, ancestry, the ledger naming each candidate, the post-verification allow-list and releaseMetadata. Step 9 states that the site's release.json points at v0.3.0. Confirmed through the GitHub contents API: tag v0.3.0, sha256 0ee87af8…. The PostgreSQL 17 client note matches supabase/config.toml:42 major_version = 17. |
+| P-7 | not-fixed (residual, non-blocking) | backlog.md, CHANGELOG.md and release-mac.md are clean. Carry-over rows still contain glued tokens: CO-193 (carryover.md:204) 'Source0.7.0', 'published0.6.3'; CO-197 (carryover.md:208) 'sourceb85c9c3…', 'repairedff7eb7f3'. |
+| P-8 | fixed; CO-179 not-a-defect accepted | CO-176 records 'CO-176.1 ships in 0.3.1 … (executorAuth.ts#observeExecutorAuth)' and what stays open. P-02 is marked historical. CO-179 in lanes 1 and 2: accepted. Lane 1 carries the work, and lane 2 carries the release dependency that the row's own deadline imposes ('before the next release after 0.3.0'). The CO-179 row itself still describes only the restyle, while P-08 says 'visual/native conta |
+| P-9 | fixed | CHANGELOG.md now says Fabric checks for 0.9.0 or later, 'but a version check does not prove narrowing', and cites CO-195 and fabric-inbox#26. |
+| P-10 | fixed | CO-195 cites fabric-inbox#18 / fc615c45 and notes that the branch was deleted. The hard-coded docs/handoffs/2026-10-04-claude-recovery.md is gone; release-only documents are now declared in gate.releaseMetadata, restricted to Markdown under docs/handoffs or docs/reports. |
+
+New findings introduced by the fixes:
+
+| ID | Severity | Finding |
+|---|---|---|
+| N-1 | non-blocking | The hub ledger's Iteration 1 and 2 sections do not name their receipt candidates in full, so the new gate will refuse the real release |
+| N-2 | non-blocking | The runbook's review-artifact path rule contradicts the committed iteration-1 receipts |
+| N-3 | non-blocking | changelogProblem's not-released guard misses the wording the CHANGELOG actually carries |

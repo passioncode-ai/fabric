@@ -93,3 +93,25 @@ All were run from `apps/desktop` and exited 0.
 ## Verdict
 
 **Request changes.** 2 blocking, 7 non-blocking.
+
+## Recheck at the replacement candidate 19e5427a — 2026-10-05
+
+The same reviewer, continuing its own context, rechecked its findings at `19e5427aabfec4ef23f7131136ffbe2b6ea6c6d1`. Verdict: **approve**. Structured result: `recheck.json`.
+
+| Finding | Result | Evidence |
+|---|---|---|
+| E-1 | fixed | hub.ts readHubDocument: lstat must report a regular file; the open uses O_RDONLY\|O_NONBLOCK\|O_NOFOLLOW\|O_NOCTTY; fstat is checked again; reads are bounded at 64 KiB; withdrawHub returns 'not a regular file; left in place'. quit.ts begin() arms the deadline and the reaper before running stops. Probe p1-recheck.out: the FIFO case returned {removed:false, reason:'hub.json is not a regular file; le |
+| E-2 | fixed | agentSurface.ts handleExternal (region hub-external-ingress): a guarded release() runs once, on res 'close' or in the finally, and transport.handleRequest is raced against the close. Probe p8-recheck.out: after 1 and after 32 hung-up calls the slots were {thisCredential:0,total:0}, and the next valid request got 200. Probe p10.out (new, 1700 hang-ups, --expose-gc): heap 20.1 MB, then 22.6 MB, then |
+| E-3 | fixed | agentSurface.ts start() wraps primeCredentialVerifiers in try/catch with ops.failed. Probe p7-recheck.out: with a throwing prime, the session surface endpoint is 'http://127.0.0.1:47811/mcp' (it was '' at 130b5510). hub-surface test 'I3 E-3' passes. |
+| E-4 | fixed | claudeProviderControl.ts and codexProviderControl.ts: on scope_changed the status is 'outcome_unknown' when cached\|\|pending, otherwise 'refused'; no stored answer is revealed. Probe p6-recheck.out: first 'outcome_unknown request_timeout' with 1 write; the repeat after the scope change answered 'outcome_unknown scope_changed' with 1 write. claude- and codex-provider-control tests exit 0. |
+| E-5 | fixed | hubTools.ts passes extra.signal to access.status; accessService.ts status checks signal?.aborted immediately before minting and returns 'read the status again'. hub-access-service 9/9 including 'I3 E-5'. The MCP SDK aborts the handler signal on transport close (protocol.js _onclose), and agentSurface still calls transport.close on res 'close'. Residual, inherent: an abort that lands during the sin |
+| E-6 | ruled-acceptable | Ruled CO-203 (carry-over row in docs/evidence/specs/2026-08-16-software-fabric-carryover.md; ledger V3-14). Acceptable: only a process running as this user can do it, the effect is a failed connect the operator retries, no key is mis-recorded and no secret is exposed, and the behaviour was a recorded V2 ER-9 choice that needs its own reversal. |
+| E-7 | fixed (wording); key requirement ruled-acceptable | hubCall.ts outcomeUnknown(…, keyed): a keyless answer now says 'this call carried no idempotencyKey, so Fabric cannot recognise a repeat…' (probe p5-recheck.out); hub-call-i3 23/23 including 'I3 E-7'. Requiring a key for mail-sending tools is ruled CO-204. Acceptable: it is a fabric-agent-contract change, Fabric itself never re-sends, and the 24 h TTL is documented in the tool text. |
+| E-8 | ruled-acceptable | Ruled CO-205 (ledger V3-16). Acceptable: the cost is bounded per call (measured 0.6 to 57 ms), there is no hang, and it is reachable only through the rate-budgeted door with a same-user-written registry. |
+| E-9 | ruled-acceptable | Ruled CO-206 (ledger V3-17), due before 0.3.2. Acceptable: my finding was read-only and unmeasured; undici's ~300 s defaults bound each call; a stalled-database probe should precede the timeout values. |
+
+New findings introduced by the fixes:
+
+| ID | Severity | Finding |
+|---|---|---|
+| E-10 | non-blocking | The outside quit reaper is armed asynchronously, so a stop that blocks synchronously still disables it; the E-1 reorder's stated guarantee is not delivered |

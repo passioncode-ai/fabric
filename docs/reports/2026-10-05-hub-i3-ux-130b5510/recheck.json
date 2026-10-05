@@ -1,0 +1,69 @@
+{
+  "level": "ux",
+  "candidateCommit": "19e5427aabfec4ef23f7131136ffbe2b6ea6c6d1",
+  "rechecks": [
+    {
+      "id": "U-1",
+      "result": "fixed",
+      "evidence": "access.denyStands is added to all three decision surfaces: the native prompt detail (shared/accessWords.ts consentPrompt, after access.lasts), the queue facts (launch/ObligationActs.tsx AccessActs) and the SCR-76 PendingCard (AgentAccessPanel.tsx). access.denials.note now sits under 'Denied requests' (AgentAccessPanel.tsx). en and ru present (en.ts:880-881, ru.ts:320-321). The SCN-132 rationale is updated (scenarios.md:3230). The ru wording quotes the wrong button names: see new finding U-9."
+    },
+    {
+      "id": "U-2",
+      "result": "fixed",
+      "evidence": "One key, access.queue.allowedNotConnected (en.ts:961, ru.ts:401), used at ObligationActs.tsx:155. 'allowed' is now said once. The new sentence is not asserted by any test (see U-10)."
+    },
+    {
+      "id": "U-3",
+      "result": "fixed",
+      "evidence": "ru.ts start.executor.auth.* now say «Агент для кода» / «агента для кода»; the authenticated line ends with a period in en.ts:1714 and ru.ts:1584; StartPaths.test.tsx passes."
+    },
+    {
+      "id": "U-4",
+      "result": "fixed",
+      "evidence": "Toolbar takes a `label` and renders role=group aria-label (components/Toolbar.tsx); the product card passes label={p.name} (AgentAccessPanel.tsx:188); the test 'I3 U-4' asserts that the group named 'Fabric Inbox' contains Connect; the SCR-76 Elements sentence is narrowed to match (screens.md:1791). A group label is an accepted way to name a cluster of controls."
+    },
+    {
+      "id": "U-5",
+      "result": "ruled-acceptable",
+      "evidence": "Ruled to CO-207 (docs/evidence/specs/2026-08-16-software-fabric-carryover.md:218, open, owner path AgentAccessPanel.tsx; ledger V3-5). I accept the ruling: the outcome is correct and visible (focus moves to the changed section, and the card leaves for 'Agents with access' or 'Denied requests'); this is a consistency refinement, not a defect."
+    },
+    {
+      "id": "U-6",
+      "result": "fixed",
+      "evidence": "en.ts:882 and ru.ts:322 now say 'Fabric cannot prove…' / «Fabric не может доказать…»; accessWords.test.ts asserts 'Fabric cannot prove which program sent the request'."
+    },
+    {
+      "id": "U-7",
+      "result": "fixed",
+      "evidence": "ru.ts:387 access.connect.sign_in_required = «{name} просит войти снова и уже открыл окно входа.»"
+    },
+    {
+      "id": "U-8",
+      "result": "fixed",
+      "evidence": "first.exec.note is removed from en.ts, ru.ts and docs/brand/strings.md. A grep over apps/ scripts/ docs/brand finds no remaining reference, and the renderer typecheck (tsc -p tsconfig.web.json) exits 0."
+    }
+  ],
+  "newFindings": [
+    {
+      "id": "U-9",
+      "blocking": false,
+      "title": "The new ru 'deny stands' copy quotes buttons that do not exist: «Отклонить» (the button is «Отказать») and «очистите»/«Очистить» (the button is «Снять отказ»). It appears on the native prompt, the queue and SCR-76.",
+      "evidence": "ru.ts:321 access.denyStands «“Отклонить” продолжит отклонять… пока вы не очистите его…»; ru.ts access.denials.note «“Очистить” позволяет агенту снова спросить вас»; vs ru.ts:298 access.deny 'Отказать' and ru.ts:302 access.denials.clear 'Снять отказ'. The consequence is described correctly, but the quoted labels do not match the controls. Fix: «“Отказать” будет отказывать в этом же запросе, пока вы не снимете отказ в «Настройки → Доступ агентов → Отклонённые запросы».» and «“Снять отказ” позволяет агенту снова спросить вас.»"
+    },
+    {
+      "id": "U-10",
+      "blocking": false,
+      "title": "No test asserts the U-1/U-2 fixes directly, although the ledger says they are tested; the strings registry tags the consent strings with the wrong scenario",
+      "evidence": "grep for denyStands|denials.note|allowedNotConnected across apps/desktop/src *.test.* finds nothing; the keys are covered only incidentally by the whole-text ru-Latin scans. ObligationActs.test.tsx asserts only the row status (access.allowedConnect), not the board callout that uses allowedNotConnected. docs/brand/strings.md tags access.denyStands, access.denials.note and access.queue.allowedNotConnected as SCN-133, but they belong to SCN-132 (consent). Fix: add assertions for the three keys (en and ru) on the prompt, queue and panel, and retag the rows to SCN-132."
+    }
+  ],
+  "verdict": "approve",
+  "commands": [
+    "git -C /Users/sshlg/DATA/_worktrees/fabric-p08-review-130b5510 rev-parse HEAD -> 19e5427aabfec4ef23f7131136ffbe2b6ea6c6d1 exit 0",
+    "git diff 130b5510 19e5427a -- apps/desktop/src/renderer apps/desktop/src/shared docs/ux docs/brand/strings.md exit 0",
+    "npx vitest run AgentAccessPanel.test.tsx ObligationActs.test.tsx BoardScreen.test.tsx StartPaths.test.tsx accessWords.test.ts access.test.ts (apps/desktop) -> 6 files, 142 tests passed, exit 0",
+    "node --experimental-strip-types test/consent-presenter.test.mjs (apps/desktop) -> 13 passed, exit 0",
+    "npx tsc --noEmit -p tsconfig.web.json (apps/desktop) exit 0",
+    "git status --short -> empty, exit 0"
+  ]
+}

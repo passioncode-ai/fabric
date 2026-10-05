@@ -8,10 +8,6 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## 0.3.1 (unreleased)
 
-The release pull request renames this heading to `## 0.3.1` and finalizes the notes; the version bump and
-the tag follow the third verification iteration ([ledger](docs/evidence/plans/2026-10-04-hub-verification.md),
-plan P-08).
-
 - **The hub: a local agent reaches a cloud product through Fabric, on your consent**
   ([ADR-0115](docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)). Fabric listens
   for agents registered on this Mac on a stable loopback port, `FABRIC_HUB_PORT` (default 47070), published in

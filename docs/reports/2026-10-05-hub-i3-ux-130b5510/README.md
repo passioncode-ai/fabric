@@ -87,3 +87,25 @@ All are non-blocking.
 ## Verdict
 
 **Approve.** U-1 and U-2 are the two worth fixing next, because both are on the consent path.
+
+## Recheck at the replacement candidate 19e5427a — 2026-10-05
+
+The same reviewer, continuing its own context, rechecked its findings at `19e5427aabfec4ef23f7131136ffbe2b6ea6c6d1`. Verdict: **approve**. Structured result: `recheck.json`.
+
+| Finding | Result | Evidence |
+|---|---|---|
+| U-1 | fixed | access.denyStands is added to all three decision surfaces: the native prompt detail (shared/accessWords.ts consentPrompt, after access.lasts), the queue facts (launch/ObligationActs.tsx AccessActs) and the SCR-76 PendingCard (AgentAccessPanel.tsx). access.denials.note now sits under 'Denied requests' (AgentAccessPanel.tsx). en and ru present (en.ts:880-881, ru.ts:320-321). The SCN-132 rationale is |
+| U-2 | fixed | One key, access.queue.allowedNotConnected (en.ts:961, ru.ts:401), used at ObligationActs.tsx:155. 'allowed' is now said once. The new sentence is not asserted by any test (see U-10). |
+| U-3 | fixed | ru.ts start.executor.auth.* now say «Агент для кода» / «агента для кода»; the authenticated line ends with a period in en.ts:1714 and ru.ts:1584; StartPaths.test.tsx passes. |
+| U-4 | fixed | Toolbar takes a `label` and renders role=group aria-label (components/Toolbar.tsx); the product card passes label={p.name} (AgentAccessPanel.tsx:188); the test 'I3 U-4' asserts that the group named 'Fabric Inbox' contains Connect; the SCR-76 Elements sentence is narrowed to match (screens.md:1791). A group label is an accepted way to name a cluster of controls. |
+| U-5 | ruled-acceptable | Ruled to CO-207 (docs/evidence/specs/2026-08-16-software-fabric-carryover.md:218, open, owner path AgentAccessPanel.tsx; ledger V3-5). I accept the ruling: the outcome is correct and visible (focus moves to the changed section, and the card leaves for 'Agents with access' or 'Denied requests'); this is a consistency refinement, not a defect. |
+| U-6 | fixed | en.ts:882 and ru.ts:322 now say 'Fabric cannot prove…' / «Fabric не может доказать…»; accessWords.test.ts asserts 'Fabric cannot prove which program sent the request'. |
+| U-7 | fixed | ru.ts:387 access.connect.sign_in_required = «{name} просит войти снова и уже открыл окно входа.» |
+| U-8 | fixed | first.exec.note is removed from en.ts, ru.ts and docs/brand/strings.md. A grep over apps/ scripts/ docs/brand finds no remaining reference, and the renderer typecheck (tsc -p tsconfig.web.json) exits 0. |
+
+New findings introduced by the fixes:
+
+| ID | Severity | Finding |
+|---|---|---|
+| U-9 | non-blocking | The new ru 'deny stands' copy quotes buttons that do not exist: «Отклонить» (the button is «Отказать») and «очистите»/«Очистить» (the button is «Снять отказ»). It appears on the native prompt, the queue and SCR-76. |
+| U-10 | non-blocking | No test asserts the U-1/U-2 fixes directly, although the ledger says they are tested; the strings registry tags the consent strings with the wrong scenario |

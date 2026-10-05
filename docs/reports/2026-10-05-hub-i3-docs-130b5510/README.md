@@ -95,3 +95,32 @@ This was an independent reviewer run in a fresh context; no earlier review mater
 ## Verdict
 
 **Request changes.** There are 2 blocking findings (D-1, D-2) and 13 non-blocking ones. Both blockers are documentation-only; no code needs to change.
+
+## Recheck at the replacement candidate 19e5427a — 2026-10-05
+
+The same reviewer, continuing its own context, rechecked its findings at `19e5427aabfec4ef23f7131136ffbe2b6ea6c6d1`. Verdict: **approve**. Structured result: `recheck.json`.
+
+| Finding | Result | Evidence |
+|---|---|---|
+| D-1 | fixed | CHANGELOG.md 0.3.1 'Schema 75 → 78' bullet now says 0.3.1 does not migrate an existing database itself, refuses below schema 78 and links the runbook anchor by absolute GitHub URL; that once migrated to 78 the database cannot be opened by 0.3.0; and that the backup comes first. schemaReadiness.ts schemaBehindRecovery now carries https://github.com/passioncode-ai/Fabric/blob/main/docs/launch/releas |
+| D-2 | fixed | release-mac.md step 2 now sets PGBIN=/opt/homebrew/opt/postgresql@17/bin, checks `"$PGBIN/pg_dump" --version` for 17.x, uses $PGBIN for pg_dump, psql and pg_restore, and states the measured 14.24 PATH client. Residual nit, not blocking: step 4 still runs bare `psql` (14.24), which can still run the two SELECTs against a 17 server, with a version warning. |
+| D-3 | ruled-acceptable | CO-198 (carry-over line 209) states the gap and refuses to write untested restore commands into a data runbook; it must close before the live database moves to 78. Ruling accepted. Note: release-mac.md steps 3 and 5 do not cite CO-198, so a reader of the runbook is not told the commands are pending; a one-line pointer is recommended. |
+| D-4 | fixed | release-mac.md step 1 'Review receipts' paragraph documents the reviewReceipts packet (schema fabric-release-reviews/1, 3 iterations × 5 levels, report/receipt, SHA-256, unique reviewerRun, closed, empty blockingFindingsOpen, dispositions with evidence), distinct and ancestral candidates, and the iteration-3 candidate equal to verifiedCommit. It also gives the post-verification allowlist, includin |
+| D-5 | fixed | ADR-0105 has a new amendment, 'the Observatory hop takes ADR-0115's shape': a held/presented credential with no per-call mint, a narrowing header, and 'Observatory is not a hub callee yet: on 0.3.1 agent.call routes only to Fabric Inbox (CONNECTABLE_PRODUCTS)', which matches shared/access.ts:29 and hubCall.ts. ADR-0115 amendment 36 mirrors it. The ADR-0034 lineage now reads consistently: supersede |
+| D-6 | fixed | CHANGELOG hardening bullet: 'keeps nothing it could not confirm, except a late record whose withdrawal itself failed'. The productConnect.ts header lines 17-22 name the amendment-28 exception, flows.md FLW-76 adds `G -->\|withdrawal itself fails\| X[Record stays …]`, and amendment 32 restates it. |
+| D-7 | fixed | Amendment 32 names apps/desktop/src/shared/access.ts#pendingFacts (it exists) and says there is no separate `withdraw` symbol in productConnect.ts. |
+| D-8 | not-fixed | Amendment 33's table still omits two agent.call refusal codes the code returns. productForwarder.ts:193-194 returns `product-refused` (redirect/401/403) and `product-unreachable` (timeout) with reached:false, and hubCall.ts surfaces them via refusal(forwarded.code, notSent(...), {mayHaveRun:false}); neither is in the table. A refusal-form `product-error` with mayHaveRun:false (reached:false) is al |
+| D-9 | fixed | agentSurface.ts:689-810 now has `#region hub-external-ingress` → ADR-0115 §1. The migration 77 region now points at the iteration-1 'what the code now does' amendments, migration 80 at the iteration-2 clarifications (amendment 24), and productConnect.ts at the iteration-3 corrections. check-regions.mjs exits 0 with 150 markers. |
+| D-10 | fixed | README.md:282-285 now reads 'Sixteen … Four … the other twelve', matching 16 runner files and scripts/ci.sh. |
+| D-11 | fixed | Amendment 34: Host admits 127.0.0.1:<port> and [::1]:<port>, anything else 421. Matches agentSurface.ts Host check. |
+| D-12 | fixed | telegram-surface.md row now reads '⚠️ partial — external agents only; a session Fabric starts has no product route yet (CO-194)'. |
+| D-13 | ruled-acceptable | CO-199 (carry-over line 210) records the out-of-order application and the --include-all need, ties renumbering to the reserving workstream and proposes a filename gate; no suffix 78/79 file exists yet. Ruling accepted. |
+| D-14 | not-fixed | Most are fixed (CHANGELOG, ADR index, backlog P-08, ceo-private-archive.md:668-674). Residue: docs/launch/harness-r0/ceo-private-archive.md:679 'also preserves77 acceptance and79 refusal; removing78 is caught …' and ADR-0115:386 amendment 30 'migration suffix80'. Cosmetic, non-blocking. |
+| D-15 | fixed | backlog.md P-08 row now names 130b5510 as the converged candidate (ci.sh full exit 0, five reviews) and the fixes branch agent/p08-i3-fixes-20261005 with exact-SHA rechecks pending; the 'Now' line matches. |
+
+New findings introduced by the fixes:
+
+| ID | Severity | Finding |
+|---|---|---|
+| D-16 | non-blocking | Amendment 33 claims every refusal carries a mayHaveRun flag; most do not |
+| D-17 | non-blocking | The CHANGELOG 0.3.1 lead paragraph is process text that the new finalization check does not catch |

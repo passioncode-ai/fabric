@@ -57,6 +57,8 @@ describe('SCR-76 agent access', () => {
     await screen.findByText(en['access.pending.none'])
     expect(screen.getByText(en['access.agents.none'])).toBeTruthy()
     expect(screen.getByText(en['access.denials.none'])).toBeTruthy()
+    // I3 U-1/U-10: the list of denials says what a denial does and what clearing it does.
+    expect(screen.getByText(en['access.denials.note'])).toBeTruthy()
     expect(screen.getByText(en['access.products.title'])).toBeTruthy()
     expect(screen.getByText(fill(en['access.hub.on'], { origin: 'http://127.0.0.1:47070' }))).toBeTruthy()
     // I3 U-4: a screen reader hears whose Connect it is from the group the button sits in.

@@ -22,9 +22,9 @@ const facts = (connected: boolean) => pendingFacts({
 }, connected)
 const itemOf = (connected: boolean): ObligationLike => ({ subject: { kind: 'access-request', id: 'r1' }, projectId: null, access: facts(connected) })
 
-function Harness({ item, onError = () => {} }: { item: ObligationLike; onError?: (m: string) => void }): React.JSX.Element {
+function Harness({ item, onError = () => {}, onAccessDecided }: { item: ObligationLike; onError?: (m: string) => void; onAccessDecided?: (said: string, detail: string | null) => void }): React.JSX.Element {
   const decisions = useProposalDecisions(async () => {}, () => {})
-  return <ObligationActs item={item} decisions={decisions} onOpen={() => {}} onError={onError} />
+  return <ObligationActs item={item} decisions={decisions} onOpen={() => {}} onError={onError} onAccessDecided={onAccessDecided} />
 }
 
 describe('an access request in the queue', () => {
@@ -69,6 +69,29 @@ describe('an access request in the queue', () => {
     await waitFor(() => expect(screen.getByText(/^Allowed\. To connect it, open Agent access in settings\. It did not connect: Fabric Inbox could not be opened/)).toBeTruthy())
     expect(screen.queryByRole('button', { name: /^Allow/ })).toBeNull()
     expect(onError).not.toHaveBeenCalled()
+  })
+
+  it('I3 U-1/U-9: the queue row says Deny stands until the denial is cleared, naming the real buttons in ru', () => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { hub: { decide: vi.fn() } } }))
+    render(<I18nProvider locale="en"><Harness item={itemOf(true)} /></I18nProvider>)
+    expect(screen.getByText(en['access.denyStands'])).toBeTruthy()
+    cleanup()
+    render(<I18nProvider locale="ru"><Harness item={itemOf(true)} /></I18nProvider>)
+    expect(screen.getByText(ru['access.denyStands'])).toBeTruthy()
+    expect(ru['access.denyStands']).toContain(`«${ru['access.deny']}»`)
+    expect(ru['access.denials.note']).toContain(`«${ru['access.denials.clear']}»`)
+  })
+
+  it('I3 U-2: an Allow whose product did not open reports one sentence to the board, saying allowed once', async () => {
+    const decide = vi.fn(async () => ({ ok: true, connect: { problem: { code: 'not-installed', detail: 'no handler' } } }))
+    const said = vi.fn()
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { hub: { decide } } }))
+    render(<I18nProvider locale="en"><Harness item={itemOf(false)} onAccessDecided={said} /></I18nProvider>)
+    fireEvent.click(screen.getByRole('button', { name: 'Allow and connect Fabric Inbox for Example agent' }))
+    await waitFor(() => expect(said).toHaveBeenCalled())
+    const sentence = said.mock.calls[0][0] as string
+    expect(sentence.startsWith('You allowed Example agent to use Fabric Inbox. To connect it, open Agent access in settings. It did not connect:')).toBe(true)
+    expect(sentence.match(/allowed/gi)?.length).toBe(1)
   })
 
   it('a refusal is said from its code, in the operator\'s language', async () => {

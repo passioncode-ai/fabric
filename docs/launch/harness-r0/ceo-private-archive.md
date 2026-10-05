@@ -676,4 +676,4 @@ import without crossing private history, lost replies recover their original rec
 main-process file handling roundtrips on an owned Unix-only cluster. The exact output is in
 [the root I3 receipt](../../handoffs/hub-i3-ingress-archive-receipts/archive-green3.log).
 The real running app and the operator database remain NOT_RUN. `ceo-private-archive-codec.test.mjs`
-also preserves77 acceptance and79 refusal; removing78 is caught by a recorded guard-removal patch.
+also preserves 77 acceptance and 79 refusal; removing 78 is caught by a recorded guard-removal patch.

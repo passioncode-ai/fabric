@@ -1,7 +1,7 @@
 -- Hub verification iteration 2: DA-2, DA-4, DA-6, ER-2.
 -- Suffixes 78/79 are reserved by a separate unmerged workstream; this is migration COUNT 78.
 -- New write guards are outside replay; restored poll verifiers alone lose authority.
--- #region hub-authority-boundaries — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#verification-iteration-2-clarifications--2026-10-04
+-- #region hub-authority-boundaries — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#3-grants-are-standing-narrow-and-revocable
 create or replace function refuse_noncanonical_identity(p_type text, p_payload jsonb) returns void
 language plpgsql
 immutable

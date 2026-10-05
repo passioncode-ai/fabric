@@ -1,0 +1,53 @@
+{
+  "level": "data",
+  "candidateCommit": "19e5427aabfec4ef23f7131136ffbe2b6ea6c6d1",
+  "rechecks": [
+    {
+      "id": "A-1",
+      "result": "fixed",
+      "evidence": "agentSurface.ts fabric_memory_remember: `const supersedes = asked?.toLowerCase()` before the append (diff 130b5510..19e5427a, I3 A-1 comment); agent-surface.test.mjs:385-392 sends second.id.toUpperCase() and asserts correction.status==='superseded' and previousRef===second.id (stack-backed; its run in i3fix-full1.log is pending). The other writer (IPC memoryRemember) receives ids read back from the database (lower case). The database rule is unchanged: owned-PG probe at 19e5427a still refuses an upper-case supersedes at the door, as designed."
+    },
+    {
+      "id": "A-2",
+      "result": "ruled-acceptable",
+      "ruling": "CO-199",
+      "evidence": "CO-199 is open, with trigger 'before any migration with suffix 78 or 79 is merged' and owner 'the reserving workstream'. A for-each-ref scan of ~/DATA/fabric on 2026-10-05 finds no 78/79 migration file on any ref. Unreachable in 0.3.1. The ruling holds only if that trigger is enforced; the proposed filename-order gate is not implemented yet."
+    },
+    {
+      "id": "A-3",
+      "result": "ruled-acceptable",
+      "ruling": "CO-200",
+      "evidence": "CO-200 is open, with trigger 'before an agent other than the operator's own is granted standing access'. The ceiling affects only the private-history export and verified restore; the ordinary backup (restore_estate) has no event cap. Changing the span contract deserves its own decision."
+    },
+    {
+      "id": "A-4",
+      "result": "ruled-acceptable",
+      "ruling": "CO-201",
+      "evidence": "CO-201 is open and tied to CO-198 (before the operator's live database moves to 78). v0.3.0 shipped at schema 75 with no hub tables, so no released database holds a now-refused hub event. See N-1: the fix commit nevertheless edited applied-migration text, which contradicts the ruling's own reason."
+    },
+    {
+      "id": "A-5",
+      "result": "ruled-acceptable",
+      "ruling": "CO-202",
+      "evidence": "CO-202 is open, trigger 'before restore is offered from the operator's interface for an estate with hub history'. Re-probed at 19e5427a: a restored denial is a restriction only; no binding, grant, connection, verifier or poll authority survives a restore (probe P4)."
+    }
+  ],
+  "newFindings": [
+    {
+      "id": "N-1",
+      "blocking": false,
+      "title": "df16fe01 edits the text of applied migrations 77 and 80 (one comment line each: the #region docs anchor), while CO-201 rules 'editing an applied migration's text is avoided'",
+      "evidence": "git diff 130b5510 19e5427a -- supabase: 2 changed lines, both '--' comments (0 non-comment lines). Supabase applies by version and build-manifest.mjs checks only the file count, so there is no schema or data effect and fresh and upgraded databases stay identical. It contradicts the stated rule (migration 77 header: 'its text is executed and dated, so it is not rewritten') and CO-201's reason.",
+      "fix": "Either restore the original anchor lines and keep a matching heading alias in ADR-0115, or record in CO-201 that comment-only anchor retargeting is the allowed exception. Add a gate that pins applied migration bytes, if the rule is meant to hold."
+    }
+  ],
+  "verdict": "approve",
+  "commands": [
+    "git -C <wt> rev-parse HEAD exit 0 (19e5427aabfec4ef23f7131136ffbe2b6ea6c6d1)",
+    "git -C <wt> diff --stat 130b5510 HEAD -- apps/desktop/src apps/desktop/test supabase docs/adr docs/evidence/backlog.md exit 0 (36 files)",
+    "git -C <wt> diff 130b5510 HEAD -- supabase exit 0 (2 lines, comment-only)",
+    "for-each-ref scan of ~/DATA/fabric for *00007[89]_* migrations exit 0 (none)",
+    "FABRIC_PG_BIN=/opt/homebrew/opt/postgresql@17/bin node scratchpad/i3/data/probe.mjs exit 0 (PROBE_SUMMARY pass=37 fail=0, owned cluster, migrations at 19e5427a)"
+  ],
+  "fullTier": "pending: i3fix-full1.log at ~4,600 lines with no CI_FULL_EXIT line after ~4 min of waiting, and no failing suite in the partial log; the stack-backed A-1 assertion has not printed yet. The earlier run at 130b5510 (p08-full1.log:8119) ended CI_FULL_EXIT=0 SECS=1279."
+}

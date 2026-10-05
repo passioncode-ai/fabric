@@ -383,7 +383,7 @@ record above remains as historical decision context.
     not claimed MCP limits. See `agentSurface.ts` symbols `handleExternal`, `readJson`;
     `hubCall.ts` symbols `perform`, `hop`, `boundedProductOutput`; `productForwarder.ts`
     symbol `MAX_PRODUCT_RESPONSE_BYTES`, and the I3 regression suites.
-30. **Current private archives admit schema count 78.** The producer in migration suffix80
+30. **Current private archives admit schema count 78.** The producer in migration suffix 80
     names `schema_version()` = 78; native admission explicitly qualifies 78 while retaining
     66–77 and refusing 79. Qualification is supported by an owned SQL export → native
     decode → import/receipt chain, not by widening admission to arbitrary future versions.
@@ -407,7 +407,9 @@ These amendments record what the record got wrong and what the code now does.
     withdrawn inside `apps/desktop/src/main/productConnect.ts` (the delivery handler's own withdrawal step; there
     is no separate `withdraw` symbol), and amendment 28's `withdraw-failed` outcome is the one exception to "keeps
     nothing it could not confirm".
-33. **`agent.call` answers, in one table (docs D-8).** Every refusal carries `error.code` and a `mayHaveRun` flag.
+33. **`agent.call` answers, in one table (docs D-8, D-16).** Every refusal carries `error.code`. A refusal that may
+    have reached the product carries `mayHaveRun: true`; a refusal with `mayHaveRun: false` or none at all reached
+    nothing (the early refusals carry no flag).
 
     | Code | May have run | What the agent does |
     |---|---|---|
@@ -418,6 +420,8 @@ These amendments record what the record got wrong and what the code now does.
     | `product-not-connected` | no | the operator connects the product; retry afterwards |
     | `product-credential-unavailable` | no | the vault could not be read; retry later |
     | `product-outdated` | no | the product's server is older than Fabric supports; the operator updates it |
+    | `product-refused` | no | the product refused Fabric's key before the call ran; the operator reconnects it if the key was revoked |
+    | `product-unreachable` | no | the product could not be reached and nothing reached it; a retry can succeed later |
     | `hub-unavailable` | no | Fabric failed before forwarding; retry later |
     | `cancelled` | no | the caller cancelled before the call reached the product; retry is safe |
     | `idempotency-conflict` | no | the key was used for a different call; use a new key for a new call |

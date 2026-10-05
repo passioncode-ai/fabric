@@ -1,0 +1,97 @@
+{
+  "level": "plan",
+  "candidateCommit": "19e5427aabfec4ef23f7131136ffbe2b6ea6c6d1",
+  "rechecks": [
+    {
+      "id": "P-1",
+      "result": "fixed",
+      "evidence": "release-gate.mjs now refuses the same commit named for more than one iteration ('must name a distinct candidate commit'), a ledger section that does not contain its candidate in full, and a title that names another version. release-mac lib verifiedCandidateProblem requires each candidate to exist (git cat-file -t) and each to be an ancestor of the next. probe-gate-recheck.out.json: the control case returns []. One commit three times, a ledger naming no candidate, a ledger naming the wrong candidate, a 12-character prefix and 'Fabric 0.3.0 (not 0.3.1)' each refuse. The chain refuses nonexistent commits 111…/222… ('does not exist in this repository') and reversed order I2,I1 ('not an ancestor'), and passes 67a5dc42→2927a087→HEAD. Release tests: 33/33 pass."
+    },
+    {
+      "id": "P-2",
+      "result": "partially fixed; non-blocking residual",
+      "evidence": "Content fixed: CHANGELOG.md:9-55 now lists sign-in status (CO-176.1), the repeated-stop fix, the onboarding fixes and the schema/upgrade note. Retraction: CO-180.1 changed only the prototype (scripts/product/*, previews), so omitting it is correct. changelogProblem now refuses '## 0.3.1 (unreleased)' beside '## 0.3.1' and a body containing 'Not released yet'. Residual: the section's current first paragraph, 'The release pull request renames this heading to `## 0.3.1` and finalizes the notes; the version bump and the tag follow the third verification iteration …', passes changelogProblem after a rename-only edit (probe returns null) and would be published as notes. Variants '## 0.3.1 — unreleased' and 'has not been released' also pass. Fix: delete that paragraph now (the file header already states the process), or refuse any body line that mentions renaming the heading."
+    },
+    {
+      "id": "P-3",
+      "result": "fixed",
+      "evidence": "backlog.md P-08 status names rejected 3b2878fc, converged 130b5510 on agent/p08-converge-20261004 (full exit 0, 1279 s, five reviews), and the fixes on agent/p08-i3-fixes-20261005. The Now line names the same branch. git ls-remote: that branch is at 19e5427a. Residual outside the repository: draft PR #11 is still OPEN with head 3b2878fc (gh pr list), although ledger V3-40 calls it 'superseded'. It should be closed, which is an outward action for the owner."
+    },
+    {
+      "id": "P-4",
+      "result": "fixed in the repository; knowledge-base wording pending",
+      "evidence": "backlog.md:80 lane 13 now follows lane 12 inside the lane table, before the P-row table header at :82. check-plan-ids exits 0. workspace/knowledge/plans.md:14 still says 'twelve lanes' at the unchanged submodule 9b298e0c. That belongs to the CO-196 release-time KB update."
+    },
+    {
+      "id": "P-5",
+      "result": "fixed",
+      "evidence": "The backlog dispatch paragraph names unified-converged-1fd05937 as the current cut, says it validated at its own source, that no cut validates at the 0.3.1 candidate, and that the cut is recompiled at the final integrated commit. `unified-plan.mjs check` still exits 1, which the text now states truthfully."
+    },
+    {
+      "id": "P-6",
+      "result": "fixed (one inaccuracy, see N-2)",
+      "evidence": "release-mac.md step 1 documents reviewReceipts: schema, fields, distinct candidates, ancestry, the ledger naming each candidate, the post-verification allow-list and releaseMetadata. Step 9 states that the site's release.json points at v0.3.0. Confirmed through the GitHub contents API: tag v0.3.0, sha256 0ee87af8…. The PostgreSQL 17 client note matches supabase/config.toml:42 major_version = 17."
+    },
+    {
+      "id": "P-7",
+      "result": "not-fixed (residual, non-blocking)",
+      "evidence": "backlog.md, CHANGELOG.md and release-mac.md are clean. Carry-over rows still contain glued tokens: CO-193 (carryover.md:204) 'Source0.7.0', 'published0.6.3'; CO-197 (carryover.md:208) 'sourceb85c9c3…', 'repairedff7eb7f3'."
+    },
+    {
+      "id": "P-8",
+      "result": "fixed; CO-179 not-a-defect accepted",
+      "evidence": "CO-176 records 'CO-176.1 ships in 0.3.1 … (executorAuth.ts#observeExecutorAuth)' and what stays open. P-02 is marked historical. CO-179 in lanes 1 and 2: accepted. Lane 1 carries the work, and lane 2 carries the release dependency that the row's own deadline imposes ('before the next release after 0.3.0'). The CO-179 row itself still describes only the restyle, while P-08 says 'visual/native containment'; aligning that wording is optional."
+    },
+    {
+      "id": "P-9",
+      "result": "fixed",
+      "evidence": "CHANGELOG.md now says Fabric checks for 0.9.0 or later, 'but a version check does not prove narrowing', and cites CO-195 and fabric-inbox#26."
+    },
+    {
+      "id": "P-10",
+      "result": "fixed",
+      "evidence": "CO-195 cites fabric-inbox#18 / fc615c45 and notes that the branch was deleted. The hard-coded docs/handoffs/2026-10-04-claude-recovery.md is gone; release-only documents are now declared in gate.releaseMetadata, restricted to Markdown under docs/handoffs or docs/reports."
+    }
+  ],
+  "receiptsIterations1and2": {
+    "result": "The receipt checks pass; the ledger-binding check refuses as committed",
+    "evidence": "probe-gate-recheck.mjs built a packet from the 10 committed receipts plus an in-memory iteration 3 at HEAD. releaseGateProblems raised nothing about schema, version, iteration, level, candidate, report hash, reviewerRun, closure or finding dispositions for iterations 1 or 2. The iteration 1/2 receipts are consistent: I1 = 67a5dc42d193…, I2 = 2927a087cac6…, with distinct reviewerRun values. The chain 67a5dc42→2927a087→HEAD passes verifiedCandidateProblem. The ledger refuses: 'iteration 1 of the ledger does not name its candidate commit 67a5dc42d19357f82156f51dcab7d42db0b0e9df in full' and the same for iteration 2 / 2927a087…. Both sections use the 8-character short SHAs (ledger :36 and :129). See N-1."
+  },
+  "newFindings": [
+    {
+      "id": "N-1",
+      "blocking": false,
+      "title": "The hub ledger's Iteration 1 and 2 sections do not name their receipt candidates in full, so the new gate will refuse the real release",
+      "evidence": "Iteration 1 (ledger :36) says 'against `67a5dc42`'. Iteration 2 (ledger :129) says 'formed at main `2927a087`'. The new rule (release-gate.mjs, text.includes(candidate)) requires the full 40-character SHA. The probe returns two refusals with the committed receipts. The gate fails closed, so an unready release cannot pass, but iterations 1 and 2 are not yet gate-clear as claimed.",
+      "fix": "Add the full SHAs 67a5dc42d19357f82156f51dcab7d42db0b0e9df and 2927a087cac61c02f16f41d9bebfdc7403fc577c to the respective sections. The ledger is post-verification metadata, so no re-review is needed."
+    },
+    {
+      "id": "N-2",
+      "blocking": false,
+      "title": "The runbook's review-artifact path rule contradicts the committed iteration-1 receipts",
+      "evidence": "release-mac.md step 1 says each report and receipt is 'under `docs/reports/` or `docs/evidence/reviews/`'. The iteration-1 receipts name reports under docs/evidence/plans/2026-10-04-hub-verification/iteration-1/. The gate (docPath) accepts any docs/ path; the narrower rule applies only to artifacts exempt after verifiedCommit (validatedReviewArtifactPaths).",
+      "fix": "State that the path restriction applies to artifacts added after verifiedCommit; any committed docs/ path is accepted otherwise."
+    },
+    {
+      "id": "N-3",
+      "blocking": false,
+      "title": "changelogProblem's not-released guard misses the wording the CHANGELOG actually carries",
+      "evidence": "Under P-2: the rename-only edit keeps 'The release pull request renames this heading … the version bump and the tag follow the third verification iteration' and changelogProblem returns null. '## 0.3.1 — unreleased' and 'has not been released' also return null (probe-gate-recheck.out.json).",
+      "fix": "Remove the process paragraph from the 0.3.1 section now. Broaden the guard to /unreleased|not (yet )?(been )?released|renames this heading/i and add tests."
+    }
+  ],
+  "verdict": "approve",
+  "verdictNote": "Approve at 19e5427a for the plan level: no blocking finding remains. The gate now refuses every adversarial case in the probe, and the plan, runbook and CHANGELOG state what ships. Before the tag: N-1 (otherwise the gate refuses the real release) and the N-3/P-2 paragraph. N-2, P-7, the P-4 KB wording (CO-196) and closing PR #11 are housekeeping.",
+  "commands": [
+    "git rev-parse HEAD -> 19e5427aabfec4ef23f7131136ffbe2b6ea6c6d1 exit 0",
+    "git status --short (before/after) -> empty exit 0",
+    "node scripts/check-registers.mjs exit 0",
+    "node scripts/check-plan-ids.mjs exit 0",
+    "node --test scripts/test/release-gate.test.mjs scripts/test/release-mac.test.mjs -> 33/33 exit 0",
+    "node scripts/unified-plan.mjs check exit 1 (expected; the plan now states no cut validates at the candidate)",
+    "node scratchpad/i3/plan/probe-gate-recheck.mjs exit 0 (output probe-gate-recheck.out.json)",
+    "git ls-remote origin (agent/p08-i3-fixes-20261005 = 19e5427a; main = 0791f6a4) exit 0",
+    "gh pr list -R passioncode-ai/fabric --state all exit 0 (#11 OPEN draft, head 3b2878fc)",
+    "gh api repos/passioncode-ai/passioncode-ai.github.io/contents/fabric/release.json exit 0 (tag v0.3.0)"
+  ]
+}

@@ -52,8 +52,9 @@ build signed anywhere but the `release` environment is a debug build that is nev
    The current historical 0.3.0 gate has no candidate pin; it is not permission to rerelease 0.3.0.
    **Review receipts.** The gate also carries `reviewReceipts` (schema `fabric-release-reviews/1`): three
    iterations, each naming its exact `candidateCommit` and five reviews, one per level (`ux`, `errors`, `docs`,
-   `data`, `plan`). Each review names a report (`.md`) and a receipt (`.json`) under `docs/reports/` or
-   `docs/evidence/reviews/`, committed in the release commit. A receipt names the schema, version, iteration,
+   `data`, `plan`). Each review names a report (`.md`) and a receipt (`.json`) anywhere under `docs/`, committed in the
+   release commit; reports and receipts **added after `verifiedCommit`** must sit under `docs/reports/` or
+   `docs/evidence/reviews/`. A receipt names the schema, version, iteration,
    level, report path and candidate, the report's SHA-256, a `reviewerRun` used nowhere else, `status: closed`, an
    empty `blockingFindingsOpen` and every finding with a disposition and evidence. The three candidates are distinct
    commits that exist in this repository, each an ancestor of the next; iteration 3's equals `verifiedCommit`; and
@@ -178,7 +179,8 @@ The actual guard is `public.schema_version()` against [the compiled schema contr
    Confirm the actual local stack port before using this example; another configured stack needs
    its own connection settings. `"$PGBIN/pg_restore" --list <dump>` verifies the archive can be parsed;
    only restoring it into a disposable database proves it can be restored.
-3. Restore the dump into a **separate disposable stack**, with its own project id, port block and
+3. Restore the dump into a **separate disposable stack** (the executable commands for this step and step 5 are
+   not written yet — CO-198 — so until then this rehearsal is a manual, recorded check), with its own project id, port block and
    volumes. Never point a rehearsal at `fabric` or ports 54321/54322. Apply the installed candidate's
    migration set there; compare schema_version, journal count and replayed projections. Exercise
    an existing estate's queries and the new authority boundaries. Restored hub requests must not
@@ -188,10 +190,11 @@ The actual guard is `public.schema_version()` against [the compiled schema contr
 4. With writers still stopped and the verified backup retained, apply to the working bundled stack:
 
    ```sh
+   PGBIN=/opt/homebrew/opt/postgresql@17/bin   # the PostgreSQL 17 client from step 2
    cd "$HOME/Library/Application Support/Fabric/stack"
    supabase migration up --local
    PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
-     psql --password -v ON_ERROR_STOP=1 \
+     "$PGBIN/psql" --password -v ON_ERROR_STOP=1 \
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
