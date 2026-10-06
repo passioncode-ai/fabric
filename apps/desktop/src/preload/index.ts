@@ -156,6 +156,9 @@ const api: FabricApi = {
   diagnostics: {
     read: (query) => ipcRenderer.invoke(IPC.diagnosticsRead, query)
   },
+  stack: {
+    exposure: () => ipcRenderer.invoke(IPC.stackExposure)
+  },
   ops: {
     rendererError: (info) => ipcRenderer.send(IPC.opsRendererError, info)
   },

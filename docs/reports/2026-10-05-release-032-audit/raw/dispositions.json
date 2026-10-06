@@ -92,8 +92,8 @@
     "ref": "the newest 200 events, in order, with a note when the window is full"
   },
   "A7-001": {
-    "state": "fixed",
-    "ref": "Fabric probes the stack ports on this Mac's network addresses after start, records stack.exposed-on-network and warns in Diagnostics with the remedy; the binding itself is the container engine's, an operator step"
+    "state": "deferred",
+    "ref": "CO-219 — 0.3.2 detects it and warns above every screen with the remedy; the binding is the container engine's, the person's step"
   },
   "A7-002": {
     "state": "fixed",

@@ -1,7 +1,7 @@
 # Usage analytics
 
 **State:** built 2026-10-05 on the operator's request
-([passioncode-ai/fabric#12](https://github.com/passioncode-ai/fabric/issues/12)), not yet released. It
+([passioncode-ai/fabric#12](https://github.com/passioncode-ai/fabric/issues/12)); first released in 0.3.2. It
 sends only from a release build that carries an App Key. Source:
 [`apps/desktop/src/main/analytics.ts`](../apps/desktop/src/main/analytics.ts); wiring in
 `apps/desktop/src/main/index.ts#usage-analytics-wiring`; the switch is
@@ -66,7 +66,7 @@ All PassionCode apps share one file:
   analytics stays off. A file someone removed is not recreated by a running Fabric.
 - **Unknown fields are kept** when Fabric rewrites it.
 - **`analytics: false` turns analytics off for every PassionCode app on the machine.** Settings → *Share
-  anonymous usage counts* writes it, and turning it off drops events still waiting. Fabric re-reads the file
+  usage counts* writes it, and turning it off drops events still waiting. Fabric re-reads the file
   every hour, so another app's switch takes effect within that hour.
 
 ## Delivery

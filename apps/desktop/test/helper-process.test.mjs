@@ -1,5 +1,5 @@
 // P-10: how Fabric starts its helper programs (ACP shell, stdio bridge) built and from source.
-// #region helper-process — docs: docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md#1-acp-is-the-generic-drive-mode-for-a-runner
+// #region helper-process — docs: docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md#amendment-2--2026-10-05-the-acp-shell-is-the-launch-path-and-sign-in-is-the-persons
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import path from 'node:path'

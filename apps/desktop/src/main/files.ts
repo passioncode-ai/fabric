@@ -24,6 +24,7 @@ import { homedir } from 'node:os'
 import path from 'node:path'
 import type { FileNode, FilePayload, WriteResult } from '../shared/types'
 import { ops } from './opsSink.ts'
+import { ABSENT_HASH } from '../shared/types.ts'
 
 /**
  * A folder too broad to be a repository root: a filesystem root, the home folder, or any folder that holds
@@ -348,4 +349,4 @@ export function writeFile(
 }
 
 /** The hash a caller presents for "there is no file here": the version a deleted file is shown as. */
-export const ABSENT_HASH = 'absent'
+export { ABSENT_HASH }

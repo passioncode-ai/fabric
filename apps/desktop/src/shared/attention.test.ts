@@ -5,6 +5,8 @@ import {
   attentionKey,
   attentionOf,
   obligationReceipts,
+  openRefusals,
+  resolutionsOf,
   waitingCounts,
   waitingProblem,
   type AttentionItem,
@@ -321,5 +323,29 @@ describe('a granted refusal is resolved', () => {
 
   it('with no resolutions read, every refusal stays open', () => {
     expect(attentionOf({ ...empty, refusals: [refusal(1), refusal(2, { target: '/repo/b.md' })] })).toHaveLength(2)
+  })
+})
+
+
+// 0.3.2 verification DA-6: the main-process half of A1-001. The payloads have the shape `policy.ts` writes:
+// `grant.issued@1` {floor_class, target, expires_at, issued_by}; `policy.decided@1` {floor_class, target, verdict, …}.
+describe('what resolves a refusal (A1-001, main half)', () => {
+  const refusal = (seq: number, target = '/repo/a.md') => ({ seq, project_id: 'p1', floor_class: 'deletion', target, occurred_at: `2026-10-06T00:00:0${seq}Z`, reason: 'needs a grant', asked_because: null })
+  const grant = (seq: number, target = '/repo/a.md', project_id: string | null = 'p1') => ({ seq, project_id, payload: { floor_class: 'deletion', target, expires_at: 'x', issued_by: 'operator' } })
+  const decided = (seq: number, verdict: string) => ({ seq, project_id: 'p1', payload: { floor_class: 'deletion', target: '/repo/a.md', verdict } })
+
+  it('a refusal, then a grant for the same act: the queue is empty', () => {
+    expect(openRefusals([refusal(1)], resolutionsOf([grant(2)], []))).toEqual([])
+  })
+  it('a grant for another target, or an older one, leaves the refusal open', () => {
+    expect(openRefusals([refusal(3)], resolutionsOf([grant(4, '/repo/b.md'), grant(2)], []))).toHaveLength(1)
+  })
+  it('an estate-wide grant resolves a project refusal; a later ALLOW decision resolves it, a refuse does not', () => {
+    expect(openRefusals([refusal(1)], resolutionsOf([grant(2, '/repo/a.md', null)], []))).toEqual([])
+    expect(openRefusals([refusal(1)], resolutionsOf([], [decided(2, 'allow')]))).toEqual([])
+    expect(openRefusals([refusal(1)], resolutionsOf([], [decided(2, 'refuse')]))).toHaveLength(1)
+  })
+  it('a row without its act resolves nothing', () => {
+    expect(openRefusals([refusal(1)], resolutionsOf([{ seq: 2, project_id: 'p1', payload: {} }], []))).toHaveLength(1)
   })
 })

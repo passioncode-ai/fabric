@@ -316,10 +316,12 @@ node scripts/residue-report.mjs --json     # machine-readable
 
 ## Usage analytics
 
-A release build of Fabric sends anonymous usage counts: installs, days of use, and how many projects, products
-and agents are connected. It never sends names, paths, ids or content. One switch, Settings → *Share
-anonymous usage counts*, turns this off for every PassionCode app on the Mac. Source builds send nothing. What
-is sent, where and how: [docs/ANALYTICS.md](docs/ANALYTICS.md).
+A release build of Fabric sends usage counts, on by default from its first start: installs, days of use, and how
+many projects, products and agents are connected. Every event carries the app version, the OS name, a session id
+and a random installation id that every PassionCode app on the Mac shares, so one person using several apps counts
+once. It never sends names, paths or content. One switch, Settings → *Share usage counts*, turns this off for
+every PassionCode app on the Mac. Source builds send nothing. What is sent, where and how:
+[docs/ANALYTICS.md](docs/ANALYTICS.md).
 
 ## License
 

@@ -140,6 +140,23 @@ const RANK: Record<AttentionKind, number> = { access: 0, refused: 0, proposal: 1
  * another grant, and the card stayed red until fifty newer decisions pushed it out. Repeated refusals of
  * one act are one obligation: the newest is kept, dated from the first, because it has waited that long.
  */
+/** A journal row as the attention read takes it: `grant.issued@1` or a policy decision. */
+export interface JournalActRow { seq: number; project_id: string | null; payload: Record<string, unknown> }
+
+/**
+ * What resolves a refusal (A1-001): every grant issued for an act, and every later policy decision that
+ * ALLOWED it. Both carry the act as `floor_class` and `target` in their payload (`policy.ts` writes them);
+ * a row without them resolves nothing it could be confused with ("unknown" matches no real act).
+ */
+export function resolutionsOf(grants: readonly JournalActRow[], decisions: readonly JournalActRow[]): NonNullable<AttentionSources['resolutions']> {
+  return [...grants, ...decisions.filter((row) => row.payload.verdict === 'allow')].map((row) => ({
+    seq: row.seq,
+    project_id: row.project_id ?? null,
+    floor_class: typeof row.payload.floor_class === 'string' ? row.payload.floor_class : 'unknown',
+    target: typeof row.payload.target === 'string' ? row.payload.target : 'unknown'
+  }))
+}
+
 export function openRefusals(
   refusals: AttentionSources['refusals'],
   resolutions: AttentionSources['resolutions'] = []

@@ -10,28 +10,52 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 A release built from a full audit of the 0.3.1 candidate: all 134 scenarios against their screens and code,
 plus the trust boundaries ([report](docs/reports/2026-10-05-release-032-audit/README.md)). Every P0 and P1
-finding is fixed or carried to a named row.
+finding is fixed or carried to a named row. It also ships the work that landed on `main` after 0.3.1.
 
+- **Schema 78 → 79** (migration `20261005000081_project_board.sql`, the project board's core). Fabric 0.3.2
+  does not migrate an existing database itself: it refuses a database below schema 79 and names the upgrade
+  procedure ([release runbook, upgrading an existing database](https://github.com/passioncode-ai/fabric/blob/main/docs/launch/release-mac.md#upgrading-an-existing-database)).
+  Once a database is migrated to 79, Fabric 0.3.1 can no longer open it, so take the backup the procedure
+  asks for first. The rehearsal is one command: `node scripts/rehearse-upgrade.mjs` runs the upgrade on a copy
+  of your dump in a separate, disposable stack.
+- **Usage counts, on by default in a release build, from the first start.** Fabric sends installs, days of use
+  and how many projects, products and agents are connected, to PassionCode's self-hosted analytics. Every event
+  carries the app version, the OS name, a session id and a random installation id that every PassionCode app on
+  this Mac shares; never names, paths or content. Settings → *Share usage counts* turns it off for every
+  PassionCode app on the Mac ([docs/ANALYTICS.md](docs/ANALYTICS.md)). Builds from source send nothing.
+- **The project board.** Agents you run from Fabric get the project-board tools (`com.submit`, `com.list`,
+  `com.get`, `com.read_ack`, `com.status`): durable, project-addressed messages that survive the session
+  ([ADR-0117](docs/adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md)).
+- **More coding agents in the launch menu: Kilo Code, Hermes Agent and Cline.** Hermes runs over the Agent Client
+  Protocol through Fabric's terminal shell; Kilo through its session-config variable
+  ([ADR-0119](docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md)).
 - **The editor never damages a file it cannot show as text.** Binary and non-UTF-8 files open read-only and
   are never written back; a save no longer rebuilds the editor, so typing during a save is kept; "Keep mine"
   overwrites only the version you were shown; a conflict puts the focus on its explanation, not on the
   destructive button.
 - **Agents run through ACP behave.** A turn has no two-minute deadline; a line typed ahead never answers a
-  permission question; stopping an agent ends its whole process group; your project's servers go with
-  Fabric's surface; Kilo and Hermes do not start in a mode their bundle cannot honour; one failed request no
-  longer closes the stdio bridge; keys from Kilo's config are kept out of transcripts
-  ([ADR-0119](docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md), amendment 3).
+  permission question, and Ctrl-C during one answers it as cancelled; stopping an agent ends its whole process
+  group, including the tools it started, even when Fabric has to force the stop; Kilo and Hermes do not start
+  in a mode their bundle cannot honour; one failed request no longer closes the stdio bridge.
+- **Your project's servers go with Fabric's surface to every agent.** Hermes, which takes no HTTP MCP servers,
+  reaches each granted server through its own stdio bridge; a session whose granted servers cannot be carried
+  is not opened.
+- **Cline asks before each tool.** It now starts in Ask (`--auto-approve false`); Bypass is the only mode in
+  which it approves tools on its own.
+- **Keys stay out of transcripts in more spellings:** Kilo's config, ACP header pairs, the bridge's
+  `FABRIC_BRIDGE_AUTHORIZATION`, escaped JSON and Python dicts (ADR-0119, amendments 3 and 4).
 - **Attention, Board, digest and history read true.** A granted refusal leaves the queue and repeats are one
   item; an answered question keeps its receipt on screen; the digest no longer marks lines read while you read
   them and is no longer cut at 1000 rows; an agent's history shows its newest 200 events and says when earlier
-  ones exist.
+  ones may exist.
 - **Windows hold only Fabric.** A window can show only Fabric's own page, links leave for your browser, the
-  built page carries a Content-Security-Policy, and the bridge refuses any other caller. Crashes of the app or
-  a window are recorded in Diagnostics, and the window shows a recovery screen instead of going blank.
-- **Diagnostics tells you when your local database is reachable from the network.** The Supabase CLI
-  publishes the stack's ports on every interface with its default password, and Fabric cannot bind them to
-  this Mac alone. Fabric now checks after start and, if they answer on your network address, says so with the
-  remedy for OrbStack or Docker Desktop.
+  built page carries a Content-Security-Policy, and the bridge refuses any other caller. A failure in a window
+  is sent to Diagnostics; a broken screen shows a recovery screen, and a window whose page process died is
+  reloaded instead of staying blank.
+- **Fabric tells you when your local database is reachable from the network.** The Supabase CLI publishes the
+  stack's ports on every interface with its default password, and Fabric cannot bind them to this Mac alone.
+  Fabric checks after start and every five minutes after that, and if they answer on your network address a
+  warning above every screen gives the remedy for OrbStack or Docker Desktop.
 
 ## 0.3.1
 

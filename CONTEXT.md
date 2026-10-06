@@ -233,12 +233,14 @@ Slack/Teams mirror is a projection of the board and an ingress to it.
 **Board request** — a project-board message that asks a Project for a capability and has a lifecycle:
 `queued → claimed → accepted → in_progress → completed | failed_known`, with `cancelled`,
 `expired` and `outcome_unknown`. Its request state and its effect state are separate facts. An
-effect that began is settled only by an observed result. A reply is not a completion.
+effect that began is settled only by an observed result. A reply is not a completion. This is the contract's term: the board Fabric 0.3.2 hosts
+(COM-02, migration `…081_project_board.sql`) carries messages only, and requests arrive with COM-03.
 
 **Responder slot** — the one primary place per Project and capability where a responder answers
 board requests on the project board. Its generation only grows, and it survives deletion and restore. Every responder
 action carries a fence (request, generation, attempt, digest, revision), which the board rechecks
-against a 60-second lease measured in database time.
+against a 60-second lease measured in database time. Not built yet: 0.3.2's board has no responders, claims
+or leases (COM-03).
 
 **Product manager** — the cardinal agent role accountable for one project's goals,
 graphs, roster, routines and report upward. A Project in setup may leave this role

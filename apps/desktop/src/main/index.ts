@@ -36,8 +36,9 @@ import { ConsentPresenter } from './consentPresenter.ts'
 import { CONNECTABLE_PRODUCTS, agentFacts, askLines, pendingFacts, productName, type ConnectProblem, type HubActResult, type HubDownCode, type HubOverview } from '../shared/access.ts'
 import { translator } from '../renderer/src/i18n/translate.ts'
 import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
-import { latestInOrder, SESSION_HISTORY_WINDOW } from '../shared/sessionHistory.ts'
+import { readSessionHistory } from '../shared/sessionHistory.ts'
 import { externalLink, isAppDocument, type AppEntry } from './navigationGuard.ts'
+import { shouldReload } from './rendererRecovery.ts'
 import { createBundleCompiler } from './sessionBundle'
 import { createTranscriptStore } from './transcripts'
 import { compileContextPack, contextDemandFor, type LaunchTrigger } from './contextPack'
@@ -195,7 +196,9 @@ function handle(
 
 /** The one document every window of this app holds (audit 2026-10-05 A7-002). */
 const APP_ENTRY: AppEntry = {
-  devOrigin: process.env.ELECTRON_RENDERER_URL ?? null,
+  // A packaged app has no dev server: an inherited ELECTRON_RENDERER_URL there would name an origin the
+  // windows never load, and the guard would let any page on it drive the bridge (0.3.2 verification ER-9).
+  devOrigin: app.isPackaged ? null : (process.env.ELECTRON_RENDERER_URL ?? null),
   indexFile: path.join(import.meta.dirname, '../renderer/index.html')
 }
 
@@ -258,8 +261,10 @@ import {
   attentionKey,
   attentionOf,
   obligationReceipts,
+  resolutionsOf,
   type AttentionItem,
-  type AttentionSources
+  type AttentionSources,
+  type JournalActRow
 } from '../shared/attention.ts'
 import {
   DEFAULT_CATEGORY,
@@ -458,6 +463,12 @@ function splashWindow(text: string): BrowserWindow {
 
 /** What the last network check of the local stack found (audit A7-001); null until it has run. */
 let lastStackExposure: StackExposure | null = null
+/** The check in flight, so a reader waits for it rather than reading "not checked yet". */
+let stackExposureCheck: Promise<void> | null = null
+/** The stack's API URL, kept so the renderer's read can re-check a stale result. */
+let stackApiUrl: string | null = null
+/** A result older than this is re-checked on read: Wi-Fi and the engine's settings change under a running app. */
+const STACK_EXPOSURE_MAX_AGE_MS = 5 * 60_000
 
 /**
  * Whether the stack's ports answer on this Mac's network addresses (`stackExposure.ts` says why Fabric
@@ -478,11 +489,13 @@ async function checkStackExposure(apiUrl: string): Promise<void> {
         op: 'stack.exposed-on-network',
         outcome: 'ok',
         level: 'warn',
-        detail: { exposed: lastStackExposure.exposed, note: 'the local database answers on this Mac\'s network address with default credentials; see Settings → Diagnostics for the remedy' },
+        detail: { exposed: lastStackExposure.exposed, note: 'the local database answers on this Mac\'s network address with default credentials; the warning at the top of Fabric\'s window gives the remedy' },
         ctx: { correlationId: ops.correlate() }
       })
   } catch (e) {
     ops.failed('stack.exposure-check', e, { note: 'whether the local stack is reachable from the network is unknown' })
+  } finally {
+    stackExposureCheck = null
   }
 }
 
@@ -561,7 +574,8 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
   const env = await resolveEnvStartingStackIfNeeded()
   ceoConnection = { url: env.url, serviceKey: env.serviceKey }
   // Audit A7-001: off the startup path — the answer is a warning, never a reason to wait.
-  void checkStackExposure(env.url)
+  stackApiUrl = env.url
+  stackExposureCheck = checkStackExposure(env.url)
   db = createClient(env.url, env.serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false }
   })
@@ -2599,18 +2613,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         // cannot open this" is the safe direction.
         is_task: isTask.has(l.work_id as string)
       })),
-      resolutions: [
-        ...(grants.data ?? []),
-        ...(refusals.data ?? []).filter((row) => (row.payload as { verdict?: string }).verdict === 'allow')
-      ].map((row) => {
-        const payload = row.payload as { floor_class?: string; target?: string }
-        return {
-          seq: row.seq as number,
-          project_id: (row.project_id as string | null) ?? null,
-          floor_class: payload.floor_class ?? 'unknown',
-          target: payload.target ?? 'unknown'
-        }
-      }),
+      resolutions: resolutionsOf((grants.data ?? []) as JournalActRow[], (refusals.data ?? []) as JournalActRow[]),
       refusals: (refusals.data ?? [])
         .filter((row) => (row.payload as { verdict?: string }).verdict === 'refuse')
         .map((row) => {
@@ -3500,10 +3503,18 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     (_e, query?: { level?: OpsLevel; limit?: number }): Returns<FabricApi['diagnostics']['read']> => ({
       // Newest last, and capped: the viewer asks for a page, not for the file.
       records: ops.read({ level: query?.level, limit: query?.limit ?? 200 }),
-      file: ops.file(),
-      stackExposure: lastStackExposure
+      file: ops.file()
     })
   )
+
+  // Audit A7-001: the exposure warning above every screen reads this. A stale result is re-checked, and a
+  // check in flight is waited for (bounded), so the first read after start is not "nothing found".
+  handle(IPC.stackExposure, async (): Promise<Returns<FabricApi['stack']['exposure']>> => {
+    const stale = lastStackExposure !== null && Date.now() - Date.parse(lastStackExposure.checkedAt) > STACK_EXPOSURE_MAX_AGE_MS
+    if (stale && stackApiUrl && stackExposureCheck === null) stackExposureCheck = checkStackExposure(stackApiUrl)
+    if (stackExposureCheck) await Promise.race([stackExposureCheck, new Promise((r) => setTimeout(r, 5_000))])
+    return lastStackExposure
+  })
 
   // Audit A7-009: a renderer failure is recorded beside the program's own — the boundary and the
   // root's `onUncaughtError` send it here, because the renderer's console reaches nobody.
@@ -4167,19 +4178,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
    * take either as the account, and the whole point of keeping them apart in
    * the STORE is that they can be read against each other here.
    */
-  handle(IPC.terminalHistory, async (_e, sessionId: string): Promise<Returns<FabricApi['terminal']['history']>> => {
-    // The id goes into a PostgREST filter expression, so only a session id's own shape is let through.
-    if (typeof sessionId !== 'string' || !UUID.test(sessionId)) throw new Error('Invalid session identity')
-    // The NEWEST events, shown in the order they happened (audit A5-001: the oldest 200 were shown).
-    const { data, error } = await store
-      .select('journal', '*')
-      .eq('estate_id', ACTIVE_ESTATE)
-      .or(`payload->>session_id.eq.${sessionId},payload->>owner.eq.${sessionId}`)
-      .order('seq', { ascending: false })
-      .limit(SESSION_HISTORY_WINDOW)
-    if (error) throw new Error(`the session history could not be read: ${error.message}`)
-    return latestInOrder((data ?? []) as FeedEvent[])
-  })
+  handle(IPC.terminalHistory, async (_e, sessionId: string): Promise<Returns<FabricApi['terminal']['history']>> =>
+    // The newest events, in the order they happened, behind a session-id check (A5-001; `sessionHistory.ts`).
+    readSessionHistory(() => store.select('journal', '*') as never, ACTIVE_ESTATE, sessionId) as Promise<FeedEvent[]>
+  )
 
   handle(IPC.terminalClaims, async (_e, projectId: string): Promise<Returns<FabricApi['terminal']['claims']>> => {
     const { data, error } = await store
@@ -4513,7 +4515,7 @@ app.on('before-quit', (e) => quit.beforeQuit(e))
 // deadline to end the process.
 app.on('web-contents-created', (_e, contents) => {
   contents.on('will-prevent-unload', (event) => { if (quit.quitting) event.preventDefault() })
-  // #region navigation-guard — docs: docs/reports/2026-10-05-release-032-audit/README.md#2-what-the-audit-says-about-the-product
+  // #region navigation-guard — docs: docs/adr/0020-provider-views-are-sandboxed-extensions-and-layout-is-host-owned.md#provider-views-are-sandboxed-extensions-workspace-layout-is-host-owned
   // Audit A7-002: a Fabric window holds Fabric's renderer document and nothing else, because whatever
   // document stands in it gets the preload's whole bridge. Embedded views (`browserView`) show other
   // products' pages by design and carry no bridge, so the guard is for windows only.
@@ -4535,8 +4537,17 @@ app.on('web-contents-created', (_e, contents) => {
     return { action: 'deny' }
   })
   // Audit A7-009: a renderer that dies or hangs is recorded, not lost in a console nobody has.
-  contents.on('render-process-gone', (_ev, details) =>
-    ops.failed('window.renderer-gone', new Error(details.reason), { exitCode: details.exitCode }))
+  // DO-6 (0.3.2 verification): a dead renderer is a blank window — the error boundary died with it — so
+  // the window is reloaded, unless it keeps dying (`rendererRecovery.ts`), when it is left as it is.
+  const reloads: number[] = []
+  contents.on('render-process-gone', (_ev, details) => {
+    ops.failed('window.renderer-gone', new Error(details.reason), { exitCode: details.exitCode })
+    const now = Date.now()
+    if (!shouldReload({ reason: details.reason, quitting: quit.quitting, recentReloads: reloads, now })) return
+    reloads.push(now)
+    // A window closing in the same tick has no contents left to reload.
+    if (!contents.isDestroyed()) contents.reload()
+  })
   contents.on('unresponsive', () => ops.record({ op: 'window.unresponsive', outcome: 'unknown', level: 'warn', ctx: { correlationId: ops.correlate() } }))
   contents.on('responsive', () => ops.record({ op: 'window.responsive', outcome: 'ok', level: 'info', ctx: { correlationId: ops.correlate() } }))
   // #endregion navigation-guard

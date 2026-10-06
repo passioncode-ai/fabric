@@ -415,6 +415,34 @@ else {
   bundles.discard(sidH)
 }
 
+// Audit 2026-10-06 DA-2 — an ACP runner's granted servers travel both ways in the session document: as
+// HTTP servers for an agent that takes them, and each through its own stdio bridge (the hop's role key in
+// the bridge's environment, in the gateway's header) for one that does not. The shell refuses the session
+// when the second list cannot carry the first.
+{
+  const granting = createBundleCompiler({
+    root,
+    surface,
+    declaredServers: async () => [{ name: 'linear', source: 'gateway' }],
+    gateway: () => ({ origin: 'http://127.0.0.1:4000', routes: { linear: '/mcp/linear' }, key: 'role-key' })
+  })
+  const sidG = randomUUID()
+  const g = await granting.compile(sidG, randomUUID(), null, 'hermes', 'acp-session', null, { acpMode: 'ask' })
+  const spec = JSON.parse(g.env.FABRIC_ACP_SESSION)
+  const overHttp = spec.grants ?? []
+  if (overHttp.length === 1 && overHttp[0].name === 'linear' && overHttp[0].url === 'http://127.0.0.1:4000/mcp/linear' && overHttp[0].headers[0].name === 'x-agw-key' && overHttp[0].headers[0].value === 'role-key')
+    ok('an ACP session carries the granted server over HTTP, at the gateway, with the role key')
+  else fail('granted server over HTTP wrong: ' + JSON.stringify(overHttp))
+  const bridged = spec.grantsOverStdio ?? []
+  const benv = Object.fromEntries((bridged[0]?.env ?? []).map((e) => [e.name, e.value]))
+  if (bridged.length === 1 && bridged[0].name === 'linear' && bridged[0].command === spec.stdio.command && JSON.stringify(bridged[0].args) === JSON.stringify(spec.stdio.args)
+      && benv.FABRIC_BRIDGE_URL === 'http://127.0.0.1:4000/mcp/linear' && benv.FABRIC_BRIDGE_HEADER === 'x-agw-key' && benv.FABRIC_BRIDGE_AUTHORIZATION === 'role-key'
+      && !bridged[0].args.join(' ').includes('role-key'))
+    ok('and the same server through its own stdio bridge, the role key in the bridge environment and in the gateway header')
+  else fail('granted server over the stdio bridge wrong: ' + JSON.stringify(bridged))
+  granting.discard(sidG)
+}
+
 // HAR-R0-01 — compilation owns cleanup until it returns a bundle. These
 // faults hit the real filesystem functions, including partial writes, rather
 // than assuming that PtyManager will receive a bundle when compile rejects.

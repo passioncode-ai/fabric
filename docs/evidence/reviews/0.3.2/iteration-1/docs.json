@@ -1,0 +1,206 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.2",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "35b884c8a265d1999b8ec25e9c2bbf08fe9f389c",
+  "report": "docs/evidence/plans/2026-10-06-release-032-verification/iteration-1/2026-10-06-docs.md",
+  "reportSha256": "b09e5564188fe7611874947b1550e3e154b518aaf3c538616edf66119d99c61d",
+  "reviewerRun": "release-032-i1-docs-20261006",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-1",
+      "source": "DO-1, DO-3, DO-14 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `CHANGELOG.md` 0.3.2 names each; `docs/launch/release-mac.md` upgrade section at 79 with `--from 78 --ref v0.3.2`; CO-198 extended to 79"
+      ]
+    },
+    {
+      "id": "V1-2",
+      "source": "DO-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: README, `analytics.label`/`analytics.note` (en, ru), SCN-134 and `docs/ANALYTICS.md` name the id, version, OS and session id; `UsageCountsSetting.test.tsx` reads the new note. Whether counting may start before the person sees the switch is ruled CO-218 (V1-14)"
+      ]
+    },
+    {
+      "id": "V1-3",
+      "source": "DO-4 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `acpShell.ts` sweeps the agent's group on every end; `acp-shell.test.mjs` \"ending a session ends the tools the agent started, even when the agent itself exits on end of input\" and \"the shell process: SIGTERM ends the agent and every tool in its group\" (watched: \"tool … is still running\")"
+      ]
+    },
+    {
+      "id": "V1-4",
+      "source": "DO-5 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one stdio bridge per granted server (`sessionBundle.ts` `grantsOverStdio`, `FABRIC_BRIDGE_HEADER`); a session whose grants cannot be carried is refused, exit 3; `acp-shell.test.mjs` \"granted servers go with the surface over HTTP, and each through its own stdio bridge otherwise\", `mcp-stdio-bridge.test.mjs` header tests, `session-bundle.test.mjs` (watched failing)"
+      ]
+    },
+    {
+      "id": "V1-6",
+      "source": "DO-6 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `rendererRecovery.ts` + `index.ts` reload a dead renderer, at most 3 times a minute, never on `clean-exit` or while quitting; `renderer-recovery.test.mjs`"
+      ]
+    },
+    {
+      "id": "V1-10",
+      "source": "DO-7, DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR index → ADR-0121 with the 0120 reservation named; carry-over → CO-222; CO-212 in order"
+      ]
+    },
+    {
+      "id": "V1-11",
+      "source": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: A7-001 re-disposed to CO-219 (`raw/dispositions.json`, regenerated list: fixed 22, deferred 254, duplicate 2); audit README §2–§4 recounted"
+      ]
+    },
+    {
+      "id": "V1-18",
+      "source": "DO-20a",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Board keeps a granted row (`BoardScreen.tsx` `grantedHere`, `ObligationActs` `grantedUntil`), time in the app's locale; `BoardScreen.test.tsx` \"a one-time grant keeps its row and its \"until\"\" (watched: 1 failed)"
+      ]
+    },
+    {
+      "id": "V1-20",
+      "source": "DO-19b",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the diff's side is the buffer (`seed`), carried across a second conflict; `EditorWindow.conflict.test.tsx` \"what was typed while the conflicting save was in flight…\" (watched)"
+      ]
+    },
+    {
+      "id": "V1-25",
+      "source": "DO-18",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `StackExposureNotice` above every screen and in Diagnostics; `stack.exposure()` waits for a check in flight and re-checks after 5 min; SCN-073 reworded; `DiagnosticsSection.test.tsx`"
+      ]
+    },
+    {
+      "id": "V1-27",
+      "source": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `readSessionHistory` in `shared/sessionHistory.ts`; `sessionHistory.test.ts` \"returns the newest 200 events…\" (watched with ascending)"
+      ]
+    },
+    {
+      "id": "V1-28",
+      "source": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `resolutionsOf` in `shared/attention.ts`; `attention.test.ts` \"what resolves a refusal (A1-001, main half)\" (watched)"
+      ]
+    },
+    {
+      "id": "V1-29",
+      "source": "DO-20b",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the read takes one beyond the window; `mayHaveEarlier` measures it; `EstateAgents.test.tsx`"
+      ]
+    },
+    {
+      "id": "V1-33",
+      "source": "DO-22",
+      "status": "not-a-defect",
+      "evidence": [
+        "not a defect: the probe reads the built page by design (a policy loosened for development is the one that ships), and `scripts/ci.sh` builds before it runs; its failure names the build step"
+      ]
+    },
+    {
+      "id": "V1-36",
+      "source": "DO-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `redact.ts` `header-pair`, `api-key-field`, wider `assignment`; `redact.test.ts` nine shapes (three plants watched)"
+      ]
+    },
+    {
+      "id": "V1-38",
+      "source": "DO-21c",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `mcp-stdio-bridge.test.mjs` \"the agent closing the bridge's input ends the HTTP session and the bridge\" (watched)"
+      ]
+    },
+    {
+      "id": "V1-39",
+      "source": "DO-21b",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `freshLine()`; `acp-shell.test.mjs` \"the sign-in pick takes only a line typed after the methods are listed\" (watched)"
+      ]
+    },
+    {
+      "id": "V1-40",
+      "source": "DO-19a, DO-20c, DO-21a",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-221"
+      ]
+    },
+    {
+      "id": "V1-44",
+      "source": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the row; `check-docs.sh` U003 gone"
+      ]
+    },
+    {
+      "id": "V1-45",
+      "source": "DO-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0119 amendment 4 corrects it; the dated report keeps its number"
+      ]
+    },
+    {
+      "id": "V1-46",
+      "source": "DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: amendment 4 \"State at 0.3.2\"; SCN-126 amended"
+      ]
+    },
+    {
+      "id": "V1-47",
+      "source": "DO-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `navigation-guard` → ADR-0020, `stack-exposure` → SCN-073, ACP regions → ADR-0119 amendments; regions on `CrashBoundary.tsx`, `sessionHistory.ts`, `rendererRecovery.ts`, `StackExposureNotice.tsx`; the remainder in changed files ruled CO-221"
+      ]
+    },
+    {
+      "id": "V1-48",
+      "source": "DO-17",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both terms say what 0.3.2's board does not have yet (COM-03)"
+      ]
+    },
+    {
+      "id": "V1-49",
+      "source": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: V1-3 and V1-4; audit README §3 names the five and points here"
+      ]
+    }
+  ]
+}

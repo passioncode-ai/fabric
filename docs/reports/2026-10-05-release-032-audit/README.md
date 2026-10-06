@@ -13,8 +13,8 @@ report:
     and code, and read the trust boundaries, data integrity, lifecycle, errors, drift and analytics. It
     found 278 findings: 2 P0, 16 P1, 106 P2 and 154 P3. 13 of the 134 scenarios are implemented as
     specified; 59 are partial, 55 are not built, and 7 disagree with their own record.
-    The fix list gives every finding a 0.3.2 disposition. All P0 and P1 findings are fixed, or deferred
-    with a named carry-over row, before the release.
+    The fix list gives every finding a 0.3.2 disposition. Every P0 and P1 finding is fixed, carried to a
+    named carry-over row, or a duplicate; A7-001 is carried as CO-219 with a warning in the product.
   sources:
     - {name: "candidate checkout", url: "https://github.com/passioncode-ai/fabric/commit/e19e1b9e", read_at: 2026-10-05}
     - {name: "docs/ux/scenarios.md, screens.md, product-model.json at the candidate", url: "../../ux/scenarios.md", read_at: 2026-10-05}
@@ -81,8 +81,11 @@ its defect, for example).
 
 ## 3. What 0.3.2 does with it
 
-Every P0 and P1 is either fixed, with a test whose planted defect was watched being caught, or
-deferred to a named carry-over row with its reason. The P2 and P3 findings not fixed here are carried
+Every P0 and P1 is fixed, carried to a named carry-over row with its reason, or a duplicate. A fix is
+meant to carry a test whose planted defect was watched being caught; the first verification iteration
+found five where that did not hold yet (A2-001, A5-001, A1-001's main-process half, A7-003, A6-004), and
+the [0.3.2 verification ledger](../../evidence/plans/2026-10-06-release-032-verification.md) records how
+each was closed. The P2 and P3 findings not fixed here are carried
 as two rows: [CO-215](../../evidence/specs/2026-08-16-software-fabric-carryover.md) for the P2s and
 [CO-216](../../evidence/specs/2026-08-16-software-fabric-carryover.md) for the P3s, each pointing at
 this list. The SCN-027 escalation path (A2-005), a feature that was never built rather than a
@@ -93,18 +96,18 @@ candidate passes its final check.
 
 ## 4. Release summary
 
-What went in, from [`raw/2026-10-05-fix-list.md`](raw/2026-10-05-fix-list.md) (generated; totals: fixed 23,
-deferred 253, duplicate 2, of 278):
+What went in, from [`raw/2026-10-05-fix-list.md`](raw/2026-10-05-fix-list.md) (generated; totals: fixed 22,
+deferred 254, duplicate 2, of 278; recounted 2026-10-06 after the first verification iteration, DO-10):
 
-- **Both P0s.** A4-001 is fixed: binary files are never written. A7-001 is detected and reported, but the
-  binding is not changed: Fabric warns in Diagnostics with the remedy, and the setting belongs to the
-  container engine.
+- **The P0s.** A4-001 is fixed: binary files are never written. A7-001 is not fixed: the binding belongs to
+  the container engine, so 0.3.2 detects the exposure and warns above every screen with the remedy, and
+  the finding is carried as CO-219.
 - **14 of 16 P1s fixed.** Editor: A2-002, A2-003, A2-004. ACP: A6-001, A6-006, A7-003, A7-005. Surfaces:
   A1-001, A3-001, A4-002, A4-003, A5-001. Windows and process: A2-001, A7-002. A2-005, the SCN-027
   escalation, is a feature that was never built, and is carried as CO-217. A7-004 duplicates A6-001.
 - **Six P2s and one P3 fixed** where they sat on a P1's path: A6-004, A6-005, A6-007, A6-011, A7-007,
   A7-009 (P2) and A6-029 (P3).
 
-What did not go in: the remaining 253 P2 and P3 findings, carried as CO-215 (P2) and CO-216 (P3), each
-pointing back at this list. The release still passes its verification ledger and gate
+What did not go in: 254 findings — A7-001 (P0, CO-219, above), A2-005 (P1, CO-217), 99 P2 carried as
+CO-215 and 153 P3 carried as CO-216, each row pointing back at this list. The release still passes its verification ledger and gate
 ([docs/launch/release-mac.md](../../launch/release-mac.md)) before a tag.

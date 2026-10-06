@@ -1,0 +1,118 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.2",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "35b884c8a265d1999b8ec25e9c2bbf08fe9f389c",
+  "report": "docs/evidence/plans/2026-10-06-release-032-verification/iteration-1/2026-10-06-plan.md",
+  "reportSha256": "199f30322c16724397a5566906ed6f0f3cf80efd7e44e9297de112e6afb48805",
+  "reviewerRun": "release-032-i1-plan-20261006",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-1",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `CHANGELOG.md` 0.3.2 names each; `docs/launch/release-mac.md` upgrade section at 79 with `--from 78 --ref v0.3.2`; CO-198 extended to 79"
+      ]
+    },
+    {
+      "id": "V1-4",
+      "source": "PL-14 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one stdio bridge per granted server (`sessionBundle.ts` `grantsOverStdio`, `FABRIC_BRIDGE_HEADER`); a session whose grants cannot be carried is refused, exit 3; `acp-shell.test.mjs` \"granted servers go with the surface over HTTP, and each through its own stdio bridge otherwise\", `mcp-stdio-bridge.test.mjs` header tests, `session-bundle.test.mjs` (watched failing)"
+      ]
+    },
+    {
+      "id": "V1-7",
+      "source": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: plan row P-11, this ledger, Now/Next; `release-gate.json` moves to 0.3.2 in the release commit"
+      ]
+    },
+    {
+      "id": "V1-8",
+      "source": "PL-3",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-179 (restyle is its own visual iteration) and CO-206 (needs a stalled-database probe no finding observed), both re-dated after 0.3.2 with the reason"
+      ]
+    },
+    {
+      "id": "V1-9",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-220 with the measured versions, ACP entry points and forced permission modes; lane 6"
+      ]
+    },
+    {
+      "id": "V1-10",
+      "source": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR index → ADR-0121 with the 0120 reservation named; carry-over → CO-222; CO-212 in order"
+      ]
+    },
+    {
+      "id": "V1-11",
+      "source": "PL-6, PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: A7-001 re-disposed to CO-219 (`raw/dispositions.json`, regenerated list: fixed 22, deferred 254, duplicate 2); audit README §2–§4 recounted"
+      ]
+    },
+    {
+      "id": "V1-12",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-215 names A7-012/015/016/025/027 and takes them first"
+      ]
+    },
+    {
+      "id": "V1-13",
+      "source": "PL-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-218: the operator's product and privacy decision; 0.3.2 makes every description true and changes no behaviour"
+      ]
+    },
+    {
+      "id": "V1-14",
+      "source": "PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `docs/backlog-sources.json` declares `docs/evidence/plans/2026-10-05-agent-support.md` (Tasks)"
+      ]
+    },
+    {
+      "id": "V1-15",
+      "source": "PL-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: each row's deadline names 0.3.2 (CO-198: the 78 → 79 rehearsal)"
+      ]
+    },
+    {
+      "id": "V1-16",
+      "source": "PL-12, PL-13",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-221: the derived queue is recompiled after the release; the roadmap is the knowledge-base update at release"
+      ]
+    },
+    {
+      "id": "V1-17",
+      "source": "PL-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"12 tests — counted 2026-10-06 by `node --test`\""
+      ]
+    }
+  ]
+}

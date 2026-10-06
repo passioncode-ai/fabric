@@ -14,7 +14,7 @@ import { destinationOf } from '../../../shared/entityRef.ts'
 import type { HubActResult, PendingRequestFacts } from '../../../shared/access'
 import { sayActRefusal, sayAllow, sayAllowFor, sayAsk, sayConnectDetail, sayConnectProblem, sayFloor, sayIncremental, sayOrigin, shownName } from '../../../shared/accessWords'
 import { humaniseError } from '../../../shared/errorText'
-import { useT } from '../i18n'
+import { useLocale, useT } from '../i18n'
 
 export interface ObligationLike {
   subject: EntityRef
@@ -59,7 +59,7 @@ export function useProposalDecisions(reload: () => Promise<void>, onError: (m: s
   return { outcome, deciding, decide, stillDecidable, reload }
 }
 
-export function ObligationActs({ item, decisions, onOpen, onError, onAccessDecided }: {
+export function ObligationActs({ item, decisions, onOpen, onError, onAccessDecided, grantedUntil, onGranted }: {
   item: ObligationLike
   decisions: ReturnType<typeof useProposalDecisions>
   onOpen: (projectId: string, focus: EntityRef) => void
@@ -67,6 +67,10 @@ export function ObligationActs({ item, decisions, onOpen, onError, onAccessDecid
   /** An access request was answered: what to say about it, named, after its row has left the queue; `detail`
    *  is the machine's words behind a connect problem, a line of their own (UX-5). */
   onAccessDecided?: (said: string, detail: string | null) => void
+  /** A one-time grant already issued for this row, held by the screen so it outlives the re-read that
+   *  removes the refusal (0.3.2 verification UX-3). */
+  grantedUntil?: string | null
+  onGranted?: (expiresAt: string) => void
 }): React.JSX.Element | null {
   const t = useT()
   const at = opensAt(item)
@@ -102,7 +106,7 @@ export function ObligationActs({ item, decisions, onOpen, onError, onAccessDecid
         </>
       )}
       {!p && item.grantable && (
-        <GrantAct projectId={item.projectId} grantable={item.grantable} onError={onError} reload={decisions.reload} />
+        <GrantAct projectId={item.projectId} grantable={item.grantable} onError={onError} reload={decisions.reload} grantedUntil={grantedUntil ?? null} onGranted={onGranted} />
       )}
       {at && (
         <button type="button" className="lp-button" onClick={() => onOpen(at.projectId, at.focus)}>
@@ -118,24 +122,28 @@ export function ObligationActs({ item, decisions, onOpen, onError, onAccessDecid
  * when it holds and offers nothing more: each click used to mint another one-hour grant while the refusal
  * stayed in the queue. The queue is re-read, and the refusal leaves it because the grant resolves it.
  */
-function GrantAct({ projectId, grantable, onError, reload }: {
+function GrantAct({ projectId, grantable, onError, reload, grantedUntil, onGranted }: {
   projectId: string | null
   grantable: { floorClass: string; target: string }
   onError: (m: string) => void
   reload: () => Promise<void>
+  grantedUntil: string | null
+  onGranted?: (expiresAt: string) => void
 }): React.JSX.Element {
   const t = useT()
+  const locale = useLocale()
   const [busy, setBusy] = useState(false)
-  const [until, setUntil] = useState<string | null>(null)
+  const [issued, setIssued] = useState<string | null>(null)
+  const until = issued ?? grantedUntil
   if (until)
-    return <span role="status" className="lp-meta">{t('ceo.grantedUntil', { time: new Date(until).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) })}</span>
+    return <span role="status" className="lp-meta">{t('ceo.grantedUntil', { time: new Date(until).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) })}</span>
   return (
     <button type="button" className="lp-button primary" disabled={busy}
       onClick={() => {
         setBusy(true)
         void window.fabric.attention
           .grant({ projectId, floorClass: grantable.floorClass, target: grantable.target })
-          .then((g) => { setUntil(g.expiresAt); void reload() })
+          .then((g) => { setIssued(g.expiresAt); onGranted?.(g.expiresAt); void reload() })
           .catch((e) => onError(String(e)))
           .finally(() => setBusy(false))
       }}>

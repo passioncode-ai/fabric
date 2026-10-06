@@ -1,4 +1,4 @@
-// #region navigation-guard — docs: docs/reports/2026-10-05-release-032-audit/README.md#2-what-the-audit-says-about-the-product
+// #region navigation-guard — docs: docs/adr/0020-provider-views-are-sandboxed-extensions-and-layout-is-host-owned.md#provider-views-are-sandboxed-extensions-workspace-layout-is-host-owned
 /**
  * Which documents may stand in a Fabric window (audit 2026-10-05 A7-002).
  *

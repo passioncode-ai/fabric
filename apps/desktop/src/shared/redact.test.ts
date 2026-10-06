@@ -82,6 +82,42 @@ describe('standard authorization headers', () => {
     expect(redact('the x-agw-key header carries the role key').text).toBe('the x-agw-key header carries the role key')
   })
 
+  // Audit 2026-10-06 DA-4 / ER-4 / DO-15: the ACP spellings of the same two credentials. The session
+  // document and `session/new` carry headers as `{name, value}` pairs; the bridge takes its bearer as
+  // an environment variable; a JSON-encoded environment escapes every quote; Hermes is Python and
+  // prints dicts and reprs. A 24-byte base64url token (agentSurface's mint) has no shape of its own.
+  it('removes the ACP {name, value} header shape, the bridge variable, escaped JSON and Python spellings', () => {
+    const tok = 'Q2hvb3NlQVRva2VuVGhhdElzTG9uZ0Vub3VnaA'
+    const key = 'agwRoleKey0123456789abcdef'
+    const kilo = `{"mcp":{"g":{"headers":{"x-agw-key":"${key}"}},"fabric":{"headers":{"Authorization":"Bearer ${tok}"}}}}`
+    const cases: Record<string, string> = {
+      acpSpec: `FABRIC_ACP_SESSION={"http":{"headers":[{"name":"Authorization","value":"Bearer ${tok}"}]},"grants":[{"headers":[{"name":"x-agw-key","value":"${key}"}]}]}`,
+      acpSpaced: JSON.stringify({ headers: [{ name: 'Authorization', value: `Bearer ${tok}` }, { name: 'x-agw-key', value: key }] }, null, 2),
+      bridgeEnvJson: JSON.stringify([{ name: 'FABRIC_BRIDGE_URL', value: 'http://127.0.0.1:4000/mcp/x' }, { name: 'FABRIC_BRIDGE_AUTHORIZATION', value: `Bearer ${tok}` }, { name: 'FABRIC_BRIDGE_AUTHORIZATION', value: key }]),
+      bridgeEnvLine: `FABRIC_BRIDGE_AUTHORIZATION=Bearer ${tok}\nFABRIC_BRIDGE_AUTHORIZATION=${key}`,
+      kiloJsonEscaped: JSON.stringify({ KILO_CONFIG_CONTENT: kilo }),
+      kiloDoubleEscaped: JSON.stringify(JSON.stringify({ KILO_CONFIG_CONTENT: kilo })),
+      pythonDict: `{'Authorization': 'Bearer ${tok}', 'x-agw-key': '${key}'}`,
+      pythonRepr: `[HttpHeader(name='Authorization', value='Bearer ${tok}'), HttpHeader(name='x-agw-key', value='${key}')]`,
+      apiKeyJson: `{"apiKey":"${key}","api_key": "${tok}"}`
+    }
+    for (const [name, text] of Object.entries(cases)) {
+      const first = redact(text)
+      expect(first.text, name).not.toContain(tok)
+      expect(first.text, name).not.toContain(key)
+      expect(first.redactions.length, name).toBeGreaterThan(0)
+      // A second pass over cleaned output removes nothing more and counts nothing.
+      expect(redact(first.text), name).toEqual({ text: first.text, redactions: [] })
+    }
+    // The names stay: which credential a session printed is the useful, non-secret part.
+    expect(redact(cases.acpSpec).text).toContain('{"name":"Authorization","value":"[redacted: header-pair]"}')
+    expect(redact(cases.acpSpec).text).toContain('{"name":"x-agw-key","value":"[redacted: header-pair]"}')
+    expect(redact('FABRIC_BRIDGE_AUTHORIZATION=Bearer abc.def-ghi').text).toBe('FABRIC_BRIDGE_AUTHORIZATION=[redacted: assignment]')
+    // A pair whose name is not a credential is data, and is left alone.
+    for (const plain of ['{"name":"FABRIC_BRIDGE_URL","value":"http://127.0.0.1:4000/mcp/x"}', "{'name': 'monkey', 'value': 'banana'}", 'const apiKey: string = config.apiKey'])
+      expect(redact(plain).text).toBe(plain)
+  })
+
   it('removes opaque Bearer and Basic credentials while keeping context', () => {
     for (const header of ['Authorization: Bearer', 'proxy-authorization: Basic']) {
       const result = redact(`${header} synthetic-opaque\nordinary`)

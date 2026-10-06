@@ -26,6 +26,9 @@ export function TerminalView({
   focusOnMount?: boolean
 }): React.JSX.Element {
   const hostRef = useRef<HTMLDivElement>(null)
+  // Read at resize time, not captured when the effect ran: a session can end while its window is open (UX-10).
+  const running = useRef(session.running)
+  running.current = session.running
 
   useEffect(() => {
     const host = hostRef.current
@@ -86,8 +89,10 @@ export function TerminalView({
         if (!disposed) attach(null)
       })
     const offExit = window.fabric.terminal.onExit((sessionId, exitCode) => {
-      if (sessionId === session.sessionId)
+      if (sessionId === session.sessionId) {
+        running.current = false
         term.write(`\r\n\x1b[2m[session ended — exit ${exitCode}]\x1b[0m\r\n`)
+      }
     })
     const onInput = term.onData((data) => window.fabric.terminal.write(session.sessionId, data))
 
@@ -95,7 +100,7 @@ export function TerminalView({
       fit.fit()
       // An ended session keeps its tile but not its PTY: resizing one is an `ioctl EBADF` throw
       // on the far side (audit 2026-10-05 A2-001). The main side guards too; not sending is cheaper.
-      if (!session.running) return
+      if (!running.current) return
       window.fabric.terminal.resize(session.sessionId, term.cols, term.rows)
     }
     doResize()

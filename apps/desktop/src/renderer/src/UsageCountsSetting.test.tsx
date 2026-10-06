@@ -1,4 +1,4 @@
-// SCR-52 → Share anonymous usage counts (SCN-134). The API is a fake of `window.fabric.analytics`; the module
+// SCR-52 → Share usage counts (SCN-134). The API is a fake of `window.fabric.analytics`; the module
 // behind it is tested in test/analytics.test.mjs against a synthetic server.
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
@@ -40,5 +40,6 @@ describe('UsageCountsSetting', () => {
     mount({ status: async () => { throw new Error('ipc down') }, setEnabled: vi.fn() })
     await screen.findByText(en['analytics.unreadable'])
     expect((screen.getByRole('checkbox') as HTMLInputElement).disabled).toBe(true)
+    expect((screen.getByRole('checkbox') as HTMLInputElement).indeterminate).toBe(true)
   })
 })

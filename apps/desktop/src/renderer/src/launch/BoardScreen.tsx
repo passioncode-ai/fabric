@@ -70,6 +70,8 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   /** Kept across a refusal, keyed by the question: an answer belongs to its row. */
   const [draft, setDraft] = useState<Record<string, string>>({})
   const [receipt, setReceipt] = useState<Record<string, AnswerReceipt>>({})
+  /** One-time grants issued from the detail, by row: the receipt that keeps a granted refusal on screen (UX-3). */
+  const [granted, setGranted] = useState<Record<string, string>>({})
   const [sending, setSending] = useState<string | null>(null)
   /** The row last shown in the detail, kept so an answered question's receipt outlives its row. */
   const lastChosen = useRef<Row | null>(null)
@@ -136,8 +138,13 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   // detail closed on the next render and the receipt was never seen).
   const found = rows?.find((r) => r.entry.ref === selected) ?? null
   if (found) lastChosen.current = found
-  const answeredHere = !found && selected !== null && receipt[selected]?.committed === true && lastChosen.current?.entry.ref === selected
-  const chosen = found ?? (answeredHere ? lastChosen.current : null)
+  const keptHere = !found && selected !== null && lastChosen.current?.entry.ref === selected
+  const answeredHere = keptHere && receipt[selected!]?.committed === true
+  // 0.3.2 verification UX-3: a granted refusal leaves the queue on the same re-read; its "until" is the
+  // receipt, so the row stays, as A3-001 keeps an answered question.
+  const grantedHere = keptHere && !answeredHere && granted[selected!] !== undefined
+  const settledHere = answeredHere || grantedHere
+  const chosen = found ?? (settledHere ? lastChosen.current : null)
   const observed = open?.asOf ? new Date(open.asOf).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : null
   /** A board row's kind in words. Set-aside and resolved rows are authored questions, whatever
    *  the question's own kind (decision, access…): the board names them as questions. */
@@ -268,8 +275,9 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
               <>
                 {chosen.entry.detail && <p>{chosen.entry.detail}</p>}
                 <dl className="lp-facts">
-                  <div><dt>{t('launch.board.fact.state')}</dt><dd>{t(answeredHere ? 'launch.board.state.answered' : 'launch.board.state.open')}</dd></div>
-                  <div><dt>{t('launch.board.fact.waiting')}</dt><dd>{since(chosen.entry.waitingSince, t)}</dd></div>
+                  <div><dt>{t('launch.board.fact.state')}</dt><dd>{t(answeredHere ? 'launch.board.state.answered' : grantedHere ? 'launch.board.state.allowed' : 'launch.board.state.open')}</dd></div>
+                  {/* A settled row waits for nothing (UX-4). */}
+                  {!settledHere && <div><dt>{t('launch.board.fact.waiting')}</dt><dd>{since(chosen.entry.waitingSince, t)}</dd></div>}
                 </dl>
                 <div className="lp-divider" />
                 {chosen.entry.question ? (
@@ -296,9 +304,11 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
                   />
                 ) : (
                   // Keyed by the row: the acts keep their own answer, and another row's must never show it (UX-1, iteration 2).
-                  <ObligationActs key={chosen.entry.ref} item={chosen.entry} decisions={decisions} onOpen={onOpen} onError={onError} onAccessDecided={(text, detail) => setAccessSaid({ text, detail })} />
+                  <ObligationActs key={chosen.entry.ref} item={chosen.entry} decisions={decisions} onOpen={onOpen} onError={onError} onAccessDecided={(text, detail) => setAccessSaid({ text, detail })}
+                    grantedUntil={granted[chosen.entry.ref] ?? null} onGranted={(until) => setGranted((m) => ({ ...m, [chosen.entry.ref]: until }))} />
                 )}
-                {chosen.entry.question && chosen.entry.projectId && (() => {
+                {/* Setting aside a settled question can only be refused (UX-4). */}
+                {chosen.entry.question && chosen.entry.projectId && !settledHere && (() => {
                   const entry = chosen.entry as BoardEntry
                   return deferring === entry.ref ? (
                     <>

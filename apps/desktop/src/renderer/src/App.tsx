@@ -102,6 +102,12 @@ export function App(): React.JSX.Element {
     return () => mq.removeEventListener('change', apply)
   }, [settings?.theme])
 
+  // The document says which language the app speaks, so the crash screen (outside this provider, in
+  // `main.tsx`) speaks it too when the provider itself is what failed (0.3.2 verification UX-8).
+  useEffect(() => {
+    if (settings?.locale) document.documentElement.lang = settings.locale
+  }, [settings?.locale])
+
   if (!settings) return <div className="booting" />
   return (
     <I18nProvider locale={settings.locale as Locale}>

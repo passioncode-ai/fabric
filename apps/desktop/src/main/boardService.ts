@@ -61,6 +61,11 @@ export function commsDigest(operation: string, value: unknown): string {
 // ── the contract's input shapes (comms-common / comms-submit), strict ─────────────────────────────────
 const projectId = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,191}$/)
 const opaqueId = z.string().regex(/^[A-Za-z0-9_-]{8,128}$/)
+/** This board's thread and message ids are uuids. The contract admits any opaque id, so one that is not a
+ *  uuid is an id no message here has: it is answered as the database answers an unknown id, before the RPC
+ *  whose uuid cast would fail and read as "board unavailable" (0.3.2 verification DA-9). */
+const BOARD_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const boardId = (id: string): string | null => (BOARD_ID.test(id) ? id.toLowerCase() : null)
 const capabilityName = z.string().regex(/^[a-z][a-z0-9._-]{1,127}$/)
 const sha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/)
 const artifactRef = z.strictObject({ id: z.url().min(1), contentHash: sha256, label: z.string().max(120).optional() })
@@ -152,7 +157,9 @@ export function createBoard(deps: BoardDeps) {
     async list(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
       const parsed = commsListSchema.safeParse(input ?? {})
       if (!parsed.success) return refusal('invalid_arguments', 'The page request does not match the board\'s shape.')
-      const thread = parsed.data.thread ?? null
+      const named = parsed.data.thread ?? null
+      const thread = named === null ? null : boardId(named)
+      if (named !== null && thread === null) return refusal('not_authorized', 'This Project cannot read that thread.')
       let after = 0
       if (parsed.data.cursor !== undefined) {
         const seq = seqFrom(caller, thread, parsed.data.cursor)
@@ -174,7 +181,9 @@ export function createBoard(deps: BoardDeps) {
     async get(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
       const parsed = commsMessageRefSchema.safeParse(input)
       if (!parsed.success) return refusal('invalid_arguments', 'Name the message by its id.')
-      const data = await call('board_get', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_message: parsed.data.message })
+      const message = boardId(parsed.data.message)
+      if (message === null) return refusal('not_authorized', 'This Project cannot read that message.')
+      const data = await call('board_get', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_message: message })
       if (isRefusal(data)) return data
       return data.ok === true && data.message ? (data.message as Record<string, unknown>) : UNAVAILABLE
     },
@@ -182,7 +191,9 @@ export function createBoard(deps: BoardDeps) {
     async readAck(caller: BoardCaller, input: unknown): Promise<Record<string, unknown> | Refusal> {
       const parsed = commsMessageRefSchema.safeParse(input)
       if (!parsed.success) return refusal('invalid_arguments', 'Name the message by its id.')
-      return call('board_read_ack', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_principal: caller.principal, p_message: parsed.data.message })
+      const message = boardId(parsed.data.message)
+      if (message === null) return refusal('not_authorized', 'This Project cannot read that message.')
+      return call('board_read_ack', { p_estate_id: caller.estateId, p_reader: caller.projectId, p_principal: caller.principal, p_message: message })
     },
 
     /** `comms-status.schema.json`: health without reading any message. COM-02 has no responders and no mirror. */

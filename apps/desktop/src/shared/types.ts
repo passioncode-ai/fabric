@@ -676,9 +676,18 @@ export interface DiagnosticsView {
   records: OpsRecord[]
   /** So a person can open the raw file, or send it. */
   file: string | null
-  /** Whether the local stack answered on this Mac's network addresses (audit A7-001); null until checked. */
-  stackExposure?: { checkedAt: string; ports: number[]; exposed: Array<{ iface: string; port: number }> } | null
 }
+
+/** Whether the local stack answered on this Mac's network addresses (audit A7-001). */
+export interface StackExposureView {
+  checkedAt: string
+  ports: number[]
+  /** Interface names and ports that accepted a connection; empty when nothing answered off loopback. */
+  exposed: Array<{ iface: string; port: number }>
+}
+
+/** The version hash a file that is not on disk is shown as: a deleted file is a version of its own. */
+export const ABSENT_HASH = 'absent'
 
 /** A renderer failure, as the error boundary or the root's `onUncaughtError`
  *  saw it (audit 2026-10-05 A7-009). */
@@ -1348,6 +1357,11 @@ export interface FabricApi {
      *  find the problem" is not a request to open a log file. */
     read(query?: { level?: OpsLevel; limit?: number }): Promise<DiagnosticsView>
   },
+  stack: {
+    /** The local stack's network exposure (audit A7-001), re-checked when the last check is older than
+     *  five minutes; null while no check has finished (the stack is not up yet, or the check failed). */
+    exposure(): Promise<StackExposureView | null>
+  },
   ops: {
     /** A renderer failure, reported to the main process's ops log so it is
      *  recorded beside the program's own rather than lost in a console a
@@ -1629,5 +1643,6 @@ export const IPC = {
   terminalExit: 'terminal:exit',
   windowsOpenSession: 'windows:open-session',
   metaInfo: 'meta:info',
-  opsRendererError: 'ops:renderer-error'
+  opsRendererError: 'ops:renderer-error',
+  stackExposure: 'stack:exposure'
 } as const

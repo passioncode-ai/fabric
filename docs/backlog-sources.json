@@ -517,6 +517,16 @@
       "titleColumn": "Packet",
       "statusColumn": "Status",
       "heading": "Canonical communication task status"
+    },
+    {
+      "path": "docs/evidence/plans/2026-10-05-agent-support.md",
+      "goal": "agent-workplace",
+      "kind": "tasks",
+      "format": "table",
+      "idColumn": "ID",
+      "titleColumn": "Task",
+      "statusColumn": "Status",
+      "heading": "Tasks"
     }
   ]
 }

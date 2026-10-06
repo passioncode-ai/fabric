@@ -1,4 +1,4 @@
-// #region helper-process — docs: docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md#1-acp-is-the-generic-drive-mode-for-a-runner
+// #region helper-process — docs: docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md#amendment-2--2026-10-05-the-acp-shell-is-the-launch-path-and-sign-in-is-the-persons
 /**
  * How Fabric starts its own helper programs (P-10): the ACP terminal shell and the stdio MCP bridge.
  *

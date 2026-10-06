@@ -1,0 +1,126 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.2",
+  "iteration": 1,
+  "level": "ux",
+  "candidateCommit": "35b884c8a265d1999b8ec25e9c2bbf08fe9f389c",
+  "report": "docs/evidence/plans/2026-10-06-release-032-verification/iteration-1/2026-10-06-ux.md",
+  "reportSha256": "af5992f56d50681ef358bd2528fe59af0e2192fd487885b28bfd351e0aad5c64",
+  "reviewerRun": "release-032-i1-ux-20261006",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-2",
+      "source": "UX-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: README, `analytics.label`/`analytics.note` (en, ru), SCN-134 and `docs/ANALYTICS.md` name the id, version, OS and session id; `UsageCountsSetting.test.tsx` reads the new note. Whether counting may start before the person sees the switch is ruled CO-218 (V1-14)"
+      ]
+    },
+    {
+      "id": "V1-5",
+      "source": "UX-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Cline's row defaults to Ask (`--auto-approve false`), Bypass carries the warning; `agents.test.ts` \"Cline asks before each tool unless the session is Bypass\" (watched against the old row); `check-containment.mjs` admits only the `false` spelling"
+      ]
+    },
+    {
+      "id": "V1-18",
+      "source": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the Board keeps a granted row (`BoardScreen.tsx` `grantedHere`, `ObligationActs` `grantedUntil`), time in the app's locale; `BoardScreen.test.tsx` \"a one-time grant keeps its row and its \"until\"\" (watched: 1 failed)"
+      ]
+    },
+    {
+      "id": "V1-19",
+      "source": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: neither on a settled row; covered by V1-18's test"
+      ]
+    },
+    {
+      "id": "V1-20",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the diff's side is the buffer (`seed`), carried across a second conflict; `EditorWindow.conflict.test.tsx` \"what was typed while the conflicting save was in flight…\" (watched)"
+      ]
+    },
+    {
+      "id": "V1-21",
+      "source": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: its own sentence, Close without saving / Save it again (`ABSENT_HASH`); `EditorWindow.conflict.test.tsx` \"a file deleted while open says so…\" (watched)"
+      ]
+    },
+    {
+      "id": "V1-23",
+      "source": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `CrashBoundary.tsx` `installWindowErrorReporting` (`error`, `unhandledrejection`); `CrashBoundary.test.tsx` (watched)"
+      ]
+    },
+    {
+      "id": "V1-24",
+      "source": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: app language via `<html lang>`, \"sent the details\", minified messages hidden; `CrashBoundary.test.tsx` (watched)"
+      ]
+    },
+    {
+      "id": "V1-25",
+      "source": "UX-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `StackExposureNotice` above every screen and in Diagnostics; `stack.exposure()` waits for a check in flight and re-checks after 5 min; SCN-073 reworded; `DiagnosticsSection.test.tsx`"
+      ]
+    },
+    {
+      "id": "V1-26",
+      "source": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `pty-resize.test.mjs` (native stand-in throws EBADF after exit; watched); `TerminalView` reads `running` through a ref"
+      ]
+    },
+    {
+      "id": "V1-27",
+      "source": "UX-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `readSessionHistory` in `shared/sessionHistory.ts`; `sessionHistory.test.ts` \"returns the newest 200 events…\" (watched with ascending)"
+      ]
+    },
+    {
+      "id": "V1-30",
+      "source": "UX-13a, UX-13b",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the note says the session has earlier events the list leaves out; the box is `indeterminate`; `UsageCountsSetting.test.tsx`"
+      ]
+    },
+    {
+      "id": "V1-31",
+      "source": "UX-12, UX-13c, UX-13d",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-221"
+      ]
+    },
+    {
+      "id": "V1-32",
+      "source": "UX-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the out-of-template escapes"
+      ]
+    }
+  ]
+}

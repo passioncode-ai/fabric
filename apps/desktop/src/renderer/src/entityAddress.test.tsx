@@ -123,6 +123,7 @@ function stub(groups: SearchGroup[], savedTabs?: unknown) {
     runs: { list: async () => [] },
     automations: { list: async () => [] },
     diagnostics: { read: async () => ({ records: [], file: null }) },
+    stack: { exposure: async () => null },
     // `orphans` is part of the contract since AX-06. A fake that falls behind
     // the declaration is the same defect as one that was never right: it
     // took the mounted screen down after it had rendered.

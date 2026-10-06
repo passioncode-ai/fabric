@@ -1,4 +1,4 @@
-// #region session-config-content — docs: docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md#2-fabrics-surface-reaches-the-agent-per-session-never-through-its-own-config
+// #region session-config-content — docs: docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md#amendment-1--2026-10-05-a-terminal-session-takes-its-config-from-the-runners-own-content-variable
 // The per-session config a `config-content-env` runner is started with (ADR-0119, P-10).
 //
 // Pure: no file, no process, no clock — `sessionBundle.ts` writes nothing from here and

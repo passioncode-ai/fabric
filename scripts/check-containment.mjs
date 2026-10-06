@@ -13,7 +13,8 @@
 //      not a default; it is a mode nobody decided about.
 //   2. A mode carrying a known bypass flag is declared `none`. The flags are
 //      named in `containment.ts` so a new one arrives deliberately rather than
-//      inside an args array nobody reads.
+//      inside an args array nobody reads. A flag followed by the value 'false'
+//      switches the bypass off (`--auto-approve false`), and is not one.
 //   3. A mode whose session config allows every tool (`'*': 'allow'`, the way a
 //      `config-content-env` runner such as Kilo is ungated, ADR-0119) is declared
 //      `none` too: its gate lives in the config, not in a flag.
@@ -56,7 +57,9 @@ for (const m of modes) {
         `and declares '${declared}'. A runner told through its config (ADR-0119) has its gate in that ` +
         `config, and this one has none.`
     )
-  else if (flags.some((f) => body.includes(f)) && declared !== 'none')
+  // A flag given the value `'false'` turns the bypass OFF: Cline's Ask mode is `--auto-approve false`,
+  // because Cline 3.0.46 auto-approves by default (audit 2026-10-06 UX-1). Any other use is a bypass.
+  else if (flags.some((f) => new RegExp(`'${f}(?!=false')(?:=[^']*)?'(?!\\s*,\\s*'false')`).test(body)) && declared !== 'none')
     problems.push(
       `${AGENTS}:${line}  mode '${id}' carries a bypass flag and declares '${declared}'. ` +
         `Nothing stands between that mode and the world, and a floored effect authorised for it ` +

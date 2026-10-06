@@ -179,16 +179,16 @@ describe('the estate agents panel listens to the watcher', () => {
 // Audit 2026-10-05 A5-001: a full window says that earlier events exist.
 describe('the agent history window', () => {
   const events = (n: number) => Array.from({ length: n }, (_, i) => ({ seq: i + 1, type: 'session.observed@1', occurred_at: '2026-10-05T10:00:00Z', actor: { kind: 'system', id: 'fabric' }, payload: {} }))
-  it('says earlier events are in the journal when the window is full, and not otherwise', async () => {
+  it('says earlier events exist when the reading holds more than the window, and not at exactly the window', async () => {
     harness()
     const fabric = (window as unknown as { fabric: { terminal: { history: () => Promise<unknown[]> } } }).fabric
-    fabric.terminal.history = async () => events(200)
+    fabric.terminal.history = async () => events(201)
     const view = render(<EstateAgents sessions={[session]} projects={[project]} onOpen={() => {}} onError={() => {}} />)
     await selectTheAgent()
     expect(await screen.findByTestId('history-earlier')).toBeTruthy()
     view.unmount()
     harness()
-    ;(window as unknown as { fabric: { terminal: { history: () => Promise<unknown[]> } } }).fabric.terminal.history = async () => events(3)
+    ;(window as unknown as { fabric: { terminal: { history: () => Promise<unknown[]> } } }).fabric.terminal.history = async () => events(200)
     render(<EstateAgents sessions={[session]} projects={[project]} onOpen={() => {}} onError={() => {}} />)
     await selectTheAgent()
     await act(async () => {})

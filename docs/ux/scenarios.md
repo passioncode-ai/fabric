@@ -143,6 +143,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-131 | Convert an agent built elsewhere into a Fabric agent | Start paths | P-01 | ST-050, FLW-74 | draft | — |
 | SCN-132 | An external agent asks for access and the operator decides | Hub | P-01 | ST-045, FLW-75 | draft | — |
 | SCN-133 | Connect a product to Fabric by the product's own consent | Hub | P-01 | ST-045, FLW-76 | draft | — |
+| SCN-134 | See that Fabric shares usage counts, and turn them off for every PassionCode app | Settings | P-01 | FLW-40 | draft | — |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -307,7 +308,9 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
   count because the grant resolves it: a grant, or a later allowing decision, for the same floor class and
   target, in that project or estate-wide. Repeated refusals of one act are one item, dated from the first.
   A failed grant is said and the button comes back. A refusal made after the grant (the grant expired unused,
-  or was spent) is open again.
+  or was spent) is open again. On the Board the granted row stays in the detail after it leaves the queue,
+  marked Allowed once with its "until" in the app's language, without Waiting or Next time, until the person
+  closes it or picks another (0.3.2 verification UX-3, UX-4).
 - **Telemetry:** `attention_item_opened` with project_id, dimension, receipt_kind
 - **Status:** validated
 - **Coverage:** `apps/desktop/src/shared/attention.ts`, `apps/desktop/src/renderer/src/launch/ObligationActs.tsx`, `apps/desktop/src/shared/attention.test.ts`, `apps/desktop/src/renderer/src/launch/ObligationActs.test.tsx`
@@ -993,7 +996,11 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
   valid UTF-8 — an image, a PDF, an archive) opens read-only with a sentence saying so and
   Open in system editor; it has no Save and Fabric never writes it. Saving an untouched buffer
   writes nothing, and a save keeps the same editor, so what is typed while it is in flight stays
-  in the buffer and stays marked unsaved. Fabric quits, is stopped or crashes while the file has unsaved
+  in the buffer and stays marked unsaved; when that save comes back as a conflict, the person's side
+  of the diff is the buffer, keystrokes typed during the save included. A second save while one is in
+  flight does nothing. A file deleted on disk while open is said as deleted, not as changed: Close
+  without saving, or Save it again, which creates it again only if nothing new appeared at that path
+  (0.3.2 verification UX-5, UX-6, ER-5). Fabric quits, is stopped or crashes while the file has unsaved
   changes -> nothing waits and nothing is lost: the unsaved buffer was kept as the operator typed
   (ADR-0106), and the next time the file opens a banner says "Unsaved changes from {time} were kept"
   with Restore them / Discard them. When the file changed on disk since, restoring opens the same
@@ -1953,7 +1960,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Alt paths:** healthy, partial, source-error, filtered, redacted-export. Неизвестный исход сверяется по тому же запросу; отказ не расширяет scope.
 - **UI elements:** Идентичность объекта, источник, ревизия, предпросмотр последствий, квитанция.
 - **Errors & recovery:** Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.
-- **Amended 2026-10-06 (audit A7-001):** after the local stack starts, Fabric tries each stack port on every non-loopback IPv4 address of this Mac. If one answers, Diagnostics opens with a warning naming the ports and interfaces (never the addresses), why it matters (the stack's default password) and the remedy, which belongs to the container engine and is the person's to apply; the check is recorded once as `stack.exposed-on-network`. Nothing answering shows nothing.
+- **Amended 2026-10-06 (audit A7-001; wording corrected by 0.3.2 verification DO-18, UX-9):** after the local stack starts, and again whenever the last check is more than five minutes old, Fabric tries each stack port on every non-loopback IPv4 address of this Mac. If one answers, a warning stands above every screen and at the top of Diagnostics, naming the ports and interfaces (never the addresses), why it matters (the stack's default password) and the remedy, which belongs to the container engine and is the person's to apply (CO-219); the check is recorded as `stack.exposed-on-network`. Nothing answering shows nothing.
 - **Implementation tasks:** M81
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-diagnostics).
 - **Status:** draft
@@ -3112,6 +3119,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Expected result:** The first run is finished once; `settings.firstRun.completedAt` holds the moment; the operator is on the chosen path or home.
 - **Alt paths:** Back on steps 2–3; Skip on step 1; Help reopens the first run for an estate that already has projects.
 - **UI elements:** Three-step progress; name field with hint and 40-character limit; character choice; variants and "More variants"; executor rows with state pill, path, install command and Copy; five path cards.
+- **Amended 2026-10-06 (0.3.2 verification DO-13):** "connected to Fabric's tools" is the agent row's declared connection (`connectsToSurface`), not yet a probe of a live session (ADR-0119 amendment 4, plan AS-03). Cline starts in Ask (`--auto-approve false`) unless the session is Bypass.
 - **States covered:** first-visit,saving,not-saved,checking,found,found-unconnected,unresponsive,missing,check-failed,authenticated,not-authenticated,auth-unsupported,auth-unknown,choose-path,skipped
 - **Errors & recovery:** A look that is not saved says why and offers Continue without saving. A detection that fails says so and offers Check again. An installation already holding projects is never walked back through the first run; an unknown project list never triggers it.
 - **Design rationale:** One question per step, every step skippable; the agent check is information, not a gate, because Fabric itself is useful before an agent is ready.
@@ -3273,19 +3281,19 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Product:** unobserved
 
 
-### SCN-134: See that Fabric shares anonymous usage counts, and turn them off for every PassionCode app
+### SCN-134: See that Fabric shares usage counts, and turn them off for every PassionCode app
 - **Persona:** P-01
 - **Feature:** Settings
 - **Traces:** passioncode-ai/fabric#12, RM-13, FLW-40
-- **Entry point:** Settings (SCR-52) → *Share anonymous usage counts*.
+- **Entry point:** Settings (SCR-52) → *Share usage counts*.
 - **Preconditions:** A release build of Fabric. A source build shows the switch unavailable with the reason.
 - **Steps:**
-  1. The person opens Settings → the switch is on by default in a release build, and its note says what is counted: installs, days of use and how many projects, products and agents are connected; never names, paths or content; one switch for every PassionCode app on this Mac.
+  1. The person opens Settings → the switch is on by default in a release build, and its note says what is counted and what identifies it: installs, days of use and how many projects, products and agents are connected, with the app version, the OS name and a random installation id every PassionCode app on this Mac shares; never names, paths or content; one switch for every PassionCode app on this Mac. **Amended 2026-10-06 (0.3.2 verification UX-2, DO-2):** the note no longer calls the counts anonymous or omits the id; the first events leave at first start, before the person can see the switch — a decision recorded as a carry-over row, not settled here.
   2. The person turns it off → Fabric writes `analytics: false` into the shared PassionCode file, drops the counts still waiting, and sends nothing more; Fabric Switchboard and Fabric Inbox read the same switch.
   3. Turning it on again → counts resume with the next event; nothing missed while it was off is sent later.
 - **Expected result:** The person knows what leaves the Mac and has one switch for all PassionCode apps.
 - **Alt paths:** A build without the App Key → the switch is disabled and the note says this build sends nothing. The shared file cannot be read (it does not parse, or its id is not valid) → analytics stays off, the switch is disabled and the note names why; the file is never repaired. The status cannot be read → the note says so, and the switch is disabled rather than shown as off. Another PassionCode app turned the switch → Fabric honours it within the hour.
-- **UI elements:** the checkbox *Share anonymous usage counts*; one note line under it.
+- **UI elements:** the checkbox *Share usage counts*; one note line under it.
 - **States covered:** on, off, unavailable-no-key, unavailable-file, unreadable
 - **Errors & recovery:** a send that fails is retried after 60 s, then every 10 min, and dropped after 23 h; nothing is shown to the person, and each attempt is one `analytics.flush` line in the operations log.
 - **Design rationale:** usage counts are an effect with an owner (the person), a boundary (counts only, release builds only, one shared switch) and a receipt (the operations log), as the vision's alignment test asks.

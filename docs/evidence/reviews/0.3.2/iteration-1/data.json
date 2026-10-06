@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.2",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "35b884c8a265d1999b8ec25e9c2bbf08fe9f389c",
+  "report": "docs/evidence/plans/2026-10-06-release-032-verification/iteration-1/2026-10-06-data.md",
+  "reportSha256": "7998c928e2f057beac8640659f20ff5ec984d73f129c32aee9fdb15617d56222",
+  "reviewerRun": "release-032-i1-data-20261006",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-1",
+      "source": "DA-8 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `CHANGELOG.md` 0.3.2 names each; `docs/launch/release-mac.md` upgrade section at 79 with `--from 78 --ref v0.3.2`; CO-198 extended to 79"
+      ]
+    },
+    {
+      "id": "V1-3",
+      "source": "DA-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `acpShell.ts` sweeps the agent's group on every end; `acp-shell.test.mjs` \"ending a session ends the tools the agent started, even when the agent itself exits on end of input\" and \"the shell process: SIGTERM ends the agent and every tool in its group\" (watched: \"tool … is still running\")"
+      ]
+    },
+    {
+      "id": "V1-4",
+      "source": "DA-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one stdio bridge per granted server (`sessionBundle.ts` `grantsOverStdio`, `FABRIC_BRIDGE_HEADER`); a session whose grants cannot be carried is refused, exit 3; `acp-shell.test.mjs` \"granted servers go with the surface over HTTP, and each through its own stdio bridge otherwise\", `mcp-stdio-bridge.test.mjs` header tests, `session-bundle.test.mjs` (watched failing)"
+      ]
+    },
+    {
+      "id": "V1-27",
+      "source": "DA-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `readSessionHistory` in `shared/sessionHistory.ts`; `sessionHistory.test.ts` \"returns the newest 200 events…\" (watched with ascending)"
+      ]
+    },
+    {
+      "id": "V1-28",
+      "source": "DA-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `resolutionsOf` in `shared/attention.ts`; `attention.test.ts` \"what resolves a refusal (A1-001, main half)\" (watched)"
+      ]
+    },
+    {
+      "id": "V1-36",
+      "source": "DA-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `redact.ts` `header-pair`, `api-key-field`, wider `assignment`; `redact.test.ts` nine shapes (three plants watched)"
+      ]
+    },
+    {
+      "id": "V1-37",
+      "source": "DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: pending questions answered `cancelled`, then `session/cancel`; `acp-shell.test.mjs` (watched)"
+      ]
+    },
+    {
+      "id": "V1-38",
+      "source": "DA-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `mcp-stdio-bridge.test.mjs` \"the agent closing the bridge's input ends the HTTP session and the bridge\" (watched)"
+      ]
+    },
+    {
+      "id": "V1-42",
+      "source": "DA-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `boardService.ts` refuses it as an unknown id before the door; `board-service.test.mjs` (watched)"
+      ]
+    },
+    {
+      "id": "V1-43",
+      "source": "DA-10, DA-11",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-221: DA-10 needs migration 82 (schema 80); DA-11 needs >1000 matching rows and a concurrent change"
+      ]
+    }
+  ]
+}

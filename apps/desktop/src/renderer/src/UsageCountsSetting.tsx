@@ -1,5 +1,5 @@
 // #region usage-analytics-setting — docs: docs/ANALYTICS.md#the-shared-installation-id
-// SCR-52 Settings → "Share anonymous usage counts" (SCN-134). One switch every PassionCode app on this Mac shares;
+// SCR-52 Settings → "Share usage counts" (SCN-134). One switch every PassionCode app on this Mac shares;
 // a build without the App Key, or an unreadable shared file, shows why the switch cannot be used.
 import { useEffect, useState } from 'react'
 import type { AnalyticsStatus } from '../../shared/types'
@@ -23,7 +23,9 @@ export function UsageCountsSetting(): React.JSX.Element {
   return (
     <div className="settings-usage">
       <label>
+        {/* An unread state is neither on nor off: an unchecked box would say "off" (0.3.2 verification UX-13). */}
         <input type="checkbox" checked={availability === 'on'} disabled={!usable || busy}
+          ref={(box) => { if (box) box.indeterminate = status === 'unreadable' }}
           onChange={(e) => void toggle(e.target.checked)} />
         {' '}{t('analytics.label')}
       </label>

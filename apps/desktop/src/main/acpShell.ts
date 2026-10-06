@@ -1,4 +1,4 @@
-// #region acp-shell — docs: docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md#1-acp-is-the-generic-drive-mode-for-a-runner
+// #region acp-shell — docs: docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md#amendment-4--2026-10-06-what-the-032-verification-changed-and-what-is-not-built-yet
 /**
  * The ACP terminal shell (P-10 AS-04, ADR-0119): the program Fabric starts in a session's terminal
  * for a runner that speaks the Agent Client Protocol (Hermes Agent, Cline, …). It is an ACP CLIENT:
@@ -34,15 +34,25 @@ export interface AcpSessionSpec {
   brief: string
   /** How a permission request is answered. */
   mode: 'ask' | 'bypass'
-  /** The project's granted gateway servers (HTTP only: they live on the machine's gateway). */
+  /** The project's granted gateway servers, as HTTP MCP servers (they live on the machine's gateway). */
   grants?: Extract<AcpMcpServer, { type: 'http' }>[]
+  /**
+   * The same granted servers, each through its own stdio bridge (same order, same names), for an
+   * agent that declares no HTTP MCP (audit 2026-10-06 DA-2: Hermes 0.21.4 was sent none of them).
+   * When these cannot carry every grant, the session is refused rather than opened without them.
+   */
+  grantsOverStdio?: Exclude<AcpMcpServer, { type: 'http' }>[]
 }
 
 export interface AgentProcess {
   stdin: Writable
   stdout: Readable
   stderr: Readable | null
+  /** Signals the agent's whole process group — its own tools included — not only the agent. */
   kill(signal?: NodeJS.Signals): void
+  /** Whether anything in the agent's process group still runs. A group outlives its leader: an
+   *  agent that exits on end of input leaves the tools it started running (audit 2026-10-06 DA-1). */
+  alive(): boolean
   onExit(listener: (code: number | null) => void): void
 }
 
@@ -53,7 +63,8 @@ export interface AcpShellIo {
   output: Writable
   /** Starts the agent; the shell owns the process until it exits. */
   spawnAgent(): AgentProcess
-  /** Ctrl-C at the terminal. The agent runs in its own process group, so only the shell hears it. */
+  /** Ctrl-C at the terminal. The agent runs in its own process group, so only the shell hears it.
+   *  Registered when the shell starts: before the session opens it ends the shell (exit 130). */
   onInterrupt?(listener: () => void): void
   /**
    * SIGTERM or SIGHUP to the shell — a session stop or the app's quit. The agent sits in its own
@@ -71,6 +82,7 @@ const REQUEST_TIMEOUT_MS = 120_000
 /** A browser sign-in takes a person minutes, not a request's two. */
 const AUTH_TIMEOUT_MS = 15 * 60_000
 const KILL_GRACE_MS = 3000
+const SWEEP_POLL_MS = 50
 
 type Json = Record<string, unknown>
 const record = (v: unknown): v is Json => !!v && typeof v === 'object' && !Array.isArray(v)
@@ -141,8 +153,17 @@ function peer(proc: AgentProcess, defaultTimeoutMs: number, handlers: {
 }) {
   let serial = 0
   let buffer = ''
+  let outputGone = false
+  let inputGone = false
   const pending = new Map<number, { resolve(v: unknown): void; reject(e: Error): void; timer: ReturnType<typeof setTimeout> | undefined }>()
-  const send = (message: Json): void => { proc.stdin.write(JSON.stringify({ jsonrpc: '2.0', ...message }) + '\n') }
+  // A write to an agent that stopped reading fails with EPIPE, emitted on its input — unhandled, that
+  // crashed the shell with a raw stack (audit 2026-10-06 ER-3). Nothing is lost by ignoring it here:
+  // the agent's output closing (below) and its exit report that end to the person.
+  proc.stdin.on('error', () => { inputGone = true })
+  const send = (message: Json): void => {
+    if (inputGone || outputGone || proc.stdin.destroyed || proc.stdin.writableEnded) return
+    proc.stdin.write(JSON.stringify({ jsonrpc: '2.0', ...message }) + '\n')
+  }
   proc.stdout.setEncoding('utf8')
   proc.stdout.on('data', (chunk: string) => {
     buffer += chunk
@@ -176,6 +197,7 @@ function peer(proc: AgentProcess, defaultTimeoutMs: number, handlers: {
     }
   })
   proc.stdout.on('close', () => {
+    outputGone = true
     for (const p of pending.values()) { clearTimeout(p.timer); p.reject(new Error('the agent closed its output')) }
     pending.clear()
     handlers.closed()
@@ -184,6 +206,9 @@ function peer(proc: AgentProcess, defaultTimeoutMs: number, handlers: {
     /** `timeoutMs: null` waits for the answer, the agent's exit or nothing — a turn ends that way. */
     request(method: string, params: unknown, timeoutMs: number | null = defaultTimeoutMs): Promise<unknown> {
       const id = ++serial
+      // Asked after the agent closed its output, a request would wait for an answer that cannot come.
+      if (outputGone) return Promise.reject(new Error('the agent closed its output'))
+      if (inputGone) return Promise.reject(new Error('the agent stopped reading its input'))
       return new Promise((resolve, reject) => {
         const timer = timeoutMs === null ? undefined
           : setTimeout(() => { pending.delete(id); reject(new Error(`${method} did not answer`)) }, timeoutMs)
@@ -215,12 +240,27 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
   /**
    * The next line typed AFTER now, ahead of any other waiter; lines typed earlier stay queued as
    * prompts. A permission question reads this way: audit 2026-10-05 A7-007 found a line typed ahead
-   * during a turn answered the next question before the person had seen it.
+   * during a turn answered the next question before the person had seen it — and so does the sign-in
+   * pick (audit 2026-10-06 DO-21(b)). A question can be withdrawn (Ctrl-C): its waiter leaves the
+   * queue, so the next line typed stays a prompt (audit 2026-10-06 DA-3).
    */
-  const freshLine = (): Promise<string | null> =>
-    inputClosed ? Promise.resolve(null) : new Promise((resolve) => waiting.unshift((l) => resolve(inputClosed && l === '' ? null : l)))
+  const WITHDRAWN = Symbol('withdrawn')
+  const asking = new Set<() => void>()
+  const freshLine = (): Promise<string | null | typeof WITHDRAWN> =>
+    inputClosed ? Promise.resolve(null) : new Promise((resolve) => {
+      const waiter = (l: string): void => { asking.delete(withdraw); resolve(inputClosed && l === '' ? null : l) }
+      const withdraw = (): void => {
+        asking.delete(withdraw)
+        const at = waiting.indexOf(waiter)
+        if (at >= 0) waiting.splice(at, 1)
+        resolve(WITHDRAWN)
+      }
+      asking.add(withdraw)
+      waiting.unshift(waiter)
+    })
 
   let sessionId: string | null = null
+  let turn: Promise<unknown> | null = null
   const rpc = peer(proc, io.timeouts?.requestMs ?? REQUEST_TIMEOUT_MS, {
     async request(method, params) {
       if (method === 'session/request_permission') {
@@ -230,6 +270,7 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
         if (auto) return { outcome: { outcome: 'selected', optionId: auto } }
         out(`\n\x1b[33mThe agent asks to: ${String(call.title ?? call.toolCallId ?? 'use a tool')}. Allow once? [y/N] \x1b[39m`)
         const answer = await freshLine()
+        if (answer === WITHDRAWN) return { outcome: { outcome: 'cancelled' } }
         const chosen = answer === null ? null : answeredChoice(answer, p.options)
         return chosen ? { outcome: { outcome: 'selected', optionId: chosen } } : { outcome: { outcome: 'cancelled' } }
       }
@@ -246,10 +287,22 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
 
   // The end of a session: cancel it on the agent's side, close the agent's input (an ACP agent ends
   // on EOF), then SIGTERM after the grace and SIGKILL after another — within the app's quit drain.
+  // Every end, the agent's own included, then sweeps the agent's process group: a group outlives its
+  // leader, and an agent that exits promptly on EOF left every tool it started running, orphaned to
+  // launchd (audit 2026-10-06 DA-1 / ER-1 — the group was signalled only when the leader outlived
+  // the grace).
   let stopping: Promise<number> | null = null
   const stop = (code: number): Promise<number> => (stopping ??= end(code))
+  const sweep = async (): Promise<void> => {
+    if (!proc.alive()) return
+    proc.kill('SIGTERM')
+    const deadline = Date.now() + KILL_GRACE_MS
+    while (proc.alive() && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, SWEEP_POLL_MS))
+    if (proc.alive()) proc.kill('SIGKILL')
+  }
   const end = async (code: number): Promise<number> => {
-    if (sessionId) rpc.notify('session/cancel', { sessionId })
+    if (sessionId && exited === undefined) rpc.notify('session/cancel', { sessionId })
+    for (const withdraw of [...asking]) withdraw()
     lines.close()
     if (exited === undefined) {
       proc.stdin.end()
@@ -258,10 +311,26 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
       await agentExit
       clearTimeout(term); clearTimeout(kill)
     }
+    await sweep()
     return code
   }
 
   io.onTerminate?.(() => { void stop(143) })
+  // Ctrl-C is heard from the start (audit 2026-10-06 ER-2(b): before the session opened it ended the
+  // shell by the default handler and left the agent running). Before the session opens it ends the
+  // session, exit 130; afterwards it cancels the turn and withdraws any question pending in it — ACP's
+  // prompt-turn §Cancellation (fetched 2026-10-06): "The Client MUST respond to all pending
+  // `session/request_permission` requests with the `cancelled` outcome."
+  let opened = false
+  io.onInterrupt?.(() => {
+    if (!opened) { out('\n'); void stop(130); return }
+    const questions = [...asking]
+    for (const withdraw of questions) withdraw()
+    if (turn && sessionId) {
+      rpc.notify('session/cancel', { sessionId })
+      out(`\n\x1b[2m(${questions.length ? 'the question was withdrawn; ' : ''}cancelling the turn)\x1b[22m\n`)
+    } else out('\n\x1b[2mCtrl-D ends the session.\x1b[22m\n> ')
+  })
 
   let init: unknown
   try {
@@ -271,6 +340,8 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
       clientInfo: { name: 'fabric', title: 'Fabric', version: '0' }
     })
   } catch (error) {
+    // A stop (Ctrl-C, a session stop) during `initialize` is that stop's end, not a failed start.
+    if (stopping) return stopping
     // Told to the person at this terminal, with its cause (an agent that never started, one that closed
     // its output, one that did not answer); exit code 2 reaches the journal through the PTY's exit record.
     const cause = error instanceof Error && error.message ? error.message : 'no answer'
@@ -278,11 +349,19 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
     return stop(2)
   }
   const surface = surfaceFor(init, spec)
-  const grants = spec.grants ?? []
   const overHttp = 'type' in surface
-  const servers: AcpMcpServer[] = overHttp ? [surface, ...grants] : [surface]
-  if (!overHttp && grants.length)
-    out(`\x1b[33mFabric: this agent takes no HTTP MCP servers, so the project's ${grants.length} granted server(s) (${grants.map((g) => g.name).join(', ')}) are not reachable in this session.\x1b[39m\n`)
+  const grants = spec.grants ?? []
+  // The project's granted servers go with the surface on either path (audit 2026-10-06 DA-2): as HTTP
+  // servers to an agent that takes them, else each through its own stdio bridge. A grant that cannot
+  // be carried refuses the session, as the bundle refuses a launch missing one (M127): started without
+  // a server it was given, the agent looks for the tool, does not find it, and improvises.
+  const carried: AcpMcpServer[] = overHttp ? grants : (spec.grantsOverStdio ?? [])
+  const names = (list: readonly { name: string }[]): string => list.map((g) => g.name).join(', ')
+  if (names(carried) !== names(grants)) {
+    out(`\n\x1b[33mFabric: this agent takes no HTTP MCP servers, and the project's ${grants.length} granted server(s) (${names(grants)}) cannot reach it through the stdio bridge, so the session was not opened.\x1b[39m\n`)
+    return stop(3)
+  }
+  const servers: AcpMcpServer[] = [surface, ...carried]
   const openSession = async (): Promise<string | null> => {
     const created = await rpc.request('session/new', { cwd: spec.cwd ?? process.cwd(), mcpServers: servers })
     return record(created) && typeof created.sessionId === 'string' ? created.sessionId : null
@@ -291,6 +370,7 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
   try {
     sessionId = await openSession()
   } catch (error) {
+    if (stopping) return stopping
     // ACP's sign-in: the agent refuses `session/new` until `authenticate` names one of its methods.
     // The PERSON picks the method here; Fabric never signs in on their behalf.
     if (!isAuthRequired(error) || methods.length === 0) {
@@ -300,23 +380,26 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
     out(`\nThe agent asks you to sign in before the session opens:\n` +
       methods.map((m, i) => `  ${i + 1}. ${String(m.name ?? m.id)}${m.description ? ` — ${String(m.description)}` : ''}`).join('\n') +
       `\nType a number to sign in that way, or press Enter to close the session: `)
-    const pick = Number.parseInt((await nextLine()) ?? '', 10)
-    const method = methods[pick - 1]
+    const answer = await freshLine()
+    if (stopping) return stopping
+    const method = typeof answer === 'string' ? methods[Number.parseInt(answer, 10) - 1] : undefined
     if (!method || typeof method.id !== 'string') { out('\nThe session was not opened.\n'); return stop(3) }
     try {
       await rpc.request('authenticate', { methodId: method.id }, io.timeouts?.authMs ?? AUTH_TIMEOUT_MS)
       sessionId = await openSession()
     } catch (again) {
+      if (stopping) return stopping
       // The shell's only reader is the person at this terminal: the failure is told there, and the
       // session ends with exit code 3, which the PTY's own exit record carries to the journal.
       out(`\nSigning in did not open a session${again instanceof Error && again.message ? `: ${again.message}` : ''}.\n`)
       return stop(3)
     }
   }
+  if (stopping) return stopping
   if (!sessionId) { out('\nThe agent opened no session (no session id).\n'); return stop(3) }
-  out(`\x1b[2mFabric: connected through ${overHttp ? 'HTTP' : 'the stdio bridge'}${overHttp && grants.length ? ` with ${grants.length} granted server(s)` : ''}; sending the session brief.\x1b[22m\n`)
+  opened = true
+  out(`\x1b[2mFabric: connected through ${overHttp ? 'HTTP' : 'the stdio bridge'}${carried.length ? ` with ${carried.length} granted server(s)` : ''}; sending the session brief.\x1b[22m\n`)
 
-  let turn: Promise<unknown> | null = null
   const prompt = (text: string): Promise<unknown> => {
     // No deadline: a turn — permission waits included — takes as long as it takes, and ends by its
     // answer, by Ctrl-C (`session/cancel`) or by the agent's exit (audit 2026-10-05 A6-001: at 120 s
@@ -328,15 +411,12 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
       .finally(() => { turn = null })
     return turn
   }
-  // Ctrl-C while a turn runs cancels that turn (`session/cancel`); the session goes on.
-  io.onInterrupt?.(() => {
-    if (turn && sessionId) { rpc.notify('session/cancel', { sessionId }); out('\n\x1b[2m(cancelling the turn)\x1b[22m\n') }
-    else out('\n\x1b[2mCtrl-D ends the session.\x1b[22m\n> ')
-  })
   await prompt(spec.brief)
 
   for (;;) {
-    if (exited !== undefined) { out('\nThe agent exited.\n'); return exited ?? 1 }
+    // Every way out goes through stop(), so the agent's group is swept before the shell exits.
+    if (stopping) return stopping
+    if (exited !== undefined) { out('\nThe agent exited.\n'); return stop(exited ?? 1) }
     const line = await Promise.race([nextLine(), agentExit.then(() => '\u0000exit')])
     if (line === '\u0000exit') continue
     if (line === null) return stop(0)

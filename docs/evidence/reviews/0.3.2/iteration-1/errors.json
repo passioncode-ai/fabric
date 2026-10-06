@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.2",
+  "iteration": 1,
+  "level": "errors",
+  "candidateCommit": "35b884c8a265d1999b8ec25e9c2bbf08fe9f389c",
+  "report": "docs/evidence/plans/2026-10-06-release-032-verification/iteration-1/2026-10-06-errors.md",
+  "reportSha256": "7dd0df62448915814c21ede232bbf9a8ed961be5ac6c4b6a4977b93c41211255",
+  "reviewerRun": "release-032-i1-errors-20261006",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-3",
+      "source": "ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `acpShell.ts` sweeps the agent's group on every end; `acp-shell.test.mjs` \"ending a session ends the tools the agent started, even when the agent itself exits on end of input\" and \"the shell process: SIGTERM ends the agent and every tool in its group\" (watched: \"tool … is still running\")"
+      ]
+    },
+    {
+      "id": "V1-22",
+      "source": "ER-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one save at a time, buttons disabled while saving; `EditorWindow.conflict.test.tsx` \"a second save while the first is in flight writes nothing\" (watched)"
+      ]
+    },
+    {
+      "id": "V1-23",
+      "source": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `CrashBoundary.tsx` `installWindowErrorReporting` (`error`, `unhandledrejection`); `CrashBoundary.test.tsx` (watched)"
+      ]
+    },
+    {
+      "id": "V1-32",
+      "source": "ER-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the out-of-template escapes"
+      ]
+    },
+    {
+      "id": "V1-34",
+      "source": "ER-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a detached reaper ends the group if the shell dies uncleanly; Ctrl-C before the session opens exits 130; `acp-shell.test.mjs` \"a SIGKILL of the shell still ends an agent…\" and \"Ctrl-C at the sign-in prompt…\" (watched)"
+      ]
+    },
+    {
+      "id": "V1-35",
+      "source": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a stdin `error` listener, writes skipped once input is gone; `acp-shell.test.mjs` \"a write to an agent that stopped reading is not a crash\" (watched: `write EPIPE`)"
+      ]
+    },
+    {
+      "id": "V1-36",
+      "source": "ER-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `redact.ts` `header-pair`, `api-key-field`, wider `assignment`; `redact.test.ts` nine shapes (three plants watched)"
+      ]
+    },
+    {
+      "id": "V1-38",
+      "source": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `mcp-stdio-bridge.test.mjs` \"the agent closing the bridge's input ends the HTTP session and the bridge\" (watched)"
+      ]
+    },
+    {
+      "id": "V1-40",
+      "source": "ER-7, ER-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-221"
+      ]
+    },
+    {
+      "id": "V1-41",
+      "source": "ER-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `index.ts` `APP_ENTRY.devOrigin` is null when packaged"
+      ]
+    }
+  ]
+}

@@ -22,48 +22,10 @@ import './styles.css'
 // classes it declares while the screens are being moved onto it.
 import './components.css'
 import '@xterm/xterm/css/xterm.css'
-import { translator } from './i18n/translate.ts'
 
-// Audit 2026-10-05 A7-009: a renderer error is contained and recorded, not a blank window whose
-// reason died in a console nobody opens. The boundary keeps the window standing with a way back,
-// and every uncaught error — renders the boundary cannot see (event handlers, async) included —
-// reaches the main process's ops log through the bridge. The registry may itself be what crashed,
-// so the language follows the OS, not the settings the crash may have taken down.
-const crashT = translator(typeof navigator !== 'undefined' && navigator.language?.startsWith('ru') ? 'ru' : 'en')
+import { ErrorBoundary, installWindowErrorReporting, reportRendererError } from './CrashBoundary'
 
-function reportRendererError(error: unknown, component?: string | null): void {
-  try {
-    const e = error instanceof Error ? error : new Error(String(error))
-    window.fabric?.ops?.rendererError({ message: e.message, stack: e.stack ?? null, component: component ?? null })
-  } catch {
-    // The bridge itself may be the failure; there is nowhere further to report.
-  }
-}
-
-class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: Error | null }> {
-  override state: { error: Error | null } = { error: null }
-  static getDerivedStateFromError(error: Error): { error: Error } {
-    return { error }
-  }
-  override componentDidCatch(error: Error, info: React.ErrorInfo): void {
-    reportRendererError(error, info.componentStack)
-  }
-  override render(): React.ReactNode {
-    const { error } = this.state
-    if (error)
-      return (
-        <div role="alert" style={{ margin: '4rem auto', maxWidth: '34rem', fontFamily: 'inherit' }}>
-          <h1>{crashT('app.crash.title')}</h1>
-          <p>{crashT('app.crash.body')}</p>
-          <p style={{ opacity: 0.6, fontSize: '0.85em' }}>{error.message}</p>
-          <button type="button" onClick={() => this.setState({ error: null })}>
-            {crashT('app.crash.back')}
-          </button>
-        </div>
-      )
-    return this.props.children
-  }
-}
+installWindowErrorReporting()
 
 createRoot(document.getElementById('root')!, {
   onUncaughtError: (error, info) => reportRendererError(error, info.componentStack)

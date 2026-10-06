@@ -82,7 +82,7 @@ test('a board that cannot be read answers not_available — never an empty page,
     const page = await board.list(caller, {})
     assert.equal(page.error?.code, 'not_available'); assert.equal(page.error.retryable, true); assert.equal(page.messages, undefined)
     assert.equal((await board.submit(caller, submitRequest)).error.code, 'not_available')
-    assert.equal((await board.get(caller, { message: 'msg_Q2w3e4r5t6' })).error.code, 'not_available')
+    assert.equal((await board.get(caller, { message: '79000000-0000-4000-8000-0000000000c1' })).error.code, 'not_available')
     const status = await board.status(caller)
     assert.equal(status.board.state, 'unavailable'); assert.equal(status.unread, undefined)
     assert.equal(validators['comms-status.schema.json'](status), true, JSON.stringify(validators['comms-status.schema.json'].errors))
@@ -93,19 +93,19 @@ test('a page is the contract\'s comms-page; its cursor continues for this reader
   const message = fixtures.document('current/positive/comms-page.json').messages[0]
   const { rpc, calls } = fake({ board_list: args => ({ data: { ok: true, messages: [message], last_seq: args.p_after_seq + 7, more: true }, error: null }) })
   const board = createBoard({ rpc, now: () => new Date('2026-10-05T07:00:00Z') })
-  const first = await board.list(caller, { thread: 'thr_8Hc2kQ9xA1', limit: 1 })
+  const first = await board.list(caller, { thread: '79000000-0000-4000-8000-0000000000d1', limit: 1 })
   assert.equal(validators['comms-page.schema.json'](first), true, JSON.stringify(validators['comms-page.schema.json'].errors))
   assert.equal(first.audience.project, caller.projectId); assert.equal(first.audience.grant, 'participant')
   assert.match(first.cursor, /^[A-Za-z0-9_-]{8,128}$/)
-  const second = await board.list(caller, { thread: 'thr_8Hc2kQ9xA1', cursor: first.cursor, limit: 1 })
+  const second = await board.list(caller, { thread: '79000000-0000-4000-8000-0000000000d1', cursor: first.cursor, limit: 1 })
   assert.equal(calls.at(-1).args.p_after_seq, 7); assert.equal(second.messages.length, 1)
   const n = calls.length
   const otherReader = { ...caller, projectId: '79000000-0000-4000-8000-000000000012' }
-  assert.equal((await board.list(otherReader, { thread: 'thr_8Hc2kQ9xA1', cursor: first.cursor })).error.code, 'cursor_reset_required')
-  assert.equal((await board.list(caller, { thread: 'thr_otherThread1', cursor: first.cursor })).error.code, 'cursor_reset_required')
+  assert.equal((await board.list(otherReader, { thread: '79000000-0000-4000-8000-0000000000d1', cursor: first.cursor })).error.code, 'cursor_reset_required')
+  assert.equal((await board.list(caller, { thread: '79000000-0000-4000-8000-0000000000d2', cursor: first.cursor })).error.code, 'cursor_reset_required')
   assert.equal((await board.list(caller, { cursor: first.cursor })).error.code, 'cursor_reset_required', 'dropping the filter is a different audience')
-  assert.equal((await createBoard({ rpc }).list(caller, { thread: 'thr_8Hc2kQ9xA1', cursor: first.cursor })).error.code, 'cursor_reset_required', 'another run\'s key')
-  assert.equal((await board.list(caller, { thread: 'thr_8Hc2kQ9xA1', cursor: first.cursor.slice(0, -1) + (first.cursor.endsWith('A') ? 'B' : 'A') })).error.code, 'cursor_reset_required', 'a tampered MAC')
+  assert.equal((await createBoard({ rpc }).list(caller, { thread: '79000000-0000-4000-8000-0000000000d1', cursor: first.cursor })).error.code, 'cursor_reset_required', 'another run\'s key')
+  assert.equal((await board.list(caller, { thread: '79000000-0000-4000-8000-0000000000d1', cursor: first.cursor.slice(0, -1) + (first.cursor.endsWith('A') ? 'B' : 'A') })).error.code, 'cursor_reset_required', 'a tampered MAC')
   assert.equal(calls.length, n, 'a reset cursor never reaches the board')
   const last = await createBoard({ rpc: fake({ board_list: { data: { ok: true, messages: [], last_seq: 3, more: false }, error: null } }).rpc }).list(caller, {})
   assert.equal(last.cursor, null, 'an exhausted snapshot has no cursor')
@@ -119,3 +119,19 @@ test('status reports health without reading a message', async () => {
   assert.deepEqual(calls.map(c => c.fn), ['board_unread'])
 })
 // #endregion project-board-service
+
+// 0.3.2 verification DA-9: the contract admits any opaque id, this board's ids are uuids. An id no message
+// here can have is answered as an unknown id, before the door — not as a cast failure read "unavailable".
+test('an id that is not a uuid is refused as unknown before the door; a uuid of any case reaches it', async () => {
+  const { rpc, calls } = fake({ board_get: { data: { ok: true, message: { id: 'm' } }, error: null } })
+  const board = createBoard({ rpc })
+  for (const op of [() => board.get(caller, { message: 'abcdefgh' }), () => board.readAck(caller, { message: 'abcdefgh' }), () => board.list(caller, { thread: 'abcdefgh' })]) {
+    const r = await op()
+    assert.equal(r.error.code, 'not_authorized')
+    assert.equal(r.error.retryable, false)
+  }
+  assert.equal(calls.length, 0, 'nothing reached the door')
+  await board.get(caller, { message: '79000000-0000-4000-8000-0000000000AB' })
+  assert.equal(calls.length, 1)
+  assert.equal(calls[0].args.p_message, '79000000-0000-4000-8000-0000000000ab')
+})

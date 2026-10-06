@@ -1,4 +1,4 @@
-// #region stack-exposure — docs: docs/reports/2026-10-05-release-032-audit/README.md#2-what-the-audit-says-about-the-product
+// #region stack-exposure — docs: docs/ux/scenarios.md#scn-073-диагностика
 /**
  * Whether the local stack is reachable from the network (audit 2026-10-05 A7-001, P0).
  *

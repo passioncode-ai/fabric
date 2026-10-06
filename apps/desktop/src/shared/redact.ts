@@ -47,6 +47,17 @@ const RULES: Rule[] = [
     re: /-----BEGIN ([A-Z ]*PRIVATE KEY)-----[\s\S]*?(?:-----END \1-----|$)/g
   },
   {
+    name: 'header-pair',
+    // A header or variable spelled as a name/value PAIR — ACP's `{"name":"Authorization","value":"Bearer …"}`
+    // in the session document and `session/new`, the gateway's `x-agw-key` beside it, the stdio
+    // bridge's `FABRIC_BRIDGE_AUTHORIZATION` in its `env` list — in JSON, JSON escaped any number of
+    // times, a Python dict, or a Python repr (`name='…', value='…'`; Hermes is Python and its stderr
+    // reaches the terminal). Audit 2026-10-06 DA-4 / ER-4 / DO-15. Before `assignment`, which would
+    // otherwise see none of it. The NAME is kept; the whole value goes, scheme word included.
+    re: /(\bname(?:\\*["'])?\s*[:=]\s*\\*["'](?:(?:proxy-)?authorization|x-[a-z0-9-]*(?:key|token|secret)[a-z0-9-]*|api[-_]?key|[a-z0-9_]*_(?:key|token|secret|password|passwd|credentials?|authorization)[a-z0-9_]*)\\*["']\s*,\s*(?:\\*["'])?value(?:\\*["'])?\s*[:=]\s*\\*["'])(\[redacted: header-pair\](?=\\*["'])|[^"'\\\n]+)/gi,
+    keep: (m) => `${m[1]}[redacted: header-pair]`
+  },
+  {
     name: 'assignment',
     // The `env` dump, and every `export FOO_TOKEN=…` in a shell. The NAME is
     // kept: knowing that a session read `AWS_SECRET_ACCESS_KEY` is useful, and
@@ -54,7 +65,12 @@ const RULES: Rule[] = [
     // Only the exact emitted marker at a value boundary is already clean.
     // A malformed/lookalike marker is consumed through the line, not merely
     // its first whitespace-delimited word, which could expose its suffix.
-    re: /\b([A-Z][A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|CREDENTIALS)[A-Z0-9_]*)(\s*[=:]\s*)(\[redacted: assignment\](?=$|[\s"',;)}\]]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|(?:"[^"\n]*"|'[^'\n]*')[^\s"',;)}\]]*|[^\s\n]+)/g,
+    //
+    // AUTHORIZATION is a name too, and its value may carry a scheme word: the bridge's
+    // `FABRIC_BRIDGE_AUTHORIZATION=Bearer …` kept the token after the space (audit 2026-10-06 DA-4).
+    // The name may close a quote (`"GITHUB_TOKEN": "…"` in a JSON-printed environment), and the value
+    // may be quoted with escaped quotes (`\"…\"` in JSON printed inside JSON).
+    re: /\b([A-Z][A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|CREDENTIALS|AUTHORIZATION)[A-Z0-9_]*)((?:\\*["'])?\s*[=:]\s*)((?:(?:[Bb]earer|[Bb]asic)\s+)?(?:\[redacted: assignment\](?=$|[\s"',;)}\]\\]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|(?:"[^"\n]*"|'[^'\n]*')[^\s"',;)}\]]*|\\+"[^"\\\n]*\\+"|[^\s\n]+))/g,
     keep: (m) => `${m[1]}${m[2]}[redacted: assignment]`
   },
   {
@@ -62,7 +78,9 @@ const RULES: Rule[] = [
     // Also the JSON spelling, `"Authorization": "Bearer …"`: a Kilo session's whole config, the
     // session bearer included, sits in `KILO_CONFIG_CONTENT`, so an `env` printed in that session
     // showed it unredacted (audit 2026-10-05 A6-005).
-    re: /\b((?:proxy-)?authorization"?\s*:\s*"?(?:bearer|basic)\s+)(\[redacted: authorization\](?=$|[\s"',;)}\]]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|[^\s"',;]+)/gi,
+    // And escaped (`\"Authorization\":\"Bearer …\"`, a JSON-printed environment) or single-quoted
+    // (`{'Authorization': 'Bearer …'}`, a Python dict) — audit 2026-10-06 DA-4 / DO-15.
+    re: /\b((?:proxy-)?authorization(?:\\*["'])?\s*:\s*(?:\\*["'])?(?:bearer|basic)\s+)(\[redacted: authorization\](?=$|[\s"',;)}\]\\]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|[^\s"'\\,;]+)/gi,
     keep: (m) => `${m[1]}[redacted: authorization]`
   },
   {
@@ -70,8 +88,16 @@ const RULES: Rule[] = [
     // A credential header with no scheme word: the gateway's `x-agw-key` role key in the same Kilo
     // config, and every `x-…-key` / `x-…-token` / `api-key` header spelled like it. The header name
     // is kept, the value is not.
-    re: /\b((?:x-[a-z0-9-]*(?:key|token|secret)[a-z0-9-]*|api-key)"?\s*:\s*"?)(\[redacted: header-credential\](?=$|[\s"',;)}\]]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|[^\s"',;]+)/gi,
+    re: /\b((?:x-[a-z0-9-]*(?:key|token|secret)[a-z0-9-]*|api-key)(?:\\*["'])?\s*:\s*(?:\\*["'])?)(\[redacted: header-credential\](?=$|[\s"',;)}\]\\]|[.!?](?=\s|$))|\[redacted:[^\r\n]*|[^\s"'\\,;]+)/gi,
     keep: (m) => `${m[1]}[redacted: header-credential]`
+  },
+  {
+    name: 'api-key-field',
+    // A QUOTED `apiKey` / `api_key` field with a quoted value — a provider config printed as JSON or a
+    // Python dict (audit 2026-10-06 DO-15). Both quotes are required, so source code naming the
+    // field (`apiKey: string`, `config.apiKey`) is left alone.
+    re: /(\\*["']api_?key\\*["']\s*:\s*\\*["'])(\[redacted: api-key-field\](?=\\*["'])|[^"'\\\n]+)/gi,
+    keep: (m) => `${m[1]}[redacted: api-key-field]`
   },
   { name: 'anthropic-key', re: /\bsk-ant-[A-Za-z0-9_-]{16,}/g },
   { name: 'openai-key', re: /\bsk-(?!ant-)[A-Za-z0-9_-]{20,}/g },

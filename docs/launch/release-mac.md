@@ -146,13 +146,13 @@ offered on [passioncode.ai/fabric](https://passioncode.ai/fabric/#download) (sit
 ## Upgrading an existing database
 
 This section is the upgrade procedure, **not an executed upgrade receipt**. Fabric never migrates
-an existing database automatically. The 0.3.1 candidate's compiled contract admits schema **78**
-(the number of applied migration files); the newest migration's filename ends in **80** because
-other work reserved filenames. Do not use `max(version)` or a filename suffix as schema readiness.
-The actual guard is `public.schema_version()` against [the compiled schema contract](../../apps/desktop/src/shared/schemaContract.json).
-`main` after the 0.3.1 release commit admits schema **79**: `20261005000081_project_board.sql`, the project
-board's core (ADR-0117, COM-02.1). A build from `main` therefore refuses a database at 78 until the next
-release's upgrade, which is the same procedure with 79 in place of 78. Installed 0.3.1 keeps requiring 78.
+an existing database automatically. The 0.3.2 compiled contract admits schema **79** (the number of applied
+migration files); the newest migration's filename ends in **81** because other work reserved filenames. Do not
+use `max(version)` or a filename suffix as schema readiness. The actual guard is `public.schema_version()`
+against [the compiled schema contract](../../apps/desktop/src/shared/schemaContract.json). 0.3.2's one new
+migration is `20261005000081_project_board.sql`, the project board's core (ADR-0117, COM-02.1): an installed
+0.3.1 database is at **78**, and 0.3.2 refuses it until this procedure has run. Installed 0.3.1 keeps requiring
+78, so once a database is at 79 only 0.3.2 or later opens it. For 0.3.1 the same procedure ran 75 → 78.
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
@@ -190,8 +190,8 @@ release's upgrade, which is the same procedure with 79 in place of 78. Installed
 
    ```sh
    FABRIC_PG_BIN=/opt/homebrew/opt/postgresql@17/bin \
-     node scripts/rehearse-upgrade.mjs --from 75 --ref v0.3.1 \
-     --dump "$HOME/Library/Application Support/Fabric/backups/pre-0.3.1.dump"
+     node scripts/rehearse-upgrade.mjs --from 78 --ref v0.3.2 \
+     --dump "$HOME/Library/Application Support/Fabric/backups/pre-0.3.2.dump"
    ```
 
    It starts a stack with its own project id, port block and volumes and **no** migrations (Supabase's roles,
@@ -219,7 +219,7 @@ release's upgrade, which is the same procedure with 79 in place of 78. Installed
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
-   `schema_version()` must equal the installed build's minimum/maximum (78 for this candidate).
+   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2).
    Compare the journal count with the backup receipt; do not accept a startup error as a successful
    migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.

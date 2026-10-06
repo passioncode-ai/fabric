@@ -288,6 +288,8 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
             const shell = helperCommand('acp-shell')
             const bridge = helperCommand('mcp-bridge')
             const authorization = `Bearer ${scope.token}`
+            const bridgeBase = Object.entries(bridge.env).map(([name, value]) => ({ name, value }))
+            const granted = plan.grant.filter((g) => g.name !== 'fabric')
             const spec = {
               http: { type: 'http', name: 'fabric', url: deps.surface.endpoint, headers: [{ name: 'Authorization', value: authorization }] },
               stdio: {
@@ -295,7 +297,7 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
                 command: bridge.program,
                 args: bridge.args,
                 env: [
-                  ...Object.entries(bridge.env).map(([name, value]) => ({ name, value })),
+                  ...bridgeBase,
                   { name: 'FABRIC_BRIDGE_URL', value: deps.surface.endpoint },
                   { name: 'FABRIC_BRIDGE_AUTHORIZATION', value: authorization }
                 ]
@@ -304,10 +306,22 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
               mode: modeConfig?.acpMode === 'bypass' ? 'bypass' : 'ask',
               // The project's granted gateway servers, each with its hop's role key (audit 2026-10-05
               // A6-004: they were dropped, so a Hermes agent created with servers reached none of them).
-              // The shell sends them only to an agent that takes HTTP MCP, and says so otherwise.
-              grants: plan.grant
-                .filter((g) => g.name !== 'fabric')
-                .map((g) => ({ type: 'http', name: g.name, url: g.url, headers: [{ name: 'x-agw-key', value: g.key }] }))
+              // Both spellings travel and the shell picks by what the agent declares: HTTP servers for an
+              // agent that takes them, else one stdio bridge per server, the role key in that bridge's
+              // environment and in the gateway's header (audit 2026-10-06 DA-2: Hermes 0.21.4 declares no
+              // HTTP MCP and reached none). The shell refuses a session these cannot carry (M127).
+              grants: granted.map((g) => ({ type: 'http', name: g.name, url: g.url, headers: [{ name: 'x-agw-key', value: g.key }] })),
+              grantsOverStdio: granted.map((g) => ({
+                name: g.name,
+                command: bridge.program,
+                args: bridge.args,
+                env: [
+                  ...bridgeBase,
+                  { name: 'FABRIC_BRIDGE_URL', value: g.url },
+                  { name: 'FABRIC_BRIDGE_HEADER', value: 'x-agw-key' },
+                  { name: 'FABRIC_BRIDGE_AUTHORIZATION', value: g.key }
+                ]
+              }))
             }
             return {
               dir,

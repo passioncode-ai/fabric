@@ -95,7 +95,7 @@ try {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe']
   })
-  process.stdout.write(out.split('\\n').filter((l) => l.startsWith('ok') || l.startsWith('FAIL')).join('\\n') + '\\n')
+  process.stdout.write(out.split('\n').filter((l) => l.startsWith('ok') || l.startsWith('FAIL')).join('\n') + '\n')
   if (out.includes('FAIL')) process.exit(1)
 } catch (e) {
   console.error("files probe failed:", e.stdout?.toString() ?? e.message, e.stderr?.toString() ?? "")

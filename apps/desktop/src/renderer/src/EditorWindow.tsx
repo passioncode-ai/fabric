@@ -13,7 +13,7 @@ import jsonWorker from 'monaco-editor/language/json/json.worker?worker'
 import cssWorker from 'monaco-editor/language/css/css.worker?worker'
 import htmlWorker from 'monaco-editor/language/html/html.worker?worker'
 import tsWorker from 'monaco-editor/language/typescript/ts.worker?worker'
-import type { FilePayload } from '../../shared/types'
+import { ABSENT_HASH, type FilePayload } from '../../shared/types'
 import { Banner, Button, EmptyState, StateChip, Toolbar } from './components'
 import { useT } from './i18n'
 
@@ -164,15 +164,21 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
       minimap: { enabled: false },
       fontSize: 13
     })
+    // The person's side is the BUFFER as it stood when the editor gave way to the diff (`seed`, written by
+    // the editor's cleanup), not the content of the save that conflicted: what was typed while that save
+    // was in flight belongs to it too (0.3.2 verification UX-5, DO-19).
     de.setModel({
       original: monaco.editor.createModel(conflict.current, file.language),
-      modified: monaco.editor.createModel(pendingContent.current ?? seed.current, file.language)
+      modified: monaco.editor.createModel(seed.current, file.language)
     })
     diffEditor.current = de
     // The sentence takes the focus, not a button: the banner appears while the person is typing, and
     // both actions overwrite one side (audit 2026-10-05 A2-004 — the next Space took the disk version).
     conflictText.current?.focus()
     return () => {
+      // A second conflict re-creates the diff; the person's side carries over, edits made in it included.
+      const mine = de.getModel()?.modified.getValue()
+      if (mine !== undefined) seed.current = mine
       de.getModel()?.original.dispose()
       de.getModel()?.modified.dispose()
       de.dispose()
@@ -181,9 +187,14 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
   }, [conflict, file])
 
   const pendingContent = useRef<string | null>(null)
+  /** A save in flight. A second one started beside it would compare against the hash the first is about to
+   *  replace, show the person's own write as a conflict and spend a second overwrite grant (ER-5). */
+  const saving = useRef(false)
+  const [savingNow, setSavingNow] = useState(false)
 
   const save = async (force = false): Promise<void> => {
     if (!file || !file.text) return
+    if (saving.current) return
     // Never synthesise content. When the editor that owns the buffer is gone —
     // it is disposed while the diff is on screen — writing '' would truncate the
     // file, which is the one outcome this whole conflict path exists to prevent.
@@ -194,6 +205,8 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
     // Nothing changed, nothing is written: Cmd+S on an untouched buffer used to write it back.
     if (!force && content === base.current.content) return
     pendingContent.current = content
+    saving.current = true
+    setSavingNow(true)
     try {
       // M139 — overwriting what changed on disk is a floored effect, so the
       // operator's decision is presented as authority rather than as a boolean.
@@ -236,6 +249,9 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
       }
     } catch (e) {
       setWriteError(String(e))
+    } finally {
+      saving.current = false
+      setSavingNow(false)
     }
   }
 
@@ -368,7 +384,21 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
         </Banner>
       )}
 
-      {conflict && (
+      {conflict && conflict.currentHash === ABSENT_HASH && (
+        // 0.3.2 verification UX-6: a file deleted while open is not "changed on disk". Taking "the version on
+        // disk" emptied the buffer, and a later save silently recreated the file; now both are said.
+        <Banner
+          actions={
+            <>
+              <Button tone="ghost" onClick={() => window.close()}>{t('editor.closeDeleted')}</Button>
+              <Button disabled={savingNow} onClick={() => void save(true)}>{t('editor.saveAgain')}</Button>
+            </>
+          }
+        >
+          <span tabIndex={-1} ref={conflictText}>{t('editor.deletedOnDisk')}</span>
+        </Banner>
+      )}
+      {conflict && conflict.currentHash !== ABSENT_HASH && (
         <Banner
           actions={
             <>
@@ -386,7 +416,7 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
               >
                 {t('editor.takeDisk')}
               </Button>
-              <Button onClick={() => void save(true)}>{t('editor.takeMine')}</Button>
+              <Button disabled={savingNow} onClick={() => void save(true)}>{t('editor.takeMine')}</Button>
             </>
           }
         >

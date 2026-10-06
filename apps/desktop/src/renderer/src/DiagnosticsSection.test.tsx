@@ -4,14 +4,16 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
 import { DiagnosticsSection } from './DiagnosticsSection'
 import { I18nProvider } from './i18n'
-import type { DiagnosticsView } from '../../shared/types'
+import type { DiagnosticsView, StackExposureView } from '../../shared/types'
 
 afterEach(cleanup)
 
-function mount(view: DiagnosticsView): void {
+function mount(exposure: StackExposureView | null): void {
+  const view: DiagnosticsView = { records: [], file: null }
   const api = {
     meta: { info: vi.fn().mockRejectedValue(new Error('no manifest in a test')) },
-    diagnostics: { read: vi.fn().mockResolvedValue(view) }
+    diagnostics: { read: vi.fn().mockResolvedValue(view) },
+    stack: { exposure: vi.fn().mockResolvedValue(exposure) }
   }
   vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: api }))
   render(
@@ -23,18 +25,18 @@ function mount(view: DiagnosticsView): void {
 
 describe('the stack exposure warning', () => {
   it('names the ports and interfaces that answered, and the remedy', async () => {
-    mount({ records: [], file: null, stackExposure: { checkedAt: '2026-10-06T00:00:00Z', ports: [54321, 54322], exposed: [{ iface: 'en0', port: 54321 }, { iface: 'en0', port: 54322 }] } })
+    mount({ checkedAt: '2026-10-06T00:00:00Z', ports: [54321, 54322], exposed: [{ iface: 'en0', port: 54321 }, { iface: 'en0', port: 54322 }] })
     expect(await screen.findByText('The local database can be reached from your network')).toBeTruthy()
     expect(screen.getByText(/Ports 54321, 54322 answered on en0\./)).toBeTruthy()
     expect(screen.getByText(/orbctl config set docker\.expose_ports_to_lan false/)).toBeTruthy()
   })
 
   it('is absent when nothing answered, and before the check has run', async () => {
-    mount({ records: [], file: null, stackExposure: { checkedAt: '2026-10-06T00:00:00Z', ports: [54321], exposed: [] } })
+    mount({ checkedAt: '2026-10-06T00:00:00Z', ports: [54321], exposed: [] })
     await screen.findByText(/What the program did/)
     expect(screen.queryByText('The local database can be reached from your network')).toBeNull()
     cleanup()
-    mount({ records: [], file: null, stackExposure: null })
+    mount(null)
     await screen.findByText(/What the program did/)
     expect(screen.queryByText('The local database can be reached from your network')).toBeNull()
   })

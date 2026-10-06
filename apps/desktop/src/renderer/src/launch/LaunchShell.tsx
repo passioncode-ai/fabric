@@ -10,6 +10,7 @@ import { useT } from '../i18n'
 import { FabricAvatar } from './FabricAvatar'
 import { FabricName } from './persona'
 import brandMark from '../../../../../../assets/brand/favicon/transparent/passioncode-favicon-64.svg?url'
+import { StackExposureNotice } from '../StackExposureNotice'
 
 export type ProjectSection = 'overview' | 'team' | 'cycles' | 'goals' | 'memory' | 'settings'
 export const PROJECT_SECTION_ANCHOR: Record<ProjectSection, string | null> = {
@@ -131,6 +132,7 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
             <button type="button" className="lp-button search-button" aria-pressed={props.searchOpen} onClick={props.onSearch}>{t('launch.search')}</button>
           </div>
         </div>
+        <StackExposureNotice />
         {props.children}
       </div>
     </div>

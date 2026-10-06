@@ -69,6 +69,7 @@ function stub(
       onCloseActive: () => () => {}
     },
     projects: { list: async () => [] },
+    stack: { exposure: async () => null },
     terminal: { list: async () => [], options: async () => [], memoryBackends: async () => [] },
     feed: { replay: async () => [] },
     drafts: over.draftApi ?? { read, save },

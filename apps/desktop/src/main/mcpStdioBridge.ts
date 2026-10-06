@@ -2,8 +2,9 @@
 /**
  * Fabric's stdio bridge (P-10 AS-05, ADR-0119 §2): an MCP server on stdio that relays every message
  * to the session's surface over streamable HTTP. For an agent whose ACP `initialize` declares no
- * HTTP MCP (Cline 3.0.46, measured): `session/new` names this program as a stdio server, and the
- * credential reaches it in its environment, never in its arguments.
+ * HTTP MCP (Cline 3.0.46 and Hermes 0.21.4, measured): `session/new` names this program as a stdio
+ * server — once for Fabric's surface, and once per project-granted server on the machine's gateway
+ * (audit 2026-10-06 DA-2) — and the credential reaches it in its environment, never in its arguments.
  *
  * A relay, not a second server: it neither reads nor rewrites the messages, so the surface's own
  * authorisation, scoping and refusals are the only ones in force.

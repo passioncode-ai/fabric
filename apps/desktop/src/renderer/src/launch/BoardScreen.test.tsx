@@ -375,6 +375,26 @@ describe('the board screen itself (SCR-41)', () => {
     expect(screen.queryByText('Which context goes to the next agent?')).toBeTruthy()
   })
 
+  // 0.3.2 verification UX-3/UX-4: Allow once removes the refusal on the re-read it triggers; the row stays
+  // with its "until", marked Allowed once, and offers neither Waiting nor Next time.
+  it('a one-time grant keeps its row and its "until" after the refusal leaves the queue', async () => {
+    const refusal = item({ kind: 'refused', ref: { kind: 'refusal', id: '7' }, title: '/repo/a.md', detail: 'cleanup', proposal: undefined, grantable: { floorClass: 'deletion', target: '/repo/a.md', askedBecause: 'cleanup' } } as Partial<AttentionItem>)
+    let granted = false
+    const query = vi.fn(async () => whole(granted ? [] : [refusal]))
+    install(query)
+    const grant = vi.fn(async () => { granted = true; return { grantId: 'g1', expiresAt: '2026-09-11T10:30:00Z' } })
+    ;(window.fabric as unknown as { attention: { grant: typeof grant } }).attention.grant = grant
+    render_()
+    await openRow('/repo/a.md')
+    fireEvent.click(await waitFor(() => screen.getByRole('button', { name: en['ceo.grant'] })))
+    await waitFor(() => expect(grant).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(query.mock.calls.length).toBeGreaterThan(1))
+    await new Promise((r) => setTimeout(r, 20))
+    expect(screen.getByRole('status').textContent).toMatch(/^Allowed once, until /)
+    expect(screen.getByText(en['launch.board.state.allowed'])).toBeTruthy()
+    expect(screen.queryByText(en['launch.board.fact.waiting'])).toBeNull()
+  })
+
   it('a refused answer says why and keeps what was typed', async () => {
     const answer = vi.fn(async () => ({ committed: false, reason: 'the question changed while you were reading it', unblocked: [], stillBlocked: [], continuations: [] }))
     mount(answer)

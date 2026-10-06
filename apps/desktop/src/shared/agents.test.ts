@@ -5,7 +5,7 @@
 // into a searchable secret store.
 
 import { describe, expect, it } from 'vitest'
-import { AGENTS, describeAgent, mayLaunch } from './agents.ts'
+import { AGENTS, describeAgent, mayLaunch, containmentFor } from './agents.ts'
 
 describe('the agent registry', () => {
   it('never has a blocked mode as its default — the default is what runs when nobody chooses', () => {
@@ -110,7 +110,19 @@ describe('the agent registry', () => {
     const cline = describeAgent('cline')
     expect(cline?.connectsToSurface).toBe(false)
     expect(cline?.surfaceAdapter).toBe('none')
-    expect(cline?.permissionModes).toEqual([])
+  })
+
+  // Audit 2026-10-06 UX-1: Cline 3.0.46 approves every tool by default (`--auto-approve … (default: true)`),
+  // and the row launched it that way while the harness said "nothing to ask about". Asking is something
+  // Fabric's Ask mode SETS; only Bypass, with its warning, lets it approve on its own.
+  it('Cline asks before each tool unless the session is Bypass, which carries the warning', () => {
+    const ask = mayLaunch('cline', null)
+    expect(ask.ok && ask.args).toEqual(['--auto-approve', 'false'])
+    expect(containmentFor('cline', null)).toBe('runner-gated')
+    const bypass = mayLaunch('cline', 'bypass')
+    expect(bypass.ok && bypass.args).toEqual(['--auto-approve', 'true'])
+    expect(containmentFor('cline', 'bypass')).toBe('none')
+    expect(describeAgent('cline')?.permissionModes.find((m) => m.id === 'bypass')?.warnKey).toBe('agent.mode.bypassWarn')
   })
 
   it('a flag-only runner hands no session config', () => {

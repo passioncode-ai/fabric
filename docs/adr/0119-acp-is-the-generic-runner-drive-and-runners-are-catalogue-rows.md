@@ -177,3 +177,41 @@ found five places where the drive of §1–§5 did not hold. These rules now app
 - **A mode carried in the bundle never launches without it** (A6-006). For `config-content-env` and
   `acp-session`, a launch with no bundle (the surface is down) is refused and says why. Before, Kilo
   started with its own allow-all default while the journal recorded `ask`.
+
+### Amendment 4 — 2026-10-06: what the 0.3.2 verification changed, and what is not built yet
+
+The first verification iteration of 0.3.2 ([ledger](../evidence/plans/2026-10-06-release-032-verification.md))
+found that amendment 3 claimed more than the drive did. These rules now hold, each with a test in
+`apps/desktop/test/acp-shell.test.mjs`, `mcp-stdio-bridge.test.mjs`, `session-bundle.test.mjs` or
+`src/shared/redact.test.ts` whose planted defect was watched being caught:
+
+- **Every end of a session sweeps the agent's process group** (V1, DA-1/ER-1). SIGTERM, then SIGKILL after a
+  3 s grace, even when the agent itself already exited on end of input — the case amendment 3 missed, which
+  left the agent's tools running under launchd. A detached reaper, fed by a pipe from the shell, ends the
+  group if the shell dies without cleaning up (Fabric's Force stop SIGKILLs the PTY); the shell tells it
+  "swept" when it cleaned up itself, so it never signals a reused group id (ER-2).
+- **Ctrl-C is heard from the shell's start.** Before the session opens it ends the session (exit 130).
+  Afterwards it cancels the turn and answers every pending `session/request_permission` with `cancelled`, as
+  ACP's prompt-turn cancellation requires (DA-3). The sign-in pick, like a permission answer, takes only a
+  line typed after the question (DO-21).
+- **Granted servers reach every ACP agent** (DA-2, DO-5). Over HTTP when it declares HTTP MCP, otherwise each
+  through its own stdio bridge (`FABRIC_BRIDGE_HEADER=x-agw-key`, the hop's role key in that bridge's
+  environment). Amendment 3's "an agent on the stdio bridge is told which granted servers it cannot reach"
+  is withdrawn: a session whose grants cannot be carried is refused (exit 3), as the bundle rule (M127) asks.
+- **A write to an agent that stopped reading is dropped, not a crash** (ER-3).
+- **Credentials are removed in more spellings** (DA-4, ER-4, DO-15): ACP `{name, value}` header pairs,
+  `FABRIC_BRIDGE_AUTHORIZATION`, JSON escaped any number of times, and Python dicts and reprs.
+- **Cline asks before each tool by default** (UX-1): Ask launches with `--auto-approve false`; Bypass is the
+  only mode that approves on its own, and it carries the bypass warning. Its CLI's own default is `true`.
+
+**Corrections.** §context's "43.8% of top-200 daily tokens" is **55.1%** recomputed from the committed
+`raw/ranking-day-top200.csv` of [the OpenRouter report](../reports/2026-10-05-openrouter-agent-support/README.md):
+43.8% took the last row of each name and so counted the minor namesakes "omp" (#199) and "pi" (#118) instead
+of #6 and #9 (DO-12). The report is dated and keeps its number; this amendment is the correction.
+
+**State at 0.3.2 — decided but not built** (DO-13). §3's runner catalogue does not exist yet: `registry/`
+holds `domains.yaml` and `README.md`, and Kilo, Hermes and Cline are code rows in `src/shared/agents.ts`
+(plan AS-03). §4's "connected" is not a probe result yet: `executorDetect` derives it from the row's
+`connectsToSurface` flag. §6's per-runner quota gate is not built (AS-09). The next runners — Kimi Code,
+Goose, Gemini CLI, OpenCode — are CO-220.
+

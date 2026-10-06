@@ -255,8 +255,14 @@ export const AGENTS: readonly AgentDescriptor[] = [
     // declares no HTTP MCP, so it would take the stdio bridge like Hermes. NOT connected yet: its
     // `session/new` asks for sign-in first, no run here got past it, and on this machine the `cline`
     // package vanished twice after a run (report `raw/probes/README.txt`). Until a probe connects it,
-    // it runs as itself, like Codex: no surface, and no permission modes — outside ACP its TUI
-    // approves tools on its own (`--auto-approve` defaults to true), so it carries no gate to name.
+    // it runs as itself, like Codex: no surface.
+    //
+    // Its TUI approves every tool by itself unless told otherwise: `cline --help` on 3.0.46 prints
+    // `--auto-approve <boolean>  Set tool auto-approval for all tools (default: true)`, and the 3.0.46
+    // bundle turns `--auto-approve false` into the session's tool policy `{"*": {autoApprove: false}}`
+    // (read 2026-10-06; the same option parser accepts `true`). So asking is something Ask SETS, and
+    // only Bypass, with its warning, lets it approve on its own (audit 2026-10-06 UX-1: the row had no
+    // modes, launched auto-approving, and the harness said "nothing to ask about").
     id: 'cline',
     label: 'Cline',
     program: 'cline',
@@ -265,8 +271,11 @@ export const AGENTS: readonly AgentDescriptor[] = [
     surfaceAdapter: 'none',
     acp: { args: ['--acp'] },
     resultChannel: 'none',
-    defaultMode: null,
-    permissionModes: []
+    defaultMode: 'ask',
+    permissionModes: [
+      { id: 'ask', labelKey: 'agent.mode.ask', args: ['--auto-approve', 'false'], containment: 'runner-gated' },
+      { id: 'bypass', labelKey: 'agent.mode.bypass', args: ['--auto-approve', 'true'], containment: 'none', warnKey: 'agent.mode.bypassWarn' }
+    ]
   },
   {
     id: 'shell',
