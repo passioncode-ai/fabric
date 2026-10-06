@@ -4,7 +4,7 @@ import {createHash,randomUUID} from 'node:crypto'
 import {readFileSync,writeFileSync,existsSync} from 'node:fs'
 import path from 'node:path'
 import {snapshot,writeSnapshot,checkReceipt,git,receiptPath,publicationOnly,verifyCommittedSnapshot,receiptFor} from './workspace-snapshot.mjs'
-import {resolveSources,pinnedSources,localSourceDirs,sourcesMatch,sourcePins,fetchTip,lagReport,syncReasons,syncLeftovers} from './workspace-sources.mjs'
+import {resolveSources,pinnedSources,localSourceDirs,sourcesMatch,sourcePins,fetchTip,lagReport,syncReasons,syncLeftovers,childLeftovers} from './workspace-sources.mjs'
 import {completedPublication,verifyDeployment,publicationSource,publicationHazards,sourceChangedSince} from './workspace-release.mjs'
 import {boundedRun,nonInteractiveGitEnv,acquireLock,superviseJob,killAll,exitWithin} from './lib/bounded-run.mjs'
 const root=path.resolve(import.meta.dirname,'..'),child=path.join(root,'workspace')
@@ -163,6 +163,14 @@ if(cmd==='status'){
  const receipt=JSON.parse(readFileSync(path.join(root,receiptPath),'utf8'))
  const sourceChanged=sourceChangedSince(root,receipt.source_commit)
  await run('git',['fetch','-q','origin','main'],child)
+ // A failed earlier export (verify:content refused) is the sync's own leftover in content/; it is dropped
+ // here so one bad source cannot wedge every later run. Anything outside content/ is refused (childLeftovers).
+ const stale=childLeftovers(git(child,'status','--porcelain','--untracked-files=all').toString())
+ if(stale.refuse.length)throw Error('sync runs on its own workspace checkout; this one has changes outside content/: '+stale.refuse.slice(0,5).join(', '))
+ if(stale.discard.length){
+  git(child,'reset','-q','--','content');git(child,'checkout','-q','--','content');git(child,'clean','-fdq','--','content')
+  console.log('Dropped '+stale.discard.length+' content/ path(s) an earlier failed publication left uncommitted')
+ }
  await run('git',['checkout','-q','-B','main','origin/main'],child)
  const hostAhead=Number(git(child,'rev-list','--count',receipt.workspace_commit+'..origin/main').toString().trim())
  const configured=sourcePins(c)

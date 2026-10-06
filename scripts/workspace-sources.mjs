@@ -119,3 +119,22 @@ export function syncLeftovers(porcelain){
  }
  return {discard,refuse}
 }
+
+/**
+ * What a failed earlier publication left in the sync's own WORKSPACE checkout. The export writes
+ * `content/` before the workspace's own checks run; when `verify:content` refuses (2026-10-05: a
+ * malformed backlog row in another repository), the export stays uncommitted and every later run
+ * refused with "Commit or preserve your changes first" until someone cleaned the checkout by hand.
+ * `content/` is the export's alone and the next run writes it again, so it is dropped; any other
+ * changed path in the workspace is someone's work, and the sync refuses and touches nothing.
+ */
+export function childLeftovers(porcelain){
+ const discard=[],refuse=[]
+ for(const row of porcelain.split('\n').filter(Boolean)){
+  for(const p of row.slice(3).split(' -> ')){
+   const plain=p.replace(/^"|"$/g,'')
+   ;(plain==='content'||plain.startsWith('content/')?discard:refuse).push(plain)
+  }
+ }
+ return {discard,refuse}
+}

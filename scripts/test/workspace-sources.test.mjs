@@ -125,3 +125,15 @@ test('sync drops only its own unfinished publication, never anything else',async
  // Anything else is someone's change: refuse and touch nothing.
  assert.deepEqual(syncLeftovers('M  docs/workspace-receipt.json\n M README.md\n'),{discard:['docs/workspace-receipt.json'],refuse:['README.md']})
 })
+
+test('the sync drops a failed export in its workspace content/, and refuses anything else there',async()=>{
+ const {childLeftovers}=await import('../workspace-sources.mjs')
+ // 2026-10-05: verify:content refused after export; these stayed behind and wedged every later run.
+ assert.deepEqual(childLeftovers(' M content/manifest.json\n?? content/sources/new.md\nD  content/old.md\n'),{discard:['content/manifest.json','content/sources/new.md','content/old.md'],refuse:[]})
+ assert.deepEqual(childLeftovers('R  content/a.md -> content/b.md\n'),{discard:['content/a.md','content/b.md'],refuse:[]})
+ assert.deepEqual(childLeftovers(''),{discard:[],refuse:[]})
+ // Not the export's: the workspace's own knowledge, code or a file named like content outside it.
+ assert.deepEqual(childLeftovers(' M knowledge/rules.md\n M content/x.md\n?? contents.md\n'),{discard:['content/x.md'],refuse:['knowledge/rules.md','contents.md']})
+ assert.deepEqual(childLeftovers('R  content/a.md -> knowledge/a.md\n'),{discard:['content/a.md'],refuse:['knowledge/a.md']})
+})
+
