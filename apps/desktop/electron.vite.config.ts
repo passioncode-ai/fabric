@@ -48,9 +48,11 @@ export default defineConfig({
     define: { __FABRIC_ANALYTICS_APP_KEY__: JSON.stringify(process.env.FABRIC_ANALYTICS_APP_KEY ?? '') },
     // Fabric's helper programs (P-10, ADR-0119) ship as entries of the main bundle and run under
     // Electron as Node (`helperProcess.ts`): the ACP terminal shell and the stdio MCP bridge.
+    // Named through `build.lib.entry`, electron-vite's own entry option. Through `rollupOptions.input` it
+    // emitted an EMPTY out/main/index.js (0.3.2 release run 37511843198; `test/main-bundle.test.mjs`).
     build: {
-      rollupOptions: {
-        input: {
+      lib: {
+        entry: {
           index: resolve(import.meta.dirname, 'src/main/index.ts'),
           'acp-shell': resolve(import.meta.dirname, 'src/main/acpShellMain.ts'),
           'mcp-bridge': resolve(import.meta.dirname, 'src/main/mcpStdioBridgeMain.ts')
