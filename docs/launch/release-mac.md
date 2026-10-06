@@ -151,14 +151,17 @@ migration files); the newest migration's filename ends in **81** because other w
 use `max(version)` or a filename suffix as schema readiness. The actual guard is `public.schema_version()`
 against [the compiled schema contract](../../apps/desktop/src/shared/schemaContract.json). 0.3.2's one new
 migration is `20261005000081_project_board.sql`, the project board's core (ADR-0117, COM-02.1): an installed
-0.3.1 database is at **78**, and 0.3.2 refuses it until this procedure has run. Installed 0.3.1 keeps requiring
-78, so once a database is at 79 only 0.3.2 or later opens it. For 0.3.1 the same procedure ran 75 → 78.
+0.3.1 database is at **78** and an installed 0.3.0 database at **75**; 0.3.2 refuses either until this procedure
+has run. It is the same procedure from either: `supabase migration up` applies every missing migration in
+order, so a 0.3.0 database goes **75 → 79 in one step** (migrations 76, 77, the file with suffix 80, then 81 —
+the order a fresh install applies them), with no 0.3.1 in between. Once a database is at 79 only 0.3.2 or later
+opens it. Read your schema first (step 2) and use that number wherever `FROM` appears below.
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
-   another running session. Keep the installed 0.3.0 database at schema 75 until a verified signed
-   0.3.1 build is available. First install that build, attempt startup once so its bundled stack is
-   copied, then quit: readiness refuses old data before domain services start.
+   another running session. Keep the installed database at its schema until a verified signed 0.3.2
+   build is available. First install that build, attempt startup once so its bundled stack is copied,
+   then quit: readiness refuses old data before domain services start.
 2. Make a private backup outside the checkout before any migration. The local stack uses loopback
    database port 54322. The following commands prompt for the existing database password; never
    put it in argv or a tracked file. A prepared private mode-600 PGPASSFILE is also supported by
@@ -174,12 +177,14 @@ migration is `20261005000081_project_board.sql`, the project board's core (ADR-0
    PGBIN=/opt/homebrew/opt/postgresql@17/bin
    "$PGBIN/pg_dump" --version   # must print 17.x
    mkdir -p "$HOME/Library/Application Support/Fabric/backups"
-   PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
-     "$PGBIN/pg_dump" --password --format=custom \
-     --file="$HOME/Library/Application Support/Fabric/backups/pre-0.3.1.dump"
+   # FROM: 75 for an installed 0.3.0, 78 for 0.3.1 — read it, do not assume it
    PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
      "$PGBIN/psql" --password -v ON_ERROR_STOP=1 \
      -c 'select public.schema_version(); select count(*) from public.journal;'
+   # A new name: an earlier backup (pre-0.3.1.dump) and the rehearsal receipt beside it are kept
+   PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
+     "$PGBIN/pg_dump" --password --format=custom \
+     --file="$HOME/Library/Application Support/Fabric/backups/pre-0.3.2.dump"
    ```
 
    Confirm the actual local stack port before using this example; another configured stack needs
@@ -190,7 +195,7 @@ migration is `20261005000081_project_board.sql`, the project board's core (ADR-0
 
    ```sh
    FABRIC_PG_BIN=/opt/homebrew/opt/postgresql@17/bin \
-     node scripts/rehearse-upgrade.mjs --from 78 --ref v0.3.2 \
+     node scripts/rehearse-upgrade.mjs --from FROM --ref v0.3.2 \
      --dump "$HOME/Library/Application Support/Fabric/backups/pre-0.3.2.dump"
    ```
 
@@ -233,5 +238,7 @@ migration is `20261005000081_project_board.sql`, the project board's core (ADR-0
    follow the restore boundary and reconnect/consent as required. Document the exact rollback receipt.
 
 The schema-behind startup message names this section and the command, but is not authorization to
-skip backup/rehearsal. Acceptance of the 75→78 and 77→78 seeded rehearsal belongs to the converged
-verification ledger. Live private-dump rehearsal and live upgrade remain operator-state checks.
+skip backup/rehearsal. The seeded rehearsals of each release belong to its verification ledger (0.3.1:
+75 → 78 and 77 → 78; 0.3.2: 75 → 79 and 78 → 79, in the
+[0.3.2 ledger](../evidence/plans/2026-10-06-release-032-verification.md)). The live private-dump rehearsal and the
+live upgrade remain operator-state checks.
