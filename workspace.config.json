@@ -56,6 +56,10 @@
     {
       "id": "org-github",
       "repository": "https://github.com/passioncode-ai/.github"
+    },
+    {
+      "id": "passioncode-platform",
+      "repository": "https://github.com/passioncode-ai/passioncode-platform"
     }
   ]
 }
