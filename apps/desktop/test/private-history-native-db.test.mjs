@@ -19,10 +19,12 @@ const pass = name => { groups++; console.log('PASS ' + name) }
 
 /** A supabase-js shaped journal read, answered by psql, so the real `take` runs unchanged. */
 function journalDb(c) {
-  return { from: () => ({ select: () => ({ eq: (_col, estate) => ({ order: async () => {
-    const rows = JSON.parse(c.sql(`select coalesce(jsonb_agg(jsonb_build_object('seq',seq,'type',type,'schema_rev',schema_rev,'actor',actor,'project_id',project_id,'run_id',run_id,'node_id',node_id,'payload',payload,
-      'occurred_at',to_char(occurred_at at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US')||'+00:00') order by seq),'[]') from journal where estate_id=${uuid(estate)}`))
-    return { data: rows, error: null } } }) }) }) }
+  // The archive reads the journal page by page on seq (`journalBySeq`, 0.3.2 verification DA-2): this stand-in
+  // answers the same chain the client builds — eq(estate) · gt(seq) · order(seq) · limit(n) — with real SQL.
+  return { from: () => ({ select: () => ({ eq: (_col, estate) => ({ gt: (_seq, after) => ({ order: () => ({ limit: async (n) => {
+    const rows = JSON.parse(c.sql(`select coalesce(jsonb_agg(r order by (r->>'seq')::bigint),'[]') from (select jsonb_build_object('seq',seq,'type',type,'schema_rev',schema_rev,'actor',actor,'project_id',project_id,'run_id',run_id,'node_id',node_id,'payload',payload,
+      'occurred_at',to_char(occurred_at at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US')||'+00:00') as r from journal where estate_id=${uuid(estate)} and seq>${Number(after)} order by seq limit ${Number(n)}) page`))
+    return { data: rows, error: null } } }) }) }) }) }) }
 }
 /** Named-argument RPC over psql; `drop` loses the reply AFTER the database answered. */
 function rpcOver(c, faults = {}) {
