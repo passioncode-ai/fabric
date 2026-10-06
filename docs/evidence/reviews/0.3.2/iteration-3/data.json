@@ -1,0 +1,30 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.2",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "e483fbdca3de074cb69062a15f34c945b051e3b4",
+  "report": "docs/evidence/reviews/0.3.2/iteration-3/2026-10-06-data.md",
+  "reportSha256": "7002985e051de666ec8220454d10affcd46c9ed032a46f9ea7bf270d4e13666a",
+  "reviewerRun": "release-032-i3-data-20261006",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-12",
+      "source": "DA-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: lower-cased uuids; `board-service.test.mjs` \"submit lower-cases the participants…\" (watched)"
+      ]
+    },
+    {
+      "id": "V3-13",
+      "source": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `header-pair-value-first`; `redact.test.ts` (watched); ER-5's YAML and spaced-Python spellings ruled CO-222"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.2",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "e483fbdca3de074cb69062a15f34c945b051e3b4",
+  "report": "docs/evidence/reviews/0.3.2/iteration-3/2026-10-06-plan.md",
+  "reportSha256": "ac8b00f5c246e357e755f99e00a38aabe3bf51ab5ae180dfacdc98e21a20bf36",
+  "reviewerRun": "release-032-i3-plan-20261006",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-3",
+      "source": "PL-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both name the installed schema (75 from 0.3.0, 78 from 0.3.1)"
+      ]
+    },
+    {
+      "id": "V3-4",
+      "source": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: AS-03/AS-08 carry Kimi Code, Goose, Gemini CLI, OpenCode (CO-220) and OpenClaw as a hub client"
+      ]
+    },
+    {
+      "id": "V3-5",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed in Fabric: P-12 names RM-19, CO-220 names RM-05; the roadmap's own text is ruled CO-221 (PL-13, the knowledge-base update at release)"
+      ]
+    },
+    {
+      "id": "V3-6",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "V3-7",
+      "source": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"in progress — in verification\", \"done — released\"; `normalizeStatus` reads both; P-08 left lane 2"
+      ]
+    },
+    {
+      "id": "V3-8",
+      "source": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "V3-9",
+      "source": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "V3-10",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-221 says which moves"
+      ]
+    },
+    {
+      "id": "V3-11",
+      "source": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: protocol note above, reports under `docs/evidence/reviews/`, runbook lists 0.3.2's ledger and corrects the website fact's tense"
+      ]
+    }
+  ]
+}

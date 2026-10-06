@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.2",
+  "iteration": 3,
+  "level": "ux",
+  "candidateCommit": "e483fbdca3de074cb69062a15f34c945b051e3b4",
+  "report": "docs/evidence/reviews/0.3.2/iteration-3/2026-10-06-ux.md",
+  "reportSha256": "c70d3bcad8348cb30d798e843c37f74a66e73f61274317acd0fb6f72fcee8531",
+  "reviewerRun": "release-032-i3-ux-20261006",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-1",
+      "source": "UX-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `keepDiffSide` — closing the diff after Take-disk carries nothing back; `EditorWindow.conflict.test.tsx` \"taking the version on disk leaves the disk text, clean, and a save writes nothing\" (watched: 1 failed)"
+      ]
+    },
+    {
+      "id": "V3-14",
+      "source": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "V3-20",
+      "source": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: disabled while saving; checked by reading (no test)"
+      ]
+    },
+    {
+      "id": "V3-21",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the bar wraps and aligns to the top, the switch has a 42ch column; checked by reading the CSS (no render test)"
+      ]
+    },
+    {
+      "id": "V3-22",
+      "source": "UX-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `BoardScreen.test.tsx` A3-001 test asserts no Next time and no Waiting (watched)"
+      ]
+    },
+    {
+      "id": "V3-23",
+      "source": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "V3-24",
+      "source": "UX-2, UX-4, UX-7, UX-8, UX-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-222"
+      ]
+    },
+    {
+      "id": "V3-25",
+      "source": "UX recheck",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-222: ER-8's test-gap class and DO-3's wording class; code is not changed after the verified commit"
+      ]
+    }
+  ]
+}

@@ -191,6 +191,17 @@ its own stray file; contents unknown, not recoverable — recorded, not hidden.
 | V3-22 | UX-8 (V1-19) | Hiding "Next time" on an answered row had no test | fixed: `BoardScreen.test.tsx` A3-001 test asserts no Next time and no Waiting (watched) |
 | V3-23 | UX-10 | FLW-40 did not trace SCN-134 | fixed |
 | V3-24 | ER-3, ER-4, ER-5 (rest), ER-6, ER-8, UX-2, UX-4, UX-7, UX-8 (rest), UX-9 | Each named in CO-222 with its reason | ruled CO-222 |
+| V3-25 | ER recheck, UX recheck | Two leftovers the rechecks named: no test pins the order "questions before prompts" when an agent asks outside a turn (the code is right); the comment at `main/index.ts` still says the warning shows in Diagnostics | ruled CO-222: ER-8's test-gap class and DO-3's wording class; code is not changed after the verified commit |
 
-Exit for iteration 3: _pending — the two blocking fixes are rechecked by their reviewer at the final candidate._
+**Rechecks and the final candidate.** The fixes landed in `d8eb9ff5`. Each blocking finding was rechecked by the
+reviewer who raised it, at that commit: ER-1 and ER-2 by the errors reviewer (both hold; each named test fails with
+its fix reverted; its delete/read probe answers `delete=no read=yes`), UX-1 by the UX reviewer in real Monaco in
+the built renderer (holds; the next write after Take-disk is the person's new edit on the disk text). `ci.sh full`
+at `d8eb9ff5` then failed one owned-cluster suite, `run-ceo-private-archive-db`: its journal stand-in did not speak
+the paged read V2-9 introduced. `e483fbdc` (`e483fbdca3de074cb69062a15f34c945b051e3b4`) changes only that stand-in and the design map; the data
+reviewer rechecked it (no product code changed, the stand-in pages faithfully, its suite passes on its own
+cluster, verdict 0 blocking). **`bash scripts/ci.sh full` exited 0 at `e483fbdc`** on 2026-10-06, the stack-backed
+probes included, on a disposable stack. The rechecks are appended to the reports above.
+
+Exit for iteration 3: every finding above is fixed, ruled with a register id or not a defect, rechecked by its reviewer at the final candidate `e483fbdc`. Blocking findings open: none.
 

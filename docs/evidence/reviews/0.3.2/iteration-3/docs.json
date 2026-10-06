@@ -1,0 +1,70 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.2",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "e483fbdca3de074cb69062a15f34c945b051e3b4",
+  "report": "docs/evidence/reviews/0.3.2/iteration-3/2026-10-06-docs.md",
+  "reportSha256": "32749070fa94efe3f62a2c3c3c7739effe483d5c8ec23ad592b51a397fd596f9",
+  "reviewerRun": "release-032-i3-docs-20261006",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-3",
+      "source": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both name the installed schema (75 from 0.3.0, 78 from 0.3.1)"
+      ]
+    },
+    {
+      "id": "V3-14",
+      "source": "DO-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "V3-15",
+      "source": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `exposureNeedsCheck` in `stackExposure.ts`; `stack-exposure.test.mjs` \"a read starts a check when none finished…\" (watched)"
+      ]
+    },
+    {
+      "id": "V3-16",
+      "source": "DO-3, DO-4, DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG and this ledger"
+      ]
+    },
+    {
+      "id": "V3-17",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: 60/54 with the qualifier"
+      ]
+    },
+    {
+      "id": "V3-18",
+      "source": "DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed"
+      ]
+    },
+    {
+      "id": "V3-19",
+      "source": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-221 says its wiring has no test"
+      ]
+    }
+  ]
+}
