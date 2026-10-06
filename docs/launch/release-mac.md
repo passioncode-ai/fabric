@@ -40,7 +40,7 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `Exit for iteration N: … Blocking findings open: none.`, and unless the ledger's title names exactly the
    version it clears — each release has its own ledger; 0.3.0's is
    [`2026-10-03-verification.md`](../evidence/plans/2026-10-03-verification.md), 0.3.1's (the hub) is
-   [`2026-10-04-hub-verification.md`](../evidence/plans/2026-10-04-hub-verification.md), and the bump to
+   [`2026-10-04-hub-verification.md`](../evidence/plans/2026-10-04-hub-verification.md), and 0.3.2's is [`2026-10-06-release-032-verification.md`](../evidence/plans/2026-10-06-release-032-verification.md), and the bump to
    0.3.1 points the gate at it (`scripts/lib/release-gate.mjs`, tested by
    `scripts/test/release-gate.test.mjs`).
    Preflight also requires exactly one nonempty finalized `## X.Y.Z` changelog entry.
@@ -102,7 +102,7 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `psql "$DB_URL" -v ON_ERROR_STOP=1 -v estate=<new uuid> -v lang=en -f scripts/fixtures/launch-estate.sql`
    — never from an estate a walk has already written into.
 9. **The website is the website's change.** `passioncode-ai/passioncode-ai.github.io` serves
-   `/fabric/download/macos` from its `fabric/release.json`, which points at Fabric's own `v0.3.0` release
+   `/fabric/download/macos` from its `fabric/release.json`, which pointed at Fabric's own `v0.3.0` release
    (read 2026-10-05 through the GitHub contents API: `tag` `v0.3.0`, `repository` `passioncode-ai/fabric`, the
    `Fabric-0.3.0-arm64.dmg` download and its `sha256`). For each CI release, the website's own pull request sets `tag`
    `vX.Y.Z`, `repository` `passioncode-ai/fabric`, `releaseUrl`

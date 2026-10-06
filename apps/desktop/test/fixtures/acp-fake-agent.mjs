@@ -45,6 +45,15 @@ createInterface({ input: process.stdin }).on('line', async (line) => {
       update('sess-fixture', `permission:${answer?.outcome?.optionId ?? answer?.outcome?.outcome}`)
       return send({ id: m.id, result: { stopReason: 'end_turn' } })
     }
+    if (text.includes('TWOASK')) {
+      // Two questions in flight at once (0.3.2 verification i3 ER-2): each answer must reach its own question.
+      const opts = [{ optionId: 'yes-once', name: 'Allow', kind: 'allow_once' }, { optionId: 'no-once', name: 'Reject', kind: 'reject_once' }]
+      const del = ask('session/request_permission', { sessionId: 'sess-fixture', toolCall: { toolCallId: 'd1', title: 'DELETE the repository' }, options: opts })
+      const read = ask('session/request_permission', { sessionId: 'sess-fixture', toolCall: { toolCallId: 'r1', title: 'read README' }, options: opts })
+      const [a, b] = await Promise.all([del, read])
+      update('sess-fixture', `delete=${a?.outcome?.optionId} read=${b?.outcome?.optionId}`)
+      return send({ id: m.id, result: { stopReason: 'end_turn' } })
+    }
     if (text.includes('LONG')) {
       update('sess-fixture', 'long turn started')
       await new Promise((resolve) => setTimeout(resolve, 2000))

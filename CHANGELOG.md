@@ -8,7 +8,7 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## 0.3.2 (unreleased)
 
-A release built from a full audit of the 0.3.1 candidate: all 134 scenarios against their screens and code,
+A release built from a full audit of the 0.3.2 candidate (`e19e1b9e`, 0.3.1 plus the work merged after it): all 134 scenarios against their screens and code,
 plus the trust boundaries ([report](docs/reports/2026-10-05-release-032-audit/README.md)). Every P0 and P1
 finding is fixed or carried to a named row. It also ships the work that landed on `main` after 0.3.1.
 
@@ -23,7 +23,7 @@ finding is fixed or carried to a named row. It also ships the work that landed o
   carries the app version, the OS name, a session id and a random installation id that every PassionCode app on
   this Mac shares; never names, paths or content. Settings → *Share usage counts* turns it off for every
   PassionCode app on the Mac ([docs/ANALYTICS.md](docs/ANALYTICS.md)). Builds from source send nothing.
-- **The project board.** Agents you run from Fabric get the project-board tools (`com.submit`, `com.list`,
+- **The project board.** Agents that connect to Fabric's surface (Claude Code, Kilo, Hermes) get the project-board tools (`com.submit`, `com.list`,
   `com.get`, `com.read_ack`, `com.status`): durable, project-addressed messages that survive the session
   ([ADR-0117](docs/adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md)).
 - **More coding agents in the launch menu: Kilo Code, Hermes Agent and Cline.** Hermes runs over the Agent Client
@@ -47,7 +47,7 @@ finding is fixed or carried to a named row. It also ships the work that landed o
 - **Not yet:** restoring a private-history archive into a new estate does not bring back project-board messages
   (CO-212); the archive keeps the board's events, not its stored messages.
 - **Attention, Board, digest and history read true.** A granted refusal leaves the queue and repeats are one
-  item; an answered question keeps its receipt on screen; the digest no longer marks lines read while you read
+  item; an answered question keeps its receipt on the Board screen (the project page's panel does not yet, CO-222); the digest no longer marks lines read while you read
   them and is no longer cut at 1000 rows; an agent's history shows its newest 200 events and says when earlier
   ones may exist.
 - **Windows hold only Fabric.** A window can show only Fabric's own page, links leave for your browser, the

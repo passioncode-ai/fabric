@@ -372,6 +372,9 @@ describe('the board screen itself (SCR-41)', () => {
     await new Promise((r) => setTimeout(r, 20))
     expect(screen.getByText(en['launch.board.recorded'])).toBeTruthy()
     expect(screen.getByText(en['launch.board.state.answered'])).toBeTruthy()
+    // 0.3.2 verification V1-19 / i3 UX-8: a settled row offers no "Next time" act and no "Waiting" fact.
+    expect(screen.queryAllByRole('button', { name: en['launch.board.tab.later'] }).filter((b) => b.closest('.lp-detail'))).toHaveLength(0)
+    expect(screen.queryByText(en['launch.board.fact.waiting'])).toBeNull()
     expect(screen.queryByText('Which context goes to the next agent?')).toBeTruthy()
   })
 

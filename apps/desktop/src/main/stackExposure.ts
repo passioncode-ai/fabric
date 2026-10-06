@@ -80,4 +80,14 @@ export async function stackExposure(ports: number[], probe: ExposureProbe = {}):
   const exposed = (await Promise.all(checks)).filter((x): x is ExposedPort => x !== null)
   return { checkedAt: (probe.now ?? (() => new Date()))().toISOString(), ports, exposed }
 }
+
+/** A reading older than this is checked again: Wi-Fi and the engine's settings change under a running app. */
+export const STACK_EXPOSURE_MAX_AGE_MS = 5 * 60_000
+
+/** Whether a read should start a new check: none finished yet (or the last one failed), or it is stale —
+ *  and no check is already running (0.3.2 verification ER-10, UX-6; tested in i3 DO-2). */
+export function exposureNeedsCheck(last: StackExposure | null, inFlight: boolean, now: number): boolean {
+  if (inFlight) return false
+  return last === null || now - Date.parse(last.checkedAt) > STACK_EXPOSURE_MAX_AGE_MS
+}
 // #endregion stack-exposure

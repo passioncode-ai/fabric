@@ -1,8 +1,8 @@
 // #region usage-analytics — docs: docs/ANALYTICS.md#what-is-sent
 /**
- * Anonymous usage counts, the PassionCode way (passioncode-ai/fabric#12; the reference is Fabric Switchboard's
+ * Usage counts, the PassionCode way (passioncode-ai/fabric#12; the reference is Fabric Switchboard's
  * docs/ANALYTICS.md): installs, days of use and what is connected — counts and kinds, never names, e-mails,
- * paths, ids or content — sent to the self-hosted Aptabase only by a release build that carries an App Key.
+ * paths or content; every event carries the shared installation id and a session id (i3 DO-7) — sent to the self-hosted Aptabase only by a release build that carries an App Key.
  *
  * - **One installation id for every PassionCode app** on the machine, in a shared file created once by
  *   whichever app starts first: a temporary file hard-linked into place, which fails if another app made it

@@ -58,6 +58,13 @@ const RULES: Rule[] = [
     keep: (m) => `${m[1]}[redacted: header-pair]`
   },
   {
+    name: 'header-pair-value-first',
+    // The same pair written value first — `{"value":"Bearer …","name":"Authorization"}`. Fabric never writes
+    // this order, an agent's own serializer may (0.3.2 verification i3 DA-2). The NAME is kept.
+    re: /(\bvalue(?:\\*["'])?\s*[:=]\s*\\*["'])(\[redacted: header-pair\](?=\\*["'])|[^"'\\\n]+)(\\*["']\s*,\s*(?:\\*["'])?name(?:\\*["'])?\s*[:=]\s*\\*["'](?:(?:proxy-)?authorization|x-[a-z0-9-]*(?:key|token|secret)[a-z0-9-]*|api[-_]?key|[a-z0-9_]*_(?:key|token|secret|password|passwd|credentials?|authorization)[a-z0-9_]*)\\*["'])/gi,
+    keep: (m) => `${m[1]}[redacted: header-pair]${m[3]}`
+  },
+  {
     name: 'assignment',
     // The `env` dump, and every `export FOO_TOKEN=…` in a shell. The NAME is
     // kept: knowing that a session read `AWS_SECRET_ACCESS_KEY` is useful, and

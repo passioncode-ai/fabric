@@ -12,7 +12,8 @@ report:
     A read-only audit of the 0.3.2 candidate (e19e1b9e) walked all 134 scenarios against their screens
     and code, and read the trust boundaries, data integrity, lifecycle, errors, drift and analytics. It
     found 278 findings: 2 P0, 16 P1, 106 P2 and 154 P3. 13 of the 134 scenarios are implemented as
-    specified; 59 are partial, 55 are not built, and 7 disagree with their own record.
+    specified (two with a qualifier); 60 are partial, 54 are not built, and 7 disagree with their own record
+    (recounted from the tables 2026-10-06, see the correction note in §2).
     The fix list gives every finding a 0.3.2 disposition. Every P0 and P1 finding is fixed, carried to a
     named carry-over row, or a duplicate; A7-001 is carried as CO-219 with a warning in the product.
   sources:

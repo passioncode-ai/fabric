@@ -1,6 +1,6 @@
 // #region stack-exposure — docs: docs/ux/scenarios.md#scn-073-диагностика
 // The local stack answering on this Mac's network (audit 2026-10-05 A7-001, P0), said where the person
-// looks: above every screen, and in Diagnostics. The check runs in the main process after the stack
+// looks: above every screen (one banner; i3 DO-1). The check runs in the main process after the stack
 // starts and again when a reading is older than five minutes; this only reads it. Nothing is shown
 // while no check has finished, or when nothing answered — a warning is a measurement, not a default.
 

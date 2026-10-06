@@ -4,7 +4,7 @@ Run `2026-10-06-release-032-verification`. The operator's rule (2026-10-03, plan
 before the DMG and the release, three independent testing iterations across every level of the project, every
 finding fixed, and only then the release. This file is the ledger for **Fabric 0.3.2** — plan row
 [P-11](../backlog.md#general-development-plan): the fixes from the
-[full audit of the 0.3.1 candidate](../../reports/2026-10-05-release-032-audit/README.md) plus what landed on `main`
+[full audit of the 0.3.2 candidate `e19e1b9e`](../../reports/2026-10-05-release-032-audit/README.md) plus what landed on `main`
 after 0.3.1 (schema 79, usage counts, Kilo/Hermes/Cline runners). 0.3.1 was cleared by its own ledger,
 [2026-10-04-hub-verification.md](2026-10-04-hub-verification.md).
 
@@ -24,7 +24,9 @@ The protocol is 0.3.1's, unchanged ([hub ledger, Protocol](2026-10-04-hub-verifi
 
 Reviewers work read-only in a detached checkout of the candidate. Their reports are committed as written, with
 machine paths replaced by `<scratchpad>/`, `<worktrees>/` and `~/`; their probes and screenshots stay outside
-the repository (the operator's rule of 2026-10-06: media does not go into git).
+the repository (the operator's rule of 2026-10-06: media does not go into git). Iteration 3's reports are
+committed under `docs/evidence/reviews/0.3.2/iteration-3/`, because after `verifiedCommit` the release gate admits
+review artifacts only under `docs/reports/` or `docs/evidence/reviews/` (0.3.2 verification PL-9).
 
 ## Iteration 1
 
@@ -149,4 +151,46 @@ The fixes are in the commit that carries this section; `bash scripts/ci.sh fast`
 (the first fully green fast run of this release, at a load average of 6).
 
 Exit for iteration 2: every finding above is fixed, ruled with a register id or not a defect. Blocking findings open: none.
+
+## Iteration 3
+
+Five fresh reviewers, 2026-10-06, against `3745f835` (`3745f835137cb74fb24cb4f2b2d17f4f3a6fbc39`), each forming its own
+findings, then rechecking every iteration-1 and iteration-2 row of its level with the fix reverted in a scratch copy.
+Reports, committed under `docs/evidence/reviews/` as the release gate requires after the verified commit:
+[scenarios/UX/UI](../reviews/0.3.2/iteration-3/2026-10-06-ux.md) (UX-n, 1 blocking + 9),
+[errors and boundaries](../reviews/0.3.2/iteration-3/2026-10-06-errors.md) (ER-n, 2 + 6),
+[code ↔ documents](../reviews/0.3.2/iteration-3/2026-10-06-docs.md) (DO-n, 0 + 9),
+[data, memory, orchestration, harness](../reviews/0.3.2/iteration-3/2026-10-06-data.md) (DA-n, 0 + 2),
+[plan and roadmap](../reviews/0.3.2/iteration-3/2026-10-06-plan.md) (PL-n, 0 + 9). 38 findings; two reviewers found the
+same take-disk defect (V3-1). Load average ~3–6. One reviewer deleted a stranger's `/tmp/x.2595.log` while removing
+its own stray file; contents unknown, not recoverable — recorded, not hidden.
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V3-1 | ER-1, UX-1 (blocking) | "Take the version on disk" kept the person's text, marked saved, and the next save overwrote the agent's version — the diff's cleanup (V1-20's change) wrote its right side back | fixed: `keepDiffSide` — closing the diff after Take-disk carries nothing back; `EditorWindow.conflict.test.tsx` "taking the version on disk leaves the disk text, clean, and a save writes nothing" (watched: 1 failed) |
+| V3-2 | ER-2 (blocking) | Two permission questions in flight got each other's answers ("n" for a deletion allowed it) — the A7-007 fix put the newest question first | fixed: questions have their own first-shown-first-answered queue ahead of prompts; `acp-shell.test.mjs` "two questions in flight are answered in the order they were shown" (watched with the old order) |
+| V3-3 | PL-1, DO-8 | P-11 and CO-198 still assumed a database at 78 | fixed: both name the installed schema (75 from 0.3.0, 78 from 0.3.1) |
+| V3-4 | PL-2 | AS-03/AS-08 still scheduled OpenClaw as a runner; no task for the operator's four runners | fixed: AS-03/AS-08 carry Kimi Code, Goose, Gemini CLI, OpenCode (CO-220) and OpenClaw as a hub client |
+| V3-5 | PL-3 | Fabric's rows and the organization roadmap did not name each other (RM-19, RM-05) | fixed in Fabric: P-12 names RM-19, CO-220 names RM-05; the roadmap's own text is ruled CO-221 (PL-13, the knowledge-base update at release) |
+| V3-6 | PL-4 | Stale numbers: 602 uncovered (605 measured), the recount history, a run-together CO-198 sentence | fixed |
+| V3-7 | PL-5 | P-11 and P-08 would publish as status `unknown` | fixed: "in progress — in verification", "done — released"; `normalizeStatus` reads both; P-08 left lane 2 |
+| V3-8 | PL-6 | P-11's carried list omitted CO-179, CO-206, CO-212 | fixed |
+| V3-9 | PL-7 | P-12 did not name CO-218 | fixed |
+| V3-10 | PL-8 | DA-10's fix and the pipeline's reservation both pointed at migration 82 | fixed: CO-221 says which moves |
+| V3-11 | PL-9 | Iteration-3 reports filed like iterations 1–2 would make the gate refuse the release commit; the runbook's ledger list stopped at 0.3.1 | fixed: protocol note above, reports under `docs/evidence/reviews/`, runbook lists 0.3.2's ledger and corrects the website fact's tense |
+| V3-12 | DA-1 | `com.submit` passed participants and request targets un-normalised | fixed: lower-cased uuids; `board-service.test.mjs` "submit lower-cases the participants…" (watched) |
+| V3-13 | DA-2, ER-5 (part) | A header pair written value first leaked | fixed: `header-pair-value-first`; `redact.test.ts` (watched); ER-5's YAML and spaced-Python spellings ruled CO-222 |
+| V3-14 | DO-1, UX-6 | SCN-073 and comments still placed the warning in Diagnostics | fixed |
+| V3-15 | DO-2, ER-7 | The failed-check retry had no test | fixed: `exposureNeedsCheck` in `stackExposure.ts`; `stack-exposure.test.mjs` "a read starts a check when none finished…" (watched) |
+| V3-16 | DO-3, DO-4, DO-5 | CHANGELOG overstated who gets board tools and where the receipt holds; named the audited candidate wrongly | fixed: CHANGELOG and this ledger |
+| V3-17 | DO-6 | The audit README's summary still said 59/55 | fixed: 60/54 with the qualifier |
+| V3-18 | DO-7 | SCN-134 step 1 and `analytics.ts`'s header still left out the ids | fixed |
+| V3-19 | DO-9 | CO-221 claimed the sender check was proven by a source probe | fixed: CO-221 says its wiring has no test |
+| V3-20 | UX-3 | Take-disk stayed enabled during a Keep-mine save | fixed: disabled while saving; checked by reading (no test) |
+| V3-21 | UX-5 | The usage switch stretched the Settings bar's buttons to ~340 px | fixed: the bar wraps and aligns to the top, the switch has a 42ch column; checked by reading the CSS (no render test) |
+| V3-22 | UX-8 (V1-19) | Hiding "Next time" on an answered row had no test | fixed: `BoardScreen.test.tsx` A3-001 test asserts no Next time and no Waiting (watched) |
+| V3-23 | UX-10 | FLW-40 did not trace SCN-134 | fixed |
+| V3-24 | ER-3, ER-4, ER-5 (rest), ER-6, ER-8, UX-2, UX-4, UX-7, UX-8 (rest), UX-9 | Each named in CO-222 with its reason | ruled CO-222 |
+
+Exit for iteration 3: _pending — the two blocking fixes are rechecked by their reviewer at the final candidate._
 

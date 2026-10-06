@@ -12,7 +12,7 @@ import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaTe
 import { commitBoardCommand, commitPreparedAnswer, commitPreparedImport, commitReleaseCommand } from './commandIngressAdapters.ts'
 import { createHash, randomUUID } from 'node:crypto'
 import { fixPath, resolveSupabaseEnv, stackStatusEnv, startStack, stopStartingStack } from './env'
-import { stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
+import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
 import { applyAppIcon, windowIcon } from './appIcon'
 import { Policy } from './policy'
 import { launchOptions, PtyManager } from './pty'
@@ -472,8 +472,6 @@ let lastStackExposure: StackExposure | null = null
 let stackExposureCheck: Promise<void> | null = null
 /** The stack's API URL, kept so the renderer's read can re-check a stale result. */
 let stackApiUrl: string | null = null
-/** A result older than this is re-checked on read: Wi-Fi and the engine's settings change under a running app. */
-const STACK_EXPOSURE_MAX_AGE_MS = 5 * 60_000
 
 /**
  * Whether the stack's ports answer on this Mac's network addresses (`stackExposure.ts` says why Fabric
@@ -3523,8 +3521,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // check in flight is waited for (bounded), so the first read after start is not "nothing found".
   handle(IPC.stackExposure, async (): Promise<Returns<FabricApi['stack']['exposure']>> => {
     // Stale, or never finished (the first check failed): check again (0.3.2 verification ER-10, UX-6).
-    const stale = lastStackExposure === null || Date.now() - Date.parse(lastStackExposure.checkedAt) > STACK_EXPOSURE_MAX_AGE_MS
-    if (stale && stackApiUrl && stackExposureCheck === null) stackExposureCheck = checkStackExposure(stackApiUrl)
+    if (stackApiUrl && exposureNeedsCheck(lastStackExposure, stackExposureCheck !== null, Date.now())) stackExposureCheck = checkStackExposure(stackApiUrl)
     if (stackExposureCheck) await Promise.race([stackExposureCheck, new Promise((r) => setTimeout(r, 5_000))])
     return lastStackExposure
   })

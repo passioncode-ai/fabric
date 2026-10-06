@@ -40,3 +40,15 @@ test('the real connect: a listener answers, a closed port does not, and neither 
   await new Promise((r) => server.once('close', r))
   assert.equal(await tcpReachable('127.0.0.1', port, 1000), false)
 })
+
+// 0.3.2 verification i3 DO-2: a failed or missing check is retried; a stale one is re-checked; a running one is not doubled.
+test('a read starts a check when none finished, when the last is stale, and never beside a running one', async () => {
+  const { exposureNeedsCheck, STACK_EXPOSURE_MAX_AGE_MS } = await import('../src/main/stackExposure.ts')
+  const now = Date.parse('2026-10-06T12:00:00Z')
+  const fresh = { checkedAt: new Date(now - 1000).toISOString(), ports: [54321], exposed: [] }
+  const stale = { checkedAt: new Date(now - STACK_EXPOSURE_MAX_AGE_MS - 1).toISOString(), ports: [54321], exposed: [] }
+  assert.equal(exposureNeedsCheck(null, false, now), true, 'the first check failed or never finished')
+  assert.equal(exposureNeedsCheck(stale, false, now), true)
+  assert.equal(exposureNeedsCheck(fresh, false, now), false)
+  assert.equal(exposureNeedsCheck(null, true, now), false, 'one check at a time')
+})

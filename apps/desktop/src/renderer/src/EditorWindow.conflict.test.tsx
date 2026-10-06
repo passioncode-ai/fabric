@@ -124,4 +124,20 @@ describe('the conflict path', () => {
     await waitFor(() => expect(diffs.length).toBe(1))
     expect(diffs[0]).toEqual({ original: 'hello', modified: 'my kept work' })
   })
+
+  // 0.3.2 verification i3 ER-1: "Take the version on disk" must leave the DISK text in the editor, clean,
+  // so the next save writes nothing over the agent's version.
+  it('taking the version on disk leaves the disk text, clean, and a save writes nothing', async () => {
+    const files = bridge(async () => ({ ok: false, reason: 'changed-on-disk', current: 'agent', currentHash: 'h-agent' }))
+    mount()
+    await waitFor(() => expect(editors.length).toBe(1))
+    act(() => editors[0].setValue('MINE'))
+    await act(async () => editors[0].save!())
+    await waitFor(() => expect(diffs.length).toBe(1))
+    fireEvent.click(screen.getByRole('button', { name: en['editor.takeDisk'] }))
+    await waitFor(() => expect(editors.length).toBe(2))
+    expect(editors[1].getValue()).toBe('agent')
+    await act(async () => editors[1].save!())
+    expect(files.write).toHaveBeenCalledTimes(1)
+  })
 })

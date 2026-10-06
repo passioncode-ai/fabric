@@ -108,9 +108,12 @@ button:disabled { opacity: .4; cursor: default; }
 .tabbar-estate { margin-left: auto; align-self: center; color: var(--app-muted); font-size: var(--app-fs-caption); }
 
 .settings-bar {
-  display: flex; gap: var(--space-5); padding: var(--space-2) var(--space-4);
+  /* Wraps and aligns to the top: the usage switch's note is a paragraph, and in one non-wrapping row it
+     stretched the panel buttons beside it to ~340 px (0.3.2 verification i3 UX-5). */
+  display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-5); padding: var(--space-2) var(--space-4);
   border-bottom: 1px solid var(--app-line); background: var(--app-panel);
 }
+.settings-usage { display: flex; flex-direction: column; gap: var(--space-1); max-width: 42ch; }
 .settings-note { color: var(--app-muted); font-size: var(--app-fs-badge); max-width: 42ch; line-height: var(--app-lh-body); }
 .settings-bar label { display: flex; gap: var(--space-2); align-items: center; color: var(--app-muted); }
 

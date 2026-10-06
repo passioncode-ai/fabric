@@ -183,7 +183,8 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
       // A second conflict re-creates the diff; the person's side carries over, edits made in it included.
       const models = de.getModel()
       const mine = models?.modified.getValue()
-      if (mine !== undefined) seed.current = mine
+      if (mine !== undefined && keepDiffSide.current) seed.current = mine
+      keepDiffSide.current = true
       // The widget first, then its models: disposing a model the widget still holds throws
       // "TextModel got disposed before DiffEditorWidget model got reset" (0.3.2 verification UX-3).
       de.dispose()
@@ -196,6 +197,9 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
   const pendingContent = useRef<string | null>(null)
   /** A kept buffer being restored over a file that changed on disk: the diff's side for the person. */
   const restoredMine = useRef<string | null>(null)
+  /** Whether closing the diff carries its right side into the editor. False after "Take the version on disk",
+   *  which chose the OTHER side (0.3.2 verification i3 ER-1: the right side came back and was saved over it). */
+  const keepDiffSide = useRef(true)
   /** A save in flight. A second one started beside it would compare against the hash the first is about to
    *  replace, show the person's own write as a conflict and spend a second overwrite grant (ER-5). */
   const saving = useRef(false)
@@ -418,9 +422,11 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
             <>
               <Button
                 tone="ghost"
+                disabled={savingNow}
                 onClick={() => {
                   base.current = { content: conflict.current, hash: conflict.currentHash }
                   seed.current = conflict.current
+                  keepDiffSide.current = false
                   pendingContent.current = null
                   setConflict(null)
                   setDirty(false)

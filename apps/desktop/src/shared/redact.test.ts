@@ -86,6 +86,18 @@ describe('standard authorization headers', () => {
   // document and `session/new` carry headers as `{name, value}` pairs; the bridge takes its bearer as
   // an environment variable; a JSON-encoded environment escapes every quote; Hermes is Python and
   // prints dicts and reprs. A 24-byte base64url token (agentSurface's mint) has no shape of its own.
+  // 0.3.2 verification i3 DA-2: the same pair serialised value first.
+  it('removes a header pair written value first, keeps the name, and is idempotent', () => {
+    const tok = 'VmFsdWVGaXJzdFRva2VuVGhhdElzTG9uZw'
+    const input = `{"headers":[{"value":"Bearer ${tok}","name":"Authorization"},{"value":"agwRoleKeyValueFirst0123","name":"x-agw-key"},{"value":"plain","name":"Accept"}]}`
+    const once = redact(input).text
+    expect(once).not.toContain(tok)
+    expect(once).not.toContain('agwRoleKeyValueFirst0123')
+    expect(once).toContain('"name":"Authorization"')
+    expect(once).toContain('"value":"plain","name":"Accept"')
+    expect(redact(once).text).toBe(once)
+  })
+
   it('removes the ACP {name, value} header shape, the bridge variable, escaped JSON and Python spellings', () => {
     const tok = 'Q2hvb3NlQVRva2VuVGhhdElzTG9uZ0Vub3VnaA'
     const key = 'agwRoleKey0123456789abcdef'

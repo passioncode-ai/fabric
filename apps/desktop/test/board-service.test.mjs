@@ -149,3 +149,15 @@ test('submit refuses an epoch past int32 and a non-uuid thread or reply before t
   assert.equal(calls.length, 1)
   assert.deepEqual(calls[0].args.p_submit.thread, { id: '79000000-0000-4000-8000-0000000000d1' })
 })
+
+// 0.3.2 verification i3 DA-1: participants of a new thread and a request's target are compared as lower-case uuids.
+test('submit lower-cases the participants of a new thread and a request target', async () => {
+  const { rpc, calls } = fake({ board_submit: { data: { ok: true }, error: null } })
+  const board = createBoard({ rpc })
+  const upper = '79000000-0000-4000-8000-0000000000EE'
+  await board.submit(caller, { ...submitRequest, thread: { new: { participants: [upper] } }, kind: 'request', request: { target: upper, capability: 'review.code' } })
+  assert.equal(calls.length, 1)
+  assert.deepEqual(calls[0].args.p_submit.thread.new.participants, [upper.toLowerCase()])
+  assert.equal(calls[0].args.p_submit.request.target, upper.toLowerCase())
+})
+

@@ -152,6 +152,11 @@ export function createBoard(deps: BoardDeps) {
         if (thread === null) return refusal('not_authorized', 'This Project cannot write to that thread.')
         parsed.data.thread = { id: thread }
       }
+      // Project ids the board compares as lower-case uuids (migration 81): participants and a request's target
+      // take the same normalisation, so an upper-case spelling is not refused as an unknown Project (i3 DA-1).
+      const lowerUuid = (id: string): string => (BOARD_ID.test(id) ? id.toLowerCase() : id)
+      if ('new' in parsed.data.thread) parsed.data.thread = { new: { ...parsed.data.thread.new, participants: parsed.data.thread.new.participants.map(lowerUuid) } }
+      if (parsed.data.request) parsed.data.request = { ...parsed.data.request, target: lowerUuid(parsed.data.request.target) }
       if (parsed.data.replyTo !== undefined) {
         const replyTo = boardId(parsed.data.replyTo)
         if (replyTo === null) return refusal('not_authorized', 'This Project cannot reply to that message.')

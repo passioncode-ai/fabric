@@ -94,6 +94,18 @@ test('in ask mode a permission is the person\'s: "n" rejects, "y" allows once, n
   s.input.end(); await s.done
 })
 
+test('two questions in flight are answered in the order they were shown (i3 ER-2)', async () => {
+  const s = session(spec())
+  await s.until(() => s.shown().includes('echo:BRIEF'), 'the brief turn')
+  s.input.write('TWOASK\n')
+  await s.until(() => s.shown().includes('read README'), 'both questions shown')
+  s.input.write('n\n')
+  s.input.write('y\n')
+  await s.until(() => s.shown().includes('delete='), 'both answers')
+  assert.match(s.shown(), /delete=no-once read=yes-once/)
+  s.input.end(); await s.done
+})
+
 test('in bypass mode the shell allows once without asking', async () => {
   const s = session(spec({ mode: 'bypass' }))
   await s.until(() => s.shown().includes('echo:BRIEF'), 'the brief turn')

@@ -231,10 +231,14 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
   // Permission questions and prompts share the terminal: a question takes the next line.
   const lines = createInterface({ input: io.input, terminal: false })
   const waiting: ((line: string) => void)[] = []
+  /** Questions waiting for a fresh line, in the order they were SHOWN: they are served before any prompt,
+   *  first shown first answered (0.3.2 verification i3 ER-2: the newest question took the line typed for
+   *  an earlier one, so "n" for a deletion answered a read and "y" for the read allowed the deletion). */
+  const questions: ((line: string) => void)[] = []
   const queued: string[] = []
   let inputClosed = false
-  lines.on('line', (line) => { const next = waiting.shift(); if (next) next(line); else queued.push(line) })
-  lines.on('close', () => { inputClosed = true; for (const w of waiting.splice(0)) w('') })
+  lines.on('line', (line) => { const next = questions.shift() ?? waiting.shift(); if (next) next(line); else queued.push(line) })
+  lines.on('close', () => { inputClosed = true; for (const w of [...questions.splice(0), ...waiting.splice(0)]) w('') })
   const nextLine = (): Promise<string | null> =>
     queued.length ? Promise.resolve(queued.shift()!) : inputClosed ? Promise.resolve(null) : new Promise((resolve) => waiting.push((l) => resolve(inputClosed && l === '' ? null : l)))
   /**
@@ -251,12 +255,12 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
       const waiter = (l: string): void => { asking.delete(withdraw); resolve(inputClosed && l === '' ? null : l) }
       const withdraw = (): void => {
         asking.delete(withdraw)
-        const at = waiting.indexOf(waiter)
-        if (at >= 0) waiting.splice(at, 1)
+        const at = questions.indexOf(waiter)
+        if (at >= 0) questions.splice(at, 1)
         resolve(WITHDRAWN)
       }
       asking.add(withdraw)
-      waiting.unshift(waiter)
+      questions.push(waiter)
     })
 
   let sessionId: string | null = null

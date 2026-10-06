@@ -192,6 +192,7 @@ export const LAYOUT: Readonly<Record<string, string>> = {
   'task-history-head': 'its heading',
   'settings-bar': 'the settings band under the tab strip',
   'settings-note': 'the line stating what the OS will not do',
+  'settings-usage': 'the usage-counts switch and its note, one column in the settings band',
   'choice': 'one option in a radio group',
   'choice-row': 'the options of a radio group',
   'actions': 'a form’s action row',

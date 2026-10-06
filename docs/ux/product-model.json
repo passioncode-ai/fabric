@@ -30891,7 +30891,7 @@
       "screen_refs": [
         "SCR-54"
       ],
-      "coverage": "`apps/desktop/src/renderer/src/DiagnosticsSection.tsx`, `apps/desktop/src/main/stackExposure.ts`, `apps/desktop/src/renderer/src/StackExposureNotice.tsx`, `apps/desktop/src/renderer/src/StackExposureNotice.test.tsx`, `apps/desktop/test/stack-exposure.test.mjs` — the ops log, its level filter, the build line and the stack exposure warning; safe-row selection and the redacted local export are not built.",
+      "coverage": "`apps/desktop/src/renderer/src/DiagnosticsSection.tsx`, `apps/desktop/src/main/stackExposure.ts`, `apps/desktop/src/renderer/src/StackExposureNotice.tsx`, `apps/desktop/src/renderer/src/StackExposureNotice.test.tsx`, `apps/desktop/test/stack-exposure.test.mjs` — the ops log, its level filter and the build line, and the stack exposure warning above every screen; safe-row selection and the redacted local export are not built.",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "Прочитать состояние источников и безопасный журнал; экспортировать проверяемый набор без секретов.",
