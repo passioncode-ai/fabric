@@ -676,6 +676,17 @@ export interface DiagnosticsView {
   records: OpsRecord[]
   /** So a person can open the raw file, or send it. */
   file: string | null
+  /** Whether the local stack answered on this Mac's network addresses (audit A7-001); null until checked. */
+  stackExposure?: { checkedAt: string; ports: number[]; exposed: Array<{ iface: string; port: number }> } | null
+}
+
+/** A renderer failure, as the error boundary or the root's `onUncaughtError`
+ *  saw it (audit 2026-10-05 A7-009). */
+export interface RendererErrorInfo {
+  message: string
+  stack?: string | null
+  /** The React component stack, when the error came from a render. */
+  component?: string | null
 }
 
 /** What an answer did. Refusals use fixed validation or uncertainty reasons;
@@ -1337,6 +1348,13 @@ export interface FabricApi {
      *  find the problem" is not a request to open a log file. */
     read(query?: { level?: OpsLevel; limit?: number }): Promise<DiagnosticsView>
   },
+  ops: {
+    /** A renderer failure, reported to the main process's ops log so it is
+     *  recorded beside the program's own rather than lost in a console a
+     *  packaged app does not have (audit 2026-10-05 A7-009). Fire-and-forget:
+     *  the boundary that sends this has a window to keep standing. */
+    rendererError(info: RendererErrorInfo): void
+  },
   decisions: {
     /** What this project has decided, and what each decision replaced (M144).
      *  A list rather than a diagram: the only edge the data carries is
@@ -1610,5 +1628,6 @@ export const IPC = {
   terminalData: 'terminal:data',
   terminalExit: 'terminal:exit',
   windowsOpenSession: 'windows:open-session',
-  metaInfo: 'meta:info'
+  metaInfo: 'meta:info',
+  opsRendererError: 'ops:renderer-error'
 } as const

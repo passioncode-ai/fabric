@@ -1,6 +1,7 @@
 // The translator, without React: the registries and the interpolation rule, so the main process can say
 // the native consent prompt in the operator's language with the very keys the renderer uses (UX-2,
-// verification iteration 1 for 0.3.1). `index.tsx` builds its context from this; nothing else may.
+// verification iteration 1 for 0.3.1), and so the crash boundary can speak when the settings — or this
+// registry's own context — are what failed. `index.tsx` builds its context from this; nothing else may.
 
 import { en, type StringKey } from './en.ts'
 import { ru } from './ru.ts'

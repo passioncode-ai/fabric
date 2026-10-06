@@ -79,7 +79,7 @@ const panel = (feedMark: number, onError = vi.fn()): React.ReactElement => (
 )
 
 describe('a refresh cannot acknowledge the news it is refreshing for', () => {
-  it('advances only to the boundary the displayed payload covered', async () => {
+  it('acknowledges nothing on a refresh, and only the boundary on screen when the person leaves', async () => {
     // THE MEASURED DEFECT. Read at head 100 showing two lines; three events
     // arrive and the mark moves to 103. The old code marked 103 seen — the
     // three unshown events included. The boundary of what was SHOWN is 100.
@@ -92,18 +92,19 @@ describe('a refresh cannot acknowledge the news it is refreshing for', () => {
     const { rerender, unmount } = render(panel(70))
     await waitFor(() => expect(screen.getByText('decision at 99')).toBeTruthy())
 
-    api.digest.read.mockResolvedValue(lines([101, 102, 103], 103))
+    // Nothing was acknowledged, so main reads from the same mark: the old lines and the new ones.
+    api.digest.read.mockResolvedValue(lines([98, 99, 101, 102, 103], 103))
     rerender(panel(71))
     await waitFor(() => expect(screen.getByText('decision at 103')).toBeTruthy())
 
-    // The cleanup of the first run has fired by now.
-    expect(api.digest.seen).toHaveBeenCalledWith(project.id, 100)
-    expect(api.digest.seen).not.toHaveBeenCalledWith(project.id, 103)
+    // Audit 2026-10-05 A4-002: a refresh acknowledges nothing, and the lines being read stay.
+    expect(api.digest.seen).not.toHaveBeenCalled()
+    expect(screen.getByText('decision at 99')).toBeTruthy()
 
     unmount()
-    // And leaving acknowledges the second payload, exactly once for it.
+    // Leaving acknowledges what was on screen, exactly once, and nothing older is sent on its own.
     await waitFor(() => expect(api.digest.seen).toHaveBeenCalledWith(project.id, 103))
-    expect(api.digest.seen.mock.calls.filter((c) => c[1] === 103)).toHaveLength(1)
+    expect(api.digest.seen.mock.calls).toEqual([[project.id, 103]])
   })
 
   it('and the new items stay on screen rather than being swept by their own arrival', async () => {

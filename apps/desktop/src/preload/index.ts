@@ -156,6 +156,9 @@ const api: FabricApi = {
   diagnostics: {
     read: (query) => ipcRenderer.invoke(IPC.diagnosticsRead, query)
   },
+  ops: {
+    rendererError: (info) => ipcRenderer.send(IPC.opsRendererError, info)
+  },
   favourites: {
     list: () => ipcRenderer.invoke(IPC.favouritesList),
     toggle: (projectId) => ipcRenderer.invoke(IPC.favouritesToggle, projectId),

@@ -68,7 +68,7 @@ refuses('an absolute path outside every root is refused', () => readFile(path.jo
 refuses('/etc/passwd is refused', () => readFile('/etc/passwd', roots))
 refuses('listing a directory outside every root is refused', () => listDirectory(secrets, roots))
 refuses('writing outside every root is refused', () =>
-  writeFile(path.join(secrets, 'planted'), 'x', 'nohash', roots, true))
+  writeFile(path.join(secrets, 'planted'), 'x', 'absent', roots))
 
 // 3 — traversal
 refuses('..-traversal out of a root is refused', () =>
@@ -83,7 +83,7 @@ refuses('a sibling whose NAME starts with the root name is not inside it', () =>
 // and a new file in an open repository still works — the guard must not make
 // the editor unable to create anything.
 try {
-  writeFile(path.join(repo, 'new.md'), '# new\\n', 'unused', roots, true)
+  writeFile(path.join(repo, 'new.md'), '# new\\n', 'absent', roots)
   if (readFileSync(path.join(repo, 'new.md'), 'utf8') === '# new\\n')
     ok('a file that does not exist yet can still be created inside a root')
   else fail('the new file has the wrong content')

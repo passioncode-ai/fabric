@@ -53,13 +53,22 @@ function fakeDb(answers, calls = []) {
           in: () => q,
           order: () => q,
           limit: () => q,
+          // The gateway's cap: at most 1000 rows per answer however many match, with the exact count.
+          range: (from, to) => {
+            calls.push(table)
+            if (answer.error) return Promise.resolve({ data: null, error: answer.error, count: null })
+            const all = answer.data ?? []
+            return Promise.resolve({ data: all.slice(from, Math.min(to + 1, from + 1000)), error: null, count: all.length })
+          },
           maybeSingle: () => {
             calls.push(table)
             return Promise.resolve(answer)
           },
           then: (resolve) => {
             calls.push(table)
-            return Promise.resolve(answer).then(resolve)
+            // An unpaged read is capped the same way, silently.
+            const capped = Array.isArray(answer.data) ? { ...answer, data: answer.data.slice(0, 1000) } : answer
+            return Promise.resolve(capped).then(resolve)
           }
         }
         return q
@@ -174,6 +183,16 @@ const storeOf = (answers, calls) =>
   ;/select\(\s*'journal'/.test("const x = store.select('journal', 'seq')")
     ? ok('and the detector is shown catching a journal read when there is one')
     : fail('the journal-read detector cannot see a journal read')
+}
+
+// ── audit 2026-10-05 A4-003: every matching row is read, past the gateway's cap ─────────────
+{
+  const many = Array.from({ length: 2500 }, (_, i) => ({ id: `f${i}`, claim: `decision ${i}`, recorded_at: '2026-10-05T10:00:00Z', seq: 101 + i }))
+  const store = storeOf({ journal: { data: { seq: 3000 }, error: null }, memory_facts: { data: many, error: null } })
+  const digest = await digestFor(store, ESTATE, PROJECT, 100)
+  const decisions = JSON.stringify(digest).match(/decision \d+/g) ?? []
+  eq(new Set(decisions).has('decision 2499'), true, 'every decision since the mark is read, 2500 past a 1000-row gateway cap (A4-003)')
+  eq(digest.boundary, 3000, 'and the boundary is the head that was read')
 }
 
 if (failures) {

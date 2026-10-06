@@ -9,6 +9,37 @@ const bundleAllButNative = externalizeDepsPlugin({
   exclude: ['@fabric/journal', '@supabase/supabase-js']
 })
 
+/**
+ * The renderer's Content-Security-Policy (ADR-0020 makes it a host obligation; audit 2026-10-05 A7-002).
+ * Every Fabric window carries the preload's bridge, so no script but the app's own may run in one.
+ * Added to the BUILT page only: the dev server injects an inline React Refresh preamble that a
+ * `script-src 'self'` would refuse, and a policy loosened for development is the one that ships.
+ * `style-src 'unsafe-inline'` is for Monaco and xterm, which create <style> elements; workers are the
+ * bundle's own files. The renderer loads nothing from the network (`csp.test.mjs` asserts the policy).
+ */
+export const RENDERER_CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self' data:",
+  "worker-src 'self' blob:",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "frame-src 'none'",
+  "base-uri 'none'",
+  "form-action 'none'"
+].join('; ')
+
+function contentSecurityPolicy() {
+  return {
+    name: 'fabric-renderer-csp',
+    apply: 'build' as const,
+    transformIndexHtml: (html: string) =>
+      html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n    <meta http-equiv="Content-Security-Policy" content="${RENDERER_CSP}" />`)
+  }
+}
+
 export default defineConfig({
   main: {
     plugins: [bundleAllButNative],
@@ -48,6 +79,6 @@ export default defineConfig({
     }
   },
   renderer: {
-    plugins: [react()]
+    plugins: [react(), contentSecurityPolicy()]
   }
 })

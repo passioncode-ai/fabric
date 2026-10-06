@@ -106,21 +106,29 @@ export function DigestSection({
     }
   }, [project.id, shown, onError])
 
+  // A refresh only reads (audit 2026-10-05 A4-002). It used to acknowledge what was on screen first,
+  // so any journal event anywhere in the estate moved the mark and the lines being read vanished
+  // within seconds. Nothing is acknowledged until the person leaves this project's digest; until then
+  // every re-read starts from the same mark, so new lines join the old ones instead of replacing them.
   useEffect(() => {
     void read()
+    // `read` is intentionally not a dependency: it changes with `shown`, and
+    // depending on it would re-read on every answer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project.id, feedMark, attempt])
+
+  useEffect(() => {
+    const leaving = project.id
     return () => {
       // Leaving. Everything that was SHOWN has now been seen — and nothing
       // else. A boundary the journal could not supply is not a boundary: the
       // old code asked the journal again here, which is how "nothing was
       // readable" became "mark whatever has happened by now".
       const boundary = displayed.current
-      if (boundary !== null) void window.fabric.digest.seen(project.id, boundary)
+      displayed.current = null
+      if (boundary !== null) void window.fabric.digest.seen(leaving, boundary)
     }
-    // `read` is intentionally not a dependency: it changes with `shown`, and
-    // depending on it would re-read on every answer — and acknowledge on every
-    // answer with it.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [project.id, feedMark, attempt])
+  }, [project.id])
 
   const tone = (kind: string): 'info' | 'warn' | 'quiet' =>
     kind === 'review' ? 'warn' : kind === 'decision' ? 'info' : 'quiet'

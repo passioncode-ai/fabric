@@ -11,6 +11,7 @@
 // in a session opens the window that already does it properly.
 
 import { useEffect, useRef, useState } from 'react'
+import { mayHaveEarlier, SESSION_HISTORY_WINDOW } from '../../shared/sessionHistory.ts'
 import type { FeedEvent, ProjectRow, RepoState, TerminalSession } from '../../shared/types'
 import {
   failed,
@@ -313,6 +314,9 @@ export function EstateAgents({
           )}
           {agent && historyRead.state === 'ready' && (historyRead.value ?? []).length === 0 && (
             <EmptyState read>{t('agents.noHistory')}</EmptyState>
+          )}
+          {agent && historyRead.state === 'ready' && mayHaveEarlier(historyRead.value ?? []) && (
+            <p className="muted" data-testid="history-earlier">{t('agents.historyEarlier', { count: SESSION_HISTORY_WINDOW })}</p>
           )}
           {(historyRead.value ?? []).map((e) => (
             <Row

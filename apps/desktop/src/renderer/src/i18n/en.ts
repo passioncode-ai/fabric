@@ -548,6 +548,10 @@ export const en = {
   'agents.changed': '{count} changed',
   'agents.noRepo': 'no repository attached',
   'agents.history': 'What it did',
+  'agents.historyEarlier': 'The newest {count} events are shown; earlier ones are in the journal.',
+  'app.crash.title': 'Something in this window failed',
+  'app.crash.body': 'The failure was recorded in Diagnostics. Your work in other windows is untouched, and unsaved editor text is kept for recovery.',
+  'app.crash.back': 'Try again',
   'agents.noHistory': 'Nothing about this session has reached the journal yet.',
   'agents.mode': 'running as {mode}',
   'agents.noMode': 'no permission mode recorded',
@@ -828,6 +832,11 @@ export const en = {
   'diagnostics.level.debug': 'Everything',
   'diagnostics.nothing': 'Nothing at this level — which is the good outcome.',
   'diagnostics.unreadable': 'The log could not be read: {reason}',
+  'diagnostics.exposure.title': 'The local database can be reached from your network',
+  'diagnostics.exposure.body':
+    'Ports {ports} answered on {ifaces}. They accept the stack’s default password, so anyone on the same network can read and change your projects. Fabric cannot bind them to this Mac alone: that setting belongs to the container engine and applies to every container on it.',
+  'diagnostics.exposure.remedy':
+    'OrbStack: run `orbctl config set docker.expose_ports_to_lan false`, then restart OrbStack and Fabric. Docker Desktop: set "ip": "127.0.0.1" in the engine configuration and restart it.',
   'needsYou.title': 'Needs you',
   'needsYou.lede':
     'Questions an agent could not decide, and obligations the work has left standing. Ranked together; nothing here can be marked as read.',
@@ -1626,6 +1635,7 @@ export const en = {
   'launch.board.fact.answered': "Answered",
   'launch.board.fact.option': "Option chosen",
   'launch.board.fact.answer': "Answer",
+  'launch.board.state.answered': "Answered",
   'launch.board.state.open': "Needs attention",
   'launch.board.detailNote': "The answer and its receipt stay with the question or result they belong to.",
   'launch.board.ritual.kicker': "Working ritual",

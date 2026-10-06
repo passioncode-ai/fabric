@@ -315,13 +315,37 @@ export function writeFile(
   scope?: string
 ): WriteResult {
   file = roots.resolve(file, scope)
-  const bytes = readFileSync(file)
+  const next = Buffer.from(content, 'utf8')
+  let bytes: Buffer | null
+  try {
+    bytes = readFileSync(file)
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e
+    bytes = null
+  }
+  if (bytes === null) {
+    // Nothing on disk — deleted while open, or never there. That is a version of its own: the person
+    // is shown it as a conflict, and only a write that presents ABSENT_HASH creates the file, with
+    // `wx` so a file that appeared in the meantime is not overwritten either.
+    if (expectedHash !== ABSENT_HASH) return { ok: false, reason: 'changed-on-disk', current: '', currentHash: ABSENT_HASH }
+    try {
+      writeFileSync(file, next, { flag: 'wx' })
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e
+      const now = readFileSync(file)
+      const text = textOf(now)
+      return text === null ? { ok: false, reason: 'not-text' } : { ok: false, reason: 'changed-on-disk', current: text, currentHash: hash(now) }
+    }
+    return { ok: true, hash: hash(next) }
+  }
   const onDisk = textOf(bytes)
   if (onDisk === null) return { ok: false, reason: 'not-text' }
   if (hash(bytes) !== expectedHash) {
     return { ok: false, reason: 'changed-on-disk', current: onDisk, currentHash: hash(bytes) }
   }
-  const next = Buffer.from(content, 'utf8')
   writeFileSync(file, next)
   return { ok: true, hash: hash(next) }
 }
+
+/** The hash a caller presents for "there is no file here": the version a deleted file is shown as. */
+export const ABSENT_HASH = 'absent'

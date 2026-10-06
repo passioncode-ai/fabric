@@ -356,6 +356,25 @@ describe('the board screen itself (SCR-41)', () => {
     await waitFor(() => expect(screen.getByText(en['launch.board.recorded'])).toBeTruthy())
   })
 
+  // Audit 2026-10-05 A3-001: the stub used to return the question as still open after its answer, which
+  // hid that the re-read removes it. Here the board re-reads WITHOUT it, as the projection does.
+  it('the receipt stays on screen after the answered question leaves the open list', async () => {
+    const answer = vi.fn(async () => ({ committed: true, unblocked: [{ id: 't1', title: 'Ship the pack' }], stillBlocked: [], continuations: [] }))
+    const empty = envelope({ data: cutBoard([], 100), sources: [{ name: 'questions', status: 'ok', asOf: STAMP }], asOf: STAMP, freshness: 'fresh' })
+    let answered = false
+    const query = vi.fn(async () => (answered ? empty : withQuestion))
+    mount(answer as never, { query })
+    answer.mockImplementation(async () => { answered = true; return { committed: true, unblocked: [{ id: 't1', title: 'Ship the pack' }], stillBlocked: [], continuations: [] } })
+    await openRow('Which context goes to the next agent?')
+    fireEvent.click(await waitFor(() => screen.getByText('Decisions only')))
+    await waitFor(() => expect(answer).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(query.mock.calls.length).toBeGreaterThan(1))
+    await new Promise((r) => setTimeout(r, 20))
+    expect(screen.getByText(en['launch.board.recorded'])).toBeTruthy()
+    expect(screen.getByText(en['launch.board.state.answered'])).toBeTruthy()
+    expect(screen.queryByText('Which context goes to the next agent?')).toBeTruthy()
+  })
+
   it('a refused answer says why and keeps what was typed', async () => {
     const answer = vi.fn(async () => ({ committed: false, reason: 'the question changed while you were reading it', unblocked: [], stillBlocked: [], continuations: [] }))
     mount(answer)

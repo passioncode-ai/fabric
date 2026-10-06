@@ -11,7 +11,9 @@
 //   1. An IPC handler is registered through `handle`, not `ipcMain.handle`. The
 //      wrapper is what gives every call a correlation id and a duration, and a
 //      rule applied by hand at seventy-six call sites holds until somebody is
-//      busy.
+//      busy. A fire-and-forget listener goes through `listen`, never a bare
+//      `ipcMain.on`: the send side has no answer channel, so its failure is
+//      recorded — and its sender checked — by the wrapper (audit A7-009/A7-002).
 //   2. NO console channel appears in the main process — not `error`, and not
 //      `warn` or `log` either. The first version of this gate banned only
 //      `console.error`, and eleven `warn`/`log` calls carried on writing to a
@@ -63,7 +65,20 @@ for (const file of walk(MAIN)) {
     )
   }
 
+  // …and its send-side counterpart (audit 2026-10-05 A7-009): a bare `ipcMain.on`
+  // throws into Electron's default handler, which is a BLOCKING error dialog, and
+  // skips the sender wall handle() applies (A7-002). listen() does both.
+  for (const m of src.matchAll(/\bipcMain\.on\(/g)) {
+    // The wrapper's own call is the one that takes `channel`.
+    const after = src.slice(m.index + m[0].length, m.index + m[0].length + 20)
+    if (after.startsWith('channel')) continue
+    problems.push(
+      `${file}:${lineOf(m.index)}  ipcMain.on registered directly — use listen(), which records a failure instead of throwing into Electron's error dialog and refuses a sender that is not Fabric's renderer`
+    )
+  }
+
   handlers += [...src.matchAll(/(?<![.\w])handle\(\s*\n?\s*IPC\./g)].length
+  handlers += [...src.matchAll(/(?<![.\w])listen\(\s*\n?\s*IPC\./g)].length
 
   // ——— 2 · nothing writes to a terminal that is not there
   if (!SINK.has(name))

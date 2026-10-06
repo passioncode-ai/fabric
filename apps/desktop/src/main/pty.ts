@@ -512,7 +512,12 @@ export class PtyManager {
   }
 
   resize(sessionId: string, cols: number, rows: number): void {
-    if (cols > 0 && rows > 0) this.sessions.get(sessionId)?.pty.resize(cols, rows)
+    // An ended session keeps its record (and its tile) but not its terminal: node-pty's resize on an
+    // exited PTY throws `ioctl(2) failed, EBADF` (audit 2026-10-05 A2-001, probed). Opening or resizing
+    // the window of an ended session is ordinary, so it is a no-op, not an error.
+    const s = this.sessions.get(sessionId)
+    if (!s || !s.running || !(cols > 0 && rows > 0)) return
+    s.pty.resize(cols, rows)
   }
 
   /**

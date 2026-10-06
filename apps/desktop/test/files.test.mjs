@@ -70,6 +70,20 @@ const same = writeFile(bom, withBom.content, withBom.hash, roots)
 if (!same.ok || !readFileSync(bom).equals(bomBytes) || same.hash !== withBom.hash) {
   console.log('FAIL: a BOM text file did not round-trip'); process.exit(1)
 }
+// A file deleted while open: the save is a conflict with nothing on disk, and only the person's
+// "keep mine" (presenting the absent version) creates it again.
+const gone = ${JSON.stringify(path.join(dir, 'gone.md'))}
+writeFileSync(gone, 'was here\\n')
+const before = readFile(gone, roots)
+const { rmSync } = await import('node:fs')
+rmSync(gone)
+const deleted = writeFile(gone, 'mine\\n', before.hash, roots)
+if (deleted.ok !== false || deleted.reason !== 'changed-on-disk' || deleted.currentHash !== 'absent' || deleted.current !== '') { console.log('FAIL: a deleted file was not a conflict'); process.exit(1) }
+const recreated = writeFile(gone, 'mine\\n', deleted.currentHash, roots)
+if (!recreated.ok || readFileSync(gone, 'utf8') !== 'mine\\n') { console.log('FAIL: keep mine did not create the file again'); process.exit(1) }
+const raced = writeFile(gone, 'again\\n', 'absent', roots)
+if (raced.ok !== false || raced.reason !== 'changed-on-disk') { console.log('FAIL: an absent-version write overwrote a file that exists'); process.exit(1) }
+console.log('ok   a file deleted while open is a conflict, and keep mine creates it again without overwriting a newer one')
 console.log('ok   a binary or non-UTF-8 file opens read-only and is never written (A4-001)')
 console.log('ok   a BOM text file round-trips byte for byte, with the same hash')
 console.log('ok   editor save refuses a stale write and returns the disk version')

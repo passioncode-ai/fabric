@@ -720,6 +720,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **UI elements:** terminal viewport; Start session; End session; session status; tab per project.
 - **States covered:** empty, loading, error, success, reattached
 - **Errors & recovery:** spawn failure names the cwd and binary checked and offers retry without journalling an open; a killed PTY marks the tab ended, never silently blank.
+- **Amended 2026-10-06 (audit A2-001):** resizing the window of an ended session is a no-op on both sides — the view does not send it, and `PtyManager.resize` returns unless the session is running — rather than an `ioctl EBADF` throw inside a raw listener.
 - **Telemetry:** `terminal_session_opened` with project_id, cwd_bound, reattach:boolean — no keystroke content, no transcript body
 - **Status:** draft
 - **Coverage:** `apps/desktop/src/main/pty.ts`, `apps/desktop/src/renderer/src/SessionWindow.tsx`, `apps/desktop/test/pty.test.mjs`
@@ -1442,7 +1443,8 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Amended 2026-09-29 (SCR-41 built as a screen):** the Board is a place of its own, reached from «Доска» in the navigation and «Разобрать доску →» on the home, and the CEO side panel that used to hold the obligations is retired. Steps 1–3 run there: a row opens its details with the options, the answer form and the committed receipt or the refusal, and a refused answer keeps its draft (`launch/BoardScreen.test.tsx`). «Разобрано» lists answered questions with the answer and the option chosen. Not yet: step 5's Back restoring filter and selection, and the `?item=` address.
 - **Amended 2026-09-29 (L3b):** «На следующий раз» sets an authored question aside with a reason (`defer_question`, migration 68): it stays open and keeps blocking, is listed under its own tab with the reason, and «Вернуть на доску» returns it (`reopen_question`); answering it settles it and clears the deferral. «+ Добавить тему» writes an open question onto a chosen project as the owner (`ask_topic`), answered by the same `answer_question`. Each command is idempotent on its command id, stable per attempt on screen (`launch/BoardScreen.test.tsx`, `apps/desktop/test/board-deferral-db.test.mjs`).
 - **Status:** draft
-- **Coverage:** none yet
+- **Amended 2026-10-06 (audit A3-001):** after an answer commits, the Board re-reads and the answered question leaves the open list; the detail stays on that row, marked Answered, with the receipt (recorded, what it unblocked, what is still blocked, delivery), until the person closes it or picks another row.
+- **Coverage:** `apps/desktop/src/renderer/src/launch/BoardScreen.tsx`, `apps/desktop/src/renderer/src/BoardPanel.tsx`, `apps/desktop/src/renderer/src/launch/BoardScreen.test.tsx`
 - **Product:** unobserved
 
 ### SCN-051: Inspect a manager settlement and override it by a new decision
@@ -1951,10 +1953,11 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Alt paths:** healthy, partial, source-error, filtered, redacted-export. Неизвестный исход сверяется по тому же запросу; отказ не расширяет scope.
 - **UI elements:** Идентичность объекта, источник, ревизия, предпросмотр последствий, квитанция.
 - **Errors & recovery:** Черновик сохраняется по объекту; старый снимок не допускает запись; доступная история остаётся читаемой.
+- **Amended 2026-10-06 (audit A7-001):** after the local stack starts, Fabric tries each stack port on every non-loopback IPv4 address of this Mac. If one answers, Diagnostics opens with a warning naming the ports and interfaces (never the addresses), why it matters (the stack's default password) and the remedy, which belongs to the container engine and is the person's to apply; the check is recorded once as `stack.exposed-on-network`. Nothing answering shows nothing.
 - **Implementation tasks:** M81
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-diagnostics).
 - **Status:** draft
-- **Coverage:** none yet
+- **Coverage:** `apps/desktop/src/renderer/src/DiagnosticsSection.tsx`, `apps/desktop/src/main/stackExposure.ts`, `apps/desktop/src/renderer/src/DiagnosticsSection.test.tsx`, `apps/desktop/test/stack-exposure.test.mjs` — the ops log, its level filter, the build line and the stack exposure warning; safe-row selection and the redacted local export are not built.
 - **Product:** unobserved
 
 
@@ -2253,6 +2256,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **States covered:** first-visit, loading, nothing-new, lines, stale (a refresh that failed with a reading still worth showing), error (nothing read and refused)
 - **Errors & recovery:** a refresh that fails keeps the previous digest visible WITH its age and says why, never a blank band and never a silent acknowledgement; a first read that fails says so rather than showing the waiting line or the empty one; a journal head that cannot be read leaves the digest showable and acknowledges nothing.
 - **Telemetry:** planned only.
+- **Amended 2026-10-06 (audit A4-002, A4-003):** step 3 now holds in code. A refresh acknowledges nothing: every re-read starts from the same mark, so the lines on screen stay and new ones join them; the mark moves only when the person leaves the project's digest. Each content read is paged to the end (no 1000-row gateway cap), so the boundary never acknowledges a line that was not read.
 - **Status:** draft
 - **Coverage:** `apps/desktop/src/shared/digest.ts`, `apps/desktop/src/main/digestRead.ts`, `apps/desktop/src/renderer/src/DigestSection.tsx`, `apps/desktop/src/shared/digest.test.ts`, `apps/desktop/src/renderer/src/DigestSection.test.tsx`, `apps/desktop/test/digest-boundary.test.mjs`. UX28-03 made the boundary travel with the reading and rendered the staleness line; the digest had NO scenario of its own before this — its only registry mention was a coverage line on SCN-044, which is about the manager's profile. `draft` rather than `built` because no run has watched a person catch up on a real project with it.
 - **Product:** unobserved

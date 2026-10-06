@@ -84,6 +84,20 @@ export function DiagnosticsSection(): React.JSX.Element {
 
       {problem && <Banner tone="error">{t('diagnostics.unreadable', { reason: problem })}</Banner>}
 
+      {/* Audit A7-001: the stack answering on the network is the first thing this panel says. */}
+      {view?.stackExposure && view.stackExposure.exposed.length > 0 && (
+        <Banner tone="warn">
+          <b>{t('diagnostics.exposure.title')}</b>
+          <p>
+            {t('diagnostics.exposure.body', {
+              ports: [...new Set(view.stackExposure.exposed.map((x) => x.port))].join(', '),
+              ifaces: [...new Set(view.stackExposure.exposed.map((x) => x.iface))].join(', ')
+            })}
+          </p>
+          <p>{t('diagnostics.exposure.remedy')}</p>
+        </Banner>
+      )}
+
       {view && view.records.length === 0 && (
         <EmptyState read>{t('diagnostics.nothing')}</EmptyState>
       )}

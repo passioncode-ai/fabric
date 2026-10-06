@@ -6,6 +6,33 @@ that section as the notes of the `vX.Y.Z` release
 ([docs/launch/release-mac.md](docs/launch/release-mac.md), [ADR-0111](docs/adr/0111-fabric-is-released-from-ci.md)).
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
+## 0.3.2 (unreleased)
+
+A release built from a full audit of the 0.3.1 candidate: all 134 scenarios against their screens and code,
+plus the trust boundaries ([report](docs/reports/2026-10-05-release-032-audit/README.md)). Every P0 and P1
+finding is fixed or carried to a named row.
+
+- **The editor never damages a file it cannot show as text.** Binary and non-UTF-8 files open read-only and
+  are never written back; a save no longer rebuilds the editor, so typing during a save is kept; "Keep mine"
+  overwrites only the version you were shown; a conflict puts the focus on its explanation, not on the
+  destructive button.
+- **Agents run through ACP behave.** A turn has no two-minute deadline; a line typed ahead never answers a
+  permission question; stopping an agent ends its whole process group; your project's servers go with
+  Fabric's surface; Kilo and Hermes do not start in a mode their bundle cannot honour; one failed request no
+  longer closes the stdio bridge; keys from Kilo's config are kept out of transcripts
+  ([ADR-0119](docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md), amendment 3).
+- **Attention, Board, digest and history read true.** A granted refusal leaves the queue and repeats are one
+  item; an answered question keeps its receipt on screen; the digest no longer marks lines read while you read
+  them and is no longer cut at 1000 rows; an agent's history shows its newest 200 events and says when earlier
+  ones exist.
+- **Windows hold only Fabric.** A window can show only Fabric's own page, links leave for your browser, the
+  built page carries a Content-Security-Policy, and the bridge refuses any other caller. Crashes of the app or
+  a window are recorded in Diagnostics, and the window shows a recovery screen instead of going blank.
+- **Diagnostics tells you when your local database is reachable from the network.** The Supabase CLI
+  publishes the stack's ports on every interface with its default password, and Fabric cannot bind them to
+  this Mac alone. Fabric now checks after start and, if they answer on your network address, says so with the
+  remedy for OrbStack or Docker Desktop.
+
 ## 0.3.1
 
 - **The hub: a local agent reaches a cloud product through Fabric, on your consent**

@@ -71,6 +71,8 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   const [draft, setDraft] = useState<Record<string, string>>({})
   const [receipt, setReceipt] = useState<Record<string, AnswerReceipt>>({})
   const [sending, setSending] = useState<string | null>(null)
+  /** The row last shown in the detail, kept so an answered question's receipt outlives its row. */
+  const lastChosen = useRef<Row | null>(null)
   const reload = useRef<() => Promise<void>>(async () => {})
   /** What the last access decision did, named: its row leaves the queue once the decision is projected (UX-1). */
   const [accessSaid, setAccessSaid] = useState<{ text: string; detail: string | null } | null>(null)
@@ -128,7 +130,14 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
       : r.state === 'committed' ? <div className="lp-callout" role="status"><b>{committed}</b></div>
       : r.state === 'refused' ? <div className="lp-callout" role="alert"><p>{t(`launch.board.refused.${r.refusal}` as 'launch.board.refused.no_such')}</p></div>
       : <div className="lp-callout" role="alert"><p>{t('launch.board.unconfirmed')}</p></div>
-  const chosen = rows?.find((r) => r.entry.ref === selected) ?? null
+  // An answered question leaves the open list on the re-read its commit triggers. The receipt (what
+  // the answer unblocked, where it was delivered) is the reason the person stays on this row, so the
+  // row is kept, as it was, until the person closes it or picks another (audit 2026-10-05 A3-001: the
+  // detail closed on the next render and the receipt was never seen).
+  const found = rows?.find((r) => r.entry.ref === selected) ?? null
+  if (found) lastChosen.current = found
+  const answeredHere = !found && selected !== null && receipt[selected]?.committed === true && lastChosen.current?.entry.ref === selected
+  const chosen = found ?? (answeredHere ? lastChosen.current : null)
   const observed = open?.asOf ? new Date(open.asOf).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }) : null
   /** A board row's kind in words. Set-aside and resolved rows are authored questions, whatever
    *  the question's own kind (decision, access…): the board names them as questions. */
@@ -259,7 +268,7 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
               <>
                 {chosen.entry.detail && <p>{chosen.entry.detail}</p>}
                 <dl className="lp-facts">
-                  <div><dt>{t('launch.board.fact.state')}</dt><dd>{t('launch.board.state.open')}</dd></div>
+                  <div><dt>{t('launch.board.fact.state')}</dt><dd>{t(answeredHere ? 'launch.board.state.answered' : 'launch.board.state.open')}</dd></div>
                   <div><dt>{t('launch.board.fact.waiting')}</dt><dd>{since(chosen.entry.waitingSince, t)}</dd></div>
                 </dl>
                 <div className="lp-divider" />

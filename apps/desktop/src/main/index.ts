@@ -11,7 +11,8 @@ import { createJournal, type Journal } from '@fabric/journal'
 import { createDesktopJournal, cleanOriginalText, prepareTaskText, prepareIdeaText, prepareRetrievalText } from './desktopIngress.ts'
 import { commitBoardCommand, commitPreparedAnswer, commitPreparedImport, commitReleaseCommand } from './commandIngressAdapters.ts'
 import { createHash, randomUUID } from 'node:crypto'
-import { fixPath, resolveSupabaseEnv, startStack, stopStartingStack } from './env'
+import { fixPath, resolveSupabaseEnv, stackStatusEnv, startStack, stopStartingStack } from './env'
+import { stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
 import { applyAppIcon, windowIcon } from './appIcon'
 import { Policy } from './policy'
 import { launchOptions, PtyManager } from './pty'
@@ -35,6 +36,8 @@ import { ConsentPresenter } from './consentPresenter.ts'
 import { CONNECTABLE_PRODUCTS, agentFacts, askLines, pendingFacts, productName, type ConnectProblem, type HubActResult, type HubDownCode, type HubOverview } from '../shared/access.ts'
 import { translator } from '../renderer/src/i18n/translate.ts'
 import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
+import { latestInOrder, SESSION_HISTORY_WINDOW } from '../shared/sessionHistory.ts'
+import { externalLink, isAppDocument, type AppEntry } from './navigationGuard.ts'
 import { createBundleCompiler } from './sessionBundle'
 import { createTranscriptStore } from './transcripts'
 import { compileContextPack, contextDemandFor, type LaunchTrigger } from './contextPack'
@@ -88,7 +91,8 @@ import {
   type RoutineRow,
   type CeoChatReply,
   type CeoChatStatus,
-  type FabricApi
+  type FabricApi,
+  type RendererErrorInfo
 } from '../shared/types'
 import { createCeoConversationHost } from './ceoConversationHost.ts'
 import { createCeoChatBinding } from './ceoChatBinding.ts'
@@ -175,12 +179,53 @@ function handle(
   ipcMain.handle(channel, async (event, ...args) => {
     const done = ops.begin(`ipc.${channel}`, { correlationId: ops.correlate() })
     try {
+      // A7-002: the bridge grants file writes and access decisions, so only
+      // Fabric's own renderer document may drive it. The navigation guard keeps
+      // every window on that document; this is the guard's second wall.
+      if (!senderAllowed(event)) throw new Error(`the sender is not Fabric's renderer (${event.senderFrame?.url ?? 'no frame'})`)
       const result = await fn(event, ...(args as never[]))
       done('ok')
       return result
     } catch (e) {
       done('failed', { error: e })
       throw e
+    }
+  })
+}
+
+/** The one document every window of this app holds (audit 2026-10-05 A7-002). */
+const APP_ENTRY: AppEntry = {
+  devOrigin: process.env.ELECTRON_RENDERER_URL ?? null,
+  indexFile: path.join(import.meta.dirname, '../renderer/index.html')
+}
+
+function senderAllowed(event: Electron.IpcMainInvokeEvent | Electron.IpcMainEvent): boolean {
+  try {
+    return isAppDocument(event.senderFrame?.url ?? '', APP_ENTRY)
+  } catch {
+    // A frame whose url cannot be read is not Fabric's renderer either.
+    return false
+  }
+}
+
+/**
+ * The fire-and-forget counterpart of handle(). A send has no answer channel to
+ * carry a failure back, and a throw inside `ipcMain.on` reaches Electron's
+ * default handler — a blocking error dialog (audit 2026-10-05 A7-009) — so the
+ * failure is recorded instead. The sender wall is handle()'s own (A7-002), and
+ * `check-ops.mjs` refuses a bare `ipcMain.on` so the next listener inherits
+ * both.
+ */
+function listen(channel: string, fn: (event: Electron.IpcMainEvent, ...args: never[]) => void, note?: string): void {
+  ipcMain.on(channel, (event, ...args) => {
+    if (!senderAllowed(event)) {
+      ops.failed(`ipc.${channel}`, new Error(`the sender is not Fabric's renderer (${event.senderFrame?.url ?? 'no frame'})`))
+      return
+    }
+    try {
+      fn(event, ...(args as never[]))
+    } catch (e) {
+      ops.failed(`ipc.${channel}`, e, note ? { note } : undefined)
     }
   })
 }
@@ -411,6 +456,36 @@ function splashWindow(text: string): BrowserWindow {
   return w
 }
 
+/** What the last network check of the local stack found (audit A7-001); null until it has run. */
+let lastStackExposure: StackExposure | null = null
+
+/**
+ * Whether the stack's ports answer on this Mac's network addresses (`stackExposure.ts` says why Fabric
+ * reports this rather than changing the binding). The result is shown in Diagnostics and recorded once.
+ */
+async function checkStackExposure(apiUrl: string): Promise<void> {
+  let dbUrl: string | undefined
+  try {
+    dbUrl = (await stackStatusEnv()).DB_URL
+  } catch (e) {
+    // An external stack (SUPABASE_URL given) or a status that cannot be read: the API port is still checked.
+    ops.record({ op: 'stack.exposure-db-port-unknown', outcome: 'unknown', level: 'info', detail: { reason: e instanceof Error ? e.message : String(e) }, ctx: { correlationId: ops.correlate() } })
+  }
+  try {
+    lastStackExposure = await stackExposure(stackPorts([apiUrl, dbUrl]))
+    if (lastStackExposure.exposed.length > 0)
+      ops.record({
+        op: 'stack.exposed-on-network',
+        outcome: 'ok',
+        level: 'warn',
+        detail: { exposed: lastStackExposure.exposed, note: 'the local database answers on this Mac\'s network address with default credentials; see Settings → Diagnostics for the remedy' },
+        ctx: { correlationId: ops.correlate() }
+      })
+  } catch (e) {
+    ops.failed('stack.exposure-check', e, { note: 'whether the local stack is reachable from the network is unknown' })
+  }
+}
+
 async function resolveEnvStartingStackIfNeeded(): ReturnType<typeof resolveSupabaseEnv> {
   try {
     return await resolveSupabaseEnv()
@@ -472,6 +547,11 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
   // FIRST, before anything that can fail. A monitor initialised after the thing
   // it is supposed to explain is a monitor that misses the startup.
   useOps(createOps({ dir: path.join(app.getPath('userData'), 'logs') }))
+  // Audit A7-009: a stray rejection or exception reached a console a packaged app does not have, or
+  // Electron's blocking error dialog. Both are recorded where Diagnostics reads them, and the process
+  // goes on: the quit path (`quit.ts`) is what ends it, on its own deadline.
+  process.on('unhandledRejection', (reason) => ops.failed('process.unhandled-rejection', reason))
+  process.on('uncaughtException', (error) => ops.failed('process.uncaught-exception', error))
   await fixPath()
   // Which Estate: the recorded choice, or the default. An unreadable choice stops here with its
   // reason; Fabric never opens another Estate in its place.
@@ -480,6 +560,8 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
   ACTIVE_ESTATE = active.estateId
   const env = await resolveEnvStartingStackIfNeeded()
   ceoConnection = { url: env.url, serviceKey: env.serviceKey }
+  // Audit A7-001: off the startup path — the answer is a warning, never a reason to wait.
+  void checkStackExposure(env.url)
   db = createClient(env.url, env.serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false }
   })
@@ -3418,9 +3500,16 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     (_e, query?: { level?: OpsLevel; limit?: number }): Returns<FabricApi['diagnostics']['read']> => ({
       // Newest last, and capped: the viewer asks for a page, not for the file.
       records: ops.read({ level: query?.level, limit: query?.limit ?? 200 }),
-      file: ops.file()
+      file: ops.file(),
+      stackExposure: lastStackExposure
     })
   )
+
+  // Audit A7-009: a renderer failure is recorded beside the program's own — the boundary and the
+  // root's `onUncaughtError` send it here, because the renderer's console reaches nobody.
+  listen(IPC.opsRendererError, (_e, info: RendererErrorInfo) => {
+    ops.failed('renderer.error', new Error(info.message), { stack: info.stack ?? undefined, component: info.component ?? undefined })
+  })
 
   handle(IPC.harnessRead, async (_e, projectId: string): Promise<Returns<FabricApi['harness']['read']>> => {
     // A thin dispatcher. The decisions — which figures are estate-wide, and
@@ -3742,11 +3831,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return r ? { content: r.content, baseHash: r.baseHash, at: r.at } : null
   })
   // Fire-and-forget from beforeunload: the last keystrokes before a quit land before the window goes.
-  ipcMain.on(IPC.filesRecoveryFlush, (event, file: string, content: string | null, baseHash: string) => {
-    try { editorRecovery.keep(fileRoots.resolve(file, `win:${event.sender.id}`), content, baseHash) } catch (e) {
-      ops.failed('editor.recovery-flush', e, { note: 'the last unsaved keystrokes were not kept; the debounced copy stands' })
-    }
-  })
+  listen(
+    IPC.filesRecoveryFlush,
+    (event, file: string, content: string | null, baseHash: string) => {
+      editorRecovery.keep(fileRoots.resolve(file, `win:${event.sender.id}`), content, baseHash)
+    },
+    'the last unsaved keystrokes were not kept; the debounced copy stands'
+  )
   handle(
     IPC.filesWrite,
     async (event, file: string, content: string, expectedHash: string, grantId?: string): Promise<Returns<FabricApi['files']['write']>> => {
@@ -4077,14 +4168,17 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
    * the STORE is that they can be read against each other here.
    */
   handle(IPC.terminalHistory, async (_e, sessionId: string): Promise<Returns<FabricApi['terminal']['history']>> => {
+    // The id goes into a PostgREST filter expression, so only a session id's own shape is let through.
+    if (typeof sessionId !== 'string' || !UUID.test(sessionId)) throw new Error('Invalid session identity')
+    // The NEWEST events, shown in the order they happened (audit A5-001: the oldest 200 were shown).
     const { data, error } = await store
       .select('journal', '*')
       .eq('estate_id', ACTIVE_ESTATE)
       .or(`payload->>session_id.eq.${sessionId},payload->>owner.eq.${sessionId}`)
-      .order('seq')
-      .limit(AUTOMATION_WINDOW)
+      .order('seq', { ascending: false })
+      .limit(SESSION_HISTORY_WINDOW)
     if (error) throw new Error(`the session history could not be read: ${error.message}`)
-    return (data ?? []) as FeedEvent[]
+    return latestInOrder((data ?? []) as FeedEvent[])
   })
 
   handle(IPC.terminalClaims, async (_e, projectId: string): Promise<Returns<FabricApi['terminal']['claims']>> => {
@@ -4102,10 +4196,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     }))
   })
   handle(IPC.terminalGet, (_e, sessionId: string): Returns<FabricApi['terminal']['get']> => ptys.get(sessionId))
-  ipcMain.on(IPC.terminalWrite, (_e, sessionId: string, data: string) => ptys.write(sessionId, data))
-  ipcMain.on(IPC.terminalResize, (_e, sessionId: string, cols: number, rows: number) =>
-    ptys.resize(sessionId, cols, rows)
-  )
+  // Fire-and-forget, so the failure is recorded, not thrown into Electron's error dialog
+  // (audit A7-009); a failed write has already halted that session's automated input
+  // (`PtyManager.write`). The wrapper also refuses a sender that is not Fabric's renderer (A7-002).
+  listen(IPC.terminalWrite, (_e, sessionId: string, data: string) => ptys.write(sessionId, data))
+  listen(IPC.terminalResize, (_e, sessionId: string, cols: number, rows: number) => ptys.resize(sessionId, cols, rows))
   handle(IPC.terminalEnd, async (_e, sessionId: string, options?: { force?: boolean }): Promise<Returns<FabricApi['terminal']['end']>> => {
     if (typeof sessionId !== 'string' || !UUID.test(sessionId)) throw new Error('Invalid session identity')
     return stopRuntime.stop(sessionId, 'operator_stop', { force: options?.force === true })
@@ -4418,6 +4513,33 @@ app.on('before-quit', (e) => quit.beforeQuit(e))
 // deadline to end the process.
 app.on('web-contents-created', (_e, contents) => {
   contents.on('will-prevent-unload', (event) => { if (quit.quitting) event.preventDefault() })
+  // #region navigation-guard — docs: docs/reports/2026-10-05-release-032-audit/README.md#2-what-the-audit-says-about-the-product
+  // Audit A7-002: a Fabric window holds Fabric's renderer document and nothing else, because whatever
+  // document stands in it gets the preload's whole bridge. Embedded views (`browserView`) show other
+  // products' pages by design and carry no bridge, so the guard is for windows only.
+  if (contents.getType() !== 'window') return
+  const elsewhere = (event: Electron.Event, url: string): void => {
+    // A splash or error window is a data: page Fabric wrote itself; it navigates nowhere either.
+    if (isAppDocument(url, APP_ENTRY)) return
+    event.preventDefault()
+    const link = externalLink(url)
+    if (link) void shell.openExternal(link).catch((e) => ops.failed('window.open-external', e))
+    else ops.record({ op: 'window.navigation-refused', outcome: 'ok', level: 'warn', detail: { scheme: url.split(':')[0] }, ctx: { correlationId: ops.correlate() } })
+  }
+  contents.on('will-navigate', elsewhere)
+  contents.on('will-redirect', elsewhere)
+  contents.setWindowOpenHandler(({ url }) => {
+    const link = externalLink(url)
+    if (link) void shell.openExternal(link).catch((e) => ops.failed('window.open-external', e))
+    else ops.record({ op: 'window.open-refused', outcome: 'ok', level: 'warn', detail: { scheme: url.split(':')[0] }, ctx: { correlationId: ops.correlate() } })
+    return { action: 'deny' }
+  })
+  // Audit A7-009: a renderer that dies or hangs is recorded, not lost in a console nobody has.
+  contents.on('render-process-gone', (_ev, details) =>
+    ops.failed('window.renderer-gone', new Error(details.reason), { exitCode: details.exitCode }))
+  contents.on('unresponsive', () => ops.record({ op: 'window.unresponsive', outcome: 'unknown', level: 'warn', ctx: { correlationId: ops.correlate() } }))
+  contents.on('responsive', () => ops.record({ op: 'window.responsive', outcome: 'ok', level: 'info', ctx: { correlationId: ops.correlate() } }))
+  // #endregion navigation-guard
 })
 
 // Closing a window is not quitting the IDE: PTY sessions live in the main

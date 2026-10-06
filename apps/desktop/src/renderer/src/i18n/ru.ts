@@ -260,6 +260,11 @@ export const ru: Partial<Record<StringKey, string>> = {
   'diagnostics.level.debug': 'Всё',
   'diagnostics.nothing': 'На этом уровне пусто — это хороший исход.',
   'diagnostics.unreadable': 'Лог не удалось прочитать: {reason}',
+  'diagnostics.exposure.title': 'Локальная база доступна из вашей сети',
+  'diagnostics.exposure.body':
+    'Порты {ports} ответили на {ifaces}. Они принимают пароль стека по умолчанию, поэтому любой в той же сети может читать и менять ваши проекты. Fabric не может привязать их только к этому Mac: эта настройка принадлежит движку контейнеров и действует на все его контейнеры.',
+  'diagnostics.exposure.remedy':
+    'OrbStack: выполните `orbctl config set docker.expose_ports_to_lan false`, затем перезапустите OrbStack и Fabric. Docker Desktop: задайте "ip": "127.0.0.1" в настройках движка и перезапустите его.',
   'needsYou.title': 'Нужны вы',
   'needsYou.lede':
     'Вопросы, которые агент не смог решить, и обязательства, оставленные работой. Ранжированы вместе; ничто здесь нельзя пометить прочитанным.',
@@ -1054,6 +1059,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'launch.board.fact.answered': "Когда ответили",
   'launch.board.fact.option': "Выбранный вариант",
   'launch.board.fact.answer': "Ответ",
+  'launch.board.state.answered': "Отвечено",
   'launch.board.state.open': "Нужно внимание",
   'launch.board.detailNote': "Ответ и квитанция сохраняются у исходного вопроса или результата.",
   'launch.board.ritual.kicker': "Рабочий ритуал",
@@ -1357,6 +1363,10 @@ export const ru: Partial<Record<StringKey, string>> = {
   'agents.changed': "изменено: {count}",
   'agents.noRepo': "репозиторий не привязан",
   'agents.history': "Что делал",
+  'agents.historyEarlier': "Показаны последние {count} событий; более ранние есть в журнале.",
+  'app.crash.title': "Что-то в этом окне сломалось",
+  'app.crash.body': "Сбой записан в «Диагностике». Работа в других окнах не пострадала, а несохранённый текст редактора хранится для восстановления.",
+  'app.crash.back': "Попробовать снова",
   'agents.noHistory': "Об этой сессии в журнале пока ничего нет.",
   'agents.mode': "режим: {mode}",
   'agents.noMode': "режим разрешений не записан",

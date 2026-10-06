@@ -93,6 +93,9 @@ export function TerminalView({
 
     const doResize = (): void => {
       fit.fit()
+      // An ended session keeps its tile but not its PTY: resizing one is an `ioctl EBADF` throw
+      // on the far side (audit 2026-10-05 A2-001). The main side guards too; not sending is cheaper.
+      if (!session.running) return
       window.fabric.terminal.resize(session.sessionId, term.cols, term.rows)
     }
     doResize()

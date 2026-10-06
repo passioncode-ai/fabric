@@ -67,6 +67,11 @@ its defect, for example).
   (A3-025…029).
 - **Two P0s.** The editor wrote binary files back as lossy UTF-8 (A4-001). The local stack published
   Postgres and PostgREST on every interface with the Supabase CLI's default credentials (A7-001).
+  Re-measured 2026-10-06 on the operator's Mac: OrbStack listened on `*:54321` and `*:54322`
+  (`orbctl config show` → `docker.expose_ports_to_lan: true`), and both ports accepted a TCP connection
+  on the Mac's LAN address. The binding belongs to the container engine and covers every container on
+  it, so 0.3.2 detects and warns (`apps/desktop/src/main/stackExposure.ts`, SCN-073) and the remedy
+  stays the person's step.
 - **The new agent drive had five holes:** a two-minute turn deadline, typed-ahead permission answers,
   orphaned agent processes, dropped granted servers, and Kilo launched without its bundle at
   allow-all. All five are fixed in ADR-0119's amendment 3.
@@ -88,4 +93,18 @@ candidate passes its final check.
 
 ## 4. Release summary
 
-Written at the final check.
+What went in, from [`raw/2026-10-05-fix-list.md`](raw/2026-10-05-fix-list.md) (generated; totals: fixed 23,
+deferred 253, duplicate 2, of 278):
+
+- **Both P0s.** A4-001 is fixed: binary files are never written. A7-001 is detected and reported, but the
+  binding is not changed: Fabric warns in Diagnostics with the remedy, and the setting belongs to the
+  container engine.
+- **14 of 16 P1s fixed.** Editor: A2-002, A2-003, A2-004. ACP: A6-001, A6-006, A7-003, A7-005. Surfaces:
+  A1-001, A3-001, A4-002, A4-003, A5-001. Windows and process: A2-001, A7-002. A2-005, the SCN-027
+  escalation, is a feature that was never built, and is carried as CO-217. A7-004 duplicates A6-001.
+- **Six P2s and one P3 fixed** where they sat on a P1's path: A6-004, A6-005, A6-007, A6-011, A7-007,
+  A7-009 (P2) and A6-029 (P3).
+
+What did not go in: the remaining 253 P2 and P3 findings, carried as CO-215 (P2) and CO-216 (P3), each
+pointing back at this list. The release still passes its verification ledger and gate
+([docs/launch/release-mac.md](../../launch/release-mac.md)) before a tag.

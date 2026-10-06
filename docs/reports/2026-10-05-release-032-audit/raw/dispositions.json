@@ -64,7 +64,8 @@
     "ref": "the end of the agent's stdin ends the HTTP session"
   },
   "A2-001": {
-    "state": "planned"
+    "state": "fixed",
+    "ref": "resize of an ended session is a no-op on both sides"
   },
   "A2-005": {
     "state": "deferred",
@@ -75,21 +76,31 @@
     "ref": "a granted refusal leaves the queue; repeats collapse; Allow once says until when"
   },
   "A3-001": {
-    "state": "planned"
+    "state": "fixed",
+    "ref": "the answered row stays in the detail with its receipt"
   },
   "A4-002": {
-    "state": "planned"
+    "state": "fixed",
+    "ref": "a refresh acknowledges nothing; leaving does"
   },
   "A4-003": {
-    "state": "planned"
+    "state": "fixed",
+    "ref": "digest reads are paged to the end"
   },
   "A5-001": {
-    "state": "planned"
+    "state": "fixed",
+    "ref": "the newest 200 events, in order, with a note when the window is full"
   },
   "A7-001": {
-    "state": "planned"
+    "state": "fixed",
+    "ref": "Fabric probes the stack ports on this Mac's network addresses after start, records stack.exposed-on-network and warns in Diagnostics with the remedy; the binding itself is the container engine's, an operator step"
   },
   "A7-002": {
-    "state": "planned"
+    "state": "fixed",
+    "ref": "windows hold only the app document; window.open leaves for the browser; CSP in the built page; IPC refuses a non-app sender"
+  },
+  "A7-009": {
+    "state": "fixed",
+    "ref": "process failures recorded (uncaught/unhandled, renderer-gone, error boundary); listen() wraps every send-side listener"
   }
 }
