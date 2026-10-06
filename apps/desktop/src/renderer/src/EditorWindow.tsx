@@ -167,9 +167,13 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
     // The person's side is the BUFFER as it stood when the editor gave way to the diff (`seed`, written by
     // the editor's cleanup), not the content of the save that conflicted: what was typed while that save
     // was in flight belongs to it too (0.3.2 verification UX-5, DO-19).
+    // A restored buffer (the file changed on disk since it was kept) is the person's side once, in place of
+    // the editor's reset content (0.3.2 verification UX-1, a regression of V1-20).
+    const mineNow = restoredMine.current ?? seed.current
+    restoredMine.current = null
     de.setModel({
       original: monaco.editor.createModel(conflict.current, file.language),
-      modified: monaco.editor.createModel(seed.current, file.language)
+      modified: monaco.editor.createModel(mineNow, file.language)
     })
     diffEditor.current = de
     // The sentence takes the focus, not a button: the banner appears while the person is typing, and
@@ -177,16 +181,21 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
     conflictText.current?.focus()
     return () => {
       // A second conflict re-creates the diff; the person's side carries over, edits made in it included.
-      const mine = de.getModel()?.modified.getValue()
+      const models = de.getModel()
+      const mine = models?.modified.getValue()
       if (mine !== undefined) seed.current = mine
-      de.getModel()?.original.dispose()
-      de.getModel()?.modified.dispose()
+      // The widget first, then its models: disposing a model the widget still holds throws
+      // "TextModel got disposed before DiffEditorWidget model got reset" (0.3.2 verification UX-3).
       de.dispose()
+      models?.original.dispose()
+      models?.modified.dispose()
       diffEditor.current = null
     }
   }, [conflict, file])
 
   const pendingContent = useRef<string | null>(null)
+  /** A kept buffer being restored over a file that changed on disk: the diff's side for the person. */
+  const restoredMine = useRef<string | null>(null)
   /** A save in flight. A second one started beside it would compare against the hash the first is about to
    *  replace, show the person's own write as a conflict and spend a second overwrite grant (ER-5). */
   const saving = useRef(false)
@@ -228,12 +237,15 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
         //
         // The save succeeded for `content`. Whether the BUFFER is clean is a
         // different question, and it is answered by reading it now.
-        const state = afterSave(content, editor.current?.getValue() ?? content)
+        // After "Keep mine" the person's buffer is the diff's side, which stays editable while the save is in
+        // flight; the plain editor does not exist then (0.3.2 verification ER-1: typing there was marked saved).
+        const buffer = force ? (diffEditor.current?.getModel()?.modified.getValue() ?? content) : (editor.current?.getValue() ?? content)
+        const state = afterSave(content, buffer)
         // Saved and clean: nothing left to recover. Still dirty: keep what is beyond the save.
-        keepNow(state.dirty ? (editor.current?.getValue() ?? null) : null, result.hash)
+        keepNow(state.dirty ? buffer : null, result.hash)
         base.current = { content, hash: result.hash }
         // After a conflict the plain editor is created again, from what was just written.
-        if (force) seed.current = content
+        if (force) seed.current = buffer
         setConflict(null)
         setDirty(state.dirty)
         setSaved(state.saved)
@@ -292,6 +304,7 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
       // The file changed on disk since the buffer was kept: show both, exactly as a save conflict does,
       // so restoring can never silently overwrite what is on disk now.
       pendingContent.current = recovered.content
+      restoredMine.current = recovered.content
       setConflict({ current: base.current.content, currentHash: base.current.hash })
     }
     setRecovered(null)
@@ -390,7 +403,8 @@ export function EditorWindow({ filePath }: { filePath: string }): React.JSX.Elem
         <Banner
           actions={
             <>
-              <Button tone="ghost" onClick={() => window.close()}>{t('editor.closeDeleted')}</Button>
+              {/* The person chose to close without saving: the close guard must not ask again (UX-10). */}
+              <Button tone="ghost" onClick={() => { leaving.current = true; keepNow(null, ABSENT_HASH); window.close() }}>{t('editor.closeDeleted')}</Button>
               <Button disabled={savingNow} onClick={() => void save(true)}>{t('editor.saveAgain')}</Button>
             </>
           }

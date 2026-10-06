@@ -7,7 +7,7 @@
 // added with `--yolo` in its args and `runner-gated` beside it would be believed,
 // and Fabric would authorise a floored effect for something with no gate at all.
 //
-// TWO RULES, and the second is the one that matters.
+// THREE RULES, and the second is the one that matters.
 //
 //   1. Every permission mode declares its containment. A missing declaration is
 //      not a default; it is a mode nobody decided about.

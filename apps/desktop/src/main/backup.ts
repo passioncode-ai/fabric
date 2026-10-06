@@ -55,6 +55,28 @@ const lineOf = (row: Record<string, unknown>): string =>
     occurred_at: row.occurred_at
   })
 
+/** One page of the journal, as PostgREST answers it. */
+export type JournalPage = { data: Record<string, unknown>[] | null; error: { message: string } | null }
+export const JOURNAL_PAGE = 1000
+
+/**
+ * The whole journal of an estate in seq order, read in pages after the last seq seen (keyset, not
+ * offsets: an event appended mid-read lands after the cursor and is read, never skipped or doubled).
+ * A page that fails fails the read; a short page ends it.
+ */
+export async function journalBySeq(page: (afterSeq: number) => PromiseLike<JournalPage>): Promise<{ ok: true; rows: Record<string, unknown>[] } | { ok: false; message: string }> {
+  const rows: Record<string, unknown>[] = []
+  let after = 0
+  for (;;) {
+    const { data, error } = await page(after)
+    if (error) return { ok: false, message: error.message }
+    const got = data ?? []
+    rows.push(...got)
+    if (got.length < JOURNAL_PAGE) return { ok: true, rows }
+    after = Number(got[got.length - 1].seq)
+  }
+}
+
 export function createBackups(db: SupabaseClient) {
   return {
     /** What a restore will NOT bring back, for the screen beside the button. */
@@ -70,13 +92,19 @@ export function createBackups(db: SupabaseClient) {
      * it does not contain is worse than one claiming less.
      */
     async take(estateId: string, dir: string): Promise<BackupResult> {
-      const { data, error } = await db
-        .from('journal')
-        .select('seq,type,schema_rev,actor,project_id,run_id,node_id,payload,occurred_at')
-        .eq('estate_id', estateId)
-        .order('seq')
-      if (error) return { ok: false, says: `the journal could not be read: ${error.message}` }
-      const rows = data ?? []
+      // Every event, page by page on seq (0.3.2 verification DA-2): one request is capped at the gateway's
+      // 1000 rows, and an archive of the first 1000 failed its own consistency check on every larger estate.
+      const read = await journalBySeq((after) =>
+        db
+          .from('journal')
+          .select('seq,type,schema_rev,actor,project_id,run_id,node_id,payload,occurred_at')
+          .eq('estate_id', estateId)
+          .gt('seq', after)
+          .order('seq')
+          .limit(JOURNAL_PAGE) as unknown as PromiseLike<JournalPage>
+      )
+      if (!read.ok) return { ok: false, says: `the journal could not be read: ${read.message}` }
+      const rows = read.rows
       const lines = rows.map((r) => lineOf(r as Record<string, unknown>))
       const watermarkSeq = rows.length ? Number((rows[rows.length - 1] as Record<string, unknown>).seq) : 0
 

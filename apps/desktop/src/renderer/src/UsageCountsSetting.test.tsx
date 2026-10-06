@@ -19,6 +19,10 @@ describe('UsageCountsSetting', () => {
     const box = await screen.findByRole('checkbox', { name: en['analytics.label'] }) as HTMLInputElement
     await waitFor(() => expect(box.checked).toBe(true))
     expect(screen.getByText(en['analytics.note'])).toBeTruthy()
+    // What identifies the counts is said, not hidden behind "anonymous" (0.3.2 verification V1-2, DO-13).
+    expect(en['analytics.note']).toMatch(/installation id/)
+    expect(en['analytics.note']).toMatch(/session id/)
+    expect(en['analytics.label']).not.toMatch(/anonymous/i)
     fireEvent.click(box)
     await waitFor(() => expect(setEnabled).toHaveBeenCalledWith(false))
     await waitFor(() => expect(box.checked).toBe(false))

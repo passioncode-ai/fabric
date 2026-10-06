@@ -194,11 +194,16 @@ function handle(
   })
 }
 
+/** The dev server's URL, or null: never in a packaged build, which loads only its own files (ER-6, ER-9). */
+function devServer(): string | null {
+  return app.isPackaged ? null : (process.env.ELECTRON_RENDERER_URL ?? null)
+}
+
 /** The one document every window of this app holds (audit 2026-10-05 A7-002). */
 const APP_ENTRY: AppEntry = {
   // A packaged app has no dev server: an inherited ELECTRON_RENDERER_URL there would name an origin the
   // windows never load, and the guard would let any page on it drive the bridge (0.3.2 verification ER-9).
-  devOrigin: app.isPackaged ? null : (process.env.ELECTRON_RENDERER_URL ?? null),
+  devOrigin: devServer(),
   indexFile: path.join(import.meta.dirname, '../renderer/index.html')
 }
 
@@ -556,6 +561,9 @@ let privateHistory: PrivateHistory | null = null
 /** Archive folders main chose in its own dialog, by the token the renderer holds instead of a path. */
 const historyTokens = new Map<string, string>()
 
+/** Whether the process-level failure handlers are installed; bootstrap may run again after a Retry. */
+let processFailuresRecorded = false
+
 async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
   // FIRST, before anything that can fail. A monitor initialised after the thing
   // it is supposed to explain is a monitor that misses the startup.
@@ -563,8 +571,12 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
   // Audit A7-009: a stray rejection or exception reached a console a packaged app does not have, or
   // Electron's blocking error dialog. Both are recorded where Diagnostics reads them, and the process
   // goes on: the quit path (`quit.ts`) is what ends it, on its own deadline.
-  process.on('unhandledRejection', (reason) => ops.failed('process.unhandled-rejection', reason))
-  process.on('uncaughtException', (error) => ops.failed('process.uncaught-exception', error))
+  // Once per process: the startup dialog's Retry runs bootstrap again (0.3.2 verification ER-7).
+  if (!processFailuresRecorded) {
+    processFailuresRecorded = true
+    process.on('unhandledRejection', (reason) => ops.failed('process.unhandled-rejection', reason))
+    process.on('uncaughtException', (error) => ops.failed('process.uncaught-exception', error))
+  }
   await fixPath()
   // Which Estate: the recorded choice, or the default. An unreadable choice stops here with its
   // reason; Fabric never opens another Estate in its place.
@@ -3510,7 +3522,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   // Audit A7-001: the exposure warning above every screen reads this. A stale result is re-checked, and a
   // check in flight is waited for (bounded), so the first read after start is not "nothing found".
   handle(IPC.stackExposure, async (): Promise<Returns<FabricApi['stack']['exposure']>> => {
-    const stale = lastStackExposure !== null && Date.now() - Date.parse(lastStackExposure.checkedAt) > STACK_EXPOSURE_MAX_AGE_MS
+    // Stale, or never finished (the first check failed): check again (0.3.2 verification ER-10, UX-6).
+    const stale = lastStackExposure === null || Date.now() - Date.parse(lastStackExposure.checkedAt) > STACK_EXPOSURE_MAX_AGE_MS
     if (stale && stackApiUrl && stackExposureCheck === null) stackExposureCheck = checkStackExposure(stackApiUrl)
     if (stackExposureCheck) await Promise.race([stackExposureCheck, new Promise((r) => setTimeout(r, 5_000))])
     return lastStackExposure
@@ -4216,8 +4229,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
 }
 
 function rendererTarget(query: string): { url?: string; file?: string; search: string } {
-  return process.env.ELECTRON_RENDERER_URL
-    ? { url: `${process.env.ELECTRON_RENDERER_URL}?${query}`, search: query }
+  // A packaged build loads only its own files, whatever it inherited (0.3.2 verification ER-6).
+  return devServer()
+    ? { url: `${devServer()}?${query}`, search: query }
     : { file: path.join(import.meta.dirname, '../renderer/index.html'), search: query }
 }
 
@@ -4299,7 +4313,7 @@ function createWindow(): void {
     revokeWindowRoots(contentsId)
     mainWindow = null
   })
-  if (process.env.ELECTRON_RENDERER_URL) void mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
+  if (devServer()) void mainWindow.loadURL(devServer()!)
   else void mainWindow.loadFile(path.join(import.meta.dirname, '../renderer/index.html'))
 }
 

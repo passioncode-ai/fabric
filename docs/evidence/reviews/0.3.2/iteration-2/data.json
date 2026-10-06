@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.2",
+  "iteration": 2,
+  "level": "data",
+  "candidateCommit": "8d002f4dc00595e94bea58a96962bb8c6971ff98",
+  "report": "docs/evidence/plans/2026-10-06-release-032-verification/iteration-2/2026-10-06-data.md",
+  "reportSha256": "0b46296fd6744b39c2f392090c11e872e070cb4a1e0a1e5384b26f1ec1aa985f",
+  "reviewerRun": "release-032-i2-data-20261006",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-1",
+      "source": "DA-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed `992602ff`: read the schema first, `--from FROM`, one new backup name that keeps `pre-0.3.1.dump`, 75 → 79 in one step stated. Seeded rehearsals on 2026-10-06 against `9372880b` (`node scripts/rehearse-upgrade.mjs --make-fixture N`, then `--from N --ref HEAD`): **PASS 75 → 79** and **PASS 78 → 79**, journal 6 → 6, no table lost rows, failures `[]`; receipts kept outside the repository"
+      ]
+    },
+    {
+      "id": "V2-9",
+      "source": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `journalBySeq` pages on seq; `backup-paging.test.mjs` 2500 events (watched: 2 failed)"
+      ]
+    },
+    {
+      "id": "V2-10",
+      "source": "DA-4, DA-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: epoch bounded, thread and reply ids by `boardId`; `board-service.test.mjs` \"submit refuses an epoch past int32…\""
+      ]
+    },
+    {
+      "id": "V2-25",
+      "source": "DA-1, DA-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-222"
+      ]
+    }
+  ]
+}

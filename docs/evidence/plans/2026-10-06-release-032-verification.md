@@ -97,4 +97,56 @@ iteration was made under the lease `release-032-registers`.
 | V1-48 | DO-17 | CONTEXT.md described board responders and leases as built | fixed: both terms say what 0.3.2's board does not have yet (COM-03) |
 | V1-49 | DO-11 (A7-003, A6-004) | The audit claimed watched tests for A7-003 and A6-004 that did not catch the real cases | fixed: V1-3 and V1-4; audit README §3 names the five and points here |
 
-Exit for iteration 1: _in progress — fixes on `agent/release-032-work`; gates and the commit follow._
+Fixes landed in `8d002f4d` (the iteration-2 candidate). Iteration 2 rechecked these rows; where one held only in
+part, the remainder is an iteration-2 finding below (V1-1, V1-2, V1-6, V1-12, V1-15, V1-20, V1-25, V1-28, V1-41,
+V1-42, V1-47, V1-48).
+
+Exit for iteration 1: every finding above is fixed, ruled with a register id or not a defect, at `8d002f4d`. Blocking findings open: none.
+
+## Iteration 2
+
+Five fresh reviewers, 2026-10-06, against `8d002f4d` (`8d002f4dc00595e94bea58a96962bb8c6971ff98`), each forming its own
+findings before reading this ledger and then rechecking the iteration-1 rows of its level. Reports:
+[scenarios/UX/UI](2026-10-06-release-032-verification/iteration-2/2026-10-06-ux.md) (UX-n, 1 blocking + 9),
+[errors and boundaries](2026-10-06-release-032-verification/iteration-2/2026-10-06-errors.md) (ER-n, 1 + 11),
+[code ↔ documents](2026-10-06-release-032-verification/iteration-2/2026-10-06-docs.md) (DO-n, 1 + 14),
+[data, memory, orchestration, harness](2026-10-06-release-032-verification/iteration-2/2026-10-06-data.md) (DA-n, 0 + 6),
+[plan and roadmap](2026-10-06-release-032-verification/iteration-2/2026-10-06-plan.md) (PL-n, 1 + 9).
+53 findings; three reviewers found the same upgrade-runbook defect (V2-1). The machine ran at load averages of
+95–750 from other sessions during this iteration; reviewers worked in scratch copies and gave timing tests a retry.
+One reviewer's helper wrote a byte-identical `files.ts` into `/tmp/x/`, outside the repository; one reviewer's
+rsync overlapped another's scratch copy around 12:50 — neither touched the candidate checkout.
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V2-1 | PL-1, DO-1, DA-3 (blocking) | The upgrade runbook wrote `pre-0.3.1.dump`, read `pre-0.3.2.dump`, demanded `--from 78` while the operator's database is at 75, and step 1 still described 0.3.0 → 0.3.1; followed literally, step 2 overwrote the operator's 184 MB backup | fixed `992602ff`: read the schema first, `--from FROM`, one new backup name that keeps `pre-0.3.1.dump`, 75 → 79 in one step stated. Seeded rehearsals on 2026-10-06 against `9372880b` (`node scripts/rehearse-upgrade.mjs --make-fixture N`, then `--from N --ref HEAD`): **PASS 75 → 79** and **PASS 78 → 79**, journal 6 → 6, no table lost rows, failures `[]`; receipts kept outside the repository |
+| V2-2 | ER-1 (blocking) | Typing into the diff during a Keep-mine save was marked saved and its recovery copy cleared | fixed: the buffer after Keep mine is the diff's side; `EditorWindow.conflict.test.tsx` "typing into the diff during a Keep mine save stays unsaved and kept for recovery" (watched: 1 failed) |
+| V2-3 | UX-1 (blocking) | Restoring a kept buffer over a changed file showed the disk text on both sides and lost the kept text — a regression of V1-20 | fixed: `restoredMine` is the diff's side once; `EditorWindow.conflict.test.tsx` "restoring a kept buffer over a changed file…" (watched: 1 failed) |
+| V2-4 | UX-3 | Every conflict resolution threw Monaco's "TextModel got disposed…", now recorded as an error | fixed: the diff widget is disposed before its models; no jsdom test reproduces Monaco's model lifecycle (the stand-in has none) — checked by reading |
+| V2-5 | UX-10 | "Close without saving" on a deleted file raised the unsaved-changes guard again | fixed: it sets the leaving flag and drops the kept copy; `EditorWindow.conflict.test.tsx` (watched) |
+| V2-6 | ER-6 | A packaged build still loaded an inherited `ELECTRON_RENDERER_URL` into its windows | fixed: one `devServer()` (null when packaged) for loading and the guard; no test through a packaged app |
+| V2-7 | ER-7 | Each startup Retry registered the process failure handlers again | fixed: installed once per process; no test through Electron |
+| V2-8 | ER-10, UX-6, DO-6 | The exposure check never retried a failed first check, re-checked ~10 min apart while the notes said five, was drawn twice on a project page, said "Ports 54321 answered", showed backticks | fixed: a null result is re-checked; one banner above every screen; wording and notes corrected; `StackExposureNotice.test.tsx` |
+| V2-9 | DA-2 | The private-history archive read the journal in one request capped at 1000 rows, so every larger estate's export was refused | fixed: `journalBySeq` pages on seq; `backup-paging.test.mjs` 2500 events (watched: 2 failed) |
+| V2-10 | DA-4, DA-5 | An epoch past int32 read as "unavailable"; submit did not apply list/get's id rule | fixed: epoch bounded, thread and reply ids by `boardId`; `board-service.test.mjs` "submit refuses an epoch past int32…" |
+| V2-11 | DO-2 | Two `CONTEXT.md` board terms were false (a projection; messages only) | fixed: stored rows beside the journal, only request states and read marks are projections; requests are stored `queued`, nothing claims them yet |
+| V2-12 | DO-8, DO-15 | The CHANGELOG cited amendment 3 for redaction and said servers go to every agent; SCN-034 and `check-containment.mjs` wording | fixed: amendment 4; "every agent that connects to it"; SCN-034 names the BOM exception (CO-221); "THREE RULES" |
+| V2-13 | DO-10 | The audit README's 59/55 were 60/54; two of the 13 carry qualifiers | fixed: a dated correction note in the README, the findings unchanged |
+| V2-14 | DO-11, UX-5 | SCR-52 still said «анонимными»; SCN-091 had no amendment and "none yet" | fixed: the real label; SCN-091 amended with its coverage |
+| V2-15 | DO-12, PL-4 | P-11's status, its carried list and iteration 1's exit line were stale | fixed: P-11 status and CO-215…222; iteration 1 closed above |
+| V2-16 | DO-13 | The Settings note left out the session id, and its test passed whatever the note said | fixed: the note names the session id; `UsageCountsSetting.test.tsx` asserts both ids and no "anonymous" |
+| V2-17 | PL-2 | P-11 sat in no lane | fixed: P-11 and P-12 in lane 2 |
+| V2-18 | PL-3 | The plan said "P-08 remains Now" and described a recompile as done | fixed: the paragraph is marked superseded with the measured `unified-plan.mjs check` result; the recompile is CO-221 |
+| V2-19 | PL-5 | P-10's plan still scheduled OpenClaw as a runner and did not cite CO-220 | fixed: the agent-support plan's note cites CO-220 and OpenClaw as a hub client |
+| V2-20 | PL-7 | 0.3.2 crosses CO-212's deadline: restore ships with the board, and a restored estate loses board messages unsaid | ruled CO-212: re-dated to COM-02.3 with the reason; the release notes say the gap |
+| V2-21 | PL-8 | CO-216 said none widens authority though it carries A7-025 and A7-027; CO-215 claimed them | fixed: CO-216 names them and takes them first; CO-215 keeps A7-012/015/016 |
+| V2-22 | PL-9 | CO-199's premise was gone; CO-198 lacked the live-dump PASS | fixed: CO-199 re-ruled with the reason; CO-198 records `2932fbbd` |
+| V2-23 | PL-10 | CO-218 had no deadline relative to a release | fixed: before 0.3.3 ships |
+| V2-24 | DO-7 | The IPC sender check has no test through Electron | ruled CO-221 (already carried as ER-7 of iteration 1) |
+| V2-25 | ER-2, ER-3, ER-4, ER-5, ER-8, ER-9, ER-11, ER-12, UX-2, UX-4, UX-7, UX-8, UX-9, DO-3, DO-4, DO-5, DO-9, DO-14, DA-1, DA-6, PL-6 | Each named in CO-222 with its reason | ruled CO-222 |
+
+The fixes are in the commit that carries this section; `bash scripts/ci.sh fast` exited 0 on it on 2026-10-06
+(the first fully green fast run of this release, at a load average of 6).
+
+Exit for iteration 2: every finding above is fixed, ruled with a register id or not a defect. Blocking findings open: none.
+

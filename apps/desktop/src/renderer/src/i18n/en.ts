@@ -773,7 +773,7 @@ export const en = {
   'power.while-working': 'While an agent is working',
   'power.never': 'Never',
   'analytics.label': 'Share usage counts',
-  'analytics.note': 'Installs, days of use and how many projects, products and agents are connected, with the app version, the OS name and a random installation id that every PassionCode app on this Mac shares. Never names, paths or content. One switch for every PassionCode app on this Mac.',
+  'analytics.note': 'Installs, days of use and how many projects, products and agents are connected, with the app version, the OS name, a session id and a random installation id that every PassionCode app on this Mac shares. Never names, paths or content. One switch for every PassionCode app on this Mac.',
   'analytics.noKey': 'This build sends nothing: only release builds share usage counts.',
   'analytics.noFile': 'Usage counts are off: the shared PassionCode file could not be read, so nothing is sent.',
   'analytics.unreadable': 'Whether usage counts are shared could not be read.',
@@ -837,9 +837,9 @@ export const en = {
   'diagnostics.unreadable': 'The log could not be read: {reason}',
   'diagnostics.exposure.title': 'The local database can be reached from your network',
   'diagnostics.exposure.body':
-    'Ports {ports} answered on {ifaces}. They accept the stack’s default password, so anyone on the same network can read and change your projects. Fabric cannot bind them to this Mac alone: that setting belongs to the container engine and applies to every container on it.',
+    'The local database answers on {ifaces} ({ports}) with the stack’s default password, so anyone on the same network can read and change your projects. Fabric cannot bind its ports to this Mac alone: that setting belongs to the container engine and applies to every container on it.',
   'diagnostics.exposure.remedy':
-    'OrbStack: run `orbctl config set docker.expose_ports_to_lan false`, then restart OrbStack and Fabric. Docker Desktop: set "ip": "127.0.0.1" in the engine configuration and restart it.',
+    'OrbStack: run orbctl config set docker.expose_ports_to_lan false, then restart OrbStack and Fabric. Docker Desktop: set "ip": "127.0.0.1" in the engine configuration and restart it.',
   'needsYou.title': 'Needs you',
   'needsYou.lede':
     'Questions an agent could not decide, and obligations the work has left standing. Ranked together; nothing here can be marked as read.',

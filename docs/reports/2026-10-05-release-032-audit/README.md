@@ -79,6 +79,12 @@ its defect, for example).
   project "idle", "nothing logged", an empty task. Several scenario reports find this independently
   (A3-006…010, A4-017/018/024/025, A5-…). It is the main theme of the deferred P2 work.
 
+**Correction 2026-10-06 (0.3.2 verification DO-10).** The scenario verdicts above were summed from each area
+report's own sentence; recounted from the tables, they are 60 partial and 54 not built (the SCN-069…090 report's
+text says 15 and 6, its table holds 16 and 5). Two of the 13 "implemented as specified" carry a qualifier in
+their row: SCN-129 "with gaps" and SCN-131 "planned screen only". The findings and their dispositions are
+unaffected.
+
 ## 3. What 0.3.2 does with it
 
 Every P0 and P1 is fixed, carried to a named carry-over row with its reason, or a duplicate. A fix is

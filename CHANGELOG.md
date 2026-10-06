@@ -37,13 +37,15 @@ finding is fixed or carried to a named row. It also ships the work that landed o
   permission question, and Ctrl-C during one answers it as cancelled; stopping an agent ends its whole process
   group, including the tools it started, even when Fabric has to force the stop; Kilo and Hermes do not start
   in a mode their bundle cannot honour; one failed request no longer closes the stdio bridge.
-- **Your project's servers go with Fabric's surface to every agent.** Hermes, which takes no HTTP MCP servers,
+- **Your project's servers go with Fabric's surface to every agent that connects to it.** Hermes, which takes no HTTP MCP servers,
   reaches each granted server through its own stdio bridge; a session whose granted servers cannot be carried
   is not opened.
 - **Cline asks before each tool.** It now starts in Ask (`--auto-approve false`); Bypass is the only mode in
   which it approves tools on its own.
 - **Keys stay out of transcripts in more spellings:** Kilo's config, ACP header pairs, the bridge's
-  `FABRIC_BRIDGE_AUTHORIZATION`, escaped JSON and Python dicts (ADR-0119, amendments 3 and 4).
+  `FABRIC_BRIDGE_AUTHORIZATION`, escaped JSON and Python dicts (ADR-0119, amendment 4).
+- **Not yet:** restoring a private-history archive into a new estate does not bring back project-board messages
+  (CO-212); the archive keeps the board's events, not its stored messages.
 - **Attention, Board, digest and history read true.** A granted refusal leaves the queue and repeats are one
   item; an answered question keeps its receipt on screen; the digest no longer marks lines read while you read
   them and is no longer cut at 1000 rows; an agent's history shows its newest 200 events and says when earlier
@@ -54,8 +56,9 @@ finding is fixed or carried to a named row. It also ships the work that landed o
   reloaded instead of staying blank.
 - **Fabric tells you when your local database is reachable from the network.** The Supabase CLI publishes the
   stack's ports on every interface with its default password, and Fabric cannot bind them to this Mac alone.
-  Fabric checks after start and every five minutes after that, and if they answer on your network address a
-  warning above every screen gives the remedy for OrbStack or Docker Desktop.
+  Fabric checks after start and again while it is open, at most about ten minutes apart (and retries a check
+  that failed); if the ports answer on your network address, a warning above every screen gives the remedy for
+  OrbStack or Docker Desktop.
 
 ## 0.3.1
 

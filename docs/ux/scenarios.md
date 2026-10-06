@@ -995,7 +995,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
   open says so rather than hanging. A file that is not text (a NUL byte, or bytes that are not
   valid UTF-8 — an image, a PDF, an archive) opens read-only with a sentence saying so and
   Open in system editor; it has no Save and Fabric never writes it. Saving an untouched buffer
-  writes nothing, and a save keeps the same editor, so what is typed while it is in flight stays
+  writes nothing (except a file with a byte-order mark or mixed line endings, which the editor normalises: CO-221), and a save keeps the same editor, so what is typed while it is in flight stays
   in the buffer and stays marked unsaved; when that save comes back as a conflict, the person's side
   of the diff is the buffer, keystrokes typed during the save included. A second save while one is in
   flight does nothing. A file deleted on disk while open is said as deleted, not as changed: Close
@@ -1451,7 +1451,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Amended 2026-09-29 (L3b):** «На следующий раз» sets an authored question aside with a reason (`defer_question`, migration 68): it stays open and keeps blocking, is listed under its own tab with the reason, and «Вернуть на доску» returns it (`reopen_question`); answering it settles it and clears the deferral. «+ Добавить тему» writes an open question onto a chosen project as the owner (`ask_topic`), answered by the same `answer_question`. Each command is idempotent on its command id, stable per attempt on screen (`launch/BoardScreen.test.tsx`, `apps/desktop/test/board-deferral-db.test.mjs`).
 - **Status:** draft
 - **Amended 2026-10-06 (audit A3-001):** after an answer commits, the Board re-reads and the answered question leaves the open list; the detail stays on that row, marked Answered, with the receipt (recorded, what it unblocked, what is still blocked, delivery), until the person closes it or picks another row.
-- **Coverage:** `apps/desktop/src/renderer/src/launch/BoardScreen.tsx`, `apps/desktop/src/renderer/src/BoardPanel.tsx`, `apps/desktop/src/renderer/src/launch/BoardScreen.test.tsx`
+- **Coverage:** `apps/desktop/src/renderer/src/launch/BoardScreen.tsx`, `apps/desktop/src/renderer/src/launch/BoardScreen.test.tsx` — the Board screen. The project page's "Needs you" panel (`BoardPanel.tsx`) still loses the receipt on the re-read its answer triggers (0.3.2 verification UX-2, CO-222).
 - **Product:** unobserved
 
 ### SCN-051: Inspect a manager settlement and override it by a new decision
@@ -1964,7 +1964,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Implementation tasks:** M81
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-diagnostics).
 - **Status:** draft
-- **Coverage:** `apps/desktop/src/renderer/src/DiagnosticsSection.tsx`, `apps/desktop/src/main/stackExposure.ts`, `apps/desktop/src/renderer/src/DiagnosticsSection.test.tsx`, `apps/desktop/test/stack-exposure.test.mjs` — the ops log, its level filter, the build line and the stack exposure warning; safe-row selection and the redacted local export are not built.
+- **Coverage:** `apps/desktop/src/renderer/src/DiagnosticsSection.tsx`, `apps/desktop/src/main/stackExposure.ts`, `apps/desktop/src/renderer/src/StackExposureNotice.tsx`, `apps/desktop/src/renderer/src/StackExposureNotice.test.tsx`, `apps/desktop/test/stack-exposure.test.mjs` — the ops log, its level filter, the build line and the stack exposure warning; safe-row selection and the redacted local export are not built.
 - **Product:** unobserved
 
 
@@ -2288,7 +2288,8 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Errors & recovery:** панели читаются независимо — отказавшая именует себя и не гасит соседние; ответ, не прошедший журнал, остаётся в поле с причиной и не теряется; ответ, пришедший для агента, которого оператор уже покинул, отбрасывается (правило SCN-049); устаревшее чтение несёт возраст последнего удачного.
 - **Telemetry:** planned only — журнальное событие остаётся записью.
 - **Status:** draft
-- **Coverage:** none yet
+- **Amended 2026-10-06 (audit A5-001, 0.3.2 verification UX-5):** the agent's history shows its newest 200 events in the order they happened, and says when the session has earlier ones the list leaves out (the read takes one beyond the window).
+- **Coverage:** `apps/desktop/src/renderer/src/EstateAgents.tsx`, `apps/desktop/src/shared/sessionHistory.ts`, `apps/desktop/src/shared/sessionHistory.test.ts`, `apps/desktop/src/renderer/src/EstateAgents.test.tsx` — the history window; the console return itself is not covered here.
 - **Product:** unobserved
 
 ### SCN-092: Вернуться в estate холодным и дойти до первого решения

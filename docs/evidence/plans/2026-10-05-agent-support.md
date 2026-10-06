@@ -10,6 +10,11 @@ including running the harness on another agent than Claude Code, for example Her
 
 ## Tasks
 
+**Note 2026-10-06 (0.3.2 verification PL-5):** the operator's request of 2026-10-06 — Kimi Code, Goose, Gemini
+CLI and OpenCode as runners — is [CO-220](../specs/2026-08-16-software-fabric-carryover.md), with its measurements.
+OpenClaw cannot be a runner: its ACP bridge rejects session MCP servers and needs its own gateway, so it is a
+client of Fabric's hub (ADR-0115), not a runner row. Cline ships in 0.3.2.
+
 | ID | Task | Depends on | Status |
 |---|---|---|---|
 | AS-01 | Research: the top-30 ranking, what each agent exposes (ACP, MCP client, headless, auth, config home), Fabric and Switchboard today, the support matrix | — | **done** 2026-10-05 (the report; ACP `initialize` probes of Kilo 7.4.17 and Cline 3.0.46 in `raw/probes/`) |

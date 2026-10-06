@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.2",
+  "iteration": 2,
+  "level": "docs",
+  "candidateCommit": "8d002f4dc00595e94bea58a96962bb8c6971ff98",
+  "report": "docs/evidence/plans/2026-10-06-release-032-verification/iteration-2/2026-10-06-docs.md",
+  "reportSha256": "21a0bb150fac11c9d03cda4956f1871d4228fd18eb89ebb55184155340b6d21b",
+  "reviewerRun": "release-032-i2-docs-20261006",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-1",
+      "source": "DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed `992602ff`: read the schema first, `--from FROM`, one new backup name that keeps `pre-0.3.1.dump`, 75 → 79 in one step stated. Seeded rehearsals on 2026-10-06 against `9372880b` (`node scripts/rehearse-upgrade.mjs --make-fixture N`, then `--from N --ref HEAD`): **PASS 75 → 79** and **PASS 78 → 79**, journal 6 → 6, no table lost rows, failures `[]`; receipts kept outside the repository"
+      ]
+    },
+    {
+      "id": "V2-8",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a null result is re-checked; one banner above every screen; wording and notes corrected; `StackExposureNotice.test.tsx`"
+      ]
+    },
+    {
+      "id": "V2-11",
+      "source": "DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: stored rows beside the journal, only request states and read marks are projections; requests are stored `queued`, nothing claims them yet"
+      ]
+    },
+    {
+      "id": "V2-12",
+      "source": "DO-8, DO-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: amendment 4; \"every agent that connects to it\"; SCN-034 names the BOM exception (CO-221); \"THREE RULES\""
+      ]
+    },
+    {
+      "id": "V2-13",
+      "source": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a dated correction note in the README, the findings unchanged"
+      ]
+    },
+    {
+      "id": "V2-14",
+      "source": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the real label; SCN-091 amended with its coverage"
+      ]
+    },
+    {
+      "id": "V2-15",
+      "source": "DO-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-11 status and CO-215…222; iteration 1 closed above"
+      ]
+    },
+    {
+      "id": "V2-16",
+      "source": "DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the note names the session id; `UsageCountsSetting.test.tsx` asserts both ids and no \"anonymous\""
+      ]
+    },
+    {
+      "id": "V2-24",
+      "source": "DO-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-221 (already carried as ER-7 of iteration 1)"
+      ]
+    },
+    {
+      "id": "V2-25",
+      "source": "DO-3, DO-4, DO-5, DO-9, DO-14",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-222"
+      ]
+    }
+  ]
+}

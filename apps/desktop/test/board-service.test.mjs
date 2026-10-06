@@ -135,3 +135,17 @@ test('an id that is not a uuid is refused as unknown before the door; a uuid of 
   assert.equal(calls.length, 1)
   assert.equal(calls[0].args.p_message, '79000000-0000-4000-8000-0000000000ab')
 })
+
+// 0.3.2 verification DA-4, DA-5: an epoch past PostgreSQL's integer is the caller's error, not "unavailable";
+// submit takes thread and reply ids by the same rule as list, get and read_ack.
+test('submit refuses an epoch past int32 and a non-uuid thread or reply before the door, and lower-cases ids', async () => {
+  const { rpc, calls } = fake({ board_submit: { data: { ok: true }, error: null } })
+  const board = createBoard({ rpc })
+  const base = { ...submitRequest, thread: { id: '79000000-0000-4000-8000-0000000000D1' } }
+  assert.equal((await board.submit(caller, { ...base, idempotency: { ...base.idempotency, epoch: 2 ** 31 } })).error.code, 'invalid_arguments')
+  assert.equal((await board.submit(caller, { ...base, thread: { id: 'thr_8Hc2kQ9xA1' } })).error.code, 'not_authorized')
+  assert.equal(calls.length, 0)
+  await board.submit(caller, base)
+  assert.equal(calls.length, 1)
+  assert.deepEqual(calls[0].args.p_submit.thread, { id: '79000000-0000-4000-8000-0000000000d1' })
+})

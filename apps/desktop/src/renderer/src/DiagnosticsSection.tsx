@@ -13,7 +13,6 @@ import type { DiagnosticsView } from '../../shared/types'
 import type { OpsLevel } from '../../shared/opsLog'
 import { Banner, Button, EmptyState, Panel, Row, Toolbar } from './components'
 import { useT } from './i18n'
-import { StackExposureNotice } from './StackExposureNotice'
 
 export function DiagnosticsSection(): React.JSX.Element {
   const t = useT()
@@ -85,8 +84,6 @@ export function DiagnosticsSection(): React.JSX.Element {
 
       {problem && <Banner tone="error">{t('diagnostics.unreadable', { reason: problem })}</Banner>}
 
-      {/* Audit A7-001: the stack answering on the network is the first thing this panel says. */}
-      <StackExposureNotice />
 
       {view && view.records.length === 0 && (
         <EmptyState read>{t('diagnostics.nothing')}</EmptyState>

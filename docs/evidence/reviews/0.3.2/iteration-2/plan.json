@@ -1,0 +1,94 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.2",
+  "iteration": 2,
+  "level": "plan",
+  "candidateCommit": "8d002f4dc00595e94bea58a96962bb8c6971ff98",
+  "report": "docs/evidence/plans/2026-10-06-release-032-verification/iteration-2/2026-10-06-plan.md",
+  "reportSha256": "c57c025edde87d7e20bda958008aae89d3792a92d01e12740bb6ff5b266e929f",
+  "reviewerRun": "release-032-i2-plan-20261006",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-1",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed `992602ff`: read the schema first, `--from FROM`, one new backup name that keeps `pre-0.3.1.dump`, 75 → 79 in one step stated. Seeded rehearsals on 2026-10-06 against `9372880b` (`node scripts/rehearse-upgrade.mjs --make-fixture N`, then `--from N --ref HEAD`): **PASS 75 → 79** and **PASS 78 → 79**, journal 6 → 6, no table lost rows, failures `[]`; receipts kept outside the repository"
+      ]
+    },
+    {
+      "id": "V2-15",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-11 status and CO-215…222; iteration 1 closed above"
+      ]
+    },
+    {
+      "id": "V2-17",
+      "source": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-11 and P-12 in lane 2"
+      ]
+    },
+    {
+      "id": "V2-18",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the paragraph is marked superseded with the measured `unified-plan.mjs check` result; the recompile is CO-221"
+      ]
+    },
+    {
+      "id": "V2-19",
+      "source": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the agent-support plan's note cites CO-220 and OpenClaw as a hub client"
+      ]
+    },
+    {
+      "id": "V2-20",
+      "source": "PL-7",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-212: re-dated to COM-02.3 with the reason; the release notes say the gap"
+      ]
+    },
+    {
+      "id": "V2-21",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-216 names them and takes them first; CO-215 keeps A7-012/015/016"
+      ]
+    },
+    {
+      "id": "V2-22",
+      "source": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-199 re-ruled with the reason; CO-198 records `2932fbbd`"
+      ]
+    },
+    {
+      "id": "V2-23",
+      "source": "PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: before 0.3.3 ships"
+      ]
+    },
+    {
+      "id": "V2-25",
+      "source": "PL-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-222"
+      ]
+    }
+  ]
+}

@@ -70,7 +70,7 @@ const capabilityName = z.string().regex(/^[a-z][a-z0-9._-]{1,127}$/)
 const sha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/)
 const artifactRef = z.strictObject({ id: z.url().min(1), contentHash: sha256, label: z.string().max(120).optional() })
 export const commsSubmitSchema = z.strictObject({
-  idempotency: z.strictObject({ epoch: z.number().int().min(1), key: z.string().regex(/^[A-Za-z0-9._:-]{8,128}$/) }),
+  idempotency: z.strictObject({ epoch: z.number().int().min(1).max(2147483647), key: z.string().regex(/^[A-Za-z0-9._:-]{8,128}$/) }),
   thread: z.union([
     z.strictObject({ id: opaqueId }),
     z.strictObject({ new: z.strictObject({ participants: z.array(projectId).min(1).max(16), subject: z.string().min(1).max(200).optional() }) })
@@ -145,6 +145,18 @@ export function createBoard(deps: BoardDeps) {
       }
       // Bytes before hashing or storing (the schema counts characters).
       if (Buffer.byteLength(parsed.data.body.text, 'utf8') > BODY_MAX_BYTES) return refusal('body_too_large', 'The message body is larger than 65,536 bytes.')
+      // The same id rule as list, get and read_ack (0.3.2 verification DA-5): a thread or message id that
+      // cannot exist here is refused before the door; one of any case is sent lower-cased.
+      if ('id' in parsed.data.thread) {
+        const thread = boardId(parsed.data.thread.id)
+        if (thread === null) return refusal('not_authorized', 'This Project cannot write to that thread.')
+        parsed.data.thread = { id: thread }
+      }
+      if (parsed.data.replyTo !== undefined) {
+        const replyTo = boardId(parsed.data.replyTo)
+        if (replyTo === null) return refusal('not_authorized', 'This Project cannot reply to that message.')
+        parsed.data.replyTo = replyTo
+      }
       let digest: string
       try { digest = commsDigest('com.submit', parsed.data) } catch {
         // Silence is right: the refusal names the cause (a value canonical JSON does not admit), and the

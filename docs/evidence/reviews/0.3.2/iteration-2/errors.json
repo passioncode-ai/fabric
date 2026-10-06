@@ -1,0 +1,54 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.2",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "8d002f4dc00595e94bea58a96962bb8c6971ff98",
+  "report": "docs/evidence/plans/2026-10-06-release-032-verification/iteration-2/2026-10-06-errors.md",
+  "reportSha256": "1a23c62a49db4d67f3d61b467a63d5a064404f1830adeb3dbd32e467a786ec9f",
+  "reviewerRun": "release-032-i2-errors-20261006",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-2",
+      "source": "ER-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the buffer after Keep mine is the diff's side; `EditorWindow.conflict.test.tsx` \"typing into the diff during a Keep mine save stays unsaved and kept for recovery\" (watched: 1 failed)"
+      ]
+    },
+    {
+      "id": "V2-6",
+      "source": "ER-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one `devServer()` (null when packaged) for loading and the guard; no test through a packaged app"
+      ]
+    },
+    {
+      "id": "V2-7",
+      "source": "ER-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: installed once per process; no test through Electron"
+      ]
+    },
+    {
+      "id": "V2-8",
+      "source": "ER-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a null result is re-checked; one banner above every screen; wording and notes corrected; `StackExposureNotice.test.tsx`"
+      ]
+    },
+    {
+      "id": "V2-25",
+      "source": "ER-2, ER-3, ER-4, ER-5, ER-8, ER-9, ER-11, ER-12",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-222"
+      ]
+    }
+  ]
+}

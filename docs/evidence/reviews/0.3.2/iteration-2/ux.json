@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.2",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "8d002f4dc00595e94bea58a96962bb8c6971ff98",
+  "report": "docs/evidence/plans/2026-10-06-release-032-verification/iteration-2/2026-10-06-ux.md",
+  "reportSha256": "cfe6b59edb9ff7f0056f32e99e8d8e9a1585d1e461d4b24727faa3935cadf42f",
+  "reviewerRun": "release-032-i2-ux-20261006",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-3",
+      "source": "UX-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `restoredMine` is the diff's side once; `EditorWindow.conflict.test.tsx` \"restoring a kept buffer over a changed file…\" (watched: 1 failed)"
+      ]
+    },
+    {
+      "id": "V2-4",
+      "source": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the diff widget is disposed before its models; no jsdom test reproduces Monaco's model lifecycle (the stand-in has none) — checked by reading"
+      ]
+    },
+    {
+      "id": "V2-5",
+      "source": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: it sets the leaving flag and drops the kept copy; `EditorWindow.conflict.test.tsx` (watched)"
+      ]
+    },
+    {
+      "id": "V2-8",
+      "source": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: a null result is re-checked; one banner above every screen; wording and notes corrected; `StackExposureNotice.test.tsx`"
+      ]
+    },
+    {
+      "id": "V2-14",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the real label; SCN-091 amended with its coverage"
+      ]
+    },
+    {
+      "id": "V2-25",
+      "source": "UX-2, UX-4, UX-7, UX-8, UX-9",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-222"
+      ]
+    }
+  ]
+}
