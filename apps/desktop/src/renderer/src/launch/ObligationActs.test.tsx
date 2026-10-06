@@ -144,3 +144,33 @@ describe('an access request in the queue', () => {
    finish({ ok: false, code: 'expired' })
    await waitFor(() => expect(allow.hasAttribute('aria-disabled')).toBe(false))
  })
+
+// Audit 2026-10-05 A1-001: "Allow once" grants once, says until when, and offers nothing more.
+describe('allowing a refused act', () => {
+  const refused: ObligationLike = { subject: { kind: 'refusal', id: '7' }, projectId: 'p', grantable: { floorClass: 'deletion', target: '/repo/a.md' } }
+  it('is busy while the grant is issued, then says until when and cannot be pressed again', async () => {
+    let land: (g: { grantId: string; expiresAt: string }) => void = () => {}
+    const grant = vi.fn(() => new Promise<{ grantId: string; expiresAt: string }>((r) => { land = r }))
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { attention: { grant } } }))
+    render(<I18nProvider locale="en"><Harness item={refused} /></I18nProvider>)
+    const button = screen.getByRole('button', { name: 'Allow once' }) as HTMLButtonElement
+    fireEvent.click(button)
+    fireEvent.click(button)
+    expect(button.disabled).toBe(true)
+    expect(grant).toHaveBeenCalledTimes(1)
+    expect(grant).toHaveBeenCalledWith({ projectId: 'p', floorClass: 'deletion', target: '/repo/a.md' })
+    land({ grantId: 'g1', expiresAt: '2026-10-06T15:30:00Z' })
+    expect(await screen.findByRole('status')).toBeTruthy()
+    expect(screen.getByRole('status').textContent).toMatch(/^Allowed once, until /)
+    expect(screen.queryByRole('button', { name: 'Allow once' })).toBeNull()
+  })
+
+  it('a failed grant is said, and the act is offered again', async () => {
+    const onError = vi.fn()
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { attention: { grant: vi.fn(async () => { throw new Error('database unavailable') }) } } }))
+    render(<I18nProvider locale="en"><Harness item={refused} onError={onError} /></I18nProvider>)
+    fireEvent.click(screen.getByRole('button', { name: 'Allow once' }))
+    await waitFor(() => expect(onError).toHaveBeenCalledWith('Error: database unavailable'))
+    expect((screen.getByRole('button', { name: 'Allow once' }) as HTMLButtonElement).disabled).toBe(false)
+  })
+})

@@ -102,14 +102,7 @@ export function ObligationActs({ item, decisions, onOpen, onError, onAccessDecid
         </>
       )}
       {!p && item.grantable && (
-        <button type="button" className="lp-button primary"
-          onClick={() =>
-            void window.fabric.attention
-              .grant({ projectId: item.projectId, floorClass: item.grantable!.floorClass, target: item.grantable!.target })
-              .catch((e) => onError(String(e)))
-          }>
-          {t('ceo.grant')}
-        </button>
+        <GrantAct projectId={item.projectId} grantable={item.grantable} onError={onError} reload={decisions.reload} />
       )}
       {at && (
         <button type="button" className="lp-button" onClick={() => onOpen(at.projectId, at.focus)}>
@@ -117,6 +110,37 @@ export function ObligationActs({ item, decisions, onOpen, onError, onAccessDecid
         </button>
       )}
     </div>
+  )
+}
+
+/**
+ * "Allow once" for a refused act (audit 2026-10-05 A1-001). Busy while the grant is issued, then says until
+ * when it holds and offers nothing more: each click used to mint another one-hour grant while the refusal
+ * stayed in the queue. The queue is re-read, and the refusal leaves it because the grant resolves it.
+ */
+function GrantAct({ projectId, grantable, onError, reload }: {
+  projectId: string | null
+  grantable: { floorClass: string; target: string }
+  onError: (m: string) => void
+  reload: () => Promise<void>
+}): React.JSX.Element {
+  const t = useT()
+  const [busy, setBusy] = useState(false)
+  const [until, setUntil] = useState<string | null>(null)
+  if (until)
+    return <span role="status" className="lp-meta">{t('ceo.grantedUntil', { time: new Date(until).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) })}</span>
+  return (
+    <button type="button" className="lp-button primary" disabled={busy}
+      onClick={() => {
+        setBusy(true)
+        void window.fabric.attention
+          .grant({ projectId, floorClass: grantable.floorClass, target: grantable.target })
+          .then((g) => { setUntil(g.expiresAt); void reload() })
+          .catch((e) => onError(String(e)))
+          .finally(() => setBusy(false))
+      }}>
+      {t('ceo.grant')}
+    </button>
   )
 }
 

@@ -2416,7 +2416,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     sources: SourceReceipt[]
     omitted: Omission[]
   }> => {
-    const [reviews, expired, refusals, projects, proposals] = await Promise.all([
+    const [reviews, expired, refusals, projects, proposals, grants] = await Promise.all([
       store
         .select('project_tasks', 'id,project_id,title,instruction,started_at')
         .eq('estate_id', ACTIVE_ESTATE)
@@ -2436,7 +2436,15 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         .select('proposals', 'id,project_id,title,depth,bound,created_at')
         .eq('estate_id', ACTIVE_ESTATE)
         .is('decided_at', null)
-        .order('created_at')
+        .order('created_at'),
+      // What resolves a refusal: the operator's grants for the same act (A1-001). The same window as
+      // the decisions, newest first: a grant older than every refusal in view resolves none of them.
+      store
+        .select('journal', 'seq,project_id,payload')
+        .eq('estate_id', ACTIVE_ESTATE)
+        .eq('type', 'grant.issued@1')
+        .order('seq', { ascending: false })
+        .limit(REFUSAL_WINDOW)
     ])
     const names = Object.fromEntries(
       (projects.data ?? []).map((row) => [row.id as string, row.name as string])
@@ -2482,6 +2490,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         { source: 'reviews', error: reviews.error },
         { source: 'leases', error: expired.error },
         { source: 'refusals', error: refusals.error },
+        { source: 'grants', error: grants.error },
         { source: 'projects', error: projects.error },
         { source: 'proposals', error: proposals.error },
         // The chunked read reports differently — its failure is a sentence
@@ -2508,6 +2517,18 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         // cannot open this" is the safe direction.
         is_task: isTask.has(l.work_id as string)
       })),
+      resolutions: [
+        ...(grants.data ?? []),
+        ...(refusals.data ?? []).filter((row) => (row.payload as { verdict?: string }).verdict === 'allow')
+      ].map((row) => {
+        const payload = row.payload as { floor_class?: string; target?: string }
+        return {
+          seq: row.seq as number,
+          project_id: (row.project_id as string | null) ?? null,
+          floor_class: payload.floor_class ?? 'unknown',
+          target: payload.target ?? 'unknown'
+        }
+      }),
       refusals: (refusals.data ?? [])
         .filter((row) => (row.payload as { verdict?: string }).verdict === 'refuse')
         .map((row) => {
@@ -3006,7 +3027,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(
     IPC.attentionGrant,
     async (_e, input: { projectId: string | null; floorClass: string; target: string }): Promise<Returns<FabricApi['attention']['grant']>> => {
-      await policy.issueGrant({
+      // The answer is returned (A1-001): the act says "allowed until …" instead of offering itself again.
+      const { grantId, expiresAt } = await policy.issueGrant({
         estateId: ACTIVE_ESTATE,
         projectId: input.projectId,
         floorClass: input.floorClass as 'money' | 'deletion' | 'publication',
@@ -3016,6 +3038,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         // that an authorisation nobody used stops being one.
         ttlMs: 60 * 60 * 1000
       })
+      return { grantId, expiresAt }
     }
   )
 

@@ -1,27 +1,95 @@
 {
-  "A4-001": {"state": "fixed", "ref": "binary files open read-only, never written; untouched save writes nothing"},
-  "A2-002": {"state": "fixed", "ref": "a save keeps the same Monaco"},
-  "A2-003": {"state": "fixed", "ref": "no write path skips the hash compare"},
-  "A2-004": {"state": "fixed", "ref": "the conflict sentence takes the focus"},
-  "A6-001": {"state": "fixed", "ref": "a turn has no deadline (ADR-0119 amendment 3)"},
-  "A7-004": {"state": "duplicate", "ref": "A6-001"},
-  "A7-005": {"state": "fixed", "ref": "check-ops green; the initialize failure prints its cause"},
-  "A7-003": {"state": "fixed", "ref": "the shell ends the agent's process group on SIGTERM/SIGHUP"},
-  "A7-007": {"state": "fixed", "ref": "a permission question reads only fresh input"},
-  "A6-003": {"state": "duplicate", "ref": "A7-007"},
-  "A6-004": {"state": "fixed", "ref": "granted servers go with the surface over HTTP"},
-  "A6-005": {"state": "fixed", "ref": "the redactor reads JSON Authorization and x-…-key headers"},
-  "A6-006": {"state": "fixed", "ref": "a bundle-carried mode never launches without its bundle"},
-  "A6-007": {"state": "fixed", "ref": "one surface error answers that request; only 401/403 closes the bridge"},
-  "A6-011": {"state": "fixed", "ref": "tests for the three paths, each plant watched"},
-  "A6-029": {"state": "fixed", "ref": "the end of the agent's stdin ends the HTTP session"},
-  "A2-001": {"state": "planned"},
-  "A2-005": {"state": "deferred", "ref": "CO-217"},
-  "A1-001": {"state": "planned"},
-  "A3-001": {"state": "planned"},
-  "A4-002": {"state": "planned"},
-  "A4-003": {"state": "planned"},
-  "A5-001": {"state": "planned"},
-  "A7-001": {"state": "planned"},
-  "A7-002": {"state": "planned"}
+  "A4-001": {
+    "state": "fixed",
+    "ref": "binary files open read-only, never written; untouched save writes nothing"
+  },
+  "A2-002": {
+    "state": "fixed",
+    "ref": "a save keeps the same Monaco"
+  },
+  "A2-003": {
+    "state": "fixed",
+    "ref": "no write path skips the hash compare"
+  },
+  "A2-004": {
+    "state": "fixed",
+    "ref": "the conflict sentence takes the focus"
+  },
+  "A6-001": {
+    "state": "fixed",
+    "ref": "a turn has no deadline (ADR-0119 amendment 3)"
+  },
+  "A7-004": {
+    "state": "duplicate",
+    "ref": "A6-001"
+  },
+  "A7-005": {
+    "state": "fixed",
+    "ref": "check-ops green; the initialize failure prints its cause"
+  },
+  "A7-003": {
+    "state": "fixed",
+    "ref": "the shell ends the agent's process group on SIGTERM/SIGHUP"
+  },
+  "A7-007": {
+    "state": "fixed",
+    "ref": "a permission question reads only fresh input"
+  },
+  "A6-003": {
+    "state": "duplicate",
+    "ref": "A7-007"
+  },
+  "A6-004": {
+    "state": "fixed",
+    "ref": "granted servers go with the surface over HTTP"
+  },
+  "A6-005": {
+    "state": "fixed",
+    "ref": "the redactor reads JSON Authorization and x-…-key headers"
+  },
+  "A6-006": {
+    "state": "fixed",
+    "ref": "a bundle-carried mode never launches without its bundle"
+  },
+  "A6-007": {
+    "state": "fixed",
+    "ref": "one surface error answers that request; only 401/403 closes the bridge"
+  },
+  "A6-011": {
+    "state": "fixed",
+    "ref": "tests for the three paths, each plant watched"
+  },
+  "A6-029": {
+    "state": "fixed",
+    "ref": "the end of the agent's stdin ends the HTTP session"
+  },
+  "A2-001": {
+    "state": "planned"
+  },
+  "A2-005": {
+    "state": "deferred",
+    "ref": "CO-217"
+  },
+  "A1-001": {
+    "state": "fixed",
+    "ref": "a granted refusal leaves the queue; repeats collapse; Allow once says until when"
+  },
+  "A3-001": {
+    "state": "planned"
+  },
+  "A4-002": {
+    "state": "planned"
+  },
+  "A4-003": {
+    "state": "planned"
+  },
+  "A5-001": {
+    "state": "planned"
+  },
+  "A7-001": {
+    "state": "planned"
+  },
+  "A7-002": {
+    "state": "planned"
+  }
 }

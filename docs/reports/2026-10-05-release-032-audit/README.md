@@ -5,7 +5,7 @@ report:
   kind: audit
   project: fabric
   domains: [quality, security, ux, architecture]
-  as_of: 2026-10-06
+  as_of: 2026-10-05
   status: active
   valid_until: 2026-11-06
   summary: >-
@@ -27,7 +27,7 @@ and gaps in the code, the architecture and the interface, and check every screen
 scenario. Then make a fix list, fix it item by item with the documentation, and end with a final
 check and a summary of what is in this release and what is not.
 
-**The list:** [fix-list.md](raw/fix-list.md), every finding with its 0.3.2 disposition, generated
+**The list:** [2026-10-05-fix-list.md](raw/2026-10-05-fix-list.md), every finding with its 0.3.2 disposition, generated
 from the area reports by `raw/build-fix-list.py` and `raw/dispositions.json`.
 
 ## 1. How it was checked
@@ -38,7 +38,7 @@ the scenarios in slices. For each scenario they read `docs/ux/scenarios.md`, the
 `screens.md` and `product-model.json`, then traced renderer → IPC → main → SQL along the main path
 and every error path. The seventh took the trust boundaries, data integrity, lifecycle, errors and
 observability, drift and duplication, and analytics privacy. It split that work with two helper
-drafts (`raw/area2.md`, `raw/area45.md`), whose findings it merged into `raw/architecture.md`.
+drafts (`raw/2026-10-05-area2.md`, `raw/2026-10-05-area45.md`), whose findings it merged into `raw/2026-10-05-architecture.md`.
 
 Each finding cites `file:line` at `e19e1b9e`. Each P0 and P1 was re-checked against the source,
 and several were reproduced by a probe. The unit suites behind the scenarios were run. All were
@@ -47,13 +47,13 @@ its defect, for example).
 
 | Report | Scope | Findings |
 |---|---|---|
-| [scn-001-022.md](raw/scn-001-022.md) | SCN-001…022 | 22 |
-| [scn-023-045.md](raw/scn-023-045.md) | SCN-023…045 | 65 |
-| [scn-046-068.md](raw/scn-046-068.md) | SCN-046…068 | 30 |
-| [scn-069-090.md](raw/scn-069-090.md) | SCN-069…090 | 30 |
-| [scn-091-112.md](raw/scn-091-112.md) | SCN-091…112 | 38 |
-| [scn-113-134.md](raw/scn-113-134.md) | SCN-113…134 | 46 |
-| [architecture.md](raw/architecture.md) | trust, data, lifecycle, errors, drift, analytics | 47 |
+| [2026-10-05-scn-001-022.md](raw/2026-10-05-scn-001-022.md) | SCN-001…022 | 22 |
+| [2026-10-05-scn-023-045.md](raw/2026-10-05-scn-023-045.md) | SCN-023…045 | 65 |
+| [2026-10-05-scn-046-068.md](raw/2026-10-05-scn-046-068.md) | SCN-046…068 | 30 |
+| [2026-10-05-scn-069-090.md](raw/2026-10-05-scn-069-090.md) | SCN-069…090 | 30 |
+| [2026-10-05-scn-091-112.md](raw/2026-10-05-scn-091-112.md) | SCN-091…112 | 38 |
+| [2026-10-05-scn-113-134.md](raw/2026-10-05-scn-113-134.md) | SCN-113…134 | 46 |
+| [2026-10-05-architecture.md](raw/2026-10-05-architecture.md) | trust, data, lifecycle, errors, drift, analytics | 47 |
 
 `python3 raw/build-fix-list.py` counts the findings again from these tables: 278.
 

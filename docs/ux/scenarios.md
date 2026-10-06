@@ -302,9 +302,15 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **UI elements:** attention indicator; project link; health receipt; run link; report link.
 - **States covered:** loading, error, success
 - **Errors & recovery:** a missing receipt is displayed as unverified with refresh/trace recovery, never replaced by an agent conclusion.
+- **Alt paths:** a refused act in the queue offers Allow once. The button is busy while the grant is issued, then says
+  "Allowed once, until {time}" and offers nothing more. The refusal leaves the queue and the project card's
+  count because the grant resolves it: a grant, or a later allowing decision, for the same floor class and
+  target, in that project or estate-wide. Repeated refusals of one act are one item, dated from the first.
+  A failed grant is said and the button comes back. A refusal made after the grant (the grant expired unused,
+  or was spent) is open again.
 - **Telemetry:** `attention_item_opened` with project_id, dimension, receipt_kind
 - **Status:** validated
-- **Coverage:** `apps/desktop/src/shared/attention.ts`, `apps/desktop/src/renderer/src/launch/ObligationActs.tsx`, `apps/desktop/src/shared/attention.test.ts`
+- **Coverage:** `apps/desktop/src/shared/attention.ts`, `apps/desktop/src/renderer/src/launch/ObligationActs.tsx`, `apps/desktop/src/shared/attention.test.ts`, `apps/desktop/src/renderer/src/launch/ObligationActs.test.tsx`
 - **Product:** unobserved
 
 ## Runs

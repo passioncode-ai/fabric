@@ -1118,7 +1118,8 @@ export interface FabricApi {
     list(): Promise<ReadEnvelope<AttentionItem[]>>
     /** Authorise one refused act. One class, one target, spent once, expires
      *  in an hour — never a setting and never a role (M140). */
-    grant(input: { projectId: string | null; floorClass: string; target: string }): Promise<void>
+    /** Issues a one-hour grant for this act and answers with it, so the act can say until when (A1-001). */
+    grant(input: { projectId: string | null; floorClass: string; target: string }): Promise<{ grantId: string; expiresAt: string }>
   }
   /**
    * Agent access (ADR-0115): what registered agents on this Mac may do through Fabric, what is waiting

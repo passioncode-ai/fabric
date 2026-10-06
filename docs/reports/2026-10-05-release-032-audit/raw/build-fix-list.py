@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Builds fix-list.md from the audit tables in this folder and dispositions.json.
+"""Builds 2026-10-05-fix-list.md from the audit tables in this folder and dispositions.json.
 
-Reads every finding row (`| ID | P0..P3 | …`) of the seven area reports — architecture.md already
-merges its two helper drafts, area2.md and area45.md, so those are not read again — and writes one
+Reads every finding row (`| ID | P0..P3 | …`) of the seven area reports — 2026-10-05-architecture.md already
+merges its two helper drafts, 2026-10-05-area2.md and 2026-10-05-area45.md, so those are not read again — and writes one
 table per severity with the release-0.3.2 disposition of each finding. Run from anywhere:
     python3 docs/reports/2026-10-05-release-032-audit/raw/build-fix-list.py
 """
 import json, pathlib, re
 HERE = pathlib.Path(__file__).parent
-SOURCES = ['scn-001-022.md', 'scn-023-045.md', 'scn-046-068.md', 'scn-069-090.md', 'scn-091-112.md', 'scn-113-134.md', 'architecture.md']
+SOURCES = ['2026-10-05-scn-001-022.md', '2026-10-05-scn-023-045.md', '2026-10-05-scn-046-068.md', '2026-10-05-scn-069-090.md', '2026-10-05-scn-091-112.md', '2026-10-05-scn-113-134.md', '2026-10-05-architecture.md']
 disp = json.loads((HERE / 'dispositions.json').read_text())
 rows = []
 for name in SOURCES:
@@ -50,5 +50,5 @@ for sev in ['P0', 'P1', 'P2', 'P3']:
     out.append('')
 out.insert(4, 'Totals: ' + ', '.join(f'{k} {v}' for k, v in sorted(counts.items())) + f' — {len(rows)} findings.')
 out.insert(5, '')
-(HERE / 'fix-list.md').write_text('\n'.join(out) + '\n')
+(HERE / '2026-10-05-fix-list.md').write_text('\n'.join(out) + '\n')
 print(f'{len(rows)} findings;', counts)

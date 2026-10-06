@@ -99,6 +99,11 @@ export interface AttentionSources {
     asked_because?: string | null
     occurred_at: string
   }[]
+  /**
+   * What resolved a refusal after it was made: a grant the operator issued, or a later decision that
+   * allowed the same act. Absent means none was read, and every refusal stays open.
+   */
+  resolutions?: { seq: number; project_id: string | null; floor_class: string; target: string }[]
   /** Hand-offs stopped at the bound and still waiting on a person (M68). */
   proposals: {
     id: string
@@ -126,6 +131,35 @@ export interface AttentionSources {
 // minutes, so it is the one item here that is lost by waiting.
 const RANK: Record<AttentionKind, number> = { access: 0, refused: 0, proposal: 1, review: 2, abandoned: 3 }
 
+/**
+ * The refusals still waiting on the operator (audit 2026-10-05 A1-001).
+ *
+ * A refusal leaves when what it asked for has been given: a grant, or a later decision allowing the
+ * same act, with a higher seq, for the same floor class and target, in the same project or estate-wide.
+ * Until this, a granted refusal stayed in the queue with "Allow once" still offered, each click minted
+ * another grant, and the card stayed red until fifty newer decisions pushed it out. Repeated refusals of
+ * one act are one obligation: the newest is kept, dated from the first, because it has waited that long.
+ */
+export function openRefusals(
+  refusals: AttentionSources['refusals'],
+  resolutions: AttentionSources['resolutions'] = []
+): AttentionSources['refusals'] {
+  const resolved = (r: AttentionSources['refusals'][number]): boolean =>
+    resolutions.some((x) => x.seq > r.seq && x.floor_class === r.floor_class && x.target === r.target &&
+      (x.project_id === null || x.project_id === r.project_id))
+  const byAct = new Map<string, AttentionSources['refusals'][number]>()
+  for (const r of refusals) {
+    if (resolved(r)) continue
+    const key = JSON.stringify([r.project_id, r.floor_class, r.target])
+    const held = byAct.get(key)
+    if (!held) { byAct.set(key, r); continue }
+    const [newer, older] = r.seq > held.seq ? [r, held] : [held, r]
+    const first = Date.parse(older.occurred_at) < Date.parse(newer.occurred_at) ? older.occurred_at : newer.occurred_at
+    byAct.set(key, { ...newer, occurred_at: first })
+  }
+  return [...byAct.values()]
+}
+
 export function attentionOf(sources: AttentionSources): AttentionItem[] {
   const items: AttentionItem[] = []
   for (const row of sources.access ?? [])
@@ -141,7 +175,7 @@ export function attentionOf(sources: AttentionSources): AttentionItem[] {
       since: row.requestedAt,
       access: row
     })
-  for (const row of sources.refusals)
+  for (const row of openRefusals(sources.refusals, sources.resolutions))
     items.push({
       kind: 'refused',
       ref: { kind: 'refusal', id: String(row.seq) },

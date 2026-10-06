@@ -289,3 +289,37 @@ describe('an external agent waiting on consent (ADR-0115)', () => {
     expect(JSON.stringify(item)).not.toMatch(/asks to use|registered as|mail in/)
   })
 })
+
+// Audit 2026-10-05 A1-001: a refusal leaves the queue once what it asked for has been given.
+describe('a granted refusal is resolved', () => {
+  const refusal = (seq: number, over: Partial<AttentionSources['refusals'][number]> = {}) =>
+    ({ seq, project_id: 'p', floor_class: 'deletion', target: '/repo/a.md', reason: 'no grant', occurred_at: `2026-10-05T10:0${seq}:00Z`, ...over })
+  const grant = (seq: number, over: Partial<NonNullable<AttentionSources['resolutions']>[number]> = {}) =>
+    ({ seq, project_id: 'p', floor_class: 'deletion', target: '/repo/a.md', ...over })
+
+  it('a later grant for the same act and target removes it', () => {
+    expect(attentionOf({ ...empty, refusals: [refusal(1)], resolutions: [grant(2)] })).toEqual([])
+  })
+
+  it('an estate-wide grant resolves a project refusal; a grant for another project, act, target or an earlier one does not', () => {
+    expect(attentionOf({ ...empty, refusals: [refusal(1)], resolutions: [grant(2, { project_id: null })] })).toEqual([])
+    for (const other of [grant(2, { project_id: 'q' }), grant(2, { floor_class: 'money' }), grant(2, { target: '/repo/b.md' }), grant(0)])
+      expect(attentionOf({ ...empty, refusals: [refusal(1)], resolutions: [other] })).toHaveLength(1)
+  })
+
+  it('a refusal after the grant (it expired unused, or was spent) is open again', () => {
+    expect(attentionOf({ ...empty, refusals: [refusal(3), refusal(1)], resolutions: [grant(2)] }).map((i) => i.ref.id)).toEqual(['3'])
+  })
+
+  it('repeated refusals of one act are one obligation, the newest, dated from the first', () => {
+    const items = attentionOf({ ...empty, refusals: [refusal(3), refusal(2), refusal(1)] })
+    expect(items).toHaveLength(1)
+    expect(items[0].ref.id).toBe('3')
+    expect(items[0].since).toBe('2026-10-05T10:01:00Z')
+    expect(attentionByProject(items).p.refused).toBe(1)
+  })
+
+  it('with no resolutions read, every refusal stays open', () => {
+    expect(attentionOf({ ...empty, refusals: [refusal(1), refusal(2, { target: '/repo/b.md' })] })).toHaveLength(2)
+  })
+})

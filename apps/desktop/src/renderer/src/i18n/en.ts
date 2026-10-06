@@ -636,6 +636,7 @@ export const en = {
   'ceo.kind.abandoned': 'dropped',
   'ceo.waiting': '{time}',
   'ceo.grant': 'Allow once',
+  'ceo.grantedUntil': 'Allowed once, until {time}',
   'ceo.openIt': 'Open',
   'ceo.noModel': 'No model is connected, so this panel names what is waiting rather than discussing it. The conversation waits for a provider, a key and a budget — none of which are half-built here.',
   'tasks.noneYet': 'Nothing has been asked here yet.',
