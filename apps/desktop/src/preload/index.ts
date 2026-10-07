@@ -213,6 +213,7 @@ const api: FabricApi = {
   },
   terminal: {
     options: () => ipcRenderer.invoke(IPC.terminalOptions),
+    fallback: (projectId, kind, permissionMode) => ipcRenderer.invoke(IPC.terminalFallback, projectId, kind, permissionMode),
     memoryBackends: () => ipcRenderer.invoke(IPC.terminalMemoryBackends),
     open: (projectId, optionId, firstInstruction, permissionMode) =>
       ipcRenderer.invoke(IPC.terminalOpen, projectId, optionId, firstInstruction, permissionMode),

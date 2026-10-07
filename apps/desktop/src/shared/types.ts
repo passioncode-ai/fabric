@@ -3,6 +3,7 @@ import type { ReleaseCommandResult, ReleaseEntry } from './releases.ts'
 import type { TerminalStopResult, TerminalTermination } from './stop.ts'
 import type { OpsLevel, OpsRecord } from './opsLog.ts'
 import type { ProjectSettingsWrite, SaveSettingsInput } from './projectSettings.ts'
+import type { FallbackPreview, RunnerFallback } from './runnerRoute.ts'
 // The typed IPC contract (iteration-1-modules.md §10). The renderer never
 // touches the database; this file is its entire surface.
 
@@ -396,6 +397,13 @@ export interface AppSettings {
    * walked back through it.
    */
   firstRun: { completedAt: string | null }
+  /**
+   * The operator's fallback order for agent launches (ADR-0125). Local, like the fields above: which
+   * runners exist is a fact about THIS computer, and what is recorded of a walk names the basis
+   * `host-order`, never a contract route revision (DEC-0029). Empty is "no fallback": every launch
+   * runs the runner it names, as before.
+   */
+  runnerFallback: RunnerFallback
 }
 
 /**
@@ -412,7 +420,8 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   // Nothing read, which is the only honest default: a fresh install has not
   // seen the history, and starting at the head would hide it.
   readThroughSeq: 0,
-  firstRun: { completedAt: null }
+  firstRun: { completedAt: null },
+  runnerFallback: { order: [] }
 }
 
 export interface FeedEvent {
@@ -1441,6 +1450,8 @@ export interface FabricApi {
   }
   terminal: {
     options(): Promise<LaunchOption[]>
+    /** The fallback order's choice right now (ADR-0125): what a launch with `FALLBACK_OPTION` would run. */
+    fallback(projectId: string, kind: 'terminal' | 'task', permissionMode?: string | null): Promise<FallbackPreview>
     memoryBackends(): Promise<MemoryBackendOption[]>
     /** `permissionMode` is chosen per launch. A blocked mode is REFUSED here,
      *  not merely hidden in the picker — a picker is a suggestion. */
@@ -1630,6 +1641,7 @@ export const IPC = {
   memoryRemember: 'memory:remember',
   memorySearch: 'memory:search',
   terminalOptions: 'terminal:options',
+  terminalFallback: 'terminal:fallback',
   terminalOpen: 'terminal:open',
   terminalList: 'terminal:list',
   terminalClaims: 'terminal:claims',

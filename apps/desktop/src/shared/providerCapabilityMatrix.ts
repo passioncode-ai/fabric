@@ -26,7 +26,7 @@ import type { ProviderCapabilityReceipt } from './providerCapability.ts'
 
 /** The builds these rows are about. An upgrade invalidates them, by design. */
 export const PINNED_BUILDS = {
-  'claude-code': '2.1.292',
+  'claude-code': '2.1.293',
   'codex-cli': '0.160.0'
 } as const
 
@@ -203,7 +203,7 @@ export const HISTORICAL_CAPABILITY_MATRIX: readonly ProviderCapabilityReceipt[] 
 ]
 
 /** A CLI upgrade invalidates the verdict, not the historical observation.
- * Measured with `claude --version` / `codex --version`, 2026-10-07 (claude-code 2.1.291 → 2.1.292; re-pinned by scripts/repin-provider-builds.mjs). The previous current rows were version-only too, so no capability verdict is lost.
+ * Measured with `claude --version` / `codex --version`, 2026-10-07 (claude-code 2.1.292 → 2.1.293; re-pinned by scripts/repin-provider-builds.mjs). The previous current rows were version-only too, so no capability verdict is lost.
  * No login, native session, credential store or model run was probed in this wiki iteration.
  */
 export const CAPABILITY_MATRIX: readonly ProviderCapabilityReceipt[] = [

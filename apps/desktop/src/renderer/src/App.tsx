@@ -33,6 +33,7 @@ import { CeoChat } from './CeoChat'
 import { PrivateHistoryPanel } from './PrivateHistoryPanel'
 import { AgentAccessPanel } from './AgentAccessPanel'
 import { UsageCountsSetting } from './UsageCountsSetting'
+import { FallbackOrderSetting } from './FallbackOrderSetting'
 import { BoardPanel } from './BoardPanel'
 import { SearchPanel } from './SearchPanel'
 import { EstateAgents } from './EstateAgents'
@@ -964,6 +965,7 @@ function SettingsBar({
           do is worse than no setting. */}
       <span className="settings-note">{t('power.note')}</span>
       <UsageCountsSetting />
+      <FallbackOrderSetting value={settings.runnerFallback} onChange={onChange} />
     </div>
   )
 }

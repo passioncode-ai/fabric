@@ -118,10 +118,11 @@ console.log('PASS executor detection: found with version, unresponsive on timeou
   mkdirSync(path.join(home, '.nvm', 'alias'), { recursive: true })
   writeFileSync(path.join(home, '.nvm', 'alias', 'default'), '20\n')
   const fnm = mk('.local', 'share', 'fnm', 'aliases', 'default', 'bin')
+  const kimi = mk('.kimi-code', 'bin') // ADR-0125: Kimi Code's installer folder
   const widened = (await widenProbePath(`/usr/bin${path.delimiter}${volta}`, { HOME: home })).split(path.delimiter)
   assert.equal(widened[0], '/usr/bin', 'the PATH it was given comes first, unchanged')
   assert.equal(widened.filter((d) => d === volta).length, 1, 'a folder already on PATH is not added twice')
-  for (const d of [asdf, asdfBin, nvm20, nvm22, fnm]) assert.ok(widened.includes(d), `probes ${path.relative(home, d)}`)
+  for (const d of [asdf, asdfBin, nvm20, nvm22, fnm, kimi]) assert.ok(widened.includes(d), `probes ${path.relative(home, d)}`)
   assert.ok(widened.indexOf(nvm20) < widened.indexOf(nvm22), "nvm's default version is probed before the others")
   assert.ok(!widened.some((d) => d.includes('fnm') && d.includes('Application Support')), 'a folder that does not exist is not added')
   assert.equal(await widenProbePath('/usr/bin', {}), '/usr/bin', 'without a HOME nothing is guessed')

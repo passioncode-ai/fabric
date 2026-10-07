@@ -130,7 +130,10 @@ export async function widenProbePath(
     path.join(home, '.asdf', 'bin'),
     ...(env.FNM_DIR ? [path.join(env.FNM_DIR, 'aliases', 'default', 'bin')] : []),
     path.join(home, '.local', 'share', 'fnm', 'aliases', 'default', 'bin'),
-    path.join(home, 'Library', 'Application Support', 'fnm', 'aliases', 'default', 'bin')
+    path.join(home, 'Library', 'Application Support', 'fnm', 'aliases', 'default', 'bin'),
+    // Kimi Code's own installer puts `kimi` here and adds it to the shell's rc file only (measured
+    // 2026-10-07: Kimi Code 2.1.1 at ~/.kimi-code/bin/kimi), so a Dock-launched app never saw it (ADR-0125).
+    path.join(home, '.kimi-code', 'bin')
   ]
   const fresh = extra.filter((d, i) => !parts.includes(d) && extra.indexOf(d) === i)
   // Asked at once, added in the declared order.

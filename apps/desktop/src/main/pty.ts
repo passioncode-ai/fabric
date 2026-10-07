@@ -16,10 +16,21 @@ import type { LaunchOption, SessionState, TerminalSession } from '../shared/type
 import { AGENTS, mayLaunch, type SurfaceAdapter } from '../shared/agents.ts'
 import { sessionEnvironment } from './sessionEnv.ts'
 import { DeliveryQueue, type DeliveryQueueTiming, type DeliveryWriteOptions, type DeliveryWriteResult } from './deliveryQueue.ts'
-import { PtyLaunchFailure } from './launchFailure.ts'
+import { LaunchRefusedBeforeSpawn, PtyLaunchFailure } from './launchFailure.ts'
 import { ops } from './opsSink.ts'
 import { createBoundedScrollback, type BoundedScrollback } from './scrollback.ts'
 import { createProcessBoundary, type OwnedProcess } from './processBoundary.ts'
+
+/** How a fallback walk chose the runner a session runs (ADR-0125): the basis is the installation's
+ *  order, never a contract route revision (DEC-0029); `passed_over` is every entry above the choice. */
+export interface LaunchRoute {
+  basis: 'host-order'
+  requested: 'fallback-order'
+  selected_index: number
+  session: 'spawned'
+  /** The contract's probe results (runner-route-event.schema.json `probes`), every entry above the choice. */
+  probes: { index: number; runner: string; result: string; detail?: string }[]
+}
 
 const IDLE_AFTER_MS = 60_000 // no output for a minute → idle (honest tier-0 status)
 
@@ -40,6 +51,8 @@ interface LiveSession {
   cwd: string
   program: string
   optionId: string
+  /** The runner underneath (`optionId` is a created agent's id when it runs one). ADR-0125 attaches by runner. */
+  runnerKind: string
   pty: IPty
   scrollback: BoundedScrollback
   /** Characters this session has emitted since it opened, counted before any
@@ -57,6 +70,28 @@ interface LiveSession {
   exitFinalized: boolean
   termination?: TerminalTermination
   closedPending?: Promise<boolean>
+}
+
+/**
+ * The runner cannot serve this launch and nothing was started (ADR-0125 §4: "candidate unavailable"):
+ * not installed, or connected through a surface that is down. A fallback walk moves on; every other
+ * caller sees the same message it always did.
+ */
+export class RunnerUnavailable extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'RunnerUnavailable'
+  }
+}
+
+/** The launch's own authority changed before the spawn: the request is invalid, never retried elsewhere,
+ *  and nothing started (`LaunchRefusedBeforeSpawn`, as the managed launch classifies it). */
+export class LaunchAuthorityChanged extends LaunchRefusedBeforeSpawn {
+  constructor(sessionId: string) {
+    super(sessionId, 'launch_authority_changed')
+    this.message = 'launch authority changed'
+    this.name = 'LaunchAuthorityChanged'
+  }
 }
 
 /** A spawn failure the operator can act on: it names what was run and where. */
@@ -289,7 +324,9 @@ export class PtyManager {
      */
     agent: { runnerId: string; instructions: string; servers: string[] } | null = null,
     requestedSessionId?: string,
-    beforeSpawn?: () => Promise<boolean>
+    beforeSpawn?: () => Promise<boolean>,
+    /** The fallback walk that chose this runner (ADR-0125), journalled additively with the opening. */
+    route: LaunchRoute | null = null
   ): Promise<TerminalSession> {
     const sessionId = requestedSessionId ?? randomUUID()
     if (this.sessions.has(sessionId) || this.opening.has(sessionId)) throw new Error('session identity already used')
@@ -301,7 +338,7 @@ export class PtyManager {
         throw new Error('Launch reference was refused before preparation.')
     const option = launchOptions().find((o) => o.id === runnerId)
     if (!option) throw new Error(`unknown launch option: ${runnerId}`)
-    if (!option.available) throw new Error(`${option.label} is not available on this machine`)
+    if (!option.available) throw new RunnerUnavailable(`${option.label} is not available on this machine`)
     // The mode is checked HERE, where the session is actually created, and not
     // only in the picker that offered it. A blocked mode reaching this line is
     // either a stale renderer or a caller that skipped the picker entirely, and
@@ -309,7 +346,9 @@ export class PtyManager {
     const descriptor = AGENTS.find((a) => a.id === runnerId)
     const verdict = mayLaunch(runnerId, permissionMode)
     if (!verdict.ok) throw new Error(verdict.reason)
-    const mode = permissionMode ?? descriptor?.defaultMode ?? null
+    // The mode the runner RECEIVES: a runner without modes receives none, whatever was asked for
+    // (ADR-0125 §6 — the journal recorded "ask" for Codex, which has no gate, the A6-006 class).
+    const mode = descriptor && descriptor.permissionModes.length > 0 ? (permissionMode ?? descriptor.defaultMode) : null
     const program = option.program ?? process.env.SHELL ?? '/bin/zsh'
     if (!checkAuthorityTarget(program).ok)
       throw new Error('Launch program was refused before preparation.')
@@ -334,13 +373,21 @@ export class PtyManager {
     // its own defaults while the journal recorded the mode the person chose. Refused, and said why.
     const adapter = descriptor?.surfaceAdapter
     if (option.connectsToSurface && !bundle && (adapter === 'config-content-env' || adapter === 'acp-session'))
-      throw new Error(
+      throw new RunnerUnavailable(
         `${option.label} was not started: Fabric's agent surface is not running, and this agent's permissions ` +
         `and connection are given with it. Start the session again once the surface is up (Settings → Agent access).`
       )
+    // Asked before the spawn and outside its catch: a changed authority is a refused request, not a
+    // spawn that failed — a fallback walk must never retry it on another runner (ADR-0125 §4).
+    if (beforeSpawn && !await beforeSpawn()) {
+      if (bundle) {
+        try { this.bundles?.discard(sessionId) }
+        catch { ops.failed('pty.bundle-cleanup', new Error('session credential cleanup failed'), { sessionId }) }
+      }
+      throw new LaunchAuthorityChanged(sessionId)
+    }
     let pty: IPty
     try {
-      if (beforeSpawn && !await beforeSpawn()) throw new Error('launch authority changed')
       pty = this.spawn(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args], {
         name: 'xterm-256color',
         cols: 120,
@@ -371,6 +418,7 @@ export class PtyManager {
       cwd,
       program,
       optionId,
+      runnerKind: runnerId,
       permissionMode: mode,
       delivery: new DeliveryQueue((text) => {
         pty.write(text)
@@ -449,6 +497,8 @@ export class PtyManager {
           // Additive to the @1 payload: a reader that predates this field sees
           // it absent, which is what "we did not record it" should look like.
           permission_mode: mode,
+          // Additive (ADR-0125): present only when the fallback order chose the runner.
+          ...(route ? { route } : {}),
           process_identity: session.process ? { pid: session.process.pid, group: session.process.group, start: session.process.start } : null
         }
       })
@@ -466,6 +516,23 @@ export class PtyManager {
 
     return this.toPublic(session)
     } finally { this.opening.delete(sessionId) }
+  }
+
+  /**
+   * A session a fallback walk may attach to (ADR-0125, contract DEC-0029): this runner, this project,
+   * running, idle, accepting input and not held by anything in `exclude` (a task's session).
+   */
+  attachable(projectId: string, runnerKind: string, mode: string | null, exclude: ReadonlySet<string>): string | null {
+    for (const s of [...this.sessions.values()].sort((a, b) => b.lastActivityAt - a.lastActivityAt)) {
+      if (s.projectId !== projectId || s.runnerKind !== runnerKind || exclude.has(s.sessionId)) continue
+      // The runner itself, not a created agent with its own brief and servers; and the mode this launch
+      // would apply — a launch asking for a gate never lands in a session opened in bypass (DEC-0029:
+      // an attached session runs under the derived execution context).
+      if (s.optionId !== s.runnerKind || s.permissionMode !== mode) continue
+      if (!s.running || s.inputHalted || !s.delivery.open || this.opening.has(s.sessionId) || this.stateOf(s) !== 'idle') continue
+      return s.sessionId
+    }
+    return null
   }
 
   list(projectId?: string): TerminalSession[] {

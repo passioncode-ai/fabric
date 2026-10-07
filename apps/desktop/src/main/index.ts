@@ -305,6 +305,9 @@ import { favourites, moveProject, projectOrder, replaceFavourite, toggleFavourit
 import { persona, savePersona } from './persona.ts'
 import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors } from './executorDetect.ts'
+import { createRunnerFallback, describeExhausted, launchRoute, openWithFallback } from './runnerFallback.ts'
+import { FALLBACK_OPTION } from '../shared/runnerRoute.ts'
+import { RunnerUnavailable, SpawnFailure, type LaunchRoute } from './pty'
 import { keepScan, lastScan } from './startPaths.ts'
 import { createProjectFolder } from './projectFolder.ts'
 import { ParentChoices, ScanCandidates, admitRepoPaths, indexImported, realOrResolved, refuseHeldByOther, walkPickFor } from './startChoices.ts'
@@ -386,6 +389,10 @@ const quit = createQuitCoordinator({
 })
 /** sessionId → taskId, so a session's exit can close the task that opened it. */
 const taskBySession = new Map<string, string>()
+/** The fallback walk that chose a task's runner, between `tasks.start` and the session's opening (ADR-0125). */
+const routeByTask = new Map<string, LaunchRoute>()
+let runnerFallback: ReturnType<typeof createRunnerFallback>
+
 /** sessionId → detached window showing that session. */
 const sessionWindows = new Map<string, BrowserWindow>()
 /** absolute path → detached editor window. */
@@ -1423,9 +1430,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // so a repeated advance is one attempt, not two.
     idempotencyKey?: string
     launchAdmission?: LaunchInput['admission']
+    /** The fallback walk that chose `optionId` (ADR-0125). */
+    route?: LaunchRoute | null
   }): Promise<{ task: TaskRow; session: { sessionId: string } }> => {
       const { instruction, title } = prepareTaskText(input.instruction)
       const id = input.followerId ?? randomUUID()
+      if (input.route) routeByTask.set(id, input.route)
+      try {
       // Record requested work in backlog. Only receiver ACK moves it to running.
       if (!input.followerId) await journal.append({
         estateId: ACTIVE_ESTATE, type: 'task.created@1', actor: OPERATOR_ACTOR,
@@ -1443,6 +1454,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const { data, error } = await store.select('project_tasks', '*').eq('id', id).single()
       if (error) throw new Error('The session started, but the task could not be read back. Refresh the board.')
       return { task: data as TaskRow, session: { sessionId: launched.sessionId } }
+      } finally { routeByTask.delete(id) }
   }
 
   /**
@@ -1591,10 +1603,21 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     }
   )
 
-  handle(IPC.tasksStart, async (_e, input: Parameters<FabricApi['tasks']['start']>[0]): Promise<Returns<FabricApi['tasks']['start']>> =>
-    startTask({ projectId: input.projectId, instruction: input.instruction, optionId: input.optionId,
-      preset: input.preset, presetEdited: input.presetEdited, permissionMode: input.permissionMode })
-  )
+  handle(IPC.tasksStart, async (_e, input: Parameters<FabricApi['tasks']['start']>[0]): Promise<Returns<FabricApi['tasks']['start']>> => {
+    // ADR-0125: the fallback choice is resolved HERE, before the task exists, so the task records the
+    // runner that runs it and never the choice. A managed task never attaches: its admission mints a
+    // new session.
+    let optionId = input.optionId
+    let route: LaunchRoute | null = null
+    if (optionId === FALLBACK_OPTION) {
+      const walk = await runnerFallback.walk(input.projectId, { kind: 'task', permissionMode: input.permissionMode ?? null })
+      if (walk.state === 'exhausted') throw new Error(describeExhausted(walk))
+      optionId = walk.runner
+      route = launchRoute(walk)
+    }
+    return startTask({ projectId: input.projectId, instruction: input.instruction, optionId,
+      preset: input.preset, presetEdited: input.presetEdited, permissionMode: input.permissionMode, route })
+  })
 
   /**
    * Start a task that ALREADY EXISTS (S04).
@@ -2757,6 +2780,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     actor: OPERATOR_ACTOR,
     withDeliveryHeader
   })
+  // ADR-0125: the fallback order's machine side, over the same sessions and surface the launches use.
+  runnerFallback = createRunnerFallback({
+    order: () => readSettings().runnerFallback.order,
+    detect: (runners) => detectExecutors(runners, { env: sessionEnvironment(process.env) }),
+    surfaceUp: () => surface.endpoint !== '',
+    attachable: (projectId, runner, mode, skip) => ptys.attachable(projectId, runner, mode, new Set([...taskBySession.keys(), ...skip]))
+  })
   const launchManaged = createManagedLaunch({
     db, estateId: ACTIVE_ESTATE, actor: OPERATOR_ACTOR,
     authority: () => identity.held(),
@@ -2769,6 +2799,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const project = await readProject(receipt.project_id!)
       if (!project.repo_path) throw new Error('Choose an available project folder before starting an agent.')
       const optionId = receipt.option_id || 'claude-code'
+      // The fallback walk that chose this runner, when one did (ADR-0125); journalled with the opening.
+      const route = input.taskId ? routeByTask.get(input.taskId) ?? null : null
       let agent: { runnerId: string; instructions: string; servers: string[] } | null = null
       if (UUID.test(optionId)) {
         const { data, error } = await store.select('agent_bindings', 'provider_ref,instructions,mcp_servers')
@@ -2785,7 +2817,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         try {
           const session = await ptys.open(receipt.project_id!, project.repo_path!, optionId,
             input.taskId, input.permissionMode ?? null, agent, sessionId,
-            async () => (await identity.guard()).ok && await validateLaunch())
+            async () => (await identity.guard()).ok && await validateLaunch(), route)
           syncPower()
           return session
         } finally {
@@ -3399,7 +3431,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
   handle(IPC.startExecutors, async (): Promise<Returns<FabricApi['start']['executors']>> =>
     detectExecutors(
-      AGENTS.filter((a) => ['claude-code', 'codex', 'kilo', 'hermes', 'cline'].includes(a.id) && a.program).map((a) => ({ id: a.id, label: a.label, program: a.program as string, connected: a.connectsToSurface })),
+      // Every catalogued runner with a program (ADR-0125): the list was a hard-coded copy of the catalogue.
+      AGENTS.filter((a) => a.program).map((a) => ({ id: a.id, label: a.label, program: a.program as string, connected: a.connectsToSurface })),
       { env: sessionEnvironment(process.env) }
     )
   )
@@ -4145,6 +4178,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
 
   handle(IPC.terminalOptions, (): Returns<FabricApi['terminal']['options']> => launchOptions())
+  handle(IPC.terminalFallback, async (_e, projectId: string, kind: 'terminal' | 'task', permissionMode?: string | null): Promise<Returns<FabricApi['terminal']['fallback']>> =>
+    runnerFallback.configured()
+      ? { configured: true, walk: await runnerFallback.walk(projectId, { kind: kind === 'task' ? 'task' : 'terminal', permissionMode: permissionMode ?? null }) }
+      : { configured: false, walk: null })
 
   handle(
     IPC.terminalOpen,
@@ -4162,7 +4199,17 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       // operator's own home folder, with write tools.
       const place = launchPlace(project.repo_path)
       const cwd = place.place === 'repository' ? place.path : app.getPath('home')
-      const session = await ptys.open(projectId, cwd, optionId, null, permissionMode ?? null)
+      const session = optionId === FALLBACK_OPTION
+        ? await openWithFallback({
+            walk: (failed, skip) => runnerFallback.walk(projectId, { kind: 'terminal', permissionMode: permissionMode ?? null }, failed, skip),
+            open: (runner, route) => ptys.open(projectId, cwd, runner, null, permissionMode ?? null, null, undefined, undefined, route),
+            get: (sessionId) => ptys.get(sessionId),
+            // ADR-0125 §4: nothing started — the walk may move on. Everything else stops it.
+            unavailable: (error) => error instanceof SpawnFailure || error instanceof RunnerUnavailable,
+            record: (op, detail) => ops.record({ op, outcome: op === 'runner.fallback-attached' ? 'ok' : 'failed',
+              level: op === 'runner.fallback-attached' ? 'info' : 'warn', detail, ctx: { correlationId: ops.correlate() } })
+          })
+        : await ptys.open(projectId, cwd, optionId, null, permissionMode ?? null)
       syncPower()
       if (firstInstruction?.trim()) {
         // The same delivery as the task path, and it must be: two ways of

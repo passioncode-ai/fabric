@@ -12,7 +12,8 @@ describe('validateSettings', () => {
       // A saved read position must survive validation unchanged, or marking
       // things read would not outlive a restart (AX-07).
       readThroughSeq: 42,
-      firstRun: { completedAt: '2026-10-03T10:00:00.000Z' }
+      firstRun: { completedAt: '2026-10-03T10:00:00.000Z' },
+      runnerFallback: { order: [{ runner: 'claude-code', session: 'attach-only' }, { runner: 'hermes', session: 'spawn' }] }
     }
     expect(validateSettings(file)).toEqual(file)
   })
@@ -111,5 +112,14 @@ describe('a read position is normalised on the way in', () => {
     for (const bad of [undefined, null, 'yes', { completedAt: 42 }, { completedAt: 'not a date' }, []]) {
       expect(validateSettings({ firstRun: bad })?.firstRun.completedAt, String(JSON.stringify(bad))).toBeNull()
     }
+  })
+
+  it('keeps a fallback order of known runners only, each once, never the shell (ADR-0125)', () => {
+    const read = validateSettings({ runnerFallback: { order: [
+      { runner: 'claude-code', session: 'attach-only' }, { runner: 'shell', session: 'spawn' },
+      { runner: 'hermes', session: 'weird' }, { runner: 'claude-code', session: 'spawn' }, 'x', { runner: 42 }
+    ] } })
+    expect(read?.runnerFallback).toEqual({ order: [{ runner: 'claude-code', session: 'attach-only' }, { runner: 'hermes', session: 'spawn' }] })
+    expect(validateSettings({ runnerFallback: 'yes' })?.runnerFallback).toEqual({ order: [] })
   })
 })

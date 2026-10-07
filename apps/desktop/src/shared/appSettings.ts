@@ -14,6 +14,7 @@
 
 import { APP_SETTINGS_DEFAULTS, type AppSettings, type KeepAwake } from './types'
 import type { TabRef } from './tabs.ts'
+import { cleanOrder, type FallbackEntry } from './runnerRoute.ts'
 
 export { APP_SETTINGS_DEFAULTS }
 
@@ -62,6 +63,20 @@ export function validateSettings(parsed: unknown): AppSettings | null {
         (typeof t.active === 'string' ? { kind: 'project' as const, id: t.active } : null)
     }
   }
+  /** The fallback order (ADR-0125): known runners only, never the shell, each once, at most 16. */
+  const runnerFallback = (v: unknown): AppSettings['runnerFallback'] => {
+    if (v === null || typeof v !== 'object' || Array.isArray(v)) return { order: [] }
+    const order = (v as Record<string, unknown>).order
+    if (!Array.isArray(order)) return { order: [] }
+    const entries: FallbackEntry[] = order.flatMap((x): FallbackEntry[] => {
+      if (x === null || typeof x !== 'object' || Array.isArray(x)) return []
+      const e = x as Record<string, unknown>
+      return typeof e.runner === 'string'
+        ? [{ runner: e.runner, session: oneOf(e.session, ['spawn', 'attach-or-spawn', 'attach-only'] as const, 'spawn') }]
+        : []
+    })
+    return { order: cleanOrder(entries).slice(0, 16) }
+  }
   return {
     theme: oneOf(raw.theme, ['dark', 'light', 'system'] as const, APP_SETTINGS_DEFAULTS.theme),
     locale: oneOf(raw.locale, ['en', 'ru'] as const, APP_SETTINGS_DEFAULTS.locale),
@@ -84,6 +99,7 @@ export function validateSettings(parsed: unknown): AppSettings | null {
         : APP_SETTINGS_DEFAULTS.readThroughSeq,
     // A completion stamp is an ISO timestamp or nothing; anything else reads as
     // "not finished", which at worst shows the first run to an empty estate again.
+    runnerFallback: runnerFallback(raw.runnerFallback),
     firstRun: {
       completedAt:
         raw.firstRun !== null && typeof raw.firstRun === 'object' && !Array.isArray(raw.firstRun) &&
