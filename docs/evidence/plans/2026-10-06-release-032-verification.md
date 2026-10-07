@@ -192,6 +192,7 @@ its own stray file; contents unknown, not recoverable — recorded, not hidden.
 | V3-23 | UX-10 | FLW-40 did not trace SCN-134 | fixed |
 | V3-24 | ER-3, ER-4, ER-5 (rest), ER-6, ER-8, UX-2, UX-4, UX-7, UX-8 (rest), UX-9 | Each named in CO-222 with its reason | ruled CO-222 |
 | V3-25 | ER recheck, UX recheck | Two leftovers the rechecks named: no test pins the order "questions before prompts" when an agent asks outside a turn (the code is right); the comment at `main/index.ts` still says the warning shows in Diagnostics | ruled CO-222: ER-8's test-gap class and DO-3's wording class; code is not changed after the verified commit |
+| V3-26 | ER recheck (release run 37511843198) | The release job's electron-builder found `out/main/index.js` empty: since `489082c3` the main build named its entries through `rollupOptions.input`, and electron-vite emitted an empty main bundle; every test ran the sources | fixed `25513347`: entries through `build.lib.entry`; `test/main-bundle.test.mjs` reads the built entries (watched: `index.js is 0 bytes` with the old config); rechecked by the errors reviewer at `25513347` (diff limited to the build config, the test and the test chain; external imports equal to `903a04ea`'s; the built ACP shell drove the fixture agent end to end) |
 
 **Rechecks and the final candidate.** The fixes landed in `d8eb9ff5`. Each blocking finding was rechecked by the
 reviewer who raised it, at that commit: ER-1 and ER-2 by the errors reviewer (both hold; each named test fails with
@@ -203,5 +204,14 @@ reviewer rechecked it (no product code changed, the stand-in pages faithfully, i
 cluster, verdict 0 blocking). **`bash scripts/ci.sh full` exited 0 at `e483fbdc`** on 2026-10-06, the stack-backed
 probes included, on a disposable stack. The rechecks are appended to the reports above.
 
-Exit for iteration 3: every finding above is fixed, ruled with a register id or not a defect, rechecked by its reviewer at the final candidate `e483fbdc`. Blocking findings open: none.
+**The release run, and the final candidate.** Release run 37511843198 at the first release commit `6d02b0b6` failed
+in its macos job on the empty main bundle (V3-26), before anything was published; the tag `v0.3.2` was moved to the
+corrected release commit by the operator's decision of 2026-10-07 (nothing had been released under it). After the
+fix, Claude Code on this machine moved to 2.1.292 and `scripts/repin-provider-builds.mjs` re-pinned the version-only
+capability rows (`61dfff1d`, design-map entry included). The final candidate is `61dfff1d`
+(`61dfff1df031981d499a422b4c286a335b8b5713`): **`bash scripts/ci.sh full` exited 0 there on 2026-10-07** at a load average of ~5 (earlier
+runs that day failed only in timing-sensitive suites while other sessions drove the load to 150–600; the same suites
+pass at low load).
+
+Exit for iteration 3: every finding above is fixed, ruled with a register id or not a defect, rechecked by its reviewer (ER-1, ER-2 and UX-1 at `d8eb9ff5`, the archive stand-in at `e483fbdc`, the build fix at `25513347`); the final candidate is `61dfff1d`. Blocking findings open: none.
 

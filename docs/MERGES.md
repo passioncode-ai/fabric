@@ -409,3 +409,12 @@ workspace source (fabric#14, from the fabric-workspace session). Ledger:
 [2026-10-06-release-032-verification.md](evidence/plans/2026-10-06-release-032-verification.md); gate:
 `docs/launch/release-gate.json` (verified commit `e483fbdc`, fifteen receipts).
 
+### 2026-10-07 · release-0.3.2 (re-cut) · agent/release-032-work
+
+The first 0.3.2 release run (37511843198, at `6d02b0b6`) failed in its macos job before publishing anything:
+`out/main/index.js` was empty, because since `489082c3` the main build named its entries through
+`rollupOptions.input` (V3-26). Fixed in `25513347` (entries through `build.lib.entry`, and
+`test/main-bundle.test.mjs` reads the built bundle), rechecked by the errors reviewer; the capability matrix was
+re-pinned to Claude Code 2.1.292 (`61dfff1d`). `bash scripts/ci.sh full` exited 0 at `61dfff1d`, the new verified
+commit in `docs/launch/release-gate.json`; the unpublished tag `v0.3.2` moves to this release commit (operator
+decision 2026-10-07).
