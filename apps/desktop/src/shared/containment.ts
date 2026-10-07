@@ -36,7 +36,9 @@ export const BYPASS_FLAGS = [
   '--dangerously-skip-permissions',
   '--yolo',
   '--auto-approve',
-  '--no-confirm'
+  '--no-confirm',
+  // Kimi Code's "Never Ask" mode (ADR-0125): it decides every action itself.
+  '--auto'
 ]
 
 export interface ContainmentVerdict {

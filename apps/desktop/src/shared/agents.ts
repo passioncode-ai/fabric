@@ -278,6 +278,29 @@ export const AGENTS: readonly AgentDescriptor[] = [
     ]
   },
   {
+    // ADR-0125: Kimi Code CLI 2.1.1 (`kimi`, read 2026-10-07 from `kimi --help`), the contract's shared kind
+    // name `kimi-code` (DEC-0029). Its TUI runs as itself in the project directory. It speaks ACP
+    // (`kimi acp`), but no run has opened its ACP session through Fabric's shell yet, so — like Codex and
+    // Cline — it is not connected and cannot return a task's result. Probe first, then connect (ADR-0119).
+    // Its modes, from the same help: default asks before acting; `--plan` starts in plan mode; `--auto`
+    // ("Never Ask") decides everything itself. `--yolo` ("Ask When Needed") lets routine commands run
+    // unasked, so it is no gate either and is not offered.
+    id: 'kimi-code',
+    label: 'Kimi Code',
+    program: 'kimi',
+    description: 'A coding agent in the project directory. Not connected to Fabric yet: its ACP session has not been opened on a probed build',
+    connectsToSurface: false,
+    surfaceAdapter: 'none',
+    acp: { args: ['acp'] },
+    resultChannel: 'none',
+    defaultMode: 'ask',
+    permissionModes: [
+      { id: 'plan', labelKey: 'agent.mode.plan', args: ['--plan'], containment: 'runner-gated' },
+      { id: 'ask', labelKey: 'agent.mode.ask', args: [], containment: 'runner-gated' },
+      { id: 'bypass', labelKey: 'agent.mode.bypass', args: ['--auto'], containment: 'none', warnKey: 'agent.mode.bypassWarn' }
+    ]
+  },
+  {
     id: 'shell',
     label: 'Terminal',
     program: null,
