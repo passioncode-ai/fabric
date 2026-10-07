@@ -1875,6 +1875,21 @@ export const en = {
   'start.convert.step4.body': "Only an agent that passes enters the registry.",
   'start.convert.today': "Today: install the Fabric Agent Adapter skills and ask your coding agent to adapt the project.",
   'start.convert.command': "npx @passioncode-ai/passioncode@latest update",
+  'agents.fallback.option': "Fallback order → {agent}",
+  'agents.fallback.optionNone': "Fallback order — no coding agent can start now",
+  'settings.fallback.title': "Fallback order",
+  'settings.fallback.lede': "A launch that uses the fallback order tries these coding agents from the top and starts the first that can run. Each one it passes over is named with the reason.",
+  'settings.fallback.empty': "No order on this computer: every launch runs the coding agent you pick. Add coding agents to offer \"Fallback order\" in the launchers.",
+  'settings.fallback.sessionFor': "How {agent} serves",
+  'settings.fallback.session.spawn': "Start a new session",
+  'settings.fallback.session.attachOrSpawn': "Use an open session, otherwise start one",
+  'settings.fallback.session.attachOnly': "Use an open session only",
+  'settings.fallback.up': "Up",
+  'settings.fallback.down': "Down",
+  'settings.fallback.remove': "Remove",
+  'settings.fallback.pick': "Coding agent to add",
+  'settings.fallback.add': "Add",
+  'agents.fallback.optionPending': "Fallback order — checking the coding agents…",
 } as const
 
 export type StringKey = keyof typeof en

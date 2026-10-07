@@ -14,6 +14,12 @@
 import { AGENTS, containmentFor, describeAgent, mayLaunch } from './agents.ts'
 import type { Containment } from './containment.ts'
 
+/** The launch choice that walks the order instead of naming one runner. Never stored on a task. */
+export const FALLBACK_OPTION = 'fallback-order'
+
+/** What a picker shows for the fallback choice: whether the order is set, and what it resolves to now. */
+export interface FallbackPreview { configured: boolean; walk: Walk | null }
+
 /** How one entry of the order may serve: a new session, an open one first, or an open one only. */
 export type FallbackSession = 'spawn' | 'attach-or-spawn' | 'attach-only'
 export interface FallbackEntry { runner: string; session: FallbackSession }
@@ -31,7 +37,8 @@ export interface RunnerProbe {
   signedIn: 'yes' | 'no' | 'unknown'
   /** For `acp-session` and `config-content-env` runners: whether Fabric's surface is up to start them. */
   surfaceUp: boolean
-  /** An idle session of this runner in this project that no task holds, or null. */
+  /** An idle session of this runner in this project that no task holds, running under exactly the mode
+   *  this launch would apply and as the runner itself (not a created agent), or null. */
   heldSession: string | null
 }
 
@@ -56,13 +63,17 @@ export function appliedMode(runner: string, permissionMode: string | null): stri
   return permissionMode ?? agent.defaultMode
 }
 
-/** The order with what cannot be in it removed: unknown runners, the plain shell, a runner twice. */
+/** A runner id as a later build may name it: kept in the order, and reported as not catalogued here. */
+const RUNNER_ID = /^[a-z][a-z0-9-]{1,39}$/
+
+/** The order with what cannot be in it removed: the plain shell, a runner twice, a malformed id. A runner
+ *  this build does not know stays, so the walk can say so (`not-catalogued`) instead of losing it. */
 export function cleanOrder(order: readonly FallbackEntry[]): FallbackEntry[] {
   const seen = new Set<string>()
   const out: FallbackEntry[] = []
   for (const entry of order) {
     const agent = describeAgent(entry.runner)
-    if (!agent || agent.program === null || seen.has(entry.runner)) continue
+    if (!RUNNER_ID.test(entry.runner) || (agent && agent.program === null) || seen.has(entry.runner)) continue
     seen.add(entry.runner)
     out.push({ runner: entry.runner, session: entry.session })
   }
@@ -77,12 +88,13 @@ export function cleanOrder(order: readonly FallbackEntry[]): FallbackEntry[] {
 export function walkFallback(
   order: readonly FallbackEntry[],
   launch: Launch,
-  probe: (runner: string) => RunnerProbe,
+  /** Measures one runner; `mode` is the mode this launch would apply to it, which an attached session must match. */
+  probe: (runner: string, mode: string | null) => RunnerProbe,
   spawnFailed: ReadonlySet<string> = new Set()
 ): Walk {
   const passedOver: PassedOver[] = []
   const entries = cleanOrder(order)
-  const first = entries[0] ? describeAgent(entries[0].runner) : null
+  const first = entries.map((entry) => describeAgent(entry.runner)).find((agent) => agent !== null) ?? null
   const bar = first
     ? { containment: STRENGTH[containmentFor(first.id, launch.permissionMode)], channel: CHANNEL[first.resultChannel] }
     : null
@@ -102,23 +114,28 @@ export function walkFallback(
       pass('refused', `${agent.label} cannot return a task's result the way the first choice would`)
       continue
     }
-    const measured = probe(agent.id)
+    const mode = appliedMode(agent.id, launch.permissionMode)
+    const measured = probe(agent.id, mode)
     if (measured.install === 'missing') { pass('not-installed'); continue }
     if (measured.install === 'unresponsive') { pass('not-responding'); continue }
     if (measured.signedIn === 'no') { pass('not-connected', `${agent.label} is signed out`); continue }
+    // `not-connected` is the sign-in check's answer only (contract DEC-0029); a surface that is down is
+    // a reason this launch cannot run the runner.
     if ((agent.surfaceAdapter === 'acp-session' || agent.surfaceAdapter === 'config-content-env') && agent.connectsToSurface && !measured.surfaceUp) {
-      pass('not-connected', `Fabric's agent surface is not running, and ${agent.label} is connected through it`)
+      pass('refused', `Fabric's agent surface is not running, and ${agent.label} is connected through it`)
+      continue
+    }
+    if (launch.kind === 'task' && entry.session === 'attach-only') {
+      pass('refused', 'a task starts its own session, and this entry uses an open session only')
       continue
     }
     const mayAttach = launch.kind === 'terminal' && entry.session !== 'spawn'
     if (mayAttach && measured.heldSession) {
-      return { state: 'selected', index, runner: agent.id, session: 'attached', sessionId: measured.heldSession,
-        permissionMode: appliedMode(agent.id, launch.permissionMode), passedOver }
+      return { state: 'selected', index, runner: agent.id, session: 'attached', sessionId: measured.heldSession, permissionMode: mode, passedOver }
     }
     if (entry.session === 'attach-only') { pass('no-held-session'); continue }
     if (spawnFailed.has(agent.id)) { pass('spawn-failed'); continue }
-    return { state: 'selected', index, runner: agent.id, session: 'spawned', sessionId: null,
-      permissionMode: appliedMode(agent.id, launch.permissionMode), passedOver }
+    return { state: 'selected', index, runner: agent.id, session: 'spawned', sessionId: null, permissionMode: mode, passedOver }
   }
   return { state: 'exhausted', passedOver }
 }

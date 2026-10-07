@@ -3,7 +3,8 @@
 // the agent runtime lands (slice 3) a task becomes a Run over a graph and keeps
 // this identity, so today's history survives that upgrade.
 
-import { useEffect, useState } from 'react'
+import { FALLBACK_OPTION, useFallbackChoice } from './useFallbackChoice'
+import { useEffect, useState, useRef } from 'react'
 import { failed, forSubject, settled, type KeyedRead } from '../../shared/keyedRead'
 import { loadInto, type TaskDraft } from '../../shared/taskDraft.ts'
 import type { CreatedAgent, LaunchOption, ProjectRow, TaskRow } from '../../shared/types'
@@ -87,6 +88,17 @@ export function Tasks({
   const [agent, setAgent] = useState(project.default_agent)
   const [mode, setMode] = useState<string | null>(null)
   const [options, setOptions] = useState<LaunchOption[]>([])
+  // ADR-0125: offered when this computer has a fallback order, and chosen by default then — the
+  // operator set the order to be used. A coding agent picked by name still runs exactly that agent.
+  const fallback = useFallbackChoice(project.id, 'task')
+  const fallbackDefaulted = useRef(false)
+  /** The person chose in this picker: from then on nothing chooses for them (ADR-0125 §2). */
+  const touched = useRef(false)
+  useEffect(() => {
+    if (fallback.configured && !fallbackDefaulted.current && !touched.current) { fallbackDefaulted.current = true; setAgent(FALLBACK_OPTION) }
+    // The order was emptied while it was chosen: back to the project's coding agent, never a choice that no longer exists.
+    if (!fallback.configured && agent === FALLBACK_OPTION) setAgent(project.default_agent)
+  }, [fallback.configured])
   const [busy, setBusy] = useState(false)
   /** What the data-backed presets read. Empty until the read returns, so a
    *  preset appears when its source is known to be non-empty and never on the
@@ -112,6 +124,7 @@ export function Tasks({
       setPending({ id: null, text: reuse.instruction, agent: reuse.optionId })
     } else {
       onDraftChange?.(load.draft)
+      touched.current = true
       setAgent(reuse.optionId)
     }
     onReuseHandled?.()
@@ -161,7 +174,7 @@ export function Tasks({
       .then((o) => {
         setOptions(o)
         const wanted = o.find((x) => x.id === project.default_agent && x.available)
-        setAgent(wanted ? wanted.id : (o.find((x) => x.available)?.id ?? project.default_agent))
+        setAgent((current) => current === FALLBACK_OPTION ? current : (wanted ? wanted.id : (o.find((x) => x.available)?.id ?? project.default_agent)))
       })
       .catch((e) => onError(String(e)))
   }, [project.default_agent])
@@ -232,9 +245,10 @@ export function Tasks({
       />
 
       <Toolbar>
-        <select value={agent} onChange={(e) => setAgent(e.target.value)}
+        <select value={agent} onChange={(e) => { touched.current = true; setAgent(e.target.value) }}
           aria-label={t('agents.pickOption')}
         >
+          {fallback.configured && <option value={FALLBACK_OPTION}>{fallback.label}</option>}
           {options.map((o) => (
             <option key={o.id} value={o.id} disabled={!o.available}>
               {runnerLabel(o.id, t)}
@@ -318,7 +332,7 @@ export function Tasks({
                   setInstruction(pending.text)
                   setPreset(pending.id)
                   setPresetText(pending.id === null ? null : pending.text)
-                  if (pending.agent) setAgent(pending.agent)
+                  if (pending.agent) { touched.current = true; setAgent(pending.agent) }
                   setPending(null)
                 }}
               >

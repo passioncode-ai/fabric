@@ -72,6 +72,9 @@ export class DeliveryQueue {
     this.schedule()
   }
 
+  /** Whether an instruction can still be queued here (ADR-0125: only such a session is attached). */
+  get open(): boolean { return !this.closed }
+
   close(reason = 'session_closed'): void {
     this.closed = true
     if (this.settleTimer) clearTimeout(this.settleTimer)

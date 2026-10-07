@@ -220,6 +220,7 @@ node --experimental-strip-types apps/desktop/test/executor-auth.test.mjs
 node --experimental-strip-types apps/desktop/test/start-paths-main.test.mjs
 node --experimental-strip-types apps/desktop/test/delivery.test.mjs
 node --experimental-strip-types apps/desktop/test/pty-launch-failure.test.mjs
+node --experimental-strip-types apps/desktop/test/runner-fallback.test.mjs
 node --experimental-strip-types apps/desktop/test/chain-launch-failure.test.mjs
 node --experimental-strip-types apps/desktop/test/managed-launch.test.mjs
 node --experimental-strip-types apps/desktop/test/managed-stop.test.mjs

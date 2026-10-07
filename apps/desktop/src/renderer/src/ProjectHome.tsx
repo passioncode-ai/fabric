@@ -1,3 +1,4 @@
+import { FALLBACK_OPTION, useFallbackChoice } from './useFallbackChoice'
 import { useEffect, useRef, useState } from 'react'
 import {
   conflictOf,
@@ -1457,6 +1458,17 @@ export function AgentsSection({
 }): React.JSX.Element {
   const t = useT()
   const [options, setOptions] = useState<LaunchOption[]>([])
+  // ADR-0125: offered when this computer has a fallback order, and chosen by default then — the
+  // operator set the order to be used. A coding agent picked by name still runs exactly that agent.
+  const fallback = useFallbackChoice(project.id, 'terminal')
+  const fallbackDefaulted = useRef(false)
+  /** The person chose in this picker: from then on nothing chooses for them (ADR-0125 §2). */
+  const touched = useRef(false)
+  useEffect(() => {
+    if (fallback.configured && !fallbackDefaulted.current && !touched.current) { fallbackDefaulted.current = true; setChoice(FALLBACK_OPTION) }
+    // The order was emptied while it was chosen: back to the project's coding agent, never a choice that no longer exists.
+    if (!fallback.configured && choice === FALLBACK_OPTION) setChoice(project.default_agent)
+  }, [fallback.configured])
   /** The create form must not call "no program available" before the options were read. */
   const [optionsRead, setOptionsRead] = useState(false)
   const [choice, setChoice] = useState(project.default_agent)
@@ -1471,7 +1483,7 @@ export function AgentsSection({
         setOptions(o)
         setOptionsRead(true)
         const wanted = o.find((x) => x.id === project.default_agent && x.available)
-        setChoice(wanted ? wanted.id : (o.find((x) => x.available)?.id ?? project.default_agent))
+        setChoice((current) => current === FALLBACK_OPTION ? current : (wanted ? wanted.id : (o.find((x) => x.available)?.id ?? project.default_agent)))
       })
       .catch((e) => onError(String(e)))
   }, [project.default_agent])
@@ -1495,10 +1507,11 @@ export function AgentsSection({
       title={t('agents.title')}
       actions={
         <Toolbar>
-          <select value={choice} onChange={(e) => setChoice(e.target.value)}
+          <select value={choice} onChange={(e) => { touched.current = true; setChoice(e.target.value) }}
             aria-label={t('agents.pickOption')}
           >
-            {options.map((o) => (
+            {fallback.configured && <option value={FALLBACK_OPTION}>{fallback.label}</option>}
+          {options.map((o) => (
               <option key={o.id} value={o.id} disabled={!o.available}>
                 {runnerLabel(o.id, t)}
                 {o.available ? '' : ` — ${t('onboarding.unavailable')}`}

@@ -144,6 +144,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-132 | An external agent asks for access and the operator decides | Hub | P-01 | ST-045, FLW-75 | draft | — |
 | SCN-133 | Connect a product to Fabric by the product's own consent | Hub | P-01 | ST-045, FLW-76 | draft | — |
 | SCN-134 | See that Fabric shares usage counts, and turn them off for every PassionCode app | Settings | P-01 | FLW-40 | draft | — |
+| SCN-135 | Launch through the fallback order: an open session first, otherwise the next coding agent that can start | Settings | P-01 | FLW-40 | draft | — |
 
 ## Telemetry — stated once, because no scenario should assert it separately
 
@@ -3120,6 +3121,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Expected result:** The first run is finished once; `settings.firstRun.completedAt` holds the moment; the operator is on the chosen path or home.
 - **Alt paths:** Back on steps 2–3; Skip on step 1; Help reopens the first run for an estate that already has projects.
 - **UI elements:** Three-step progress; name field with hint and 40-character limit; character choice; variants and "More variants"; executor rows with state pill, path, install command and Copy; five path cards.
+- **Amended 2026-10-07 (ADR-0125):** step 2 lists every catalogued coding agent, now six — Kimi Code joins as *installed* (runs as itself, not connected) — and the list is read from the catalogue instead of a copy of it. Kimi Code has no install command here, because none was verified from its vendor; `kimi` in `~/.kimi-code/bin`, where its installer puts it, is found.
 - **Amended 2026-10-06 (0.3.2 verification DO-13):** "connected to Fabric's tools" is the agent row's declared connection (`connectsToSurface`), not yet a probe of a live session (ADR-0119 amendment 4, plan AS-03). Cline starts in Ask (`--auto-approve false`) unless the session is Bypass.
 - **States covered:** first-visit,saving,not-saved,checking,found,found-unconnected,unresponsive,missing,check-failed,authenticated,not-authenticated,auth-unsupported,auth-unknown,choose-path,skipped
 - **Errors & recovery:** A look that is not saved says why and offers Continue without saving. A detection that fails says so and offers Check again. An installation already holding projects is never walked back through the first run; an unknown project list never triggers it.
@@ -3301,4 +3303,25 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Telemetry:** none in the journal; the operations log records `analytics.flush`.
 - **Status:** draft
 - **Coverage:** apps/desktop/src/main/analytics.ts, apps/desktop/src/renderer/src/UsageCountsSetting.tsx
+- **Product:** unobserved
+
+### SCN-135: Launch through the fallback order: an open session first, otherwise the next coding agent that can start
+- **Persona:** P-01
+- **Feature:** Settings
+- **Traces:** operator request 2026-10-07, ADR-0125, CO-223, contract DEC-0029, FLW-40
+- **Entry point:** Settings (SCR-52) → *Fallback order*; then any launcher that offers a coding agent (the project's agents panel, the task panel).
+- **Preconditions:** At least one coding agent is installed on this computer.
+- **Steps:**
+  1. The person adds coding agents to the order and says how each serves — *Start a new session*, *Use an open session, otherwise start one*, *Use an open session only*. The operator's example: Claude Code with *Use an open session only*, then Hermes Agent with *Start a new session*.
+  2. Every launcher now offers *Fallback order → <coding agent>* and chooses it by default; the name after the arrow is the coding agent the order resolves to right now.
+  3. The person launches with it → Fabric walks the order from the top: an open, idle Claude Code session of this project, in the same permission mode, is brought forward; with none, Hermes Agent starts and answers.
+- **Expected result:** The launch is served by the first coding agent in the order that can serve it, and the session record says which one and why the ones above it were passed over (`terminal.opened@1` `route`).
+- **Alt paths:** The person picks a coding agent by name → exactly that agent runs, or the launch fails as before; the order is not consulted. A task never uses an open session: it always starts its own. A coding agent that would run with a weaker gate than the first one under the chosen permission mode, or a task's agent that cannot return its result the same way, is passed over. The order is empty → no *Fallback order* choice is offered and nothing changes.
+- **UI elements:** the *Fallback order* list in Settings with Up, Down, Remove and Add; the *Fallback order → …* choice in the launchers.
+- **States covered:** empty order, order set, resolved, exhausted
+- **Errors & recovery:** No coding agent in the order can start → nothing starts, and the person reads each agent with the reason it was passed over (not installed, did not answer, signed out, no open session, cannot run this launch, could not be started, not known to this version); installing, signing in or editing the order fixes it. From the agents panel, a coding agent whose start fails is passed over and the next one is tried; a task fails instead, because it was created for the agent the order chose. A launch whose authority changed is stopped and never retried on another agent.
+- **Design rationale:** the person chooses the order and the choice is visible in every launcher; nothing is substituted silently, and a fallback never loosens a gate (vision principle 2: the agent serving the work may change, the Project's purpose, history and evidence do not).
+- **Telemetry:** `terminal.opened@1` carries `route` (basis `host-order`, the selected index and every passed-over agent); an exhausted walk and an attach are operations-log lines `runner.fallback-exhausted` and `runner.fallback-attached`.
+- **Status:** draft
+- **Coverage:** apps/desktop/src/shared/runnerRoute.ts, apps/desktop/src/main/runnerFallback.ts, apps/desktop/src/renderer/src/FallbackOrderSetting.tsx, apps/desktop/src/renderer/src/useFallbackChoice.ts
 - **Product:** unobserved
