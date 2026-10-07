@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-07 · `runner-route-host` · agent/runner-route-host-20261007 → main
+- run: r-0c44cb2e5; base: a655b068; integration: pull request #19 merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast` (green with `apps/desktop/test/quit.test.mjs` run apart: its real-Electron SIGTERM test fails 1 of 2 on this branch and on a655b068 alike under load averages 70–285)
+- scope: ADR-0125 (rewritten; supersedes PR #18's proposal), `shared/runnerRoute.ts`, `main/runnerFallback.ts`, `main/pty.ts` (failure types, `attachable`, `route`, applied mode), `main/index.ts`, Settings → Fallback order, the agents and task pickers, `kimi-code` row, SCN-135, SCN-126 amendment, CO-223 row, ADR index (pipeline reservation → 0126), provider matrix re-pin 2.1.293, projections and map
+- summary: a launch may follow the operator's fallback order — "no Claude Code session, Hermes answers" — at both launch entries, with every passed-over agent explained; contract side is fabric-agent-contract DEC-0029.
+
 ### 2026-10-04 · `claude-hub-recovery` · codex/claude-recovery-20261004 → main (pending)
 - run: r-r6a4c865e0; base:41f994a7; integration pending exact candidate gates/review, not a landed main change
 - scope: recovered core and surface source packets, ingress/vault/release guards, upgrade procedure, iteration2 archive/status, COM execution source and Telegram research, living map
