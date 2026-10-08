@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-08 · `contract-repin-623bf61` · agent/contract-repin-623bf61 → main
+- run: this session; base: origin/main; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
+- scope: `apps/desktop/test/fixtures/fabric-agent-contract` (SOURCE.json, current/catalogue.json), `contract-consumer-fixtures.mjs` CURRENT_COMMIT, CO-223 and CO-224 rows, living map
+- summary: Fabric's contract pin moves to 623bf613 (DEC-0030, DEC-0031); the operator's decision to keep hosted NOT_RUN is recorded on CO-224.
+
 ### 2026-10-08 · `setup-with-agent` · agent/onboarding-scan-20261008 → main
 - run: r-9a7a12bb5; base: origin/main e13ce7ca, after `onboarding-scan-summary`; integration: fast-forward after `bash scripts/ci.sh fast`
 - scope: the `setup` preset in `renderer/src/Tasks.tsx`, `onSetUp` in `start/StartPaths.tsx` and `App.tsx`, `tasks.presetSetup*` and `start.scan.setUpFirst` in both registries; tests in `Tasks.test.tsx` (every tool the instruction names is a surface tool) and `StartPaths.test.tsx`; SCN-032/128 amendments; plan R3a
