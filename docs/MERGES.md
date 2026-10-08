@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-08 · `contract-repin` · agent/contract-repin-20261008 → main
+- run: this session; base: origin/main; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
+- scope: `apps/desktop/test/fixtures/fabric-agent-contract` (SOURCE.json, current/catalogue.json), `contract-consumer-fixtures.mjs` CURRENT_COMMIT, CO-223 row, living map
+- summary: Fabric's contract pin moves to be71bc93, the contract main carrying DEC-0025, DEC-0026, DEC-0027 and DEC-0029.
+
 ### 2026-10-08 · `release-0.3.2-close` · agent/release-032-close-20261008 → main
 - run: r-9a7a12bb5; base: origin/main a208c68b; integration: fast-forward after `bash scripts/ci.sh fast`
 - scope: `docs/handoffs/2026-10-08-release-032-handoff.md` (new), `docs/evidence/backlog.md` (P-09, P-11, the Now line, lane 2), CO-224 in the carry-over ledger, SRC-02 re-pinned (M131 byte-identical at line 749), mockup and plan projections, the design map entry `iteration-2026-10-08-release-032-published`; no code

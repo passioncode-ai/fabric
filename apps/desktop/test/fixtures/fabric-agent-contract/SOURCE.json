@@ -2,7 +2,7 @@
   "format": "fabric-contract-test-source/1",
   "repository": "https://github.com/passioncode-ai/fabric-agent-contract",
   "version": "0.1.0",
-  "currentCommit": "d4c88315c290033867574ba0f5cc5069693077e0",
+  "currentCommit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
   "legacyNegativeControlCommit": "2ce392291c6668598d12cd38327e24696b5ca15c",
   "compiler": {
     "ajv": "8.20.0",
@@ -12,229 +12,229 @@
     {
       "path": "LICENSE",
       "upstreamPath": "LICENSE",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0"
     },
     {
       "path": "current/catalogue.json",
       "upstreamPath": "fixtures/catalogue.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
-      "sha256": "fc7a3459d31c73bae5d783bc9179571f9408ada3f26d7236bffdfce1ad7b2517"
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
+      "sha256": "0b65714b11a817d5ce5ed6ec770c2a84a6914788a9371ab7c6d507b40683eec7"
     },
     {
       "path": "current/negative/comms-fence-without-generation.json",
       "upstreamPath": "fixtures/negative/comms-fence-without-generation.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "0d59e3ac5ab93d67dfc5166f2a37fb70fccd731674aa9a58cb3140284bd9f226"
     },
     {
       "path": "current/negative/comms-page-redacted-with-body.json",
       "upstreamPath": "fixtures/negative/comms-page-redacted-with-body.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "067e503071abef9a1beadb9846450235ea1dfa1595aff23774e328dc47cfaf9b"
     },
     {
       "path": "current/negative/comms-refusal-unknown-code.json",
       "upstreamPath": "fixtures/negative/comms-refusal-unknown-code.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "6cb70cda7ad623502ea7efa97b7698ccee93ce0fa7b78fae05710b346922d44b"
     },
     {
       "path": "current/negative/comms-status-bad-state.json",
       "upstreamPath": "fixtures/negative/comms-status-bad-state.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "8011aa82ec7cbf43302e13e8be8c35727ae6b362ed9eb2b47276241e9c8dd025"
     },
     {
       "path": "current/negative/comms-submit-body-too-long.json",
       "upstreamPath": "fixtures/negative/comms-submit-body-too-long.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "d16501811aae737fc28dd26f0d4212c728859417cf15cb3b25f98a927a6c4ffc"
     },
     {
       "path": "current/negative/comms-submit-forged-estate.json",
       "upstreamPath": "fixtures/negative/comms-submit-forged-estate.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "f79eb105768183855a2199c15ae96150fea729a3608af9266e1c874362b7004f"
     },
     {
       "path": "current/negative/comms-submit-forged-sender.json",
       "upstreamPath": "fixtures/negative/comms-submit-forged-sender.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "873cd2ea5172341b06aee8ceb7c8c966333d9af9a0111ef5d14a34751b54c005"
     },
     {
       "path": "current/negative/comms-submit-reply-without-target.json",
       "upstreamPath": "fixtures/negative/comms-submit-reply-without-target.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "6e83496551cec3ece7549856a315aca2088f813d4d6a0d72e57e4f8545cdd05e"
     },
     {
       "path": "current/negative/comms-submit-request-without-details.json",
       "upstreamPath": "fixtures/negative/comms-submit-request-without-details.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "269868d9aa4c1fcc12c6df3d39724f0056c5831044c31cb840e9702cdd48100a"
     },
     {
       "path": "current/negative/comms-submit-too-many-artifacts.json",
       "upstreamPath": "fixtures/negative/comms-submit-too-many-artifacts.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "5dd674089068ae3bcf7a04e6ca75feb4cd36167051d56cb41bf9e52064b6adcb"
     },
     {
       "path": "current/positive/comms-complete.json",
       "upstreamPath": "fixtures/positive/comms-complete.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "6b5efe8c7a89d79aba48f69cda538e079509d786795b2163806a3e492d3a4282"
     },
     {
       "path": "current/positive/comms-fence.json",
       "upstreamPath": "fixtures/positive/comms-fence.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "0414ea324abc383e2ca8f500b25311d45924f7682a6e000748f5a2bdca5189d4"
     },
     {
       "path": "current/positive/comms-page.json",
       "upstreamPath": "fixtures/positive/comms-page.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "0c21bae74448327a7019953ff6851790b437138f60e730fe24b60e519c4c02a6"
     },
     {
       "path": "current/positive/comms-refusal.json",
       "upstreamPath": "fixtures/positive/comms-refusal.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "20c642cd2acf8c84932248b8190c175f01b17b2c17140601b7ec45d45eda3274"
     },
     {
       "path": "current/positive/comms-status.json",
       "upstreamPath": "fixtures/positive/comms-status.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "2753685533398cd15f0c70f534499c9b2ad5e94f21d899ecceb44446342796c3"
     },
     {
       "path": "current/positive/comms-submit-reply.json",
       "upstreamPath": "fixtures/positive/comms-submit-reply.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "b16731107244e878253ea44e1b3f7642338b4fafb041ef1972348095a309fce4"
     },
     {
       "path": "current/positive/comms-submit-request.json",
       "upstreamPath": "fixtures/positive/comms-submit-request.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "291b8d18cad5b925f104de88937b33b0d1d512f02d3d610f5e90e5df0b6e3bb3"
     },
     {
       "path": "current/positive/interop-agent-call.json",
       "upstreamPath": "fixtures/positive/interop-agent-call.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "68c401dce7610c056dea60660ca685a0642db63f0b269ed735c81bd0406f9331"
     },
     {
       "path": "current/positive/manifest-mcp.json",
       "upstreamPath": "fixtures/positive/manifest-mcp.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "dfaaa5ec16dcf6843b9122a72d534c6f6b2e1899902952df324a9bb38a055fdb"
     },
     {
       "path": "current/positive/pipeline.json",
       "upstreamPath": "fixtures/positive/pipeline.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "162d2e61b971c0a249796df1ad9146d77502135b71da171437681a4260ce829c"
     },
     {
       "path": "current/positive/service-well-known-capabilities.json",
       "upstreamPath": "fixtures/positive/service-well-known-capabilities.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "27961da9f655340e3da4949760a2f53c1dd0168e6057a5e84f87633c300bb3af"
     },
     {
       "path": "current/schemas/common.schema.json",
       "upstreamPath": "schemas/common.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "8c7c781e2b798a549eaf19175740f5873aa3d51518e3316ee35177c79630209a"
     },
     {
       "path": "current/schemas/comms-common.schema.json",
       "upstreamPath": "schemas/comms-common.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "9c481ec93ccf804155bf231193523494416e6b2d475f563de653a4daf62ef3b7"
     },
     {
       "path": "current/schemas/comms-complete.schema.json",
       "upstreamPath": "schemas/comms-complete.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "e9ec1ea519592bdac800626c5083e6415ba2c7b9c8247f85674a423582cbb342"
     },
     {
       "path": "current/schemas/comms-fence.schema.json",
       "upstreamPath": "schemas/comms-fence.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "f44d8d868827bc25868bc8044fde70154ea3805fb85a4af8eef69cdae326ac07"
     },
     {
       "path": "current/schemas/comms-message.schema.json",
       "upstreamPath": "schemas/comms-message.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "59ca9ae826583b2a73faf672de98ef44262224a18b1441c88599074593aa8173"
     },
     {
       "path": "current/schemas/comms-page.schema.json",
       "upstreamPath": "schemas/comms-page.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "382745d9bf2776bb0432d43eb0dd4ef137c8b689d92380b3843d7e803650cd2a"
     },
     {
       "path": "current/schemas/comms-refusal.schema.json",
       "upstreamPath": "schemas/comms-refusal.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "eda40a97d7f64b1448eeccc3b23542ae250dc04eac783bd23674d4673353203b"
     },
     {
       "path": "current/schemas/comms-status.schema.json",
       "upstreamPath": "schemas/comms-status.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "2c7bea6185d84c361d90ee8f9ff6066d3aceee90e4d44371ea27c254c107fa37"
     },
     {
       "path": "current/schemas/comms-submit.schema.json",
       "upstreamPath": "schemas/comms-submit.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "8dd1c6fb5fca32803feb298f75d6e94edd19e0586aab7a55c566efd1003cfc82"
     },
     {
       "path": "current/schemas/interop-agent-call.schema.json",
       "upstreamPath": "schemas/interop-agent-call.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "57439b2e6e67b8ec74f38ab855cf951071a762ce8e04f3c6b4a857c0b24c4ce6"
     },
     {
       "path": "current/schemas/interop-capability.schema.json",
       "upstreamPath": "schemas/interop-capability.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "16240f19a851d56127e766456561da8a05e1902b321e52d4c7d45a635f13a598"
     },
     {
       "path": "current/schemas/manifest.schema.json",
       "upstreamPath": "schemas/manifest.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "02043fc530e13167e682d0699eb0a5e261c9d7b0409203e2e66361f88cbba7b5"
     },
     {
       "path": "current/schemas/pipeline.schema.json",
       "upstreamPath": "schemas/pipeline.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "b0ccfbcd5cf874b69a829662bd62a53d9c8b2ffbc2b1555d834b1a518f387b1e"
     },
     {
       "path": "current/schemas/service-common.schema.json",
       "upstreamPath": "schemas/service-common.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "3477169eff687d30f72b162631dead9d0f6e53b620ae097e43c65a678b381cb6"
     },
     {
       "path": "current/schemas/service-well-known.schema.json",
       "upstreamPath": "schemas/service-well-known.schema.json",
-      "commit": "d4c88315c290033867574ba0f5cc5069693077e0",
+      "commit": "be71bc939c55b044bfb6d305d3adfc86f60d0ad9",
       "sha256": "0e8f6dc27b17b5405da1ae67c9f9d490af72b02036ec92196cc7bd67d1f3b1da"
     },
     {
