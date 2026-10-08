@@ -239,7 +239,7 @@ function listen(channel: string, fn: (event: Electron.IpcMainEvent, ...args: nev
   })
 }
 import { installMenu } from './menu'
-import { planTaskStart } from './taskRetry'
+import { createKeyedQueue, liveSessionOf, planTaskStart } from './taskRetry'
 import { adapterSkills } from './adapterSkills'
 import { decideNotification, rememberTold, type ShowOutcome } from '../shared/notify.ts'
 import { createUnattendedAdmission } from '../shared/unattendedAdmission.ts'
@@ -392,6 +392,8 @@ const quit = createQuitCoordinator({
 })
 /** sessionId → taskId, so a session's exit can close the task that opened it. */
 const taskBySession = new Map<string, string>()
+/** `tasks.start` calls that name the same task id, one at a time (taskRetry.ts#createKeyedQueue). */
+const oneTaskAtATime = createKeyedQueue()
 /** The fallback walk that chose a task's runner, between `tasks.start` and the session's opening (ADR-0125). */
 const routeByTask = new Map<string, LaunchRoute>()
 let runnerFallback: ReturnType<typeof createRunnerFallback>
@@ -1462,7 +1464,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         permissionMode: input.permissionMode })
       if (!launched.started) throw new Error(launched.says)
       const { data, error } = await store.select('project_tasks', '*').eq('id', id).single()
-      if (error) throw new Error('The session started, but the task could not be read back. Refresh the board.')
+      if (error) throw new Error('task-refused:readback-failed') // a code: the window says it in its own language
       return { task: data as TaskRow, session: { sessionId: launched.sessionId } }
       } finally { routeByTask.delete(id) }
   }
@@ -1625,18 +1627,21 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       optionId = walk.runner
       route = launchRoute(walk)
     }
-    // A caller-chosen id makes a retry the SAME task (taskRetry.ts#planTaskStart).
-    const plan = await planTaskStart<TaskRow>(input, async (id) => await store.select('project_tasks', '*').eq('id', id).maybeSingle(),
-      (id) => [...taskBySession].find(([, task]) => task === id)?.[0] ?? null)
-    if (plan.kind === 'running') return { task: plan.task, session: { sessionId: plan.sessionId } }
-    if (plan.kind === 'again') {
-      const again = await launchManaged({ taskId: plan.task.id, trigger: 'operator', permissionMode: input.permissionMode })
-      if (!again.started) throw new Error(again.says)
-      return { task: plan.task, session: { sessionId: again.sessionId } }
+    // A caller-chosen id makes a retry the SAME task (taskRetry.ts#planTaskStart); two starts naming one id run one
+    // after the other (createKeyedQueue), so the second finds the first's task.
+    const begin = async (): Promise<{ task: TaskRow; session: { sessionId: string } }> => {
+      const plan = await planTaskStart<TaskRow>(input, async (id) => await store.select('project_tasks', '*').eq('id', id).maybeSingle(),
+        (id) => liveSessionOf(taskBySession, (sessionId) => ptys.get(sessionId)?.running === true, id))
+      if (plan.kind === 'running') return { task: plan.task, session: { sessionId: plan.sessionId } }
+      if (plan.kind === 'again') {
+        const again = await launchManaged({ taskId: plan.task.id, trigger: 'operator', permissionMode: input.permissionMode })
+        if (!again.started) throw new Error(again.says)
+        return { task: plan.task, session: { sessionId: again.sessionId } }
+      }
+      return startTask({ projectId: input.projectId, instruction: input.instruction, optionId, taskId: plan.taskId,
+        preset: input.preset, presetEdited: input.presetEdited, permissionMode: input.permissionMode, route })
     }
-    const taskId = plan.taskId
-    return startTask({ projectId: input.projectId, instruction: input.instruction, optionId, taskId,
-      preset: input.preset, presetEdited: input.presetEdited, permissionMode: input.permissionMode, route })
+    return typeof input.taskId === 'string' ? oneTaskAtATime(input.taskId, begin) : begin()
   })
 
   /**
@@ -3189,9 +3194,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     }
   )
 
-  // #region usage-analytics-ipc — docs: docs/ANALYTICS.md#the-shared-installation-id
+  // #region usage-analytics-ipc — docs: docs/ANALYTICS.md#nothing-before-the-disclosure
   handle(IPC.analyticsStatus, async (): Promise<Returns<FabricApi['analytics']['status']>> =>
-    ({ availability: analytics ? analytics.refresh() : (ANALYTICS_APP_KEY ? 'unavailable-file' : 'unavailable-no-key') }))
+    ({ availability: analytics ? analytics.refresh() : (ANALYTICS_APP_KEY ? 'unavailable-file' : 'unavailable-no-key'), sentBefore: analytics?.sentBefore() ?? false }))
   handle(IPC.analyticsSetEnabled, async (_e, enabled: unknown): Promise<Returns<FabricApi['analytics']['setEnabled']>> => {
     if (typeof enabled !== 'boolean') throw new Error('analytics: the switch takes true or false')
     const availability = analytics ? analytics.setEnabled(enabled) : (ANALYTICS_APP_KEY ? 'unavailable-file' : 'unavailable-no-key')

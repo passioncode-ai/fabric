@@ -20,16 +20,37 @@ export async function planTaskStart<T extends RetryTaskRow>(
   liveSession: (taskId: string) => string | null = () => null
 ): Promise<TaskStartPlan<T>> {
   if (input.taskId === undefined) return { kind: 'new', taskId: undefined }
-  if (typeof input.taskId !== 'string' || !UUID.test(input.taskId)) throw new Error('task-id-refused: not an id')
+  if (typeof input.taskId !== 'string' || !UUID.test(input.taskId)) throw new Error('task-refused:not-an-id')
   const { data, error } = await readTask(input.taskId)
   // A failed read is not "no such task": treating it so would record a second task under the same id.
-  if (error) throw new Error('The task could not be read before starting it: ' + error.message)
+  if (error) throw new Error('task-refused:read-failed: ' + error.message)
   if (!data) return { kind: 'new', taskId: input.taskId }
-  if (data.project_id !== input.projectId) throw new Error('task-id-refused: the task belongs to another project')
+  if (data.project_id !== input.projectId) throw new Error('task-refused:other-project')
   // A first try that started the session and then failed to answer (the task read back after the launch) left
   // the session running: the retry brings THAT one forward rather than being refused as already running.
   const live = liveSession(data.id)
   if (live) return { kind: 'running', task: data, sessionId: live }
   return { kind: 'again', task: data }
+}
+/** The newest session this process tracks for the task that is still RUNNING. A tracked session whose process has
+ *  ended is not one to bring forward: the retry must start the task again (0.3.3 verification DA-1). */
+export function liveSessionOf(tracked: Iterable<[string, string]>, isRunning: (sessionId: string) => boolean, taskId: string): string | null {
+  let found: string | null = null
+  for (const [sessionId, task] of tracked) if (task === taskId && isRunning(sessionId)) found = sessionId
+  return found
+}
+/** Run work for one key at a time: two `tasks.start` calls naming the same new task id (two windows, a double
+ *  press) are serialised, so the second plans after the first has recorded the task and reuses it instead of
+ *  journalling a second `task.created@1` for it (0.3.3 verification DA-8). Different keys do not wait. */
+export function createKeyedQueue(): <T>(key: string, work: () => Promise<T>) => Promise<T> {
+  const tails = new Map<string, Promise<unknown>>()
+  return <T>(key: string, work: () => Promise<T>): Promise<T> => {
+    const before = tails.get(key) ?? Promise.resolve()
+    const run = before.then(work, work)
+    const tail = run.then(() => undefined, () => undefined)
+    tails.set(key, tail)
+    void tail.then(() => { if (tails.get(key) === tail) tails.delete(key) })
+    return run
+  }
 }
 // #endregion task-retry

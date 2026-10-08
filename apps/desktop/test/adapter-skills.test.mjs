@@ -1,6 +1,7 @@
 // REQ-04 of the 0.3.3 onboarding (SCN-131, SCN-136): before an agent is created or adapted in a coding agent's
 // console, Fabric says whether the Fabric Agent Adapter skills are where THAT agent reads skills. Planted homes.
-import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from 'node:fs'
+import { chmodSync, mkdirSync, mkdtempSync, realpathSync, writeFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import assert from 'node:assert/strict'
@@ -76,4 +77,34 @@ assert.equal(skillVersion('# no front matter'), null)
   assert.equal((await adapterSkills('cline', { home: h })).where, 'shared')
 }
 
-console.log('PASS adapter skills: launcher coverage per agent, Claude Code plugin (enabled, disabled, half), own folders, shared-only said as shared, none with the install command, unknown agent, malformed settings')
+{ // 0.3.3 verification ER-7: a FIFO is never read (the check would hang), an unreadable file is said as such,
+  // and an id like `constructor` is an unknown agent, not Object's prototype.
+  const h = home()
+  mkdirSync(path.join(h, '.codex', 'skills', 'creating-fabric-agents'), { recursive: true })
+  execFileSync('mkfifo', [path.join(h, '.codex', 'skills', 'creating-fabric-agents', 'SKILL.md')])
+  skills(path.join(h, '.codex', 'skills'), '0.8.0', ['adapting-projects-to-fabric'])
+  chmodSync(path.join(h, '.codex', 'skills', 'adapting-projects-to-fabric', 'SKILL.md'), 0o000)
+  const started = Date.now()
+  const v = await adapterSkills('codex', { home: h, env: {} })
+  assert.ok(Date.now() - started < 2500, 'a FIFO does not hang the check')
+  assert.equal(v.ready, false)
+  assert.deepEqual(v.unreadable.map((p) => path.basename(path.dirname(p))).sort(), ['adapting-projects-to-fabric', 'creating-fabric-agents'], 'present but unreadable is said, not "missing"')
+  chmodSync(path.join(h, '.codex', 'skills', 'adapting-projects-to-fabric', 'SKILL.md'), 0o600)
+  for (const id of ['constructor', '__proto__', 'toString']) {
+    const odd = await adapterSkills(id, { home: home(), env: {} })
+    assert.deepEqual([odd.ready, odd.where], [false, 'none'], `${id} reads as an unknown agent`)
+  }
+}
+
+{ // DA-9: Claude Code's configuration under CLAUDE_CONFIG_DIR is the one read.
+  const h = home(), conf = path.join(h, 'elsewhere'), install = path.join(h, 'cache', 'adapter', '0.8.1')
+  skills(path.join(install, 'skills'), '0.8.1')
+  mkdirSync(path.join(conf, 'plugins'), { recursive: true })
+  writeFileSync(path.join(conf, 'settings.json'), JSON.stringify({ enabledPlugins: { [ADAPTER_PLUGIN]: true } }))
+  writeFileSync(path.join(conf, 'plugins', 'installed_plugins.json'), JSON.stringify({ plugins: { [ADAPTER_PLUGIN]: [{ installPath: install, version: '0.8.1' }] } }))
+  assert.equal((await adapterSkills('claude-code', { home: h, env: {} })).where, 'none', 'without the variable, ~/.claude is read')
+  const v = await adapterSkills('claude-code', { home: h, env: { CLAUDE_CONFIG_DIR: conf } })
+  assert.deepEqual([v.ready, v.where, v.version], [true, 'plugin', '0.8.1'])
+}
+
+console.log('PASS adapter skills: launcher coverage per agent, Claude Code plugin (enabled, disabled, half), own folders, shared-only said as shared, none with the install command, unknown agent, malformed settings, FIFO and unreadable files, prototype ids, CLAUDE_CONFIG_DIR')

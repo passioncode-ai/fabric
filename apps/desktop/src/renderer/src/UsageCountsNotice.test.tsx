@@ -29,6 +29,12 @@ describe('UsageCountsNotice', () => {
     await waitFor(() => expect(screen.queryByText(en['analytics.notice.title'])).toBeNull())
   })
 
+  it('an install that already sent counts (0.3.2) is not told that nothing has been sent (0.3.3 verification DA-2)', async () => {
+    mount({ status: async () => ({ availability: 'pending-disclosure', sentBefore: true }), setEnabled: vi.fn() })
+    expect(await screen.findByText(en['analytics.notice.sentBefore'])).toBeTruthy()
+    expect(screen.queryByText(en['analytics.notice.nothingYet'])).toBeNull()
+  })
+
   it('turning the switch off before continuing is the answer: counts stay off', async () => {
     const setEnabled = vi.fn(async (enabled: boolean) => ({ availability: enabled ? 'on' : 'off' }))
     mount({ status: async () => ({ availability: 'pending-disclosure' }), setEnabled })
@@ -62,7 +68,7 @@ describe('UsageCountsNotice', () => {
   })
 
   it('has every string in Russian too', () => {
-    for (const key of ['analytics.notice.title', 'analytics.notice.nothingYet', 'analytics.notice.continue', 'analytics.notice.failed'] as const)
+    for (const key of ['analytics.notice.title', 'analytics.notice.nothingYet', 'analytics.notice.sentBefore', 'analytics.notice.continue', 'analytics.notice.failed'] as const)
       expect(ru[key], key).toBeTruthy()
   })
 })

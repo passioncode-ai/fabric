@@ -39,19 +39,20 @@ export function FallbackOrderSetting({ value, onChange }: {
       <ol aria-label={t('settings.fallback.title')}>
         {order.map((entry, index) => (
           <li key={entry.runner}>
-            <span>{runnerLabel(entry.runner, t)}</span>{' '}
+            <span className="settings-fallback-name">{runnerLabel(entry.runner, t)}</span>
             <select aria-label={t('settings.fallback.sessionFor', { agent: runnerLabel(entry.runner, t) })} value={entry.session}
               onChange={(e) => save(order.map((x, i) => (i === index ? { ...x, session: e.target.value as FallbackSession } : x)))}>
               {SESSIONS.map((s) => <option key={s} value={s}>{t(SESSION_KEY[s])}</option>)}
-            </select>{' '}
-            <Button tone="ghost" onClick={() => move(index, -1)} disabled={index === 0}>{t('settings.fallback.up')}</Button>
-            <Button tone="ghost" onClick={() => move(index, 1)} disabled={index === order.length - 1}>{t('settings.fallback.down')}</Button>
-            <Button tone="ghost" onClick={() => save(order.filter((_, i) => i !== index))}>{t('settings.fallback.remove')}</Button>
+            </select>
+            {/* Each row's controls name their agent: a screen reader on "Up" must know whose (0.3.3 UX-7). */}
+            <Button tone="ghost" aria-label={t('settings.fallback.upFor', { agent: runnerLabel(entry.runner, t) })} onClick={() => move(index, -1)} disabled={index === 0}>{t('settings.fallback.up')}</Button>
+            <Button tone="ghost" aria-label={t('settings.fallback.downFor', { agent: runnerLabel(entry.runner, t) })} onClick={() => move(index, 1)} disabled={index === order.length - 1}>{t('settings.fallback.down')}</Button>
+            <Button tone="ghost" aria-label={t('settings.fallback.removeFor', { agent: runnerLabel(entry.runner, t) })} onClick={() => save(order.filter((_, i) => i !== index))}>{t('settings.fallback.remove')}</Button>
           </li>
         ))}
       </ol>
       {unused.length > 0 && (
-        <span>
+        <span className="settings-fallback-add">
           <select aria-label={t('settings.fallback.pick')} value={pick} onChange={(e) => setAdding(e.target.value)}>
             {unused.map((runner) => <option key={runner} value={runner}>{runnerLabel(runner, t)}</option>)}
           </select>{' '}

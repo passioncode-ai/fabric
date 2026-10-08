@@ -7779,7 +7779,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1162,
+        "line": 1170,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7862,7 +7862,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1185,
+        "line": 1193,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7945,7 +7945,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1208,
+        "line": 1216,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8034,7 +8034,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1231,
+        "line": 1239,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8117,7 +8117,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1254,
+        "line": 1262,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8200,7 +8200,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1277,
+        "line": 1285,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8283,7 +8283,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1300,
+        "line": 1308,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8368,7 +8368,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1323,
+        "line": 1331,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8455,7 +8455,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1346,
+        "line": 1354,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8543,7 +8543,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1368,
+        "line": 1376,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8635,7 +8635,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1390,
+        "line": 1398,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8784,7 +8784,7 @@
       ],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1414,
+        "line": 1422,
         "coverage_claim": "`apps/desktop/src/renderer/src/CeoChat.tsx` over `window.fabric.ceo` (IPC `ceo:*`, `apps/desktop/src/main/ceoChatBinding.ts`, `apps/desktop/src/main/ceoConversationService.ts`); every state above has an RTL test in `CeoChat.test.tsx`. The gate opens while private recovery is available (first-slice plan C5, `index.ts` `ceoChatActivation`); a new conversation is opened on the server before its first send and only known conversations are read. The real app was driven through this screen by `apps/desktop/test/chat-activation-native.test.mjs`: sent from the composer, shown as saved with no reply yet, read back after a cold restart.",
         "status_claim": "designed"
       },
@@ -8933,7 +8933,7 @@
       ],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1442,
+        "line": 1450,
         "coverage_claim": "`apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (opened from settings) over `window.fabric.history` and `apps/desktop/src/main/privateHistory.ts`; RTL tests in `PrivateHistoryPanel.test.tsx`, the service on an owned PostgreSQL. Import is part of restore: migration 66 imports private history only into a verified restore.",
         "status_claim": "designed"
       },
@@ -9044,7 +9044,7 @@
       "view": "mcp-servers",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1604,
+        "line": 1612,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9119,7 +9119,7 @@
       "view": "run-trace",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1622,
+        "line": 1630,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9194,7 +9194,7 @@
       "view": "fabric-tools",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1639,
+        "line": 1647,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9269,7 +9269,7 @@
       "view": "optimizer",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1656,
+        "line": 1664,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9342,7 +9342,7 @@
       "view": "first-run",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1685,
+        "line": 1693,
         "coverage_claim": "apps/desktop/src/renderer/src/start/FirstRun.tsx",
         "status_claim": "designed"
       },
@@ -9415,7 +9415,7 @@
         {
           "state": "choose-path",
           "trigger": "step 3",
-          "behavior": "the four actions in two pairs — Agent: Create, Turn an existing one; Project: Open, Create"
+          "behavior": "the four actions in two pairs — Agent: Create an agent, Adapt an existing agent; Project: Open a project (one folder or a folder of them), Create a project"
         },
         {
           "state": "skipped",
@@ -9466,7 +9466,7 @@
       "view": "start-add",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1712,
+        "line": 1720,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9529,7 +9529,8 @@
       "current_status": "Сделано 2026-10-03 (ADR-0100): renderer/src/start/StartPaths.tsx#ScanFolder.",
       "task_ids": [],
       "scenario_ids": [
-        "SCN-128"
+        "SCN-128",
+        "SCN-126"
       ],
       "flow_ids": [
         "FLW-71"
@@ -9559,7 +9560,7 @@
       "view": "start-scan",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1733,
+        "line": 1741,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9672,7 +9673,8 @@
       "current_status": "Сделано 2026-10-03 (ADR-0100): форма с черновиком renderer/src/Onboarding.tsx — «Создать для него новую папку» (#region new-project-folder), main/projectFolder.ts.",
       "task_ids": [],
       "scenario_ids": [
-        "SCN-129"
+        "SCN-129",
+        "SCN-126"
       ],
       "flow_ids": [
         "FLW-72"
@@ -9702,7 +9704,7 @@
       "view": "start-new",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1764,
+        "line": 1772,
         "coverage_claim": "apps/desktop/src/renderer/src/Onboarding.tsx",
         "status_claim": "designed"
       },
@@ -9765,7 +9767,8 @@
       "current_status": "Сделано 2026-10-08 (четыре действия онбординга, 0.3.3): renderer/src/start/AgentPaths.tsx#CreateAgent.",
       "task_ids": [],
       "scenario_ids": [
-        "SCN-136"
+        "SCN-136",
+        "SCN-126"
       ],
       "flow_ids": [
         "FLW-73"
@@ -9795,7 +9798,7 @@
       "view": "start-agent",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1785,
+        "line": 1793,
         "coverage_claim": "apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`); apps/desktop/src/main/adapterSkills.ts; apps/desktop/src/main/taskRetry.ts; apps/desktop/src/renderer/src/App.tsx (`onCreated` opens the Project)",
         "status_claim": "designed"
       },
@@ -9823,7 +9826,7 @@
         {
           "state": "exists",
           "trigger": "a folder of that name is under the parent",
-          "behavior": "said under the path; nothing created"
+          "behavior": "said under the Name field, focus back on it; nothing created"
         },
         {
           "state": "skills-missing",
@@ -9838,7 +9841,7 @@
         {
           "state": "no-agent",
           "trigger": "no coding agent can start",
-          "behavior": "each agent with its reason; Create disabled"
+          "behavior": "each agent with its reason and Check again; Create looks unavailable and a press says why"
         },
         {
           "state": "creating",
@@ -9853,7 +9856,7 @@
         {
           "state": "failed-after-folder",
           "trigger": "the Project, the task or the console failed after the folder was made",
-          "behavior": "reason, and that the folder and its Project are kept; name, sentence, place and coding agent fixed; Try again continues with the same Project, task and session; Start over begins a new attempt"
+          "behavior": "reason (a console that did not open is said as that), and that the folder — and its Project, if made — is kept; name, sentence and place fixed, the coding agent too once a launch was tried; Try again continues with the same Project, task and session; Use another coding agent (a launch that made no session) is a new task in the same Project; Start over begins a new attempt; leaving and coming back keeps it all"
         },
         {
           "state": "started",
@@ -9873,7 +9876,8 @@
       "current_status": "Сделано 2026-10-08 (четыре действия онбординга, 0.3.3): renderer/src/start/AgentPaths.tsx#ConvertAgent. Допуск в реестр после пробы — AR-7, AR-11.",
       "task_ids": [],
       "scenario_ids": [
-        "SCN-131"
+        "SCN-131",
+        "SCN-126"
       ],
       "flow_ids": [
         "FLW-74"
@@ -9903,7 +9907,7 @@
       "view": "start-convert",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1809,
+        "line": 1817,
         "coverage_claim": "apps/desktop/src/renderer/src/start/AgentPaths.tsx (`ConvertAgent`); apps/desktop/src/main/adapterSkills.ts; apps/desktop/src/main/taskRetry.ts; apps/desktop/src/renderer/src/App.tsx (`onCreated` opens the Project)",
         "status_claim": "designed"
       },
@@ -10003,7 +10007,7 @@
       "view": "agent-access",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1831,
+        "line": 1839,
         "coverage_claim": "apps/desktop/src/renderer/src/AgentAccessPanel.tsx",
         "status_claim": "designed"
       },
@@ -13344,7 +13348,7 @@
         "SCR-74"
       ],
       "horizon": "near",
-      "purpose": "Выбрать проект агента.",
+      "purpose": "Создать агента экосистемы: папка с git, проект и консоль агента для кода со скилом creating-fabric-agents.",
       "task_ids": [],
       "states": [
         "ready",
@@ -13356,9 +13360,9 @@
         "conflict"
       ],
       "empty_action": {
-        "label": "Начать",
-        "view": "start-add",
-        "description": "Выбрать проект агента."
+        "label": "Создать и открыть консоль",
+        "view": "start-agent",
+        "description": "Имя, одно предложение о деле агента, место папки и агент для кода."
       }
     },
     {
@@ -13368,8 +13372,8 @@
       "screen_ids": [
         "SCR-75"
       ],
-      "horizon": "next",
-      "purpose": "Запланированная конвертация и сегодняшний ручной путь.",
+      "horizon": "near",
+      "purpose": "Адаптировать агента, сделанного вне Fabric: консоль агента для кода со скилом adapting-projects-to-fabric, на новой ветке.",
       "task_ids": [],
       "states": [
         "ready",
@@ -13381,9 +13385,9 @@
         "conflict"
       ],
       "empty_action": {
-        "label": "Начать",
-        "view": "start-add",
-        "description": "Запланированная конвертация и сегодняшний ручной путь."
+        "label": "Выбрать папку агента",
+        "view": "start-convert",
+        "description": "Fabric читает папку, ничего не запуская, и показывает, что найдено."
       }
     }
   ],
@@ -32012,7 +32016,11 @@
       ],
       "screen_refs": [
         "SCR-70",
-        "SCR-71"
+        "SCR-74",
+        "SCR-75",
+        "SCR-71",
+        "SCR-72",
+        "SCR-73"
       ],
       "coverage": "apps/desktop/src/renderer/src/start/FirstRun.tsx; apps/desktop/src/renderer/src/start/StartPaths.test.tsx; CO-176 current main observer `apps/desktop/src/main/executorAuth.ts`, disposable-process negatives `apps/desktop/test/executor-auth.test.mjs` and current sanitized vendor reading in `docs/reports/2026-10-04-cleanup-start/raw/`. Local source/fixture proof does not establish packaged native or account-identity acceptance.",
       "registry_status": "draft",
@@ -32098,16 +32106,18 @@
     },
     {
       "id": "SCN-131",
-      "title": "Turn an existing agent into an ecosystem agent",
+      "title": "Adapt an existing agent into an ecosystem agent",
       "flow_ids": [
         "FLW-74"
       ],
-      "screen_refs": [],
+      "screen_refs": [
+        "SCR-75"
+      ],
       "coverage": "apps/desktop/src/renderer/src/start/AgentPaths.tsx (`ConvertAgent`), apps/desktop/src/main/adapterSkills.ts, apps/desktop/src/main/taskRetry.ts, apps/desktop/src/main/projectDiscovery.ts; tests apps/desktop/src/renderer/src/start/StartPaths.test.tsx (`adapt an existing agent`), apps/desktop/test/adapter-skills.test.mjs, apps/desktop/test/task-retry.test.mjs",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "A Project for the agent and a running console session adapting it; Fabric itself changed no file in the folder. The coding agent is told to show the plan and wait for a yes, to work only on a new branch `fabric-adapter` made from the branch the folder is on, and not to call the agent compatible with Fabric before every check of the conformance report passes. The Fabric window opens that Project.",
-      "errors_recovery": "A folder that cannot be read, or one outside this window's folders, is refused in words with Choose another folder. A failed Project create, task start or console says why and keeps the choices; a retry uses the same Project, task and session, never a second of any, and the coding agent is fixed from the first launch attempt. Choose another folder begins a new attempt. No coding agent can start → nothing is created and each agent reads with its reason.",
+      "errors_recovery": "A folder that cannot be read, or one outside this window's folders, is refused in words with Choose another folder. A failed Project create, task start or console says why and keeps the choices; a retry uses the same Project, task and session, never a second of any, and the coding agent is fixed from the first launch attempt. Choose another folder begins a new attempt. No coding agent can start → nothing is created and each agent reads with its reason. A failed launch that made no session offers Use another coding agent (a new task in the same Project). Choosing the same folder again — after leaving the screen, or after another folder — is the same attempt. The folder picker or the agents' read failing is said in words with Try again. The instruction keeps anything that looks like a secret out of a first commit and names it in the plan.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 3229
@@ -32161,7 +32171,7 @@
       "screen_refs": [
         "SCR-52"
       ],
-      "coverage": "apps/desktop/src/main/analytics.ts, apps/desktop/src/renderer/src/UsageCountsSetting.tsx",
+      "coverage": "apps/desktop/src/main/analytics.ts, apps/desktop/src/renderer/src/UsageCountsSetting.tsx, apps/desktop/src/renderer/src/UsageCountsNotice.tsx (the first-run notice, ADR-0127; an install that already sent counts is told so)",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "The person knows what leaves the Mac and has one switch for all PassionCode apps.",
@@ -32196,12 +32206,14 @@
       "flow_ids": [
         "FLW-73"
       ],
-      "screen_refs": [],
-      "coverage": "apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`), apps/desktop/src/main/projectFolder.ts, apps/desktop/src/main/adapterSkills.ts, apps/desktop/src/main/taskRetry.ts, apps/desktop/src/shared/builderChoice.ts; tests apps/desktop/src/renderer/src/start/StartPaths.test.tsx (`create an ecosystem agent`), apps/desktop/test/adapter-skills.test.mjs, apps/desktop/test/task-retry.test.mjs",
+      "screen_refs": [
+        "SCR-74"
+      ],
+      "coverage": "apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`), apps/desktop/src/main/projectFolder.ts, apps/desktop/src/main/adapterSkills.ts, apps/desktop/src/main/taskRetry.ts, apps/desktop/src/shared/builderChoice.ts; tests apps/desktop/src/renderer/src/start/StartPaths.test.tsx (`create an ecosystem agent`, `0.3.3 verification, iteration 1: the agent paths`), apps/desktop/test/adapter-skills.test.mjs, apps/desktop/test/task-retry.test.mjs; decision ADR-0129",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "A new folder, a Project holding it, and a running console session building an agent to the Fabric Agent Contract there, one question at a time; the Fabric window opens that Project.",
-      "errors_recovery": "An empty or unusable name, an empty sentence and a missing place are said under their field once Create is pressed, and nothing is made. A failed mkdir or git init leaves no half-made folder (as SCN-129). Once the folder exists, a later failure (the Project, the task, the console) says why and that the folder and its Project are kept; the name, the sentence and the place are then fixed (the Project and the task hold them) and Try again continues in that folder with the same Project, task and — once started — session, so a console that did not come forward is brought forward again, never a second task. The coding agent is fixed from the first launch attempt. Start over is the only way to another name, sentence or place: a new attempt; the made folder stays on disk and its Project among the projects. A session the first try started but could not report is brought forward on retry, never refused as already running. No coding agent can start → nothing is created and each agent reads with its reason.",
+      "errors_recovery": "An empty or unusable name, an empty sentence and a missing place are said under their field once Create is pressed, and nothing is made. A failed mkdir or git init leaves no half-made folder (as SCN-129). Once the folder exists, a later failure (the Project, the task, the console) says why and that the folder is kept — and its Project, when it was made; the name, the sentence and the place are then fixed (the Project and the task hold them) and Try again continues in that folder with the same Project, task and — once started — session, so a console that did not come forward is said as exactly that and brought forward again, never a second task. The coding agent is fixed from the first launch attempt; when that launch failed before a session existed, Use another coding agent gives the same Project a new task (the first stays on its board). Start over is the only way to another name, sentence or place: a new attempt; the made folder stays on disk and its Project among the projects. A failed read of the coding agents, the skills or the folder picker is said in words with Try again or Check again. A session the first try started but could not report is brought forward on retry, never refused as already running. No coding agent can start → nothing is created and each agent reads with its reason.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 3338
@@ -33826,9 +33838,9 @@
     },
     {
       "id": "FLW-74",
-      "title": "Turn an existing agent into an ecosystem agent",
+      "title": "Adapt an existing agent into an ecosystem agent",
       "goal": "An agent built elsewhere, adapted to the Fabric contract on its own branch, in a coding agent's console.",
-      "entry_points": "Start menu → Agent → Turn an existing agent into an ecosystem agent; first run step 3.",
+      "entry_points": "Start menu → Agent → Adapt an existing agent; first run step 3.",
       "success_exit": "the coding agent's console window, its session inspecting without running and showing its plan.",
       "screen_refs": [
         "SCR-75"

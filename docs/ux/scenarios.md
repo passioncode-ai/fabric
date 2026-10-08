@@ -140,7 +140,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-128 | Scan a projects folder and tick what becomes a Project | Start paths | P-01 | ST-001, ST-031, FLW-71 | draft | — |
 | SCN-129 | Create a new project in a new folder or as an idea | Start paths | P-01 | ST-001, FLW-72 | draft | — |
 | SCN-130 | Start a new agent inside a project | Start paths | P-01 | ST-050, FLW-73 | draft | — |
-| SCN-131 | Turn an existing agent into an ecosystem agent | Start paths | P-01 | ST-050, FLW-74 | draft | — |
+| SCN-131 | Adapt an existing agent into an ecosystem agent | Start paths | P-01 | ST-050, FLW-74 | draft | — |
 | SCN-132 | An external agent asks for access and the operator decides | Hub | P-01 | ST-045, FLW-75 | draft | — |
 | SCN-133 | Connect a product to Fabric by the product's own consent | Hub | P-01 | ST-045, FLW-76 | draft | — |
 | SCN-134 | See that Fabric shares usage counts, and turn them off for every PassionCode app | Settings | P-01 | FLW-40 | draft | — |
@@ -3119,10 +3119,10 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Steps:**
   1. Operator sees SCR-70 step 1 → types a name for their Fabric (optional; empty keeps "Fabric"), picks a character and a variant; the greeting and avatar update live → Continue saves the look, Skip keeps the default.
   2. Operator sees step 2 → Fabric lists Claude Code, Codex, Kilo Code, Hermes Agent and Cline with one state each: ready (installed with its version and connected to Fabric's tools), installed (runs in a folder as itself, not connected — says so), needs setup (installed, `--version` did not answer: run it once in a terminal; no install command), not installed (the vendor's install command and Copy) → A separate sign-in observation says authenticated, not authenticated, unsupported for this build, or unknown; only whitelisted status fields reach the window. Check again re-reads with the latest-request fence; Continue is labelled "Continue without an agent" when none is ready and remains usable while the informational check is pending.
-  3. Operator sees step 3 → the five start paths (SCR-71…75 entries) → choosing one opens it; "Later" goes home.
+  3. Operator sees step 3 → the four start actions in two pairs (SCR-70): **Agent** — Create an agent (SCR-74), Adapt an existing agent (SCR-75); **Project** — Open a project (one folder SCR-71, or a folder of them SCR-72), Create a project (SCR-73) → choosing one opens it; "Later" goes home.
 - **Expected result:** The first run is finished once; `settings.firstRun.completedAt` holds the moment; the operator is on the chosen path or home.
 - **Alt paths:** Back on steps 2–3; Skip on step 1; Help reopens the first run for an estate that already has projects.
-- **UI elements:** Three-step progress; name field with hint and 40-character limit; character choice; variants and "More variants"; executor rows with state pill, path, install command and Copy; five path cards.
+- **UI elements:** Three-step progress; name field with hint and 40-character limit; character choice; variants and "More variants"; executor rows with state pill, path, install command and Copy; the four actions in two labelled pairs.
 - **Amended 2026-10-07 (ADR-0125):** step 2 lists every catalogued coding agent, now six — Kimi Code joins as *installed* (runs as itself, not connected) — and the list is read from the catalogue instead of a copy of it. Kimi Code has no install command here, because none was verified from its vendor; `kimi` in `~/.kimi-code/bin`, where its installer puts it, is found.
 - **Amended 2026-10-06 (0.3.2 verification DO-13):** "connected to Fabric's tools" is the agent row's declared connection (`connectsToSurface`), not yet a probe of a live session (ADR-0119 amendment 4, plan AS-03). Cline starts in Ask (`--auto-approve false`) unless the session is Bypass.
 - **States covered:** first-visit,saving,not-saved,checking,found,found-unconnected,unresponsive,missing,check-failed,authenticated,not-authenticated,auth-unsupported,auth-unknown,choose-path,skipped
@@ -3210,8 +3210,8 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Entry point:** The project's Team (`#sec-agents`) → Create an agent. (Until 2026-10-08 also Start menu → New agent; see the amendment.)
 - **Preconditions:** An agent belongs to a project (CONTEXT: an Agent is a provider revision bound into one project).
 - **Steps:**
-  1. Operator sees the projects → chooses one.
-  2. Fabric opens that project's team (`#sec-agents`) and reads the agents created in it before saying there are none.
+  1. Operator opens a project's Team (`#sec-agents`) → Fabric reads the agents created in it before saying there are none.
+  2. (Until 2026-10-08 the start menu led here by choosing a project first; the onboarding's «Create an agent» is now SCN-136.)
   3. Operator opens Create an agent → name, what it is for, the coding agent it runs in (those not available on this computer are listed, disabled), the servers it needs from those the project grants → Create the agent.
   4. Fabric confirms "Created <name>." and lists the agent with what it reaches (M125).
 - **Expected result:** The agent exists in that project, named once, reaching only the servers it asked for.
@@ -3226,23 +3226,23 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Coverage:** apps/desktop/src/renderer/src/CreatedAgents.tsx
 - **Product:** unobserved
 
-### SCN-131: Turn an existing agent into an ecosystem agent
+### SCN-131: Adapt an existing agent into an ecosystem agent
 - **Persona:** P-01
 - **Feature:** Start paths
-- **Traces:** ST-050, FLW-74 (JTBD-05); operator request 2026-10-08 (D2, D3); ADR-0123
-- **Entry point:** Start menu → Agent → Turn an existing agent into an ecosystem agent; first run step 3.
+- **Traces:** ST-050, FLW-74 (JTBD-05), SCR-75; operator request 2026-10-08 (D2, D3); ADR-0123, ADR-0129
+- **Entry point:** Start menu → Agent → Adapt an existing agent (card button «Adapt an agent»); first run step 3.
 - **Preconditions:** The agent's folder exists on this computer (a script, a service, an MCP server, a CLI). At least one coding agent is installed.
 - **Steps:**
   1. Operator selects Choose the agent's folder → the native picker opens; cancel returns unchanged.
   2. Fabric reads the folder without running anything (the same reading as SCN-127) → shows its name, git state and branch, stack, what it says it is, and the Projects that already hold it; then the four steps that will follow: the coding agent inspects without running, shows the plan, adapts the agent **on its own branch** with the Fabric Agent Adapter skills, and runs the conformance check.
   3. Fabric says whether the Fabric Agent Adapter skills are installed for the coding agent chosen below — with the version, or with the install command and Copy, and Check again.
   4. Operator chooses the coding agent (the first available one in the fallback order is preselected; unavailable ones are listed with why) → Start the adaptation.
-  5. Fabric adds the folder as a Project (or uses the Project that already holds it), files the adaptation as a task, starts the coding agent in that folder and opens its console. The conversation — the plan, the questions, the approvals — happens there.
+  5. Fabric adds the folder as a Project (or uses the Project that already holds it) — its purpose, when the repository says what it is, kept as the repository's words («From README.md: …», ADR-0129) — files the adaptation as a task, starts the coding agent in that folder and opens its console. The conversation — the plan, the questions, the approvals — happens there.
 - **Expected result:** A Project for the agent and a running console session adapting it; Fabric itself changed no file in the folder. The coding agent is told to show the plan and wait for a yes, to work only on a new branch `fabric-adapter` made from the branch the folder is on, and not to call the agent compatible with Fabric before every check of the conformance report passes. The Fabric window opens that Project.
 - **Alt paths:** The folder is already a Project → the adaptation starts in that Project, no second one is created. The skills are missing → Start stays unavailable until Check again finds them, with the command to install them shown and copyable; Fabric installs nothing. The skills are found only in the shared folder (`~/.agents/skills`) → said so; Start is allowed for a coding agent that may read that folder, and for Claude Code, which reads only its plugins and `~/.claude/skills`, it is "missing". The install command does not cover the chosen agent (Cline, Kimi Code) → said, with "put the skills where it reads them, or choose another coding agent". The folder is not a git repository → said before the start; the coding agent is told to make it one and commit it as it is before changing anything, so the original can be restored.
 - **UI elements:** Choose the agent's folder; facts list; the four steps; skills status with Copy and Check again; coding agent choice; Start the adaptation; Choose another folder.
 - **States covered:** idle, picker-cancel, reading, ready, skills-missing, checking-skills, no-agent, starting, failed, started
-- **Errors & recovery:** A folder that cannot be read, or one outside this window's folders, is refused in words with Choose another folder. A failed Project create, task start or console says why and keeps the choices; a retry uses the same Project, task and session, never a second of any, and the coding agent is fixed from the first launch attempt. Choose another folder begins a new attempt. No coding agent can start → nothing is created and each agent reads with its reason.
+- **Errors & recovery:** A folder that cannot be read, or one outside this window's folders, is refused in words with Choose another folder. A failed Project create, task start or console says why and keeps the choices; a retry uses the same Project, task and session, never a second of any, and the coding agent is fixed from the first launch attempt. Choose another folder begins a new attempt. No coding agent can start → nothing is created and each agent reads with its reason. A failed launch that made no session offers Use another coding agent (a new task in the same Project). Choosing the same folder again — after leaving the screen, or after another folder — is the same attempt. The folder picker or the agents' read failing is said in words with Try again. The instruction keeps anything that looks like a secret out of a first commit and names it in the plan.
 - **Design rationale:** The operator decided on 2026-10-08 that adaptation happens in the coding agent's own console (D2); Fabric's part is the folder, the Project, the readiness of the skills and the launch. The plan-before-change and own-branch rules are the skill's own (`adapting-projects-to-fabric`: inspect without execution → scaffold → check).
 - **Telemetry:** planned only.
 - **Status:** draft
@@ -3312,7 +3312,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Design rationale:** usage counts are an effect with an owner (the person), a boundary (counts only, release builds only, one shared switch) and a receipt (the operations log), as the vision's alignment test asks.
 - **Telemetry:** none in the journal; the operations log records `analytics.flush`.
 - **Status:** draft
-- **Coverage:** apps/desktop/src/main/analytics.ts, apps/desktop/src/renderer/src/UsageCountsSetting.tsx
+- **Coverage:** apps/desktop/src/main/analytics.ts, apps/desktop/src/renderer/src/UsageCountsSetting.tsx, apps/desktop/src/renderer/src/UsageCountsNotice.tsx (the first-run notice, ADR-0127; an install that already sent counts is told so)
 - **Product:** unobserved
 
 ### SCN-135: Launch through the fallback order: an open session first, otherwise the next coding agent that can start
@@ -3338,23 +3338,23 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 ### SCN-136: Create an ecosystem agent
 - **Persona:** P-01
 - **Feature:** Start paths
-- **Traces:** ST-050, FLW-73 (JTBD-05); operator request 2026-10-08 (D1, D3); ADR-0123
+- **Traces:** ST-050, FLW-73 (JTBD-05), SCR-74; operator request 2026-10-08 (D1, D3); ADR-0123, ADR-0129
 - **Entry point:** Start menu → Agent → Create an agent; first run step 3.
 - **Preconditions:** At least one coding agent is installed on this computer.
 - **Steps:**
-  1. Operator types the agent's name and, in one sentence, what it will do → both are plain fields; the name becomes the folder's name (letters, digits, `-`, `_`, `.`; no separator, no leading dot).
+  1. Operator types the agent's name and, in one sentence, what it will do → both are plain fields; the name becomes the folder's name, so Fabric refuses only what a folder name cannot hold: an empty name, more than 80 characters, a leading dot, `/`, `\` or `:`, control characters and text-direction controls (`shared/startPaths.ts#folderNameProblem`).
   2. Operator chooses where its folder goes (the native picker for a parent folder) → the full path of the new folder is shown before anything is created.
   3. Fabric says whether the Fabric Agent Adapter skills are installed for the chosen coding agent (as SCN-131 step 3).
-  4. Operator chooses the coding agent (first available in the fallback order preselected) → Create and open the console.
+  4. Operator chooses the coding agent (the first in the fallback order that is installed and answers, else the first found, preselected; the hint says which rule chose it) → Create and open the console.
   5. Fabric creates the folder as a git repository on `main`, creates a Project for it whose purpose is the sentence from step 1, files the build as a task, starts the coding agent in the folder and opens its console. The coding agent builds the agent with `creating-fabric-agents`: it asks its intake questions in the console and creates no file until each has an answer.
 - **Expected result:** A new folder, a Project holding it, and a running console session building an agent to the Fabric Agent Contract there, one question at a time; the Fabric window opens that Project.
-- **Alt paths:** A folder of that name already exists under the parent → nothing is created and the name is said to be taken there. The skills are missing, found only in the shared folder, or not covered by the install command → as SCN-131. The operator leaves the form → nothing is created.
-- **UI elements:** Name; What it will do; Where its folder goes with Choose; the resulting path; skills status with Copy and Check again; coding agent choice; Create and open the console; Back.
+- **Alt paths:** A folder of that name already exists under the parent → nothing is created, the refusal is said under the Name field and focus returns to it. The skills are missing, found only in the shared folder, unreadable, or not covered by the install command → as SCN-131. The operator leaves the form before anything was made → nothing is created; after the folder was made, leaving and coming back (Back, the sidebar, even mid-request) continues the same attempt with the failure still said.
+- **UI elements:** Name; What it will do; Where its folder goes with Choose; the resulting path; coding agent choice with its hint; skills status with Copy and Check again; Create and open the console (looks unavailable until it can go, and a press says what is missing); Try again, Start over, Use another coding agent; Back.
 - **States covered:** idle, invalid-name, no-purpose, no-parent, exists, skills-missing, checking-skills, no-agent, creating, failed, failed-after-folder, started
-- **Errors & recovery:** An empty or unusable name, an empty sentence and a missing place are said under their field once Create is pressed, and nothing is made. A failed mkdir or git init leaves no half-made folder (as SCN-129). Once the folder exists, a later failure (the Project, the task, the console) says why and that the folder and its Project are kept; the name, the sentence and the place are then fixed (the Project and the task hold them) and Try again continues in that folder with the same Project, task and — once started — session, so a console that did not come forward is brought forward again, never a second task. The coding agent is fixed from the first launch attempt. Start over is the only way to another name, sentence or place: a new attempt; the made folder stays on disk and its Project among the projects. A session the first try started but could not report is brought forward on retry, never refused as already running. No coding agent can start → nothing is created and each agent reads with its reason.
+- **Errors & recovery:** An empty or unusable name, an empty sentence and a missing place are said under their field once Create is pressed, and nothing is made. A failed mkdir or git init leaves no half-made folder (as SCN-129). Once the folder exists, a later failure (the Project, the task, the console) says why and that the folder is kept — and its Project, when it was made; the name, the sentence and the place are then fixed (the Project and the task hold them) and Try again continues in that folder with the same Project, task and — once started — session, so a console that did not come forward is said as exactly that and brought forward again, never a second task. The coding agent is fixed from the first launch attempt; when that launch failed before a session existed, Use another coding agent gives the same Project a new task (the first stays on its board). Start over is the only way to another name, sentence or place: a new attempt; the made folder stays on disk and its Project among the projects. A failed read of the coding agents, the skills or the folder picker is said in words with Try again or Check again. A session the first try started but could not report is brought forward on retry, never refused as already running. No coding agent can start → nothing is created and each agent reads with its reason.
 - **Design rationale:** «Create your own agent» means a new ecosystem agent with its own repository (D1), built in the coding agent's own console (ADR-0123); the in-project role agent stays SCN-130. The form asks only what Fabric needs to create the folder and the Project; everything else the skill's intake grill asks in the console.
 - **Telemetry:** planned only.
 - **Status:** draft
-- **Coverage:** apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`), apps/desktop/src/main/projectFolder.ts, apps/desktop/src/main/adapterSkills.ts, apps/desktop/src/main/taskRetry.ts, apps/desktop/src/shared/builderChoice.ts; tests apps/desktop/src/renderer/src/start/StartPaths.test.tsx (`create an ecosystem agent`), apps/desktop/test/adapter-skills.test.mjs, apps/desktop/test/task-retry.test.mjs
+- **Coverage:** apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`), apps/desktop/src/main/projectFolder.ts, apps/desktop/src/main/adapterSkills.ts, apps/desktop/src/main/taskRetry.ts, apps/desktop/src/shared/builderChoice.ts; tests apps/desktop/src/renderer/src/start/StartPaths.test.tsx (`create an ecosystem agent`, `0.3.3 verification, iteration 1: the agent paths`), apps/desktop/test/adapter-skills.test.mjs, apps/desktop/test/task-retry.test.mjs; decision ADR-0129
 - **Product:** unobserved
 

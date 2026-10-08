@@ -13,7 +13,7 @@
 // reported as "in the shared folder", because whether a given agent reads that folder is not checked here.
 // Reads only; a file that cannot be read is "not found", never an error that blocks the screen.
 
-import { readFile } from 'node:fs/promises'
+import { readFile, stat } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import type { AdapterSkill, AdapterSkillsView } from '../shared/startPaths.ts'
@@ -40,18 +40,43 @@ const OWN_SKILLS: Readonly<Record<string, string>> = {
 /** The agents INSTALL_COMMAND puts the skills where they read them: the launcher's plugin and channels above. */
 const LAUNCHER_COVERS = new Set(['claude-code', 'codex', 'kilo', 'hermes'])
 const SHARED_SKILLS = '.agents/skills'
-
+/** A skill file or a settings file larger than this is not one: it is not read (0.3.3 verification ER-7). */
+const MAX_READ = 1024 * 1024
+/** Each read may take this long; a FIFO or a stalled mount must not leave the screen on "Checking…" for ever. */
+const READ_TIMEOUT_MS = 3000
 
 export interface SkillsFs {
   readFile(p: string): Promise<string>
+  /** Absent in a fake: every path is taken to be a small regular file. */
+  stat?(p: string): Promise<{ isFile(): boolean; size: number }>
 }
-const REAL_FS: SkillsFs = { readFile: (p) => readFile(p, 'utf8') }
+const REAL_FS: SkillsFs = { readFile: (p) => readFile(p, 'utf8'), stat: (p) => stat(p) }
 
-const read = async (fs: SkillsFs, p: string): Promise<string | null> => {
-  try { return await fs.readFile(p) } catch { return null /* not silence: unreadable is "not found here", which the screen says */ }
+/** Present but not readable: a permission error, a FIFO, a folder, a file too large, or a read that timed out. */
+const UNREADABLE = Symbol('unreadable')
+type Read = string | null | typeof UNREADABLE
+
+const within = <T>(work: Promise<T>): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('timed out')), READ_TIMEOUT_MS)
+    timer.unref?.()
+    work.then((v) => { clearTimeout(timer); resolve(v) }, (e: unknown) => { clearTimeout(timer); reject(e) })
+  })
+const absent = (e: unknown): boolean => ['ENOENT', 'ENOTDIR'].includes((e as NodeJS.ErrnoException)?.code ?? '')
+
+const read = async (fs: SkillsFs, p: string): Promise<Read> => {
+  // `stat`, not `lstat`: skill folders are often links into a shared hub, and a link to a regular file is fine.
+  // Only a regular file of a sane size is opened, so a FIFO is never read and cannot hang the check.
+  if (fs.stat) {
+    try {
+      const st = await within(fs.stat(p))
+      if (!st.isFile() || st.size > MAX_READ) return UNREADABLE
+    } catch (e) { return absent(e) ? null : UNREADABLE /* not silence: the screen says it could not be read */ }
+  }
+  try { return await within(fs.readFile(p)) } catch (e) { return absent(e) ? null : UNREADABLE /* said on the screen */ }
 }
-const json = (text: string | null): unknown => {
-  if (text === null) return null
+const json = (text: Read): unknown => {
+  if (text === null || text === UNREADABLE) return null
   try { return JSON.parse(text) } catch { return null /* not silence: settings that do not parse enable no plugin, so it reads as not found */ }
 }
 /** `version: "0.8.0"` from a skill's front matter metadata. */
@@ -61,46 +86,59 @@ export function skillVersion(skillMd: string): string | null {
   return m ? m[1] : null
 }
 
-async function inFolder(fs: SkillsFs, dir: string): Promise<{ found: Record<AdapterSkill, boolean>; version: string | null }> {
+interface FolderRead { found: Record<AdapterSkill, boolean>; version: string | null; unreadable: string[] }
+async function inFolder(fs: SkillsFs, dir: string): Promise<FolderRead> {
   const found = {} as Record<AdapterSkill, boolean>
+  const unreadable: string[] = []
   let version: string | null = null
   for (const s of ADAPTER_SKILLS) {
-    const md = await read(fs, path.join(dir, s, 'SKILL.md'))
-    found[s] = md !== null
-    if (md !== null) version ??= skillVersion(md)
+    const file = path.join(dir, s, 'SKILL.md')
+    const md = await read(fs, file)
+    found[s] = typeof md === 'string'
+    if (md === UNREADABLE) unreadable.push(file)
+    if (typeof md === 'string') version ??= skillVersion(md)
   }
-  return { found, version }
+  return { found, version, unreadable }
 }
 
 const all = (f: Record<AdapterSkill, boolean>): boolean => ADAPTER_SKILLS.every((s) => f[s])
 
 /** Claude Code's enabled plugin: enabled in settings.json, recorded in installed_plugins.json, both skills in its install path. */
-async function claudePlugin(fs: SkillsFs, home: string): Promise<{ found: Record<AdapterSkill, boolean>; version: string | null } | null> {
-  const settings = json(await read(fs, path.join(home, '.claude', 'settings.json'))) as { enabledPlugins?: Record<string, unknown> } | null
+async function claudePlugin(fs: SkillsFs, claudeHome: string): Promise<FolderRead | null> {
+  const settings = json(await read(fs, path.join(claudeHome, 'settings.json'))) as { enabledPlugins?: Record<string, unknown> } | null
   if (settings?.enabledPlugins?.[ADAPTER_PLUGIN] !== true) return null
-  const installed = json(await read(fs, path.join(home, '.claude', 'plugins', 'installed_plugins.json'))) as
+  const installed = json(await read(fs, path.join(claudeHome, 'plugins', 'installed_plugins.json'))) as
     { plugins?: Record<string, { installPath?: unknown; version?: unknown }[]> } | null
   const entry = installed?.plugins?.[ADAPTER_PLUGIN]?.[0]
   if (!entry || typeof entry.installPath !== 'string') return null
   const got = await inFolder(fs, path.join(entry.installPath, 'skills'))
-  return { found: got.found, version: typeof entry.version === 'string' ? entry.version : got.version }
+  return { ...got, version: typeof entry.version === 'string' ? entry.version : got.version }
 }
 
-export async function adapterSkills(agentId: string, opts: { home?: string; fs?: SkillsFs } = {}): Promise<AdapterSkillsView> {
+export async function adapterSkills(agentId: string, opts: { home?: string; fs?: SkillsFs; env?: Record<string, string | undefined> } = {}): Promise<AdapterSkillsView> {
   const home = opts.home ?? os.homedir()
   const fs = opts.fs ?? REAL_FS
+  const env = opts.env ?? process.env
+  // Claude Code reads its configuration from CLAUDE_CONFIG_DIR when it is set, as Fabric's quota reader does
+  // (`quota.ts`); the sessions Fabric starts inherit the same environment (0.3.3 verification DA-9).
+  const claudeHome = env.CLAUDE_CONFIG_DIR?.trim() || path.join(home, '.claude')
+  const unreadable: string[] = []
   const view = (where: AdapterSkillsView['where'], found: Record<AdapterSkill, boolean>, version: string | null, ready: boolean): AdapterSkillsView =>
-    ({ ready, where, version, found, command: INSTALL_COMMAND, launcherCovers: LAUNCHER_COVERS.has(agentId) })
+    ({ ready, where, version, found, command: INSTALL_COMMAND, launcherCovers: LAUNCHER_COVERS.has(agentId), unreadable })
   if (agentId === 'claude-code') {
-    const plugin = await claudePlugin(fs, home)
+    const plugin = await claudePlugin(fs, claudeHome)
+    if (plugin) unreadable.push(...plugin.unreadable)
     if (plugin && all(plugin.found)) return view('plugin', plugin.found, plugin.version, true)
   }
-  const own = OWN_SKILLS[agentId]
+  // Own property only: an id such as `constructor` is an unknown agent, not Object's prototype (ER-7).
+  const own = Object.hasOwn(OWN_SKILLS, agentId) ? (agentId === 'claude-code' ? claudeHome : path.join(home, OWN_SKILLS[agentId])) : null
   if (own) {
-    const got = await inFolder(fs, path.join(home, own))
+    const got = await inFolder(fs, agentId === 'claude-code' ? path.join(own, 'skills') : own)
+    unreadable.push(...got.unreadable)
     if (all(got.found)) return view('agent-folder', got.found, got.version, true)
   }
   const shared = await inFolder(fs, path.join(home, SHARED_SKILLS))
+  unreadable.push(...shared.unreadable)
   if (all(shared.found)) return view('shared', shared.found, shared.version, false)
   const none = Object.fromEntries(ADAPTER_SKILLS.map((s) => [s, false])) as Record<AdapterSkill, boolean>
   return view('none', none, null, false)

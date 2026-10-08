@@ -31,7 +31,7 @@
  */
 
 import type { Stats } from 'node:fs'
-import { lstat, readdir, readFile, stat } from 'node:fs/promises'
+import { lstat, open, readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 
 import { gitRun } from './gitRun.ts'
@@ -67,8 +67,19 @@ export interface DiscoveryFs {
   lstat(p: string): Promise<Stats>
   stat(p: string): Promise<Stats>
   readFile(p: string, encoding: 'utf8'): Promise<string>
+  /** At most `max` bytes from the start of a file, as UTF-8. Absent in a fake: falls back to readFile, cut. */
+  readHead?(p: string, max: number): Promise<string>
 }
-const REAL_FS: DiscoveryFs = { readdir: (p) => readdir(p), lstat, stat, readFile: (p, e) => readFile(p, e) }
+/** Read the first `max` bytes only: a 400 MB README must not be loaded whole to keep 64 KiB of it (0.3.3 verification ER-6). */
+async function readHead(p: string, max: number): Promise<string> {
+  const handle = await open(p, 'r')
+  try {
+    const buf = Buffer.alloc(max)
+    const { bytesRead } = await handle.read(buf, 0, max, 0)
+    return buf.subarray(0, bytesRead).toString('utf8')
+  } finally { await handle.close() }
+}
+const REAL_FS: DiscoveryFs = { readdir: (p) => readdir(p), lstat, stat, readFile: (p, e) => readFile(p, e), readHead }
 
 /** One folder inspected: how long each filesystem call may take, and which calls to make. */
 export interface InspectOptions {
@@ -266,21 +277,25 @@ function clip(text: string): string | null {
   return (at > SUMMARY_MAX / 2 ? cut.slice(0, at) : cut).replace(/[\s,;:.-]+$/, '') + '…'
 }
 
-async function summaryOf(dir: string, entries: string[], fs: DiscoveryFs, ms: number): Promise<string | null> {
+async function summaryOf(dir: string, entries: string[], fs: DiscoveryFs, ms: number): Promise<{ text: string; file: string } | null> {
   const read = async (name: string | undefined): Promise<string | null> => {
     if (!name) return null
     const file = path.join(dir, name)
     const st = await probe(() => fs.lstat(file), ms)
     if (st === null || st === TIMED_OUT || !st.isFile()) return null // a link is never followed out of the folder
-    const text = await probe(() => fs.readFile(file, 'utf8'), ms)
+    const text = await probe(() => (fs.readHead ? fs.readHead(file, SUMMARY_READ) : fs.readFile(file, 'utf8')), ms)
     return text === null || text === TIMED_OUT ? null : text.slice(0, SUMMARY_READ)
   }
   const has = (n: string) => (entries.includes(n) ? n : undefined)
   const [packageJson, pyproject, cargo] = await Promise.all([read(has('package.json')), read(has('pyproject.toml')), read(has('Cargo.toml'))])
-  const quick = summaryFrom({ packageJson, pyproject, cargo })
-  if (quick) return quick
+  // The same order summaryFrom applies, one file at a time, so the source can be named.
+  for (const [file, one] of [['package.json', { packageJson }], ['pyproject.toml', { pyproject }], ['Cargo.toml', { cargo }]] as const) {
+    const text = summaryFrom(one)
+    if (text) return { text, file }
+  }
   const readme = entries.filter((e) => README.test(e)).sort((a, b) => (/\.md$/i.test(b) ? 1 : 0) - (/\.md$/i.test(a) ? 1 : 0))[0]
-  return summaryFrom({ readme: await read(readme) })
+  const text = summaryFrom({ readme: await read(readme) })
+  return text && readme ? { text, file: readme } : null
 }
 // #endregion repo-summary
 
@@ -362,7 +377,8 @@ export async function inspectFolder(dir: string, opts: InspectOptions = {}): Pro
     branch = head || null
     remote = shownRemote(origin || null)
   }
-  return { path: abs, name: path.basename(abs), git, kind, parent, branch, remote, lastCommit, stack: stackOf(abs, entries), summary: await summaryOf(abs, entries, fs, ms) }
+  const said = await summaryOf(abs, entries, fs, ms)
+  return { path: abs, name: path.basename(abs), git, kind, parent, branch, remote, lastCommit, stack: stackOf(abs, entries), summary: said?.text ?? null, summaryFile: said?.file ?? null }
 }
 
 /**

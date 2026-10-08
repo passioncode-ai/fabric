@@ -293,6 +293,10 @@ export function createAnalytics(deps: AnalyticsDeps) {
       if (availability() !== 'on') queue = []
       return availability()
     },
+    /** Whether this app has already sent counts from this Mac: `installed_at` is written only when `app_installed`
+     *  was sent, which a 0.3.2 install did from its first start (0.3.3 verification DA-2). The notice then cannot say
+     *  "nothing has been sent yet". */
+    sentBefore: (): boolean => typeof readState().installed_at === 'string',
     stop(): void { if (timer) { clearTimer(timer); timer = null } },
     pending: (): number => queue.length
   }

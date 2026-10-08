@@ -13,6 +13,24 @@ AGENTS.push({ ...AGENTS.find(a => a.id === 'shell'), id: 'launch-fixture', conne
 for (const adapter of ['config-content-env', 'acp-session'])
   AGENTS.push({ ...AGENTS.find(a => a.id === 'shell'), id: `bundle-only-${adapter}`, label: `Fixture ${adapter}`, connectsToSurface: true, surfaceAdapter: adapter, resultChannel: 'surface' })
 
+// 0.3.3 verification ER-1: a pre-spawn check that THROWS (the launch receipt could not be read) takes the
+// minted session credential back, as a refusal does; 0.3.2 did, and 0.3.3's move of the check had lost it.
+{
+  const revoked = []
+  let spawns = 0
+  const sessionId = randomUUID()
+  const manager = new PtyManager({ append: async () => ({ seq: 1 }) }, randomUUID(), { onData() {}, onExit() {} }, {
+    compile: async () => ({ dir: '/not-used', args: [] }),
+    discard: sid => revoked.push(sid)
+  }, () => { spawns++; throw Error('unexpected native spawn') }, undefined, () => ({ kind: 'person', id: 'operator' }))
+  await assert.rejects(
+    manager.open(randomUUID(), process.cwd(), 'launch-fixture', null, null, null, sessionId, async () => { throw Error('launch receipt unavailable') }),
+    /launch receipt unavailable/)
+  assert.equal(spawns, 0)
+  assert.deepEqual(revoked, [sessionId], 'the credential minted with the bundle is discarded when the pre-spawn check throws')
+  assert.equal(manager.list().length, 0)
+}
+
 // Launch references are immutable authority, not free text to rewrite later.
 // Refuse before bundle preparation, native spawn, capture or journalling.
 {

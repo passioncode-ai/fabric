@@ -46,3 +46,15 @@ rule: its side panel becomes an embedded terminal running the runtime's CLI in t
   launch and monitoring in P-13, through the UX chain.
 - No conflict with ADR-0119 (runners are consoles), the vision's principle 1 or its anti-vision ("a multi-chat
   cockpit"): the operating unit stays the Project, and sessions are its execution surface.
+
+## Amendments
+
+### Amendment 1 — 2026-10-08: the retirement moves after 0.3.3
+
+The operator set 0.3.3's scope on 2026-10-08 (decision D4 of the
+[onboarding brief](../evidence/plans/2026-10-08-onboarding-four-actions.md)): what is done since 0.3.2 plus the
+four onboarding actions ([ADR-0129](0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md)).
+Retiring `CeoChat` (P-13) was not in it, so "the release after 0.3.2" becomes **the release after 0.3.3**. 0.3.3
+applies this decision to the new agent actions — they run in the coding agent's console — and still ships the CEO
+chat, reached from «Discuss with Fabric ↗» on the launch screens as the prototype draws it. Found by the 0.3.3
+verification, iteration 1 (PL-1): the plan still dated the retirement to 0.3.3.

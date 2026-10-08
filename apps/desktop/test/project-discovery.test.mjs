@@ -9,6 +9,7 @@ import { chmodSync, existsSync, mkdirSync, mkdtempSync, symlinkSync, writeFileSy
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import assert from 'node:assert/strict'
+import { lstat, open, readdir, readFile, stat } from 'node:fs/promises'
 
 const SRC = path.resolve(import.meta.dirname, '../src/main/projectDiscovery.ts')
 const { inspectFolder, scanFolder } = await import(SRC)
@@ -339,8 +340,18 @@ await assert.rejects(() => scanFolder(path.join(root, 'missing')), /(^|: )folder
   mkdirSync(path.join(r2, 'silent'))
   assert.equal((await inspectFolder(path.join(r2, 'with-readme'))).summary, 'With a readme of its own.')
   assert.equal((await inspectFolder(path.join(r2, 'with-manifest'))).summary, 'From the manifest')
+  assert.deepEqual([(await inspectFolder(path.join(r2, 'with-manifest'))).summaryFile, (await inspectFolder(path.join(r2, 'with-readme'))).summaryFile], ['package.json', 'README.md'], 'the source of the words is named (ER-5)')
+  assert.equal((await inspectFolder(path.join(r2, 'silent'))).summaryFile, null)
   assert.equal((await inspectFolder(path.join(r2, 'linked'))).summary, null, 'a README that is a link is not followed')
   assert.equal((await inspectFolder(path.join(r2, 'silent'))).summary, null)
+  // 0.3.3 verification ER-6: at most 64 KiB of a file is read, not the whole file cut afterwards.
+  mkdirSync(path.join(r2, 'huge')); writeFileSync(path.join(r2, 'huge', 'README.md'), 'A huge readme.\n\n' + 'x'.repeat(8 * 1024 * 1024))
+  const asked = []
+  const counting = { readdir: (p) => readdir(p), lstat, stat, readFile: async (p, e) => { asked.push(['whole', p]); return readFile(p, e) },
+    readHead: async (p, max) => { asked.push(['head', max]); const h = await open(p, 'r'); try { const b = Buffer.alloc(max); const { bytesRead } = await h.read(b, 0, max, 0); return b.subarray(0, bytesRead).toString('utf8') } finally { await h.close() } } }
+  assert.equal((await inspectFolder(path.join(r2, 'huge'), { fs: counting })).summary, 'A huge readme.')
+  assert.ok(asked.some(([k, m]) => k === 'head' && m === 64 * 1024), 'the summary reads a bounded head')
+  assert.ok(!asked.some(([k, p]) => k === 'whole' && String(p).endsWith('README.md')), 'the README is never read whole')
 }
 
 console.log('PASS project discovery: summary (manifest, README prose, no link followed), inspect (repository, folder, worktree, missing, no exec from repo config incl. partial clone, no credential, .git symlink), scan (grouping, noise, symlink boundary + count, bound, cancel, noise-named repo, unreadable counted, breadth first, no sync fs, stuck read/lstat/probe vs Stop, deadline, timeout)')

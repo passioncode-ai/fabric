@@ -19,6 +19,16 @@ export interface FolderFacts {
   /** What the repository says it is: its manifest's description or its README's first paragraph; null
    *  when it says nothing. Absent in a scan kept before 0.3.3. */
   summary?: string | null
+  /** The file `summary` was taken from (`package.json`, `README.md`, …), so a Project made from it can say whose
+   *  words its purpose is (0.3.3 verification ER-5/DA-4). Absent with no summary, or in a scan kept before. */
+  summaryFile?: string | null
+}
+
+/** A purpose taken from the repository, marked as the repository's words rather than the owner's: a coding agent
+ *  reads the Project's purpose as the owner's statement, and a README (an agent built elsewhere, a third party's
+ *  code) must not speak with that authority. The owner edits it like any purpose. */
+export function purposeFromRepository(f: { summary?: string | null; summaryFile?: string | null }, quote: (file: string, text: string) => string): string | undefined {
+  return f.summary ? quote(f.summaryFile || 'README', f.summary) : undefined
 }
 
 export interface Candidate extends FolderFacts {
@@ -230,4 +240,7 @@ export interface AdapterSkillsView {
   /** Whether `command` installs the skills where THIS agent reads them; false for an agent the launcher has no
    *  channel for (Cline, Kimi Code), so the screen does not promise what the command cannot do. */
   launcherCovers: boolean
+  /** Skill files that are there but could not be read (permissions, not a regular file, too large, timed out):
+   *  installing again does not help, so the screen names them instead of offering the command alone. */
+  unreadable?: string[]
 }

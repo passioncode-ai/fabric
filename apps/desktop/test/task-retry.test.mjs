@@ -1,6 +1,6 @@
 // A retry of an onboarding launch is the same task: the id the window chose is reused, never a second task.
 import assert from 'node:assert/strict'
-import { planTaskStart } from '../src/main/taskRetry.ts'
+import { createKeyedQueue, liveSessionOf, planTaskStart } from '../src/main/taskRetry.ts'
 
 const ID = '0f8fad5b-d9cb-469f-a165-70867728950e'
 const reads = []
@@ -14,8 +14,27 @@ assert.deepEqual(await planTaskStart({ projectId: 'p', taskId: ID }, reader(row)
 assert.deepEqual(await planTaskStart({ projectId: 'p', taskId: ID }, reader(row), (id) => (id === ID ? 'sess-1' : null)),
   { kind: 'running', task: row, sessionId: 'sess-1' }, 'a session this process already runs for the task is brought forward, not refused')
 assert.deepEqual(await planTaskStart({ projectId: 'p', taskId: ID }, reader(row), () => null), { kind: 'again', task: row })
-await assert.rejects(planTaskStart({ projectId: 'q', taskId: ID }, reader(row)), /task-id-refused: the task belongs to another project/)
-await assert.rejects(planTaskStart({ projectId: 'p', taskId: 'not-a-uuid' }, reader(null)), /task-id-refused: not an id/)
-await assert.rejects(planTaskStart({ projectId: 'p', taskId: 42 }, reader(null)), /task-id-refused: not an id/)
-await assert.rejects(planTaskStart({ projectId: 'p', taskId: ID }, reader(null, { message: 'connection refused' })), /could not be read.*connection refused/, 'a failed read is not "no such task"')
-console.log('PASS task retry: a caller id is the same task on retry; a foreign, malformed or unread id is refused; a running one is brought forward')
+await assert.rejects(planTaskStart({ projectId: 'q', taskId: ID }, reader(row)), /task-refused:other-project/)
+await assert.rejects(planTaskStart({ projectId: 'p', taskId: 'not-a-uuid' }, reader(null)), /task-refused:not-an-id/)
+await assert.rejects(planTaskStart({ projectId: 'p', taskId: 42 }, reader(null)), /task-refused:not-an-id/)
+await assert.rejects(planTaskStart({ projectId: 'p', taskId: ID }, reader(null, { message: 'connection refused' })), /task-refused:read-failed: connection refused/, 'a failed read is not "no such task"')
+const tracked = new Map([['old', ID], ['other', 'x'], ['new', ID], ['ended', ID]])
+const running = new Set(['old', 'new', 'other'])
+assert.equal(liveSessionOf(tracked, (s) => running.has(s), ID), 'new', 'the newest RUNNING session of the task, never an ended one')
+assert.equal(liveSessionOf(new Map([['ended', ID]]), () => false, ID), null, 'an ended session is not brought forward: the task starts again')
+{ // DA-8: two starts with one id run one after the other; other ids do not wait; a failure does not jam the key.
+  const queue = createKeyedQueue(), log = []
+  let release
+  const gate = new Promise((r) => { release = r })
+  const first = queue('a', async () => { log.push('a1 in'); await gate; log.push('a1 out'); return 1 })
+  const second = queue('a', async () => { log.push('a2'); return 2 })
+  const other = queue('b', async () => { log.push('b'); return 3 })
+  await other
+  assert.deepEqual(log, ['a1 in', 'b'], 'another key runs at once; the same key waits')
+  release()
+  assert.deepEqual(await Promise.all([first, second]), [1, 2])
+  assert.deepEqual(log, ['a1 in', 'b', 'a1 out', 'a2'])
+  await assert.rejects(queue('c', async () => { throw new Error('boom') }), /boom/)
+  assert.equal(await queue('c', async () => 'after'), 'after', 'a failed start does not jam the next one')
+}
+console.log('PASS task retry: a caller id is the same task on retry; a foreign, malformed or unread id is refused; a running one is brought forward, an ended one is not; one id at a time')

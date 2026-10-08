@@ -40,8 +40,8 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `Exit for iteration N: … Blocking findings open: none.`, and unless the ledger's title names exactly the
    version it clears — each release has its own ledger; 0.3.0's is
    [`2026-10-03-verification.md`](../evidence/plans/2026-10-03-verification.md), 0.3.1's (the hub) is
-   [`2026-10-04-hub-verification.md`](../evidence/plans/2026-10-04-hub-verification.md), 0.3.2's is [`2026-10-06-release-032-verification.md`](../evidence/plans/2026-10-06-release-032-verification.md), and 0.3.3's is [`2026-10-08-release-033-verification.md`](../evidence/plans/2026-10-08-release-033-verification.md), and the bump to
-   0.3.1 points the gate at it (`scripts/lib/release-gate.mjs`, tested by
+   [`2026-10-04-hub-verification.md`](../evidence/plans/2026-10-04-hub-verification.md), 0.3.2's is [`2026-10-06-release-032-verification.md`](../evidence/plans/2026-10-06-release-032-verification.md), and 0.3.3's is [`2026-10-08-release-033-verification.md`](../evidence/plans/2026-10-08-release-033-verification.md), and each release's version bump points the gate at its own
+   ledger (`scripts/lib/release-gate.mjs`, tested by
    `scripts/test/release-gate.test.mjs`).
    Preflight also requires exactly one nonempty finalized `## X.Y.Z` changelog entry.
    The gate names `verifiedCommit`, a full commit SHA reviewed by the final iteration. It must
@@ -146,7 +146,9 @@ offered on [passioncode.ai/fabric](https://passioncode.ai/fabric/#download) (sit
 ## Upgrading an existing database
 
 This section is the upgrade procedure, **not an executed upgrade receipt**. Fabric never migrates
-an existing database automatically. The 0.3.2 compiled contract admits schema **79** (the number of applied
+an existing database automatically. **0.3.3 adds no migration**: like 0.3.2 it admits schema 79, so a 0.3.2
+database needs nothing, and a 0.3.0 or 0.3.1 database takes this same procedure. Below, `X.Y.Z` is the version
+you install (0.3.2 or later). The 0.3.2 compiled contract admits schema **79** (the number of applied
 migration files); the newest migration's filename ends in **81** because other work reserved filenames. Do not
 use `max(version)` or a filename suffix as schema readiness. The actual guard is `public.schema_version()`
 against [the compiled schema contract](../../apps/desktop/src/shared/schemaContract.json). 0.3.2's one new
@@ -159,7 +161,7 @@ opens it. Read your schema first (step 2) and use that number wherever `FROM` ap
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
-   another running session. Keep the installed database at its schema until a verified signed 0.3.2
+   another running session. Keep the installed database at its schema until a verified signed X.Y.Z
    build is available. First install that build, attempt startup once so its bundled stack is copied,
    then quit: readiness refuses old data before domain services start.
 2. Make a private backup outside the checkout before any migration. The local stack uses loopback
@@ -184,7 +186,7 @@ opens it. Read your schema first (step 2) and use that number wherever `FROM` ap
    # A new name: an earlier backup (pre-0.3.1.dump) and the rehearsal receipt beside it are kept
    PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
      "$PGBIN/pg_dump" --password --format=custom \
-     --file="$HOME/Library/Application Support/Fabric/backups/pre-0.3.2.dump"
+     --file="$HOME/Library/Application Support/Fabric/backups/pre-X.Y.Z.dump"
    ```
 
    Confirm the actual local stack port before using this example; another configured stack needs
@@ -195,8 +197,8 @@ opens it. Read your schema first (step 2) and use that number wherever `FROM` ap
 
    ```sh
    FABRIC_PG_BIN=/opt/homebrew/opt/postgresql@17/bin \
-     node scripts/rehearse-upgrade.mjs --from FROM --ref v0.3.2 \
-     --dump "$HOME/Library/Application Support/Fabric/backups/pre-0.3.2.dump"
+     node scripts/rehearse-upgrade.mjs --from FROM --ref vX.Y.Z \
+     --dump "$HOME/Library/Application Support/Fabric/backups/pre-X.Y.Z.dump"
    ```
 
    It starts a stack with its own project id, port block and volumes and **no** migrations (Supabase's roles,
@@ -224,7 +226,7 @@ opens it. Read your schema first (step 2) and use that number wherever `FROM` ap
      -c 'select public.schema_version(); select count(*) from public.journal;'
    ```
 
-   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2).
+   `schema_version()` must equal the installed build's minimum/maximum (79 for 0.3.2 and 0.3.3).
    Compare the journal count with the backup receipt; do not accept a startup error as a successful
    migration. Start the installed build, verify the estate and a bounded task/consent workflow, then
    restart enrolled writers one by one. Record installed version/build and actual read/effect results.

@@ -2218,10 +2218,10 @@ flowchart TD
   | SCR-74 Create an agent | idle, invalid-name, no-parent, exists, skills-missing, checking-skills, no-agent, creating, failed, started |
 
 
-### FLW-74: Turn an existing agent into an ecosystem agent
+### FLW-74: Adapt an existing agent into an ecosystem agent
 - **Traces:** ST-050; SCN-131 (JTBD-05)
 - **Goal:** An agent built elsewhere, adapted to the Fabric contract on its own branch, in a coding agent's console.
-- **Entry points:** Start menu → Agent → Turn an existing agent into an ecosystem agent; first run step 3.
+- **Entry points:** Start menu → Agent → Adapt an existing agent; first run step 3.
 - **Success exit:** the coding agent's console window, its session inspecting without running and showing its plan.
 - **Task analysis:** Choose folder; read facts; see the four steps; skills ready; coding agent; start.
 - **Flow:**
@@ -2240,7 +2240,7 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-75 Turn an existing agent | idle, picker-cancel, reading, ready, skills-missing, checking-skills, no-agent, starting, failed, started |
+  | SCR-75 Adapt an existing agent | idle, picker-cancel, reading, ready, skills-missing, checking-skills, no-agent, starting, failed, started |
 
 
 ### FLW-75: An external agent asks for access

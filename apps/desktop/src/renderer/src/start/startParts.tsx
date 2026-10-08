@@ -4,7 +4,7 @@
 
 import { humaniseError } from '../../../shared/errorText'
 import { useEffect, useRef, useState } from 'react'
-import type { CandidateView, FolderView } from '../../../shared/startPaths.ts'
+import { purposeFromRepository, type CandidateView, type FolderView } from '../../../shared/startPaths.ts'
 import type { Translate } from '../i18n'
 import { useT } from '../i18n'
 
@@ -26,10 +26,19 @@ export function explainError(e: unknown, t: Translate): string {
   if (folder) return t(`start.folderRefused.${folder[1]}` as 'start.folderRefused.missing', { path: folder[2] })
   const name = /(?:^|: )project-name-refused:(not-a-name|empty|text-direction|control)\b/.exec(text)
   if (name) return t(`start.projectNameRefused.${name[1]}` as 'start.projectNameRefused.empty')
+  const task = /(?:^|: )task-refused:(not-an-id|other-project|read-failed|readback-failed)(?:: ([\s\S]*))?$/.exec(text)
+  if (task) return t(`start.taskRefused.${task[1]}` as 'start.taskRefused.not-an-id', { detail: task[2] ?? '' })
   const agent = /(?:^|: )agent-name-refused:taken: ([\s\S]*)$/.exec(text)
   if (agent) return t('agents.nameTaken', { name: agent[1] })
   return text
 }
+
+/** The purpose a Project made from this folder gets: the repository's words, saying whose they are (ER-5). */
+export const purposeFrom = (f: { summary?: string | null; summaryFile?: string | null }, t: Translate): string | undefined =>
+  purposeFromRepository(f, (file, text) => t('start.purposeFromRepo', { file, text }))
+
+/** A refusal said as a sentence, without its own closing full stop, for templates that continue after it. */
+export const reasonOf = (e: unknown, t: Translate): string => explainError(e, t).replace(/\.\s*$/, '')
 
 /** A commit time as the operator reads it: a date in their locale, never a raw ISO string. */
 export function shortDate(iso: string | null | undefined, locale: string): string {
