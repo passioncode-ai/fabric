@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "source_commit": "a7fa444cace6be4a38f0e42cdea659e43a2e7ed6",
-  "workspace_commit": "f0acfe1b46d92592dafc816edb2644a5c96ba555",
-  "content_digest": "d7269ac3ffff8255d3e00c526b7cb66282a6788d09777d3066af858ac539e223",
+  "workspace_commit": "d2fa00c9288b8ed9bf4aef361785c42d1a0ccc45",
+  "content_digest": "03820736a6f6c2347309100383f92d5ec8fedab1d2ec49e65279814a388525f6",
   "heroku_app": "passioncode-fabric-workspace",
-  "release": 165,
+  "release": 166,
   "fabric_digest": "36f4622f7fbc0ac1709cc7e5a3d4e215451a307f86fc9076a235ebb32adef9ab",
   "sources": [
     {
@@ -34,8 +34,8 @@
     {
       "id": "fabric-switchboard",
       "repository": "https://github.com/passioncode-ai/fabric-switchboard",
-      "commit": "9b5b1e1669dd027f0fc28f58884d55013d2b42b2",
-      "files_digest": "65fe02b1396bc373a6afcbbfaf4bc8a28140708ccd5a860a586d0c799128f8d9"
+      "commit": "af71a71e2efc468f40cc226b265bed905488cbcd",
+      "files_digest": "c29c71d8d6277fcc8f61d08652e4e0496a61adc777342b344b7a6c09bbecfeaa"
     },
     {
       "id": "fabric-vr",
