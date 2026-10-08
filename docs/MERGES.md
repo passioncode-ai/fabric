@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-08 · `release-0.3.2-close` · agent/release-032-close-20261008 → main
+- run: r-9a7a12bb5; base: origin/main a208c68b; integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: `docs/handoffs/2026-10-08-release-032-handoff.md` (new), `docs/evidence/backlog.md` (P-09, P-11, the Now line, lane 2), CO-224 in the carry-over ledger, SRC-02 re-pinned (M131 byte-identical at line 749), mockup and plan projections, the design map entry `iteration-2026-10-08-release-032-published`; no code
+- summary: the 0.3.2 release is closed — published by run 37564162445 at `c3543227`, smoked, on the site (passioncode-ai.github.io #66, #67, Worker `ebfe7dcf`) and in the knowledge base (fabric-workspace #72); the operator database's migration to 79 without the runbook's backup is recorded in the handoff.
+
 ### 2026-10-08 · `quit-bound-and-licence` · agent/quit-test-flake-20261008 → main
 - run: this session; base: origin/main 277add0c; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
 - scope: `apps/desktop/test/quit.test.mjs` (graceful-exit ceiling of 180 s — the time to become ready does not predict the time to exit under load; planted `dialog-orphan` still fails), `COMMERCIAL-LICENSE.md` and `README.md` (passioncode.ai/business, replacing conflicting PR #13), provider matrix re-pin (Codex 0.161.0, the machine updated itself), living map
