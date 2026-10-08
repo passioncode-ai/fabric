@@ -308,4 +308,39 @@ await assert.rejects(() => scanFolder(path.join(root, 'missing')), /(^|: )folder
   assert.equal(asFolderRefusal(other, '/x'), other, 'any other error passes through unchanged')
 }
 
-console.log('PASS project discovery: inspect (repository, folder, worktree, missing, no exec from repo config incl. partial clone, no credential, .git symlink), scan (grouping, noise, symlink boundary + count, bound, cancel, noise-named repo, unreadable counted, breadth first, no sync fs, stuck read/lstat/probe vs Stop, deadline, timeout)')
+// ── 0.3.3 onboarding R2: a scanned project arrives with what its repository says it is.
+{
+  const { summaryFrom } = await import(SRC)
+  // The manifest's one line wins over the README; package.json, then pyproject's [project] / [tool.poetry], then Cargo's [package].
+  assert.equal(summaryFrom({ packageJson: '{"description":"A ledger for agent teams"}', readme: '# x\n\nThe README says more.' }), 'A ledger for agent teams')
+  assert.equal(summaryFrom({ pyproject: '[build-system]\ndescription = "not this"\n[project]\nname = "x"\ndescription = "Reads mail for agents"\n' }), 'Reads mail for agents')
+  assert.equal(summaryFrom({ pyproject: '[tool.poetry]\ndescription = \'Literal string\'\n' }), 'Literal string')
+  assert.equal(summaryFrom({ cargo: '[package]\nname = "x"\ndescription = "A \\"quoted\\" crate"\n' }), 'A "quoted" crate')
+  assert.equal(summaryFrom({ packageJson: '{ not json', readme: 'Falls back to the README.' }), 'Falls back to the README.', 'a broken package.json says nothing, the README still speaks')
+  assert.equal(summaryFrom({ packageJson: '{"description":"   "}', readme: 'Blank descriptions do not count.' }), 'Blank descriptions do not count.')
+  // The README's first PROSE paragraph: front matter, headings, badges, images, HTML, code and tables are not it.
+  const readme = ['---', 'title: x', '---', '# Atlas', '', '[![CI](https://x/badge.svg)](https://x)', '<p align="center"><img src="a.png"></p>', '', '```sh', 'npm i', '```', '',
+    'Atlas keeps **command access** without losing [context](https://x/ctx), for `teams`.', 'Second line of the same paragraph.', '', 'Another paragraph.'].join('\n')
+  assert.equal(summaryFrom({ readme }), 'Atlas keeps command access without losing context, for teams. Second line of the same paragraph.')
+  assert.equal(summaryFrom({ readme: '# Only a heading\n\n![logo](l.png)\n' }), null, 'a README with no prose says nothing; nothing is invented')
+  assert.equal(summaryFrom({}), null)
+  const long = 'word '.repeat(80).trim()
+  const cut = summaryFrom({ readme: long })
+  assert.ok(cut.length <= 240 && cut.endsWith('…') && !cut.includes('wo…'), 'a long paragraph is cut at a word, with an ellipsis: ' + cut)
+  assert.equal(summaryFrom({ readme: 'Bidi ‮trick‬ and \u0007bell.' }), 'Bidi trick and bell.', 'control and text-direction characters are removed')
+
+  // Through the real filesystem: inspect reads the folder's own files, and never follows a README link out of it.
+  const r2 = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-summary-')))
+  mkdirSync(path.join(r2, 'with-readme')); writeFileSync(path.join(r2, 'with-readme', 'README.md'), '# W\n\nWith a readme of its own.\n')
+  mkdirSync(path.join(r2, 'with-manifest')); writeFileSync(path.join(r2, 'with-manifest', 'package.json'), '{"description":"From the manifest"}')
+  writeFileSync(path.join(r2, 'with-manifest', 'README.md'), 'Not this one.\n')
+  mkdirSync(path.join(r2, 'linked')); writeFileSync(path.join(outside, 'secret', 'NOTES.md'), 'Secret words outside the root.\n')
+  symlinkSync(path.join(outside, 'secret', 'NOTES.md'), path.join(r2, 'linked', 'README.md'))
+  mkdirSync(path.join(r2, 'silent'))
+  assert.equal((await inspectFolder(path.join(r2, 'with-readme'))).summary, 'With a readme of its own.')
+  assert.equal((await inspectFolder(path.join(r2, 'with-manifest'))).summary, 'From the manifest')
+  assert.equal((await inspectFolder(path.join(r2, 'linked'))).summary, null, 'a README that is a link is not followed')
+  assert.equal((await inspectFolder(path.join(r2, 'silent'))).summary, null)
+}
+
+console.log('PASS project discovery: summary (manifest, README prose, no link followed), inspect (repository, folder, worktree, missing, no exec from repo config incl. partial clone, no credential, .git symlink), scan (grouping, noise, symlink boundary + count, bound, cancel, noise-named repo, unreadable counted, breadth first, no sync fs, stuck read/lstat/probe vs Stop, deadline, timeout)')

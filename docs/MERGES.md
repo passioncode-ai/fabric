@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-08 · `onboarding-scan-summary` · agent/onboarding-scan-20261008 → main
+- run: r-9a7a12bb5; base: origin/main e13ce7ca; integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: `main/projectDiscovery.ts` (`summaryFrom`, region `repo-summary`), `shared/startPaths.ts` (`summary`), `start/StartPaths.tsx` + `start.css` (the summary under each candidate and in the facts list; it becomes the purpose), `start.facts.summary` in both registries; tests in `test/project-discovery.test.mjs` and `StartPaths.test.tsx`; SCN-127/128 amendments, CO-226, the plan's R1/R2/R3 rows
+- summary: a scanned project arrives saying what it is for; the operator's Fabric was wiped for a fresh onboarding (dump and archive kept, recorded in the plan).
+
 ### 2026-10-08 · `launch-chrome-ru` · agent/ui-ux-ru-20261008 → main
 - run: r-9a7a12bb5; base: origin/main 1190e261; integration: fast-forward after `bash scripts/ci.sh fast`
 - scope: `launch/LaunchShell.tsx` (Profile, Discuss), `launch/FabricStrip.tsx` (new) on board, pulse, releases, plan, project, agent; `StackExposureNotice.tsx` (compact, copyable commands); `HarnessSection.tsx`, `shared/startupFailure.ts`, `main/menuTemplate.ts`, `main/menu.ts`, `main/index.ts` (pickers, dialog, menu reinstall) and 122 new registry keys, one retired (`diagnostics.exposure.remedy`), key for key in `en.ts` and `ru.ts`; layout fixes in `styles.css`, `components.css`, `start/start.css`; `docs/ux/screens.md#launch-chrome`, audit `docs/ux/audits/2026-10-08-launch-chrome-ru.md`, CO-225, `docs/brand/strings.md`

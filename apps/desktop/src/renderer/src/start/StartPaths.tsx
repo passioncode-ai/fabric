@@ -170,6 +170,8 @@ function FolderFactsList({ f, t, locale }: { f: FolderView | CandidateView; t: T
       {f.remote && <><dt>{t('start.facts.remote')}</dt><dd><code>{f.remote}</code></dd></>}
       {f.lastCommit && <><dt>{t('start.facts.lastCommit')}</dt><dd>{shortDate(f.lastCommit.at, locale)} · {f.lastCommit.subject}</dd></>}
       {f.stack.length > 0 && <><dt>{t('start.facts.stack')}</dt><dd>{f.stack.join(', ')}</dd></>}
+      {/* What the repository says it is; it becomes the project's purpose, which can be changed later. */}
+      {f.summary && <><dt>{t('start.facts.summary')}</dt><dd>{f.summary}</dd></>}
     </dl>
   )
 }
@@ -204,7 +206,7 @@ function AddProject({ onPath, onCreated, onOpenProject }: StartProps): React.JSX
   const create = async (facts: FolderView, name: string): Promise<void> => {
     setS({ at: 'creating', facts, name })
     try {
-      const p = await window.fabric.projects.create({ id: id.current, name: name.trim(), repoPaths: [facts.path] })
+      const p = await window.fabric.projects.create({ id: id.current, name: name.trim(), purpose: facts.summary ?? undefined, repoPaths: [facts.path] })
       onCreated(p.id)
     } catch (e) {
       setS({ at: 'failed', reason: explainError(e, t), facts, name })
@@ -342,7 +344,8 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
       const c = scan.candidates.find((x) => x.path === p)!
       ids.current[p] ??= newId() // a retry of the same row is the same create, never a sibling (UX-06)
       try {
-        const project = await window.fabric.projects.create({ id: ids.current[p], name: c.name, repoPaths: [c.path] })
+        // The repository's own description becomes the purpose (R2): the project arrives saying what it is for.
+        const project = await window.fabric.projects.create({ id: ids.current[p], name: c.name, purpose: c.summary ?? undefined, repoPaths: [c.path] })
         done[p] = 'ok'
         created.push(project.id)
       } catch (e) {
@@ -452,6 +455,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
                               />
                               <span className="st-candidate-main">
                                 <b>{c.name}</b>
+                                {c.summary && <span className="st-candidate-summary">{c.summary}</span>}
                                 <small>
                                   {c.kind === 'worktree' ? `${t('start.kind.worktree')} · ` : part ? `${t('start.scan.nested')} · ` : ''}
                                   {c.lastCommit ? `${shortDate(c.lastCommit.at, locale)} · ${c.lastCommit.subject}` : t('start.scan.noCommits')}

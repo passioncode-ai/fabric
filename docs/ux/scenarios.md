@@ -3148,6 +3148,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Errors & recovery:** A failed create says why, keeps the folder and the name; a retry is the same create (the same id), never a second Project. A folder outside the window's grant is refused by the main process.
 - **Design rationale:** Recognition over recall — the operator confirms what Fabric found rather than typing it.
 - **Telemetry:** planned only.
+- **Amended 2026-10-08 (0.3.3 onboarding, R2):** the facts list also shows what the folder says it is (as SCN-128's amendment of the same day), and Add project makes it the purpose.
 - **Status:** draft
 - **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/test/project-discovery.test.mjs
 - **Product:** unobserved
@@ -3170,6 +3171,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Errors & recovery:** A walk stopped by its bound says the list is not the whole folder; folders that could not be read — and repositories whose inspection failed — are counted as a gap. Folders deeper than the scan goes, and linked folders it does not follow, are counted and said, with how to reach a repository there; Stop leaves the scanning state at once and a late answer is ignored; a kept list that cannot be read is said. A row that failed to import shows its reason, stays ticked, and Add retries it with the same id. A scan error says why and offers to choose again.
 - **Design rationale:** Nothing becomes a Project without the operator's tick; Tick all shown ticks one Project per product, so a worktree becomes a separate Project only by a deliberate, warned tick.
 - **Telemetry:** planned only.
+- **Amended 2026-10-08 (0.3.3 onboarding, R2 — «показал папку, он нашёл мои проекты и сразу всё определил»):** each listed repository also shows what it says it is — its manifest's `description` (package.json, pyproject.toml `[project]`/`[tool.poetry]`, Cargo.toml `[package]`), else the first prose paragraph of its README — in two lines under its name; Add N as projects gives each Project that text as its purpose. A repository that says nothing gets no purpose rather than an invented one; a README that is a link is not followed; the purpose is edited like any other.
 - **Status:** draft
 - **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/src/main/startPaths.ts; target-only legacy R0 scan checklist: scripts/product/first-release.mjs (CO-180), scripts/test/first-release.test.mjs. Prototype checks do not certify native acceptance.
 - **Product:** unobserved

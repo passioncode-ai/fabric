@@ -1898,6 +1898,7 @@ export const en = {
   'start.facts.remote': "Remote",
   'start.facts.lastCommit': "Last commit",
   'start.facts.stack': "Stack",
+  'start.facts.summary': "What it says it is",
   'start.kind.repository': "repository",
   'start.kind.worktree': "worktree",
   'start.kind.folder': "not a repository",

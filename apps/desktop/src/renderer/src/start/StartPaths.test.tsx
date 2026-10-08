@@ -229,6 +229,32 @@ describe('scan a projects folder (SCN-128)', () => {
   })
 })
 
+// 0.3.3 onboarding R2: a scanned project arrives with what its repository says it is.
+describe('a scanned project arrives with its own description as its purpose', () => {
+  const scan: ScanView = {
+    root: '/w', visited: 3, unreadable: 0, deep: 0, symlinks: 0, kept: true, truncated: false, cancelled: false, scannedAt: '2026-10-08T00:00:00Z',
+    candidates: [
+      repo({ path: '/w/a', name: 'a', group: '/w/a', summary: 'A ledger for agent teams' }),
+      repo({ path: '/w/c', name: 'c', group: '/w/c', summary: null })
+    ]
+  }
+
+  it('shows it under the name, and sends it as the purpose; a repository that says nothing gets none', async () => {
+    const fabric = bridge({ start: { ...bridge().start, scan: vi.fn(async () => scan) } })
+    start('scan')
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
+    await screen.findByText('A ledger for agent teams')
+    const row = (name: string) => screen.getByText(name, { selector: 'b' }).closest('label') as HTMLElement
+    fireEvent.click(within(row('a')).getByRole('checkbox'))
+    fireEvent.click(within(row('c')).getByRole('checkbox'))
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.import'].replace('{count}', '2') }))
+    await waitFor(() => expect(fabric.projects.create).toHaveBeenCalledTimes(2))
+    const calls = fabric.projects.create.mock.calls.map((c) => c[0] as { name: string; purpose?: string })
+    expect(calls.find((c) => c.name === 'a')?.purpose).toBe('A ledger for agent teams')
+    expect(calls.find((c) => c.name === 'c')?.purpose, 'no description is no purpose, never an invented one').toBeUndefined()
+  })
+})
+
 describe('agent paths (SCN-130, SCN-131)', () => {
   it('a new agent opens the chosen project\'s team, and with no project offers to make one', () => {
     bridge()

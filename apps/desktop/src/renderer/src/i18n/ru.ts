@@ -1768,6 +1768,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'start.facts.remote': "Удалённый репозиторий",
   'start.facts.lastCommit': "Последний коммит",
   'start.facts.stack': "Стек",
+  'start.facts.summary': "Что о себе пишет",
   'start.kind.repository': "репозиторий",
   'start.kind.worktree': "рабочая копия (worktree)",
   'start.kind.folder': "не репозиторий",

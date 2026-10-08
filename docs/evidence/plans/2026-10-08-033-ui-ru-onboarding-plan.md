@@ -22,10 +22,25 @@ Operator request 2026-10-08. Status: **UI/RU half done** on `agent/ui-ux-ru-2026
 | B3 | Task page subtitle shows a raw hex id | agent · filing date (`launch.agent.subtitle`) | **done**; task number → CO-225 |
 | B4 | "+ Project" source chooser leaves one orphan card | the planned path takes its own quiet row | **done** |
 | C1 | Prototype elements missing: Fabric strip, Profile, «Обсудить с Fabric», Home «+ Добавить тему» | drawn (operator, 2026-10-08: «дорисовывай всё, чего не хватает»); «История на графе» and the task number stay out → CO-225 | **done** |
-| R1 | Reset the operator's estate of test projects (769 estates) for a fresh onboarding — **destructive: show exact scope and ask yes first**; backup `~/Library/Application Support/Fabric/backups/post-0.3.2-migration-2026-10-08.dump` exists | local stack | open |
-| R2 | Onboarding: point at the repositories folder → projects found and configured in one pass | scan-folder start | open |
-| R3 | Setup through the base agent: open the agent console from Fabric (P-13, ADR-0123) | runtime session | open |
+| R1 | Reset the operator's Fabric for a fresh onboarding | operator chose «Стереть всё полностью» (2026-10-08): full dump `~/Library/Application Support/Fabric/backups/pre-wipe-2026-10-08.dump` (184 736 475 bytes, `pg_restore --list` 1 427 entries, sha256 `f5f3853669a8…`) → the installed Fabric (pid 50963, started 01:09 by `open -a`, no window; the lifecycle broker refused, `not_started_by_broker`) quit on one SIGTERM by the operator's explicit choice, in 3 s → `supabase db reset --local` on the v0.3.2 migration set (identical to main): 771 estates / 162 582 events / every project gone; seed left one estate `org #1`, one event, no project → local state archived, not deleted, to `backups/pre-wipe-2026-10-08-userdata/` (drafts, persona, CEO conversations, private history, sessions, local/session storage, settings); `settings.json` keeps theme, `ru` and keep-awake, with `firstRun.completedAt: null`. Undo: stop Fabric, `pg_restore --clean -d <DB_URL> <dump>`, move the archived files back. Not verified: the first-run boot on the clean database — two probes (installed and dev build) opened no window in 400 s at load average 412 with swap 17.9/19.5 GB; REST answers the clean schema | **done**; boot check open |
+| R2 | Onboarding: point at the repositories folder → projects found and configured in one pass | the scan already finds every repository and adds the ticked ones (SCN-128); what was missing was «сразу всё определил»: a scanned project arrived with a name and nothing else. Now each candidate shows what its repository says it is (manifest `description`, else the README's first prose paragraph; `main/projectDiscovery.ts#summaryFrom`) and Add makes it the purpose; SCN-127/128 amended | **done** |
+| R3 | Setup through the base agent | detailed below (R3a → R3b → R3c) | R3a next |
 | Z | Final: bug sweep, docs, wiki/knowledge base, design map, release 0.3.3 (with P-12) | release runbook | open |
+
+## R3 in detail — setting a project up through the agent
+
+The operator's ask: open the agent's console (or «встроенный чат с нашим базовым агентом») from Fabric and do the setup through it.
+ADR-0123 already settles the shape: Fabric builds no chat of its own; talking to an agent is the agent's own console, and the CEO is a
+runtime session (P-13, planned after 0.3.2). What a session may do is the agent surface (`apps/desktop/src/shared/surfaceTools.ts`):
+it can file tasks, write memory, ask the owner and draft briefs, but no tool sets a project's purpose, goals or team. So:
+
+| Phase | What | Needs | Authority |
+|---|---|---|---|
+| R3a | «Настроить проект с агентом»: a preset on the project page and a card in first-run step 3 that launches the default coding agent in the project folder with a setup instruction — read the repository, record what it learns in project memory (`fabric_memory_remember`), ask the owner what it cannot decide (`fabric_question_ask`), file the first tasks (`fabric_task_create`) | a new preset in `shared/presets.ts`, two entry points, copy | none new — every act is a tool the session already holds |
+| R3b | The agent proposes the project's purpose, goals and default agent; the proposal lands on the board and changes nothing until the owner accepts it | one new surface tool (`fabric_project_propose`), the proposal kind on the board (ADR-0109's proposal path), an ADR for «an agent may propose project configuration» | operator acceptance per proposal |
+| R3c | The CEO itself as that session (P-13): «Настроить с Fabric» opens the CEO runtime session with Fabric's context bundle | P-13 | as P-13 |
+
+R3a is buildable on 0.3.2's contract; R3b needs the ADR first; R3c follows P-13.
 
 Tooling used for the measurements (kept as session scratch, not committed — the receipts are in [the audit](../../ux/audits/2026-10-08-launch-chrome-ru.md)):
 walk every launch view beside its mock; overflow probe (elements past the window / content wider than its box).

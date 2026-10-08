@@ -16,6 +16,9 @@ export interface FolderFacts {
   remote: string | null
   lastCommit: { at: string; subject: string } | null
   stack: string[]
+  /** What the repository says it is: its manifest's description or its README's first paragraph; null
+   *  when it says nothing. Absent in a scan kept before 0.3.3. */
+  summary?: string | null
 }
 
 export interface Candidate extends FolderFacts {

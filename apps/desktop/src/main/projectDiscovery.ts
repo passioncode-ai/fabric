@@ -182,6 +182,108 @@ function stackOf(dir: string, entries: string[]): string[] {
   return out
 }
 
+// #region repo-summary — docs: docs/ux/scenarios.md#scn-128-scan-a-projects-folder-and-tick-what-becomes-a-project
+// What the repository says it is, in its own words, so a scanned project arrives with a purpose instead of
+// an empty field (0.3.3 onboarding, plan R2). The manifest's `description` wins — the author wrote it as
+// one line — then the README's first paragraph of prose. Nothing is invented: no file, or no prose in it,
+// is null, and the operator edits the purpose like any other. Read without following a link, at most
+// SUMMARY_READ bytes of each file, within the folder's own timeout.
+const SUMMARY_MAX = 240
+const SUMMARY_READ = 64 * 1024
+const README = /^readme(\.(md|markdown|txt|rst))?$/i
+
+/** One line from a manifest's `description`, or the first prose paragraph of a README. Pure, for tests. */
+export function summaryFrom(files: { packageJson?: string | null; pyproject?: string | null; cargo?: string | null; readme?: string | null }): string | null {
+  const fromManifest = (() => {
+    if (files.packageJson) {
+      try {
+        const d = (JSON.parse(files.packageJson) as { description?: unknown }).description
+        if (typeof d === 'string' && d.trim()) return d
+      } catch { /* a package.json that does not parse says nothing about the project */ }
+    }
+    for (const [text, tables] of [[files.pyproject, ['project', 'tool.poetry']], [files.cargo, ['package']]] as const) {
+      const d = text ? tomlDescription(text, tables) : null
+      if (d) return d
+    }
+    return null
+  })()
+  const raw = fromManifest ?? (files.readme ? readmeParagraph(files.readme) : null)
+  return raw === null ? null : clip(plain(raw))
+}
+
+/** `description = "…"` inside one of the named TOML tables; a basic or literal one-line string only. */
+function tomlDescription(text: string, tables: readonly string[]): string | null {
+  let table: string | null = null
+  for (const line of text.split(/\r?\n/)) {
+    const head = /^\s*\[([^\]]+)\]\s*$/.exec(line)
+    if (head) { table = head[1].trim(); continue }
+    if (table === null || !tables.includes(table)) continue
+    const m = /^\s*description\s*=\s*(?:"((?:[^"\\]|\\.)*)"|'([^']*)')\s*$/.exec(line)
+    if (m) return (m[1] !== undefined ? m[1].replace(/\\"/g, '"').replace(/\\\\/g, '\\') : m[2]).trim() || null
+  }
+  return null
+}
+
+/** The first paragraph that is prose: not front matter, a heading, a badge or image line, code, HTML, a table or a rule. */
+function readmeParagraph(text: string): string | null {
+  const lines = text.replace(/^﻿/, '').split(/\r?\n/)
+  let i = 0
+  if (/^---\s*$/.test(lines[0] ?? '')) { i = 1; while (i < lines.length && !/^---\s*$/.test(lines[i])) i++; i++ }
+  let fence = false
+  let para: string[] = []
+  for (; i < lines.length; i++) {
+    const line = lines[i].trim()
+    if (/^(```|~~~)/.test(line)) { fence = !fence; if (para.length) break; continue }
+    if (fence) continue
+    const skip = line === '' || /^#{1,6}\s/.test(line) || /^(=+|-+|\*{3,}|_{3,})$/.test(line) || /^<[^>]+>/.test(line) ||
+      /^!?\[!\[/.test(line) || /^!\[/.test(line) || /^\[[^\]]+\]:\s/.test(line) || line.startsWith('|') || /^\.\. /.test(line)
+    if (skip) { if (para.length) break; continue }
+    para.push(line.replace(/^>\s?/, '').replace(/^[-*+]\s+/, ''))
+  }
+  const joined = para.join(' ').trim()
+  return /[\p{L}]{3}/u.test(joined) ? joined : null
+}
+
+/** Markdown and markup reduced to the words a person reads; control characters removed. */
+function plain(text: string): string {
+  return text
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/(\*\*|__|`)/g, '')
+    .replace(/(^|\s)[*_]([^*_\s][^*_]*)[*_](?=\s|[.,;:!?]|$)/g, '$1$2')
+    .replace(/[\u0000-\u001f\u007f‪-‮⁦-⁩]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/** At most SUMMARY_MAX characters, cut at a word, with an ellipsis when cut. */
+function clip(text: string): string | null {
+  if (!text) return null
+  if (text.length <= SUMMARY_MAX) return text
+  const cut = text.slice(0, SUMMARY_MAX - 1)
+  const at = cut.lastIndexOf(' ')
+  return (at > SUMMARY_MAX / 2 ? cut.slice(0, at) : cut).replace(/[\s,;:.-]+$/, '') + '…'
+}
+
+async function summaryOf(dir: string, entries: string[], fs: DiscoveryFs, ms: number): Promise<string | null> {
+  const read = async (name: string | undefined): Promise<string | null> => {
+    if (!name) return null
+    const file = path.join(dir, name)
+    const st = await probe(() => fs.lstat(file), ms)
+    if (st === null || st === TIMED_OUT || !st.isFile()) return null // a link is never followed out of the folder
+    const text = await probe(() => fs.readFile(file, 'utf8'), ms)
+    return text === null || text === TIMED_OUT ? null : text.slice(0, SUMMARY_READ)
+  }
+  const has = (n: string) => (entries.includes(n) ? n : undefined)
+  const [packageJson, pyproject, cargo] = await Promise.all([read(has('package.json')), read(has('pyproject.toml')), read(has('Cargo.toml'))])
+  const quick = summaryFrom({ packageJson, pyproject, cargo })
+  if (quick) return quick
+  const readme = entries.filter((e) => README.test(e)).sort((a, b) => (/\.md$/i.test(b) ? 1 : 0) - (/\.md$/i.test(a) ? 1 : 0))[0]
+  return summaryFrom({ readme: await read(readme) })
+}
+// #endregion repo-summary
+
 /** The repository a worktree's `.git` file points back to, or null when the file is not a worktree link. */
 async function worktreeParent(gitFile: string, fs: DiscoveryFs, ms: number): Promise<string | null> {
   // An unreadable or silent `.git` file means "not a worktree we can name" — the folder is still reported, as a repository.
@@ -260,7 +362,7 @@ export async function inspectFolder(dir: string, opts: InspectOptions = {}): Pro
     branch = head || null
     remote = shownRemote(origin || null)
   }
-  return { path: abs, name: path.basename(abs), git, kind, parent, branch, remote, lastCommit, stack: stackOf(abs, entries) }
+  return { path: abs, name: path.basename(abs), git, kind, parent, branch, remote, lastCommit, stack: stackOf(abs, entries), summary: await summaryOf(abs, entries, fs, ms) }
 }
 
 /**
