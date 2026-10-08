@@ -349,6 +349,8 @@ export function ProjectHome({
           onError={onError}
           // The sibling list is navigable or it is a printout. TaskPage reloads on `taskId`.
           onOpenTask={setOpenTask}
+          lastEventAt={lastEventAt}
+          onPulse={onPulse ? () => onPulse(project.id) : undefined}
         />
       </div>
     )
@@ -1324,10 +1326,11 @@ export function ProjectHeader({
         <div>
           <h1>{project.name}</h1>
           <p className="muted">{project.purpose || t('project.noPurpose')}</p>
-          <p className="muted mono">{project.repo_path ?? t('project.noRepo')}</p>
+          {/* A path is copied character for character, so it is set in mono; the sentence saying there is none is prose. */}
+          <p className={project.repo_path ? 'muted mono' : 'muted'}>{project.repo_path ?? t('project.noRepo')}</p>
         </div>
         <Toolbar align="end">
-          <span className="muted mono">{t('project.revision', { n: project.config_revision })}</span>
+          <span className="muted">{t('project.revision', { n: project.config_revision })}</span>
           <Button tone="ghost" onClick={() => setEditing(true)}>
             {t('project.settings')}
           </Button>

@@ -181,12 +181,31 @@ export interface StartupDialog {
   message: string
   detail: string
   buttons: string[]
+  /** What each button DOES, index for index with `buttons` — the main process acts on this, never on a
+   *  label, so a translated "Повторить" retries exactly as "Retry" did. */
+  actions: StartupAction[]
   defaultId: number
+}
+
+export type StartupAction = 'retry' | 'copy' | 'quit'
+
+/** The registry's words for the dialog. Optional so the shape stays testable with no registry: absent, the
+ *  dialog speaks the English this module has always spoken. A key the registry does not hold answers with
+ *  the key itself — the translator's rule — so a cause's own sentences are used instead (below). */
+export type StartupSay = (key: string, vars?: Record<string, string | number>) => string
+
+const ENGLISH: Record<string, string> = {
+  'startup.notRetryable': 'Fabric had already opened its agent surface when this happened, so retrying in place is not safe; reopen the app instead.',
+  'startup.machineSaid': 'What the machine said:',
+  'startup.copyAt': 'A copy of this is at:',
+  'startup.retry': 'Retry',
+  'startup.copy': 'Copy the details',
+  'startup.quit': 'Quit'
 }
 
 /**
  * The dialog's SHAPE, decided here so it can be read and tested without
- * Electron. The main process only hands it to `dialog.showMessageBoxSync`.
+ * Electron. The main process only hands it to `dialog.showMessageBox`.
  *
  * `retryable` is OBSERVED, never inferred from the error. Bootstrap sets it as
  * it crosses the point where retrying stops being safe — after the agent
@@ -196,21 +215,31 @@ export interface StartupDialog {
  */
 export function startupDialog(
   failure: StartupFailure,
-  opts: { retryable: boolean; logPath: string }
+  opts: { retryable: boolean; logPath: string; say?: StartupSay }
 ): StartupDialog {
-  const parts = [failure.remedy]
-  if (!opts.retryable)
-    parts.push(
-      'Fabric had already opened its agent surface when this happened, so retrying in place is not safe — reopen the app instead.'
-    )
-  parts.push(`What the machine said:\n${failure.detail}`)
-  parts.push(`A copy of this is at:\n${opts.logPath}`)
+  const say = (key: string): string => {
+    const said = opts.say?.(key)
+    return said !== undefined && said !== key ? said : (ENGLISH[key] ?? key)
+  }
+  // The cause's own title and remedy in the operator's language when the registry has them; the copied
+  // details and the log keep the English, which is what a report is read in.
+  const own = (part: 'title' | 'remedy'): string => {
+    const key = `startup.${failure.cause}.${part}`
+    const said = opts.say?.(key)
+    return said !== undefined && said !== key ? said : failure[part]
+  }
+  const parts = [own('remedy')]
+  if (!opts.retryable) parts.push(say('startup.notRetryable'))
+  parts.push(`${say('startup.machineSaid')}\n${failure.detail}`)
+  parts.push(`${say('startup.copyAt')}\n${opts.logPath}`)
 
-  const buttons = opts.retryable ? ['Retry', 'Copy the details', 'Quit'] : ['Copy the details', 'Quit']
+  const actions: StartupAction[] = opts.retryable ? ['retry', 'copy', 'quit'] : ['copy', 'quit']
+  const buttons = actions.map((a) => say(`startup.${a}`))
   return {
-    message: failure.title,
+    message: own('title'),
     detail: parts.join('\n\n'),
     buttons,
+    actions,
     // Retry when it is safe; otherwise Quit — never "Copy", which would make
     // the Return key do nothing an operator was asking for.
     defaultId: opts.retryable ? 0 : buttons.length - 1

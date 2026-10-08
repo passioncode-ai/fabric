@@ -25,7 +25,9 @@ input, select, textarea {
   font-size: var(--app-fs-body);
   font-family: inherit;
 }
-textarea { font-family: var(--font-mono); font-size: var(--app-fs-mono); width: 100%; resize: vertical; }
+/* Every textarea here takes prose — an instruction, an answer, a note — so it is set in the body face.
+   Mono was a costume on them (sheleg-design V019); code is shown in <code>/<pre>, never typed here. */
+textarea { font: inherit; width: 100%; resize: vertical; }
 input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible {
   outline: 2px solid var(--app-focus); outline-offset: 1px;
 }
@@ -117,7 +119,9 @@ button:disabled { opacity: .4; cursor: default; }
 .settings-note { color: var(--app-muted); font-size: var(--app-fs-badge); max-width: 42ch; line-height: var(--app-lh-body); }
 .settings-bar label { display: flex; gap: var(--space-2); align-items: center; color: var(--app-muted); }
 
-.content { flex: 1; overflow-y: auto; min-height: 0;
+/* min-width: 0 — a flex item defaults to its widest descendant, so without it one wide row (the plan's
+   node track at 1280 px) pushed the whole page past the window. It was set only beside a side panel. */
+.content { flex: 1; overflow-y: auto; min-height: 0; min-width: 0;
   /* Room for the fixed controls in the bottom corner, so the last card is never under them. */
   padding-bottom: calc(2.5rem + var(--space-3) * 2); }
 

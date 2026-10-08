@@ -20,8 +20,7 @@ import { AnswerForm, submitAnswer } from '../BoardPanel'
 import { since } from '../duration'
 import { useLocale, useT } from '../i18n'
 import { titleOf } from '../attentionTitle'
-import { FabricAvatar } from './FabricAvatar'
-import { FabricName } from './persona'
+import { FabricStrip } from './FabricStrip'
 import { ObligationActs, useProposalDecisions } from './ObligationActs'
 
 type Filter = 'open' | 'later' | 'done' | 'all'
@@ -29,20 +28,21 @@ type Row = { at: 'open'; entry: BoardEntry } | { at: 'later'; entry: DeferredEnt
 /** What the last Board command said, for the row (or the form) it was about. */
 type Said = { of: string; result: BoardCommandResult }
 
-export function BoardScreen({ feedMark, projects, projectId = null, initialItem = null, onOpen, onError, onChat, onPulse }: {
+export function BoardScreen({ feedMark, projects, projectId = null, initialItem = null, startTopic = false, onOpen, onError, onPulse }: {
   /** «Пульс →» in the strip (SCR-42). */
   onPulse?: () => void
   /** One project's board, or the estate's when null (SCR-41 from SCR-31 «Доска проекта»). */
   projectId?: string | null
   /** A row to open on arrival — «Разобрать вопрос» names the question it came for. */
   initialItem?: string | null
+  /** Open with the add-a-topic form already open. */
+  startTopic?: boolean
   /** The projects a topic can be written onto; null while unread. */
   projects: ProjectRow[] | null
   /** Re-read on the journal's clock, like the board panel it replaces. */
   feedMark: number
   onOpen: (projectId: string, focus: EntityRef) => void
   onError: (message: string) => void
-  onChat: () => void
 }): React.JSX.Element {
   const t = useT(), locale = useLocale()
   const [open, setOpen] = useState<ReadEnvelope<BoardCut> | null>(null)
@@ -54,7 +54,15 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
   const [said, setSaid] = useState<Said | null>(null)
   const [busy, setBusy] = useState(false)
   /** The topic form, with the ids of THIS attempt: a retry sends the same ones. */
-  const [topic, setTopic] = useState<{ commandId: string; questionId: string; projectId: string; text: string; note: string } | null>(null)
+  const [topic, setTopic] = useState<{ commandId: string; questionId: string; projectId: string; text: string; note: string } | null>(() =>
+    startTopic ? { commandId: crypto.randomUUID(), questionId: crypto.randomUUID(), projectId: projectId ?? (projects ?? []).find((p) => p.status !== 'archived')?.id ?? '', text: '', note: '' } : null)
+  // Arriving with the form before the projects have been read leaves it on no project, and the Add button
+  // stays disabled with the picker showing a choice the state does not hold: take the first active project
+  // the moment the list arrives, and only while the operator has not chosen one.
+  const firstActive = (projects ?? []).find((p) => p.status !== 'archived')?.id ?? ''
+  useEffect(() => {
+    if (firstActive) setTopic((t) => (t && !t.projectId ? { ...t, projectId: firstActive } : t))
+  }, [firstActive])
   const commands = useRef(new Map<string, string>())
   const commandFor = (key: string): string => {
     const existing = commands.current.get(key)
@@ -154,17 +162,10 @@ export function BoardScreen({ feedMark, projects, projectId = null, initialItem 
 
   return (
     <div className="lp" data-launch-view="launch-board">
-      <div className="lp-actions lp-board-chat">
-        <button type="button" className="lp-button" onClick={onChat}>{t('launch.board.discuss')}</button>
-      </div>
-      <div className="fp-strip">
-        <FabricAvatar size="tiny" label={t('launch.avatar.label')} />
-        <div>
-          <b><FabricName /></b>
-          <span>{observed ? t(scopeName ? 'launch.board.observedProject' : 'launch.board.observed', { time: observed, project: scopeName ?? '' }) : t('launch.board.reading')}</span>
-        </div>
-        {onPulse && <button type="button" className="lp-button" onClick={onPulse}>{t('launch.pulse.open')}</button>}
-      </div>
+      <FabricStrip
+        text={observed ? t(scopeName ? 'launch.board.observedProject' : 'launch.board.observed', { time: observed, project: scopeName ?? '' }) : t('launch.board.reading')}
+        onPulse={onPulse}
+      />
       <header className="lp-heading">
         <div>
           <p className="lp-kicker">{t('launch.board.kicker')}</p>

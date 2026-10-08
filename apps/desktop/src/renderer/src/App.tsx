@@ -39,7 +39,7 @@ import { SearchPanel } from './SearchPanel'
 import { EstateAgents } from './EstateAgents'
 import { Banner, Button, Field, TabStrip, Toolbar } from './components'
 import { I18nProvider, useT, type Locale } from './i18n'
-import { LaunchShell, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection } from './launch/LaunchShell'
+import { LaunchShell, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection, launchDiscuss } from './launch/LaunchShell'
 import './launch/launch.css'
 import { Onboarding } from './Onboarding'
 import { FirstRun, firstRunDue } from './start/FirstRun'
@@ -352,7 +352,10 @@ function Shell({
       ticking.current = true
       try {
         const events = await window.fabric.feed.replay(lastSeq.current)
-        if (stop || events.length === 0) return
+        if (stop) return
+        // A successful read of an empty journal is a reading — the estate has nothing yet — not "not read":
+        // leaving the feed null kept every freshness line on "Reading…" for an estate with no events.
+        if (events.length === 0) { setFeed((old) => old ?? []); return }
         lastSeq.current = events[events.length - 1].seq
         setMarks((prev) => advance(prev, events))
         setFeed((old) => [...(old ?? []), ...events].slice(-500))
@@ -638,6 +641,11 @@ function Shell({
         onHistory={() => setPanel('history')}
         onSearch={() => setPanel((p) => togglePanel(p, 'search', { toggle: true }))}
         searchOpen={searchOpen}
+        onProfile={() => { setShowSettings(false); setActive({ kind: 'persona' }) }}
+        profileOpen={!showSettings && active.kind === 'persona'}
+        // Hidden where the screen is already that conversation's start (Home, the start paths, Help) and on the
+        // guide, whose card carries its own Discuss beside the project it is about (docs/ux/screens.md#launch-chrome).
+        onDiscuss={launchDiscuss(showSettings ? 'settings' : active.kind) ? () => openChat(null) : null}
         onChat={() => { setChatSuggestion(null); setPanel((p) => togglePanel(p, 'chat', { toggle: true })) }}
         onHelp={() => { setShowSettings(false); setActive({ kind: 'help' }) }}
         onQuota={() => { setShowSettings(false); setActive({ kind: 'quota' }) }}
@@ -675,14 +683,14 @@ function Shell({
       <main className="content">
         {active.kind === 'board' && (
           <BoardScreen
-            key={`${active.projectId ?? 'estate'}:${active.item ?? ''}`}
+            key={`${active.projectId ?? 'estate'}:${active.item ?? ''}:${active.topic ? 'topic' : ''}`}
             projectId={active.projectId ?? null}
             initialItem={active.item ?? null}
+            startTopic={active.topic === true}
             projects={projects}
             feedMark={markOf(marks, ['task', 'work', 'question', 'goal', 'proposal', 'grant', 'policy', 'effect'])}
             onOpen={openEntity}
             onError={setError}
-            onChat={() => setPanel('chat')}
             onPulse={() => setActive({ kind: 'pulse', projectId: active.projectId ?? null })}
           />
         )}
@@ -768,6 +776,7 @@ function Shell({
           <ReleasesScreen
             key={`${active.projectId ?? 'all'}:${active.release ?? ''}`}
             projects={projects}
+            feed={feed}
             projectId={active.projectId ?? null}
             releaseId={active.release ?? null}
             onPulse={() => setActive({ kind: 'pulse', projectId: active.projectId ?? null })}
@@ -782,6 +791,7 @@ function Shell({
             level={active.projectId ? { at: 'project', projectId: active.projectId } : { at: 'portfolio' }}
             onProject={openProject}
             onTask={(projectId, taskId) => openEntity(projectId, { kind: 'task', id: taskId })}
+            onPulse={(projectId) => setActive({ kind: 'pulse', projectId })}
           />
         )}
         {active.kind === 'agents' && (
@@ -820,6 +830,7 @@ function Shell({
             onOpen={openProject}
             onNew={() => goTo({ kind: 'start', path: 'menu' })}
             onBoard={() => setActive({ kind: 'board' })}
+            onAddTopic={() => setActive({ kind: 'board', topic: true })}
             onPulse={() => setActive({ kind: 'pulse' })}
             onPersona={() => setActive({ kind: 'persona' })}
           />

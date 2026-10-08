@@ -9,10 +9,9 @@ import type { GoalRow } from '../../../shared/plan'
 import type { ReadEnvelope } from '../../../shared/readEnvelope'
 import type { CreatedAgent, ProjectRow, TaskRow, TerminalSession } from '../../../shared/types'
 import { since } from '../duration'
-import { useLocale, useT } from '../i18n'
+import { useT } from '../i18n'
 import { titleOf } from '../attentionTitle'
-import { FabricAvatar } from './FabricAvatar'
-import { FabricName } from './persona'
+import { ProjectStrip } from './FabricStrip'
 
 export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt, onBoard, onPlan, onPulse, onOpenTask, onNewTask, onSection }: {
   /** This project's pulse (SCR-42). */
@@ -32,7 +31,7 @@ export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt,
   /** Scroll to one of the detailed sections below (`sec-…`). */
   onSection: (anchor: string) => void
 }): React.JSX.Element {
-  const t = useT(), locale = useLocale()
+  const t = useT()
   const [board, setBoard] = useState<ReadEnvelope<BoardCut> | null>(null)
   const [boardProblem, setBoardProblem] = useState<string | null>(null)
   const [goals, setGoals] = useState<GoalRow[] | null>(null)
@@ -63,18 +62,7 @@ export function ProjectLaunch({ project, tasks, sessions, feedMark, lastEventAt,
 
   return (
     <div className="lp" data-launch-view="launch-project">
-      <div className="fp-strip">
-        <FabricAvatar size="tiny" label={t('launch.avatar.label')} />
-        <div>
-          <b><FabricName /></b>
-          <span>
-            {lastEventAt
-              ? t('launch.project.observed', { time: new Date(lastEventAt).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' }), project: project.name })
-              : t('launch.project.unobserved', { project: project.name })}
-          </span>
-        </div>
-        {onPulse && <button type="button" className="lp-button" onClick={onPulse}>{t('launch.pulse.open')}</button>}
-      </div>
+      <ProjectStrip project={project} lastEventAt={lastEventAt} onPulse={onPulse} />
       <header className="lp-heading">
         <div>
           <p className="lp-kicker">{t('launch.project.kicker')}</p>

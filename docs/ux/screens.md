@@ -99,6 +99,31 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 - **Component source:** none yet
 - **Assets:** none yet
 
+<a id="launch-chrome"></a>
+### Launch chrome — the scope bar and the Fabric strip (0.3.3 UI pass, 2026-10-08)
+
+The frame every launch screen shares, matched to the prototype (`scripts/product/report-template.html`,
+`scripts/product/controller.js`, `scripts/product/launch.mjs`, `scripts/product/pulse.mjs`) and owned by
+`apps/desktop/src/renderer/src/launch/LaunchShell.tsx` and `launch/FabricStrip.tsx`:
+
+- **Scope bar:** breadcrumb, then **Search** and **Profile**. Profile opens SCR-36 «Ваш Fabric» (the
+  prototype's `view-profile` is SCR-36) and is marked current while it is open.
+- **«Обсудить с Fabric ↗»** under the scope bar on every launch screen except Home, the start paths (and the
+  first run) and Help — the screens that already are the start of that conversation — and the guide, whose card
+  carries its own beside the project it is about; settings and a draft tab are not launch screens. It opens the
+  CEO chat. The set is `NO_DISCUSS` in `launch/LaunchShell.tsx`.
+- **Fabric strip** — face, name, the newest journal event in the scope, and «Пульс →» — on Board, Pulse,
+  Releases, Planning, Project and Agent. Estate scope says «все проекты», project scope names the project;
+  before the journal has answered it says it is reading, and an empty journal says nothing is recorded yet.
+  The board keeps its own reading time (the board read's `asOf`), so its line says «последнее наблюдение».
+- **Stack exposure warning** (SCN-073 amendment of 2026-10-06), when it stands: the risk in one sentence,
+  one row per container engine with the command as code and a copy button, and why Fabric cannot fix it
+  itself behind a disclosure.
+
+Not drawn, on purpose: the agent screen's «История на графе» — the prototype sends it to SCR-40's
+agent-history graph, which the app does not have yet; a button to the project's history would be a
+different destination under the same name.
+
 ## Web surfaces
 
 - **Web surfaces:** yes — `https://passioncode.ai/` is the public, static,

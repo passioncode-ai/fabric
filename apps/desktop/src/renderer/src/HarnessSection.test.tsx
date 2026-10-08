@@ -212,3 +212,34 @@ describe('the tool contract is the one the surface registers', () => {
     expect(source).not.toMatch(/sixteen|eleven|\b1[0-9]\b|\b2[0-9]\b/)
   })
 })
+
+// 0.3.3 UI pass: the Russian window showed the agents' descriptions, the mode ids and every tool's purpose
+// in English, because they came from the shared contract rather than the registry.
+describe('the project page speaks the operator’s language about what a session is given', () => {
+  it('in Russian: agent descriptions, mode names and tool purposes come from the registry', async () => {
+    const { ru } = await import('./i18n/ru')
+    stub(async () => harness({
+      providers: answered([
+        { id: 'claude-code', description: 'An agent session in the project directory, connected to Fabric', available: true, permissionModes: [{ id: 'plan' }, { id: 'ask' }, { id: 'bypass', blockedKey: 'x' }] },
+        { id: 'codex', description: 'A coding agent', available: false, permissionModes: [] }
+      ] as Harness['providers']['data'] & object)
+    }))
+    render(<I18nProvider locale="ru"><HarnessSection project={project()} feedMark={0} onError={vi.fn()} /></I18nProvider>)
+    await waitFor(() => expect(screen.queryByTestId('harness-providers')).toBeTruthy())
+    const rows = screen.getByTestId('harness-providers').textContent ?? ''
+    expect(rows).toContain(ru['harness.agent.claude-code']!)
+    expect(rows).toContain(ru['agent.modeShort.plan']!)
+    expect(rows).toContain(ru['harness.modeBlocked']!.replace('{mode}', ru['agent.modeShort.bypass']!))
+    expect(rows).not.toMatch(/connected to Fabric|\(blocked\)|\bbypass\b/)
+    // The installed-or-not chip names the agent, not its id.
+    expect(rows).toContain('Claude Code')
+    for (const tool of SURFACE_TOOLS) expect(document.body.textContent).toContain(ru[`harness.tool.${tool.name}` as 'harness.tool.fabric_whoami']!)
+  })
+
+  it('a tool the registry does not know yet speaks in the contract’s own words rather than as a raw key', async () => {
+    stub(async () => harness({ tools: [{ name: 'fabric_brand_new', purpose: 'Something new', records: false }] }))
+    show()
+    await waitFor(() => expect(screen.getByText('Something new')).toBeTruthy())
+    expect(document.body.textContent).not.toContain('harness.tool.')
+  })
+})

@@ -25,7 +25,7 @@ function mount({ list = ok([]) as unknown, record = vi.fn(async (): Promise<Rele
   }
   vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: api }))
   const on = { onPulse: vi.fn(), onBoard: vi.fn() }
-  render(<I18nProvider locale="en"><ReleasesScreen projects={projects} projectId={projectId} {...on} /></I18nProvider>)
+  render(<I18nProvider locale="en"><ReleasesScreen projects={projects} feed={[]} projectId={projectId} {...on} /></I18nProvider>)
   return { api, record, verify, ...on }
 }
 

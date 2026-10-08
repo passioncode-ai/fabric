@@ -626,3 +626,41 @@ Surface: first-run interface; SCN-126. Source facts: the supported vendor CLI re
 | `start.executor.auth.unsupported` | apps/desktop/src/renderer/src/i18n/en.ts; ru.ts | SCN-126 | implemented locally; packaged acceptance pending |
 | `start.executor.auth.unknown` | apps/desktop/src/renderer/src/i18n/en.ts; ru.ts | SCN-126 | implemented locally; packaged acceptance pending |
 | `start.executor.auth.note` | apps/desktop/src/renderer/src/i18n/en.ts; ru.ts | SCN-126 | implemented locally; packaged acceptance pending |
+
+## 0.3.3 UI pass — the launch chrome, the exposure warning and the main process in Russian (2026-10-08)
+
+Written through `copywriting` against `voice.md` (peer-builder) and `locales/ru.md` («вы», neutral form).
+Titles carry no full stop; a dialog's message is a heading. Commands are set as code with a copy button,
+never as prose with markup. The screen rules are in [`screens.md` → launch chrome](../ux/screens.md#launch-chrome).
+Also new, and reviewed as labels rather than copy: `harness.agent.*` and `harness.tool.*` (what a session is
+given, from the registry instead of the shared contract’s English), the ten causes’ `startup.<cause>.title` and
+`.remedy`, the seven `dialog.*` picker messages, and `menu.*` — the application menu, where the English keeps
+the macOS title-case convention for menu items, the one recorded exception to sentence case. `diagnostics.exposure.dockerBefore` names a pane in
+Docker Desktop’s own interface (“Settings → Docker Engine”) and is a path, not our wording, so it has no row:
+`terminology.md` has no entry for OrbStack, Docker Desktop or Docker Engine, and the sentence-case check reads
+their capitals as title case. Adding those names is `brand-voice`’s decision (reported 2026-10-08).
+
+| Key | Text (primary) | Location | Scenario | Status |
+|---|---|---|---|---|
+| `diagnostics.exposure.title` | The local database can be reached from your network | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
+| `diagnostics.exposure.body` | Ports {ports} answer on {ifaces} with the stack’s default password, so anyone on this network can read and change your projects. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
+| `diagnostics.exposure.orbstackAfter` | Then restart the engine and Fabric. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
+| `diagnostics.exposure.dockerAfter` | Then restart the engine. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
+| `diagnostics.exposure.why` | Why Fabric does not close this itself | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
+| `diagnostics.exposure.whyBody` | Which addresses a container port listens on is set by the container engine, for every container on it at once. Fabric cannot change that for its own containers alone. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
+| `launch.profile` | Profile | apps/desktop/src/renderer/src/i18n/en.ts | SCN-094 | proposed |
+| `launch.strip.reading` | Reading the journal… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-094 | proposed |
+| `launch.strip.estate` | Last event · {time} · all projects | apps/desktop/src/renderer/src/i18n/en.ts | SCN-094 | proposed |
+| `launch.strip.estateNone` | Nothing recorded yet · all projects | apps/desktop/src/renderer/src/i18n/en.ts | SCN-094 | proposed |
+| `launch.agent.subtitle` | {agent} · filed {date} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-094 | proposed |
+| `harness.unavailable` | not installed | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | proposed |
+| `harness.modeBlocked` | {mode} (unavailable) | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | proposed |
+| `agent.modeShort.plan` | plan only | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | proposed |
+| `agent.modeShort.ask` | ask first | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | proposed |
+| `agent.modeShort.bypass` | no prompts | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | proposed |
+| `startup.windowTitle` | Fabric could not start | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
+| `startup.notRetryable` | Fabric had already opened its agent surface when this happened, so retrying in place is not safe; reopen the app instead. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
+| `startup.retry` | Retry | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
+| `startup.copy` | Copy the details | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
+| `startup.quit` | Quit | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
+| `dialog.scanChoose` | Choose the folder that holds your projects | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | proposed |

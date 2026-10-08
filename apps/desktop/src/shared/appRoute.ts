@@ -67,7 +67,8 @@ export type AppRoute =
   | Tab
   | { kind: 'agents' }
   /** SCR-41. Estate-wide by default; `projectId` scopes it to one project, `item` opens one row. */
-  | { kind: 'board'; projectId?: string | null; item?: string | null }
+  /** `topic`: arrive with the add-a-topic form open (Home's "+ Add a topic", the launch prototype's SCR-30). */
+  | { kind: 'board'; projectId?: string | null; item?: string | null; topic?: boolean }
   /** SCR-40. Every project by default; `projectId` opens one project's goals. */
   | { kind: 'plan'; projectId?: string | null }
   /** SCR-42. Every project by default; `projectId` narrows it to one. */

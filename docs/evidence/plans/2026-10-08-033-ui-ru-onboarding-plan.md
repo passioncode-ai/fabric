@@ -1,6 +1,6 @@
 # Plan · 2026-10-08 · 0.3.3: screens, design quality, Russian, fresh onboarding, release
 
-Operator request 2026-10-08. Status: **draft, work in progress** on `agent/ui-ux-ru-20261008`; nothing landed.
+Operator request 2026-10-08. Status: **UI/RU half done** on `agent/ui-ux-ru-20261008` (rows A, B, C below); the onboarding half (R1–R3) and the release (Z) are open.
 
 ## Measured (2026-10-08, dev build of `main` 1190e261 and installed 0.3.2, launch demo estates en/ru)
 
@@ -11,23 +11,23 @@ Operator request 2026-10-08. Status: **draft, work in progress** on `agent/ui-ux
 
 | # | Item | Where | State |
 |---|---|---|---|
-| B2 | Task panel toolbar overflowed the project page by 105 px (button over the next column, right column past the window) | `components.css` `.toolbar` wraps, selects bounded | **done in branch, not yet re-measured** |
-| A1 | Agent descriptions and permission-mode ids shown raw in English | `shared/agents.ts#AGENTS` `description`, `HarnessSection.tsx` | open |
-| A2 | Tool titles shown to the person in English | `HarnessSection.tsx` (tools list) | open |
-| A3 | Startup failure dialog English-only | `shared/startupFailure.ts#startupDialog`, `main/index.ts` | open |
-| A4 | Folder-picker messages English-only (4) | `main/index.ts` `dialog.showOpenDialog` | open |
-| A5 | Custom menu labels English-only | `main/menuTemplate.ts` | open |
-| A6 | `launch.home.live.title` "Live"; "SHOULD" on Planning; "seed" on Persona | `i18n/ru.ts` | open |
-| B1 | Network-exposure warning: large, on every screen but Home, command not set as code | stack-exposure banner | open |
-| B3 | Task page subtitle shows a raw hex id | `TaskPage.tsx` | open |
-| B4 | "+ Project" source chooser leaves one orphan card | start chooser | open |
-| C1 | Prototype deltas without a defect: no "Fabric · last observation" row on Pulse/Plan/Agent; no Profile / Discuss buttons; Releases default selection | record in ledger, not drawn silently | open |
+| B2 | Task panel toolbar overflowed the project page by 105 px; the page itself grew past the window at 1280 px | `.toolbar` wraps (`components.css`), `.content` gets `min-width: 0` (`styles.css`); textareas in the body face; journal Open at the row end | **done** — 0 elements past the window, ru 1440/1280 |
+| A1 | Agent descriptions and permission-mode ids shown raw in English | `harness.agent.*`, `agent.modeShort.*` in the registry, `HarnessSection.tsx` | **done** |
+| A2 | Tool titles shown to the person in English | `harness.tool.*`, fallback to the contract for a tool with no key | **done** |
+| A3 | Startup failure dialog English-only | `startupDialog` takes the translator and returns actions by index; ten causes in both registries | **done** |
+| A4 | Folder-picker messages English-only (seven, not four) | `dialog.*` | **done** |
+| A5 | The menu English-only | spelled out item by item with roles and registry labels; reinstalled on a locale change | **done** |
+| A6 | «Live», «SHOULD», «seed»; decorative full stops in four screen titles | `i18n/ru.ts`, `en.ts`, `scripts/product/pulse.mjs` | **done** |
+| B1 | Network-exposure warning: nine lines tall, command as prose | four lines: risk, one row per engine with code and copy, why behind a disclosure | **done** |
+| B3 | Task page subtitle shows a raw hex id | agent · filing date (`launch.agent.subtitle`) | **done**; task number → CO-225 |
+| B4 | "+ Project" source chooser leaves one orphan card | the planned path takes its own quiet row | **done** |
+| C1 | Prototype elements missing: Fabric strip, Profile, «Обсудить с Fabric», Home «+ Добавить тему» | drawn (operator, 2026-10-08: «дорисовывай всё, чего не хватает»); «История на графе» and the task number stay out → CO-225 | **done** |
 | R1 | Reset the operator's estate of test projects (769 estates) for a fresh onboarding — **destructive: show exact scope and ask yes first**; backup `~/Library/Application Support/Fabric/backups/post-0.3.2-migration-2026-10-08.dump` exists | local stack | open |
 | R2 | Onboarding: point at the repositories folder → projects found and configured in one pass | scan-folder start | open |
 | R3 | Setup through the base agent: open the agent console from Fabric (P-13, ADR-0123) | runtime session | open |
 | Z | Final: bug sweep, docs, wiki/knowledge base, design map, release 0.3.3 (with P-12) | release runbook | open |
 
-Tooling used for the measurements (scratch, to be committed as `scripts/launch/walk-shots.mjs` with this work):
+Tooling used for the measurements (kept as session scratch, not committed — the receipts are in [the audit](../../ux/audits/2026-10-08-launch-chrome-ru.md)):
 walk every launch view beside its mock; overflow probe (elements past the window / content wider than its box).
 Note for scripts: `active-estate.json` must be mode 0600 or Fabric refuses it.
 

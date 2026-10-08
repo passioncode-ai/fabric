@@ -127,7 +127,7 @@ const render_ = (onError = vi.fn()) => {
   const onOpen = vi.fn()
   render(
     <I18nProvider locale="en">
-      <BoardScreen projects={PROJECTS} feedMark={0} onOpen={onOpen} onError={onError} onChat={vi.fn()} />
+      <BoardScreen projects={PROJECTS} feedMark={0} onOpen={onOpen} onError={onError} />
     </I18nProvider>
   )
   return { onError, onOpen }
@@ -539,7 +539,7 @@ describe('one project\'s board, opened at one row (SCR-31 → SCR-41)', () => {
     vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { board, questions: { answer: vi.fn() }, proposals: { decide: vi.fn() }, attention: { grant: vi.fn() } } }))
     render(
       <I18nProvider locale="en">
-        <BoardScreen projects={PROJECTS} projectId="p1" initialItem={cut.items[0].ref} feedMark={0} onOpen={vi.fn()} onError={vi.fn()} onChat={vi.fn()} />
+        <BoardScreen projects={PROJECTS} projectId="p1" initialItem={cut.items[0].ref} feedMark={0} onOpen={vi.fn()} onError={vi.fn()} />
       </I18nProvider>
     )
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Which context goes to the next agent?' })).toBeTruthy())
@@ -611,5 +611,43 @@ describe('the board\'s fact grid is the prototype\'s (UX-4, iteration 2)', () =>
       const dl = await waitFor(() => document.querySelector('dl.lp-facts') as HTMLElement)
       expect(getComputedStyle(dl).display).toBe('grid')
     } finally { el.remove() }
+  })
+})
+
+// 0.3.3 UI pass: Home's "+ Add a topic" (the launch prototype's SCR-30) lands on the board with the form open,
+// on the first active project — not on the board with one more click still to find.
+describe('arriving to add a topic', () => {
+  it('opens with the topic form already open, scoped to the first active project', async () => {
+    stub({ ok: true })
+    render(
+      <I18nProvider locale="en">
+        <BoardScreen projects={PROJECTS} feedMark={0} startTopic onOpen={vi.fn()} onError={vi.fn()} />
+      </I18nProvider>
+    )
+    const projectPicker = await waitFor(() => screen.getByDisplayValue('Atlas'))
+    expect(projectPicker.tagName).toBe('SELECT')
+  })
+
+  it('arrives without it otherwise', async () => {
+    stub({ ok: true })
+    render_()
+    await waitFor(() => screen.getByText(en['launch.board.addTopic']))
+    expect(screen.queryByDisplayValue('Atlas')).toBeNull()
+  })
+
+  it('takes the first active project once the list arrives, when it opened before the projects were read', async () => {
+    stub({ ok: true })
+    const tree = (projects: typeof PROJECTS | null) => (
+      <I18nProvider locale="en">
+        <BoardScreen projects={projects} feedMark={0} startTopic onOpen={vi.fn()} onError={vi.fn()} />
+      </I18nProvider>
+    )
+    const { rerender } = render(tree(null))
+    rerender(tree(PROJECTS))
+    await waitFor(() => screen.getByDisplayValue('Atlas'))
+    // The picker shows Atlas either way; what the state holds decides whether Add can be pressed.
+    const input = document.querySelector('[data-launch-view="launch-board"] input') as HTMLInputElement
+    fireEvent.change(input, { target: { value: 'A topic' } })
+    expect((screen.getByRole('button', { name: en['launch.board.topic.add'] }) as HTMLButtonElement).disabled).toBe(false)
   })
 })

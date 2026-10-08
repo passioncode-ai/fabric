@@ -34,6 +34,8 @@ import { isEstateWide } from '../../shared/harness'
 import { refusedBy } from '../../shared/readEnvelope'
 import { EmptyState, Panel, Row, StateChip } from './components'
 import { useT } from './i18n'
+import { en, type StringKey } from './i18n/en'
+import { runnerLabel } from './runnerLabel'
 
 export function HarnessSection({
   project,
@@ -78,6 +80,9 @@ export function HarnessSection({
   const serversRefused = harness ? refusedBy(harness.servers) : null
   const grantsRefused = harness ? refusedBy(harness.grants) : null
   const tools = harness?.tools ?? []
+  // The registry speaks for an agent, a mode or a tool it knows; one added since speaks in its own
+  // (English) words from the shared contract rather than as a raw key.
+  const said = (key: string, fallback: string): string => (key in en ? t(key as StringKey) : fallback)
   const recording = tools.filter((x) => x.records).length
 
   return (
@@ -111,18 +116,22 @@ export function HarnessSection({
               key={agent.id}
               lead={
                 <StateChip tone={agent.available ? 'good' : 'quiet'}>
-                  {agent.available ? agent.id : t('harness.unavailable')}
+                  {agent.available ? runnerLabel(agent.id, t) : t('harness.unavailable')}
                 </StateChip>
               }
             >
-              {agent.description}
+              {!agent.available && <b>{runnerLabel(agent.id, t)} </b>}
+              {said(`harness.agent.${agent.id}`, agent.description)}
               <span className="muted">
                 {' '}
                 {agent.permissionModes.length === 0
                   ? t('harness.noModes')
                   : t('harness.modes', {
                       modes: agent.permissionModes
-                        .map((m) => (m.blockedKey ? `${m.id} (blocked)` : m.id))
+                        .map((m) => {
+                          const name = said(`agent.modeShort.${m.id}`, m.id)
+                          return m.blockedKey ? t('harness.modeBlocked', { mode: name }) : name
+                        })
                         .join(', ')
                     })}
               </span>
@@ -186,7 +195,7 @@ export function HarnessSection({
             </StateChip>
           }
         >
-          {tool.purpose}
+          {said(`harness.tool.${tool.name}`, tool.purpose)}
         </Row>
       ))}
       {tools.length > 0 && (

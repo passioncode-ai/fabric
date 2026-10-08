@@ -65,7 +65,7 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   },
   {
     component: 'Row',
-    classes: ['row', 'row-interactive', 'row-lead', 'row-main', 'row-trail', 'row-quiet'],
+    classes: ['row', 'row-interactive', 'row-lead', 'row-main', 'row-trail', 'row-quiet', 'row-trail-acts'],
     purpose:
       'One line in a list: an optional lead cell, the content, an optional trailing cell. **`onClick` makes it a real `<button>`, so it must not then contain one** — a clickable Row (or Panel) with a button in its lead or trail is nested buttons, which is invalid and whose click behaviour is not worth relying on. Walked into three times: TaskCard avoided it by design, the estate card and the attention queue did not. Where a row needs BOTH a navigation and an action, it is a plain row with two sibling controls. Absorbs .feed-row, .memory-row, .repo-row, .transcript-row, .task-line, .choice-row, .preset-row.'
   },
@@ -136,7 +136,7 @@ export const COMPONENTS: readonly ComponentEntry[] = [
   },
   {
     component: 'Banner',
-    classes: ['banner', 'banner-error', 'banner-warn', 'banner-actions'],
+    classes: ['banner', 'banner-error', 'banner-warn', 'banner-actions', 'banner-remedy', 'banner-why'],
     purpose: 'Something the operator must read before continuing. Absorbs .error-banner, .conflict-banner, .settings-note.'
   }
 ] as const

@@ -21,7 +21,7 @@ let failures = 0
 const ok = (m) => console.log('  ok   ' + m)
 const fail = (m) => { failures++; console.log('  FAIL ' + m) }
 
-const t = menuTemplate({ closeActiveTab: () => {}, openExternal: () => {} })
+const t = menuTemplate({ closeActiveTab: () => {}, openExternal: () => {}, label: (k) => 'L:' + k })
 const roles = new Set()
 const walk = (items) => {
   for (const i of items ?? []) {
@@ -33,10 +33,12 @@ walk(t)
 
 // The roles Electron fills with the platform's own items. Losing editMenu is
 // losing copy and paste everywhere.
-for (const need of ['editMenu', 'fileMenu', 'viewMenu']) {
+// The menus are spelled out so they can speak the operator's language (0.3.3); what must survive is
+// every platform ITEM, because each role carries its own accelerator and behaviour — Cmd+C in every field.
+for (const need of ['undo', 'redo', 'cut', 'copy', 'paste', 'selectAll', 'reload', 'toggleDevTools', 'resetZoom', 'zoomIn', 'zoomOut', 'togglefullscreen', 'minimize', 'quit', 'close', ...(process.platform === 'darwin' ? ['pasteAndMatchStyle', 'startSpeaking', 'stopSpeaking', 'front', 'about', 'hide', 'hideOthers', 'unhide', 'services'] : [])]) {
   roles.has(need)
-    ? ok('the ' + need + ' survives, so its platform items and accelerators do')
-    : fail('the template has no ' + need + ' — installing it takes those keys away')
+    ? ok('the ' + need + ' item survives, with its platform accelerator')
+    : fail('the template has no ' + need + ' item — installing it takes that key away')
 }
 
 const flat = []
@@ -47,6 +49,11 @@ const collect = (items) => {
   }
 }
 collect(t)
+
+const unlabelled = flat.filter((i) => i.type !== 'separator' && !(typeof i.label === 'string' && (i.label.startsWith('L:') || i.label === 'Fabric')))
+unlabelled.length === 0
+  ? ok('every item carries a label from the registry, so none falls back to Electron\u2019s English')
+  : fail('items without a registry label: ' + JSON.stringify(unlabelled.map((i) => i.role ?? i.label)))
 
 const closeTab = flat.find((i) => i.accelerator === 'CmdOrCtrl+W')
 closeTab && !closeTab.role && typeof closeTab.click === 'function'

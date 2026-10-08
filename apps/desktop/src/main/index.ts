@@ -34,7 +34,8 @@ import { FABRIC_INBOX, ProductConnector } from './productConnect.ts'
 import { forwardToProduct } from './productForwarder.ts'
 import { ConsentPresenter } from './consentPresenter.ts'
 import { CONNECTABLE_PRODUCTS, agentFacts, askLines, pendingFacts, productName, type ConnectProblem, type HubActResult, type HubDownCode, type HubOverview } from '../shared/access.ts'
-import { translator } from '../renderer/src/i18n/translate.ts'
+import { translator, type Translate } from '../renderer/src/i18n/translate.ts'
+import type { StringKey } from '../renderer/src/i18n/en.ts'
 import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
 import { readSessionHistory } from '../shared/sessionHistory.ts'
 import { externalLink, isAppDocument, type AppEntry } from './navigationGuard.ts'
@@ -2051,7 +2052,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.workspaceChoose, async (): Promise<Returns<FabricApi['workspace']['choose']>> => {
     const picked = await dialog.showOpenDialog({
       properties: ['openDirectory', 'createDirectory'],
-      message: 'Where should Fabric keep the workspace?'
+      message: translator(readSettings().locale)('dialog.workspaceChoose')
     })
     if (picked.canceled || picked.filePaths.length === 0) return { outcome: 'cancelled' }
     const root = picked.filePaths[0]
@@ -2218,7 +2219,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.workspaceImport, async (): Promise<Returns<FabricApi['workspace']['adopt']>> => {
     const picked = await dialog.showOpenDialog({
       properties: ['openDirectory'],
-      message: 'Which folder holds the workspace?'
+      message: translator(readSettings().locale)('dialog.workspaceImport')
     })
     // CANCELLED IS NOT REFUSED. This used to answer `ok: false` with the reason
     // "nothing was chosen", so a closed dialog and an estate that genuinely
@@ -3271,7 +3272,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
   handle(IPC.historyChoose, async (): Promise<Returns<FabricApi['history']['choose']>> => {
     if (!privateHistory) return historyUnavailable
-    const picked = await dialog.showOpenDialog({ properties: ['openDirectory'], message: 'Choose a Fabric archive folder' })
+    const picked = await dialog.showOpenDialog({ properties: ['openDirectory'], message: translator(readSettings().locale)('dialog.archiveChoose') })
     if (picked.canceled || picked.filePaths.length === 0) return null
     const dir = picked.filePaths[0], seen = privateHistory.inspect(dir)
     if (!seen.ok) return seen
@@ -3352,10 +3353,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   }
   const scans = startScans
   handle(IPC.startChooseFolder, async (event, purpose: 'project' | 'scan' | 'parent', defaultPath?: string): Promise<Returns<FabricApi['start']['chooseFolder']>> => {
-    const message =
-      purpose === 'scan' ? 'Choose the folder that holds your projects'
-        : purpose === 'parent' ? 'Choose where the new project folder goes'
-          : 'Choose a project folder'
+    const say = translator(readSettings().locale)
+    const message = say(purpose === 'scan' ? 'dialog.scanChoose' : purpose === 'parent' ? 'dialog.parentChoose' : 'dialog.projectChoose')
     // The walk harness answers the picker in an unpackaged run only (`walkPickFor`).
     const walkPick = walkPickFor(purpose, process.env, app.isPackaged)
     const result = walkPick
@@ -3980,7 +3979,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.reposChoose, async (event): Promise<Returns<FabricApi['repos']['choose']>> => {
     const result = await dialog.showOpenDialog({
       properties: ['openDirectory', 'multiSelections', 'createDirectory'],
-      message: 'Choose one or more repository folders'
+      message: translator(readSettings().locale)('dialog.reposChoose')
     })
     if (result.canceled) return []
     // Choosing a folder in the native dialog is the operator saying yes to it;
@@ -4023,6 +4022,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // tomorrow is a power setting that did not work today. Applied from what was
     // COMMITTED, so a refused write does not change the policy either.
     power?.setPolicy(written.settings.keepAwake)
+    // The menu speaks the language the windows speak, from the moment it is chosen.
+    if (next.locale !== undefined) installMenu(written.settings.locale)
     return written
   })
 
@@ -4416,7 +4417,7 @@ app.whenReady().then(async () => {
   // frame. Built from Electron's roles so copy, paste, quit and the window
   // controls survive: replacing the default with a hand-written minimum takes
   // Cmd+C away from every field in the product.
-  installMenu()
+  installMenu(readSettings().locale)
 
   // M116 — before the splash, so the first thing on the dock is already the mark.
   applyAppIcon()
@@ -4531,13 +4532,20 @@ async function explainAndQuit(e: unknown): Promise<void> {
   // with no parent runs a modal loop that blocks the main thread even through the async API — no timer
   // fired and SIGTERM went unanswered for 20 s — while the same box as a sheet on a window let the quit
   // finish in 410 ms. The window carries the failure's title, so it reads as part of the message.
-  const parent = new BrowserWindow({ width: 480, height: 160, resizable: false, minimizable: false, maximizable: false, fullscreenable: false, title: 'Fabric could not start', show: true, webPreferences: { sandbox: true, contextIsolation: true } })
-  void parent.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent('<!doctype html><title>Fabric could not start</title><body style="font:13px -apple-system,sans-serif;margin:24px">Fabric could not start.</body>'))
+  // The operator's language when the settings can be read; a failure to read them is not this dialog's
+  // business, and English is what it fell back to before (0.3.3).
+  const escapeHtml = (v: string): string => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
+  let say: Translate = translator('en')
+  try { say = translator(readSettings().locale) } catch { /* English */ }
+  const windowTitle = say('startup.windowTitle')
+  const page = `<!doctype html><meta charset="utf-8"><title>${escapeHtml(windowTitle)}</title><body style="font:13px -apple-system,sans-serif;margin:24px">${escapeHtml(windowTitle)}</body>`
+  const parent = new BrowserWindow({ width: 480, height: 160, resizable: false, minimizable: false, maximizable: false, fullscreenable: false, title: windowTitle, show: true, webPreferences: { sandbox: true, contextIsolation: true } })
+  void parent.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(page))
   while (!quit.quitting) {
-    const plan = startupDialog(failure, { retryable: !pastRetryPoint, logPath })
+    const plan = startupDialog(failure, { retryable: !pastRetryPoint, logPath, say: (key, vars) => say(key as StringKey, vars) })
     const { response: choice } = await dialog.showMessageBox(parent, {
       type: 'error',
-      title: 'Fabric could not start',
+      title: windowTitle,
       message: plan.message,
       detail: plan.detail,
       buttons: plan.buttons,
@@ -4547,13 +4555,13 @@ async function explainAndQuit(e: unknown): Promise<void> {
     })
     // A quit that arrived while the dialog was open wins over whatever the dialog answered.
     if (quit.quitting) return
-    const pressed = plan.buttons[choice]
-    if (pressed === 'Retry') {
+    const pressed = plan.actions[choice]
+    if (pressed === 'retry') {
       if (!parent.isDestroyed()) parent.destroy()
       void startOrExplain()
       return
     }
-    if (pressed === 'Copy the details') {
+    if (pressed === 'copy') {
       // Copying must not dismiss the dialog: an operator who copies then wants
       // to retry would otherwise have to reopen the app to get the button back.
       clipboard.writeText(`${failure.cause}\n${failure.title}\n\n${failure.detail}`)

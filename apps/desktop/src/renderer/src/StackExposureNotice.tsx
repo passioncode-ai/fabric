@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import type { StackExposureView } from '../../shared/types'
 import { Banner } from './components'
 import { useT } from './i18n'
+import { CopyButton } from './start/StartPaths'
 
 const RECHECK_MS = 5 * 60_000
 
@@ -33,6 +34,9 @@ export function StackExposureNotice(): React.JSX.Element | null {
   }, [])
 
   if (!view || view.exposed.length === 0) return null
+  // Compact by design (0.3.3 UI pass): the risk in one sentence, then one row per engine with the
+  // command set as code and a copy button. Why Fabric cannot fix it itself is one click away, not a
+  // paragraph above every screen — it was four lines tall and pushed each screen's heading down.
   return (
     <Banner tone="warn">
       <b>{t('diagnostics.exposure.title')}</b>
@@ -42,7 +46,25 @@ export function StackExposureNotice(): React.JSX.Element | null {
           ifaces: [...new Set(view.exposed.map((x) => x.iface))].join(', ')
         })}
       </p>
-      <p>{t('diagnostics.exposure.remedy')}</p>
+      <ul className="banner-remedy" aria-label={t('diagnostics.exposure.remedyLabel')}>
+        <li>
+          <b>{t('diagnostics.exposure.orbstack')}</b>
+          <code>{t('diagnostics.exposure.orbstackCommand')}</code>
+          <CopyButton text={t('diagnostics.exposure.orbstackCommand')} />
+          <span>{t('diagnostics.exposure.orbstackAfter')}</span>
+        </li>
+        <li>
+          <b>{t('diagnostics.exposure.docker')}</b>
+          <span>{t('diagnostics.exposure.dockerBefore')}</span>
+          <code>{t('diagnostics.exposure.dockerSetting')}</code>
+          <CopyButton text={t('diagnostics.exposure.dockerSetting')} />
+          <span>{t('diagnostics.exposure.dockerAfter')}</span>
+        </li>
+      </ul>
+      <details className="banner-why">
+        <summary>{t('diagnostics.exposure.why')}</summary>
+        <p>{t('diagnostics.exposure.whyBody')}</p>
+      </details>
     </Banner>
   )
 }

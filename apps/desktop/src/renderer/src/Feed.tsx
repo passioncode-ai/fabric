@@ -3,7 +3,7 @@ import type { EntityRef } from '../../shared/entityRef'
 import { destinationOf } from '../../shared/entityRef.ts'
 import { subjectOfEvent } from '../../shared/eventSubject.ts'
 import { Button, EmptyState, Row } from './components'
-import { describeEvent, useT } from './i18n'
+import { describeEvent, useLocale, useT } from './i18n'
 
 export function Feed({
   events,
@@ -29,6 +29,7 @@ export function Feed({
   onOpen?: (projectId: string, focus: EntityRef) => void
 }): React.JSX.Element {
   const t = useT()
+  const locale = useLocale()
   const nameOf = (id: string | null): string =>
     id ? (projects.find((p) => p.id === id)?.name ?? id.slice(0, 8)) : '—'
 
@@ -64,7 +65,17 @@ export function Feed({
           <Row
             key={`${e.estate_id}:${e.seq}`}
             lead={`#${e.seq}`}
-            trail={new Date(e.occurred_at).toLocaleTimeString()}
+            // The Open action sits with the time at the row's end, not glued to the sentence it opens.
+            trail={
+              <span className="row-trail-acts">
+                {openable && (
+                  <Button tone="ghost" onClick={() => onOpen(act.projectId, act.ref)}>
+                    {t('journal.open')}
+                  </Button>
+                )}
+                {new Date(e.occurred_at).toLocaleTimeString(locale)}
+              </span>
+            }
           >
             {/* The sentence, never the identifier. `title` keeps the raw type
                 reachable for anyone debugging, without putting it on screen —
@@ -74,11 +85,6 @@ export function Feed({
               {describeEvent(t, e.type)}
             </span>
             {!compact && <span className="muted"> {nameOf(e.project_id)}</span>}
-            {openable && (
-              <Button tone="ghost" onClick={() => onOpen(act.projectId, act.ref)}>
-                {t('journal.open')}
-              </Button>
-            )}
           </Row>
         )
       })}

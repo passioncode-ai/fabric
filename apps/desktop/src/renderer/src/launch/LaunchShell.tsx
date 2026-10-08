@@ -45,6 +45,14 @@ export function revealSection(anchor: string, deadlineMs = 2000): void {
   requestAnimationFrame(step)
 }
 
+/** Where the scope bar offers "Discuss with Fabric": every launch screen but these. Home, the start paths and
+ *  Help are the conversation's own start (the prototype's rule, scripts/product/controller.js); the guide's card
+ *  already carries a Discuss of its own, and settings and a draft are not launch screens. */
+export const NO_DISCUSS = ['home', 'start', 'welcome', 'help', 'guide', 'draft', 'settings'] as const
+export function launchDiscuss(kind: string): boolean {
+  return !(NO_DISCUSS as readonly string[]).includes(kind)
+}
+
 export interface LaunchShellProps {
   estateName: string
   projects: ProjectRow[] | null
@@ -62,6 +70,12 @@ export interface LaunchShellProps {
   onHistory(): void
   onSearch(): void
   searchOpen: boolean
+  /** "Your Fabric" (SCR-36): the prototype's Profile button beside Search. */
+  onProfile(): void
+  profileOpen: boolean
+  /** Talk about THIS screen with Fabric. Null where the screen already is that conversation's start
+   *  (Home, the start paths, Help) — the prototype's rule in `scripts/product/controller.js`. */
+  onDiscuss: (() => void) | null
   onChat(): void
   chatOpen: boolean
   children: React.ReactNode
@@ -130,9 +144,15 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
           <span>{t('launch.workspace')} / {crumb}</span>
           <div className="actions">
             <button type="button" className="lp-button search-button" aria-pressed={props.searchOpen} onClick={props.onSearch}>{t('launch.search')}</button>
+            <button type="button" className="lp-button" aria-current={props.profileOpen ? 'page' : undefined} onClick={props.onProfile}>{t('launch.profile')}</button>
           </div>
         </div>
         <StackExposureNotice />
+        {props.onDiscuss && (
+          <div className="calm-context-action">
+            <button type="button" className="lp-button" onClick={props.onDiscuss}>{t('launch.board.discuss')}</button>
+          </div>
+        )}
         {props.children}
       </div>
     </div>

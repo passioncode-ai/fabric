@@ -126,7 +126,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 113,
+        "line": 138,
         "coverage_claim": "`apps/desktop/src/renderer/src/EstateHome.tsx`",
         "status_claim": "designed"
       },
@@ -275,7 +275,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 130,
+        "line": 155,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -410,7 +410,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 144,
+        "line": 169,
         "coverage_claim": "`apps/desktop/src/renderer/src/ProjectHome.tsx`, `apps/desktop/src/renderer/src/Tasks.tsx`, `apps/desktop/src/renderer/src/components/FileTree.tsx`",
         "status_claim": "designed"
       },
@@ -565,7 +565,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 165,
+        "line": 190,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -703,7 +703,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 180,
+        "line": 205,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -835,7 +835,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 196,
+        "line": 221,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -946,7 +946,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 212,
+        "line": 237,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -1092,7 +1092,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 227,
+        "line": 252,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -1254,7 +1254,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 243,
+        "line": 268,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -1370,7 +1370,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 258,
+        "line": 283,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -1505,7 +1505,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 274,
+        "line": 299,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -1650,7 +1650,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 289,
+        "line": 314,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -1758,7 +1758,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 303,
+        "line": 328,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -1881,7 +1881,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 319,
+        "line": 344,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -2004,7 +2004,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 335,
+        "line": 360,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -2119,7 +2119,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 350,
+        "line": 375,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -2223,7 +2223,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 365,
+        "line": 390,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -2340,7 +2340,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 381,
+        "line": 406,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -2472,7 +2472,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 397,
+        "line": 422,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -2590,7 +2590,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 412,
+        "line": 437,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -2704,7 +2704,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 428,
+        "line": 453,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -2825,7 +2825,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 444,
+        "line": 469,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -2961,7 +2961,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 461,
+        "line": 486,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -3104,7 +3104,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 481,
+        "line": 506,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -3262,7 +3262,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 498,
+        "line": 523,
         "coverage_claim": "`apps/desktop/src/renderer/src/SessionWindow.tsx`, `apps/desktop/src/renderer/src/TerminalView.tsx`",
         "status_claim": "designed"
       },
@@ -3419,7 +3419,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 520,
+        "line": 545,
         "coverage_claim": "`apps/desktop/src/renderer/src/Workspace.tsx`",
         "status_claim": "designed"
       },
@@ -3569,7 +3569,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 536,
+        "line": 561,
         "coverage_claim": "`apps/desktop/src/renderer/src/Onboarding.tsx`",
         "status_claim": "designed"
       },
@@ -3723,7 +3723,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 561,
+        "line": 586,
         "coverage_claim": "`apps/desktop/src/renderer/src/EditorWindow.tsx`",
         "status_claim": "designed"
       },
@@ -3854,7 +3854,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 580,
+        "line": 605,
         "coverage_claim": "none from this repository — the subject is `passioncode-ai.github.io`, and a citation this tree cannot resolve is not a citation (UX28-15). Corrected together with SCN-038, which read `implemented` while the board's BL-017 records the address answering HTTP 522; the two registers disagreed and the one with no evidence gave way",
         "status_claim": "designed"
       },
@@ -4060,7 +4060,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 602,
+        "line": 627,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -4346,7 +4346,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 632,
+        "line": 657,
         "coverage_claim": "partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes",
         "status_claim": "designed"
       },
@@ -4624,7 +4624,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 667,
+        "line": 692,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -4812,7 +4812,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 690,
+        "line": 715,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -4990,7 +4990,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 708,
+        "line": 733,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5164,7 +5164,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 730,
+        "line": 755,
         "coverage_claim": "`apps/desktop/src/renderer/src/HarnessSection.tsx`, `apps/desktop/src/shared/harness.ts`, `apps/desktop/src/main/harnessRead.ts`, `apps/desktop/src/renderer/src/HarnessSection.test.tsx`, `apps/desktop/test/harness-read.test.mjs` (UX28-05). The `error` row above was specified from the start and the code answered `0` until this change. The `skills with the mandatory task skill marked` element is NOT built — it is M123's — and no skills row is shown rather than an empty one that would read as \"none installed\"",
         "status_claim": "designed"
       },
@@ -5329,7 +5329,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 750,
+        "line": 775,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5491,7 +5491,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 770,
+        "line": 795,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5640,7 +5640,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 790,
+        "line": 815,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -5802,7 +5802,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 805,
+        "line": 830,
         "coverage_claim": "the list order, the attach lifecycle and the ended-session snapshot — `apps/desktop/src/renderer/src/EstateAgents.tsx`, `apps/desktop/src/shared/sessionOrder.ts`, `apps/desktop/src/renderer/src/TerminalView.tsx`, `apps/desktop/src/shared/sessionOrder.test.ts`, `apps/desktop/src/renderer/src/EstateAgents.terminal.test.tsx`. NOT covered: the launch control at the head of the list, the task the agent holds, and view-files — all named in Elements and none built",
         "status_claim": "designed"
       },
@@ -6003,7 +6003,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 834,
+        "line": 859,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6210,7 +6210,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 855,
+        "line": 880,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6412,7 +6412,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 880,
+        "line": 905,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6588,7 +6588,7 @@
       },
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 899,
+        "line": 924,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6741,7 +6741,7 @@
       "view": "manager",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 920,
+        "line": 945,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -6882,7 +6882,7 @@
       "view": "retro",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 944,
+        "line": 969,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7025,7 +7025,7 @@
       "view": "feedback",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 969,
+        "line": 994,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7172,7 +7172,7 @@
       "view": "sync",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 995,
+        "line": 1020,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7312,7 +7312,7 @@
       "view": "restore",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1020,
+        "line": 1045,
         "coverage_claim": "`apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (the restore section) over `apps/desktop/src/main/privateHistory.ts` and `restore_estate_verified`; Open this Estate records the choice (`apps/desktop/src/main/activeEstate.ts`) and restarts.",
         "status_claim": "designed"
       },
@@ -7424,7 +7424,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1045,
+        "line": 1070,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7507,7 +7507,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1068,
+        "line": 1093,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7592,7 +7592,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1091,
+        "line": 1116,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7684,7 +7684,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1114,
+        "line": 1139,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7779,7 +7779,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1137,
+        "line": 1162,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7862,7 +7862,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1160,
+        "line": 1185,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -7945,7 +7945,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1183,
+        "line": 1208,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8034,7 +8034,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1206,
+        "line": 1231,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8117,7 +8117,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1229,
+        "line": 1254,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8200,7 +8200,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1252,
+        "line": 1277,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8283,7 +8283,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1275,
+        "line": 1300,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8368,7 +8368,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1298,
+        "line": 1323,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8455,7 +8455,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1321,
+        "line": 1346,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8543,7 +8543,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1343,
+        "line": 1368,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8635,7 +8635,7 @@
       "current_evidence": [],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1365,
+        "line": 1390,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -8784,7 +8784,7 @@
       ],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1389,
+        "line": 1414,
         "coverage_claim": "`apps/desktop/src/renderer/src/CeoChat.tsx` over `window.fabric.ceo` (IPC `ceo:*`, `apps/desktop/src/main/ceoChatBinding.ts`, `apps/desktop/src/main/ceoConversationService.ts`); every state above has an RTL test in `CeoChat.test.tsx`. The gate opens while private recovery is available (first-slice plan C5, `index.ts` `ceoChatActivation`); a new conversation is opened on the server before its first send and only known conversations are read. The real app was driven through this screen by `apps/desktop/test/chat-activation-native.test.mjs`: sent from the composer, shown as saved with no reply yet, read back after a cold restart.",
         "status_claim": "designed"
       },
@@ -8933,7 +8933,7 @@
       ],
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1417,
+        "line": 1442,
         "coverage_claim": "`apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (opened from settings) over `window.fabric.history` and `apps/desktop/src/main/privateHistory.ts`; RTL tests in `PrivateHistoryPanel.test.tsx`, the service on an owned PostgreSQL. Import is part of restore: migration 66 imports private history only into a verified restore.",
         "status_claim": "designed"
       },
@@ -9044,7 +9044,7 @@
       "view": "mcp-servers",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1579,
+        "line": 1604,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9119,7 +9119,7 @@
       "view": "run-trace",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1597,
+        "line": 1622,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9194,7 +9194,7 @@
       "view": "fabric-tools",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1614,
+        "line": 1639,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9269,7 +9269,7 @@
       "view": "optimizer",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1631,
+        "line": 1656,
         "coverage_claim": "none yet",
         "status_claim": "designed"
       },
@@ -9342,7 +9342,7 @@
       "view": "first-run",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1660,
+        "line": 1685,
         "coverage_claim": "apps/desktop/src/renderer/src/start/FirstRun.tsx",
         "status_claim": "designed"
       },
@@ -9466,7 +9466,7 @@
       "view": "start-add",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1687,
+        "line": 1712,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9559,7 +9559,7 @@
       "view": "start-scan",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1708,
+        "line": 1733,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9702,7 +9702,7 @@
       "view": "start-new",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1739,
+        "line": 1764,
         "coverage_claim": "apps/desktop/src/renderer/src/Onboarding.tsx",
         "status_claim": "designed"
       },
@@ -9795,7 +9795,7 @@
       "view": "start-agent",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1760,
+        "line": 1785,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx",
         "status_claim": "designed"
       },
@@ -9858,7 +9858,7 @@
       "view": "start-convert",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1775,
+        "line": 1800,
         "coverage_claim": "apps/desktop/src/renderer/src/start/StartPaths.tsx (the planned state; the conversion itself is AR-7/AR-11)",
         "status_claim": "designed"
       },
@@ -9913,7 +9913,7 @@
       "view": "agent-access",
       "registry_evidence": {
         "file": "docs/ux/screens.md",
-        "line": 1788,
+        "line": 1813,
         "coverage_claim": "apps/desktop/src/renderer/src/AgentAccessPanel.tsx",
         "status_claim": "designed"
       },

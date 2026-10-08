@@ -35,6 +35,7 @@ export function EstateHome({
   onOpenEntity,
   onNew,
   onBoard = () => {},
+  onAddTopic,
   onPulse,
   onPersona
 }: {
@@ -75,6 +76,8 @@ export function EstateHome({
   onNew: () => void
   /** Where "Work through the board" and a board row go (SCR-41). */
   onBoard?: () => void
+  /** "+ Add a topic" under the board lane: the board, with its topic form open (launch prototype SCR-30). */
+  onAddTopic?: () => void
   /** Where «Вся активность» and the rhythm lead (SCR-42); without it, the folded journal. */
   onPulse?: () => void
   /** «Мой облик» under the identity (SCR-36). */
@@ -456,7 +459,7 @@ export function EstateHome({
 
       <div className="lh-layout">
         <div className="lh-main-column">
-          <HomeBoard feedMark={markOf(marks, ['task', 'work', 'question', 'goal'])} onBoard={onBoard} />
+          <HomeBoard feedMark={markOf(marks, ['task', 'work', 'question', 'goal'])} onBoard={onBoard} onAddTopic={onAddTopic} />
 
           <section className="lp-projects lh-projects" id="sec-estate-projects" aria-labelledby="home-projects-title">
             <div className="lp-panel-head">

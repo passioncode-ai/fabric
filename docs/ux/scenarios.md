@@ -50,13 +50,13 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-038 | Evaluate the shift from vibe coding to passion coding | Public website | P-05 | ST-027, FLW-20 | implemented | 2026-09-09 BLOCKED |
 | SCN-039 | See what this project remembers, and what it could not answer | Memory | P-01 | ST-028, FLW-21 | draft | 2026-09-09 PARTIAL |
 | SCN-040 | Rejoin a project by reading its decisions | Memory | P-01 | ST-029, FLW-21 | draft | 2026-09-09 PARTIAL |
-| SCN-041 | Work a board the agents keep current | Tasks | P-01 | ST-030, FLW-22 | draft | 2026-09-09 PARTIAL |
+| SCN-041 | Work a board the agents keep current | Tasks | P-01 | ST-030, FLW-22 | draft | 2026-10-08 PARTIAL |
 | SCN-042 | Ask the manager, and get an artefact rather than advice | Manager | P-01 | ST-031, FLW-24, FLW-57 | draft | 2026-09-09 FAIL |
 | SCN-043 | Lead with the projects actually being worked | Projects | P-01 | ST-032, FLW-21 | draft | 2026-09-09 PARTIAL |
 | SCN-044 | Read what the estate has actually done | Manager | P-01 | ST-033, FLW-21 | draft | 2026-09-09 PARTIAL |
-| SCN-045 | Rejoin a task by reading its own page | Tasks | P-01 | ST-034, FLW-22 | draft | 2026-09-09 PARTIAL |
+| SCN-045 | Rejoin a task by reading its own page | Tasks | P-01 | ST-034, FLW-22 | draft | 2026-10-08 PARTIAL |
 | SCN-046 | Judge direction from goals and the graph | Planning | P-01 | ST-035, FLW-23 | draft | 2026-09-09 PARTIAL |
-| SCN-047 | See what a project's agents may do, and hold them to it | Harness | P-01 | ST-036, FLW-24 | draft | 2026-09-09 PARTIAL |
+| SCN-047 | See what a project's agents may do, and hold them to it | Harness | P-01 | ST-036, FLW-24 | draft | 2026-10-08 PARTIAL |
 | SCN-048 | Find anything the estate holds from one field | Search | P-01 | ST-028, FLW-21 | draft | 2026-09-09 PARTIAL |
 | SCN-049 | Watch every agent from one screen | Agents | P-01 | ST-037, FLW-21 | draft | 2026-09-09 PARTIAL |
 | SCN-050 | Answer a scoped question and see whether work received it | Board/questions | P-01 | ST-030, ST-034, FLW-25 | draft | 2026-09-09 PARTIAL |
@@ -82,7 +82,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-070 | Квоты и использование | Квоты и использование | P-01 | FLW-39; SCR-51 | draft | unobserved |
 | SCN-071 | Настройки рабочего пространства | Настройки рабочего пространства | P-01 | FLW-40; SCR-52 | draft | unobserved |
 | SCN-072 | Уведомления и маршруты | Уведомления и маршруты | P-01 | FLW-41; SCR-53 | draft | unobserved |
-| SCN-073 | Диагностика | Диагностика | P-01 | FLW-42; SCR-54 | draft | unobserved |
+| SCN-073 | Диагностика | Диагностика | P-01 | FLW-42; SCR-54 | draft | 2026-10-08 PARTIAL |
 | SCN-074 | Архив и удаление | Архив и удаление | P-01 | FLW-43; SCR-55 | draft | unobserved |
 | SCN-075 | Редактор цикла | Редактор цикла | P-01 | FLW-44; SCR-56 | draft | unobserved |
 | SCN-076 | Сервисные терминалы | Сервисные терминалы | P-01 | FLW-45; SCR-57 | draft | unobserved |
@@ -103,7 +103,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-091 | Вернуться к агенту у его консоли, прочитав его собственный контекст | Agents | P-01 | ST-038, ST-026, ST-034, FLW-54, FLW-21 | draft | unobserved |
 | SCN-092 | Вернуться в estate холодным и дойти до первого решения | Navigation/continuity | P-01 | ST-018, ST-029, ST-032, ST-037, ST-038, FLW-54 | draft | unobserved |
 | SCN-093 | Fabric встречает возвращение и отмечает веху, ничего не выдумывая | Manager/Gamification | P-01 | ST-039, ST-029, ST-018, FLW-54, FLW-21 | draft | unobserved |
-| SCN-094 | Открыть дашборд как страницу Fabric и прочитать путь до «сейчас» | Manager/Gamification | P-01 | ST-040, ST-039, ST-029, FLW-54, FLW-21 | draft | unobserved |
+| SCN-094 | Открыть дашборд как страницу Fabric и прочитать путь до «сейчас» | Manager/Gamification | P-01 | ST-040, ST-039, ST-029, FLW-54, FLW-21 | draft | 2026-10-08 PARTIAL |
 | SCN-095 | Configure Fabric and discover a real project | CEO-first onboarding | P-01 | ST-001, ST-022, ST-031, FLW-55 | draft | unobserved |
 | SCN-096 | Stop an executor and continue the same work | Agent continuity | P-01 | ST-006, ST-017, ST-034, FLW-56 | draft | unobserved |
 | SCN-097 | Export and import my private conversation history | Backup/recovery | P-01 | ST-001, ST-028, ST-033, FLW-58 | draft | unobserved |
@@ -136,7 +136,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-124 | Fabric answers from memory with sources | Memory | P-01 | ST-051, FLW-68 | draft | — |
 | SCN-125 | Nothing in memory, or memory unavailable | Memory | P-01 | ST-051, FLW-68 | draft | — |
 | SCN-126 | First run: name, look, coding agents, where to start | First run | P-01 | ST-001, ST-022, FLW-69 | draft | — |
-| SCN-127 | Add an existing project from one folder | Start paths | P-01 | ST-001, ST-031, FLW-70 | draft | — |
+| SCN-127 | Add an existing project from one folder | Start paths | P-01 | ST-001, ST-031, FLW-70 | draft | 2026-10-08 PARTIAL |
 | SCN-128 | Scan a projects folder and tick what becomes a Project | Start paths | P-01 | ST-001, ST-031, FLW-71 | draft | — |
 | SCN-129 | Create a new project in a new folder or as an idea | Start paths | P-01 | ST-001, FLW-72 | draft | — |
 | SCN-130 | Start a new agent inside a project | Start paths | P-01 | ST-050, FLW-73 | draft | — |

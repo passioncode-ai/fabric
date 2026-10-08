@@ -121,7 +121,7 @@ describe('why the app would not start', () => {
   })
 })
 
-import { startupDialog } from './startupFailure.ts'
+import { startupDialog, type StartupCause } from './startupFailure.ts'
 
 describe('what the operator is actually shown', () => {
   const f = classifyStartupFailure(enoent)
@@ -160,4 +160,54 @@ describe('what the operator is actually shown', () => {
       expect(d.defaultId).toBeLessThan(d.buttons.length)
     }
   })
+})
+
+import { translator } from '../renderer/src/i18n/translate.ts'
+import type { StringKey } from '../renderer/src/i18n/en.ts'
+
+describe('the dialog in the operator’s language (0.3.3)', () => {
+  const f = classifyStartupFailure(enoent)
+  const ru = (key: string, vars?: Record<string, string | number>) => translator('ru')(key as StringKey, vars)
+
+  it('speaks Russian when asked, title, remedy and buttons alike', () => {
+    const d = startupDialog(f, { retryable: true, logPath: '/l', say: ru })
+    expect(d.message).toBe(ru('startup.supabase-cli-missing.title'))
+    expect(d.detail).toContain(ru('startup.supabase-cli-missing.remedy'))
+    expect(d.detail).toContain(ru('startup.machineSaid'))
+    expect(d.buttons).toEqual([ru('startup.retry'), ru('startup.copy'), ru('startup.quit')])
+    expect(d.buttons.join(' ')).not.toMatch(/Retry|Quit|Copy/)
+  })
+
+  it('still carries the machine’s own words untranslated, because that is what a report is read in', () => {
+    expect(startupDialog(f, { retryable: true, logPath: '/l', say: ru }).detail).toContain('spawnSync supabase ENOENT')
+  })
+
+  it('names what each button DOES index for index, so a translated label retries exactly as Retry did', () => {
+    for (const retryable of [true, false]) {
+      const d = startupDialog(f, { retryable, logPath: '/l', say: ru })
+      expect(d.actions).toHaveLength(d.buttons.length)
+      expect(d.actions).toEqual(retryable ? ['retry', 'copy', 'quit'] : ['copy', 'quit'])
+      expect(d.actions[d.defaultId]).toBe(retryable ? 'retry' : 'quit')
+    }
+  })
+
+  it('falls back to the cause’s own English for a cause the registry has no words for', () => {
+    const odd = { ...f, cause: 'not-a-cause' as typeof f.cause, title: 'Own title', remedy: 'Own remedy' }
+    const d = startupDialog(odd, { retryable: true, logPath: '/l', say: ru })
+    expect(d.message).toBe('Own title')
+    expect(d.detail).toContain('Own remedy')
+  })
+})
+
+import { en } from '../renderer/src/i18n/en.ts'
+import { ru as ruRegistry } from '../renderer/src/i18n/ru.ts'
+
+describe('every startup cause has its words in both registries', () => {
+  // A Record over the union, so a cause added to StartupCause without words fails to COMPILE here first.
+  const every: Record<StartupCause, true> = { 'supabase-cli-missing': true, 'stack-start-timed-out': true, 'stack-would-not-start': true, 'stack-up-but-silent': true, 'repository-not-found': true, 'schema-missing': true, 'schema-not-ready': true, 'active-estate-unreadable': true, 'database-unreachable': true, unknown: true }
+  for (const cause of Object.keys(every))
+    it(cause, () => {
+      for (const part of ['title', 'remedy'])
+        for (const registry of [en, ruRegistry] as Record<string, string>[]) expect(registry[`startup.${cause}.${part}`], `${cause}.${part}`).toBeTruthy()
+    })
 })

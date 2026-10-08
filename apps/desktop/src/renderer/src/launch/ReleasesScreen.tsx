@@ -6,13 +6,15 @@
 import { useEffect, useState } from 'react'
 import type { ReadEnvelope } from '../../../shared/readEnvelope'
 import type { ReleaseCommandResult, ReleaseEntry, ReleaseRef, ReleaseStatus } from '../../../shared/releases.ts'
-import type { ProjectRow } from '../../../shared/types'
+import type { FeedEvent, ProjectRow } from '../../../shared/types'
 import { useLocale, useT } from '../i18n'
+import { FeedStrip } from './FabricStrip'
 
 type Said = { ok: true } | { ok: false; text: string } | null
 
-export function ReleasesScreen({ projects, projectId = null, releaseId = null, onPulse, onBoard }: {
+export function ReleasesScreen({ projects, feed, projectId = null, releaseId = null, onPulse, onBoard }: {
   projects: ProjectRow[] | null
+  feed: FeedEvent[] | null
   /** The project tab to open on; every project when null. */
   projectId?: string | null
   /** The release to open, when the visit names one. */
@@ -50,6 +52,7 @@ export function ReleasesScreen({ projects, projectId = null, releaseId = null, o
 
   return (
     <div className="lp" data-launch-view="launch-releases">
+      <FeedStrip feed={feed} projectId={tab !== 'all' ? tab : null} projectName={tab !== 'all' ? (live.find((p) => p.id === tab)?.name ?? null) : null} onPulse={onPulse} />
       <header className="lp-heading">
         <div>
           <p className="lp-kicker">{t('launch.releases.kicker')}</p>

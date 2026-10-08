@@ -56,7 +56,7 @@ export function HomeRhythm({ feed, now, onPulse }: { feed: FeedEvent[] | null; n
 }
 
 /** The top three of the SAME query the board runs, so the count here and the board never disagree (M151). */
-export function HomeBoard({ feedMark, onBoard }: { feedMark: number; onBoard(): void }): React.JSX.Element {
+export function HomeBoard({ feedMark, onBoard, onAddTopic }: { feedMark: number; onBoard(): void; onAddTopic?(): void }): React.JSX.Element {
   const t = useT()
   const [view, setView] = useState<ReadEnvelope<BoardCut> | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
@@ -105,7 +105,10 @@ export function HomeBoard({ feedMark, onBoard }: { feedMark: number; onBoard(): 
           <span aria-hidden="true">{t('glyph.open')}</span>
         </button>
       ))}
-      <div className="lp-panel-foot"><span>{t('launch.home.board.foot')}</span></div>
+      <div className="lp-panel-foot">
+        <span>{t('launch.home.board.foot')}</span>
+        {onAddTopic && <button type="button" className="lp-button" onClick={onAddTopic}>{t('launch.board.addTopic')}</button>}
+      </div>
     </section>
   )
 }

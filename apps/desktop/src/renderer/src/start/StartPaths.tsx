@@ -124,7 +124,7 @@ export function StartCards({ onPath, lastScan }: { onPath(path: StartPath): void
   return (
     <ul className="st-cards">
       {PATHS.map(({ path, planned }) => (
-        <li key={path}>
+        <li key={path} className={planned ? 'st-later' : undefined}>
         <button type="button" className={planned ? 'st-card planned' : 'st-card'} onClick={() => onPath(path)}>
           <span className="st-card-mark" aria-hidden="true">{t(`start.card.${path}.mark` as 'start.card.add.mark')}</span>
           <b>{t(`start.card.${path}.title` as 'start.card.add.title')}</b>

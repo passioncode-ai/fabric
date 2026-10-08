@@ -11,6 +11,7 @@ import { latestVerified, type ReleaseEntry } from '../../../shared/releases.ts'
 import type { RunStatusView } from '../../../shared/runStatus.ts'
 import type { FeedEvent, ProjectRow, RoutineRow, TerminalSession } from '../../../shared/types'
 import { describeEvent, useLocale, useT } from '../i18n'
+import { FeedStrip } from './FabricStrip'
 
 export function PulseScreen({ projects, feed, sessions, projectId = null, onBoard, onProject, onReleases }: {
   projects: ProjectRow[] | null
@@ -44,6 +45,7 @@ export function PulseScreen({ projects, feed, sessions, projectId = null, onBoar
 
   return (
     <div className="lp" data-launch-view="launch-pulse">
+      <FeedStrip feed={feed} projectId={projectId} projectName={projectId ? scopeName : null} />
       <header className="lp-heading">
         <div>
           <p className="lp-kicker">{t('launch.pulse.kicker', { scope: scopeName })}</p>

@@ -27,11 +27,12 @@ import {
 import type { ProjectRow, TaskDetail, TaskNote } from '../../shared/types'
 import { Banner, Button, EmptyState, Field, Panel, Row, StateChip, Toolbar } from './components'
 import { Feed } from './Feed'
-import { useT } from './i18n'
+import { useLocale, useT } from './i18n'
 import { originDocument } from '../../shared/origin.ts'
 import { since } from './duration'
 import { DecisionsSection } from './DecisionsSection'
 import { ConsoleDetails, ContextTab, RunCallout, useRunStatus } from './launch/AgentWorkspace'
+import { ProjectStrip } from './launch/FabricStrip'
 import { runnerLabel } from './runnerLabel'
 
 export function TaskPage({
@@ -40,10 +41,15 @@ export function TaskPage({
   onBack,
   onChanged,
   onError,
-  onOpenTask
+  onOpenTask,
+  lastEventAt = null,
+  onPulse
 }: {
   project: ProjectRow
   taskId: string
+  /** The project's newest journal event, for the Fabric strip (SCR-39 carries the project-scope strip). */
+  lastEventAt?: string | null
+  onPulse?: () => void
   onBack: () => void
   onChanged: () => Promise<void>
   onError: (message: string) => void
@@ -51,6 +57,7 @@ export function TaskPage({
   onOpenTask?: (taskId: string) => void
 }): React.JSX.Element {
   const t = useT()
+  const locale = useLocale()
   // WHOSE detail this is, carried WITH it (UX28-01). A bare `TaskDetail` cannot
   // answer "is this the task on screen", so a response for A that arrived after
   // the operator moved to B rendered under B's address with total confidence.
@@ -190,11 +197,12 @@ export function TaskPage({
   const agentLabel = task.option_id ? runnerLabel(task.option_id, t) : t('launch.home.live.agent')
   return (
     <div className="lp" data-launch-view="launch-agent">
+      <ProjectStrip project={project} lastEventAt={lastEventAt} onPulse={onPulse} />
       <header className="lp-heading">
         <div>
           <p className="lp-kicker">{[project.name, t('launch.project.team'), agentLabel].join(' / ')}</p>
           <h2 tabIndex={-1}>{task.title ?? task.instruction}</h2>
-          <p>{task.id.slice(0, 8)} · {agentLabel}</p>
+          <p>{t('launch.agent.subtitle', { agent: agentLabel, date: new Date(task.started_at).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' }) })}</p>
         </div>
         <div className="lp-actions">
             {task.task_type === 'idea' && task.status === 'backlog' && (

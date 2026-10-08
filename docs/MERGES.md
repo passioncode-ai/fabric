@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-08 · `launch-chrome-ru` · agent/ui-ux-ru-20261008 → main
+- run: r-9a7a12bb5; base: origin/main 1190e261; integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: `launch/LaunchShell.tsx` (Profile, Discuss), `launch/FabricStrip.tsx` (new) on board, pulse, releases, plan, project, agent; `StackExposureNotice.tsx` (compact, copyable commands); `HarnessSection.tsx`, `shared/startupFailure.ts`, `main/menuTemplate.ts`, `main/menu.ts`, `main/index.ts` (pickers, dialog, menu reinstall) and 122 new registry keys, one retired (`diagnostics.exposure.remedy`), key for key in `en.ts` and `ru.ts`; layout fixes in `styles.css`, `components.css`, `start/start.css`; `docs/ux/screens.md#launch-chrome`, audit `docs/ux/audits/2026-10-08-launch-chrome-ru.md`, CO-225, `docs/brand/strings.md`
+- summary: every launch screen carries the prototype's frame and speaks Russian in a Russian window, and nothing is wider than the window at 1280 or 1440 px; the agent-history graph and a task number stay out (CO-225).
+
 ### 2026-10-08 · `hosted-ci-parser` · agent/contract-repin-20261008 → main
 - run: this session; base: origin/main; integration: same pull request as `contract-repin`, merged with `gh pr merge --rebase` after the local fast gate and a hosted fast run
 - scope: `scripts/test/build-unified-plan.test.mjs` (hosted NOT_RUN, local setup error), the unified-recompile handoff's checks, CO-224 resolved and the carry-over count in `docs/evidence/backlog.md`, living map

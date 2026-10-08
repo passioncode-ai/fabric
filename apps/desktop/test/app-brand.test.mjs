@@ -18,8 +18,12 @@ const chrome = {
   'productName': /^productName: (.+)$/m.exec(read('electron-builder.yml'))?.[1],
   'page title': /<title>([^<]*)<\/title>/.exec(read('src/renderer/index.html'))?.[1],
   'main window title': /mainWindow = new BrowserWindow\(\{[\s\S]*?title: '([^']+)'/.exec(read('src/main/index.ts'))?.[1],
+  // The menu's words live in the registry since 0.3.3 (`label: l('menu.…')`), so they are read there, in both locales.
   'menu labels': [...read('src/main/menuTemplate.ts').matchAll(/label: '([^']+)'/g)].map(m => m[1]).join(' | '),
+  'menu labels (en)': [...read('src/renderer/src/i18n/en.ts').matchAll(/^  'menu\.[a-zA-Z]+': "([^"]+)"/gm)].map(m => m[1]).join(' | '),
+  'menu labels (ru)': [...read('src/renderer/src/i18n/ru.ts').matchAll(/^  'menu\.[a-zA-Z]+': "([^"]+)"/gm)].map(m => m[1]).join(' | '),
 }
+assert.ok(chrome['menu labels (en)'].split(' | ').length >= 30 && chrome['menu labels (ru)'].split(' | ').length >= 30, 'the menu\u2019s registry labels were read: ' + chrome['menu labels (ru)'])
 assert.equal(chrome.productName, 'Fabric'); assert.equal(chrome['page title'], 'Fabric'); assert.equal(chrome['main window title'], 'Fabric')
 for (const [where, text] of Object.entries(chrome)) for (const w of wrong)
   assert.ok(!new RegExp(`(^|[^\\w.])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w.])`).test(text ?? ''), `${where} uses the wrong form "${w}": ${text}`)

@@ -12,18 +12,21 @@ import type { ReadEnvelope } from '../../../shared/readEnvelope'
 import type { FeedEvent, ProjectRow, TaskList, TaskRow } from '../../../shared/types'
 import { Feed } from '../Feed'
 import { useT } from '../i18n'
+import { FeedStrip } from './FabricStrip'
 
 export type PlanLevel = { at: 'portfolio' } | { at: 'project'; projectId: string } | { at: 'goal'; projectId: string; goalId: string | null }
 
 interface Node { key: string; kicker: string; title: string; sub: string; pill: string; attention: boolean; open?: () => void; openLabel?: string }
 
-export function PlanScreen({ projects, feed, feedMark, level: initial, onProject, onTask }: {
+export function PlanScreen({ projects, feed, feedMark, level: initial, onProject, onTask, onPulse }: {
   projects: ProjectRow[] | null
   feed: FeedEvent[] | null
   feedMark: number
   level: PlanLevel
   onProject: (projectId: string) => void
   onTask: (projectId: string, taskId: string) => void
+  /** Pulse for the level on screen: the project's own, or every project's. */
+  onPulse?: (projectId: string | null) => void
 }): React.JSX.Element {
   const t = useT()
   const [level, setLevel] = useState<PlanLevel>(initial)
@@ -97,8 +100,10 @@ export function PlanScreen({ projects, feed, feedMark, level: initial, onProject
   ]
   const caption = level.at === 'portfolio' ? t('launch.plan.captionPortfolio') : level.at === 'project' ? t('launch.plan.captionProject') : t('launch.plan.captionGoal')
 
+  const stripProject = level.at === 'portfolio' ? null : (projects ?? []).find((p) => p.id === level.projectId) ?? null
   return (
     <div className="lp" data-launch-view="launch-plan">
+      <FeedStrip feed={feed} projectId={stripProject?.id ?? null} projectName={stripProject?.name ?? null} onPulse={onPulse ? () => onPulse(stripProject?.id ?? null) : undefined} />
       <header className="lp-heading">
         <div>
           <p className="lp-kicker">{t('launch.plan.kicker')}</p>

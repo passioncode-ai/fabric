@@ -18,8 +18,14 @@ describe('the stack exposure warning', () => {
   it('names the interfaces and ports that answered, and the remedy without markup', async () => {
     mount({ checkedAt: '2026-10-06T00:00:00Z', ports: [54321, 54322], exposed: [{ iface: 'en0', port: 54321 }, { iface: 'en0', port: 54322 }] })
     expect(await screen.findByText(en['diagnostics.exposure.title'])).toBeTruthy()
-    expect(screen.getByText(/answers on en0 \(54321, 54322\)/)).toBeTruthy()
-    expect(screen.getByText(/orbctl config set docker\.expose_ports_to_lan false/).textContent).not.toContain('`')
+    expect(screen.getByText(/Ports 54321, 54322 answer on en0/)).toBeTruthy()
+    // The remedy is a command set as code with a copy button beside it, never prose with markup in it.
+    const command = screen.getByText('orbctl config set docker.expose_ports_to_lan false')
+    expect(command.tagName).toBe('CODE')
+    expect(screen.getByText('"ip": "127.0.0.1"').tagName).toBe('CODE')
+    expect(screen.getAllByRole('button', { name: en['first.exec.copy'] })).toHaveLength(2)
+    // Why Fabric cannot fix it itself is one click away, not a paragraph above every screen.
+    expect(screen.getByText(en['diagnostics.exposure.why']).closest('details')?.open).toBe(false)
   })
 
   it('is absent when nothing answered, and before any check has finished', async () => {
