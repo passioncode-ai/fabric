@@ -2,7 +2,7 @@
 // #region usage-analytics — docs: docs/ANALYTICS.md#what-is-sent
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
@@ -23,8 +23,14 @@ const timers = () => {
   return { pending, setTimer: (fn, ms) => { const t = { fn, ms }; pending.push(t); return t }, clearTimer: (t) => { const i = pending.indexOf(t); if (i >= 0) pending.splice(i, 1) },
     run: async () => { const t = pending.shift(); t.fn(); await new Promise(r => setImmediate(r)) } }
 }
+// The person has seen the disclosure (A7-012) unless a test says otherwise; a build without a key writes no state.
+const DISCLOSED = '2026-10-01T00:00:00.000Z'
 const make = (d, over = {}) => {
   const s = over.server ?? server(), t = over.timers ?? timers(), logs = []
+  const stateFile = path.join(d, 'fabric', 'analytics-state.json')
+  if (over.disclosed !== false && over.deps?.appKey !== null && !existsSync(stateFile)) {
+    mkdirSync(path.dirname(stateFile), { recursive: true }); writeFileSync(stateFile, JSON.stringify({ disclosed_at: DISCLOSED }))
+  }
   const a = createAnalytics({ appKey: KEY, appVersion: '0.3.2', osName: 'macOS', installationFile: path.join(d, 'PassionCode', 'installation.json'),
     stateFile: path.join(d, 'fabric', 'analytics-state.json'), fetch: s.fetch, setTimer: t.setTimer, clearTimer: t.clearTimer, log: l => logs.push(l), ...over.deps })
   return { a, s, t, logs }
@@ -175,6 +181,63 @@ test('app_installed once per app (first PassionCode app said), app_started each 
   await again.t.run()
   assert.deepEqual(s.calls[1].events.map(e => e.eventName), ['app_started', 'app_active'])
   assert.equal(s.calls[1].events[1].props.projects, 3)
+  rmSync(d, { recursive: true, force: true })
+})
+test('A7-012: nothing is queued or sent before the disclosure, and the person\'s answer is what discloses', async () => {
+  const d = dir()
+  const { a, s, t } = make(d, { disclosed: false })
+  assert.equal(a.availability(), 'pending-disclosure')
+  a.started('background', { projects: 2 }); a.activeTick({ projects: 2 }); a.track('project_added', { projects: 3 })
+  await a.flush(); while (t.pending.length) await t.run()
+  assert.equal(a.pending(), 0); assert.equal(s.calls.length, 0, 'an event left before the disclosure')
+  assert.equal(a.setEnabled(true), 'on')
+  while (t.pending.length) await t.run()
+  assert.deepEqual(s.calls.flatMap(c => c.events.map(e => e.eventName)), ['app_installed', 'app_started'])
+  assert.equal(s.calls[0].events[1].props.launch, 'background', 'the start that waited is the one reported')
+  assert.equal(s.calls[0].events[0].props.first_passioncode_app, true)
+  const state = JSON.parse(readFileSync(path.join(d, 'fabric', 'analytics-state.json'), 'utf8'))
+  assert.match(state.disclosed_at, /^\d{4}-\d{2}-\d{2}T/)
+  const next = make(d, { disclosed: false })
+  assert.equal(next.a.availability(), 'on', 'the disclosure is shown once')
+  rmSync(d, { recursive: true, force: true })
+})
+
+test('A7-012: turning counts off at the disclosure sends nothing, ever, and the notice does not come back', async () => {
+  const d = dir()
+  const { a, s, t } = make(d, { disclosed: false })
+  a.started('ordinary', { projects: 1 })
+  assert.equal(a.setEnabled(false), 'off')
+  while (t.pending.length) await t.run()
+  assert.equal(s.calls.length, 0)
+  assert.equal(JSON.parse(readFileSync(path.join(d, 'PassionCode', 'installation.json'), 'utf8')).analytics, false)
+  const next = make(d, { disclosed: false })
+  assert.equal(next.a.availability(), 'off', 'off, not pending: the person already answered')
+  next.a.started('ordinary', { projects: 1 }); await next.a.flush()
+  assert.equal(next.s.calls.length, 0)
+  rmSync(d, { recursive: true, force: true })
+})
+
+test('A7-012: an install from 0.3.2 sees the disclosure once and is not counted as a new install', async () => {
+  const d = dir(), stateFile = path.join(d, 'fabric', 'analytics-state.json')
+  mkdirSync(path.dirname(stateFile), { recursive: true }); writeFileSync(stateFile, JSON.stringify({ installed_at: '2026-10-07T09:00:00.000Z' }))
+  const { a, s, t } = make(d, { disclosed: false })
+  assert.equal(a.availability(), 'pending-disclosure')
+  a.started('ordinary', { projects: 4 })
+  assert.equal(s.calls.length, 0)
+  assert.equal(a.setEnabled(true), 'on')
+  while (t.pending.length) await t.run()
+  assert.deepEqual(s.calls.flatMap(c => c.events.map(e => e.eventName)), ['app_started'])
+  assert.equal(JSON.parse(readFileSync(stateFile, 'utf8')).installed_at, '2026-10-07T09:00:00.000Z', 'the first install date is kept')
+  rmSync(d, { recursive: true, force: true })
+})
+
+test('A7-012: a state file that cannot be read asks again rather than sending', async () => {
+  const d = dir(), stateFile = path.join(d, 'fabric', 'analytics-state.json')
+  mkdirSync(path.dirname(stateFile), { recursive: true }); writeFileSync(stateFile, '{not json')
+  const { a, s } = make(d, { disclosed: false })
+  assert.equal(a.availability(), 'pending-disclosure')
+  a.started('ordinary', {}); await a.flush()
+  assert.equal(s.calls.length, 0)
   rmSync(d, { recursive: true, force: true })
 })
 // #endregion usage-analytics

@@ -440,6 +440,9 @@ const BACKGROUND_LAUNCH = process.argv.includes('--background')
 declare const __FABRIC_ANALYTICS_APP_KEY__: string
 const ANALYTICS_APP_KEY: string | null = (typeof __FABRIC_ANALYTICS_APP_KEY__ === 'string' && __FABRIC_ANALYTICS_APP_KEY__) || null
 let analytics: Analytics | null = null
+// The counts `app_active` carries; set by the analytics wiring so the switch's IPC can send today's count once the
+// person answers the first-run disclosure (A7-012), instead of an hour later.
+let analyticsCounts: (() => Promise<Record<string, number>>) | null = null
 /** Set once startup has registered everything a window needs; an activation before that waits for it. */
 let windowReady = false
 let activatedDuringStartup = false
@@ -750,6 +753,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // An unreadable count is absent, never a zero (an unknown stays unknown).
     return Object.fromEntries(Object.entries({ projects, products_connected: products, agents_with_access: agents }).filter(([, v]) => v !== null)) as Record<string, number>
   }
+  analyticsCounts = usageCounts
+  // Held by `analytics.ts` until the person answers the disclosure (A7-012): nothing leaves before that.
   void usageCounts().then((c) => analytics?.started(BACKGROUND_LAUNCH ? 'background' : 'ordinary', c))
   // One `app_active` per UTC day while Fabric runs; the hourly check also notices another app's switch.
   const activeTimer = setInterval(() => {
@@ -3175,7 +3180,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     ({ availability: analytics ? analytics.refresh() : (ANALYTICS_APP_KEY ? 'unavailable-file' : 'unavailable-no-key') }))
   handle(IPC.analyticsSetEnabled, async (_e, enabled: unknown): Promise<Returns<FabricApi['analytics']['setEnabled']>> => {
     if (typeof enabled !== 'boolean') throw new Error('analytics: the switch takes true or false')
-    return { availability: analytics ? analytics.setEnabled(enabled) : (ANALYTICS_APP_KEY ? 'unavailable-file' : 'unavailable-no-key') }
+    const availability = analytics ? analytics.setEnabled(enabled) : (ANALYTICS_APP_KEY ? 'unavailable-file' : 'unavailable-no-key')
+    // The first answer to the disclosure also releases today's `app_active`, which was held with everything else.
+    if (availability === 'on' && analyticsCounts) void analyticsCounts().then((c) => analytics?.activeTick(c))
+    return { availability }
   })
   // #endregion usage-analytics-ipc
 

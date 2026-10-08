@@ -10,6 +10,10 @@
  *   v4, is never repaired: analytics stays off (fail closed). Unknown fields are kept on rewrite.
  * - **One switch:** `"analytics": false` in that file turns analytics off for every PassionCode app; turning
  *   it off here also drops whatever is waiting.
+ * - **Nothing before the disclosure (A7-012, ADR-0127):** until the person has answered the switch once — the
+ *   first-run notice or Settings, both showing what is counted — no event is queued or sent, `app_installed`
+ *   included. The answer is kept per app as `disclosed_at` in this app's own state file: another PassionCode
+ *   app's disclosure does not disclose Fabric. A start that happened before the answer is reported after it.
  * - **Delivery never blocks Fabric:** batches of at most 25 to `POST /api/v0/events` (ingestion contract,
  *   ssheleg/sshlg-analytics docs/client-contract.md); transport errors, 429 and 5xx keep the batch and retry
  *   after 60 s, then 10 min; 400 and 404 drop it. At most 200 events wait, in memory only; an event older
@@ -126,7 +130,7 @@ export function environmentFor(version: string, packaged: boolean): 'production'
   return packaged && !/^\d+\.\d+\.\d+-/.test(version) ? 'production' : 'sandbox'
 }
 
-export interface AnalyticsState { installed_at?: string; last_active_day?: string }
+export interface AnalyticsState { installed_at?: string; last_active_day?: string; disclosed_at?: string }
 export type FetchLike = (url: string, init: { method: string; headers: Record<string, string>; body: string; signal?: AbortSignal }) => Promise<{ status: number }>
 
 export interface AnalyticsDeps {
@@ -147,7 +151,8 @@ export interface AnalyticsDeps {
   log?: (line: Record<string, unknown>) => void
 }
 
-export type AnalyticsAvailability = 'on' | 'off' | 'unavailable-no-key' | 'unavailable-file'
+/** `pending-disclosure`: on, but the person has not yet seen and answered the switch, so nothing is sent (A7-012). */
+export type AnalyticsAvailability = 'on' | 'off' | 'pending-disclosure' | 'unavailable-no-key' | 'unavailable-file'
 
 export function createAnalytics(deps: AnalyticsDeps) {
   const now = deps.now ?? (() => new Date())
@@ -165,12 +170,16 @@ export function createAnalytics(deps: AnalyticsDeps) {
   let timer: unknown = null
   let flushing = false
 
-  const availability = (): AnalyticsAvailability =>
-    !deps.appKey ? 'unavailable-no-key' : !installation ? 'unavailable-file' : installation.analytics ? 'on' : 'off'
-
   const readState = (): AnalyticsState => {
-    try { const v = JSON.parse(readFileSync(deps.stateFile, 'utf8')); return v && typeof v === 'object' ? v : {} } catch { /* no state yet, or unreadable: start fresh; the worst case is a repeated once-only event */ return {} }
+    try { const v = JSON.parse(readFileSync(deps.stateFile, 'utf8')); return v && typeof v === 'object' ? v : {} } catch { /* no state yet, or unreadable: start fresh; the worst case is a repeated once-only event, or the disclosure asked again */ return {} }
   }
+  // A state file that cannot be read asks again rather than sending: the worst case is one more notice.
+  let disclosed = typeof readState().disclosed_at === 'string'
+  // The start of this session, held until the person answers the disclosure (A7-012).
+  let deferredStart: { launch: 'ordinary' | 'background'; counts: Record<string, number> } | null = null
+
+  const availability = (): AnalyticsAvailability =>
+    !deps.appKey ? 'unavailable-no-key' : !installation ? 'unavailable-file' : !installation.analytics ? 'off' : disclosed ? 'on' : 'pending-disclosure'
   const writeState = (s: AnalyticsState): void => {
     try {
       mkdirSync(path.dirname(deps.stateFile), { recursive: true })
@@ -234,21 +243,24 @@ export function createAnalytics(deps: AnalyticsDeps) {
     } finally { flushing = false }
   }
 
+  /** First start and every start; `counts` are the app's own numbers for the `app_installed` event. */
+  const started = (launch: 'ordinary' | 'background', counts: Record<string, number>): void => {
+    if (availability() === 'pending-disclosure') { deferredStart = { launch, counts }; return }
+    if (availability() !== 'on') return
+    const state = readState()
+    if (!state.installed_at) {
+      track('app_installed', { ...counts, first_passioncode_app: firstPassionCodeApp })
+      writeState({ ...state, installed_at: now().toISOString() })
+    }
+    track('app_started', { launch })
+  }
+
   return {
     availability,
     installId: (): string | null => installation?.id ?? null,
     track,
     flush,
-    /** First start and every start; `counts` are the app's own numbers for the `app_installed` event. */
-    started(launch: 'ordinary' | 'background', counts: Record<string, number>): void {
-      if (availability() !== 'on') return
-      const state = readState()
-      if (!state.installed_at) {
-        track('app_installed', { ...counts, first_passioncode_app: firstPassionCodeApp })
-        writeState({ ...state, installed_at: now().toISOString() })
-      }
-      track('app_started', { launch })
-    },
+    started,
     /** Called on a timer: one `app_active` per UTC day while Fabric runs, window open or not. */
     activeTick(counts: Record<string, number>): void {
       if (availability() !== 'on') return
@@ -258,12 +270,18 @@ export function createAnalytics(deps: AnalyticsDeps) {
       track('app_active', counts)
       writeState({ ...state, last_active_day: day })
     },
-    /** The shared switch. Off drops whatever is waiting; on takes effect for the next event. */
+    /**
+     * The shared switch, and the person's answer to the disclosure: both the first-run notice and Settings show
+     * what is counted before the person can use it, so either one records `disclosed_at`. Off drops whatever is
+     * waiting; on takes effect for the next event, and a start held for the answer is reported now.
+     */
     setEnabled(enabled: boolean): AnalyticsAvailability {
       if (!installation) return availability()
       if (!writeAnalyticsSwitch(deps.installationFile, enabled)) return availability()
       installation = { ...installation, analytics: enabled }
-      if (!enabled) queue = []
+      if (!disclosed) { writeState({ ...readState(), disclosed_at: now().toISOString() }); disclosed = true }
+      if (!enabled) { queue = []; deferredStart = null }
+      else if (deferredStart) { const held = deferredStart; deferredStart = null; started(held.launch, held.counts) }
       return availability()
     },
     /** Re-read the shared file: another PassionCode app may have turned the switch. */

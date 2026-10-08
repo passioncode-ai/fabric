@@ -28,6 +28,17 @@ describe('UsageCountsSetting', () => {
     await waitFor(() => expect(box.checked).toBe(false))
   })
 
+  it('not yet answered (A7-012): shown on and usable — answering it here is the disclosure', async () => {
+    const setEnabled = vi.fn(async (enabled: boolean) => ({ availability: enabled ? 'on' : 'off' }))
+    mount({ status: async () => ({ availability: 'pending-disclosure' }), setEnabled })
+    const box = await screen.findByRole('checkbox', { name: en['analytics.label'] }) as HTMLInputElement
+    await waitFor(() => expect(box.checked).toBe(true))
+    expect(box.disabled).toBe(false)
+    expect(screen.getByText(en['analytics.note'])).toBeTruthy()
+    fireEvent.click(box)
+    await waitFor(() => expect(setEnabled).toHaveBeenCalledWith(false))
+  })
+
   it('a build without the App Key cannot share, and says so', async () => {
     mount({ status: async () => ({ availability: 'unavailable-no-key' }), setEnabled: vi.fn() })
     await screen.findByText(en['analytics.noKey'])

@@ -33,6 +33,7 @@ import { CeoChat } from './CeoChat'
 import { PrivateHistoryPanel } from './PrivateHistoryPanel'
 import { AgentAccessPanel } from './AgentAccessPanel'
 import { UsageCountsSetting } from './UsageCountsSetting'
+import { UsageCountsNotice } from './UsageCountsNotice'
 import { FallbackOrderSetting } from './FallbackOrderSetting'
 import { BoardPanel } from './BoardPanel'
 import { SearchPanel } from './SearchPanel'
@@ -666,6 +667,9 @@ function Shell({
           }}
         />
       )}
+
+      {/* A7-012: no usage count leaves until this is answered (or the switch in Settings is). */}
+      <UsageCountsNotice />
 
       {error && (
         <Banner
