@@ -830,7 +830,8 @@ export type CeoChatReply =
 
 export interface HistoryExport { name: string }
 export interface HistoryArchiveSummary { token: string; taken_at: string; events: number; companion: { conversations: number; messages: number; mine: boolean } | null }
-export interface AnalyticsStatus { availability: 'on' | 'off' | 'unavailable-no-key' | 'unavailable-file' }
+/** `pending-disclosure`: on, but nothing is sent until the person answers the switch once (A7-012, ADR-0127). */
+export interface AnalyticsStatus { availability: 'on' | 'off' | 'pending-disclosure' | 'unavailable-no-key' | 'unavailable-file' }
 export interface HistoryRestored { operation_id: string; target_estate_id: string; history_restored: true; access_verified: true; private_history: boolean; opened: false }
 export type HistoryReply<T> = ({ ok: true } & T) | { ok: false; state: 'refused' | 'result_unknown'; reason_code: string; operation_id?: string }
 
@@ -1166,8 +1167,8 @@ export interface FabricApi {
     disconnect(product: string): Promise<HubActResult>
   }
   /**
-   * Anonymous usage counts (docs/ANALYTICS.md): whether they are sent, and the one switch every PassionCode app
-   * shares. `unavailable-no-key`: a build that sends nothing (not a release build). `unavailable-file`: the
+   * Usage counts (docs/ANALYTICS.md): whether they are sent, and the one switch every PassionCode app
+   * shares; setting it is also the person's answer to the first-run disclosure (A7-012). `unavailable-no-key`: a build that sends nothing (not a release build). `unavailable-file`: the
    * shared installation file could not be read, so nothing is sent and the switch cannot be written.
    */
   analytics: {

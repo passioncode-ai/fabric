@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-08 · `analytics-disclosure` · agent/analytics-disclosure-20261008 → main
+- run: this session; base: origin/main; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
+- scope: `apps/desktop/src/main/analytics.ts` + `index.ts` (analytics IPC), `UsageCountsNotice.tsx` (new) + `UsageCountsSetting.tsx` + `App.tsx`, shared `AnalyticsStatus`, EN/RU strings, tests, ADR-0127, ANALYTICS.md, SCN-134, CO-215, P-09, the A7-012 handoff, living map
+- summary: A7-012 resolved on the operator's decision — usage counts stay on by default, but nothing is queued or sent until the person has answered the switch once.
+
 ### 2026-10-08 · `contract-repin-623bf61` · agent/contract-repin-623bf61 → main
 - run: this session; base: origin/main; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
 - scope: `apps/desktop/test/fixtures/fabric-agent-contract` (SOURCE.json, current/catalogue.json), `contract-consumer-fixtures.mjs` CURRENT_COMMIT, CO-223 and CO-224 rows, living map

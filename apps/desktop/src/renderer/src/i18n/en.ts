@@ -817,6 +817,10 @@ export const en = {
   'analytics.noKey': 'This build sends nothing: only release builds share usage counts.',
   'analytics.noFile': 'Usage counts are off: the shared PassionCode file could not be read, so nothing is sent.',
   'analytics.unreadable': 'Whether usage counts are shared could not be read.',
+  'analytics.notice.title': 'Fabric shares usage counts',
+  'analytics.notice.nothingYet': 'Nothing has been sent yet. Your choice is the switch every PassionCode app on this Mac reads; you can change it later in Settings.',
+  'analytics.notice.continue': 'Continue',
+  'analytics.notice.failed': 'Your choice could not be saved, so nothing is sent. Try again, or open Settings.',
   'power.note':
     'Stops the machine suspending; the screen still sleeps as usual. With the lid closed on battery macOS sleeps anyway.',
 
