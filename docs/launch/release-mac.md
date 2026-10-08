@@ -40,7 +40,7 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `Exit for iteration N: … Blocking findings open: none.`, and unless the ledger's title names exactly the
    version it clears — each release has its own ledger; 0.3.0's is
    [`2026-10-03-verification.md`](../evidence/plans/2026-10-03-verification.md), 0.3.1's (the hub) is
-   [`2026-10-04-hub-verification.md`](../evidence/plans/2026-10-04-hub-verification.md), and 0.3.2's is [`2026-10-06-release-032-verification.md`](../evidence/plans/2026-10-06-release-032-verification.md), and the bump to
+   [`2026-10-04-hub-verification.md`](../evidence/plans/2026-10-04-hub-verification.md), 0.3.2's is [`2026-10-06-release-032-verification.md`](../evidence/plans/2026-10-06-release-032-verification.md), and 0.3.3's is [`2026-10-08-release-033-verification.md`](../evidence/plans/2026-10-08-release-033-verification.md), and the bump to
    0.3.1 points the gate at it (`scripts/lib/release-gate.mjs`, tested by
    `scripts/test/release-gate.test.mjs`).
    Preflight also requires exactly one nonempty finalized `## X.Y.Z` changelog entry.

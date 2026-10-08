@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-08 · `release-0.3.3-candidate` · agent/release-033-candidate → main
+- run: r-9a7a12bb5; base: origin/main 710c0d38; integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: `CHANGELOG.md` §0.3.3 (unreleased), plan row P-14 and P-12 moved after 0.3.3 (decision D4), the 0.3.3 ledger `docs/evidence/plans/2026-10-08-release-033-verification.md`, the release runbook's ledger list
+- summary: the onboarding release goes into its three verification iterations; no version bump until iteration 3 closes.
+
 ### 2026-10-08 · `onboarding-four-actions` · agent/onboarding-four-actions-20261008 → main
 - run: r-9a7a12bb5; integration: fast-forward after `bash scripts/ci.sh fast`
 - scope: `start/AgentPaths.tsx` (new: Create an agent, Adapt an existing agent), `start/startParts.tsx` (new: shared start pieces), `start/StartPaths.tsx` (the menu in two pairs; the role agent left the menu), `start/start.css`, `main/adapterSkills.ts` + IPC `start.adapterSkills`, `shared/builderChoice.ts`, the seeded estate name shown as «My workspace»; tests; SCN-126/127/128/130/131/136, FLW-73/74, SCR-70/74/75, the prototype's start views, strings, brief `docs/evidence/plans/2026-10-08-onboarding-four-actions.md`

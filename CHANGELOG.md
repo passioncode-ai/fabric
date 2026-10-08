@@ -6,6 +6,40 @@ that section as the notes of the `vX.Y.Z` release
 ([docs/launch/release-mac.md](docs/launch/release-mac.md), [ADR-0111](docs/adr/0111-fabric-is-released-from-ci.md)).
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
+## 0.3.3 (unreleased)
+
+Fabric becomes the way into PassionCode.ai: the first screen offers four actions, and the work behind the two agent
+actions happens in the console of a coding agent you already use, not in a chat of Fabric's own
+([ADR-0123](docs/adr/0123-the-conversation-is-the-runtimes-console-and-the-ceo-is-a-session.md)). No schema change:
+a database at schema 79 opens as it is.
+
+- **Four actions to start.** The first run and **+ Project** offer two pairs. *Agent:* create a new one, or adapt
+  one you built elsewhere. *Project:* open one (one folder, or a folder of them), or create one.
+- **Create an agent.** A name, one sentence on what it will do, where its folder goes and which coding agent
+  builds it. Fabric creates the folder as a git repository and a project for it, then opens the coding agent's
+  console with the `creating-fabric-agents` skill; the agent asks the rest there, one question at a time.
+- **Adapt an existing agent.** Choose its folder: Fabric reads it without running anything and opens the coding
+  agent's console with the `adapting-projects-to-fabric` skill. The agent shows its plan and waits for your yes,
+  commits the folder as it is if it is not yet a repository, and works on a new branch `fabric-adapter`; the
+  conformance report says what passed.
+- **The Fabric Agent Adapter skills are checked before either starts** — where the chosen coding agent reads
+  them, with the version — and when they are missing, the one command that installs them is shown to copy.
+  Fabric installs nothing itself.
+- **A retry is the same attempt.** A launch that fails after the folder or the project was made continues with
+  the same folder, project and task; *Start over* is the only way to another name or place.
+- **A scanned project arrives with what its repository says it is** (the manifest's description, else the
+  README's first paragraph) as its purpose; a repository that says nothing gets none.
+- **"Set up this project with the agent"**, the first shortcut on a project's task panel and the scan's next
+  step: the agent reads the repository, records what it learns with the file each fact came from, asks you to
+  confirm a one-sentence purpose and files the next three pieces of work. It changes no file.
+- **Fallback order** (Settings): a list of coding agents a launch may walk, each with whether to start a new
+  session or use an open one ([ADR-0125](docs/adr/0125-an-agent-launch-may-follow-the-operators-fallback-order.md)).
+- **Usage counts wait for your answer.** They stay on by default, but a release build sends nothing, the install
+  included, until you have answered the switch once, on a first-run notice or in Settings
+  ([ADR-0127](docs/adr/0127-no-usage-count-leaves-before-the-person-has-answered-the-switch.md), [docs/ANALYTICS.md](docs/ANALYTICS.md)).
+- **The launch screens follow the prototype and speak Russian** throughout when the app is in Russian; nothing is
+  wider than the window.
+
 ## 0.3.2
 
 A release built from a full audit of the 0.3.2 candidate (`e19e1b9e`, 0.3.1 plus the work merged after it): all 134 scenarios against their screens and code,
