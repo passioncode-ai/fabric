@@ -211,3 +211,23 @@ export function groupCandidates<T extends Candidate>(candidates: readonly T[]): 
     .sort((a, b) => newest(b.items).localeCompare(newest(a.items)) || a.group.localeCompare(b.group))
 }
 // #endregion start-paths
+
+/** The Fabric Agent Adapter skills an agent action needs (SCN-131, SCN-136; `main/adapterSkills.ts` finds them). */
+export const ADAPTER_SKILLS = ['creating-fabric-agents', 'adapting-projects-to-fabric'] as const
+export type AdapterSkill = (typeof ADAPTER_SKILLS)[number]
+
+export interface AdapterSkillsView {
+  /** Both skills found where this agent reads them (its plugin or its own folder). */
+  ready: boolean
+  /** Where they were found: Claude Code's plugin, the agent's own folder, only the shared folder, or nowhere. */
+  where: 'plugin' | 'agent-folder' | 'shared' | 'none'
+  /** The skill set's version, when the plugin record or a skill's metadata names one. */
+  version: string | null
+  /** Which of the two skills were found, wherever `where` says. */
+  found: Record<AdapterSkill, boolean>
+  /** Always present: shown when `ready` is false, copyable, never run by Fabric. */
+  command: string
+  /** Whether `command` installs the skills where THIS agent reads them; false for an agent the launcher has no
+   *  channel for (Cline, Kimi Code), so the screen does not promise what the command cannot do. */
+  launcherCovers: boolean
+}

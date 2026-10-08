@@ -75,6 +75,9 @@ export { EMPTY_DRAFT }
 const draftIsDirty = (d: Draft): boolean =>
   d.name.trim() !== '' || d.purpose.trim() !== '' || d.repoPaths.length > 0
 
+/** The default estate's name as `supabase/seed.sql` writes it. */
+const SEED_ESTATE_NAME = 'org #1'
+
 export function App(): React.JSX.Element {
   const [settings, setSettings] = useState<AppSettings | null>(null)
 
@@ -618,7 +621,9 @@ function Shell({
           onClose: () => closeTab(tab)
         }))}
         actions={[]}
-        trailing={estateName}
+        // The seed's technical name for the default estate (`supabase/seed.sql`) reads as a question on a fresh
+        // install; it is shown as the same words the breadcrumb uses. A name the operator gave is shown as given.
+        trailing={estateName === SEED_ESTATE_NAME ? t('launch.workspace') : estateName}
       />
 
       <LaunchShell

@@ -4,11 +4,14 @@
 // refused, failed, done — and nothing created without the operator's explicit act. The first run
 // (`FirstRun.tsx`) ends on the same menu, so the two never disagree about what the paths are.
 
-import { humaniseError } from '../../../shared/errorText'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { groupCandidates, type CandidateView, type FolderView, type ScanView } from '../../../shared/startPaths.ts'
 import type { ProjectRow } from '../../../shared/types'
 import { useLocale, useT, type Translate } from '../i18n'
+import { CopyButton, FolderFactsList, Heading, errorText, explainError, shortDate } from './startParts'
+import { ConvertAgent, CreateAgent } from './AgentPaths'
+
+export { CopyButton, errorText, explainError }
 
 export type StartPath = 'menu' | 'add' | 'scan' | 'new' | 'agent' | 'convert'
 
@@ -26,28 +29,6 @@ export interface StartProps {
   onProjectsChanged(): void
 }
 
-/**
- * An error as the operator reads it: the transport's wrapping removed by the app's one rule
- * (`shared/errorText.ts`, M106c), so the sentence that remains is the main process's own.
- */
-export const errorText = (e: unknown): string => humaniseError(e).detail
-
-/**
- * An error, with the refusals main sends as codes said in this window's language: a repository path the
- * window did not choose (`repo-path-refused:<code>: <path>`, startChoices.ts) reads as a sentence.
- */
-export function explainError(e: unknown, t: Translate): string {
-  const text = errorText(e)
-  const repo = /(?:^|: )repo-path-refused:(not-a-path|missing|not-a-folder|not-chosen|too-broad|held-by-other): ([\s\S]*)$/.exec(text)
-  if (repo) return t(`start.repoRefused.${repo[1]}` as 'start.repoRefused.not-chosen', { path: repo[2] })
-  const folder = /(?:^|: )folder-refused:(missing|not-a-folder|unreadable|timeout|outside): ([\s\S]*)$/.exec(text)
-  if (folder) return t(`start.folderRefused.${folder[1]}` as 'start.folderRefused.missing', { path: folder[2] })
-  const name = /(?:^|: )project-name-refused:(not-a-name|empty|text-direction|control)\b/.exec(text)
-  if (name) return t(`start.projectNameRefused.${name[1]}` as 'start.projectNameRefused.empty')
-  const agent = /(?:^|: )agent-name-refused:taken: ([\s\S]*)$/.exec(text)
-  if (agent) return t('agents.nameTaken', { name: agent[1] })
-  return text
-}
 
 /** A candidate's path as the checklist shows it: relative to the scanned folder, which the summary already names. */
 export function shownPath(path: string, root: string): string {
@@ -55,12 +36,6 @@ export function shownPath(path: string, root: string): string {
 }
 const newId = (): string => crypto.randomUUID()
 
-/** A commit time as the operator reads it: a date in their locale, never a raw ISO string. */
-export function shortDate(iso: string | null | undefined, locale: string): string {
-  if (!iso) return ''
-  const d = new Date(iso)
-  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString(locale === 'ru' ? 'ru-RU' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-}
 
 export function StartScreen(props: StartProps): React.JSX.Element {
   switch (props.path) {
@@ -74,71 +49,58 @@ export function StartScreen(props: StartProps): React.JSX.Element {
       // Routed to the draft-backed form by the shell; reaching here means a caller skipped that.
       return <StartMenu onPath={props.onPath} onHome={props.onHome} />
     case 'agent':
-      return <NewAgent {...props} />
+      return <CreateAgent onBack={() => props.onPath('menu')} onStarted={props.onCreated} />
     case 'convert':
-      return <ConvertAgent onBack={() => props.onPath('menu')} />
+      return <ConvertAgent onBack={() => props.onPath('menu')} onStarted={props.onCreated} />
   }
 }
 
-function Heading({ kicker, title, lede, back }: { kicker: string; title: string; lede: string; back?: { label: string; onClick: () => void; disabled?: boolean } }): React.JSX.Element {
-  // Each path mounts its own heading, and focus lands on it: a keyboard or screen-reader user hears
-  // where they arrived instead of staying on a button that is gone (iteration 2: focus stayed on BODY).
-  const ref = useRef<HTMLHeadingElement>(null)
-  useEffect(() => { ref.current?.focus() }, [])
-  return (
-    <header className="lp-heading">
-      <div>
-        <p className="lp-kicker">{kicker}</p>
-        <h2 tabIndex={-1} ref={ref}>{title}</h2>
-        <p>{lede}</p>
-      </div>
-      {back && <div className="lp-actions"><button type="button" className="lp-button" disabled={back.disabled} onClick={back.onClick}>{back.label}</button></div>}
-    </header>
-  )
-}
 
-/** Copy a command; says Copied only when the clipboard took it. */
-export function CopyButton({ text }: { text: string }): React.JSX.Element {
-  const t = useT()
-  // A copy that fails says so: the command stays selectable on screen (iteration 2: a refused clipboard was silent).
-  const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
-  return (
-    <button type="button" className="lp-button" onClick={() => { void navigator.clipboard.writeText(text).then(() => setState('copied'), () => setState('failed')) }}>
-      {state === 'copied' ? t('first.exec.copied') : state === 'failed' ? t('first.exec.copyFailed') : t('first.exec.copy')}
-    </button>
-  )
-}
 
 // ── The menu ────────────────────────────────────────────────────────────────
 
-const PATHS: { path: Exclude<StartPath, 'menu'>; planned?: boolean }[] = [
-  { path: 'add' },
-  { path: 'scan' },
-  { path: 'new' },
-  { path: 'agent' },
-  { path: 'convert', planned: true }
-]
-
+/** The four actions of the onboarding in two pairs (0.3.3, REQ-01): an agent — create one, or turn one built
+ *  elsewhere into an ecosystem agent; a project — open one (a folder, or a folder of repositories), or create one.
+ *  Sections with their own buttons rather than card-buttons, because "Open a project" offers two ways in. */
 export function StartCards({ onPath, lastScan }: { onPath(path: StartPath): void; lastScan?: ScanView | null }): React.JSX.Element {
   const t = useT()
   // Products not yet added — a worktree or nested repository is a part, not something the menu should keep asking about.
   const pending = lastScan ? lastScan.candidates.filter((c) => c.importedBy.length === 0 && c.path === c.group).length : 0
+  const card = (id: string, mark: string, actions: React.ReactNode) => (
+    <li>
+      <section className="st-card" aria-labelledby={`st-card-${id}`}>
+        <span className="st-card-mark" aria-hidden="true">{mark}</span>
+        <b id={`st-card-${id}`}>{t(`start.card.${id}.title` as 'start.card.agent.title')}</b>
+        <span>{t(`start.card.${id}.body` as 'start.card.agent.body')}</span>
+        <div className="lp-actions">{actions}</div>
+      </section>
+    </li>
+  )
+  const go = (path: StartPath, label: string, primary = false) => (
+    <button type="button" className={primary ? 'lp-button primary' : 'lp-button'} onClick={() => onPath(path)}>{label}</button>
+  )
   return (
-    <ul className="st-cards">
-      {PATHS.map(({ path, planned }) => (
-        <li key={path} className={planned ? 'st-later' : undefined}>
-        <button type="button" className={planned ? 'st-card planned' : 'st-card'} onClick={() => onPath(path)}>
-          <span className="st-card-mark" aria-hidden="true">{t(`start.card.${path}.mark` as 'start.card.add.mark')}</span>
-          <b>{t(`start.card.${path}.title` as 'start.card.add.title')}</b>
-          <span>{t(`start.card.${path}.body` as 'start.card.add.body')}</span>
-          <small>
-            {planned ? <span className="lp-pill">{t('start.planned')}</span> : t(`start.card.${path}.meta` as 'start.card.add.meta')}
-            {path === 'scan' && pending > 0 && <> · {t('start.card.scan.pending', { count: pending })}</>}
-          </small>
-        </button>
-        </li>
-      ))}
-    </ul>
+    <div className="st-pairs">
+      <section className="st-pair" aria-labelledby="st-pair-agent">
+        <p id="st-pair-agent" className="lp-kicker">{t('start.pair.agent')}</p>
+        <p className="lp-meta">{t('start.pair.agentBody')}</p>
+        <ul className="st-cards">
+          {card('agent', t('start.card.agent.mark'), go('agent', t('start.card.agent.go'), true))}
+          {card('convert', t('start.card.convert.mark'), go('convert', t('start.card.convert.go')))}
+        </ul>
+      </section>
+      <section className="st-pair" aria-labelledby="st-pair-project">
+        <p id="st-pair-project" className="lp-kicker">{t('start.pair.project')}</p>
+        <p className="lp-meta">{t('start.pair.projectBody')}</p>
+        <ul className="st-cards">
+          {card('open', t('start.card.open.mark'), <>
+            {go('add', t('start.card.open.one'), true)}
+            {go('scan', pending > 0 ? t('start.card.open.manyPending', { count: pending }) : t('start.card.open.many'))}
+          </>)}
+          {card('new', t('start.card.new.mark'), go('new', t('start.card.new.go')))}
+        </ul>
+      </section>
+    </div>
   )
 }
 
@@ -160,23 +122,6 @@ function StartMenu({ onPath, onHome }: { onPath(path: StartPath): void; onHome()
   )
 }
 
-// ── Facts about a folder ────────────────────────────────────────────────────
-
-function FolderFactsList({ f, t, locale }: { f: FolderView | CandidateView; t: Translate; locale: string }): React.JSX.Element {
-  return (
-    <dl className="st-facts">
-      <dt>{t('start.facts.path')}</dt>
-      <dd><code>{f.path}</code></dd>
-      <dt>{t('start.facts.git')}</dt>
-      <dd>{t(`start.kind.${f.kind}` as 'start.kind.repository')}{f.branch ? ` · ${f.branch}` : ''}</dd>
-      {f.remote && <><dt>{t('start.facts.remote')}</dt><dd><code>{f.remote}</code></dd></>}
-      {f.lastCommit && <><dt>{t('start.facts.lastCommit')}</dt><dd>{shortDate(f.lastCommit.at, locale)} · {f.lastCommit.subject}</dd></>}
-      {f.stack.length > 0 && <><dt>{t('start.facts.stack')}</dt><dd>{f.stack.join(', ')}</dd></>}
-      {/* What the repository says it is; it becomes the project's purpose, which can be changed later. */}
-      {f.summary && <><dt>{t('start.facts.summary')}</dt><dd>{f.summary}</dd></>}
-    </dl>
-  )
-}
 
 // ── Add an existing project (SCN-127) ───────────────────────────────────────
 
@@ -506,60 +451,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged, onSet
 
 // ── A new agent (SCN-130) ───────────────────────────────────────────────────
 
-function NewAgent({ projects, onPath, onOpenProject }: StartProps): React.JSX.Element {
-  const t = useT()
-  return (
-    <div className="lp st" data-launch-view="start-agent">
-      <Heading kicker={t('start.kicker')} title={t('start.agent.title')} lede={t('start.agent.lede')} back={{ label: t('start.back'), onClick: () => onPath('menu') }} />
-      <section className="lp-panel st-step">
-        {projects === null ? (
-          <p aria-busy="true">{t('start.agent.loading')}</p>
-        ) : projects.filter((p) => p.status !== 'archived').length === 0 ? (
-          <div className="lp-callout" role="status">
-            <p>{t('start.agent.noProject')}</p>
-            <div className="lp-actions">
-              <button type="button" className="lp-button" onClick={() => onPath('add')}>{t('start.card.add.title')}</button>
-              <button type="button" className="lp-button" onClick={() => onPath('new')}>{t('start.card.new.title')}</button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <p>{t('start.agent.pick')}</p>
-            <ul className="st-pick">
-              {projects.filter((p) => p.status !== 'archived').map((p) => (
-                <li key={p.id}>
-                  <button type="button" className="lp-button" onClick={() => onOpenProject(p.id, 'team')}>{p.name}</button>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </section>
-    </div>
-  )
-}
 
 // ── Convert an agent (SCN-131): designed, not yet built ─────────────────────
 
-function ConvertAgent({ onBack }: { onBack(): void }): React.JSX.Element {
-  const t = useT()
-  const steps = [1, 2, 3, 4] as const
-  return (
-    <div className="lp st" data-launch-view="start-convert">
-      <Heading kicker={t('start.kicker')} title={t('start.convert.title')} lede={t('start.convert.lede')} back={{ label: t('start.back'), onClick: onBack }} />
-      <section className="lp-panel st-step">
-        <span className="lp-pill">{t('start.planned')}</span>
-        <ol className="st-steps">
-          {steps.map((n) => (
-            <li key={n}><b>{t(`start.convert.step${n}` as 'start.convert.step1')}</b><span>{t(`start.convert.step${n}.body` as 'start.convert.step1.body')}</span></li>
-          ))}
-        </ol>
-        <div className="lp-callout">
-          <p>{t('start.convert.today')}</p>
-          <div className="st-install"><code>{t('start.convert.command')}</code><CopyButton text={t('start.convert.command')} /></div>
-        </div>
-      </section>
-    </div>
-  )
-}
 // #endregion start-screens

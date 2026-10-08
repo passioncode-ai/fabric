@@ -176,7 +176,8 @@ const api: FabricApi = {
     cancelScan: () => ipcRenderer.invoke(IPC.startCancelScan),
     lastScan: () => ipcRenderer.invoke(IPC.startLastScan),
     createFolder: (input) => ipcRenderer.invoke(IPC.startCreateFolder, input),
-    executors: () => ipcRenderer.invoke(IPC.startExecutors)
+    executors: () => ipcRenderer.invoke(IPC.startExecutors),
+    adapterSkills: (agentId: string) => ipcRenderer.invoke(IPC.startAdapterSkills, agentId)
   },
   persona: {
     read: () => ipcRenderer.invoke(IPC.personaRead),

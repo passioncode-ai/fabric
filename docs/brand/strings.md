@@ -270,30 +270,14 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.kicker` | Start | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.home` | Home | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.back` | Back | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.planned` | Planned | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.menu.title` | Where does the work come from? | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.menu.lede` | A project is the durable unit: its sources, agents, decisions and evidence live together. Bring one, many, or start from nothing. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.add.mark` | + | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.add.title` | Add a project | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.add.body` | A folder you already work in becomes a project. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.add.meta` | One folder | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.scan.mark` | ≡ | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.scan.title` | Scan a projects folder | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.scan.body` | Find every repository in a folder and tick the ones to bring in. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.scan.meta` | Many at once | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.scan.pending` | {count} not added yet | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `start.menu.title` | Where do we start? | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `start.menu.lede` | Fabric is your way into PassionCode.ai: projects, and the agents that work in them. The work itself happens in the console of the coding agent you already use. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.card.new.mark` | ◇ | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.new.title` | New project | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.card.new.body` | A new folder, or only an idea to shape first. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.new.meta` | From nothing | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.card.agent.mark` | ◎ | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.agent.title` | New agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.agent.body` | An agent with its own instructions, inside a project. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.agent.meta` | In a project | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `start.card.agent.body` | A new agent in its own repository, built to the Fabric protocol by your coding agent from the first question. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.card.convert.mark` | ⇄ | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.convert.title` | Convert an agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.convert.body` | Make an agent you built elsewhere a Fabric agent. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.card.convert.meta` | Planned | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `start.card.convert.body` | An agent you built elsewhere (a script, a service, an MCP server) is adapted to the Fabric protocol on a branch of its own, then checked. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.facts.path` | Folder | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.facts.git` | Git | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.facts.remote` | Remote | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
@@ -356,23 +340,15 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.new.refused.invalid-name` | This name cannot be a folder name: {detail}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
 | `start.new.refused.outside` | That location was not chosen in this window. Choose it again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
 | `start.new.refused.failed` | The folder could not be created: {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | implemented; release pending (P-02) |
-| `start.agent.title` | New agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
-| `start.agent.lede` | An agent belongs to a project: it works on that project's sources, with that project's authority. Choose the project, then describe the agent there. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
-| `start.agent.loading` | Reading projects… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
-| `start.agent.noProject` | An agent needs a project first. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
-| `start.agent.pick` | Which project is it for? | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
-| `start.convert.title` | Convert an agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
-| `start.convert.lede` | For an agent you built elsewhere: a script, a service, an MCP server. This path is designed and not built yet; here is how it will work. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
+| `start.convert.title` | Adapt an existing agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
 | `start.convert.step1` | Choose the agent's folder | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
 | `start.convert.step1.body` | Fabric reads it and nothing else. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
-| `start.convert.step2` | Review the plan | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
-| `start.convert.step2.body` | A dry run lists the manifest, the MCP entry and every file that would change. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
-| `start.convert.step3` | Your coding agent writes the adapter | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
-| `start.convert.step3.body` | On its own branch, with the Fabric Agent Adapter skills. Your main branch is not touched. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
-| `start.convert.step4` | The conformance probe decides | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
-| `start.convert.step4.body` | Only an agent that passes enters the registry. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
-| `start.convert.today` | Today: install the Fabric Agent Adapter skills and ask your coding agent to adapt the project. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
-| `start.convert.command` | npx @passioncode-ai/passioncode@latest update | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
+| `start.convert.step2` | The coding agent shows its plan | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
+| `start.convert.step2.body` | It inspects without running anything and shows which profile fits (MCP, A2A or a terminal agent that Fabric drives) and every file that would change. You decide. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
+| `start.convert.step3` | It adapts the agent on its own branch | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
+| `start.convert.step3.body` | With the Fabric Agent Adapter skills, on a new branch; the branch it was on is not touched. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
+| `start.convert.step4` | The conformance check says how far it got | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
+| `start.convert.step4.body` | It shows you the report: what passed, and what still stands before the agent is admitted. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
 | `agents.madeReading` | Reading the agents of this project… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.readFailed` | The agents could not be read: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.retry` | Try again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
@@ -667,3 +643,36 @@ their capitals as title case. Adding those names is `brand-voice`’s decision (
 | `start.facts.summary` | What it says it is | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | proposed |
 | `tasks.presetSetup` | Set up this project with the agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | proposed |
 | `start.scan.setUpFirst` | Set up the first one with the agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | proposed |
+
+## 0.3.3 onboarding — four actions (2026-10-08)
+
+The start menu and the two agent paths ([brief](../evidence/plans/2026-10-08-onboarding-four-actions.md)). The build and adapt instructions
+(`start.createAgent.instruction`, `start.convertAgent.instruction`) are read by a coding agent, not by the person, and carry the skill names verbatim.
+
+| Key | Text (primary) | Location | Scenario | Status |
+|---|---|---|---|---|
+| `start.menu.title` | Where do we start? | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | proposed |
+| `start.pair.agentBody` | Your coding agent builds and adapts agents in its own console; Fabric prepares the folder and the project and opens that console. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | proposed |
+| `start.card.agent.title` | Create an agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.card.convert.title` | Adapt an existing agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | proposed |
+| `start.card.open.title` | Open a project | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | proposed |
+| `start.card.new.title` | Create a project | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | proposed |
+| `start.createAgent.lede` | Fabric makes its folder and project, then opens your coding agent's console; the agent asks the rest there, one question at a time. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.createAgent.create` | Create and open the console | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.createAgent.what` | Fabric creates the folder as a git repository and a project for it, and writes no file inside: the coding agent writes them after you answer its questions. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.convert.lede` | An agent built outside Fabric is adapted to the Fabric protocol. Your coding agent does the work in its own console, on a branch of its own. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | proposed |
+| `start.convert.start` | Start the adaptation | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | proposed |
+| `start.convert.nothingWritten` | Fabric itself writes nothing in this folder; everything is done by the coding agent, on its own branch, after you agree to its plan. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | proposed |
+| `start.builder.label` | Which coding agent does the work | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.skills.missing` | {agent} does not have the Fabric Agent Adapter skills yet. Install them with one command, then check again: | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.createAgent.nameEmpty` | Give the agent a name; its folder gets the same one. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.createAgent.nameInvalid` | This name cannot be a folder name: {detail}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.createAgent.whereEmpty` | Choose where its folder goes. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.createAgent.made` | Created: | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.createAgent.madeKept` | The folder {path} is already made, and the next try continues with it and its project. To choose another name, sentence or place, start over; what this try made stays, the folder on disk and its project among your projects. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.createAgent.retry` | Try again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.createAgent.startOver` | Start over | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.createAgent.failed` | The agent was not created: {reason}. Try again: what this attempt already made is reused, never made twice. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.builder.noneReady` | No coding agent on this Mac can start right now: | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.skills.notCovered` | The command does not install them for {agent}: put the skills where {agent} reads them, or choose another coding agent. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.convert.notGit` | This folder is not a git repository yet: the coding agent makes it one and commits it as it is before changing anything, so the original can be restored. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | proposed |

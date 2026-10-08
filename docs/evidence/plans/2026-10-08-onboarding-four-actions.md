@@ -68,3 +68,52 @@ contract → scaffold → implement → `adapt_project.py check` → conformance
 what it does, a folder and the coding agent; the agent asks the rest in its own console.
 
 **Exact next task:** M5's scenario edits in `docs/ux/scenarios.md` (Update workflow, entries back to `draft`), then M1.
+
+## Stage 3 done, stage 4 plan (2026-10-08)
+
+Stage 3: SCN-131 rewritten, SCN-136 added, SCN-126/127/128/130 amended; FLW-73/74 and SCR-74/75 redrawn; SCR-70's
+step 3 is the four actions. `python3 docs/ux/lint.py` → OK. The look reuses the recorded pack (paperclip + PassionCode,
+dials 5/2/7) and the start cards; no new visual decision. Copy goes through `copywriting` against `docs/brand/`.
+
+| Task | Implements | What | Check |
+|---|---|---|---|
+| T1 | REQ-04 | `main/adapterSkills.ts`: per coding agent, the Fabric Agent Adapter skills — Claude Code's enabled plugin or `~/.claude/skills`, the agent's own skills folder, the shared `~/.agents/skills` (said as shared; whether the agent reads it is not checked); version from the plugin record or the skill's metadata | `test/adapter-skills.test.mjs` with planted homes |
+| T2 | REQ-04 | IPC `start.adapterSkills(agentId)`, preload, `FabricApi` | tsc; the test above through the handler |
+| T3 | REQ-01, 05, 06, 07 | `StartCards` in two pairs; path `open` (one folder / a folder of repositories); `agent` → Create an agent; role agent removed from the menu | `StartPaths.test.tsx` |
+| T4 | REQ-02 | `start/AgentPaths.tsx#CreateAgent`: form → `createFolder` (git) → `projects.create` (purpose) → `tasks.start` (build instruction) → `windows.openSession` | renderer tests; runtime probe |
+| T5 | REQ-03 | `start/AgentPaths.tsx#ConvertAgent`: `chooseFolder` → `inspect` → existing or new Project → `tasks.start` (adapt instruction) → `windows.openSession` | renderer tests; runtime probe |
+| T6 | REQ-02, 03 | `shared/builderChoice.ts`: the default coding agent — the fallback order first, then a connected found agent, then any found one | unit test |
+| T7 | REQ-08, 09 | strings en/ru, prototype, map, audit, docs | gates; walk |
+
+## Built (2026-10-08)
+
+| Task | State | Evidence |
+|---|---|---|
+| T1 adapter-skill detection | done | `main/adapterSkills.ts`; `test/adapter-skills.test.mjs` (planted: a disabled plugin counted → caught) |
+| T2 IPC | done | `start.adapterSkills`; tsc web + node |
+| T3 menu in two pairs | done | `start/StartPaths.tsx#StartCards`; `StartPaths.test.tsx` «the four actions» |
+| T4 Create an agent | done | `start/AgentPaths.tsx#CreateAgent`; tests incl. retry reuses the folder and the Project id (planted: no reuse → caught); runtime: the console window opened and the new folder held only `.git` (ru 1440 and 1280, en 1440) |
+| T5 Adapt an existing agent | done | `start/AgentPaths.tsx#ConvertAgent`; tests incl. a folder already held adapts in that Project (planted → caught); runtime: the console window opened |
+| T6 default coding agent | done | `shared/builderChoice.ts` + test |
+| T7 strings, prototype, docs | done | en/ru registries; `scripts/product/renderers.mjs` start views; SCN/FLW/SCR; `strings.md`; G21/G59/G80 re-pinned (cited lines unchanged) |
+
+### Verifier pass (2026-10-08) — findings and fixes
+
+| Finding | Fix | Evidence |
+|---|---|---|
+| A retry made a second task, and a console that failed to come forward started the task again | the window names the task (`taskId`) before the first try; main starts a recorded task again through admission (`main/taskRetry.ts#planTaskStart`); the started session is only brought forward again | `test/task-retry.test.mjs` (planted: no project check, failed read as "no task" → both caught); `StartPaths.test.tsx` «a console that did not come forward…» (planted: no session reuse → caught) |
+| A retry after the folder was made could rename it into a second folder | the made folder fixes name and place; «Start over» is a new attempt and says the folder stays | «Start over is a new attempt…» (planted: attempt not reset → caught) |
+| «Choose another folder» reused the previous Project id | a new attempt per chosen folder | «Choose another folder is another attempt…» (planted → caught) |
+| Claude Code with the skills only in `~/.agents/skills` was counted ready | Claude Code reads only its plugins and `~/.claude/skills` (launcher 0.1.31 `lib/launcher.js` 8-10) — shared-only is "missing" for it | «Claude Code does not read the shared folder…» (planted → caught) |
+| The install command was offered for agents it does not cover (Cline, Kimi Code) | `launcherCovers` in the view; the screen says so | «an agent the install command does not cover…» (planted → caught) |
+| The coding agent could be changed between a failed launch and its retry, while the task was recorded with the first one | the choice is fixed from the first launch attempt | assertion in the retry test |
+| Field problems were silent; no agent was an empty list | name/purpose/place problems under the field once Create is pressed; each agent with its reason | «an empty or unusable name…», «with no coding agent that can start…» |
+| The adapt instruction assumed `main` and a git repository | commit the untouched folder first when it is not a repository; branch `fabric-adapter` from the current branch | the adapt test asserts both and no `main` in the instruction |
+| Copy claimed compatibility before admission | «adapted to the Fabric protocol … and checked»; step 4 «shows what came of it» | brand lint 0 errors |
+| (second pass) An edited sentence was dropped on retry: the Project and task kept the first one | the sentence is fixed with the name and place once the folder exists | retry test asserts the field is locked (planted: unlocked → caught) |
+| (second pass) A session started but not reported left every retry refused as already running | `planTaskStart` returns the live session this process holds for the task | `test/task-retry.test.mjs` (planted: no live check → caught) |
+| (second pass) The agent card claimed "compatible with Fabric"; «Start over» did not say the Project stays | «built to the Fabric protocol»; `madeKept` names the folder and its project | brand lint 0 errors |
+| (fast CI) The PF-07.01 audit regression matched `input.followerId ?? randomUUID()` verbatim | the check now requires the follower id first, a caller id allowed between it and the fresh UUID | `test/audit_regressions/fix-pf-07.01.py` green; planted `taskId` ahead of `followerId` → caught |
+
+Found on the way and fixed: hints inside `<label>` gave the fields long accessible names («Имя Это же имя получит
+папка.»); the seeded estate name `org #1` showed in the tab bar of a fresh install — now «Моё пространство».

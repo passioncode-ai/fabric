@@ -434,7 +434,9 @@ answer.commit → decision + delivery obligation
     // #region first-run-auth-target — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
     +panel('Шаг 2 · Исполнители',row('Claude Code','Установлен · версия 2.1.289 · /opt/homebrew/bin/claude',badge('готов'))+row('Вход · пример статуса','Исполнитель сообщает, что вход выполнен',badge('вход выполнен'))+row('Codex','Не установлен · npm install -g @openai/codex',badge('не установлен','attention'))+note('Можно продолжить без проверки','Установка, подключение к Fabric и вход показаны отдельно. Проверка входа не запускает задач. Если статус не подтверждён или проверка ещё идёт, можно перейти дальше.'),action('Проверить снова','recheck')+action('Продолжить без агента','next'))
     // #endregion first-run-auth-target
-    +panel('Шаг 3 · С чего Atlas начнёт?',row('Добавить проект','Одна папка','', 'start-add')+row('Сканировать папку проектов','Сразу несколько','', 'start-scan')+row('Новый проект','С нуля','', 'start-new')+row('Новый агент','В проекте','', 'start-agent')+row('Конвертировать агента','Запланировано','', 'start-convert'))
+    // 0.3.3 onboarding (operator 2026-10-08): four actions in two pairs; agents are built and adapted in a coding agent's console.
+    +panel('Шаг 3 · С чего начнём? · Агент',row('Создать агента','Новый агент экосистемы в своём репозитории','', 'start-agent')+row('Адаптировать своего агента','Сделанный вне Fabric — на отдельной ветке','', 'start-convert'))
+    +panel('Шаг 3 · С чего начнём? · Проект',row('Открыть проект · одна папка','Папка, в которой вы уже работаете','', 'start-add')+row('Открыть проект · папка с проектами','Сразу все репозитории из папки','', 'start-scan')+row('Создать проект','Новая папка — или пока только идея','', 'start-new'))
   }
   case 'start-add': {
    // SCR-71 · SCN-127: one folder, its facts, a confirmed name; nothing in the folder changes.
@@ -460,15 +462,17 @@ answer.commit → decision + delivery obligation
     +note('Папка с таким названием уже есть','Проект не создан. Выберите другое название или место.')
   }
   case 'start-agent': {
-   // SCR-74 · SCN-130: an agent belongs to a project; the path opens that project's team.
-   return title('Новый агент','Агент принадлежит проекту: работает с его исходниками и в его полномочиях.',link('Назад','first-run'))
-    +panel('Для какого проекта?',row('billing-service','команда проекта → форма агента','', 'agents')+row('site','команда проекта → форма агента','', 'agents'))
+   // SCR-74 · SCN-136: a new ecosystem agent — its folder (git), its Project, and the coding agent's console that builds it.
+   return title('Создать агента','Fabric создаст папку и проект и откроет консоль вашего агента для кода; остальное агент спросит там, по одному вопросу.',link('Назад','first-run'))
+    +panel('Новый агент',field('Имя','name','support-desk','Это же имя получит папка.')+field('Что он будет делать — одним предложением','purpose','Читает новую почту поддержки и готовит ответы на проверку')+row('Где будет его папка','Будет создана: ~/DATA/support-desk',badge('git'))+row('Какой агент для кода делает работу','Claude Code · выбран первый из вашего порядка замен','')+row('Скилы Fabric Agent Adapter','установлены для Claude Code (0.8.1)',badge('готово')),action('Создать и открыть консоль','create',true))
+    +note('Нет скилов у выбранного агента','Скилы ставятся одной командой для всех агентов на этом Mac: npx @passioncode-ai/passioncode@latest update — затем «Проверить ещё раз». Fabric сам ничего не устанавливает.')
   }
   case 'start-convert': {
-   // SCR-75 · SCN-131: designed, not built (AR-7/AR-11); no action pretends to run.
-   return title('Конвертировать агента','Для агента, созданного вне Fabric. Путь спроектирован, но ещё не сделан.',link('Назад','first-run'))
-    +panel('Как это будет работать',row('1. Выберите папку агента','Fabric читает её и только её',badge('Запланировано'))+row('2. Проверьте план','манифест, MCP-вход, каждый изменяемый файл','')+row('3. Ваш агент пишет адаптер','на отдельной ветке, скилами Fabric Agent Adapter','')+row('4. Решает проба совместимости','в реестр — только при зелёном',''))
-    +note('Сейчас','Установите скилы: npx @passioncode-ai/passioncode@latest update — и попросите своего агента адаптировать проект.')
+   // SCR-75 · SCN-131: an agent built elsewhere, adapted on its own branch in the coding agent's console.
+   return title('Адаптировать своего агента','Агент, сделанный вне Fabric, становится агентом экосистемы. Это делает ваш агент для кода — в своей консоли, на отдельной ветке.',link('Назад','first-run'))
+    +panel('Как это пойдёт',row('1. Выберите папку агента','Fabric читает её и только её','')+row('2. Агент для кода показывает план','ничего не запуская: профиль и каждый файл, который изменится','')+row('3. Он адаптирует агента на отдельной ветке','скилами Fabric Agent Adapter, на новой ветке; ветка, на которой он был, не трогается','')+row('4. Проба совместимости показывает, что получилось','отчёт: что прошло и что ещё отделяет агента от допуска',''))
+    +panel('~/DATA/old-bot',row('Git','репозиторий · main','')+row('Что о себе пишет','Публикует ежедневную сводку новых задач в чат','')+row('Какой агент для кода делает работу','Claude Code','')+row('Скилы Fabric Agent Adapter','установлены для Claude Code (0.8.1)',badge('готово')),action('Начать адаптацию','start',true)+action('Выбрать другую папку','choose'))
+    +note('Эта папка уже проект Old bot','Адаптация пойдёт в нём; второго проекта для той же папки не будет.')
   }
   default:
    throw new Error('Missing visual renderer: '+view)

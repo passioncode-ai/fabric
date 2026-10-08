@@ -2194,45 +2194,54 @@ flowchart TD
   |---|---|
   | SCR-73 New project | idle, invalid-name, no-parent, creating, exists, outside, failed, created, left-on-disk |
 
-### FLW-73: Start a new agent
-- **Traces:** ST-050; SCN-130 (JTBD-05)
-- **Goal:** Reach the agent form of the right project.
-- **Entry points:** Start menu; first run.
-- **Success exit:** the project's team section.
-- **Task analysis:** Choose the project.
+### FLW-73: Create an ecosystem agent
+- **Traces:** ST-050; SCN-136 (JTBD-05); SCN-130 is reached from a project's Team, not from here
+- **Goal:** A new agent with its own repository, being built in a coding agent's console.
+- **Entry points:** Start menu → Agent → Create an agent; first run step 3.
+- **Success exit:** the coding agent's console window, its session asking the intake questions.
+- **Task analysis:** Name and purpose; parent folder; skills ready; coding agent; create.
 - **Flow:**
 
 ```mermaid
 flowchart TD
- A[Screen: SCR-74 New agent] -->|project| T[Project team, agent form]
- A -->|no project| P[Add a project / New project]
+ A[Screen: SCR-74 Create an agent] -->|name, purpose, parent| C{Skills installed for the chosen agent?}
+ C -->|no| S[Install command, Copy, Check again] --> C
+ C -->|yes| K[Create and open the console]
+ K --> F[Folder + git main] --> P[Project, purpose = the sentence] --> T[Task: build with creating-fabric-agents] --> W[Console window]
+ F -->|exists / mkdir failed| E[Said in place; nothing left half-made]
+ T -->|start failed| R[Reason; folder kept; retry with the same Project, task and session]
 ```
 
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-74 New agent | loading, no-project, choose-project |
+  | SCR-74 Create an agent | idle, invalid-name, no-parent, exists, skills-missing, checking-skills, no-agent, creating, failed, started |
 
-### FLW-74: Convert an agent (planned)
+
+### FLW-74: Turn an existing agent into an ecosystem agent
 - **Traces:** ST-050; SCN-131 (JTBD-05)
-- **Goal:** Make an outside agent a Fabric agent, with a plan and a probe.
-- **Entry points:** Start menu.
-- **Success exit:** a registry entry with a green probe receipt.
-- **Task analysis:** Choose folder; review plan; adapter on a branch; probe.
+- **Goal:** An agent built elsewhere, adapted to the Fabric contract on its own branch, in a coding agent's console.
+- **Entry points:** Start menu → Agent → Turn an existing agent into an ecosystem agent; first run step 3.
+- **Success exit:** the coding agent's console window, its session inspecting without running and showing its plan.
+- **Task analysis:** Choose folder; read facts; see the four steps; skills ready; coding agent; start.
 - **Flow:**
 
 ```mermaid
 flowchart TD
- A[Screen: SCR-75 Convert] -->|today| M[Planned: manual route]
- A -.->|AR-7 / AR-11| P[Dry-run plan] -.-> B[Adapter on a branch] -.-> Q{Conformance probe}
- Q -.->|green| R[Registry]
- Q -.->|red| F[Findings; branch kept]
+ A[Screen: SCR-75 Turn an agent] -->|choose folder| R[Read without running: facts, already-in]
+ R --> C{Skills installed for the chosen agent?}
+ C -->|no| S[Install command, Copy, Check again] --> C
+ C -->|yes| K[Start the adaptation]
+ K --> P[Project: new, or the one holding the folder] --> T[Task: adapt with adapting-projects-to-fabric, own branch] --> W[Console window]
+ R -->|unreadable / outside| E[Refused in words; choose another folder]
+ T -->|start failed| X[Reason; retry with the same Project, task and session]
 ```
 
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-75 Convert an agent | planned |
+  | SCR-75 Turn an existing agent | idle, picker-cancel, reading, ready, skills-missing, checking-skills, no-agent, starting, failed, started |
+
 
 ### FLW-75: An external agent asks for access
 - **Traces:** ST-045; SCN-132 (JTBD-08)

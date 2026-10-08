@@ -73,7 +73,9 @@ def t_chainadvance_dedups_within_a_tick():
 
 def t_starttask_reuses_id_and_records_key():
     s = read(INDEX)
-    assert "const id = input.followerId ?? randomUUID()" in s, \
+    # The follower's own id comes first; a caller-chosen NEW task id (0.3.3 onboarding retry) may sit between it
+    # and the fresh UUID, but never ahead of the follower.
+    assert re.search(r"const id = input\.followerId \?\? (input\.taskId \?\? )?randomUUID\(\)", s), \
         "startTask still mints a fresh UUID unconditionally — no advance of the existing task"
     assert "followerId?: string" in s and "idempotencyKey?: string" in s, \
         "startTask's input type does not accept followerId/idempotencyKey"

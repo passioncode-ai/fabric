@@ -239,6 +239,8 @@ function listen(channel: string, fn: (event: Electron.IpcMainEvent, ...args: nev
   })
 }
 import { installMenu } from './menu'
+import { planTaskStart } from './taskRetry'
+import { adapterSkills } from './adapterSkills'
 import { decideNotification, rememberTold, type ShowOutcome } from '../shared/notify.ts'
 import { createUnattendedAdmission } from '../shared/unattendedAdmission.ts'
 import { createAdmitExisting } from './admitExisting.ts'
@@ -1432,6 +1434,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // trigger reuses that identity instead of spawning a duplicate and leaving
     // the follower in backlog to be advanced again next tick.
     followerId?: string
+    /** A NEW task's id chosen by the caller, so a retry names the same task (0.3.3 onboarding). */
+    taskId?: string
     // run/node/revision/attempt idempotency key. Recorded on the started event
     // so a repeated advance is one attempt, not two.
     idempotencyKey?: string
@@ -1440,7 +1444,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     route?: LaunchRoute | null
   }): Promise<{ task: TaskRow; session: { sessionId: string } }> => {
       const { instruction, title } = prepareTaskText(input.instruction)
-      const id = input.followerId ?? randomUUID()
+      const id = input.followerId ?? input.taskId ?? randomUUID()
       if (input.route) routeByTask.set(id, input.route)
       try {
       // Record requested work in backlog. Only receiver ACK moves it to running.
@@ -1621,7 +1625,17 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       optionId = walk.runner
       route = launchRoute(walk)
     }
-    return startTask({ projectId: input.projectId, instruction: input.instruction, optionId,
+    // A caller-chosen id makes a retry the SAME task (taskRetry.ts#planTaskStart).
+    const plan = await planTaskStart<TaskRow>(input, async (id) => await store.select('project_tasks', '*').eq('id', id).maybeSingle(),
+      (id) => [...taskBySession].find(([, task]) => task === id)?.[0] ?? null)
+    if (plan.kind === 'running') return { task: plan.task, session: { sessionId: plan.sessionId } }
+    if (plan.kind === 'again') {
+      const again = await launchManaged({ taskId: plan.task.id, trigger: 'operator', permissionMode: input.permissionMode })
+      if (!again.started) throw new Error(again.says)
+      return { task: plan.task, session: { sessionId: again.sessionId } }
+    }
+    const taskId = plan.taskId
+    return startTask({ projectId: input.projectId, instruction: input.instruction, optionId, taskId,
       preset: input.preset, presetEdited: input.presetEdited, permissionMode: input.permissionMode, route })
   })
 
@@ -3443,6 +3457,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       { env: sessionEnvironment(process.env) }
     )
   )
+  // Read-only: where the chosen coding agent reads skills (REQ-04). An id that is not a string reads as none.
+  handle(IPC.startAdapterSkills, (_e, agentId: unknown): Promise<Returns<FabricApi['start']['adapterSkills']>> =>
+    adapterSkills(typeof agentId === 'string' ? agentId : ''))
   // #endregion start-paths-ipc
   handle(IPC.personaRead, (): Returns<FabricApi['persona']['read']> => persona())
   handle(IPC.personaSave, (_e, next: unknown): Returns<FabricApi['persona']['save']> => savePersona(next))

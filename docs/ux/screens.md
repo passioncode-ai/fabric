@@ -87,8 +87,8 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-71 | Add a project | FLW-70 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
 | SCR-72 | Scan a projects folder | FLW-71 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
 | SCR-73 | New project | FLW-72 | none — text spec | built | apps/desktop/src/renderer/src/Onboarding.tsx |
-| SCR-74 | New agent | FLW-73 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
-| SCR-75 | Convert an agent | FLW-74 | none — text spec | built | apps/desktop/src/renderer/src/start/StartPaths.tsx |
+| SCR-74 | Create an agent | FLW-73 | none — text spec | designed | apps/desktop/src/renderer/src/start/AgentPaths.tsx |
+| SCR-75 | Turn an existing agent into an ecosystem agent | FLW-74 | none — text spec | designed | apps/desktop/src/renderer/src/start/AgentPaths.tsx |
 | SCR-76 | Agent access | FLW-75, FLW-76 | none — text spec | built | apps/desktop/src/renderer/src/AgentAccessPanel.tsx |
 
 ## Design system
@@ -1702,7 +1702,7 @@ results always pair text with an icon — colour is never the only signal.
   | not-authenticated | exact vendor status reports signed out | none | sign in through the coding agent and check again; continue remains available |
   | auth-unsupported | current build/runtime has no measured reader | none | explicitly unverified; no guessed status command |
   | auth-unknown | timeout, refusal, malformed or excessive output | none | cannot confirm; retry or continue, no raw provider output |
-  | choose-path | step 3 | none | five cards |
+  | choose-path | step 3 | none | the four actions in two pairs — Agent: Create, Turn an existing one; Project: Open, Create |
   | skipped | Later on step 3 (Skip on step 1 only moves to step 2) | none | first run marked finished; home, Help reopens it |
 - **Coverage:** apps/desktop/src/renderer/src/start/FirstRun.tsx
 - **Scenarios:** SCN-126
@@ -1782,33 +1782,51 @@ results always pair text with an icon — colour is never the only signal.
 - **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
 - **Implementation tasks:** P-01
 
-### SCR-74: New agent
+### SCR-74: Create an agent
 - **Used by:** FLW-73
-- **Purpose:** Route to the agent form of the project the agent belongs to; the form's own states (reading, unreadable, empty, invalid, saving, failed, created) are SCN-130 steps 2–4 on the project's team.
-- **Elements:** project list; no-project notice with Add a project and New project.
+- **Purpose:** Create a new ecosystem agent: its folder, its Project, and a coding agent's console that builds it (SCN-136).
+- **Elements:** Name; What it will do; Where its folder goes with Choose and the resulting path; Fabric Agent Adapter skills status (installed + version, or install command with Copy and Check again); coding agent choice; Create and open the console; Back.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
-  | loading | project list unknown | none | busy line |
-  | no-project | estate has no project that is not archived | none | notice with two paths |
-  | choose-project | projects exist | none | one button per project |
-- **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx
-- **Scenarios:** SCN-130
-- **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
-- **Implementation tasks:** P-01
+  | idle | opened | none | empty form, the first available coding agent preselected |
+  | invalid-name | separator, leading dot, control or text-direction character, empty | none | said under the field once typed or once Create is pressed; nothing is made |
+  | no-purpose | the sentence is empty | none | said under the field once Create is pressed; nothing is made |
+  | no-parent | no folder chosen | none | said under Where once Create is pressed; nothing is made |
+  | exists | a folder of that name is under the parent | none | said under the path; nothing created |
+  | skills-missing | the adapter skills are not where the chosen agent reads skills (for Claude Code, found only in the shared folder counts as not there) | none | install command, Copy, Check again; when the command does not cover the agent, said so; Create does nothing |
+  | checking-skills | Check again | none | busy line |
+  | no-agent | no coding agent can start | none | each agent with its reason; Create disabled |
+  | creating | Create pressed | none | busy, form locked |
+  | failed | mkdir or git init refused | none | reason; nothing made; form kept |
+  | failed-after-folder | the Project, the task or the console failed after the folder was made | none | reason, and that the folder and its Project are kept; name, sentence, place and coding agent fixed; Try again continues with the same Project, task and session; Start over begins a new attempt |
+  | started | console opened | none | the console window comes forward; the Fabric window opens the new Project |
+- **Coverage:** apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`); apps/desktop/src/main/adapterSkills.ts; apps/desktop/src/main/taskRetry.ts; apps/desktop/src/renderer/src/App.tsx (`onCreated` opens the Project)
+- **Scenarios:** SCN-136
+- **Resources:** [ADR-0123](../adr/0123-the-conversation-is-the-runtimes-console-and-the-ceo-is-a-session.md), [the brief](../evidence/plans/2026-10-08-onboarding-four-actions.md).
+- **Implementation tasks:** REQ-02, REQ-04
 
-### SCR-75: Convert an agent
+### SCR-75: Turn an existing agent into an ecosystem agent
 - **Used by:** FLW-74
-- **Purpose:** Explain the planned conversion and today's manual route, with no action that pretends to run.
-- **Elements:** planned pill; four steps; today's command.
+- **Purpose:** Adapt an agent built elsewhere to the Fabric Agent Contract on a new branch, in a coding agent's console (SCN-131).
+- **Elements:** Choose the agent's folder; facts list (as SCR-71); the four steps that follow; skills status with Copy and Check again; coding agent choice; Start the adaptation; Choose another folder.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
-  | planned | AR-7/AR-11 not built | none | explanation and command only |
-- **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx (the planned state; the conversion itself is AR-7/AR-11)
+  | idle | opened | none | the four steps and Choose |
+  | picker-cancel | picker closed | none | unchanged |
+  | reading | folder chosen | none | busy line |
+  | ready | facts read | none | facts, already-in Projects, the four steps, Start |
+  | skills-missing | as SCR-74 | none | as SCR-74 |
+  | checking-skills | Check again | none | busy line |
+  | no-agent | no coding agent can start | none | each agent with its reason; Start disabled |
+  | starting | Start pressed | none | busy, choices locked |
+  | failed | read, Project, task or console refused | none | reason; choices kept; retry with the same Project, task and session; the coding agent fixed from the first launch; Choose another folder is a new attempt |
+  | started | console opened | none | the console window comes forward; the Fabric window opens the Project |
+- **Coverage:** apps/desktop/src/renderer/src/start/AgentPaths.tsx (`ConvertAgent`); apps/desktop/src/main/adapterSkills.ts; apps/desktop/src/main/taskRetry.ts; apps/desktop/src/renderer/src/App.tsx (`onCreated` opens the Project)
 - **Scenarios:** SCN-131
-- **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
-- **Implementation tasks:** AR-7, AR-11
+- **Resources:** [ADR-0123](../adr/0123-the-conversation-is-the-runtimes-console-and-the-ceo-is-a-session.md), [the brief](../evidence/plans/2026-10-08-onboarding-four-actions.md).
+- **Implementation tasks:** REQ-03, REQ-04
 
 ### SCR-76: Agent access
 - **Used by:** FLW-75, FLW-76

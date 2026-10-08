@@ -215,6 +215,9 @@ node apps/desktop/test/file-roots.test.mjs
 # ADR-0100: the start paths' disk reads and executor detection, against a real git tree and real processes.
 node --experimental-strip-types apps/desktop/test/git-run.test.mjs
 node --experimental-strip-types apps/desktop/test/project-discovery.test.mjs
+# 0.3.3 onboarding REQ-04: are the Fabric Agent Adapter skills where the chosen coding agent reads skills.
+node --experimental-strip-types apps/desktop/test/adapter-skills.test.mjs
+node --experimental-strip-types apps/desktop/test/task-retry.test.mjs
 node --experimental-strip-types apps/desktop/test/executor-detect.test.mjs
 node --experimental-strip-types apps/desktop/test/executor-auth.test.mjs
 node --experimental-strip-types apps/desktop/test/start-paths-main.test.mjs

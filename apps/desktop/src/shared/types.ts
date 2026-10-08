@@ -907,6 +907,9 @@ export interface FabricApi {
       projectId: string
       instruction: string
       optionId: string
+      /** Chosen by the caller before the first attempt, so a retry starts the same task rather than a
+       *  second one (0.3.3 onboarding). Absent: the main process mints one, as before. */
+      taskId?: string
       preset?: string
       /** True when the operator changed a preset's text before running it —
        *  the preset keeps its identity and the edit is recorded beside it. */
@@ -1323,6 +1326,8 @@ export interface FabricApi {
     createFolder(input: import('./startPaths.ts').NewFolderInput): Promise<import('./startPaths.ts').NewFolderResult>
     /** Which coding agents this machine can run. */
     executors(): Promise<import('./startPaths.ts').ExecutorRow[]>
+    /** Whether the Fabric Agent Adapter skills are where this coding agent reads skills (SCN-131, SCN-136). */
+    adapterSkills(agentId: string): Promise<import('./startPaths.ts').AdapterSkillsView>
   }
   persona: {
     /** Fabric's look on this machine (SCR-36). */
@@ -1627,6 +1632,7 @@ export const IPC = {
   startLastScan: 'start:last-scan',
   startCreateFolder: 'start:create-folder',
   startExecutors: 'start:executors',
+  startAdapterSkills: 'start:adapterSkills',
   personaRead: 'persona:read',
   personaSave: 'persona:save',
   searchRun: 'search:run',

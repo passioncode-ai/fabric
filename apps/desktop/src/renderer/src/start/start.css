@@ -6,27 +6,28 @@
 .st { max-width: 1080px; }
 .st h2 { font-size: var(--app-fs-title); letter-spacing: var(--app-track-title); margin: 0 0 var(--space-2); }
 
-/* ── the five paths ── */
-.st-cards { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-3); margin-bottom: var(--space-4); }
-.st-cards > li { display: flex; }
+/* ── the four actions, in two pairs (0.3.3, REQ-01) ── */
+.st-pairs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: var(--space-4); margin-bottom: var(--space-4); }
+.st-pair { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.st-pair { gap: var(--space-1); }
+.st-pair > .lp-kicker { margin: 0; }
+/* The pair's line sits under its name and above its cards, so the three read as one group. */
+.st-pair > .lp-meta { margin: 0 0 var(--space-2); }
+.st-cards { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: var(--space-3); }
+.st-cards > li { display: flex; min-width: 0; }
+/* A card is a section with its own buttons, not a button: "Open a project" offers two ways in. */
 .st-card {
-  width: 100%; font: inherit; color: var(--app-ink); text-align: left; cursor: pointer;
-  display: flex; flex-direction: column; gap: var(--space-2); min-height: 168px;
+  width: 100%; color: var(--app-ink);
+  display: flex; flex-direction: column; gap: var(--space-2); min-height: 188px;
   background: var(--app-panel); border: 1px solid var(--app-line); border-radius: var(--app-radius-panel);
   padding: var(--space-4);
 }
-.st-card:hover { border-color: var(--app-line-strong); background: var(--app-panel-quiet); }
-.st-card:focus-visible { outline: 2px solid var(--app-focus); outline-offset: 2px; }
+.st-card:focus-within { border-color: var(--app-line-strong); }
 .st-card b { font-size: var(--app-fs-body); }
 .st-card > span:not(.st-card-mark) { color: var(--app-muted); font-size: var(--app-fs-caption); line-height: var(--app-lh-body); flex: 1; }
-.st-card small { color: var(--app-muted); font-size: var(--app-fs-label); }
-.st-card.planned { border-style: dashed; }
-.st-card.planned b { color: var(--app-muted); }
-/* A planned path is not a fifth choice: it takes its own row as a quiet line, so the grid of four real
-   choices never leaves one card alone on a second row (0.3.3 UI pass). */
-.st-cards > li.st-later { grid-column: 1 / -1; }
-.st-card.planned { flex-direction: row; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); padding-block: var(--space-2); min-height: 0; }
-.st-card.planned > span:not(.st-card-mark) { flex: 1 1 240px; }
+.st-card .lp-actions { flex-wrap: wrap; }
+.st-skills.ok { color: var(--app-muted); font-size: var(--app-fs-caption); }
+.st-builder-reasons { margin: var(--space-1) 0 0; padding-left: var(--space-4); display: grid; gap: var(--space-1); color: var(--app-muted); font-size: var(--app-fs-caption); }
 .st-card-mark {
   display: grid; place-items: center; width: var(--space-6); height: var(--space-6);
   border: 1px solid var(--app-line-strong); border-radius: var(--app-radius-control);

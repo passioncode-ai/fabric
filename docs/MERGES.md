@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-08 · `onboarding-four-actions` · agent/onboarding-four-actions-20261008 → main
+- run: r-9a7a12bb5; integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: `start/AgentPaths.tsx` (new: Create an agent, Adapt an existing agent), `start/startParts.tsx` (new: shared start pieces), `start/StartPaths.tsx` (the menu in two pairs; the role agent left the menu), `start/start.css`, `main/adapterSkills.ts` + IPC `start.adapterSkills`, `shared/builderChoice.ts`, the seeded estate name shown as «My workspace»; tests; SCN-126/127/128/130/131/136, FLW-73/74, SCR-70/74/75, the prototype's start views, strings, brief `docs/evidence/plans/2026-10-08-onboarding-four-actions.md`
+- summary: Fabric's onboarding is four actions — create an agent, adapt one, open a project, create one — and the agent work runs in the chosen coding agent's own console with the Fabric Agent Adapter skills.
+
 ### 2026-10-08 · `analytics-disclosure` · agent/analytics-disclosure-20261008 → main
 - run: this session; base: origin/main; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
 - scope: `apps/desktop/src/main/analytics.ts` + `index.ts` (analytics IPC), `UsageCountsNotice.tsx` (new) + `UsageCountsSetting.tsx` + `App.tsx`, shared `AnalyticsStatus`, EN/RU strings, tests, ADR-0127, ANALYTICS.md, SCN-134, CO-215, P-09, the A7-012 handoff, living map
