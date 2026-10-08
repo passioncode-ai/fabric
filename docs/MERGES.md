@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-08 · `hosted-ci-parser` · agent/contract-repin-20261008 → main
+- run: this session; base: origin/main; integration: same pull request as `contract-repin`, merged with `gh pr merge --rebase` after the local fast gate and a hosted fast run
+- scope: `scripts/test/build-unified-plan.test.mjs` (hosted NOT_RUN, local setup error), the unified-recompile handoff's checks, CO-224 resolved and the carry-over count in `docs/evidence/backlog.md`, living map
+- summary: hosted fast runs reach the end again; the 21 compiler tests that need the private workspace submodule report NOT_RUN there and still run locally.
+
 ### 2026-10-08 · `contract-repin` · agent/contract-repin-20261008 → main
 - run: this session; base: origin/main; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
 - scope: `apps/desktop/test/fixtures/fabric-agent-contract` (SOURCE.json, current/catalogue.json), `contract-consumer-fixtures.mjs` CURRENT_COMMIT, CO-223 row, living map
