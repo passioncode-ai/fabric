@@ -8,7 +8,7 @@ import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
 
 export const fixtureRoot = fileURLToPath(new URL('./fixtures/fabric-agent-contract/', import.meta.url))
-export const CURRENT_COMMIT = 'd4c88315c290033867574ba0f5cc5069693077e0'
+export const CURRENT_COMMIT = 'be71bc939c55b044bfb6d305d3adfc86f60d0ad9'
 export const LEGACY_COMMIT = '2ce392291c6668598d12cd38327e24696b5ca15c'
 export const schemaPrefix = 'https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/'
 // fabric-project-comms/0.1 (DEC-0022, accepted 2026-10-05) joins at d4c8831: its schemas, and every comms

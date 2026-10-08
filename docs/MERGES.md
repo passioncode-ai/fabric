@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-08 · `contract-repin` · agent/contract-repin-20261008 → main
+- run: this session; base: origin/main; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
+- scope: `apps/desktop/test/fixtures/fabric-agent-contract` (SOURCE.json, current/catalogue.json), `contract-consumer-fixtures.mjs` CURRENT_COMMIT, CO-223 row, living map
+- summary: Fabric's contract pin moves to be71bc93, the contract main carrying DEC-0025, DEC-0026, DEC-0027 and DEC-0029.
+
 ### 2026-10-08 · `quit-bound-and-licence` · agent/quit-test-flake-20261008 → main
 - run: this session; base: origin/main 277add0c; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
 - scope: `apps/desktop/test/quit.test.mjs` (graceful-exit ceiling of 180 s — the time to become ready does not predict the time to exit under load; planted `dialog-orphan` still fails), `COMMERCIAL-LICENSE.md` and `README.md` (passioncode.ai/business, replacing conflicting PR #13), provider matrix re-pin (Codex 0.161.0, the machine updated itself), living map
