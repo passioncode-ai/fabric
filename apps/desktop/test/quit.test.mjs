@@ -173,69 +173,84 @@ test('a failing shutdown still lets the quit through', async () => {
 // A real window needs a display: the hosted Linux runner has none ("fixture exited before ready",
 // runs 37118117108 and 37119372339). macOS always has one; Linux runs it only with DISPLAY set.
 const noDisplay = process.platform !== 'darwin' && !process.env.DISPLAY
+
+/**
+ * How long a GRACEFUL exit may take. The defect these tests exist for (CO-191) is a process that never
+ * exits; a loaded machine only makes a correct one slow. 45 s was measured enough at load 55–138, and was
+ * not at 70–285 with the disk full (2026-10-07/08: a fixture that became ready in seconds took over 45 s
+ * to tear down, on main and on a branch alike, the code under test unchanged) — so the time to become
+ * ready does not predict the time to exit, and the bound is a ceiling a hang still runs out: 180 s. A
+ * passing run is as fast as before; only a hung one waits this long. The product's own bound under load
+ * is the outside reaper (15 s), tested above.
+ */
+const GRACEFUL_BOUND_MS = 180_000
+function gracefulBoundMs() {
+  return GRACEFUL_BOUND_MS
+}
+
+/** Spawn the fixture and wait for `quit-app: ready`. */
+function startFixture(child, outRef) {
+  const startedAt = Date.now()
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error('the fixture never became ready:\n' + outRef.out)), 90_000)
+    child.stdout.on('data', () => { if (outRef.out.includes('quit-app: ready')) { clearTimeout(t); resolve(Date.now() - startedAt) } })
+    child.on('exit', () => { clearTimeout(t); reject(new Error('the fixture exited before ready:\n' + outRef.out)) })
+  })
+}
+
+/** SIGTERM, then the exit — or `alive` once the bound for this machine has passed. */
+function terminate(child, boundMs) {
+  const sentAt = Date.now()
+  child.kill('SIGTERM')
+  return new Promise((resolve) => {
+    const t = setTimeout(() => resolve({ alive: true, boundMs }), boundMs)
+    child.on('exit', (code, signal) => { clearTimeout(t); resolve({ code, signal, ms: Date.now() - sentAt, boundMs }) })
+  })
+}
 async function runFixture(mode) {
   const electron = createRequire(import.meta.url)('electron')
   const dir = mkdtempSync(path.join(tmpdir(), 'fabric-quit-'))
   const main = path.join(import.meta.dirname, 'fixtures/quit-app/main.mjs')
   const child = spawn(electron, ['--use-mock-keychain', main, dir, ...(mode ? [mode] : [])], { stdio: ['ignore', 'pipe', 'pipe'] })
-  let out = ''
-  child.stdout.on('data', (b) => { out += b })
+  const ref = { out: '' }
+  child.stdout.on('data', (b) => { ref.out += b })
   child.stderr.on('data', () => {})
   try {
-    await new Promise((resolve, reject) => {
-      const t = setTimeout(() => reject(new Error('the fixture never became ready:\n' + out)), 30_000)
-      child.stdout.on('data', () => { if (out.includes('quit-app: ready')) { clearTimeout(t); resolve() } })
-      child.on('exit', () => { clearTimeout(t); reject(new Error('the fixture exited before ready:\n' + out)) })
-    })
+    await startFixture(child, ref)
     await new Promise((r) => setTimeout(r, 500))
-    const sentAt = Date.now()
-    child.kill('SIGTERM')
-    const result = await new Promise((resolve) => {
-      // 45 s, not 10: this asserts a GRACEFUL exit; at load 55–138 Electron's own teardown measured 12–27 s
-      // (third lifecycle review). The product's bound under such load is the outside reaper (15 s), tested above.
-      const t = setTimeout(() => resolve({ alive: true }), 45_000)
-      child.on('exit', (code, signal) => { clearTimeout(t); resolve({ code, signal, ms: Date.now() - sentAt }) })
-    })
-    return { result, out }
+    // A GRACEFUL exit, bounded by what this machine can do now; the product's own bound under load is
+    // the outside reaper (15 s), tested above.
+    const result = await terminate(child, gracefulBoundMs())
+    return { result, out: ref.out }
   } finally {
     if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL')
     rmSync(dir, { recursive: true, force: true })
   }
 }
 
-test('a real Electron main process with a startup-failure dialog open still quits on SIGTERM', { timeout: 120_000, skip: noDisplay ? 'NOT_RUN: a real Electron window needs macOS or a DISPLAY' : false }, async () => {
+test('a real Electron main process with a startup-failure dialog open still quits on SIGTERM', { timeout: 300_000, skip: noDisplay ? 'NOT_RUN: a real Electron window needs macOS or a DISPLAY' : false }, async () => {
   const { result, out } = await runFixture('dialog')
-  assert.equal(result.alive, undefined, 'still alive 45 s after SIGTERM with the dialog open:\n' + out)
+  assert.equal(result.alive, undefined, `still alive ${result.boundMs / 1000} s after SIGTERM with the dialog open:\n` + out)
   assert.equal(result.signal, null, out)
   assert.equal(result.code, 0, out)
   assert.match(out, /quit-app: will-quit/)
 })
 
-test('a real Electron main process exits gracefully on SIGTERM', { timeout: 120_000, skip: noDisplay ? 'NOT_RUN: a real Electron window needs macOS or a DISPLAY' : false }, async () => {
+test('a real Electron main process exits gracefully on SIGTERM', { timeout: 300_000, skip: noDisplay ? 'NOT_RUN: a real Electron window needs macOS or a DISPLAY' : false }, async () => {
   const electron = createRequire(import.meta.url)('electron')
   const dir = mkdtempSync(path.join(tmpdir(), 'fabric-quit-'))
   const main = path.join(import.meta.dirname, 'fixtures/quit-app/main.mjs')
   // Spawned as the Electron binary itself, never a forwarding wrapper: the signal goes to the
   // process under test and nowhere else (lifecycle LC-02).
   const child = spawn(electron, ['--use-mock-keychain', main, dir], { stdio: ['ignore', 'pipe', 'pipe'] })
-  let out = ''
-  child.stdout.on('data', (b) => { out += b })
+  const ref = { out: '' }
+  child.stdout.on('data', (b) => { ref.out += b })
   child.stderr.on('data', () => {})
   try {
-    await new Promise((resolve, reject) => {
-      const t = setTimeout(() => reject(new Error('the fixture never became ready:\n' + out)), 30_000)
-      child.stdout.on('data', () => { if (out.includes('quit-app: ready')) { clearTimeout(t); resolve() } })
-      child.on('exit', () => { clearTimeout(t); reject(new Error('the fixture exited before ready:\n' + out)) })
-    })
-    const sentAt = Date.now()
-    child.kill('SIGTERM')
-    const result = await new Promise((resolve) => {
-      // 45 s, not 10: this asserts a GRACEFUL exit; at load 55–138 Electron's own teardown measured 12–27 s
-      // (third lifecycle review). The product's bound under such load is the outside reaper (15 s), tested above.
-      const t = setTimeout(() => resolve({ alive: true }), 45_000)
-      child.on('exit', (code, signal) => { clearTimeout(t); resolve({ code, signal, ms: Date.now() - sentAt }) })
-    })
-    assert.equal(result.alive, undefined, 'still alive 45 s after SIGTERM (CO-191; the native teardown alone can take seconds on a loaded machine, never this long):\n' + out)
+    await startFixture(child, ref)
+    const result = await terminate(child, gracefulBoundMs())
+    const out = ref.out
+    assert.equal(result.alive, undefined, `still alive ${result.boundMs / 1000} s after SIGTERM (CO-191; a loaded machine makes the teardown slow, never endless):\n` + out)
     assert.equal(result.signal, null, 'killed rather than exited:\n' + out)
     assert.equal(result.code, 0, out)
     assert.match(out, /quit-app: schedulers-stopped/)
