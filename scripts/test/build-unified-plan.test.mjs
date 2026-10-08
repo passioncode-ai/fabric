@@ -1,5 +1,5 @@
 // #region unified-compiler-tests — docs: docs/handoffs/2026-10-04-unified-canonical-recompile.md#checks-and-integration
-import { test } from 'node:test'
+import { test as nodeTest } from 'node:test'
 import assert from 'node:assert/strict'
 import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, copyFileSync, rmSync, existsSync, readdirSync, symlinkSync } from 'node:fs'
 import { createHash } from 'node:crypto'
@@ -9,11 +9,19 @@ import { fileURLToPath } from 'node:url'
 import { execFileSync, spawnSync } from 'node:child_process'
 
 const owner = fileURLToPath(new URL('../..',import.meta.url))
+// The pinned common parser is the private fabric-workspace submodule. A hosted run of this
+// public repository cannot read it, so there every test in this file reports NOT_RUN instead of
+// failing on a missing clone; on a workstation a missing submodule is a setup error, not a skip.
+const parserRoot = process.env.FABRIC_COMPILER_TEST_WORKSPACE || join(owner,'workspace')
+const parserMissing = !existsSync(join(parserRoot,'.git'))
+if (parserMissing && process.env.GITHUB_ACTIONS !== 'true') throw new Error(`The pinned common parser is missing at ${parserRoot}: run \`git submodule update --init workspace\` (or set FABRIC_COMPILER_TEST_WORKSPACE).`)
+const notRun = parserMissing && 'NOT_RUN: the pinned common parser is the private fabric-workspace submodule, which a hosted clone of this public repository cannot read; the local gate runs this suite'
+const test = (name, fn) => nodeTest(name, { skip: notRun }, fn)
 const input = 'docs/reports/2026-10-04-unified-execution'
 const output = 'docs/reports/2026-10-04-unified-compiler-fixture'
 function fixture(run) {
   const root=mkdtempSync(join(tmpdir(),'fabric-unified-compiler-'))
-  const parser=process.env.FABRIC_COMPILER_TEST_WORKSPACE || join(owner,'workspace')
+  const parser=parserRoot
   const copy = path => {mkdirSync(dirname(join(root,path)),{recursive:true});copyFileSync(join(owner,path),join(root,path))}
   const oldPlan=JSON.parse(readFileSync(join(owner,input,'plan.json'),'utf8'))
   const paths=new Set([...oldPlan.sources.map(s=>s.path),'docs/backlog-sources.json','docs/adr/0101-the-general-development-plan.md',`${input}/checks/execution.json`,`${input}/impacts.json`,
