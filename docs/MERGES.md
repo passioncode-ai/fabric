@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-10 · `wiki-do` · agent/wiki-do-20261008 → main
+- run: r-d8d027823; base: origin/main 1404dffe (rebased); integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
+- scope: `scripts/workspace-release.mjs` (region `workspace-deploy`: App Platform API probe, Observatory-only credentials), `scripts/workspace.mjs` (no heroku remote/push; credentials checked before the gates; fast-forward when the workspace is behind), `scripts/workspace-snapshot.mjs` (receipt `platform`/`do_app`/`deployment`, Heroku receipt kept as history), `workspace.config.json` (`do_app`), `scripts/install-workspace-sync.sh`, tests, `docs/architecture/report-workspace.md`, DOCMAP, living map
+- summary: the workspace publish step deploys through GitHub to DigitalOcean App Platform and verifies the ACTIVE deployment; it works without the Heroku CLI installed.
+
 ### 2026-10-09 · `release-0.3.3` · agent/release-033-candidate → main
 - run: r-9a7a12bb5; base: origin/main 710c0d38; verified commit `fa9cdf6b`; integration: fast-forward after `bash scripts/ci.sh fast`
 - scope: iteration 3 (V3-1…V3-45, receipts in `docs/evidence/reviews/0.3.3/iteration-3/`, rechecks at `f891954c`, `d2c20705`, `fa9cdf6b`), the release commit: `apps/desktop/package.json` 0.3.3, `## 0.3.3`, `docs/launch/release-gate.json`, the handoff `docs/handoffs/2026-10-09-release-033-handoff.md` and the NB-1 recheck report as release metadata.

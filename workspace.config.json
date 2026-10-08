@@ -2,7 +2,7 @@
   "schema": 1,
   "path": "workspace",
   "repository": "https://github.com/passioncode-ai/fabric-workspace",
-  "heroku_app": "passioncode-fabric-workspace",
+  "do_app": "3283cfc0-7d5f-498b-8dac-cab351ab4409",
   "public_origin": "https://wiki.passioncode.ai",
   "sources": [
     {

@@ -5,7 +5,7 @@ import {readFileSync,writeFileSync,existsSync} from 'node:fs'
 import path from 'node:path'
 import {snapshot,writeSnapshot,checkReceipt,git,receiptPath,publicationOnly,verifyCommittedSnapshot,receiptFor} from './workspace-snapshot.mjs'
 import {resolveSources,pinnedSources,localSourceDirs,sourcesMatch,sourcePins,fetchTip,lagReport,syncReasons,syncLeftovers,childLeftovers} from './workspace-sources.mjs'
-import {completedPublication,verifyDeployment,publicationSource,publicationHazards,sourceChangedSince} from './workspace-release.mjs'
+import {completedPublication,verifyDeployment,checkDeployCredentials,publicationSource,publicationHazards,sourceChangedSince} from './workspace-release.mjs'
 import {boundedRun,nonInteractiveGitEnv,acquireLock,superviseJob,killAll,exitWithin} from './lib/bounded-run.mjs'
 const root=path.resolve(import.meta.dirname,'..'),child=path.join(root,'workspace')
 const config=()=>JSON.parse(readFileSync(path.join(root,'workspace.config.json'),'utf8'))
@@ -64,22 +64,32 @@ if(cmd==='status'){
  if(inFlight.length)console.log('Publishing past '+inFlight.length+' uncommitted parent change(s); the snapshot comes from a commit, so they are not in it: '+inFlight.slice(0,4).join(', ')+(inFlight.length>4?' …':''))
  clean(child);const c=config()
  holdPublication()
- const completed=completedPublication(root)
+ // A receipt from before the App Platform move (a Heroku one) is never "already published": the next
+ // publication deploys and verifies on App Platform and replaces it.
+ const finished=completedPublication(root),completed=finished?.platform==='digitalocean'?finished:null
  // Every other repository is read at its current tip. A publication is finished only when Fabric
  // AND each source are what the receipt pins; a new commit in a tool's repository republishes.
  const resolved=resume?null:resolveSources(c)
  if(completed&&(resume||sourcesMatch(completed,resolved))){
-  const actual=await verifyDeployment(c,completed)
-  if(actual.release!==completed.release)throw Error('Release changed after receipt; inspect configuration changes or rollback before republishing')
+  // App Platform redeploys on every push to the host's main (knowledge-base edits too), so the
+  // deployment id moves on its own; what must still hold is that the running host serves exactly
+  // the receipt's source, content and pins, from the pinned commit or a later one with the same content/.
+  await verifyDeployment(c,completed,{root,child})
   await run('git',['push','origin',pushTarget()]);console.log('Workspace already published; parent push verified. '+c.public_origin);process.exit(0)
  }
  if(git(child,'branch','--show-current').toString().trim()!=='main')throw Error('Workspace must be on main; inspect detached state before publishing')
  await run('git',['fetch','origin','main'],child)
- git(child,'merge-base','--is-ancestor','origin/main','HEAD')
+ // Another session's knowledge-base push between the sync's checkout and this fetch leaves the workspace
+ // strictly behind origin/main (2026-10-08 20:35Z: the sync failed on exactly that). Behind with nothing of
+ // its own is fast-forwarded; diverged is refused for a person to inspect.
+ try{git(child,'merge-base','--is-ancestor','origin/main','HEAD')}catch{
+  try{git(child,'merge-base','--is-ancestor','HEAD','origin/main')}catch{throw Error('The workspace main has diverged from origin/main; inspect it before publishing')}
+  await run('git',['merge','-q','--ff-only','origin/main'],child);console.log('Fast-forwarded the workspace main to origin/main')
+ }
  const source=publicationSource(root,child)
- // Checked before the gates: a checkout without the deploy remote (a fresh worktree's
- // submodule has only origin) otherwise fails after ten minutes of gates, at the Heroku push.
- try{git(child,'remote','get-url','heroku')}catch{throw Error('The workspace checkout has no heroku remote. NEXT: git -C workspace remote add heroku https://git.heroku.com/'+c.heroku_app+'.git')}
+ // Checked before the gates: without the Observatory runner or its deployment credentials the
+ // publication would otherwise fail after ten minutes of gates, at the deployment check.
+ checkDeployCredentials()
  // PROPORTIONAL (lifecycle LC-03). Fabric's gate verifies Fabric's source; when that source is the
  // commit the last receipt already published, its verdict stands, and a publication triggered by
  // another repository's commit does not re-run the whole product CI — twice — on a busy machine.
@@ -120,11 +130,12 @@ if(cmd==='status'){
   try{await run('git',['push','origin','main'],child);break}catch(e){if(attempt>=3)throw e;console.log('The workspace push was rejected; integrating again ('+attempt+'/3)')}
  }
  // #endregion workspace-publish-race
+ // The push to GitHub main above IS the deployment: App Platform builds every push to the host's main.
  const ws=git(child,'rev-parse','HEAD').toString().trim()
- await run('git',['push','heroku','main'],child)
  const m=JSON.parse(readFileSync(path.join(child,'content/manifest.json'),'utf8'))
- const verified=await verifyDeployment(c,{source_commit:source,workspace_commit:ws,content_digest:m.content_digest,sources:m.sources??[]})
- writeFileSync(path.join(root,receiptPath),JSON.stringify(receiptFor({manifest:m},{workspace_commit:ws,heroku_app:c.heroku_app,release:verified.release}),null,2)+'\n')
+ const verified=await verifyDeployment(c,{source_commit:source,workspace_commit:ws,content_digest:m.content_digest,sources:m.sources??[]},{root,child})
+ console.log('App Platform deployment '+verified.deployment+' serves '+verified.deployed_commit.slice(0,12))
+ writeFileSync(path.join(root,receiptPath),JSON.stringify(receiptFor({manifest:m},{workspace_commit:ws,platform:'digitalocean',do_app:c.do_app,deployment:verified.deployment}),null,2)+'\n')
  await run('git',['add','workspace',receiptPath]);checkReceipt(root,{requireChild:true,sourceDirs:localSourceDirs(root)})
  // The pin commit changes only projections (the gitlink and the receipt); the gate runs again only
  // when it ran above, i.e. when the source it verifies changed.
