@@ -317,7 +317,6 @@ button:disabled { opacity: .4; cursor: default; }
    resource being granted can be read (UX-3), and a card's acts wrap in a narrow window (UX-10). */
 .access-card p { margin: 0; overflow-wrap: anywhere; }
 .access-asks li { overflow-wrap: anywhere; }
-.access-acts .toolbar { flex-wrap: wrap; }
 .access-name { margin: 0; font-size: var(--app-fs-body); }
 .access-asks { margin: 0; padding-left: var(--space-3); }
 .access-url { overflow-wrap: anywhere; }

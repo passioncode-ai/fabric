@@ -123,8 +123,10 @@
 .row-quiet { color: var(--app-muted); }
 
 /* ── Toolbar ─────────────────────────────────────────────────── */
-.toolbar { display: flex; gap: var(--space-2); align-items: center; }
-.panel-head .toolbar { flex-wrap: wrap; }
+.toolbar { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; min-width: 0; }
+/* A toolbar never pushes its panel wider than its column: a long option label or a third control wraps
+   to the next line (the task panel's agent + permission + Run row overflowed the project page by 105 px). */
+.toolbar > select, .toolbar > input { min-width: 0; max-width: 100%; }
 .toolbar-end { justify-content: flex-end; }
 .toolbar-between { justify-content: space-between; width: 100%; }
 
