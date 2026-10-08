@@ -665,3 +665,5 @@ their capitals as title case. Adding those names is `brand-voice`’s decision (
 | `startup.quit` | Quit | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
 | `dialog.scanChoose` | Choose the folder that holds your projects | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | proposed |
 | `start.facts.summary` | What it says it is | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | proposed |
+| `tasks.presetSetup` | Set up this project with the agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | proposed |
+| `start.scan.setUpFirst` | Set up the first one with the agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | proposed |

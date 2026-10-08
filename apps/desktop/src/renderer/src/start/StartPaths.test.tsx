@@ -255,6 +255,24 @@ describe('a scanned project arrives with its own description as its purpose', ()
   })
 })
 
+describe('after a scan: set the first one up with the agent (plan R3a)', () => {
+  it('offers it beside Open the first one, and hands over the first created project', async () => {
+    const scan: ScanView = { root: '/w', visited: 1, unreadable: 0, deep: 0, symlinks: 0, kept: true, truncated: false, cancelled: false, scannedAt: '2026-10-08T00:00:00Z',
+      candidates: [repo({ path: '/w/a', name: 'a', group: '/w/a' })] }
+    bridge({ start: { ...bridge().start, scan: vi.fn(async () => scan) } })
+    const onSetUp = vi.fn()
+    const handlers = { onPath: vi.fn(), onCreated: vi.fn(), onOpenProject: vi.fn(), onHome: vi.fn(), onProjectsChanged: vi.fn(), onSetUp }
+    render(<I18nProvider locale="en"><StartScreen path="scan" projects={[] as never} {...handlers} /></I18nProvider>)
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.choose'] }))
+    fireEvent.click(within((await screen.findByText('a', { selector: 'b' })).closest('label') as HTMLElement).getByRole('checkbox'))
+    fireEvent.click(screen.getByRole('button', { name: en['start.scan.import'].replace('{count}', '1') }))
+    fireEvent.click(await screen.findByRole('button', { name: en['start.scan.setUpFirst'] }))
+    expect(onSetUp).toHaveBeenCalledTimes(1)
+    expect(typeof onSetUp.mock.calls[0][0]).toBe('string')
+    expect(handlers.onCreated, 'setting up is not merely opening').not.toHaveBeenCalled()
+  })
+})
+
 describe('agent paths (SCN-130, SCN-131)', () => {
   it('a new agent opens the chosen project\'s team, and with no project offers to make one', () => {
     bridge()

@@ -23,6 +23,9 @@ import { runnerLabel } from './runnerLabel'
  *  production yet (M129), and a shortcut that opens a session to look at a
  *  signal we do not collect is a promise the product cannot keep. */
 const PRESETS: TaskPreset[] = [
+  // R3a of the 0.3.3 onboarding plan: setting a project up is a session the agent runs in its own console,
+  // with tools it already holds — memory, questions to the owner, tasks on the board. It changes no file.
+  { id: 'setup', labelKey: 'tasks.presetSetup', instructionKey: 'tasks.presetSetupText' },
   { id: 'context', labelKey: 'tasks.presetContext', instructionKey: 'tasks.presetContextText' },
   { id: 'audit', labelKey: 'tasks.presetAudit', instructionKey: 'tasks.presetAuditText' },
   { id: 'review', labelKey: 'tasks.presetReview', instructionKey: 'tasks.presetReviewText' },

@@ -940,6 +940,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
   recorded as started; an empty instruction cannot be run.
 - **Telemetry:** `task_started` with option_id, preset, instruction_length — never the
   instruction body
+- **Amended 2026-10-08 (0.3.3 onboarding, plan R3a):** the first shortcut is «Set up this project with the agent»: its instruction has the session read the repository, record what it learns in project memory with the file each fact came from, ask the owner to confirm a one-sentence purpose and whatever else it cannot decide, and file the next three pieces of work as tasks — with tools a connected session already holds, and changing no file. It fills the field like any shortcut; nothing runs until Run.
 - **Status:** draft
 - **Coverage:** `apps/desktop/src/renderer/src/Tasks.tsx`, `apps/desktop/src/shared/presets.ts`, `apps/desktop/src/renderer/src/Tasks.test.tsx`
 - **Product:** unobserved
@@ -3172,6 +3173,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Design rationale:** Nothing becomes a Project without the operator's tick; Tick all shown ticks one Project per product, so a worktree becomes a separate Project only by a deliberate, warned tick.
 - **Telemetry:** planned only.
 - **Amended 2026-10-08 (0.3.3 onboarding, R2 — «показал папку, он нашёл мои проекты и сразу всё определил»):** each listed repository also shows what it says it is — its manifest's `description` (package.json, pyproject.toml `[project]`/`[tool.poetry]`, Cargo.toml `[package]`), else the first prose paragraph of its README — in two lines under its name; Add N as projects gives each Project that text as its purpose. A repository that says nothing gets no purpose rather than an invented one; a README that is a link is not followed; the purpose is edited like any other.
+- **Amended 2026-10-08 (plan R3a):** the summary after adding also offers «Set up the first one with the agent», which opens the first created project with that shortcut already in its task field and the field in view; nothing starts until the operator presses Run.
 - **Status:** draft
 - **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx; apps/desktop/src/main/projectDiscovery.ts; apps/desktop/src/main/startPaths.ts; target-only legacy R0 scan checklist: scripts/product/first-release.mjs (CO-180), scripts/test/first-release.test.mjs. Prototype checks do not certify native acceptance.
 - **Product:** unobserved

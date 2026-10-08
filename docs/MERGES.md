@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-08 · `setup-with-agent` · agent/onboarding-scan-20261008 → main
+- run: r-9a7a12bb5; base: origin/main e13ce7ca, after `onboarding-scan-summary`; integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: the `setup` preset in `renderer/src/Tasks.tsx`, `onSetUp` in `start/StartPaths.tsx` and `App.tsx`, `tasks.presetSetup*` and `start.scan.setUpFirst` in both registries; tests in `Tasks.test.tsx` (every tool the instruction names is a surface tool) and `StartPaths.test.tsx`; SCN-032/128 amendments; plan R3a
+- summary: a project can be set up by its agent from its own console, with tools the session already holds; nothing runs until Run.
+
 ### 2026-10-08 · `onboarding-scan-summary` · agent/onboarding-scan-20261008 → main
 - run: r-9a7a12bb5; base: origin/main e13ce7ca; integration: fast-forward after `bash scripts/ci.sh fast`
 - scope: `main/projectDiscovery.ts` (`summaryFrom`, region `repo-summary`), `shared/startPaths.ts` (`summary`), `start/StartPaths.tsx` + `start.css` (the summary under each candidate and in the facts list; it becomes the purpose), `start.facts.summary` in both registries; tests in `test/project-discovery.test.mjs` and `StartPaths.test.tsx`; SCN-127/128 amendments, CO-226, the plan's R1/R2/R3 rows

@@ -744,6 +744,16 @@ function Shell({
               const anchor = section ? PROJECT_SECTION_ANCHOR[section] : null
               if (anchor) revealSection(anchor)
             }}
+            onSetUp={async (projectId) => {
+              // Plan R3a: the project opens with the setup instruction in its task field and the field in view; the
+              // operator chooses the agent and presses Run — nothing starts on its own.
+              const text = t('tasks.presetSetupText')
+              setTaskDrafts((old) => ({ ...old, [projectId]: { instruction: text, preset: 'setup', presetText: text } }))
+              await refreshProjects()
+              openProject(projectId)
+              setProjectSection('overview')
+              revealSection('sec-tasks')
+            }}
             onHome={() => goTo({ kind: 'home' })}
             onProjectsChanged={() => void refreshProjects()}
           />

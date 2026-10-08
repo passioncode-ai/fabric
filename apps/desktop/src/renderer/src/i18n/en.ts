@@ -685,6 +685,8 @@ export const en = {
   'tasks.presetContext': 'Collect context',
   'tasks.presetContextText':
     'Survey this repository and write down what this project is: its purpose, its main modules, how it is built and run, and what state it is in. Cite files as you go. Change nothing yet.',
+  'tasks.presetSetup': "Set up this project with the agent",
+  'tasks.presetSetupText': "Set this project up in Fabric. Read the repository — its README, its manifests and its recent history — and record what you learn in the project's memory with fabric_memory_remember, naming the file each fact came from. Then draft the project's purpose in one sentence and ask the owner to confirm it with fabric_question_ask. File the next three useful pieces of work as tasks with fabric_task_create, each with the evidence it came from. Ask the owner whatever you cannot decide — the goal, who it is for, what comes first — instead of guessing. Do not change any file in the repository.",
   // M121's data-backed presets. The label carries the count because a shortcut
   // that reads the project should say how much it found; the instruction carries
   // the items, so the session does not open by rediscovering what Fabric knows.
@@ -1944,6 +1946,7 @@ export const en = {
   'start.scan.import': "Add {count} as projects",
   'start.scan.importing': "Adding {done} of {count}…",
   'start.scan.openFirst': "Open the first one",
+  'start.scan.setUpFirst': "Set up the first one with the agent",
   'first.exec.state.foundUnconnected': "Installed",
   'first.exec.unconnected': "{name} runs in a project folder as itself. Fabric's tools are not connected to it yet, so it cannot report work back to Fabric.",
   'start.scan.stopped': "The scan was stopped. Nothing was added.",

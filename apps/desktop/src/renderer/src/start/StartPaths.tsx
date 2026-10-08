@@ -19,6 +19,8 @@ export interface StartProps {
   /** A project now exists: open it. */
   onCreated(projectId: string): void
   onOpenProject(projectId: string, section?: 'team'): void
+  /** Open a project with "Set up this project with the agent" already in its task field (plan R3a). */
+  onSetUp?(projectId: string): void
   onHome(): void
   /** Projects were created without leaving the screen (a scan import): re-read the list so the sidebar shows them. */
   onProjectsChanged(): void
@@ -278,7 +280,7 @@ type ScanState =
 /** A part of a product (a worktree, a repository nested in another) — not ticked by "Tick all shown". */
 const isPart = (c: CandidateView): boolean => c.path !== c.group
 
-function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: StartProps): React.JSX.Element {
+function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged, onSetUp }: StartProps): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
   const [s, setS] = useState<ScanState>({ at: 'idle' })
@@ -414,6 +416,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged }: Sta
           {s.at === 'imported' && (
             <div className="lp-callout" role="status">
               <p>{failedCount === 0 ? t('start.scan.importedAll', { ok: s.created.length }) : t('start.scan.importedSome', { ok: s.created.length, failed: failedCount })}</p>
+              {s.created[0] && onSetUp && <button type="button" className="lp-button primary" onClick={() => onSetUp(s.created[0])}>{t('start.scan.setUpFirst')}</button>}
               {s.created[0] && <button type="button" className="lp-button" onClick={() => onCreated(s.created[0])}>{t('start.scan.openFirst')}</button>}
             </div>
           )}

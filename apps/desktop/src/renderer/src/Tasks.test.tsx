@@ -64,3 +64,20 @@ describe('the shortcuts beside the blank field', () => {
     await waitFor(() => expect(screen.getByText('Known bugs (1)')).toBeTruthy())
   })
 })
+
+// Plan R3a (0.3.3 onboarding): setting a project up is a session the agent runs with tools it already holds.
+describe('setting a project up with the agent', () => {
+  it('is offered first, and its instruction asks the agent to record, ask and file — and to change no file', async () => {
+    mount([])
+    await waitFor(() => expect(screen.getByText('Set up this project with the agent')).toBeTruthy())
+    const labels = [...document.querySelectorAll('button')].map((b) => b.textContent ?? '')
+    expect(labels.indexOf('Set up this project with the agent')).toBeLessThan(labels.indexOf('Collect context'))
+    const { en } = await import('./i18n/en')
+    const text = en['tasks.presetSetupText']
+    for (const tool of ['fabric_memory_remember', 'fabric_question_ask', 'fabric_task_create']) expect(text).toContain(tool)
+    expect(text).toMatch(/Do not change any file/)
+    // Every tool the instruction names is one a session is actually given.
+    const { SURFACE_TOOLS } = await import('../../shared/surfaceTools')
+    for (const tool of text.match(/fabric_[a-z_]+/g) ?? []) expect(SURFACE_TOOLS.map((x) => x.name), tool).toContain(tool)
+  })
+})
