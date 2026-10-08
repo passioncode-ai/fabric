@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-08 · `quit-bound-and-licence` · agent/quit-test-flake-20261008 → main
+- run: this session; base: origin/main 277add0c; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
+- scope: `apps/desktop/test/quit.test.mjs` (graceful-exit ceiling of 180 s — the time to become ready does not predict the time to exit under load; planted `dialog-orphan` still fails), `COMMERCIAL-LICENSE.md` and `README.md` (passioncode.ai/business, replacing conflicting PR #13), provider matrix re-pin (Codex 0.161.0, the machine updated itself), living map
+- summary: the real-Electron SIGTERM tests stop failing on a loaded machine without losing the hang they exist to catch.
+
 ### 2026-10-07 · `runner-route-host` · agent/runner-route-host-20261007 → main
 - run: r-0c44cb2e5; base: a655b068; integration: pull request #19 merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast` (green with `apps/desktop/test/quit.test.mjs` run apart: its real-Electron SIGTERM test fails 1 of 2 on this branch and on a655b068 alike under load averages 70–285)
 - scope: ADR-0125 (rewritten; supersedes PR #18's proposal), `shared/runnerRoute.ts`, `main/runnerFallback.ts`, `main/pty.ts` (failure types, `attachable`, `route`, applied mode), `main/index.ts`, Settings → Fallback order, the agents and task pickers, `kimi-code` row, SCN-135, SCN-126 amendment, CO-223 row, ADR index (pipeline reservation → 0126), provider matrix re-pin 2.1.293, projections and map

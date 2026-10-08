@@ -327,6 +327,6 @@ every PassionCode app on the Mac. Source builds send nothing. What is sent, wher
 
 Open source under the [GNU AGPL-3.0](LICENSE) ([ADR-0092](docs/adr/0092-every-repository-is-agpl-3-0-or-commercial.md)).
 A [commercial license](COMMERCIAL-LICENSE.md) is available for use that does not meet the AGPL's
-terms — contact@passioncode.ai. Contributions are accepted under [CLA.md](CLA.md). This repository
+terms — [passioncode.ai/business](https://passioncode.ai/business/). Contributions are accepted under [CLA.md](CLA.md). This repository
 is public: the source is available under the AGPL-3.0, and the released binary is built from it.
 
