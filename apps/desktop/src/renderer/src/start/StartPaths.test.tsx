@@ -668,6 +668,30 @@ describe('0.3.3 verification, iteration 2: the agent paths', () => {
     expect(await screen.findByText(en['start.new.refused.exists'].replace('{detail}', '/w/support-desk'))).toBeTruthy()
   })
 
+  it('after a refused name is changed, a later failure and a return keep the NEW name for the new folder (final recheck NB-1)', async () => {
+    const createFolder = vi.fn()
+      .mockResolvedValueOnce({ ok: false, reason: 'exists', detail: '/w/support-desk' })
+      .mockResolvedValue({ ok: true, path: '/w/support-desk-2' })
+    const fabric = bridge({ start: { ...bridge().start, createFolder }, projects: { create: vi.fn().mockRejectedValueOnce(new Error('stack down')).mockImplementation(async (i: { id: string; name: string }) => ({ id: i.id, name: i.name })) } })
+    start('agent')
+    await fill()
+    await ready()
+    fireEvent.click(createBtn())
+    await screen.findByText(en['start.new.refused.exists'].replace('{detail}', '/w/support-desk'))
+    fireEvent.change(screen.getByLabelText(en['start.createAgent.name']), { target: { value: 'support-desk-2' } })
+    await ready()
+    fireEvent.click(createBtn())
+    await screen.findByText(/stack down/)
+    cleanup()
+    start('agent')
+    await waitFor(() => expect((screen.getByLabelText(en['start.createAgent.name']) as HTMLInputElement).value).toBe('support-desk-2'))
+    await ready()
+    fireEvent.click(createBtn())
+    await waitFor(() => expect(fabric.windows.openSession).toHaveBeenCalled())
+    const last = fabric.projects.create.mock.calls.at(-1)![0] as { name: string; repoPaths: string[] }
+    expect([last.name, last.repoPaths[0]]).toEqual(['support-desk-2', '/w/support-desk-2'])
+  })
+
   it('a task the person walks away from is cancelled on the board (DA-5)', async () => {
     const begin = vi.fn().mockRejectedValueOnce(new Error('spawn failed')).mockResolvedValue({ session: { sessionId: 's8' } })
     const close = vi.fn(async () => ({ ok: true }))

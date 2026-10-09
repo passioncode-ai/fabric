@@ -1785,10 +1785,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       // dialog because a dialog is a suggestion and this is the rule.
       if (outcome === 'cancelled' && (reason ?? '').trim().length === 0)
         return { ok: false, reason: 'cancelling needs a reason — say what changed' }
-      const { data: task } = await store
+      const { data: task, error: readError } = await store
         .select('project_tasks', 'id,project_id,status')
         .eq('id', taskId)
         .maybeSingle()
+      // A read that failed is not "no such task" (0.3.3 final recheck): the screen reads that sentence as nothing to
+      // cancel, so a failure must say itself.
+      if (readError) return { ok: false, reason: `the task could not be read: ${readError.message}` }
       if (!task) return { ok: false, reason: 'that task no longer exists' }
       const verdict = mayMove('person', task.status as TaskState, outcome)
       if (!verdict.ok) return verdict

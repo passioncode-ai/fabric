@@ -280,7 +280,10 @@ export function CreateAgent({ onBack, onStarted }: { onBack(): void; onStarted(p
    *  one (iteration 3, ER-1). */
   const keepFor = (a: Attempt, base: KeptBase, patch: KeptPatch): void => {
     if (keptCreate && keptCreate.attempt !== a) return
-    keptCreate = { ...base, made: null, failed: null, flight: null, attempt: a, ...keptCreate, ...patch }
+    // The press being kept wins over what an earlier press left (a refused name, a thrown request): its name, sentence
+    // and place are the ones on screen, and once a folder exists they are locked, so they equal the kept ones anyway
+    // (final recheck NB-1).
+    keptCreate = { made: null, failed: null, flight: null, ...keptCreate, attempt: a, ...base, ...patch }
   }
   const choose = async (): Promise<void> => {
     setPickFailed(null)
