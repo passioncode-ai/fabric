@@ -6,7 +6,20 @@ that section as the notes of the `vX.Y.Z` release
 ([docs/launch/release-mac.md](docs/launch/release-mac.md), [ADR-0111](docs/adr/0111-fabric-is-released-from-ci.md)).
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
-## 0.3.2
+## 0.3.4 (unreleased)
+
+### Changed
+
+- **Fabric runs natively on Intel Macs too: the release is one universal DMG** (operator decision
+  2026-10-09, `Fabric-X.Y.Z-universal.dmg` instead of `-arm64.dmg`). node-pty's thin per-architecture
+  prebuilds are joined with `lipo` into one universal file in both folders, other platforms' prebuilds
+  no longer ship in the Mac app, and the release refuses an app holding any Mach-O without both slices
+  (receipt `checks.universal`). 0.3.2 carried node-pty's `darwin-x64` files as thin x86_64 binaries,
+  which macOS reports as "Support Ending for Intel-Based Apps". Measured on an unsigned universal build:
+  node-pty spawns on the x86_64 slice (Rosetta) and on arm64. **Not yet on Intel:** the measured-runtime
+  admission (`runtimeAdmission.ts`) and the executor sign-in readers (`executorAuth.ts`) still list only
+  darwin-arm64, so those adapters refuse on an Intel Mac until their suites are run there.
+
 
 A release built from a full audit of the 0.3.2 candidate (`e19e1b9e`, 0.3.1 plus the work merged after it): all 134 scenarios against their screens and code,
 plus the trust boundaries ([report](docs/reports/2026-10-05-release-032-audit/README.md)). Every P0 and P1

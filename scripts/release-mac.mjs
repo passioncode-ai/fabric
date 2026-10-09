@@ -26,6 +26,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, 
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { releaseGateProblems } from './lib/release-gate.mjs'
+import { thinMachO } from './lib/universal-mac.mjs'
 import { builderConfig, builderIdentity, changelogProblem, parseReleaseArgs, releaseCommitProblem, signatureOf, tagProblem, verifiedCandidateProblem } from './lib/release-mac.mjs'
 
 // #region release-mac — docs: docs/launch/release-mac.md#how-a-release-is-made
@@ -93,7 +94,7 @@ try {
   // LC-15: the previous build is removed before the new one, and its app bundle is first unregistered
   // from LaunchServices, so no stale copy of Fabric answers an `open` or a Dock click afterwards. The
   // previous release itself lives in the published GitHub release, not on this machine.
-  const previousApp = path.join(desktop, 'dist', 'mac-arm64', 'Fabric.app')
+  const previousApp = path.join(desktop, 'dist', 'mac-universal', 'Fabric.app')
   if (existsSync(previousApp)) spawnSync('/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister', ['-u', previousApp], { stdio: 'ignore', timeout: 30_000 })
   rmSync(path.join(desktop, 'dist'), { recursive: true, force: true })
   run('node', ['../../scripts/stage-app-icon.mjs'])
@@ -113,7 +114,7 @@ try {
 
   const dist = path.join(desktop, 'dist')
   const dmgName = readdirSync(dist).find(f => f.endsWith('.dmg')) ?? fail('no DMG was produced')
-  const dmg = path.join(dist, dmgName), app = path.join(dist, 'mac-arm64', 'Fabric.app')
+  const dmg = path.join(dist, dmgName), app = path.join(dist, 'mac-universal', 'Fabric.app')
 
   console.log('\n== notarize and staple the DMG')
   const submitted = JSON.parse(out('xcrun', ['notarytool', 'submit', dmg, ...notary, '--wait', '--timeout', '45m', '--output-format', 'json']))
@@ -139,9 +140,9 @@ try {
 
   const ciRun = inCI ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}` : null
   const receipt = { schema: 'FabricMacRelease@1', version, commit, tag: args.tag, artifact: dmgName, bytes: statSync(dmg).size, sha256,
-    arch: 'arm64', minimumMacOS: out('/usr/libexec/PlistBuddy', ['-c', 'Print :LSMinimumSystemVersion', path.join(app, 'Contents', 'Info.plist')]),
+    arch: out('lipo', ['-archs', path.join(app, 'Contents', 'MacOS', 'Fabric')]).trim().split(/\s+/).sort().join(' ') === 'arm64 x86_64' ? 'universal' : fail('Fabric.app is not universal'), minimumMacOS: out('/usr/libexec/PlistBuddy', ['-c', 'Print :LSMinimumSystemVersion', path.join(app, 'Contents', 'Info.plist')]),
     signed: `${signature.authority}, hardened runtime`, team: signature.team, notarization: { dmg: submitted.id, status: submitted.status },
-    checks: { codesignDeepStrict: 'passed', gatekeeperApp, staple: 'app and DMG validated', gatekeeperDmg },
+    checks: { universal: thinMachO(app).length === 0 ? 'every Mach-O carries arm64 and x86_64' : fail(`thin Mach-O in the app: ${thinMachO(app).slice(0, 5).join(', ')}`), codesignDeepStrict: 'passed', gatekeeperApp, staple: 'app and DMG validated', gatekeeperDmg },
     // Only a build from the release environment is published; anything else is a debug build.
     builtBy: inCI ? { ci: ciRun } : 'local debug build (never published)',
     builtAt: new Date().toISOString() }
