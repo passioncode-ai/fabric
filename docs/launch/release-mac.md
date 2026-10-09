@@ -11,7 +11,10 @@ the local packaging config; `pnpm --dir apps/desktop package` keeps building the
 
 ## What the installed app needs
 
-- **macOS on Apple silicon.** The build is `arm64` only.
+- **macOS on Apple silicon or Intel.** From 0.3.4 the build is universal (`arm64` and `x86_64`; up to 0.3.3, `arm64`
+  only). On Intel the app's main process runs on a measured runtime (Electron 44.0.0 darwin-x64) and the coding-agent
+  sign-in readers know the x64 builds of Claude Code 2.1.289 and Codex 0.160.0
+  ([receipt](harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09)). Windows and Linux are not supported yet (CO-238).
 - **Docker** (Docker Desktop or OrbStack) running, and the **Supabase CLI** (`brew install supabase/tap/supabase`).
   The app ships its stack project (`config.toml`, `seed.sql`, the migrations) in `Contents/Resources/stack`
   and keeps a working copy in `~/Library/Application Support/Fabric/stack`

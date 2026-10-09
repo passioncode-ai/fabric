@@ -16,9 +16,11 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   no longer ship in the Mac app, and the release refuses an app holding any Mach-O without both slices
   (receipt `checks.universal`). 0.3.2 carried node-pty's `darwin-x64` files as thin x86_64 binaries,
   which macOS reports as "Support Ending for Intel-Based Apps". Measured on an unsigned universal build:
-  node-pty spawns on the x86_64 slice (Rosetta) and on arm64. **Not yet on Intel:** the measured-runtime
-  admission (`runtimeAdmission.ts`) and the executor sign-in readers (`executorAuth.ts`) still list only
-  darwin-arm64, so those adapters refuse on an Intel Mac until their suites are run there.
+  node-pty spawns on the x86_64 slice (Rosetta) and on arm64. Electron 44.0.0's darwin-x64 main process is
+  now a measured runtime (registry 17 groups, native view host 14 groups, run under `arch -x86_64`), and the
+  coding-agent sign-in readers know the x64 builds of Claude Code 2.1.289 and Codex 0.160.0
+  ([receipt](docs/launch/harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09)). Node on an Intel Mac (the
+  development runtime) is not admitted yet (CO-237); Windows and Linux are not supported (CO-238).
 
 
 A release built from a full audit of the 0.3.2 candidate (`e19e1b9e`, 0.3.1 plus the work merged after it): all 134 scenarios against their screens and code,

@@ -3,13 +3,19 @@ import { spawn } from 'node:child_process'
 import type { ExecutorAuthentication } from '../shared/startPaths.ts'
 
 /** Separate from account identity, tool connectivity, model execution and runtime admission.
- * Read-only commands observed on these exact darwin-arm64 builds on 2026-10-04.
+ * Read-only commands observed on these exact darwin-arm64 builds on 2026-10-04, and on their
+ * official darwin-x64 builds on 2026-10-09 under Rosetta (Claude Code 2.1.289 from its release
+ * manifest, checksum-verified; Codex 0.160.0 from npm `@openai/codex@0.160.0-darwin-x64`,
+ * integrity-verified): isolated empty profiles answer `{"loggedIn":false,"authMethod":"none"}` exit 1
+ * and `Not logged in` exit 1; a synthetic API key / ChatGPT login answers `loggedIn:true` exit 0 and
+ * `Logged in using ChatGPT` exit 0 (docs/launch/harness-r0/checks.md "Intel (x86_64) runtimes").
  * An upgrade requires a new reader receipt; no command is guessed for another build.
  */
 const READERS: Readonly<Record<string, { version: string; args: readonly string[] }>> = {
   'claude-code': { version: '2.1.289', args: ['auth', 'status', '--json'] },
   codex: { version: '0.160.0', args: ['login', 'status'] }
 }
+const MEASURED_ARCHS: ReadonlySet<string> = new Set(['arm64', 'x64'])
 const METHODS = new Set(['none', 'claude.ai', 'oauth_token', 'api_key', 'api_key_helper', 'third_party'])
 const OUTPUT_BYTES = 32768
 const DEADLINE_MS = 8000
@@ -42,7 +48,7 @@ export function observeExecutorAuth(input: {
   timeoutMs?: number; platform?: string; arch?: string
 }): Promise<ExecutorAuthentication> {
   const reader = READERS[input.id]
-  if (!reader || reader.version !== input.version || (input.platform ?? process.platform) !== 'darwin' || (input.arch ?? process.arch) !== 'arm64') {
+  if (!reader || reader.version !== input.version || (input.platform ?? process.platform) !== 'darwin' || !MEASURED_ARCHS.has(input.arch ?? process.arch)) {
     return Promise.resolve({ state: 'unsupported', method: null, reason: 'unverified-build' })
   }
   return new Promise((resolve) => {

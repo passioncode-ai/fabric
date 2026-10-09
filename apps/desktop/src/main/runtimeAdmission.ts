@@ -43,6 +43,12 @@ export const MEASURED_RUNTIMES: readonly RuntimeTuple[] = Object.freeze(([
   // pass (docs/launch/harness-r0/checks.md).
   { runtime: 'node', electron: null, node: '26.10.0', uv: '1.53.0', modules: '147', platform: 'darwin', arch: 'arm64',
     codeSha256: '80335f41c8d19799b203b1831ed51e900c21ef986e38479c69bd4381aedac3db' },
+  // Intel Macs (operator decision 2026-10-09: the release is universal). Electron 44.0.0's darwin-x64
+  // build (npm, `npm_config_arch=x64`, checksum-verified by @electron/get) run under Rosetta as
+  // `arch -x86_64`; measured 2026-10-09 — all 17 registry groups and all 14 native view host groups
+  // pass (docs/launch/harness-r0/checks.md "Intel (x86_64) runtimes").
+  { runtime: 'electron-main', electron: '44.0.0', node: '24.18.1', uv: '1.52.1', modules: '149', platform: 'darwin', arch: 'x64',
+    codeSha256: 'd2a5a75b572630817cb2893f20def244b21ed8d6e8b77db751db1b874ccfef6c' },
 ] satisfies RuntimeTuple[]).map(t => Object.freeze(t)))
 
 const KEYS: readonly (keyof RuntimeTuple)[] = ['runtime', 'electron', 'node', 'uv', 'modules', 'platform', 'arch', 'codeSha256']
