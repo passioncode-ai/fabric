@@ -30,6 +30,22 @@ the repository (the operator's rule of 2026-10-06: media does not go into git). 
 committed under `docs/evidence/reviews/0.3.3/iteration-3/`, because after `verifiedCommit` the release gate admits
 review artifacts only under `docs/reports/` or `docs/evidence/reviews/`.
 
+## Release close
+
+What 0.3.3's release has to do besides the gate, in one list (0.3.3 verification, iteration 2, PL-10). Each line is
+checked off with its receipt when it is done.
+
+1. The release commit: `apps/desktop/package.json` 0.3.3 (nothing else in that file), `## 0.3.3` finalized in
+   `CHANGELOG.md`, `docs/launch/release-gate.json` (version, this ledger, `verifiedCommit` = the iteration-3
+   candidate, three receipt groups); landed on `main` by fast-forward after `bash scripts/ci.sh fast`.
+2. **Before the tag:** fabric-workspace [PR #81](https://github.com/passioncode-ai/fabric-workspace/pull/81) merged — the
+   roadmap names 0.3.3 as the onboarding release (CO-196).
+3. The tag `v0.3.3`; the release run's two protected approvals (macOS build, publish), each given to the operator as
+   a direct link once it waits.
+4. The packaged smoke (runbook step 7), plus the first-run boot on the operator's own database (CO-228).
+5. The website's release PR (runbook step 9) and the workspace publication: `node scripts/workspace.mjs publish`,
+   then `check --require-child` (CO-197).
+
 ## Iteration 1
 
 Five fresh reviewers, 2026-10-08, against `ece98797` (`ece987975a1b2a491f86f5e528f96920b04aa4c5`, the head of `agent/release-033-candidate`). Reports:
@@ -98,7 +114,58 @@ Exit for iteration 1: every finding above is fixed, ruled with a register id or 
 
 ## Iteration 2
 
-_Not started._
+Five fresh reviewers, 2026-10-09, against `6d6d039d` (`6d6d039d831051eae3889cae4f6b75dfc38e7eb3`, the head of `agent/release-033-candidate` after iteration 1). Reports:
+[scenarios/UX/UI](2026-10-08-release-033-verification/iteration-2/2026-10-08-ux.md) (UX-n, 2 blocking + 10),
+[errors and boundaries](2026-10-08-release-033-verification/iteration-2/2026-10-08-errors.md) (ER-n, 2 + 6),
+[code ↔ documents](2026-10-08-release-033-verification/iteration-2/2026-10-08-docs.md) (DO-n, 2 + 7),
+[data, memory, orchestration, harness](2026-10-08-release-033-verification/iteration-2/2026-10-08-data.md) (DA-n, 1 + 4),
+[plan and roadmap](2026-10-08-release-033-verification/iteration-2/2026-10-08-plan.md) (PL-n, 1 + 9).
+44 findings; where reviewers found one thing they share a row. Three reviewers (ux, errors, data) were stopped by the
+API spend limit after writing their reports; each report is complete (findings and "Not checked") and is committed as
+written. Every "fixed" row marked *watched* had its test run with the fix reverted and seen failing, then restored.
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V2-1 | DO-3, UX-1, ER-4 (blocking) | Coming back to an agent screen showed, and checked skills for, a coding agent other than the one the recorded task runs; Adapt lost its failure | fixed: the attempt keeps `agentId` and `failed` (`AgentPaths.tsx#launch`, `useBuilders(fixed)`, Adapt restores both for the same folder); `StartPaths.test.tsx` "coming back after a failed launch shows the coding agent" and "the same folder chosen again in Adapt" (both watched) |
+| V2-2 | UX-2, ER-5, DA-1, DO-4 (blocking) | The setup preset ran on agents without Fabric's tools through the fallback order or a created agent | fixed: the walk passes over a runner without the surface for a `needsSurface` launch (`shared/runnerRoute.ts`), and main refuses `preset: setup` on any runner without it (`taskRetry.ts#refuseSetupWithoutSurface`, called from `tasks.start` for a named runner, a created agent's runner and the walk's pick); `runnerRoute.test.ts` "passes over a runner that does not connect" (watched), `task-retry.test.mjs` setup case; the refusal `task-refused:setup-needs-surface` is said in both languages; CHANGELOG reworded |
+| V2-3 | ER-1 (blocking) | Unclosed markup in a README made the summary's stripping quadratic and froze the main process for tens of seconds | fixed: `projectDiscovery.ts#plain` cuts its input to 4 KiB and the patterns stop at the next bracket; `project-discovery.test.mjs` 60 000 × `<`, `[`, `![` under 500 ms (watched: planted old patterns took 4641 ms) |
+| V2-4 | DO-1 (blocking) | ANALYTICS.md and SCN-134 told every upgrader "nothing has been sent yet" | fixed: `docs/ANALYTICS.md` and SCN-134 (UI elements, states `pending-disclosure`, `pending-disclosure-sent-before`) name the upgrader's sentence; ADR-0127 amendment 1 |
+| V2-5 | PL-1 (blocking, release close) | V1-6's roadmap fix was an open PR with nothing tying its merge to the tag | fixed: CO-196 dated "before the `v0.3.3` tag"; the ledger's *Release close* item 2 and the runbook's step 7 name it; PR #81 extended (V2-30) |
+| V2-6 | ER-2 | A retry still brought forward a process left by a launch that failed after spawning | fixed: `planTaskStart` brings a session forward only for a task whose receiver acknowledged it (`status: running`); `task-retry.test.mjs` "a process left by a failed launch, with the task still in backlog, is not running" (watched) |
+| V2-7 | ER-3 | A session that started but could not be read back was called "not created" and offered a second agent in the same folder | fixed: `startTask` returns the running session with the row it journalled when the read-back fails, and records the failure (`ops.failed('tasks.readback')`); the window never sees "not created" for a running session. No unit test: the read-back runs inside `startTask`, which only the stack-backed tier drives |
+| V2-8 | ER-6 | Leaving while the folder was being made lost the attempt; the same name was then refused as existing | fixed: the attempt is kept before `createFolder` with the request in flight (`KeptCreate.making`); a screen mounted meanwhile waits for it; `StartPaths.test.tsx` "leaving while the folder is being made" (watched) |
+| V2-9 | ER-7 | An unreadable Claude Code settings file made an installed plugin read as missing, unnamed | fixed: `adapterSkills.ts#claudePlugin` names unreadable settings files in `unreadable`; `adapter-skills.test.mjs` ER-7 case (watched) |
+| V2-10 | ER-8 | A failed fallback-order save was an unhandled rejection with nothing on screen; a menu rebuild failure could fail a committed write | fixed: `App.tsx` says `settings.notSaved` for a rejected write; `FallbackOrderSetting.tsx` handles the rejection; main rebuilds the menu in its own try; `FallbackOrderSetting.test.tsx` "a save that fails is not an unhandled rejection" (watched) |
+| V2-11 | DA-2 | Two Fabric processes on one database can journal two `task.created@1` for one caller id | ruled CO-233: no corruption (the projection keeps the first, admission runs one launch); the fix is an idempotent create at the write boundary, a migration |
+| V2-12 | DA-3 | A repository-quoted purpose is localized prose without a structured source, and no tool makes a confirmed purpose the Project's | ruled CO-227 (an agent proposes a project's configuration, with its ADR) now carries both |
+| V2-13 | DA-4 | The `sentBefore` comment and notice overstated delivery: `installed_at` is written when queued | fixed: comment corrected; the notice says an earlier version "may already have sent" them (en, ru) |
+| V2-14 | DA-5 | A task abandoned by «Use another coding agent» or «Start over» stayed in the backlog as open work | fixed: `AgentPaths.tsx#abandon` cancels it with a reason (`start.abandoned.*`); the note says it is cancelled; `StartPaths.test.tsx` "a task the person walks away from is cancelled" (watched) |
+| V2-15 | UX-3 | On Adapt the "console did not open" sentence named a button the screen does not have | fixed: `start.consoleNotOpened` takes the screen's own button name (`{retry}`) |
+| V2-16 | UX-4 | Regression from V1-30: the folder facts lost their two-column layout | fixed: the focusable wrapper has its own class `.st-facts-block`; `.st-facts` (the `<dl>`) keeps its grid |
+| V2-17 | UX-5 | Focus did not reach the Name field after `exists` or Start over | fixed: focus moves once the field is enabled again (`requestAnimationFrame`, `AgentPaths.tsx`); checked by the next walk |
+| V2-18 | UX-6 | "Set up {name} with the agent" left the task field out of view | fixed: `LaunchShell.tsx#revealSection` keeps the section aligned while the page above it settles (1.5 s), until the person scrolls or types; checked by the next walk |
+| V2-19 | UX-7 | On the first run a field problem still had the hint's grey | fixed: `start/start.css`: `.st-first .lp-field .field-problem` takes the danger colour |
+| V2-20 | UX-8 | In Settings the usage-counts switch cannot say yes to the disclosure while pending | ruled CO-232: the first-run notice answers yes in one press; a pending state for the Settings switch belongs to SCR-52's next pass |
+| V2-21 | UX-9 | Focus fell to the page after moving a fallback row; two copy buttons shared one name | fixed: focus follows the moved row to a working button (`FallbackOrderSetting.tsx`), and `CopyButton` takes `what` («Copy for OrbStack» / «… Docker Desktop»); `FallbackOrderSetting.test.tsx` and `StackExposureNotice.test.tsx` assert both |
+| V2-22 | UX-10 | The feed's verification tooltips are renderer English in a Russian window, not named in the release notes | fixed: CHANGELOG «Russian» names them; CO-225 (5) |
+| V2-23 | UX-11, DO-8 | Docs and prototype drift: FLW-74 node, prototype wording, the start-add summary row, SCN-128 and SCN-134 text, FLW-73 and SCN-134 states, SCR-52 coverage, a duplicated strings row, receipt links | fixed: each corrected (`flows.md`, `renderers.mjs` start views, `scenarios.md`, `screens.md` SCR-52 coverage, `strings.md`, iteration-1 receipt links); resolution-matrix renderer and SRC-02 pins re-pinned |
+| V2-24 | UX-12 | «Что о себе пишет» read as broken Russian; the exposure restart lines differ with no reason | fixed: the label is «Описание из репозитория» / "What its repository says"; the restart lines are ruled CO-231 (the Russian copy pass) |
+| V2-25 | DO-2 | "Off at the notice sends nothing, ever" overstated: another PassionCode app can turn the shared switch back on | fixed: ANALYTICS.md says it holds while the shared switch stays off |
+| V2-26 | DO-5 | Code regions on the four actions still pointed at the ADR-0100 clauses ADR-0129 replaced | fixed: `start-screens` and `start-paths-ipc` point at ADR-0129 (`#decision`, `#boundary`, which names the skills check's reads); ADR-0100 amendment 1; `StartPaths.tsx` header; `check-regions.mjs` PASS |
+| V2-27 | DO-6 | Stale numbers in ADR-0127 and the ADR-0121 index row | fixed: ADR-0127 amendment 1 (7 notice tests, measured); ADR index rows for 0121 and 0127 |
+| V2-28 | DO-7 | The hint said "the first found" when the code prefers the first that connects | fixed: `start.builder.fromFound` says both rules |
+| V2-29 | DO-9 | The `adapterSkills.ts` header still said an unreadable file is "not found" | fixed: header comment corrected |
+| V2-30 | PL-2 | PR #81 left out RM-05, RM-20 and RM-25, and said "in verification" | fixed: fabric-workspace `ad6c1f7` on PR #81 (`npm test` 66 pass) |
+| V2-31 | PL-3 | CO-177 fell due when the start lane was touched | ruled CO-177 re-dated after 0.3.3 with the operator's scope D4 |
+| V2-32 | PL-4 | CO-178 described a state that is gone; CO-231 recorded the same decision | fixed: CO-178 resolved; CO-231 keeps the dictionary row; lane 1 no longer schedules CO-178 |
+| V2-33 | PL-5 | CO-197 and CO-221 still dated to 0.3.1/0.3.2; `workspace.mjs check` exits 1 | ruled CO-197 (the candidate's workspace is published and pinned at the release close, *Release close* item 5) and CO-221 (re-dated after 0.3.3) |
+| V2-34 | PL-6 | REQ-08 ("no English in the Russian window") not fully met and not narrowed | fixed: the brief's state section records the run's reading of REQ-08 against D4 for the operator's review at the release, with the remaining English named (CO-225) |
+| V2-35 | PL-7 | CHANGELOG missed three user-visible changes | fixed: toolbars wrap, the task subtitle, Home's «+ Add a topic» |
+| V2-36 | PL-8 | `origin/main` does not carry the plan fixes yet; two merge-log entries name landings not done | not a defect: the runbook lands the release on `main` before the tag ("Land, then release", step 1); the merge-log entries are written inside the change as the iteration contract requires, and the landing is *Release close* item 1 |
+| V2-37 | PL-9 | P-14's status, ADR-0129 and track; RM rows with no lane | fixed: P-14 cites ADR-0129 and RM-09 and says iteration 3 next; the plan header maps RM-13, RM-19, RM-20, RM-25 |
+| V2-38 | PL-10 | 0.3.3's release-close duties were spread with no single list; the smoke did not include CO-228 | fixed: the ledger's *Release close* section; the runbook's step 7 points to it |
+
+Exit for iteration 2: every finding above is fixed, ruled with a register id or not a defect in the iteration-3 candidate. Blocking findings open: none.
 
 ## Iteration 3
 

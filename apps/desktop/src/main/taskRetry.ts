@@ -4,9 +4,11 @@
 // recorded the task and then failed to launch, the next one starts the recorded task again through admission —
 // the path `startExisting` takes — instead of leaving one more backlog task per retry.
 
+import { describeAgent } from '../shared/agents.ts'
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-export interface RetryTaskRow { id: string; project_id: string }
+export interface RetryTaskRow { id: string; project_id: string; status?: string | null }
 export type TaskStartPlan<T extends RetryTaskRow> =
   | { kind: 'new'; taskId: string | undefined }
   | { kind: 'again'; task: T }
@@ -28,7 +30,9 @@ export async function planTaskStart<T extends RetryTaskRow>(
   if (data.project_id !== input.projectId) throw new Error('task-refused:other-project')
   // A first try that started the session and then failed to answer (the task read back after the launch) left
   // the session running: the retry brings THAT one forward rather than being refused as already running.
-  const live = liveSession(data.id)
+  // Only a task its receiver acknowledged is running: a launch that spawned and then failed (bind or liveness not
+  // confirmed) keeps a tracked process while the task stays in backlog, and must start again (iteration 2, ER-2).
+  const live = data.status === 'running' ? liveSession(data.id) : null
   if (live) return { kind: 'running', task: data, sessionId: live }
   return { kind: 'again', task: data }
 }
@@ -52,5 +56,10 @@ export function createKeyedQueue(): <T>(key: string, work: () => Promise<T>) => 
     void tail.then(() => { if (tails.get(key) === tail) tails.delete(key) })
     return run
   }
+}
+/** The setup preset records through Fabric's tools (memory, questions, tasks): a runner that does not connect to the
+ *  surface could record nothing, so main refuses it whatever the window chose (0.3.3 verification, iteration 2). */
+export function refuseSetupWithoutSurface(runner: string): void {
+  if (!describeAgent(runner)?.connectsToSurface) throw new Error('task-refused:setup-needs-surface')
 }
 // #endregion task-retry

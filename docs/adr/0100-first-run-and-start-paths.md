@@ -116,3 +116,13 @@ it). The operator settled each one.
   carry-over register: conversion (AR-7, AR-11), the three-group agent registry (AR-2), sign-in
   verification of a detected coding agent (CO-176), re-scanning on a schedule (CO-177), the New project
   form's restyle to the launch language (CO-179), and redrawing the older r0 prototype views (CO-180).
+
+## Amendments
+
+### Amendment 1 — 2026-10-09: §5 and §6 are superseded by ADR-0129
+
+The start menu offers four actions in two pairs; «Create an agent» is a new ecosystem agent with its own repository,
+and adapting an agent built elsewhere runs in the chosen coding agent's console
+([ADR-0129](0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md), operator decisions
+D1–D4 of 2026-10-08). §7, the boundary, still holds; ADR-0129 records the one read outside it (the skills check).
+Found by the 0.3.3 verification, iteration 2 (DO-5).

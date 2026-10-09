@@ -329,6 +329,12 @@ await assert.rejects(() => scanFolder(path.join(root, 'missing')), /(^|: )folder
   const cut = summaryFrom({ readme: long })
   assert.ok(cut.length <= 240 && cut.endsWith('…') && !cut.includes('wo…'), 'a long paragraph is cut at a word, with an ellipsis: ' + cut)
   assert.equal(summaryFrom({ readme: 'Bidi ‮trick‬ and \u0007bell.' }), 'Bidi trick and bell.', 'control and text-direction characters are removed')
+  // 0.3.3 verification, iteration 2, ER-1: unclosed markup does not make the stripping quadratic in the main process.
+  for (const ch of ['<', '[', '![']) {
+    const started = Date.now()
+    summaryFrom({ readme: 'Words first ' + ch.repeat(60000) })
+    assert.ok(Date.now() - started < 500, `${ch} × 60000 is stripped in bounded time (${Date.now() - started} ms)`)
+  }
 
   // Through the real filesystem: inspect reads the folder's own files, and never follows a README link out of it.
   const r2 = realpathSync(mkdtempSync(path.join(tmpdir(), 'fabric-summary-')))

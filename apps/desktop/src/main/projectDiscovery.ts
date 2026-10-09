@@ -256,11 +256,15 @@ function readmeParagraph(text: string): string | null {
 }
 
 /** Markdown and markup reduced to the words a person reads; control characters removed. */
+// The work is bounded as well as the read (0.3.3 verification, iteration 2, ER-1): this runs synchronously in the
+// main process on third-party text, so the input is cut to PLAIN_INPUT before any pattern runs, and the patterns stop
+// at the next opening bracket instead of scanning to the end of the text for every unclosed `<` or `[`.
+const PLAIN_INPUT = 4 * 1024
 function plain(text: string): string {
-  return text
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
-    .replace(/<[^>]+>/g, '')
+  return text.slice(0, PLAIN_INPUT)
+    .replace(/!\[[^[\]]*\]\([^()]*\)/g, '')
+    .replace(/\[([^[\]]+)\]\([^()]*\)/g, '$1')
+    .replace(/<[^<>]*>/g, '')
     .replace(/(\*\*|__|`)/g, '')
     .replace(/(^|\s)[*_]([^*_\s][^*_]*)[*_](?=\s|[.,;:!?]|$)/g, '$1$2')
     .replace(/[\u0000-\u001f\u007f‪-‮⁦-⁩]/g, ' ')

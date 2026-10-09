@@ -1,6 +1,6 @@
-// #region start-screens — docs: docs/adr/0100-first-run-and-start-paths.md#decision
-// The start paths (ADR-0100; SCN-127…SCN-131, SCR-70…SCR-75): where a project comes from and where
-// an agent comes from. One screen per path, every state of each path drawn — idle, working,
+// #region start-screens — docs: docs/adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md#decision
+// The start paths (ADR-0100, amended by ADR-0129; SCN-126…SCN-129, SCN-131, SCN-136; SCR-70…SCR-75): the menu of four
+// actions and the project paths; the two agent paths live in `AgentPaths.tsx`. One screen per path, every state of each path drawn — idle, working,
 // refused, failed, done — and nothing created without the operator's explicit act. The first run
 // (`FirstRun.tsx`) ends on the same menu, so the two never disagree about what the paths are.
 

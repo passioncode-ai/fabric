@@ -37,4 +37,16 @@ describe('FallbackOrderSetting', () => {
     fireEvent.click(screen.getAllByText(en['settings.fallback.remove'])[0] as HTMLElement)
     expect(onChange).toHaveBeenLastCalledWith({ runnerFallback: { order: [order[1]] } })
   })
+  it('a save that fails is not an unhandled rejection, and focus stays on the moved row (0.3.3 iteration 2, ER-8, UX-9)', async () => {
+    const seen: unknown[] = []
+    const onUnhandled = (e: PromiseRejectionEvent) => { seen.push(e.reason); e.preventDefault() }
+    window.addEventListener('unhandledrejection', onUnhandled)
+    mount([{ runner: 'claude-code', session: 'spawn' }, { runner: 'codex', session: 'spawn' }], vi.fn(async () => { throw new Error('settings write failed') }))
+    fireEvent.click(screen.getByRole('button', { name: en['settings.fallback.upFor'].replace('{agent}', 'Codex') }))
+    await new Promise((r) => setTimeout(r, 20))
+    window.removeEventListener('unhandledrejection', onUnhandled)
+    expect(seen).toEqual([])
+    await new Promise((r) => requestAnimationFrame(r))
+    expect(document.activeElement?.textContent, 'focus stays on a working button of the moved row').toBe(en['settings.fallback.down'])
+  })
 })

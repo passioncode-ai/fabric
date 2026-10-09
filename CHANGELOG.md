@@ -42,8 +42,9 @@ or 78 (0.3.1) needs the upgrade to 79 first, backup and rehearsal included
   says nothing gets none.
 - **"Set up this project with the agent"**, the first shortcut on a project's task panel and the scan's next
   step: the agent reads the repository, records what it learns with the file each fact came from, asks you to
-  confirm a one-sentence purpose and files the next three pieces of work. It changes no file, and it is offered
-  only for coding agents that connect to Fabric's tools.
+  confirm a one-sentence purpose and files the next three pieces of work. It changes no file, and it runs only on a
+  coding agent that connects to Fabric's tools: by name, through a created agent, or through the fallback order,
+  which passes over agents that do not.
 - **Fallback order** (Settings): a list of coding agents a launch may walk, each with whether to start a new
   session or use an open one ([ADR-0125](docs/adr/0125-an-agent-launch-may-follow-the-operators-fallback-order.md)).
 - **Kimi Code** is in the coding-agent list and the launch menu, launched as itself; it does not connect to
@@ -55,9 +56,11 @@ or 78 (0.3.1) needs the upgrade to 79 first, backup and rehearsal included
 - **The launch screens follow the prototype**: «Discuss with Fabric ↗» (it opens the CEO chat), *Profile* and the
   Fabric strip in the top bar, a compact network-exposure warning, and nothing wider than the window. The default
   workspace reads *My workspace*.
+- **Smaller fixes on the project page:** the toolbars wrap instead of running past the window, a task's subtitle
+  names its agent and date instead of a raw id, and Home's «+ Add a topic» opens the board with its form.
 - **Russian.** Every screen string, the startup failure dialog, the folder pickers and the app menu are in
-  Russian when the app is. Not yet: messages written by the main process and the terminal prompts of ACP agents
-  are still in English (CO-225).
+  Russian when the app is. Not yet: messages written by the main process, the terminal prompts of ACP agents and the
+  feed's verification tooltips are still in English (CO-225).
 - Provider pins move to the installed Claude Code and Codex versions; the README names the commercial-licensing
   path (passioncode.ai/business).
 

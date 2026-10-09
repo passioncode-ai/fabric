@@ -133,3 +133,8 @@ The decisions D1–D4 are recorded as [ADR-0129](../../adr/0129-onboarding-is-fo
 - **REQ-09's knowledge base** is the release close: the fabric-workspace PR for the roadmap (0.3.3 as the onboarding
   release, self-update after it) and the workspace publication.
 - **Exact next task:** the 0.3.3 ledger's next open iteration (M6).
+- **REQ-08, narrowed (2026-10-09, 0.3.3 verification iteration 2 PL-6):** "no English in the Russian window" holds for
+  every renderer string the start screens own; messages written by the main process (and the feed's verification
+  tooltips) can still reach those screens in English. The release notes name this, and CO-225 carries it. This is the
+  run's reading of REQ-08 against the operator's scope D4 ("everything done plus the four actions"), recorded for the
+  operator's review at the release, not a decision the operator has made.

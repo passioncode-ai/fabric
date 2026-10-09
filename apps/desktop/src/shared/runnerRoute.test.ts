@@ -96,3 +96,17 @@ describe('the operator\'s fallback order', () => {
     expect(appliedMode('kimi-code', 'bypass')).toBe('bypass')
   })
 })
+
+describe('a task that records through Fabric\'s tools (0.3.3 verification, iteration 2)', () => {
+  it('passes over a runner that does not connect to the surface, and takes the next that does', () => {
+    const walk = walkFallback(order(['codex', 'spawn'], ['claude-code', 'spawn']), { kind: 'task', permissionMode: null, needsSurface: true }, probeOf({}))
+    expect(walk.state).toBe('selected')
+    if (walk.state === 'selected') expect(walk.runner).toBe('claude-code')
+    expect(walk.passedOver.map((p) => [p.runner, p.result])).toEqual([['codex', 'refused']])
+  })
+  it('without the need, the first installed runner is taken as before', () => {
+    const walk = walkFallback(order(['codex', 'spawn'], ['claude-code', 'spawn']), { kind: 'task', permissionMode: null }, probeOf({}))
+    if (walk.state === 'selected') expect(walk.runner).toBe('codex')
+  })
+})
+

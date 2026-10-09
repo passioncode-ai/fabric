@@ -2215,7 +2215,7 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-74 Create an agent | idle, invalid-name, no-parent, exists, skills-missing, checking-skills, no-agent, creating, failed, started |
+  | SCR-74 Create an agent | idle, invalid-name, no-purpose, no-parent, exists, skills-missing, checking-skills, no-agent, creating, failed, failed-after-folder, started |
 
 
 ### FLW-74: Adapt an existing agent into an ecosystem agent
@@ -2228,7 +2228,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
- A[Screen: SCR-75 Turn an agent] -->|choose folder| R[Read without running: facts, already-in]
+ A[Screen: SCR-75 Adapt an existing agent] -->|choose folder| R[Read without running: facts, already-in]
  R --> C{Skills installed for the chosen agent?}
  C -->|no| S[Install command, Copy, Check again] --> C
  C -->|yes| K[Start the adaptation]

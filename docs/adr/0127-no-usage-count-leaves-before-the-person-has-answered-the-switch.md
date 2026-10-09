@@ -45,3 +45,13 @@ which loses most install counts, or a disclosure the person sees before the firs
 - `apps/desktop/test/analytics.test.mjs` — the four `A7-012:` tests (nothing before the answer; off at the notice;
   the 0.3.2 upgrade; an unreadable state file), 16/16 with the earlier twelve.
 - `apps/desktop/src/renderer/src/UsageCountsNotice.test.tsx` (6) and `UsageCountsSetting.test.tsx` (5).
+
+## Amendments
+
+### Amendment 1 — 2026-10-09: an install that already sent counts is told so
+
+The notice says "nothing has been sent yet" only when it is true: an install whose earlier version already queued
+counts (its state has `installed_at`) is told that an earlier version may already have sent them
+(`analytics.ts#sentBefore`, `UsageCountsNotice.tsx`; 0.3.3 verification DA-2 and, iteration 2, DA-4). The Evidence
+line's notice-test count is 7 now (`npx vitest run src/renderer/src/UsageCountsNotice.test.tsx`, 2026-10-09);
+the record above keeps the count it was written with.

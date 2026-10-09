@@ -239,7 +239,7 @@ function listen(channel: string, fn: (event: Electron.IpcMainEvent, ...args: nev
   })
 }
 import { installMenu } from './menu'
-import { createKeyedQueue, liveSessionOf, planTaskStart } from './taskRetry'
+import { createKeyedQueue, liveSessionOf, planTaskStart, refuseSetupWithoutSurface } from './taskRetry'
 import { adapterSkills } from './adapterSkills'
 import { decideNotification, rememberTold, type ShowOutcome } from '../shared/notify.ts'
 import { createUnattendedAdmission } from '../shared/unattendedAdmission.ts'
@@ -1464,7 +1464,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         permissionMode: input.permissionMode })
       if (!launched.started) throw new Error(launched.says)
       const { data, error } = await store.select('project_tasks', '*').eq('id', id).single()
-      if (error) throw new Error('task-refused:readback-failed') // a code: the window says it in its own language
+      // The session runs: a failed read-back must not hide it, or the window calls it "not created" and offers a
+      // second agent in the same folder (iteration 2, ER-3). The row is what this call journalled.
+      if (error || !data) {
+        ops.failed('tasks.readback', new Error(error?.message ?? 'no row'), { taskId: id })
+        return { task: { id, project_id: input.projectId, status: 'running', title, instruction } as unknown as TaskRow, session: { sessionId: launched.sessionId } }
+      }
       return { task: data as TaskRow, session: { sessionId: launched.sessionId } }
       } finally { routeByTask.delete(id) }
   }
@@ -1621,11 +1626,23 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // new session.
     let optionId = input.optionId
     let route: LaunchRoute | null = null
+    // The setup preset records through Fabric's tools; main holds the line whatever the window chose — a runner by
+    // name, a created agent or the fallback order (0.3.3 verification, iteration 2, UX-2/ER-5/DA-1).
+    const needsSurface = input.preset === 'setup'
     if (optionId === FALLBACK_OPTION) {
-      const walk = await runnerFallback.walk(input.projectId, { kind: 'task', permissionMode: input.permissionMode ?? null })
+      const walk = await runnerFallback.walk(input.projectId, { kind: 'task', permissionMode: input.permissionMode ?? null, needsSurface })
       if (walk.state === 'exhausted') throw new Error(describeExhausted(walk))
       optionId = walk.runner
       route = launchRoute(walk)
+    }
+    if (needsSurface) {
+      let runner = optionId
+      if (UUID.test(optionId)) {
+        const { data, error } = await store.select('agent_bindings', 'provider_ref').eq('id', optionId).maybeSingle()
+        if (error || !data) throw new Error('The selected agent could not be read. Refresh its configuration.')
+        runner = data.provider_ref as string
+      }
+      refuseSetupWithoutSurface(runner)
     }
     // A caller-chosen id makes a retry the SAME task (taskRetry.ts#planTaskStart); two starts naming one id run one
     // after the other (createKeyedQueue), so the second finds the first's task.
@@ -3367,7 +3384,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       replaceFavourite(release, add)
   )
   handle(IPC.favouritesOrder, (): Returns<FabricApi['favourites']['order']> => projectOrder())
-  // #region start-paths-ipc — docs: docs/adr/0100-first-run-and-start-paths.md#boundary
+  // #region start-paths-ipc — docs: docs/adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md#boundary
   // The first run and the start paths (ADR-0100). Every folder here goes through the window's
   // granted roots (S02.roots): the picker grants, `fileRoots.resolve` refuses anything else.
   // Which projects already hold a folder. Every page is read (iteration 1: past PostgREST's 1000-row cap
@@ -4053,7 +4070,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // COMMITTED, so a refused write does not change the policy either.
     power?.setPolicy(written.settings.keepAwake)
     // The menu speaks the language the windows speak, from the moment it is chosen.
-    if (next.locale !== undefined) installMenu(written.settings.locale)
+    // A menu that fails to rebuild must not fail a write that is already on disk (iteration 2, ER-8).
+    if (next.locale !== undefined) {
+      try { installMenu(written.settings.locale) } catch (e) { ops.failed('settings.menu', e) }
+    }
     return written
   })
 

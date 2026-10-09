@@ -44,9 +44,15 @@ project, create a project — and the work inside happens in the consoles of cod
 
 ## Consequences
 
-- ADR-0100 §5 and §6 are superseded by points 2 and 3; its boundary (§7) still holds for every folder a start path
-  reads. The skills check (point 4) reads the agents' own configuration folders, not chosen folders: it reads and
-  reports, and grants nothing.
+- ADR-0100 §5 and §6 are superseded by points 2 and 3.
+
+<a id="boundary"></a>
+**The boundary.** ADR-0100 §7 still holds for every folder a start path reads, creates or attaches: only folders
+chosen in this window's picker (or made by it), refused otherwise before anything is journalled. The skills check
+(point 4) is the one read outside it: it reads the coding agents' own configuration — `~/.claude/settings.json`,
+`~/.claude/plugins/installed_plugins.json` (or `CLAUDE_CONFIG_DIR`), the agents' skills folders and
+`~/.agents/skills` — as regular files only, a bounded size and a bounded time each, and grants nothing: it reports
+whether two skills are there and names a file it could not read.
 - AR-7 (agent production, SCN-121…123) and AR-11 (conversion with admission) keep their scope: the console route
   produces an agent and a conformance report; registering and admitting it is still theirs. SCN-121 ("ask Fabric
   to make a new agent") and SCN-122 now sit beside SCN-136 and SCN-131 and are re-read when AR-7 is planned.

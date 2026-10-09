@@ -11,7 +11,8 @@
 // Claude Code reads its enabled plugins and `~/.claude/skills`; the others read their own folder. The shared
 // `~/.agents/skills` folder is where the PassionCode launcher puts plain copies; a skill found ONLY there is
 // reported as "in the shared folder", because whether a given agent reads that folder is not checked here.
-// Reads only; a file that cannot be read is "not found", never an error that blocks the screen.
+// Reads only; a file that is there but cannot be read (permissions, not a regular file, too large, timed out) is
+// named in `unreadable` so the screen says so — never an error that blocks the screen.
 
 import { readFile, stat } from 'node:fs/promises'
 import os from 'node:os'
@@ -104,10 +105,16 @@ async function inFolder(fs: SkillsFs, dir: string): Promise<FolderRead> {
 const all = (f: Record<AdapterSkill, boolean>): boolean => ADAPTER_SKILLS.every((s) => f[s])
 
 /** Claude Code's enabled plugin: enabled in settings.json, recorded in installed_plugins.json, both skills in its install path. */
-async function claudePlugin(fs: SkillsFs, claudeHome: string): Promise<FolderRead | null> {
-  const settings = json(await read(fs, path.join(claudeHome, 'settings.json'))) as { enabledPlugins?: Record<string, unknown> } | null
+async function claudePlugin(fs: SkillsFs, claudeHome: string, unreadable: string[]): Promise<FolderRead | null> {
+  // A settings file that is there but cannot be read is named, not taken for "no plugin" (iteration 2, ER-7).
+  const readNamed = async (file: string): Promise<Read> => {
+    const got = await read(fs, file)
+    if (got === UNREADABLE) unreadable.push(file)
+    return got
+  }
+  const settings = json(await readNamed(path.join(claudeHome, 'settings.json'))) as { enabledPlugins?: Record<string, unknown> } | null
   if (settings?.enabledPlugins?.[ADAPTER_PLUGIN] !== true) return null
-  const installed = json(await read(fs, path.join(claudeHome, 'plugins', 'installed_plugins.json'))) as
+  const installed = json(await readNamed(path.join(claudeHome, 'plugins', 'installed_plugins.json'))) as
     { plugins?: Record<string, { installPath?: unknown; version?: unknown }[]> } | null
   const entry = installed?.plugins?.[ADAPTER_PLUGIN]?.[0]
   if (!entry || typeof entry.installPath !== 'string') return null
@@ -126,7 +133,7 @@ export async function adapterSkills(agentId: string, opts: { home?: string; fs?:
   const view = (where: AdapterSkillsView['where'], found: Record<AdapterSkill, boolean>, version: string | null, ready: boolean): AdapterSkillsView =>
     ({ ready, where, version, found, command: INSTALL_COMMAND, launcherCovers: LAUNCHER_COVERS.has(agentId), unreadable })
   if (agentId === 'claude-code') {
-    const plugin = await claudePlugin(fs, claudeHome)
+    const plugin = await claudePlugin(fs, claudeHome, unreadable)
     if (plugin) unreadable.push(...plugin.unreadable)
     if (plugin && all(plugin.found)) return view('plugin', plugin.found, plugin.version, true)
   }

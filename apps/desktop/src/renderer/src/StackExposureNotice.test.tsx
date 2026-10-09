@@ -23,7 +23,9 @@ describe('the stack exposure warning', () => {
     const command = screen.getByText('orbctl config set docker.expose_ports_to_lan false')
     expect(command.tagName).toBe('CODE')
     expect(screen.getByText('"ip": "127.0.0.1"').tagName).toBe('CODE')
-    expect(screen.getAllByRole('button', { name: en['first.exec.copy'] })).toHaveLength(2)
+    // Each copy button names what it copies (0.3.3 iteration 2, UX-9).
+    expect(screen.getByRole('button', { name: en['first.exec.copyWhat'].replace('{what}', en['diagnostics.exposure.orbstack']) })).toBeTruthy()
+    expect(screen.getByRole('button', { name: en['first.exec.copyWhat'].replace('{what}', en['diagnostics.exposure.docker']) })).toBeTruthy()
     // Why Fabric cannot fix it itself is one click away, not a paragraph above every screen.
     expect(screen.getByText(en['diagnostics.exposure.why']).closest('details')?.open).toBe(false)
   })

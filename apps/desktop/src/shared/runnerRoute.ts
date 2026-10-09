@@ -47,6 +47,9 @@ export interface Launch {
   permissionMode: string | null
   /** A managed task (it reports on a result channel and was admitted with a new session id) or an ad-hoc terminal. */
   kind: 'terminal' | 'task'
+  /** The task records through Fabric's tools (the setup preset): a runner that does not connect to the surface is
+   *  passed over, never chosen (0.3.3 verification, iteration 2, UX-2/ER-5/DA-1). */
+  needsSurface?: boolean
 }
 
 export type Walk =
@@ -108,6 +111,10 @@ export function walkFallback(
     if (!verdict.ok) { pass('refused', verdict.reason); continue }
     if (STRENGTH[containmentFor(agent.id, launch.permissionMode)] < bar.containment) {
       pass('refused', `${agent.label} would run with less containment than the first choice under this mode`)
+      continue
+    }
+    if (launch.needsSurface && !agent.connectsToSurface) {
+      pass('refused', `${agent.label} does not connect to Fabric's tools, and this task records through them`)
       continue
     }
     if (launch.kind === 'task' && CHANNEL[agent.resultChannel] < bar.channel) {

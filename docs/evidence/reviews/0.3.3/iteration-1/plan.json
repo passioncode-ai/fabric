@@ -39,7 +39,7 @@
       "source": "PL-7, DO-4",
       "status": "fixed",
       "evidence": [
-        "fixed: [ADR-0129](../../adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md); ADR index row for 0100 and 0129; pipeline reservation moved 0128 → 0130 (`fix-pf-06.03.py` green)"
+        "fixed: [ADR-0129](../../../../adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md); ADR index row for 0100 and 0129; pipeline reservation moved 0128 → 0130 (`fix-pf-06.03.py` green)"
       ]
     },
     {

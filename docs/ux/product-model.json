@@ -7685,7 +7685,7 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 1139,
-        "coverage_claim": "none yet",
+        "coverage_claim": "apps/desktop/src/renderer/src/UsageCountsSetting.tsx, apps/desktop/src/renderer/src/UsageCountsNotice.tsx, apps/desktop/src/renderer/src/FallbackOrderSetting.tsx (the 0.3.3 parts; the rest of the screen is designed, not built)",
         "status_claim": "designed"
       },
       "registry_additional_states": [
@@ -33849,7 +33849,7 @@
         "file": "docs/ux/flows.md",
         "line": 2221
       },
-      "mermaid_source": "flowchart TD\n A[Screen: SCR-75 Turn an agent] -->|choose folder| R[Read without running: facts, already-in]\n R --> C{Skills installed for the chosen agent?}\n C -->|no| S[Install command, Copy, Check again] --> C\n C -->|yes| K[Start the adaptation]\n K --> P[Project: new, or the one holding the folder] --> T[Task: adapt with adapting-projects-to-fabric, own branch] --> W[Console window]\n R -->|unreadable / outside| E[Refused in words; choose another folder]\n T -->|start failed| X[Reason; retry with the same Project, task and session]",
+      "mermaid_source": "flowchart TD\n A[Screen: SCR-75 Adapt an existing agent] -->|choose folder| R[Read without running: facts, already-in]\n R --> C{Skills installed for the chosen agent?}\n C -->|no| S[Install command, Copy, Check again] --> C\n C -->|yes| K[Start the adaptation]\n K --> P[Project: new, or the one holding the folder] --> T[Task: adapt with adapting-projects-to-fabric, own branch] --> W[Console window]\n R -->|unreadable / outside| E[Refused in words; choose another folder]\n T -->|start failed| X[Reason; retry with the same Project, task and session]",
       "status": "target_or_mixed_not_coverage_claim",
       "scenario_ids": [
         "SCN-131"

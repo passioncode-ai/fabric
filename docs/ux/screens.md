@@ -1145,7 +1145,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Implementation tasks:** M72, M73, M152
 - **Prototype:** [Адрес макета](../reports/product.html#view-estate-settings); контракт [mockup-contract.md](mockup-contract.md).
 - **Status:** designed
-- **Coverage:** none yet
+- **Coverage:** apps/desktop/src/renderer/src/UsageCountsSetting.tsx, apps/desktop/src/renderer/src/UsageCountsNotice.tsx, apps/desktop/src/renderer/src/FallbackOrderSetting.tsx (the 0.3.3 parts; the rest of the screen is designed, not built)
 
 | State | Trigger | Animation | Behavior |
 |---|---|---|---|

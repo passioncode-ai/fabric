@@ -26,7 +26,7 @@ export function explainError(e: unknown, t: Translate): string {
   if (folder) return t(`start.folderRefused.${folder[1]}` as 'start.folderRefused.missing', { path: folder[2] })
   const name = /(?:^|: )project-name-refused:(not-a-name|empty|text-direction|control)\b/.exec(text)
   if (name) return t(`start.projectNameRefused.${name[1]}` as 'start.projectNameRefused.empty')
-  const task = /(?:^|: )task-refused:(not-an-id|other-project|read-failed|readback-failed)(?:: ([\s\S]*))?$/.exec(text)
+  const task = /(?:^|: )task-refused:(not-an-id|other-project|read-failed|readback-failed|setup-needs-surface)(?:: ([\s\S]*))?$/.exec(text)
   if (task) return t(`start.taskRefused.${task[1]}` as 'start.taskRefused.not-an-id', { detail: task[2] ?? '' })
   const agent = /(?:^|: )agent-name-refused:taken: ([\s\S]*)$/.exec(text)
   if (agent) return t('agents.nameTaken', { name: agent[1] })
@@ -83,12 +83,13 @@ export function FolderFactsList({ f, t, locale }: { f: FolderView | CandidateVie
 }
 
 /** Copy a command; says Copied only when the clipboard took it. */
-export function CopyButton({ text }: { text: string }): React.JSX.Element {
+/** `what` names the copied thing for a screen reader when two copy buttons share a screen (iteration 2, UX-9). */
+export function CopyButton({ text, what }: { text: string; what?: string }): React.JSX.Element {
   const t = useT()
   // A copy that fails says so: the command stays selectable on screen (iteration 2: a refused clipboard was silent).
   const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
   return (
-    <button type="button" className="lp-button" onClick={() => { void navigator.clipboard.writeText(text).then(() => setState('copied'), () => setState('failed')) }}>
+    <button type="button" className="lp-button" aria-label={what && state === 'idle' ? t('first.exec.copyWhat', { what }) : undefined} onClick={() => { void navigator.clipboard.writeText(text).then(() => setState('copied'), () => setState('failed')) }}>
       {state === 'copied' ? t('first.exec.copied') : state === 'failed' ? t('first.exec.copyFailed') : t('first.exec.copy')}
     </button>
   )

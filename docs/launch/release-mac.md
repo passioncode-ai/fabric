@@ -97,7 +97,9 @@ build signed anywhere but the `release` environment is a debug build that is nev
    fails ("verifying with issuer sigstore.dev"; the shared workflow's own note, measured 2026-10-03).
 7. Smoke the published DMG on this Mac: install it, then `FABRIC_APP_EXECUTABLE=/Applications/Fabric.app/Contents/MacOS/Fabric
    FABRIC_PLAYWRIGHT_MODULE=<playwright> node apps/desktop/test/chat-activation-native.test.mjs` — the packaged
-   app starts from its own stack, the window is named Fabric, the chat saves and survives a cold restart.
+   app starts from its own stack, the window is named Fabric, the chat saves and survives a cold restart. A release
+   whose verification ledger names more release-close checks lists them in its own *Release close* section (0.3.3:
+   the first-run boot on the operator's database, CO-228; the roadmap PR before the tag, CO-196).
 8. Take the site's screenshots from the packaged app on a **fresh English demo estate** —
    `psql "$DB_URL" -v ON_ERROR_STOP=1 -v estate=<new uuid> -v lang=en -f scripts/fixtures/launch-estate.sql`
    — never from an estate a walk has already written into.

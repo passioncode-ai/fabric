@@ -3,7 +3,7 @@
 // from the top, each with how it may serve: a new session, an open one first, or an open one only. The
 // order is this computer's (it lives in settings.json); an empty order means every launch runs the
 // coding agent it names, as before.
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { AppSettings } from '../../shared/types'
 import { FALLBACK_RUNNERS, type FallbackEntry, type FallbackSession } from '../../shared/runnerRoute.ts'
 import { Button } from './components'
@@ -23,20 +23,32 @@ export function FallbackOrderSetting({ value, onChange }: {
   const unused = FALLBACK_RUNNERS.filter((runner) => !order.some((entry) => entry.runner === runner))
   const [adding, setAdding] = useState<string>('')
   const save = (next: FallbackEntry[]) => {
-    void Promise.resolve(onChange({ runnerFallback: { order: next } })).then(() => window.dispatchEvent(new Event(FALLBACK_CHANGED)))
+    void Promise.resolve(onChange({ runnerFallback: { order: next } })).then(
+      () => window.dispatchEvent(new Event(FALLBACK_CHANGED)),
+      () => undefined // not silence: the caller says why the setting was not saved (App.tsx, settings.notSaved)
+    )
   }
+  const list = useRef<HTMLOListElement>(null)
   const move = (index: number, by: -1 | 1) => {
     const next = [...order]
     const [entry] = next.splice(index, 1)
     if (entry) next.splice(index + by, 0, entry)
     save(next)
+    // Focus follows the moved row, on a button that still works there (iteration 2, UX-9): the one pressed may now be
+    // disabled at the top or bottom, and focus would fall to the page.
+    const to = index + by
+    requestAnimationFrame(() => {
+      const buttons = list.current?.children[to]?.querySelectorAll<HTMLButtonElement>('button')
+      const target = [...(buttons ?? [])].find((b) => !b.disabled)
+      target?.focus()
+    })
   }
   const pick = adding && unused.includes(adding) ? adding : (unused[0] ?? '')
   return (
     <div className="settings-fallback">
       <strong>{t('settings.fallback.title')}</strong>
       <span className="settings-note">{order.length ? t('settings.fallback.lede') : t('settings.fallback.empty')}</span>
-      <ol aria-label={t('settings.fallback.title')}>
+      <ol ref={list} aria-label={t('settings.fallback.title')}>
         {order.map((entry, index) => (
           <li key={entry.runner}>
             <span className="settings-fallback-name">{runnerLabel(entry.runner, t)}</span>

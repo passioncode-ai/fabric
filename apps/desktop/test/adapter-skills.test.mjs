@@ -96,6 +96,17 @@ assert.equal(skillVersion('# no front matter'), null)
   }
 }
 
+{ // iteration 2, ER-7: an unreadable settings.json is named, not read as "no plugin".
+  const h = home()
+  mkdirSync(path.join(h, '.claude'), { recursive: true })
+  writeFileSync(path.join(h, '.claude', 'settings.json'), JSON.stringify({ enabledPlugins: { [ADAPTER_PLUGIN]: true } }))
+  chmodSync(path.join(h, '.claude', 'settings.json'), 0o000)
+  const v = await adapterSkills('claude-code', { home: h, env: {} })
+  chmodSync(path.join(h, '.claude', 'settings.json'), 0o600)
+  assert.equal(v.ready, false)
+  assert.ok(v.unreadable.includes(path.join(h, '.claude', 'settings.json')), 'the settings file is named: ' + JSON.stringify(v.unreadable))
+}
+
 { // DA-9: Claude Code's configuration under CLAUDE_CONFIG_DIR is the one read.
   const h = home(), conf = path.join(h, 'elsewhere'), install = path.join(h, 'cache', 'adapter', '0.8.1')
   skills(path.join(install, 'skills'), '0.8.1')

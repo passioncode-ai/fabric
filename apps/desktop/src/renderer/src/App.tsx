@@ -44,7 +44,7 @@ import { LaunchShell, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection
 import './launch/launch.css'
 import { Onboarding } from './Onboarding'
 import { FirstRun, firstRunDue } from './start/FirstRun'
-import { StartScreen, errorText } from './start/StartPaths'
+import { StartScreen, errorText, explainError } from './start/StartPaths'
 import './start/start.css'
 import { BootFailure, OperatorError } from './OperatorError'
 import { ProjectHome } from './ProjectHome'
@@ -663,7 +663,12 @@ function Shell({
           onOpenHistory={() => setPanel('history')}
           onOpenAccess={() => setPanel('access')}
           onChange={async (next) => {
-            const written = await window.fabric.settings.write(next)
+            // A write the main process could not even answer is said, not left as an unhandled rejection (ER-8).
+            const written = await window.fabric.settings.write(next).catch((e: unknown) => {
+              setError(t('settings.notSaved', { reason: explainError(e, t) }))
+              return null
+            })
+            if (!written) return
             // The settings the DISK holds, not the ones that were asked for: a
             // refused write used to leave the screen showing the new value
             // while the file still held the old one (S14).

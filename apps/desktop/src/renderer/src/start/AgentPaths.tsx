@@ -15,8 +15,15 @@ const newId = (): string => crypto.randomUUID()
 
 /** One attempt's identity: chosen before the first try and reused by every retry of it, so a retry is the same
  *  Project, the same task and — once started — the same session, never a second of any (verifier, 0.3.3). */
-interface Attempt { projectId: string; taskId: string; sessionId: string | null; launched: boolean; projectMade: boolean }
-const newAttempt = (): Attempt => ({ projectId: newId(), taskId: newId(), sessionId: null, launched: false, projectMade: false })
+interface Attempt {
+  projectId: string; taskId: string; sessionId: string | null; launched: boolean; projectMade: boolean
+  /** The coding agent the first launch used: the recorded task runs with it, so a return to the screen shows it
+   *  and checks its skills, never the default (0.3.3 verification, iteration 2, DO-3/UX-1/ER-4). */
+  agentId: string | null
+  /** The last failure, said again when the person comes back to the same attempt. */
+  failed: string | null
+}
+const newAttempt = (): Attempt => ({ projectId: newId(), taskId: newId(), sessionId: null, launched: false, projectMade: false, agentId: null, failed: null })
 
 /** Start the coding agent in the Project's folder with the instruction, then bring its console forward. A session
  *  this attempt already started is only brought forward again. */
@@ -24,14 +31,23 @@ async function launch(a: Attempt, projectId: string, instruction: string, option
   // From the first launch on, the task may be recorded with this coding agent, so the choice is fixed for the
   // attempt; «Use another coding agent» is the way to a different one (a new task in the same Project).
   a.launched = true
+  a.agentId = optionId
   if (!a.sessionId) a.sessionId = (await window.fabric.tasks.start({ projectId, taskId: a.taskId, instruction, optionId, preset })).session.sessionId
   await window.fabric.windows.openSession(a.sessionId)
 }
 
 /** The sentence a failed attempt shows: once the session runs, it is the console that did not open — never "not
  *  created" (0.3.3 verification UX-5). */
-const failure = (a: Attempt, e: unknown, t: Translate, key: 'start.createAgent.failed' | 'start.convert.failed'): string =>
-  a.sessionId ? t('start.consoleNotOpened', { reason: reasonOf(e, t) }) : t(key, { reason: reasonOf(e, t) })
+const failure = (a: Attempt, e: unknown, t: Translate, key: 'start.createAgent.failed' | 'start.convert.failed', retry: string): string =>
+  a.sessionId ? t('start.consoleNotOpened', { reason: reasonOf(e, t), retry }) : t(key, { reason: reasonOf(e, t) })
+
+/** A task the person walked away from (Use another coding agent, Start over) is cancelled, so the board does not keep
+ *  it as open work to run again (iteration 2, DA-5). A task that was never recorded has nothing to cancel. */
+function abandon(a: Attempt, reason: string): void {
+  if (!a.launched) return
+  try { void window.fabric.tasks.close(a.taskId, 'cancelled', reason).catch(() => undefined /* not silence: nothing recorded, or already closed */) }
+  catch { /* not silence: a host without the board API has no task to cancel */ }
+}
 
 // ── The coding agent that does the work (D3) ───────────────────────────────
 
@@ -46,7 +62,7 @@ interface Builders {
 }
 
 /** The coding agents this machine has, and the one preselected (D3): the fallback order first. */
-function useBuilders(): Builders {
+function useBuilders(fixed: string | null = null): Builders {
   const t = useT()
   const [rows, setRows] = useState<ExecutorRow[] | null>(null)
   const [failed, setFailed] = useState<string | null>(null)
@@ -65,6 +81,7 @@ function useBuilders(): Builders {
         const order = read.s?.runnerFallback
         const pick = defaultBuilder(list, order)
         const fromOrder = !!pick && (order?.order ?? []).some((e) => e.runner === pick)
+        if (fixed) { setChosen(fixed); setHow(null); return } // the attempt's own agent, shown as it runs
         setChosen((c) => c ?? pick)
         setHow((h) => h ?? (pick ? (fromOrder ? 'order' : read.ok ? 'found' : 'order-unread') : null))
       },
@@ -186,7 +203,12 @@ type CreateState = { at: 'form' } | { at: 'creating' } | { at: 'failed'; reason:
 /** What a Create attempt has made, kept for the window's life: leaving the screen — Back, the sidebar — or the
  *  screen unmounting mid-request does not lose it, so coming back continues the same folder, Project and task
  *  instead of being refused because the folder now exists (0.3.3 verification ER-4, DA-6). */
-interface KeptCreate { name: string; purpose: string; parent: string | null; made: string | null; attempt: Attempt; failed: string | null }
+interface KeptCreate {
+  name: string; purpose: string; parent: string | null; made: string | null; attempt: Attempt; failed: string | null
+  /** The folder being made right now: a screen mounted while it is in flight waits for it instead of making
+   *  another, which would be refused as existing (iteration 2, ER-6). */
+  making: Promise<string | null> | null
+}
 let keptCreate: KeptCreate | null = null
 /** One attempt per folder, kept for the window's life: the same folder chosen again — after leaving the screen, or
  *  after choosing another — is the same Project and task; another folder is another attempt (ER-4). */
@@ -204,16 +226,22 @@ export function CreateAgent({ onBack, onStarted }: { onBack(): void; onStarted(p
   const [folderProblem, setFolderProblem] = useState<string | null>(null)
   const [pickFailed, setPickFailed] = useState<string | null>(null)
   const [s, setS] = useState<CreateState>(kept?.failed ? { at: 'failed', reason: kept.failed } : { at: 'form' })
-  const builders = useBuilders()
-  const skills = useSkills(builders.chosen)
   const attempt = useRef<Attempt>(kept?.attempt ?? newAttempt())
+  const builders = useBuilders(attempt.current.launched ? attempt.current.agentId : null)
+  const skills = useSkills(builders.chosen)
   // The folder this attempt made. Once it exists the name, the sentence and the place are fixed — the Project and the
   // task are recorded with them, and a retry continues with all three; «Start over» is the only way to different
   // ones, and says the made folder (and its Project, once made) stays.
   const [made, setMade] = useState<string | null>(kept?.made ?? null)
   const nameRef = useRef<HTMLInputElement>(null)
   const alive = useRef(true)
-  useEffect(() => { alive.current = true; return () => { alive.current = false } }, [])
+  useEffect(() => {
+    alive.current = true
+    // A folder still being made when this screen mounted: show it once it exists (iteration 2, ER-6).
+    const making = keptCreate?.making
+    if (making && !made) void making.then((path) => { if (alive.current && path) setMade(path) })
+    return () => { alive.current = false }
+  }, []) // once per mount: the kept attempt is read at mount
   const busy = s.at === 'creating'
   const nameIssue = folderNameProblem(name.trim())
   const nameProblem = nameIssue === 'empty' ? t('start.createAgent.nameEmpty') : nameIssue ? t('start.createAgent.nameInvalid', { detail: t(`onboarding.newFolder.problem.${nameIssue}` as 'onboarding.newFolder.problem.empty') }) : null
@@ -224,7 +252,7 @@ export function CreateAgent({ onBack, onStarted }: { onBack(): void; onStarted(p
   const ready = !nameProblem && !purposeProblem && !!parent && blocked === null
 
   const keep = (patch: Partial<KeptCreate>): void => {
-    keptCreate = { name: name.trim(), purpose: purpose.trim(), parent, made, attempt: attempt.current, failed: null, ...keptCreate, ...patch }
+    keptCreate = { name: name.trim(), purpose: purpose.trim(), parent, made, attempt: attempt.current, failed: null, making: null, ...keptCreate, ...patch }
   }
   const choose = async (): Promise<void> => {
     setPickFailed(null)
@@ -234,15 +262,17 @@ export function CreateAgent({ onBack, onStarted }: { onBack(): void; onStarted(p
     } catch (e) { setPickFailed(t('start.pickFailed', { reason: reasonOf(e, t) })) }
   }
   const startOver = (): void => {
+    abandon(attempt.current, t('start.abandoned.startOver'))
     attempt.current = newAttempt()
     keptCreate = null
     setMade(null)
     setS({ at: 'form' })
-    nameRef.current?.focus()
+    requestAnimationFrame(() => nameRef.current?.focus()) // after the field is enabled again (iteration 2, UX-5)
   }
   /** The chosen coding agent failed to start: a new task in the same Project and folder, with another agent (ER-3). */
   const anotherAgent = (): void => {
-    attempt.current = { ...attempt.current, taskId: newId(), sessionId: null, launched: false }
+    abandon(attempt.current, t('start.abandoned.anotherAgent'))
+    attempt.current = { ...attempt.current, taskId: newId(), sessionId: null, launched: false, agentId: null, failed: null }
     keep({ attempt: attempt.current, failed: null })
     setS({ at: 'form' })
   }
@@ -253,20 +283,25 @@ export function CreateAgent({ onBack, onStarted }: { onBack(): void; onStarted(p
     setFolderProblem(null)
     const a = attempt.current
     try {
-      let folder = made
+      let folder = made ?? (keptCreate?.making ? await keptCreate.making : null)
       if (!folder) {
-        const result = await window.fabric.start.createFolder({ parent, name: name.trim(), git: true })
+        // Kept BEFORE the folder is asked for: leaving the screen while it is being made does not lose it (ER-6).
+        let settle: (path: string | null) => void = () => undefined
+        keep({ attempt: a, making: new Promise<string | null>((r) => { settle = r }) })
+        const result = await window.fabric.start.createFolder({ parent, name: name.trim(), git: true }).catch((e: unknown) => { settle(null); keep({ making: null }); throw e })
+        settle(result.ok ? result.path : null)
         if (!result.ok) {
+          keptCreate = null // nothing was made: a fresh screen is a fresh attempt
           if (!alive.current) return
           setFolderProblem(t(`start.new.refused.${result.reason}` as 'start.new.refused.exists', { detail: result.detail ?? '' }))
           setS({ at: 'form' })
-          nameRef.current?.focus() // the field to change is the name (UX-10)
+          requestAnimationFrame(() => nameRef.current?.focus()) // the field to change is the name, once enabled (UX-5)
           return
         }
         folder = result.path
-        keep({ made: folder, attempt: a })
-        if (alive.current) setMade(folder)
+        keep({ made: folder, attempt: a, making: null })
       }
+      if (alive.current) setMade(folder)
       const project = await window.fabric.projects.create({ id: a.projectId, name: name.trim(), purpose: purpose.trim(), repoPaths: [folder] })
       a.projectMade = true
       await launch(a, project.id, t('start.createAgent.instruction', { name: name.trim(), purpose: purpose.trim() }), builders.chosen, 'create-agent')
@@ -274,7 +309,8 @@ export function CreateAgent({ onBack, onStarted }: { onBack(): void; onStarted(p
       // The console window is already forward; a screen the person has since left does not pull them back.
       if (alive.current) onStarted(project.id)
     } catch (e) {
-      const reason = failure(a, e, t, 'start.createAgent.failed')
+      const reason = failure(a, e, t, 'start.createAgent.failed', t('start.createAgent.retry'))
+      a.failed = reason
       if (keptCreate) keep({ failed: reason, attempt: a })
       if (alive.current) setS({ at: 'failed', reason })
     }
@@ -350,9 +386,9 @@ export function ConvertAgent({ onBack, onStarted }: { onBack(): void; onStarted(
   const locale = useLocale()
   const [s, setS] = useState<ConvertState>({ at: 'idle' })
   const [touched, setTouched] = useState(false)
+  const attempt = useRef<Attempt>(newAttempt())
   const builders = useBuilders()
   const skills = useSkills(builders.chosen)
-  const attempt = useRef<Attempt>(newAttempt())
   const factsRef = useRef<HTMLDivElement>(null)
   const alive = useRef(true)
   useEffect(() => { alive.current = true; return () => { alive.current = false } }, [])
@@ -375,7 +411,9 @@ export function ConvertAgent({ onBack, onStarted }: { onBack(): void; onStarted(
       attempt.current = keptConvert.get(read.path) ?? newAttempt()
       keptConvert.set(read.path, attempt.current)
       if (!alive.current) return
-      setS({ at: 'ready', facts: read })
+      // The same folder after a failed launch: its coding agent and its failure come back with it (iteration 2, ER-4).
+      if (attempt.current.launched && attempt.current.agentId) builders.choose(attempt.current.agentId)
+      setS(attempt.current.failed ? { at: 'failed', reason: attempt.current.failed, facts: read } : { at: 'ready', facts: read })
       setTouched(false)
       requestAnimationFrame(() => factsRef.current?.focus()) // focus goes to what arrived, not to the page (UX-10)
     } catch (e) {
@@ -383,7 +421,8 @@ export function ConvertAgent({ onBack, onStarted }: { onBack(): void; onStarted(
     }
   }
   const anotherAgent = (f: FolderView): void => {
-    attempt.current = { ...attempt.current, taskId: newId(), sessionId: null, launched: false }
+    abandon(attempt.current, t('start.abandoned.anotherAgent'))
+    attempt.current = { ...attempt.current, taskId: newId(), sessionId: null, launched: false, agentId: null, failed: null }
     keptConvert.set(f.path, attempt.current)
     setS({ at: 'ready', facts: f })
   }
@@ -400,7 +439,8 @@ export function ConvertAgent({ onBack, onStarted }: { onBack(): void; onStarted(
       keptConvert.delete(f.path)
       if (alive.current) onStarted(id)
     } catch (e) {
-      if (alive.current) setS({ at: 'failed', reason: failure(a, e, t, 'start.convert.failed'), facts: f })
+      a.failed = failure(a, e, t, 'start.convert.failed', t('start.convert.start'))
+      if (alive.current) setS({ at: 'failed', reason: a.failed, facts: f })
     }
   }
   const steps = [1, 2, 3, 4] as const
@@ -433,7 +473,7 @@ export function ConvertAgent({ onBack, onStarted }: { onBack(): void; onStarted(
           </div>
         )}
         {facts && (
-          <div ref={factsRef} tabIndex={-1} className="st-facts" aria-label={facts.name}>
+          <div ref={factsRef} tabIndex={-1} className="st-facts-block" aria-label={facts.name}>
             {facts.importedBy.length > 0 && <div className="lp-callout" role="status"><p>{t('start.convert.already', { name: facts.importedBy[0].name })}</p></div>}
             {!facts.git && <div className="lp-callout" role="status"><p>{t('start.convert.notGit')}</p></div>}
             <FolderFactsList f={facts} t={t} locale={locale} />
