@@ -59,7 +59,10 @@ export function createKeyedQueue(): <T>(key: string, work: () => Promise<T>) => 
 }
 /** The setup preset records through Fabric's tools (memory, questions, tasks): a runner that does not connect to the
  *  surface could record nothing, so main refuses it whatever the window chose (0.3.3 verification, iteration 2). */
-export function refuseSetupWithoutSurface(runner: string): void {
+export function refuseSetupWithoutSurface(runner: string, surfaceUp = true): void {
   if (!describeAgent(runner)?.connectsToSurface) throw new Error('task-refused:setup-needs-surface')
+  // A runner that connects, with Fabric's agent surface not listening, would start with none of the tools either
+  // (iteration 3, ER-6/DA-1): said as its own reason, the person can start the surface (Settings → Agent access).
+  if (!surfaceUp) throw new Error('task-refused:setup-surface-down')
 }
 // #endregion task-retry

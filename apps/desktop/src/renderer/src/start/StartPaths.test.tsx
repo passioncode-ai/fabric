@@ -575,7 +575,7 @@ describe('0.3.3 verification, iteration 2: the agent paths', () => {
     expect(fabric.projects.create).toHaveBeenCalledTimes(1)
   })
 
-  it('leaving while the folder is being made, and coming back, waits for that folder instead of making another (ER-6)', async () => {
+  it('leaving mid-request and coming back shows the attempt working; its end is this screen\'s, never a second folder (ER-6; iteration 3 ER-1, ER-4)', async () => {
     let finish: (v: unknown) => void = () => undefined
     const createFolder = vi.fn(() => new Promise((r) => { finish = r }))
     const fabric = bridge({ start: { ...bridge().start, createFolder } })
@@ -585,14 +585,54 @@ describe('0.3.3 verification, iteration 2: the agent paths', () => {
     fireEvent.click(createBtn())
     await waitFor(() => expect(createFolder).toHaveBeenCalledTimes(1))
     cleanup()
+    const h = start('agent')
+    await waitFor(() => expect(screen.getByRole('button', { name: en['start.createAgent.creating'] }).getAttribute('aria-busy')).toBe('true'))
+    expect((screen.getByLabelText(en['start.createAgent.name']) as HTMLInputElement).disabled, 'nothing is edited under a request in flight').toBe(true)
+    expect(screen.queryByRole('button', { name: en['start.createAgent.startOver'] }), 'nothing is started over under it').toBeNull()
     finish({ ok: true, path: '/w/support-desk' })
+    await waitFor(() => expect(fabric.windows.openSession).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(h.onCreated).toHaveBeenCalledTimes(1))
+    expect(createFolder, 'never a second folder').toHaveBeenCalledTimes(1)
+  })
+
+  it('an older attempt finishing late does not overwrite a newer one (iteration 3, ER-1)', async () => {
+    let failFirst: (e: unknown) => void = () => undefined
+    const begin = vi.fn()
+      .mockImplementationOnce(() => Promise.reject(new Error('spawn failed')))
+      .mockImplementationOnce(() => new Promise((_r, j) => { failFirst = j }))
+      .mockResolvedValue({ session: { sessionId: 's7' } })
+    const fabric = bridge({ tasks: { start: begin, close: vi.fn(async () => ({ ok: true })) } })
     start('agent')
-    expect((await screen.findByLabelText(en['start.createAgent.name']) as HTMLInputElement).value).toBe('support-desk')
-    await waitFor(() => expect(createBtn().textContent).toBe(en['start.createAgent.retry']))
+    await fill()
     await ready()
     fireEvent.click(createBtn())
-    await waitFor(() => expect(fabric.windows.openSession).toHaveBeenCalled())
-    expect(createFolder, 'never a second folder').toHaveBeenCalledTimes(1)
+    await screen.findByText(/spawn failed/)
+    fireEvent.click(createBtn()) // Try again: the second launch hangs
+    await waitFor(() => expect(begin).toHaveBeenCalledTimes(2))
+    cleanup()
+    start('agent')
+    await waitFor(() => expect(screen.getByRole('button', { name: en['start.createAgent.creating'] }).getAttribute('aria-busy')).toBe('true'))
+    failFirst(new Error('late failure'))
+    expect(await screen.findByText(/late failure/), 'the late end of the same attempt is said here').toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['start.createAgent.startOver'] }))
+    fireEvent.change(screen.getByLabelText(en['start.createAgent.name']), { target: { value: 'other-desk' } })
+    await ready()
+    fireEvent.click(createBtn())
+    await waitFor(() => expect(fabric.windows.openSession).toHaveBeenCalledWith('s7'))
+    const projects = fabric.projects.create.mock.calls.map((c) => c[0] as { id: string; repoPaths: string[] })
+    const last = projects[projects.length - 1]
+    expect(projects.filter((p) => p.id === last.id).every((p) => p.repoPaths[0] === last.repoPaths[0]), 'the new folder goes to the new Project only').toBe(true)
+    expect(new Set(projects.map((p) => p.id)).size).toBe(2)
+  })
+
+  it('after the folder-exists refusal, focus is back on the Name field (iteration 3, UX-2)', async () => {
+    bridge({ start: { ...bridge().start, createFolder: vi.fn(async () => ({ ok: false, reason: 'exists', detail: '/w/support-desk' })) } })
+    start('agent')
+    await fill()
+    await ready()
+    fireEvent.click(createBtn())
+    await screen.findByText(en['start.new.refused.exists'].replace('{detail}', '/w/support-desk'))
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText(en['start.createAgent.name'])))
   })
 
   it('a task the person walks away from is cancelled on the board (DA-5)', async () => {

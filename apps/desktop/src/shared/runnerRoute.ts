@@ -117,6 +117,11 @@ export function walkFallback(
       pass('refused', `${agent.label} does not connect to Fabric's tools, and this task records through them`)
       continue
     }
+    const surfaceProbe = launch.needsSurface ? probe(agent.id, appliedMode(agent.id, launch.permissionMode)) : null
+    if (surfaceProbe && !surfaceProbe.surfaceUp) {
+      pass('refused', `Fabric's agent surface is not running, and this task records through it`)
+      continue
+    }
     if (launch.kind === 'task' && CHANNEL[agent.resultChannel] < bar.channel) {
       pass('refused', `${agent.label} cannot return a task's result the way the first choice would`)
       continue

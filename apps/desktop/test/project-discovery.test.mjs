@@ -329,6 +329,9 @@ await assert.rejects(() => scanFolder(path.join(root, 'missing')), /(^|: )folder
   const cut = summaryFrom({ readme: long })
   assert.ok(cut.length <= 240 && cut.endsWith('…') && !cut.includes('wo…'), 'a long paragraph is cut at a word, with an ellipsis: ' + cut)
   assert.equal(summaryFrom({ readme: 'Bidi ‮trick‬ and \u0007bell.' }), 'Bidi trick and bell.', 'control and text-direction characters are removed')
+  // iteration 3, ER-5: a long summary is never cut inside a surrogate pair.
+  const emoji = summaryFrom({ readme: 'x'.repeat(238) + '😀😀 tail words here' })
+  assert.ok(!/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/.test(emoji), 'no lone surrogate: ' + JSON.stringify(emoji.slice(-4)))
   // 0.3.3 verification, iteration 2, ER-1: unclosed markup does not make the stripping quadratic in the main process.
   for (const ch of ['<', '[', '![']) {
     const started = Date.now()

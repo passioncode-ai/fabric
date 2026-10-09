@@ -43,5 +43,6 @@ assert.equal(liveSessionOf(new Map([['ended', ID]]), () => false, ID), null, 'an
 { // iteration 2: the setup preset only on a runner that connects to Fabric's tools, whatever the window chose.
   assert.doesNotThrow(() => refuseSetupWithoutSurface('claude-code'))
   for (const r of ['codex', 'cline', 'kimi-code', 'shell', 'not-a-runner']) assert.throws(() => refuseSetupWithoutSurface(r), /task-refused:setup-needs-surface/, r)
+  assert.throws(() => refuseSetupWithoutSurface('claude-code', false), /task-refused:setup-surface-down/, 'iteration 3: the surface not listening')
 }
 console.log('PASS task retry: a caller id is the same task on retry; a foreign, malformed or unread id is refused; a running one is brought forward, an ended one is not; one id at a time')

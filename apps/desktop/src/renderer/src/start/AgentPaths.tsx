@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 import { defaultBuilder } from '../../../shared/builderChoice.ts'
 import { folderNameProblem, type AdapterSkillsView, type ExecutorRow, type FolderView } from '../../../shared/startPaths.ts'
 import { useLocale, useT, type Translate } from '../i18n'
-import { CopyButton, FolderFactsList, Heading, explainError, purposeFrom, reasonOf } from './startParts'
+import { CopyButton, FolderFactsList, Heading, errorText, explainError, purposeFrom, reasonOf } from './startParts'
 
 const newId = (): string => crypto.randomUUID()
 
@@ -42,11 +42,15 @@ const failure = (a: Attempt, e: unknown, t: Translate, key: 'start.createAgent.f
   a.sessionId ? t('start.consoleNotOpened', { reason: reasonOf(e, t), retry }) : t(key, { reason: reasonOf(e, t) })
 
 /** A task the person walked away from (Use another coding agent, Start over) is cancelled, so the board does not keep
- *  it as open work to run again (iteration 2, DA-5). A task that was never recorded has nothing to cancel. */
-function abandon(a: Attempt, reason: string): void {
-  if (!a.launched) return
-  try { void window.fabric.tasks.close(a.taskId, 'cancelled', reason).catch(() => undefined /* not silence: nothing recorded, or already closed */) }
-  catch { /* not silence: a host without the board API has no task to cancel */ }
+ *  it as open work to run again (iteration 2, DA-5). A task that was never recorded has nothing to cancel, and a task
+ *  whose session runs is the coding agent's, not abandoned (iteration 3, ER-2). Resolves to the refusal, if any, so
+ *  the screen can say a cancel that did not happen (iteration 3, ER-3). */
+async function abandon(a: Attempt, reason: string): Promise<string | null> {
+  if (!a.launched || a.sessionId) return null
+  try {
+    const result = await window.fabric.tasks.close(a.taskId, 'cancelled', reason)
+    return result.ok ? null : result.reason
+  } catch (e) { return errorText(e) /* said on the screen, not swallowed */ }
 }
 
 // ── The coding agent that does the work (D3) ───────────────────────────────
@@ -205,10 +209,13 @@ type CreateState = { at: 'form' } | { at: 'creating' } | { at: 'failed'; reason:
  *  instead of being refused because the folder now exists (0.3.3 verification ER-4, DA-6). */
 interface KeptCreate {
   name: string; purpose: string; parent: string | null; made: string | null; attempt: Attempt; failed: string | null
-  /** The folder being made right now: a screen mounted while it is in flight waits for it instead of making
-   *  another, which would be refused as existing (iteration 2, ER-6). */
-  making: Promise<string | null> | null
+  /** The attempt's request in flight (folder, Project, task, console): a screen mounted meanwhile shows it as working
+   *  and waits for its end, so nothing can be changed or started over under it (iteration 2, ER-6; iteration 3, ER-1,
+   *  ER-4). */
+  flight: Promise<void> | null
 }
+type KeptBase = Pick<KeptCreate, 'name' | 'purpose' | 'parent'>
+type KeptPatch = Partial<KeptCreate>
 let keptCreate: KeptCreate | null = null
 /** One attempt per folder, kept for the window's life: the same folder chosen again — after leaving the screen, or
  *  after choosing another — is the same Project and task; another folder is another attempt (ER-4). */
@@ -234,12 +241,28 @@ export function CreateAgent({ onBack, onStarted }: { onBack(): void; onStarted(p
   // ones, and says the made folder (and its Project, once made) stays.
   const [made, setMade] = useState<string | null>(kept?.made ?? null)
   const nameRef = useRef<HTMLInputElement>(null)
+  const builderRef = useRef<HTMLDivElement>(null)
+  const [cancelNote, setCancelNote] = useState<string | null>(null)
+  // Focus moves after React has committed the change, so the field it goes to is enabled again (iteration 3, UX-2).
+  const [focusName, setFocusName] = useState(0)
+  useEffect(() => { if (focusName) nameRef.current?.focus() }, [focusName])
   const alive = useRef(true)
   useEffect(() => {
     alive.current = true
-    // A folder still being made when this screen mounted: show it once it exists (iteration 2, ER-6).
-    const making = keptCreate?.making
-    if (making && !made) void making.then((path) => { if (alive.current && path) setMade(path) })
+    // The attempt is still working (the screen was left mid-request): show it working, and take its end as this
+    // screen's own (iteration 3, ER-1).
+    const flight = keptCreate?.flight
+    if (flight) {
+      setS({ at: 'creating' })
+      void flight.then(() => {
+        if (!alive.current) return
+        const k = keptCreate
+        const a = attempt.current
+        if (k && k.attempt === a) { setMade(k.made); setS(k.failed ? { at: 'failed', reason: k.failed } : { at: 'form' }) }
+        else if (a.sessionId) onStarted(a.projectId)
+        else setS({ at: 'form' })
+      })
+    }
     return () => { alive.current = false }
   }, []) // once per mount: the kept attempt is read at mount
   const busy = s.at === 'creating'
@@ -251,8 +274,11 @@ export function CreateAgent({ onBack, onStarted }: { onBack(): void; onStarted(p
   const blocked = blockedReason(t, builders, skills)
   const ready = !nameProblem && !purposeProblem && !!parent && blocked === null
 
-  const keep = (patch: Partial<KeptCreate>): void => {
-    keptCreate = { name: name.trim(), purpose: purpose.trim(), parent, made, attempt: attempt.current, failed: null, making: null, ...keptCreate, ...patch }
+  /** Write the kept attempt — only ever for attempt `a`, so an older attempt finishing late never overwrites a newer
+   *  one (iteration 3, ER-1). */
+  const keepFor = (a: Attempt, base: KeptBase, patch: KeptPatch): void => {
+    if (keptCreate && keptCreate.attempt !== a) return
+    keptCreate = { ...base, made: null, failed: null, flight: null, attempt: a, ...keptCreate, ...patch }
   }
   const choose = async (): Promise<void> => {
     setPickFailed(null)
@@ -261,58 +287,68 @@ export function CreateAgent({ onBack, onStarted }: { onBack(): void; onStarted(p
       if (picked) { setParent(picked); setFolderProblem(null) }
     } catch (e) { setPickFailed(t('start.pickFailed', { reason: reasonOf(e, t) })) }
   }
+  const said = (refusal: string | null): void => { if (alive.current) setCancelNote(refusal ? t('start.abandoned.notCancelled', { reason: refusal }) : null) }
   const startOver = (): void => {
-    abandon(attempt.current, t('start.abandoned.startOver'))
+    void abandon(attempt.current, t('start.abandoned.startOver')).then(said)
     attempt.current = newAttempt()
     keptCreate = null
     setMade(null)
     setS({ at: 'form' })
-    requestAnimationFrame(() => nameRef.current?.focus()) // after the field is enabled again (iteration 2, UX-5)
+    setFocusName((n) => n + 1)
   }
   /** The chosen coding agent failed to start: a new task in the same Project and folder, with another agent (ER-3). */
   const anotherAgent = (): void => {
-    abandon(attempt.current, t('start.abandoned.anotherAgent'))
-    attempt.current = { ...attempt.current, taskId: newId(), sessionId: null, launched: false, agentId: null, failed: null }
-    keep({ attempt: attempt.current, failed: null })
+    const before = attempt.current
+    void abandon(before, t('start.abandoned.anotherAgent')).then(said)
+    const next = { ...before, taskId: newId(), sessionId: null, launched: false, agentId: null, failed: null }
+    if (keptCreate?.attempt === before) keptCreate = { ...keptCreate, attempt: next, failed: null }
+    attempt.current = next
     setS({ at: 'form' })
+    requestAnimationFrame(() => builderRef.current?.querySelector<HTMLElement>('select, button')?.focus()) // UX-3
   }
   const create = async (): Promise<void> => {
     setTouched(true)
     if (busy || !ready || !parent || !builders.chosen) return
     setS({ at: 'creating' })
     setFolderProblem(null)
+    setCancelNote(null)
     const a = attempt.current
+    const base = { name: name.trim(), purpose: purpose.trim(), parent }
+    const agent = builders.chosen
+    // Kept BEFORE the first request: leaving the screen mid-request does not lose the attempt, and a screen mounted
+    // meanwhile waits for this flight instead of starting another (ER-6, ER-1).
+    let land: () => void = () => undefined
+    keepFor(a, base, { flight: new Promise<void>((r) => { land = r }), failed: null })
     try {
-      let folder = made ?? (keptCreate?.making ? await keptCreate.making : null)
+      let folder = made
       if (!folder) {
-        // Kept BEFORE the folder is asked for: leaving the screen while it is being made does not lose it (ER-6).
-        let settle: (path: string | null) => void = () => undefined
-        keep({ attempt: a, making: new Promise<string | null>((r) => { settle = r }) })
-        const result = await window.fabric.start.createFolder({ parent, name: name.trim(), git: true }).catch((e: unknown) => { settle(null); keep({ making: null }); throw e })
-        settle(result.ok ? result.path : null)
+        const result = await window.fabric.start.createFolder({ parent, name: base.name, git: true })
         if (!result.ok) {
-          keptCreate = null // nothing was made: a fresh screen is a fresh attempt
+          if (keptCreate?.attempt === a) keptCreate = null // nothing was made: a fresh screen is a fresh attempt
           if (!alive.current) return
           setFolderProblem(t(`start.new.refused.${result.reason}` as 'start.new.refused.exists', { detail: result.detail ?? '' }))
           setS({ at: 'form' })
-          requestAnimationFrame(() => nameRef.current?.focus()) // the field to change is the name, once enabled (UX-5)
+          setFocusName((n) => n + 1) // the field to change is the name (UX-2)
           return
         }
         folder = result.path
-        keep({ made: folder, attempt: a, making: null })
+        keepFor(a, base, { made: folder })
       }
       if (alive.current) setMade(folder)
-      const project = await window.fabric.projects.create({ id: a.projectId, name: name.trim(), purpose: purpose.trim(), repoPaths: [folder] })
+      const project = await window.fabric.projects.create({ id: a.projectId, name: base.name, purpose: base.purpose, repoPaths: [folder] })
       a.projectMade = true
-      await launch(a, project.id, t('start.createAgent.instruction', { name: name.trim(), purpose: purpose.trim() }), builders.chosen, 'create-agent')
-      keptCreate = null
+      await launch(a, project.id, t('start.createAgent.instruction', { name: base.name, purpose: base.purpose }), agent, 'create-agent')
+      if (keptCreate?.attempt === a) keptCreate = null
       // The console window is already forward; a screen the person has since left does not pull them back.
       if (alive.current) onStarted(project.id)
     } catch (e) {
       const reason = failure(a, e, t, 'start.createAgent.failed', t('start.createAgent.retry'))
       a.failed = reason
-      if (keptCreate) keep({ failed: reason, attempt: a })
+      keepFor(a, base, { failed: reason })
       if (alive.current) setS({ at: 'failed', reason })
+    } finally {
+      if (keptCreate?.attempt === a) keptCreate = { ...keptCreate, flight: null }
+      land()
     }
   }
   const shown = (problem: string | null) => (touched || name !== '' ? problem : null)
@@ -333,6 +369,7 @@ export function CreateAgent({ onBack, onStarted }: { onBack(): void; onStarted(p
             )}
           </div>
         )}
+        {cancelNote && <p className="field-problem" role="status">{cancelNote}</p>}
         {/* Hints sit outside the label and are tied by aria-describedby, so a field's name is its label alone. */}
         <div className="lp-field">
           <label htmlFor="start-agent-name">{t('start.createAgent.name')}</label>
@@ -356,14 +393,15 @@ export function CreateAgent({ onBack, onStarted }: { onBack(): void; onStarted(p
           {touched && !parent && <small className="field-problem">{t('start.createAgent.whereEmpty')}</small>}
           {pickFailed && <small className="field-problem" role="alert">{pickFailed}</small>}
         </div>
-        <BuilderChoice builders={builders} disabled={busy || attempt.current.launched} />
+        <div ref={builderRef}><BuilderChoice builders={builders} disabled={busy || attempt.current.launched} /></div>
         {builders.chosen && <SkillsStatus skills={skills} agentLabel={label} agentId={builders.chosen} />}
         <div className="lp-actions">
           {/* aria-disabled, not disabled: the button keeps focus while it works, and a press says what is missing. */}
           <button type="button" className="lp-button primary" aria-disabled={busy || !ready} aria-busy={busy} onClick={() => void create()}>
             {busy ? t('start.createAgent.creating') : made ? t('start.createAgent.retry') : t('start.createAgent.create')}
           </button>
-          {made && <button type="button" className="lp-button" disabled={busy} onClick={startOver}>{t('start.createAgent.startOver')}</button>}
+          {/* Not while the coding agent's session runs: that work is the agent's, not something to start over (UX-7). */}
+          {made && !attempt.current.sessionId && <button type="button" className="lp-button" disabled={busy} onClick={startOver}>{t('start.createAgent.startOver')}</button>}
         </div>
         {touched && !busy && blocked && <p className="field-problem" role="status">{blocked}</p>}
         <p className="lp-meta">{t('start.createAgent.what')}</p>
@@ -386,6 +424,7 @@ export function ConvertAgent({ onBack, onStarted }: { onBack(): void; onStarted(
   const locale = useLocale()
   const [s, setS] = useState<ConvertState>({ at: 'idle' })
   const [touched, setTouched] = useState(false)
+  const [cancelNote, setCancelNote] = useState<string | null>(null)
   const attempt = useRef<Attempt>(newAttempt())
   const builders = useBuilders()
   const skills = useSkills(builders.chosen)
@@ -421,7 +460,7 @@ export function ConvertAgent({ onBack, onStarted }: { onBack(): void; onStarted(
     }
   }
   const anotherAgent = (f: FolderView): void => {
-    abandon(attempt.current, t('start.abandoned.anotherAgent'))
+    void abandon(attempt.current, t('start.abandoned.anotherAgent')).then((refusal) => { if (alive.current) setCancelNote(refusal ? t('start.abandoned.notCancelled', { reason: refusal }) : null) })
     attempt.current = { ...attempt.current, taskId: newId(), sessionId: null, launched: false, agentId: null, failed: null }
     keptConvert.set(f.path, attempt.current)
     setS({ at: 'ready', facts: f })
@@ -460,6 +499,7 @@ export function ConvertAgent({ onBack, onStarted }: { onBack(): void; onStarted(
             )}
           </div>
         )}
+        {cancelNote && <p className="field-problem" role="status">{cancelNote}</p>}
         <ol className="st-steps">
           {steps.map((n) => (
             <li key={n}><b>{t(`start.convert.step${n}` as 'start.convert.step1')}</b><span>{t(`start.convert.step${n}.body` as 'start.convert.step1.body')}</span></li>

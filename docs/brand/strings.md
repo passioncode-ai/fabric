@@ -679,7 +679,7 @@ The start menu and the two agent paths ([brief](../evidence/plans/2026-10-08-onb
 | `start.builder.fromFound` | Chosen: the first coding agent found that connects to the tools of Fabric, or the first found. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.builder.orderUnread` | Your fallback order could not be read, so the first coding agent found is chosen. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.builder.another` | Use another coding agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
-| `start.builder.anotherNote` | The task given to the first one is cancelled on the project's board. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.builder.anotherNote` | The task given to the first one is cancelled on the project's board, unless its session is already running. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.blocked.agent` | Choose a coding agent that can start. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.blocked.skills` | Install the Fabric Agent Adapter skills first, then check again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.blocked.checking` | Wait for the skills check to finish. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
@@ -690,7 +690,6 @@ The start menu and the two agent paths ([brief](../evidence/plans/2026-10-08-onb
 | `start.taskRefused.not-an-id` | The task's id was refused. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.taskRefused.other-project` | This task belongs to another project. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.taskRefused.read-failed` | The task could not be read before starting it: {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
-| `start.taskRefused.readback-failed` | The session started, but the task could not be read back. Refresh the board. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.purposeFromRepo` | From {file}: {text} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | proposed |
 | `tasks.presetNeedsSurface` | {agent} has no connection to the tools of Fabric, so it could record nothing of this setup. Choose an agent that has one. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | proposed |
 | `analytics.notice.sentBefore` | An earlier version may already have sent these counts from this Mac, from its first start. Nothing more is sent until you answer. Your choice is the one switch every PassionCode.ai app on this Mac reads, and you can change it later in the settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-134 | proposed |
@@ -701,4 +700,6 @@ The start menu and the two agent paths ([brief](../evidence/plans/2026-10-08-onb
 | `start.abandoned.startOver` | Left when the person started over with another name or place. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.abandoned.anotherAgent` | Replaced by a task for another coding agent. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `first.exec.copyWhat` | Copy for {what} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
+| `start.taskRefused.setup-surface-down` | This setup records through the tools of Fabric, and the agent surface that gives them is not running. Start it in the settings, then try again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | proposed |
+| `start.abandoned.notCancelled` | The earlier task could not be cancelled on the board: {reason}. Close it there by hand. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 

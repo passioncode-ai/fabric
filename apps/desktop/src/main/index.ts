@@ -1642,7 +1642,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         if (error || !data) throw new Error('The selected agent could not be read. Refresh its configuration.')
         runner = data.provider_ref as string
       }
-      refuseSetupWithoutSurface(runner)
+      refuseSetupWithoutSurface(runner, surface.endpoint !== '')
     }
     // A caller-chosen id makes a retry the SAME task (taskRetry.ts#planTaskStart); two starts naming one id run one
     // after the other (createKeyedQueue), so the second finds the first's task.

@@ -26,7 +26,7 @@ export function explainError(e: unknown, t: Translate): string {
   if (folder) return t(`start.folderRefused.${folder[1]}` as 'start.folderRefused.missing', { path: folder[2] })
   const name = /(?:^|: )project-name-refused:(not-a-name|empty|text-direction|control)\b/.exec(text)
   if (name) return t(`start.projectNameRefused.${name[1]}` as 'start.projectNameRefused.empty')
-  const task = /(?:^|: )task-refused:(not-an-id|other-project|read-failed|readback-failed|setup-needs-surface)(?:: ([\s\S]*))?$/.exec(text)
+  const task = /(?:^|: )task-refused:(not-an-id|other-project|read-failed|setup-needs-surface|setup-surface-down)(?:: ([\s\S]*))?$/.exec(text)
   if (task) return t(`start.taskRefused.${task[1]}` as 'start.taskRefused.not-an-id', { detail: task[2] ?? '' })
   const agent = /(?:^|: )agent-name-refused:taken: ([\s\S]*)$/.exec(text)
   if (agent) return t('agents.nameTaken', { name: agent[1] })

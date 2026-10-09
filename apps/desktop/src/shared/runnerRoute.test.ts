@@ -104,6 +104,10 @@ describe('a task that records through Fabric\'s tools (0.3.3 verification, itera
     if (walk.state === 'selected') expect(walk.runner).toBe('claude-code')
     expect(walk.passedOver.map((p) => [p.runner, p.result])).toEqual([['codex', 'refused']])
   })
+  it('with the agent surface not listening, no runner is taken for it (iteration 3, ER-6/DA-1)', () => {
+    const walk = walkFallback(order(['claude-code', 'spawn']), { kind: 'task', permissionMode: null, needsSurface: true }, probeOf({ 'claude-code': { surfaceUp: false } }))
+    expect(walk.state).toBe('exhausted')
+  })
   it('without the need, the first installed runner is taken as before', () => {
     const walk = walkFallback(order(['codex', 'spawn'], ['claude-code', 'spawn']), { kind: 'task', permissionMode: null }, probeOf({}))
     if (walk.state === 'selected') expect(walk.runner).toBe('codex')

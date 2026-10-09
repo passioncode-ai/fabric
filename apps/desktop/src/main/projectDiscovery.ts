@@ -276,7 +276,9 @@ function plain(text: string): string {
 function clip(text: string): string | null {
   if (!text) return null
   if (text.length <= SUMMARY_MAX) return text
-  const cut = text.slice(0, SUMMARY_MAX - 1)
+  // Cut by code point, never inside a surrogate pair: half an emoji is not valid UTF-8 and the database refuses the
+  // purpose, so that folder could never become a Project (0.3.3 verification, iteration 3, ER-5).
+  const cut = Array.from(text.slice(0, SUMMARY_MAX)).slice(0, -1).join('').replace(/[\uD800-\uDBFF]$/, '')
   const at = cut.lastIndexOf(' ')
   return (at > SUMMARY_MAX / 2 ? cut.slice(0, at) : cut).replace(/[\s,;:.-]+$/, '') + '…'
 }
