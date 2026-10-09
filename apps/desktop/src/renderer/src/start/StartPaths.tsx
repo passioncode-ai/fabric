@@ -1,6 +1,6 @@
-// #region start-screens — docs: docs/adr/0100-first-run-and-start-paths.md#decision
-// The start paths (ADR-0100; SCN-127…SCN-131, SCR-70…SCR-75): where a project comes from and where
-// an agent comes from. One screen per path, every state of each path drawn — idle, working,
+// #region start-screens — docs: docs/adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md#decision
+// The start paths (ADR-0100, amended by ADR-0129; SCN-126…SCN-129, SCN-131, SCN-136; SCR-70…SCR-75): the menu of four
+// actions and the project paths; the two agent paths live in `AgentPaths.tsx`. One screen per path, every state of each path drawn — idle, working,
 // refused, failed, done — and nothing created without the operator's explicit act. The first run
 // (`FirstRun.tsx`) ends on the same menu, so the two never disagree about what the paths are.
 
@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { groupCandidates, type CandidateView, type FolderView, type ScanView } from '../../../shared/startPaths.ts'
 import type { ProjectRow } from '../../../shared/types'
 import { useLocale, useT, type Translate } from '../i18n'
-import { CopyButton, FolderFactsList, Heading, errorText, explainError, shortDate } from './startParts'
+import { CopyButton, FolderFactsList, Heading, errorText, explainError, purposeFrom, shortDate } from './startParts'
 import { ConvertAgent, CreateAgent } from './AgentPaths'
 
 export { CopyButton, errorText, explainError }
@@ -137,6 +137,7 @@ function AddProject({ onPath, onCreated, onOpenProject }: StartProps): React.JSX
   const locale = useLocale()
   const [s, setS] = useState<AddState>({ at: 'idle' })
   const id = useRef(newId())
+  const panel = useRef<HTMLElement>(null)
 
   const choose = async (): Promise<void> => {
     try {
@@ -146,6 +147,7 @@ function AddProject({ onPath, onCreated, onOpenProject }: StartProps): React.JSX
       const facts = await window.fabric.start.inspect(folder)
       id.current = newId()
       setS({ at: 'ready', facts, name: facts.name })
+      requestAnimationFrame(() => panel.current?.focus()) // focus goes to what arrived, not to the page (0.3.3 UX-10)
     } catch (e) {
       setS({ at: 'failed', reason: explainError(e, t) })
     }
@@ -153,7 +155,7 @@ function AddProject({ onPath, onCreated, onOpenProject }: StartProps): React.JSX
   const create = async (facts: FolderView, name: string): Promise<void> => {
     setS({ at: 'creating', facts, name })
     try {
-      const p = await window.fabric.projects.create({ id: id.current, name: name.trim(), purpose: facts.summary ?? undefined, repoPaths: [facts.path] })
+      const p = await window.fabric.projects.create({ id: id.current, name: name.trim(), purpose: purposeFrom(facts, t), repoPaths: [facts.path] })
       onCreated(p.id)
     } catch (e) {
       setS({ at: 'failed', reason: explainError(e, t), facts, name })
@@ -177,7 +179,7 @@ function AddProject({ onPath, onCreated, onOpenProject }: StartProps): React.JSX
         const busy = s.at === 'creating'
         const nameProblem = name.trim() ? null : t('start.name.empty')
         return (
-          <section className="lp-panel st-step">
+          <section className="lp-panel st-step" ref={panel} tabIndex={-1} aria-label={facts.name}>
             {s.at === 'failed' && <div className="lp-callout" role="alert"><p>{t('start.add.failed', { reason: s.reason })}</p></div>}
             {facts.importedBy.length > 0 && (
               <div className="lp-callout" role="status">
@@ -219,7 +221,7 @@ type ScanState =
   | { at: 'scanning'; root: string }
   | { at: 'results'; scan: ScanView }
   | { at: 'importing'; scan: ScanView; done: Record<string, 'ok' | string>; queue: string[] }
-  | { at: 'imported'; scan: ScanView; done: Record<string, 'ok' | string>; created: string[] }
+  | { at: 'imported'; scan: ScanView; done: Record<string, 'ok' | string>; created: { id: string; name: string }[] }
   | { at: 'failed'; reason: string }
 
 /** A part of a product (a worktree, a repository nested in another) — not ticked by "Tick all shown". */
@@ -233,6 +235,8 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged, onSet
   const [query, setQuery] = useState('')
   const ids = useRef<Record<string, string>>({})
   const scanning = useRef(false)
+  const results = useRef<HTMLElement>(null)
+  const imported = useRef<HTMLDivElement>(null)
   // Each scan has a number; Stop and a newer scan advance it, so a late answer is ignored (iteration 2:
   // the screen stayed on "scanning" until a stuck call returned).
   const runs = useRef(0)
@@ -266,6 +270,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged, onSet
         const scan = await window.fabric.start.scan(folder)
         if (n !== runs.current) return
         setS(scan.cancelled ? { at: 'idle', stopped: true } : { at: 'results', scan })
+        if (!scan.cancelled) requestAnimationFrame(() => results.current?.focus()) // UX-10
       } catch (e) {
         if (n === runs.current) setS({ at: 'failed', reason: explainError(e, t) })
       } finally {
@@ -285,16 +290,16 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged, onSet
   const importPicked = async (scan: ScanView): Promise<void> => {
     const queue = scan.candidates.filter((c) => picked.has(c.path)).map((c) => c.path)
     const done: Record<string, 'ok' | string> = {}
-    const created: string[] = []
+    const created: { id: string; name: string }[] = []
     setS({ at: 'importing', scan, done: { ...done }, queue })
     for (const p of queue) {
       const c = scan.candidates.find((x) => x.path === p)!
       ids.current[p] ??= newId() // a retry of the same row is the same create, never a sibling (UX-06)
       try {
-        // The repository's own description becomes the purpose (R2): the project arrives saying what it is for.
-        const project = await window.fabric.projects.create({ id: ids.current[p], name: c.name, purpose: c.summary ?? undefined, repoPaths: [c.path] })
+        // The repository's own description becomes the purpose (R2), marked as the repository's words (ER-5).
+        const project = await window.fabric.projects.create({ id: ids.current[p], name: c.name, purpose: purposeFrom(c, t), repoPaths: [c.path] })
         done[p] = 'ok'
-        created.push(project.id)
+        created.push({ id: project.id, name: project.name ?? c.name })
       } catch (e) {
         done[p] = explainError(e, t)
       }
@@ -306,6 +311,8 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged, onSet
     const after = scan.kept ? await window.fabric.start.lastScan().catch(() => null) : null
     setPicked(new Set(queue.filter((p) => done[p] !== 'ok')))
     setS({ at: 'imported', scan: after && after.root === scan.root ? after : scan, done, created })
+    // Focus goes to the next step — Set up / Open — not to the page (0.3.3 verification, iteration 3, UX-4).
+    requestAnimationFrame(() => imported.current?.querySelector<HTMLElement>('button')?.focus())
   }
 
   const scan = s.at === 'results' || s.at === 'importing' || s.at === 'imported' ? s.scan : null
@@ -345,7 +352,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged, onSet
         </section>
       )}
       {scan && (
-        <section className="lp-panel st-step st-scan">
+        <section className="lp-panel st-step st-scan" ref={results} tabIndex={-1} aria-label={t('start.scan.title')}>
           <div className="lp-panel-head">
             <p className="st-summary">
               {parts > 0 ? t('start.scan.summaryParts', { count: scan.candidates.length, parts, folder: scan.root }) : t('start.scan.summary', { count: scan.candidates.length, folder: scan.root })}
@@ -359,10 +366,10 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged, onSet
           {scan.deep > 0 && <div className="lp-callout" role="status"><p>{t('start.scan.deep', { count: scan.deep })}</p></div>}
           {scan.symlinks > 0 && <div className="lp-callout" role="status"><p>{t('start.scan.symlinks', { count: scan.symlinks })}</p></div>}
           {s.at === 'imported' && (
-            <div className="lp-callout" role="status">
+            <div className="lp-callout" role="status" ref={imported}>
               <p>{failedCount === 0 ? t('start.scan.importedAll', { ok: s.created.length }) : t('start.scan.importedSome', { ok: s.created.length, failed: failedCount })}</p>
-              {s.created[0] && onSetUp && <button type="button" className="lp-button primary" onClick={() => onSetUp(s.created[0])}>{t('start.scan.setUpFirst')}</button>}
-              {s.created[0] && <button type="button" className="lp-button" onClick={() => onCreated(s.created[0])}>{t('start.scan.openFirst')}</button>}
+              {s.created[0] && onSetUp && <button type="button" className="lp-button primary" onClick={() => onSetUp(s.created[0].id)}>{t('start.scan.setUpFirst', { name: s.created[0].name })}</button>}
+              {s.created[0] && <button type="button" className="lp-button" onClick={() => onCreated(s.created[0].id)}>{t('start.scan.openFirst', { name: s.created[0].name })}</button>}
             </div>
           )}
           {scan.candidates.length === 0 ? (
@@ -449,9 +456,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged, onSet
 // Lives in the draft-backed form (`Onboarding.tsx`), so a half-described project survives a restart
 // (AD02); App routes the 'new' path there. Its new-folder step is `NewFolder` in that form.
 
-// ── A new agent (SCN-130) ───────────────────────────────────────────────────
-
-
-// ── Convert an agent (SCN-131): designed, not yet built ─────────────────────
+// ── Create an agent (SCN-136) and Adapt an existing agent (SCN-131) ─────────
+// Built in `AgentPaths.tsx` (0.3.3). The role agent of a project (SCN-130) is made from the project's Team.
 
 // #endregion start-screens

@@ -106,3 +106,12 @@
   .st-first-step { grid-template-columns: minmax(0, 1fr); }
 }
 /* #endregion start-styles */
+
+/* Problems read as problems: `.lp small` (launch.css) repaints every small muted, which made a field's problem
+   look exactly like its hint (0.3.3 verification UX-2). An invalid field also changes its border. */
+.lp .field-problem, .lp .st-warn, .st-first .lp-field .field-problem { color: var(--state-danger); }
+.lp .lp-field [aria-invalid='true'] { border-color: var(--state-danger); }
+/* A button that cannot go yet keeps its focus (aria-disabled, not disabled) and looks unavailable (UX-3). */
+.lp .lp-button[aria-disabled='true'] { opacity: .4; cursor: not-allowed; }
+.st-facts-block { display: flex; flex-direction: column; gap: var(--space-3); }
+.st-facts-block:focus-visible { outline: 2px solid var(--app-focus); outline-offset: 3px; }

@@ -239,7 +239,7 @@ function listen(channel: string, fn: (event: Electron.IpcMainEvent, ...args: nev
   })
 }
 import { installMenu } from './menu'
-import { planTaskStart } from './taskRetry'
+import { createKeyedQueue, liveSessionOf, planTaskStart, readbackFallbackRow, refuseSetupWithoutSurface } from './taskRetry'
 import { adapterSkills } from './adapterSkills'
 import { decideNotification, rememberTold, type ShowOutcome } from '../shared/notify.ts'
 import { createUnattendedAdmission } from '../shared/unattendedAdmission.ts'
@@ -392,6 +392,8 @@ const quit = createQuitCoordinator({
 })
 /** sessionId → taskId, so a session's exit can close the task that opened it. */
 const taskBySession = new Map<string, string>()
+/** `tasks.start` calls that name the same task id, one at a time (taskRetry.ts#createKeyedQueue). */
+const oneTaskAtATime = createKeyedQueue()
 /** The fallback walk that chose a task's runner, between `tasks.start` and the session's opening (ADR-0125). */
 const routeByTask = new Map<string, LaunchRoute>()
 let runnerFallback: ReturnType<typeof createRunnerFallback>
@@ -1462,7 +1464,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         permissionMode: input.permissionMode })
       if (!launched.started) throw new Error(launched.says)
       const { data, error } = await store.select('project_tasks', '*').eq('id', id).single()
-      if (error) throw new Error('The session started, but the task could not be read back. Refresh the board.')
+      // The session runs: a failed read-back must not hide it, or the window calls it "not created" and offers a
+      // second agent in the same folder (iteration 2, ER-3). The row is what this call journalled.
+      if (error || !data) {
+        ops.failed('tasks.readback', new Error(error?.message ?? 'no row'), { taskId: id })
+        return { task: readbackFallbackRow({ id, projectId: input.projectId, title, instruction }) as unknown as TaskRow, session: { sessionId: launched.sessionId } }
+      }
       return { task: data as TaskRow, session: { sessionId: launched.sessionId } }
       } finally { routeByTask.delete(id) }
   }
@@ -1619,24 +1626,39 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // new session.
     let optionId = input.optionId
     let route: LaunchRoute | null = null
+    // The setup preset records through Fabric's tools; main holds the line whatever the window chose — a runner by
+    // name, a created agent or the fallback order (0.3.3 verification, iteration 2, UX-2/ER-5/DA-1).
+    const needsSurface = input.preset === 'setup'
     if (optionId === FALLBACK_OPTION) {
-      const walk = await runnerFallback.walk(input.projectId, { kind: 'task', permissionMode: input.permissionMode ?? null })
+      const walk = await runnerFallback.walk(input.projectId, { kind: 'task', permissionMode: input.permissionMode ?? null, needsSurface })
       if (walk.state === 'exhausted') throw new Error(describeExhausted(walk))
       optionId = walk.runner
       route = launchRoute(walk)
     }
-    // A caller-chosen id makes a retry the SAME task (taskRetry.ts#planTaskStart).
-    const plan = await planTaskStart<TaskRow>(input, async (id) => await store.select('project_tasks', '*').eq('id', id).maybeSingle(),
-      (id) => [...taskBySession].find(([, task]) => task === id)?.[0] ?? null)
-    if (plan.kind === 'running') return { task: plan.task, session: { sessionId: plan.sessionId } }
-    if (plan.kind === 'again') {
-      const again = await launchManaged({ taskId: plan.task.id, trigger: 'operator', permissionMode: input.permissionMode })
-      if (!again.started) throw new Error(again.says)
-      return { task: plan.task, session: { sessionId: again.sessionId } }
+    if (needsSurface) {
+      let runner = optionId
+      if (UUID.test(optionId)) {
+        const { data, error } = await store.select('agent_bindings', 'provider_ref').eq('id', optionId).maybeSingle()
+        if (error || !data) throw new Error('The selected agent could not be read. Refresh its configuration.')
+        runner = data.provider_ref as string
+      }
+      refuseSetupWithoutSurface(runner, surface.endpoint !== '')
     }
-    const taskId = plan.taskId
-    return startTask({ projectId: input.projectId, instruction: input.instruction, optionId, taskId,
-      preset: input.preset, presetEdited: input.presetEdited, permissionMode: input.permissionMode, route })
+    // A caller-chosen id makes a retry the SAME task (taskRetry.ts#planTaskStart); two starts naming one id run one
+    // after the other (createKeyedQueue), so the second finds the first's task.
+    const begin = async (): Promise<{ task: TaskRow; session: { sessionId: string } }> => {
+      const plan = await planTaskStart<TaskRow>(input, async (id) => await store.select('project_tasks', '*').eq('id', id).maybeSingle(),
+        (id) => liveSessionOf(taskBySession, (sessionId) => ptys.get(sessionId)?.running === true, id))
+      if (plan.kind === 'running') return { task: plan.task, session: { sessionId: plan.sessionId } }
+      if (plan.kind === 'again') {
+        const again = await launchManaged({ taskId: plan.task.id, trigger: 'operator', permissionMode: input.permissionMode })
+        if (!again.started) throw new Error(again.says)
+        return { task: plan.task, session: { sessionId: again.sessionId } }
+      }
+      return startTask({ projectId: input.projectId, instruction: input.instruction, optionId, taskId: plan.taskId,
+        preset: input.preset, presetEdited: input.presetEdited, permissionMode: input.permissionMode, route })
+    }
+    return typeof input.taskId === 'string' ? oneTaskAtATime(input.taskId, begin) : begin()
   })
 
   /**
@@ -1763,10 +1785,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       // dialog because a dialog is a suggestion and this is the rule.
       if (outcome === 'cancelled' && (reason ?? '').trim().length === 0)
         return { ok: false, reason: 'cancelling needs a reason — say what changed' }
-      const { data: task } = await store
+      const { data: task, error: readError } = await store
         .select('project_tasks', 'id,project_id,status')
         .eq('id', taskId)
         .maybeSingle()
+      // A read that failed is not "no such task" (0.3.3 final recheck): the screen reads that sentence as nothing to
+      // cancel, so a failure must say itself.
+      if (readError) return { ok: false, reason: `the task could not be read: ${readError.message}` }
       if (!task) return { ok: false, reason: 'that task no longer exists' }
       const verdict = mayMove('person', task.status as TaskState, outcome)
       if (!verdict.ok) return verdict
@@ -3189,9 +3214,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     }
   )
 
-  // #region usage-analytics-ipc — docs: docs/ANALYTICS.md#the-shared-installation-id
+  // #region usage-analytics-ipc — docs: docs/ANALYTICS.md#nothing-before-the-disclosure
   handle(IPC.analyticsStatus, async (): Promise<Returns<FabricApi['analytics']['status']>> =>
-    ({ availability: analytics ? analytics.refresh() : (ANALYTICS_APP_KEY ? 'unavailable-file' : 'unavailable-no-key') }))
+    ({ availability: analytics ? analytics.refresh() : (ANALYTICS_APP_KEY ? 'unavailable-file' : 'unavailable-no-key'), sentBefore: analytics?.sentBefore() ?? false }))
   handle(IPC.analyticsSetEnabled, async (_e, enabled: unknown): Promise<Returns<FabricApi['analytics']['setEnabled']>> => {
     if (typeof enabled !== 'boolean') throw new Error('analytics: the switch takes true or false')
     const availability = analytics ? analytics.setEnabled(enabled) : (ANALYTICS_APP_KEY ? 'unavailable-file' : 'unavailable-no-key')
@@ -3362,7 +3387,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       replaceFavourite(release, add)
   )
   handle(IPC.favouritesOrder, (): Returns<FabricApi['favourites']['order']> => projectOrder())
-  // #region start-paths-ipc — docs: docs/adr/0100-first-run-and-start-paths.md#boundary
+  // #region start-paths-ipc — docs: docs/adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md#boundary
   // The first run and the start paths (ADR-0100). Every folder here goes through the window's
   // granted roots (S02.roots): the picker grants, `fileRoots.resolve` refuses anything else.
   // Which projects already hold a folder. Every page is read (iteration 1: past PostgREST's 1000-row cap
@@ -4048,7 +4073,10 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // COMMITTED, so a refused write does not change the policy either.
     power?.setPolicy(written.settings.keepAwake)
     // The menu speaks the language the windows speak, from the moment it is chosen.
-    if (next.locale !== undefined) installMenu(written.settings.locale)
+    // A menu that fails to rebuild must not fail a write that is already on disk (iteration 2, ER-8).
+    if (next.locale !== undefined) {
+      try { installMenu(written.settings.locale) } catch (e) { ops.failed('settings.menu', e) }
+    }
     return written
   })
 

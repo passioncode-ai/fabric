@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.3",
+  "iteration": 3,
+  "level": "plan",
+  "candidateCommit": "fa9cdf6b7d3b8d05a9dc264f965241c672b10ee1",
+  "report": "docs/evidence/reviews/0.3.3/iteration-3/2026-10-08-plan.md",
+  "reportSha256": "17b7d6ec45b133692033796ed6a21ecaa7b15142fbdb7f5039618660f9e54d47",
+  "reviewerRun": "release-033-i3-plan-20261009",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-21",
+      "source": "DO-6, PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"may already have sent\" in CHANGELOG and SCR-52; ANALYTICS says the note says what is counted"
+      ]
+    },
+    {
+      "id": "V3-28",
+      "source": "PL-1, PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: *Release close* item 1 names them and the re-pin risk"
+      ]
+    },
+    {
+      "id": "V3-29",
+      "source": "PL-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: *Release close* item 6"
+      ]
+    },
+    {
+      "id": "V3-30",
+      "source": "PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: *Release close* item 0: the operator accepts or rejects the reading before the release commit"
+      ]
+    },
+    {
+      "id": "V3-31",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-197 and item 5 both say after the tag, as 0.3.2 did (`f2ec0587`)"
+      ]
+    },
+    {
+      "id": "V3-32",
+      "source": "PL-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: added"
+      ]
+    },
+    {
+      "id": "V3-33",
+      "source": "PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: header corrected"
+      ]
+    },
+    {
+      "id": "V3-34",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: both corrected"
+      ]
+    }
+  ]
+}

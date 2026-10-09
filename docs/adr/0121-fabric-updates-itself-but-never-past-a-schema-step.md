@@ -44,3 +44,13 @@ its entry in `SHA256SUMS`); the workflow change and its rehearsal belong to P-12
 `desktop/updater.cjs` and Fabric Dashboards' ADR-0015 are the working Electron precedents to read before
 building. Acceptance: an installed build updates itself to the next release on this Mac, a planted unsigned
 artifact is refused, and a planted schema step stops at the notice.
+
+## Amendments
+
+### Amendment 1 — 2026-10-08: the target moves after 0.3.3
+
+The operator set 0.3.3's scope on 2026-10-08 (decision D4 of the
+[onboarding brief](../evidence/plans/2026-10-08-onboarding-four-actions.md)): what is done since 0.3.2 plus the
+four onboarding actions, without this record. The target release becomes **the release after 0.3.3**, and the
+copies that need one manual update are those up to and including **0.3.3**. Found by the 0.3.3 verification,
+iteration 1 (PL-5).

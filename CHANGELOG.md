@@ -22,6 +22,65 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   ([receipt](docs/launch/harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09)). Node on an Intel Mac (the
   development runtime) is not admitted yet (CO-237); Windows and Linux are not supported (CO-238).
 
+## 0.3.3
+
+Fabric becomes the way into PassionCode.ai: the first screen offers four actions, and the work behind the two agent
+actions happens in the console of a coding agent you already use, not in a chat of Fabric's own
+([ADR-0129](docs/adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md),
+[ADR-0123](docs/adr/0123-the-conversation-is-the-runtimes-console-and-the-ceo-is-a-session.md)). The CEO chat itself
+stays in this release; it moves to a session in a later one (amendment 1 of ADR-0123).
+
+**Upgrading.** No schema change: a database at schema 79 (0.3.2) opens as it is. A database still at 75 (0.3.0)
+or 78 (0.3.1) needs the upgrade to 79 first, backup and rehearsal included
+([release runbook](https://github.com/passioncode-ai/fabric/blob/main/docs/launch/release-mac.md#upgrading-an-existing-database)).
+
+- **Four actions to start.** The first run and **+ Project** offer two pairs. *Agent:* create a new one, or adapt
+  one you built elsewhere. *Project:* open one (one folder, or a folder of them), or create one. The role agent of
+  a project is made from that project's Team.
+- **Create an agent.** A name, one sentence on what it will do, where its folder goes and which coding agent
+  builds it. Fabric creates the folder as a git repository and a project for it, then opens the coding agent's
+  console with the `creating-fabric-agents` skill; the agent asks the rest there, one question at a time.
+- **Adapt an existing agent.** Choose its folder: Fabric reads it without running anything and opens the coding
+  agent's console with the `adapting-projects-to-fabric` skill. The agent shows its plan and waits for your yes;
+  a folder that is not yet a repository is committed as it is first, with anything that looks like a secret kept
+  out; the work goes on a new branch `fabric-adapter`, and the conformance report says what passed. Fabric writes
+  nothing in the folder and does not admit the agent to its registry.
+- **The Fabric Agent Adapter skills are checked before either starts**, with the version: for Claude Code, Codex,
+  Kilo and Hermes in the folder each reads; for Cline and Kimi Code, which have no folder Fabric knows, only the
+  shared `~/.agents/skills`, and the screen says so. When they are missing, the one command that installs them is
+  shown to copy, with a note when it does not cover the chosen agent. Fabric installs nothing itself.
+- **A retry is the same attempt.** A launch that fails after the folder or the project was made continues with
+  the same folder, project and task, also after leaving the screen and coming back; a console that did not open
+  is brought forward again; *Use another coding agent* gives the same project a new task, and *Start over* is the
+  only way to another name or place.
+- **A scanned project arrives with what its repository says it is** (the manifest's description, else the
+  README's first paragraph), kept as the repository's words — "From README.md: …" — not as yours; a repository that
+  says nothing gets none.
+- **"Set up this project with the agent"**, the first shortcut on a project's task panel and the scan's next
+  step: the agent reads the repository, records what it learns with the file each fact came from, asks you to
+  confirm a one-sentence purpose and files the next three pieces of work. It changes no file, and it runs only on a
+  coding agent that connects to Fabric's tools: by name, through a created agent, or through the fallback order,
+  which passes over agents that do not.
+- **Fallback order** (Settings): a list of coding agents a launch may walk, each with whether to start a new
+  session or use an open one; once set, «Fallback order → agent» is offered in the agents and task panels ([ADR-0125](docs/adr/0125-an-agent-launch-may-follow-the-operators-fallback-order.md)).
+- **Kimi Code** is in the coding-agent list and the launch menu, launched as itself; it does not connect to
+  Fabric's tools.
+- **Usage counts wait for your answer.** They stay on by default, but a release build sends nothing, the install
+  included, until you have answered the switch once, on a first-run notice or in Settings
+  ([ADR-0127](docs/adr/0127-no-usage-count-leaves-before-the-person-has-answered-the-switch.md), [docs/ANALYTICS.md](docs/ANALYTICS.md)).
+  An install from 0.3.2, which may already have sent counts, is told so on that notice.
+- **The launch screens follow the prototype**: «Discuss with Fabric ↗» (it opens the CEO chat) and *Profile* in the
+  scope bar, the Fabric strip under it, a compact network-exposure warning, and nothing wider than the window. The default
+  workspace reads *My workspace*.
+- **Smaller fixes on the project page:** the toolbars wrap instead of running past the window, a task's subtitle
+  names its agent and date instead of a raw id, and Home's «+ Add a topic» opens the board with its form.
+- **Russian.** Every screen string, the startup failure dialog, the folder pickers and the app menu are in
+  Russian when the app is. Not yet: messages written by the main process, the terminal prompts of ACP agents and the
+  feed's verification tooltips are still in English (CO-225).
+- Provider pins move to the installed Claude Code and Codex versions; the README names the commercial-licensing
+  path (passioncode.ai/business).
+
+## 0.3.2
 
 A release built from a full audit of the 0.3.2 candidate (`e19e1b9e`, 0.3.1 plus the work merged after it): all 134 scenarios against their screens and code,
 plus the trust boundaries ([report](docs/reports/2026-10-05-release-032-audit/README.md)). Every P0 and P1

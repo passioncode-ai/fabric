@@ -4,6 +4,26 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-09 · `release-0.3.3` · agent/release-033-candidate → main
+- run: r-9a7a12bb5; base: origin/main 710c0d38; verified commit `fa9cdf6b`; integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: iteration 3 (V3-1…V3-45, receipts in `docs/evidence/reviews/0.3.3/iteration-3/`, rechecks at `f891954c`, `d2c20705`, `fa9cdf6b`), the release commit: `apps/desktop/package.json` 0.3.3, `## 0.3.3`, `docs/launch/release-gate.json`, the handoff `docs/handoffs/2026-10-09-release-033-handoff.md` and the NB-1 recheck report as release metadata.
+- summary: Fabric 0.3.3, the onboarding release, cleared by three iterations; the tag and the protected approvals follow.
+
+### 2026-10-09 · `release-0.3.3-iteration-2` · agent/release-033-candidate → main
+- run: r-9a7a12bb5; base: origin/main 710c0d38 (candidate 2 `6d6d039d`); integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: iteration 2's 44 findings, ledger rows V2-1…V2-38 and five receipts (`docs/evidence/reviews/0.3.3/iteration-2/`); `shared/runnerRoute.ts` (`needsSurface`), `main/taskRetry.ts` (`refuseSetupWithoutSurface`, running-only bring-forward), `main/index.ts` (setup guard, read-back keeps the session, menu rebuild apart), `main/projectDiscovery.ts` (bounded stripping), `main/adapterSkills.ts` (unreadable settings named), `start/AgentPaths.tsx` (attempt keeps its agent and failure, in-flight folder, abandoned tasks cancelled), `renderer/src/launch/LaunchShell.tsx` (`revealSection`), `FallbackOrderSetting.tsx`, `StackExposureNotice.tsx`, `App.tsx`, CSS, en/ru; ADR-0100, ADR-0127 amendments, ADR-0129 boundary; CO-177/178/196/197/221/225/227/231 updated, CO-232, CO-233; plan header and P-14; ledger *Release close*; CHANGELOG, ANALYTICS, runbook; fabric-workspace PR #81 extended (`ad6c1f7`).
+- summary: iteration 2 closed; the next candidate goes to iteration 3.
+
+### 2026-10-09 · `release-0.3.3-iteration-1` · agent/release-033-candidate → main
+- run: r-9a7a12bb5; base: origin/main 710c0d38 (candidate 1 `ece98797`); integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: iteration 1's 58 findings, ledger rows V1-1…V1-49 and five receipts (`docs/evidence/reviews/0.3.3/iteration-1/`); `main/taskRetry.ts` (`liveSessionOf`, `createKeyedQueue`), `main/pty.ts` (ER-1), `main/projectDiscovery.ts` (bounded head, `summaryFile`), `main/adapterSkills.ts` (regular files, timeouts, `unreadable`, `CLAUDE_CONFIG_DIR`), `main/analytics.ts` (`sentBefore`), `start/AgentPaths.tsx` (kept attempts, another coding agent, blocked reasons), `start/StartPaths.tsx`, `start/startParts.tsx`, `Tasks.tsx` (setup gated by surface), `UsageCountsNotice.tsx`, `FallbackOrderSetting.tsx`, CSS, en/ru; ADR-0129, ADR-0121 and ADR-0123 amendments, CO-218 resolved, CO-227…CO-231; plan lanes; CHANGELOG, README, CONTEXT, AGENTS lifecycle row, runbook; `test/audit_regressions/fix-pf-07.01.py`; `.gitignore`. Completes the four-actions entry below, which did not list `taskRetry.ts`, the PF-07.01 regression or the preload/`shared/types.ts` IPC additions (DO-15).
+- summary: iteration 1 closed; the next candidate goes to iteration 2.
+
+### 2026-10-08 · `release-0.3.3-candidate` · agent/release-033-candidate → main
+- run: r-9a7a12bb5; base: origin/main 710c0d38; integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: `CHANGELOG.md` §0.3.3 (unreleased), plan row P-14 and P-12 moved after 0.3.3 (decision D4), the 0.3.3 ledger `docs/evidence/plans/2026-10-08-release-033-verification.md`, the release runbook's ledger list
+- summary: the onboarding release goes into its three verification iterations; no version bump until iteration 3 closes.
+
 ### 2026-10-08 · `onboarding-four-actions` · agent/onboarding-four-actions-20261008 → main
 - run: r-9a7a12bb5; integration: fast-forward after `bash scripts/ci.sh fast`
 - scope: `start/AgentPaths.tsx` (new: Create an agent, Adapt an existing agent), `start/startParts.tsx` (new: shared start pieces), `start/StartPaths.tsx` (the menu in two pairs; the role agent left the menu), `start/start.css`, `main/adapterSkills.ts` + IPC `start.adapterSkills`, `shared/builderChoice.ts`, the seeded estate name shown as «My workspace»; tests; SCN-126/127/128/130/131/136, FLW-73/74, SCR-70/74/75, the prototype's start views, strings, brief `docs/evidence/plans/2026-10-08-onboarding-four-actions.md`

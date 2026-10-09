@@ -65,7 +65,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-49 | Маршрут работы | FLW-37 | none — interactive HTML | designed | none yet |
 | SCR-50 | Цели и приёмка | FLW-38 | none — interactive HTML | designed | none yet |
 | SCR-51 | Квоты и использование | FLW-39 | none — interactive HTML | designed | none yet |
-| SCR-52 | Настройки рабочего пространства | FLW-40 | none — interactive HTML | designed | none yet |
+| SCR-52 | Настройки рабочего пространства | FLW-40 | none — interactive HTML | designed | apps/desktop/src/renderer/src/UsageCountsSetting.tsx, UsageCountsNotice.tsx, FallbackOrderSetting.tsx (the 0.3.3 parts) |
 | SCR-53 | Уведомления и маршруты | FLW-41 | none — interactive HTML | designed | none yet |
 | SCR-54 | Диагностика | FLW-42 | none — interactive HTML | designed | none yet |
 | SCR-55 | Архив и удаление | FLW-43 | none — interactive HTML | designed | none yet |
@@ -87,8 +87,8 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-71 | Add a project | FLW-70 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
 | SCR-72 | Scan a projects folder | FLW-71 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
 | SCR-73 | New project | FLW-72 | none — text spec | built | apps/desktop/src/renderer/src/Onboarding.tsx |
-| SCR-74 | Create an agent | FLW-73 | none — text spec | designed | apps/desktop/src/renderer/src/start/AgentPaths.tsx |
-| SCR-75 | Turn an existing agent into an ecosystem agent | FLW-74 | none — text spec | designed | apps/desktop/src/renderer/src/start/AgentPaths.tsx |
+| SCR-74 | Create an agent | FLW-73 | none — text spec | built | apps/desktop/src/renderer/src/start/AgentPaths.tsx |
+| SCR-75 | Adapt an existing agent | FLW-74 | none — text spec | built | apps/desktop/src/renderer/src/start/AgentPaths.tsx |
 | SCR-76 | Agent access | FLW-75, FLW-76 | none — text spec | built | apps/desktop/src/renderer/src/AgentAccessPanel.tsx |
 
 ## Design system
@@ -1145,7 +1145,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Implementation tasks:** M72, M73, M152
 - **Prototype:** [Адрес макета](../reports/product.html#view-estate-settings); контракт [mockup-contract.md](mockup-contract.md).
 - **Status:** designed
-- **Coverage:** none yet
+- **Coverage:** apps/desktop/src/renderer/src/UsageCountsSetting.tsx, apps/desktop/src/renderer/src/UsageCountsNotice.tsx, apps/desktop/src/renderer/src/FallbackOrderSetting.tsx (the 0.3.3 parts; the rest of the screen is designed, not built)
 
 | State | Trigger | Animation | Behavior |
 |---|---|---|---|
@@ -1157,6 +1157,14 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 | stale | соответствующий ответ источника | none | Показать разрешённый снимок; изменение только после повторного чтения. |
 
 - **Domain states:** inherited, overridden, validation-error, saved, read-only.
+- **Amended 2026-10-08 (0.3.3 verification DO-13, UX-7):** the settings band of the app carries two 0.3.3 parts of
+  this screen. *Share usage counts* (SCN-134, `UsageCountsSetting.tsx`) is one of the two places that answer the
+  usage-counts disclosure; the other is the first-run notice at the top of the window (`UsageCountsNotice.tsx`,
+  ADR-0127) — states: pending (the note, "nothing has been sent yet" or, for an install that already sent, that an
+  earlier version may already have sent them; the switch, on; Continue), saving, failed (the notice stays and says nothing is sent), answered
+  (gone). *Fallback order* (SCN-135, `FallbackOrderSetting.tsx`, ADR-0125): heading, note, one aligned row per
+  coding agent with its session choice and Up, Down, Remove named for that agent, and Add. The prototype does not
+  draw either yet (CO-225).
 
 
 ### SCR-53: Уведомления и маршруты
@@ -1685,7 +1693,7 @@ results always pair text with an icon — colour is never the only signal.
 ### SCR-70: First run
 - **Used by:** FLW-69
 - **Purpose:** Meet Fabric once: name and look, the coding agents on this Mac, where to start.
-- **Elements:** three-step progress; name, character, variants; executor rows (installation/tool state, version, path, separate read-only sign-in status, install command, Copy, Check again); the five path cards; Back, Skip, Later. The sign-in check is informational, including while pending; Continue without an agent remains available.
+- **Elements:** three-step progress; name, character, variants; executor rows (installation/tool state, version, path, separate read-only sign-in status, install command, Copy, Check again); the four actions in two labelled pairs; Back, Skip, Later. The sign-in check is informational, including while pending; Continue without an agent remains available.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
@@ -1702,7 +1710,7 @@ results always pair text with an icon — colour is never the only signal.
   | not-authenticated | exact vendor status reports signed out | none | sign in through the coding agent and check again; continue remains available |
   | auth-unsupported | current build/runtime has no measured reader | none | explicitly unverified; no guessed status command |
   | auth-unknown | timeout, refusal, malformed or excessive output | none | cannot confirm; retry or continue, no raw provider output |
-  | choose-path | step 3 | none | the four actions in two pairs — Agent: Create, Turn an existing one; Project: Open, Create |
+  | choose-path | step 3 | none | the four actions in two pairs — Agent: Create an agent, Adapt an existing agent; Project: Open a project (one folder or a folder of them), Create a project |
   | skipped | Later on step 3 (Skip on step 1 only moves to step 2) | none | first run marked finished; home, Help reopens it |
 - **Coverage:** apps/desktop/src/renderer/src/start/FirstRun.tsx
 - **Scenarios:** SCN-126
@@ -1789,24 +1797,24 @@ results always pair text with an icon — colour is never the only signal.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
-  | idle | opened | none | empty form, the first available coding agent preselected |
+  | idle | opened | none | empty form; the coding agent preselected by its rule (the first in the fallback order that is installed and answers; else the first found that connects to Fabric's tools; else the first found), the hint naming which |
   | invalid-name | separator, leading dot, control or text-direction character, empty | none | said under the field once typed or once Create is pressed; nothing is made |
   | no-purpose | the sentence is empty | none | said under the field once Create is pressed; nothing is made |
   | no-parent | no folder chosen | none | said under Where once Create is pressed; nothing is made |
-  | exists | a folder of that name is under the parent | none | said under the path; nothing created |
+  | exists | a folder of that name is under the parent | none | said under the Name field, focus back on it; nothing created |
   | skills-missing | the adapter skills are not where the chosen agent reads skills (for Claude Code, found only in the shared folder counts as not there) | none | install command, Copy, Check again; when the command does not cover the agent, said so; Create does nothing |
   | checking-skills | Check again | none | busy line |
-  | no-agent | no coding agent can start | none | each agent with its reason; Create disabled |
+  | no-agent | no coding agent can start | none | each agent with its reason and Check again; Create looks unavailable and a press says why |
   | creating | Create pressed | none | busy, form locked |
   | failed | mkdir or git init refused | none | reason; nothing made; form kept |
-  | failed-after-folder | the Project, the task or the console failed after the folder was made | none | reason, and that the folder and its Project are kept; name, sentence, place and coding agent fixed; Try again continues with the same Project, task and session; Start over begins a new attempt |
+  | failed-after-folder | the Project, the task or the console failed after the folder was made | none | reason (a console that did not open is said as that), and that the folder — and its Project, if made — is kept; name, sentence and place fixed, the coding agent too once a launch was tried; Try again continues with the same Project, task and session; Use another coding agent (a launch that made no session) is a new task in the same Project, the first cancelled on the board; Start over begins a new attempt and cancels a recorded task with no running session; leaving and coming back keeps it all |
   | started | console opened | none | the console window comes forward; the Fabric window opens the new Project |
 - **Coverage:** apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`); apps/desktop/src/main/adapterSkills.ts; apps/desktop/src/main/taskRetry.ts; apps/desktop/src/renderer/src/App.tsx (`onCreated` opens the Project)
 - **Scenarios:** SCN-136
 - **Resources:** [ADR-0123](../adr/0123-the-conversation-is-the-runtimes-console-and-the-ceo-is-a-session.md), [the brief](../evidence/plans/2026-10-08-onboarding-four-actions.md).
 - **Implementation tasks:** REQ-02, REQ-04
 
-### SCR-75: Turn an existing agent into an ecosystem agent
+### SCR-75: Adapt an existing agent
 - **Used by:** FLW-74
 - **Purpose:** Adapt an agent built elsewhere to the Fabric Agent Contract on a new branch, in a coding agent's console (SCN-131).
 - **Elements:** Choose the agent's folder; facts list (as SCR-71); the four steps that follow; skills status with Copy and Check again; coding agent choice; Start the adaptation; Choose another folder.

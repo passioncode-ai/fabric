@@ -288,7 +288,7 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.kind.folder` | not a repository | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.name.label` | Project name | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.name.empty` | A project needs a name. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
-| `start.add.title` | Add a project | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
+| `start.add.title` | Open a project: one folder | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.add.lede` | Choose the folder. Fabric reads it, shows what it found, and creates the project only when you confirm. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.add.choose` | Choose a folder… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.add.choose.body` | Usually a git repository you work in. A plain folder works too. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
@@ -301,7 +301,7 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.add.other` | Choose another folder | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.add.failed` | The project was not added: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
 | `start.add.nothingWritten` | Nothing in the folder is changed. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | implemented; release pending (P-02) |
-| `start.scan.title` | Scan a projects folder | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.scan.title` | Open a project: a folder of projects | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.lede` | Choose the folder that holds your projects. Fabric lists the repositories it finds; each one you tick becomes its own project. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.choose` | Choose a folder to scan… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.choose.body` | For example the folder where you clone repositories. The scan goes four folders deep (two inside a repository) and skips dependency folders, build output and hidden folders. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
@@ -324,7 +324,7 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.scan.later` | Unticked repositories stay here; you can come back to them. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.import` | Add {count} as projects | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.importing` | Adding {done} of {count}… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
-| `start.scan.openFirst` | Open the first one | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
+| `start.scan.openFirst` | Open {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `first.exec.state.foundUnconnected` | Installed | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.unconnected` | {name} runs in a project folder as itself. Fabric's tools are not connected to it yet, so it cannot report work back to Fabric. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `start.scan.stopped` | The scan was stopped. Nothing was added. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
@@ -347,7 +347,7 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.convert.step2.body` | It inspects without running anything and shows which profile fits (MCP, A2A or a terminal agent that Fabric drives) and every file that would change. You decide. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
 | `start.convert.step3` | It adapts the agent on its own branch | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
 | `start.convert.step3.body` | With the Fabric Agent Adapter skills, on a new branch; the branch it was on is not touched. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
-| `start.convert.step4` | The conformance check says how far it got | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
+| `start.convert.step4` | The conformance check shows what came of it | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
 | `start.convert.step4.body` | It shows you the report: what passed, and what still stands before the agent is admitted. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | implemented; release pending (P-02) |
 | `agents.madeReading` | Reading the agents of this project… | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
 | `agents.readFailed` | The agents could not be read: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-130 | implemented; release pending (P-02) |
@@ -640,9 +640,9 @@ their capitals as title case. Adding those names is `brand-voice`’s decision (
 | `startup.copy` | Copy the details | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
 | `startup.quit` | Quit | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
 | `dialog.scanChoose` | Choose the folder that holds your projects | apps/desktop/src/renderer/src/i18n/en.ts | SCN-031 | proposed |
-| `start.facts.summary` | What it says it is | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | proposed |
+| `start.facts.summary` | What its repository says | apps/desktop/src/renderer/src/i18n/en.ts | SCN-127 | proposed |
 | `tasks.presetSetup` | Set up this project with the agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | proposed |
-| `start.scan.setUpFirst` | Set up the first one with the agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | proposed |
+| `start.scan.setUpFirst` | Set up {name} with the agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | proposed |
 
 ## 0.3.3 onboarding — four actions (2026-10-08)
 
@@ -651,7 +651,6 @@ The start menu and the two agent paths ([brief](../evidence/plans/2026-10-08-onb
 
 | Key | Text (primary) | Location | Scenario | Status |
 |---|---|---|---|---|
-| `start.menu.title` | Where do we start? | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | proposed |
 | `start.pair.agentBody` | Your coding agent builds and adapts agents in its own console; Fabric prepares the folder and the project and opens that console. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | proposed |
 | `start.card.agent.title` | Create an agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.card.convert.title` | Adapt an existing agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | proposed |
@@ -675,4 +674,32 @@ The start menu and the two agent paths ([brief](../evidence/plans/2026-10-08-onb
 | `start.createAgent.failed` | The agent was not created: {reason}. Try again: what this attempt already made is reused, never made twice. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.builder.noneReady` | No coding agent on this Mac can start right now: | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.skills.notCovered` | The command does not install them for {agent}: put the skills where {agent} reads them, or choose another coding agent. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
-| `start.convert.notGit` | This folder is not a git repository yet: the coding agent makes it one and commits it as it is before changing anything, so the original can be restored. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | proposed |
+| `start.convert.notGit` | This folder is not a git repository yet: the coding agent makes it one and commits it as it is before changing anything, keeping anything that looks like a secret out of the commit, so the original can be restored. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | proposed |
+| `start.builder.fromOrder` | Chosen: the first one in your fallback order. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.builder.fromFound` | Chosen: the first coding agent found that connects to the tools of Fabric, or the first found. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.builder.orderUnread` | Your fallback order could not be read, so the first coding agent found that connects to the tools of Fabric, or the first found, is chosen. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.builder.another` | Use another coding agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.builder.anotherNote` | The task given to the first one is cancelled on the project's board, unless its session is already running. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.blocked.agent` | Choose a coding agent that can start. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.blocked.skills` | Install the Fabric Agent Adapter skills first, then check again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.blocked.checking` | Wait for the skills check to finish. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.pickFailed` | The folder picker did not open: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.consoleNotOpened` | The coding agent's session is running, but its console did not open: {reason}. “{retry}” opens it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.createAgent.madeKeptFolder` | The folder {path} is already made, and the next try continues in it. To choose another name, sentence or place, start over; the folder stays on disk. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.skills.unreadable` | These files are there but could not be read; check their permissions: | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.taskRefused.not-an-id` | The task's id was refused. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.taskRefused.other-project` | This task belongs to another project. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.taskRefused.read-failed` | The task could not be read before starting it: {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.purposeFromRepo` | From {file}: {text} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | proposed |
+| `tasks.presetNeedsSurface` | {agent} has no connection to the tools of Fabric, so it could record nothing of this setup. Choose an agent that has one. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | proposed |
+| `analytics.notice.sentBefore` | An earlier version may already have sent these counts from this Mac, from its first start. Nothing more is sent until you answer. Your choice is the one switch every PassionCode.ai app on this Mac reads, and you can change it later in the settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-134 | proposed |
+| `settings.fallback.upFor` | Move {agent} up | apps/desktop/src/renderer/src/i18n/en.ts | SCN-135 | proposed |
+| `settings.fallback.downFor` | Move {agent} down | apps/desktop/src/renderer/src/i18n/en.ts | SCN-135 | proposed |
+| `settings.fallback.removeFor` | Remove {agent} from the order | apps/desktop/src/renderer/src/i18n/en.ts | SCN-135 | proposed |
+| `start.taskRefused.setup-needs-surface` | This setup records through the tools of Fabric, and the chosen coding agent has no connection to them. Choose an agent that has one. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | proposed |
+| `start.abandoned.startOver` | Left when the person started over with another name or place. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.abandoned.anotherAgent` | Replaced by a task for another coding agent. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `first.exec.copyWhat` | Copy for {what} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
+| `start.taskRefused.setup-surface-down` | This setup records through the tools of Fabric, and the agent surface that gives them is not running. Start it in the settings, then try again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | proposed |
+| `start.abandoned.notCancelled` | The earlier task could not be cancelled on the board: {reason}. Close it there by hand. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `analytics.notice.nothingYet` | Nothing has been sent yet. Your choice is the one switch every PassionCode.ai app on this Mac reads, and you can change it later in the settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-134 | proposed |

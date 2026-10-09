@@ -293,6 +293,11 @@ export function createAnalytics(deps: AnalyticsDeps) {
       if (availability() !== 'on') queue = []
       return availability()
     },
+    /** Whether this app may already have sent counts from this Mac: `installed_at` is written when `app_installed`
+     *  was QUEUED (0.3.2 queued it at its first start; a send that never got through still wrote it), so the notice
+     *  says an earlier version "may already have sent" them rather than "nothing has been sent yet" (0.3.3
+     *  verification DA-2; iteration 2 DA-4). */
+    sentBefore: (): boolean => typeof readState().installed_at === 'string',
     stop(): void { if (timer) { clearTimer(timer); timer = null } },
     pending: (): number => queue.length
   }

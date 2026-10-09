@@ -1,0 +1,78 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.3",
+  "iteration": 3,
+  "level": "data",
+  "candidateCommit": "fa9cdf6b7d3b8d05a9dc264f965241c672b10ee1",
+  "report": "docs/evidence/reviews/0.3.3/iteration-3/2026-10-08-data.md",
+  "reportSha256": "af64dd00d5a8e1cafa69ae916841d72223de3b70074a53b7cea0665610533654",
+  "reviewerRun": "release-033-i3-data-20261009",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-5",
+      "source": "ER-2, UX-7, DA-2 (part)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: Start over is not offered while the attempt's session runs, and `abandon` never cancels a task with a session; the unresolved-run case of «Use another coding agent» is ruled CO-236"
+      ]
+    },
+    {
+      "id": "V3-9",
+      "source": "ER-6, DA-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `refuseSetupWithoutSurface(runner, surfaceUp)` refuses with `task-refused:setup-surface-down`, and the walk passes over every runner for a `needsSurface` launch while the surface is down; `task-retry.test.mjs` and `runnerRoute.test.ts` \"with the agent surface not listening\""
+      ]
+    },
+    {
+      "id": "V3-10",
+      "source": "ER-7, DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `taskRetry.ts#readbackFallbackRow` claims only what was journalled and `backlog`; `task-retry.test.mjs` read-back case"
+      ]
+    },
+    {
+      "id": "V3-23",
+      "source": "DA-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-234: the launch is right; the preview names the wrong agent until it takes the launch's needs"
+      ]
+    },
+    {
+      "id": "V3-24",
+      "source": "DA-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `AGENTS.md` lifecycle row for the preview (on focus, at most once per 30 s, `FRESH_MS`)"
+      ]
+    },
+    {
+      "id": "V3-25",
+      "source": "DA-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `scripts/ci.sh` fast tier runs `menu.test.mjs`; the guard is the tested `refuseSetupWithoutSurface`, called from `tasks.start` (the handler itself is reached only by the stack-backed tier)"
+      ]
+    },
+    {
+      "id": "V3-26",
+      "source": "DA-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the strings (en, ru), the registry row and its code mapping are removed"
+      ]
+    },
+    {
+      "id": "V3-27",
+      "source": "DA-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-235: needs a rule for what closes an onboarding task"
+      ]
+    }
+  ]
+}

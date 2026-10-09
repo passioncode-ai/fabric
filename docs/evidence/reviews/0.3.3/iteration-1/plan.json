@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.3",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "ece987975a1b2a491f86f5e528f96920b04aa4c5",
+  "report": "docs/evidence/plans/2026-10-08-release-033-verification/iteration-1/2026-10-08-plan.md",
+  "reportSha256": "e91deb8ce2f3026a6bfd2147208852dced9abdad47747729f1e98b709b427590",
+  "reviewerRun": "release-033-i1-plan-20261008",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-4",
+      "source": "DO-2, PL-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG §0.3.3 «Russian» names what is still English (main-process messages, ACP prompts; CO-225); task refusals are codes `task-refused:*` said by `startParts.tsx#explainError` in both languages, also on the task panel (`Tasks.tsx`); CO-225 (4) updated"
+      ]
+    },
+    {
+      "id": "V1-5",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0123 amendment 1 (retirement after 0.3.3, operator scope D4); P-13 \"planned after 0.3.3\"; CHANGELOG first paragraph says the CEO chat stays"
+      ]
+    },
+    {
+      "id": "V1-6",
+      "source": "PL-3 (blocking, release close)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: fabric-workspace PR [#81](https://github.com/passioncode-ai/fabric-workspace/pull/81) (Fabric row, RM-09, RM-13 title, RM-19, LC-16; `npm test` 65 pass); merged at the release close, before the tag (CO-196)"
+      ]
+    },
+    {
+      "id": "V1-7",
+      "source": "PL-7, DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: [ADR-0129](../../../../adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md); ADR index row for 0100 and 0129; pipeline reservation moved 0128 → 0130 (`fix-pf-06.03.py` green)"
+      ]
+    },
+    {
+      "id": "V1-38",
+      "source": "DO-12, PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG §0.3.3 «Upgrading» and the added bullets"
+      ]
+    },
+    {
+      "id": "V1-42",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-218 resolved by ADR-0127; lane 12 no longer schedules it"
+      ]
+    },
+    {
+      "id": "V1-43",
+      "source": "PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: ADR-0121 amendment 1; dated state section appended to the UI/RU plan (the dated record is not rewritten)"
+      ]
+    },
+    {
+      "id": "V1-44",
+      "source": "PL-6",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-220 (after 0.3.3; only the Kimi Code row ships) and CO-179 (next visual iteration after 0.3.3), both with the operator's scope D4 as the reason"
+      ]
+    },
+    {
+      "id": "V1-45",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: lanes 1 and 2 cite P-14; lane 1 outcome and P-01 say the four actions; Now/Next corrected; dispatch note re-dated; `check-plan-ids.mjs` PASS"
+      ]
+    },
+    {
+      "id": "V1-46",
+      "source": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-227 (R3b) and CO-228 (boot check, at the packaged smoke)"
+      ]
+    },
+    {
+      "id": "V1-47",
+      "source": "PL-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `release-mac.md` upgrade section is release-neutral (`X.Y.Z`, 0.3.3 adds no migration); gate paragraph says each bump points at its own ledger"
+      ]
+    },
+    {
+      "id": "V1-48",
+      "source": "PL-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: dated state section appended to the brief: modules landed, REQ-08's receipt is each iteration's UX review plus the runtime walks, REQ-09's knowledge base is the release close"
+      ]
+    }
+  ]
+}

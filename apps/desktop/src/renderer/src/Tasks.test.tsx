@@ -17,7 +17,7 @@ const project = { id: 'p1', name: 'Fabric', default_agent: 'claude-code' } as Pr
 const task = (over: Partial<TaskRow>): TaskRow =>
   ({ id: 't', project_id: 'p1', instruction: 'do it', title: 'Do it', status: 'backlog', task_type: null, ...over }) as TaskRow
 
-const mount = (rows: TaskRow[]): void => {
+const mount = (rows: TaskRow[], options: unknown[] = [{ id: 'claude-code', label: 'Claude Code', available: true, connectsToSurface: true, permissionModes: [] }], p: ProjectRow = project): void => {
   ;(window as unknown as { fabric: unknown }).fabric = {
     // M190 — the list now carries whether its finished half was cut short. The
     // stub mirrors the real shape rather than the old array, so a screen that
@@ -30,10 +30,10 @@ const mount = (rows: TaskRow[]): void => {
     terminal: {
       options: vi
         .fn()
-        .mockResolvedValue([{ id: 'claude-code', label: 'Claude Code', available: true, permissionModes: [] }])
+        .mockResolvedValue(options)
     }
   }
-  render(<Tasks project={project} onStarted={() => {}} onError={() => {}} feedMark={0} />)
+  render(<Tasks project={p} onStarted={() => {}} onError={() => {}} feedMark={0} />)
 }
 
 describe('the shortcuts beside the blank field', () => {
@@ -79,5 +79,13 @@ describe('setting a project up with the agent', () => {
     // Every tool the instruction names is one a session is actually given.
     const { SURFACE_TOOLS } = await import('../../shared/surfaceTools')
     for (const tool of text.match(/fabric_[a-z_]+/g) ?? []) expect(SURFACE_TOOLS.map((x) => x.name), tool).toContain(tool)
+    expect((screen.getByText('Set up this project with the agent').closest('button') as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('is not offered to an agent that does not connect to Fabric\'s tools: it could record nothing (0.3.3 DA-3)', async () => {
+    mount([], [{ id: 'codex', label: 'Codex', available: true, connectsToSurface: false, permissionModes: [] }], { ...project, default_agent: 'codex' })
+    const button = (await screen.findByText('Set up this project with the agent')).closest('button') as HTMLButtonElement
+    await waitFor(() => expect(button.disabled).toBe(true))
+    expect(button.title).toMatch(/Codex has no connection to the tools of Fabric/)
   })
 })

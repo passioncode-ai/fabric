@@ -1,0 +1,110 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.3",
+  "iteration": 2,
+  "level": "ux",
+  "candidateCommit": "6d6d039d831051eae3889cae4f6b75dfc38e7eb3",
+  "report": "docs/evidence/plans/2026-10-08-release-033-verification/iteration-2/2026-10-08-ux.md",
+  "reportSha256": "b6375ff9dbfc3d29f97ca4ecf669b1d4c5ae6760b09e630e045c579dcde6fa2c",
+  "reviewerRun": "release-033-i2-ux-20261009",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-1",
+      "source": "DO-3, UX-1, ER-4 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the attempt keeps `agentId` and `failed` (`AgentPaths.tsx#launch`, `useBuilders(fixed)`, Adapt restores both for the same folder); `StartPaths.test.tsx` \"coming back after a failed launch shows the coding agent\" and \"the same folder chosen again in Adapt\" (both watched)"
+      ]
+    },
+    {
+      "id": "V2-2",
+      "source": "UX-2, ER-5, DA-1, DO-4 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the walk passes over a runner without the surface for a `needsSurface` launch (`shared/runnerRoute.ts`), and main refuses `preset: setup` on any runner without it (`taskRetry.ts#refuseSetupWithoutSurface`, called from `tasks.start` for a named runner, a created agent's runner and the walk's pick); `runnerRoute.test.ts` \"passes over a runner that does not connect\" (watched), `task-retry.test.mjs` setup case; the refusal `task-refused:setup-needs-surface` is said in both languages; CHANGELOG reworded"
+      ]
+    },
+    {
+      "id": "V2-15",
+      "source": "UX-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `start.consoleNotOpened` takes the screen's own button name (`{retry}`)"
+      ]
+    },
+    {
+      "id": "V2-16",
+      "source": "UX-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the focusable wrapper has its own class `.st-facts-block`; `.st-facts` (the `<dl>`) keeps its grid"
+      ]
+    },
+    {
+      "id": "V2-17",
+      "source": "UX-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: focus moves once the field is enabled again (`requestAnimationFrame`, `AgentPaths.tsx`); checked by the next walk"
+      ]
+    },
+    {
+      "id": "V2-18",
+      "source": "UX-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `LaunchShell.tsx#revealSection` keeps the section aligned while the page above it settles (1.5 s), until the person scrolls or types; checked by the next walk"
+      ]
+    },
+    {
+      "id": "V2-19",
+      "source": "UX-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `start/start.css`: `.st-first .lp-field .field-problem` takes the danger colour"
+      ]
+    },
+    {
+      "id": "V2-20",
+      "source": "UX-8",
+      "status": "ruled",
+      "evidence": [
+        "ruled CO-232: the first-run notice answers yes in one press; a pending state for the Settings switch belongs to SCR-52's next pass"
+      ]
+    },
+    {
+      "id": "V2-21",
+      "source": "UX-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: focus follows the moved row to a working button (`FallbackOrderSetting.tsx`), and `CopyButton` takes `what` («Copy for OrbStack» / «… Docker Desktop»); `FallbackOrderSetting.test.tsx` and `StackExposureNotice.test.tsx` assert both"
+      ]
+    },
+    {
+      "id": "V2-22",
+      "source": "UX-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG «Russian» names them; CO-225 (5)"
+      ]
+    },
+    {
+      "id": "V2-23",
+      "source": "UX-11, DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: each corrected (`flows.md`, `renderers.mjs` start views, `scenarios.md`, `screens.md` SCR-52 coverage, `strings.md`, iteration-1 receipt links); resolution-matrix renderer and SRC-02 pins re-pinned"
+      ]
+    },
+    {
+      "id": "V2-24",
+      "source": "UX-12",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the label is «Описание из репозитория» / \"What its repository says\"; the restart lines are ruled CO-231 (the Russian copy pass)"
+      ]
+    }
+  ]
+}
