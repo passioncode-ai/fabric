@@ -1,6 +1,6 @@
 // A retry of an onboarding launch is the same task: the id the window chose is reused, never a second task.
 import assert from 'node:assert/strict'
-import { createKeyedQueue, liveSessionOf, planTaskStart, refuseSetupWithoutSurface } from '../src/main/taskRetry.ts'
+import { createKeyedQueue, liveSessionOf, planTaskStart, readbackFallbackRow, refuseSetupWithoutSurface } from '../src/main/taskRetry.ts'
 
 const ID = '0f8fad5b-d9cb-469f-a165-70867728950e'
 const reads = []
@@ -44,5 +44,9 @@ assert.equal(liveSessionOf(new Map([['ended', ID]]), () => false, ID), null, 'an
   assert.doesNotThrow(() => refuseSetupWithoutSurface('claude-code'))
   for (const r of ['codex', 'cline', 'kimi-code', 'shell', 'not-a-runner']) assert.throws(() => refuseSetupWithoutSurface(r), /task-refused:setup-needs-surface/, r)
   assert.throws(() => refuseSetupWithoutSurface('claude-code', false), /task-refused:setup-surface-down/, 'iteration 3: the surface not listening')
+}
+{ // iteration 3, ER-7/DA-3: the read-back fallback row claims only what was journalled, never "running".
+  const row = readbackFallbackRow({ id: ID, projectId: 'p', title: 'Build', instruction: 'do it' })
+  assert.deepEqual([row.id, row.project_id, row.status, row.read_back], [ID, 'p', 'backlog', false])
 }
 console.log('PASS task retry: a caller id is the same task on retry; a foreign, malformed or unread id is refused; a running one is brought forward, an ended one is not; one id at a time')

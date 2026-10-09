@@ -46,15 +46,15 @@ or 78 (0.3.1) needs the upgrade to 79 first, backup and rehearsal included
   coding agent that connects to Fabric's tools: by name, through a created agent, or through the fallback order,
   which passes over agents that do not.
 - **Fallback order** (Settings): a list of coding agents a launch may walk, each with whether to start a new
-  session or use an open one ([ADR-0125](docs/adr/0125-an-agent-launch-may-follow-the-operators-fallback-order.md)).
+  session or use an open one; once set, «Fallback order → agent» is offered in the agents and task panels ([ADR-0125](docs/adr/0125-an-agent-launch-may-follow-the-operators-fallback-order.md)).
 - **Kimi Code** is in the coding-agent list and the launch menu, launched as itself; it does not connect to
   Fabric's tools.
 - **Usage counts wait for your answer.** They stay on by default, but a release build sends nothing, the install
   included, until you have answered the switch once, on a first-run notice or in Settings
   ([ADR-0127](docs/adr/0127-no-usage-count-leaves-before-the-person-has-answered-the-switch.md), [docs/ANALYTICS.md](docs/ANALYTICS.md)).
-  An install from 0.3.2, which already sent counts, is told so on that notice.
-- **The launch screens follow the prototype**: «Discuss with Fabric ↗» (it opens the CEO chat), *Profile* and the
-  Fabric strip in the top bar, a compact network-exposure warning, and nothing wider than the window. The default
+  An install from 0.3.2, which may already have sent counts, is told so on that notice.
+- **The launch screens follow the prototype**: «Discuss with Fabric ↗» (it opens the CEO chat) and *Profile* in the
+  scope bar, the Fabric strip under it, a compact network-exposure warning, and nothing wider than the window. The default
   workspace reads *My workspace*.
 - **Smaller fixes on the project page:** the toolbars wrap instead of running past the window, a task's subtitle
   names its agent and date instead of a raw id, and Home's «+ Add a topic» opens the board with its form.

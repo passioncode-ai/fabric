@@ -9791,7 +9791,7 @@
         "reads": [],
         "entities": [],
         "required_context": [
-          "docs/adr/0100-first-run-and-start-paths.md"
+          "docs/adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md"
         ]
       },
       "current_evidence": [],
@@ -9806,7 +9806,7 @@
         {
           "state": "idle",
           "trigger": "opened",
-          "behavior": "empty form, the first available coding agent preselected"
+          "behavior": "empty form; the coding agent preselected by its rule (the first in the fallback order that is installed and answers; else the first found that connects to Fabric's tools; else the first found), the hint naming which"
         },
         {
           "state": "invalid-name",
@@ -9856,7 +9856,7 @@
         {
           "state": "failed-after-folder",
           "trigger": "the Project, the task or the console failed after the folder was made",
-          "behavior": "reason (a console that did not open is said as that), and that the folder — and its Project, if made — is kept; name, sentence and place fixed, the coding agent too once a launch was tried; Try again continues with the same Project, task and session; Use another coding agent (a launch that made no session) is a new task in the same Project; Start over begins a new attempt; leaving and coming back keeps it all"
+          "behavior": "reason (a console that did not open is said as that), and that the folder — and its Project, if made — is kept; name, sentence and place fixed, the coding agent too once a launch was tried; Try again continues with the same Project, task and session; Use another coding agent (a launch that made no session) is a new task in the same Project, the first cancelled on the board; Start over begins a new attempt; leaving and coming back keeps it all"
         },
         {
           "state": "started",
@@ -9900,7 +9900,7 @@
         "reads": [],
         "entities": [],
         "required_context": [
-          "docs/adr/0100-first-run-and-start-paths.md"
+          "docs/adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md"
         ]
       },
       "current_evidence": [],
@@ -32117,7 +32117,7 @@
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "A Project for the agent and a running console session adapting it; Fabric itself changed no file in the folder. The coding agent is told to show the plan and wait for a yes, to work only on a new branch `fabric-adapter` made from the branch the folder is on, and not to call the agent compatible with Fabric before every check of the conformance report passes. The Fabric window opens that Project.",
-      "errors_recovery": "A folder that cannot be read, or one outside this window's folders, is refused in words with Choose another folder. A failed Project create, task start or console says why and keeps the choices; a retry uses the same Project, task and session, never a second of any, and the coding agent is fixed from the first launch attempt. Choose another folder begins a new attempt. No coding agent can start → nothing is created and each agent reads with its reason. A failed launch that made no session offers Use another coding agent (a new task in the same Project). Choosing the same folder again — after leaving the screen, or after another folder — is the same attempt. The folder picker or the agents' read failing is said in words with Try again. The instruction keeps anything that looks like a secret out of a first commit and names it in the plan.",
+      "errors_recovery": "A folder that cannot be read, or one outside this window's folders, is refused in words with Choose another folder. A failed Project create, task start or console says why and keeps the choices; a retry uses the same Project, task and session, never a second of any, and the coding agent is fixed from the first launch attempt. Choose another folder begins a new attempt. No coding agent can start → nothing is created and each agent reads with its reason. A failed launch that made no session offers Use another coding agent (a new task in the same Project; the first is cancelled on the board, and a refused cancel is said). Choosing the same folder again — after leaving the screen, or after another folder — is the same attempt. The folder picker or the agents' read failing is said in words with Try again. The instruction keeps anything that looks like a secret out of a first commit and names it in the plan.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 3229
@@ -32213,7 +32213,7 @@
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "A new folder, a Project holding it, and a running console session building an agent to the Fabric Agent Contract there, one question at a time; the Fabric window opens that Project.",
-      "errors_recovery": "An empty or unusable name, an empty sentence and a missing place are said under their field once Create is pressed, and nothing is made. A failed mkdir or git init leaves no half-made folder (as SCN-129). Once the folder exists, a later failure (the Project, the task, the console) says why and that the folder is kept — and its Project, when it was made; the name, the sentence and the place are then fixed (the Project and the task hold them) and Try again continues in that folder with the same Project, task and — once started — session, so a console that did not come forward is said as exactly that and brought forward again, never a second task. The coding agent is fixed from the first launch attempt; when that launch failed before a session existed, Use another coding agent gives the same Project a new task (the first stays on its board). Start over is the only way to another name, sentence or place: a new attempt; the made folder stays on disk and its Project among the projects. A failed read of the coding agents, the skills or the folder picker is said in words with Try again or Check again. A session the first try started but could not report is brought forward on retry, never refused as already running. No coding agent can start → nothing is created and each agent reads with its reason.",
+      "errors_recovery": "An empty or unusable name, an empty sentence and a missing place are said under their field once Create is pressed, and nothing is made. A failed mkdir or git init leaves no half-made folder (as SCN-129). Once the folder exists, a later failure (the Project, the task, the console) says why and that the folder is kept — and its Project, when it was made; the name, the sentence and the place are then fixed (the Project and the task hold them) and Try again continues in that folder with the same Project, task and — once started — session, so a console that did not come forward is said as exactly that and brought forward again, never a second task. The coding agent is fixed from the first launch attempt; when that launch failed before a session existed, Use another coding agent gives the same Project a new task and cancels the first on the board (a refused cancel is said); a task whose session runs is never cancelled, and Start over is not offered while it runs. Start over is the only way to another name, sentence or place: a new attempt; the made folder stays on disk and its Project among the projects. A failed read of the coding agents, the skills or the folder picker is said in words with Try again or Check again. A session the first try started but could not report is brought forward on retry, never refused as already running. No coding agent can start → nothing is created and each agent reads with its reason.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 3338

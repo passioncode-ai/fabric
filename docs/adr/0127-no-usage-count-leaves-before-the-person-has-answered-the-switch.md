@@ -55,3 +55,9 @@ counts (its state has `installed_at`) is told that an earlier version may alread
 (`analytics.ts#sentBefore`, `UsageCountsNotice.tsx`; 0.3.3 verification DA-2 and, iteration 2, DA-4). The Evidence
 line's notice-test count is 7 now (`npx vitest run src/renderer/src/UsageCountsNotice.test.tsx`, 2026-10-09);
 the record above keeps the count it was written with.
+
+### Amendment 2 — 2026-10-09: "off" holds while the shared switch stays off
+
+§4's "sends nothing, ever" is narrower than the switch: the switch is the one every PassionCode app on the Mac reads,
+so turning it back on — in Fabric or in another PassionCode app — sends again from then on (0.3.3 verification,
+iteration 2 DO-2, iteration 3 DO-2). Off at the notice sends nothing while the shared switch stays off.

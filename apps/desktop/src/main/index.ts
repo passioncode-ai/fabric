@@ -239,7 +239,7 @@ function listen(channel: string, fn: (event: Electron.IpcMainEvent, ...args: nev
   })
 }
 import { installMenu } from './menu'
-import { createKeyedQueue, liveSessionOf, planTaskStart, refuseSetupWithoutSurface } from './taskRetry'
+import { createKeyedQueue, liveSessionOf, planTaskStart, readbackFallbackRow, refuseSetupWithoutSurface } from './taskRetry'
 import { adapterSkills } from './adapterSkills'
 import { decideNotification, rememberTold, type ShowOutcome } from '../shared/notify.ts'
 import { createUnattendedAdmission } from '../shared/unattendedAdmission.ts'
@@ -1468,7 +1468,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       // second agent in the same folder (iteration 2, ER-3). The row is what this call journalled.
       if (error || !data) {
         ops.failed('tasks.readback', new Error(error?.message ?? 'no row'), { taskId: id })
-        return { task: { id, project_id: input.projectId, status: 'running', title, instruction } as unknown as TaskRow, session: { sessionId: launched.sessionId } }
+        return { task: readbackFallbackRow({ id, projectId: input.projectId, title, instruction }) as unknown as TaskRow, session: { sessionId: launched.sessionId } }
       }
       return { task: data as TaskRow, session: { sessionId: launched.sessionId } }
       } finally { routeByTask.delete(id) }

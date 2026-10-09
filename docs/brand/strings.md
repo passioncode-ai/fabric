@@ -677,14 +677,14 @@ The start menu and the two agent paths ([brief](../evidence/plans/2026-10-08-onb
 | `start.convert.notGit` | This folder is not a git repository yet: the coding agent makes it one and commits it as it is before changing anything, keeping anything that looks like a secret out of the commit, so the original can be restored. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-131 | proposed |
 | `start.builder.fromOrder` | Chosen: the first one in your fallback order. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.builder.fromFound` | Chosen: the first coding agent found that connects to the tools of Fabric, or the first found. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
-| `start.builder.orderUnread` | Your fallback order could not be read, so the first coding agent found is chosen. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.builder.orderUnread` | Your fallback order could not be read, so the first coding agent found that connects to the tools of Fabric, or the first found, is chosen. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.builder.another` | Use another coding agent | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.builder.anotherNote` | The task given to the first one is cancelled on the project's board, unless its session is already running. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.blocked.agent` | Choose a coding agent that can start. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.blocked.skills` | Install the Fabric Agent Adapter skills first, then check again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.blocked.checking` | Wait for the skills check to finish. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.pickFailed` | The folder picker did not open: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
-| `start.consoleNotOpened` | The coding agent's session is running, but its console did not open: {reason}. {retry} opens it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.consoleNotOpened` | The coding agent's session is running, but its console did not open: {reason}. “{retry}” opens it. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.createAgent.madeKeptFolder` | The folder {path} is already made, and the next try continues in it. To choose another name, sentence or place, start over; the folder stays on disk. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.skills.unreadable` | These files are there but could not be read; check their permissions: | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `start.taskRefused.not-an-id` | The task's id was refused. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
@@ -702,4 +702,4 @@ The start menu and the two agent paths ([brief](../evidence/plans/2026-10-08-onb
 | `first.exec.copyWhat` | Copy for {what} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-073 | proposed |
 | `start.taskRefused.setup-surface-down` | This setup records through the tools of Fabric, and the agent surface that gives them is not running. Start it in the settings, then try again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | proposed |
 | `start.abandoned.notCancelled` | The earlier task could not be cancelled on the board: {reason}. Close it there by hand. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
-
+| `analytics.notice.nothingYet` | Nothing has been sent yet. Your choice is the one switch every PassionCode.ai app on this Mac reads, and you can change it later in the settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-134 | proposed |

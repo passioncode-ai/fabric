@@ -35,16 +35,26 @@ review artifacts only under `docs/reports/` or `docs/evidence/reviews/`.
 What 0.3.3's release has to do besides the gate, in one list (0.3.3 verification, iteration 2, PL-10). Each line is
 checked off with its receipt when it is done.
 
+0. **Before the release commit:** the operator accepts the run's reading of REQ-08 recorded in the brief (renderer
+   strings in Russian; main-process messages still English, CO-225) — or rejects it, which makes it a code fix and
+   a new candidate (iteration 3, PL-3).
 1. The release commit: `apps/desktop/package.json` 0.3.3 (nothing else in that file), `## 0.3.3` finalized in
    `CHANGELOG.md`, `docs/launch/release-gate.json` (version, this ledger, `verifiedCommit` = the iteration-3
-   candidate, three receipt groups); landed on `main` by fast-forward after `bash scripts/ci.sh fast`.
+   candidate, three receipt groups), this ledger's iteration-3 section and the iteration-3 receipts under
+   `docs/evidence/reviews/0.3.3/iteration-3/`, a new top entry in `docs/reports/map.html` (then
+   `check-design-map.mjs --refresh`) and the `docs/MERGES.md` entry; landed on `main` by fast-forward after
+   `bash scripts/ci.sh fast`. A provider re-pin (Claude Code or Codex updating itself before that run) edits a file
+   the gate does not admit after `verifiedCommit` and means a new candidate (iteration 3, PL-1, PL-9).
 2. **Before the tag:** fabric-workspace [PR #81](https://github.com/passioncode-ai/fabric-workspace/pull/81) merged — the
    roadmap names 0.3.3 as the onboarding release (CO-196).
 3. The tag `v0.3.3`; the release run's two protected approvals (macOS build, publish), each given to the operator as
    a direct link once it waits.
 4. The packaged smoke (runbook step 7), plus the first-run boot on the operator's own database (CO-228).
-5. The website's release PR (runbook step 9) and the workspace publication: `node scripts/workspace.mjs publish`,
-   then `check --require-child` (CO-197).
+5. The website's release PR (runbook step 9) and the workspace publication after the tag, as 0.3.2 did
+   (`f2ec0587`): `node scripts/workspace.mjs publish`, then `check --require-child` (CO-197).
+6. The knowledge base after publication (CO-196): the roadmap's released column for Fabric, `products.md` and
+   `plans.md` Now in fabric-workspace; then the close commit here marking P-14 done, with its handoff (iteration 3,
+   PL-2).
 
 ## Iteration 1
 

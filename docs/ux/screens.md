@@ -65,7 +65,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-49 | Маршрут работы | FLW-37 | none — interactive HTML | designed | none yet |
 | SCR-50 | Цели и приёмка | FLW-38 | none — interactive HTML | designed | none yet |
 | SCR-51 | Квоты и использование | FLW-39 | none — interactive HTML | designed | none yet |
-| SCR-52 | Настройки рабочего пространства | FLW-40 | none — interactive HTML | designed | none yet |
+| SCR-52 | Настройки рабочего пространства | FLW-40 | none — interactive HTML | designed | apps/desktop/src/renderer/src/UsageCountsSetting.tsx, UsageCountsNotice.tsx, FallbackOrderSetting.tsx (the 0.3.3 parts) |
 | SCR-53 | Уведомления и маршруты | FLW-41 | none — interactive HTML | designed | none yet |
 | SCR-54 | Диагностика | FLW-42 | none — interactive HTML | designed | none yet |
 | SCR-55 | Архив и удаление | FLW-43 | none — interactive HTML | designed | none yet |
@@ -1161,7 +1161,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
   this screen. *Share usage counts* (SCN-134, `UsageCountsSetting.tsx`) is one of the two places that answer the
   usage-counts disclosure; the other is the first-run notice at the top of the window (`UsageCountsNotice.tsx`,
   ADR-0127) — states: pending (the note, "nothing has been sent yet" or, for an install that already sent, that an
-  earlier version did; the switch, on; Continue), saving, failed (the notice stays and says nothing is sent), answered
+  earlier version may already have sent them; the switch, on; Continue), saving, failed (the notice stays and says nothing is sent), answered
   (gone). *Fallback order* (SCN-135, `FallbackOrderSetting.tsx`, ADR-0125): heading, note, one aligned row per
   coding agent with its session choice and Up, Down, Remove named for that agent, and Add. The prototype does not
   draw either yet (CO-225).
@@ -1797,7 +1797,7 @@ results always pair text with an icon — colour is never the only signal.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
-  | idle | opened | none | empty form, the first available coding agent preselected |
+  | idle | opened | none | empty form; the coding agent preselected by its rule (the first in the fallback order that is installed and answers; else the first found that connects to Fabric's tools; else the first found), the hint naming which |
   | invalid-name | separator, leading dot, control or text-direction character, empty | none | said under the field once typed or once Create is pressed; nothing is made |
   | no-purpose | the sentence is empty | none | said under the field once Create is pressed; nothing is made |
   | no-parent | no folder chosen | none | said under Where once Create is pressed; nothing is made |
@@ -1807,7 +1807,7 @@ results always pair text with an icon — colour is never the only signal.
   | no-agent | no coding agent can start | none | each agent with its reason and Check again; Create looks unavailable and a press says why |
   | creating | Create pressed | none | busy, form locked |
   | failed | mkdir or git init refused | none | reason; nothing made; form kept |
-  | failed-after-folder | the Project, the task or the console failed after the folder was made | none | reason (a console that did not open is said as that), and that the folder — and its Project, if made — is kept; name, sentence and place fixed, the coding agent too once a launch was tried; Try again continues with the same Project, task and session; Use another coding agent (a launch that made no session) is a new task in the same Project; Start over begins a new attempt; leaving and coming back keeps it all |
+  | failed-after-folder | the Project, the task or the console failed after the folder was made | none | reason (a console that did not open is said as that), and that the folder — and its Project, if made — is kept; name, sentence and place fixed, the coding agent too once a launch was tried; Try again continues with the same Project, task and session; Use another coding agent (a launch that made no session) is a new task in the same Project, the first cancelled on the board; Start over begins a new attempt; leaving and coming back keeps it all |
   | started | console opened | none | the console window comes forward; the Fabric window opens the new Project |
 - **Coverage:** apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`); apps/desktop/src/main/adapterSkills.ts; apps/desktop/src/main/taskRetry.ts; apps/desktop/src/renderer/src/App.tsx (`onCreated` opens the Project)
 - **Scenarios:** SCN-136

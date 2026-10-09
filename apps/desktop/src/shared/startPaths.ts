@@ -222,6 +222,7 @@ export function groupCandidates<T extends Candidate>(candidates: readonly T[]): 
 }
 // #endregion start-paths
 
+// #region adapter-skills-view — docs: docs/adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md#boundary
 /** The Fabric Agent Adapter skills an agent action needs (SCN-131, SCN-136; `main/adapterSkills.ts` finds them). */
 export const ADAPTER_SKILLS = ['creating-fabric-agents', 'adapting-projects-to-fabric'] as const
 export type AdapterSkill = (typeof ADAPTER_SKILLS)[number]
@@ -244,3 +245,4 @@ export interface AdapterSkillsView {
    *  installing again does not help, so the screen names them instead of offering the command alone. */
   unreadable?: string[]
 }
+// #endregion adapter-skills-view

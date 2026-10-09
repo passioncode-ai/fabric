@@ -203,7 +203,7 @@ test('A7-012: nothing is queued or sent before the disclosure, and the person\'s
   rmSync(d, { recursive: true, force: true })
 })
 
-test('A7-012: turning counts off at the disclosure sends nothing, ever, and the notice does not come back', async () => {
+test('A7-012: turning counts off at the disclosure sends nothing while the switch stays off, and the notice does not come back', async () => {
   const d = dir()
   const { a, s, t } = make(d, { disclosed: false })
   a.started('ordinary', { projects: 1 })

@@ -149,3 +149,17 @@ route (their backlogs carry the rows).
   ADR-0119 stays the runner-row authority, ADR-0123 the conversation authority.
 - **Vision check** (`docs/ux/vision.md` §9): principle 2 — the agent serving a conversation may change
   without the Project losing its purpose, history or evidence; the console stays the runtime's own.
+
+## Amendments
+
+### Amendment 1 — 2026-10-09: a task that records through Fabric's tools
+
+A launch may need Fabric's tools to do its work at all: the setup preset ("Set up this project with the agent")
+records memory, questions and tasks through them. Such a launch carries `needsSurface`
+(`shared/runnerRoute.ts#Launch`): the walk passes over a runner that does not connect to the surface, and over every
+runner while the agent surface is not listening, each recorded as `refused` with its reason; main refuses the preset
+on a runner picked by name or through a created agent the same way (`main/taskRetry.ts#refuseSetupWithoutSurface`).
+Recorded probe results therefore include `refused` for these, and `spawn-failed` for a runner whose spawn threw, which
+the walk moves past (§4) — the list in the Decision did not name it. The order of checks is the code's
+(`walkFallback`): catalogue, mode, containment, the surface need, the result channel, then the machine's answers.
+Found by the 0.3.3 verification, iteration 3 (DO-5).

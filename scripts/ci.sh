@@ -220,6 +220,8 @@ node --experimental-strip-types apps/desktop/test/adapter-skills.test.mjs
 node --experimental-strip-types apps/desktop/test/task-retry.test.mjs
 # ADR-0127: nothing leaves before the person has answered the switch; pure (fetch, clock and files injected) — 0.3.3 verification DA-5.
 node --experimental-strip-types --test apps/desktop/test/analytics.test.mjs
+# The app menu (0.3.3 localized it): pure, so it runs before every commit (0.3.3 verification, iteration 3, DA-6).
+node --experimental-strip-types apps/desktop/test/menu.test.mjs
 node --experimental-strip-types apps/desktop/test/executor-detect.test.mjs
 node --experimental-strip-types apps/desktop/test/executor-auth.test.mjs
 node --experimental-strip-types apps/desktop/test/start-paths-main.test.mjs

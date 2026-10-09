@@ -236,6 +236,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged, onSet
   const ids = useRef<Record<string, string>>({})
   const scanning = useRef(false)
   const results = useRef<HTMLElement>(null)
+  const imported = useRef<HTMLDivElement>(null)
   // Each scan has a number; Stop and a newer scan advance it, so a late answer is ignored (iteration 2:
   // the screen stayed on "scanning" until a stuck call returned).
   const runs = useRef(0)
@@ -310,6 +311,8 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged, onSet
     const after = scan.kept ? await window.fabric.start.lastScan().catch(() => null) : null
     setPicked(new Set(queue.filter((p) => done[p] !== 'ok')))
     setS({ at: 'imported', scan: after && after.root === scan.root ? after : scan, done, created })
+    // Focus goes to the next step — Set up / Open — not to the page (0.3.3 verification, iteration 3, UX-4).
+    requestAnimationFrame(() => imported.current?.querySelector<HTMLElement>('button')?.focus())
   }
 
   const scan = s.at === 'results' || s.at === 'importing' || s.at === 'imported' ? s.scan : null
@@ -363,7 +366,7 @@ function ScanFolder({ onPath, onCreated, onOpenProject, onProjectsChanged, onSet
           {scan.deep > 0 && <div className="lp-callout" role="status"><p>{t('start.scan.deep', { count: scan.deep })}</p></div>}
           {scan.symlinks > 0 && <div className="lp-callout" role="status"><p>{t('start.scan.symlinks', { count: scan.symlinks })}</p></div>}
           {s.at === 'imported' && (
-            <div className="lp-callout" role="status">
+            <div className="lp-callout" role="status" ref={imported}>
               <p>{failedCount === 0 ? t('start.scan.importedAll', { ok: s.created.length }) : t('start.scan.importedSome', { ok: s.created.length, failed: failedCount })}</p>
               {s.created[0] && onSetUp && <button type="button" className="lp-button primary" onClick={() => onSetUp(s.created[0].id)}>{t('start.scan.setUpFirst', { name: s.created[0].name })}</button>}
               {s.created[0] && <button type="button" className="lp-button" onClick={() => onCreated(s.created[0].id)}>{t('start.scan.openFirst', { name: s.created[0].name })}</button>}

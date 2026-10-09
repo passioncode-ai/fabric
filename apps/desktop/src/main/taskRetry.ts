@@ -57,6 +57,14 @@ export function createKeyedQueue(): <T>(key: string, work: () => Promise<T>) => 
     return run
   }
 }
+/** The row `tasks.start` answers with when the session started but the task could not be read back (iteration 2,
+ *  ER-3). It says only what this call journalled — id, project, title, instruction — and `backlog`, the state a task
+ *  has until its receiver acknowledges it; it never claims `running` (iteration 3, ER-7/DA-3). Every caller reads only
+ *  the id and the session. */
+export function readbackFallbackRow(input: { id: string; projectId: string; title: string; instruction: string }) {
+  return { id: input.id, project_id: input.projectId, status: 'backlog', title: input.title, instruction: input.instruction, read_back: false as const }
+}
+
 /** The setup preset records through Fabric's tools (memory, questions, tasks): a runner that does not connect to the
  *  surface could record nothing, so main refuses it whatever the window chose (0.3.3 verification, iteration 2). */
 export function refuseSetupWithoutSurface(runner: string, surfaceUp = true): void {

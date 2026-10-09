@@ -302,6 +302,9 @@ export function Tasks({
           <span className="muted">{t(chosenMode.warnKey as 'agent.mode.bypassWarn')}</span>
         )}
         {setupBlocked && <span className="field-problem" role="status">{t('tasks.presetNeedsSurface', { agent: chosen?.label ?? '' })}</span>}
+        {/* The reason the setup shortcut is unavailable is said on the page, not only in a disabled button's title
+            (iteration 3, UX-13). */}
+        {noSurface && !setupBlocked && <span className="muted" id="tasks-setup-why">{t('tasks.presetNeedsSurface', { agent: chosen?.label ?? '' })}</span>}
         <Button onClick={() => void run()} disabled={!instruction.trim() || busy || setupBlocked}>
           {busy ? t('tasks.starting') : t('tasks.run')}
         </Button>
@@ -319,6 +322,7 @@ export function Tasks({
               tone="quiet"
               disabled={p.id === 'setup' && noSurface}
               title={p.id === 'setup' && noSurface ? t('tasks.presetNeedsSurface', { agent: chosen?.label ?? '' }) : undefined}
+              aria-describedby={p.id === 'setup' && noSurface ? 'tasks-setup-why' : undefined}
               onClick={() => {
                 const text = t(p.instructionKey as Parameters<typeof t>[0], p.vars)
                 const load = loadInto(draft ?? undefined, { text, presetId: p.id })

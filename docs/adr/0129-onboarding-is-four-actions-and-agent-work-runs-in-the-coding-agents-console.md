@@ -36,7 +36,8 @@ project, create a project — and the work inside happens in the consoles of cod
    says whether the two skills are where the chosen coding agent reads skills, with the version — or the one
    command that installs them, to copy, and says when that command does not cover the chosen agent.
 5. **The coding agent is chosen in the form (D3)**: the first one in the operator's fallback order (ADR-0125) that
-   is installed and answers, else the first found; the hint says which rule chose it.
+   is installed and answers, else the first found that connects to Fabric's tools, else the first found; the hint
+   says which rule chose it.
 6. **A retry is the same attempt.** The window names the Project and the task before the first try; a retry after a
    failure reuses them (`main/taskRetry.ts`), brings forward a session that is still running, and never makes a
    second folder, Project or task. Another coding agent after a failed launch is a new task in the same Project.
