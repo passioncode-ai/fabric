@@ -6,8 +6,8 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 
 ### 2026-10-10 · `wiki-do` · agent/wiki-do-20261008 → main
 - run: r-d8d027823; base: origin/main 1404dffe (rebased); integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
-- scope: `scripts/workspace-release.mjs` (region `workspace-deploy`: App Platform API probe, Observatory-only credentials), `scripts/workspace.mjs` (no heroku remote/push; credentials checked before the gates; fast-forward when the workspace is behind), `scripts/workspace-snapshot.mjs` (receipt `platform`/`do_app`/`deployment`, Heroku receipt kept as history), `workspace.config.json` (`do_app`), `scripts/install-workspace-sync.sh`, tests, `docs/architecture/report-workspace.md`, DOCMAP, living map
-- summary: the workspace publish step deploys through GitHub to DigitalOcean App Platform and verifies the ACTIVE deployment; it works without the Heroku CLI installed.
+- scope: `scripts/workspace-release.mjs` (region `workspace-deploy`: App Platform API probe, Observatory-only credentials), `scripts/workspace.mjs` (no heroku remote/push; credentials checked before the gates; fast-forward when the workspace is behind), `scripts/workspace-snapshot.mjs` (receipt `platform`/`do_app`/`deployment`, Heroku receipt kept as history), `workspace.config.json` (`do_app`), `scripts/install-workspace-sync.sh`, tests, `docs/architecture/report-workspace.md`, DOCMAP, living map; separate commit: `providerCapabilityMatrix.ts` re-pin
+- summary: the workspace publish step deploys through GitHub to DigitalOcean App Platform and verifies the ACTIVE deployment; it works without the Heroku CLI installed. Carries the provider-matrix re-pin to Claude Code 2.1.296 and Codex CLI 0.162.1 (`scripts/repin-provider-builds.mjs`), which the gate required on this machine.
 
 ### 2026-10-09 · `release-0.3.3` · agent/release-033-candidate → main
 - run: r-9a7a12bb5; base: origin/main 710c0d38; verified commit `fa9cdf6b`; integration: fast-forward after `bash scripts/ci.sh fast`
