@@ -6,7 +6,7 @@ that section as the notes of the `vX.Y.Z` release
 ([docs/launch/release-mac.md](docs/launch/release-mac.md), [ADR-0111](docs/adr/0111-fabric-is-released-from-ci.md)).
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
-## 0.3.3 (unreleased)
+## 0.3.3
 
 Fabric becomes the way into PassionCode.ai: the first screen offers four actions, and the work behind the two agent
 actions happens in the console of a coding agent you already use, not in a chat of Fabric's own

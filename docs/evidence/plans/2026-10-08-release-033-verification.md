@@ -179,4 +179,67 @@ Exit for iteration 2: every finding above is fixed, ruled with a register id or 
 
 ## Iteration 3
 
-_Not started._
+Five fresh reviewers, 2026-10-09, against `92a52259` (the candidate after iteration 2). Reports, committed under
+`docs/evidence/reviews/0.3.3/iteration-3/` because this candidate becomes `verifiedCommit`:
+[scenarios/UX/UI](../reviews/0.3.3/iteration-3/2026-10-08-ux.md) (UX-n, 2 blocking + 11),
+[errors and boundaries](../reviews/0.3.3/iteration-3/2026-10-08-errors.md) (ER-n, 1 + 7),
+[code ↔ documents](../reviews/0.3.3/iteration-3/2026-10-08-docs.md) (DO-n, 1 + 6),
+[data, memory, orchestration, harness](../reviews/0.3.3/iteration-3/2026-10-08-data.md) (DA-n, 0 + 8),
+[plan and roadmap](../reviews/0.3.3/iteration-3/2026-10-08-plan.md) (PL-n, 0 + 9).
+The session scratchpad holding the five reports was cleared by the system before they were committed; each was
+recovered byte for byte from its reviewer's own transcript by replaying that reviewer's Write and Edit calls on the
+report file, then committed with machine paths replaced. The four blocking findings were fixed at
+`fa9cdf6b` (`fa9cdf6b7d3b8d05a9dc264f965241c672b10ee1`) and rechecked there by the reviewers who raised them: [UX recheck](../reviews/0.3.3/iteration-3/2026-10-09-ux-recheck.md),
+[errors and documents recheck](../reviews/0.3.3/iteration-3/2026-10-09-errors-docs-recheck.md). The recheck at `f891954c` found one more blocking
+defect (N-1) and four small ones, fixed at `d2c20705`; the [final recheck](../reviews/0.3.3/iteration-3/2026-10-09-final-recheck.md) there held them
+and found NB-1, fixed at the final candidate and rechecked there ([NB-1 recheck](../../handoffs/2026-10-09-release-033-nb1-recheck.md), committed with the release as release metadata).
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V3-1 | ER-1 (blocking) | An older create attempt finishing late could overwrite a newer one and attach its folder to the wrong Project | fixed: the attempt in flight is kept (`KeptCreate.flight`) and a screen mounted meanwhile shows it working and takes its end; writes go only to their own attempt (`keepFor`); `StartPaths.test.tsx` "leaving mid-request and coming back shows the attempt working" and "an older attempt finishing late does not overwrite a newer one" (watched: planted no-flight failed both); rechecked by its reviewer at the final candidate |
+| V3-2 | UX-1 (blocking) | V2-21 did not hold: focus did not follow the moved fallback row | fixed: focus moves in an effect once the saved order is drawn (`FallbackOrderSetting.tsx`), Remove leaves it on the next row; `FallbackOrderSetting.test.tsx` "focus follows the moved row once the saved order is drawn" with a host whose save really reorders (watched); rechecked in the app by its reviewer |
+| V3-3 | UX-2 (blocking) | V2-17 did not hold for `exists`: focus stayed on the button | fixed: focus moves in an effect after the commit that re-enables the field; `StartPaths.test.tsx` "after the folder-exists refusal, focus is back on the Name field" (watched); rechecked in the app by its reviewer |
+| V3-4 | DO-1 (blocking) | SCN-134 step 1 still told the 0.3.2 upgrader "nothing has been sent yet" | fixed: SCN-134 step 1 names the upgrader's sentence; rechecked by its reviewer |
+| V3-5 | ER-2, UX-7, DA-2 (part) | Start over cancelled a task whose session runs, with the agent still working | fixed: Start over is not offered while the attempt's session runs, and `abandon` never cancels a task with a session; the unresolved-run case of «Use another coding agent» is ruled CO-236 |
+| V3-6 | ER-3 | A refused cancel was dropped while the screen said the task was cancelled | fixed: `abandon` returns the refusal and the screen says `start.abandoned.notCancelled` (Create and Adapt); the note says the first task is cancelled "unless its session is already running" |
+| V3-7 | ER-4 | Returning while the folder was being made left the fields editable | fixed: a flight in progress shows the screen working with the fields locked (V3-1's test asserts the Name field disabled and no Start over) |
+| V3-8 | ER-5 | A 240-character summary could be cut inside a surrogate pair, which the database refuses | fixed: `projectDiscovery.ts#clip` cuts by code point; `project-discovery.test.mjs` emoji case (watched: planted code-unit cut failed) |
+| V3-9 | ER-6, DA-1 | The setup preset still ran on Claude Code with Fabric's agent surface not listening | fixed: `refuseSetupWithoutSurface(runner, surfaceUp)` refuses with `task-refused:setup-surface-down`, and the walk passes over every runner for a `needsSurface` launch while the surface is down; `task-retry.test.mjs` and `runnerRoute.test.ts` "with the agent surface not listening" |
+| V3-10 | ER-7, DA-3 | V2-7 had no test, and its fallback row claimed `running` | fixed: `taskRetry.ts#readbackFallbackRow` claims only what was journalled and `backlog`; `task-retry.test.mjs` read-back case |
+| V3-11 | ER-8 | A readable but invalid Claude settings file read as "plugin missing", unnamed | fixed: `adapterSkills.ts#claudePlugin` names a settings file that reads but does not parse, as it names an unreadable one; `adapter-skills.test.mjs` "an invalid settings file is named" (watched; the recheck found the first commit had not fixed it) |
+| V3-12 | UX-3, UX-4, UX-5, UX-6 | Focus fell to the page after Use another coding agent, a scan import, the usage notice's Continue and Remove | fixed: focus goes to the coding-agent choice (Create and Adapt), the import summary's first action, the screen's heading and the next fallback row respectively (`AgentPaths.tsx`, `StartPaths.tsx`, `UsageCountsNotice.tsx`, `FallbackOrderSetting.tsx`); the UX recheck walked UX-4, UX-5 and UX-6 in the app |
+| V3-13 | UX-8, DO-4 | SCN-136 said the first task stays on its board; the code cancels it | fixed: SCN-136, SCN-131 and SCR-74 say it is cancelled — by Use another coding agent and by Start over — unless its session runs, and that a refused cancel is said |
+| V3-14 | UX-9, DO-3 | The preselection rule was stated as "else the first found" in five places | fixed: ADR-0129 §5, SCN-131/136 step 4, SCR-74 `idle` and `start.builder.orderUnread` state the code's rule (order, then connected, then found) |
+| V3-15 | UX-10, DO-7 (part) | The two usage-notice strings worded the switch differently | fixed: both say "the one switch every PassionCode.ai app on this Mac reads … in the settings"; `analytics.notice.nothingYet` has its registry row |
+| V3-16 | UX-11 | The English "console did not open" sentence named its button without quotes | fixed: `start.consoleNotOpened` quotes `{retry}` |
+| V3-17 | UX-12 | Russian progress lines spoke in the first person singular | fixed: «Читаем…», «Добавляем…», «Сканируем…», «Создаём папку…», «Ищем на этом Mac…» |
+| V3-18 | UX-13 | The setup preset's reason sat only in a disabled button's title | fixed: the reason is a visible line on the task panel, tied to the button by `aria-describedby` |
+| V3-19 | DO-2 | "Sends nothing, ever" remained in SCN-134, ADR-0127 §4 and a test title | fixed: SCN-134 alt path, ADR-0127 amendment 2 and the `analytics.test.mjs` title say it holds while the shared switch stays off |
+| V3-20 | DO-5 | ADR-0125 and SCN-135 did not record the setup preset's pass-over; probe results and check order differed | fixed: ADR-0125 amendment 1; SCN-135 alt path |
+| V3-21 | DO-6, PL-5 | CHANGELOG and SCR-52 said 0.3.2 "already sent"; ANALYTICS said the Settings note "says the same" | fixed: "may already have sent" in CHANGELOG and SCR-52; ANALYTICS says the note says what is counted |
+| V3-22 | DO-7 | Housekeeping: SCR-52 index row coverage, the CHANGELOG's "in the top bar", the FabricStrip comment, product-model SCR-74/75 citing ADR-0100, the adapter types in no region | fixed: each corrected; `adapter-skills-view` region; `check-regions.mjs` PASS |
+| V3-23 | DA-4 | The fallback preview ignores the setup preset | ruled CO-234: the launch is right; the preview names the wrong agent until it takes the launch's needs |
+| V3-24 | DA-5 | The lifecycle table did not list the fallback preview's machine probes | fixed: `AGENTS.md` lifecycle row for the preview (on focus, at most once per 30 s, `FRESH_MS`) |
+| V3-25 | DA-6 | `menu.test.mjs` was not in the fast tier; the setup guard's main wiring has no test | fixed: `scripts/ci.sh` fast tier runs `menu.test.mjs`; the guard is the tested `refuseSetupWithoutSurface`, called from `tasks.start` (the handler itself is reached only by the stack-backed tier) |
+| V3-26 | DA-7 | `start.taskRefused.readback-failed` had nothing that sends it | fixed: the strings (en, ru), the registry row and its code mapping are removed |
+| V3-27 | DA-8 | A finished onboarding task stays as open work on the board | ruled CO-235: needs a rule for what closes an onboarding task |
+| V3-28 | PL-1, PL-9 | The Release close list left out the iteration-3 artifacts, the map entry and MERGES; a provider auto-update forces a new candidate | fixed: *Release close* item 1 names them and the re-pin risk |
+| V3-29 | PL-2 | No release-close item for the knowledge base after publication | fixed: *Release close* item 6 |
+| V3-30 | PL-3 | The narrowed REQ-08 waits for an operator review nothing asks for | fixed: *Release close* item 0: the operator accepts or rejects the reading before the release commit |
+| V3-31 | PL-4 | CO-197 said publish before release; the list put it after the tag | fixed: CO-197 and item 5 both say after the tag, as 0.3.2 did (`f2ec0587`) |
+| V3-32 | PL-6 | The CHANGELOG's fallback bullet left out «Fallback order → agent» in the panels | fixed: added |
+| V3-33 | PL-7 | The plan header mapped RM-13/20/25 to lane 12; their rows sit in lanes 9, 6 and 4 | fixed: header corrected |
+| V3-34 | PL-8 | CO-222 not re-dated with CO-221; CO-221 kept a done PL-13 clause | fixed: both corrected |
+| V3-35 | DO (note) | Codex updated itself to 0.162.0 | fixed: `repin-provider-builds.mjs` → 0.162.0, rows unverified; `check-provider-capability.mjs` PASS |
+| V3-36 | ER (recheck N-1, blocking) | The coding agent was the attempt's only from the first launch: leaving before it and coming back showed the default while the retry sent another agent | fixed: `create` records the agent on the attempt at the press; `StartPaths.test.tsx` "the agent chosen at the press is the attempt's" (watched); rechecked at the final candidate |
+| V3-37 | ER (recheck N-2) | A folder-exists refusal that arrived while the person was away was not said on return | fixed: the refusal is kept for the attempt and said by a screen mounted meanwhile; `StartPaths.test.tsx` "a folder-exists refusal that arrives while the person is away" (watched) |
+| V3-38 | ER (recheck N-3) | "Could not be cancelled" could show for a task the launch never recorded | fixed: `abandon` reads the board's "that task no longer exists" as nothing to cancel |
+| V3-39 | UX (recheck UX-R1) | With the session running, the note still advised Start over, which is not offered then | fixed: the made-folder note shows only where Start over is offered |
+| V3-40 | ER (final recheck NB-1, blocking) | After a refused name was changed and a later step failed, a return showed the old name and sentence and the retry sent them for the new folder (also when the folder request threw) | fixed: the kept attempt takes the press's name, sentence and place (`keepFor`); `StartPaths.test.tsx` "after a refused name is changed, a later failure and a return keep the NEW name" (watched against the old merge); rechecked at the final candidate |
+| V3-42 | ER (NB-1 recheck, non-blocking) | `tasks.move` still reports a failed read as "that task no longer exists" | ruled CO-239: the same class as V3-41 in the board's move handler; it predates this candidate and is outside its change |
+| V3-43 | ER (NB-1 recheck, non-blocking) | A rename typed after a refusal but never pressed is lost on leaving; on return the refusal is said in the callout and focus lands on the heading | ruled CO-240: what the screen says is true; keeping an unpressed edit and placing the returned refusal under the field belong to the next pass on SCR-74 |
+| V3-44 | ER (NB-1 recheck, non-blocking) | Board refusal sentences from main are English inside the Russian interface | ruled CO-225: named in the release notes («Russian») |
+| V3-45 | ER (NB-1 recheck, non-blocking) | Every Try again calls `projects.create` again with the same Project id | not a defect: the create handler finishes a repeat of the same create instead of making a sibling (`main/index.ts`, `projectsCreate`: "A repeat of the SAME create finishes it"), and the repository attach runs again by design |
+| V3-41 | ER (final recheck, N-3 residual) | `tasks.close` reported a failed read as "that task no longer exists", which the screen reads as nothing to cancel | fixed: `tasks.close` says a failed read as itself |
+
+Exit for iteration 3: every finding above is fixed, ruled with a register id or not a defect; the four blocking ones were rechecked by their reviewers at `fa9cdf6b`, the final candidate. Blocking findings open: none.

@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-09 · `release-0.3.3` · agent/release-033-candidate → main
+- run: r-9a7a12bb5; base: origin/main 710c0d38; verified commit `fa9cdf6b`; integration: fast-forward after `bash scripts/ci.sh fast`
+- scope: iteration 3 (V3-1…V3-45, receipts in `docs/evidence/reviews/0.3.3/iteration-3/`, rechecks at `f891954c`, `d2c20705`, `fa9cdf6b`), the release commit: `apps/desktop/package.json` 0.3.3, `## 0.3.3`, `docs/launch/release-gate.json`, the handoff `docs/handoffs/2026-10-09-release-033-handoff.md` and the NB-1 recheck report as release metadata.
+- summary: Fabric 0.3.3, the onboarding release, cleared by three iterations; the tag and the protected approvals follow.
+
 ### 2026-10-09 · `release-0.3.3-iteration-2` · agent/release-033-candidate → main
 - run: r-9a7a12bb5; base: origin/main 710c0d38 (candidate 2 `6d6d039d`); integration: fast-forward after `bash scripts/ci.sh fast`
 - scope: iteration 2's 44 findings, ledger rows V2-1…V2-38 and five receipts (`docs/evidence/reviews/0.3.3/iteration-2/`); `shared/runnerRoute.ts` (`needsSurface`), `main/taskRetry.ts` (`refuseSetupWithoutSurface`, running-only bring-forward), `main/index.ts` (setup guard, read-back keeps the session, menu rebuild apart), `main/projectDiscovery.ts` (bounded stripping), `main/adapterSkills.ts` (unreadable settings named), `start/AgentPaths.tsx` (attempt keeps its agent and failure, in-flight folder, abandoned tasks cancelled), `renderer/src/launch/LaunchShell.tsx` (`revealSection`), `FallbackOrderSetting.tsx`, `StackExposureNotice.tsx`, `App.tsx`, CSS, en/ru; ADR-0100, ADR-0127 amendments, ADR-0129 boundary; CO-177/178/196/197/221/225/227/231 updated, CO-232, CO-233; plan header and P-14; ledger *Release close*; CHANGELOG, ANALYTICS, runbook; fabric-workspace PR #81 extended (`ad6c1f7`).
