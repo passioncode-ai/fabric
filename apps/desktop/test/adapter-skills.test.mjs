@@ -107,6 +107,14 @@ assert.equal(skillVersion('# no front matter'), null)
   assert.ok(v.unreadable.includes(path.join(h, '.claude', 'settings.json')), 'the settings file is named: ' + JSON.stringify(v.unreadable))
 }
 
+{ // iteration 3, ER-8: a settings.json that reads but does not parse is named.
+  const h = home()
+  mkdirSync(path.join(h, '.claude'), { recursive: true })
+  writeFileSync(path.join(h, '.claude', 'settings.json'), '{ "enabledPlugins": { "x": true, } }')
+  const v = await adapterSkills('claude-code', { home: h, env: {} })
+  assert.ok(v.unreadable.includes(path.join(h, '.claude', 'settings.json')), 'an invalid settings file is named: ' + JSON.stringify(v.unreadable))
+}
+
 { // DA-9: Claude Code's configuration under CLAUDE_CONFIG_DIR is the one read.
   const h = home(), conf = path.join(h, 'elsewhere'), install = path.join(h, 'cache', 'adapter', '0.8.1')
   skills(path.join(install, 'skills'), '0.8.1')

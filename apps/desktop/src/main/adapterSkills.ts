@@ -110,6 +110,8 @@ async function claudePlugin(fs: SkillsFs, claudeHome: string, unreadable: string
   const readNamed = async (file: string): Promise<Read> => {
     const got = await read(fs, file)
     if (got === UNREADABLE) unreadable.push(file)
+    // A file that reads but does not parse is named too (recheck of iteration 3, ER-8): reinstalling cannot fix it.
+    else if (typeof got === 'string' && json(got) === null) unreadable.push(file)
     return got
   }
   const settings = json(await readNamed(path.join(claudeHome, 'settings.json'))) as { enabledPlugins?: Record<string, unknown> } | null

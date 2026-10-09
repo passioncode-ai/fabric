@@ -635,6 +635,39 @@ describe('0.3.3 verification, iteration 2: the agent paths', () => {
     await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText(en['start.createAgent.name'])))
   })
 
+  it('the agent chosen at the press is the attempt\'s: leaving before the first launch and coming back shows it (recheck N-1)', async () => {
+    let finish: (v: unknown) => void = () => undefined
+    const createFolder = vi.fn(() => new Promise((r) => { finish = r }))
+    const executors = vi.fn(async () => [
+      { id: 'claude-code', label: 'Claude Code', connected: true, state: 'found', version: '2', path: '/bin/claude', install: null },
+      { id: 'codex', label: 'Codex', connected: false, state: 'found', version: '1', path: '/bin/codex', install: null }
+    ])
+    bridge({ start: { ...bridge().start, createFolder, executors } })
+    start('agent')
+    await fill()
+    fireEvent.change(await screen.findByLabelText(en['start.builder.label']), { target: { value: 'codex' } })
+    await ready()
+    fireEvent.click(createBtn())
+    await waitFor(() => expect(createFolder).toHaveBeenCalledTimes(1))
+    cleanup()
+    start('agent')
+    await waitFor(() => expect((screen.getByLabelText(en['start.builder.label']) as HTMLSelectElement).value).toBe('codex'))
+    finish({ ok: true, path: '/w/support-desk' })
+  })
+
+  it('a folder-exists refusal that arrives while the person is away is said on return (recheck N-2)', async () => {
+    let finish: (v: unknown) => void = () => undefined
+    bridge({ start: { ...bridge().start, createFolder: vi.fn(() => new Promise((r) => { finish = r })) } })
+    start('agent')
+    await fill()
+    await ready()
+    fireEvent.click(createBtn())
+    cleanup()
+    start('agent')
+    finish({ ok: false, reason: 'exists', detail: '/w/support-desk' })
+    expect(await screen.findByText(en['start.new.refused.exists'].replace('{detail}', '/w/support-desk'))).toBeTruthy()
+  })
+
   it('a task the person walks away from is cancelled on the board (DA-5)', async () => {
     const begin = vi.fn().mockRejectedValueOnce(new Error('spawn failed')).mockResolvedValue({ session: { sessionId: 's8' } })
     const close = vi.fn(async () => ({ ok: true }))
