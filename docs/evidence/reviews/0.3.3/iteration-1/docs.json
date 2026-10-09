@@ -1,0 +1,134 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.3",
+  "iteration": 1,
+  "level": "docs",
+  "candidateCommit": "ece987975a1b2a491f86f5e528f96920b04aa4c5",
+  "report": "docs/evidence/plans/2026-10-08-release-033-verification/iteration-1/2026-10-08-docs.md",
+  "reportSha256": "f30da5e9b71a063161acc5e05334ce1e46a9da22bb81fded4bd35b6b5936b64e",
+  "reviewerRun": "release-033-i1-docs-20261008",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-3",
+      "source": "DO-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `README.md` §Usage analytics: nothing until the switch is answered (notice or Settings), ADR-0127 linked"
+      ]
+    },
+    {
+      "id": "V1-4",
+      "source": "DO-2, PL-2 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG §0.3.3 «Russian» names what is still English (main-process messages, ACP prompts; CO-225); task refusals are codes `task-refused:*` said by `startParts.tsx#explainError` in both languages, also on the task panel (`Tasks.tsx`); CO-225 (4) updated"
+      ]
+    },
+    {
+      "id": "V1-7",
+      "source": "PL-7, DO-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: [ADR-0129](../../adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md); ADR index row for 0100 and 0129; pipeline reservation moved 0128 → 0130 (`fix-pf-06.03.py` green)"
+      ]
+    },
+    {
+      "id": "V1-31",
+      "source": "UX-11, DO-3, DO-6, DO-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCR-74/75 `built`; SCN-126 step 3, SCR-70, SCN-130 rewritten; map `#screens-start` cards; `product-model.json` views start-agent/start-convert and SCN-131/136 screen refs; prototype notes; drawing the notice and the fallback order in the prototype is ruled CO-225"
+      ]
+    },
+    {
+      "id": "V1-32",
+      "source": "UX-12, DO-14",
+      "status": "fixed",
+      "evidence": [
+        "fixed: headings replaced by a pointer to `AgentPaths.tsx`"
+      ]
+    },
+    {
+      "id": "V1-33",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `CONTEXT.md`: Start path, Ecosystem agent, Fabric Agent Adapter, Fallback order"
+      ]
+    },
+    {
+      "id": "V1-34",
+      "source": "DO-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-136 step 1 states the real refusals (`folderNameProblem`)"
+      ]
+    },
+    {
+      "id": "V1-35",
+      "source": "DO-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: rows aligned with the code; `start.createAgent.madeKeptFolder` when no Project was made"
+      ]
+    },
+    {
+      "id": "V1-36",
+      "source": "DO-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: SCN-131, FLW-74, SCR-75 titles and entries use «Adapt an existing agent»"
+      ]
+    },
+    {
+      "id": "V1-37",
+      "source": "DO-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG names Cline and Kimi Code as shared-folder only"
+      ]
+    },
+    {
+      "id": "V1-38",
+      "source": "DO-12, PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CHANGELOG §0.3.3 «Upgrading» and the added bullets"
+      ]
+    },
+    {
+      "id": "V1-39",
+      "source": "DO-13",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `AGENTS.md` lifecycle row, SCN-134 coverage, SCR-52 amendment; `usage-analytics-ipc` region points at `#nothing-before-the-disclosure`"
+      ]
+    },
+    {
+      "id": "V1-40",
+      "source": "DO-15",
+      "status": "fixed",
+      "evidence": [
+        "fixed: this iteration's `docs/MERGES.md` entry lists `taskRetry.ts`, the PF-07.01 regression and the IPC additions; the dated line is not rewritten"
+      ]
+    },
+    {
+      "id": "V1-41",
+      "source": "DO-16",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `.gitignore` `node_modules` (`git check-ignore -v --no-index packages/x/node_modules` matches)"
+      ]
+    },
+    {
+      "id": "V1-49",
+      "source": "DO (note)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `repin-provider-builds.mjs` → 2.1.295, every row still unverified; `check-provider-capability.mjs` PASS"
+      ]
+    }
+  ]
+}

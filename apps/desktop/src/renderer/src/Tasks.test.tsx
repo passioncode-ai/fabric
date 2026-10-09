@@ -86,6 +86,6 @@ describe('setting a project up with the agent', () => {
     mount([], [{ id: 'codex', label: 'Codex', available: true, connectsToSurface: false, permissionModes: [] }], { ...project, default_agent: 'codex' })
     const button = (await screen.findByText('Set up this project with the agent')).closest('button') as HTMLButtonElement
     await waitFor(() => expect(button.disabled).toBe(true))
-    expect(button.title).toMatch(/Codex does not connect to Fabric's tools/)
+    expect(button.title).toMatch(/Codex has no connection to the tools of Fabric/)
   })
 })
