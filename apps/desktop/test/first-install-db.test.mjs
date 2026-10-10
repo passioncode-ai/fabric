@@ -19,7 +19,7 @@ import { randomUUID } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { LOCAL_OPERATOR_PERSON } from '../src/main/identity.ts'
 import { DEFAULT_ESTATE } from '../src/main/activeEstate.ts'
-import { seedOnlyProblem } from '../src/main/seedRepair.ts'
+import { EVENT_READ_LIMIT, seedOnlyProblem } from '../src/main/seedRepair.ts'
 
 const url = process.env.FABRIC_DISPATCH_TEST_DATABASE_URL
 if (!url) { console.error('NOT_RUN: use run-first-install-db.mjs'); process.exit(2) }
@@ -65,17 +65,29 @@ if (which === 'fresh') {
   })
 } else if (which === 'legacy') {
   sql(readFileSync(new URL('./fixtures/legacy-seed-0.3.3.sql', import.meta.url), 'utf8'))
-  // The reads `seedRepairDb` makes: the first two events oldest first, and every member.
+  // The reads `seedRepairDb` makes: the journal oldest first up to its limit, every member, and the decisions on record.
   const read = () => ({
     events: json(`select coalesce(json_agg(e), '[]') from (select type, actor, payload from journal
-      where estate_id = '${DEFAULT_ESTATE}' order by seq limit 2) e`),
-    members: json(`select coalesce(json_agg(m), '[]') from (select person_id, role from memberships where estate_id = '${DEFAULT_ESTATE}') m`)
+      where estate_id = '${DEFAULT_ESTATE}' order by seq limit ${EVENT_READ_LIMIT + 1}) e`),
+    members: json(`select coalesce(json_agg(m), '[]') from (select person_id, role from memberships where estate_id = '${DEFAULT_ESTATE}') m`),
+    decisions: Number(sql(`select count(*) from membership_commands where estate_id = '${DEFAULT_ESTATE}'`))
   })
   const grant = (command) => json(`select change_membership('${command}', '${DEFAULT_ESTATE}', '${LOCAL_OPERATOR_PERSON}',
     'owner', 'grant', 0, 'desktop-bootstrap:seed-repair')`)
 
   test('the database a 0.3.3 install made is the one the boundary refused', () => {
     assert.equal(resolve().reason_code, 'not_a_member')
+  })
+
+  // 0.3.1–0.3.3 opened the hub before identity and kept it open behind the error: a registered agent's request
+  // reached the estate while the start was failing (0.3.4 i1 DA-1, measured by the data reviewer). Written the way
+  // `accessService.ts` writes it, through the door.
+  test('a request an agent made through the hub while the start was failing is accepted by the door', () => {
+    sql(`select append_event('${DEFAULT_ESTATE}', 'access.requested@1', '{"kind":"system","id":"fabric-hub"}',
+      '${JSON.stringify({ id: '7000000a-0000-4000-8000-000000000101', agent_id: 'example-agent', callee: 'fabric-inbox',
+      capabilities: ['list_messages'], resources: ['cloudflare:news@example.com'], reason: 'summarise', registry: {}, binding_id: null,
+      expires_at: new Date(Date.now() + 600_000).toISOString() })}', '1', null)`)
+    assert.equal(sql(`select count(*) from journal where estate_id = '${DEFAULT_ESTATE}'`), '2')
   })
 
   test('its rows are the shape the repair takes, read as the app reads them', () => {
@@ -100,8 +112,16 @@ if (which === 'fresh') {
     assert.equal(late.status, 'conflict', JSON.stringify(late))
   })
 
-  test('the estate\'s history is untouched: one creation event, nothing journalled by the repair', () => {
-    assert.equal(sql(`select count(*) from journal where estate_id = '${DEFAULT_ESTATE}'`), '1')
+  test('the estate\'s history is untouched: the creation and the agent\'s request, nothing journalled by the repair', () => {
+    assert.equal(sql(`select count(*) from journal where estate_id = '${DEFAULT_ESTATE}'`), '2')
+  })
+
+  test('a revoke through the door is a decision: the repair does not grant the estate again (0.3.4 i1 DA-2)', () => {
+    const revoked = json(`select change_membership('${randomUUID()}', '${DEFAULT_ESTATE}', '${LOCAL_OPERATOR_PERSON}',
+      null, 'revoke', null, 'probe:revoke')`)
+    assert.equal(revoked.status, 'committed', JSON.stringify(revoked))
+    assert.equal(resolve().reason_code, 'not_a_member')
+    assert.match(seedOnlyProblem({ estateId: DEFAULT_ESTATE, ...read(), operator: LOCAL_OPERATOR_PERSON }) ?? '', /membership decision/)
   })
 } else {
   console.error(`unknown FIRST_INSTALL_CASE ${which}`)

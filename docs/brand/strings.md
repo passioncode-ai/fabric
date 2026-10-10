@@ -703,3 +703,16 @@ The start menu and the two agent paths ([brief](../evidence/plans/2026-10-08-onb
 | `start.taskRefused.setup-surface-down` | This setup records through the tools of Fabric, and the agent surface that gives them is not running. Start it in the settings, then try again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-032 | proposed |
 | `start.abandoned.notCancelled` | The earlier task could not be cancelled on the board: {reason}. Close it there by hand. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
 | `analytics.notice.nothingYet` | Nothing has been sent yet. Your choice is the one switch every PassionCode.ai app on this Mac reads, and you can change it later in the settings. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-134 | proposed |
+
+## 0.3.4 — the identity refusal at startup (2026-10-10)
+
+The startup dialog's eleventh cause ([ADR-0131](../adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md),
+0.3.4 verification, iteration 1, UX-1). Until 0.3.4 an identity refusal fell to `startup.unknown` ("could not work
+out why") for a cause the app had already named. It says what is true and what Fabric did not do; the repair's reason
+is in the details, which keep the English a report is read in. Written through `copywriting` against `voice.md`
+(error register: no humour, one next step) and `locales/ru.md` («вы»); «пространство» is the Russian Estate.
+
+| Key | Text (primary) | Location | Scenario | Status |
+|---|---|---|---|---|
+| `startup.identity-refused.title` | Fabric does not have access to the Estate it opened | apps/desktop/src/renderer/src/i18n/en.ts | SCN-095 | proposed |
+| `startup.identity-refused.remedy` | Fabric runs as the owner of your Estate, and this database does not name that owner. Fabric takes an Estate for itself only when nothing has happened in it yet; the details below say what it found instead. Copy them and report them. Fabric has changed nothing in the Estate. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-095 | proposed |

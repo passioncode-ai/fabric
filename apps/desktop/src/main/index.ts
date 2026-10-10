@@ -642,6 +642,26 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
 
   }
 
+  // #region seed-repair-wiring — docs: docs/adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md#decision
+  // A database a fresh install of 0.2.0 or 0.3.0–0.3.3 made (CO-241, ADR-0131): the old seed owned the default
+  // estate as a person this app never runs as. Only that untouched shape is granted, through the door — and
+  // BEFORE the hub opens, so no agent's request can land in the estate between the reading and the grant
+  // (0.3.4 i1 DA-1), and before the retry point, so a read that failed may be tried again. The identity read
+  // below runs after it whatever it answered: a grant someone else made in the meantime is still found (ER-4).
+  let seedRepairWhy: string | null = null
+  if (estate && ACTIVE_ESTATE === DEFAULT_ESTATE) {
+    const before = await identity.establish()
+    if (!before.ok && before.why === 'not_a_member') {
+      const repair = await repairSeedOnlyEstate(seedRepairDb(db), { estateId: ACTIVE_ESTATE, operator: LOCAL_OPERATOR_PERSON, commandId: randomUUID() })
+      ops.record({
+        op: 'identity.seed-repair', outcome: repair.repaired ? 'ok' : 'failed', level: repair.repaired ? 'warn' : 'error',
+        detail: repair.repaired ? { granted: 'owner' } : { why: repair.why }, ctx: { correlationId: ops.correlate(), estateId: ACTIVE_ESTATE }
+      })
+      if (!repair.repaired) seedRepairWhy = repair.why
+    }
+  }
+  // #endregion seed-repair-wiring
+
   // M100 — the point after which retrying in place is NOT safe. Observed as we
   // cross it, never inferred from whatever error arrives: a second attempt
   // would open a second listener and register every IPC handler twice, and a
@@ -875,19 +895,10 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // ESTABLISHED, and the actor everything downstream uses comes from here. A
   // failure is fatal on purpose: a product that carries on with an unidentified
   // writer is one whose journal cannot say who did anything.
-  let established = await identity.establish()
-  // A database a fresh 0.3.0–0.3.3 install made (CO-241, ADR-0131): the old seed owned the default
-  // estate as a person this app never runs as. Only that untouched shape is granted, through the door.
-  if (!established.ok && established.why === 'not_a_member' && ACTIVE_ESTATE === DEFAULT_ESTATE) {
-    const repair = await repairSeedOnlyEstate(seedRepairDb(db), { estateId: ACTIVE_ESTATE, operator: LOCAL_OPERATOR_PERSON, commandId: randomUUID() })
-    ops.record({
-      op: 'identity.seed-repair', outcome: repair.repaired ? 'ok' : 'failed', level: repair.repaired ? 'warn' : 'info',
-      detail: repair.repaired ? { granted: 'owner' } : { why: repair.why }, ctx: { correlationId: ops.correlate(), estateId: ACTIVE_ESTATE }
-    })
-    if (repair.repaired) established = await identity.establish()
-  }
+  const established = await identity.establish()
   if (!established.ok)
-    throw new Error(`identity could not be established: ${established.says}`)
+    throw new Error(`identity could not be established: ${established.says}` +
+      (seedRepairWhy ? ` — the repair for a database only the old seed touched did not apply: ${seedRepairWhy}` : ''))
   OPERATOR_ACTOR = identity.actor()
   // C2: the CEO conversation host exists only once the operator is established, and behind a
   // gate that opens only while private recovery is available (C5); closed, no chat call reaches

@@ -27,6 +27,7 @@ export type StartupCause =
   | 'schema-missing'
   | 'schema-not-ready'
   | 'active-estate-unreadable'
+  | 'identity-refused'
   | 'database-unreachable'
   | 'unknown'
 
@@ -89,6 +90,16 @@ export function classifyStartupFailure(e: unknown): StartupFailure {
       cause: 'active-estate-unreadable',
       title: 'Fabric does not know which Estate to open.',
       remedy: 'The file recording the Estate you chose could not be read, and Fabric will not open another Estate in its place. Remove active-estate.json from Fabric’s data folder to open the default Estate, or put the file back.',
+      detail
+    }
+
+  // The identity boundary refused (FA-07): the database does not list the person Fabric runs as. Named rather than
+  // left to "unknown" (0.3.4 i1 UX-1): bootstrap appends the seed repair's reason, so the details say what it found.
+  if (/^identity could not be established\b/.test(detail))
+    return {
+      cause: 'identity-refused',
+      title: 'Fabric does not have access to the Estate it opened.',
+      remedy: 'Fabric runs as the owner of your Estate, and this database does not name that owner. Fabric takes an Estate for itself only when nothing has happened in it yet; the details below say what it found instead. Copy them and report them. Fabric has changed nothing in the Estate.',
       detail
     }
 

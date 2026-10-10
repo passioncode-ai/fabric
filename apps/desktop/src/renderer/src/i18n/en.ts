@@ -902,6 +902,8 @@ export const en = {
   'startup.quit': "Quit",
   'startup.active-estate-unreadable.title': "Fabric does not know which Estate to open",
   'startup.active-estate-unreadable.remedy': "The file recording the Estate you chose could not be read, and Fabric will not open another Estate in its place. Remove active-estate.json from Fabric’s data folder to open the default Estate, or put the file back.",
+  'startup.identity-refused.title': "Fabric does not have access to the Estate it opened",
+  'startup.identity-refused.remedy': "Fabric runs as the owner of your Estate, and this database does not name that owner. Fabric takes an Estate for itself only when nothing has happened in it yet; the details below say what it found instead. Copy them and report them. Fabric has changed nothing in the Estate.",
   'startup.schema-not-ready.title': "Fabric could not verify database compatibility",
   'startup.schema-not-ready.remedy': "Follow the details below, then retry. Workspace services have not started; Fabric will not migrate the database automatically.",
   'startup.supabase-cli-missing.title': "The Supabase command-line tool is not installed, or is not on this app’s PATH",

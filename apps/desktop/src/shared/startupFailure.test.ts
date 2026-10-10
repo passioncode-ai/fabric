@@ -97,6 +97,18 @@ describe('why the app would not start', () => {
     ).toBe('database-unreachable')
   })
 
+  it('names the identity refusal, and keeps the repair\'s reason in the details (0.3.4 i1 UX-1)', () => {
+    // Before 0.3.4 this landed in "unknown": every fresh install showed "could not work out why" for a cause the
+    // app had already named (CO-241). The repair's reason travels in the message, so the details carry it.
+    const said = 'identity could not be established: that person is not a member of this estate' +
+      ' — the repair for a database only the old seed touched did not apply: the estate has history after its creation'
+    const f = classifyStartupFailure(new Error(said))
+    expect(f.cause).toBe('identity-refused')
+    expect(f.title).toBe('Fabric does not have access to the Estate it opened.')
+    expect(f.detail).toContain('the estate has history after its creation')
+    expect(classifyStartupFailure({ message: 'the identity of this build could not be established' }).cause).not.toBe('identity-refused')
+  })
+
   it('an unrecognised failure is UNKNOWN and says so, rather than guessing', () => {
     // A wrong diagnosis costs more than an honest "we do not know": the
     // operator follows the remedy, it does not help, and they conclude the
