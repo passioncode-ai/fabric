@@ -30,6 +30,9 @@ import { closeSync, constants as fsc, fstatSync, fsyncSync, lstatSync, mkdirSync
 import { randomBytes } from 'node:crypto'
 import path from 'node:path'
 import { ops } from './opsSink.ts'
+import { userInfo } from 'node:os'
+import { execFileSync } from 'node:child_process'
+import { protectedAclInvocation } from './platform.ts'
 
 export const HUB_PROTOCOL = 'fabric-hub/0.1'
 /** Chosen to sit apart from the ports agent services on this machine commonly take; `FABRIC_HUB_PORT` overrides. */
@@ -79,6 +82,15 @@ function writeAtomic(file: string, contents: string): void {
   // The umask cannot widen a file created 0600, but a rename onto an existing file keeps the new
   // inode's mode — stated again so the property does not depend on how the file was first made.
   chmodSync(tmp, 0o600)
+  // Windows ignores modes: the token files get DEC-0033's protected ACL instead, before they are published
+  // (0.3.5, REQ-13). A file whose ACL could not be set is not published.
+  if (process.platform === 'win32') {
+    const how = protectedAclInvocation(tmp, userInfo().username)
+    try { execFileSync(how.file, how.args, { timeout: 15_000, windowsHide: true, stdio: 'ignore' }) } catch (e) {
+      rmSync(tmp, { force: true })
+      throw new Error(`the hub file's ACL could not be set: ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
   renameSync(tmp, file)
 }
 

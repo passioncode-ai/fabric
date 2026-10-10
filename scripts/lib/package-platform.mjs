@@ -44,4 +44,15 @@ export function builderArgs({ platform, arch, version, signing }) {
     for (const [k, v] of Object.entries(signing)) args.push(`-c.win.azureSignOptions.${k}=${v}`)
   return args
 }
+/** PL-10: a release whose Windows installers are not signed says so in its notes — a line of its `## X.Y.Z` section
+ *  naming Windows and saying the installer is not signed, so nobody is surprised by SmartScreen. Null when it does. */
+export function unsignedWindowsNoteProblem({ version, text }) {
+  const lines = String(text ?? '').split('\n')
+  const start = lines.findIndex(l => l.trim() === `## ${version}`)
+  if (start < 0) return `the changelog has no "## ${version}" section`
+  const end = lines.findIndex((l, i) => i > start && /^## /.test(l))
+  const body = lines.slice(start + 1, end < 0 ? lines.length : end).join('\n')
+  return /windows[^\n]*\b(?:not (?:code-)?signed|unsigned)\b|\b(?:not (?:code-)?signed|unsigned)\b[^\n]*windows/i.test(body) ? null
+    : `the ${version} notes do not say the Windows installers are not signed (windows_authenticode: NOT_SIGNED); add the line`
+}
 // #endregion package-platform

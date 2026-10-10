@@ -53,4 +53,11 @@ export function pathAdditions(platform: NodeJS.Platform, env: Env, home: string)
   if (platform === 'linux') return ['/usr/local/bin', `${home}/.local/bin`, '/snap/bin', '/home/linuxbrew/.linuxbrew/bin']
   return ['/opt/homebrew/bin', '/usr/local/bin', `${home}/.local/bin`]
 }
+/** REQ-13: the ACL DEC-0033 asks of a token file Fabric writes on Windows — inheritance off, full control to the
+ *  user, SYSTEM (S-1-5-18) and Administrators (S-1-5-32-544), nobody else. Applied to the temporary file before it is
+ *  renamed into place, so the published file never has a wider ACL for a moment. */
+export function protectedAclInvocation(file: string, user: string): Invocation {
+  if (!user || /[:,()\s*]/.test(user)) throw new Error(`not a user name icacls can grant: ${JSON.stringify(user)}`)
+  return { file: 'icacls.exe', args: [file, '/inheritance:r', '/grant:r', `${user}:(F)`, '*S-1-5-18:(F)', '*S-1-5-32-544:(F)'] }
+}
 // #endregion platform-invocations

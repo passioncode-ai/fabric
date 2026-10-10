@@ -40,6 +40,12 @@ test('directories follow the contract: FABRIC_SERVICES_DIR / FABRIC_PROVIDERS_DI
   assert.equal(mac.providers, '/Users/example/Library/Application Support/ai.passioncode.fabric/providers')
   const linux = registryDirs({}, 'linux', '/home/example')
   assert.equal(linux.providers, '/home/example/.local/share/passioncode-fabric/providers')
+  // Windows (DEC-0032; 0.3.5, REQ-15): %LOCALAPPDATA%\passioncode-fabric, its own separators, `~\` expanded.
+  const win = registryDirs({ LOCALAPPDATA: 'C:\\Users\\example\\AppData\\Local' }, 'win32', 'C:\\Users\\example')
+  assert.equal(win.services, 'C:\\Users\\example\\AppData\\Local\\passioncode-fabric\\services')
+  assert.equal(win.providers, 'C:\\Users\\example\\AppData\\Local\\passioncode-fabric\\providers')
+  assert.equal(registryDirs({}, 'win32', 'C:\\Users\\example').root, 'C:\\Users\\example\\AppData\\Local\\passioncode-fabric')
+  assert.equal(registryDirs({ FABRIC_SERVICES_DIR: '~\\s' }, 'win32', 'C:\\Users\\example').services, 'C:\\Users\\example\\s')
   const over = registryDirs({ FABRIC_SERVICES_DIR: '~/s', FABRIC_PROVIDERS_DIR: '/p' }, 'darwin', '/Users/example')
   assert.deepEqual([over.services, over.providers], ['/Users/example/s', '/p'])
 })

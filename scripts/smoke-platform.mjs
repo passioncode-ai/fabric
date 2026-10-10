@@ -2,7 +2,7 @@
 // #region smoke-platform — docs: docs/evidence/plans/2026-10-10-windows-linux-port.md#req-table
 // Starts an installed Fabric in its SMOKE mode on a runner and reads what it says (0.3.5, CO-238, REQ-03):
 //
-//   node scripts/smoke-platform.mjs --exe <path> --expect ok|started [--timeout <seconds>] [--no-sandbox]
+//   node scripts/smoke-platform.mjs --exe <path> --expect ok|started [--timeout <seconds>] [--no-sandbox] [--receipt <file> --check <name>]
 //
 // SMOKE mode boots the whole app — stack, schema, identity, journal, agent surface — and prints `SMOKE OK …`,
 // or the classified startup failure `SMOKE FAILED (<cause>) …` and exits 1. `--expect ok` (a runner with Docker and
@@ -10,7 +10,7 @@
 // containers) passes when the app reached its own classified failure about the stack — never on a crash, a hang,
 // an unknown cause or no line at all. A throwaway user-data folder keeps the runner's profile out of it.
 import { spawn } from 'node:child_process'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { smokeVerdict } from './lib/smoke-platform.mjs'
@@ -36,6 +36,13 @@ child.on('exit', (code, signal) => {
   const verdict = smokeVerdict({ output: out, code, signal, expect })
   try { rmSync(profile, { recursive: true, force: true }) } catch { /* A Windows file still held by an exiting helper; the runner discards it. */ }
   console.log(`smoke-platform: ${verdict.pass ? 'PASS' : 'FAIL'} — ${verdict.why}`)
+  // The verdict goes into the package's receipt under `checks` (PL-10), so the release says what was started.
+  const receipt = opt('receipt'), check = opt('check')
+  if (receipt && check) {
+    const r = JSON.parse(readFileSync(receipt, 'utf8'))
+    r.checks = { ...(r.checks ?? {}), [check]: { pass: verdict.pass, why: verdict.why, expect } }
+    writeFileSync(receipt, JSON.stringify(r, null, 2) + '\n')
+  }
   process.exit(verdict.pass ? 0 : 1)
 })
 // #endregion smoke-platform

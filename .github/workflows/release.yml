@@ -1,6 +1,7 @@
-# The release: Fabric for macOS as one universal DMG (Apple silicon and Intel, from 0.3.4), signed with the organization's CI
+# The release (platforms.md PL-10): Fabric for macOS as one universal DMG (Apple silicon and Intel, from 0.3.4), signed with the organization's CI
 # Developer ID, notarized and stapled (the app and the DMG); then attested (Sigstore), summed and
-# GPG-signed, and published as a release of this repository. Signing happens only here, in the
+# GPG-signed, and published as a release of this repository. From 0.3.5 also Windows (NSIS, x64 and arm64) and Linux
+# (AppImage and .deb, x64 and arm64), each built on its own runner (jobs `windows`, `linux`; CO-238). Signing happens only here, in the
 # protected `release` environment: approved by a person from release-approvers, who may be whoever
 # pushed the tag; an agent never approves (passioncode-ai/.github release-signing/README.md, ADR-0111,
 # ADR-0113). A published release is never
@@ -103,8 +104,147 @@ jobs:
       - if: always()
         uses: passioncode-ai/.github/actions/apple-signing/cleanup@v1
 
+  windows:
+    # PL-10: x64 on windows-latest, arm64 on windows-11-arm, each built natively (node-pty's prebuild per arch).
+    # Signed through Azure Artifact Signing once this repository's release environment holds AZURE_SIGNING_ENABLED
+    # "true" and its OIDC identity (passioncode-ai/.github release-signing); until then the receipt and the notes say
+    # windows_authenticode: NOT_SIGNED.
+    needs: [preflight]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: windows-latest, arch: x64 }
+          - { runner: windows-11-arm, arch: arm64 }
+    runs-on: ${{ matrix.runner }}
+    environment: release
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        shell: bash
+    env:
+      SIGNING: ${{ vars.AZURE_SIGNING_ENABLED == 'true' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: The Node version the desktop toolchain is pinned to
+        id: pin
+        run: echo "node=$(node -p 'require("./toolchain.lock.json").node')" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ steps.pin.outputs.node }}
+          package-manager-cache: false   # no cache feeds a signing job
+      - run: pnpm install --frozen-lockfile
+      - if: env.SIGNING != 'true'
+        name: An unsigned Windows release says so in its notes (PL-10)
+        run: node -e "import('./scripts/lib/package-platform.mjs').then(m => { const v = require('./apps/desktop/package.json').version; const p = m.unsignedWindowsNoteProblem({ version: v, text: require('fs').readFileSync('CHANGELOG.md', 'utf8') }); if (p) { console.error(p); process.exit(1) } })"
+      - if: env.SIGNING == 'true'
+        uses: passioncode-ai/.github/actions/windows-signing/login@v1
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Build the installer (signed when the release environment signs)
+        env:
+          AZURE_SIGNING_ENDPOINT: ${{ env.SIGNING == 'true' && vars.AZURE_SIGNING_ENDPOINT || '' }}
+          AZURE_SIGNING_ACCOUNT: ${{ env.SIGNING == 'true' && vars.AZURE_SIGNING_ACCOUNT || '' }}
+          AZURE_SIGNING_PROFILE: ${{ env.SIGNING == 'true' && vars.AZURE_CERTIFICATE_PROFILE || '' }}
+          FABRIC_ANALYTICS_APP_KEY: ${{ secrets.FABRIC_ANALYTICS_APP_KEY }}
+        run: node scripts/package-platform.mjs --platform win32 --arch ${{ matrix.arch }}
+      - if: env.SIGNING == 'true'
+        uses: passioncode-ai/.github/actions/windows-signing/verify@v1
+        with:
+          files: apps/desktop/dist/Fabric-*-windows-*-setup.exe
+      - name: Install it for this user, start it, uninstall it
+        run: |
+          version=$(node -p 'require("./apps/desktop/package.json").version')
+          installer="apps/desktop/dist/Fabric-$version-windows-${{ matrix.arch }}-setup.exe"
+          timeout 600 "$installer" //S
+          exe=$(find "$LOCALAPPDATA/Programs" -maxdepth 2 -iname 'Fabric.exe' | head -1)
+          test -n "$exe" || { echo "Fabric.exe not found under $LOCALAPPDATA/Programs"; exit 1; }
+          node scripts/smoke-platform.mjs --exe "$exe" --expect started --timeout 300 \
+            --receipt "apps/desktop/dist/fabric-$version-windows-${{ matrix.arch }}.json" --check installed-start
+          "$(dirname "$exe")/Uninstall Fabric.exe" //S
+          for i in $(seq 1 120); do [ -e "$exe" ] || break; sleep 5; done
+          test ! -e "$exe" || { echo "still installed after 600 s"; exit 1; }
+      - name: Collect the release files
+        run: |
+          version=$(node -p 'require("./apps/desktop/package.json").version')
+          mkdir -p release
+          cp "apps/desktop/dist/Fabric-$version-windows-${{ matrix.arch }}-setup.exe" "apps/desktop/dist/fabric-$version-windows-${{ matrix.arch }}.json" release/
+          ls -l release
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-windows-${{ matrix.arch }}
+          path: release/*
+          if-no-files-found: error
+
+  linux:
+    # PL-10: x64 and arm64, each on its own runner (node-pty has no Linux prebuild and is built here); an AppImage and
+    # a .deb. Not code-signed; the published SHA256SUMS is GPG-signed and every file is attested.
+    needs: [preflight]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: ubuntu-24.04, arch: x64 }
+          - { runner: ubuntu-24.04-arm, arch: arm64 }
+    runs-on: ${{ matrix.runner }}
+    environment: release
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: The Node version the desktop toolchain is pinned to
+        id: pin
+        run: echo "node=$(node -p 'require("./toolchain.lock.json").node')" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ steps.pin.outputs.node }}
+          package-manager-cache: false
+      - name: What node-pty builds against, and what the start needs on the runner
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q build-essential python3 xvfb dbus-x11 libfuse2t64 desktop-file-utils \
+            libgtk-3-0 libnss3 libxss1 libasound2t64 libgbm1 rpm
+      - if: matrix.arch == 'arm64'
+        run: |
+          sudo gem install fpm -v 1.16.0 --no-document
+          echo "USE_SYSTEM_FPM=true" >> "$GITHUB_ENV"
+      - run: pnpm install --frozen-lockfile
+      - name: Build the AppImage and the .deb
+        env:
+          FABRIC_ANALYTICS_APP_KEY: ${{ secrets.FABRIC_ANALYTICS_APP_KEY }}
+        run: node scripts/package-platform.mjs --platform linux --arch ${{ matrix.arch }}
+      - name: Install the .deb and start it
+        run: |
+          version=$(node -p 'require("./apps/desktop/package.json").version')
+          sudo apt-get install -y -q "./apps/desktop/dist/Fabric-$version-linux-${{ matrix.arch }}.deb"
+          desktop-file-validate /usr/share/applications/passioncode-fabric.desktop
+          xvfb-run -a node scripts/smoke-platform.mjs --exe /usr/bin/passioncode-fabric --expect started --timeout 300 \
+            --receipt "apps/desktop/dist/fabric-$version-linux-${{ matrix.arch }}.json" --check installed-start
+      - name: Collect the release files
+        run: |
+          version=$(node -p 'require("./apps/desktop/package.json").version')
+          mkdir -p release
+          cp "apps/desktop/dist/Fabric-$version-linux-${{ matrix.arch }}.AppImage" "apps/desktop/dist/Fabric-$version-linux-${{ matrix.arch }}.deb" \
+            "apps/desktop/dist/fabric-$version-linux-${{ matrix.arch }}.json" release/
+          ls -l release
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-linux-${{ matrix.arch }}
+          path: release/*
+          if-no-files-found: error
+
   publish:
-    needs: [macos]
+    needs: [macos, windows, linux]
     permissions:
       contents: write
       id-token: write

@@ -1,7 +1,7 @@
 // The Windows and Linux packages' names, builder arguments and signing switch (0.3.5, CO-238, REQ-01, REQ-02).
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { artifactNames, builderArgs, parsePlatformArgs, signingOptions } from '../lib/package-platform.mjs'
+import { artifactNames, builderArgs, parsePlatformArgs, signingOptions, unsignedWindowsNoteProblem } from '../lib/package-platform.mjs'
 
 test('arguments: one platform and one architecture, nothing else', () => {
   assert.deepEqual(parsePlatformArgs(['--platform', 'win32', '--arch', 'arm64']), { platform: 'win32', arch: 'arm64' })
@@ -51,4 +51,12 @@ test('a smoke passes on SMOKE OK, or on the stack\'s own absence when only a sta
   assert.match(smokeVerdict({ output: 'SMOKE FAILED (unknown) — x', code: 1, expect: 'started' }).why, /not on the stack/)
   assert.match(smokeVerdict({ output: 'Segmentation fault', code: null, signal: 'SIGSEGV', expect: 'started' }).why, /crash or a hang/)
   assert.equal(smokeVerdict({ output: 'SMOKE OK', code: 1, expect: 'ok' }).pass, false, 'an OK line with a failing exit is not OK')
+})
+
+test('an unsigned Windows release says so in its own notes (PL-10)', () => {
+  const ok = '## 0.3.5\n\n- **Windows.** The installers are not signed yet: SmartScreen asks once.\n\n## 0.3.4\n'
+  assert.equal(unsignedWindowsNoteProblem({ version: '0.3.5', text: ok }), null)
+  assert.match(unsignedWindowsNoteProblem({ version: '0.3.5', text: '## 0.3.5\n\n- Windows support.\n\n## 0.3.4\nWindows installers are unsigned.\n' }) ?? '', /do not say/,
+    'a line in another version\'s section does not count')
+  assert.match(unsignedWindowsNoteProblem({ version: '0.3.5', text: '## 0.3.4\n' }) ?? '', /no "## 0.3.5"/)
 })

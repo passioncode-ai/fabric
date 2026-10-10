@@ -45,9 +45,13 @@ const files = artifactNames({ ...args, version }).map((name) => {
   return { name, sha256: createHash('sha256').update(readFileSync(file)).digest('hex') }
 })
 const os = args.platform === 'win32' ? 'windows' : 'linux'
+// The keys every PassionCode product's platform receipt carries (platforms.md PL-10).
+const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim()
 const receipt = {
-  schema: 'fabric-platform-package/1', version, platform: args.platform, arch: args.arch, files,
-  windows_authenticode: args.platform === 'win32' ? (signing ? 'SIGNED (Azure Artifact Signing)' : 'NOT_SIGNED') : undefined,
+  version, commit, platform: args.platform, arch: args.arch, files,
+  macos_notarization: 'NOT_APPLICABLE',
+  windows_authenticode: args.platform === 'win32' ? (signing ? 'SIGNED (Azure Artifact Signing)' : 'NOT_SIGNED') : 'NOT_APPLICABLE',
+  checks: {},
   built_at: new Date().toISOString()
 }
 const out = path.join(DESKTOP, 'dist', `fabric-${version}-${os}-${args.arch}.json`)

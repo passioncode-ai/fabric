@@ -1,6 +1,6 @@
 // What Fabric runs, per OS, where a POSIX tool used to be assumed (0.3.5, CO-238, REQ-08…REQ-11).
 import assert from 'node:assert/strict'
-import { defaultShell, whichInvocation, quitReaperInvocation, processTreeStopInvocation, pathAdditions } from '../src/main/platform.ts'
+import { defaultShell, whichInvocation, quitReaperInvocation, processTreeStopInvocation, pathAdditions, protectedAclInvocation } from '../src/main/platform.ts'
 
 // REQ-08: the OS's own shell.
 assert.equal(defaultShell('darwin', { SHELL: '/bin/bash' }), '/bin/bash')
@@ -44,5 +44,14 @@ assert.deepEqual(pathAdditions('win32', { LOCALAPPDATA: 'C:\\Users\\a\\AppData\\
   'C:\\Program Files\\Docker\\Docker\\resources\\bin'
 ], 'Claude Code native, npm globals, scoop (supabase), winget links, Docker Desktop')
 assert.deepEqual(pathAdditions('win32', {}, 'C:\\Users\\a').slice(-1), ['C:\\Program Files\\Docker\\Docker\\resources\\bin'], 'defaults when the variables are absent')
+
+// REQ-13: a token file Fabric writes on Windows carries DEC-0033's ACL — protected (no inheritance), granting the user,
+// SYSTEM and Administrators only, by SID where a SID is fixed.
+assert.deepEqual(protectedAclInvocation('C:\\Users\\a\\AppData\\Local\\passioncode-fabric\\hub-door-token.tmp', 'alice'), {
+  file: 'icacls.exe',
+  args: ['C:\\Users\\a\\AppData\\Local\\passioncode-fabric\\hub-door-token.tmp', '/inheritance:r', '/grant:r', 'alice:(F)', '*S-1-5-18:(F)', '*S-1-5-32-544:(F)']
+})
+assert.throws(() => protectedAclInvocation('x', ''), /user/)
+assert.throws(() => protectedAclInvocation('x', 'a:b'), /user/, 'a name that would be read as another grant')
 
 console.log('platform: all green')
