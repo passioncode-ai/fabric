@@ -104,7 +104,7 @@ describe('why the app would not start', () => {
       ' — the repair for a database only the old seed touched did not apply: the estate has history after its creation'
     const f = classifyStartupFailure(new Error(said))
     expect(f.cause).toBe('identity-refused')
-    expect(f.title).toBe('Fabric does not have access to the Estate it opened.')
+    expect(f.title).toBe('Fabric does not have access to the Estate it was opening.')
     expect(f.detail).toContain('the estate has history after its creation')
     expect(classifyStartupFailure({ message: 'the identity of this build could not be established' }).cause).not.toBe('identity-refused')
     // A read that failed is not a refusal: before 0.3.4 a dead database here said "database unreachable", and it

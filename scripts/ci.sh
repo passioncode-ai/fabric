@@ -55,7 +55,7 @@ pnpm gates:docs
 # Code region markers resolve to documentation (REQ-20; AGENTS.md "Code region markers").
 node --test scripts/test/check-regions.test.mjs
 # The universal macOS pack (0.3.4): node-pty joined with lipo, and no thin or unreadable Mach-O passes; it skips
-# where lipo is missing (0.3.4 verification, iteration 1, DO-9).
+# off macOS (0.3.4 verification, iteration 1, DO-9).
 node --test scripts/test/universal-mac.test.mjs
 node scripts/check-regions.mjs
 
@@ -362,7 +362,7 @@ for runner in run-estate-identity-db run-read-schema-db run-function-privileges-
   set -e
   if [ "$code" = "2" ] && [ "$TIER" = "full" ]; then
     # The full tier passes through this step too, and its own owned-cluster loop does not repeat
-    # these three: NOT_RUN fails there, as it does for every other runner in that tier.
+    # these five: NOT_RUN fails there, as it does for every other runner in that tier.
     owned_fast_failed+=("$runner (NOT_RUN: no PostgreSQL binaries, FABRIC_PG_BIN)")
   elif [ "$code" = "2" ]; then
     printf 'NOT_RUN %s: no PostgreSQL binaries (FABRIC_PG_BIN)\n' "$runner"

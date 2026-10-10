@@ -12,7 +12,9 @@ the local packaging config; `pnpm --dir apps/desktop package` keeps building the
 ## What the installed app needs
 
 - **macOS on Apple silicon or Intel.** From 0.3.4 the build is universal (`arm64` and `x86_64`; up to 0.3.3, `arm64`
-  only). On Intel the app's main process runs on a measured runtime (Electron 44.0.0 darwin-x64) and the coding-agent
+  only). Electron 44.0.0's npm darwin-x64 build was measured under Rosetta and admitted as a runtime; the packaged app's
+  framework is joined and re-signed, so neither architecture of the shipped app matches a measured tuple, as the arm64
+  one never did (N1; nothing in the app reads the tuple yet). The coding-agent
   sign-in readers know the x64 builds of Claude Code 2.1.289 and Codex 0.160.0 (those exact builds; any other build
   is reported as unverified)
   ([receipt](harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09)). Windows and Linux are not supported yet (CO-238).

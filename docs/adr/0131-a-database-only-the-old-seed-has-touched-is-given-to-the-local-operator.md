@@ -36,7 +36,7 @@ could reach such an estate while the start was failing (iteration 1, DA-1, measu
    when the estate is the default one, it exists, and the identity read answers `not_a_member`. All of these must
    hold, read from the database: the journal begins with `estate.created@1` by the actor `system/seed`, which named
    no owner; every later event is an `access.requested@1` by the hub's own actor `system/fabric-hub` (a request
-   grants nothing; any decision on it is somebody's), within `EVENT_READ_LIMIT` (1000) events in all; the operator is not a
+   grants nothing; any decision on it is somebody's), within `EVENT_READ_LIMIT` (999) events in all — so the read of one more stays within the API's `max_rows`; the operator is not a
    member; every member is the old seed's person `…0002`; and no membership command is on record for the estate (a
    grant or a revoke through the door is a decision). Then, and only then, the operator is granted `owner` through
    the membership door (`change_membership`, compare-and-set at revision 0, `changed_by`

@@ -54,3 +54,11 @@ The operator set 0.3.3's scope on 2026-10-08 (decision D4 of the
 four onboarding actions, without this record. The target release becomes **the release after 0.3.3**, and the
 copies that need one manual update are those up to and including **0.3.3**. Found by the 0.3.3 verification,
 iteration 1 (PL-5).
+
+### Amendment 2 — 2026-10-10: the target moves after 0.3.4
+
+The release after 0.3.3 is 0.3.4, and the operator made it the fresh-install fix
+([ADR-0131](0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md), CO-241) together
+with universal macOS (fabric#27), without this record. The target release becomes **the release after 0.3.4**, its
+order with 0.3.5 (the Windows/Linux port, CO-238) not decided, and the copies that need one manual update are those
+up to and including **0.3.4**. Found by the 0.3.4 verification, iteration 3 (PL-1).

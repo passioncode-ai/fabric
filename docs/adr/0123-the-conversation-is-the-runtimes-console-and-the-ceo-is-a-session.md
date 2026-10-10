@@ -58,3 +58,10 @@ Retiring `CeoChat` (P-13) was not in it, so "the release after 0.3.2" becomes **
 applies this decision to the new agent actions — they run in the coding agent's console — and still ships the CEO
 chat, reached from «Discuss with Fabric ↗» on the launch screens as the prototype draws it. Found by the 0.3.3
 verification, iteration 1 (PL-1): the plan still dated the retirement to 0.3.3.
+
+### Amendment 2 — 2026-10-10: the retirement moves after 0.3.4
+
+The release after 0.3.3 is 0.3.4, the fresh-install fix with universal macOS (the operator's call, 2026-10-10;
+[ADR-0131](0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md)). Retiring `CeoChat`
+(P-13) is not in it, so the retirement becomes **the release after 0.3.4**, its order with 0.3.5 (Windows and Linux,
+CO-238) not decided; 0.3.4 ships the CEO chat unchanged. Found by the 0.3.4 verification, iteration 3 (PL-1).

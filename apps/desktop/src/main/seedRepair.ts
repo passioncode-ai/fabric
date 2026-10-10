@@ -24,10 +24,12 @@ export const LEGACY_SEED_PERSON = '00000000-0000-0000-0000-000000000002'
 
 /**
  * How many journal events in all, the creation included, an untouched estate may hold; one more is read so that a
- * longer journal is seen, and refused rather than called untouched. 1000 (0.3.4 i2 DA-1): a 0.3.1–0.3.3 error dialog
- * left open with the hub behind it could gather dozens of unanswered agent requests, and 50 refused such a database.
+ * longer journal is seen, and refused rather than called untouched. 999, so that read (1000 rows) stays within the
+ * API's `max_rows` (supabase/config.toml), which would otherwise hide the event past the limit (0.3.4 i3 DA-1, ER-1;
+ * held by seed-repair.test.mjs). A 0.3.1–0.3.3 error dialog left open with the hub behind it could gather dozens of
+ * unanswered agent requests, and the first limit, 50, refused such a database (i2 DA-1).
  */
-export const EVENT_READ_LIMIT = 1000
+export const EVENT_READ_LIMIT = 999
 
 /**
  * The one event a failed start could write without anybody acting: 0.3.1–0.3.3 opened the agent hub before

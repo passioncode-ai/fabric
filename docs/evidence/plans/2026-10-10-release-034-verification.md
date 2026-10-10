@@ -43,7 +43,7 @@ the 2026-10-08 reset for a fresh onboarding. A disposable stack built the way a 
 passioncode.ai offers v0.3.3 (`/fabric/download/macos` → `v0.3.3/Fabric-0.3.3-arm64.dmg`, read 2026-10-10), and every
 published Fabric since 0.2.0 stops on a new Mac (CO-241), so there is no earlier release the site's `hold` could fall
 back to. No interim change is made: taking the download down is the operator's decision, not this run's, and 0.3.4
-is the remedy, published as soon as its gate clears (iteration 2, PL-2). The operator is told so in the run's report.
+is the remedy, published as soon as its gate clears (iteration 2, PL-2). The operator is told so in the run's report. Its home is CO-243.
 
 ## Release close
 
@@ -51,7 +51,9 @@ What 0.3.4's release has to do besides the gate. Each line is checked off with i
 
 1. The release commit: `apps/desktop/package.json` 0.3.4 (nothing else in that file), `## 0.3.4` finalized in
    `CHANGELOG.md`, `docs/launch/release-gate.json` (version, this ledger, `verifiedCommit` = the iteration-3
-   candidate, three receipt groups), a new top entry in `docs/reports/map.html` and the `docs/MERGES.md` entry;
+   candidate, three receipt groups), the fifteen receipts `docs/evidence/reviews/0.3.4/iteration-N/<level>.json`, and
+   each iteration section ending in its one `Exit for iteration N: … Blocking findings open: none.` line (the gate
+   refuses either missing; iteration 3, ER-2, DO-2, PL-4), a new top entry in `docs/reports/map.html` and the `docs/MERGES.md` entry;
    landed on `main` by fast-forward after `bash scripts/ci.sh fast`.
 2. The tag `v0.3.4`; the release run's two protected approvals (macOS build, publish), each given to the operator as
    a direct link once it waits.
@@ -73,14 +75,18 @@ What 0.3.4's release has to do besides the gate. Each line is checked off with i
 5. The knowledge base after publication: the roadmap's released column for Fabric, `products.md` and `plans.md`
    Now in fabric-workspace; this repository's own statements of the released version and platform, which still
    name 0.2.0 on Apple silicon (`docs/brand/facts.md` "current implementation status",
-   `docs/guides/passioncode-overview.md` and `.ru.md`; iteration 1, PL-7); then the close commit marking P-15 done,
+   `docs/guides/passioncode-overview.md` and `.ru.md`, the family section of `docs/reports/map.html`; iteration 1,
+   PL-7; iteration 3, DO-5); in fabric-workspace also `products.md`'s Fabric release and the roadmap's RM-19 and LC-16
+   rows, which still date self-update after 0.3.3 (iteration 3, PL-2), and ADR-0121/ADR-0123 here (their amendments 2); then the close commit marking P-15 done,
    with its handoff.
 6. Intel: no Intel Mac is on hand, so the packaged universal app is not run on Intel hardware before the release;
    the notes say so (the Intel runtime measured under Rosetta on Apple silicon, the app not yet run on an Intel Mac), and a first Intel run is recorded
    here when one is available (iteration 1, PL-11).
 7. The runbook's step 7 smoke (`chat-activation-native.test.mjs` with `FABRIC_APP_EXECUTABLE`) launches the
    installed app itself, which this machine's lifecycle rule forbids: item 3's broker start on the operator's database
-   stands in for it, and the ledger says so rather than skipping it silently (iteration 2, PL-9).
+   stands in for it, and the ledger says so rather than skipping it silently (iteration 2, PL-9). It covers the start,
+   the window and the repair; it does not cover step 7's chat — a message saved and read back after a cold restart —
+   which goes undone in this release (iteration 3, PL-8).
 
 ## Iteration 1
 
@@ -123,6 +129,8 @@ the fix reverted in place and seen failing, then restored. Two reviewers could n
 | V1-24 | DO-11 | Two documented commands did not run as written | fixed: `node scripts/test-stack.mjs up <dir>` in the ADR and the ledger; the test comment says to run from `apps/desktop` |
 | V1-25 | DO-12 | "The sign-in readers know the x64 builds" read as any version | fixed: the runbook says those exact builds, any other reported as unverified (the CHANGELOG no longer states versions) |
 
+Exit for iteration 1: every finding above is fixed, ruled with a register id or not a defect in the iteration-2 candidate `a0ab055c`. Blocking findings open: none.
+
 ## Iteration 2
 
 Five fresh reviewers, 2026-10-10, against `a0ab055c` (`a0ab055c4483b9f4589e68e3a9d876af8ff08e37`), read-only in a detached
@@ -148,12 +156,39 @@ for its level; the partial ones are rows here (V2-3, V2-4, V2-7, V2-8, V2-14).
 | V2-12 | DO-10 | "Measured on Apple silicon, natively and under Rosetta" had no tracked receipt for the universal app | fixed: the notes claim only what `checks.md` measured — the Intel runtime under Rosetta — with its link, and that the app has not yet run on an Intel Mac |
 | V2-13 | DO-11 | The `measured-runtimes` anchor resolved only under the gate's slugger | fixed: an explicit `id="intel-x86_64-runtimes--2026-10-09"` before the heading, the GitHub slug; the region cites it |
 | V2-14 | DO-12, PL-5 | The ADR index credited the repair rule to the operator | fixed: "this run's design, held by the 0.3.4 iterations; the operator decided the release" |
-| V2-15 | PL-2 | passioncode.ai hands new users 0.3.3, and no decision was recorded | ruled: the ledger's *The website meanwhile* — every release since 0.2.0 has the defect, so no `hold` helps; taking the download down is the operator's call, told in the run's report; 0.3.4 is the remedy |
+| V2-15 | PL-2 | passioncode.ai hands new users 0.3.3, and no decision was recorded | ruled CO-243: the ledger's *The website meanwhile* — every release since 0.2.0 has the defect, so no `hold` helps; taking the download down is the operator's call, told in the run's report; 0.3.4 is the remedy |
 | V2-16 | PL-3 | Nothing would mark P-14 done | fixed: P-14 "done — released 2026-10-09", out of lane 1 |
 | V2-17 | PL-4 | P-12's "copies ≤ 0.3.3" and CO-221's "after 0.3.3" stood | fixed: both re-dated to 0.3.4 |
 | V2-18 | PL-7 | The 0.3.3 ledger recorded an REQ-08 acceptance that was inferred | fixed: the dated state section says no explicit answer was given and the reading stays the operator's to reject |
 | V2-19 | PL-8 | The knowledge base said 0.3.2 is current and 0.3.3 next | fixed: fabric-workspace [PR #92](https://github.com/passioncode-ai/fabric-workspace/pull/92), merged `8639492c` — roadmap and plans name 0.3.3 released and 0.3.4 in verification (`npm test` 66 pass) |
 
+Exit for iteration 2: every finding above is fixed, ruled with a register id or not a defect in the iteration-3 candidate `06c5234c`. Blocking findings open: none.
+
 ## Iteration 3
 
-Not yet run.
+Five fresh reviewers, 2026-10-10, against `06c5234c` (`06c5234c65d3f4cbdbf5f2a6c50740a9c556d6b3`), read-only in a detached
+checkout with dependencies installed. Reports: [UX](../reviews/0.3.4/iteration-3/2026-10-10-ux.md) (0 blocking + 2),
+[errors](../reviews/0.3.4/iteration-3/2026-10-10-errors.md) (0 + 3), [docs](../reviews/0.3.4/iteration-3/2026-10-10-docs.md)
+(0 + 6), [data](../reviews/0.3.4/iteration-3/2026-10-10-data.md) (0 + 2), [plan](../reviews/0.3.4/iteration-3/2026-10-10-plan.md)
+(0 + 8). 21 findings, none blocking. `bash scripts/ci.sh full` exited 0 at `06c5234c` (disposable stack, the live one
+not addressed). The fixes below (V3-1…V3-3 in code) make the final candidate, which the reviewers recheck before the
+release commit.
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V3-1 | DA-1, ER-1 | The read of `EVENT_READ_LIMIT + 1` (1001) rows passed the API's `max_rows` (1000): a used estate behind 999 hub requests was granted on a disposable stack | fixed: `EVENT_READ_LIMIT` 999; `seed-repair.test.mjs` reads `max_rows` from `supabase/config.toml` and refuses a limit whose read exceeds it (watched: with 1000 it fails, "reads 1001 rows, more than the API returns (1000)"); ADR-0131 §2 says why |
+| V3-2 | UX-1 | The refusal's title said "the Estate it opened" | fixed: "the Estate it was opening" / «которое он открывал» (en, ru, classifier, `strings.md`) |
+| V3-3 | UX-2 | When a read failed, the remedy sent the person to report rather than retry | fixed: "If they say something could not be read, retry first" (en, ru, classifier); the refusal is retryable since V2-3. The restored-Estate case the reviewer noted is unreachable today (no restore path opens a non-default estate at startup): not a defect |
+| V3-4 | DO-1, ER-3 | The runbook said the shipped app runs on a measured runtime on Intel | fixed: the npm darwin-x64 build was measured under Rosetta and admitted; the packaged framework is joined and re-signed, so neither architecture of the shipped app matches a tuple, as arm64 never did (N1); nothing in the app reads it yet |
+| V3-5 | DO-2, ER-2, PL-4 | Iterations 1 and 2 had no exit lines and no receipts existed: the gate would refuse the ledger | fixed: the two exit lines; *Release close* item 1 names the fifteen receipts and the exit lines, written in the release commit |
+| V3-6 | DO-3, PL-5 | P-15 gave the old range and only iteration 1 closed; lane 2 did not name 0.3.3 | fixed: "only the old seed (0.2.0, 0.3.0–0.3.3)", iterations 1–2 closed and 3 at its final candidate; lane 2 names P-14's 0.3.3 release |
+| V3-7 | DO-4 | The pinned workspace snapshot predates fabric-workspace #92, so a checkout's roadmap still says 0.3.2 | ruled: the publication after the tag (*Release close* item 4) pins a snapshot that carries #92; V2-19 holds on fabric-workspace `main` |
+| V3-8 | DO-5 | *Release close* item 5 left out the family section of `docs/reports/map.html` | fixed: item 5 names it |
+| V3-9 | DO-6 | Two `ci.sh` comments were wrong | fixed: "it skips off macOS", "these five" |
+| V3-10 | DA-2 | `rehearse-upgrade --make-fixture` seeds with the current seed, so it no longer reproduces CO-241 | fixed: the script's header says the fixture rehearses the upgrade's counts with this checkout's seed and that CO-241 is `first-install-db.test.mjs`'s; the upgrade-then-repair path was measured by iteration 3's UX and data reviewers on their own databases |
+| V3-11 | PL-1 | ADR-0121 and ADR-0123 still placed their targets after 0.3.3 | fixed: amendments 2 to both (after 0.3.4, order with 0.3.5 undecided; copies ≤ 0.3.4); ADR index rows |
+| V3-12 | PL-2 | The knowledge base's RM-19/LC-16 rows and `products.md` still date self-update after 0.3.3 and name 0.3.2 | fixed in *Release close* item 5 by name (the knowledge base is updated after publication) |
+| V3-13 | PL-3 | The website's interim state had no register id | ruled CO-243: a known-issue line, a site notice or nothing until 0.3.4 is the operator's call; closed by item 4's redirect receipt |
+| V3-14 | PL-6 | CO-238 did not carry "the port is 0.3.5" | fixed: CO-238's latest-decision cell says it |
+| V3-15 | PL-7 | fabric#26 (analytics build mode) sat in no register | fixed: P-15 names it as out of 0.3.4's scope, left to its own PR |
+| V3-16 | PL-8 | Item 7 did not say which of step 7's checks go undone | fixed: item 3 covers the start, the window and the repair; the chat's save and its cold-restart read-back go undone in this release |

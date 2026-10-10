@@ -714,5 +714,5 @@ is in the details, which keep the English a report is read in. Written through `
 
 | Key | Text (primary) | Location | Scenario | Status |
 |---|---|---|---|---|
-| `startup.identity-refused.title` | Fabric does not have access to the Estate it opened | apps/desktop/src/renderer/src/i18n/en.ts | SCN-095 | proposed |
-| `startup.identity-refused.remedy` | Fabric runs as the owner of your Estate, and this database does not name that owner. Fabric never makes itself the owner of an Estate, except an untouched one it set up itself; the details below say what it read. Copy them and report them at https://github.com/passioncode-ai/Fabric/issues. Fabric has changed nothing in the Estate. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-095 | proposed |
+| `startup.identity-refused.title` | Fabric does not have access to the Estate it was opening | apps/desktop/src/renderer/src/i18n/en.ts | SCN-095 | proposed |
+| `startup.identity-refused.remedy` | Fabric runs as the owner of your Estate, and this database does not name that owner. Fabric never makes itself the owner of an Estate, except an untouched one it set up itself; the details below say what it read. If they say something could not be read, retry first; otherwise copy them and report them at https://github.com/passioncode-ai/Fabric/issues. Fabric has changed nothing in the Estate. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-095 | proposed |

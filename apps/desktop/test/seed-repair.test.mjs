@@ -121,4 +121,14 @@ assert.deepEqual(await run(fakeDb({ receipt: { status: 'conflict', says: 'this m
   assert.ok(src.indexOf('gate = await identity.establish()', repairAt) > repairAt, 'identity is read again after any repair attempt (ER-4)')
   assert.match(src.slice(refusalAt, refusalAt + 300), /seedRepairWhy/, 'a refusal says why the repair did not apply')
 }
+// The read must be able to see one event past the limit: PostgREST answers at most `max_rows` rows, so a limit
+// at or above it hides the very event that makes a journal "too long" (0.3.4 i3 DA-1, ER-1: with 1000, a used
+// estate behind 999 hub requests was granted on a disposable stack).
+{
+  const { readFileSync } = await import('node:fs')
+  const toml = readFileSync(new URL('../../../supabase/config.toml', import.meta.url), 'utf8')
+  const maxRows = Number(/^max_rows\s*=\s*(\d+)/m.exec(toml)?.[1])
+  assert.ok(Number.isInteger(maxRows), 'supabase/config.toml names max_rows')
+  assert.ok(EVENT_READ_LIMIT + 1 <= maxRows, `the repair reads ${EVENT_READ_LIMIT + 1} rows, more than the API returns (${maxRows})`)
+}
 console.log('seed-repair: all green')
