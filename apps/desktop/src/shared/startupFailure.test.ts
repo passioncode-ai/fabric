@@ -216,7 +216,7 @@ import { ru as ruRegistry } from '../renderer/src/i18n/ru.ts'
 
 describe('every startup cause has its words in both registries', () => {
   // A Record over the union, so a cause added to StartupCause without words fails to COMPILE here first.
-  const every: Record<StartupCause, true> = { 'supabase-cli-missing': true, 'stack-start-timed-out': true, 'stack-would-not-start': true, 'stack-up-but-silent': true, 'repository-not-found': true, 'schema-missing': true, 'schema-not-ready': true, 'active-estate-unreadable': true, 'database-unreachable': true, unknown: true }
+  const every: Record<StartupCause, true> = { 'supabase-cli-missing': true, 'stack-start-timed-out': true, 'stack-would-not-start': true, 'stack-up-but-silent': true, 'repository-not-found': true, 'schema-missing': true, 'schema-not-ready': true, 'active-estate-unreadable': true, 'identity-refused': true, 'database-unreachable': true, unknown: true }
   for (const cause of Object.keys(every))
     it(cause, () => {
       for (const part of ['title', 'remedy'])
