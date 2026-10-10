@@ -18,6 +18,7 @@
  *  - a hard deadline ends the process if shutdown or Electron's own teardown stalls.
  */
 import { spawn } from 'node:child_process'
+import { quitReaperInvocation } from './platform.ts'
 
 export interface QuitApp {
   quit(): void
@@ -63,7 +64,8 @@ export const QUIT_REAPER_MS = 15_000
 // the reaper existed, so nothing outside the process could end it.
 export function spawnQuitReaper(afterMs: number): void {
   const seconds = Math.ceil(afterMs / 1000)
-  spawn('/bin/sh', ['-c', `sleep ${seconds}; kill -9 ${process.pid} 2>/dev/null`], { detached: true, stdio: 'ignore' }).unref()
+  const how = quitReaperInvocation(process.platform, process.pid, seconds)
+  spawn(how.file, how.args, { detached: true, stdio: 'ignore', windowsHide: true }).unref()
 }
 
 export interface QuitCoordinator {

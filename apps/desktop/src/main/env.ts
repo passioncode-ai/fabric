@@ -13,6 +13,8 @@ import { materializeStack } from './bundledStack'
 import { widenProbePath } from './executorDetect.ts'
 import { app } from 'electron'
 import { STACK_EXCLUDED_SERVICES } from './stackServices.ts'
+import { homedir } from 'node:os'
+import { pathAdditions } from './platform.ts'
 
 export interface SupabaseEnv {
   url: string
@@ -26,10 +28,11 @@ export interface SupabaseEnv {
 // Asynchronous since iteration 3: the folder probes are bounded filesystem calls (errors finding 8).
 // #region fix-path — docs: docs/adr/0100-first-run-and-start-paths.md#first-run
 export async function fixPath(): Promise<void> {
-  const extra = ['/opt/homebrew/bin', '/usr/local/bin', `${process.env.HOME}/.local/bin`]
-  const parts = (process.env.PATH ?? '').split(':')
+  // Per OS (0.3.5, REQ-05): Windows joins with ';' and keeps its own installer folders.
+  const extra = pathAdditions(process.platform, process.env, homedir())
+  const parts = (process.env.PATH ?? '').split(path.delimiter).filter(Boolean)
   for (const p of extra) if (!parts.includes(p)) parts.push(p)
-  process.env.PATH = await widenProbePath(parts.join(':'), process.env)
+  process.env.PATH = await widenProbePath(parts.join(path.delimiter), process.env)
 }
 // #endregion fix-path
 

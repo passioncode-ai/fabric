@@ -1,0 +1,165 @@
+# Fabric on Windows and Linux (0.3.5, CO-238; platforms.md PL-08): every package is built on its own native runner,
+# installed, and started in SMOKE mode — nightly at 23:00 Warsaw, or by hand:
+#   gh workflow run platforms.yml --ref <branch>
+# Nothing here signs or publishes (the release does, in its protected environment); the unsigned packages are kept
+# as workflow artifacts for 7 days, so a person can try them on a real machine.
+name: platforms
+
+on:
+  schedule:
+    - cron: '30 21 * * *'   # 23:30 Warsaw in summer time
+    - cron: '30 22 * * *'   # 23:30 Warsaw in winter time
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: platforms-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  clock:
+    # Two crons cover both offsets of Europe/Warsaw; only the one that lands on 23:xx local runs the batch.
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      run: ${{ steps.hour.outputs.run }}
+    steps:
+      - id: hour
+        run: |
+          h=$(TZ=Europe/Warsaw date +%H)
+          if [ "$h" = 23 ]; then echo "run=true" >> "$GITHUB_OUTPUT"; else echo "not 23:xx in Warsaw ($h); skipping"; echo "run=false" >> "$GITHUB_OUTPUT"; fi
+
+  windows:
+    needs: clock
+    if: ${{ !cancelled() && (github.event_name != 'schedule' || needs.clock.outputs.run == 'true') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: windows-latest, arch: x64 }
+          - { runner: windows-11-arm, arch: arm64 }
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 75
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0   # the build manifest names the commit
+      - name: The Node version the desktop toolchain is pinned to
+        id: pin
+        run: echo "node=$(node -p 'require("./toolchain.lock.json").node')" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ steps.pin.outputs.node }}
+          package-manager-cache: false
+      - run: pnpm install --frozen-lockfile
+      - name: What runs per OS, and the package's names
+        run: |
+          node --experimental-strip-types apps/desktop/test/platform.test.mjs
+          node --test scripts/test/package-platform.test.mjs
+      - name: Build the installer
+        run: node scripts/package-platform.mjs --platform win32 --arch ${{ matrix.arch }}
+      - name: Install it for this user, silently
+        run: |
+          version=$(node -p 'require("./apps/desktop/package.json").version')
+          installer="apps/desktop/dist/Fabric-$version-windows-${{ matrix.arch }}-setup.exe"
+          timeout 600 "$installer" //S
+          # Per-user NSIS installs to %LOCALAPPDATA%\Programs\<package name>; find it rather than assume it.
+          exe=$(find "$LOCALAPPDATA/Programs" -maxdepth 2 -iname 'Fabric.exe' | head -1)
+          test -n "$exe" || { echo "Fabric.exe not found under $LOCALAPPDATA/Programs"; ls "$LOCALAPPDATA/Programs"; exit 1; }
+          echo "FABRIC_EXE=$exe" >> "$GITHUB_ENV"
+      - name: Start it (a Windows runner has no Docker for Linux containers, so the stack's absence is the expected end)
+        run: node scripts/smoke-platform.mjs --exe "$FABRIC_EXE" --expect started --timeout 300
+      - name: Uninstall it, and wait for the copied uninstaller to finish
+        run: |
+          dir=$(dirname "$FABRIC_EXE")
+          "$dir/Uninstall Fabric.exe" //S
+          for i in $(seq 1 120); do [ -e "$FABRIC_EXE" ] || exit 0; sleep 5; done
+          echo "still installed after 600 s"; exit 1
+      - if: failure()
+        shell: pwsh
+        run: Get-MpThreatDetection | Format-List | Out-String -Width 200
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fabric-windows-${{ matrix.arch }}
+          path: |
+            apps/desktop/dist/Fabric-*-windows-*-setup.exe
+            apps/desktop/dist/fabric-*-windows-*.json
+          retention-days: 7
+          if-no-files-found: error
+
+  linux:
+    needs: clock
+    if: ${{ !cancelled() && (github.event_name != 'schedule' || needs.clock.outputs.run == 'true') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: ubuntu-24.04, arch: x64, expect: ok }
+          - { runner: ubuntu-24.04-arm, arch: arm64, expect: started }
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: The Node version the desktop toolchain is pinned to
+        id: pin
+        run: echo "node=$(node -p 'require("./toolchain.lock.json").node')" >> "$GITHUB_OUTPUT"
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ steps.pin.outputs.node }}
+          package-manager-cache: false
+      - name: What node-pty builds against, and what Electron and the AppImage need on the runner
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q build-essential python3 xvfb dbus-x11 libfuse2t64 desktop-file-utils \
+            libgtk-3-0 libnss3 libxss1 libasound2t64 libgbm1 rpm
+      - if: matrix.arch == 'arm64'
+        # electron-builder's bundled fpm is x86-64 (platforms.md, lessons; Fabric Dashboards FD-37).
+        run: |
+          sudo gem install fpm -v 1.16.0 --no-document
+          echo "USE_SYSTEM_FPM=true" >> "$GITHUB_ENV"
+      - run: pnpm install --frozen-lockfile   # node-pty has no Linux prebuild: this builds pty.node here
+      - name: What runs per OS, and the package's names
+        run: |
+          node --experimental-strip-types apps/desktop/test/platform.test.mjs
+          node --test scripts/test/package-platform.test.mjs
+      - name: Build the AppImage and the .deb
+        run: node scripts/package-platform.mjs --platform linux --arch ${{ matrix.arch }}
+      - name: Install the .deb
+        run: |
+          version=$(node -p 'require("./apps/desktop/package.json").version')
+          sudo apt-get install -y -q "./apps/desktop/dist/Fabric-$version-linux-${{ matrix.arch }}.deb"
+          namei -l /usr/bin/passioncode-fabric
+          desktop-file-validate /usr/share/applications/passioncode-fabric.desktop
+      - if: matrix.expect == 'ok'
+        name: The Supabase CLI the bundled stack starts with (Docker is on the runner)
+        run: |
+          curl -fsSL -o supabase.deb "https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.deb"
+          sudo apt-get install -y -q ./supabase.deb
+          supabase --version
+      - name: Start the installed app
+        run: xvfb-run -a node scripts/smoke-platform.mjs --exe /usr/bin/passioncode-fabric --expect ${{ matrix.expect }} --timeout 900
+      - name: Start the AppImage (its sandbox helper cannot be setuid inside an AppImage)
+        run: |
+          version=$(node -p 'require("./apps/desktop/package.json").version')
+          img="apps/desktop/dist/Fabric-$version-linux-${{ matrix.arch }}.AppImage"
+          chmod +x "$img"
+          xvfb-run -a node scripts/smoke-platform.mjs --exe "$img" --expect started --timeout 300 --no-sandbox
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fabric-linux-${{ matrix.arch }}
+          path: |
+            apps/desktop/dist/Fabric-*-linux-*.AppImage
+            apps/desktop/dist/Fabric-*-linux-*.deb
+            apps/desktop/dist/fabric-*-linux-*.json
+          retention-days: 7
+          if-no-files-found: error

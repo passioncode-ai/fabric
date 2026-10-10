@@ -5,9 +5,9 @@ directories:
 files:
   - out/**
   - package.json
-  # Only macOS's node-pty prebuilds ship in the Mac app (after-pack-universal.mjs checks it).
-  - "!**/node_modules/node-pty/prebuilds/win32-*/**"
-  - "!**/node_modules/node-pty/prebuilds/linux-*/**"
+# Each OS ships only its own node-pty native code (0.3.5, CO-238): the `files` of `mac`, `win` and `linux`
+# below are added to these. node-pty ships prebuilds for darwin and win32 only; on Linux `pnpm install` builds
+# `build/Release/pty.node` on the runner (N-API, so the same file loads in Electron).
 asarUnpack:
   - "**/node_modules/node-pty/**"
 # M116 — the mark ships with the bundle. `build/icon.png` is STAGED from the
@@ -45,3 +45,78 @@ mac:
   identity: null
   icon: build/icon.png
   category: public.app-category.developer-tools
+  files:
+    # Only macOS's node-pty prebuilds ship in the Mac app (after-pack-universal.mjs checks it).
+    - "!**/node_modules/node-pty/prebuilds/win32-*/**"
+    - "!**/node_modules/node-pty/prebuilds/linux-*/**"
+    - "!**/node_modules/node-pty/build/**"
+# Windows (0.3.5, CO-238; PL-02): a per-user NSIS installer, x64 and arm64 each, built natively on its own runner
+# by scripts/package-platform.mjs, which names the artifact with our own arch words (electron-builder's would
+# differ per target) and passes Azure signing when the release environment holds it (PL-03).
+win:
+  target:
+    - nsis
+  icon: build/icon.png
+  executableName: Fabric
+  files:
+    - "!**/node_modules/node-pty/prebuilds/darwin-*/**"
+    - "!**/node_modules/node-pty/prebuilds/**/*.pdb"
+    - "!**/node_modules/node-pty/build/**"
+nsis:
+  oneClick: true
+  perMachine: false
+  allowElevation: false
+  runAfterFinish: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Fabric
+  uninstallDisplayName: Fabric
+  deleteAppDataOnUninstall: false
+  differentialPackage: false
+# Linux (0.3.5, CO-238; PL-02): an AppImage and a .deb, x64 and arm64 each. The executable and the .deb package
+# are `passioncode-fabric`: Debian already has a package called fabric (Python), and Chromium's zygote refuses a
+# space in the install path (platforms.md, lessons).
+linux:
+  target:
+    - AppImage
+    - deb
+  icon: build/icon.png
+  executableName: passioncode-fabric
+  category: Development
+  synopsis: Fabric, the CEO agent of PassionCode.ai
+  description: Fabric coordinates your coding agents and projects from one desktop app.
+  maintainer: PassionCode.ai <contact@passioncode.ai>
+  vendor: PassionCode.ai
+  desktop:
+    entry:
+      Name: Fabric
+      StartupWMClass: passioncode-fabric
+  files:
+    - "!**/node_modules/node-pty/prebuilds/**"
+deb:
+  packageName: passioncode-fabric
+  # The full list a clean Ubuntu 24.04 needs to start Electron (Fabric Dashboards FD-37: libasound2, libgbm and
+  # cups were missing from electron-builder's default); t64 alternatives keep Debian 12 and Ubuntu 22.04.
+  depends:
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0
+    - libuuid1
+    - libsecret-1-0
+    - libasound2t64 | libasound2
+    - libgbm1
+    - libdrm2
+    - libxkbcommon0
+    - libcups2t64 | libcups2
+    - libxcomposite1
+    - libxdamage1
+    - libxrandr2
+  recommends:
+    - gnome-keyring | kwalletmanager
+    - docker.io | docker-ce
+  afterInstall: linux/after-install.sh
+  afterRemove: linux/after-remove.sh

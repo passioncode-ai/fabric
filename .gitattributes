@@ -1,0 +1,17 @@
+# One line ending everywhere (0.3.5, CO-238; platforms.md, lessons): a Windows checkout otherwise turns LF into CRLF
+# and breaks signed fixtures, hashed receipts and tests that read sources.
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.png binary
+*.jpg binary
+*.ico binary
+*.icns binary
+*.dmg binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.zip binary
+*.dump binary
+# Raw sources of dated reports keep their bytes as fetched (their hashes are receipts).
+docs/reports/**/raw/** -text

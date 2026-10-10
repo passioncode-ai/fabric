@@ -207,6 +207,8 @@ node --experimental-strip-types apps/desktop/test/quota-reader.test.mjs
 # ADR-0106 §1: quitting ends the process (CO-191) — the coordinator against a model of Electron's
 # non-reentrant quit, and a real Electron main process that must exit gracefully on SIGTERM.
 node --experimental-strip-types apps/desktop/test/quit.test.mjs
+# Windows and Linux (0.3.5, CO-238): what runs per OS where a POSIX tool used to be assumed.
+node --experimental-strip-types apps/desktop/test/platform.test.mjs
 # ADR-0106 §4: the app's stack excludes exactly what the disposable stack excludes.
 node --experimental-strip-types apps/desktop/test/stack-services.test.mjs
 # ADR-0106 amendment: unsaved editor work is kept in a bounded, owner-only recovery store.

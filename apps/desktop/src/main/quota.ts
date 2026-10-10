@@ -47,6 +47,7 @@ const KEYCHAIN_SERVICE = 'Claude Code-credentials'
 import type { Quota, QuotaWindow } from '../shared/types'
 export type { Quota, QuotaWindow }
 import { keyOf, type ObservationKey } from '../shared/usageObservation.ts'
+import { homedir } from 'node:os'
 
 export interface QuotaReader {
   /**
@@ -138,7 +139,8 @@ async function readToken(exec?: Exec): Promise<string | null> {
   // about whose headroom this is. On macOS the secret is one keychain item per
   // operating-system user and the branch above wins, which is why the
   // capability row for isolation-by-home reads `unsupported` rather than fixed.
-  const home = process.env.CLAUDE_CONFIG_DIR ?? path.join(process.env.HOME ?? '', '.claude')
+  // `homedir()`, not `HOME`: Windows has `USERPROFILE` and no `HOME` (0.3.5, REQ-14).
+  const home = process.env.CLAUDE_CONFIG_DIR ?? path.join(homedir(), '.claude')
   const file = path.join(home, '.credentials.json')
   if (!existsSync(file)) return null
   try {
