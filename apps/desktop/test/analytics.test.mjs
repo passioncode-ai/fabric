@@ -105,6 +105,21 @@ test('events carry counts and the installation id, never a planted name, path, e
   rmSync(d, { recursive: true, force: true })
 })
 
+// Aptabase build modes (sshlg-analytics client contract, "Build modes", 2026-10-09): isDebug is true exactly when the event
+// is not production, so the dashboard's Release view counts what growth counts.
+test('isDebug agrees with environment: a pre-release or a development run lands in the Debug view', async () => {
+  for (const [appVersion, packaged, debug] of [['0.3.2', true, false], ['0.3.2-rc.1', true, true], ['0.3.2-beta.2', true, true], ['0.3.2', false, true]]) {
+    const d = dir()
+    const { a, s, t } = make(d, { deps: { appVersion, packaged } })
+    a.track('app_opened')
+    await t.run()
+    const e = s.calls[0].events[0]
+    assert.equal(e.systemProps.isDebug, debug, `${appVersion} packaged=${packaged}`)
+    assert.equal(e.systemProps.isDebug, e.props.environment !== 'production')
+    rmSync(d, { recursive: true, force: true })
+  }
+})
+
 test('environment: production only for an installed release version, sandbox otherwise (sshlg-growth decision 3)', () => {
   assert.equal(environmentFor('0.3.2', true), 'production')
   assert.equal(environmentFor('0.3.2-rc.1', true), 'sandbox')
