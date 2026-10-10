@@ -35,3 +35,11 @@ Then the cleanup the operator asked for (2026-10-10): merged and dead branches, 
 ## Next task
 
 Item 1: land the release commit, then the tag.
+
+## Closed — 2026-10-10
+
+Every *Release close* item is done; the receipts are the ledger's
+[Release close — state on 2026-10-10](../evidence/plans/2026-10-10-release-034-verification.md#release-close-state-2026-10-10).
+v0.3.4 is published; the operator's database was repaired by the installed app at its first start; passioncode.ai
+serves the universal DMG; P-15 is done, CO-241 and CO-243 are resolved. Open after it: CO-242 (the old seed's owner),
+the Windows/Linux port (CO-238, 0.3.5, branch `agent/windows-linux-035`), and the cleanup the operator asked for.

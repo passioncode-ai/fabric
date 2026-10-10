@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-10 · `release-034-close` · agent/release-034-close → main
+- run: r-9a7a12bb5; base: origin/main 8cf054db; integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
+- scope: the 0.3.4 ledger's *Release close — state*, P-15 done, CO-241 and CO-243 resolved, ADR-0121's status line, `docs/brand/facts.md`, the overview guides (en, ru), the design map's family section, the handoff
+- summary: v0.3.4 published and closed; the operator's database repaired by the installed app; passioncode.ai serves the universal DMG (site PR #86).
+
 ### 2026-10-10 · `fix-fresh-install-034` · agent/fix-fresh-install-034 → main
 - run: r-9a7a12bb5; base: origin/main 9ef939e6 (rebased over fabric#27 before candidate 1), then origin/main merged in (`6fdf8fcc`, not rebased, so the candidates stay one ancestry chain); integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
 - scope: `supabase/seed.sql`; `apps/desktop/src/main/seedRepair.ts` (region `seed-repair`) and `apps/desktop/src/main/index.ts#bootstrapReady` (region `seed-repair-wiring`: the identity gate before the retry point and the hub); `shared/startupFailure.ts` cause `identity-refused` (en/ru, `docs/brand/strings.md`); `shared/stackFolder.ts` (the stack folder every remedy names); `scripts/lib/release-mac.mjs#workspacePinProblem`; `scripts/lib/universal-mac.mjs#thinMachO` (unreadable and 64-bit fat Mach-O); tests `first-install-db`, `seed-repair`, `stack-folder`, `startupFailure`, `universal-mac`, `release-mac` in the fast tier; walk fixture and residue report; ADR-0131, CO-239…CO-242, P-15, CHANGELOG `0.3.4 (unreleased)`, `docs/launch/release-mac.md`, SCN-095/FLW-55/SCR-36, the 0.3.4 ledger, the design map

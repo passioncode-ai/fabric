@@ -204,3 +204,25 @@ committed with the release as release metadata). Their new findings are V3-17…
 | V3-20 | PL (recheck PLR-2) | Item 5 listed the ADR amendments 2 as after-publication work, and ADR-0121's status line still names 0.3.3 | fixed: item 5 names only the status line, updated in the close commit (an ADR is not release metadata, so the release commit cannot carry it) |
 
 Exit for iteration 3: every finding above is fixed, ruled with a register id or not a defect, and the five rechecks at the final candidate `2e040731` found none blocking. Blocking findings open: none.
+
+<a id="release-close-state-2026-10-10"></a>
+## Release close — state on 2026-10-10
+
+Appended after publication. Item 1: release commit `22807eb7`, landed on `main` by fast-forward; `node
+scripts/release-mac.mjs --check-only --tag v0.3.4` passed. Item 2: tag `v0.3.4`; release run
+[38042872096](https://github.com/passioncode-ai/fabric/actions/runs/38042872096): preflight, macos and publish green
+after the operator's two approvals; published 2026-10-10T17:28:26Z, prerelease, with `Fabric-0.3.4-universal.dmg`,
+`fabric-0.3.4-mac.json`, `SHA256SUMS`, `SHA256SUMS.asc`. Item 3: the anonymous download checked — `shasum -c` OK (DMG
+`4d8e8da8…0653`), GPG good (key `63B30DC3…C803B6A7`), `spctl` "Notarized Developer ID", staple valid; installed over
+0.3.3 (`lipo` `x86_64 arm64`); started through the lifecycle broker on the operator's database at a load average near
+330 (the broker's first operation stalled and was asked again once): the operations log says `identity.seed-repair`
+`ok` `{"granted":"owner"}`, the hub was published and no startup failure followed; the database now lists `…000a` as
+owner with `changed_by` `desktop-bootstrap:seed-repair`, `resolve_subject` answers `ok`, and the estate's journal still
+holds its one creation event — as the dump predicted. Item 4: passioncode.ai — site
+[PR #86](https://github.com/passioncode-ai/passioncode-ai.github.io/pull/86), merged `4c872265`: the resolver's pattern
+`Fabric-{version}-universal.dmg`, the floor v0.3.4, the pages in ten languages say Apple silicon and Intel; deployed
+with `npm run deploy` (Worker version `3a0a2095`); `curl -sI https://passioncode.ai/fabric/download/macos` →
+`v0.3.4/Fabric-0.3.4-universal.dmg` (CO-243 closed by it). The workspace publication of the release commit:
+`node scripts/workspace.mjs check --require-child` PASS (source `22807eb7`, workspace `d132bb1f`). Item 5: this
+close commit (P-15 done, CO-241 and CO-243 resolved, ADR-0121's status line, the platform statements) and
+fabric-workspace's pages. Item 6: no Intel Mac on hand, as recorded. Item 7: as recorded.

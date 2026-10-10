@@ -2,7 +2,7 @@
 
 **Status:** proposed · 2026-10-06 · operator request 2026-10-06 («автообновление должно срабатывать на все мои
 продукты passioncode»), relayed by the fabric-switchboard session with a survey of the organization's
-installed products · plan row P-12 · target release 0.3.3
+installed products · plan row P-12 · target release after 0.3.4 (amendments 1, 2)
 
 ## Context
 
