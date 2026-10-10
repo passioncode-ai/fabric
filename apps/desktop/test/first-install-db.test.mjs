@@ -10,7 +10,7 @@
 //
 // Two cases, one owned cluster each (`run-first-install-db.mjs` sets FIRST_INSTALL_CASE):
 // - `fresh`: the seed itself, held to the two constants the app runs with, read from the app's own modules.
-//   To WATCH it fail, run with FABRIC_SEED_FILE=test/fixtures/legacy-seed-0.3.3.sql.
+//   To WATCH it fail, run from `apps/desktop` with FABRIC_SEED_FILE=test/fixtures/legacy-seed-0.3.3.sql.
 // - `legacy`: the database those installs made (the 0.3.3 seed), read the way `seedRepair.ts#seedRepairDb`
 //   reads it, decided by `seedOnlyProblem`, and granted through the same door with the same arguments.
 import assert from 'node:assert/strict'

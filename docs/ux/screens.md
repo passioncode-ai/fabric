@@ -774,7 +774,7 @@ different destination under the same name.
 
 ### SCR-36: Estate record
 - **Used by:** FLW-21
-- **Startup boundary (first-release entry):** Before this screen, a schema/build failure uses the existing native startup dialog. No project data or chat is shown; recovery/agent services have not started in this attempt. Retry rechecks the schema; invalid build identity requires restart. Prototype review tools offer explicit compatible/older/newer/unavailable/invalid-build examples and never infer success from Retry.
+- **Startup boundary (first-release entry):** Before this screen, a schema/build failure uses the existing native startup dialog. No project data or chat is shown; recovery/agent services have not started in this attempt. Retry rechecks the schema; invalid build identity requires restart. Prototype review tools offer explicit compatible/older/newer/unavailable/invalid-build examples and never infer success from Retry. *(Amended 2026-10-10 by [ADR-0131](../adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md), 0.3.4: after the schema check the operator's identity is established; a default Estate only the old seed has touched is first granted to the local operator, and any other identity refusal is the native startup error's own cause, `identity-refused`, with the reason in its details.)*
 - **Purpose:** the estate's own record, as measurements with their registers named.
 - **Elements:** portrait; tenure; figures each naming the register it was counted from; tasks-per-day series.
 - **States:**

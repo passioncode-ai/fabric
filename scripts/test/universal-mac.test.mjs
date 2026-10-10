@@ -44,6 +44,11 @@ let out = ''; p.onData((d) => { out += d; }); p.onExit((e) => { process.stdout.w
     spawnSync('lipo', [path.join(module, 'prebuilds/darwin-x64/pty.node'), '-thin', 'x86_64', '-output', path.join(thin, 'pty.node')])
     writeFileSync(path.join(thin, 'notes.txt'), 'text')
     assert.deepEqual(thinMachO(thin), ['pty.node [x86_64]'])
+    // A file that says it is a Mach-O but lipo cannot read is not a pass, and a 64-bit fat header is a Mach-O
+    // (0.3.4 verification, iteration 1, ER-5): both are reported, never skipped.
+    writeFileSync(path.join(thin, 'corrupt'), Buffer.concat([Buffer.from('cffaedfe', 'hex'), Buffer.alloc(60, 7)]))
+    writeFileSync(path.join(thin, 'fat64'), Buffer.concat([Buffer.from('cafebabf', 'hex'), Buffer.alloc(60, 0)]))
+    assert.deepEqual(thinMachO(thin).sort(), ['corrupt [unknown]', 'fat64 [unreadable]', 'pty.node [x86_64]'])
   } finally { rmSync(dir, { recursive: true, force: true }) }
 })
 

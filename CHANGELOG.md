@@ -8,32 +8,33 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## 0.3.4 (unreleased)
 
-Fabric starts on a new Mac, and runs natively on Intel Macs too. Every fresh install of 0.3.0 to 0.3.3 stopped before its first window with
-"identity could not be established: that person is not a member of this estate": the database Fabric sets up on
-first start made its first estate the property of an owner Fabric never runs as
+Fabric starts on a new Mac, and one download now serves Apple silicon and Intel Macs. Every fresh install since 0.2.0
+stopped before its first window with "identity could not be established: that person is not a member of this
+estate": the database Fabric sets up on first start gave its first Estate to an owner Fabric never runs as
 ([ADR-0131](docs/adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md)).
 
 ### Fixed
 
-- **A new install opens its estate.** The database is set up with you as the owner of its first estate, the same
+- **A new install opens its Estate.** The database is set up with you as the owner of its first Estate, the same
   way Fabric itself founds one.
-- **An install that could not start, starts.** If an earlier version set up a database it then refused, this one
-  finds it untouched and makes you its owner on the next start. Nothing is migrated, and a database anyone has
-  used is never changed this way.
+- **An install of 0.3.2 or 0.3.3 that could not start, starts.** On the next start Fabric finds the database
+  untouched and makes you its owner. Untouched means nothing happened in it but its creation, and at most an
+  agent asking for access while the start was failing. A database anyone has used is never changed this way.
+  The old first owner stays listed beside you; it is not a person and acts for no one.
+- **When Fabric still cannot open the Estate, it says why.** The startup window names the refusal and what Fabric
+  found, instead of "could not work out why".
 
 ### Changed
 
-- **Fabric runs natively on Intel Macs too: the release is one universal DMG** (operator decision
-  2026-10-09, `Fabric-X.Y.Z-universal.dmg` instead of `-arm64.dmg`). node-pty's thin per-architecture
-  prebuilds are joined with `lipo` into one universal file in both folders, other platforms' prebuilds
-  no longer ship in the Mac app, and the release refuses an app holding any Mach-O without both slices
-  (receipt `checks.universal`). 0.3.2 carried node-pty's `darwin-x64` files as thin x86_64 binaries,
-  which macOS reports as "Support Ending for Intel-Based Apps". Measured on an unsigned universal build:
-  node-pty spawns on the x86_64 slice (Rosetta) and on arm64. Electron 44.0.0's darwin-x64 main process is
-  now a measured runtime (registry 17 groups, native view host 14 groups, run under `arch -x86_64`), and the
-  coding-agent sign-in readers know the x64 builds of Claude Code 2.1.289 and Codex 0.160.0
-  ([receipt](docs/launch/harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09)). Node on an Intel Mac (the
-  development runtime) is not admitted yet (CO-237); Windows and Linux are not supported (CO-238).
+- **One universal DMG for Apple silicon and Intel Macs** (`Fabric-0.3.4-universal.dmg`, in place of `-arm64.dmg`).
+  It was measured on Apple silicon, natively and under Rosetta; it has not yet been run on an Intel Mac. How the
+  universal app is built: [release runbook, Universal macOS](docs/launch/release-mac.md#universal-macos).
+
+**Upgrading.** No schema change: a database at schema 79 (0.3.2, 0.3.3) opens as it is. A database a 0.3.0 or 0.3.1
+install made (75 or 78), or a 0.2.0 one (69), is refused for its schema first: upgrade it to 79, backup and
+rehearsal included, and the next start repairs it. If Fabric never opened a window on that Mac, the database holds
+nothing, and the runbook names the shorter way
+([release runbook](https://github.com/passioncode-ai/fabric/blob/main/docs/launch/release-mac.md#upgrading-an-existing-database)).
 
 ## 0.3.3
 

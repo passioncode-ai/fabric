@@ -30,6 +30,7 @@ export interface RuntimeTuple {
 }
 
 /** Measured 2026-09-28: all 17 registry groups and all 14 native view host groups pass here. */
+// #region measured-runtimes — docs: docs/launch/harness-r0/checks.md#intel-x8664-runtimes--2026-10-09
 export const MEASURED_RUNTIMES: readonly RuntimeTuple[] = Object.freeze(([
   // Electron 44 main process (process.type === 'browser'); the npm-installed, ad-hoc-signed
   // framework. The packaged, hardened app is re-signed and is measured separately (N1).
@@ -50,6 +51,7 @@ export const MEASURED_RUNTIMES: readonly RuntimeTuple[] = Object.freeze(([
   { runtime: 'electron-main', electron: '44.0.0', node: '24.18.1', uv: '1.52.1', modules: '149', platform: 'darwin', arch: 'x64',
     codeSha256: 'd2a5a75b572630817cb2893f20def244b21ed8d6e8b77db751db1b874ccfef6c' },
 ] satisfies RuntimeTuple[]).map(t => Object.freeze(t)))
+// #endregion measured-runtimes
 
 const KEYS: readonly (keyof RuntimeTuple)[] = ['runtime', 'electron', 'node', 'uv', 'modules', 'platform', 'arch', 'codeSha256']
 export const sameRuntime = (a: RuntimeTuple, b: RuntimeTuple): boolean => KEYS.every(k => a[k] === b[k])

@@ -54,6 +54,9 @@ step "documentation: structure, links, scenarios, brand, registers"
 pnpm gates:docs
 # Code region markers resolve to documentation (REQ-20; AGENTS.md "Code region markers").
 node --test scripts/test/check-regions.test.mjs
+# The universal macOS pack (0.3.4): node-pty joined with lipo, and no thin or unreadable Mach-O passes; it skips
+# where lipo is missing (0.3.4 verification, iteration 1, DO-9).
+node --test scripts/test/universal-mac.test.mjs
 node scripts/check-regions.mjs
 
 step "probe templates"

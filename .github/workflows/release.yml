@@ -1,4 +1,4 @@
-# The release: Fabric for macOS as one DMG for Apple silicon, signed with the organization's CI
+# The release: Fabric for macOS as one universal DMG (Apple silicon and Intel, from 0.3.4), signed with the organization's CI
 # Developer ID, notarized and stapled (the app and the DMG); then attested (Sigstore), summed and
 # GPG-signed, and published as a release of this repository. Signing happens only here, in the
 # protected `release` environment: approved by a person from release-approvers, who may be whoever

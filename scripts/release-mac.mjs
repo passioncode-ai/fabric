@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// The macOS release: Fabric as one Developer ID signed, notarized and stapled DMG for Apple silicon.
+// The macOS release: Fabric as one Developer ID signed, notarized and stapled universal DMG (Apple silicon and Intel,
+// from 0.3.4).
 //
 // A release is signed ONLY in CI, in the protected `release` environment of
 // .github/workflows/release.yml (ADR-0111; passioncode-ai/.github release-signing/README.md):

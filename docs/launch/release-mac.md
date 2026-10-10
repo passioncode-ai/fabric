@@ -1,6 +1,6 @@
 # Releasing Fabric for macOS
 
-The release is one DMG for Apple silicon: Developer ID signed, hardened runtime, notarized and
+The release is one universal DMG for Apple silicon and Intel Macs (from 0.3.4; Apple silicon only before): Developer ID signed, hardened runtime, notarized and
 stapled — the app inside and the DMG itself. **It is built and signed only in CI**, by
 [`.github/workflows/release.yml`](../../.github/workflows/release.yml) in this repository's protected
 `release` environment ([ADR-0111](../adr/0111-fabric-is-released-from-ci.md); the organization's
@@ -13,7 +13,8 @@ the local packaging config; `pnpm --dir apps/desktop package` keeps building the
 
 - **macOS on Apple silicon or Intel.** From 0.3.4 the build is universal (`arm64` and `x86_64`; up to 0.3.3, `arm64`
   only). On Intel the app's main process runs on a measured runtime (Electron 44.0.0 darwin-x64) and the coding-agent
-  sign-in readers know the x64 builds of Claude Code 2.1.289 and Codex 0.160.0
+  sign-in readers know the x64 builds of Claude Code 2.1.289 and Codex 0.160.0 (those exact builds; any other build
+  is reported as unverified)
   ([receipt](harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09)). Windows and Linux are not supported yet (CO-238).
 - **Docker** (Docker Desktop or OrbStack) running, and the **Supabase CLI** (`brew install supabase/tap/supabase`).
   The app ships its stack project (`config.toml`, `seed.sql`, the migrations) in `Contents/Resources/stack`
@@ -118,17 +119,20 @@ build signed anywhere but the `release` environment is a debug build that is nev
 8. Take the site's screenshots from the packaged app on a **fresh English demo estate** —
    `psql "$DB_URL" -v ON_ERROR_STOP=1 -v estate=<new uuid> -v lang=en -f scripts/fixtures/launch-estate.sql`
    — never from an estate a walk has already written into.
-9. **The website is the website's change.** `passioncode-ai/passioncode-ai.github.io` serves
-   `/fabric/download/macos` from its `fabric/release.json`, which pointed at Fabric's own `v0.3.0` release
-   (read 2026-10-05 through the GitHub contents API: `tag` `v0.3.0`, `repository` `passioncode-ai/fabric`, the
-   `Fabric-0.3.0-arm64.dmg` download and its `sha256`). For each CI release, the website's own pull request sets `tag`
-   `vX.Y.Z`, `repository` `passioncode-ai/fabric`, `releaseUrl`
-   `https://github.com/passioncode-ai/fabric/releases/tag/vX.Y.Z`, `downloads.macos`
-   `https://github.com/passioncode-ai/fabric/releases/download/vX.Y.Z/Fabric-X.Y.Z-universal.dmg` (from 0.3.4; `-arm64.dmg` up to 0.3.3) and `sha256` from the
-   release's `SHA256SUMS`, plus the screenshots and the brand facts row; then `npm run deploy` and the live
-   receipt ([site handoff](https://github.com/passioncode-ai/passioncode-ai.github.io/blob/main/docs/HANDOFF.md)).
-   Download the asset anonymously and check its SHA-256 and `spctl -a -t open --context context:primary-signature`
-   before pointing anything at it. This repository does not write to the website.
+9. **The website is the website's change.** `passioncode-ai/passioncode-ai.github.io` picks Fabric's build by
+   itself: its always-current resolver (site `docs/DEPLOYMENT.md#always-current-versions`, roadmap RM-15) offers
+   the newest release that carries every asset its policy `releases/products.json` names, and a release without it
+   is skipped. Read 2026-10-10: `fabric.assets.macos` is `Fabric-{version}-arm64.dmg`, and
+   `/fabric/download/macos` redirected to `v0.3.3/Fabric-0.3.3-arm64.dmg` (the site followed 0.3.3 on its own,
+   site commit `d19bd337`). **From 0.3.4 the release carries `Fabric-X.Y.Z-universal.dmg` only**, so the site's own
+   pull request changes that pattern to `Fabric-{version}-universal.dmg` — merged once `vX.Y.Z` is published, since
+   before that no release carries the new name — together with the page's platform copy (Apple silicon and
+   Intel), the screenshots and the brand facts row; then `npm run deploy` and the live receipt
+   ([site handoff](https://github.com/passioncode-ai/passioncode-ai.github.io/blob/main/docs/HANDOFF.md)). The
+   receipt is the live redirect: `curl -sI https://passioncode.ai/fabric/download/macos` names
+   `vX.Y.Z/Fabric-X.Y.Z-universal.dmg`. Download the asset anonymously and check its SHA-256 and
+   `spctl -a -t open --context context:primary-signature` before pointing anything at it. This repository does not
+   write to the website.
 
 ### Rehearsal
 
@@ -165,10 +169,18 @@ offered on [passioncode.ai/fabric](https://passioncode.ai/fabric/#download) (sit
 This section is the upgrade procedure, **not an executed upgrade receipt**. Fabric never migrates
 an existing database automatically. **0.3.3 adds no migration**: like 0.3.2 it admits schema 79, so a 0.3.2
 database needs nothing, and a 0.3.0 or 0.3.1 database takes this same procedure. **0.3.4 adds none either** (79). It
-changes the seed a new database gets, and at start it grants the local operator a default estate only the 0.3.0–0.3.3
-seed has touched — one creation event and nothing else — which is the database every fresh install of those versions
-made and then refused ([ADR-0131](../adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md)). A database
-anyone has used is not changed by it. Below, `X.Y.Z` is the version
+changes the seed a new database gets, and at start it grants the local operator a default estate only the old seed
+has touched — its creation, and at most an agent's access request written while a start was failing — which is the
+database every fresh install since 0.2.0 made and then refused
+([ADR-0131](../adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md)). A database
+anyone has used is not changed by it. That repair runs only past the schema check: a database a 0.3.2 or 0.3.3
+install made (79) is repaired on 0.3.4's first start; one a 0.3.0 or 0.3.1 install made (75, 78), or a 0.2.0 one
+(69), is refused for its schema first and is repaired once this procedure has taken it to 79 (measured for 0.3.0 by
+the 0.3.4 verification, iteration 1, UX-2). **The shorter way, only if Fabric never opened a window on that Mac**:
+such a database holds nothing, so it may be discarded instead of upgraded — quit Fabric, then
+`cd "$HOME/Library/Application Support/@fabric/desktop/stack" && supabase stop --no-backup`, which removes the
+bundled stack's containers and volumes; the next start makes a new database with 0.3.4's seed. Never do this to a
+database Fabric has opened: there is no undo. Below, `X.Y.Z` is the version
 you install (0.3.2 or later). The 0.3.2 compiled contract admits schema **79** (the number of applied
 migration files); the newest migration's filename ends in **81** because other work reserved filenames. Do not
 use `max(version)` or a filename suffix as schema readiness. The actual guard is `public.schema_version()`

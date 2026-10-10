@@ -26,7 +26,7 @@ change.
 product and CEO AI agent: it plans, coordinates agents, runs Projects and works with their data,
 and it grows through its own tools — Fabric Inbox, Fabric Dashboards, Fabric Switchboard,
 Fabric VR — each of which also works on its own (names: [ADR-0090](docs/adr/0090-names-passioncode-is-the-organization-fabric-is-the-ceo-and-its-tools-carry-its-name.md)). **Fabric is an early preview for macOS on
-Apple silicon**: each release is a signed and notarized DMG on [GitHub Releases](https://github.com/passioncode-ai/fabric/releases)
+Apple silicon and Intel Macs** (one universal DMG from 0.3.4): each release is a signed and notarized DMG on [GitHub Releases](https://github.com/passioncode-ai/fabric/releases)
 with its notes, checksums and attestation, and the newest one is [downloadable from its product page](https://passioncode.ai/fabric/#download).
 Releases are built and signed only in CI, from a `vX.Y.Z` tag on main, and published here with their notes from
 [`CHANGELOG.md`](CHANGELOG.md) ([procedure](docs/launch/release-mac.md),
@@ -104,7 +104,7 @@ plan survives as org #1 and builds first.
 
 ## Quick start for a new teammate
 
-- **Install:** the signed, notarized preview for macOS on Apple silicon from
+- **Install:** the signed, notarized preview for macOS (Apple silicon and Intel, from 0.3.4) from
   [passioncode.ai/fabric/download/macos](https://passioncode.ai/fabric/download/macos); it needs
   Docker and the Supabase CLI for its local stack (below).
 - **Configure:** Fabric uses the Claude Code and Codex logins already on the Mac; no key is typed
@@ -286,10 +286,10 @@ is running, prints the list so far with the number of suites it never reached, a
 with exit 124 and the command named, so a hung probe cannot keep the tier running forever. A command
 ended by a signal exits 128 plus that signal's number.
 
-Seventeen owned-cluster runners (`apps/desktop/test/run-*-db.mjs` and `run-ceo-host-sql.mjs`) each own a
+Eighteen owned-cluster runners (`apps/desktop/test/run-*-db.mjs` and `run-ceo-host-sql.mjs`) each own a
 temporary PostgreSQL cluster. They need PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default
-`/opt/homebrew/opt/postgresql@17/bin`). Four (`run-estate-identity-db`, `run-read-schema-db`,
-`run-function-privileges-db`, `run-hub-access-db`) run in the fast tier; the other thirteen run first in the full tier; every one runs, and the step fails at the end naming each that did not
+`/opt/homebrew/opt/postgresql@17/bin`). Five (`run-estate-identity-db`, `run-read-schema-db`,
+`run-function-privileges-db`, `run-hub-access-db`, `run-first-install-db`) run in the fast tier; the other thirteen run first in the full tier; every one runs, and the step fails at the end naming each that did not
 pass.
 
 ### Test residue in the live database

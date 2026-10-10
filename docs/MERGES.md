@@ -5,9 +5,14 @@
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
 ### 2026-10-10 · `fix-fresh-install-034` · agent/fix-fresh-install-034 → main
-- run: r-9a7a12bb5; base: origin/main 9d0d9ec9; integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
+- run: r-9a7a12bb5; base: origin/main 9ef939e6 (rebased over fabric#27); integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
 - scope: `supabase/seed.sql` (the default estate's owner is `apps/desktop/src/main/identity.ts#LOCAL_OPERATOR_PERSON`, through `estate.created@1` `owner_person_id`), `apps/desktop/src/main/seedRepair.ts` (region `seed-repair`), `apps/desktop/src/main/index.ts#bootstrapReady` (the repair before the identity refusal), `apps/desktop/test/first-install-db.test.mjs` + `run-first-install-db.mjs` + `test/fixtures/legacy-seed-0.3.3.sql`, `apps/desktop/test/seed-repair.test.mjs`, `scripts/ci.sh`, `scripts/fixtures/walk-estate.sql`, `scripts/residue-report.mjs`; ADR-0131, CO-239…CO-241, P-15, CHANGELOG `0.3.4 (unreleased)`, `docs/launch/release-mac.md`, the design map
 - summary: every fresh install of 0.3.0–0.3.3 stopped at "identity could not be established" (CO-241, measured on a disposable stack); the seed now names the app's own person, and a database only the old seed touched is granted to it at start. No schema change (79). The operator's calls 2026-10-10: this is 0.3.4, with universal macOS (fabric#27, landed first); the Windows/Linux port is 0.3.5.
+
+### 2026-10-10 · `universal-mac` · agent/platform-matrix-20261009 → main (fabric#27)
+- run: fabric-switchboard-93's; merge commit 9ef939e6 (a GitHub merge, written here afterwards by the 0.3.4 run, iteration 1 DO-5)
+- scope: one universal macOS DMG (`scripts/after-pack-universal.mjs`, `scripts/lib/universal-mac.mjs`, `electron-builder*.yml`, `.github/workflows/release.yml`), x86_64 runtime admission (`apps/desktop/src/main/runtimeAdmission.ts`, `executorAuth.ts`), `docs/launch/release-mac.md#universal-macos`, `docs/launch/harness-r0/checks.md`; CO-237, CO-238
+- summary: Fabric ships for Apple silicon and Intel Macs as one DMG; first released in 0.3.4 (the operator's call 2026-10-10).
 
 ### 2026-10-10 · `wiki-do` · agent/wiki-do-20261008 → main
 - run: r-d8d027823; base: origin/main 1404dffe (rebased); integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)

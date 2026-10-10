@@ -56,6 +56,22 @@ checked off with its receipt when it is done.
    `plans.md` Now in fabric-workspace; then the close commit here marking P-14 done, with its handoff (iteration 3,
    PL-2).
 
+<a id="release-close-state-2026-10-10"></a>
+### Release close — state on 2026-10-10
+
+Appended, not rewritten (a dated ledger). Item 0: the operator's approval of publication was taken as accepting the
+REQ-08 reading. Item 1: release commit `1404dffe`, landed. Item 2: PR #81 merged before the tag. Item 3: tag
+`v0.3.3`; release run [37979209160](https://github.com/passioncode-ai/fabric/actions/runs/37979209160) green after
+both approvals, published 2026-10-09T22:20Z. The downloaded DMG checked 2026-10-10: `SHA256SUMS` OK, its GPG
+signature good (key `63B30DC3…C803B6A7`), `spctl` "Notarized Developer ID", staple valid. Item 4: installed over 0.3.2
+(0.3.2 kept aside for a rollback) and started through the lifecycle broker on the operator's database; it stopped at
+"identity could not be established: that person is not a member of this estate" — CO-228 observed, and the cause
+is CO-241, which 0.3.4 fixes ([0.3.4 ledger](2026-10-10-release-034-verification.md)). The runbook's Playwright
+smoke was not run: it launches the enrolled app directly, which this machine's lifecycle rule forbids. Item 5: the
+website needed no PR — its resolver followed 0.3.3 by itself (site `d19bd337`, 2026-10-09T23:23Z) — and so now
+offers a build a new Mac cannot start; 0.3.4's close changes the site's asset pattern. The workspace publication and
+item 6's knowledge base fold into 0.3.4's close.
+
 ## Iteration 1
 
 Five fresh reviewers, 2026-10-08, against `ece98797` (`ece987975a1b2a491f86f5e528f96920b04aa4c5`, the head of `agent/release-033-candidate`). Reports:

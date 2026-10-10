@@ -14,7 +14,8 @@ import { spawnSync } from 'node:child_process'
 import { chmodSync, closeSync, copyFileSync, existsSync, openSync, readdirSync, readSync } from 'node:fs'
 import path from 'node:path'
 
-const MACH_O = new Set([0xcafebabe, 0xfeedface, 0xfeedfacf, 0xcefaedfe, 0xcffaedfe])
+// Thin (32/64-bit, either byte order) and fat (32/64-bit offsets) Mach-O magics.
+const MACH_O = new Set([0xcafebabe, 0xcafebabf, 0xfeedface, 0xfeedfacf, 0xcefaedfe, 0xcffaedfe])
 const FILES = ['pty.node', 'spawn-helper']
 
 function lipo(args) {
@@ -23,14 +24,15 @@ function lipo(args) {
   return r.stdout.trim()
 }
 
-/** The slices of a Mach-O file, or null when it is not one. */
+/** The slices of a Mach-O file, `[]` when it is one lipo cannot read, or null when it is not one. */
 export function slices(file) {
   const head = Buffer.alloc(4)
   const fd = openSync(file, 'r')
   try { readSync(fd, head, 0, 4, 0) } finally { closeSync(fd) }
   if (!MACH_O.has(head.readUInt32BE(0))) return null
   const r = spawnSync('lipo', ['-archs', file], { encoding: 'utf8' })
-  return r.status === 0 ? r.stdout.trim().split(/\s+/).sort() : null
+  // Not a pass: a file that claims to be a Mach-O and cannot be read has no slice anyone has seen (0.3.4 i1 ER-5).
+  return r.status === 0 ? r.stdout.trim().split(/\s+/).filter(Boolean).sort() : []
 }
 
 /** Every Mach-O under `dir` without both arm64 and x86_64, as `relative/path [slices]`. */
@@ -42,7 +44,7 @@ export function thinMachO(dir) {
       if (entry.isSymbolicLink()) continue
       if (entry.isDirectory()) { walk(full); continue }
       const archs = slices(full)
-      if (archs && !(archs.includes('arm64') && archs.includes('x86_64'))) found.push(`${path.relative(dir, full)} [${archs.join(' ')}]`)
+      if (archs && !(archs.includes('arm64') && archs.includes('x86_64'))) found.push(`${path.relative(dir, full)} [${archs.length ? archs.join(' ') : 'unreadable'}]`)
     }
   }
   walk(dir)

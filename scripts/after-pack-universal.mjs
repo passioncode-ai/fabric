@@ -1,3 +1,4 @@
+// #region after-pack-universal — docs: docs/launch/release-mac.md#universal-macos
 // electron-builder `afterPack` (apps/desktop/electron-builder.yml): makes node-pty's prebuilds
 // universal in every packed macOS app — each architecture's and the joined universal one — and,
 // on the joined app, refuses any Mach-O without both slices (scripts/lib/universal-mac.mjs).
@@ -19,3 +20,4 @@ export default async function afterPack(context) {
     if (thin.length) throw new Error(`The universal Fabric.app carries Mach-O files without both slices: ${thin.slice(0, 5).join(', ')}`)
   }
 }
+// #endregion after-pack-universal
