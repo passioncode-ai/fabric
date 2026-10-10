@@ -160,6 +160,7 @@ jobs:
         uses: passioncode-ai/.github/actions/windows-signing/verify@v1
         with:
           files: apps/desktop/dist/Fabric-*-windows-*-setup.exe
+          expected-subject: "O=Siarhei Sheleh"
       - name: Install it for this user, start it, uninstall it
         run: |
           version=$(node -p 'require("./apps/desktop/package.json").version')

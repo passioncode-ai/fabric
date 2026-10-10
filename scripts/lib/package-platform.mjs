@@ -4,6 +4,9 @@
 // signing options when the release environment holds all three settings (PL-03), and no publishing.
 
 const PLATFORMS = new Set(['win32', 'linux'])
+/** The CN of the organization's Azure signing profile `passioncode-public-trust` (CN=Siarhei Sheleh, O=Siarhei Sheleh;
+ *  found by Fabric Inbox, told by project-observatory 2026-10-10): electron-builder's publisherName must be it. */
+export const WINDOWS_PUBLISHER = 'Siarhei Sheleh'
 const ARCHS = new Set(['x64', 'arm64'])
 
 /** `--platform win32|linux --arch x64|arm64`, each also as `--name=value`. */
@@ -31,7 +34,7 @@ export function artifactNames({ platform, arch, version }) {
 export function signingOptions(env) {
   const endpoint = env.AZURE_SIGNING_ENDPOINT, account = env.AZURE_SIGNING_ACCOUNT, profile = env.AZURE_SIGNING_PROFILE
   if (!endpoint || !account || !profile) return null
-  return { endpoint, codeSigningAccountName: account, certificateProfileName: profile, publisherName: 'PassionCode' }
+  return { endpoint, codeSigningAccountName: account, certificateProfileName: profile, publisherName: WINDOWS_PUBLISHER }
 }
 
 export function builderArgs({ platform, arch, version, signing }) {

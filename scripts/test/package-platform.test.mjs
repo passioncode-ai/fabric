@@ -22,7 +22,7 @@ test('artifact names carry our own architecture words, never the target tool\'s 
 
 test('signing: all three Azure settings, or none and NOT_SIGNED', () => {
   const env = { AZURE_SIGNING_ENDPOINT: 'https://neu.codesigning.azure.net/', AZURE_SIGNING_ACCOUNT: 'acct', AZURE_SIGNING_PROFILE: 'prof' }
-  assert.deepEqual(signingOptions(env), { endpoint: 'https://neu.codesigning.azure.net/', codeSigningAccountName: 'acct', certificateProfileName: 'prof', publisherName: 'PassionCode' })
+  assert.deepEqual(signingOptions(env), { endpoint: 'https://neu.codesigning.azure.net/', codeSigningAccountName: 'acct', certificateProfileName: 'prof', publisherName: 'Siarhei Sheleh' })
   assert.equal(signingOptions({}), null)
   assert.equal(signingOptions({ ...env, AZURE_SIGNING_PROFILE: '' }), null, 'a partial set is not signing')
 })
