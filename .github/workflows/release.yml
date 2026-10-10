@@ -93,7 +93,7 @@ jobs:
         run: |
           version=$(node -p 'require("./apps/desktop/package.json").version')
           mkdir -p release
-          cp "apps/desktop/dist/Fabric-$version-arm64.dmg" "docs/releases/fabric-$version-mac.json" release/
+          cp "apps/desktop/dist/Fabric-$version-universal.dmg" "docs/releases/fabric-$version-mac.json" release/
           ls -l release
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

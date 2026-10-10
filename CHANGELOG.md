@@ -6,6 +6,22 @@ that section as the notes of the `vX.Y.Z` release
 ([docs/launch/release-mac.md](docs/launch/release-mac.md), [ADR-0111](docs/adr/0111-fabric-is-released-from-ci.md)).
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
+## 0.3.5 (unreleased)
+
+### Changed
+
+- **Fabric runs natively on Intel Macs too: the release is one universal DMG** (operator decision
+  2026-10-09, `Fabric-X.Y.Z-universal.dmg` instead of `-arm64.dmg`). node-pty's thin per-architecture
+  prebuilds are joined with `lipo` into one universal file in both folders, other platforms' prebuilds
+  no longer ship in the Mac app, and the release refuses an app holding any Mach-O without both slices
+  (receipt `checks.universal`). 0.3.2 carried node-pty's `darwin-x64` files as thin x86_64 binaries,
+  which macOS reports as "Support Ending for Intel-Based Apps". Measured on an unsigned universal build:
+  node-pty spawns on the x86_64 slice (Rosetta) and on arm64. Electron 44.0.0's darwin-x64 main process is
+  now a measured runtime (registry 17 groups, native view host 14 groups, run under `arch -x86_64`), and the
+  coding-agent sign-in readers know the x64 builds of Claude Code 2.1.289 and Codex 0.160.0
+  ([receipt](docs/launch/harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09)). Node on an Intel Mac (the
+  development runtime) is not admitted yet (CO-237); Windows and Linux are not supported (CO-238).
+
 ## 0.3.3
 
 Fabric becomes the way into PassionCode.ai: the first screen offers four actions, and the work behind the two agent

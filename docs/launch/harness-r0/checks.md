@@ -788,6 +788,38 @@ bit, so every PTY spawn failed with `posix_spawnp failed`. With the bit restored
 and so does `backend-view.test.mjs` (8 groups). The checkout `ci.sh` normally runs in installs scripts and was
 never affected. Node 26.10.0 is fully measured.
 
+## Intel (x86_64) runtimes · 2026-10-09
+
+For the universal release (PR #27, 0.3.5; operator decision 2026-10-09). Measured on this arm64 Mac under
+Rosetta (`arch -x86_64`), load average 57–106. Electron 44.0.0 darwin-x64 from npm
+(`npm_config_arch=x64`, `@electron/get` checksum-verified): `lipo -archs` of `Electron` and
+`Electron Framework` → `x86_64`. Backend for the registry: Homebrew Node 26.10.0
+(`/opt/homebrew/Cellar/node/26.10.0_2/bin/node`, 132 848 bytes), as in the arm64 E0 run.
+
+| Command (`apps/desktop`) | Result |
+|---|---|
+| `arch -x86_64 Electron test/electron-main-runner.mjs <probe>` → `runtimeTuple()` | `electron-main`, Electron 44.0.0, Node 24.18.1, libuv 1.52.1, modules 149, darwin x64; `Electron Framework` `d2a5a75b…ef6c` |
+| `FABRIC_BACKEND_NODE=<node> arch -x86_64 Electron test/electron-main-runner.mjs test/owned-backend-process-registry.test.mjs` | exit 0, PASS 17 groups |
+| `… test/native-view-host.test.mjs` | exit 0, PASS 14 groups — 4 of 5 runs; one run at load 96 failed `rootExitObserved` after detach (line 67, timing, the CO-AR-08 class), groups 1–7 passed in it, no descriptor group failed in any run |
+| `… test/runtime-admission.test.mjs` | exit 0 |
+| `arch -x86_64 node-v26.10.0-darwin-x64/bin/node --experimental-strip-types test/executor-auth.test.mjs` | exit 0 (also exit 0 on arm64 Node) |
+
+**Not admitted: Node 26.10.0 darwin-x64** (official, SHASUMS256-verified, static, 149 477 088 bytes, `083775c8…4c31`).
+`native-view-host.test.mjs` passes on it (14 groups); the registry suite and `runtime-admission.test.mjs` fail with
+`backend_ownership_unavailable` because the registry refuses executables over 128 MiB — a recipe limit, not
+descriptor behaviour. No tuple added; CO-237.
+
+**Sign-in readers (`executorAuth.ts`)**, the official darwin-x64 builds at the reader versions, run against isolated
+empty profiles and synthetic credentials only (no real profile read):
+
+| Build | Empty profile | Synthetic sign-in |
+|---|---|---|
+| Claude Code 2.1.289 (release manifest checksum OK) | `auth status --json` → `loggedIn:false, authMethod:"none"`, exit 1, stderr empty | `ANTHROPIC_API_KEY=<synthetic>` → `loggedIn:true, authMethod:"api_key"`, exit 0 |
+| Codex 0.160.0 (`@openai/codex@0.160.0-darwin-x64`, npm integrity OK) | `login status` → `Not logged in`, exit 1 | synthetic ChatGPT `auth.json`, network blocked → `Logged in using ChatGPT`, exit 0 |
+
+Both match the classifier exactly; `executorAuth` now admits darwin `arm64` and `x64` for these versions. NOT_RUN: the
+packaged, hardened universal app on an Intel Mac (as N1 for arm64); Windows and Linux (CO-238).
+
 ## Host → HTTP → SQL composition · 2026-09-28
 
 First-slice plan C0. `pnpm --dir apps/desktop test:ceo-host-sql` (registered beside

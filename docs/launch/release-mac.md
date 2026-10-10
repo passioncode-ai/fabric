@@ -11,7 +11,10 @@ the local packaging config; `pnpm --dir apps/desktop package` keeps building the
 
 ## What the installed app needs
 
-- **macOS on Apple silicon.** The build is `arm64` only.
+- **macOS on Apple silicon or Intel.** From 0.3.5 the build is universal (`arm64` and `x86_64`; up to 0.3.4, `arm64`
+  only). On Intel the app's main process runs on a measured runtime (Electron 44.0.0 darwin-x64) and the coding-agent
+  sign-in readers know the x64 builds of Claude Code 2.1.289 and Codex 0.160.0
+  ([receipt](harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09)). Windows and Linux are not supported yet (CO-238).
 - **Docker** (Docker Desktop or OrbStack) running, and the **Supabase CLI** (`brew install supabase/tap/supabase`).
   The app ships its stack project (`config.toml`, `seed.sql`, the migrations) in `Contents/Resources/stack`
   and keeps a working copy in `~/Library/Application Support/Fabric/stack`
@@ -20,6 +23,18 @@ the local packaging config; `pnpm --dir apps/desktop package` keeps building the
   missing, the startup dialog names which ([`startupFailure.ts`](../../apps/desktop/src/shared/startupFailure.ts)).
 - **Schema upgrades are not automatic.** A newer build whose schema is ahead of an existing database stops
   with the exact command to run in that stack folder; Fabric never migrates a database on its own.
+
+## Universal macOS
+
+From 0.3.5 the release is one universal app (Apple silicon and Intel). electron-builder packs an
+x64 and an arm64 app and joins them; node-pty keeps each architecture in its own
+`prebuilds/darwin-<arch>/` folder, so `scripts/after-pack-universal.mjs` replaces both with one
+universal file (`scripts/lib/universal-mac.mjs`), the `files` filter in `electron-builder.yml`
+keeps Windows and Linux prebuilds out, and the joined app — and the release receipt's
+`checks.universal` — is refused while any Mach-O lacks a slice. Tested by
+`scripts/test/universal-mac.test.mjs`. Runtime admission (`apps/desktop/src/main/runtimeAdmission.ts`)
+and executor sign-in readers (`executorAuth.ts`) are measured per architecture; an x86_64 tuple is
+added only after their suites pass on it.
 
 ## How a release is made
 
@@ -92,7 +107,7 @@ build signed anywhere but the `release` environment is a debug build that is nev
    prerelease while Fabric is an early preview (`prerelease: "true"`, ADR-0111 §1):
    `https://github.com/passioncode-ai/fabric/releases/tag/vX.Y.Z`. Verify a download with
    `gpg --verify SHA256SUMS.asc SHA256SUMS`, `shasum -a 256 -c SHA256SUMS --ignore-missing` and
-   `gh attestation verify Fabric-X.Y.Z-arm64.dmg --owner passioncode-ai --signer-repo passioncode-ai/.github` —
+   `gh attestation verify Fabric-X.Y.Z-universal.dmg --owner passioncode-ai --signer-repo passioncode-ai/.github` —
    the attestation is signed by the organization's shared publish workflow, so `-R passioncode-ai/fabric` alone
    fails ("verifying with issuer sigstore.dev"; the shared workflow's own note, measured 2026-10-03).
 7. Smoke the published DMG on this Mac: install it, then `FABRIC_APP_EXECUTABLE=/Applications/Fabric.app/Contents/MacOS/Fabric
@@ -109,7 +124,7 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `Fabric-0.3.0-arm64.dmg` download and its `sha256`). For each CI release, the website's own pull request sets `tag`
    `vX.Y.Z`, `repository` `passioncode-ai/fabric`, `releaseUrl`
    `https://github.com/passioncode-ai/fabric/releases/tag/vX.Y.Z`, `downloads.macos`
-   `https://github.com/passioncode-ai/fabric/releases/download/vX.Y.Z/Fabric-X.Y.Z-arm64.dmg` and `sha256` from the
+   `https://github.com/passioncode-ai/fabric/releases/download/vX.Y.Z/Fabric-X.Y.Z-universal.dmg` (from 0.3.5; `-arm64.dmg` up to 0.3.4) and `sha256` from the
    release's `SHA256SUMS`, plus the screenshots and the brand facts row; then `npm run deploy` and the live
    receipt ([site handoff](https://github.com/passioncode-ai/passioncode-ai.github.io/blob/main/docs/HANDOFF.md)).
    Download the asset anonymously and check its SHA-256 and `spctl -a -t open --context context:primary-signature`
