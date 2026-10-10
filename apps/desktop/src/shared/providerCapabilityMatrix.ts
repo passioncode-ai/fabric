@@ -26,8 +26,8 @@ import type { ProviderCapabilityReceipt } from './providerCapability.ts'
 
 /** The builds these rows are about. An upgrade invalidates them, by design. */
 export const PINNED_BUILDS = {
-  'claude-code': '2.1.295',
-  'codex-cli': '0.162.0'
+  'claude-code': '2.1.296',
+  'codex-cli': '0.162.1'
 } as const
 
 export const HISTORICAL_PINNED_BUILDS = { 'claude-code': '2.1.236', 'codex-cli': '0.152.1' } as const
@@ -203,7 +203,7 @@ export const HISTORICAL_CAPABILITY_MATRIX: readonly ProviderCapabilityReceipt[] 
 ]
 
 /** A CLI upgrade invalidates the verdict, not the historical observation.
- * Measured with `claude --version` / `codex --version`, 2026-10-09 (codex-cli 0.161.0 → 0.162.0; re-pinned by scripts/repin-provider-builds.mjs). The previous current rows were version-only too, so no capability verdict is lost.
+ * Measured with `claude --version` / `codex --version`, 2026-10-10 (codex-cli 0.162.0 → 0.162.1; re-pinned by scripts/repin-provider-builds.mjs). The previous current rows were version-only too, so no capability verdict is lost.
  * No login, native session, credential store or model run was probed in this wiki iteration.
  */
 export const CAPABILITY_MATRIX: readonly ProviderCapabilityReceipt[] = [
@@ -212,7 +212,7 @@ export const CAPABILITY_MATRIX: readonly ProviderCapabilityReceipt[] = [
     ...row,
     cliBuild: PINNED_BUILDS[row.provider as keyof typeof PINNED_BUILDS],
     status: 'unverified',
-    checkedAt: '2026-10-09',
-    evidenceRef: `Installed build changed (version-only observation, 2026-10-09). Requires repeating the ${row.capability} probe and, for native continuity, a certified isolated run on this exact build. Historical ${row.cliBuild} receipt remains separate: ${row.evidenceRef}`
+    checkedAt: '2026-10-10',
+    evidenceRef: `Installed build changed (version-only observation, 2026-10-10). Requires repeating the ${row.capability} probe and, for native continuity, a certified isolated run on this exact build. Historical ${row.cliBuild} receipt remains separate: ${row.evidenceRef}`
   }))
 ]

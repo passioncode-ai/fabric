@@ -790,7 +790,7 @@ never affected. Node 26.10.0 is fully measured.
 
 ## Intel (x86_64) runtimes · 2026-10-09
 
-For the universal release (PR #27, 0.3.4; operator decision 2026-10-09). Measured on this arm64 Mac under
+For the universal release (PR #27, 0.3.5; operator decision 2026-10-09). Measured on this arm64 Mac under
 Rosetta (`arch -x86_64`), load average 57–106. Electron 44.0.0 darwin-x64 from npm
 (`npm_config_arch=x64`, `@electron/get` checksum-verified): `lipo -archs` of `Electron` and
 `Electron Framework` → `x86_64`. Backend for the registry: Homebrew Node 26.10.0

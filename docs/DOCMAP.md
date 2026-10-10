@@ -52,7 +52,7 @@ The private [Fabric workspace](https://wiki.passioncode.ai)
 publishes these homes as a versioned snapshot. [ADR-0048](adr/0048-fabric-workspace-is-a-versioned-private-publication.md)
 and the [publication contract](architecture/report-workspace.md) define ownership: source
 facts stay here; the `workspace` submodule owns the host and maintenance skill. The generated
-`workspace-receipt.json` ties source commit, child commit, digest and Heroku release together.
+`workspace-receipt.json` ties source commit, child commit, digest and the App Platform deployment together.
 
 | Fact | Canonical home | Other surfaces do this |
 |---|---|---|

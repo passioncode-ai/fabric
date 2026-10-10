@@ -13,9 +13,9 @@ This is documentation infrastructure. Product runtime readiness stays in the
 | Decisions and deferred work | Fabric ADR / CO registers under a lease | source-pinned snapshot; no second register |
 | Brand and visual assets | Fabric `docs/brand/`, `assets/brand/` | browsable brand library and downloads |
 | Report UI and mockup generators | Fabric `scripts/product/`, report builders | generated `docs/reports/*.html` |
-| Website, document reader, access and deployment | `fabric-workspace` | Heroku web process |
+| Website, document reader, access and deployment | `fabric-workspace` | DigitalOcean App Platform service (app `do_app` in `workspace.config.json`) |
 | Agent update procedure | workspace `skills/maintaining-fabric-workspace/` | linked project skill + readable guide |
-| Publication receipt | generated `docs/workspace-receipt.json` | source commit → workspace commit → Heroku release |
+| Publication receipt | generated `docs/workspace-receipt.json` | source commit → workspace commit → App Platform deployment |
 | How every other tool works | each PassionCode.ai repository's own docs, listed in `workspace.config.json#sources` | `repos/<id>/` in the same snapshot, each pinned to its own commit |
 
 The parent brand is **PassionCode.ai**, the product is **Fabric** (operator direction).
@@ -32,7 +32,7 @@ flowchart LR
   D --> E[Manifest: source + paths + hashes]
   E --> F[Workspace tests + commit W]
   F --> G[Private GitHub workspace]
-  G --> H[Heroku deploy W + verify release]
+  G --> H[App Platform deploys W on push; verify ACTIVE + identity]
   H --> I[Fabric pointer commit B: gitlink + receipt]
   I --> J[Parent CI: source age + digest + gitlink]
   F --> L[Child CI: host + snapshot bytes]
@@ -50,8 +50,9 @@ flowchart LR
    containing the current remote main; it does not reset,
    force-push or invent a merge when the repositories disagree.
 4. The child snapshot is committed and pushed before the parent points to it. Host tests
-   run before Heroku publication. Anonymous version access must return401; authenticated version data must match source,
-   digest, actual Heroku build SHA and the current successful release before receipt.
+   run before the push that deploys it. Anonymous version access must return 401; authenticated version data must match
+   source, digest, pins and the commit of the ACTIVE App Platform deployment before receipt
+   ([Deployment on DigitalOcean App Platform](#deployment-on-digitalocean-app-platform)).
 5. The final parent commit contains only `workspace` and `docs/workspace-receipt.json`.
    The map excludes those derived outputs, avoiding a hash cycle. The separate publication
    gate checks **all other source paths**, including a code-only change that leaves docs
@@ -64,6 +65,36 @@ parent CI checks the source/receipt/gitlink; child CI checks its own manifest by
 GitHub policy disables deploy keys on this repository (API returned 422 on 2026-09-07),
 so no personal token is copied into CI. The publishing agent performs the combined
 `--require-child` check locally. Parent CI alone does not attest the private child bytes.
+
+## Deployment on DigitalOcean App Platform
+
+The host runs on DigitalOcean App Platform (region `fra`, `do_app` in `workspace.config.json`), which
+builds and deploys **every push to the host's GitHub `main`** — a publication's snapshot commit and any
+other session's knowledge-base commit alike. Until 2026-10-08 it ran on Heroku and the publisher pushed
+to a `heroku` remote; that path and the Heroku CLI are gone from the publisher. The host's own runbook
+(`docs/DEPLOYMENT.md` in `fabric-workspace`) owns the app spec, DNS and rollback.
+
+`verifyDeployment` (`scripts/workspace-release.mjs#workspace-deploy`) proves a publication:
+
+1. Credentials come from Project Observatory only — `DIGITALOCEAN_TOKEN`, `WORKSPACE_USER`,
+   `WORKSPACE_PASSWORD` in project `fabric`, env `prod`, through `use_secret.py run --vault-only`, into a
+   probe child alone. The gates, npm and git never see them; nothing reaches argv or the log. Their
+   presence is checked before the gates (`checkDeployCredentials`).
+2. The probe polls `GET /v2/apps/{do_app}/deployments` every 10 s for at most 15 minutes. The
+   deployment that serves the publication is the ACTIVE one whose commit is the pushed workspace commit,
+   or a later commit that descends from it with an identical `content/` tree (another session's push
+   deployed on top and may have cancelled ours while it built). `ERROR`, `CANCELED` or `SUPERSEDED` with
+   no such later deployment fails at once.
+3. It then requires `/healthz`, an anonymous `401` on `/version.json`, and an authenticated
+   `/version.json` whose source, content digest and pins equal the expected ones and whose
+   `deployment` is `{platform: digitalocean, workspace_commit: <that deployment's commit>}`
+   (`release` is `null`: App Platform has no bindable deployment id).
+4. The receipt records `platform`, `do_app` and `deployment` (the App Platform deployment id). A Heroku
+   receipt from before the move stays valid as history and is replaced by the next publication.
+
+Because App Platform redeploys on every push to `main`, the deployment id changes without a
+publication; an "already published" re-run therefore checks that the running host still serves the
+receipt's content, not that the id is unchanged.
 
 ## Content boundary
 
@@ -150,9 +181,10 @@ A push that loses a race with another session fails the run; the next run starts
 | Uncommitted work / divergent child main | publisher refuses | inspect and commit/merge owned work; no reset |
 | Tampered snapshot / missing file | child verification fails | export again from the named source commit |
 | GitHub push fails | parent pin remains old | repair access, inspect child state and retry |
-| Heroku build/health/revision mismatch | no new parent receipt | inspect release, redeploy verified child |
+| App Platform build fails, is canceled or the running identity differs | no new parent receipt | inspect the deployment and its build log; fix forward or roll back (workspace `docs/DEPLOYMENT.md`) |
 | Interrupted after child publish | child may be ahead of parent | inspect deploy; `publish --resume` completes that source/pin, including a failed final push |
-| Workspace checkout has no `heroku` remote (a fresh worktree's submodule has only `origin`) | publisher stops before the gates and names the `git remote add` command | add the remote, rerun |
+| Project Observatory or one of its `fabric` credentials is missing | publisher stops before the gates and names what is missing | install Observatory / store the slot, rerun |
+| The workspace `main` is strictly behind `origin/main` when the publication starts (a knowledge push after the sync's checkout) | fast-forwarded, then published | nothing |
 | A tool repository unreadable at publish | publisher stops, names the repository | restore access; never publish around it |
 | A tool repository moved on | `lag` reports `within-grace` / `stale` | `node scripts/workspace.mjs publish` |
 | A source's history rewritten under its pin | `lag` reports `diverged` | inspect that repository, then publish its new tip |
@@ -190,7 +222,7 @@ ahead of remote are permitted, remote divergence or a behind branch is refused.
 
 The publisher verifies the **committed** child manifest files before pushing, not just
 working-tree bytes. Canonical historical `.log` evidence overrides runtime-log ignore
-patterns inside generated content. Heroku postbuild validates that same committed payload.
+patterns inside generated content. The App Platform build (`npm run verify:content`) validates that same committed payload.
 
 ## Common backlog sources
 

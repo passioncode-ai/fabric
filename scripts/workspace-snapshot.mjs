@@ -68,8 +68,13 @@ const ownedBy=id=>f=>f.path.startsWith('repos/'+id+'/')
 const fabricOwned=f=>!f.path.startsWith('repos/')
 // The receipt pins each source and carries two partial digests, so a checkout without the source
 // clones (CI) still verifies Fabric's own part, and a machine with them verifies everything.
-export function receiptFor(s,{workspace_commit,heroku_app,release}){
- const r={schema:1,source_commit:s.manifest.source.commit,workspace_commit,content_digest:s.manifest.content_digest,heroku_app,release}
+// A receipt names where it was deployed: App Platform (`platform`, `do_app`, `deployment` id) since
+// 2026-10-08; a receipt written before then names its Heroku app and release number and stays valid
+// as history until the next publication replaces it.
+export const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+export function receiptFor(s,{workspace_commit,platform,do_app,deployment,heroku_app,release}){
+ const deployed=platform==='digitalocean'?{platform,do_app,deployment}:{heroku_app,release}
+ const r={schema:1,source_commit:s.manifest.source.commit,workspace_commit,content_digest:s.manifest.content_digest,...deployed}
  if(s.manifest.sources?.length){
   r.fabric_digest=digest(s.manifest.files.filter(fabricOwned))
   r.sources=s.manifest.sources.map(x=>({id:x.id,repository:x.repository,commit:x.commit,files_digest:digest(s.manifest.files.filter(ownedBy(x.id)))}))
@@ -121,11 +126,16 @@ export function verifyCommittedSnapshot(target){
 
 export function checkReceipt(root,{requireChild=false,sourceDirs=null}={}){
  const receipt=JSON.parse(readFileSync(path.join(root,receiptPath),'utf8'))
- if(receipt.schema!==1||!/^[a-f0-9]{40}$/.test(receipt.source_commit||'')||!/^[a-f0-9]{40}$/.test(receipt.workspace_commit||'')||!/^[a-f0-9]{64}$/.test(receipt.content_digest||'')||!Number.isSafeInteger(receipt.release)||receipt.release<1||!/^[-a-z0-9]{3,30}$/.test(receipt.heroku_app||''))throw Error('Invalid workspace receipt: immutable source/workspace SHAs, digest, app and release are required')
+ if(receipt.schema!==1||!/^[a-f0-9]{40}$/.test(receipt.source_commit||'')||!/^[a-f0-9]{40}$/.test(receipt.workspace_commit||'')||!/^[a-f0-9]{64}$/.test(receipt.content_digest||'')||!deployedAt(receipt))throw Error('Invalid workspace receipt: immutable source/workspace SHAs, digest, app and deployment are required')
  const pins=receipt.sources??[]
  if(!Array.isArray(pins)||(pins.length&&!/^[a-f0-9]{64}$/.test(receipt.fabric_digest||''))||new Set(pins.map(x=>x?.id)).size!==pins.length||!pins.every(x=>sourceId.test(x?.id||'')&&sourceRepository.test(x.repository||'')&&/^[a-f0-9]{40}$/.test(x.commit||'')&&/^[a-f0-9]{64}$/.test(x.files_digest||'')))throw Error('Invalid workspace receipt: every source needs an id, a passioncode-ai repository, an immutable commit and its files digest, plus the Fabric digest')
  git(root,'merge-base','--is-ancestor',receipt.source_commit,'HEAD')
- if(existsSync(path.join(root,'workspace.config.json'))&&JSON.parse(readFileSync(path.join(root,'workspace.config.json'),'utf8')).heroku_app!==receipt.heroku_app)throw Error('Receipt names a different Heroku app')
+ if(existsSync(path.join(root,'workspace.config.json'))){
+  const config=JSON.parse(readFileSync(path.join(root,'workspace.config.json'),'utf8'))
+  if(receipt.platform==='digitalocean'&&config.do_app!==receipt.do_app)throw Error('Receipt names a different App Platform app')
+  // A Heroku receipt is history once the configuration names no Heroku app; while one is named it must match.
+  if(receipt.platform===undefined&&config.heroku_app!==undefined&&config.heroku_app!==receipt.heroku_app)throw Error('Receipt names a different Heroku app')
+ }
  // A source is recomputed where its clone holds the pinned commit; otherwise only its pin is held.
  const dirs=sourceDirs??{}
  const local=pins.length>0&&pins.every(x=>dirs[x.id]&&hasCommit(dirs[x.id],x.commit))
@@ -164,5 +174,9 @@ export function checkReceipt(root,{requireChild=false,sourceDirs=null}={}){
  }
  if(requireChild)throw Error('Initialize workspace submodule before full publication verification')
  return result({child:'not checked; absent locally'})
+}
+function deployedAt(r){
+ if(r.platform==='digitalocean')return UUID.test(r.do_app||'')&&UUID.test(r.deployment||'')&&r.heroku_app===undefined&&r.release===undefined
+ return r.platform===undefined&&Number.isSafeInteger(r.release)&&r.release>=1&&/^[-a-z0-9]{3,30}$/.test(r.heroku_app||'')
 }
 export const hasCommit=(dir,commit)=>{try{git(dir,'cat-file','-e',commit+'^{commit}');return true}catch{return false}}

@@ -163,7 +163,7 @@ expires, or until the provider rejects it), with a 5 s deadline; a refused read 
 `~/.cache/fabric-workspace/sync-status.json`; its log is `~/Library/Logs/Fabric/workspace-sync.log` (0600, copy-truncate at 5 MB × 5).
 
 **Builds clean up after themselves (LC-15).** Outputs: `apps/desktop/out/` (electron-vite, ~30 MB),
-`apps/desktop/dist/` (electron-builder: the DMG and `mac-universal/Fabric.app` (release) or `mac-arm64/` / `mac/` (local `package`, host architecture), ~600 MB; a universal pack also leaves `mac-universal-{x64,arm64}-temp/` only while it runs, and electron-builder removes them). The release is universal from 0.3.4: `scripts/after-pack-universal.mjs` joins node-pty's prebuilds and refuses a thin Mach-O; the runtimes admitted per architecture are in `apps/desktop/src/main/runtimeAdmission.ts` (Intel: Electron main only, CO-237). `scripts/release-mac.mjs`
+`apps/desktop/dist/` (electron-builder: the DMG and `mac-universal/Fabric.app` (release) or `mac-arm64/` / `mac/` (local `package`, host architecture), ~600 MB; a universal pack also leaves `mac-universal-{x64,arm64}-temp/` only while it runs, and electron-builder removes them). The release is universal from 0.3.5: `scripts/after-pack-universal.mjs` joins node-pty's prebuilds and refuses a thin Mach-O; the runtimes admitted per architecture are in `apps/desktop/src/main/runtimeAdmission.ts` (Intel: Electron main only, CO-237). `scripts/release-mac.mjs`
 unregisters the previous bundle from LaunchServices and removes `dist/` before every build, so one release is
 kept here; earlier ones live in the published GitHub release. Agent worktrees under `.claude/worktrees/` are
 removed once their branch has landed (`git worktree remove`); an agent that leaves one behind leaves ~800 MB.

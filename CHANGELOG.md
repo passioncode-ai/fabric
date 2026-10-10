@@ -6,7 +6,7 @@ that section as the notes of the `vX.Y.Z` release
 ([docs/launch/release-mac.md](docs/launch/release-mac.md), [ADR-0111](docs/adr/0111-fabric-is-released-from-ci.md)).
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
-## 0.3.4 (unreleased)
+## 0.3.5 (unreleased)
 
 ### Changed
 

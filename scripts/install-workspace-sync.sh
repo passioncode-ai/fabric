@@ -8,10 +8,12 @@
 #   scripts/install-workspace-sync.sh --uninstall --purge   also remove the checkout (git worktree), source mirrors, state and logs (LC-14)
 #
 # It makes a dedicated detached checkout of this repository's origin/main (sync moves it, so it
-# is never a checkout anyone works in), initialises the workspace submodule with its Heroku
-# remote, and registers a launchd job that runs `node scripts/workspace.mjs sync` every two
-# hours. The job publishes only when `sync` finds something behind. No credential is written
-# anywhere: git, gh and the Heroku CLI use the logins already on this Mac.
+# is never a checkout anyone works in), initialises the workspace submodule, and registers a
+# launchd job that runs `node scripts/workspace.mjs sync` every two hours. The job publishes only
+# when `sync` finds something behind; the host deploys on DigitalOcean App Platform from its GitHub
+# main. No credential is written anywhere: git and gh use the logins already on this Mac, and the
+# deployment check reads its DigitalOcean token and the host login from Project Observatory
+# (`project-observatory`, project `fabric`, env `prod`) at the moment it runs.
 set -euo pipefail
 
 LABEL="ai.passioncode.fabric-workspace-sync"
@@ -56,10 +58,9 @@ case "${1:-install}" in
   *) echo "usage: $0 [--status|--uninstall [--purge]]" >&2; exit 2 ;;
 esac
 
-for tool in git node heroku; do
+for tool in git node python3 project-observatory; do
   command -v "$tool" >/dev/null || { echo "NOT_RUN: $tool is not on PATH; the sync needs it" >&2; exit 2; }
 done
-HEROKU_APP="$(node -e 'process.stdout.write(require(process.argv[1]).heroku_app)' "$REPO/workspace.config.json")"
 
 git -C "$REPO" fetch -q origin main
 if [ ! -d "$CHECKOUT/.git" ] && [ ! -f "$CHECKOUT/.git" ]; then
@@ -67,8 +68,8 @@ if [ ! -d "$CHECKOUT/.git" ] && [ ! -f "$CHECKOUT/.git" ]; then
   git -C "$REPO" worktree add -q --detach "$CHECKOUT" origin/main
 fi
 git -C "$CHECKOUT" submodule update --init -q workspace
-git -C "$CHECKOUT/workspace" remote get-url heroku >/dev/null 2>&1 \
-  || git -C "$CHECKOUT/workspace" remote add heroku "https://git.heroku.com/$HEROKU_APP.git"
+# The Heroku deploy remote of the pre-2026-10-08 host is retired; a checkout made before then drops it.
+git -C "$CHECKOUT/workspace" remote get-url heroku >/dev/null 2>&1 && git -C "$CHECKOUT/workspace" remote remove heroku
 [ -d "$CHECKOUT/workspace/node_modules" ] || (cd "$CHECKOUT/workspace" && npm ci --silent)
 
 mkdir -p "$(dirname "$PLIST")"
@@ -85,7 +86,7 @@ NODE="$(command -v node)"
 # prepending each tool's directory put /usr/local/bin's python3 (no jsonschema) ahead of Homebrew's and the
 # scheduled gate failed where the interactive one passed (2026-10-03).
 NEEDED_DIRS=""
-for tool in node git heroku pnpm npm python3 rg docker supabase gh uv; do
+for tool in node git pnpm npm python3 rg docker supabase gh uv project-observatory; do
   p="$(command -v "$tool" 2>/dev/null)" || continue
   NEEDED_DIRS="$NEEDED_DIRS:$(dirname "$p"):"
 done

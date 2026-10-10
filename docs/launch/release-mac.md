@@ -11,7 +11,7 @@ the local packaging config; `pnpm --dir apps/desktop package` keeps building the
 
 ## What the installed app needs
 
-- **macOS on Apple silicon or Intel.** From 0.3.4 the build is universal (`arm64` and `x86_64`; up to 0.3.3, `arm64`
+- **macOS on Apple silicon or Intel.** From 0.3.5 the build is universal (`arm64` and `x86_64`; up to 0.3.4, `arm64`
   only). On Intel the app's main process runs on a measured runtime (Electron 44.0.0 darwin-x64) and the coding-agent
   sign-in readers know the x64 builds of Claude Code 2.1.289 and Codex 0.160.0
   ([receipt](harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09)). Windows and Linux are not supported yet (CO-238).
@@ -26,7 +26,7 @@ the local packaging config; `pnpm --dir apps/desktop package` keeps building the
 
 ## Universal macOS
 
-From 0.3.4 the release is one universal app (Apple silicon and Intel). electron-builder packs an
+From 0.3.5 the release is one universal app (Apple silicon and Intel). electron-builder packs an
 x64 and an arm64 app and joins them; node-pty keeps each architecture in its own
 `prebuilds/darwin-<arch>/` folder, so `scripts/after-pack-universal.mjs` replaces both with one
 universal file (`scripts/lib/universal-mac.mjs`), the `files` filter in `electron-builder.yml`
@@ -124,7 +124,7 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `Fabric-0.3.0-arm64.dmg` download and its `sha256`). For each CI release, the website's own pull request sets `tag`
    `vX.Y.Z`, `repository` `passioncode-ai/fabric`, `releaseUrl`
    `https://github.com/passioncode-ai/fabric/releases/tag/vX.Y.Z`, `downloads.macos`
-   `https://github.com/passioncode-ai/fabric/releases/download/vX.Y.Z/Fabric-X.Y.Z-universal.dmg` (from 0.3.4; `-arm64.dmg` up to 0.3.3) and `sha256` from the
+   `https://github.com/passioncode-ai/fabric/releases/download/vX.Y.Z/Fabric-X.Y.Z-universal.dmg` (from 0.3.5; `-arm64.dmg` up to 0.3.4) and `sha256` from the
    release's `SHA256SUMS`, plus the screenshots and the brand facts row; then `npm run deploy` and the live
    receipt ([site handoff](https://github.com/passioncode-ai/passioncode-ai.github.io/blob/main/docs/HANDOFF.md)).
    Download the asset anonymously and check its SHA-256 and `spctl -a -t open --context context:primary-signature`
