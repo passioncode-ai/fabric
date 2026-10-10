@@ -145,10 +145,9 @@ jobs:
           desktop-file-validate /usr/share/applications/passioncode-fabric.desktop
       - if: matrix.expect == 'ok'
         name: The Supabase CLI the bundled stack starts with (Docker is on the runner)
-        run: |
-          curl -fsSL -o supabase.deb "https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.deb"
-          sudo apt-get install -y -q ./supabase.deb
-          supabase --version
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
       - name: Start the installed app
         run: xvfb-run -a node scripts/smoke-platform.mjs --exe /usr/bin/passioncode-fabric --expect ${{ matrix.expect }} --timeout 900
       - name: Start the AppImage (its sandbox helper cannot be setuid inside an AppImage)

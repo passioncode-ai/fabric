@@ -38,7 +38,7 @@ npmRebuild: false
 # Universal macOS (operator decision 2026-10-09): node-pty's thin per-arch prebuilds become one
 # universal file in both folders, other platforms' prebuilds are dropped, and the joined app is
 # refused if any Mach-O lacks a slice (scripts/lib/universal-mac.mjs).
-afterPack: ../../scripts/after-pack-universal.mjs
+afterPack: build-hooks/after-pack.mjs
 mac:
   target:
     - dir
