@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.4",
+  "iteration": 3,
+  "level": "errors",
+  "candidateCommit": "2e04073125db85d1fe3763267cd85c3d78fabaf2",
+  "report": "docs/evidence/reviews/0.3.4/iteration-3/2026-10-10-errors.md",
+  "reportSha256": "7c681208dacd0c400fc941ff7c201b06e4f03a7fd5cc2605747f10814c958ce0",
+  "reviewerRun": "release-034-i3-errors-20261010",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-1",
+      "source": "DA-1, ER-1",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `EVENT_READ_LIMIT` 999; `seed-repair.test.mjs` reads `max_rows` from `supabase/config.toml` and refuses a limit whose read exceeds it (watched: with 1000 it fails, \"reads 1001 rows, more than the API returns (1000)\"); ADR-0131 §2 says why"
+      ]
+    },
+    {
+      "id": "V3-4",
+      "source": "DO-1, ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the npm darwin-x64 build was measured under Rosetta and admitted; the packaged framework is joined and re-signed, so neither architecture of the shipped app matches a tuple, as arm64 never did (N1); nothing in the app reads it yet"
+      ]
+    },
+    {
+      "id": "V3-5",
+      "source": "DO-2, ER-2, PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the two exit lines; *Release close* item 1 names the fifteen receipts and the exit lines, written in the release commit"
+      ]
+    },
+    {
+      "id": "V3-19",
+      "source": "ER (recheck ERR-1), PL (recheck PLR-1)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: item 1 names `2e040731` in full; the recheck reports are `docs/handoffs/2026-10-10-release-034-i3-recheck-*.md`, declared in `releaseMetadata`"
+      ]
+    }
+  ]
+}

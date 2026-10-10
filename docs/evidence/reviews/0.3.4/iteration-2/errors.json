@@ -1,0 +1,38 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.4",
+  "iteration": 2,
+  "level": "errors",
+  "candidateCommit": "a0ab055c4483b9f4589e68e3a9d876af8ff08e37",
+  "report": "docs/evidence/reviews/0.3.4/iteration-2/2026-10-10-errors.md",
+  "reportSha256": "15ef19837ddb1dfabbfbfda3bb44155a6cc5ebacd8e09dd3332d1cfb09868942",
+  "reviewerRun": "release-034-i2-errors-20261010",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V2-3",
+      "source": "ER-2, UX-3, DA-2, DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the whole identity gate — read, repair, read again, refusal — runs before `pastRetryPoint` and `startHub` (`index.ts` region `seed-repair-wiring`); `seed-repair.test.mjs` asserts the refusal's place (watched: the gate moved after the hub fails); ADR-0131 §3 rewritten"
+      ]
+    },
+    {
+      "id": "V2-4",
+      "source": "ER-1, UX-2, DO-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the cause matches only the boundary's own refusal (\"that person is not a member / does not exist / may not act\"); a failed read keeps `database-unreachable` or `unknown`; `startupFailure.test.ts` cases; the remedy says what Fabric never does and names where to report (https://github.com/passioncode-ai/Fabric/issues)"
+      ]
+    },
+    {
+      "id": "V2-5",
+      "source": "ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: after any attempt identity is read again; a refusal that a second read finds resolved is `ok` at `info` with what was found"
+      ]
+    }
+  ]
+}

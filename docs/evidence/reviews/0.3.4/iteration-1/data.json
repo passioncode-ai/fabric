@@ -1,0 +1,46 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.4",
+  "iteration": 1,
+  "level": "data",
+  "candidateCommit": "41c2b62ca9ee3ce8307a4b58dd0235035d4eec8b",
+  "report": "docs/evidence/reviews/0.3.4/iteration-1/2026-10-10-data.md",
+  "reportSha256": "a071f48ebba320c92153a65bd79ea3944e4f6f0112fdc86a26ac575294747d5d",
+  "reviewerRun": "release-034-i1-data-20261010",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-1",
+      "source": "DA-1, ER-3 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `seedRepair.ts#seedOnlyProblem` admits after the creation only `access.requested@1` by `system/fabric-hub` (within `EVENT_READ_LIMIT`); the repair runs before the retry point and `startHub` (`index.ts` region `seed-repair-wiring`); `seed-repair.test.mjs` hub cases and the wiring-order check, `first-install-db.test.mjs` `legacy` hub case (watched: admitting any system event, and moving the repair after the hub, each fail)"
+      ]
+    },
+    {
+      "id": "V1-5",
+      "source": "DA-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `seedOnlyProblem` refuses when any `membership_commands` row is on record (`seedRepairDb#decisions`); unit case and `legacy` revoke case (watched: removing the check fails)"
+      ]
+    },
+    {
+      "id": "V1-6",
+      "source": "DA-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: `seed-repair.test.mjs` drives `seedRepairDb` with a recording client and holds the reads, the limit and the RPC arguments; the wiring order is read from `index.ts` (watched: `.limit(2)` and `p_expected_revision: null` each fail)"
+      ]
+    },
+    {
+      "id": "V1-14",
+      "source": "UX-7, DA-4, PL-6, DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-238 says 0.3.4; `checks.md` §Intel (x86_64) gains a dated amendment, its measurement unchanged"
+      ]
+    }
+  ]
+}

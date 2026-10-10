@@ -1,0 +1,62 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.4",
+  "iteration": 3,
+  "level": "docs",
+  "candidateCommit": "2e04073125db85d1fe3763267cd85c3d78fabaf2",
+  "report": "docs/evidence/reviews/0.3.4/iteration-3/2026-10-10-docs.md",
+  "reportSha256": "6acb6deb767dfa18579c9c438d4cf473cb0215e5846f4afbc22b3629d3cc2762",
+  "reviewerRun": "release-034-i3-docs-20261010",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V3-4",
+      "source": "DO-1, ER-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the npm darwin-x64 build was measured under Rosetta and admitted; the packaged framework is joined and re-signed, so neither architecture of the shipped app matches a tuple, as arm64 never did (N1); nothing in the app reads it yet"
+      ]
+    },
+    {
+      "id": "V3-5",
+      "source": "DO-2, ER-2, PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: the two exit lines; *Release close* item 1 names the fifteen receipts and the exit lines, written in the release commit"
+      ]
+    },
+    {
+      "id": "V3-6",
+      "source": "DO-3, PL-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"only the old seed (0.2.0, 0.3.0–0.3.3)\", iterations 1–2 closed and 3 at its final candidate; lane 2 names P-14's 0.3.3 release"
+      ]
+    },
+    {
+      "id": "V3-7",
+      "source": "DO-4",
+      "status": "ruled",
+      "evidence": [
+        "ruled: the publication after the tag (*Release close* item 4) pins a snapshot that carries #92; V2-19 holds on fabric-workspace `main`"
+      ]
+    },
+    {
+      "id": "V3-8",
+      "source": "DO-5",
+      "status": "fixed",
+      "evidence": [
+        "fixed: item 5 names it"
+      ]
+    },
+    {
+      "id": "V3-9",
+      "source": "DO-6",
+      "status": "fixed",
+      "evidence": [
+        "fixed: \"it skips off macOS\", \"these five\""
+      ]
+    }
+  ]
+}

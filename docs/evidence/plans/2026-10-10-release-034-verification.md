@@ -50,8 +50,9 @@ is the remedy, published as soon as its gate clears (iteration 2, PL-2). The ope
 What 0.3.4's release has to do besides the gate. Each line is checked off with its receipt when it is done.
 
 1. The release commit: `apps/desktop/package.json` 0.3.4 (nothing else in that file), `## 0.3.4` finalized in
-   `CHANGELOG.md`, `docs/launch/release-gate.json` (version, this ledger, `verifiedCommit` = the iteration-3
-   candidate, three receipt groups), the fifteen receipts `docs/evidence/reviews/0.3.4/iteration-N/<level>.json`, and
+   `CHANGELOG.md`, `docs/launch/release-gate.json` (version, this ledger, `verifiedCommit` = iteration 3's final
+   candidate `2e04073125db85d1fe3763267cd85c3d78fabaf2`, three receipt groups, the recheck reports under
+   `docs/handoffs/` declared in `releaseMetadata`), the fifteen receipts `docs/evidence/reviews/0.3.4/iteration-N/<level>.json`, and
    each iteration section ending in its one `Exit for iteration N: … Blocking findings open: none.` line (the gate
    refuses either missing; iteration 3, ER-2, DO-2, PL-4), a new top entry in `docs/reports/map.html` and the `docs/MERGES.md` entry;
    landed on `main` by fast-forward after `bash scripts/ci.sh fast`.
@@ -77,7 +78,8 @@ What 0.3.4's release has to do besides the gate. Each line is checked off with i
    name 0.2.0 on Apple silicon (`docs/brand/facts.md` "current implementation status",
    `docs/guides/passioncode-overview.md` and `.ru.md`, the family section of `docs/reports/map.html`; iteration 1,
    PL-7; iteration 3, DO-5); in fabric-workspace also `products.md`'s Fabric release and the roadmap's RM-19 and LC-16
-   rows, which still date self-update after 0.3.3 (iteration 3, PL-2), and ADR-0121/ADR-0123 here (their amendments 2); then the close commit marking P-15 done,
+   rows, which still date self-update after 0.3.3 (iteration 3, PL-2), and ADR-0121's status line, which still names
+   0.3.3 as the target (its amendment 2, already in this candidate, is the record; recheck PLR-2); then the close commit marking P-15 done,
    with its handoff.
 6. Intel: no Intel Mac is on hand, so the packaged universal app is not run on Intel hardware before the release;
    the notes say so (the Intel runtime measured under Rosetta on Apple silicon, the app not yet run on an Intel Mac), and a first Intel run is recorded
@@ -171,8 +173,12 @@ checkout with dependencies installed. Reports: [UX](../reviews/0.3.4/iteration-3
 [errors](../reviews/0.3.4/iteration-3/2026-10-10-errors.md) (0 + 3), [docs](../reviews/0.3.4/iteration-3/2026-10-10-docs.md)
 (0 + 6), [data](../reviews/0.3.4/iteration-3/2026-10-10-data.md) (0 + 2), [plan](../reviews/0.3.4/iteration-3/2026-10-10-plan.md)
 (0 + 8). 21 findings, none blocking. `bash scripts/ci.sh full` exited 0 at `06c5234c` (disposable stack, the live one
-not addressed). The fixes below (V3-1…V3-3 in code) make the final candidate, which the reviewers recheck before the
-release commit.
+not addressed). The fixes below (V3-1…V3-3 in code) make the final candidate `2e040731`
+(`2e04073125db85d1fe3763267cd85c3d78fabaf2`), which five reviewers rechecked level by level, read-only: every row
+above holds there and the delta regressed nothing ([UX](../../handoffs/2026-10-10-release-034-i3-recheck-ux.md),
+[errors](../../handoffs/2026-10-10-release-034-i3-recheck-errors.md), [docs](../../handoffs/2026-10-10-release-034-i3-recheck-docs.md),
+[data](../../handoffs/2026-10-10-release-034-i3-recheck-data.md), [plan](../../handoffs/2026-10-10-release-034-i3-recheck-plan.md);
+committed with the release as release metadata). Their new findings are V3-17…V3-20.
 
 | ID | Source | Finding (short) | Disposition |
 |---|---|---|---|
@@ -185,10 +191,16 @@ release commit.
 | V3-7 | DO-4 | The pinned workspace snapshot predates fabric-workspace #92, so a checkout's roadmap still says 0.3.2 | ruled: the publication after the tag (*Release close* item 4) pins a snapshot that carries #92; V2-19 holds on fabric-workspace `main` |
 | V3-8 | DO-5 | *Release close* item 5 left out the family section of `docs/reports/map.html` | fixed: item 5 names it |
 | V3-9 | DO-6 | Two `ci.sh` comments were wrong | fixed: "it skips off macOS", "these five" |
-| V3-10 | DA-2 | `rehearse-upgrade --make-fixture` seeds with the current seed, so it no longer reproduces CO-241 | fixed: the script's header says the fixture rehearses the upgrade's counts with this checkout's seed and that CO-241 is `first-install-db.test.mjs`'s; the upgrade-then-repair path was measured by iteration 3's UX and data reviewers on their own databases |
+| V3-10 | DA-2 | `rehearse-upgrade --make-fixture` seeds with the current seed, so it no longer reproduces CO-241 | fixed: the script's header says the fixture rehearses the upgrade's counts with this checkout's seed and that CO-241 is `first-install-db.test.mjs`'s; the upgrade-then-repair path was measured by iteration 3's UX reviewer on its own databases, and read from the migrations by the data reviewer (recheck DAR-1) |
 | V3-11 | PL-1 | ADR-0121 and ADR-0123 still placed their targets after 0.3.3 | fixed: amendments 2 to both (after 0.3.4, order with 0.3.5 undecided; copies ≤ 0.3.4); ADR index rows |
 | V3-12 | PL-2 | The knowledge base's RM-19/LC-16 rows and `products.md` still date self-update after 0.3.3 and name 0.3.2 | fixed in *Release close* item 5 by name (the knowledge base is updated after publication) |
 | V3-13 | PL-3 | The website's interim state had no register id | ruled CO-243: a known-issue line, a site notice or nothing until 0.3.4 is the operator's call; closed by item 4's redirect receipt |
 | V3-14 | PL-6 | CO-238 did not carry "the port is 0.3.5" | fixed: CO-238's latest-decision cell says it |
 | V3-15 | PL-7 | fabric#26 (analytics build mode) sat in no register | fixed: P-15 names it as out of 0.3.4's scope, left to its own PR |
 | V3-16 | PL-8 | Item 7 did not say which of step 7's checks go undone | fixed: item 3 covers the start, the window and the repair; the chat's save and its cold-restart read-back go undone in this release |
+| V3-17 | UX (recheck UXR-1) | "Retry first" names failed reads, not a failed grant or a repair that threw | not a defect: the refusal is thrown before the retry point, so the dialog offers Retry for every one of these (`startupFailure.ts#startupDialog`, retryable); the sentence names the commonest case |
+| V3-18 | DA (recheck DAR-1) | V3-10 said the data reviewer measured the upgrade-then-repair path; it read it from the migrations | fixed: V3-10's cell says who measured and who read |
+| V3-19 | ER (recheck ERR-1), PL (recheck PLR-1) | Item 1 named the iteration-3 candidate as `verifiedCommit` and gave the recheck reports no admitted place | fixed: item 1 names `2e040731` in full; the recheck reports are `docs/handoffs/2026-10-10-release-034-i3-recheck-*.md`, declared in `releaseMetadata` |
+| V3-20 | PL (recheck PLR-2) | Item 5 listed the ADR amendments 2 as after-publication work, and ADR-0121's status line still names 0.3.3 | fixed: item 5 names only the status line, updated in the close commit (an ADR is not release metadata, so the release commit cannot carry it) |
+
+Exit for iteration 3: every finding above is fixed, ruled with a register id or not a defect, and the five rechecks at the final candidate `2e040731` found none blocking. Blocking findings open: none.

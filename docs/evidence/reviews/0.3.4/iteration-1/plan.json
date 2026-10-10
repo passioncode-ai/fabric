@@ -1,0 +1,86 @@
+{
+  "schema": "fabric-release-reviews/1",
+  "version": "0.3.4",
+  "iteration": 1,
+  "level": "plan",
+  "candidateCommit": "41c2b62ca9ee3ce8307a4b58dd0235035d4eec8b",
+  "report": "docs/evidence/reviews/0.3.4/iteration-1/2026-10-10-plan.md",
+  "reportSha256": "51fa968421beec9c0619f19401e6c244cd5971a44d679743f499477fbb99fa24",
+  "reviewerRun": "release-034-i1-plan-20261010",
+  "status": "closed",
+  "blockingFindingsOpen": [],
+  "findings": [
+    {
+      "id": "V1-4",
+      "source": "PL-1 (blocking)",
+      "status": "fixed",
+      "evidence": [
+        "fixed: runbook step 9 describes the resolver (`releases/products.json`, read 2026-10-10) and the site PR that changes the pattern to `Fabric-{version}-universal.dmg` after publication; ledger *Release close* item 4 names it, with the live redirect as receipt. The site change itself is that close item"
+      ]
+    },
+    {
+      "id": "V1-12",
+      "source": "UX-5, DO-8, PL-11",
+      "status": "fixed",
+      "evidence": [
+        "fixed: one user-facing bullet, \"measured on Apple silicon, natively and under Rosetta; not yet run on an Intel Mac\", mechanics left to the runbook's *Universal macOS*; ledger *Release close* item 6 records that no Intel Mac is on hand"
+      ]
+    },
+    {
+      "id": "V1-14",
+      "source": "UX-7, DA-4, PL-6, DO-2",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-238 says 0.3.4; `checks.md` §Intel (x86_64) gains a dated amendment, its measurement unchanged"
+      ]
+    },
+    {
+      "id": "V1-15",
+      "source": "DO-3, ER-6, PL-7",
+      "status": "fixed",
+      "evidence": [
+        "fixed: each says one universal DMG for Apple silicon and Intel from 0.3.4. `docs/brand/facts.md` and the overview guides (still 0.2.0) are updated at *Release close* item 5, once 0.3.4 is published"
+      ]
+    },
+    {
+      "id": "V1-18",
+      "source": "DO-6, PL-2, PL-3",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-228 resolved citing CO-241; the 0.3.3 ledger gains a dated *Release close — state on 2026-10-10*; P-14 says the site follows releases itself and offers a build a new Mac cannot start until 0.3.4"
+      ]
+    },
+    {
+      "id": "V1-19",
+      "source": "PL-4",
+      "status": "fixed",
+      "evidence": [
+        "fixed: lanes 1 and 2 cite P-15 (lane 2 in place of the released P-14; lane 1 drops the resolved CO-228)"
+      ]
+    },
+    {
+      "id": "V1-20",
+      "source": "PL-5, PL-10",
+      "status": "fixed",
+      "evidence": [
+        "fixed: re-dated to after 0.3.4, the order with 0.3.5 marked undecided; Next names 0.3.5 (CO-238)"
+      ]
+    },
+    {
+      "id": "V1-21",
+      "source": "PL-8",
+      "status": "fixed",
+      "evidence": [
+        "fixed: P-15 names RM-09; the roadmap's released column is *Release close* item 5"
+      ]
+    },
+    {
+      "id": "V1-22",
+      "source": "PL-9",
+      "status": "fixed",
+      "evidence": [
+        "fixed: CO-241 is \"fixed in the 0.3.4 candidates, resolved when v0.3.4 is published\"; ADR-0131's status says the rule is this run's design and the operator decided the release"
+      ]
+    }
+  ]
+}
