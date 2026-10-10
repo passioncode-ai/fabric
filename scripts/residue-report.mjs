@@ -56,7 +56,9 @@ export const REVIEW_ACTORS = Object.freeze({
   'launch-fixture': 'scripts/fixtures/launch-estate.sql — the screenshot fixture'
 })
 const SEED_ESTATE = '00000000-0000-0000-0000-000000000001'
-const SEED_OPERATOR = '00000000-0000-0000-0000-000000000002'
+// The seed's operator: the person the app runs as (seed.sql since 0.3.4), and the person the seed made
+// before it (CO-241), still a member of every database seeded then.
+const SEED_OPERATORS = ['00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-000000000002']
 
 const lit = v => `'${String(v).replace(/'/g, "''")}'`
 const list = o => Object.keys(o).map(lit).join(', ')
@@ -107,7 +109,7 @@ estate_class as (
 person_class as (
   select p.id, p.display_name,
     case
-      when p.id = '${SEED_OPERATOR}' then 'keep'
+      when p.id in (${SEED_OPERATORS.map(lit).join(', ')}) then 'keep'
       when exists (select 1 from memberships m where m.person_id = p.id)
        and not exists (select 1 from memberships m join estate_class e on e.id = m.estate_id
                        where m.person_id = p.id and e.class <> 'would_remove') then 'would_remove'

@@ -246,6 +246,7 @@ import { createUnattendedAdmission } from '../shared/unattendedAdmission.ts'
 import { createAdmitExisting } from './admitExisting.ts'
 import { createRunLifecycle, type RunLifecycle } from './runLifecycle.ts'
 import { createIdentity, LOCAL_OPERATOR_PERSON, type Identity } from './identity.ts'
+import { repairSeedOnlyEstate, seedRepairDb } from './seedRepair.ts'
 
 /** One shape for a created agent, so the two handlers cannot disagree. */
 /** A launch option is either a runner id (`claude-code`) or a created agent's
@@ -874,7 +875,17 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // ESTABLISHED, and the actor everything downstream uses comes from here. A
   // failure is fatal on purpose: a product that carries on with an unidentified
   // writer is one whose journal cannot say who did anything.
-  const established = await identity.establish()
+  let established = await identity.establish()
+  // A database a fresh 0.3.0–0.3.3 install made (CO-241, ADR-0131): the old seed owned the default
+  // estate as a person this app never runs as. Only that untouched shape is granted, through the door.
+  if (!established.ok && established.why === 'not_a_member' && ACTIVE_ESTATE === DEFAULT_ESTATE) {
+    const repair = await repairSeedOnlyEstate(seedRepairDb(db), { estateId: ACTIVE_ESTATE, operator: LOCAL_OPERATOR_PERSON, commandId: randomUUID() })
+    ops.record({
+      op: 'identity.seed-repair', outcome: repair.repaired ? 'ok' : 'failed', level: repair.repaired ? 'warn' : 'info',
+      detail: repair.repaired ? { granted: 'owner' } : { why: repair.why }, ctx: { correlationId: ops.correlate(), estateId: ACTIVE_ESTATE }
+    })
+    if (repair.repaired) established = await identity.establish()
+  }
   if (!established.ok)
     throw new Error(`identity could not be established: ${established.says}`)
   OPERATOR_ACTOR = identity.actor()

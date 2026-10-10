@@ -222,6 +222,8 @@ node --experimental-strip-types apps/desktop/test/task-retry.test.mjs
 node --experimental-strip-types --test apps/desktop/test/analytics.test.mjs
 # The app menu (0.3.3 localized it): pure, so it runs before every commit (0.3.3 verification, iteration 3, DA-6).
 node --experimental-strip-types apps/desktop/test/menu.test.mjs
+# CO-241 (0.3.4): a database only the old seed touched is given to the local operator, and nothing else is (ADR-0131); pure.
+node --experimental-strip-types apps/desktop/test/seed-repair.test.mjs
 node --experimental-strip-types apps/desktop/test/executor-detect.test.mjs
 node --experimental-strip-types apps/desktop/test/executor-auth.test.mjs
 node --experimental-strip-types apps/desktop/test/start-paths-main.test.mjs
@@ -346,7 +348,9 @@ step "owned databases: the SQL contract and the reads, on a cluster this run cre
 # NOT_RUN. Set FABRIC_PG_BIN to run it.
 owned_fast_failed=()
 owned_fast_not_run=()
-for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db; do
+# run-first-install-db (CO-241, 0.3.4) is here too: the seed a fresh install takes, and the database
+# 0.3.0–0.3.3 installs made, must open — every fresh install stopped at its identity before it.
+for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db run-first-install-db; do
   set +e
   node "apps/desktop/test/$runner.mjs"
   code=$?

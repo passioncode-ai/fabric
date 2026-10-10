@@ -11,7 +11,7 @@ the local packaging config; `pnpm --dir apps/desktop package` keeps building the
 
 ## What the installed app needs
 
-- **macOS on Apple silicon or Intel.** From 0.3.5 the build is universal (`arm64` and `x86_64`; up to 0.3.4, `arm64`
+- **macOS on Apple silicon or Intel.** From 0.3.4 the build is universal (`arm64` and `x86_64`; up to 0.3.3, `arm64`
   only). On Intel the app's main process runs on a measured runtime (Electron 44.0.0 darwin-x64) and the coding-agent
   sign-in readers know the x64 builds of Claude Code 2.1.289 and Codex 0.160.0
   ([receipt](harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09)). Windows and Linux are not supported yet (CO-238).
@@ -26,7 +26,7 @@ the local packaging config; `pnpm --dir apps/desktop package` keeps building the
 
 ## Universal macOS
 
-From 0.3.5 the release is one universal app (Apple silicon and Intel). electron-builder packs an
+From 0.3.4 the release is one universal app (Apple silicon and Intel). electron-builder packs an
 x64 and an arm64 app and joins them; node-pty keeps each architecture in its own
 `prebuilds/darwin-<arch>/` folder, so `scripts/after-pack-universal.mjs` replaces both with one
 universal file (`scripts/lib/universal-mac.mjs`), the `files` filter in `electron-builder.yml`
@@ -124,7 +124,7 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `Fabric-0.3.0-arm64.dmg` download and its `sha256`). For each CI release, the website's own pull request sets `tag`
    `vX.Y.Z`, `repository` `passioncode-ai/fabric`, `releaseUrl`
    `https://github.com/passioncode-ai/fabric/releases/tag/vX.Y.Z`, `downloads.macos`
-   `https://github.com/passioncode-ai/fabric/releases/download/vX.Y.Z/Fabric-X.Y.Z-universal.dmg` (from 0.3.5; `-arm64.dmg` up to 0.3.4) and `sha256` from the
+   `https://github.com/passioncode-ai/fabric/releases/download/vX.Y.Z/Fabric-X.Y.Z-universal.dmg` (from 0.3.4; `-arm64.dmg` up to 0.3.3) and `sha256` from the
    release's `SHA256SUMS`, plus the screenshots and the brand facts row; then `npm run deploy` and the live
    receipt ([site handoff](https://github.com/passioncode-ai/passioncode-ai.github.io/blob/main/docs/HANDOFF.md)).
    Download the asset anonymously and check its SHA-256 and `spctl -a -t open --context context:primary-signature`
@@ -164,7 +164,11 @@ offered on [passioncode.ai/fabric](https://passioncode.ai/fabric/#download) (sit
 
 This section is the upgrade procedure, **not an executed upgrade receipt**. Fabric never migrates
 an existing database automatically. **0.3.3 adds no migration**: like 0.3.2 it admits schema 79, so a 0.3.2
-database needs nothing, and a 0.3.0 or 0.3.1 database takes this same procedure. Below, `X.Y.Z` is the version
+database needs nothing, and a 0.3.0 or 0.3.1 database takes this same procedure. **0.3.4 adds none either** (79). It
+changes the seed a new database gets, and at start it grants the local operator a default estate only the 0.3.0–0.3.3
+seed has touched — one creation event and nothing else — which is the database every fresh install of those versions
+made and then refused ([ADR-0131](../adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md)). A database
+anyone has used is not changed by it. Below, `X.Y.Z` is the version
 you install (0.3.2 or later). The 0.3.2 compiled contract admits schema **79** (the number of applied
 migration files); the newest migration's filename ends in **81** because other work reserved filenames. Do not
 use `max(version)` or a filename suffix as schema readiness. The actual guard is `public.schema_version()`

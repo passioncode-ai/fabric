@@ -6,7 +6,20 @@ that section as the notes of the `vX.Y.Z` release
 ([docs/launch/release-mac.md](docs/launch/release-mac.md), [ADR-0111](docs/adr/0111-fabric-is-released-from-ci.md)).
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
-## 0.3.5 (unreleased)
+## 0.3.4 (unreleased)
+
+Fabric starts on a new Mac, and runs natively on Intel Macs too. Every fresh install of 0.3.0 to 0.3.3 stopped before its first window with
+"identity could not be established: that person is not a member of this estate": the database Fabric sets up on
+first start made its first estate the property of an owner Fabric never runs as
+([ADR-0131](docs/adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md)).
+
+### Fixed
+
+- **A new install opens its estate.** The database is set up with you as the owner of its first estate, the same
+  way Fabric itself founds one.
+- **An install that could not start, starts.** If an earlier version set up a database it then refused, this one
+  finds it untouched and makes you its owner on the next start. Nothing is migrated, and a database anyone has
+  used is never changed this way.
 
 ### Changed
 

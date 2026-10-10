@@ -66,7 +66,8 @@ end $fn$;
 do $$
 declare
   org1     constant uuid := '00000000-0000-0000-0000-000000000001';
-  operator constant jsonb := jsonb_build_object('kind', 'person', 'id', '00000000-0000-0000-0000-000000000002');
+  -- The person the app runs as (`identity.ts#LOCAL_OPERATOR_PERSON`), whom the seed makes org #1's owner since 0.3.4.
+  operator constant jsonb := jsonb_build_object('kind', 'person', 'id', '00000000-0000-0000-0000-00000000000a');
   proj     constant uuid := 'a1000000-0000-0000-0000-000000000001';
   t_backlog constant uuid := 'a2000000-0000-0000-0000-000000000001';
   t_running constant uuid := 'a2000000-0000-0000-0000-000000000002';
