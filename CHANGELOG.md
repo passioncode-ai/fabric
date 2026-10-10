@@ -6,6 +6,17 @@ that section as the notes of the `vX.Y.Z` release
 ([docs/launch/release-mac.md](docs/launch/release-mac.md), [ADR-0111](docs/adr/0111-fabric-is-released-from-ci.md)).
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
+## 0.3.5 (unreleased)
+
+Fabric on Windows and Linux, the way the other PassionCode.ai apps ship (CO-238).
+
+- **Windows.** A per-user installer for Windows on Intel and AMD (x64) and on Arm (arm64): `Fabric-0.3.5-windows-x64-setup.exe`
+  and `-arm64-setup.exe`. The installers are not signed yet, so Windows SmartScreen asks once before the first start; signing
+  through the organization's Azure account follows. Terminals open PowerShell; the local stack needs Docker Desktop.
+- **Linux.** An AppImage and a `.deb` for x64 and arm64. The local stack needs Docker Engine and the Supabase CLI.
+- **Not yet on Windows and Linux:** whether a coding agent is signed in is not read there (it says so, CO-244), and
+  connecting a cloud product's secret through Project Observatory is macOS and Linux only (CO-245).
+
 ## 0.3.4
 
 Fabric starts on a new Mac, and one download now serves Apple silicon and Intel Macs. Every fresh install since 0.2.0
