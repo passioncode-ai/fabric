@@ -20,7 +20,7 @@ import { LaunchRefusedBeforeSpawn, PtyLaunchFailure } from './launchFailure.ts'
 import { ops } from './opsSink.ts'
 import { createBoundedScrollback, type BoundedScrollback } from './scrollback.ts'
 import { createProcessBoundary, type OwnedProcess } from './processBoundary.ts'
-import { defaultShell, processTreeStopInvocation, whichInvocation } from './platform.ts'
+import { defaultShell, launchFor, processTreeStopInvocation, whichInvocation } from './platform.ts'
 
 /** How a fallback walk chose the runner a session runs (ADR-0125): the basis is the installation's
  *  order, never a contract route revision (DEC-0029); `passed_over` is every entry above the choice. */
@@ -162,6 +162,21 @@ export interface PtyEvents {
   onData(sessionId: string, data: string, written: number): void
   /** A pending or rejected finalizer retains the Session for recovery. */
   onExit(sessionId: string, exitCode: number): void | Promise<void>
+}
+
+/** What node-pty starts (0.3.5, REQ-08, REQ-09). On Windows ConPTY's CreateProcess needs a file, not a bare name,
+ *  and cannot start npm's .cmd shims: the name is resolved through `where.exe` (PATHEXT order) and a .cmd runs
+ *  through cmd.exe. Elsewhere the program and its arguments pass unchanged. */
+function programForPty(program: string, args: string[]): { file: string; args: string[] } {
+  if (process.platform !== 'win32') return { file: program, args }
+  let file = program
+  if (!/[\\/]/.test(program)) {
+    try {
+      const how = whichInvocation('win32', program)
+      file = execFileSync(how.file, how.args, { encoding: 'utf8', timeout: 5000, windowsHide: true }).split(/\r?\n/).find(Boolean)?.trim() || program
+    } catch { /* Not on PATH: the spawn below fails with node-pty's own error, which the launch reports. */ }
+  }
+  return launchFor(file, args, 'win32')
 }
 
 function binaryExists(bin: string): boolean {
@@ -396,7 +411,8 @@ export class PtyManager {
     }
     let pty: IPty
     try {
-      pty = this.spawn(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args], {
+      const launch = programForPty(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args])
+      pty = this.spawn(launch.file, launch.args, {
         name: 'xterm-256color',
         cols: 120,
         rows: 32,

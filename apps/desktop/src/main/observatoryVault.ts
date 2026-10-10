@@ -110,6 +110,10 @@ export function createObservatoryVault(opts: {
   const timeoutMs = opts.timeoutMs ?? 7000
 
   async function resolveEngine(): Promise<VaultAnswer<{ engine: Engine }>> {
+    // Windows (0.3.5, CO-238): the vault hands a secret over a POSIX FIFO through `/bin/sh`, neither of which Windows
+    // has. Said as unavailable, never attempted, so a connected product's secret stays where it is.
+    if (process.platform === 'win32')
+      return { ok: false, reason: 'Project Observatory\'s vault is not available on Windows yet: it hands a secret over a POSIX pipe' }
     const launcher = opts.launcher ?? 'project-observatory'
     const found = await new Promise<{ path: string | null; reason?: string }>((resolve) =>
       execFile(launcher, ['full-path'], { env, timeout: 5000 }, (e, stdout) => {

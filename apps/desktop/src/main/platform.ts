@@ -60,4 +60,17 @@ export function protectedAclInvocation(file: string, user: string): Invocation {
   if (!user || /[:,()\s*]/.test(user)) throw new Error(`not a user name icacls can grant: ${JSON.stringify(user)}`)
   return { file: 'icacls.exe', args: [file, '/inheritance:r', '/grant:r', `${user}:(F)`, '*S-1-5-18:(F)', '*S-1-5-32-544:(F)'] }
 }
+/** REQ-09: the file names a program can have on PATH. Windows tries the extensions its installers use, in
+ *  PATHEXT's order of preference: the native installer's .exe before npm's .cmd shim. */
+export function executableCandidates(program: string, platform: NodeJS.Platform): string[] {
+  if (platform !== 'win32' || /\.(?:exe|cmd|bat|com)$/i.test(program)) return [program]
+  return [`${program}.exe`, `${program}.cmd`, `${program}.bat`, program]
+}
+
+/** How to start a found program: CreateProcess cannot start a .cmd or .bat, so those run through cmd.exe
+ *  (`/d` no AutoRun, `/s /c` the rest as one command); everything else runs directly. */
+export function launchFor(file: string, args: string[], platform: NodeJS.Platform): Invocation {
+  if (platform === 'win32' && /\.(?:cmd|bat)$/i.test(file)) return { file: 'cmd.exe', args: ['/d', '/s', '/c', file, ...args] }
+  return { file, args }
+}
 // #endregion platform-invocations

@@ -1,6 +1,6 @@
 // What Fabric runs, per OS, where a POSIX tool used to be assumed (0.3.5, CO-238, REQ-08…REQ-11).
 import assert from 'node:assert/strict'
-import { defaultShell, whichInvocation, quitReaperInvocation, processTreeStopInvocation, pathAdditions, protectedAclInvocation } from '../src/main/platform.ts'
+import { defaultShell, whichInvocation, quitReaperInvocation, processTreeStopInvocation, pathAdditions, protectedAclInvocation, executableCandidates, launchFor } from '../src/main/platform.ts'
 
 // REQ-08: the OS's own shell.
 assert.equal(defaultShell('darwin', { SHELL: '/bin/bash' }), '/bin/bash')
@@ -53,5 +53,17 @@ assert.deepEqual(protectedAclInvocation('C:\\Users\\a\\AppData\\Local\\passionco
 })
 assert.throws(() => protectedAclInvocation('x', ''), /user/)
 assert.throws(() => protectedAclInvocation('x', 'a:b'), /user/, 'a name that would be read as another grant')
+
+// REQ-09: a program's file names on PATH — Windows adds the extensions installers use (the native installer's .exe,
+// npm's .cmd shim), in PATHEXT's order of preference.
+assert.deepEqual(executableCandidates('claude', 'linux'), ['claude'])
+assert.deepEqual(executableCandidates('claude', 'win32'), ['claude.exe', 'claude.cmd', 'claude.bat', 'claude'])
+assert.deepEqual(executableCandidates('codex.cmd', 'win32'), ['codex.cmd'], 'a name with its extension is taken as it is')
+
+// A .cmd or .bat runs through cmd.exe (CreateProcess cannot start one); an .exe and every POSIX program run directly.
+assert.deepEqual(launchFor('C:\\Users\\a\\AppData\\Roaming\\npm\\codex.cmd', ['--version'], 'win32'),
+  { file: 'cmd.exe', args: ['/d', '/s', '/c', 'C:\\Users\\a\\AppData\\Roaming\\npm\\codex.cmd', '--version'] })
+assert.deepEqual(launchFor('C:\\Users\\a\\.local\\bin\\claude.exe', ['--version'], 'win32'), { file: 'C:\\Users\\a\\.local\\bin\\claude.exe', args: ['--version'] })
+assert.deepEqual(launchFor('/usr/local/bin/codex', ['--version'], 'linux'), { file: '/usr/local/bin/codex', args: ['--version'] })
 
 console.log('platform: all green')
