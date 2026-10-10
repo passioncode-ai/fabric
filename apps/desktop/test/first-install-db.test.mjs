@@ -4,7 +4,7 @@
 // `supabase start` takes on a new volume, which is what the packaged app's bundled stack does on a new Mac):
 // `resolve_subject('…0001', '…000a')` answered `not_a_member`. The seed made the default estate's owner a
 // person `…0002` the app never runs as, and migration 58 grants the app's person only to estates that exist
-// when it runs — none, on a new database. Every fresh install of 0.3.0–0.3.3 stopped at "identity could not
+// when it runs — none, on a new database. Every fresh install since 0.2.0 stopped at "identity could not
 // be established". The identity probe (`identity.test.mjs`) creates its estates through the app's own
 // bootstrap, so no tier ever opened the estate the seed makes.
 //

@@ -3,7 +3,7 @@
 Run `2026-10-10-release-034-verification`. The operator's rule (2026-10-03, plan row P-02, kept for every release):
 before the DMG and the release, three independent testing iterations across every level of the project, every
 finding fixed, and only then the release. This file is the ledger for **Fabric 0.3.4** — plan row
-[P-15](../backlog.md#general-development-plan): every fresh install of 0.3.0–0.3.3 stopped at "identity could not be
+[P-15](../backlog.md#general-development-plan): every fresh install since 0.2.0 stopped at "identity could not be
 established" (CO-241), and 0.3.4 fixes it — the seed names the app's own person as the default estate's owner, and a
 database only the old seed has touched is granted to the local operator at start
 ([ADR-0131](../../adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md)). 0.3.4 also
@@ -38,6 +38,13 @@ the 2026-10-08 reset for a fresh onboarding. A disposable stack built the way a 
 (`~/Library/Application Support/Fabric/backups/pre-0.3.4-seed-repair-2026-10-10.dump`, 1 145 101 bytes,
 `pg_restore --list` 1 418 lines) and is left unrepaired, so the installed 0.3.4 repairs it as a user's would be.
 
+## The website meanwhile
+
+passioncode.ai offers v0.3.3 (`/fabric/download/macos` → `v0.3.3/Fabric-0.3.3-arm64.dmg`, read 2026-10-10), and every
+published Fabric since 0.2.0 stops on a new Mac (CO-241), so there is no earlier release the site's `hold` could fall
+back to. No interim change is made: taking the download down is the operator's decision, not this run's, and 0.3.4
+is the remedy, published as soon as its gate clears (iteration 2, PL-2). The operator is told so in the run's report.
+
 ## Release close
 
 What 0.3.4's release has to do besides the gate. Each line is checked off with its receipt when it is done.
@@ -51,7 +58,10 @@ What 0.3.4's release has to do besides the gate. Each line is checked off with i
 3. The downloaded DMG checked (`SHA256SUMS`, its GPG signature, `spctl`, the staple); installed; started through the
    lifecycle broker on the operator's database, which it must repair (`identity.seed-repair` `ok` in the operations
    log) and open. Before that, the dump named above is read in a disposable cluster: the `org #1` journal's count and
-   types, so the repair's outcome is predicted, not hoped for (iteration 1, DA-1). A new Mac's first start is checked on a disposable stack built from the tag's `supabase/`
+   types, so the repair's outcome is predicted, not hoped for (iteration 1, DA-1).
+   **Read 2026-10-10** (`pg_restore --data-only` of `journal`, `memberships` and `membership_commands` from that dump,
+   to stdout, nothing restored anywhere): `org #1` holds one event, `estate.created@1` by `system/seed`; its one member
+   is `…0002` as owner; no membership command is on record — the shape `seedOnlyProblem` grants. Predicted: repaired. A new Mac's first start is checked on a disposable stack built from the tag's `supabase/`
    (`node scripts/test-stack.mjs up <dir>`, then `resolve_subject` for the default estate and the app's person): the
    packaged app's bundled stack has one fixed project id, and on this Mac that stack is the operator's.
 4. The website's release PR (runbook step 9): its `releases/products.json` asset pattern becomes
@@ -60,14 +70,17 @@ What 0.3.4's release has to do besides the gate. Each line is checked off with i
    receipt is `curl -sI https://passioncode.ai/fabric/download/macos` naming `v0.3.4/Fabric-0.3.4-universal.dmg`
    (iteration 1, PL-1). Then the workspace publication after the tag (`node scripts/workspace.mjs publish`,
    `check --require-child`).
-6. Intel: no Intel Mac is on hand, so the packaged universal app is not run on Intel hardware before the release;
-   the notes say so ("measured on Apple silicon, natively and under Rosetta"), and a first Intel run is recorded
-   here when one is available (iteration 1, PL-11).
 5. The knowledge base after publication: the roadmap's released column for Fabric, `products.md` and `plans.md`
    Now in fabric-workspace; this repository's own statements of the released version and platform, which still
    name 0.2.0 on Apple silicon (`docs/brand/facts.md` "current implementation status",
    `docs/guides/passioncode-overview.md` and `.ru.md`; iteration 1, PL-7); then the close commit marking P-15 done,
    with its handoff.
+6. Intel: no Intel Mac is on hand, so the packaged universal app is not run on Intel hardware before the release;
+   the notes say so (the Intel runtime measured under Rosetta on Apple silicon, the app not yet run on an Intel Mac), and a first Intel run is recorded
+   here when one is available (iteration 1, PL-11).
+7. The runbook's step 7 smoke (`chat-activation-native.test.mjs` with `FABRIC_APP_EXECUTABLE`) launches the
+   installed app itself, which this machine's lifecycle rule forbids: item 3's broker start on the operator's database
+   stands in for it, and the ledger says so rather than skipping it silently (iteration 2, PL-9).
 
 ## Iteration 1
 
@@ -112,7 +125,34 @@ the fix reverted in place and seen failing, then restored. Two reviewers could n
 
 ## Iteration 2
 
-Not yet run.
+Five fresh reviewers, 2026-10-10, against `a0ab055c` (`a0ab055c4483b9f4589e68e3a9d876af8ff08e37`), read-only in a detached
+checkout with dependencies installed. Reports: [UX](../reviews/0.3.4/iteration-2/2026-10-10-ux.md) (1 blocking + 3),
+[errors](../reviews/0.3.4/iteration-2/2026-10-10-errors.md) (0 + 3), [docs](../reviews/0.3.4/iteration-2/2026-10-10-docs.md)
+(1 + 11), [data](../reviews/0.3.4/iteration-2/2026-10-10-data.md) (0 + 2), [plan](../reviews/0.3.4/iteration-2/2026-10-10-plan.md)
+(1 + 8). 30 findings, 3 blocking (two reviewers found the same stack folder). Each confirmed iteration 1's dispositions
+for its level; the partial ones are rows here (V2-3, V2-4, V2-7, V2-8, V2-14).
+
+| ID | Source | Finding (short) | Disposition |
+|---|---|---|---|
+| V2-1 | UX-1, DO-1 (blocking) | The runbook and the startup remedies named `~/Library/Application Support/Fabric/stack`, a folder no install has (the data folder is `@fabric/desktop`) | fixed: `shared/stackFolder.ts#STACK_FOLDER`, used by `schemaReadiness.ts`; `startupFailure.ts`, en/ru remedies and `release-mac.md` say `@fabric/desktop/stack`; `test/stack-folder.test.mjs` derives it from `package.json` and refuses the old path anywhere (watched: one old path in `en.ts` fails it); in the fast tier. No `productName` added: it would move every install's data |
+| V2-2 | PL-1 (blocking) | Merge `11a7dc6c` reverted the workspace gitlink to 0.3.3's `a5dd292f` while the receipt named main's `5a0ddc57` | fixed: the gitlink is main's `5a0ddc57`; `scripts/lib/release-mac.mjs#workspacePinProblem`, run by the release preflight, refuses a pin the receipt does not name; `release-mac.test.mjs` case (watched: on candidate 2's commit it answers "HEAD pins workspace a5dd292ffa74 but its receipt names 5a0ddc578181") |
+| V2-3 | ER-2, UX-3, DA-2, DO-2 | The refusal came after the retry point and the hub: no Retry, agents could write into the refused estate, and "may be retried" was false | fixed: the whole identity gate — read, repair, read again, refusal — runs before `pastRetryPoint` and `startHub` (`index.ts` region `seed-repair-wiring`); `seed-repair.test.mjs` asserts the refusal's place (watched: the gate moved after the hub fails); ADR-0131 §3 rewritten |
+| V2-4 | ER-1, UX-2, DO-3 | Every identity failure, a dead database included, became `identity-refused`, whose text was then false | fixed: the cause matches only the boundary's own refusal ("that person is not a member / does not exist / may not act"); a failed read keeps `database-unreachable` or `unknown`; `startupFailure.test.ts` cases; the remedy says what Fabric never does and names where to report (https://github.com/passioncode-ai/Fabric/issues) |
+| V2-5 | ER-3 | Two starts racing logged a successful start as a failed repair at `error` | fixed: after any attempt identity is read again; a refusal that a second read finds resolved is `ok` at `info` with what was found |
+| V2-6 | DA-1, DO-7 | The repair's ceiling (49 unanswered hub requests) was undocumented and low; its comment counted the wrong thing | fixed: `EVENT_READ_LIMIT` 1000, its comment counts events in all; ADR-0131 states the bound. Item 3 of *Release close* read the operator's dump: one event |
+| V2-7 | DO-4, PL-6 | CO-241, the ledger head, MERGES and comments still said "0.3.0–0.3.3" | fixed: "since 0.2.0" in each; CO-241 says `node scripts/test-stack.mjs up <dir>` |
+| V2-8 | DO-5 | README's second runner list still said four in the fast tier | fixed: five, `run-first-install-db` named, "those five" in the full tier |
+| V2-9 | DO-6, PL-9 | *Release close* was numbered 1–4, 6, 5 and dropped runbook step 7's smoke silently | fixed: 1–7 in order; item 7 says the Playwright smoke launches the enrolled app, which the lifecycle rule forbids, and item 3's broker start stands in |
+| V2-10 | DO-8, UX-4 | The notes said the old owner "stays listed" and "is not a person" | fixed: "stays a member in the database beside you; nobody signs in as it, and no screen shows it" |
+| V2-11 | DO-9 | The MERGES scope still described candidate 1 | fixed: the scope names every module, test and document of the branch |
+| V2-12 | DO-10 | "Measured on Apple silicon, natively and under Rosetta" had no tracked receipt for the universal app | fixed: the notes claim only what `checks.md` measured — the Intel runtime under Rosetta — with its link, and that the app has not yet run on an Intel Mac |
+| V2-13 | DO-11 | The `measured-runtimes` anchor resolved only under the gate's slugger | fixed: an explicit `id="intel-x86_64-runtimes--2026-10-09"` before the heading, the GitHub slug; the region cites it |
+| V2-14 | DO-12, PL-5 | The ADR index credited the repair rule to the operator | fixed: "this run's design, held by the 0.3.4 iterations; the operator decided the release" |
+| V2-15 | PL-2 | passioncode.ai hands new users 0.3.3, and no decision was recorded | ruled: the ledger's *The website meanwhile* — every release since 0.2.0 has the defect, so no `hold` helps; taking the download down is the operator's call, told in the run's report; 0.3.4 is the remedy |
+| V2-16 | PL-3 | Nothing would mark P-14 done | fixed: P-14 "done — released 2026-10-09", out of lane 1 |
+| V2-17 | PL-4 | P-12's "copies ≤ 0.3.3" and CO-221's "after 0.3.3" stood | fixed: both re-dated to 0.3.4 |
+| V2-18 | PL-7 | The 0.3.3 ledger recorded an REQ-08 acceptance that was inferred | fixed: the dated state section says no explicit answer was given and the reading stays the operator's to reject |
+| V2-19 | PL-8 | The knowledge base said 0.3.2 is current and 0.3.3 next | fixed: fabric-workspace [PR #92](https://github.com/passioncode-ai/fabric-workspace/pull/92), merged `8639492c` — roadmap and plans name 0.3.3 released and 0.3.4 in verification (`npm test` 66 pass) |
 
 ## Iteration 3
 

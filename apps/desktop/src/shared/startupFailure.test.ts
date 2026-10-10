@@ -107,6 +107,11 @@ describe('why the app would not start', () => {
     expect(f.title).toBe('Fabric does not have access to the Estate it opened.')
     expect(f.detail).toContain('the estate has history after its creation')
     expect(classifyStartupFailure({ message: 'the identity of this build could not be established' }).cause).not.toBe('identity-refused')
+    // A read that failed is not a refusal: before 0.3.4 a dead database here said "database unreachable", and it
+    // still does (0.3.4 i2 ER-1, UX-2).
+    expect(classifyStartupFailure(new Error('identity could not be established: identity could not be resolved: TypeError: fetch failed')).cause)
+      .toBe('database-unreachable')
+    expect(classifyStartupFailure(new Error('identity could not be established: the identity command returned no verdict')).cause).toBe('unknown')
   })
 
   it('an unrecognised failure is UNKNOWN and says so, rather than guessing', () => {

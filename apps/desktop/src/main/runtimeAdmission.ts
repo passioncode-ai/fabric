@@ -30,7 +30,7 @@ export interface RuntimeTuple {
 }
 
 /** Measured 2026-09-28: all 17 registry groups and all 14 native view host groups pass here. */
-// #region measured-runtimes — docs: docs/launch/harness-r0/checks.md#intel-x8664-runtimes--2026-10-09
+// #region measured-runtimes — docs: docs/launch/harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09
 export const MEASURED_RUNTIMES: readonly RuntimeTuple[] = Object.freeze(([
   // Electron 44 main process (process.type === 'browser'); the npm-installed, ad-hoc-signed
   // framework. The packaged, hardened app is re-signed and is measured separately (N1).

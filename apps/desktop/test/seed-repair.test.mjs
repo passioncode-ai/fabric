@@ -111,10 +111,14 @@ assert.deepEqual(await run(fakeDb({ receipt: { status: 'conflict', says: 'this m
   const src = readFileSync(new URL('../src/main/index.ts', import.meta.url), 'utf8')
   const at = (needle) => { const i = src.indexOf(needle); assert.ok(i >= 0, `index.ts no longer has: ${needle}`); return i }
   const repairAt = at('await repairSeedOnlyEstate(seedRepairDb(db)')
-  assert.ok(repairAt < at('pastRetryPoint = true'), 'the repair runs before the point after which retrying is unsafe')
-  assert.ok(repairAt < at('await startHub('), 'the repair runs before the hub opens')
-  assert.ok(at('if (estate && ACTIVE_ESTATE === DEFAULT_ESTATE)') < repairAt, 'only for the default estate, and only once it exists')
-  assert.ok(at('const established = await identity.establish()') > repairAt, 'identity is read again after any repair attempt (ER-4)')
-  assert.match(src, /identity could not be established: \$\{established\.says\}`[^\n]*\n[^\n]*seedRepairWhy/, 'a refusal says why the repair did not apply')
+  const refusalAt = at('throw new Error(`identity could not be established: ${gate.says}`')
+  for (const [what, needle] of [['the point after which retrying is unsafe', 'pastRetryPoint = true'], ['the hub opens', 'await startHub(']]) {
+    assert.ok(repairAt < at(needle), `the repair runs before ${what}`)
+    assert.ok(refusalAt < at(needle), `a refusal is thrown before ${what} (i2 ER-2, UX-3)`)
+  }
+  assert.ok(at('let gate = await identity.establish()') < repairAt, 'identity is read before the repair')
+  assert.ok(at("gate.why === 'not_a_member' && estate && ACTIVE_ESTATE === DEFAULT_ESTATE") < repairAt, 'only for the default estate, once it exists')
+  assert.ok(src.indexOf('gate = await identity.establish()', repairAt) > repairAt, 'identity is read again after any repair attempt (ER-4)')
+  assert.match(src.slice(refusalAt, refusalAt + 300), /seedRepairWhy/, 'a refusal says why the repair did not apply')
 }
 console.log('seed-repair: all green')

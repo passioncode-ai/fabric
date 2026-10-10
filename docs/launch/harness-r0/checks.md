@@ -788,6 +788,7 @@ bit, so every PTY spawn failed with `posix_spawnp failed`. With the bit restored
 and so does `backend-view.test.mjs` (8 groups). The checkout `ci.sh` normally runs in installs scripts and was
 never affected. Node 26.10.0 is fully measured.
 
+<a id="intel-x86_64-runtimes--2026-10-09"></a>
 ## Intel (x86_64) runtimes · 2026-10-09
 
 For the universal release (PR #27, 0.3.5; operator decision 2026-10-09). *(Amended 2026-10-10: universal macOS ships in 0.3.4, which carries PR #27 — the operator's call once it had

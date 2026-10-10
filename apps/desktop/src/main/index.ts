@@ -643,22 +643,28 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   }
 
   // #region seed-repair-wiring — docs: docs/adr/0131-a-database-only-the-old-seed-has-touched-is-given-to-the-local-operator.md#decision
-  // A database a fresh install of 0.2.0 or 0.3.0–0.3.3 made (CO-241, ADR-0131): the old seed owned the default
-  // estate as a person this app never runs as. Only that untouched shape is granted, through the door — and
-  // BEFORE the hub opens, so no agent's request can land in the estate between the reading and the grant
-  // (0.3.4 i1 DA-1), and before the retry point, so a read that failed may be tried again. The identity read
-  // below runs after it whatever it answered: a grant someone else made in the meantime is still found (ER-4).
-  let seedRepairWhy: string | null = null
-  if (estate && ACTIVE_ESTATE === DEFAULT_ESTATE) {
-    const before = await identity.establish()
-    if (!before.ok && before.why === 'not_a_member') {
+  // THE IDENTITY GATE, before the retry point and before the hub opens (0.3.4 i2 ER-2, UX-3): a refused start then
+  // offers Retry, and no agent can write into an estate Fabric could not open. A database a fresh install since
+  // 0.2.0 made (CO-241, ADR-0131) owned the default estate as a person this app never runs as; only that
+  // untouched shape is granted, through the door. Identity is read again after any attempt, so a grant another
+  // start made meanwhile is found (i1 ER-4) and is not logged as a failure (i2 ER-3).
+  {
+    let gate = await identity.establish()
+    let seedRepairWhy: string | null = null
+    if (!gate.ok && gate.why === 'not_a_member' && estate && ACTIVE_ESTATE === DEFAULT_ESTATE) {
       const repair = await repairSeedOnlyEstate(seedRepairDb(db), { estateId: ACTIVE_ESTATE, operator: LOCAL_OPERATOR_PERSON, commandId: randomUUID() })
+      gate = await identity.establish()
       ops.record({
-        op: 'identity.seed-repair', outcome: repair.repaired ? 'ok' : 'failed', level: repair.repaired ? 'warn' : 'error',
-        detail: repair.repaired ? { granted: 'owner' } : { why: repair.why }, ctx: { correlationId: ops.correlate(), estateId: ACTIVE_ESTATE }
+        op: 'identity.seed-repair', outcome: repair.repaired || gate.ok ? 'ok' : 'failed',
+        level: repair.repaired ? 'warn' : gate.ok ? 'info' : 'error',
+        detail: repair.repaired ? { granted: 'owner' } : { why: repair.why, ...(gate.ok ? { found: 'a membership, on reading again' } : {}) },
+        ctx: { correlationId: ops.correlate(), estateId: ACTIVE_ESTATE }
       })
-      if (!repair.repaired) seedRepairWhy = repair.why
+      if (!repair.repaired && !gate.ok) seedRepairWhy = repair.why
     }
+    if (!gate.ok)
+      throw new Error(`identity could not be established: ${gate.says}` +
+        (seedRepairWhy ? ` — the repair for a database only the old seed touched did not apply: ${seedRepairWhy}` : ''))
   }
   // #endregion seed-repair-wiring
 
@@ -897,8 +903,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   // writer is one whose journal cannot say who did anything.
   const established = await identity.establish()
   if (!established.ok)
-    throw new Error(`identity could not be established: ${established.says}` +
-      (seedRepairWhy ? ` — the repair for a database only the old seed touched did not apply: ${seedRepairWhy}` : ''))
+    throw new Error(`identity could not be established: ${established.says}`)
   OPERATOR_ACTOR = identity.actor()
   // C2: the CEO conversation host exists only once the operator is established, and behind a
   // gate that opens only while private recovery is available (C5); closed, no chat call reaches

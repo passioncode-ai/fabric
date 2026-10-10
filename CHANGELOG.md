@@ -20,15 +20,16 @@ estate": the database Fabric sets up on first start gave its first Estate to an 
 - **An install of 0.3.2 or 0.3.3 that could not start, starts.** On the next start Fabric finds the database
   untouched and makes you its owner. Untouched means nothing happened in it but its creation, and at most an
   agent asking for access while the start was failing. A database anyone has used is never changed this way.
-  The old first owner stays listed beside you; it is not a person and acts for no one.
+  The old first owner stays a member in the database beside you; nobody signs in as it, and no screen shows it.
 - **When Fabric still cannot open the Estate, it says why.** The startup window names the refusal and what Fabric
   found, instead of "could not work out why".
 
 ### Changed
 
 - **One universal DMG for Apple silicon and Intel Macs** (`Fabric-0.3.4-universal.dmg`, in place of `-arm64.dmg`).
-  It was measured on Apple silicon, natively and under Rosetta; it has not yet been run on an Intel Mac. How the
-  universal app is built: [release runbook, Universal macOS](docs/launch/release-mac.md#universal-macos).
+  Its Intel runtime was measured under Rosetta on an Apple silicon Mac
+  ([receipt](docs/launch/harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09)); the app has not yet been run on an
+  Intel Mac. How the universal app is built: [release runbook, Universal macOS](docs/launch/release-mac.md#universal-macos).
 
 **Upgrading.** No schema change: a database at schema 79 (0.3.2, 0.3.3) opens as it is. A database a 0.3.0 or 0.3.1
 install made (75 or 78), or a 0.2.0 one (69), is refused for its schema first: upgrade it to 79, backup and

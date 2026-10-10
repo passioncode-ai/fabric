@@ -268,10 +268,10 @@ The probes that need only PostgreSQL, not the whole stack, run on clusters of th
 `apps/desktop/test/run-*-db.mjs` runner (and `run-ceo-host-sql.mjs`) `initdb`s a temporary cluster
 on a Unix socket, applies the migration chain, runs its suite and removes the cluster. They need
 PostgreSQL 17 binaries (`FABRIC_PG_BIN`, default Homebrew's `postgresql@17`); without them a runner
-exits 2, NOT_RUN. `ci.sh fast` runs four of them (`run-estate-identity-db`, `run-read-schema-db`,
-`run-function-privileges-db`, `run-hub-access-db`): each runs even when another fails, the step fails at the end naming each failure, and NOT_RUN does **not**
+exits 2, NOT_RUN. `ci.sh fast` runs five of them (`run-estate-identity-db`, `run-read-schema-db`,
+`run-function-privileges-db`, `run-hub-access-db`, `run-first-install-db`): each runs even when another fails, the step fails at the end naming each failure, and NOT_RUN does **not**
 fail the fast tier — the hosted fast runner has no PostgreSQL — but is printed beside the runner and
-again on the tier's last line, so that green does not claim the step ran. `ci.sh full` runs those four
+again on the tier's last line, so that green does not claim the step ran. `ci.sh full` runs those five
 in the same step and every other runner after it, the same way, and fails on NOT_RUN.
 
 The full tier runs every package's test suites through

@@ -227,6 +227,8 @@ node --experimental-strip-types --test apps/desktop/test/analytics.test.mjs
 node --experimental-strip-types apps/desktop/test/menu.test.mjs
 # CO-241 (0.3.4): a database only the old seed touched is given to the local operator, and nothing else is (ADR-0131); pure.
 node --experimental-strip-types apps/desktop/test/seed-repair.test.mjs
+# The stack folder the startup remedies name is the one an install uses (0.3.4 verification, iteration 2, UX-1).
+node --experimental-strip-types apps/desktop/test/stack-folder.test.mjs
 node --experimental-strip-types apps/desktop/test/executor-detect.test.mjs
 node --experimental-strip-types apps/desktop/test/executor-auth.test.mjs
 node --experimental-strip-types apps/desktop/test/start-paths-main.test.mjs
@@ -352,7 +354,7 @@ step "owned databases: the SQL contract and the reads, on a cluster this run cre
 owned_fast_failed=()
 owned_fast_not_run=()
 # run-first-install-db (CO-241, 0.3.4) is here too: the seed a fresh install takes, and the database
-# 0.3.0–0.3.3 installs made, must open — every fresh install stopped at its identity before it.
+# installs since 0.2.0 made, must open — every fresh install stopped at its identity before it.
 for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db run-first-install-db; do
   set +e
   node "apps/desktop/test/$runner.mjs"

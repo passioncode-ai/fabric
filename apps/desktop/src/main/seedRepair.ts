@@ -22,8 +22,12 @@ import { DEFAULT_ESTATE } from './activeEstate.ts'
 /** The person the seed made the owner before 0.3.4. Never a person the app runs as. */
 export const LEGACY_SEED_PERSON = '00000000-0000-0000-0000-000000000002'
 
-/** How many events after the creation the repair reads; a longer journal is not called untouched. */
-export const EVENT_READ_LIMIT = 50
+/**
+ * How many journal events in all, the creation included, an untouched estate may hold; one more is read so that a
+ * longer journal is seen, and refused rather than called untouched. 1000 (0.3.4 i2 DA-1): a 0.3.1–0.3.3 error dialog
+ * left open with the hub behind it could gather dozens of unanswered agent requests, and 50 refused such a database.
+ */
+export const EVENT_READ_LIMIT = 1000
 
 /**
  * The one event a failed start could write without anybody acting: 0.3.1–0.3.3 opened the agent hub before

@@ -36,16 +36,18 @@ could reach such an estate while the start was failing (iteration 1, DA-1, measu
    when the estate is the default one, it exists, and the identity read answers `not_a_member`. All of these must
    hold, read from the database: the journal begins with `estate.created@1` by the actor `system/seed`, which named
    no owner; every later event is an `access.requested@1` by the hub's own actor `system/fabric-hub` (a request
-   grants nothing; any decision on it is somebody's), within `EVENT_READ_LIMIT` events in all; the operator is not a
+   grants nothing; any decision on it is somebody's), within `EVENT_READ_LIMIT` (1000) events in all; the operator is not a
    member; every member is the old seed's person `…0002`; and no membership command is on record for the estate (a
    grant or a revoke through the door is a decision). Then, and only then, the operator is granted `owner` through
    the membership door (`change_membership`, compare-and-set at revision 0, `changed_by`
    `desktop-bootstrap:seed-repair`). The outcome is recorded (`identity.seed-repair`), granted or not and why.
-3. **It runs before the retry point and before the hub opens**, so no agent's request can land between the reading
-   and the grant, and a read that failed may be retried. Identity is read again afterwards whatever the repair
-   answered, so a grant someone else made meanwhile is still found.
+3. **The identity gate runs before the retry point and before the hub opens** — the repair, the second identity read
+   and the refusal itself — so no agent's request can land between the reading and the grant, no agent writes into an
+   estate Fabric could not open, and a refused start offers Retry. Identity is read again after any repair attempt, so
+   a grant someone else made meanwhile is still found.
 4. **Anything else is left as it is, and startup still refuses** — with its own cause, `identity-refused`
-   (`shared/startupFailure.ts`), and the repair's reason in the details the person can copy. An estate with any
+   (`shared/startupFailure.ts`), for the boundary's own refusal only (a read that failed keeps its own cause), and the
+   repair's reason in the details the person can copy. An estate with any
    other event, a creation that named an owner, another member, a decision on record, a chosen or restored estate,
    or a read that failed — each is somebody's decision or an unknown, and the boundary does not invent an owner.
 5. **No migration.** The schema stays 79. The repair runs only past the schema check: a database a 0.3.2 or 0.3.3

@@ -18,7 +18,7 @@ the local packaging config; `pnpm --dir apps/desktop package` keeps building the
   ([receipt](harness-r0/checks.md#intel-x86_64-runtimes--2026-10-09)). Windows and Linux are not supported yet (CO-238).
 - **Docker** (Docker Desktop or OrbStack) running, and the **Supabase CLI** (`brew install supabase/tap/supabase`).
   The app ships its stack project (`config.toml`, `seed.sql`, the migrations) in `Contents/Resources/stack`
-  and keeps a working copy in `~/Library/Application Support/Fabric/stack`
+  and keeps a working copy in `~/Library/Application Support/@fabric/desktop/stack`
   ([`bundledStack.ts`](../../apps/desktop/src/main/bundledStack.ts)); on first start `supabase start` creates
   the database and applies every migration. It needs no checkout of this repository. When Docker or the CLI is
   missing, the startup dialog names which ([`startupFailure.ts`](../../apps/desktop/src/shared/startupFailure.ts)).
@@ -252,7 +252,7 @@ opens it. Read your schema first (step 2) and use that number wherever `FROM` ap
 
    ```sh
    PGBIN=/opt/homebrew/opt/postgresql@17/bin   # the PostgreSQL 17 client from step 2
-   cd "$HOME/Library/Application Support/Fabric/stack"
+   cd "$HOME/Library/Application Support/@fabric/desktop/stack"
    supabase migration up --local
    PGHOST=127.0.0.1 PGPORT=54322 PGUSER=postgres PGDATABASE=postgres \
      "$PGBIN/psql" --password -v ON_ERROR_STOP=1 \

@@ -127,6 +127,21 @@ function publicationPinProblem(changed, verifiedCommit, git) {
   return null
 }
 
+/**
+ * The released commit pins the workspace snapshot its receipt names. Checked always, not only when the receipt
+ * changed after verification: a merge that took a stale submodule checkout reverts the gitlink and leaves the
+ * receipt naming main's snapshot, and nothing else notices (0.3.4 verification, iteration 2, PL-1).
+ */
+export function workspacePinProblem(git) {
+  let link = null, receipt = null
+  try { link = /^160000 commit ([0-9a-f]{40})\t/.exec(String(git(['ls-tree', 'HEAD', '--', 'workspace'])))?.[1] ?? null } catch { link = null }
+  if (!link) return 'the workspace path at HEAD is not a submodule pin'
+  try { receipt = JSON.parse(git(['show', 'HEAD:docs/workspace-receipt.json'])) } catch { receipt = null }
+  const named = receipt?.schema === 1 && /^[0-9a-f]{40}$/.test(receipt?.workspace_commit ?? '') ? receipt.workspace_commit : null
+  if (!named) return 'the workspace receipt at HEAD does not name a workspace commit'
+  return named === link ? null : `HEAD pins workspace ${link.slice(0, 12)} but its receipt names ${named.slice(0, 12)}; set the gitlink to the receipt's commit`
+}
+
 /** Bind the verification ledger to a reviewed ancestor; later runtime/build changes require review again. */
 export function verifiedCandidateProblem({ version, gateText, readCommitted }, git) {
   let gate

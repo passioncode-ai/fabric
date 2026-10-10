@@ -28,7 +28,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { releaseGateProblems } from './lib/release-gate.mjs'
 import { thinMachO } from './lib/universal-mac.mjs'
-import { builderConfig, builderIdentity, changelogProblem, parseReleaseArgs, releaseCommitProblem, signatureOf, tagProblem, verifiedCandidateProblem } from './lib/release-mac.mjs'
+import { builderConfig, builderIdentity, changelogProblem, parseReleaseArgs, releaseCommitProblem, signatureOf, tagProblem, verifiedCandidateProblem, workspacePinProblem } from './lib/release-mac.mjs'
 
 // #region release-mac — docs: docs/launch/release-mac.md#how-a-release-is-made
 const root = path.resolve(import.meta.dirname, '..'), desktop = path.join(root, 'apps', 'desktop')
@@ -70,6 +70,8 @@ if (JSON.parse(readFileSync(path.join(desktop, 'package.json'), 'utf8')).version
   if (changelog) fail(changelog)
   const unverified = verifiedCandidateProblem({ version, gateText, readCommitted: atHead }, (a) => out('git', a, { cwd: root }))
   if (unverified) fail(unverified)
+  const pin = workspacePinProblem((a) => out('git', a, { cwd: root }))
+  if (pin) fail(pin)
 }
 const commit = out('git', ['rev-parse', 'HEAD'], { cwd: root })
 if (args.checkOnly) {

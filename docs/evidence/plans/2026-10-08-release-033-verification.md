@@ -59,8 +59,9 @@ checked off with its receipt when it is done.
 <a id="release-close-state-2026-10-10"></a>
 ### Release close — state on 2026-10-10
 
-Appended, not rewritten (a dated ledger). Item 0: the operator's approval of publication was taken as accepting the
-REQ-08 reading. Item 1: release commit `1404dffe`, landed. Item 2: PR #81 merged before the tag. Item 3: tag
+Appended, not rewritten (a dated ledger). Item 0: no explicit answer was given before the tag; the REQ-08 reading (renderer
+strings in Russian, main-process messages still English, CO-225) shipped as recorded and stays the operator's to
+reject (0.3.4 verification, iteration 2, PL-7: the approvals of the release run are not that answer). Item 1: release commit `1404dffe`, landed. Item 2: PR #81 merged before the tag. Item 3: tag
 `v0.3.3`; release run [37979209160](https://github.com/passioncode-ai/fabric/actions/runs/37979209160) green after
 both approvals, published 2026-10-09T22:20Z. The downloaded DMG checked 2026-10-10: `SHA256SUMS` OK, its GPG
 signature good (key `63B30DC3…C803B6A7`), `spctl` "Notarized Developer ID", staple valid. Item 4: installed over 0.3.2

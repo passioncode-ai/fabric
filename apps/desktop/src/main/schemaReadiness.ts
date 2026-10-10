@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import contract from '../shared/schemaContract.json' with { type: 'json' }
 import { readManifest, type ManifestRead } from '../shared/buildManifest.ts'
+import { STACK_FOLDER } from '../shared/stackFolder.ts'
 
 export class SchemaReadinessError extends Error {
   readonly code = 'FABRIC_SCHEMA_NOT_READY'
@@ -27,7 +28,7 @@ export function readBuildManifestCandidates(files: readonly string[]): ManifestR
   return readManifest(null)
 }
 
-const stackPath = '~/Library/Application Support/Fabric/stack'
+const stackPath = STACK_FOLDER
 const schemaBehindRecovery = 'Stop all writers and make a verified backup first. Follow https://github.com/passioncode-ai/Fabric/blob/main/docs/launch/release-mac.md#upgrading-an-existing-database before running supabase migration up --local in {stackPath}, then retry. Fabric has not started its workspace services.'
 
 const positiveInteger = (value: unknown): value is number =>
