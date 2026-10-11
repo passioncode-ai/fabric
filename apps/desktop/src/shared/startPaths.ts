@@ -2,6 +2,7 @@
 // The shapes of the first run and the start paths (ADR-0100): what the renderer is told about a
 // folder, a scan and the coding agents on this machine. ONE definition (R-005): the main-process
 // modules `projectDiscovery.ts` and `executorDetect.ts` produce exactly these.
+import type { TerminalProbe } from './fabricMcpRegistration.ts'
 
 export type FolderKind = 'repository' | 'worktree' | 'folder'
 
@@ -154,6 +155,9 @@ export interface ExecutorRow {
   install: string | null
   /** Absent on older main processes: the renderer treats it as unknown, never signed in. */
   authentication?: ExecutorAuthentication
+  /** Whether this agent, opened in a terminal, reaches Fabric through fabric-mcp — a probe result
+   *  (main/fabricMcpProbe.ts, REQ-03). Absent: not probed, which never reads as connected. */
+  terminal?: TerminalProbe
 }
 
 /** A new project's folder: created under a parent the operator chose, optionally as a git repository. */

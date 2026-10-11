@@ -15,6 +15,7 @@ import { FabricAvatar } from '../launch/FabricAvatar'
 import { usePersona } from '../launch/persona'
 import { FALLBACK_CHANGED } from '../useFallbackChoice'
 import { CopyButton, StartCards, errorText, type StartPath } from './StartPaths'
+import type { TerminalProbe } from '../../../shared/fabricMcpRegistration.ts'
 
 export interface FirstRunProps {
   /** The operator chose a path (or skipped): stamp completion, then go there. */
@@ -237,6 +238,7 @@ function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): R
                       {!pickable && <small id={why} className="st-exec-why">{t(r.state === 'unresponsive' ? 'first.exec.cannotPick.unresponsive' : 'first.exec.cannotPick.missing')}</small>}
                     </div>
                     {r.state === 'found' && !r.connected && <p className="st-exec-note">{t('first.exec.unconnected', { name: r.label })}</p>}
+                    {r.state === 'found' && r.terminal && <TerminalLine probe={r.terminal} name={r.label} />}
                     {r.state === 'missing' && r.install && (
                       <div className="st-install">
                         <code>{r.install}</code>
@@ -294,3 +296,29 @@ export function firstRunDue(completedAt: string | null | undefined, projects: re
   return completedAt === null && projects !== null && projects.length === 0
 }
 // #endregion first-run
+
+// #region first-run-terminal — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
+/** Whether this agent, opened in a terminal, reaches Fabric (REQ-03): the probe's own state, never a guess, and when it
+ *  is not connected the one line that registers this Fabric — with no secret — to copy. */
+function TerminalLine({ probe, name }: { probe: TerminalProbe; name: string }): React.JSX.Element {
+  const t = useT()
+  const config = probe.config ?? ''
+  const fixable = probe.state !== 'connected' && probe.state !== 'unreadable' && probe.state !== 'no-launcher' && probe.state !== 'unsupported'
+  const fix = fixable ? probe.register : null
+  const said = probe.state === 'not-registered' && probe.register?.kind === 'file-entry'
+    ? t('first.exec.terminal.fileEntry', { file: probe.register.file })
+    : t(`first.exec.terminal.${probe.state}` as 'first.exec.terminal.connected', { name, config })
+  const text = fix ? (fix.kind === 'command' ? fix.line : fix.fragment) : null
+  return (
+    <div className="st-exec-terminal" data-terminal={probe.state}>
+      <small>{said}</small>
+      {text && (
+        <div className="st-install">
+          <code>{text}</code>
+          <CopyButton text={text} what={name} />
+        </div>
+      )}
+    </div>
+  )
+}
+// #endregion first-run-terminal

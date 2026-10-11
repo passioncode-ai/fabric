@@ -345,6 +345,7 @@ import { favourites, moveProject, projectOrder, replaceFavourite, toggleFavourit
 import { persona, savePersona } from './persona.ts'
 import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors } from './executorDetect.ts'
+import { answerCheck, launcherIn, probeTerminal, rememberedAnswers, type AnswerCheck } from './fabricMcpProbe.ts'
 import { createRunnerFallback, describeExhausted, launchRoute, openWithFallback } from './runnerFallback.ts'
 import { FALLBACK_OPTION, presetNeedsSurface } from '../shared/runnerRoute.ts'
 import { settingsPatch } from '../shared/appSettings.ts'
@@ -436,6 +437,9 @@ const oneTaskAtATime = createKeyedQueue()
 /** The fallback walk that chose a task's runner, between `tasks.start` and the session's opening (ADR-0125). */
 const routeByTask = new Map<string, LaunchRoute>()
 let runnerFallback: ReturnType<typeof createRunnerFallback>
+/** The terminal probe's answer check (REQ-03): one remembered answer per registered command, for the whole process.
+ *  Made at the first probe, so it starts commands with the PATH startup settled (env.ts#fixPath). */
+let terminalAnswers: AnswerCheck | null = null
 
 /** sessionId → detached window showing that session. */
 const sessionWindows = new Map<string, BrowserWindow>()
@@ -3627,13 +3631,28 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     else ops.record({ op: 'start.create-folder', outcome: 'failed', level: 'warn', detail: { refused: result.reason }, ctx: { correlationId: ops.correlate() } })
     return result
   })
-  handle(IPC.startExecutors, async (): Promise<Returns<FabricApi['start']['executors']>> =>
-    detectExecutors(
-      // Every catalogued runner with a program (ADR-0125): the list was a hard-coded copy of the catalogue.
-      AGENTS.filter((a) => a.program).map((a) => ({ id: a.id, label: a.label, program: a.program as string, connected: a.connectsToSurface })),
-      { env: sessionEnvironment(process.env) }
-    )
-  )
+  // #region terminal-probe-ipc — docs: docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md#4-connected-is-a-probe-result-not-a-flag
+  // Each row also says whether that agent, opened in a terminal, reaches Fabric through fabric-mcp (REQ-03): its own
+  // config read for the fabric entry, compared with this Fabric's launcher, and the registered command asked to answer
+  // MCP once (remembered ten minutes). «Connected» is that probe's result and nothing else.
+  handle(IPC.startExecutors, async (): Promise<Returns<FabricApi['start']['executors']>> => {
+    const env = sessionEnvironment(process.env)
+    const [rows, launcher] = await Promise.all([
+      detectExecutors(
+        // Every catalogued runner with a program (ADR-0125): the list was a hard-coded copy of the catalogue.
+        AGENTS.filter((a) => a.program).map((a) => ({ id: a.id, label: a.label, program: a.program as string, connected: a.connectsToSurface })),
+        { env }
+      ),
+      launcherIn(app.isPackaged ? process.resourcesPath : null, process.platform)
+    ])
+    const answer = (terminalAnswers ??= rememberedAnswers(answerCheck({ env })))
+    const terminal = await Promise.all(rows.map((r) => probeTerminal(r.id, { env, home: app.getPath('home'), launcher, answer })))
+    for (const p of terminal)
+      if (p.state === 'unreadable' || p.state === 'not-answering')
+        ops.record({ op: 'start.terminal-probe', outcome: 'failed', level: 'warn', detail: { runner: p.runner, state: p.state, why: p.detail }, ctx: { correlationId: ops.correlate() } })
+    return rows.map((r, i) => ({ ...r, terminal: terminal[i] }))
+  })
+  // #endregion terminal-probe-ipc
   // Read-only: where the chosen coding agent reads skills (REQ-04). An id that is not a string reads as none.
   handle(IPC.startAdapterSkills, (_e, agentId: unknown): Promise<Returns<FabricApi['start']['adapterSkills']>> =>
     adapterSkills(typeof agentId === 'string' ? agentId : ''))
