@@ -749,8 +749,10 @@ export class PtyManager {
   }
 
   /**
-   * A03: quitting must not lose the closing events. Kills every live session and
-   * resolves once each one's terminal.closed@1 has been appended.
+   * A03: ending every session must not lose the closing events. Kills every live session and
+   * resolves once each one's terminal.closed@1 has been appended. NOT the quit path: quitting
+   * goes through `stopRuntime.shutdown()` (index.ts, the quit coordinator); this is the probes'
+   * teardown (delivery, transcript-live), audit A7-033.
    */
   async closeAll(): Promise<void> {
     const live = [...this.sessions.values()].filter((s) => s.running)
