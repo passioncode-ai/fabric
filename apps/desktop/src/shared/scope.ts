@@ -131,6 +131,9 @@ export const TABLE_SCOPE: Record<string, TableScope> = {
   task_handoffs: ESTATE_AND_PROJECT,
   task_links: ESTATE_AND_PROJECT,
   task_notes: ESTATE_AND_PROJECT,
+  // Claims and backlog links (migration 92, REQ-38/REQ-08): a project's, read through its scope.
+  work_claims: ESTATE_AND_PROJECT,
+  task_sources: ESTATE_AND_PROJECT,
 
   // ADR-0050 gave the table a project. Before that it was estate-only and the
   // row genuinely had no narrower home; now an agent credential minted for one
