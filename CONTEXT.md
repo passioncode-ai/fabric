@@ -326,6 +326,17 @@ format `session-handoff/1` (files in user data, never the repository; a preamble
 first tool) — the same for a session Fabric starts and for one another product's console
 starts (ADR-0140). Fabric's `execution-packet/1` is the integrity manifest underneath it.
 
+**Claim** — an agent's statement on its project's board that it is working on one task now (REQ-38, SCN-140): taken
+before work starts, released when it ends or the session closes, journalled. A claim warns other agents of related work;
+it locks nothing, except that one task is never claimed by two agents at once.
+
+**Where work is** — the manager's view of every claim, session and run across the estate's projects, and of sessions with
+no project (SCR-78, SCN-141): what Fabric knows is in flight, read from the journal, never a second board.
+
+**Fabric button** — the one control a product's dashboard shows to reach Fabric (REQ-42, SCN-142, SCR-79): it opens the
+manager session scoped to that product and project in the person's coding agent, never a chat drawn inside the product;
+hidden when Fabric is not installed.
+
 **Setup console** — the person's coding agent, opened by Fabric with a setup brief, doing the
 machine's setup on the person's consent step by step — skills, Fabric's MCP entry in each
 coding agent, the family's products — while Fabric shows what it observes (ADR-0135).
