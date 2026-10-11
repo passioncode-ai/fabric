@@ -162,6 +162,19 @@ credential item for the quota once per token lifetime (held in memory until five
 expires, or until the provider rejects it), with a 5 s deadline; a refused read waits for a screen unlock. Status of the last sync:
 `~/.cache/fabric-workspace/sync-status.json`; its log is `~/Library/Logs/Fabric/workspace-sync.log` (0600, copy-truncate at 5 MB × 5).
 
+**On Windows and Linux (0.3.5, CO-238; [platforms](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/platforms.md)).**
+The installer is per-user NSIS on Windows (`%LOCALAPPDATA%\Programs\<package name>`, its own uninstaller) and an
+AppImage or a `.deb` on Linux (`/opt/Fabric`, `/usr/bin/passioncode-fabric`). The app's data folder is Electron's
+`userData`: `%APPDATA%\@fabric\desktop` on Windows, `~/.config/@fabric/desktop` on Linux — a deliberate deviation from
+PL-06's `%LOCALAPPDATA%\<id>` / `$XDG_DATA_HOME`, because macOS keeps the same `userData` and moving it would move
+every install's data; the bundled stack lives in its `stack` folder (`apps/desktop/src/shared/stackFolder.ts`). The hub,
+the services and the providers live in `%LOCALAPPDATA%\passioncode-fabric` / `$XDG_DATA_HOME/passioncode-fabric`
+(DEC-0032), and on Windows `hub.json` and the door token carry DEC-0033's protected ACL. The local stack needs Docker
+Desktop (Windows, WSL2) or Docker Engine (Linux) and the Supabase CLI, as on macOS; nothing else runs in the
+background. Sessions start PowerShell on Windows and `$SHELL` (else `/bin/bash`) on Linux; a session's tree is stopped
+with `taskkill /T` on Windows. The workspace-sync launchd job has no Windows or Linux counterpart (it is the operator's,
+on this Mac). **Release deviation from PL-10:** no update-feed check stage until the updater exists (CO-246, P-12).
+
 **Builds clean up after themselves (LC-15).** Outputs: `apps/desktop/out/` (electron-vite, ~30 MB),
 `apps/desktop/dist/` (electron-builder: the DMG and `mac-universal/Fabric.app` (release) or `mac-arm64/` / `mac/` (local `package`, host architecture), ~600 MB; a universal pack also leaves `mac-universal-{x64,arm64}-temp/` only while it runs, and electron-builder removes them). The release is universal from 0.3.4: `scripts/after-pack-universal.mjs` joins node-pty's prebuilds and refuses a thin Mach-O; the runtimes admitted per architecture are in `apps/desktop/src/main/runtimeAdmission.ts` (Intel: Electron main only, CO-237). `scripts/release-mac.mjs`
 unregisters the previous bundle from LaunchServices and removes `dist/` before every build, so one release is

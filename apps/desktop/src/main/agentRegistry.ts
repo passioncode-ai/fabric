@@ -104,8 +104,8 @@ const isUri = (v: unknown): boolean => {
   }
 }
 
-function expand(p: string, home: string): string {
-  return p.startsWith('~/') ? path.join(home, p.slice(2)) : p
+function expand(p: string, home: string, join: (...parts: string[]) => string = path.join): string {
+  return p.startsWith('~/') || p.startsWith('~\\') ? join(home, p.slice(2)) : p
 }
 
 /** Where the contract says the two directories are: the env overrides, else the platform's root. */
@@ -114,14 +114,18 @@ export function registryDirs(
   platform: NodeJS.Platform = process.platform,
   home: string = os.homedir()
 ): { root: string; services: string; providers: string } {
+  // Windows per DEC-0032 (0.3.5, REQ-15), with Windows separators whatever OS computes it.
+  const join = platform === 'win32' ? path.win32.join : path.posix.join
   const root =
     platform === 'darwin'
-      ? path.join(home, 'Library/Application Support/ai.passioncode.fabric')
-      : path.join(env.XDG_DATA_HOME || path.join(home, '.local/share'), 'passioncode-fabric')
+      ? join(home, 'Library/Application Support/ai.passioncode.fabric')
+      : platform === 'win32'
+        ? join(env.LOCALAPPDATA || join(home, 'AppData', 'Local'), 'passioncode-fabric')
+        : join(env.XDG_DATA_HOME || join(home, '.local/share'), 'passioncode-fabric')
   return {
     root,
-    services: env.FABRIC_SERVICES_DIR ? expand(env.FABRIC_SERVICES_DIR, home) : path.join(root, 'services'),
-    providers: env.FABRIC_PROVIDERS_DIR ? expand(env.FABRIC_PROVIDERS_DIR, home) : path.join(root, 'providers')
+    services: env.FABRIC_SERVICES_DIR ? expand(env.FABRIC_SERVICES_DIR, home, join) : join(root, 'services'),
+    providers: env.FABRIC_PROVIDERS_DIR ? expand(env.FABRIC_PROVIDERS_DIR, home, join) : join(root, 'providers')
   }
 }
 

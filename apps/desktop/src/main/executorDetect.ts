@@ -55,6 +55,7 @@ async function bounded<T>(call: () => Promise<T>, ms: number): Promise<T | null>
 /** `connected`: whether Fabric's own tools reach a session of this agent (`AgentDescriptor.connectsToSurface`). */
 export interface ExecutorProbe { id: string; label: string; program: string; connected: boolean }
 import type { ExecutorRow } from '../shared/startPaths.ts'
+import { executableCandidates, launchFor, processTreeStopInvocation } from './platform.ts'
 export type { ExecutorRow } from '../shared/startPaths.ts'
 
 /** The vendors' published install commands: Anthropic's native installer, OpenAI's, Kilo's and
@@ -67,17 +68,28 @@ const INSTALL: Readonly<Record<string, string>> = {
   hermes: 'curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash',
   cline: 'npm install -g cline'
 }
+/** Windows (0.3.5, CO-238): Anthropic's PowerShell installer and the same npm packages; Hermes publishes no
+ *  Windows installer, so it gets no command rather than a bash line Windows cannot run. */
+const INSTALL_WINDOWS: Readonly<Record<string, string>> = {
+  'claude-code': 'irm https://claude.ai/install.ps1 | iex',
+  codex: 'npm install -g @openai/codex',
+  kilo: 'npm install -g @kilocode/cli',
+  cline: 'npm install -g cline'
+}
 
 async function onPath(program: string, envPath: string, { fs, ms }: FsCtx): Promise<string | null> {
   for (const dir of envPath.split(path.delimiter)) {
     if (!dir) continue
-    const candidate = path.join(dir, program)
-    // `access` resolves to undefined: map it to a flag so "answered yes" differs from "failed or timed out".
-    const executable = await bounded(() => fs.access(candidate, constants.X_OK).then(() => true), ms)
-    if (!executable) continue
-    // A DIRECTORY of that name is executable-bit "searchable", not a program; keep looking.
-    const st = await bounded(() => fs.stat(candidate), ms)
-    if (st?.isFile()) return candidate
+    // Windows: the installers' extensions (.exe, npm's .cmd shim) in PATHEXT's order (0.3.5, REQ-09).
+    for (const name of executableCandidates(program, process.platform)) {
+      const candidate = path.join(dir, name)
+      // `access` resolves to undefined: map it to a flag so "answered yes" differs from "failed or timed out".
+      const executable = await bounded(() => fs.access(candidate, constants.X_OK).then(() => true), ms)
+      if (!executable) continue
+      // A DIRECTORY of that name is executable-bit "searchable", not a program; keep looking.
+      const st = await bounded(() => fs.stat(candidate), ms)
+      if (st?.isFile()) return candidate
+    }
   }
   return null
 }
@@ -173,13 +185,22 @@ const DRAIN_MS = 100
  */
 function versionOf(file: string, env: Record<string, string>, timeoutMs: number): Promise<string | null | 'timeout'> {
   return new Promise((resolve) => {
-    const child = spawn(file, ['--version'], { env, detached: true, stdio: ['ignore', 'pipe', 'ignore'] })
+    // Windows has no process groups and a detached child opens a console window: the probe runs hidden, a .cmd
+    // through cmd.exe, and its tree is ended by taskkill (0.3.5, REQ-09, REQ-11).
+    const windows = process.platform === 'win32'
+    const how = launchFor(file, ['--version'], process.platform)
+    const child = spawn(how.file, how.args, { env, detached: !windows, windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] })
     let out = ''
     let done = false
     let drain: NodeJS.Timeout | undefined
     const killGroup = (): void => {
       try {
-        process.kill(-(child.pid as number), 'SIGKILL')
+        if (windows) {
+          if (child.pid && child.exitCode === null) {
+            const stop = processTreeStopInvocation(child.pid, 'SIGKILL')
+            spawn(stop.file, stop.args, { stdio: 'ignore', windowsHide: true })
+          }
+        } else process.kill(-(child.pid as number), 'SIGKILL')
       } catch {
         // Already gone, the whole group: nothing left to stop.
       }
@@ -223,7 +244,7 @@ export async function detectExecutors(
   const env = { ...opts.env, PATH }
   return Promise.all(
     probes.map(async (p): Promise<ExecutorRow> => {
-      const install = INSTALL[p.id] ?? null
+      const install = (process.platform === 'win32' ? INSTALL_WINDOWS : INSTALL)[p.id] ?? null
       const file = await onPath(p.program, PATH, ctx)
       const base = { id: p.id, label: p.label, connected: p.connected }
       if (!file) return { ...base, state: 'missing', version: null, path: null, install }

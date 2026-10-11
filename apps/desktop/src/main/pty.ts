@@ -20,6 +20,7 @@ import { LaunchRefusedBeforeSpawn, PtyLaunchFailure } from './launchFailure.ts'
 import { ops } from './opsSink.ts'
 import { createBoundedScrollback, type BoundedScrollback } from './scrollback.ts'
 import { createProcessBoundary, type OwnedProcess } from './processBoundary.ts'
+import { defaultShell, launchFor, processTreeStopInvocation, whichInvocation } from './platform.ts'
 
 /** How a fallback walk chose the runner a session runs (ADR-0125): the basis is the installation's
  *  order, never a contract route revision (DEC-0029); `passed_over` is every entry above the choice. */
@@ -163,10 +164,26 @@ export interface PtyEvents {
   onExit(sessionId: string, exitCode: number): void | Promise<void>
 }
 
+/** What node-pty starts (0.3.5, REQ-08, REQ-09). On Windows ConPTY's CreateProcess needs a file, not a bare name,
+ *  and cannot start npm's .cmd shims: the name is resolved through `where.exe` (PATHEXT order) and a .cmd runs
+ *  through cmd.exe. Elsewhere the program and its arguments pass unchanged. */
+function programForPty(program: string, args: string[]): { file: string; args: string[] } {
+  if (process.platform !== 'win32') return { file: program, args }
+  let file = program
+  if (!/[\\/]/.test(program)) {
+    try {
+      const how = whichInvocation('win32', program)
+      file = execFileSync(how.file, how.args, { encoding: 'utf8', timeout: 5000, windowsHide: true }).split(/\r?\n/).find(Boolean)?.trim() || program
+    } catch { /* Not on PATH: the spawn below fails with node-pty's own error, which the launch reports. */ }
+  }
+  return launchFor(file, args, 'win32')
+}
+
 function binaryExists(bin: string): boolean {
   try {
     // execFile without a shell: no argument concatenation, no injection surface.
-    execFileSync('/usr/bin/env', ['which', bin], { encoding: 'utf8', timeout: 5000 })
+    const how = whichInvocation(process.platform, bin)
+    execFileSync(how.file, how.args, { encoding: 'utf8', timeout: 5000, windowsHide: true })
     return true
   } catch (e) {
       ops.failed('pty.signal', e)
@@ -349,7 +366,7 @@ export class PtyManager {
     // The mode the runner RECEIVES: a runner without modes receives none, whatever was asked for
     // (ADR-0125 §6 — the journal recorded "ask" for Codex, which has no gate, the A6-006 class).
     const mode = descriptor && descriptor.permissionModes.length > 0 ? (permissionMode ?? descriptor.defaultMode) : null
-    const program = option.program ?? process.env.SHELL ?? '/bin/zsh'
+    const program = option.program ?? defaultShell(process.platform, process.env)
     if (!checkAuthorityTarget(program).ok)
       throw new Error('Launch program was refused before preparation.')
 
@@ -394,7 +411,8 @@ export class PtyManager {
     }
     let pty: IPty
     try {
-      pty = this.spawn(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args], {
+      const launch = programForPty(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args])
+      pty = this.spawn(launch.file, launch.args, {
         name: 'xterm-256color',
         cols: 120,
         rows: 32,
@@ -625,6 +643,15 @@ export class PtyManager {
     const s = this.sessions.get(sessionId)
     if (!s) return
     if (s.process) { await this.processBoundary.signal(s.process, signal, stillAllowed); return }
+    // Windows has no process groups (PL-07): the session's tree is stopped from its root, and only while that root's
+    // exit has not been observed, so the pid is still the session's own (REQ-11).
+    if (process.platform === 'win32' && s.running && stillAllowed()) {
+      try {
+        const how = processTreeStopInvocation(s.pty.pid, signal)
+        execFileSync(how.file, how.args, { timeout: 5000, windowsHide: true, stdio: 'ignore' })
+        return
+      } catch (e) { ops.failed('pty.tree-stop', e) /* Falls back to the PTY's own kill below. */ }
+    }
     // We can still request that the owned PTY stop. Without its captured group
     // identity, observeProcess deliberately cannot prove whole-tree quiescence.
     if (s.running && stillAllowed()) s.pty.kill(signal)
