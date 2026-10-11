@@ -729,6 +729,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   const agentCall = createAgentCall({ access, store: accessStore, vault, forward: forwardToProduct, estateId: ACTIVE_ESTATE })
   // A revoked binding never calls again: its idempotency memory goes at once (DA-3, verification 0.3.1).
   access.onBindingRevoked((bindingId) => agentCall.forgetBinding(bindingId))
+  // CO-200: the counts of refusals not yet journalled are written as the app quits (best effort, within the drain).
+  quit.onQuit(() => { void agentCall.flush() })
   hub = { registry, access, accessStore, connector, presenter, get doorToken() { return hubState.doorToken }, get down() { return hubState.down }, get downCode() { return hubState.downCode }, get downFact() { return hubState.downFact } }
   const hubAccess = access
   surface = new AgentSurface({
