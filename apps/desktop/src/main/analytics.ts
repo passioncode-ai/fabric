@@ -125,6 +125,9 @@ interface QueuedEvent { timestamp: string; sessionId: string; eventName: string;
  * `sandbox`. A release build of a release version is `production`; a development build, or a
  * version with a pre-release suffix (`0.3.2-rc.1`), is `sandbox`. Same rule as Switchboard
  * (fabric-switchboard#75, `has_prerelease`).
+ * Aptabase's build mode follows it: `isDebug` is true exactly when the environment is not
+ * `production`, so a pre-release or a development run lands in the dashboard's Debug view
+ * (sshlg-analytics client contract, "Build modes", 2026-10-09).
  */
 export function environmentFor(version: string, packaged: boolean): 'production' | 'sandbox' {
   return packaged && !/^\d+\.\d+\.\d+-/.test(version) ? 'production' : 'sandbox'
@@ -157,6 +160,8 @@ export type AnalyticsAvailability = 'on' | 'off' | 'pending-disclosure' | 'unava
 export function createAnalytics(deps: AnalyticsDeps) {
   const now = deps.now ?? (() => new Date())
   const host = deps.host ?? ANALYTICS_HOST
+  // Fixed for the life of the client: the version and the packaging do not change while the app runs.
+  const environment = environmentFor(deps.appVersion, deps.packaged ?? true)
   const setTimer = deps.setTimer ?? ((fn: () => void, ms: number) => { const t = setTimeout(fn, ms); t.unref(); return t })
   const clearTimer = deps.clearTimer ?? ((t: unknown) => clearTimeout(t as NodeJS.Timeout))
   const log = deps.log ?? (() => {})
@@ -199,8 +204,10 @@ export function createAnalytics(deps: AnalyticsDeps) {
     const at = now()
     queue.push({
       timestamp: at.toISOString(), sessionId, eventName, at: at.getTime(),
-      systemProps: { isDebug: false, osName: deps.osName, ...(deps.osVersion ? { osVersion: deps.osVersion } : {}), appVersion: deps.appVersion, sdkVersion: SDK_VERSION },
-      props: { ...cleanProps(props), install_id: installation.id, iid: installation.id, environment: environmentFor(deps.appVersion, deps.packaged ?? true) }
+      // Aptabase's build mode follows growth's environment (sshlg-analytics client contract, "Build modes"): a
+      // pre-release or a development run lands in the dashboard's Debug view, never in Release.
+      systemProps: { isDebug: environment !== 'production', osName: deps.osName, ...(deps.osVersion ? { osVersion: deps.osVersion } : {}), appVersion: deps.appVersion, sdkVersion: SDK_VERSION },
+      props: { ...cleanProps(props), install_id: installation.id, iid: installation.id, environment }
     })
     if (queue.length > QUEUE_MAX) queue = queue.slice(queue.length - QUEUE_MAX)
     schedule(0)

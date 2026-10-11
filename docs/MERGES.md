@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-11 · `aptabase-build-mode` · fix/aptabase-build-mode → main (fabric#26)
+- base: origin/main 8bc186a2, merged in (not rebased, so the PR branch is never force-pushed); integration: GitHub merge on the operator's instruction (2026-10-11)
+- scope: `apps/desktop/src/main/analytics.ts#createAnalytics` (`systemProps.isDebug`), `apps/desktop/test/analytics.test.mjs`, `docs/ANALYTICS.md` "What is sent", the design map
+- summary: Aptabase's `isDebug` follows growth's `environment` (sshlg-analytics client contract, "Build modes"); a pre-release or a development run lands in Debug, not Release.
+
 ### 2026-10-10 · `release-034-close` · agent/release-034-close → main
 - run: r-9a7a12bb5; base: origin/main 8cf054db; integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
 - scope: the 0.3.4 ledger's *Release close — state*, P-15 done, CO-241 and CO-243 resolved, ADR-0121's status line, `docs/brand/facts.md`, the overview guides (en, ru), the design map's family section, the handoff
