@@ -16,7 +16,7 @@ smaller than it looks because most of its parts are standing already.
 |---|---|---|
 | An operator queue | **exists and is derived** — `refused`, `review`, `abandoned`, `proposal` | `shared/attention.ts` |
 | Task ladder with a permission table | exists; an agent cannot close its own task | `shared/ladder.ts`, `fabric_task_move` |
-| Agent tool surface | **17 tools**, including claim / move / note / brief / handoff / stage-report | `main/agentSurface.ts` |
+| Agent tool surface | the tools `shared/surfaceTools.ts` declares, including claim / move / note / brief / handoff / stage-report | `main/agentSurface.ts` |
 | Mandatory instruction channel | exists — `PREAMBLE` + `--append-system-prompt`, and `fabric_whoami` returns "the rules for this session" | `shared/preamble.ts`, `main/sessionBundle.ts` |
 | Project memory with kinds | exists — `note`, `finding`, `decision`, `trap`, bi-temporal (`valid_to`) | `memory_facts`, `fabric_memory_remember` |
 | Decisions and their lineage | exists — `superseded_by`, 44 current, 0 superseded | `shared/decisions.ts` |

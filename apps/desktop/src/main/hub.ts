@@ -181,6 +181,7 @@ export function pidAlive(pid: number): boolean {
     process.kill(pid, 0)
     return true
   } catch (e) {
+    // The answer to "is it running", not a failure: ESRCH means gone, EPERM means another user's process.
     return (e as NodeJS.ErrnoException).code === 'EPERM'
   }
 }
@@ -205,6 +206,7 @@ export function locateHub(root: string, deps: { isAlive?: (pid: number) => boole
   try {
     doc = JSON.parse(text) as Partial<HubDocument>
   } catch {
+    // Typed refusal: the caller says it (fabric-mcp to the agent); there is nothing more to record.
     return notHub('hub.json is not JSON')
   }
   if (doc.protocol !== HUB_PROTOCOL) return notHub(`hub.json speaks ${JSON.stringify(doc.protocol)}, not ${HUB_PROTOCOL}`)

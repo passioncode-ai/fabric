@@ -816,7 +816,14 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
             return (repos.rows as Array<{ path: string; project_id: string }>).map((r) => ({ projectId: r.project_id, path: r.path }))
           },
           projectName: async (id) => (await enrollProject(id))?.name ?? null,
-          realpath: (folder) => { try { return realpathSync.native(folder) } catch { return null } },
+          realpath: (folder) => {
+            try {
+              return realpathSync.native(folder)
+            } catch {
+              // A folder that does not exist is enrollSession's typed bad-folder answer, not a failure to record.
+              return null
+            }
+          },
           mint: (projectId, sessionId, taskId) => surface.mint(projectId, sessionId, taskId),
           journal: (type, projectId, payload) =>
             journal.append({ estateId: ACTIVE_ESTATE, type, actor: { kind: 'system', id: 'fabric-hub' }, projectId, payload })

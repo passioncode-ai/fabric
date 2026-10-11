@@ -591,7 +591,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-023-045.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: pty.ts#LaunchPlaceMissing"
   },
   {
    "id": "A2-009",
@@ -720,7 +721,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-023-045.md",
-   "status": "open"
+   "status": "stale",
+   "receipt": "2026-10-11: already fixed, 90b2f30d"
   },
   {
    "id": "A2-015",
@@ -742,7 +744,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-023-045.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: migration 91 apply_grants"
   },
   {
    "id": "A2-016",
@@ -1339,7 +1342,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-023-045.md",
-   "status": "open"
+   "status": "stale",
+   "receipt": "2026-10-11: already fixed, cd21ef24 sessionHistory.ts#readSessionHistory"
   },
   {
    "id": "A2-044",
@@ -1381,7 +1385,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-023-045.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: AgentTile.test.tsx"
   },
   {
    "id": "A2-046",
@@ -1864,7 +1869,8 @@
    "release": "0.4.0",
    "waveWhy": "node C2",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-046-068.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: PrivateHistoryPanel.tsx"
   },
   {
    "id": "A3-005",
@@ -1886,7 +1892,8 @@
    "release": "0.4.0",
    "waveWhy": "node C2",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-046-068.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: privateHistory.ts#readOpFile"
   },
   {
    "id": "A3-006",
@@ -2545,7 +2552,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-069-090.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: switchOperation.ts cancelled phase"
   },
   {
    "id": "A4-010",
@@ -2630,7 +2638,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-069-090.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: providerAccounts.ts#STAGING_TTL_MS"
   },
   {
    "id": "A4-014",
@@ -2694,7 +2703,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-069-090.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: hold saved before returned; pruned after 30 days"
   },
   {
    "id": "A4-017",
@@ -2782,7 +2792,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-069-090.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: quotaReading.ts#readQuotaReading"
   },
   {
    "id": "A4-021",
@@ -3205,7 +3216,8 @@
    "release": "0.4.0",
    "waveWhy": "node C2",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-091-112.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: privateHistory.ts (ADR-0079 §4)"
   },
   {
    "id": "A5-012",
@@ -3227,7 +3239,8 @@
    "release": "0.4.0",
    "waveWhy": "node C2",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-091-112.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: privateHistory.ts#restoredEstates"
   },
   {
    "id": "A5-013",
@@ -3249,7 +3262,8 @@
    "release": "0.4.0",
    "waveWhy": "node C2",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-091-112.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: privateHistory.ts#pending"
   },
   {
    "id": "A5-014",
@@ -3271,7 +3285,8 @@
    "release": "0.4.0",
    "waveWhy": "node C2",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-091-112.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: privateHistory.ts#NOT_YOUR_HISTORY"
   },
   {
    "id": "A5-015",
@@ -3361,7 +3376,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-091-112.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: AgentWorkspace.tsx#useRunStatus"
   },
   {
    "id": "A5-019",
@@ -3498,7 +3514,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-091-112.md",
-   "status": "open"
+   "status": "stale",
+   "receipt": "2026-10-11: already fixed, cd21ef24"
   },
   {
    "id": "A5-025",
@@ -3872,7 +3889,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-113-134.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: pty.ts#createRunnerAvailability"
   },
   {
    "id": "A6-010",
@@ -4272,7 +4290,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-113-134.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: acpShell.ts#peer"
   },
   {
    "id": "A6-031",
@@ -4293,7 +4312,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-113-134.md",
-   "status": "open"
+   "status": "stale",
+   "receipt": "2026-10-11: already fixed, 81b4f3ec"
   },
   {
    "id": "A6-032",
@@ -4313,7 +4333,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-113-134.md",
-   "status": "open"
+   "status": "stale",
+   "receipt": "2026-10-11: already fixed, 81b4f3ec"
   },
   {
    "id": "A6-033",
@@ -4634,7 +4655,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: electronFuses + release-mac.mjs#fuseProblems (packaged smoke owed)"
   },
   {
    "id": "A7-008",
@@ -4658,7 +4680,8 @@
    "release": "0.4.0",
    "waveWhy": "node C2",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: appSettings.ts#settingsPatch"
   },
   {
    "id": "A7-010",
@@ -4679,7 +4702,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: dbDeadline.ts#fetchWithDeadline"
   },
   {
    "id": "A7-011",
@@ -4703,7 +4727,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: executorDetect.ts#findOnPath"
   },
   {
    "id": "A7-012",
@@ -4747,7 +4772,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "stale",
+   "receipt": "2026-10-11: already fixed, CHANGELOG 0.3.2–0.4.0, tags v0.3.2–v0.3.4"
   },
   {
    "id": "A7-014",
@@ -4769,7 +4795,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: migration 91"
   },
   {
    "id": "A7-015",
@@ -4793,7 +4820,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: migration 91"
   },
   {
    "id": "A7-016",
@@ -4817,7 +4845,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "decided",
+   "receipt": "decided 2026-10-11 from ADR-0050 §4: consumption stays at the dispatch fence as an event; reserve_effect reserves, it does not spend (the audit's move would contradict the ADR)"
   },
   {
    "id": "A7-017",
@@ -4911,7 +4940,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: migration 91"
   },
   {
    "id": "A7-021",
@@ -4954,7 +4984,8 @@
    "release": "0.4.0",
    "waveWhy": "node C2",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: migration 91 + policy.ts#isFloorClass"
   },
   {
    "id": "A7-023",
@@ -4975,7 +5006,8 @@
    "release": "0.4.0",
    "waveWhy": "node C2",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "decided",
+   "receipt": "carried as CO-255 (service_role read-only by default for new tables)"
   },
   {
    "id": "A7-024",
@@ -5021,7 +5053,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: appSettings.ts#settingsPatch"
   },
   {
    "id": "A7-026",
@@ -5042,7 +5075,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: hangUp.ts#untilAnsweredOrGone"
   },
   {
    "id": "A7-027",
@@ -5062,7 +5096,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: quota.ts#SECURITY_BIN"
   },
   {
    "id": "A7-028",
@@ -5203,7 +5238,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "decided",
+   "receipt": "decided 2026-10-11: three dead exports deleted; kept — the pipeline adapter (ADR-0143's reserved pipeline), projectStore and availableRecovery (cited by engineering-specs.json), readSettingsState (wave 3 wires it for the system-locale default), verifyHandoff (the handoff tool), scopeOwnership (test-only, kept as the ownership rule's one definition, R-005); a dead-export gate (knip/ts-prune) is carried to the program"
   },
   {
    "id": "A7-034",
@@ -5274,7 +5310,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: shared/opsLog.ts#causeOf"
   },
   {
    "id": "A7-037",
@@ -5295,7 +5332,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: mcpStdioBridge.ts#relay"
   },
   {
    "id": "A7-038",
@@ -5316,7 +5354,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: acpShell.ts#peer"
   },
   {
    "id": "A7-039",
@@ -5361,7 +5400,8 @@
    "release": "0.4.0",
    "waveWhy": "node C2",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "2026-10-11 wave 1: check-surface-tools reads numerals; four architecture docs reworded"
   },
   {
    "id": "A7-041",
@@ -5407,7 +5447,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-architecture.md",
-   "status": "open"
+   "status": "stale",
+   "receipt": "2026-10-11: already fixed, 8d002f4d"
   },
   {
    "id": "A7-043",

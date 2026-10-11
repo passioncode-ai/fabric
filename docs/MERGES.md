@@ -4,6 +4,11 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-11 · `release-040-wave1` · agent/release-040-wave1 → main
+- run: r-22786ba16 (lease release-040-wave1-hook); base: origin/main 22426281; integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
+- scope: the Windows/Linux port (a7c12e19); the harness — `hub.ts#locateHub`, `folderResolver.ts`, `sessionEnroll.ts`, `fabricMcp.ts`/`fabricMcpMain.ts`, `resources/bin/fabric-mcp(.cmd)`, the enrollment ask in `shared/access.ts`/`accessService.ts`/`hubTools.ts`, its consent words; migrations 82 (write rules at the door), 90 (session enrollment), 91 (grants from the journal) — schema 82, `supabase/migration-ledger.json`; `desktopIngress.ts` owners + `test/ingress-owners.test.mjs`; the per-window IPC policy (`ipcWindowPolicy.ts`, `windowRegistry.ts`, `preload/api.ts`); the hub robustness rows; the wave's audit findings; ADR-0142 and amendments to ADR-0115/0131/0134; the ledger, the plan lanes, the inventory; derived files
+- summary: a coding agent in any console reaches Fabric through fabric-mcp and enrolls into a project on one consent — proven with a real MCP client; the hub path that never ran live (CO-254) is fixed; CO-091 and the data-integrity rows closed.
+
 ### 2026-10-11 · `release-040-plan` · agent/release-040-plan → main
 - run: r-249d0762eddd; base: origin/main 403faab9; integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
 - scope (base re-measured: origin/main 659ff356, rebased): `docs/evidence/plans/2026-10-11-release-040-agents-first.md` (decisions, canvas C1…C12, REQ-01…REQ-36, waves 0–8, questions), its inventory `…-inventory.json` (701 items), `scripts/plan/release-040-waves.py`, P-16 in the plan (lane 2) and the Now line, the SRC-02 re-pin, the regenerated `completeness.html` and `plan.json`, the design map entry, the handoff

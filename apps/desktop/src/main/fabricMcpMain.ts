@@ -58,6 +58,7 @@ const proxy = new FabricMcpProxy({
       const text = readHubDocument(credentialFile)?.trim() ?? null
       return text && CREDENTIAL.test(text) ? text : null
     } catch {
+      // No credential file (or an unreadable one) is the ordinary first run: the proxy asks through the door.
       return null
     }
   },

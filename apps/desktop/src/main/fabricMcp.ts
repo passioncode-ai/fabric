@@ -107,6 +107,8 @@ export class FabricMcpProxy {
       try {
         return await link.listTools()
       } catch (e) {
+        // Not silent: dropSession logs the cause to stderr (fabric-mcp runs outside Fabric, with no ops sink) and
+        // the agent is told its tools changed.
         this.dropSession(link, e)
       }
     }
@@ -123,6 +125,7 @@ export class FabricMcpProxy {
       try {
         return await link.callTool(name, args)
       } catch (e) {
+        // Not silent: logged by dropSession, and the answer below tells the agent nothing of this call was done.
         this.dropSession(link, e)
         return { content: [{ type: 'text', text: 'Fabric restarted or closed this session; reconnecting. Call this tool again in a moment — nothing of this call was done.' }], isError: true }
       }
@@ -136,6 +139,7 @@ export class FabricMcpProxy {
     try {
       return await this.attempt()
     } catch (e) {
+      // The failure becomes the state the agent reads (fabric_whoami) and set() logs it to stderr.
       return this.set({ kind: 'failed', reason: e instanceof Error ? e.message : String(e) })
     }
   }

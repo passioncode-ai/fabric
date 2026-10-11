@@ -435,9 +435,12 @@ that reads every event type main appends). CO-091 (BLOCKING) is closed and its n
 launch for all three window kinds; CO-199, CO-200 (ADR-0142), CO-201 and CO-242 are closed; the port is merged into
 the base. Re-cut: the embedded browser (CO-102, M75, SCN-077, AX15-REQ-004) leaves 0.4.0 — it was in wave 1 only
 because CO-091 gated it, and no request of this release needs it; CO-237 and CO-250/CO-251 ride wave 7; AR-3.2
-closes in wave 3 with the Setup console. Still in wave 1: CO-203, CO-205, CO-206, CO-207, CO-234 and the 44 audit
-findings assigned to it (two agents, then the wave's verification pass). The schema is 81 (migrations 82 and 90),
-a schema step the release notes must say (ADR-0121: self-update never crosses one).
+closes in wave 3 with the Setup console. Then CO-203, CO-205, CO-206 (ADR-0115 amendments 38–39), CO-207 and CO-234 closed,
+and the 44 audit findings of the wave: 31 fixed, 7 stale with receipts, A7-016 and A7-033 decided from the sources
+(ADR-0050 §4; what to keep), A7-023 carried as CO-255, A6-036/038/041 fixed with the hub rows. The schema is 82
+(migrations 82, 90 and 91), a schema step the release notes must say (ADR-0121: self-update never crosses one); the
+pipeline's reserved migrations moved to 92/93 and its ADR to 0143. Electron's fuses are on with run-as-node kept
+(fabric-mcp and the helpers need it); the first packaged build must show the app starts with asar integrity on.
 
 **The rest of the board — the program after 0.4.0.** 504 of the 701 items do not close in 0.4.0: they are umbrella
 milestones, unbuilt scenarios and multi-packet plans (memory and context, MEM-P0…P7; the board's COM-06…14 and

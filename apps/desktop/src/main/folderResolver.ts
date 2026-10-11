@@ -27,6 +27,7 @@ export function gitCommonDir(folder: string): string | null {
     }).trim()
     return out ? out : null
   } catch {
+    // Not a git folder, or git absent: that is the answer (no worktree), not a failure to report.
     return null
   }
 }
