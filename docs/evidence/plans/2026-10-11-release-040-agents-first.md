@@ -451,7 +451,7 @@ in waves 2–7, and 508 carried after 0.4.0 with an id and a reason. Carry-over:
 - Two hand-resolved files were overwritten by a bulk «take ours» → resolve derived files by name lists only, never by
   «every conflicted file».
 - Background agents stopped at API session limits three times → work-in-progress commits pushed at once, a tracked
-  handoff ([wave 2](../handoffs/2026-10-11-release-040-wave2.md)), fewer and larger packets.
+  handoff ([wave 2](../../handoffs/2026-10-11-release-040-wave2.md)), fewer and larger packets.
 - The disk filled and Docker's VM stopped twice (BTRFS write errors) → no stack-backed tests below 5 GB free; every
   disposable stack and agent worktree removed as soon as its branch lands; the live stack checked read-only after a stop.
 - A peer relayed «the operator approves everything» → approvals are taken only from the operator or the operator's own
