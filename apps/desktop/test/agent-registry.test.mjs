@@ -227,3 +227,82 @@ test('a FIFO, a link to /dev/zero and a directory named *.json are problems, and
   assert.deepEqual(out.problems.sort(), [['evil-dir.json', 'unreadable'], ['evil-fifo.json', 'unreadable'], ['evil-zero.json', 'unreadable']])
   rmSync(h.root, { recursive: true, force: true })
 })
+
+// CO-205 (release verification of 0.3.1, E-8): every `fabric.access.request` refreshes the registry on the
+// main thread, and the door admits 600 requests a minute. The refresh opens and parses only what CHANGED,
+// and never more than MAX_ENTRIES_PER_DIR files per directory.
+// #region registry-gated-refresh — docs: docs/evidence/specs/2026-09-29-agent-registry-design.md#3-registry-req-01-req-02-req-10
+const { MAX_ENTRIES_PER_DIR } = await import(SRC)
+const { utimesSync, renameSync } = await import('node:fs')
+
+test('CO-205: an unchanged registry is not re-read — the second refresh opens no file and returns the same snapshot', () => {
+  const h = home()
+  for (let i = 0; i < 20; i++) put(h.providers, `p-${i}.json`, provider(`p-${i}`))
+  put(h.services, 'svc.default.json', service('svc', 'default', 47501))
+  const reg = new AgentRegistry({ servicesDir: h.services, providersDir: h.providers })
+  const first = reg.refresh()
+  assert.equal(reg.filesRead(), 21)
+  const again = reg.refresh()
+  assert.equal(reg.filesRead(), 21, 'an unchanged file was opened and parsed again')
+  assert.equal(again, first, 'an unchanged registry is a new snapshot')
+  rmSync(h.root, { recursive: true, force: true })
+})
+
+test('CO-205: a changed file is re-read alone; an added one is read, a removed one is gone', () => {
+  const h = home()
+  for (let i = 0; i < 5; i++) put(h.providers, `p-${i}.json`, provider(`p-${i}`))
+  const reg = new AgentRegistry({ servicesDir: h.services, providersDir: h.providers })
+  reg.refresh()
+  assert.equal(reg.filesRead(), 5)
+  // Rewritten in place with the SAME size and its mtime set back: the ctime still moves.
+  const file = path.join(h.providers, 'p-2.json')
+  put(h.providers, 'p-2.json', provider('p-2', { name: 'p-2 Provider' }))
+  utimesSync(file, new Date(NOW), new Date(NOW))
+  assert.equal(reg.refresh().entries.find((e) => e.key === 'p-2').name, 'p-2 Provider')
+  assert.equal(reg.filesRead(), 6, 'only the changed file is opened')
+  put(h.providers, 'p-9.json', provider('p-9'))
+  assert.equal(reg.resolve('p-9').ok, false, 'resolve reads the snapshot, not the disk')
+  reg.refresh()
+  assert.equal(reg.resolve('p-9').ok, true)
+  assert.equal(reg.filesRead(), 7)
+  rmSync(path.join(h.providers, 'p-0.json'))
+  reg.refresh()
+  assert.equal(reg.resolve('p-0').ok, false, 'a removed file still resolves')
+  assert.equal(reg.filesRead(), 7)
+  // An atomic replace (a temp file renamed over) is a new inode: re-read.
+  writeFileSync(path.join(h.providers, '.p-1.tmp'), JSON.stringify(provider('p-1', { name: 'p-1 v2' })))
+  renameSync(path.join(h.providers, '.p-1.tmp'), path.join(h.providers, 'p-1.json'))
+  assert.equal(reg.refresh().entries.find((e) => e.key === 'p-1').name, 'p-1 v2')
+  rmSync(h.root, { recursive: true, force: true })
+})
+
+test('CO-205: past MAX_ENTRIES_PER_DIR files a directory is read up to the cap and reported too-many-entries', () => {
+  const h = home()
+  const n = MAX_ENTRIES_PER_DIR + 10
+  const id = (i) => `p-${String(i).padStart(4, '0')}`
+  for (let i = 0; i < n; i++) put(h.providers, `${id(i)}.json`, provider(id(i)))
+  const reg = new AgentRegistry({ servicesDir: h.services, providersDir: h.providers })
+  const snap = reg.refresh()
+  assert.equal(reg.filesRead(), MAX_ENTRIES_PER_DIR, 'more files were opened than the cap')
+  assert.equal(snap.entries.length, MAX_ENTRIES_PER_DIR)
+  const over = snap.problems.filter((p) => p.code === 'too-many-entries')
+  assert.equal(over.length, 1)
+  assert.equal(over[0].file, h.providers)
+  assert.match(over[0].reason, new RegExp(`holds ${n} entry files.*first ${MAX_ENTRIES_PER_DIR}.*other 10`))
+  assert.equal(reg.resolve(id(0)).ok, true)
+  assert.equal(reg.resolve(id(n - 1)).ok, false, 'a file past the cap resolved')
+  rmSync(h.root, { recursive: true, force: true })
+})
+
+test('CO-205: FAC-SEM-013 still holds across the cap — a kept service whose twin provider went unread resolves to neither', () => {
+  const h = home()
+  for (let i = 0; i < MAX_ENTRIES_PER_DIR; i++) put(h.providers, `a-${String(i).padStart(4, '0')}.json`, provider(`a-${String(i).padStart(4, '0')}`))
+  put(h.providers, 'twin.json', provider('twin')) // sorts after every a-*: past the cap
+  put(h.services, 'twin.default.json', service('twin', 'default', 47501))
+  const reg = new AgentRegistry({ servicesDir: h.services, providersDir: h.providers })
+  reg.refresh()
+  assert.equal(reg.resolve('twin').ok, false, 'a service resolved while its provider twin merely went unread')
+  assert.match(reg.resolve('twin').reason, /both services\/ and providers\//)
+  rmSync(h.root, { recursive: true, force: true })
+})
+// #endregion registry-gated-refresh
