@@ -204,3 +204,70 @@ Asked by project-observatory-3d while building the meter (OBS-55); decided here 
   `jti`.
 - **The meter's name.** Agent `project-observatory`, capability `grant.check` (effect `none`), declared in its service
   descriptor; the onward token for it has `aud` `project-observatory` and scope `grant.check`.
+
+### Amendment 2 — 2026-10-11: the task window's key; a vault slot released under a grant
+
+Asked by fabric-agent-contract-75 (the review of DEC-0041, PR #32) and by project-observatory-3d (OBS-57).
+
+- **The task window's key, superseding amendment 1's sentence.** The meter keys the `task` window on the token's
+  `task` claim; else on the first `act.session` found walking the chain from the outermost actor of the token presented
+  to it; else on the **grant itself** (`grant:<ref>`), so spend with no task and no session shares one window per grant.
+  Never on the request's `tokenJti`: that field is unsigned, so a callee could open a fresh window with every check and
+  pass the L2 limit. Fail closed: the widest window.
+- **A vault slot is released under a grant that names it (OBS-57).** `use_secret.py run` releases a slot only to a
+  delegation token with `aud` `project-observatory`, scope `secret.use`, effect `none`, whose grant's
+  `spend.credentialSource` is `{kind: project-key, ref: "<project>/<env>/<NAME>"}` for exactly that slot; a `capability`
+  source never releases a slot (the owner's capability is called instead). The value enters only the child process's
+  environment. The token arrives in the environment variable `FABRIC_DELEGATION_TOKEN`, which `use_secret.py` reads
+  and removes before `exec`, never logged and never in argv. The agent using the slot mints that token from the hub
+  under its own grant, or onward from the token of the work it is doing on someone's behalf. Refusals: `no-grant`,
+  `credential-source-refused` (the token's project is not the slot's), `principal-unproven`, `grant-revoked` /
+  `grant-expired` from the projection, `unknown-state` when the projection cannot be read.
+
+### Amendment 3 — 2026-10-11: one grant per token; the meter's hop; approvals; one refusal form
+
+Answers to fabric-agent-contract-75's audit of DEC-0037…0040 (F-B-301, F-B-305, F-B-306, F-B-311, F-B-314):
+
+- **One grant per token** (F-B-305). A delegation token names exactly one grant (`grant` has at most one item in 0.1);
+  an onward token keeps the same reference. A callee cannot point the meter at a grant the token was not minted under.
+- **The meter's hop is outside the depth limit** (F-B-306). A token whose `aud` is the meter, scope `grant-check` and
+  effect `none` may be one actor deeper than the chain limit (five); no other token may.
+- **No `device` approval yet** (F-B-314). `approval.method` is `prompt` or `operator-channel`; a device check returns
+  with its own decision. Fabric issues only those two.
+- **One refusal form** (F-B-301). The meter answers a grant-check `denied` document whose code is from the one set; the
+  callee passes that code unchanged into the `error.code` of its own refusal (DL-19).
+- **DEC-0039 tightens a service rule** (F-B-311): the operator-session lifetime is a MUST, so a kit cookie longer than
+  seven days now breaks the contract; the contract marks DEC-0039 as a tightening and defines when a descriptor token
+  "rotates".
+- Observed in the meter's port (project-observatory-dashboard #210): a grant whose `credentialSource` names another
+  agent's key fails the standing-grant schema, so the meter answers `unknown-state` rather than
+  `credential-source-refused` — fail closed, the same outcome for the caller.
+
+### Amendment 4 — 2026-10-11: proof starts at the machine boundary
+
+**Decided by the operator** (the operator's global instructions, «This machine is the operator's workplace», read
+2026-10-11 19:30; relayed first by project-observatory-3d). A task the operator gives an agent on this machine needs no
+further proof — no delegation token, no `approval/1`, no grant record: the operator's instruction is the authority.
+Money limits still bind (the project limit, L0, each key's ceiling), and so do the human gates (sign-ins, consents,
+payments and top-ups, secrets typed into hidden prompts). Proof starts at the machine boundary: another machine of the
+operator's is trusted like this one once enrolled in the agent network (RM-21); another person's machine is untrusted —
+a share grant with limits, an expiry and a payer (`principalKind: external`), a delegation token per call, an approval
+for each effect.
+
+What this changes in the decision above:
+
+- **Local callers on the operator's account never need a minted token.** §1's «Fabric must be running to mint … refused
+  `issuer-unavailable`» and DL-8's «no hub, no token → refuse» bind cross-machine and external calls only; a local agent
+  with no hub still works.
+- **A local call that carries a token** has it verified and uses it for attribution and narrowing — optional, never a
+  requirement.
+- **`approval/1` between agents is for external effects.** Locally the operator's instruction stands; the human gates stay
+  human.
+- **The per-agent rows** (the [plan](../evidence/plans/2026-10-11-delegation-model/README.md)) become required only for a
+  service reachable from another machine or from an external caller; on this machine they are optional attribution.
+  The rule against calling a capability with another service's descriptor token stays as hygiene (attribution), not as a
+  local requirement; never spending another agent's key or vault slot stays a rule (money).
+- **Fabric's issuer (wave 4) is still built** — for share grants (REQ-36's guest view), for calls that cross the machine
+  boundary, and for attribution — but no local path waits on it. Observatory's defaults already match:
+  `slotsRequireGrant: when-token`, the keyserver's mode `off`; `always` / `agents` are for a machine serving external
+  callers.

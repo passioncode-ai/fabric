@@ -27,6 +27,8 @@ export type ProxyState =
   | { kind: 'denied'; projectName: string }
   | { kind: 'connected'; projectName: string; projectId: string }
   | { kind: 'failed'; reason: string }
+  /** A rejoin (D2) found no live session of its runtime session: it asks nothing and waits to be called. */
+  | { kind: 'not-enrolled'; message: string }
 
 /** One tool call to the hub as a short-lived MCP client. A refused credential (HTTP 401/403) is `unauthorized`. */
 export type HubCall = (url: string, bearer: string, tool: string, args: Record<string, unknown>) => Promise<
@@ -73,7 +75,17 @@ export interface ProxyDeps {
   log(line: string): void
   /** How often a waiting request is polled. */
   pollMs?: number
+  /** The coding agent's own session id (Claude Code's CLAUDE_CODE_SESSION_ID), sent with every enrollment (D1). */
+  runtimeSessionId?: string | null
+  /**
+   * `--rejoin-only` (D2): join the live session `runtimeSessionId` already holds, through a held credential only —
+   * never the door, never a request to the operator, never a new session; otherwise stay not-enrolled.
+   */
+  rejoinOnly?: boolean
 }
+
+/** The runtime session ids fabric-mcp passes on: what Fabric's enrollment accepts (`sessionEnroll.ts`). */
+export const RUNTIME_SESSION_ID = /^[A-Za-z0-9._:-]{1,128}$/
 
 // #region fabric-mcp-failures — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
 /**
@@ -117,7 +129,7 @@ const text = (t: string, isError = true): Record<string, unknown> => ({ content:
  *  few seconds: it waits until the agent calls fabric_whoami, or half a minute. */
 export const BACKOFF_MS: Record<ProxyState['kind'], number> = {
   starting: 3000, failed: 3000, waiting: 3000, 'not-a-hub': 3000,
-  connected: 2000, 'not-running': 5000, 'no-project': 30_000, denied: 60_000
+  connected: 2000, 'not-running': 5000, 'no-project': 30_000, denied: 60_000, 'not-enrolled': 30_000
 }
 
 export class FabricMcpProxy {
@@ -153,6 +165,7 @@ export class FabricMcpProxy {
       : s.kind === 'waiting' ? `Waiting for the operator to allow this coding agent in Fabric to work in the project ${s.projectName} — the prompt is on their screen. Call this tool again in a moment.`
       : s.kind === 'denied' ? `The operator denied this coding agent the project ${s.projectName}. It stays denied until they clear the denial in Fabric (Agent access).`
       : s.kind === 'failed' ? `Fabric could not be reached: ${s.reason}.`
+      : s.kind === 'not-enrolled' ? s.message
       : 'Connecting to Fabric. Call this tool again in a moment.'
     return { content: [{ type: 'text', text: this.notice ? `${this.notice} ${said}` : said }], isError: true, structuredContent: { fabric: { state: s.kind } } }
   }
@@ -231,11 +244,27 @@ export class FabricMcpProxy {
     if (!hub.ok) return this.set({ kind: hub.code, reason: hub.reason })
     const cwd = this.deps.cwd
     const store = this.deps.store
+    const runtime = this.deps.runtimeSessionId && RUNTIME_SESSION_ID.test(this.deps.runtimeSessionId) ? this.deps.runtimeSessionId : null
+    const enrollArgs: Record<string, unknown> = runtime ? { cwd, runtimeSessionId: runtime } : { cwd }
+
+    // #region fabric-mcp-rejoin — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
+    if (this.deps.rejoinOnly) {
+      const none = (why: string): ProxyState => this.set({ kind: 'not-enrolled', message: `Not enrolled: ${why}. A rejoin asks nothing and starts no session.` })
+      if (!runtime) return none('no runtime session id was given')
+      for (const { credential } of store.list()) {
+        // Nothing is forgotten or saved here: a rejoin leaves the agent's own credentials exactly as it found them.
+        const r = await this.deps.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', { ...enrollArgs, rejoinOnly: true })
+        if (r.unauthorized) continue
+        if (!r.isError) return this.open(hub.mcpUrl, r.value)
+      }
+      return none('no live Fabric session belongs to this coding-agent session')
+    }
+    // #endregion fabric-mcp-rejoin
 
     // Every credential this runner holds, one per binding: the first that enrolls wins; a revoked one is forgotten.
     let need: { data: Record<string, unknown>; bearer: string; via: string } | null = null
     for (const { id, credential } of store.list()) {
-      const r = await this.deps.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', { cwd })
+      const r = await this.deps.hubCall(hub.mcpUrl, credential, 'fabric.session.enroll', enrollArgs)
       if (r.unauthorized) {
         // Revoked, or minted by another Fabric: forget this one; the others (or the door) are tried next.
         store.forget(id)
@@ -251,7 +280,7 @@ export class FabricMcpProxy {
     // A binding asks for its own agent: on Allow the grant joins the credential already held, nothing new is stored.
     if (need) return this.ask(hub.mcpUrl, need.bearer, need.data, need.via)
 
-    const r = await this.deps.hubCall(hub.mcpUrl, hub.doorToken, 'fabric.session.enroll', { cwd })
+    const r = await this.deps.hubCall(hub.mcpUrl, hub.doorToken, 'fabric.session.enroll', enrollArgs)
     if (r.unauthorized) return this.set({ kind: 'not-a-hub', reason: 'the hub refused its own door token' })
     const code = r.isError ? errorCode(r.value) : null
     if (code === 'no-project' || code === 'bad-folder') return this.set({ kind: 'no-project', message: errorMessage(r.value) })

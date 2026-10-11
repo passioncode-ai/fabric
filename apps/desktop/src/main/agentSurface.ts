@@ -79,6 +79,10 @@ import { untilAnsweredOrGone } from './hangUp.ts'
 import { QUESTION_KINDS, normaliseAsk } from '../shared/questionAsk.ts'
 import { sameToken, type AccessService, type HubPrincipal } from './accessService.ts'
 import type { McpServer as HubServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { registerWorkTools, type LiveSession } from './workTools.ts'
+import type { SourceResolution } from './backlogSource.ts'
+import type { LeaseRefsRead } from './agentSyncLeases.ts'
+import { CLAIM_DEFAULT_MINUTES, type CameIn } from '../shared/workClaims.ts'
 
 /** Check the complete original before lookup, normalization or legacy text
  * scrubbing. Reference identity is preserved; recognizable secrets refuse the
@@ -191,6 +195,27 @@ export interface AgentScope {
   projectId: string
   sessionId: string
   taskId: string | null
+  /** How the session came in (REQ-38): launched by Fabric, or enrolled through the hub (ADR-0134). */
+  cameIn: CameIn
+  /** The coding agent, as Fabric knows it: the runner of a launch or of an enrollment's binding. */
+  agent: string | null
+  /** The coding agent's own session id, when it enrolled with one (D1); what a rejoin and an observation name. */
+  runtimeSessionId: string | null
+}
+
+/** How a session was minted: launched (the default) or enrolled, with its runner. */
+export interface MintOrigin {
+  cameIn: CameIn
+  agent: string | null
+  runtimeSessionId?: string | null
+}
+
+/** What the claim tools need beyond the database (REQ-38, REQ-08; `workTools.ts`). Absent, they still serve, without backlog links or agent-sync leases. */
+export interface SurfaceWorkDeps {
+  resolveSource(projectId: string, source: { repository: string; path: string; id: string }): Promise<SourceResolution>
+  leaseRefs(projectId: string): Promise<(LeaseRefsRead & { repository: string }) | null>
+  /** Ends a session the way its own end would (an enrolled one through EnrolledSessions); default: revoke it here. */
+  endSession?(sessionId: string): void
 }
 
 /**
@@ -208,6 +233,15 @@ export interface AgentSurfaceLimits {
   /** Maximum time to receive one JSON body, independent of the HTTP server timeout. */
   bodyReadMs: number
 }
+
+/** A backlog row by its address (REQ-08; plan R-07: link, don't copy). */
+const SOURCE_SCHEMA = z
+  .object({ repository: z.string().min(1).max(300), path: z.string().min(1).max(300), id: z.string().min(1).max(64) })
+  .describe('The backlog row this task serves: the repository (its remote — https://github.com/owner/name or owner/name — or its folder), the file\'s path in it, and the row\'s id. Linked, never copied: the row keeps its status in its file.')
+
+/** How often a claim holder's calls renew its claims, and how close to its expiry a claim must be to be renewed. */
+export const RENEW_EVERY_MS = 5 * 60_000
+export const RENEW_WITHIN_MS = 15 * 60_000
 
 export const DEFAULT_LIMITS: AgentSurfaceLimits = {
   claimWindowMs: 120_000,
@@ -236,6 +270,12 @@ export interface AgentSurfaceDeps {
   limits?: Partial<AgentSurfaceLimits>
   /** ADR-0115's external ingress. Absent, the surface is exactly the session door it always was. */
   hub?: HubIngress
+  work?: SurfaceWorkDeps
+  /**
+   * A session's credentials are gone (it ended, was revoked, or the app is quitting): its claims are released
+   * (REQ-38: a session's claims end with it). Awaited, bounded, by `stop()`; never throws into the caller.
+   */
+  onSessionEnded?: (sessionId: string, why: 'ended' | 'app-quit') => Promise<void>
 }
 
 /** What the surface needs to admit a registered agent from outside (ADR-0115 §1). */
@@ -316,6 +356,18 @@ export class AgentSurface {
   private externalPendingTotal = 0
   /** The project board's participant half (COM-02.2, ADR-0117); its cursor key lives for this run only. */
   private board: Board
+  // #region surface-session-registry — docs: docs/ux/scenarios.md#scn-141-see-where-work-is-across-every-project--sessions-claims-review-and-sessions-with-no-project
+  /**
+   * Every session this surface holds a credential for, launched or enrolled, with its last call (CO-256): the
+   * liveness signal other sessions' `fabric_work_list` and the operator's screens read. In memory: it is what this
+   * process can vouch for, and a restart is exactly the moment those sessions' bearers stop working.
+   */
+  private live = new Map<string, { projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; mintedAt: number; lastCallAt: number | null }>()
+  /** Sessions holding a claim, and when their calls next renew it (REQ-38: "its calls renew the claim"). */
+  private claimHolders = new Map<string, number>()
+  /** Session-end releases in flight; `stop()` waits for them, bounded. */
+  private ending = new Set<Promise<void>>()
+  // #endregion surface-session-registry
 
   // Assigned in the body rather than declared as a parameter property: Node's
   // type-stripping loader rejects parameter properties, and this class is
@@ -410,6 +462,11 @@ export class AgentSurface {
   }
 
   async stop(): Promise<void> {
+    // The app is quitting: every session still held ends with it, and its claims are released first (bounded, so
+    // a database that does not answer cannot hold the quit past its deadline — LC-01).
+    for (const sessionId of [...this.live.keys()]) this.sessionEnded(sessionId, 'app-quit')
+    if (this.ending.size)
+      await Promise.race([Promise.allSettled([...this.ending]), new Promise((r) => setTimeout(r, 3_000).unref?.())])
     for (const token of [...this.states.keys()]) this.drop(token)
     const server = this.http
     const server6 = this.http6
@@ -420,15 +477,22 @@ export class AgentSurface {
     if (server6) await closeHttpServer(server6)
   }
 
-  mint(projectId: string, sessionId: string, taskId: string | null): AgentScope {
+  mint(projectId: string, sessionId: string, taskId: string | null, origin?: MintOrigin): AgentScope {
+    // A launched session's runner is the terminal's; a second bearer for a session already held keeps its origin.
+    const known = this.live.get(sessionId)
     const scope: AgentScope = {
       token: randomBytes(24).toString('base64url'),
       estateId: this.deps.estateId,
       projectId,
       sessionId,
-      taskId
+      taskId,
+      cameIn: origin?.cameIn ?? known?.cameIn ?? 'launched',
+      agent: origin?.agent ?? known?.agent ?? null,
+      runtimeSessionId: origin?.runtimeSessionId ?? known?.runtimeSessionId ?? null
     }
     const now = this.now()
+    if (!known)
+      this.live.set(sessionId, { projectId, cameIn: scope.cameIn, agent: scope.agent, runtimeSessionId: scope.runtimeSessionId, mintedAt: now, lastCallAt: null })
     this.states.set(scope.token, {
       scope,
       mintedAt: now,
@@ -446,7 +510,55 @@ export class AgentSurface {
     for (const [token, st] of this.states) {
       if (st.scope.sessionId === sessionId) this.drop(token)
     }
+    if (this.live.has(sessionId)) this.sessionEnded(sessionId, 'ended')
   }
+
+  /** The session is gone from this surface; its claims are released through `onSessionEnded` (once). */
+  private sessionEnded(sessionId: string, why: 'ended' | 'app-quit'): void {
+    if (!this.live.delete(sessionId)) return
+    this.claimHolders.delete(sessionId)
+    const hook = this.deps.onSessionEnded
+    if (!hook) return
+    const p: Promise<void> = hook(sessionId, why).catch((e) => {
+      ops.failed('agentSurface.session-end-release', e, { note: 'the ended session\'s claims stay until they lapse', session_id: sessionId })
+    }).finally(() => { this.ending.delete(p) })
+    this.ending.add(p)
+  }
+
+  // #region surface-session-registry-read — docs: docs/ux/scenarios.md#scn-141-see-where-work-is-across-every-project--sessions-claims-review-and-sessions-with-no-project
+  /** The sessions this surface holds, one per session (CO-256): launched and enrolled, with their last call. */
+  heldSessions(projectId?: string): Array<{ sessionId: string; projectId: string; cameIn: CameIn; agent: string | null; runtimeSessionId: string | null; startedAt: number; lastCallAt: number | null }> {
+    return [...this.live.entries()]
+      .filter(([, s]) => !projectId || s.projectId === projectId)
+      .map(([sessionId, s]) => ({ sessionId, projectId: s.projectId, cameIn: s.cameIn, agent: s.agent, runtimeSessionId: s.runtimeSessionId, startedAt: s.mintedAt, lastCallAt: s.lastCallAt }))
+  }
+
+  /** What this surface holds of one session; null when nothing (ended, or minted by an earlier run of Fabric). */
+  sessionSign(sessionId: string): { lastSignAt: number | null } | null {
+    const s = this.live.get(sessionId)
+    if (!s) return null
+    const pty = this.deps.ptys()?.get(sessionId)
+    const ptyAt = pty?.lastActivityAt ? Date.parse(pty.lastActivityAt) : null
+    const at = Math.max(s.lastCallAt ?? 0, ptyAt ?? 0)
+    return { lastSignAt: at || null }
+  }
+  /** A project's live sessions for `fabric_work_list`: what this surface holds, and the terminals running there. */
+  private projectSessions(projectId: string): LiveSession[] {
+    const out = new Map<string, LiveSession>()
+    for (const s of this.heldSessions(projectId)) {
+      const sign = this.sessionSign(s.sessionId)
+      out.set(s.sessionId, { sessionId: s.sessionId, agent: s.agent, cameIn: s.cameIn, startedAt: s.startedAt, lastSignAt: sign?.lastSignAt ?? null })
+    }
+    for (const p of this.deps.ptys()?.list(projectId) ?? []) {
+      if (!p.running) continue
+      const held = out.get(p.sessionId)
+      const at = Date.parse(p.lastActivityAt)
+      if (held) out.set(p.sessionId, { ...held, agent: held.agent ?? p.optionId, lastSignAt: Math.max(held.lastSignAt ?? 0, at) || null })
+      else out.set(p.sessionId, { sessionId: p.sessionId, agent: p.optionId, cameIn: 'launched', startedAt: Date.parse(p.startedAt), lastSignAt: at })
+    }
+    return [...out.values()]
+  }
+  // #endregion surface-session-registry-read
 
   // #region session-enroll-credential-state — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
   /** What this surface holds of a bearer: minted and not yet spent on its one initialize (and still within its
@@ -618,6 +730,7 @@ export class AgentSurface {
       // must not both find it unclaimed, and burning it on a failed handshake is
       // the safe direction to be wrong in.
       st.claimedAt = now
+      this.touched(st.scope)
 
       const mcp = this.serverFor(st.scope)
       // M104 — the id is OURS, so both fields can be set before the response
@@ -681,8 +794,44 @@ export class AgentSurface {
       AgentSurface.refuse(res, 401, 'mcp-session-id does not match this credential', {}, attempt)
       return
     }
+    this.touched(st.scope)
     await untilAnsweredOrGone(st.transport.handleRequest(req, res, body), res)
   }
+
+  /** A call arrived on this session: its last sign of life (CO-256), and — at most every five minutes — its claims renewed. */
+  private touched(scope: AgentScope): void {
+    const now = this.now()
+    const s = this.live.get(scope.sessionId)
+    if (s) s.lastCallAt = now
+    const due = this.claimHolders.get(scope.sessionId)
+    if (due === undefined || now < due) return
+    this.claimHolders.set(scope.sessionId, now + RENEW_EVERY_MS)
+    void this.renewClaims(scope).catch((e) => {
+      ops.failed('agentSurface.claim-renew', e, { note: 'the claims run to their expiry unless renewed by a later call', session_id: scope.sessionId })
+    })
+  }
+
+  // #region claim-renewal — docs: docs/ux/scenarios.md#scn-140-agents-ask-fabric-who-is-working-on-what-claim-their-task-are-warned-of-related-work-and-release-it
+  /** Renews this session's claims that expire within the next quarter hour, by the default claim length. */
+  private async renewClaims(scope: AgentScope): Promise<void> {
+    const store = createScopedStore(this.deps.db, { kind: 'project', estateId: scope.estateId, projectId: scope.projectId })
+    const r = await store.select('work_claims', 'id,work_id,expires_at').eq('owner_session', scope.sessionId).is('released_at', null)
+    if (r.error) throw new Error(`the claims could not be read: ${r.error.message}`)
+    const rows = (r.data ?? []) as Array<{ id: string; work_id: string; expires_at: string }>
+    if (!rows.length) {
+      this.claimHolders.delete(scope.sessionId)
+      return
+    }
+    const now = this.now()
+    for (const c of rows) {
+      if (Date.parse(c.expires_at) - now > RENEW_WITHIN_MS) continue
+      await this.appendRedacted({
+        estateId: scope.estateId, type: 'work.renewed@1', actor: { kind: 'agent', id: scope.sessionId }, projectId: scope.projectId,
+        payload: { work: c.work_id, owner: scope.sessionId, expires_at: new Date(now + CLAIM_DEFAULT_MINUTES * 60_000).toISOString(), claim_id: c.id }
+      })
+    }
+  }
+  // #endregion claim-renewal
 
   /** Spend one call from `key`'s window; false when the window's `limit` is already spent. */
   private spend(key: string, limit: number): boolean {
@@ -935,6 +1084,22 @@ export class AgentSurface {
       ops.failed('agentSurface.could-not-record-a-retrieval', e, { note: 'could not record a retrieval:' })
     }
   }
+
+  // #region task-source-link — docs: docs/evidence/plans/2026-10-11-release-040-agents-first.md#c4--work-log-protocol-every-coding-agent-knows-how-to-log-and-track
+  private async resolveSourceFor(scope: AgentScope, source: { repository: string; path: string; id: string }): Promise<SourceResolution> {
+    assertAgentReference(source.repository)
+    assertAgentReference(source.path)
+    if (!this.deps.work) return { ok: false, part: 'repository', reason: 'this Fabric resolves no backlog rows' }
+    return this.deps.work.resolveSource(scope.projectId, source)
+  }
+
+  private async linkSource(scope: AgentScope, taskId: string, s: Extract<SourceResolution, { ok: true }>): Promise<void> {
+    await this.appendRedacted({
+      estateId: scope.estateId, type: 'task.source.linked@1', actor: { kind: 'agent', id: scope.sessionId }, projectId: scope.projectId,
+      payload: { task_id: taskId, repository: s.repository, repo_path: s.repoPath, path: s.path, row_id: s.rowId }
+    })
+  }
+  // #endregion task-source-link
 
   /** A server instance bound to one scope: the tools close over it, so no tool
    *  can reach a project the credential does not name. */
@@ -1427,12 +1592,17 @@ export class AgentSurface {
                 )
             })
             .describe('What this came out of. Required — evidence is what makes it actionable'),
-          section: z.string().max(80).optional().describe('Where it belongs, if the project uses sections')
+          section: z.string().max(80).optional().describe('Where it belongs, if the project uses sections'),
+          source: SOURCE_SCHEMA.optional()
         }
       },
-      async ({ title, origin, section }) => {
+      async ({ title, origin, section, source }) => {
         assertAgentReference(origin.ref)
         assertAgentReference(section)
+        // REQ-08: the backlog row it serves is resolved BEFORE anything is filed, so a row that does not resolve files nothing.
+        const linked = source ? await this.resolveSourceFor(scope, source) : null
+        if (linked && !linked.ok)
+          return json({ created: false, code: 'source-unresolved', part: linked.part, reason: linked.reason })
         // M68 — how far has this hand-off already travelled?
         //
         // The chain parent is the session's OWN task, not whatever the agent
@@ -1491,6 +1661,7 @@ export class AgentSurface {
           projectId: scope.projectId,
           payload: { task_id: id, assigned_by: `agent:${scope.sessionId}`, assigned_to: 'operator' }
         })
+        if (linked?.ok) await this.linkSource(scope, id, linked)
         // The link is what MAKES the chain. Without it every hand-off is depth
         // one forever and the bound above can never trip — the failure mode that
         // looks exactly like a bound nobody has hit yet.
@@ -1521,6 +1692,7 @@ export class AgentSurface {
           id,
           status: 'backlog',
           seq: event.seq,
+          ...(linked?.ok ? { source: { repository: linked.repository, path: linked.path, id: linked.rowId, id_checked: linked.idChecked } } : {}),
           ...(chained ? { chained_to: scope.taskId, chained: chained.linked === true,
                           ...(chained.linked ? {} : { chain_reason: chained.says ?? chained.reason_code }) } : {})
         })
@@ -1628,15 +1800,22 @@ export class AgentSurface {
           writeScopes: z
             .array(z.string().min(1))
             .optional()
-            .describe('What you intend to write — paths or areas, so a neighbour can see the overlap')
+            .describe('What you intend to write — paths or areas, so a neighbour can see the overlap'),
+          source: SOURCE_SCHEMA.optional()
         }
       },
-      async ({ taskId, minutes, writeScopes }) => {
+      async ({ taskId, minutes, writeScopes, source }) => {
         for (const reference of writeScopes ?? []) assertAgentReference(reference)
         const task = await ownTask(taskId)
         if (!task) return json({ claimed: false, reason: 'no such task in this project' })
         if (TERMINAL.includes(task.status))
           return json({ claimed: false, reason: `that task is ${task.status}` })
+        // REQ-08: the task is linked to the backlog row it serves (an address, never a copy), before the claim.
+        if (source) {
+          const linked = await this.resolveSourceFor(scope, source)
+          if (!linked.ok) return json({ claimed: false, code: 'source-unresolved', part: linked.part, reason: linked.reason })
+          await this.linkSource(scope, taskId, linked)
+        }
 
         const { data: held } = await store
           .select('leases', 'owner_session,expires_at')
@@ -2256,6 +2435,8 @@ export class AgentSurface {
           'the leases'
         )
         const now = Date.now()
+        // REQ-08: agent-sync's leases on the repository, read-only, bounded, kept briefly, failing soft with a reason.
+        const refs = this.deps.work ? await this.deps.work.leaseRefs(scope.projectId) : null
         return json({
           held: data.map((l) => ({
             task_id: l.work_id,
@@ -2264,13 +2445,40 @@ export class AgentSurface {
             until: l.expires_at,
             expired: new Date(l.expires_at as string).getTime() <= now,
             write_scopes: l.write_scopes ?? []
-          }))
+          })),
+          agent_sync_leases: refs ?? { read: false, reason: this.deps.work ? 'this project has no repository' : 'this Fabric does not read agent-sync leases' },
+          note: 'agent-sync leases are shown, never taken here: a lease names a guarded file or a task key on the repository\'s remote, and its holder and expiry are read with agent_sync.py status'
         })
       }
     )
 
     // The project board (COM-02.2, ADR-0117 §3): a session Fabric started takes part as its own Project, a
     // trusted principal. Identity is closed over the scope, so no argument can name another Project.
+    // Claims (REQ-38) and the session's own observations (the hook pack's D4/D5): `workTools.ts`.
+    registerWorkTools(server, {
+      scope: { ...scope, agent: scope.agent ?? ptys()?.get(scope.sessionId)?.optionId ?? null },
+      store,
+      append: (e) => this.appendRedacted({ estateId: scope.estateId, actor: { kind: 'agent', id: scope.sessionId }, projectId: scope.projectId, ...e }),
+      // session.ended@1's owner is named in desktopIngress.ts; workTools builds its payload from typed fields only.
+      appendObserved: (e) => journal.append({ estateId: scope.estateId, actor: { kind: 'agent', id: scope.sessionId }, projectId: scope.projectId, ...e } as Parameters<Journal['append']>[0]),
+      checkReference: assertAgentReference,
+      sessions: () => this.projectSessions(scope.projectId),
+      session: (id) => this.sessionSign(id),
+      resolveSource: (source) =>
+        this.deps.work
+          ? this.deps.work.resolveSource(scope.projectId, source)
+          : Promise.resolve({ ok: false, part: 'repository', reason: 'this Fabric resolves no backlog rows' }),
+      leaseRefs: () => (this.deps.work ? this.deps.work.leaseRefs(scope.projectId) : Promise.resolve(null)),
+      onClaimed: () => {
+        if (!this.claimHolders.has(scope.sessionId)) this.claimHolders.set(scope.sessionId, this.now() + RENEW_EVERY_MS)
+      },
+      // After the answer has gone: ending the session closes the transport this answer travels on.
+      endSession: () => {
+        setTimeout(() => (this.deps.work?.endSession ?? ((id: string) => this.revokeSession(id)))(scope.sessionId), 1_000).unref?.()
+      },
+      now: this.now
+    })
+
     registerBoardTools(server, this.board, () => ({
       estateId: scope.estateId,
       projectId: scope.projectId,

@@ -770,3 +770,83 @@ The existing `access.allow`, `access.allowFor`, `access.deny`, `access.denyFor`,
 and `access.denyStands` rows above carry an enrollment unchanged. Changed in Russian only: `access.enroll.thisProject`
 is «без названия», because every Russian enrollment sentence quotes the name («в проекте «{project}»»), and
 `event.session.enrolled@1` says «присоединился», not «подключился».
+
+**Claims and «Where work is», added 2026-10-11 (0.4.0 wave 2: REQ-38, REQ-08, CO-256; SCN-140, SCN-141).** The project
+page's «Who is working on what» (SCR-31: one row per claim, «related» on both rows of a pair, «Release…» behind the
+row's … menu with its confirmation, agent-sync's leases read-only beneath) and the manager's «Where work is» (SCR-78:
+per project its sessions, claims, review queue and last sign of life; the idle projects counted; the last row,
+«Sessions with no project», always shown). Voice: peer-builder, a state said as a fact — a claim is never "working" past
+its expiry («no sign since <time>») or after its session ended («lapsed: the session ended»); an unread list says it
+could not read, never "nobody". The release confirmation names the agent and the task and what follows (the agent is
+told on its next call); Cancel is focused. Russian: «заявка» for a claim (the CONTEXT.md term «Claim»), «снять» for
+release, «агент для кода», «вы»-neutral forms. The three feed sentences describe the new event types. Humanization: own
+pass (copywriting, interface register: one action one name, no decorative full stop on labels).
+
+| Key | Text (primary) | Location | Scenario | Status |
+|---|---|---|---|---|
+| `event.task.source.linked@1` | a task was linked to its backlog row | apps/desktop/src/renderer/src/i18n/en.ts:1200 | SCN-140 | proposed |
+| `event.work.handover.requested@1` | an agent asked for a task another agent holds | apps/desktop/src/renderer/src/i18n/en.ts:1201 | SCN-140 | proposed |
+| `event.session.turn.observed@1` | a coding agent finished a turn: its commit and change counts were recorded | apps/desktop/src/renderer/src/i18n/en.ts:1202 | SCN-140 (session hooks) | proposed |
+| `launch.nav.where` | Where work is | apps/desktop/src/renderer/src/i18n/en.ts:2151 | SCN-141 | proposed |
+| `glyph.more` | … | apps/desktop/src/renderer/src/i18n/en.ts:2152 | SCN-140 | proposed |
+| `harness.tool.fabric_work_list` | Who is working on what in this project: claims, sessions, open tasks, agent-sync leases | apps/desktop/src/renderer/src/i18n/en.ts:2153 | SCN-140 | proposed |
+| `harness.tool.fabric_work_claim` | Claim your task before you start, and hear about related work others hold | apps/desktop/src/renderer/src/i18n/en.ts:2154 | SCN-140 | proposed |
+| `harness.tool.fabric_work_release` | End a claim (done, handed over or let go), or every claim of this session | apps/desktop/src/renderer/src/i18n/en.ts:2155 | SCN-140 | proposed |
+| `harness.tool.fabric_session_observe` | A turn’s commit and change counts, or the session’s end, from the session hooks; never content | apps/desktop/src/renderer/src/i18n/en.ts:2156 | SCN-140 (session hooks) | proposed |
+| `work.cameIn.launched` | launched by Fabric | apps/desktop/src/renderer/src/i18n/en.ts:2157 | SCN-140 | proposed |
+| `work.cameIn.enrolled` | enrolled from a terminal | apps/desktop/src/renderer/src/i18n/en.ts:2158 | SCN-140 | proposed |
+| `work.cameIn.handed-off` | handed off from another product | apps/desktop/src/renderer/src/i18n/en.ts:2159 | SCN-140 | proposed |
+| `work.cameIn.hub` | through the hub | apps/desktop/src/renderer/src/i18n/en.ts:2160 | SCN-140 | proposed |
+| `work.cameIn.unknown` | came in by an unknown way | apps/desktop/src/renderer/src/i18n/en.ts:2161 | SCN-140 | proposed |
+| `work.why.sameRow` | the same backlog row, {row} | apps/desktop/src/renderer/src/i18n/en.ts:2162 | SCN-140 | proposed |
+| `work.why.linked` | linked tasks ({rel}) | apps/desktop/src/renderer/src/i18n/en.ts:2163 | SCN-140 | proposed |
+| `work.why.overlap` | {mine} overlaps {theirs} | apps/desktop/src/renderer/src/i18n/en.ts:2164 | SCN-140 | proposed |
+| `work.who.title` | Who is working on what | apps/desktop/src/renderer/src/i18n/en.ts:2165 | SCN-140 | proposed |
+| `work.who.reading` | Reading who is working here… | apps/desktop/src/renderer/src/i18n/en.ts:2166 | SCN-140 | proposed |
+| `work.who.unreadable` | Could not read who is working here: {reason} | apps/desktop/src/renderer/src/i18n/en.ts:2167 | SCN-140 | proposed |
+| `work.who.none` | Nobody is working in this project right now. | apps/desktop/src/renderer/src/i18n/en.ts:2168 | SCN-140 | proposed |
+| `work.who.lastSign` | last sign {ago} ago | apps/desktop/src/renderer/src/i18n/en.ts:2169 | SCN-140 | proposed |
+| `work.who.silent` | no sign since {at} | apps/desktop/src/renderer/src/i18n/en.ts:2170 | SCN-140 | proposed |
+| `work.who.lapsed` | lapsed: the session ended | apps/desktop/src/renderer/src/i18n/en.ts:2171 | SCN-140 | proposed |
+| `work.who.open` | Open session | apps/desktop/src/renderer/src/i18n/en.ts:2172 | SCN-140 | proposed |
+| `work.who.more` | More actions for this claim | apps/desktop/src/renderer/src/i18n/en.ts:2173 | SCN-140 | proposed |
+| `work.who.release` | Release… | apps/desktop/src/renderer/src/i18n/en.ts:2174 | SCN-140 | proposed |
+| `work.who.by` | {agent}, {how} | apps/desktop/src/renderer/src/i18n/en.ts:2175 | SCN-140 | proposed |
+| `work.who.since` | for {ago} | apps/desktop/src/renderer/src/i18n/en.ts:2176 | SCN-140 | proposed |
+| `work.who.source` | backlog row {id} in {path} | apps/desktop/src/renderer/src/i18n/en.ts:2177 | SCN-140 | proposed |
+| `work.who.touches` | touches {list} | apps/desktop/src/renderer/src/i18n/en.ts:2178 | SCN-140 | proposed |
+| `work.who.related` | related | apps/desktop/src/renderer/src/i18n/en.ts:2179 | SCN-140 | proposed |
+| `work.who.relatedTo` | related to {task}: {why} | apps/desktop/src/renderer/src/i18n/en.ts:2180 | SCN-140 | proposed |
+| `work.who.heldChip` | held | apps/desktop/src/renderer/src/i18n/en.ts:2181 | SCN-140 | proposed |
+| `work.who.held` | {task}: held by the session Fabric launched for it | apps/desktop/src/renderer/src/i18n/en.ts:2182 | SCN-140 | proposed |
+| `work.release.title` | Release this claim? | apps/desktop/src/renderer/src/i18n/en.ts:2183 | SCN-140 | proposed |
+| `work.release.body` | {agent} stops holding {task} now and is told on its next call. | apps/desktop/src/renderer/src/i18n/en.ts:2184 | SCN-140 | proposed |
+| `work.release.confirm` | Release | apps/desktop/src/renderer/src/i18n/en.ts:2185 | SCN-140 | proposed |
+| `work.release.failed.not-found` | That claim is no longer there. | apps/desktop/src/renderer/src/i18n/en.ts:2186 | SCN-140 | proposed |
+| `work.release.failed.already-released` | That claim was already released. | apps/desktop/src/renderer/src/i18n/en.ts:2187 | SCN-140 | proposed |
+| `work.release.failed.unconfirmed` | The release could not be confirmed. The list below is read again. | apps/desktop/src/renderer/src/i18n/en.ts:2188 | SCN-140 | proposed |
+| `work.leases.title` | agent-sync leases on this repository, read-only | apps/desktop/src/renderer/src/i18n/en.ts:2189 | SCN-140 | proposed |
+| `work.leases.unread` | agent-sync leases could not be read: {reason} | apps/desktop/src/renderer/src/i18n/en.ts:2190 | SCN-140 | proposed |
+| `work.leases.none` | No agent-sync lease is held on this repository. | apps/desktop/src/renderer/src/i18n/en.ts:2191 | SCN-140 | proposed |
+| `work.leases.more` | More leases are held than Fabric reads. | apps/desktop/src/renderer/src/i18n/en.ts:2192 | SCN-140 | proposed |
+| `work.where.title` | Where work is | apps/desktop/src/renderer/src/i18n/en.ts:2193 | SCN-141 | proposed |
+| `work.where.lede` | Every project with work in flight: its sessions, its claims, its review queue and its last sign of life. | apps/desktop/src/renderer/src/i18n/en.ts:2194 | SCN-141 | proposed |
+| `work.where.reading` | Reading where work is… | apps/desktop/src/renderer/src/i18n/en.ts:2195 | SCN-141 | proposed |
+| `work.where.unreadable` | Could not read where work is: {reason} | apps/desktop/src/renderer/src/i18n/en.ts:2196 | SCN-141 | proposed |
+| `work.where.nothing` | No project has work in flight right now. | apps/desktop/src/renderer/src/i18n/en.ts:2197 | SCN-141 | proposed |
+| `work.where.lastSign` | last sign {ago} ago | apps/desktop/src/renderer/src/i18n/en.ts:2198 | SCN-141 | proposed |
+| `work.where.noSign` | no sign of life yet | apps/desktop/src/renderer/src/i18n/en.ts:2199 | SCN-141 | proposed |
+| `work.where.sessions` | Sessions | apps/desktop/src/renderer/src/i18n/en.ts:2200 | SCN-141 | proposed |
+| `work.where.claims` | Claims | apps/desktop/src/renderer/src/i18n/en.ts:2201 | SCN-141 | proposed |
+| `work.where.noneCol` | none | apps/desktop/src/renderer/src/i18n/en.ts:2202 | SCN-141 | proposed |
+| `work.where.active` | active | apps/desktop/src/renderer/src/i18n/en.ts:2203 | SCN-141 | proposed |
+| `work.where.quiet` | quiet | apps/desktop/src/renderer/src/i18n/en.ts:2204 | SCN-141 | proposed |
+| `work.where.stale` | no sign for {minutes} min | apps/desktop/src/renderer/src/i18n/en.ts:2205 | SCN-141 | proposed |
+| `work.where.noSession` | held, no session, until {until} | apps/desktop/src/renderer/src/i18n/en.ts:2206 | SCN-141 | proposed |
+| `work.where.review` | In review | apps/desktop/src/renderer/src/i18n/en.ts:2207 | SCN-141 | proposed |
+| `work.where.reviewUnread` | not read | apps/desktop/src/renderer/src/i18n/en.ts:2208 | SCN-141 | proposed |
+| `work.where.reviewCount` | {count} in review | apps/desktop/src/renderer/src/i18n/en.ts:2209 | SCN-141 | proposed |
+| `work.where.idle` | {count} more projects with nothing in flight | apps/desktop/src/renderer/src/i18n/en.ts:2210 | SCN-141 | proposed |
+| `work.where.unowned` | Sessions with no project | apps/desktop/src/renderer/src/i18n/en.ts:2211 | SCN-141 | proposed |
+| `work.where.unownedNone` | none | apps/desktop/src/renderer/src/i18n/en.ts:2212 | SCN-141 | proposed |
+| `work.where.readAt` | Read at {at} | apps/desktop/src/renderer/src/i18n/en.ts:2213 | SCN-141 | proposed |
