@@ -4236,7 +4236,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // The menu speaks the language the windows speak, from the moment it is chosen.
     // A menu that fails to rebuild must not fail a write that is already on disk (iteration 2, ER-8).
     if (next.locale !== undefined) {
-      try { installMenu(written.settings.locale) } catch (e) { ops.failed('settings.menu', e) }
+      try { installMenu(written.settings.locale, windowKinds) } catch (e) { ops.failed('settings.menu', e) }
     }
     return written
   })
@@ -4642,7 +4642,7 @@ app.whenReady().then(async () => {
   // frame. Built from Electron's roles so copy, paste, quit and the window
   // controls survive: replacing the default with a hand-written minimum takes
   // Cmd+C away from every field in the product.
-  installMenu(readSettings().locale)
+  installMenu(readSettings().locale, windowKinds)
 
   // M116 — before the splash, so the first thing on the dock is already the mark.
   applyAppIcon()
