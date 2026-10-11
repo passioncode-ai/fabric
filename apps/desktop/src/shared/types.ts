@@ -1090,15 +1090,13 @@ export interface FabricApi {
       | { outcome: 'cancelled' }
     >
   }
-  gateway: {
+  servers: {
     /**
-     * What the machine's gateway serves, for the operator to choose from.
-     *
-     * THE KEY IS NOT PART OF THIS. The renderer never needs it — the bundle
-     * compiler is what reaches the gateway — and a secret that crosses a bridge
-     * it has no use on is a secret in a devtools console.
+     * The family products registered on this Mac that a project may grant its sessions (CO-194): those a session
+     * can carry with no credential, and those it cannot yet, each by its registry key. No command, URL or secret
+     * crosses to the window — the bundle compiler reads the registry itself at each launch.
      */
-    offer(): Promise<{ reachable: boolean; servers: string[] }>
+    offer(): Promise<ServerOfferView>
   }
   proposals: {
     /**
@@ -1617,7 +1615,7 @@ export const IPC = {
   tasksPrioritise: 'tasks:prioritise',
   /** M134 — an idea is a card a person filed before it was work. */
   /** M127 — what the machine gateway offers. Never its key. */
-  gatewayOffer: 'gateway:offer',
+  serversOffer: 'servers:offer',
   workspaceState: 'workspace:state',
   workspaceChoose: 'workspace:choose',
   workspaceDecline: 'workspace:decline',
@@ -1712,3 +1710,9 @@ export const IPC = {
   opsRendererError: 'ops:renderer-error',
   stackExposure: 'stack:exposure'
 } as const
+
+/** What a project's settings may grant its sessions (CO-194): products a session can carry, and those it cannot yet. */
+export interface ServerOfferView {
+  products: Array<{ name: string; label: string }>
+  blocked: Array<{ name: string; label: string }>
+}

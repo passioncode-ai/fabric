@@ -21,7 +21,7 @@ import { sessionConfig } from '../shared/sessionConfig.ts'
 import { helperCommand } from './helperProcess.ts'
 import { PREAMBLE } from '../shared/preamble.ts'
 import { redact } from '../shared/redact.ts'
-import { describeRefusals, planServers, type DeclaredServer, type GatewayFacts } from '../shared/servers.ts'
+import { describeRefusals, planServers, type ProductOffer, type SessionProduct } from '../shared/servers.ts'
 import { resolveServers } from '../shared/agentSpec.ts'
 import type { BundleCompiler, SessionBundle } from './pty'
 import { ops } from './opsSink.ts'
@@ -47,10 +47,15 @@ export interface BundleCompilerDeps {
    * Injected rather than imported so this module stays free of the database.
    */
   context?: (sessionId: string, projectId: string, taskId: string | null) => Promise<string | null>
-  /** What this project's sessions may reach besides Fabric (M127). */
-  declaredServers?: (projectId: string) => Promise<DeclaredServer[]>
-  /** What the machine's gateway offers, and the key for the hop. */
-  gateway?: () => GatewayFacts
+  /** The family products this project grants its sessions: the names in its `mcp_servers` setting (M127, CO-194). */
+  grantedServers?: (projectId: string) => Promise<string[]>
+  /** What this Mac's registry offers a session (sessionProducts.ts#productOffer), read at each launch. */
+  products?: () => ProductOffer
+}
+
+/** A product as Claude Code's mcp.json takes it: no header, no environment — nothing but where it runs (SH-9). */
+function claudeEntry(p: SessionProduct): Record<string, unknown> {
+  return p.server.kind === 'http' ? { type: 'http', url: p.server.url } : { type: 'stdio', command: p.server.command, args: p.server.args }
 }
 
 export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
@@ -117,23 +122,25 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
       // creation — and it is checked AGAIN here, because a grant withdrawn
       // afterwards must not leave a live agent reaching what the project no
       // longer allows.
-      const projectGrants = deps.declaredServers ? await deps.declaredServers(projectId) : []
+      // #region session-products-grant — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+      // CO-194: a product reaches a session only under the project's live grant, and only as its registry entry
+      // declares it — never with a credential of its own (shared/servers.ts).
+      const projectGrants = deps.grantedServers ? await deps.grantedServers(projectId) : []
       let declared = projectGrants
       if (agent) {
-        const ceiling = projectGrants.map((d) => d.name)
-        const resolved = resolveServers(agent.servers, ceiling)
+        const resolved = resolveServers(agent.servers, projectGrants)
         if (!resolved.ok) throw new Error(resolved.reason)
-        declared = resolved.servers.map((name) => ({ name, source: 'gateway' as const }))
+        declared = resolved.servers
       }
-      const plan =
-        declared.length > 0 && deps.gateway
-          ? planServers(declared, deps.gateway())
-          : ({ ok: true as const, grant: [] })
+      const plan = declared.length > 0
+        ? planServers(declared, deps.products ? deps.products() : { products: [], blocked: [] })
+        : ({ ok: true as const, grant: [] as SessionProduct[] })
       if (!plan.ok)
         throw new Error(
-          `this project declares ${declared.length} MCP server(s) and the session cannot have ` +
+          `this project grants ${declared.length} MCP server(s) and the session cannot have ` +
             `them all: ${describeRefusals(plan.refusals)}`
         )
+      // #endregion session-products-grant
 
       const scope = deps.surface.mint(projectId, sessionId, taskId)
       // Until compile returns, nobody else owns the credential's lifetime.
@@ -157,16 +164,9 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
                   url: deps.surface.endpoint,
                   headers: { Authorization: `Bearer ${scope.token}` }
                 },
-                // Granted servers reach the machine's gateway, never an upstream
-                // directly: the gateway holds the upstream key at mode 600 and
-                // authorises this hop with a role key. What lands here is that
-                // ROLE key — scoped per hop, and destroyed with the directory.
-                ...Object.fromEntries(
-                  plan.grant.map((g) => [
-                    g.name,
-                    { type: 'http', url: g.url, headers: { 'x-agw-key': g.key } }
-                  ])
-                )
+                // The products this project grants, after the surface and with no credential:
+                // the surface is the only server in this file that carries one (SH-9).
+                ...Object.fromEntries(plan.grant.filter((g) => g.name !== 'fabric').map((g) => [g.name, claudeEntry(g)]))
               }
             },
             null,
@@ -291,6 +291,7 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
             const authorization = `Bearer ${scope.token}`
             const bridgeBase = Object.entries(bridge.env).map(([name, value]) => ({ name, value }))
             const granted = plan.grant.filter((g) => g.name !== 'fabric')
+            const asStdio = (g: SessionProduct) => g.server.kind === 'stdio' ? { name: g.name, command: g.server.command, args: g.server.args, env: [] } : null
             const spec = {
               http: { type: 'http', name: 'fabric', url: deps.surface.endpoint, headers: [{ name: 'Authorization', value: authorization }] },
               stdio: {
@@ -305,24 +306,12 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
               },
               brief: agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE,
               mode: modeConfig?.acpMode === 'bypass' ? 'bypass' : 'ask',
-              // The project's granted gateway servers, each with its hop's role key (audit 2026-10-05
-              // A6-004: they were dropped, so a Hermes agent created with servers reached none of them).
-              // Both spellings travel and the shell picks by what the agent declares: HTTP servers for an
-              // agent that takes them, else one stdio bridge per server, the role key in that bridge's
-              // environment and in the gateway's header (audit 2026-10-06 DA-2: Hermes 0.21.4 declares no
-              // HTTP MCP and reached none). The shell refuses a session these cannot carry (M127).
-              grants: granted.map((g) => ({ type: 'http', name: g.name, url: g.url, headers: [{ name: 'x-agw-key', value: g.key }] })),
-              grantsOverStdio: granted.map((g) => ({
-                name: g.name,
-                command: bridge.program,
-                args: bridge.args,
-                env: [
-                  ...bridgeBase,
-                  { name: 'FABRIC_BRIDGE_URL', value: g.url },
-                  { name: 'FABRIC_BRIDGE_HEADER', value: 'x-agw-key' },
-                  { name: 'FABRIC_BRIDGE_AUTHORIZATION', value: g.key }
-                ]
-              }))
+              // The project's granted products (audit 2026-10-05 A6-004: a Hermes agent created with servers
+              // reached none of them). Each in the form its entry declares, with no credential (SH-9); for an
+              // agent without HTTP MCP (Hermes 0.21.4) only the stdio ones travel, and the shell refuses a
+              // session that cannot carry every grant (M127) rather than opening it without one.
+              grants: granted.map((g) => g.server.kind === 'http' ? { type: 'http', name: g.name, url: g.server.url, headers: [] } : asStdio(g)!),
+              grantsOverStdio: granted.flatMap((g) => { const e = asStdio(g); return e ? [e] : [] })
             }
             return {
               dir,

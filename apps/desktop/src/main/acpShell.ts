@@ -34,12 +34,12 @@ export interface AcpSessionSpec {
   brief: string
   /** How a permission request is answered. */
   mode: 'ask' | 'bypass'
-  /** The project's granted gateway servers, as HTTP MCP servers (they live on the machine's gateway). */
-  grants?: Extract<AcpMcpServer, { type: 'http' }>[]
+  /** The family products the project grants (CO-194), each as its registry entry declares it: HTTP or stdio,
+   *  never with a credential (shared/servers.ts, SH-9). */
+  grants?: AcpMcpServer[]
   /**
-   * The same granted servers, each through its own stdio bridge (same order, same names), for an
-   * agent that declares no HTTP MCP (audit 2026-10-06 DA-2: Hermes 0.21.4 was sent none of them).
-   * When these cannot carry every grant, the session is refused rather than opened without them.
+   * The grants an agent without HTTP MCP can take: the stdio ones, same names (audit 2026-10-06 DA-2: Hermes 0.21.4
+   * was sent none). When these cannot carry every grant, the session is refused rather than opened without them.
    */
   grantsOverStdio?: Exclude<AcpMcpServer, { type: 'http' }>[]
 }
@@ -416,14 +416,14 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
   const surface = surfaceFor(init, spec)
   const overHttp = 'type' in surface
   const grants = spec.grants ?? []
-  // The project's granted servers go with the surface on either path (audit 2026-10-06 DA-2): as HTTP
-  // servers to an agent that takes them, else each through its own stdio bridge. A grant that cannot
+  // The project's granted servers go with the surface on either path (audit 2026-10-06 DA-2): all of them to an
+  // agent that takes HTTP, else only the stdio ones. A grant that cannot
   // be carried refuses the session, as the bundle refuses a launch missing one (M127): started without
   // a server it was given, the agent looks for the tool, does not find it, and improvises.
   const carried: AcpMcpServer[] = overHttp ? grants : (spec.grantsOverStdio ?? [])
   const names = (list: readonly { name: string }[]): string => list.map((g) => g.name).join(', ')
   if (names(carried) !== names(grants)) {
-    out(`\n\x1b[33mFabric: this agent takes no HTTP MCP servers, and the project's ${grants.length} granted server(s) (${names(grants)}) cannot reach it through the stdio bridge, so the session was not opened.\x1b[39m\n`)
+    out(`\n\x1b[33mFabric: this agent takes no HTTP MCP servers, and the project's ${grants.length} granted server(s) (${names(grants)}) cannot all reach it over stdio, so the session was not opened.\x1b[39m\n`)
     return stop(3)
   }
   const servers: AcpMcpServer[] = [surface, ...carried]

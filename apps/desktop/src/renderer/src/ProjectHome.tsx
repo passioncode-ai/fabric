@@ -22,8 +22,7 @@ import type {
   RepoState,
   SessionTranscript,
   TaskRow,
-  TerminalSession
-} from '../../shared/types'
+  TerminalSession, ServerOfferView } from '../../shared/types'
 import { affects, POLL_MS } from '../../shared/repoWatch'
 import { quotaOf, readQuotaReading, type QuotaReading } from '../../shared/quotaReading.ts'
 import { failed, forSubject, pending, settled, type KeyedRead } from '../../shared/keyedRead'
@@ -1165,7 +1164,7 @@ export function ProjectHeader({
   const [agents, setAgents] = useState<LaunchOption[]>([])
   /** M127 — what this project may reach, and what the machine offers. */
   const [servers, setServers] = useState<string[]>(project.mcp_servers ?? [])
-  const [offer, setOffer] = useState<{ reachable: boolean; servers: string[] } | null>(null)
+  const [offer, setOffer] = useState<ServerOfferView | 'failed' | null>(null)
   const [busy, setBusy] = useState(false)
   /**
    * The revision these words were typed against (UX28-11).
@@ -1232,10 +1231,9 @@ export function ProjectHeader({
 
   useEffect(() => {
     window.fabric.terminal.options().then(setAgents).catch((e) => onError(String(e)))
-    // M127 — what the machine gateway offers. Unreachable is a real answer and
-    // the section says so rather than showing an empty list, which would read as
-    // "the gateway has nothing" instead of "there is no gateway".
-    window.fabric.gateway.offer().then(setOffer).catch(() => setOffer({ reachable: false, servers: [] }))
+    // CO-194 — the family products this Mac's registry offers a session. A read that failed is said as such,
+    // never as an empty list, which would read as "nothing is installed".
+    window.fabric.servers.offer().then(setOffer).catch(() => setOffer('failed'))
   }, [])
 
   /**
@@ -1413,34 +1411,37 @@ export function ProjectHeader({
             ))}
           </select>
         </label>
-        {/* M127 — which of the machine's gateway servers this project's sessions
-            may reach. Names only: no credential is stored by Fabric, and a
-            granted server is reached through the gateway, which holds the
-            upstream key. */}
+        {/* CO-194 — which family products this project grants its sessions. Names only: a granted product
+            is added to a session as its own registry entry declares it, with no credential. A name granted
+            before and not offered now stays listed, so it can be withdrawn. */}
         <label>
           {t('project.servers')}
           {offer === null ? (
             <span className="muted">{t('project.serversReading')}</span>
-          ) : !offer.reachable ? (
-            <span className="muted">{t('project.serversNoGateway')}</span>
-          ) : offer.servers.length === 0 ? (
-            <span className="muted">{t('project.serversNone')}</span>
+          ) : offer === 'failed' ? (
+            <span className="muted">{t('project.serversUnread')}</span>
           ) : (
             <span>
-              {offer.servers.map((name) => (
-                <label key={name}>
+              {offer.products.length === 0 && <span className="muted">{t('project.serversNone')}</span>}
+              {[...offer.products.map((p) => ({ name: p.name, label: p.label, here: true })),
+                ...servers.filter((n) => !offer.products.some((p) => p.name === n)).map((n) => ({ name: n, label: n, here: false }))].map((p) => (
+                <label key={p.name}>
                   <input
                     type="checkbox"
-                    checked={servers.includes(name)}
+                    checked={servers.includes(p.name)}
                     onChange={(e) =>
                       setServers((prev) =>
-                        e.target.checked ? [...prev, name] : prev.filter((x) => x !== name)
+                        e.target.checked ? [...prev, p.name] : prev.filter((x) => x !== p.name)
                       )
                     }
                   />
-                  <span className="mono">{name}</span>
+                  <span>{p.label}</span> <span className="mono">{p.name}</span>
+                  {!p.here && <span className="muted"> {t('project.serversMissing')}</span>}
                 </label>
               ))}
+              {offer.blocked.length > 0 && (
+                <span className="muted">{t('project.serversBlocked', { names: offer.blocked.map((b) => b.label).join(', ') })}</span>
+              )}
             </span>
           )}
         </label>

@@ -422,11 +422,12 @@ export const en = {
   'workspace.unversioned':
     'The folder is written and it is NOT under version control: {reason}. Nothing has been lost — the mirror is there — but a change cannot be compared with what came before it.',
   'workspace.actFailed': 'That did not go through: {reason}. Look at the answer above before trying again.',
-  'project.servers': 'MCP servers these sessions may reach',
-  'project.serversReading': 'reading what the machine offers…',
-  'project.serversNoGateway':
-    'No gateway is reachable on this machine, so sessions here reach Fabric and nothing else.',
-  'project.serversNone': 'The gateway is reachable and declares no servers.',
+  'project.servers': 'Products these sessions may reach besides Fabric',
+  'project.serversReading': 'reading what is installed on this Mac…',
+  'project.serversUnread': 'Fabric could not read what is installed on this Mac, so nothing can be chosen now. The servers already granted stay as they are.',
+  'project.serversNone': 'No product installed on this Mac can be added to a session yet.',
+  'project.serversMissing': '(not installed on this Mac now: a session here will not start until it is, or it is unticked)',
+  'project.serversBlocked': 'Installed, and not yet possible in a session, because each needs a key a session cannot carry: {names}.',
   'board.ideaLabel': 'An idea',
   'board.ideaPlaceholder': 'Something worth thinking about — first line is the title',
   'board.ideaFile': 'Put it in the backlog',

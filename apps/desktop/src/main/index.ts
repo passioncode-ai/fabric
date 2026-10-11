@@ -59,7 +59,7 @@ import { createCodeStatsReader } from './codeStats'
 import { createQuotaReader, personReturned, resetKeychainRefusal } from './quota'
 import { createQuitCoordinator, spawnQuitReaper } from './quit.ts'
 import { createEditorRecovery } from './editorRecovery.ts'
-import { readGateway } from './gateway'
+import { productOffer } from './sessionProducts.ts'
 import { classifyStartupFailure, startupDialog } from '../shared/startupFailure'
 import { readBuildManifestCandidates, withSchemaReadiness } from './schemaReadiness.ts'
 import { linkOutcome, linkRefusal } from '../shared/taskLinks.ts'
@@ -941,18 +941,18 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
       mint: (projectId, sessionId, taskId) => surface.mint(projectId, sessionId, taskId),
       revokeSession: (sessionId) => surface.revokeSession(sessionId)
     },
-    // M127 — what this project may reach besides Fabric, and what the machine's
-    // gateway offers. Both are read at compile time rather than cached: a
-    // gateway that started since the app did is a gateway a session can use.
-    declaredServers: async (projectId) => {
-      const { data } = await store
+    // M127 — what this project may reach besides Fabric. Read at compile time rather than cached: a product
+    // installed since the app started is one a session can use, and a grant withdrawn is gone at once.
+    // CO-194: the project's live grant (its `mcp_servers` setting), read at each launch, and what this Mac's
+    // registry offers a session at that moment. A read that fails refuses the launch: a session must not start
+    // without a server its project grants, nor be told it has none.
+    grantedServers: async (projectId) => {
+      const { data, error } = await store
         .select('projects', 'mcp_servers').eq('id', projectId).maybeSingle()
-      return ((data?.mcp_servers as string[] | null) ?? []).map((name) => ({
-        name,
-        source: 'gateway' as const
-      }))
+      if (error) throw new Error(`the project's granted servers could not be read: ${error.message}`)
+      return (data?.mcp_servers as string[] | null) ?? []
     },
-    gateway: () => readGateway(),
+    products: () => productOffer(registry.refresh().entries),
     // M49 — compile the pack, journal the lockfile, hand back the text. The
     // lockfile is written BEFORE the session starts, so "what did this agent
     // know" is answerable even if the session dies in its first second.
@@ -1565,7 +1565,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         },
         input
       )
-      // The gateway grant list can change what a session may reach, so the
+      // The granted servers can change what a session may reach, so the
       // mirror is refreshed on a landed save exactly as `updateSettings` does —
       // and NOT on a refusal or a conflict, where nothing was recorded.
       if (landed(result)) mirrorNow()
@@ -2518,9 +2518,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     checkWorkspace(readSettings().workspace.path, store)
   )
 
-  handle(IPC.gatewayOffer, async (): Promise<Returns<FabricApi['gateway']['offer']>> => {
-    const facts = readGateway()
-    return { reachable: facts.origin !== null, servers: Object.keys(facts.routes).sort() }
+  handle(IPC.serversOffer, async (): Promise<Returns<FabricApi['servers']['offer']>> => {
+    const offer = productOffer(registry.refresh().entries)
+    return {
+      products: offer.products.map((p) => ({ name: p.name, label: p.label })),
+      blocked: offer.blocked.map((b) => ({ name: b.name, label: b.label }))
+    }
   })
 
   handle(IPC.tasksFileIdea, async (_e, projectId: string, text: string): Promise<Returns<FabricApi['tasks']['fileIdea']>> => {

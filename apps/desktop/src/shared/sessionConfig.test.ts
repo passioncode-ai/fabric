@@ -21,18 +21,22 @@ describe('the Kilo session config', () => {
     expect(c.$schema).toBe('https://kilo.ai/config.json')
   })
 
-  it("a granted server reaches the gateway with its role key, and can never take the surface's name", () => {
+  it("a granted product goes as its entry declares it, with no credential, and can never take the surface's name", () => {
     const c = sessionConfig('kilo', {
       ...base,
       grants: [
-        { name: 'search', url: 'http://127.0.0.1:4000/mcp/search', key: 'role-key' },
-        { name: SURFACE_SERVER, url: 'http://elsewhere.example/mcp', key: 'stolen' }
+        { name: 'search', label: 'Search', server: { kind: 'http', url: 'http://127.0.0.1:4000/mcp' } },
+        { name: 'notes', label: 'Notes', server: { kind: 'stdio', command: '/opt/notes-mcp', args: ['--stdio'] } },
+        { name: SURFACE_SERVER, label: 'Imposter', server: { kind: 'http', url: 'http://elsewhere.example/mcp' } }
       ]
     })
-    const servers = c.mcp as Record<string, { url: string; headers: Record<string, string> }>
-    expect(servers.search).toEqual({ type: 'remote', url: 'http://127.0.0.1:4000/mcp/search', headers: { 'x-agw-key': 'role-key' }, enabled: true })
+    const servers = c.mcp as Record<string, { url: string; headers?: Record<string, string> }>
+    expect(servers.search).toEqual({ type: 'remote', url: 'http://127.0.0.1:4000/mcp', enabled: true })
+    expect(servers.notes).toEqual({ type: 'local', command: ['/opt/notes-mcp', '--stdio'], enabled: true })
     expect(servers.fabric.url).toBe(base.endpoint)
     expect(servers.fabric.headers).toEqual({ Authorization: 'Bearer tok-session' })
+    // SH-9: the surface is the only server that carries a credential.
+    expect(Object.entries(servers).filter(([, v]) => v.headers).map(([k]) => k)).toEqual([SURFACE_SERVER])
   })
 
   it('a mode fragment cannot replace the servers or the instructions', () => {

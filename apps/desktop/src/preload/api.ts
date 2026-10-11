@@ -95,8 +95,8 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       check: () => ipc.invoke(IPC.workspaceCheck),
       adopt: () => ipc.invoke(IPC.workspaceImport)
     },
-    gateway: {
-      offer: () => ipc.invoke(IPC.gatewayOffer)
+    servers: {
+      offer: () => ipc.invoke(IPC.serversOffer)
     },
     proposals: {
       decide: (id, decision) => ipc.invoke(IPC.proposalDecide, id, decision)

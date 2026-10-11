@@ -59,7 +59,9 @@ const PROVIDER_FIELDS = new Set(['protocol', 'id', 'providerId', 'name', 'summar
 
 export type RegistryMcp =
   | { transport: 'streamable-http'; url: string; path: string }
-  | { transport: 'stdio' }
+  /** `command` is the entry's argument array; `secretEnv`: its environment names a secret (`secret-ref:`), so a
+   *  session can carry it only with that secret resolved — which Fabric never writes into a session (servers.ts). */
+  | { transport: 'stdio'; command: string[]; secretEnv: boolean }
 
 export interface RegistryEntry {
   /** `id` for a provider, `id.instance` for a service. */
@@ -408,13 +410,14 @@ function readEntryFile(file: string, name: string, kind: 'service' | 'provider',
       port: placement === 'local' && m ? Number(m[1]) : null
     } }
   } else {
-    const run = (d.run as { mcp: { url?: string } }).mcp
+    const run = (d.run as { mcp: { url?: string; stdio?: { command: string[]; env?: Record<string, string> } } }).mcp
     const url = run.url ?? null
+    const stdio = run.stdio ? { transport: 'stdio' as const, command: [...run.stdio.command], secretEnv: Object.keys(run.stdio.env ?? {}).length > 0 } : null
     return { candidate: {
       entry: {
         key, kind, id: d.id as string, instance: null, name: shown(d.name as string, 80) || (d.id as string),
         summary: d.summary === undefined ? null : shown(d.summary as string, 200), placement: 'local', origin: null,
-        mcp: url ? { transport: 'streamable-http', url, path: '/mcp' } : { transport: 'stdio' },
+        mcp: url ? { transport: 'streamable-http', url, path: '/mcp' } : stdio,
         installedBy: shown(d.installedBy as string, 200), installedAt: d.installedAt as string, repository: source, file
       },
       port: url ? Number(PROVIDER_URL.exec(url)?.[1]) : null
