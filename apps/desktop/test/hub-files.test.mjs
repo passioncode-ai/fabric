@@ -20,7 +20,9 @@ test('publish writes the door token and hub.json, both 0600, hub.json naming the
   assert.match(p.doorToken, /^[A-Za-z0-9_-]{43}$/, '32 random bytes, base64url')
   assert.equal(readFileSync(p.doorTokenFile, 'utf8'), p.doorToken)
   assert.deepEqual(JSON.parse(readFileSync(p.hubFile, 'utf8')), {
-    protocol: HUB_PROTOCOL, origin: 'http://127.0.0.1:47070', mcp: '/mcp', doorTokenFile: p.doorTokenFile, pid: 4242, startedAt: '2026-10-03T12:00:00.000Z'
+    protocol: HUB_PROTOCOL, origin: 'http://127.0.0.1:47070', mcp: '/mcp', doorTokenFile: p.doorTokenFile, pid: 4242, startedAt: '2026-10-03T12:00:00.000Z',
+    // D3 (fabric-agent-adapter#53): the session hooks act only where this is said.
+    features: ['session-hooks/1']
   })
   assert.ok(!JSON.parse(readFileSync(p.hubFile, 'utf8')).doorToken, 'the token itself is never in hub.json')
 })

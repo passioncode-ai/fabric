@@ -116,7 +116,7 @@ const tools = (await client.listTools()).tools.map((t) => t.name).sort()
 // below; this one is friction: adding a tool to a credentialed security surface
 // should require acknowledging it somewhere a reviewer looks, and two copies
 // that drift together would pass a check comparing only those two.
-const expected = ['com.get','com.list','com.read_ack','com.status','com.submit','fabric_agents_list','fabric_effect_report','fabric_effect_request','fabric_heartbeat','fabric_leases_list','fabric_memory_remember','fabric_memory_search','fabric_question_ask','fabric_question_check','fabric_stage_report','fabric_task_accept','fabric_task_brief','fabric_task_claim','fabric_task_create','fabric_task_handoff','fabric_task_link','fabric_task_move','fabric_task_note','fabric_task_release','fabric_tasks_list','fabric_transcripts_search','fabric_whoami']
+const expected = ['com.get','com.list','com.read_ack','com.status','com.submit','fabric_agents_list','fabric_effect_report','fabric_effect_request','fabric_heartbeat','fabric_leases_list','fabric_memory_remember','fabric_memory_search','fabric_question_ask','fabric_question_check','fabric_session_observe','fabric_stage_report','fabric_task_accept','fabric_task_brief','fabric_task_claim','fabric_task_create','fabric_task_handoff','fabric_task_link','fabric_task_move','fabric_task_note','fabric_task_release','fabric_tasks_list','fabric_transcripts_search','fabric_whoami','fabric_work_claim','fabric_work_list','fabric_work_release']
 // The count is COMPUTED from the list. Written beside it as a word, it is one
 // more number that can disagree with the thing it counts.
 if (JSON.stringify(tools) === JSON.stringify(expected))

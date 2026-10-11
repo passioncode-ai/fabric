@@ -82,6 +82,7 @@ import { since, since as ago, until as ahead } from './duration'
 import { runnerLabel } from './runnerLabel'
 import { explainError } from './start/StartPaths'
 import { ProjectLaunch } from './launch/ProjectLaunch'
+import { WhoIsWorking } from './WhoIsWorking'
 import { go } from './evidence'
 import { describeMove } from '../../shared/provenance.ts'
 import { nextDue } from '../../shared/routine.ts'
@@ -368,6 +369,12 @@ export function ProjectHome({
           onNewTask={() => toSection('sec-tasks')}
           onSection={toSection}
         />
+      )}
+      {!openTask && (
+        <section className="lp">
+          {/* SCR-31 «Who is working on what» (SCN-140): claims follow the work and agent families. */}
+          <WhoIsWorking projectId={project.id} feedMark={markOf(marks, ['work', 'task', 'agent'])} onError={onError} />
+        </section>
       )}
       {!openTask && (
         <section className="lp lp-journal-wide">

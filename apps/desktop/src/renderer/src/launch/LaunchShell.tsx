@@ -78,7 +78,7 @@ export interface LaunchShellProps {
   estateName: string
   projects: ProjectRow[] | null
   /** Where the operator is, for the current marker and the breadcrumb. */
-  at: { kind: 'home' } | { kind: 'board' } | { kind: 'plan' } | { kind: 'pulse' } | { kind: 'help' } | { kind: 'quota' } | { kind: 'agents' } | { kind: 'settings' } | { kind: 'draft' } | { kind: 'start' } | { kind: 'welcome' } | { kind: 'project'; projectId: string; section?: ProjectSection }
+  at: { kind: 'home' } | { kind: 'board' } | { kind: 'plan' } | { kind: 'pulse' } | { kind: 'help' } | { kind: 'quota' } | { kind: 'agents' } | { kind: 'where' } | { kind: 'settings' } | { kind: 'draft' } | { kind: 'start' } | { kind: 'welcome' } | { kind: 'project'; projectId: string; section?: ProjectSection }
   onHome(): void
   onBoard(): void
   onPlan(): void
@@ -87,6 +87,7 @@ export interface LaunchShellProps {
   onNewProject(): void
   onProject(projectId: string, section: ProjectSection): void
   onAgents(): void
+  onWhere(): void
   onSettings(): void
   onHistory(): void
   onSearch(): void
@@ -142,8 +143,9 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
               ))}
             </details>
           ))}
-          <details className="calm-nav-group" open={at.kind === 'agents' || at.kind === 'settings' || at.kind === 'quota'}>
+          <details className="calm-nav-group" open={at.kind === 'agents' || at.kind === 'where' || at.kind === 'settings' || at.kind === 'quota'}>
             <summary>{t('launch.nav.manage')}</summary>
+            <a href="#" {...current(at.kind === 'where')} onClick={e => { e.preventDefault(); props.onWhere() }}>{t('launch.nav.where')}</a>
             <a href="#" {...current(at.kind === 'agents')} onClick={e => { e.preventDefault(); props.onAgents() }}>{t('launch.nav.agents')}</a>
             <a href="#" {...current(at.kind === 'quota')} onClick={e => { e.preventDefault(); props.onQuota() }}>{t('launch.nav.quota')}</a>
             <a href="#" {...current(at.kind === 'settings')} onClick={e => { e.preventDefault(); props.onSettings() }}>{t('launch.nav.settings')}</a>

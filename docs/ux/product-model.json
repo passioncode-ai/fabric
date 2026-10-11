@@ -4399,7 +4399,7 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 668,
-        "coverage_claim": "partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes",
+        "coverage_claim": "partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes; «Who is working on what» (who-is-working, related, none, stale, release confirm) is `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`, read by `apps/desktop/src/main/workRead.ts#readProjectWork`",
         "status_claim": "designed"
       },
       "registry_additional_states": [
@@ -10440,7 +10440,7 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 1938,
-        "coverage_claim": "none yet",
+        "coverage_claim": "partly — `apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx#WhereWorkScreen` (loading, read, nothing-in-flight, unreadable, partial for the review column, stale, related, no-project-sessions, none-unowned), read by `apps/desktop/src/main/workRead.ts#readWhereWork`; the consent sheet (admitting, admitted, refused-broad, not-logged) is REQ-17's, wave 5",
         "status_claim": "designed"
       },
       "registry_additional_states": [
@@ -33035,7 +33035,7 @@
         "SCR-31",
         "SCR-78"
       ],
-      "coverage": "none yet",
+      "coverage": "partly — the agent side: `apps/desktop/src/main/workTools.ts#registerWorkTools` (`fabric_work_list`, `fabric_work_claim`, `fabric_work_release`), `apps/desktop/test/work-claims-db.test.mjs`; the operator side: `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`. Not yet: product agents through the hub (refused-no-grant, wave 4)",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "Before starting, every agent in a project knows who holds what there; its own work is claimed on the project's board; related work is flagged to it and to the operator; every claim and release is journalled and visible on the project page and in «Where work is» — through Fabric, never a second board.",
@@ -33058,7 +33058,7 @@
         "SCR-31",
         "SCR-39"
       ],
-      "coverage": "none yet",
+      "coverage": "partly — `apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx#WhereWorkScreen` and `apps/desktop/src/main/workRead.ts#readWhereWork`; «Log under a project…» and its consent are REQ-17's, wave 5",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "One screen answers where every piece of work in the estate is right now and who holds it, with the work no project owns named instead of hidden.",

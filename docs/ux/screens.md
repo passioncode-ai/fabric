@@ -698,7 +698,7 @@ different destination under the same name.
   | who-is-working none | no claim is live | none | one line: nobody is working in this project right now — from a read board, never before it answers |
   | who-is-working stale | a claim is past its expiry with no sign of life, or lapsed with its session | none | «no sign since <time>», or «lapsed — the session ended», never "working" |
   | release confirm | «Release…» chosen on a claim | none | a confirmation naming the agent and the task: the claim ends now and the agent is told on its next call; Release and Cancel, Cancel focused |
-- **Coverage:** partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes
+- **Coverage:** partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes; «Who is working on what» (who-is-working, related, none, stale, release confirm) is `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`, read by `apps/desktop/src/main/workRead.ts#readProjectWork`
 - **Scenarios:** SCN-040, SCN-041, SCN-060, SCN-140
 - **Resources:** `project_tasks`, journal, `agent_stages`, leases
 - **Status:** designed
@@ -1957,7 +1957,7 @@ frames; the visual layer is the recorded style pack's tokens.
   | not-logged | «Don't log here» chosen | none | the session stays as «not logged here»; that folder is not asked about again |
   | long-content | many projects or long folder paths | none | rows wrap; paths keep their last segment visible |
 - **Axes:** viewport: 1024, 1440; theme: light, dark; text: default, 200%; locale: en, ru
-- **Coverage:** none yet
+- **Coverage:** partly — `apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx#WhereWorkScreen` (loading, read, nothing-in-flight, unreadable, partial for the review column, stale, related, no-project-sessions, none-unowned), read by `apps/desktop/src/main/workRead.ts#readWhereWork`; the consent sheet (admitting, admitted, refused-broad, not-logged) is REQ-17's, wave 5
 - **Scenarios:** SCN-141, SCN-140
 - **Resources:** the journal's projections (sessions, `work.claimed@1` claims, tasks in review, heartbeats); [ADR-0136](../adr/0136-a-folder-joins-a-project-by-a-pick-or-by-consent.md) §2 for the admission; the viewer tool `fabric.work.overview` of [ADR-0139](../adr/0139-fabric-is-a-service-its-descriptor-its-well-known-document-and-a-read-only-viewer.md) reads the same facts.
 - **Status:** designed

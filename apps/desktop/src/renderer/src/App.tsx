@@ -38,6 +38,7 @@ import { FallbackOrderSetting } from './FallbackOrderSetting'
 import { BoardPanel } from './BoardPanel'
 import { SearchPanel } from './SearchPanel'
 import { EstateAgents } from './EstateAgents'
+import { WhereWorkScreen } from './launch/WhereWorkScreen'
 import { Banner, Button, Field, TabStrip, Toolbar } from './components'
 import { I18nProvider, useT, type Locale } from './i18n'
 import { LaunchShell, PROJECT_SECTION_ANCHOR, revealSection, type ProjectSection, launchDiscuss } from './launch/LaunchShell'
@@ -636,7 +637,7 @@ function Shell({
       <LaunchShell
         estateName={estateName}
         projects={projects}
-        at={showSettings ? { kind: 'settings' } : active.kind === 'board' ? { kind: 'board' } : active.kind === 'plan' ? { kind: 'plan' } : active.kind === 'pulse' || active.kind === 'releases' ? { kind: 'pulse' } : active.kind === 'help' || active.kind === 'guide' ? { kind: 'help' } : active.kind === 'quota' ? { kind: 'quota' } : active.kind === 'project' ? { kind: 'project', projectId: active.projectId, section: projectSection } : active.kind === 'agents' ? { kind: 'agents' } : active.kind === 'draft' ? { kind: 'draft' } : active.kind === 'start' ? { kind: 'start' } : active.kind === 'welcome' ? { kind: 'welcome' } : { kind: 'home' }}
+        at={showSettings ? { kind: 'settings' } : active.kind === 'board' ? { kind: 'board' } : active.kind === 'plan' ? { kind: 'plan' } : active.kind === 'pulse' || active.kind === 'releases' ? { kind: 'pulse' } : active.kind === 'help' || active.kind === 'guide' ? { kind: 'help' } : active.kind === 'quota' ? { kind: 'quota' } : active.kind === 'project' ? { kind: 'project', projectId: active.projectId, section: projectSection } : active.kind === 'agents' ? { kind: 'agents' } : active.kind === 'where' ? { kind: 'where' } : active.kind === 'draft' ? { kind: 'draft' } : active.kind === 'start' ? { kind: 'start' } : active.kind === 'welcome' ? { kind: 'welcome' } : { kind: 'home' }}
         onHome={() => { setShowSettings(false); setActive({ kind: 'home' }); setWorkspaceFor(null) }}
         onBoard={() => { setShowSettings(false); setActive({ kind: 'board' }) }}
         onPlan={() => { setShowSettings(false); setActive({ kind: 'plan' }) }}
@@ -650,6 +651,7 @@ function Shell({
           if (anchor) revealSection(anchor)
         }}
         onAgents={() => { setShowSettings(false); setActive({ kind: 'agents' }) }}
+        onWhere={() => { setShowSettings(false); setActive({ kind: 'where' }) }}
         onSettings={() => setShowSettings((v) => !v)}
         onHistory={() => setPanel('history')}
         onSearch={() => setPanel((p) => togglePanel(p, 'search', { toggle: true }))}
@@ -823,6 +825,14 @@ function Shell({
             onProject={openProject}
             onTask={(projectId, taskId) => openEntity(projectId, { kind: 'task', id: taskId })}
             onPulse={(projectId) => setActive({ kind: 'pulse', projectId })}
+          />
+        )}
+        {active.kind === 'where' && (
+          <WhereWorkScreen
+            feedMark={markOf(marks, ['work', 'task', 'agent'])}
+            onProject={openProject}
+            onTask={(projectId, taskId) => openEntity(projectId, { kind: 'task', id: taskId })}
+            onReview={(projectId) => { openProject(projectId); revealSection('sec-board') }}
           />
         )}
         {active.kind === 'agents' && (
@@ -1020,7 +1030,7 @@ function SettingsBar({
 
 /** The route as a tab, where it is one. The agents view and the board are not. */
 function tabOf(route: AppRoute): Tab | null {
-  return route.kind === 'agents' || route.kind === 'board' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'quota' || route.kind === 'welcome' || route.kind === 'start' ? null : route
+  return route.kind === 'agents' || route.kind === 'where' || route.kind === 'board' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'quota' || route.kind === 'welcome' || route.kind === 'start' ? null : route
 }
 
 function keyOf(tab: Tab): string {

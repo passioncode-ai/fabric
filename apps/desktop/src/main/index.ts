@@ -29,6 +29,10 @@ import { AccessService } from './accessService.ts'
 import { startHub, withdrawHub } from './hub.ts'
 import { hubServerFor } from './hubTools.ts'
 import { EnrolledSessions, enrollSession, resolveAgentFolder, type FolderDeps } from './sessionEnroll.ts'
+import { resolveBacklogSource } from './backlogSource.ts'
+import { createLeaseRefReader, originOf, lsRemoteLeases } from './agentSyncLeases.ts'
+import { releaseByOperator, releaseSessionClaims } from './workRelease.ts'
+import { readProjectWork, readWhereWork, type HeldSession } from './workRead.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
 import { createAgentCall } from './hubCall.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
@@ -840,7 +844,7 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
           ...enrollFolders,
           liveGrants: (b) => hubAccess.liveGrantsOf(b),
           projectName: async (id) => (await enrollProject(id))?.name ?? null,
-          mint: (projectId, sessionId, taskId) => surface.mint(projectId, sessionId, taskId),
+          mint: (projectId, sessionId, taskId, origin) => surface.mint(projectId, sessionId, taskId, origin),
           sessions: enrolled,
           stillLive: (bindingId, grantId) => hubAccess.enrollmentLive(bindingId, grantId),
           journal: (type, projectId, payload) =>
@@ -848,7 +852,19 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
         })
       }),
       callback: (product, req, res) => connector.callback(product, req, res)
+    },
+    // #region work-claims-wiring — docs: docs/ux/scenarios.md#scn-140-agents-ask-fabric-who-is-working-on-what-claim-their-task-are-warned-of-related-work-and-release-it
+    work: {
+      resolveSource: (projectId, source) => resolveBacklogSource(source, { repos: () => projectReposWithRemotes(projectId) }),
+      leaseRefs: (projectId) => projectLeaseRefs(projectId),
+      // An enrolled session ends the way a revocation ends it; a launched one is only revoked (its terminal goes on).
+      endSession: (sessionId) => enrolled.endSession(sessionId)
+    },
+    // A session's claims end with it (REQ-38): its terminal exited, its enrollment was revoked or evicted, the app quits.
+    onSessionEnded: async (sessionId, why) => {
+      await releaseSessionClaims(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), sessionId, why)
     }
+    // #endregion work-claims-wiring
   })
   // THE PORT IS STABLE OR THERE IS NO HUB (ADR-0115 §1). A port the configuration refuses, or one a
   // registered agent claims, or one another program holds, closes the hub with its reason (Settings →
@@ -1072,6 +1088,60 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
 
   return { estateId: ACTIVE_ESTATE, estateName: estate?.name ?? 'org #1' }
 }
+
+// #region work-claims-reads — docs: docs/ux/scenarios.md#scn-141-see-where-work-is-across-every-project--sessions-claims-review-and-sessions-with-no-project
+/** agent-sync's lease refs, read-only and kept a minute (REQ-08); the remotes the backlog links resolve by, kept five. */
+const leaseRefReader = createLeaseRefReader({ remoteOf: originOf, lsRemote: lsRemoteLeases })
+const remoteCache = new Map<string, { at: number; remote: Promise<string | null> }>()
+function cachedOrigin(repoPath: string): Promise<string | null> {
+  const hit = remoteCache.get(repoPath)
+  if (hit && Date.now() - hit.at < 300_000) return hit.remote
+  // A remote that cannot be read resolves by folder only; the address still names the repository by its folder.
+  const remote = originOf(repoPath).catch((e) => {
+    ops.failed('work.origin-read', e as Error, { note: 'this repository resolves backlog rows by its folder only' })
+    return null
+  })
+  remoteCache.set(repoPath, { at: Date.now(), remote })
+  return remote
+}
+async function projectRepos(projectId: string): Promise<Array<{ path: string; is_primary: boolean }>> {
+  const { data, error } = await store.select('project_repos', 'path,is_primary').eq('project_id', projectId)
+  if (error) throw new Error(`the project's repositories could not be read: ${error.message}`)
+  return (data ?? []) as Array<{ path: string; is_primary: boolean }>
+}
+async function projectReposWithRemotes(projectId: string): Promise<Array<{ path: string; remote: string | null }>> {
+  const repos = await projectRepos(projectId)
+  return Promise.all(repos.map(async (r) => ({ path: r.path, remote: await cachedOrigin(r.path) })))
+}
+async function projectLeaseRefs(projectId: string) {
+  const repos = await projectRepos(projectId)
+  const primary = repos.find((r) => r.is_primary) ?? repos[0]
+  if (!primary) return null
+  return { ...(await leaseRefReader.read(primary.path)), repository: primary.path }
+}
+/** Every session the screens show: what the surface holds (launched and enrolled) and the terminals running. */
+function heldSessions(projectId?: string): HeldSession[] {
+  const out = new Map<string, HeldSession>()
+  for (const s of surface?.heldSessions(projectId) ?? [])
+    out.set(s.sessionId, { sessionId: s.sessionId, projectId: s.projectId, agent: s.agent, cameIn: s.cameIn, startedAt: s.startedAt, lastSignAt: surface.sessionSign(s.sessionId)?.lastSignAt ?? null })
+  for (const p of ptys?.list(projectId) ?? []) {
+    if (!p.running) continue
+    const at = Date.parse(p.lastActivityAt)
+    const held = out.get(p.sessionId)
+    out.set(p.sessionId, held
+      ? { ...held, agent: held.agent ?? p.optionId, lastSignAt: Math.max(held.lastSignAt ?? 0, at) || null }
+      : { sessionId: p.sessionId, projectId: p.projectId || null, agent: p.optionId, cameIn: 'launched', startedAt: Date.parse(p.startedAt), lastSignAt: at })
+  }
+  return [...out.values()]
+}
+/** A claim's session as the screens read it: held by this surface, or a terminal still running. */
+function sessionSignOf(sessionId: string): { lastSignAt: number | null } | null {
+  const held = surface?.sessionSign(sessionId)
+  if (held) return held
+  const p = ptys?.get(sessionId)
+  return p?.running ? { lastSignAt: Date.parse(p.lastActivityAt) } : null
+}
+// #endregion work-claims-reads
 
 /** Preserve a runtime diagnostic without ending a Run or accepting work. The
  * complete Stop receipt is owned by nativeStopRuntime/SQL, never this taxonomy. */
@@ -4459,6 +4529,19 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // The newest events, in the order they happened, behind a session-id check (A5-001; `sessionHistory.ts`).
     readSessionHistory(() => store.select('journal', '*') as never, ACTIVE_ESTATE, sessionId) as Promise<FeedEvent[]>
   )
+
+  // #region work-ipc — docs: docs/ux/scenarios.md#scn-140-agents-ask-fabric-who-is-working-on-what-claim-their-task-are-warned-of-related-work-and-release-it
+  handle(IPC.workProject, async (_e, projectId: string): Promise<Returns<FabricApi['work']['project']>> => {
+    const scoped = createScopedStore(db, { kind: 'project', estateId: ACTIVE_ESTATE, projectId })
+    return readProjectWork(scoped, { now: Date.now(), session: sessionSignOf, sessions: heldSessions(projectId), leases: () => projectLeaseRefs(projectId) })
+  })
+  handle(IPC.workEstate, async (): Promise<Returns<FabricApi['work']['estate']>> =>
+    readWhereWork(store, { now: Date.now(), session: sessionSignOf, sessions: heldSessions() }))
+  handle(IPC.workRelease, async (_e, claimId: string): Promise<Returns<FabricApi['work']['release']>> => {
+    if (typeof claimId !== 'string' || !/^[0-9a-f-]{36}$/.test(claimId)) return { released: false, reason: 'not-found' }
+    return releaseByOperator(store, (e) => journal.append({ estateId: ACTIVE_ESTATE, ...e }), OPERATOR_ACTOR, claimId)
+  })
+  // #endregion work-ipc
 
   handle(IPC.terminalClaims, async (_e, projectId: string): Promise<Returns<FabricApi['terminal']['claims']>> => {
     const { data, error } = await store
