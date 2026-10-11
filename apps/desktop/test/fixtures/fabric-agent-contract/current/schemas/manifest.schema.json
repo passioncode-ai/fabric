@@ -184,6 +184,48 @@
     },
     "extensions": {
       "$ref": "common.schema.json#/$defs/extensions"
+    },
+    "costPresets": {
+      "type": "array",
+      "description": "DEC-0037: fixed options a launcher offers for a task whose cost varies (L2).",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "capability",
+          "label",
+          "maxUsd"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,39}$"
+          },
+          "capability": {
+            "$ref": "common.schema.json#/$defs/capabilityName"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "maxUsd": {
+            "type": "number",
+            "minimum": 0
+          },
+          "paidTools": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "depth": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false,

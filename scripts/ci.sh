@@ -326,6 +326,8 @@ node --experimental-strip-types apps/desktop/test/agent-registry.test.mjs
 node --experimental-strip-types apps/desktop/test/hub-files.test.mjs
 # CO-193: compiled immutable contract fixtures and real SDK argument parity; no live product call.
 node --experimental-strip-types apps/desktop/test/contract-consumer.test.mjs
+# ADR-0140 / contract DEC-0042: the bundle is a session-handoff/1 folder, checked by the contract's own checker.
+node --experimental-strip-types --test apps/desktop/test/session-handoff-conformance.test.mjs
 node --experimental-strip-types --test-force-exit apps/desktop/test/hub-products.test.mjs
 node --experimental-strip-types apps/desktop/test/consent-presenter.test.mjs
 # Verification iteration 1 for 0.3.1: the consent rules without a database (poll secret, caps, act codes),

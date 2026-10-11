@@ -913,6 +913,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
 
   const bundles = createBundleCompiler({
     root: app.getPath('userData'),
+    // session-handoff/1's writer.version.
+    version: app.getVersion(),
     surface: {
       get endpoint() {
         return surface.endpoint

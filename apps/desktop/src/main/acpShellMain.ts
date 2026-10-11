@@ -3,6 +3,7 @@
 // with the session in FABRIC_ACP_SESSION (environment only: it carries the session credential).
 // #region acp-shell-process — docs: docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md#amendment-4--2026-10-06-what-the-032-verification-changed-and-what-is-not-built-yet
 import { spawn, type ChildProcess } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { runAcpShell, type AcpSessionSpec } from './acpShell.ts'
 
 const separator = process.argv.indexOf('--')
@@ -13,6 +14,17 @@ if (!command.length || !raw) {
   process.exit(2)
 }
 const spec = JSON.parse(raw) as AcpSessionSpec
+// session-handoff/1 (SH-8): Fabric hands the brief as the handoff's brief.md; it is the first prompt.
+if (typeof spec.briefFile === 'string') {
+  try {
+    spec.brief = readFileSync(spec.briefFile, 'utf8').trimEnd()
+  } catch {
+    // Not silent: this helper process has no ops sink, and its stderr is the session's terminal, where the
+    // person sees why the session did not start. The reason is not printed: the path is the session's.
+    process.stderr.write('acp-shell: the session brief could not be read; the session is not started\n')
+    process.exit(2)
+  }
+}
 // Neither the agent nor anything it starts inherits the session document, nor the switch that made
 // Electron's binary run this shell as Node (an Electron-based tool the agent starts would break).
 // This removes the copy in this process's environment that children inherit; the kernel's copy of

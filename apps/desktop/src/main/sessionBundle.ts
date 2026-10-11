@@ -15,11 +15,12 @@
 // a process that never existed.
 
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { type SurfaceAdapter, describeAgent, executorReadiness } from '../shared/agents.ts'
 import { sessionConfig } from '../shared/sessionConfig.ts'
 import { helperCommand } from './helperProcess.ts'
-import { PREAMBLE } from '../shared/preamble.ts'
+import { NAMED_TOOL, PREAMBLE } from '../shared/preamble.ts'
 import { redact } from '../shared/redact.ts'
 import { describeRefusals, planServers, type DeclaredServer, type GatewayFacts } from '../shared/servers.ts'
 import { resolveServers } from '../shared/agentSpec.ts'
@@ -51,7 +52,60 @@ export interface BundleCompilerDeps {
   declaredServers?: (projectId: string) => Promise<DeclaredServer[]>
   /** What the machine's gateway offers, and the key for the hop. */
   gateway?: () => GatewayFacts
+  /** Fabric's own version, the handoff's `writer.version` (`app.getVersion()`). */
+  version?: string
 }
+
+// #region session-handoff-writer — docs: docs/adr/0140-a-session-is-handed-its-context-in-one-format-session-handoff-1.md#decision
+// The bundle IS a `session-handoff/1` folder (fabric-agent-contract DEC-0042, ADR-0140): Fabric is the
+// reference writer. The folder holds handoff.json (the manifest), context.md and mcp.json always, brief.md when
+// the brief is delivered as a file — and nothing else. `test/session-handoff-conformance.test.mjs` runs the
+// contract's own checker on a folder written for each connected adapter.
+/** SH-8: a brief travels inline only in one plain argument of at most this many characters. */
+export const MAX_INLINE_BRIEF = 1000
+// eslint-disable-next-line no-control-regex
+const CONTROL = /[\u0000-\u001f\u007f]/
+/** Whether a brief may travel inline (SH-8): short, and one line, so any carrier (Switchboard in place:
+ *  16 × 1024, no control characters) passes it. Anything else is brief.md — never truncated. */
+export const fitsInline = (brief: string): boolean => brief.length <= MAX_INLINE_BRIEF && !CONTROL.test(brief)
+
+/** What context.md says when there is no compiled pack: the file is always there (SH-3), and it says why. */
+export const NO_PACK_NOTE =
+  '# What this project already knows\n\n' +
+  'Fabric could not compile this project\u2019s memory for this session, so none is pre-loaded here. ' +
+  'Search memory before assuming anything.\n'
+
+const digest = (text: string): string => `sha256:${createHash('sha256').update(text, 'utf8').digest('hex')}`
+const write600 = (file: string, text: string): void => writeFileSync(file, text, { encoding: 'utf8', mode: 0o600 })
+
+interface HandoffDeclaration {
+  sessionId: string
+  version: string
+  files: string[]
+  brief: { delivery: 'inline'; text: string } | { delivery: 'file' }
+  strict: boolean
+  launch: { runtime: string; args: string[]; env: Record<string, string | null> }
+  contextDigest: string | null
+}
+
+/** handoff.json, written last so a folder with a manifest is a folder whose files are all in place. */
+function writeHandoff(dir: string, d: HandoffDeclaration): void {
+  const manifest = {
+    format: 'session-handoff/1',
+    writer: { product: 'fabric', version: d.version },
+    writtenAt: new Date().toISOString(),
+    lifetime: { kind: 'session', session: d.sessionId },
+    files: d.files,
+    firstCall: { server: 'fabric', tool: NAMED_TOOL },
+    preamble: PREAMBLE,
+    mcp: { auth: 'bearer', strict: d.strict },
+    brief: d.brief,
+    launch: d.launch,
+    ...(d.contextDigest ? { integrity: { packet: 'execution-packet/1', parts: { 'context.md': d.contextDigest } } } : {})
+  }
+  write600(path.join(dir, 'handoff.json'), `${JSON.stringify(manifest, null, 2)}\n`)
+}
+// #endregion session-handoff-writer
 
 export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
   const dirFor = (sessionId: string): string => path.join(deps.root, 'sessions', sessionId)
@@ -178,6 +232,10 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
         // and never in the repository — the same rule and for the same reason: it
         // is Fabric's material, not the project's, and a pack committed to a repo
         // would be a stale copy of a moving store.
+        // SH-3: context.md is always there. A pack that compiled is written as compiled (its packet digest
+        // is the handoff's integrity part); otherwise a note saying none was pre-loaded, so the agent is told
+        // rather than left to find an empty folder.
+        let contextDigest: string | null = null
         if (deps.context) {
           try {
             const pack = await deps.context(sessionId, projectId, taskId)
@@ -201,6 +259,8 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
                   `execution packet does not verify — missing: ${check.missing.join(', ') || 'none'}; ` +
                     `corrupt: ${check.corrupt.join(', ') || 'none'}`
                 )
+              const part = packet.refs.find((r) => r.name === 'context')
+              if (part) contextDigest = `sha256:${part.sha256}`
             }
           } catch (e) {
             // A session must still start when its pack cannot be COMPILED — it
@@ -216,6 +276,16 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
             ops.failed('sessionBundle.failure', e, { note: `context pack failed for session ${sessionId}:` })
           }
         }
+        if (contextDigest === null) write600(path.join(dir, 'context.md'), NO_PACK_NOTE)
+        const version = deps.version ?? '0.0.0'
+        // The agent's own brief FIRST and Fabric's preamble LAST, so the last thing the session is told is
+        // where its rules live and that what it remembers about Fabric is not current. A brief that
+        // contradicts the rules cannot win by being later. Old stored briefs may predate command ingress
+        // sanitation: clean prompt text, never the scoped transport credential.
+        const brief = agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE
+        const briefPath = path.join(dir, 'brief.md')
+        /** SH-8: the brief as a file — brief.md — when it cannot travel inline or the runtime reads files only. */
+        const briefFile = (): void => write600(briefPath, `${brief}\n`)
 
         // DISPATCHED on the agent's declared adapter, not hardcoded. Before
         // this, every connecting agent got Claude Code's flags whether or not it
@@ -231,21 +301,24 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
             // until this argument existed the only thing asking for that call was
             // a sentence inside a tool description. The preamble names one tool
             // and no rule — `preamble.ts` says why, and a test enforces it.
-            return {
-              dir,
-              args: [
-                '--mcp-config',
-                configPath,
+            //
+            // `--mcp-config=<path>`, JOINED (SH-11): the option takes several values, and in the spaced form
+            // the next bare value is read as one more config (Switchboard SB-94, #141; Dashboards #68).
+            {
+              const inline = fitsInline(brief)
+              if (!inline) briefFile()
+              const args = [
+                `--mcp-config=${configPath}`,
                 '--strict-mcp-config',
-                '--append-system-prompt',
-                // The agent's own brief FIRST and Fabric's preamble LAST, so the
-                // last thing the session is told is where its rules live and that
-                // what it remembers about Fabric is not current. A brief that
-                // contradicts the rules cannot win by being later.
-                // Old stored briefs may predate command ingress sanitation.
-                // Clean prompt text, never the scoped transport credential.
-                agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE
+                ...(inline ? ['--append-system-prompt', brief] : ['--append-system-prompt-file', briefPath])
               ]
+              writeHandoff(dir, {
+                sessionId, version, contextDigest, strict: true,
+                files: ['context.md', 'mcp.json', ...(inline ? [] : ['brief.md'])],
+                brief: inline ? { delivery: 'inline', text: brief } : { delivery: 'file' },
+                launch: { runtime: optionId, args, env: {} }
+              })
+              return { dir, args }
             }
           case 'config-content-env': {
             // ADR-0119 / P-10: the whole session config travels in ONE variable whose
@@ -256,10 +329,13 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
             const surfaceConfig = describeAgent(optionId)?.surfaceConfig
             if (!surfaceConfig)
               throw new Error(`${optionId} declares config-content-env but names no session config`)
-            const briefPath = path.join(dir, 'brief.md')
-            writeFileSync(briefPath, agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE, {
-              encoding: 'utf8',
-              mode: 0o600
+            briefFile()
+            // Kilo offers no switch that loads only these servers, so the handoff declares strict false.
+            writeHandoff(dir, {
+              sessionId, version, contextDigest, strict: false,
+              files: ['context.md', 'mcp.json', 'brief.md'],
+              brief: { delivery: 'file' },
+              launch: { runtime: optionId, args: [], env: { [surfaceConfig.env]: null } }
             })
             return {
               dir,
@@ -303,7 +379,8 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
                   { name: 'FABRIC_BRIDGE_AUTHORIZATION', value: authorization }
                 ]
               },
-              brief: agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE,
+              // SH-8: the brief is brief.md; the shell reads it and sends it as the first ACP prompt.
+              briefFile: briefPath,
               mode: modeConfig?.acpMode === 'bypass' ? 'bypass' : 'ask',
               // The project's granted gateway servers, each with its hop's role key (audit 2026-10-05
               // A6-004: they were dropped, so a Hermes agent created with servers reached none of them).
@@ -324,6 +401,16 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
                 ]
               }))
             }
+            briefFile()
+            const runtimeEnv = descriptor.acp.env ?? {}
+            writeHandoff(dir, {
+              sessionId, version, contextDigest,
+              // Hermes' switch for loading only the session's servers (ADR-0119); an ACP runner without one is not strict.
+              strict: runtimeEnv.HERMES_ACP_SKIP_CONFIGURED_MCP === '1',
+              files: ['context.md', 'mcp.json', 'brief.md'],
+              brief: { delivery: 'file' },
+              launch: { runtime: optionId, args: [], env: { ...runtimeEnv, FABRIC_ACP_SESSION: null } }
+            })
             return {
               dir,
               args: [],

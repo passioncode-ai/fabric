@@ -8,13 +8,16 @@ import Ajv2020 from 'ajv/dist/2020.js'
 import addFormats from 'ajv-formats'
 
 export const fixtureRoot = fileURLToPath(new URL('./fixtures/fabric-agent-contract/', import.meta.url))
-export const CURRENT_COMMIT = '623bf61358c339cb10297807b3f024b5d9f1f327'
+export const CURRENT_COMMIT = '84043cb139e3c419d30f8b78781144e5f712dea0'
 export const LEGACY_COMMIT = '2ce392291c6668598d12cd38327e24696b5ca15c'
 export const schemaPrefix = 'https://fabric.passioncode.ai/agent-contract/0.1.0/schemas/'
 // fabric-project-comms/0.1 (DEC-0022, accepted 2026-10-05) joins at d4c8831: its schemas, and every comms
 // fixture the contract's own catalogue grades, so this consumer is held to the same verdicts.
 export const COMMS_SURFACES = ['comms-complete', 'comms-fence', 'comms-message', 'comms-page', 'comms-refusal', 'comms-status', 'comms-submit']
 const currentSchemas = ['common', 'interop-agent-call', 'interop-capability', 'manifest', 'pipeline', 'service-common', 'service-well-known', 'comms-common', ...COMMS_SURFACES]
+// session-handoff/1 (DEC-0042, ADR-0140) joins: its schema and the contract's own checker, which
+// test/session-handoff-conformance.test.mjs runs on the folders Fabric's session bundle writes.
+const handoffPaths = ['current/schemas/session-handoff.schema.json', 'current/src/session-handoff.ts']
 const positiveNames = ['interop-agent-call', 'manifest-mcp', 'pipeline', 'service-well-known-capabilities',
   'comms-complete', 'comms-fence', 'comms-page', 'comms-refusal', 'comms-status', 'comms-submit-reply', 'comms-submit-request']
 const negativeNames = ['comms-fence-without-generation', 'comms-page-redacted-with-body', 'comms-refusal-unknown-code', 'comms-status-bad-state',
@@ -24,6 +27,7 @@ export const expectedPaths = [
   ...currentSchemas.map(name => `current/schemas/${name}.schema.json`),
   ...positiveNames.map(name => `current/positive/${name}.json`),
   ...negativeNames.map(name => `current/negative/${name}.json`),
+  ...handoffPaths,
   'current/catalogue.json',
   'legacy/schemas/common.schema.json', 'legacy/schemas/interop-agent-call.schema.json', 'LICENSE'
 ].sort()

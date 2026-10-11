@@ -30,8 +30,11 @@ export interface AcpSessionSpec {
   http: Extract<AcpMcpServer, { type: 'http' }>
   /** The same surface through Fabric's stdio bridge, for an agent that declares no HTTP MCP. */
   stdio: Exclude<AcpMcpServer, { type: 'http' }>
-  /** The brief and Fabric's preamble: the session's first prompt. */
-  brief: string
+  /** The brief and Fabric's preamble: the session's first prompt. Fabric sends `briefFile` instead
+   *  (session-handoff/1 SH-8: the brief is the handoff's brief.md), which the shell's entry reads into this. */
+  brief?: string
+  /** The handoff's brief.md, read by `acpShellMain.ts` before the session starts. */
+  briefFile?: string
   /** How a permission request is answered. */
   mode: 'ask' | 'bypass'
   /** The project's granted gateway servers, as HTTP MCP servers (they live on the machine's gateway). */
@@ -476,7 +479,7 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
       .finally(() => { turn = null })
     return turn
   }
-  await prompt(spec.brief)
+  await prompt(spec.brief ?? '')
 
   for (;;) {
     // Every way out goes through stop(), so the agent's group is swept before the shell exits.

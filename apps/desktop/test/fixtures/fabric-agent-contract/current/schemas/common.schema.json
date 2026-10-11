@@ -141,6 +141,11 @@
       },
       "additionalProperties": false
     },
+    "agentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,62}(\\.[a-z][a-z0-9-]{0,31})?$",
+      "description": "A registry agent id: a provider id, or a service id optionally followed by .instance (DEC-0016, DEC-0039)."
+    },
     "capabilityName": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9._-]{1,127}$"

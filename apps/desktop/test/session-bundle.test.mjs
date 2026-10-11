@@ -23,6 +23,8 @@ import { createBundleCompiler } from ${JSON.stringify(path.join(HERE, '../src/ma
 import { PtyManager } from ${JSON.stringify(path.join(HERE, '../src/main/pty.ts'))}
 import { useOps } from ${JSON.stringify(path.join(HERE, '../src/main/opsSink.ts'))}
 import { MandatoryContextUnmet } from ${JSON.stringify(path.join(HERE, '../src/main/contextPack.ts'))}
+import { NO_PACK_NOTE } from ${JSON.stringify(path.join(HERE, '../src/main/sessionBundle.ts'))}
+import { PREAMBLE } from ${JSON.stringify(path.join(HERE, '../src/shared/preamble.ts'))}
 import fs, { existsSync, mkdtempSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { syncBuiltinESMExports } from 'node:module'
 import assert from 'node:assert/strict'
@@ -68,6 +70,10 @@ if (!readFileSync(cfg, 'utf8').includes('tok-' + sid)) fail('the bundle does not
 else ok('the bundle carries the credential it was minted with')
 if (!bundle.args.includes('--strict-mcp-config')) fail('the bundle does not pass --strict-mcp-config')
 else ok('the session is launched with --strict-mcp-config')
+// session-handoff/1 SH-11: the JOINED form. --mcp-config <configs...> is variadic, so in the spaced form the
+// next bare value is read as one more config (Switchboard SB-94); the = closes the list by itself.
+if (bundle.args[0] === '--mcp-config=' + cfg && !bundle.args.includes('--mcp-config')) ok('and its config is the one joined argument --mcp-config=<path>')
+else fail('the config is not passed as the joined --mcp-config=<path>: ' + JSON.stringify(bundle.args.slice(0, 2)))
 
 // M123's other half. The tools were on the surface and NOTHING told the agent to
 // ask for the rules that govern them — only a sentence inside a tool description,
@@ -117,9 +123,11 @@ else ok('the session is launched with --strict-mcp-config')
   const b2 = await angry.compile(sid2, randomUUID(), null, 'claude-code', 'mcp-config-flag')
   if (!b2) fail('a failing context compiler prevented the session from being bundled')
   else ok('a session still gets its bundle when its pack cannot be compiled')
-  if (existsSync(path.join(root, 'sessions', sid2, 'context.md')))
-    fail('a failed compile left a pack file behind')
-  else ok('and no half-written pack is left for it to read')
+  // session-handoff/1 SH-3: context.md is always there — here as the note saying nothing was pre-loaded,
+  // never a half-written pack.
+  if (readFileSync(path.join(root, 'sessions', sid2, 'context.md'), 'utf8') !== NO_PACK_NOTE)
+    fail('a failed compile left something other than the no-pack note in context.md')
+  else ok('and context.md says no memory was pre-loaded, rather than holding a half-written pack')
   if (!existsSync(path.join(root, 'sessions', sid2, 'mcp.json')))
     fail('the credential was not written when the pack failed')
   else ok('the credential is still written — the surface is what the session needs to work at all')
@@ -276,8 +284,10 @@ else {
     ok('an agent gets what it ASKED for, not everything the project grants')
   else fail('agent servers wrong: ' + Object.keys(cfg4.mcpServers).join(','))
 
-  const prompt = b4.args[b4.args.indexOf('--append-system-prompt') + 1]
-  if (prompt.startsWith('Watch releases') && prompt.includes('fabric_whoami'))
+  // Brief + preamble is more than one line, so it is the handoff's brief.md (session-handoff/1 SH-8).
+  const briefFile = b4.args[b4.args.indexOf('--append-system-prompt-file') + 1]
+  const prompt = briefFile ? readFileSync(briefFile, 'utf8') : ''
+  if (prompt.startsWith('Watch releases') && prompt.trimEnd().endsWith(PREAMBLE))
     ok('and its brief comes first, with Fabric preamble last so the rules are the final word')
   else fail('the prompt was: ' + prompt.slice(0, 80))
 
