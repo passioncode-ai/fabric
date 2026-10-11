@@ -392,6 +392,9 @@ node --test scripts/test/test-stack.test.mjs scripts/test/rehearse-upgrade.test.
 # ADR-0111: the inputs the release takes from CI — the identity, the tag, a commit on main (ancestry, so
 # a tag on main checks out), the signer read back — and electron-builder's own reading of the release config.
 node --test scripts/test/release-mac.test.mjs
+# 0.4.0 wave 1 (fused build): the packaged-app check of bin/fabric-mcp (spawns fake launchers only, no app), and how
+# the native probes start Fabric — the DevTools port, never --inspect, which a fused binary ignores.
+node --test scripts/test/smoke-platform.test.mjs apps/desktop/test/app-launch.test.mjs
 # Lifecycle contract (ADR-0106): a scheduled job can never wedge — deadlines, process groups, the
 # publication lock, status and rotation.
 node --test scripts/test/bounded-run.test.mjs

@@ -168,7 +168,7 @@ jobs:
           timeout 600 "$installer" //S
           exe=$(find "$LOCALAPPDATA/Programs" -maxdepth 2 -iname 'Fabric.exe' | head -1)
           test -n "$exe" || { echo "Fabric.exe not found under $LOCALAPPDATA/Programs"; exit 1; }
-          node scripts/smoke-platform.mjs --exe "$exe" --expect started --timeout 300 \
+          node scripts/smoke-platform.mjs --exe "$exe" --expect started --timeout 300 --mcp \
             --receipt "apps/desktop/dist/fabric-$version-windows-${{ matrix.arch }}.json" --check installed-start
           "$(dirname "$exe")/Uninstall Fabric.exe" //S
           for i in $(seq 1 120); do [ -e "$exe" ] || break; sleep 5; done
@@ -229,7 +229,7 @@ jobs:
           version=$(node -p 'require("./apps/desktop/package.json").version')
           sudo apt-get install -y -q "./apps/desktop/dist/Fabric-$version-linux-${{ matrix.arch }}.deb"
           desktop-file-validate /usr/share/applications/passioncode-fabric.desktop
-          xvfb-run -a node scripts/smoke-platform.mjs --exe /usr/bin/passioncode-fabric --expect started --timeout 300 \
+          xvfb-run -a node scripts/smoke-platform.mjs --exe /usr/bin/passioncode-fabric --expect started --timeout 300 --mcp \
             --receipt "apps/desktop/dist/fabric-$version-linux-${{ matrix.arch }}.json" --check installed-start
       - name: Collect the release files
         run: |

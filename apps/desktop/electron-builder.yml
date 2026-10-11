@@ -44,7 +44,11 @@ npmRebuild: false
 # Audit 2026-10-05 A7-006: the binary's Electron fuses, read back from the built app by scripts/release-mac.mjs
 # (scripts/lib/release-mac.mjs#RELEASE_FUSES says why each is set). runAsNode stays on — the helpers run as
 # ELECTRON_RUN_AS_NODE=1 (src/main/helperProcess.ts); grantFileProtocolExtraPrivileges stays on while the window
-# loads its page from file://. Everything else a local process could use to run Fabric's signed binary as Node is off.
+# loads its page from file://. The others are off. Measured on the fused 0.4.0 build (2026-10-11): NODE_OPTIONS is
+# ignored, an app folder outside the asar is not loaded, and the app ignores `--inspect`. What runAsNode keeps open:
+# `ELECTRON_RUN_AS_NODE=1 Fabric -e <code>` runs any code, and `--inspect` still opens Node's inspector in that mode
+# (the fuse governs the app, not Node mode), so the signed binary is still a Node interpreter for any local process
+# until the helpers stop needing runAsNode. `--remote-debugging-port` is a Chromium switch no fuse covers.
 electronFuses:
   runAsNode: true
   enableNodeOptionsEnvironmentVariable: false
