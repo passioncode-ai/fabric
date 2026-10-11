@@ -106,3 +106,8 @@ C13's effect classes; the operator's confirmation in C17 is the grant decision (
 **Step 1 done, 2026-10-11:** fabric-agent-contract DEC-0039 and DEC-0040 merged (`8e49fbd`, PR #30) after a blind
 seam review and its re-check; the meter verifies an onward token minted for it (aud = the meter), presented in
 `Authorization`; follow-ups are CO-260 and two adapter rows in the contract's handoff.
+
+**The machine boundary, 2026-10-11 (ADR-0144 amendment 4, the operator).** On this machine the operator's instruction is
+the authority: no token, approval or grant record is needed locally, money limits and human gates still bind. Every row
+above is required only for a service reachable from another machine or from an external caller (a share grant); for the
+rest it is optional attribution. Owners keep their rows and re-scope them; none has to change a local path.

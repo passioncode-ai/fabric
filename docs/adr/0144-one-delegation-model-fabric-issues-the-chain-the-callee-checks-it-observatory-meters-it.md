@@ -242,3 +242,32 @@ Answers to fabric-agent-contract-75's audit of DEC-0037…0040 (F-B-301, F-B-305
 - Observed in the meter's port (project-observatory-dashboard #210): a grant whose `credentialSource` names another
   agent's key fails the standing-grant schema, so the meter answers `unknown-state` rather than
   `credential-source-refused` — fail closed, the same outcome for the caller.
+
+### Amendment 4 — 2026-10-11: proof starts at the machine boundary
+
+**Decided by the operator** (the operator's global instructions, «This machine is the operator's workplace», read
+2026-10-11 19:30; relayed first by project-observatory-3d). A task the operator gives an agent on this machine needs no
+further proof — no delegation token, no `approval/1`, no grant record: the operator's instruction is the authority.
+Money limits still bind (the project limit, L0, each key's ceiling), and so do the human gates (sign-ins, consents,
+payments and top-ups, secrets typed into hidden prompts). Proof starts at the machine boundary: another machine of the
+operator's is trusted like this one once enrolled in the agent network (RM-21); another person's machine is untrusted —
+a share grant with limits, an expiry and a payer (`principalKind: external`), a delegation token per call, an approval
+for each effect.
+
+What this changes in the decision above:
+
+- **Local callers on the operator's account never need a minted token.** §1's «Fabric must be running to mint … refused
+  `issuer-unavailable`» and DL-8's «no hub, no token → refuse» bind cross-machine and external calls only; a local agent
+  with no hub still works.
+- **A local call that carries a token** has it verified and uses it for attribution and narrowing — optional, never a
+  requirement.
+- **`approval/1` between agents is for external effects.** Locally the operator's instruction stands; the human gates stay
+  human.
+- **The per-agent rows** (the [plan](../evidence/plans/2026-10-11-delegation-model/README.md)) become required only for a
+  service reachable from another machine or from an external caller; on this machine they are optional attribution.
+  The rule against calling a capability with another service's descriptor token stays as hygiene (attribution), not as a
+  local requirement; never spending another agent's key or vault slot stays a rule (money).
+- **Fabric's issuer (wave 4) is still built** — for share grants (REQ-36's guest view), for calls that cross the machine
+  boundary, and for attribution — but no local path waits on it. Observatory's defaults already match:
+  `slotsRequireGrant: when-token`, the keyserver's mode `off`; `always` / `agents` are for a machine serving external
+  callers.
