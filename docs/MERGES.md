@@ -6,7 +6,7 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 
 ### 2026-10-11 · `release-guard` · agent/release-guard → main (fabric#28)
 - base: origin/main 2242628; integration: GitHub merge after the PR's `ci` (`scripts/ci.sh fast`) is green
-- scope: `.github/workflows/release.yml` (the `guard` job, `macos` needs it), the design map entry `#iteration-2026-10-11-release-guard`
+- scope: `.github/workflows/release.yml` (the `guard` job, `macos` needs it), the design map entries `#iteration-2026-10-11-release-guard` and `#iteration-2026-10-11-release-guard-adr`; ADR-0145 (supersedes ADR-0113 in part), runbook steps 4 and 6 (fabric-90)
 - summary: release approval by checks across PassionCode products (operator 2026-10-11): the release runs only from a tag on main with `ci.yml` green on its commit; the environment's reviewers go once this lands.
 ### 2026-10-11 · `release-040-plan` · agent/release-040-plan → main
 - run: r-249d0762eddd; base: origin/main 403faab9; integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
