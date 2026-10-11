@@ -4,6 +4,10 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-11 · `release-040-plan` · agent/release-040-plan → main
+- run: r-249d0762eddd; base: origin/main 403faab9; integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
+- scope: `docs/evidence/plans/2026-10-11-release-040-agents-first.md` (decisions, canvas C1…C12, REQ-01…REQ-36, waves 0–8, questions), its inventory `…-inventory.json` (701 items), `scripts/plan/release-040-waves.py`, P-16 in the plan (lane 2) and the Now line, the SRC-02 re-pin, the regenerated `completeness.html` and `plan.json`, the design map entry, the handoff
+- summary: Fabric 0.4.0 (agents first) planned in wave mode over the whole board; no code changed.
 ### 2026-10-11 · `aptabase-build-mode` · fix/aptabase-build-mode → main (fabric#26)
 - base: origin/main 8bc186a2, merged in (not rebased, so the PR branch is never force-pushed); integration: GitHub merge on the operator's instruction (2026-10-11)
 - scope: `apps/desktop/src/main/analytics.ts#createAnalytics` (`systemProps.isDebug`), `apps/desktop/test/analytics.test.mjs`, `docs/ANALYTICS.md` "What is sent", the design map
