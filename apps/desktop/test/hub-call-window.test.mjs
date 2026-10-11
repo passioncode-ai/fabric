@@ -3,11 +3,21 @@
 // Pure: the grants, the connection and the journal are in-memory stand-ins; the clock and the timers are the test's.
 // Watched failing: with `notSentSpan` journalling every hop (the 0.3.x behaviour), the loop writes 7 200 events.
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import test from 'node:test'
 
 const SRC = path.resolve(import.meta.dirname, '../src/main')
-const { createAgentCall, NOT_SENT_WINDOW_MS } = await import(path.join(SRC, 'hubCall.ts'))
+const { createAgentCall, NOT_SENT_WINDOW_MS, NOT_SENT_CODES } = await import(path.join(SRC, 'hubCall.ts'))
+
+test('the codes a summary may carry are the database\'s: NOT_SENT_CODES equals migration 82\'s v_codes', () => {
+  const sql = readFileSync(path.resolve(import.meta.dirname, '../../../supabase/migrations/20261011000082_write_rules_at_the_door.sql'), 'utf8')
+  const m = /v_codes\s+constant\s+text\[\]\s*:=\s*array\[([^\]]*)\]/.exec(sql)
+  assert.ok(m, 'migration 82 declares v_codes')
+  const dbCodes = [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1])
+  assert.ok(dbCodes.length > 0)
+  assert.deepEqual([...NOT_SENT_CODES].sort(), dbCodes.sort())
+})
 
 const A = { id: '8200000a-0000-4000-8000-0000000000a1', agent_id: 'example-agent.default' }
 const B = { id: '8200000a-0000-4000-8000-0000000000b1', agent_id: 'other-agent.default' }
