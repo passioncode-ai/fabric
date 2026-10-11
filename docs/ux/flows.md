@@ -2105,25 +2105,63 @@ flowchart TD
 ## Start paths · 2026-10-03 (ADR-0100)
 
 ### FLW-69: First run
-- **Traces:** ST-001, ST-022; SCN-126 (JTBD-01)
-- **Goal:** Meet Fabric once and leave on a path.
-- **Entry points:** First launch of an empty estate; Help.
-- **Success exit:** the chosen start path, or home.
-- **Task analysis:** Name and look; check coding agents; choose where to start.
+- **Traces:** ST-001, ST-022, ST-045; SCN-126, SCN-128, SCN-138 (JTBD-01, JTBD-08); 0.4.0 plan REQ-39
+- **Goal:** Meet Fabric once, bring the person's own projects in, and leave with the family's agents set up, on the path the person chose.
+- **Entry points:** First launch of an empty estate; Help → Walk through the first run again; the next start after a first run left unfinished.
+- **Success exit:** Home (SCR-30), or the start path chosen in step 4 opened over it.
+- **Task analysis:**
+  1. Name, language and look (one screen step; every field optional).
+  2. Choose the folder where projects live (system picker at the last location; path + Change).
+  3. Review the checklist the scan found and import the ticked folders — the first value.
+  4. Choose what to do first (one of four actions, or later).
+  5. Set up Project Observatory, then the Fabric Dashboards agent, in the person's coding agent (FLW-78).
+  6. Finish: Home or the chosen action.
+- **Onboarding:** SCR-70
+- **First value:** SCR-72 — the person's own projects found and imported, inside the first run (step 3)
+- **Rejected shape:** the coding agents and their setup first, projects after (ADR-0135's first cut: name → coding agents → four actions) — lost because the operator put the projects first (REQ-39, 2026-10-11 evening): the first value, "Fabric found my projects", needs nothing installed, while asking for setup before any value made the persona screen a dead end ("lost after the persona screen"). Lives in ADR-0135 §1 and the plan's canvas C5. Reopens if the walk shows people abandoning step 5 because it comes after the value.
+- **Steps past five:** six, because the operator fixed the order (REQ-39) and each step is a decision only the person can make; every step can be skipped and says what is lost.
 - **Flow:**
 
 ```mermaid
 flowchart TD
- A[Screen: SCR-70 step 1 Your Fabric] -->|Continue / Skip| B[SCR-70 step 2 Coding agents]
- B -->|Continue / continue without an agent, including while checking| C[SCR-70 step 3 Where to start]
- C -->|path| D[Start path SCR-71..75]
- C -->|Later| H[Home]
+ A[Screen: SCR-70 step 1 Fabric and you] -->|Continue or Skip| B[Screen: SCR-70 step 2 Projects folder]
+ A -->|look not saved| A_err[Inline: not saved, Continue without saving]
+ A_err -->|Continue without saving| B
+ B -->|Choose folder or Change| P{System picker at the last folder}
+ P -->|cancel| B
+ P -->|folder| B2[Path shown with Change]
+ B2 -->|Scan this folder| S[Screen: SCR-72 in the first run, scanning with Stop]
+ B -->|I have no projects yet| D[Screen: SCR-70 step 4 First action]
+ S -->|macOS refused the folder| S_err[Inline: not allowed, Open System Settings or Choose another]
+ S_err -->|Choose another folder| B
+ S -->|Stop, also after the slow notice| B
+ S -->|empty folder| S_empty[Inline: nothing here, Change or no projects yet]
+ S_empty -->|Change| B
+ S -->|found| L[Checklist: repositories ticked, plain folders unticked, In project disabled]
+ L -->|Choose another folder| B
+ L -->|Import N as projects| I[Importing row by row]
+ I -->|some rows failed| I_err[Inline: failed rows keep their reason and stay ticked]
+ I_err -->|Import again, same ids| I
+ I_err -->|Continue with N imported| D
+ I -->|all imported| D
+ D -->|one of four actions, or Decide later| E[Screen: SCR-77 in the first run, the family's agents first]
+ E -->|both verified| F{Finish recorded?}
+ E -->|Skip with a reason| F
+ F -->|yes, an action chosen| G[Screen: the chosen start path SCR-71 to SCR-75 over Home]
+ F -->|yes, none chosen| H[Screen: SCR-30 Home]
+ F -->|no| F_err[Inline: it will open again next time, Try again]
+ F_err -->|Try again| F
+ F_err -->|go on| H
 ```
 
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-70 First run | first-visit, saving, not-saved, checking, found, found-unconnected, unresponsive, missing, check-failed, authenticated, not-authenticated, auth-unsupported, auth-unknown, choose-path, skipped |
+  | SCR-70 First run | first-visit, language-system, saving, not-saved, folder-unset, picker-cancel, folder-chosen, no-projects-yet, choose-action, action-chosen, choose-agent, choice-not-saved, finishing, finish-failed, resumed, skipped |
+  | SCR-72 Scan a projects folder | first-run, scanning, slow, cancelled, denied, results, empty, no-repositories, plain-folder, duplicate, importing, partial, imported |
+  | SCR-77 Setup: coding agents and products | first-run, checking, agents-read, agent-disabled, ready, console-open, verified, skip-asked, skipped |
+  | SCR-30 Estate home | default |
+- **Amended 2026-10-11 (0.4.0 plan REQ-39):** redrawn to the operator's order; until then the flow was name and look → coding agents → where to start (ADR-0100, ADR-0129), and its coding-agent states moved to SCR-77 (FLW-78).
 
 ### FLW-70: Add an existing project
 - **Traces:** ST-001, ST-031; SCN-127 (JTBD-01)
@@ -2149,18 +2187,23 @@ flowchart TD
   | SCR-71 Add a project | idle, picker-cancel, reading, ready, duplicate, not-git, creating, failed, created |
 
 ### FLW-71: Scan a projects folder
-- **Traces:** ST-001, ST-031; SCN-128 (JTBD-01)
+- **Traces:** ST-001, ST-031; SCN-128, SCN-126 (JTBD-01); 0.4.0 plan REQ-39
 - **Goal:** Bring many repositories in, each as its own Project.
-- **Entry points:** Start menu; first run; the pending-candidates note.
+- **Entry points:** Start menu; the first run's step 3 (FLW-69), on the folder its step 2 chose; the pending-candidates note.
 - **Success exit:** projects created for the ticked rows.
-- **Task analysis:** Choose a parent; review the checklist; tick; add.
+- **Task analysis:** Choose a parent (system picker at the last folder; path + Change); review the checklist, repositories already ticked; adjust the ticks; add.
+- **Amended 2026-10-11 (REQ-39):** repositories at the head of a product arrive ticked and top-level plain folders arrive unticked; macOS refusing the folder (denied), a folder of plain folders only (no-repositories) and a slow walk are their own branches.
 - **Flow:**
 
 ```mermaid
 flowchart TD
- A[Screen: SCR-72 Scan] -->|Choose| S[Scanning]
- S -->|Stop| A
- S --> L[Checklist grouped by product]
+ A[Screen: SCR-72 Scan] -->|Choose or Change| S[Scanning]
+ S -->|Stop, also after the slow notice| A
+ S -->|macOS refused the folder| S_err[Inline: not allowed, Open System Settings or Choose another]
+ S_err -->|Choose another folder| A
+ S -->|only plain folders| N[No repositories: plain folders listed unticked]
+ N -->|tick and Add| I
+ S --> L[Checklist grouped by product, repositories ticked]
  L -->|tick and Add| I[Importing row by row]
  I --> D[Summary: added / not added]
  D -->|retry ticked| I
@@ -2170,7 +2213,7 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-72 Scan a projects folder | idle, picker-cancel, scanning, cancelled, results, empty, truncated, unreadable, deep, symlinks, kept-unreadable, not-kept, no-match, duplicate, part-ticked, importing, partial, imported, failed |
+  | SCR-72 Scan a projects folder | idle, picker-cancel, scanning, slow, cancelled, denied, results, empty, no-repositories, plain-folder, truncated, unreadable, deep, symlinks, kept-unreadable, not-kept, no-match, duplicate, part-ticked, importing, partial, imported, failed |
 
 ### FLW-72: Create a new project
 - **Traces:** ST-001; SCN-129 (JTBD-01)
@@ -2324,3 +2367,200 @@ flowchart TD
   |---|---|
   | SCR-41 Ranked Board and question detail | access request (enrollment) |
   | SCR-76 Agent access | waiting, read, revoked |
+
+## Agents first — the operator's evening additions · 2026-10-11 (0.4.0 plan REQ-38, REQ-39, REQ-41, REQ-42)
+
+### FLW-78: Set up the family's own agents first
+- **Traces:** ST-045, ST-001; SCN-138, SCN-126 (JTBD-08); 0.4.0 plan REQ-10, REQ-11, REQ-39, REQ-40; ADR-0135
+- **Goal:** Project Observatory and the Fabric Dashboards agent installed, registered and verified by the person's own coding agent, before any other agent.
+- **Entry points:** the first run's step 5 (FLW-69); Home's «Finish setting up» card; SCR-77 → «Set up the family's agents».
+- **Success exit:** both products verified in SCR-77; Continue (first run) or Done (Settings).
+- **Task analysis:** Choose the coding agent (preselected by its rule); start setup; answer each step in the console; read the checklist Fabric fills from what it observes.
+- **Rejected shape:** Fabric installing the products itself behind a progress bar — lost because ADR-0135 (operator D-04) keeps installs the coding agent's act on the person's consent, and a checklist of the agent's claims would show progress Fabric cannot prove. Lives in the plan's D-04 and ADR-0135 Context. Reopens only by a new ADR.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ A[Screen: SCR-77 coding agents and the two family products] -->|detection failed| A_err[Inline: could not check, Check again]
+ A_err -->|Check again| A
+ A -->|no agent can run setup| N[Inline: each agent with its reason and install command]
+ N -->|Check again after installing| A
+ N -->|Skip for now| K
+ A -->|choose an agent; a disabled row says why| R[Ready: Set up with the chosen agent]
+ R -->|Set up with agent| C[Screen: SCR-25 Setup console, the agent asks before each step]
+ C -->|each step observed| O[SCR-77 line ticked with its time]
+ O -->|next step| C
+ C -->|agent says done, not observed| NC[Line: not confirmed, what Fabric looked for]
+ NC -->|Check again| O
+ C -->|download not verified| RF[Line: refused, nothing installed]
+ RF -->|Try again| C
+ C -->|Observatory install failed| F1[Line: Observatory not set up, stopped at step]
+ F1 -->|Try again| C
+ F1 -->|Use another coding agent| R
+ F1 -->|Continue with Fabric Dashboards| C
+ C -->|console closed mid-way| CC[SCR-77 keeps what was observed]
+ CC -->|Continue setup| C
+ O -->|both verified| V[Verified: both answering, with times]
+ R -->|Skip for now| K[Skip asks why and says what is lost]
+ K -->|Skip with a reason| X[Skipped: Home shows Finish setting up]
+ X -->|Finish setting up| A
+ V -->|Continue or Done| E[Exit: first run continues, or Settings]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-77 Setup: coding agents and products | first-run, checking, agents-read, agent-disabled, not-signed-in, choice-not-saved, no-agent, check-failed, ready, console-open, step-observed, step-reported, not-confirmed, refused-unverified, failed, verified, skip-asked, skipped |
+  | SCR-25 Session window | setup |
+  | SCR-30 Estate home | finish-setting-up |
+
+### FLW-79: Set up a product's MCP with a coding agent
+- **Traces:** ST-045; SCN-139, SCN-138 (JTBD-08); 0.4.0 plan REQ-41, REQ-11; ADR-0135
+- **Goal:** Any family product becomes an MCP of the chosen coding agent, set up by the agent from the product's own instructions, and Fabric shows it verified with a receipt.
+- **Entry points:** SCR-77 → a product row's «Set up with <coding agent>»; «Add to <another agent>» in its menu; a setup done outside Fabric, read by Check again.
+- **Success exit:** the product × agent cell reads verified, with its receipt.
+- **Task analysis:** Pick the product and the agent; let the agent download, verify, install, register and prove; read the cell and its receipt.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ T[Screen: SCR-77 product by agent table] -->|observations unreadable| T_err[Cell: could not read the agent's MCP list, Check again]
+ T_err -->|Check again| T
+ T -->|Set up with agent| C[Screen: SCR-25 Setup console briefed for one product]
+ T -->|already running for this product| B[Inline: already running, Bring it forward]
+ B -->|Bring it forward| C
+ C -->|download not verified| RF[Cell: refused, nothing installed]
+ RF -->|Try again| C
+ C -->|installed| I[Cell: installed, version and signature]
+ I -->|registered in the agent's own list| G[Cell: registered]
+ G -->|product answers Fabric's probe| AN[Cell: answering]
+ AN -->|proving call reported| V[Cell: verified with receipt]
+ G -->|product not answering| NA[Cell: installed, not answering, Open product]
+ NA -->|Check again| G
+ AN -->|proving call failed| PF[Cell: proving call failed, error as reported]
+ PF -->|Try again| C
+ PF -->|product is a project here| FT[File a task in that project with the receipt]
+ V -->|Remove| RM[Screen: SCR-25 console briefed to remove]
+ RM -->|each removal observed| T
+ V -->|Copy receipt| V
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-77 Setup: coding agents and products | loading, read, unreadable, not-installed, installed, registered, answering, verified, not-confirmed, refused-unverified, failed, unsupported-os, setup-running, removing, removed, check-failed |
+  | SCR-25 Session window | setup |
+
+### FLW-80: Coordinate before starting work
+- **Traces:** ST-030, ST-037, ST-045; SCN-140 (JTBD-02, JTBD-07, JTBD-08); 0.4.0 plan REQ-38
+- **Goal:** Every agent in a project knows who holds what before it starts, claims its own work, is warned of related work, and releases it — and the operator sees the same claims.
+- **Entry points:** an agent's `fabric_work_list` at the start of a piece of work (launched, enrolled, handed off, or a product agent through the hub); the project page's «Who is working on what».
+- **Success exit:** the claim released with how it ended, journalled; the project page and «Where work is» current.
+- **Task analysis:** List; claim with what it will touch; heed a warning; work (the claim renews); release with done, handed over or let go.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ L[Agent: fabric_work_list] -->|Fabric not running or hub closed| D_err[Answer: could not check; agent says so, never claims it checked]
+ L -->|board unreadable| U_err[Answer: not read, never nobody]
+ L --> W[Who holds what, open tasks, leases read-only]
+ W -->|fabric_work_claim| C{Same task held?}
+ C -->|yes| H[Refused: held by agent since time]
+ H -->|ask Fabric to hand over| Q[Question to the holder on the board]
+ H -->|choose another or file a linked task| W
+ C -->|other project, or no grant| X[Refused with the reason]
+ C -->|no| K[Claimed with expiry; feed sentence]
+ K -->|related work held by another agent| R[Warning: who, which task, what overlaps]
+ R -->|coordinate: link or hand over| Q
+ R -->|continue knowing| K2[Working; calls renew the claim]
+ K --> K2
+ K -->|answer lost| UK[Outcome unknown: list again, same key is the same claim]
+ UK --> L
+ K2 -->|fabric_work_release done, handed over or let go| RL[Released; project page and Where work is updated]
+ K2 -->|session ends without release| LP[Lapses at expiry: lapsed, the session ended]
+ P[Screen: SCR-31 Who is working on what] -->|Release in a row's menu| PC{Release this claim?}
+ PC -->|confirm| RO[Released by the operator; agent told on its next call]
+ PC -->|cancel| P
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-31 Project page | who-is-working, who-is-working related, who-is-working none, who-is-working stale, release confirm |
+  | SCR-78 Where work is | read, related |
+
+### FLW-81: See where work is
+- **Traces:** ST-004, ST-037, ST-030; SCN-141 (JTBD-02); 0.4.0 plan REQ-17, REQ-38
+- **Goal:** One look tells where every piece of work in the estate is right now and who holds it, the unowned work included.
+- **Entry points:** the sidebar's «Where work is»; Home's estate line.
+- **Success exit:** the operator opens the session, claim or review queue they came for, or admits an unowned session's folder.
+- **Task analysis:** Read per project; read the «Sessions with no project» row; open what needs attention; log an unowned session under a project.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ A[Screen: SCR-78 Where work is] -->|estate unreadable| A_err[Inline: not read, Try again; never no work]
+ A_err -->|Try again| A
+ A -->|a projection unreadable| P[That column says so on every row]
+ A --> R[Rows per project; idle projects counted; last row Sessions with no project]
+ R -->|open a session| S[Screen: SCR-25 session comes forward]
+ R -->|open a claim| T[Screen: SCR-32 task page]
+ R -->|open the review count| B[Screen: SCR-31 the project's board, review column]
+ R -->|Log under a project| C{Consent: matched project, new project, or don't log here}
+ C -->|Allow| AD[Folder admitted; session moves to its project's row]
+ C -->|too broad a folder| RB[Refused with why; session stays unowned]
+ C -->|don't log here| NL[Stays as not logged here; not asked again]
+ AD -->|admission failed| AD_err[Inline: reason, Try again]
+ AD_err -->|Try again| C
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-78 Where work is | loading, read, nothing-in-flight, unreadable, partial, stale, related, no-project-sessions, none-unowned, admitting, admitted, refused-broad, not-logged |
+  | SCR-25 Session window | success |
+  | SCR-32 Task page | success |
+  | SCR-31 Project page | board, holding work |
+
+### FLW-82: From a product's Fabric button to a conversation and a working session
+- **Traces:** ST-031, ST-045; SCN-142 (JTBD-01, JTBD-02, JTBD-08); 0.4.0 plan REQ-42, REQ-16; ADR-0123
+- **Goal:** From any product's page, reach Fabric in that product's project, talk to it in the person's coding agent, go on in a working session, and come back to the page.
+- **Entry points:** Fabric's button on a Fabric Dashboards page or on a family product's dashboard (SCR-79).
+- **Success exit:** the manager session running in that project, a working session opened from it, or the person back on the product's page.
+- **Task analysis:** Press the button; start (or resume) the conversation; open a coding agent in the project; go back to the page.
+- **Rejected shape:** a chat panel drawn inside each product by the service kit — lost because ADR-0123 makes the conversation the coding agent's own console and forbids a second chat surface (and the anti-vision's multi-chat cockpit). Lives in ADR-0123 Decision 1 and 5. Reopens only by a new ADR.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ BT[Screen: SCR-79 Fabric's button on a product page] -->|press| OP[Opening name]
+ OP -->|not forward within 15 s| OP_err[Button: did not open, open it from Applications]
+ OP_err -->|press again| OP
+ OP --> FR{First run finished?}
+ FR -->|no| FRW[Screen: SCR-70 first run; the request waits]
+ FRW -->|finished| M
+ FR -->|yes| M{Manager session for this project open?}
+ M -->|yes| RUN[Screen: SCR-25 manager session brought forward]
+ M -->|no| CF[Screen: SCR-25 confirm: talk to name about project, asked from product]
+ CF -->|project not in Fabric| PU[Offer estate scope; Add its folder]
+ PU -->|start with estate scope| RUN
+ CF -->|no coding agent can start| NA[Each agent with its reason; Set up a coding agent]
+ CF -->|Start| RUN
+ RUN -->|Open in a coding agent| LS[Screen: SCR-80 Start a working session]
+ LS -->|folder held by another agent| IL[Isolated session ticked and locked with the reason]
+ IL -->|Start| WS
+ LS -->|Start| WS[Screen: SCR-25 working session in the project, handed the conversation]
+ LS -->|start failed| LS_err[Inline: reason, Try again; manager session stays]
+ LS_err -->|Try again| LS
+ RUN -->|Back to product| BK[The product page opens]
+ BK -->|cannot open| BK_err[Inline: address to copy]
+ X[Malformed or unknown link] -->|nothing opened| X_err[Fabric says the link was not understood]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-79 Fabric button in a product | idle, focus, opening, not-opened |
+  | SCR-25 Session window | confirm-start, manager, project-unknown, no-agent, success |
+  | SCR-80 Start a working session | default, folder-changed, isolation-locked, starting, failed |
+  | SCR-70 First run | first-visit |

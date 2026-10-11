@@ -428,15 +428,15 @@ answer.commit → decision + delivery obligation
     +note('Ничего не меняется до вашего решения','Отклонённый паттерн не предлагается снова без новых данных.',action('Принять','accept',true))
   }
   case 'first-run': {
-   // SCR-70 · SCN-126 (ADR-0100): name and look → coding agents → where to start; each step skippable.
-   return title('Здравствуйте. Я Atlas.','Fabric ведёт ваши проекты вместе с агентами, которыми вы уже пользуетесь. Имя и облик меняют только то, как он выглядит.',link('Позже — на главную','r0-home'),'Знакомство · шаг 1 из 3')
-    +panel('Ваш Fabric',field('Имя','name','Atlas','Оставьте пустым — будет «Fabric».')+row('Характер','орбита · искра · волна',badge('Выбрано: орбита'))+row('Вариант','3 варианта · «Ещё варианты»',badge('2')),action('Дальше','next',true))
-    // #region first-run-auth-target — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
-    +panel('Шаг 2 · Исполнители',row('Claude Code','Установлен · версия 2.1.289 · /opt/homebrew/bin/claude',badge('готов'))+row('Вход · пример статуса','Исполнитель сообщает, что вход выполнен',badge('вход выполнен'))+row('Codex','Не установлен · npm install -g @openai/codex',badge('не установлен','attention'))+note('Можно продолжить без проверки','Установка, подключение к Fabric и вход показаны отдельно. Проверка входа не запускает задач. Если статус не подтверждён или проверка ещё идёт, можно перейти дальше.'),action('Проверить снова','recheck')+action('Продолжить без агента','next'))
-    // #endregion first-run-auth-target
-    // 0.3.3 onboarding (operator 2026-10-08): four actions in two pairs; agents are built and adapted in a coding agent's console.
-    +panel('Шаг 3 · С чего начнём? · Агент',row('Создать агента','Новый агент экосистемы в своём репозитории','', 'start-agent')+row('Адаптировать своего агента','Сделанный вне Fabric — на отдельной ветке','', 'start-convert'))
-    +panel('Шаг 3 · С чего начнём? · Проект',row('Открыть проект · одна папка','Папка, в которой вы уже работаете','', 'start-add')+row('Открыть проект · папка с проектами','Сразу все репозитории из папки','', 'start-scan')+row('Создать проект','Новая папка — или пока только идея','', 'start-new'))
+   // SCR-70 · SCN-126 (REQ-39, operator 2026-10-11): name, language and look → projects folder → scan and import → first action → the family's own agents → Home. Each step skippable.
+   return title('Здравствуйте. Я Atlas.','Fabric — место, где вы создаёте агентов, собираете их в цепочки и чините их; и обвязка, которую находит любой агент для кода.',link('Пропустить знакомство','r0-home'),'Знакомство · шаг 1 из 5')
+    +panel('Шаг 1 · Fabric и вы',row('Язык','как в системе · можно сменить',badge('Русский'))+field('Имя','name','Atlas','Оставьте пустым — будет «Fabric».')+row('Облик','орбита · искра · волна — варианты в профиле',badge('Выбрано: орбита')),action('Дальше','next',true))
+    // #region first-run-folder-target — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
+    +panel('Шаг 2 · Где живут ваши проекты',row('Папка','/Users/atlas/DATA',action('Изменить…','choose'))+'<p class="meta">Системный пикер откроется в последней выбранной папке. Fabric читает только папку, которую вы выбрали.</p>',action('Сканировать эту папку','scan',true)+action('У меня пока нет проектов','skip'))
+    +panel('Шаг 3 · Ваши проекты',row('☑ alpha','репозиторий · 1 окт. 2026 · Node.js',badge('отмечен'))+row('  └ worktree alpha-fix','часть alpha · ветка fix',badge('не отмечен'))+row('☑ gamma','репозиторий · коммитов пока нет',badge('отмечен'))+row('☐ notes','не репозиторий: истории Fabric здесь не увидит',badge('папка'))+row('☐ beta','28 сент. 2026 · Python',badge('В проекте Bee'),'r0-project'),action('Импортировать как проекты: 2','import',true)+action('Выбрать другую папку','choose'))
+    // #endregion first-run-folder-target
+    +panel('Шаг 4 · С чего начнём?',row('Создать агента','Новый агент экосистемы в своём репозитории',badge('главное'),'start-agent')+row('Адаптировать своего агента','Сделанный вне Fabric — на отдельной ветке','','start-convert')+row('Открыть проект','Одна папка или папка с проектами','','start-add')+row('Создать проект','Новая папка — или пока только идея','','start-new'),action('Решить позже','later'))
+    +panel('Шаг 5 · Сначала свои агенты семьи',row('Project Observatory','хранит ключи ваших продуктов и знает, какой репозиторий к какому проекту',badge('не установлен','attention'))+row('Агент Fabric Dashboards','показывает ваши сервисы и задачи Fabric по проектам, с кнопкой Fabric на каждой странице',badge('не установлен','attention'))+'<p class="meta">Настройку делает ваш агент для кода в своей консоли и спрашивает перед каждым шагом. Отметка ставится, только когда Fabric сам это увидел.</p>',link('Настроить с Claude Code','setup-agents',{},true)+action('Пропустить с причиной','skip'))
   }
   case 'start-add': {
    // SCR-71 · SCN-127: one folder, its facts, a confirmed name; nothing in the folder changes.
@@ -446,12 +446,14 @@ answer.commit → decision + delivery obligation
   }
   case 'start-scan': {
    // SCR-72 · SCN-128: a checklist; each ticked repository becomes its own Project; nothing without a tick.
+   // REQ-39 (2026-10-11): repositories arrive ticked, plain folders listed unticked, a row already in a Project disabled.
    return title('Открыть проект: папка с проектами','Каждый отмеченный репозиторий станет отдельным проектом. Сканирование только читает.',link('Сканировать снова','start-scan'))
     +panel('Репозиториев: 4, групп: 3 — в ~/DATA · просмотрено 3 окт.',
       row('☑ alpha','1 окт. 2026 · first · Node.js',badge('отмечен'))
      +row('  └ worktree alpha-fix','группа alpha · ветка fix',badge('часть alpha'))
      +row('☐ beta','28 сент. 2026 · Python',badge('В проекте Bee'),'r0-project')
-     +row('☑ gamma','коммитов пока нет',badge('отмечен')),
+     +row('☑ gamma','коммитов пока нет',badge('отмечен'))
+     +row('☐ notes','не репозиторий: истории Fabric здесь не увидит',badge('папка')),
       action('Добавить как проекты: 2','import',true))
     +note('Сканирование остановилось после 5000 папок','Ниже не вся папка — выберите папку поуже.','', 'warning')
   }
@@ -473,6 +475,34 @@ answer.commit → decision + delivery obligation
     +panel('Как это пойдёт',row('1. Выберите папку агента','Fabric читает её и только её','')+row('2. Агент для кода показывает план','ничего не запуская: профиль и каждый файл, который изменится','')+row('3. Он адаптирует агента на отдельной ветке','скилами Fabric Agent Adapter, на новой ветке; ветка, на которой он был, не трогается','')+row('4. Проверка совместимости показывает, что получилось','отчёт: что прошло и что ещё отделяет агента от допуска',''))
     +panel('~/DATA/old-bot',row('Git','репозиторий · main','')+row('Описание из репозитория','Публикует ежедневную сводку новых задач в чат','')+row('Какой агент для кода делает работу','Claude Code','')+row('Скилы Fabric Agent Adapter','установлены для Claude Code (0.8.1)',badge('готово')),action('Начать адаптацию','start',true)+action('Выбрать другую папку','choose'))
     +note('Эта папка уже проект Old bot','Адаптация пойдёт в нём; второго проекта для той же папки не будет.')
+  }
+  case 'setup-agents': {
+   // SCR-77 · SCN-138/139 (REQ-39, REQ-40, REQ-41; ADR-0135): the coding agent does the setup in its console; Fabric ticks only what it observes.
+   const cell=(text,tone='')=>badge(text,tone)
+   return title('Настройка: агенты для кода и продукты','Настройку делает ваш агент для кода в своей консоли и спрашивает перед каждым шагом. Отметка ставится, только когда Fabric сам это увидел.',link('К настройкам','estate-settings'))
+    +panel('Агенты для кода',row('◉ Claude Code','установлен · 2.1.296 · вход выполнен · скилы есть · подключён к Fabric',cell('выбран'))+row('○ Codex','установлен · 0.162.1 · вход не выполнен — выбрать можно; чтобы настроить, войдите в его окне и проверьте снова',cell('можно выбрать'))+row('○ Kilo Code (недоступен)','не установлен — установите: npm install -g @kilocode/cli, затем «Проверить снова»',action('Копировать','copy'))+'<p class="meta">Выбран первый в вашей очерёдности агентов. Выбор сохранится при «Дальше» первым в очерёдности; если ничего не менять, ничего не записывается.</p>',action('Проверить снова','recheck'))
+    +panel('Сначала свои агенты семьи',row('Project Observatory','установлен 1.8.0 · подпись верна · есть в списке MCP Claude Code · отвечает · проверочный вызов — со слов агента',cell('✓ проверен в 21:04'))+row('Агент Fabric Dashboards','установлен · есть в списке MCP — но не отвечает на проверку Fabric',cell('◌ не подтверждено','attention')),link('Настроить с Claude Code','session',{},true)+action('Пропустить с причиной','skip'))
+    +panel('Продукты семьи · по агентам',row('Copylot','Claude Code: проверен · Codex: не зарегистрирован',action('Настроить с Claude Code','setup')+action('…','more'))+row('Asset Foundry','Claude Code: загрузка не прошла проверку — отказано, ничего не установлено',cell('✕ отказано','attention'))+row('Mobile Publisher','Claude Code: зарегистрирован, проверочный вызов не прошёл',action('Попробовать снова','retry')))
+    +note('Квитанция · Copylot × Claude Code','Copylot 0.6.2 · Claude Code 2.1.296 · команда регистрации без секретов · проверочный вызов и его ответ со слов агента · наблюдения Fabric со временем · macOS 26.',action('Копировать квитанцию','copy'))
+  }
+  case 'where-work': {
+   // SCR-78 · SCN-141/140 (REQ-17, REQ-38): per project — sessions, claims, review, last sign; the unowned sessions row is always there.
+   return title('Где идёт работа','Все проекты: кто работает, над чем и когда был последний признак жизни.',link('Домой','launch-home'))
+    +panel('Atlas',row('Claude Code · запущен Fabric','CO-236 «одна папка — один агент» · взял 40 мин назад · трогает apps/desktop/src/main',badge('связано','attention'),'session')+row('Codex · открыт в терминале','CO-233 «одно task.created на вызов» · взял 12 мин назад · трогает apps/desktop/src/main',badge('связано','attention'),'task')+row('На проверке','2 задачи','','launch-project')+row('Последний признак жизни','1 мин назад',''))
+    +panel('Billing',row('Агент Fabric Dashboards · через хаб','обновить сводку расходов · взял 2 ч назад',badge('нет признаков 25 мин','attention'),'task'))
+    +'<p class="meta">Ещё 6 проектов без работы сейчас.</p>'
+    +panel('Сессии без проекта',row('Claude Code','~/scratch/prototype · с 10:42',action('Записывать в проект…','admit')))
+  }
+  case 'fabric-button': {
+   // SCR-79 · SCN-142 (REQ-42; ADR-0123): one button from the contract's service kit, on a product's page; it opens the manager session, never a chat.
+   return title('Кнопка Fabric на странице продукта','Так кнопка выглядит в Fabric Dashboards и на дашборде любого продукта семьи. Одно действие: разговор с Fabric в проекте этой страницы.',link('Назад','launch-home'))
+    +panel('Copylot · проект Atlas',row('Состояние','покой — только лицо Fabric в нижнем углу страницы',badge('покой'))+row('Наведение или фокус','«Спросить Atlas о проекте Atlas»',badge('фокус'))+row('Нажата','«Открываем Atlas…»',badge('открываем'))+row('Не открылся за 15 с','«Atlas не открылся — откройте его из Программ»',badge('не открылся','attention')),action('Спросить Atlas о проекте Atlas','open',true))
+    +note('Без Fabric на этом Mac кнопки нет','Продукт показывает кнопку, только когда дескриптор Fabric зарегистрирован. Ссылка лишь открывает Fabric и спрашивает; новая сессия начинается по вашему нажатию.')
+  }
+  case 'session-start': {
+   // SCR-80 · SCN-142 (REQ-42, REQ-16; operator rule 2026-10-09): folder by the picker and the isolation checkbox in the same sheet.
+   return title('Начать рабочую сессию','Проект Atlas. Сессия получит ваш разговор с Fabric.',link('Назад','session'))
+    +panel('Где и кем',row('Папка','/Users/atlas/DATA/atlas',action('Изменить…','choose'))+row('☑ Изолированная сессия','в папке работает другой агент — сессия начнётся в своём worktree',badge('заблокировано'))+row('Агент для кода','Claude Code · выбран по вашей очерёдности агентов',''),action('Начать','start',true)+action('Отмена','cancel'))
   }
   default:
    throw new Error('Missing visual renderer: '+view)
