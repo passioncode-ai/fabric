@@ -126,6 +126,8 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
          *  returning a partial list — a caller sized for thousands of rows that
          *  is handed millions has a different problem than paging. */
         maxRows?: number
+        /** Aborts every page's request (a caller's deadline): a refused page is `failed`, as any other. */
+        signal?: AbortSignal
       }
     ): Promise<{ rows: Record<string, unknown>[]; failed: string | null }> {
       const pageSize = opts.pageSize ?? 1000
@@ -140,7 +142,8 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
         for (const c of opts.isNull ?? []) q = q.is(c, null)
         for (const [c, value] of opts.gt ?? []) q = q.gt(c, value)
         for (const c of opts.orderBy) q = q.order(c, { ascending: true })
-        const { data, error, count } = await q.range(from, from + pageSize - 1)
+        const ranged = q.range(from, from + pageSize - 1)
+        const { data, error, count } = await (opts.signal ? ranged.abortSignal(opts.signal) : ranged)
         if (error)
           return {
             rows: [],

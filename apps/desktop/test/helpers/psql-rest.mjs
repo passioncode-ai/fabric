@@ -69,7 +69,10 @@ export function createPsqlRest(url, { maxRows = null } = {}) {
       const statement = `select coalesce(to_json(r), 'null'::json) from ${ident(fn)}(${params.join(', ')}) r;`
       this.statements.push(statement)
       const { out, error } = run(statement)
-      return Promise.resolve(error ? { data: null, error } : { data: JSON.parse(out), error: null })
+      const answer = Promise.resolve(error ? { data: null, error } : { data: JSON.parse(out), error: null })
+      // psql runs synchronously, so there is nothing to abort; accepted for the caller's deadline (CO-206).
+      answer.abortSignal = () => answer
+      return answer
     },
     from(table) {
       const self = this
@@ -102,6 +105,7 @@ export function createPsqlRest(url, { maxRows = null } = {}) {
         limit(n) { limit = n; return q },
         range(from, to) { offset = from; limit = to - from + 1; return q },
         maybeSingle() { single = 'maybe'; return q },
+        abortSignal() { return q }, // psql runs synchronously: nothing to abort (CO-206's deadlines)
         single() { single = 'one'; return q },
         then(resolve, reject) {
           const filter = where.length ? ` where ${where.join(' and ')}` : ''
