@@ -223,3 +223,22 @@ Asked by fabric-agent-contract-75 (the review of DEC-0041, PR #32) and by projec
   under its own grant, or onward from the token of the work it is doing on someone's behalf. Refusals: `no-grant`,
   `credential-source-refused` (the token's project is not the slot's), `principal-unproven`, `grant-revoked` /
   `grant-expired` from the projection, `unknown-state` when the projection cannot be read.
+
+### Amendment 3 — 2026-10-11: one grant per token; the meter's hop; approvals; one refusal form
+
+Answers to fabric-agent-contract-75's audit of DEC-0037…0040 (F-B-301, F-B-305, F-B-306, F-B-311, F-B-314):
+
+- **One grant per token** (F-B-305). A delegation token names exactly one grant (`grant` has at most one item in 0.1);
+  an onward token keeps the same reference. A callee cannot point the meter at a grant the token was not minted under.
+- **The meter's hop is outside the depth limit** (F-B-306). A token whose `aud` is the meter, scope `grant-check` and
+  effect `none` may be one actor deeper than the chain limit (five); no other token may.
+- **No `device` approval yet** (F-B-314). `approval.method` is `prompt` or `operator-channel`; a device check returns
+  with its own decision. Fabric issues only those two.
+- **One refusal form** (F-B-301). The meter answers a grant-check `denied` document whose code is from the one set; the
+  callee passes that code unchanged into the `error.code` of its own refusal (DL-19).
+- **DEC-0039 tightens a service rule** (F-B-311): the operator-session lifetime is a MUST, so a kit cookie longer than
+  seven days now breaks the contract; the contract marks DEC-0039 as a tightening and defines when a descriptor token
+  "rotates".
+- Observed in the meter's port (project-observatory-dashboard #210): a grant whose `credentialSource` names another
+  agent's key fails the standing-grant schema, so the meter answers `unknown-state` rather than
+  `credential-source-refused` — fail closed, the same outcome for the caller.
