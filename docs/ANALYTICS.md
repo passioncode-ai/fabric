@@ -36,6 +36,10 @@ Every event carries:
   (its report 2026-10-05-analytics-platform-review, decision 3; Switchboard does the same,
   fabric-switchboard#75). `environmentFor` in `analytics.ts`, test "environment: production only for an
   installed release version, sandbox otherwise".
+- Aptabase's build mode follows `props.environment`: `isDebug` is `true` exactly when the environment is not
+  `production`, so a pre-release or a development run lands in the dashboard's Debug view, never in Release
+  (sshlg-analytics client contract, "Build modes", 2026-10-09). Test "isDebug agrees with environment: a
+  pre-release or a development run lands in the Debug view".
 
 Nothing else identifies the machine or the person.
 
