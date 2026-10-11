@@ -62,7 +62,7 @@ jobs:
       - name: What runs per OS, and the package's names
         run: |
           node --experimental-strip-types apps/desktop/test/platform.test.mjs
-          node --test scripts/test/package-platform.test.mjs
+          node --test scripts/test/package-platform.test.mjs scripts/test/smoke-platform.test.mjs
       - name: Build the installer
         run: node scripts/package-platform.mjs --platform win32 --arch ${{ matrix.arch }}
       - name: Install it for this user, silently
@@ -75,7 +75,7 @@ jobs:
           test -n "$exe" || { echo "Fabric.exe not found under $LOCALAPPDATA/Programs"; ls "$LOCALAPPDATA/Programs"; exit 1; }
           echo "FABRIC_EXE=$exe" >> "$GITHUB_ENV"
       - name: Start it (a Windows runner has no Docker for Linux containers, so the stack's absence is the expected end)
-        run: node scripts/smoke-platform.mjs --exe "$FABRIC_EXE" --expect started --timeout 300
+        run: node scripts/smoke-platform.mjs --exe "$FABRIC_EXE" --expect started --timeout 300 --mcp
       - name: Uninstall it, and wait for the copied uninstaller to finish
         run: |
           dir=$(dirname "$FABRIC_EXE")
@@ -131,7 +131,7 @@ jobs:
       - name: What runs per OS, and the package's names
         run: |
           node --experimental-strip-types apps/desktop/test/platform.test.mjs
-          node --test scripts/test/package-platform.test.mjs
+          node --test scripts/test/package-platform.test.mjs scripts/test/smoke-platform.test.mjs
       - name: Build the AppImage and the .deb
         run: node scripts/package-platform.mjs --platform linux --arch ${{ matrix.arch }}
       - name: Install the .deb
@@ -146,7 +146,7 @@ jobs:
         with:
           version: latest
       - name: Start the installed app
-        run: xvfb-run -a node scripts/smoke-platform.mjs --exe /usr/bin/passioncode-fabric --expect ${{ matrix.expect }} --timeout 900
+        run: xvfb-run -a node scripts/smoke-platform.mjs --exe /usr/bin/passioncode-fabric --expect ${{ matrix.expect }} --timeout 900 --mcp
       - name: Start the AppImage (its sandbox helper cannot be setuid inside an AppImage)
         run: |
           version=$(node -p 'require("./apps/desktop/package.json").version')

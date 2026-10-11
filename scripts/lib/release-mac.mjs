@@ -208,7 +208,10 @@ export function signatureOf(text) {
  * an app from outside the asar and no asar integrity check, so any local process could run Fabric's signed
  * binary as a Node interpreter carrying Fabric's privacy grants.
  *
- * `runAsNode` stays ON: the helpers run as `ELECTRON_RUN_AS_NODE=1` (`apps/desktop/src/main/helperProcess.ts`).
+ * `runAsNode` stays ON: the helpers run as `ELECTRON_RUN_AS_NODE=1` (`apps/desktop/src/main/helperProcess.ts`), and
+ * so does `bin/fabric-mcp`. That leaves the binary a Node interpreter for any local process: measured on the fused
+ * build 2026-10-11, `ELECTRON_RUN_AS_NODE=1 Fabric -e <code>` runs, and `--inspect` opens the inspector in that mode
+ * (enableNodeCliInspectArguments off stops it only for the app). The fuses below close the other doors, not this one.
  * `grantFileProtocolExtraPrivileges` stays ON: the window loads its page from `file://` (`main/index.ts`
  * `loadFile`), and its module scripts need the privilege until the page is served by a custom protocol.
  */

@@ -28,6 +28,7 @@ import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { releaseGateProblems } from './lib/release-gate.mjs'
+import { packagedMcpCheck } from './lib/smoke-platform.mjs'
 import { thinMachO } from './lib/universal-mac.mjs'
 import { builderConfig, builderIdentity, changelogProblem, fuseProblems, parseReleaseArgs, releaseCommitProblem, signatureOf, tagProblem, verifiedCandidateProblem, workspacePinProblem } from './lib/release-mac.mjs'
 
@@ -135,6 +136,10 @@ try {
   const { getCurrentFuseWire } = createRequire(fromBuilder.resolve('app-builder-lib'))('@electron/fuses')
   const fuseWrong = fuseProblems(await getCurrentFuseWire(app))
   if (fuseWrong.length) fail(`the app's Electron fuses are not the release's: ${fuseWrong.join('; ')}`)
+  // ADR-0134's entry, on the signed and fused app: bin/fabric-mcp runs the binary as Node from app.asar, which only
+  // the built artifact can prove (scripts/lib/smoke-platform.mjs#packagedMcpCheck; a throwaway home, so no hub is found).
+  const mcp = await packagedMcpCheck({ exe: path.join(app, 'Contents', 'MacOS', 'Fabric'), platform: 'darwin', tmpRoot: tmp })
+  if (!mcp.pass) fail(`the app's bin/fabric-mcp does not answer as an MCP server: ${mcp.why}\n${mcp.stderr.trim()}`)
   run('codesign', ['--verify', '--deep', '--strict', '--verbose=2', app])
   // Who signed it is read back from the app, not restated: codesign -dvv answers on stderr.
   const described = spawnSync('codesign', ['-dvv', app], { encoding: 'utf8' })
@@ -152,7 +157,7 @@ try {
   const receipt = { schema: 'FabricMacRelease@1', version, commit, tag: args.tag, artifact: dmgName, bytes: statSync(dmg).size, sha256,
     arch: out('lipo', ['-archs', path.join(app, 'Contents', 'MacOS', 'Fabric')]).trim().split(/\s+/).sort().join(' ') === 'arm64 x86_64' ? 'universal' : fail('Fabric.app is not universal'), minimumMacOS: out('/usr/libexec/PlistBuddy', ['-c', 'Print :LSMinimumSystemVersion', path.join(app, 'Contents', 'Info.plist')]),
     signed: `${signature.authority}, hardened runtime`, team: signature.team, notarization: { dmg: submitted.id, status: submitted.status },
-    checks: { universal: thinMachO(app).length === 0 ? 'every Mach-O carries arm64 and x86_64' : fail(`thin Mach-O in the app: ${thinMachO(app).slice(0, 5).join(', ')}`), codesignDeepStrict: 'passed', fuses: 'read back as electron-builder.yml declares', gatekeeperApp, staple: 'app and DMG validated', gatekeeperDmg },
+    checks: { universal: thinMachO(app).length === 0 ? 'every Mach-O carries arm64 and x86_64' : fail(`thin Mach-O in the app: ${thinMachO(app).slice(0, 5).join(', ')}`), codesignDeepStrict: 'passed', fuses: 'read back as electron-builder.yml declares', fabricMcp: mcp.why, gatekeeperApp, staple: 'app and DMG validated', gatekeeperDmg },
     // Only a build from the release environment is published; anything else is a debug build.
     builtBy: inCI ? { ci: ciRun } : 'local debug build (never published)',
     builtAt: new Date().toISOString() }
