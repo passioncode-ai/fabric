@@ -268,6 +268,7 @@ test('CO-206: the hub store answers within its deadline against a database that 
   const id = '00000000-0000-4000-8000-000000000001'
   const calls = {
     request: () => store.request(id),
+    requestsByIds: () => store.requestsByIds([id]),
     requests: () => store.requests({ status: 'pending', liveAt: new Date().toISOString() }),
     countRequests: () => store.countRequests({ status: 'pending' }),
     binding: () => store.binding(id),
@@ -302,3 +303,19 @@ test('CO-206: the operator\'s revocation fails within its deadline when the data
   await assert.rejects(within(access.request(DOOR, ask()), 1000, 'the agent request'), /did not answer within 60 ms/)
 })
 // #endregion hub-db-deadline
+
+// A6-041 (0.3.2 audit, W1): each overview read every live binding's origin request one at a time (N+1),
+// and the open panel re-reads every 4 s. The origins are now one id-filtered read, chunked by the store.
+test('A6-041: the overview reads the origin requests of every live binding in ONE read, not one per binding', async () => {
+  const { access, store } = setup()
+  for (const r of ['a@example.com', 'b@example.com', 'c@example.com', 'd@example.com']) await allowedAgent(access, { resources: [r] })
+  let single = 0, batched = 0
+  const one = store.request.bind(store), many = store.requestsByIds.bind(store)
+  store.request = async (id) => { single++; return one(id) }
+  store.requestsByIds = async (ids) => { batched++; return many(ids) }
+  const o = await access.overview()
+  assert.equal(o.bindings.length, 4)
+  assert.ok(o.bindings.every((b) => b.registry?.name === 'example-agent'), 'a binding lost its origin request')
+  assert.equal(single, 0, `the overview read ${single} origin requests one at a time`)
+  assert.equal(batched, 1)
+})

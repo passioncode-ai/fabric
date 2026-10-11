@@ -72,7 +72,9 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       columns: Columns,
       column: string,
       values: readonly string[],
-      chunk = 100
+      chunk = 100,
+      /** Aborts every chunk's request (a caller's deadline); a refused chunk is `failed`, as any other. */
+      signal?: AbortSignal
     ): Promise<{ rows: Record<string, unknown>[]; failed: string | null }> {
       const filters = scopeFilters(table, scope)
       if (!values.length) return { rows: [], failed: null }
@@ -80,7 +82,8 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       for (let i = 0; i < values.length; i += chunk) {
         let q = db.from(table).select(columns)
         for (const [c, value] of filters) q = q.eq(c, value)
-        const { data, error } = await q.in(column, values.slice(i, i + chunk) as string[])
+        const filtered = q.in(column, values.slice(i, i + chunk) as string[])
+        const { data, error } = await (signal ? filtered.abortSignal(signal) : filtered)
         // NOT `?? []`. A read that did not happen is not a read that found
         // nothing, and every caller of this function is deciding whether to act.
         if (error)

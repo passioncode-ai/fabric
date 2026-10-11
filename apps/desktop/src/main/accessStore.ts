@@ -149,6 +149,8 @@ export interface GrantFilter {
 
 export interface AccessStore {
   request(id: string): Promise<AccessRequestRow | null>
+  /** The requests with these ids, in one id-filtered read (chunked); an id with no row is simply absent (A6-041). */
+  requestsByIds(ids: readonly string[]): Promise<AccessRequestRow[]>
   /** All matching requests, newest first; a failed/oversize page fails the whole read. */
   requests(filter: RequestFilter): Promise<AccessRequestRow[]>
   /** How many requests match — a count, never the length of a capped page. */
@@ -203,6 +205,13 @@ export function createAccessStore(deps: { db: SupabaseClient; journal: Journal; 
     request(id) {
       return reading('the access request', async (signal) =>
         read(await store.select('access_requests', REQUEST_COLUMNS).eq('id', id).abortSignal(signal).maybeSingle(), 'the access request') as AccessRequestRow | null)
+    },
+    requestsByIds(ids) {
+      return reading('the access requests', async (signal) => {
+        const read = await store.selectIn('access_requests', REQUEST_COLUMNS, 'id', [...new Set(ids)], 100, signal)
+        if (read.failed) throw new Error(`the access requests could not be read: ${read.failed}`)
+        return read.rows as unknown as AccessRequestRow[]
+      })
     },
     requests(filter) {
       return reading('the access requests', async (signal) => {

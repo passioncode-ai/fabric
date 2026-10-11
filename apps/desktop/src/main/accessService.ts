@@ -431,9 +431,11 @@ export class AccessService {
       this.deps.store.liveBindings(),
       this.deps.store.grants({ liveAt })
     ])
+    // Every binding's origin request in ONE read (A6-041): one read per binding was N+1 every 4 s while SCR-76 is open.
+    const byId = new Map((await this.deps.store.requestsByIds(bindings.map((b) => b.request_id))).map((r) => [r.id, r] as const))
     const origins = new Map<string, AccessRequestRow>()
     for (const b of bindings) {
-      const r = await this.deps.store.request(b.request_id)
+      const r = byId.get(b.request_id)
       if (r) origins.set(b.id, r)
     }
     return {
