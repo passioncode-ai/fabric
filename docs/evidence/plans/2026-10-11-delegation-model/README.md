@@ -97,3 +97,11 @@ Each owner filed its row on its own board and named it back; the status lives th
 **A ruling for step 5, asked by fabric-dashboards:** `POST /fabric/v1/login-code` is the host's operation — the contract
 lists the login code among the descriptor token's host uses (`service.md` §Surfaces) — so a host minting a sign-in for
 the dashboard it shows keeps using the descriptor token; it is not a capability call.
+
+**A ruling for webpilot's C17 (BL-015):** each per-agent project link the operator confirmed becomes a standing grant —
+`audience` webpilot, `capabilities` the webpilot tools that link allows, `project` the linked project, `effectCeiling` from
+C13's effect classes; the operator's confirmation in C17 is the grant decision (DEC-0039's grant shape).
+
+**Step 1 done, 2026-10-11:** DEC-0039 and DEC-0040 merged in fabric-agent-contract (`8e49fbd`, PR #30) after a blind
+seam review and its re-check; the meter verifies an onward token minted for it (aud = the meter), presented in
+`Authorization`; follow-ups are CO-260 and two adapter rows in the contract's handoff.

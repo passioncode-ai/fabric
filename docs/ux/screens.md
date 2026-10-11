@@ -98,7 +98,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 ## Design system
 
 - **Style pack:** `paperclip` (SHELEG), adopted 2026-08-31 — see `foundation.md` → Design tooling
-- **Figma library:** none — Figma disabled for this iteration
+- **Figma file:** «Fabric», SSHLG team — [`jYWp36tCEe9lxM0INAyXW2`](https://www.figma.com/design/jYWp36tCEe9lxM0INAyXW2) (0.4.0 REQ-43, created 2026-10-11; to be moved into the folder «PassionCode», one file per product). 14 pages: cover and index, foundations (153 variables from `tokens.passioncode.css`, `tokens.app.css`, `tokens.paperclip.css`, dark default and light), 30 components bound to variables, and 293 frames named `SCR-xx · <screen> · <state>` for every 0.4.0 screen and state in this file; what is not drawn and why is on its cover page. It is the target the screens wave builds to; this file stays the source of truth
 - **Tokens in code:** `apps/desktop/src/renderer/src/tokens.paperclip.css` (pack, verbatim) + `tokens.app.css` (semantic aliases); enforced by `scripts/check-design.mjs`
 - **Component source:** none yet
 - **Assets:** none yet
