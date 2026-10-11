@@ -24,6 +24,8 @@
 
 import { readFileSync } from 'node:fs'
 import { stripComments } from './lib/strip-comments.mjs'
+import { IPC } from '../apps/desktop/src/shared/types.ts'
+import { CHANNEL_RULES, WINDOW_KINDS } from '../apps/desktop/src/shared/ipcWindowPolicy.ts'
 
 const FILE = 'apps/desktop/src/main/index.ts'
 /** Channels main BROADCASTS; they have no handler and no declared answer. */
@@ -74,17 +76,46 @@ for (let m = head.exec(src); m; m = head.exec(src)) {
     )
 }
 
+// WHO MAY CALL IT (CO-091, REQ-31). A channel is open to the window kinds its rule names and to no
+// other, so a channel with no rule is a channel nobody can call — and a channel somebody forgot. The
+// mapped type in `ipcWindowPolicy.ts` already makes a missing key a compile error; this says so in
+// the gate's own words, and also refuses an EMPTY rule, which the type allows.
+const kindProblems = []
+for (const key of Object.keys(IPC)) {
+  const rule = CHANNEL_RULES[key]
+  const kinds = rule ? Object.keys(rule) : []
+  if (!kinds.length) kindProblems.push(`IPC.${key} declares no window kind in CHANNEL_RULES — default deny: no window can call it`)
+  for (const k of kinds) if (!WINDOW_KINDS.includes(k)) kindProblems.push(`IPC.${key} names ${k}, which is no window kind`)
+}
+for (const key of Object.keys(CHANNEL_RULES)) if (!(key in IPC)) kindProblems.push(`CHANNEL_RULES.${key} rules a channel IPC does not declare`)
+// Every window built with the preload is built with its kind: the registry is what the rule is read
+// against, and the preload narrows by the same argument.
+const preloads = [...src.matchAll(/preload:\s*path\.join/g)].length
+const kinded = [...src.matchAll(/additionalArguments:\s*\[windowKindArg\('(?:main|session|editor)'\)\]/g)].length
+const registered = [...src.matchAll(/windowKinds\.register\(/g)].length
+if (kinded !== preloads) kindProblems.push(`${FILE}: ${preloads} windows carry the preload and ${kinded} are given a window kind`)
+if (registered !== preloads) kindProblems.push(`${FILE}: ${preloads} windows carry the preload and ${registered} are registered with windowKinds`)
+problems.push(...kindProblems)
+
 if (problems.length) {
-  console.error(`ipc: ${problems.length} of ${checked} handlers answer an unchecked contract\n`)
+  console.error(`ipc: ${problems.length - kindProblems.length} of ${checked} handlers answer an unchecked contract; ${kindProblems.length} window-kind problems\n`)
   for (const p of problems) console.error('  ' + p)
-  console.error(
-    `\nAnnotate the callback: \`: Promise<Returns<FabricApi['ns']['fn']>>\` for an async handler,\n` +
-      `\`: Returns<FabricApi['ns']['fn']>\` for a synchronous one. The type comes from the one\n` +
-      `declaration, so it cannot become a second list that drifts from it.`
-  )
+  if (problems.length > kindProblems.length)
+    console.error(
+      `\nAnnotate the callback: \`: Promise<Returns<FabricApi['ns']['fn']>>\` for an async handler,\n` +
+        `\`: Returns<FabricApi['ns']['fn']>\` for a synchronous one. The type comes from the one\n` +
+        `declaration, so it cannot become a second list that drifts from it.`
+    )
+  if (kindProblems.length)
+    console.error(
+      `\nGive the channel a rule in apps/desktop/src/shared/ipcWindowPolicy.ts#CHANNEL_RULES naming the window\n` +
+        `kinds that use it today, and build every preload window with windowKindArg(kind) and windowKinds.register.`
+    )
   process.exit(1)
 }
 
 console.log(
-  `ipc: ${checked} of ${checked} handle(IPC.*) calls checked against the answer its channel declares`
+  `ipc: ${checked} of ${checked} handle(IPC.*) calls checked against the answer its channel declares; ` +
+    `${Object.keys(IPC).length} of ${Object.keys(IPC).length} channels declare the window kinds that may use them, ` +
+    `${preloads} of ${preloads} preload windows built with their kind`
 )

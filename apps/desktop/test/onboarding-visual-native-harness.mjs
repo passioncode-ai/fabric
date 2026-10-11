@@ -428,6 +428,8 @@ async function launch(candidate, probe) {
   })
   win = new BrowserWindow({ width: marker.config.width, height: marker.config.height, useContentSize: true, show: !probe,
     title: 'Fabric · CO179 synthetic fixture', webPreferences: { preload: path.join(desktop, 'out/preload/index.cjs'),
+      // The preload exposes the bridge of the kind it is given (CO-091); this host plays the main window.
+      additionalArguments: ['--fabric-window-kind=main'],
       contextIsolation: true, sandbox: true, nodeIntegration: false, webviewTag: false, backgroundThrottling: false, zoomFactor: marker.config.zoomFactor, session: isolated } })
   for (const channel of Object.values(host.IPC)) ipcMain.handle(channel, async (event, ...args) => {
     assert.ok(event.sender === win.webContents && event.senderFrame === win.webContents.mainFrame, 'foreign IPC sender')

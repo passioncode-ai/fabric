@@ -73,9 +73,9 @@ if (!contract.includes('written'))
       'Without it a reattaching view must choose between losing the bytes emitted while its replay ' +
       'was in flight and writing them twice.'
   )
-const preload = read('apps/desktop/src/preload/index.ts')
+const preload = read('apps/desktop/src/preload/api.ts')
 if (!/cb\(sessionId, data, written\)/.test(preload))
-  problems.push('apps/desktop/src/preload/index.ts: the data listener drops the count before the renderer sees it.')
+  problems.push('apps/desktop/src/preload/api.ts: the data listener drops the count before the renderer sees it.')
 
 if (problems.length) {
   for (const p of problems) console.log('  FAIL ' + p)
