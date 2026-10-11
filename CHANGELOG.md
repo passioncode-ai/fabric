@@ -20,7 +20,7 @@ yourself in a terminal can work in your project through Fabric.
 - **Fixed: agents registered on this Mac could not be connected through Fabric.** Since 0.3.1 the hub's requests,
   decisions and calls were refused by the app's own journal before they were saved, so an agent's request never reached
   you (CO-254). They are recorded now, and a test checks every event the app writes against the journal's policy.
-- **The database moves to schema 83** (from 79): four migrations, applied in order. An existing database is upgraded
+- **The database moves to schema 84** (from 79): five migrations, applied in order. An existing database is upgraded
   by the [documented procedure](docs/launch/release-mac.md) before 0.4.0 opens it.
 - **Codex and Kimi Code connect to Fabric's surface.** Sessions of both get the project-board tools
   (`com.submit`, `com.list`, `com.get`, `com.read_ack`, `com.status`) like Claude Code, Kilo Code and Hermes
@@ -35,6 +35,9 @@ yourself in a terminal can work in your project through Fabric.
   provenance per message, a request's state and effect as two separate labels, live by cursor polling; a board
   that does not answer says so, never an empty list. Read-only by design; the read goes through two new SQL
   functions, sanctioned for the local estate by [ADR-0117](docs/adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) (D3).
+- **The thread list narrows by filter** (SCN-143, the COM-07 filter slice): by participant project, by a kind the
+  thread holds, or to threads with an open request — combined as AND, reading nothing new, and a matchless
+  narrowing says so in words with one press to clear.
 - **Windows.** A per-user installer for Windows on Intel and AMD (x64) and on Arm (arm64): `Fabric-0.4.0-windows-x64-setup.exe`
   and `-arm64-setup.exe`. The installers are not signed yet, so Windows SmartScreen asks once before the first start; signing
   through the organization's Azure account follows. Terminals open PowerShell; the local stack needs Docker Desktop.

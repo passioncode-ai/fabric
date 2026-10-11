@@ -245,6 +245,54 @@ await test('operator read refuses what is not there and never writes: no marks, 
   refuses(`set role authenticated; select board_list_operator('${A}',null,0,10)`, /permission denied/)
 })
 
+// Migration 84 (suffix 97) — the thread aggregates the filter slice reads (SCN-143, amended 2026-10-11;
+// COM-07): `kinds` (what a thread HOLDS, sorted and distinct) and `openRequests` (requests outside the
+// contract's terminal set — completed/failed_known/cancelled/expired — with outcome_unknown open, because
+// only reconciliation leaves it). The filters narrow the already-answered list and never re-query the
+// board, so the aggregate has to come from here. To WATCH these fail, run the runner with
+// FABRIC_SKIP_MIGRATION=20261011000097_project_board_thread_aggregates.sql.
+await test('thread aggregates: kinds are what the thread holds, sorted and distinct; a queued request is open', () => {
+  const t = threadsOp(A).threads.find((x) => x.id === threadA)
+  assert.ok(t, 'threadA missing')
+  assert.deepEqual(t.kinds, ['message', 'reply', 'request'], JSON.stringify(t.kinds))
+  assert.ok(t.openRequests >= 1, JSON.stringify(t))
+  const fresh = submit(A, PA1, { idempotency: { epoch: 1, key: key() }, thread: { new: { participants: [PA2], subject: 'Plain notes' } }, kind: 'finding', body: { text: 'f' } }, digest(90))
+  assert.equal(fresh.ok, true, JSON.stringify(fresh))
+  const f = threadsOp(A).threads.find((x) => x.id === fresh.thread)
+  assert.deepEqual(f.kinds, ['finding'])
+  assert.equal(f.openRequests, 0, 'no request in the thread → none open')
+})
+
+await test('openRequests follows the terminal set: completed and cancelled close; outcome_unknown stays open', () => {
+  // No transition command exists yet (COM-07's later slices), so the state is set directly — the same
+  // direct-row access this suite already uses to prove the operator's read writes nothing. The field's
+  // semantics are what is under test, not the (absent) command.
+  const r = submit(A, PA1, request(PA2, [PA2]), digest(91))
+  assert.equal(r.ok, true)
+  const op = () => threadsOp(A).threads.find((x) => x.id === r.thread).openRequests
+  assert.equal(op(), 1, 'queued is open')
+  for (const terminal of ['completed', 'failed_known', 'cancelled', 'expired']) {
+    sql(`update board_requests set state='${terminal}' where message_id='${r.message}'`)
+    assert.equal(op(), 0, `${terminal} is terminal`)
+    sql(`update board_requests set state='queued' where message_id='${r.message}'`)
+    assert.equal(op(), 1, 'back to open')
+  }
+  sql(`update board_requests set state='outcome_unknown' where message_id='${r.message}'`)
+  assert.equal(op(), 1, 'outcome_unknown is open — only reconciliation leaves it')
+})
+
+await test('replace kept the door: service_role reads, authenticated is refused, a retry is still the same act', () => {
+  const ok = threadsOp(A)
+  assert.equal(ok.ok, true)
+  refuses(`set role authenticated; select board_threads_operator('${A}')`, /permission denied/)
+  refuses(`set role anon; select board_threads_operator('${A}')`, /permission denied/)
+  const body = request(PA2, [PA2])
+  const first = submit(A, PA1, body, digest(92))
+  const again = submit(A, PA1, body, digest(92))
+  assert.equal(again.message, first.message)
+  assert.equal(again.repeated, true, 'idempotency survived the function replace')
+})
+
 console.log(`${count} passed, ${failed.length} failed`)
 if (failed.length) process.exit(1)
 // #endregion project-board-core

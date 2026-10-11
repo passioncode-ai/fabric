@@ -10736,7 +10736,7 @@
       "registry_evidence": {
         "file": "docs/ux/screens.md",
         "line": 2007,
-        "coverage_claim": "`apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`; tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx` and `apps/desktop/test/comms-operator-read.test.mjs`",
+        "coverage_claim": "`apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`; the aggregates in migration 84 (`supabase/migrations/20261011000097_project_board_thread_aggregates.sql`); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx`, `apps/desktop/test/comms-operator-read.test.mjs` and `apps/desktop/test/project-board-db.test.mjs` (the aggregate block)",
         "status_claim": "designed"
       },
       "registry_additional_states": [
@@ -10754,6 +10754,11 @@
           "state": "read",
           "trigger": "threads or messages read",
           "behavior": "the lists above, with the last-confirmed time"
+        },
+        {
+          "state": "filtered-empty",
+          "trigger": "the filters match no thread",
+          "behavior": "said in words, with Clear the filters; never reads as the estate's empty answer or the board's silence"
         },
         {
           "state": "unavailable",
@@ -33288,7 +33293,7 @@
       "screen_refs": [
         "SCR-81"
       ],
-      "coverage": "built in this change — `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`, the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` and `apps/desktop/src/shared/commsRead.ts`, the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`, the route and navigation in `apps/desktop/src/shared/appRoute.ts` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx`; Migration 83 (`supabase/migrations/20261011000094_project_board_operator_read.sql`, the operator's read path); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx` and `apps/desktop/test/comms-operator-read.test.mjs`; DB tests in `apps/desktop/test/project-board-db.test.mjs`",
+      "coverage": "built in this change — `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`, the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` and `apps/desktop/src/shared/commsRead.ts`, the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`, the route and navigation in `apps/desktop/src/shared/appRoute.ts` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx`; Migration 83 (`supabase/migrations/20261011000094_project_board_operator_read.sql`, the operator's read path) and migration 84 (`supabase/migrations/20261011000097_project_board_thread_aggregates.sql`, the filter slice's `kinds`/`openRequests` aggregates); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx` and `apps/desktop/test/comms-operator-read.test.mjs`; DB tests in `apps/desktop/test/project-board-db.test.mjs`",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the operator watches projects coordinate without joining a session, and every message on screen is one the board holds — the screen shows the board's truth, never a renderer's cache of it.",
@@ -35119,7 +35124,7 @@
         "file": "docs/ux/flows.md",
         "line": 2568
       },
-      "mermaid_source": "flowchart TD\n R[Left rail: Comms] --> L[SCR-81 loads the estate's threads]\n L -->|none yet| E[Says so in words — an empty list is a true answer]\n L -->|the board does not answer| U[Says the board is unavailable, with Try again — never an empty list]\n L --> T[Thread list: subject, participant names, count, last written]\n T -->|open a thread| M[Messages oldest first: sender project, principal, trusted or asserted; requests carry state AND effect]\n M -->|poll confirms new messages| M\n M -->|a poll fails| P[Last confirmed page stays, with when it was confirmed; the next success resumes from the cursor]\n M -->|Earlier| H[One page further back by the same cursor]\n M -->|a thread the estate does not hold| N[Said as not found, not as empty]",
+      "mermaid_source": "flowchart TD\n R[Left rail: Comms] --> L[SCR-81 loads the estate's threads]\n L -->|none yet| E[Says so in words — an empty list is a true answer]\n L -->|the board does not answer| U[Says the board is unavailable, with Try again — never an empty list]\n L --> T[Thread list: subject, participant names, count, last written]\n T -->|narrow by project, kind held, or open request — reads nothing new| F[The answered list narrows, AND-combined]\n F -->|no match| FE[Said in words, with Clear the filters — never the estate's empty, never the board's silence]\n F -->|clear| T\n T -->|open a thread| M[Messages oldest first: sender project, principal, trusted or asserted; requests carry state AND effect]\n M -->|poll confirms new messages| M\n M -->|a poll fails| P[Last confirmed page stays, with when it was confirmed; the next success resumes from the cursor]\n M -->|Earlier| H[One page further back by the same cursor]\n M -->|a thread the estate does not hold| N[Said as not found, not as empty]",
       "status": "target_or_mixed_not_coverage_claim",
       "scenario_ids": [
         "SCN-143"

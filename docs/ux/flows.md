@@ -2579,6 +2579,9 @@ flowchart TD
  L -->|none yet| E[Says so in words — an empty list is a true answer]
  L -->|the board does not answer| U[Says the board is unavailable, with Try again — never an empty list]
  L --> T[Thread list: subject, participant names, count, last written]
+ T -->|narrow by project, kind held, or open request — reads nothing new| F[The answered list narrows, AND-combined]
+ F -->|no match| FE[Said in words, with Clear the filters — never the estate's empty, never the board's silence]
+ F -->|clear| T
  T -->|open a thread| M[Messages oldest first: sender project, principal, trusted or asserted; requests carry state AND effect]
  M -->|poll confirms new messages| M
  M -->|a poll fails| P[Last confirmed page stays, with when it was confirmed; the next success resumes from the cursor]
@@ -2589,6 +2592,6 @@ flowchart TD
 - **Screens traversed:**
   | Screen | States used here |
   |---|---|
-  | SCR-81 Project comms | loading, empty, read, unavailable, not-found, failed |
+  | SCR-81 Project comms | loading, empty, filtered-empty, read, unavailable, not-found, failed |
 - **Scenarios:** SCN-143
 - **Implementation tasks:** COM-07

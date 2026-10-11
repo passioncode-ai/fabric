@@ -402,3 +402,10 @@ rule the unexecuted pipeline migration reservations move from 92/93 to **95/96**
 stays at **0146**. No pipeline file exists at either number. Receipt:
 `python3 test/audit_regressions/fix-pf-06.03.py`.
 
+**2026-10-11 the board's thread aggregates (SCN-143's filter slice, COM-07):** slot 97 is taken by the
+executed migration `20261011000097_project_board_thread_aggregates.sql`, which is migration 84 by count
+(`kinds` and `openRequests` on the operator's thread list, so the filters narrow the answered list and
+never re-query the board). Under the same ordering rule the unexecuted pipeline migration reservations
+move from 95/96 to **98/99**: `20261011000098_pipeline_definitions.sql` and
+`20261011000099_graph_version_pins.sql`. The reserved ADR stays at **0146**. No pipeline file exists at
+either number. Receipt: `python3 test/audit_regressions/fix-pf-06.03.py`.
