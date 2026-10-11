@@ -4,7 +4,7 @@
 // order is this computer's (it lives in settings.json); an empty order means every launch runs the
 // coding agent it names, as before.
 import { useEffect, useRef, useState } from 'react'
-import type { AppSettings } from '../../shared/types'
+import type { AppSettings, SettingsPatch } from '../../shared/types'
 import { FALLBACK_RUNNERS, type FallbackEntry, type FallbackSession } from '../../shared/runnerRoute.ts'
 import { Button } from './components'
 import { useT } from './i18n'
@@ -16,7 +16,7 @@ const SESSION_KEY = { spawn: 'settings.fallback.session.spawn', 'attach-or-spawn
 
 export function FallbackOrderSetting({ value, onChange }: {
   value: AppSettings['runnerFallback']
-  onChange: (next: Partial<AppSettings>) => Promise<void> | void
+  onChange: (next: SettingsPatch) => Promise<void> | void
 }): React.JSX.Element {
   const t = useT()
   const order = value.order

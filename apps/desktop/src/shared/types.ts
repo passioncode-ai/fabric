@@ -406,6 +406,17 @@ export interface AppSettings {
   runnerFallback: RunnerFallback
 }
 
+// #region settings-patch — docs: docs/ux/scenarios.md#scn-026-follow-the-estate-through-the-journal-feed
+/**
+ * What a WINDOW may change in the settings file (audit 2026-10-05 A7-008, A7-025): the preferences it
+ * shows, and nothing main keeps for itself. `tabs` is main's (`tabsWrite`) and `workspace` is set only by
+ * the folder picker or an import, so a window that sends a stale copy of either — "Mark read" used to send
+ * the whole object it loaded at start — can no longer revert the open tabs or point the mirror at a folder
+ * nobody picked. `shared/appSettings.ts#settingsPatch` refuses anything else.
+ */
+export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'firstRun' | 'runnerFallback'>>
+// #endregion settings-patch
+
 /**
  * The one set of defaults. The renderer used to carry its own three-field copy
  * as a read-failure fallback, which is how the drift above stayed invisible: a
@@ -1230,7 +1241,7 @@ export interface FabricApi {
     /** The settings AND whether they reached the disk (S14). A save that
      *  reported success while the write was refused is how a malformed
      *  `settings.json` used to take the operator's workspace path with it. */
-    write(next: Partial<AppSettings>): Promise<SettingsWrite>
+    write(next: SettingsPatch): Promise<SettingsWrite>
   }
   feed: {
     replay(fromSeq: number): Promise<FeedEvent[]>
