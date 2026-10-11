@@ -124,3 +124,22 @@ test('without the enrollment dependency every enrollment ask is refused', async 
   assert.equal(r.ok, false)
   assert.equal(h.presented.length, 0)
 })
+
+test('the access overview names each enrollment grant\'s own project — an incremental grant on a second project too', async () => {
+  const { memStore } = await import('./helpers/access-memstore.mjs')
+  const { askLines } = await import(path.resolve(import.meta.dirname, '../src/shared/access.ts'))
+  const store = memStore()
+  const service = new AccessService({
+    store, registry: { refresh() {}, resolve() { return { ok: false, reason: 'none' } } }, present: () => {}, connected: async () => true,
+    enrollment: { runner: (id) => (id === 'claude-code' ? { key: id, name: 'Claude Code', summary: null } : null), project: async (id) => (id === PROJECT || id === OTHER ? { id, name: id === PROJECT ? 'site' : 'other' } : null), resolve: resolveFolder }
+  })
+  const op = { kind: 'operator', id: 'op' }
+  const first = await service.request({ kind: 'door' }, { ...ask, folder: '/Users/me/DATA/site' })
+  await service.decide(first.requestId, 'allowed', op)
+  const binding = await service.authenticate((await service.status({ kind: 'door' }, first.requestId, first.pollSecret)).credential)
+  const more = await service.request({ kind: 'binding', binding }, { ...ask, resources: [`project:${OTHER}`], folder: '/Users/me/DATA/other' })
+  await service.decide(more.requestId, 'allowed', op)
+  const [b] = (await service.overview()).bindings
+  const names = b.grants.map((g) => askLines({ capabilities: [g.capability], resources: [g.resource], registry: g.registry ?? b.registry })[0].project.name).sort()
+  assert.deepEqual(names, ['other', 'site'])
+})

@@ -2798,7 +2798,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         const connected = new Map<string, boolean>()
         for (const callee of new Set(waiting.map((r) => r.callee))) connected.set(callee, (await hub.accessStore.liveConnection(callee)) !== null)
         // FACTS, never sentences: the queue phrases them in the operator's language (UX-2), on the prompt's facts.
-        accessRows = waiting.map((r) => pendingFacts(r, connected.get(r.callee) ?? false))
+        accessRows = waiting.map((r) => pendingFacts(r, connected.get(r.callee) ?? false, homedir()))
       } catch (e) {
         // Not silence: the receipt below names this source as failed, so the queue reads as partial.
         accessError = { message: (e as Error).message }
@@ -3404,12 +3404,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return {
       hub: h.doorToken ? { listening: true, origin: surface.origin } : { listening: false, reason: h.down ?? 'the hub is not listening', code: h.downCode, fact: h.downFact },
       products,
-      pending: ov.pending.map((r) => pendingFacts(r, connected.get(r.callee) ?? false)),
+      pending: ov.pending.map((r) => pendingFacts(r, connected.get(r.callee) ?? false, homedir())),
       agents: ov.bindings.map((b) => ({
         bindingId: b.id,
         agent: agentFacts(b.agent_id, b.registry),
         since: b.created_at,
-        grants: b.grants.map((g) => ({ grantId: g.id, callee: g.callee, capability: g.capability, resource: g.resource, line: askLines({ capabilities: [g.capability], resources: [g.resource] })[0], expiresAt: g.expires_at }))
+        grants: b.grants.map((g) => ({ grantId: g.id, callee: g.callee, capability: g.capability, resource: g.resource, line: askLines({ capabilities: [g.capability], resources: [g.resource], registry: g.registry ?? b.registry })[0], expiresAt: g.expires_at }))
       })),
       denials: ov.denials.map((r) => ({ requestId: r.id, agent: agentFacts(r.agent_id, r.registry), callee: r.callee, ask: askLines(r), deniedAt: r.decided_at }))
     }

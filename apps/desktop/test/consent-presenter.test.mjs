@@ -229,4 +229,19 @@ test('A6-036: a connection read that fails keeps the request\'s own reading; an 
   assert.deepEqual(e.reads, [], 'Fabric itself was read as a product connection')
   assert.deepEqual(e.log.slice(1), [['decide', 'r2', 'allowed']])
 })
+
+test('an enrollment\'s folder under the home folder is shown from ~ (the presenter hands accessWords the home folder)', { skip: process.platform === 'win32' }, async (t) => {
+  // A home outside /Users/<name> and /home/<name>, which the shared fallback recognises by itself: only the home
+  // folder the presenter passes can shorten it. os.homedir() reads HOME on POSIX.
+  const was = process.env.HOME
+  const home = '/private/var/fabric-probe-home'
+  process.env.HOME = home
+  t.after(() => { process.env.HOME = was })
+  const h = harness({ answers: [0] })
+  h.p.present({ row: row('r3', { agent_id: 'claude-code', callee: 'fabric', capabilities: ['session.enroll'], resources: ['project:00000000-0000-4000-8000-0000000000a1'], registry: { name: 'Claude Code', project: { id: '00000000-0000-4000-8000-0000000000a1', name: 'Atlas', root: `${home}/work/site`, how: 'exact' } } }), connected: true })
+  await settle()
+  const detail = h.details.join('\n')
+  assert.match(detail, /~\/work\/site/)
+  assert.equal(detail.includes(home), false, 'the home folder itself is not spelled out')
+})
 // #endregion hub-consent-live-connection

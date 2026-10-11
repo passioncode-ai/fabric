@@ -493,7 +493,7 @@ export class AccessService {
   async overview(): Promise<{
     pending: AccessRequestRow[]
     denials: AccessRequestRow[]
-    bindings: Array<BindingRow & { grants: GrantRow[]; registry: AccessRequestRow['registry'] | null }>
+    bindings: Array<BindingRow & { grants: Array<GrantRow & { registry: AccessRequestRow['registry'] | null }>; registry: AccessRequestRow['registry'] | null }>
   }> {
     const now = this.now()
     const liveAt = new Date(now).toISOString()
@@ -505,8 +505,10 @@ export class AccessService {
       this.deps.store.liveBindings(),
       this.deps.store.grants({ liveAt })
     ])
-    // Every binding's origin request in ONE read (A6-041): one read per binding was N+1 every 4 s while SCR-76 is open.
-    const byId = new Map((await this.deps.store.requestsByIds(bindings.map((b) => b.request_id))).map((r) => [r.id, r] as const))
+    // Every binding's origin request — and every live grant's own request, whose registry names an enrollment's project
+    // (ADR-0134: an incremental grant is on another project than the origin's) — in ONE read (A6-041): one read per
+    // binding was N+1 every 4 s while SCR-76 is open.
+    const byId = new Map((await this.deps.store.requestsByIds([...bindings.map((b) => b.request_id), ...grants.map((g) => g.request_id)])).map((r) => [r.id, r] as const))
     const origins = new Map<string, AccessRequestRow>()
     for (const b of bindings) {
       const r = byId.get(b.request_id)
@@ -524,7 +526,11 @@ export class AccessService {
           const decided = origins.get(b.id)?.decided_at
           return decided !== null && decided !== undefined && now - Date.parse(decided) <= CREDENTIAL_CLAIM_WINDOW_MS
         })())
-        .map((b) => ({ ...b, grants: grants.filter((g) => g.binding_id === b.id && Date.parse(g.expires_at) > now), registry: origins.get(b.id)?.registry ?? null }))
+        .map((b) => ({
+          ...b,
+          grants: grants.filter((g) => g.binding_id === b.id && Date.parse(g.expires_at) > now).map((g) => ({ ...g, registry: byId.get(g.request_id)?.registry ?? null })),
+          registry: origins.get(b.id)?.registry ?? null
+        }))
     }
   }
 }
