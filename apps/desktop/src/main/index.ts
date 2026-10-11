@@ -153,6 +153,7 @@ const AUTOMATION_WINDOW = 200
 import { type AnswerOption } from '../shared/answerCommit'
 import { projectWeight, type ProjectSignals } from '../shared/projectWeight'
 import { ops, useOps } from './opsSink'
+import { createCommsOperatorRead } from './commsOperatorRead.ts'
 import { createAnalytics, installationPath, type Analytics } from './analytics'
 import { homedir } from 'node:os'
 import { decideProposal } from './commands/proposalCommands.ts'
@@ -3199,6 +3200,17 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.boardDefer, (_e, input: unknown): Promise<Returns<FabricApi['board']['defer']>> => commitBoardCommand(boardDeps(), 'defer', input))
   handle(IPC.boardReopen, (_e, input: unknown): Promise<Returns<FabricApi['board']['reopen']>> => commitBoardCommand(boardDeps(), 'reopen', input))
   handle(IPC.boardAddTopic, (_e, input: unknown): Promise<Returns<FabricApi['board']['addTopic']>> => commitBoardCommand(boardDeps(), 'topic', input))
+
+  // #region comms-screen — docs: docs/ux/screens.md#scr-81-project-comms
+  // SCR-81 — the operator's read onto the project board, over the same service-role
+  // client the agent surface uses for the board's participant half. The read logic
+  // (unavailable is never empty; the board's refusals travel unchanged) lives in
+  // `commsOperatorRead.ts`, where the tests can reach it without a database.
+  const commsRead = createCommsOperatorRead({ rpc: (fn, args) => db.rpc(fn, args) })
+  handle(IPC.commsThreads, (): Promise<Returns<FabricApi['comms']['threads']>> => commsRead.threads(ACTIVE_ESTATE))
+  handle(IPC.commsList, (_e, threadId: string | null, afterSeq: number, limit?: number): Promise<Returns<FabricApi['comms']['list']>> =>
+    commsRead.list(ACTIVE_ESTATE, threadId ?? null, afterSeq, limit))
+  // #endregion comms-screen
 
   /** Releases with their basis (ADR-0084): the releases, then the tasks and decisions they name,
    *  each read with its own receipt — an unread task leaves its reference without text, never

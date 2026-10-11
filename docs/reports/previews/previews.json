@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "source": {
-    "docs/reports/product.html": "9d28c9332ff1d0121395e82908d41f45c3065167677116afcaf2a17860676ec6",
-    "docs/ux/product-model.json": "ffe0220ed1013bf725dbcd7f60bbef9b9191b557b0680a774537438b947879d0"
+    "docs/reports/product.html": "d7d29544a4fb239f358e58c97b6246939727a76a5a31defe2b4c42df5c0830d6",
+    "docs/ux/product-model.json": "bdf22769db00a7e4d53422282eb31433c0306f614299e3a390750f099887d60e"
   },
   "views": [
     {
@@ -464,6 +464,10 @@
     {
       "id": "session-start",
       "file": "session-start.jpg"
+    },
+    {
+      "id": "project-comms",
+      "file": "project-comms.jpg"
     }
   ]
 }

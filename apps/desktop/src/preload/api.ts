@@ -162,6 +162,10 @@ export function createApi(ipc: BridgeIpc): FabricApi {
     feed: {
       replay: (fromSeq) => ipc.invoke(IPC.feedReplay, fromSeq)
     },
+    comms: {
+      threads: () => ipc.invoke(IPC.commsThreads),
+      list: (threadId, afterSeq, limit) => ipc.invoke(IPC.commsList, threadId, afterSeq, limit)
+    },
     quota: {
       read: () => ipc.invoke(IPC.quotaRead)
     },

@@ -394,3 +394,11 @@ reused. The migration reservations stay at **82/83**. Receipt: `python3 test/aud
 **2026-10-11 the write rules at the door, and the session enrollment (Fabric 0.4.0 wave 1):** slot 82 is taken by the executed migration `20261011000082_write_rules_at_the_door.sql` (CO-200, CO-201), and slot 90 by `20261011000090_session_enrollment.sql` (ADR-0134, the event type of an enrolled session), the latest migration now; schema count 81. Under the same ordering rule the unexecuted pipeline migration reservations move from 82/83 to **91/92**: `20261011000092_pipeline_definitions.sql` and `20261011000093_graph_version_pins.sql`, and the reserved ADR to **0143**. No pipeline file exists at either number. From this wave a migration filename is also held by `supabase/migration-ledger.json` and `scripts/check-migration-order.mjs` (CO-199): a file that sorts below the newest recorded one is refused, so a reservation in prose can no longer land below an applied migration. Receipt: `python3 test/audit_regressions/fix-pf-06.03.py`.
 
 **2026-10-11, later the same wave:** slot 91 is taken by the executed migration `20261011000091_grants_from_the_journal.sql` (the 0.3.2 audit's grant findings A2-015, A7-014, A7-015, A7-020, A7-022; schema count 82). The unexecuted pipeline migration reservations move again, from 91/92 to **92/93**: `20261011000092_pipeline_definitions.sql` and `20261011000093_graph_version_pins.sql`; the reserved ADR stays at 0143. No pipeline file exists at either number.
+
+**2026-10-11 the board's operator read (COM-06/COM-07):** slot 94 is taken by the executed migration
+`20261011000094_project_board_operator_read.sql`, which is migration 83 by count. Under the same ordering
+rule the unexecuted pipeline migration reservations move from 92/93 to **95/96**:
+`20261011000095_pipeline_definitions.sql` and `20261011000096_graph_version_pins.sql`. The reserved ADR
+stays at **0146**. No pipeline file exists at either number. Receipt:
+`python3 test/audit_regressions/fix-pf-06.03.py`.
+

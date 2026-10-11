@@ -59,7 +59,7 @@ describe('the scope bar', () => {
     vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { ceo: { status: vi.fn(async () => ({ active: true })) }, stack: { exposure: vi.fn(async () => null) } } }))
     const props: LaunchShellProps = {
       estateName: 'Mine', projects: [], at: { kind: 'board' },
-      onHome: vi.fn(), onBoard: vi.fn(), onPlan: vi.fn(), onHelp: vi.fn(), onQuota: vi.fn(), onNewProject: vi.fn(), onProject: vi.fn(),
+      onHome: vi.fn(), onBoard: vi.fn(), onComms: vi.fn(), onPlan: vi.fn(), onHelp: vi.fn(), onQuota: vi.fn(), onNewProject: vi.fn(), onProject: vi.fn(),
       onAgents: vi.fn(), onSettings: vi.fn(), onHistory: vi.fn(), onSearch: vi.fn(), searchOpen: false,
       onProfile: vi.fn(), profileOpen: false, onDiscuss: vi.fn(), onChat: vi.fn(), chatOpen: false,
       children: null, ...over

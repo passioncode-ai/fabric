@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 """FIX-PF-10.01 — the Codex capability adapter (sherlock audit, PF-10).
 
-The finding: the Codex descriptor is connectsToSurface=false, adapter 'none';
-the bundle compiler handles mcp-config-flag and none. Launching a Codex
-terminal does not prove access to claim/handoff/memory, so it must not be
-treated as a peer of the Claude executor.
+The finding: the Codex descriptor was connectsToSurface=false, adapter 'none';
+launching a Codex terminal did not prove access to claim/handoff/memory, so it
+could not be treated as a peer of the Claude executor.
 
 The fix under test (agents.ts executorReadiness + sessionBundle gate, driven
 through node type-stripping):
 * a resultChannel capability (surface / packet / none) is checked, not assumed
   from a spawn;
-* Codex (resultChannel 'none') is NOT a ready executor;
 * Claude (surface + real adapter) is ready; a surface claim with a 'none'
   adapter is refused;
 * a session that wants the surface is refused for a non-ready executor; a
   packet-only mode is a separate trusted transport (ready on its own terms).
+
+Amended 2026-10-11: the return trigger on the Codex row was executed — the probe
+in docs/reports/2026-10-11-codex-kimi-surface-probes measured what Codex 0.162.1
+takes, and Codex is now a ready SURFACE executor through the codex-config-home
+adapter. The not-ready witness moves to Cline, whose ACP session still demands a
+sign-in no probe has passed; the rule under test is unchanged: readiness follows
+the capability, never the spawn.
 
 Standard library + node only.
 """
@@ -56,9 +61,15 @@ def t_claude_is_ready_surface():
     assert r["ready"] is True and r["channel"] == "surface"
 
 
-def t_codex_is_not_ready():
+def t_codex_is_ready_surface():
     r = readiness("codex")
-    assert r["ready"] is False, "a Codex terminal was treated as a ready executor"
+    assert r["ready"] is True and r["channel"] == "surface", \
+        "Codex was probed 2026-10-11 (codex-config-home); ready by capability, not by spawn"
+
+
+def t_cline_is_not_ready():
+    r = readiness("cline")
+    assert r["ready"] is False, "a Cline terminal was treated as a ready executor"
     assert "cannot publish a claim" in r["reason"]
 
 
@@ -91,7 +102,8 @@ def t_bundle_gates_the_surface():
 
 def main():
     case("Claude Code is a ready surface executor", t_claude_is_ready_surface)
-    case("Codex is NOT a ready executor", t_codex_is_not_ready)
+    case("Codex is a ready surface executor since the 2026-10-11 probe", t_codex_is_ready_surface)
+    case("Cline is NOT a ready executor (sign-in blocker, unprobed)", t_cline_is_not_ready)
     case("the shell and an unknown agent are not ready", t_shell_and_unknown_not_ready)
     case("the descriptor declares a result channel; packet is a trusted transport",
          t_descriptor_declares_result_channel)

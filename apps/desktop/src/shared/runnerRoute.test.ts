@@ -56,9 +56,11 @@ describe('the operator\'s fallback order', () => {
   })
 
   it('keeps a task on runners that can return its result the way the first choice would', () => {
-    const walk = walkFallback(order(['hermes', 'spawn'], ['kimi-code', 'spawn']), { kind: 'task', permissionMode: null }, probeOf({ hermes: { install: 'missing' } }))
+    // Cline is the witness: since the 2026-10-11 probes Kimi Code returns results through the
+    // surface like Hermes, and Cline is the catalogued runner still without a result channel.
+    const walk = walkFallback(order(['hermes', 'spawn'], ['cline', 'spawn']), { kind: 'task', permissionMode: null }, probeOf({ hermes: { install: 'missing' } }))
     expect(walk.state).toBe('exhausted')
-    expect(walk.passedOver[1]).toMatchObject({ runner: 'kimi-code', result: 'refused' })
+    expect(walk.passedOver[1]).toMatchObject({ runner: 'cline', result: 'refused' })
   })
 
   it('passes over a runner whose spawn already failed, so the caller can move on without walking again', () => {
@@ -99,10 +101,11 @@ describe('the operator\'s fallback order', () => {
 
 describe('a task that records through Fabric\'s tools (0.3.3 verification, iteration 2)', () => {
   it('passes over a runner that does not connect to the surface, and takes the next that does', () => {
-    const walk = walkFallback(order(['codex', 'spawn'], ['claude-code', 'spawn']), { kind: 'task', permissionMode: null, needsSurface: true }, probeOf({}))
+    // Cline is the runner that does not connect since the 2026-10-11 probes connected Codex.
+    const walk = walkFallback(order(['cline', 'spawn'], ['claude-code', 'spawn']), { kind: 'task', permissionMode: null, needsSurface: true }, probeOf({}))
     expect(walk.state).toBe('selected')
     if (walk.state === 'selected') expect(walk.runner).toBe('claude-code')
-    expect(walk.passedOver.map((p) => [p.runner, p.result])).toEqual([['codex', 'refused']])
+    expect(walk.passedOver.map((p) => [p.runner, p.result])).toEqual([['cline', 'refused']])
   })
   it('with the agent surface not listening, no runner is taken for it (iteration 3, ER-6/DA-1)', () => {
     const walk = walkFallback(order(['claude-code', 'spawn']), { kind: 'task', permissionMode: null, needsSurface: true }, probeOf({ 'claude-code': { surfaceUp: false } }))

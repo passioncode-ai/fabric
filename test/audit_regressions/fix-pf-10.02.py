@@ -58,7 +58,9 @@ def t_verified_records_all_three():
 
 
 def t_unready_host_is_not_run():
-    v = verify("codex", GOOD)
+    # 2026-10-11: codex was probed and connected (docs/reports/2026-10-11-codex-kimi-surface-probes);
+    # the unready witness is now cline, whose ACP session still demands a sign-in.
+    v = verify("cline", GOOD)
     assert v["status"] == "NOT_RUN" and "not a ready executor" in v["reason"], \
         "an unready host was not NOT_RUN"
 

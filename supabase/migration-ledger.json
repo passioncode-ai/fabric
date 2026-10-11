@@ -329,6 +329,10 @@
     {
       "file": "20261011000091_grants_from_the_journal.sql",
       "sha256": "f25d57a4fe8a8f6b9a18eda70a863dd6d0984c62e556677b72f68767a7a3518b"
+    },
+    {
+      "file": "20261011000094_project_board_operator_read.sql",
+      "sha256": "7773487f2360fb5b9a13143ddf1f4262048676c7c0bcacfae2b98ac12868d406"
     }
   ]
 }
