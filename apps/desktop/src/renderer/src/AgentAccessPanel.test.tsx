@@ -9,7 +9,7 @@ import { en } from './i18n/en'
 import { ru } from './i18n/ru'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { agentFacts, askLines, type HubOverview } from '../../shared/access'
+import { agentFacts, askLines, pendingFacts, type HubOverview } from '../../shared/access'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.useRealTimers() })
 const fill = (s: string, v: Record<string, string | number>) => Object.entries(v).reduce((x, [k, val]) => x.split(`{${k}}`).join(String(val)), s)
@@ -316,6 +316,90 @@ describe('SCR-76 agent access', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Allow Example agent' }))
     await waitFor(() => expect(document.activeElement).not.toBe(document.body))
     expect(document.activeElement?.textContent).toBe(en['access.pending.title'])
+  })
+})
+
+// ADR-0134: a coding agent's enrollment on SCR-76 — the card, its grant and its denial — said in words. The facts are
+// built the way main builds the overview (index.ts): pendingFacts(row, false) for the card, askLines(row) for a denial,
+// askLines({ capabilities, resources })[0] for a grant, which carries no project name — the panel names it.
+describe('SCR-76 — a coding agent\'s enrollment', () => {
+  const PROJECT = '6f1c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d'
+  const registryOf = (project: Record<string, unknown> | null = { id: PROJECT, name: 'Atlas', root: '/Users/someone/code/atlas', how: 'exact' }) =>
+    ({ key: 'claude-code', kind: 'runner', name: 'Claude Code', installed_by: 'a coding agent on this Mac', repository: null, summary: null, ...(project ? { project } : {}) })
+  const row = (project?: Record<string, unknown> | null) => ({
+    id: 'r-enroll', agent_id: 'claude-code', callee: 'fabric', capabilities: ['session.enroll'], resources: [`project:${PROJECT}`],
+    reason: 'This coding agent, opened in the folder atlas, asks to work in the project Atlas through Fabric.', asked_by_binding: null,
+    requested_at: new Date(Date.now() - 60_000).toISOString(), expires_at: new Date(Date.now() + 7 * 60_000 + 5000).toISOString(),
+    registry: registryOf(project)
+  }) as Parameters<typeof pendingFacts>[0]
+  const claude = agentFacts('claude-code', registryOf())
+  const enrollGrant = { grantId: 'g-enroll', callee: 'fabric', capability: 'session.enroll', resource: `project:${PROJECT}`, line: askLines({ capabilities: ['session.enroll'], resources: [`project:${PROJECT}`] })[0], expiresAt: '2027-10-11T10:00:00Z' }
+  const MACHINE_WORDS = /session\.enroll|project:|registered as|зарегистрирован|connect|подключ|installed by|установил|[0-9a-f]{8}-[0-9a-f]{4}/i
+  // Everything a person can read or hear in the three sections an enrollment appears in — not the Products card,
+  // whose Connect belongs to Fabric Inbox.
+  const said = (container: HTMLElement): string[] => {
+    const copy = container.cloneNode(true) as HTMLElement
+    for (const p of copy.querySelectorAll('[data-product]')) p.remove()
+    // The panel's own lede names what agents can do with products ("a connected product"); it is not the enrollment's.
+    for (const p of copy.querySelectorAll('p')) if (p.textContent === en['access.what'] || p.textContent === ru['access.what']) p.remove()
+    return [copy.textContent ?? '', ...[...copy.querySelectorAll('[aria-label]')].map((e) => e.getAttribute('aria-label') ?? '')]
+  }
+  const projects = (list: Array<{ id: string; name: string }> | Error) => ({ list: vi.fn(async () => { if (list instanceof Error) throw list; return list }) })
+
+  it('the card says who, where, what, the floor and how long; Allow is Allow', async () => {
+    const h = stub(overview({ pending: [pendingFacts(row(), false)] }))
+    show()
+    await screen.findByText('work in Atlas')
+    expect(screen.getByText('A coding agent: Claude Code')).toBeTruthy()
+    expect(screen.getByText('In the folder ~/code/atlas')).toBeTruthy()
+    expect(screen.getByText('Fabric cannot prove this is Claude Code: any program running as you can ask under that name.')).toBeTruthy()
+    expect(screen.queryByText(en['access.floor'])).toBeNull()
+    expect(screen.getByText(/for a year, unless you revoke it/)).toBeTruthy()
+    const allow = screen.getByRole('button', { name: 'Allow Claude Code' })
+    expect(allow.textContent).toBe('Allow')
+    fireEvent.click(allow)
+    await waitFor(() => expect(h.decide).toHaveBeenCalledWith('r-enroll', 'allowed'))
+    await screen.findByText('You let Claude Code work in Atlas.')
+  })
+
+  it('the grant says "works in <project>" until its date; the denial says "asked to work in <project>"', async () => {
+    const stubbed = stub(overview({
+      agents: [{ bindingId: 'b-claude', agent: claude, since: '2026-10-11T10:00:00Z', grants: [enrollGrant] }],
+      denials: [{ requestId: 'r-old', agent: claude, callee: 'fabric', ask: askLines(row()), deniedAt: '2026-10-11T09:00:00Z' }]
+    }))
+    vi.stubGlobal('window', Object.assign(window, { fabric: { hub: stubbed, projects: projects([{ id: PROJECT, name: 'Atlas' }]) } }))
+    show()
+    await screen.findByText('works in Atlas')
+    expect(screen.getByText(fill(en['access.agents.until'], { date: new Date('2027-10-11T10:00:00Z').toLocaleDateString('en') }))).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Revoke for Claude Code: works in Atlas' })).toBeTruthy()
+    expect(screen.getByText('asked to work in Atlas')).toBeTruthy()
+  })
+
+  it('a grant whose project is gone, or whose name could not be read, says so — never its id', async () => {
+    for (const [list, words] of [[[], 'works in a project that is no longer in your list'], [new Error('projects unreadable'), 'works in a project whose name could not be read']] as const) {
+      const stubbed = stub(overview({ agents: [{ bindingId: 'b-claude', agent: claude, since: '2026-10-11T10:00:00Z', grants: [enrollGrant] }] }))
+      vi.stubGlobal('window', Object.assign(window, { fabric: { hub: stubbed, projects: projects(list as never) } }))
+      const { container, unmount } = show()
+      await screen.findByText(words)
+      expect(said(container).filter((w) => MACHINE_WORDS.test(w))).toEqual([])
+      unmount()
+    }
+  })
+
+  it('no machine id, no "registered as", no "connect" in the card, the grant or the denial — text and accessible names, en and ru', async () => {
+    for (const locale of ['en', 'ru'] as const) {
+      const stubbed = stub(overview({
+        pending: [pendingFacts(row(), false), pendingFacts({ ...row(null), id: 'r-bare' }, false)],
+        agents: [{ bindingId: 'b-claude', agent: claude, since: '2026-10-11T10:00:00Z', grants: [enrollGrant] }],
+        denials: [{ requestId: 'r-old', agent: claude, callee: 'fabric', ask: askLines(row()), deniedAt: '2026-10-11T09:00:00Z' }]
+      }))
+      vi.stubGlobal('window', Object.assign(window, { fabric: { hub: stubbed, projects: projects([{ id: PROJECT, name: 'Atlas' }]) } }))
+      const { container, unmount } = show(locale)
+      await screen.findAllByText(locale === 'en' ? 'works in Atlas' : 'работает в проекте «Atlas»')
+      const bad = said(container).filter((w) => MACHINE_WORDS.test(w))
+      expect(bad).toEqual([])
+      unmount()
+    }
   })
 })
 

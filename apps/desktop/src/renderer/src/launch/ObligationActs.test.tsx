@@ -145,6 +145,67 @@ describe('an access request in the queue', () => {
    await waitFor(() => expect(allow.hasAttribute('aria-disabled')).toBe(false))
  })
 
+// ADR-0134: a coding agent's enrollment in the queue says what the native prompt says, in words — built THROUGH
+// pendingFacts(row, false), exactly as main builds the queue's facts (the hub has no connection for 'fabric').
+describe('an enrollment in the queue', () => {
+  const PROJECT = '6f1c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d'
+  const enrollItem = (project: Record<string, unknown> | null = { id: PROJECT, name: 'Atlas', root: '/Users/someone/code/atlas', how: 'exact' }): ObligationLike => ({
+    subject: { kind: 'access-request', id: 'r-enroll' }, projectId: null,
+    access: pendingFacts({
+      id: 'r-enroll', agent_id: 'claude-code', callee: 'fabric', capabilities: ['session.enroll'], resources: [`project:${PROJECT}`],
+      reason: 'This coding agent, opened in the folder atlas, asks to work in the project Atlas through Fabric.', asked_by_binding: null,
+      requested_at: '2026-10-11T10:00:00Z', expires_at: '2026-10-11T10:10:00Z',
+      registry: { key: 'claude-code', kind: 'runner', name: 'Claude Code', installed_by: 'a coding agent on this Mac', repository: null, summary: null, ...(project ? { project } : {}) }
+    } as Parameters<typeof pendingFacts>[0], false)
+  })
+  const MACHINE_WORDS = /session\.enroll|project:|registered as|зарегистрирован|connect|подключ|installed by|установил|[0-9a-f]{8}-[0-9a-f]{4}/i
+  const said = (container: HTMLElement): string[] => [
+    container.textContent ?? '',
+    ...[...container.querySelectorAll('[aria-label]')].map((e) => e.getAttribute('aria-label') ?? '')
+  ]
+
+  it('says who, where, what, the floor and how long — and Allow is Allow', async () => {
+    const decide = vi.fn(async () => ({ ok: true }))
+    const onAccessDecided = vi.fn()
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { hub: { decide } } }))
+    render(<I18nProvider locale="en"><Harness item={enrollItem()} onAccessDecided={onAccessDecided} /></I18nProvider>)
+    expect(screen.getByText('A coding agent: Claude Code')).toBeTruthy()
+    expect(screen.getByText('In the folder ~/code/atlas')).toBeTruthy()
+    expect(screen.getByText('work in Atlas')).toBeTruthy()
+    expect(screen.getByText('Fabric cannot prove this is Claude Code: any program running as you can ask under that name.')).toBeTruthy()
+    expect(screen.queryByText(en['access.floor'])).toBeNull()
+    expect(screen.getByText(/for a year, unless you revoke it/)).toBeTruthy()
+    const allow = screen.getByRole('button', { name: 'Allow Claude Code' })
+    expect(allow.textContent).toBe('Allow')
+    fireEvent.click(allow)
+    await waitFor(() => expect(decide).toHaveBeenCalledWith('r-enroll', 'allowed'))
+    await waitFor(() => expect(onAccessDecided).toHaveBeenCalledWith('You let Claude Code work in Atlas.', null))
+  })
+
+  it('no machine id, no "registered as", no "connect" in its text or its accessible names, en and ru', () => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { hub: { decide: vi.fn() } } }))
+    for (const locale of ['en', 'ru'] as const) for (const item of [enrollItem(), enrollItem(null)]) {
+      const { container, unmount } = render(<I18nProvider locale={locale}><Harness item={item} /></I18nProvider>)
+      expect(said(container).filter((w) => MACHINE_WORDS.test(w))).toEqual([])
+      unmount()
+    }
+  })
+
+  it('without the folder it degrades to no folder line; in ru every fact is Russian', () => {
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, { fabric: { hub: { decide: vi.fn() } } }))
+    const bare = render(<I18nProvider locale="en"><Harness item={enrollItem({ id: PROJECT, name: 'Atlas' })} /></I18nProvider>)
+    expect(bare.container.textContent).not.toContain('In the folder')
+    bare.unmount()
+    const { container } = render(<I18nProvider locale="ru"><Harness item={enrollItem()} /></I18nProvider>)
+    let text = container.textContent ?? ''
+    for (const v of ['This coding agent, opened in the folder atlas, asks to work in the project Atlas through Fabric.', '~/code/atlas', 'Claude Code', 'Atlas', 'Fabric'])
+      text = text.split(v).join(' ')
+    expect(text.match(/[A-Za-z]{3,}/g) ?? []).toEqual([])
+    expect(screen.getByText('В папке ~/code/atlas')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Разрешить: Claude Code' }).textContent).toBe('Разрешить')
+  })
+})
+
 // Audit 2026-10-05 A1-001: "Allow once" grants once, says until when, and offers nothing more.
 describe('allowing a refused act', () => {
   const refused: ObligationLike = { subject: { kind: 'refusal', id: '7' }, projectId: 'p', grantable: { floorClass: 'deletion', target: '/repo/a.md' } }
