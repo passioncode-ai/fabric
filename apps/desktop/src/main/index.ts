@@ -14,7 +14,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { fixPath, resolveSupabaseEnv, stackStatusEnv, startStack, stopStartingStack } from './env'
 import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
 import { applyAppIcon, windowIcon } from './appIcon'
-import { Policy } from './policy'
+import { isFloorClass, Policy } from './policy'
 import { launchOptions, PtyManager } from './pty'
 import { classifyFailure } from '../shared/failure.ts'
 import { createManagedLaunch, type LaunchInput } from './managedLaunch.ts'
@@ -3318,11 +3318,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(
     IPC.attentionGrant,
     async (_e, input: { projectId: string | null; floorClass: string; target: string }): Promise<Returns<FabricApi['attention']['grant']>> => {
+      // The class is the renderer's word, checked before any append (audit A2-015), never cast.
+      if (!isFloorClass(input.floorClass)) throw new Error(`"${String(input.floorClass)}" is not a floor class.`)
       // The answer is returned (A1-001): the act says "allowed until …" instead of offering itself again.
       const { grantId, expiresAt } = await policy.issueGrant({
         estateId: ACTIVE_ESTATE,
         projectId: input.projectId,
-        floorClass: input.floorClass as 'money' | 'deletion' | 'publication',
+        floorClass: input.floorClass,
         target: input.target,
         actor: OPERATOR_ACTOR,
         // An hour. Long enough for an agent to notice and act, short enough
@@ -4126,7 +4128,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       floorClass: 'deletion',
       target: fileRoots.resolve(file, scope),
       actor: OPERATOR_ACTOR,
-      ttlMs: 60_000
+      ttlMs: 60_000,
+      // The one act the write asks for (filesWrite's request): the grant authorises no other (A7-015).
+      actionClass: 'file.overwrite'
     })
     return { grantId, expiresAt }
   })

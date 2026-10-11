@@ -363,7 +363,9 @@ owned_fast_failed=()
 owned_fast_not_run=()
 # run-first-install-db (CO-241, 0.3.4) is here too: the seed a fresh install takes, and the database
 # installs since 0.2.0 made, must open — every fresh install stopped at its identity before it.
-for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db run-first-install-db; do
+# grants-journal-db.test (0.4.0 wave 1, migration 91) holds the floor's grants to the journal: projected in the
+# append, one writer, the presented grant reserved, the rebuild under the estate lock.
+for runner in run-estate-identity-db run-read-schema-db run-function-privileges-db run-hub-access-db run-first-install-db grants-journal-db.test; do
   set +e
   node "apps/desktop/test/$runner.mjs"
   code=$?

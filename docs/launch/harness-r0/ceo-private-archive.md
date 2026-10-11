@@ -686,3 +686,11 @@ can restore it. The native allowlist and type in `apps/desktop/src/main/ceoPriva
 `PRIVATE_ARCHIVE_LIMITS` now read 66–80, and the SQL import (`ceo_private_archive_canonical`) accepts the same; the
 next unqualified schema 81 refuses before digest admission (`apps/desktop/test/ceo-private-archive-codec.test.mjs`).
 `node apps/desktop/test/run-ceo-private-archive-db.mjs` exit 0 on 2026-10-11 against the 80-migration chain.
+
+## Schema-81 and schema-82 compatibility qualification — 2026-10-11
+
+Migration `20261011000090_session_enrollment.sql` is schema count 81 and `20261011000091_grants_from_the_journal.sql`
+(the 0.3.2 audit's grant findings, 0.4.0 wave 1) is count 82; each redefines `ceo_private_archive_canonical` with its
+own count added, so the SQL import accepts 66–82. `PRIVATE_ARCHIVE_LIMITS` reads 66–82 and `schemaContract.json`
+82; the next unqualified schema 83 refuses before digest admission (`apps/desktop/test/ceo-private-archive-codec.test.mjs`).
+`node apps/desktop/test/run-ceo-private-archive-db.mjs` exit 0 on 2026-10-11 against the 82-migration chain.
