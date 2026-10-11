@@ -163,7 +163,7 @@ import { declaredCapabilities, isAvailable } from '../shared/capabilityReport.ts
 import { AGENTS } from '../shared/agents.ts'
 import type { RunStatusView } from '../shared/runStatus.ts'
 import { advancesWatermark, runCyclePasses } from '../shared/cyclePort.ts'
-import type { OpsLevel } from '../shared/opsLog'
+import { causeOf, type OpsLevel } from '../shared/opsLog'
 
 /**
  * Every IPC call, timed and recorded, with a correlation id (M81).
@@ -918,8 +918,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
       syncPower()
       // Observed local exit revokes Fabric credentials even if Run lookup is
       // unavailable. Repeated revocation in the finalizer is idempotent.
-      try { bundles.discard(sessionId) } catch {
-        ops.failed('session.exit-revoke', new Error('Local credential revocation remains unproved'), { sessionId })
+      try { bundles.discard(sessionId) } catch (e) {
+        ops.failed('session.exit-revoke', new Error('Local credential revocation remains unproved'), { sessionId, cause: causeOf(e) })
       }
       // This joins the same finalizer as operator Stop, launch failure and quit.
       // Its observations await terminal.closed, never this callback itself.
@@ -1010,8 +1010,8 @@ async function recordSessionExit(sessionId: string, exitCode: number | null, req
         kind: failure.kind, origin: failure.origin, certainty: failure.certainty,
         retryability: failure.retryability, recovery: failure.recovery,
         abnormal: failure.abnormal, says: failure.says } })
-  } catch {
-    ops.failed('session.exit-diagnostic', new Error('Exit diagnostic remains unavailable'), { sessionId })
+  } catch (e) {
+    ops.failed('session.exit-diagnostic', new Error('Exit diagnostic remains unavailable'), { sessionId, cause: causeOf(e) })
   }
 }
 
@@ -1031,7 +1031,7 @@ function startTranscriptRecovery(): void {
     if (generation !== recoveryGeneration) return
     let delay = 60_000
     try { const result = await recover(); if (result.remaining > 0) delay = 50 }
-    catch { ops.failed('startup.transcript-recovery', new Error('capture_recovery_pending')) }
+    catch (e) { ops.failed('startup.transcript-recovery', new Error('capture_recovery_pending'), { cause: causeOf(e) }) }
     if (generation === recoveryGeneration) {
       recoveryTimer = setTimeout(() => void tick(), delay)
       recoveryTimer.unref()
@@ -4295,7 +4295,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return (data ?? []) as MemoryFact[]
   })
 
-  handle(IPC.terminalOptions, (): Returns<FabricApi['terminal']['options']> => launchOptions())
+  handle(IPC.terminalOptions, (): Promise<Returns<FabricApi['terminal']['options']>> => launchOptions())
   handle(IPC.terminalFallback, async (_e, projectId: string, kind: 'terminal' | 'task', permissionMode?: string | null): Promise<Returns<FabricApi['terminal']['fallback']>> =>
     runnerFallback.configured()
       ? { configured: true, walk: await runnerFallback.walk(projectId, { kind: kind === 'task' ? 'task' : 'terminal', permissionMode: permissionMode ?? null }) }
@@ -4561,7 +4561,7 @@ async function startOrExplain(): Promise<void> {
       if (!events.find((e) => e.seq === probeEvent.seq)) throw new Error('smoke replay did not return the probe')
       const { error: memError } = await store.select('memory_facts', 'id').limit(1)
       if (memError) throw new Error(`smoke memory read failed: ${memError.message}`)
-      const opts = launchOptions()
+      const opts = await launchOptions()
       const probe = await fetch(surface.endpoint, {
         method: 'POST',
         headers: { 'content-type': 'application/json', authorization: 'Bearer nonsense' },

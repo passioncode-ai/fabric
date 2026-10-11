@@ -7,6 +7,7 @@ import type { ContinuationResult } from './continuationDelivery.ts'
 import { continuationDeliveryId } from './continuationDelivery.ts'
 import { LaunchRefusedBeforeSpawn, ProcessLaunchFailure } from './launchFailure.ts'
 import { ops } from './opsSink.ts'
+import { causeOf } from '../shared/opsLog.ts'
 
 export type LaunchResult =
   | { started: true; taskId: string; runId: string; sessionId: string; deliveryId: string; deliveryState: ContinuationResult['state']; says: string }
@@ -107,8 +108,8 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
     try {
       const sent = await deps.dispatch(input.taskId, runId!, sessionId, deliveryId, input.instruction ?? receipt!.instruction!)
       return { started: true, taskId: input.taskId, runId: runId!, sessionId, deliveryId, deliveryState: sent.state, says: sent.says }
-    } catch {
-      ops.failed('launch.delivery-receipt', new Error('Instruction delivery remains unconfirmed'), { sessionId })
+    } catch (e) {
+      ops.failed('launch.delivery-receipt', new Error('Instruction delivery remains unconfirmed'), { sessionId, cause: causeOf(e) })
       return { started: true, taskId: input.taskId, runId: runId!, sessionId, deliveryId, deliveryState: 'outcome_unknown',
         says: 'The session started. Instruction delivery is uncertain; nothing will be resent automatically.' }
     }

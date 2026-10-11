@@ -94,6 +94,12 @@ async function onPath(program: string, envPath: string, { fs, ms }: FsCtx): Prom
   return null
 }
 
+/** Where `program` is on `envPath`, or null — the same asynchronous, bounded walk the first run uses, so the
+ *  launch menu never runs a synchronous `which` on Electron's main thread (audit A6-009/A7-011). */
+export async function findOnPath(program: string, envPath: string, opts: { fs?: ExecutorFs; fsTimeoutMs?: number } = {}): Promise<string | null> {
+  return onPath(program, envPath, { fs: opts.fs ?? REAL_FS, ms: opts.fsTimeoutMs ?? FS_TIMEOUT_MS })
+}
+
 const isDir = async (p: string, { fs, ms }: FsCtx): Promise<boolean> => (await bounded(() => fs.stat(p), ms))?.isDirectory() ?? false
 
 /** nvm's installed Node versions' bin folders, the `alias/default` version first, then newest first. */

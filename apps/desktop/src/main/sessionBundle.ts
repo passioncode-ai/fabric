@@ -25,6 +25,7 @@ import { describeRefusals, planServers, type DeclaredServer, type GatewayFacts }
 import { resolveServers } from '../shared/agentSpec.ts'
 import type { BundleCompiler, SessionBundle } from './pty'
 import { ops } from './opsSink.ts'
+import { causeOf } from '../shared/opsLog.ts'
 import { materialize, verify } from './executionPacket.ts'
 import { MandatoryContextUnmet } from './contextPack.ts'
 
@@ -350,10 +351,10 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
       } catch (error) {
         try {
           discard(sessionId)
-        } catch {
+        } catch (e) {
           // Cleanup must not replace the launch failure, nor log credentials
-          // that a dependency might have included in its exception.
-          ops.failed('sessionBundle.failure', new Error('session bundle rollback failed'))
+          // that a dependency might have included in its exception: the kind only.
+          ops.failed('sessionBundle.failure', new Error('session bundle rollback failed'), { cause: causeOf(e) })
         }
         throw error
       }

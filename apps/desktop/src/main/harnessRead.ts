@@ -149,7 +149,7 @@ export async function harnessFor(input: {
   estateId: string
   projectId: string
   now: string
-  providers: () => LaunchOption[]
+  providers: () => LaunchOption[] | Promise<LaunchOption[]>
   endpoint: string | null
   tools: readonly SurfaceTool[]
 }): Promise<Harness> {
@@ -166,7 +166,7 @@ export async function harnessFor(input: {
   return {
     scope: { projectId, estateWide: ESTATE_WIDE },
     providers: envelope<LaunchOption[]>({
-      data: input.providers(),
+      data: await input.providers(),
       sources: [{ name: 'launch-options', status: 'ok', asOf: now }],
       asOf: now,
       freshness: 'fresh'

@@ -171,6 +171,24 @@ export function atLeast(floor: OpsLevel, level: OpsLevel): boolean {
   return LEVELS.indexOf(level) >= LEVELS.indexOf(floor)
 }
 
+// #region ops-cause — docs: docs/architecture/passioncode-platform.md#12-runtime-reliability-and-observability
+/** What kind of failure a caught error was, without its message: its name and its code (a SQLSTATE such as
+ *  `57014`, `ECONNREFUSED`, `ABORT_ERR`). Audit 2026-10-05 A7-036: thirteen catches recorded a synthetic error
+ *  and dropped the real one, so a stalled database, a refusal and a bug read the same. The message stays out —
+ *  those sites keep a dependency's text (which may carry a credential) out of the log on purpose; a name and a
+ *  code of a fixed shape carry none. */
+export interface OpsCause { name: string; code?: string }
+
+export function causeOf(e: unknown): OpsCause {
+  const raw = e as { name?: unknown; code?: unknown } | null
+  const name = e instanceof Error && typeof raw?.name === 'string' && /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(raw.name)
+    ? raw.name : e instanceof Error ? 'Error' : `non-error ${e === null ? 'null' : typeof e}`
+  const code = typeof raw?.code === 'number' && Number.isFinite(raw.code) ? String(raw.code)
+    : typeof raw?.code === 'string' && /^[A-Za-z0-9_.-]{1,32}$/.test(raw.code) ? raw.code : undefined
+  return code === undefined ? { name } : { name, code }
+}
+// #endregion ops-cause
+
 /** Keep the NEWEST lines. A log that drops the newest to stay small throws away
  *  the failure that is being investigated right now. */
 export function trim(lines: string[], keep: number): string[] {
