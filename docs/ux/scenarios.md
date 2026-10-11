@@ -3492,7 +3492,7 @@ describes the interface; the words themselves are written through `copywriting` 
 - **Design rationale:** REQ-38: agents coordinate through Fabric before they start. The claim is the contract's coordination claim already in the journal (`work.claimed@1`, with expiry and write scopes), so a warning reads from one place. A warning, not a lock, because related work is not the same work — except the same task, which one agent holds at a time. Vision §3 (ADR-0133): Fabric always knows where what is being done and can coordinate the agents.
 - **Telemetry:** journal `work.claimed@1`, `work.renewed@1`, `work.released@1`; the related-work warning is a field of the claim's answer, not an event.
 - **Status:** draft
-- **Coverage:** none yet
+- **Coverage:** partly — the agent side: `apps/desktop/src/main/workTools.ts#registerWorkTools` (`fabric_work_list`, `fabric_work_claim`, `fabric_work_release`), `apps/desktop/test/work-claims-db.test.mjs`; the operator side: `apps/desktop/src/renderer/src/WhoIsWorking.tsx#WhoIsWorking`. Not yet: product agents through the hub (refused-no-grant, wave 4)
 - **Product:** unobserved
 
 ### SCN-141: See where work is across every project — sessions, claims, review, and sessions with no project
@@ -3514,7 +3514,7 @@ describes the interface; the words themselves are written through `copywriting` 
 - **Design rationale:** Canvas C8: the manager knows where work is. The «Sessions with no project» row is always there, so unattributed work is a visible fact and not an absence (vision principle 4). It differs from Sessions (SCR-39, the console switcher): this answers per project, by claim.
 - **Telemetry:** journal `project.repo.attached@1` with `admitted_by: consent` on an admission.
 - **Status:** draft
-- **Coverage:** none yet
+- **Coverage:** partly — `apps/desktop/src/renderer/src/launch/WhereWorkScreen.tsx#WhereWorkScreen` and `apps/desktop/src/main/workRead.ts#readWhereWork`; «Log under a project…» and its consent are REQ-17's, wave 5
 - **Product:** unobserved
 
 ### SCN-142: Open Fabric from a product's button, in that product's project, and go on in a coding agent

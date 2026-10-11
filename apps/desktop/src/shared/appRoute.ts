@@ -66,6 +66,8 @@ export type Tab =
 export type AppRoute =
   | Tab
   | { kind: 'agents' }
+  /** SCR-78 «Where work is» (SCN-141): the manager's view of every claim, session and review queue. A place, not a tab. */
+  | { kind: 'where' }
   /** SCR-41. Estate-wide by default; `projectId` scopes it to one project, `item` opens one row. */
   /** `topic`: arrive with the add-a-topic form open (Home's "+ Add a topic", the launch prototype's SCR-30). */
   | { kind: 'board'; projectId?: string | null; item?: string | null; topic?: boolean }
