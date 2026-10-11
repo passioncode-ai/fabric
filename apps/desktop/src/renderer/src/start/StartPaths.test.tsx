@@ -34,7 +34,10 @@ function bridge(over: Record<string, unknown> = {}) {
       ])
     },
     projects: { create: vi.fn(async (input: { id: string; name: string; repoPaths?: string[] }) => ({ id: input.id, name: input.name })) },
-    settings: { read: vi.fn(async () => ({ runnerFallback: { order: [] } })) },
+    settings: {
+      read: vi.fn(async () => ({ runnerFallback: { order: [] } })),
+      write: vi.fn(async (patch: { runnerFallback?: { order: unknown[] } }) => ({ settings: { runnerFallback: patch.runnerFallback ?? { order: [] } }, saved: true }))
+    },
     tasks: { start: vi.fn(async (_input: unknown) => ({ session: { sessionId: "s1" } })), close: vi.fn(async () => ({ ok: true })) },
     windows: { openSession: vi.fn(async () => undefined) },
     ...over
@@ -66,7 +69,8 @@ describe('the first run (SCN-126)', () => {
       fireEvent.click(await screen.findByRole('button', { name: en['first.skip'] }))
       await screen.findByText(en[key])
       expect(screen.queryByText(en['first.exec.state.found']), 'signed in never promotes Fabric connectivity').toBeNull()
-      fireEvent.click(screen.getByRole('button', { name: en['first.exec.continueWithout'] }))
+      // An installed agent is a choice in any sign-in state (REQ-40), so Continue no longer says «without an agent».
+      fireEvent.click(await screen.findByRole('button', { name: en['first.next'] }))
       await screen.findByText(en['first.start.lede'])
       cleanup()
     }
@@ -149,6 +153,93 @@ describe('the first run (SCN-126)', () => {
     expect(screen.getByRole('button', { name: en['first.exec.continueWithout'] })).toBeTruthy()
   })
 })
+
+// #region first-run-agent-choice-test — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
+describe('the coding agent is chosen in the first run (REQ-40)', () => {
+  // The operator, 2026-10-11: «везде, где у нас выбор агентов, допустим, в онбординге, там нельзя их выбрать».
+  // Step 2 listed the coding agents as rows with nothing to press: no control, no choice, nothing saved.
+  const machine = (): ExecutorRow[] => [
+    { id: 'claude-code', label: 'Claude Code', connected: true, state: 'found', version: '2.1.288', path: '/bin/claude', install: null, authentication: { state: 'authenticated', method: null, reason: null } },
+    { id: 'codex', label: 'Codex', connected: false, state: 'found', version: '0.50.0', path: '/bin/codex', install: null, authentication: { state: 'not-authenticated', method: null, reason: null } },
+    { id: 'kilo', label: 'Kilo Code', connected: true, state: 'missing', version: null, path: null, install: 'npm install -g @kilocode/cli' },
+    { id: 'cline', label: 'Cline', connected: false, state: 'unresponsive', version: null, path: '/bin/cline', install: null }
+  ]
+  const saved = (order: unknown[]) => ({ settings: { runnerFallback: { order } }, saved: true })
+  const writer = () => vi.fn(async (patch: { runnerFallback: { order: unknown[] } }) => saved(patch.runnerFallback.order))
+  async function stepTwo(over: Record<string, unknown> = {}) {
+    const base = bridge()
+    const fabric = bridge({
+      start: { ...base.start, executors: vi.fn(async () => machine()) },
+      settings: { read: vi.fn(async () => ({ runnerFallback: { order: [] } })), write: writer() },
+      ...over
+    })
+    render(<I18nProvider locale="en"><PersonaProvider><FirstRun onFinish={vi.fn()} /></PersonaProvider></I18nProvider>)
+    fireEvent.click(await screen.findByRole('button', { name: en['first.skip'] }))
+    const group = await screen.findByRole('radiogroup', { name: en['first.exec.choose'] })
+    return { fabric, group }
+  }
+  const radio = (group: HTMLElement, name: string) => within(group).getByRole('radio', { name: new RegExp('^' + name) }) as HTMLInputElement
+  const describedBy = (el: HTMLElement) => (el.getAttribute('aria-describedby') ?? '').split(' ').map((id) => document.getElementById(id)?.textContent ?? '').join(' ')
+
+  it('every installed coding agent can be picked — by pointer or keyboard — and the pick is saved at the head of the fallback order', async () => {
+    const { fabric, group } = await stepTwo()
+    await waitFor(() => expect(radio(group, 'Claude Code').checked, 'the default is shown as the choice').toBe(true))
+    const codex = radio(group, 'Codex')
+    expect(codex.disabled, 'installed but not connected is still a choice').toBe(false)
+    expect(codex.type, 'a native radio: Tab reaches the group, the arrow keys move within it, a screen reader names it').toBe('radio')
+    expect(codex.name).toBe(radio(group, 'Claude Code').name)
+    codex.focus()
+    expect(document.activeElement).toBe(codex)
+    fireEvent.click(codex)
+    expect(codex.checked).toBe(true)
+    expect(radio(group, 'Claude Code').checked).toBe(false)
+    expect(describedBy(codex), 'signed out is said beside the choice, with what to do').toContain(en['start.executor.auth.notAuthenticated'])
+    fireEvent.click(screen.getByRole('button', { name: en['first.next'] }))
+    await waitFor(() => expect(fabric.settings.write).toHaveBeenCalledWith({ runnerFallback: { order: [{ runner: 'codex', session: 'spawn' }] } }))
+    await screen.findByText(en['first.start.lede'])
+  })
+
+  it('a coding agent that cannot be picked says why, and what to do', async () => {
+    const { group } = await stepTwo()
+    const kilo = radio(group, 'Kilo Code')
+    expect(kilo.disabled).toBe(true)
+    expect(describedBy(kilo)).toContain(en['first.exec.cannotPick.missing'])
+    expect(screen.getByText('npm install -g @kilocode/cli'), 'the install command is beside it').toBeTruthy()
+    const cline = radio(group, 'Cline')
+    expect(cline.disabled).toBe(true)
+    expect(describedBy(cline)).toContain(en['first.exec.cannotPick.unresponsive'])
+    expect(describedBy(cline)).toContain(en['first.exec.unresponsive'].replaceAll('{program}', 'cline'))
+  })
+
+  it('the saved choice comes back, an untouched one writes nothing, and the rest of the order keeps its place and its modes', async () => {
+    const order = [{ runner: 'kilo', session: 'attach-only' }, { runner: 'codex', session: 'attach-or-spawn' }]
+    const { fabric, group } = await stepTwo({ settings: { read: vi.fn(async () => ({ runnerFallback: { order } })), write: writer() } })
+    await waitFor(() => expect(radio(group, 'Codex').checked, 'the first installed one in the order').toBe(true))
+    expect(screen.getByText(en['start.builder.fromOrder'])).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: en['first.next'] }))
+    await screen.findByText(en['first.start.lede'])
+    expect(fabric.settings.write, 'nothing chosen, nothing written').not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: en['first.back'] }))
+    const again = await screen.findByRole('radiogroup', { name: en['first.exec.choose'] })
+    await waitFor(() => expect(radio(again, 'Codex').checked).toBe(true))
+    fireEvent.click(radio(again, 'Claude Code'))
+    fireEvent.click(screen.getByRole('button', { name: en['first.next'] }))
+    await waitFor(() => expect(fabric.settings.write).toHaveBeenCalledWith({ runnerFallback: { order: [{ runner: 'claude-code', session: 'spawn' }, ...order] } }))
+  })
+
+  it('a choice that was not saved says why and still lets the operator continue', async () => {
+    const write = vi.fn(async () => ({ settings: { runnerFallback: { order: [] } }, saved: false, reason: 'disk full' }))
+    const { group } = await stepTwo({ settings: { read: vi.fn(async () => ({ runnerFallback: { order: [] } })), write } })
+    await waitFor(() => expect(radio(group, 'Claude Code').checked).toBe(true))
+    fireEvent.click(radio(group, 'Codex'))
+    fireEvent.click(screen.getByRole('button', { name: en['first.next'] }))
+    expect((await screen.findByRole('alert')).textContent).toContain(en['first.exec.notSaved'].replace('{reason}', 'disk full'))
+    expect(screen.queryByText(en['first.start.lede']), 'a refused save does not pass silently').toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: en['first.persona.continueAnyway'] }))
+    await screen.findByText(en['first.start.lede'])
+  })
+})
+// #endregion first-run-agent-choice-test
 
 describe('add a project (SCN-127)', () => {
   it('reads the chosen folder, then creates the Project with it attached under the confirmed name', async () => {
@@ -707,6 +798,28 @@ describe('0.3.3 verification, iteration 2: the agent paths', () => {
   })
 })
 
+describe('the coding agent picker of the agent actions (REQ-40)', () => {
+  // A greyed-out option in the picker said «Codex — not installed» and nothing more: no install command, no way to
+  // look again without leaving the screen. Each one that cannot be picked now says what to do, beside the picker.
+  it('a coding agent that cannot be picked says what to do, and Check again reads the machine again', async () => {
+    const executors = vi.fn(async () => [
+      { id: 'claude-code', label: 'Claude Code', connected: true, state: 'found', version: '2.1.288', path: '/bin/claude', install: null },
+      { id: 'codex', label: 'Codex', connected: false, state: 'missing', version: null, path: null, install: 'npm install -g @openai/codex' },
+      { id: 'cline', label: 'Cline', connected: false, state: 'unresponsive', version: null, path: '/bin/cline', install: null }
+    ])
+    bridge({ start: { ...bridge().start, executors } })
+    start('agent')
+    const picker = (await screen.findByLabelText(en['start.builder.label'])) as HTMLSelectElement
+    expect(Array.from(picker.options).filter((o) => o.disabled).map((o) => o.value)).toEqual(['codex', 'cline'])
+    const fixes = document.getElementById(picker.getAttribute('aria-describedby')!.split(' ').find((id) => id !== 'start-builder-hint')!)!
+    expect(within(fixes).getByText(en['start.builder.fixMissing'].replace('{name}', 'Codex'))).toBeTruthy()
+    expect(within(fixes).getByText('npm install -g @openai/codex')).toBeTruthy()
+    expect(within(fixes).getByText(en['first.exec.unresponsive'].replaceAll('{program}', 'cline'))).toBeTruthy()
+    fireEvent.click(within(fixes).getByRole('button', { name: en['start.builder.recheck'] }))
+    await waitFor(() => expect(executors.mock.calls.length).toBeGreaterThan(1))
+  })
+})
+
 describe('adapt an existing agent (SCN-131, REQ-03)', () => {
   it('reads the folder, adapts it in the Project that already holds it, and opens the console with the adapt instruction', async () => {
     const fabric = bridge({ start: { ...bridge().start, inspect: vi.fn(async (): Promise<FolderView> => ({ ...repo({ path: '/w/old-bot', name: 'old-bot' }), importedBy: [{ id: 'p9', name: 'Old bot' }] })) } })
@@ -767,7 +880,9 @@ describe('iteration 1 fixes', () => {
     fireEvent.click(await screen.findByRole('button', { name: en['first.skip'] }))
     await screen.findByText(en['first.exec.unconnected'].replace('{name}', 'Codex'))
     expect(screen.queryByText(en['first.exec.state.found'])).toBeNull()
-    expect(screen.getByRole('button', { name: en['first.exec.continueWithout'] }), 'no agent Fabric can drive: the continue says so').toBeTruthy()
+    // REQ-40: installed but not connected is still a choice (it runs in the folder as itself, and the agent actions
+    // offer it), so Continue no longer says «without an agent»; the pill and the note still say it is not connected.
+    expect(await screen.findByRole('button', { name: en['first.next'] }), 'an installed agent is chosen: the continue says so').toBeTruthy()
   })
 
   it('"Tick all shown" ticks one Project per product, never a worktree; ticking a part warns', async () => {

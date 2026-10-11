@@ -39,6 +39,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { ProjectHeader } from './ProjectHome'
 import { I18nProvider } from './i18n'
+import { en } from './i18n/en'
 import type { ProjectRow } from '../../shared/types'
 import type { ProjectSettingsWrite, SaveSettingsInput } from '../../shared/projectSettings'
 
@@ -266,3 +267,25 @@ describe('a background revision cannot erase what is being typed', () => {
     expect(screen.queryByDisplayValue('Atlas Rebuilt'), "another project's draft followed the switch").toBeNull()
   })
 })
+
+// #region project-settings-agent-choice-test — docs: docs/evidence/plans/2026-10-11-release-040-agents-first.md#operator-additions-evening
+describe('the default coding agent in the project settings (REQ-40)', () => {
+  // The settings form greyed out an agent this Mac does not have and said nothing: a choice that could not be made,
+  // with no reason. Each greyed-out one now says why, as the launch picker and the new-project form already did.
+  it('a coding agent that is not installed says why it cannot be picked', async () => {
+    const api = stub()
+    api.terminal.options.mockResolvedValue([{ id: 'claude-code', available: true }, { id: 'codex', available: false }] as never)
+    show(project())
+    await openSettings()
+    const codex = await waitFor(() => {
+      const o = Array.from(document.querySelectorAll('option')).find((x) => x.value === 'codex')
+      expect(o).toBeTruthy()
+      return o as HTMLOptionElement
+    })
+    expect(codex.disabled).toBe(true)
+    expect(codex.textContent).toContain(en['onboarding.unavailable'])
+    const claude = Array.from(document.querySelectorAll('option')).find((x) => x.value === 'claude-code')!
+    expect(claude.textContent, 'an installed one carries no reason').not.toContain(en['onboarding.unavailable'])
+  })
+})
+// #endregion project-settings-agent-choice-test

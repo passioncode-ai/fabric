@@ -6,7 +6,7 @@
 // failure reuses the same ids, so it never makes a second folder, Project or task.
 
 import { useEffect, useRef, useState } from 'react'
-import { defaultBuilder } from '../../../shared/builderChoice.ts'
+import { defaultBuilder, mayPick } from '../../../shared/builderChoice.ts'
 import { folderNameProblem, type AdapterSkillsView, type ExecutorRow, type FolderView } from '../../../shared/startPaths.ts'
 import { useLocale, useT, type Translate } from '../i18n'
 import { CopyButton, FolderFactsList, Heading, errorText, explainError, purposeFrom, reasonOf } from './startParts'
@@ -121,10 +121,11 @@ function BuilderChoice({ builders, disabled }: { builders: Builders; disabled: b
     )
   const hint = [t('start.builder.hint'), how === 'order' ? t('start.builder.fromOrder') : how === 'found' ? t('start.builder.fromFound') : how === 'order-unread' ? t('start.builder.orderUnread') : '']
     .filter(Boolean).join(' ')
+  const blocked = rows.filter((r) => !mayPick(r))
   return (
     <div className="lp-field">
       <label htmlFor="start-builder">{t('start.builder.label')}</label>
-      <select id="start-builder" aria-describedby="start-builder-hint" value={chosen ?? ''} disabled={disabled} onChange={(e) => choose(e.target.value)}>
+      <select id="start-builder" aria-describedby={blocked.length ? 'start-builder-hint start-builder-fixes' : 'start-builder-hint'} value={chosen ?? ''} disabled={disabled} onChange={(e) => choose(e.target.value)}>
         {rows.map((r) => (
           <option key={r.id} value={r.id} disabled={r.state !== 'found'}>
             {r.state === 'found' ? (r.connected ? r.label : t('start.builder.unconnected', { name: r.label })) : reason(r)}
@@ -132,9 +133,35 @@ function BuilderChoice({ builders, disabled }: { builders: Builders; disabled: b
         ))}
       </select>
       <small className="lp-meta" id="start-builder-hint">{hint}</small>
+      {blocked.length > 0 && <BuilderFixes id="start-builder-fixes" blocked={blocked} disabled={disabled} retry={retry} />}
     </div>
   )
 }
+
+// #region builder-choice-fixes — docs: docs/ux/scenarios.md#scn-136-create-an-ecosystem-agent
+// REQ-40: a greyed-out option said «not installed» and nothing more. Each one that cannot be picked says what to do
+// beside the picker — the install command with Copy, or the run-once advice — and a re-check reads the machine anew.
+function BuilderFixes({ id, blocked, disabled, retry }: { id: string; blocked: ExecutorRow[]; disabled: boolean; retry(): void }): React.JSX.Element {
+  const t = useT()
+  return (
+    <div id={id} className="st-builder-fixes">
+      <ul className="st-builder-reasons">
+        {blocked.map((r) => (
+          <li key={r.id}>
+            {r.state === 'missing'
+              ? <>
+                  <span>{t('start.builder.fixMissing', { name: r.label })}</span>
+                  {r.install && <span className="st-install"><code>{r.install}</code><CopyButton text={r.install} what={r.label} /></span>}
+                </>
+              : <span>{t('first.exec.unresponsive', { program: r.path?.split('/').pop() ?? r.label })}</span>}
+          </li>
+        ))}
+      </ul>
+      <div className="lp-actions"><button type="button" className="lp-button" disabled={disabled} onClick={retry}>{t('start.builder.recheck')}</button></div>
+    </div>
+  )
+}
+// #endregion builder-choice-fixes
 
 // ── The Fabric Agent Adapter skills (REQ-04) ───────────────────────────────
 
