@@ -8,9 +8,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { PERSONA_NAME_MAX, PERSONA_STYLES, personaName, variantsOf, type Persona, type PersonaStyle } from '../../../shared/persona.ts'
 import type { ExecutorRow, ScanView } from '../../../shared/startPaths.ts'
+import { defaultBuilder, mayPick, withHead } from '../../../shared/builderChoice.ts'
+import type { RunnerFallback } from '../../../shared/runnerRoute.ts'
 import { useT } from '../i18n'
 import { FabricAvatar } from '../launch/FabricAvatar'
 import { usePersona } from '../launch/persona'
+import { FALLBACK_CHANGED } from '../useFallbackChoice'
 import { CopyButton, StartCards, errorText, type StartPath } from './StartPaths'
 
 export interface FirstRunProps {
@@ -119,10 +122,22 @@ function PersonaStep({ onNext }: { onNext(): void }): React.JSX.Element {
   )
 }
 
+// #region first-run-agent-choice — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start
+// Step 2 is a choice, not only a list (REQ-40; the operator, 2026-10-11: the coding agents could not be picked in
+// the onboarding). Each row is a native radio: Tab reaches the group, the arrow keys move inside it, a screen reader
+// names each one. Every installed agent that answered can be picked, signed in or not (the sign-in line says what to
+// do); one that is not installed, or did not answer, says why it cannot be picked and what to do instead. The pick is
+// saved at Continue as the head of the fallback order (ADR-0125) — the order the agent actions already preselect
+// from (`defaultBuilder`) — and only when the operator picked: an untouched default writes nothing.
 function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): React.JSX.Element {
   const t = useT()
   const [rows, setRows] = useState<ExecutorRow[] | null>(null)
   const [failure, setFailure] = useState<string | null>(null)
+  // The order as read when the step opened: `undefined` while reading, `null` when the read failed.
+  const [fallback, setFallback] = useState<RunnerFallback | null | undefined>(undefined)
+  const [picked, setPicked] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [problem, setProblem] = useState<string | null>(null)
   // Only the latest check may answer: a slower earlier one arriving last must not replace it (iteration 2).
   const checks = useRef(0)
   const check = (): void => {
@@ -135,7 +150,42 @@ function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): R
     )
   }
   useEffect(() => { check(); return () => { checks.current++ } }, [])
-  const anyFound = rows?.some((r) => r.state === 'found' && r.connected) ?? false
+  useEffect(() => {
+    let alive = true
+    Promise.resolve().then(() => window.fabric.settings.read()).then(
+      (s) => { if (alive) setFallback(s.runnerFallback ?? { order: [] }) },
+      () => { if (alive) setFallback(null) }
+    )
+    return () => { alive = false }
+  }, [])
+  // What is shown as chosen: the operator's pick while it can still be picked (a re-check may take it away), else
+  // the same default the agent actions compute — the fallback order's first installed agent, then a connected one.
+  const preselected = rows && fallback !== undefined ? defaultBuilder(rows, fallback) : null
+  const chosen = picked && rows?.some((r) => r.id === picked && mayPick(r)) ? picked : preselected
+  const how = picked === chosen || !chosen ? null
+    : (fallback?.order ?? []).some((e) => e.runner === chosen) ? 'start.builder.fromOrder' : fallback === null ? 'start.builder.orderUnread' : 'start.builder.fromFound'
+
+  const next = async (): Promise<void> => {
+    if (busy) return
+    if (!picked || picked !== chosen) { onNext(); return }
+    setBusy(true)
+    setProblem(null)
+    try {
+      // The order is read again right before it is written: one edited in Settings meanwhile keeps its entries, and
+      // an order that could not be read is never replaced by a list of one.
+      const current = (await window.fabric.settings.read()).runnerFallback ?? { order: [] }
+      if (current.order[0]?.runner === picked) { onNext(); return }
+      const written = await window.fabric.settings.write({ runnerFallback: { order: withHead(current, picked) } })
+      if (!written.saved) { setProblem(t('first.exec.notSaved', { reason: written.reason ?? '' })); return }
+      window.dispatchEvent(new Event(FALLBACK_CHANGED)) // open launchers read the order again
+      onNext()
+    } catch (e) {
+      setProblem(t('first.exec.notSaved', { reason: errorText(e) }))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <section className="st-first-step" aria-labelledby="first-exec">
       <div className="st-first-stage">
@@ -144,53 +194,72 @@ function ExecutorStep({ onBack, onNext }: { onBack(): void; onNext(): void }): R
       </div>
       <div className="lp-panel">
         {failure && <div className="lp-callout" role="alert"><p>{t('first.exec.failed', { reason: failure })}</p></div>}
+        {problem && <div className="lp-callout" role="alert"><p>{problem}</p><button type="button" className="lp-button" onClick={onNext}>{t('first.persona.continueAnyway')}</button></div>}
         {rows === null && !failure && <p aria-busy="true">{t('first.exec.checking')}</p>}
         {rows && (
-          <ul className="st-exec">
-            {rows.map((r) => (
-              <li key={r.id} className={`st-exec-row ${r.state}`}>
-                <div>
-                  <b>{r.label}</b>
-                  <small>
-                    {r.state === 'found' && t('first.exec.found', { version: r.version ?? '?' })}
-                    {r.state === 'unresponsive' && t('first.exec.unresponsive', { program: r.path?.split('/').pop() ?? r.label })}
-                    {r.state === 'missing' && t('first.exec.missing')}
-                  </small>
-                  {r.path && <code>{r.path}</code>}
-                  {/* #region executor-auth-status — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start */}
-                  {r.state === 'found' && <small data-authentication={r.authentication?.state ?? 'unknown'}>
-                    {t(r.authentication?.state === 'authenticated' ? 'start.executor.auth.authenticated'
-                      : r.authentication?.state === 'not-authenticated' ? 'start.executor.auth.notAuthenticated'
-                      : r.authentication?.state === 'unsupported' ? 'start.executor.auth.unsupported'
-                      : 'start.executor.auth.unknown')}
-                  </small>}
-                  {/* #endregion executor-auth-status */}
-                </div>
-                {/* Ready reads strongest; installed-but-not-connected is neutral; only a problem draws attention (iteration 3). */}
-                <span className={r.state === 'found' ? 'lp-pill' : 'lp-pill attention'} data-state={r.state === 'found' && r.connected ? 'ready' : r.state === 'found' ? 'installed' : r.state}>
-                  {r.state === 'found' ? t(r.connected ? 'first.exec.state.found' : 'first.exec.state.foundUnconnected') : t(`first.exec.state.${r.state}` as 'first.exec.state.missing')}
-                </span>
-                {r.state === 'found' && !r.connected && <p className="st-exec-note">{t('first.exec.unconnected', { name: r.label })}</p>}
-                {r.state === 'missing' && r.install && (
-                  <div className="st-install">
-                    <code>{r.install}</code>
-                    <CopyButton text={r.install!} />
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
+          <fieldset className="st-exec-choice" role="radiogroup" aria-describedby="first-exec-choose-hint">
+            <legend>{t('first.exec.choose')}</legend>
+            <p className="lp-meta" id="first-exec-choose-hint">{t('first.exec.chooseHint')}{how && <> <span>{t(how)}</span></>}</p>
+            <ul className="st-exec">
+              {rows.map((r) => {
+                const pickable = mayPick(r)
+                const why = `first-exec-why-${r.id}`
+                const auth = `first-exec-auth-${r.id}`
+                return (
+                  <li key={r.id} className={`st-exec-row ${r.state}`} data-chosen={chosen === r.id || undefined}>
+                    <label className="st-exec-pick">
+                      <input type="radio" name="first-exec-choice" value={r.id} checked={chosen === r.id} disabled={!pickable || busy}
+                        aria-describedby={pickable ? auth : r.state === 'unresponsive' ? `${why}-state ${why}` : why}
+                        onChange={() => { setPicked(r.id); setProblem(null) }} />
+                      <span>
+                        <b>{r.label}</b>
+                        <small>
+                          {r.state === 'found' && t('first.exec.found', { version: r.version ?? '?' })}
+                          {r.state === 'missing' && t('first.exec.missing')}
+                        </small>
+                      </span>
+                    </label>
+                    {/* Ready reads strongest; installed-but-not-connected is neutral; only a problem draws attention (iteration 3). */}
+                    <span className={r.state === 'found' ? 'lp-pill' : 'lp-pill attention'} data-state={r.state === 'found' && r.connected ? 'ready' : r.state === 'found' ? 'installed' : r.state}>
+                      {r.state === 'found' ? t(r.connected ? 'first.exec.state.found' : 'first.exec.state.foundUnconnected') : t(`first.exec.state.${r.state}` as 'first.exec.state.missing')}
+                    </span>
+                    <div className="st-exec-detail">
+                      {r.path && <code>{r.path}</code>}
+                      {/* #region executor-auth-status — docs: docs/ux/scenarios.md#scn-126-first-run-name-look-coding-agents-where-to-start */}
+                      {r.state === 'found' && <small id={auth} data-authentication={r.authentication?.state ?? 'unknown'}>
+                        {t(r.authentication?.state === 'authenticated' ? 'start.executor.auth.authenticated'
+                          : r.authentication?.state === 'not-authenticated' ? 'start.executor.auth.notAuthenticated'
+                          : r.authentication?.state === 'unsupported' ? 'start.executor.auth.unsupported'
+                          : 'start.executor.auth.unknown')}
+                      </small>}
+                      {/* #endregion executor-auth-status */}
+                      {r.state === 'unresponsive' && <small id={`${why}-state`}>{t('first.exec.unresponsive', { program: r.path?.split('/').pop() ?? r.label })}</small>}
+                      {!pickable && <small id={why} className="st-exec-why">{t(r.state === 'unresponsive' ? 'first.exec.cannotPick.unresponsive' : 'first.exec.cannotPick.missing')}</small>}
+                    </div>
+                    {r.state === 'found' && !r.connected && <p className="st-exec-note">{t('first.exec.unconnected', { name: r.label })}</p>}
+                    {r.state === 'missing' && r.install && (
+                      <div className="st-install">
+                        <code>{r.install}</code>
+                        <CopyButton text={r.install!} what={r.label} />
+                      </div>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          </fieldset>
         )}
         <p className="lp-meta">{t('start.executor.auth.note')}</p>
         <div className="lp-actions">
-          <button type="button" className="lp-button primary" onClick={onNext}>{anyFound ? t('first.next') : t('first.exec.continueWithout')}</button>
-          <button type="button" className="lp-button" onClick={check}>{t('first.exec.recheck')}</button>
-          <button type="button" className="lp-button" onClick={onBack}>{t('first.back')}</button>
+          <button type="button" className="lp-button primary" disabled={busy} aria-busy={busy} onClick={() => void next()}>{chosen ? t('first.next') : t('first.exec.continueWithout')}</button>
+          <button type="button" className="lp-button" disabled={busy} onClick={check}>{t('first.exec.recheck')}</button>
+          <button type="button" className="lp-button" disabled={busy} onClick={onBack}>{t('first.back')}</button>
         </div>
       </div>
     </section>
   )
 }
+// #endregion first-run-agent-choice
 
 function StartStep({ onBack, onFinish }: { onBack(): void; onFinish(next: StartPath | 'home'): void }): React.JSX.Element {
   const t = useT()

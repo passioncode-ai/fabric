@@ -92,9 +92,12 @@ build signed anywhere but the `release` environment is a debug build that is nev
 3. **`preflight`** runs without secrets: `node scripts/release-mac.mjs --check-only --tag vX.Y.Z` refuses
    unless the commit is on `origin/main` (its tip, or a tag on main that main has moved past — ancestry,
    not equality), the tag names the version the commit carries, and the release gate is clear.
-4. **Approval.** The `macos` job waits for the `release` environment. A member of `release-approvers` —
-   whoever pushed the tag included ([ADR-0113](../adr/0113-any-release-approver-may-approve-the-tag-pusher-included.md))
-   — opens the run and approves ("Review deployments"); admins cannot bypass. An agent never approves.
+4. **Approval by checks** ([ADR-0145](../adr/0145-fabric-releases-are-approved-by-checks-and-pushing-the-tag-is-the-decision.md)).
+   The `guard` job (`passioncode-ai/.github/actions/release-guard@v1`) passes the tag only when `main` contains the
+   tagged commit and `ci.yml` passed on that commit — with no run it starts one on the tag and waits; otherwise it
+   refuses with the reason and the run's link. `macos` and `publish` need it; the `release` environment has no
+   reviewers and admins cannot bypass it. Pushing the tag (step 2) is the release decision: only team
+   `release-approvers` may push a `v*` tag (ruleset `release-tags`).
 5. **`macos`** builds on `macos-latest`: `passioncode-ai/.github/actions/apple-signing@v1` makes a throwaway
    keychain with the CI Developer ID and names it; `release-mac.mjs --tag vX.Y.Z` gets that identity in
    `FABRIC_SIGN_IDENTITY` and the keychain in `CSC_KEYCHAIN`, and the App Store Connect key as the
@@ -108,7 +111,7 @@ build signed anywhere but the `release` environment is a debug build that is nev
    and the stapled tickets of both validate. The DMG and its receipt `fabric-X.Y.Z-mac.json` (size,
    SHA-256, notarization id, signer, team, the checks, the CI run) are uploaded as `release-macos`; the
    keychain is deleted on every path.
-6. **`publish`** waits for a second approval (it holds the GPG key), then attests every file (Sigstore),
+6. **`publish`** (it holds the GPG key) runs once `macos` has passed, then attests every file (Sigstore),
    writes `SHA256SUMS` and `SHA256SUMS.asc`, and publishes the release **in this repository**, marked a
    prerelease while Fabric is an early preview (`prerelease: "true"`, ADR-0111 §1):
    `https://github.com/passioncode-ai/fabric/releases/tag/vX.Y.Z`. Verify a download with

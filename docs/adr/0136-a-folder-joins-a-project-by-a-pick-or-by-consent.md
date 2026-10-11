@@ -42,3 +42,12 @@ refusing it would keep the work invisible.
 
 - The manager-flow research, 2026-10-11 (the plan, canvas C2: `startChoices.ts#indexImported`, `projectDiscovery.ts#shownRemote`,
   Observatory `survey.py:39-59`).
+
+## Amendments
+
+### Amendment 1 — 2026-10-11: §2 is not built yet
+
+Wave 1 built resolution by pick and by the folder of an admitted repository or its worktree
+(`folderResolver.ts#resolveProjectForFolder`, ADR-0134 amendment 2). §2 — a folder that belongs to no project admitted
+on the agent's report and the operator's consent — is wave 2's (REQ-05); until then such a folder answers `no-project`
+and the agent is told to open it in Fabric first (SCN-137).

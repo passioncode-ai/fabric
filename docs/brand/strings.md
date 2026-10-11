@@ -327,6 +327,14 @@ decisions as the first-slice mockup rows above: what is known, what is not, and 
 | `start.scan.openFirst` | Open {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `first.exec.state.foundUnconnected` | Installed | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
 | `first.exec.unconnected` | {name} runs in a project folder as itself. Fabric's tools are not connected to it yet, so it cannot report work back to Fabric. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | implemented; release pending (P-02) |
+| `first.exec.choose` | Which one does your work | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | proposed |
+| `first.exec.chooseHint` | Fabric opens it when you create or adapt an agent. You can pick another one at each launch, and change the order under “Settings”, in the fallback order. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | proposed |
+| `first.exec.cannotPick.missing` | You can pick it once it is installed: run the command below, then press “Check again”. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | proposed |
+| `first.exec.cannotPick.unresponsive` | You can pick it once it answers: finish its setup, then press “Check again”. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | proposed |
+| `first.exec.notSaved` | Your choice was not saved: {reason} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-126 | proposed |
+| `start.builder.fixMissing` | {name} is not installed. To pick it, install it with this command, then press “Check agents again”: | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `start.builder.recheck` | Check agents again | apps/desktop/src/renderer/src/i18n/en.ts | SCN-136 | proposed |
+| `onboarding.unavailableHint` | A greyed-out coding agent is not installed on this Mac. Install it, then open this again: “Fabric help” → “Walk through the first run again” shows each install command. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-129 | proposed |
 | `start.scan.stopped` | The scan was stopped. Nothing was added. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.unreadable` | Folders that could not be read (permissions or an unavailable disk): {count}. Repositories under them may be missing. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
 | `start.scan.importedAll` | Added: {ok}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-128 | implemented; release pending (P-02) |
