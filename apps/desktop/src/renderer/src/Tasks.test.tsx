@@ -6,9 +6,10 @@
 // is a resolver that cannot be wrong in any way anybody notices.
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Tasks } from './Tasks'
 import type { ProjectRow, TaskRow } from '../../shared/types'
+import type { TaskDraft } from '../../shared/taskDraft.ts'
 
 afterEach(cleanup)
 
@@ -87,5 +88,46 @@ describe('setting a project up with the agent', () => {
     const button = (await screen.findByText('Set up this project with the agent')).closest('button') as HTMLButtonElement
     await waitFor(() => expect(button.disabled).toBe(true))
     expect(button.title).toMatch(/Codex has no connection to the tools of Fabric/)
+  })
+})
+
+// CO-234 (ADR-0125 amendment 1): the fallback order's label previews the walk the launch will take. With the setup
+// preset loaded the launch needs Fabric's tools and passes over Codex, so the label must not say «→ Codex».
+describe('the fallback order with the setup preset', () => {
+  it('names the agent the launch would choose, with the preset\'s needs', async () => {
+    const options = [
+      { id: 'codex', label: 'Codex', available: true, connectsToSurface: false, permissionModes: [] },
+      { id: 'claude-code', label: 'Claude Code', available: true, connectsToSurface: true, permissionModes: [] }
+    ]
+    const selected = (runner: string, index: number) => ({ configured: true, walk: { state: 'selected', index, runner, session: 'spawned', sessionId: null, permissionMode: null, passedOver: [] } })
+    // The machine side: Codex first in the order; a walk that needs the surface passes over it.
+    let answerSetup!: () => void
+    const setupRead = new Promise<void>((resolve) => { answerSetup = resolve })
+    const fallback = vi.fn(async (_p: string, _k: string, _m: unknown, preset?: string | null) =>
+      preset === 'setup' ? setupRead.then(() => selected('claude-code', 1)) : selected('codex', 0))
+    ;(window as unknown as { fabric: unknown }).fabric = {
+      tasks: { list: vi.fn().mockResolvedValue({ tasks: [], closed: { truncated: false, says: 'all 0' } }) },
+      agents: { list: vi.fn().mockResolvedValue([]) },
+      settings: { read: vi.fn().mockResolvedValue({ runnerFallback: { order: [{ runner: 'codex' }, { runner: 'claude-code' }] } }) },
+      terminal: { options: vi.fn().mockResolvedValue(options), fallback }
+    }
+    const { useState } = await import('react')
+    const { en } = await import('./i18n/en')
+    const label = (agent: string) => en['agents.fallback.option'].replace('{agent}', agent)
+    function Owner(): React.JSX.Element {
+      const [draft, setDraft] = useState<TaskDraft | null>(null)
+      return <Tasks project={project} draft={draft} onDraftChange={(patch) => setDraft((d) => ({ ...(d ?? {}), ...patch }) as TaskDraft)}
+        onStarted={() => {}} onError={() => {}} feedMark={0} />
+    }
+    render(<Owner />)
+    await waitFor(() => expect(screen.getByRole('option', { name: label('Codex') })).toBeTruthy())
+    fireEvent.click(await screen.findByText('Set up this project with the agent'))
+    // While the setup's walk is read, the label is pending — the reading for the preset-less launch is not shown for it.
+    await waitFor(() => expect(screen.getByRole('option', { name: en['agents.fallback.optionPending'] })).toBeTruthy())
+    expect(screen.queryByRole('option', { name: label('Codex') })).toBeNull()
+    answerSetup()
+    await waitFor(() => expect(screen.getByRole('option', { name: label('Claude Code') })).toBeTruthy())
+    expect(screen.queryByRole('option', { name: label('Codex') })).toBeNull()
+    expect(fallback).toHaveBeenLastCalledWith('p1', 'task', null, 'setup')
   })
 })

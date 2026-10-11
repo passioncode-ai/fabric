@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "source": {
-    "docs/reports/product.html": "ca9b6c45a7e5e53c1b4735ece0311da2727b83d539387ecd51699ed56e46273a",
-    "docs/ux/product-model.json": "29b03193785e24bf259352d5f9dc71408007ba3990e71e8ac26985b3355e4462"
+    "docs/reports/product.html": "d7d29544a4fb239f358e58c97b6246939727a76a5a31defe2b4c42df5c0830d6",
+    "docs/ux/product-model.json": "bdf22769db00a7e4d53422282eb31433c0306f614299e3a390750f099887d60e"
   },
   "views": [
     {
@@ -448,6 +448,22 @@
     {
       "id": "start-convert",
       "file": "start-convert.jpg"
+    },
+    {
+      "id": "setup-agents",
+      "file": "setup-agents.jpg"
+    },
+    {
+      "id": "where-work",
+      "file": "where-work.jpg"
+    },
+    {
+      "id": "fabric-button",
+      "file": "fabric-button.jpg"
+    },
+    {
+      "id": "session-start",
+      "file": "session-start.jpg"
     },
     {
       "id": "project-comms",

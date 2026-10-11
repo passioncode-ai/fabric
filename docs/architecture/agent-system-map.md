@@ -66,7 +66,7 @@ Each row is an observation, then a verdict. Tiered by backing: **measured** here
 
 | # | Observation | Verdict | Tier |
 |---|---|---|---|
-| T1 | 17 tools, namespaced `fabric_*`. Within the range the skill calls healthy. | keep | measured |
+| T1 | The tools `apps/desktop/src/shared/surfaceTools.ts` declares (counted by `scripts/check-surface-tools.mjs`), namespaced `fabric_*`. Within the range the skill calls healthy. | keep | measured |
 | T2 | **Do `fabric_task_note` and `fabric_memory_remember` distinguish themselves to a model?** Both record text about a task. A model will use one where the other was meant, and nothing measures which. | gap — audit the two descriptions against each other | judgement |
 | T3 | **`fabric_effect_request` relies on the agent choosing to ask** (recorded on M140). A tool the agent can decline to call is not a floor. The schema floor (ADR-0004) is the real one; the tool is a convenience. | known, documented — the per-runner hook is the other half | measured |
 | T4 | Tool errors: `fabric_task_move` returns the ladder's own sentence on refusal (measured, M146), not a stack trace. This is the harness rule "errors teach the next attempt". | keep | measured |

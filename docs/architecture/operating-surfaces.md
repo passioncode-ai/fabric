@@ -144,7 +144,7 @@ that proves it is a rebuild AFTER the offending event exists — not before.
 
 ## 5. The task tools — M123 as a contract, not a document
 
-Six tools join the agent surface, closed over the same per-session scope, so an
+The task tools join the agent surface (their rows below, and `shared/surfaceTools.ts`), closed over the same per-session scope, so an
 agent can only work its own project's board:
 
 | Tool | Does | Journals |
@@ -332,9 +332,9 @@ disagreement, and the only honest version of it is one a check keeps in step.
 Three numbers were deliberately not built, and each absence is stated on the
 surface itself rather than left as a gap:
 
-- **Per-tool call counts.** Sixteen tools, eleven of which journal. A count
-  taken from the journal would show the other five as unused — worse than no
-  number, because it reads as a measurement.
+- **Per-tool call counts.** Of the tools `shared/surfaceTools.ts` declares, only
+  those marked `records` journal; a count taken from the journal would show the
+  rest as unused — worse than no number, because it reads as a measurement.
 - **A miss rate with no denominator.** Nothing asked and an unreadable log are
   two different reasons to have no rate, and neither of them is zero.
 - **"Nothing matches" from a partial search.** Only claimable when every store

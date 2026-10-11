@@ -33,7 +33,7 @@ import {
   SWITCH_PHASES
 } from '../src/shared/switchOperation.ts'
 import { CAPABILITY_MATRIX, PINNED_BUILDS } from '../src/shared/providerCapabilityMatrix.ts'
-import { mkdtempSync } from 'node:fs'
+import { chmodSync, mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
@@ -164,7 +164,7 @@ const begin = (c, over = {}) =>
 
 // ── the phase ladder, and what may not skip ────────────────────────────────
 {
-  eq(SWITCH_PHASES.length, 8, 'eight phases, as the card names them')
+  eq(SWITCH_PHASES.length, 9, 'nine phases: the card\'s eight and the cancel before anything stopped (audit A4-009)')
   mayAdvance('preparing', 'waiting_boundary').ok ? ok('preparing leads to waiting_boundary') : fail('ladder start')
   mayAdvance('preparing', 'stopping').ok === false ? ok('and not straight to stopping') : fail('preparing skipped a phase')
   mayAdvance('stopping', 'preparing').ok === false
@@ -279,6 +279,88 @@ const begin = (c, over = {}) =>
   budgetWasReset(before, { attemptsUsed: 0, msSpent: 0, spend: 0 })
     ? ok('and a reset is detectable, which is what makes that assertion worth making')
     : fail('a reset was not detected — the check cannot see the thing it forbids')
+}
+
+// ── audit A4-009: a switch cancelled before anything stopped ───────────────
+{
+  mayAdvance('preparing', 'cancelled').ok && mayAdvance('waiting_boundary', 'cancelled').ok
+    ? ok('preparing and waiting_boundary may be cancelled — nothing has stopped yet')
+    : fail('cancel was not reachable before the stop')
+  ;['stopping', 'resuming', 'recovering', 'needs_reconciliation'].every((p) => mayAdvance(p, 'cancelled').ok === false)
+    ? ok('and nothing past the stop may be cancelled — after the stop only recovery is left')
+    : fail('a stopped switch was cancellable')
+  isTerminal('cancelled') ? ok('cancelled is terminal') : fail('cancelled was not terminal')
+
+  const c = coordinator()
+  begin(c)
+  c.advance({ idempotencyKey: 'key-1', to: 'waiting_boundary' })
+  const cancelled = c.cancel('key-1', 'the operator withdrew the conversation')
+  cancelled.ok && c.operation('key-1').phase === 'cancelled'
+    ? ok('coordinator.cancel ends a waiting switch at cancelled')
+    : fail('cancel: ' + JSON.stringify(cancelled))
+  ;/cancelled at .*withdrew/.test(c.operation('key-1').receipt)
+    ? ok('and the receipt says when and why')
+    : fail('cancel receipt: ' + c.operation('key-1').receipt)
+  const next = begin(c, { idempotencyKey: 'key-2' })
+  next.ok && next.resumed === false
+    ? ok('a cancelled switch does not block a new switch of the same conversation')
+    : fail('cancel-then-new-switch: ' + JSON.stringify(next))
+  const late = coordinator()
+  begin(late)
+  late.advance({ idempotencyKey: 'key-1', to: 'waiting_boundary' })
+  late.advance({ idempotencyKey: 'key-1', to: 'stopping' })
+  const refused = late.cancel('key-1')
+  refused.ok === false && late.operation('key-1').phase === 'stopping'
+    ? ok('a switch past its stop refuses cancel and keeps its phase')
+    : fail('a stopped switch was cancelled: ' + JSON.stringify(refused))
+  eq(c.cancel('no-such-key').ok, false, 'cancelling an unknown key is refused')
+}
+
+// ── audit A4-016: a hold that could not be saved is not handed back as saved ─
+{
+  const dir = mkdtempSync(path.join(tmpdir(), 'fabric-switch-'))
+  const c = coordinator({ dir, acknowledge: () => null })
+  begin(c)
+  c.advance({ idempotencyKey: 'key-1', to: 'waiting_boundary' })
+  c.advance({ idempotencyKey: 'key-1', to: 'stopping' })
+  c.advance({ idempotencyKey: 'key-1', to: 'resuming' })
+  chmodSync(dir, 0o500)
+  let held
+  try { held = c.commit({ idempotencyKey: 'key-1', expectedIdentity: 'org-1', expectedNativeRef: 'native-1' }) }
+  finally { chmodSync(dir, 0o700) }
+  held.ok === false && held.operation === undefined && /could not be recorded|changed under this write/.test(held.reason)
+    ? ok('a hold whose write failed returns the write\'s reason and no operation')
+    : fail('an unsaved hold was handed back: ' + JSON.stringify(held))
+  eq(c.operation('key-1').phase, 'resuming', 'and the recorded phase is the one actually on disk')
+}
+
+// ── audit A4-016: the operations file does not grow without bound ──────────
+{
+  const dir = mkdtempSync(path.join(tmpdir(), 'fabric-switch-'))
+  let clock = 1_757_000_000_000
+  const c = coordinator({ dir, now: () => clock })
+  begin(c, { idempotencyKey: 'old', conversationId: 'conv-old' })
+  c.cancel('old')
+  begin(c, { idempotencyKey: 'open', conversationId: 'conv-open' })
+  clock += 31 * 24 * 3_600_000
+  begin(c, { idempotencyKey: 'new', conversationId: 'conv-new' })
+  const keys = c.operations().map((o) => o.idempotencyKey).sort()
+  JSON.stringify(keys) === JSON.stringify(['new', 'open'])
+    ? ok('a terminal operation older than the retention is pruned on the next write; a live one never is')
+    : fail('prune: ' + JSON.stringify(keys))
+  JSON.parse(readFileSync(path.join(dir, 'switch-operations.json'), 'utf8')).operations.length === 2
+    ? ok('and the file on disk holds only what is kept')
+    : fail('the file still holds the pruned operation')
+
+  const r = coordinator()
+  begin(r)
+  for (let i = 0; i < 40; i++) {
+    r.advance({ idempotencyKey: 'key-1', to: i === 0 ? 'waiting_boundary' : i === 1 ? 'stopping' : i % 2 ? 'needs_reconciliation' : 'recovering' })
+  }
+  const receipt = r.operation('key-1').receipt
+  receipt.split(' | ').length <= 20 && /^planned at /.test(receipt)
+    ? ok('a receipt keeps its first line and its latest phases, never an unbounded log')
+    : fail('receipt grew to ' + receipt.split(' | ').length + ' segments')
 }
 
 if (failures) {

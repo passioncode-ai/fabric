@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import { builderConfig, builderIdentity, changelogProblem, parseReleaseArgs, releaseCommitProblem, signatureOf, tagProblem, verifiedCandidateProblem, workspacePinProblem } from '../lib/release-mac.mjs'
+import { builderConfig, builderIdentity, changelogProblem, fuseProblems, fusesDeclared, parseReleaseArgs, RELEASE_FUSES, releaseCommitProblem, signatureOf, tagProblem, verifiedCandidateProblem, workspacePinProblem } from '../lib/release-mac.mjs'
 
 test('a release requires exactly one finalized changelog entry for its exact version', () => {
   assert.equal(changelogProblem({ version: '0.3.1', text: '# Changelog\n\n## 0.3.1\n\nDelivered hub.\n\n## 0.3.0\nPrevious.\n' }), null)
@@ -227,4 +227,30 @@ test('the released commit pins the workspace snapshot its receipt names (0.3.4 v
     'a merge that took a stale submodule checkout reverts the pin while the receipt still names main\'s')
   assert.match(workspacePinProblem(runner({ link: '' })), /not a submodule pin/)
   assert.match(workspacePinProblem(runner({ receipt: { schema: 1 } })), /receipt/)
+})
+
+// Audit 2026-10-05 A7-006: the release binary's Electron fuses are declared, and read back from the built app.
+test('the fuses electron-builder.yml declares are the ones a release requires', () => {
+  const yml = readFileSync(path.join(import.meta.dirname, '..', '..', 'apps', 'desktop', 'electron-builder.yml'), 'utf8')
+  assert.deepEqual(fusesDeclared(yml), RELEASE_FUSES)
+  // RunAsNode stays on: the helpers run as ELECTRON_RUN_AS_NODE=1 (main/helperProcess.ts).
+  assert.equal(RELEASE_FUSES.runAsNode, true)
+  for (const off of ['enableNodeOptionsEnvironmentVariable', 'enableNodeCliInspectArguments']) assert.equal(RELEASE_FUSES[off], false, off)
+  for (const on of ['enableEmbeddedAsarIntegrityValidation', 'onlyLoadAppFromAsar']) assert.equal(RELEASE_FUSES[on], true, on)
+  assert.deepEqual(fusesDeclared('appId: x\nmac:\n  identity: null\n'), {}, 'no electronFuses block declares nothing')
+})
+
+test('a built app whose fuse wire differs from the declaration is refused, fuse by fuse', () => {
+  // getCurrentFuseWire's shape: FuseV1Options index → FuseState char code (48 off, 49 on, 114 removed).
+  const ON = 49, OFF = 48
+  const index = { runAsNode: 0, enableCookieEncryption: 1, enableNodeOptionsEnvironmentVariable: 2, enableNodeCliInspectArguments: 3,
+    enableEmbeddedAsarIntegrityValidation: 4, onlyLoadAppFromAsar: 5, loadBrowserProcessSpecificV8Snapshot: 6, grantFileProtocolExtraPrivileges: 7 }
+  const wireOf = (fuses) => Object.fromEntries([['version', '1'], ...Object.entries(fuses).map(([k, v]) => [String(index[k]), v ? ON : OFF])])
+  assert.deepEqual(fuseProblems(wireOf(RELEASE_FUSES)), [])
+  // A binary nobody flipped: Electron's defaults leave NODE_OPTIONS and --inspect on, integrity off.
+  const unflipped = wireOf({ ...RELEASE_FUSES, enableNodeOptionsEnvironmentVariable: true, enableNodeCliInspectArguments: true, enableEmbeddedAsarIntegrityValidation: false, onlyLoadAppFromAsar: false })
+  assert.deepEqual(fuseProblems(unflipped).map((p) => p.split(' ')[0]),
+    ['enableNodeOptionsEnvironmentVariable', 'enableNodeCliInspectArguments', 'enableEmbeddedAsarIntegrityValidation', 'onlyLoadAppFromAsar'])
+  const { 4: _dropped, ...missing } = wireOf(RELEASE_FUSES)
+  assert.match(fuseProblems(missing).join('\n'), /enableEmbeddedAsarIntegrityValidation .*not in this binary/)
 })

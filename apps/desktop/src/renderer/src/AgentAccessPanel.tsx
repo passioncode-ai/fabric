@@ -9,13 +9,16 @@
 
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import type { HubActResult, HubOverview, PendingRequestFacts } from '../../shared/access'
-import { sayActRefusal, sayAllow, sayAllowFor, sayAsk, sayConnectDetail, sayConnectProblem, sayFloor, sayIncremental, sayOrigin, shownName, type Say } from '../../shared/accessWords'
+import { sayActRefusal, sayAllow, sayAllowFor, sayAsk, sayConnectDetail, sayConnectProblem, sayDecided, sayGrant, sayOrigin, sayRequest, shownName, type Say } from '../../shared/accessWords'
 import { humaniseError } from '../../shared/errorText'
 import { Banner, Button, EmptyState, Panel, Row, Toolbar } from './components'
 import { useLocale, useT } from './i18n'
 
 type Act = () => Promise<HubActResult>
-type View = { kind: 'loading' } | { kind: 'unreadable'; reason: string } | { kind: 'read'; overview: HubOverview }
+/** The project names an enrolled agent's grants need (ADR-0134): `null` when no grant needs one, `'unread'` when the
+ *  project list could not be read — said as such, never as the project's id. */
+type ProjectNames = ReadonlyMap<string, string> | 'unread' | null
+type View = { kind: 'loading' } | { kind: 'unreadable'; reason: string } | { kind: 'read'; overview: HubOverview; names: ProjectNames }
 /** What the last act left to say: a refusal, or a note that is not a failure (UX-5, UX-10); `detail` is the
  *  machine's words, shown as a line of their own (iteration 2, UX-5). */
 type Said = { tone: 'warn' | 'info'; text: string; detail?: string | null } | null
@@ -54,6 +57,23 @@ function attemptLines(t: Say, p: HubOverview['products'][number]): { text: strin
   return [{ tone: 'alert', text: t('access.products.failed', { reason: sayConnectProblem(t, last.problem, p.name) }), detail: sayConnectDetail(t, last.problem) }, ...kept]
 }
 
+// #region enroll-words — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+/** Main builds a grant's line from the grant alone, so an enrollment's grant carries its project's id and no name:
+ *  the panel reads the project list, only when a grant needs it. */
+async function projectNames(o: HubOverview): Promise<ProjectNames> {
+  if (!o.agents.some((a) => a.grants.some((g) => g.line.kind === 'enroll' && g.line.project.name === null))) return null
+  try {
+    const list = await window.fabric.projects.list()
+    return new Map(list.map((p) => [p.id, p.name]))
+  } catch {
+    return 'unread'
+  }
+}
+/** A project's name for `sayGrant`: the name, `null` when the list was read and it is not there, `undefined` when unread. */
+const nameIn = (names: ProjectNames) => (id: string): string | null | undefined =>
+  names === null || names === 'unread' ? undefined : (names.get(id) ?? null)
+// #endregion enroll-words
+
 export function AgentAccessPanel({ onClose }: { onClose: () => void }): React.JSX.Element {
   const t = useT()
   const locale = useLocale()
@@ -83,7 +103,8 @@ export function AgentAccessPanel({ onClose }: { onClose: () => void }): React.JS
     const current = () => mounted.current && lifetime.current === owner && readGeneration.current === generation
     try {
       const overview = await window.fabric.hub.overview()
-      if (current()) setView({ kind: 'read', overview })
+      const names = await projectNames(overview)
+      if (current()) setView({ kind: 'read', overview, names })
     } catch (e) {
       // A current failure says unreadable, never an empty list. Obsolete successes and failures
       // are equally ineligible: neither can replace a newer read or the outcome of an act.
@@ -213,11 +234,14 @@ export function AgentAccessPanel({ onClose }: { onClose: () => void }): React.JS
                 return (
                   <div key={a.bindingId} className="access-card">
                     <h4 className="access-name">{name}</h4>
-                    {a.agent.name && <p className="mono muted">{a.agent.agentId}</p>}
+                    {/* A coding agent is said as one (ADR-0134), never by its catalogue id. */}
+                    {a.agent.codingAgent
+                      ? <p className="muted">{sayOrigin(t, a.agent)}</p>
+                      : a.agent.name && <p className="mono muted">{a.agent.agentId}</p>}
                     {a.grants.length === 0
                       ? <p className="muted">{t('access.agents.noGrants')}</p>
                       : a.grants.map((g) => {
-                        const line = sayAsk(t, g.line)
+                        const line = sayGrant(t, g.line, nameIn(view.names))
                         return (
                           <Row key={g.grantId} trail={<Button tone="ghost" aria-label={t('access.revokeFor', { name, line })} {...waiting} onClick={() => void act(`grant:${g.grantId}`, () => window.fabric.hub.revokeGrant(g.grantId), { section: 'agents' })}>{t('access.revoke')}</Button>}>
                             {line} <span className="muted">{t('access.agents.until', { date: date(g.expiresAt) })}</span>
@@ -260,21 +284,31 @@ function PendingCard({ r, t, waiting, act }: {
   const name = shownName(r.agent)
   // Allowed, but the product could not be opened: the Allow stands, and the panel says so — pointing to
   // Products in this panel, not to the screen the operator is already on (UX-5; iteration 2, UX-11).
+  // #region access-decided-named — docs: docs/ux/scenarios.md#scn-132-an-external-agent-asks-for-access-and-the-operator-decides
+  // A plain Allow or Deny is NAMED (CO-207): the card leaves the list on the next read, so the panel keeps the
+  // queue row's own sentence — and for a coding agent's enrollment, "You let X work in P" (ADR-0134).
   const afterAllow = (done: Extract<HubActResult, { ok: true }>): Said =>
-    done.connect ? { tone: 'warn', text: t('access.allowedConnectHere', { problem: sayConnectProblem(t, done.connect.problem, r.product) }), detail: sayConnectDetail(t, done.connect.problem) } : null
+    done.connect
+      ? { tone: 'warn', text: t('access.allowedConnectHere', { problem: sayConnectProblem(t, done.connect.problem, r.product) }), detail: sayConnectDetail(t, done.connect.problem) }
+      : { tone: 'info', text: sayDecided(t, r, 'allowed') }
+  const afterDeny = (): Said => ({ tone: 'info', text: sayDecided(t, r, 'denied') })
+  // #endregion access-decided-named
+  // The native prompt's facts in its order (`sayRequest`): for an enrollment (ADR-0134) the folder is Fabric's own
+  // line, the floor is said of the name it asked under, and how long it lasts is said.
+  const said = sayRequest(t, r)
   return (
     <div className="access-card">
       <h4 className="access-name">{name}</h4>
-      <p className="muted">{sayOrigin(t, r.agent)}</p>
-      <ul className="access-asks">{r.ask.map((l, i) => <li key={i}>{sayAsk(t, l)}</li>)}</ul>
-      <p className="muted">{t('access.pending.reason', { reason: r.reason })}</p>
-      <p className="muted">{sayFloor(t)}</p>
-      {r.incremental && <p className="muted">{sayIncremental(t)}</p>}
-      <p className="muted">{t('access.lasts')}</p>
-      <p className="muted">{t('access.denyStands')}</p>
+      <p className="muted">{said.origin}</p>
+      {said.folder && <p className="muted">{said.folder}</p>}
+      <ul className="access-asks">{said.asks.map((line, i) => <li key={i}>{line}</li>)}</ul>
+      {said.what && <p className="muted">{said.what}</p>}
+      <p className="muted">{said.reason}</p>
+      <p className="muted">{said.floor}</p>
+      {said.notes.map((note, i) => <p key={i} className="muted">{note}</p>)}
       <p className="muted">{expiresIn(t, r.expiresAt, Date.now())}</p>
       <div className="access-acts"><Toolbar>
-        <Button tone="ghost" aria-label={t('access.denyFor', { name })} {...waiting} onClick={() => void act(`deny:${r.requestId}`, () => window.fabric.hub.decide(r.requestId, 'denied'), { product: r.product, section: 'pending' })}>{t('access.deny')}</Button>
+        <Button tone="ghost" aria-label={t('access.denyFor', { name })} {...waiting} onClick={() => void act(`deny:${r.requestId}`, () => window.fabric.hub.decide(r.requestId, 'denied'), { product: r.product, after: afterDeny, section: 'pending' })}>{t('access.deny')}</Button>
         <Button aria-label={sayAllowFor(t, r, name)} {...waiting} onClick={() => void act(`allow:${r.requestId}`, () => window.fabric.hub.decide(r.requestId, 'allowed'), { product: r.product, after: afterAllow, section: 'pending' })}>{sayAllow(t, r)}</Button>
       </Toolbar></div>
     </div>

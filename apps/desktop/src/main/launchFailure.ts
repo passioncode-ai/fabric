@@ -1,4 +1,5 @@
 import { ops } from './opsSink.ts'
+import { causeOf } from '../shared/opsLog.ts'
 
 /** A launch whose native process may exist even though open() failed — a PTY or an owned
  * backend alike (B1). Callers must reconcile this exact session, never compensate it as a
@@ -47,7 +48,7 @@ export async function retainFailedLaunch(error: unknown, deps: {
   const session = deps.get(error.sessionId)
   if (session && !session.running) {
     try { await deps.close(error.sessionId, session.exitCode) }
-    catch { ops.failed('launch.exit-reconcile', new Error('failed launch exit receipt remains pending'), { sessionId: error.sessionId }) }
+    catch (e) { ops.failed('launch.exit-reconcile', new Error('failed launch exit receipt remains pending'), { sessionId: error.sessionId, cause: causeOf(e) }) }
   }
   return true
 }

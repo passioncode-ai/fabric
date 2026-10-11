@@ -18,7 +18,6 @@ import type {
   MemoryFact,
   ProjectRow,
   ProjectStats,
-  Quota,
   RepoRow,
   RepoState,
   SessionTranscript,
@@ -26,6 +25,7 @@ import type {
   TerminalSession
 } from '../../shared/types'
 import { affects, POLL_MS } from '../../shared/repoWatch'
+import { quotaOf, readQuotaReading, type QuotaReading } from '../../shared/quotaReading.ts'
 import { failed, forSubject, pending, settled, type KeyedRead } from '../../shared/keyedRead'
 import { factsSubject, type FactsQuery } from '../../shared/factsQuery'
 import { isTrustworthy, type RunStatusView } from '../../shared/runStatus'
@@ -154,7 +154,8 @@ export function ProjectHome({
   const [claims, setClaims] = useState<AgentClaim[]>([])
   const [transcripts, setTranscripts] = useState<SessionTranscript[] | null>(null)
   const [repoStates, setRepoStates] = useState<RepoState[] | null>(null)
-  const [quota, setQuota] = useState<Quota | null>(null)
+  // A failed read is held as one, never as "no quota" (audit A4-020, `shared/quotaReading.ts`).
+  const [quota, setQuota] = useState<QuotaReading>({ read: false })
   /** Null until read, so the board can tell "nothing here" from "not read yet"
    *  — the distinction EmptyState exists to keep (M108). */
   const [tasks, setTasks] = useState<TaskRow[] | null>(null)
@@ -217,12 +218,9 @@ export function ProjectHome({
   }
 
   const loadQuota = async (): Promise<void> => {
-    // Never fails the page: a quota we cannot read is a missing cell, not an error.
-    try {
-      setQuota(await window.fabric.quota.read())
-    } catch {
-      setQuota(null)
-    }
+    // Never fails the page: a quota we cannot read is a muted cell that says so, not an error and not
+    // "no quota" (audit A4-020).
+    setQuota(await readQuotaReading(() => window.fabric.quota.read()))
   }
 
   const loadClaims = async (): Promise<void> => {
@@ -860,7 +858,7 @@ export function ProjectStatusBar({
 }: {
   stats: ProjectStats | null
   repos: RepoState[] | null
-  quota: Quota | null
+  quota: QuotaReading
   /**
    * Null until the session list has been read (M108, UXA-C05).
    *
@@ -886,6 +884,11 @@ export function ProjectStatusBar({
   // `evidence.ts` now, reports a miss, and takes only anchors that exist —
   // M142's rule needs one implementation, not one per screen.
 
+  // #region project-quota-failed — docs: docs/ux/scenarios.md#scn-070-квоты-и-использование
+  // A reading's windows, or why the read failed — a failure is a muted cell, never a hidden one (audit A4-020).
+  const shown = quotaOf(quota)
+  const quotaFailed = quota.read && 'failed' in quota ? quota.failed : null
+  // #endregion project-quota-failed
   const primary = repos?.[0] ?? null
   const others = Math.max(0, (repos?.length ?? 0) - 1)
 
@@ -960,22 +963,28 @@ export function ProjectStatusBar({
       )}
 
       {/* Absent, not zero, when there is no source: CO-096 established that no
-          per-project cost exists, and an account not signed in has no quota. */}
-      {quota?.fiveHour && (
+          per-project cost exists, and an account not signed in has no quota.
+          A read that FAILED is neither, and says so (audit A4-020). */}
+      {quotaFailed !== null && (
+        <StatusCell quiet>
+          <Tick muted>{t('status.quotaUnreadable', { why: quotaFailed })}</Tick>
+        </StatusCell>
+      )}
+      {shown?.fiveHour && (
         <StatusCell
           onClick={go('sec-journal')}
           title={
-            quota.problem
-              ? t('status.quotaStale', { age: `${quota.ageSeconds}s` })
-              : t('status.quotaResets', { time: until(quota.fiveHour.resetsAt) })
+            shown.problem
+              ? t('status.quotaStale', { age: `${shown.ageSeconds}s` })
+              : t('status.quotaResets', { time: until(shown.fiveHour.resetsAt) })
           }
         >
-          <Tick muted={quota.problem !== null}>
-            {t('status.quota5h', { pct: Math.round(quota.fiveHour.utilization) })}
+          <Tick muted={shown.problem !== null}>
+            {t('status.quota5h', { pct: Math.round(shown.fiveHour.utilization) })}
           </Tick>
-          {quota.sevenDay && (
-            <Tick muted={quota.problem !== null}>
-              {t('status.quota7d', { pct: Math.round(quota.sevenDay.utilization) })}
+          {shown.sevenDay && (
+            <Tick muted={shown.problem !== null}>
+              {t('status.quota7d', { pct: Math.round(shown.sevenDay.utilization) })}
             </Tick>
           )}
         </StatusCell>
@@ -1390,7 +1399,9 @@ export function ProjectHeader({
           <select value={agent} onChange={(e) => setAgent(e.target.value)}>
             {agents.map((o) => (
               <option key={o.id} value={o.id} disabled={!o.available}>
+                {/* REQ-40: a greyed-out choice says why, as the launch picker and the new-project form do. */}
                 {runnerLabel(o.id, t)}
+                {o.available ? '' : ` — ${t('onboarding.unavailable')}`}
               </option>
             ))}
           </select>

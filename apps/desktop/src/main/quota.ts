@@ -47,6 +47,7 @@ const KEYCHAIN_SERVICE = 'Claude Code-credentials'
 import type { Quota, QuotaWindow } from '../shared/types'
 export type { Quota, QuotaWindow }
 import { keyOf, type ObservationKey } from '../shared/usageObservation.ts'
+import { homedir } from 'node:os'
 
 export interface QuotaReader {
   /**
@@ -138,7 +139,8 @@ async function readToken(exec?: Exec): Promise<string | null> {
   // about whose headroom this is. On macOS the secret is one keychain item per
   // operating-system user and the branch above wins, which is why the
   // capability row for isolation-by-home reads `unsupported` rather than fixed.
-  const home = process.env.CLAUDE_CONFIG_DIR ?? path.join(process.env.HOME ?? '', '.claude')
+  // `homedir()`, not `HOME`: Windows has `USERPROFILE` and no `HOME` (0.3.5, REQ-14).
+  const home = process.env.CLAUDE_CONFIG_DIR ?? path.join(homedir(), '.claude')
   const file = path.join(home, '.credentials.json')
   if (!existsSync(file)) return null
   try {
@@ -191,6 +193,10 @@ type KeychainOutcome = 'found' | 'absent' | 'denied' | 'timeout' | 'unreadable'
 
 type Exec = (file: string, args: string[], opts: { timeout: number; killSignal: NodeJS.Signals }) => Promise<{ stdout: string }>
 
+/** The system's own `security`, by absolute path: a PATH lookup let a `security` earlier on the session PATH
+ *  answer for the Keychain (audit 2026-10-05 A7-027). */
+const SECURITY_BIN = '/usr/bin/security'
+
 /** Bounded: a `security` call that waits on a dialog or a locked keychain is ended, not awaited. */
 const KEYCHAIN_TIMEOUT_MS = 5_000
 
@@ -203,7 +209,7 @@ const KEYCHAIN_TIMEOUT_MS = 5_000
  */
 async function readKeychainToken(exec: Exec = run as unknown as Exec): Promise<{ token: string | null; outcome: KeychainOutcome; expiresAt?: number }> {
   try {
-    const { stdout } = await exec('security', ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-w'], {
+    const { stdout } = await exec(SECURITY_BIN, ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-w'], {
       timeout: KEYCHAIN_TIMEOUT_MS,
       killSignal: 'SIGKILL'
     })
@@ -452,5 +458,5 @@ export function createQuotaReader(deps: QuotaDeps = {}): QuotaReader {
   }
 }
 
-export { readKeychainToken, resetKeychainRefusal, forgetCachedToken, personReturned, readToken, KEYCHAIN_TIMEOUT_MS }
+export { readKeychainToken, resetKeychainRefusal, forgetCachedToken, personReturned, readToken, KEYCHAIN_TIMEOUT_MS, SECURITY_BIN }
 export type { KeychainOutcome }

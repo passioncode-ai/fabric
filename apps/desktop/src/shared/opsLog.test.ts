@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LEVELS, atLeast, opsRecord, trim, type OpsLevel } from './opsLog.ts'
+import { LEVELS, atLeast, causeOf, opsRecord, trim, type OpsLevel } from './opsLog.ts'
 
 const at = new Date('2026-09-08T15:04:05.123Z')
 
@@ -164,4 +164,19 @@ it('never executes serialization callbacks or inherits an own __proto__ object',
   expect(Object.getPrototypeOf(value)).toBeNull()
   expect(Object.hasOwn(value, '__proto__')).toBe(true)
   expect(Object.hasOwn(value, 'constructor')).toBe(true)
+})
+
+// Audit 2026-10-05 A7-036: the kind of a caught failure is kept, its message is not.
+describe('causeOf', () => {
+  it('keeps a name and a code of a fixed shape, never the message', () => {
+    expect(causeOf(Object.assign(new Error('password=hunter2 at db'), { code: '57014' }))).toEqual({ name: 'Error', code: '57014' })
+    expect(causeOf(Object.assign(new TypeError('x'), { code: 'ECONNREFUSED' }))).toEqual({ name: 'TypeError', code: 'ECONNREFUSED' })
+    const abort = new Error('the operation was aborted'); abort.name = 'AbortError'
+    expect(causeOf(abort)).toEqual({ name: 'AbortError' })
+    expect(causeOf(Object.assign(new Error('x'), { code: 44 }))).toEqual({ name: 'Error', code: '44' })
+    expect(JSON.stringify(causeOf(Object.assign(new Error('sk-secret'), { code: 'sk-' + 'A'.repeat(40) })))).not.toContain('sk-')
+    expect(causeOf(Object.assign(new Error('x'), { name: 'Bearer abc def' }))).toEqual({ name: 'Error' })
+    expect(causeOf('a string')).toEqual({ name: 'non-error string' })
+    expect(causeOf(null)).toEqual({ name: 'non-error null' })
+  })
 })

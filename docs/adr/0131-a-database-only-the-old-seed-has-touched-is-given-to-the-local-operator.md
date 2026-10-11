@@ -87,3 +87,11 @@ undone (`legacy`: the revoke case).
   (watched: removing the history check, the other-member check, the receipt check or the decisions check, reading two
   events, a null revision, admitting any system event, or moving the repair after the hub each fails it),
   `apps/desktop/src/shared/startupFailure.test.ts` (the `identity-refused` case).
+
+## Amendments
+
+### Amendment 1 — 2026-10-11: the old seed's `…0002` is retired through the same door (CO-242)
+
+0.4.0 revokes `…0002` through `change_membership` (compare-and-set, `desktop-bootstrap:seed-retire`, a command
+receipt, never a delete), only in the shape the repair leaves, and tenure counts from the repair
+(`seedRepair.ts#retireSeedOwner`, `operatorStartedAt`).

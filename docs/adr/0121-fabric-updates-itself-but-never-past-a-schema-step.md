@@ -62,3 +62,11 @@ The release after 0.3.3 is 0.3.4, and the operator made it the fresh-install fix
 with universal macOS (fabric#27), without this record. The target release becomes **the release after 0.3.4**, its
 order with 0.3.5 (the Windows/Linux port, CO-238) not decided, and the copies that need one manual update are those
 up to and including **0.3.4**. Found by the 0.3.4 verification, iteration 3 (PL-1).
+
+### Amendment 3 — 2026-10-11: the target is 0.4.0, with a feed for each OS
+
+The operator set 0.4.0's scope on 2026-10-11 (decision D-02 of the
+[0.4.0 plan](../evidence/plans/2026-10-11-release-040-agents-first.md#decisions)): everything, including self-update.
+The target release becomes **0.4.0**, and the updater reads a signed feed for each platform the release ships —
+macOS, Windows and Linux (closing CO-246's deviation from PL-10). Copies up to and including 0.3.4 still need one
+manual update. Status stays proposed until the updater is built and verified (REQ-26).

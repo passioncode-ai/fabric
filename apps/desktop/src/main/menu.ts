@@ -6,14 +6,17 @@
 import { BrowserWindow, Menu, shell } from 'electron'
 import { translator, type Locale } from '../renderer/src/i18n/translate.ts'
 import { menuTemplate } from './menuTemplate.ts'
+import { IPC } from '../shared/types.ts'
+import { sendIfReceives, type WindowRegistry } from './windowRegistry.ts'
 
-export function installMenu(locale: Locale): void {
+export function installMenu(locale: Locale, windows: Pick<WindowRegistry, 'receives'>): void {
   const say = translator(locale)
   Menu.setApplicationMenu(
     Menu.buildFromTemplate(
       menuTemplate({
-        closeActiveTab: () =>
-          BrowserWindow.getFocusedWindow()?.webContents.send('tab:closeActive'),
+        // CO-091: Cmd+W reaches the focused window only when its kind may receive the channel (the main window's
+        // tabs); a session or editor window is not sent a message it has no listener for.
+        closeActiveTab: () => void sendIfReceives(windows, BrowserWindow.getFocusedWindow(), IPC.tabsCloseActive),
         openExternal: (url) => void shell.openExternal(url),
         label: (key) => say(key)
       })

@@ -44,8 +44,14 @@ export interface NewEvent {
   nodeId?: string
 }
 
+/** Per call: `signal` aborts the request (a caller's deadline, CO-206). An aborted append is not retried, and
+ *  its outcome is unknown — the database may have committed it before the client let go. */
+export interface AppendOptions {
+  signal?: AbortSignal
+}
+
 export interface Journal {
-  append(e: NewEvent): Promise<JournalEvent>
+  append(e: NewEvent, opts?: AppendOptions): Promise<JournalEvent>
   replay(estateId: string, fromSeq: number, limit?: number): Promise<JournalEvent[]>
 }
 
@@ -80,11 +86,11 @@ export function createJournal(db: SupabaseClient, options: JournalOptions = {}):
     Math.round(backoffMs * 2 ** attempt * (0.5 + random()))
 
   return {
-    async append(e: NewEvent): Promise<JournalEvent> {
+    async append(e: NewEvent, opts: AppendOptions = {}): Promise<JournalEvent> {
       let contended: { message: string } | null = null
 
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        const { data, error } = await db.rpc('append_event', {
+        const call = db.rpc('append_event', {
           p_estate_id: e.estateId,
           p_type: e.type,
           p_actor: e.actor,
@@ -94,6 +100,7 @@ export function createJournal(db: SupabaseClient, options: JournalOptions = {}):
           p_run_id: e.runId ?? null,
           p_node_id: e.nodeId ?? null
         })
+        const { data, error } = await (opts.signal ? call.abortSignal(opts.signal) : call)
 
         if (!error) return data as JournalEvent
         if (error.code !== LOCK_NOT_AVAILABLE)

@@ -18,7 +18,7 @@
 // the generic, so a scoped read is typed exactly as the unscoped one was.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { scopeFilters, scopeOwnership, type Scope } from '../shared/scope.ts'
+import { scopeFilters, type Scope } from '../shared/scope.ts'
 
 /** A project id that is not the one this store is scoped to. Refused rather
  *  than widened: an id arriving from a renderer or an agent payload names what
@@ -72,7 +72,9 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       columns: Columns,
       column: string,
       values: readonly string[],
-      chunk = 100
+      chunk = 100,
+      /** Aborts every chunk's request (a caller's deadline); a refused chunk is `failed`, as any other. */
+      signal?: AbortSignal
     ): Promise<{ rows: Record<string, unknown>[]; failed: string | null }> {
       const filters = scopeFilters(table, scope)
       if (!values.length) return { rows: [], failed: null }
@@ -80,7 +82,8 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       for (let i = 0; i < values.length; i += chunk) {
         let q = db.from(table).select(columns)
         for (const [c, value] of filters) q = q.eq(c, value)
-        const { data, error } = await q.in(column, values.slice(i, i + chunk) as string[])
+        const filtered = q.in(column, values.slice(i, i + chunk) as string[])
+        const { data, error } = await (signal ? filtered.abortSignal(signal) : filtered)
         // NOT `?? []`. A read that did not happen is not a read that found
         // nothing, and every caller of this function is deciding whether to act.
         if (error)
@@ -126,6 +129,8 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
          *  returning a partial list — a caller sized for thousands of rows that
          *  is handed millions has a different problem than paging. */
         maxRows?: number
+        /** Aborts every page's request (a caller's deadline): a refused page is `failed`, as any other. */
+        signal?: AbortSignal
       }
     ): Promise<{ rows: Record<string, unknown>[]; failed: string | null }> {
       const pageSize = opts.pageSize ?? 1000
@@ -140,7 +145,8 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
         for (const c of opts.isNull ?? []) q = q.is(c, null)
         for (const [c, value] of opts.gt ?? []) q = q.gt(c, value)
         for (const c of opts.orderBy) q = q.order(c, { ascending: true })
-        const { data, error, count } = await q.range(from, from + pageSize - 1)
+        const ranged = q.range(from, from + pageSize - 1)
+        const { data, error, count } = await (opts.signal ? ranged.abortSignal(opts.signal) : ranged)
         if (error)
           return {
             rows: [],
@@ -157,29 +163,9 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       return { rows, failed: null }
     },
     // #endregion bounded-reads
-
-    /** Fills the scope columns rather than trusting the caller to. A row whose
-     *  own values disagreed with the scope would be written and then invisible
-     *  to every read — the empty-table failure, one layer down. */
-    insert(table: string, row: Record<string, unknown>) {
-      const owned: Record<string, unknown> = { ...row }
-      for (const [column, value] of scopeOwnership(table, scope)) owned[column] = value
-      return db.from(table).insert(owned)
-    },
-
-    update(table: string, patch: Record<string, unknown>) {
-      const filters = scopeFilters(table, scope)
-      let q = db.from(table).update(patch)
-      for (const [column, value] of filters) q = q.eq(column, value)
-      return q
-    },
-
-    delete(table: string) {
-      const filters = scopeFilters(table, scope)
-      let q = db.from(table).delete()
-      for (const [column, value] of filters) q = q.eq(column, value)
-      return q
-    }
+    // NO WRITES (audit 2026-10-05 A7-023). insert/update/delete lived here with no caller: an API that invites
+    // a write around the journal, where every register is a projection (ADR-0014). A write is an event through
+    // append_event, or a named host command; this store only reads.
   }
 }
 

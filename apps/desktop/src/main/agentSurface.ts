@@ -75,6 +75,7 @@ import type { Policy } from './policy'
 import { createScopedStore } from './scopedStore.ts'
 import { buildProtocol, protocolHash } from '../shared/protocol.ts'
 import { ops } from './opsSink.ts'
+import { untilAnsweredOrGone } from './hangUp.ts'
 import { QUESTION_KINDS, normaliseAsk } from '../shared/questionAsk.ts'
 import { sameToken, type AccessService, type HubPrincipal } from './accessService.ts'
 import type { McpServer as HubServer } from '@modelcontextprotocol/sdk/server/mcp.js'
@@ -447,6 +448,18 @@ export class AgentSurface {
     }
   }
 
+  // #region session-enroll-credential-state — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
+  /** What this surface holds of a bearer: minted and not yet spent on its one initialize (and still within its
+   *  claim window), spent by an initialised session, or nothing (never minted, revoked, or expired unclaimed). Read
+   *  by the enrollment to hand an unspent bearer out again instead of minting another (`sessionEnroll.ts`). */
+  credentialState(token: string): 'unclaimed' | 'claimed' | null {
+    const st = this.states.get(token)
+    if (!st) return null
+    if (st.claimedAt !== null) return 'claimed'
+    return this.now() - st.mintedAt > this.limits.claimWindowMs ? null : 'unclaimed'
+  }
+  // #endregion session-enroll-credential-state
+
   /** Test seam and honest accounting: what the surface currently holds. */
   credentialCount(): number {
     return this.states.size
@@ -622,7 +635,7 @@ export class AgentSurface {
       st.mcpSessionId = mcpSessionId
       try {
         await mcp.connect(transport)
-        await transport.handleRequest(req, res, body)
+        await untilAnsweredOrGone(transport.handleRequest(req, res, body), res)
       } catch (e) {
         // The credential stays spent — burning it on a failed handshake is the
         // safe direction to be wrong in — but it no longer fails SILENTLY. The
@@ -668,7 +681,7 @@ export class AgentSurface {
       AgentSurface.refuse(res, 401, 'mcp-session-id does not match this credential', {}, attempt)
       return
     }
-    await st.transport.handleRequest(req, res, body)
+    await untilAnsweredOrGone(st.transport.handleRequest(req, res, body), res)
   }
 
   /** Spend one call from `key`'s window; false when the window's `limit` is already spent. */
@@ -2168,7 +2181,10 @@ export class AgentSurface {
         const grantId = await policy.findGrantFor({
           estateId: scope.estateId,
           floorClass,
-          target
+          target,
+          // A grant confined to another project or act does not serve this one (audit A7-015).
+          projectId: scope.projectId,
+          actionClass
         })
         // WHO IS ASKING, and in which mode (FA-09). The floor is voluntary —
         // every runner has native tools Fabric cannot see — so the decision has

@@ -83,14 +83,18 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-67 | Run trace | FLW-65 | none — text spec | designed | none yet |
 | SCR-68 | Fabric tools | FLW-66 | none — text spec | designed | none yet |
 | SCR-69 | Optimizer proposals | FLW-66 | none — text spec | designed | none yet |
-| SCR-70 | First run | FLW-69 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
+| SCR-70 | First run | FLW-69, FLW-82 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
 | SCR-71 | Add a project | FLW-70 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
-| SCR-72 | Scan a projects folder | FLW-71 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
+| SCR-72 | Scan a projects folder | FLW-71, FLW-69 | none — text spec | built | apps/desktop/src/renderer/src/start/ |
 | SCR-73 | New project | FLW-72 | none — text spec | built | apps/desktop/src/renderer/src/Onboarding.tsx |
 | SCR-74 | Create an agent | FLW-73 | none — text spec | built | apps/desktop/src/renderer/src/start/AgentPaths.tsx |
 | SCR-75 | Adapt an existing agent | FLW-74 | none — text spec | built | apps/desktop/src/renderer/src/start/AgentPaths.tsx |
 | SCR-76 | Agent access | FLW-75, FLW-76 | none — text spec | built | apps/desktop/src/renderer/src/AgentAccessPanel.tsx |
-| SCR-77 | Project comms | FLW-77 | none — text spec | built | apps/desktop/src/renderer/src/launch/CommsScreen.tsx |
+| SCR-77 | Setup: coding agents and products | FLW-78, FLW-79, FLW-69 | none — text spec | designed | none yet |
+| SCR-78 | Where work is | FLW-81, FLW-80 | none — text spec | designed | none yet |
+| SCR-79 | Fabric button in a product | FLW-82 | none — text spec | blocked | none yet |
+| SCR-80 | Start a working session | FLW-82 | none — text spec | designed | none yet |
+| SCR-81 | Project comms | FLW-83 | none — text spec | built | apps/desktop/src/renderer/src/launch/CommsScreen.tsx |
 
 ## Design system
 
@@ -522,7 +526,7 @@ different destination under the same name.
 
 
 ### SCR-25: Session window
-- **Used by:** FLW-16 steps 2–4; FLW-54
+- **Used by:** FLW-16 steps 2–4; FLW-54; FLW-78, FLW-79 (the Setup console); FLW-81; FLW-82 (the manager session)
 - **Purpose:** one session in full — the terminal the agent actually runs in (ADR-0008 §3), detached so the project view stays readable behind it.
 - **Elements:** header with the launch option, working directory and state badge; full-height terminal viewport; the session survives closing this window.
 - **States:**
@@ -535,8 +539,13 @@ different destination under the same name.
   | backend-lost | Fabric lost the agent's backend | none | "Connection to the agent lost"; input is off in every window of this agent; the work is not reported stopped |
   | outcome-unknown | the end of the work cannot be confirmed | none | stays unknown with the last observed output; no new writer for the same work |
   | missing | session no longer exists | none | states plainly that it is gone and the window can be closed |
+  | setup | the Setup console runs (SCN-138, SCN-139; ADR-0135) | none | header «Setting up with <coding agent>» and what the brief covers (the family's agents, or one product); the coding agent's own console below, where it asks before each step; beside it, SCR-77's checklist of what Fabric observes, so the person sees the agent's words and Fabric's observations side by side; closing the window ends nothing Fabric observed and SCR-77 offers Continue setup |
+  | confirm-start | a Fabric button or a `fabric://chat` link asks for the manager session and none is open for that project (SCN-142) | none | «Talk to <name> about <project> — asked from <product>, <page>», the coding agent the fallback order chooses (Change), Start as the one primary; nothing starts before Start; a malformed link opens nothing and says the link was not understood (link-refused) |
+  | manager | the manager session runs (REQ-16, ADR-0123) | none | header: Fabric's face and name, the scope (the project, or «all projects»), the product and page it came from; «Open in a coding agent» (SCR-80) and «Back to <product>»; the coding agent's console below — the conversation is that console, never a chat Fabric draws |
+  | project-unknown | the asking product's project resolves to no Fabric project | none | the confirmation says "<product>'s project «x» is not in Fabric yet", offers Start with all projects, and Add its folder (SCR-71) |
+  | no-agent | no coding agent can start the session | none | each coding agent with the reason it was passed over (as SCN-135) and «Set up a coding agent» (SCR-77); nothing starts |
 - **Coverage:** `apps/desktop/src/renderer/src/SessionWindow.tsx`, `apps/desktop/src/renderer/src/TerminalView.tsx`
-- **Scenarios:** SCN-025, SCN-029, SCN-091
+- **Scenarios:** SCN-025, SCN-029, SCN-091, SCN-138, SCN-139, SCN-141, SCN-142
 - **Resources:** main-process PTY sessions; journal `terminal.*`; ADR-0008; ADR-0031
 - **Status:** designed
 
@@ -626,7 +635,7 @@ different destination under the same name.
 - **Status:** designed
 
 ### SCR-30: Estate home
-- **Used by:** FLW-21, FLW-32, FLW-33, FLW-54
+- **Used by:** FLW-21, FLW-32, FLW-33, FLW-54, FLW-69, FLW-78
 - **Purpose:** the first screen after launch — who the manager is, what it has done, which projects lead, and what is happening across all of them right now.
 - **Elements:** compact manager header (colour portrait, name/role, meaningful-events sparkline and sourced pulse); priority Board beside a resume card (decision/now/next); projects below Board and restrained agent activity below resume; controls (search, attention with count, quota, chat, new project, settings); favourites up to five; all projects by activity with per-project agent summary; live feed; floating manager control.
 - **States:**
@@ -647,8 +656,10 @@ different destination under the same name.
   | success | projects exist | none | favourites lead; a project with an agent waiting sorts up |
   | chat open | the manager control is pressed | none | the chat becomes a THIRD column; nothing already on screen is hidden. The thread is the PROJECT's — the estate has its own and switching projects switches threads |
   | figure pressed | any counted figure | none | opens the register it was counted from; a figure that names a register and does not open it is a claim wearing a citation |
+  | default | the first run has just finished (FLW-69) | none | the persona's name in the hero, the imported projects listed; when an action was chosen in the first run its screen opens over Home, which stays one Back away |
+  | finish-setting-up | the first run's family step was skipped (SCN-138) | none | one card «Finish setting up» naming what is not set up and the reason the person gave; it opens SCR-77 at the family step; Dismiss removes it, and SCR-77 stays reachable from Settings |
 - **Coverage:** none yet
-- **Scenarios:** SCN-043, SCN-044, SCN-059, SCN-060, SCN-092, SCN-093
+- **Scenarios:** SCN-043, SCN-044, SCN-059, SCN-060, SCN-092, SCN-093, SCN-126, SCN-138
 - **Resources:** `projects`, `agent_bindings`, journal; the portrait contract in `docs/brand/ui.md`
 - **Status:** designed
 - **Prototype now renders the V1 five-lane home (2026-09-12, target design, not coverage):** operator brief — the home lacked an avatar and statistics, and the focus on returning to context was not visible. The mockup (`scripts/product/workbench.mjs`, view `estate`) now leads with the Fabric greeting band (mark + the digest voiced with the oldest wait age), a measured stat row where every figure names its register (SCN-044's rule applied to the home), then the five lanes in the fixed order Вопросы → Сейчас → Было → Дальше → Решения with ONE lane open on arrival (Вопросы if any, else Было) — the раскладушка of `plans/2026-09-12-v1-design-language.md` §1–§3. Tested mechanics survived recomposition: pin-project, host-unavailable/host-ready, sources table, CEO launcher (browser suites re-run green). The bespoke empty welcome is unchanged.
@@ -656,7 +667,7 @@ different destination under the same name.
 - **Addressable subviews (target only):** Restored working set and resume-draft entry preserve operator intent. SCR-01 resolves to project-inventory intent here, not a duplicate estate route.
 
 ### SCR-31: Project page
-- **Used by:** FLW-21, FLW-22, FLW-23, FLW-24, FLW-32, FLW-33, FLW-54
+- **Used by:** FLW-21, FLW-22, FLW-23, FLW-24, FLW-32, FLW-33, FLW-54, FLW-80, FLW-81
 - **Purpose:** the working surface of one project, answering in order: where we left off, what to ask for, what is in flight.
 - **Elements:** header with branch and repository state; attention chips; where-we-left-off digest with citations; give-a-task field with shortcuts; kanban board with drag; project live feed; plan widget; agent noticeboard; harness entry; collapsed memory, files and journal; floating manager control.
 - **States:**
@@ -683,15 +694,20 @@ different destination under the same name.
   | empty | tasks existed and were cleared | none | the digest says there is nothing to summarise yet; the board shows its columns |
   | success | work exists | none | the board is authoritative only after the journal accepts a move |
   | move refused | `task.moved@1` not accepted | none | the card returns to its column and the failure is stated |
+  | who-is-working | claims are live in this project (SCN-140, REQ-38) | none | the section «Who is working on what»: one row per claim — the agent (coding agent or product, how it came in), the task with its backlog row, what it touches, since, last sign of life; the row's one action opens the agent's session, «Release…» sits in its … menu; agent-sync leases are listed beneath, read-only |
+  | who-is-working related | two claims overlap (same backlog row, linked tasks, or overlapping folders or files) | none | both rows carry «related» and name each other and what overlaps; nothing is blocked |
+  | who-is-working none | no claim is live | none | one line: nobody is working in this project right now — from a read board, never before it answers |
+  | who-is-working stale | a claim is past its expiry with no sign of life, or lapsed with its session | none | «no sign since <time>», or «lapsed — the session ended», never "working" |
+  | release confirm | «Release…» chosen on a claim | none | a confirmation naming the agent and the task: the claim ends now and the agent is told on its next call; Release and Cancel, Cancel focused |
 - **Coverage:** partly — `apps/desktop/src/renderer/src/ProjectHome.tsx` holds the panels this recomposes
-- **Scenarios:** SCN-040, SCN-041, SCN-060
+- **Scenarios:** SCN-040, SCN-041, SCN-060, SCN-140
 - **Resources:** `project_tasks`, journal, `agent_stages`, leases
 - **Status:** designed
 - **Planned extension (not current coverage):** Board top10; separately addressed Project history, Target plan and Decisions previews; per-agent/task TaskRun widget. FLW-25/27/28/31; SCN-050/052/053/054/057/058. See [engineering contract](../architecture/system-contract.md).
 - **Addressable subviews (target only):** SCR-03 overview is an intent of this same project surface. Deep links carry exact authorised project/entity/return context; a missing or denied source never falls back to another project.
 
 ### SCR-32: Task page
-- **Used by:** FLW-22, FLW-23, FLW-32, FLW-33, FLW-54
+- **Used by:** FLW-22, FLW-23, FLW-32, FLW-33, FLW-54, FLW-81
 - **Purpose:** one task's own page — the working context of that task, filled in by the agents working it and editable by the operator. Not a second documentation: knowledge lives in `docs/` and in project memory, and this page links to it.
 - **Elements:** title with type, section and lease; brief (what / why / expected result) with its authorship line; append-only notes with a promote-to-memory action; fields panel; related tasks; resources as links only; transition history; receipts for external effects; the manager chat scoped to this task.
 - **States:**
@@ -1158,6 +1174,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 | stale | соответствующий ответ источника | none | Показать разрешённый снимок; изменение только после повторного чтения. |
 
 - **Domain states:** inherited, overridden, validation-error, saved, read-only.
+- **Amended 2026-10-11 (0.4.0 REQ-41, REQ-39):** Settings carries an entry «Coding agents and products» that opens SCR-77 — the coding agents on this Mac and the family's products, each product × agent verified by observation (SCN-139), and the family's agents step for an estate that skipped it in the first run (SCN-138). The page of its own with Agents & access first is REQ-21's (wave 6).
 - **Amended 2026-10-08 (0.3.3 verification DO-13, UX-7):** the settings band of the app carries two 0.3.3 parts of
   this screen. *Share usage counts* (SCN-134, `UsageCountsSetting.tsx`) is one of the two places that answer the
   usage-counts disclosure; the other is the first-run notice at the top of the window (`UsageCountsNotice.tsx`,
@@ -1692,31 +1709,35 @@ results always pair text with an icon — colour is never the only signal.
 ## Start paths · 2026-10-03 (ADR-0100)
 
 ### SCR-70: First run
-- **Used by:** FLW-69
-- **Purpose:** Meet Fabric once: name and look, the coding agents on this Mac, where to start.
-- **Elements:** three-step progress; name, character, variants; executor rows (installation/tool state, version, path, separate read-only sign-in status, install command, Copy, Check again); the four actions in two labelled pairs; Back, Skip, Later. The sign-in check is informational, including while pending; Continue without an agent remains available.
+- **Used by:** FLW-69; FLW-82 (a request waiting for the first run)
+- **Purpose:** Meet Fabric once, in the operator's order (REQ-39): name, language and look → the folder where projects live → the projects found, imported → the first action → the family's own agents → Home.
+- **Elements:** five-step progress (Fabric and you · Projects folder · Your projects · First action · Family agents); **step 1** — the one-sentence lede (what Fabric is, ADR-0133), language choice preselected from the system, name field (hint, 40 characters), one row of characters with the live greeting and face; **step 2** — the folder field showing the chosen path with «Choose folder…» / «Change…» (the system picker, opening at the last folder chosen in Fabric), «Scan this folder» (primary), «I have no projects yet»; **step 3** — SCR-72 inside the first run (scan, checklist, «Import N as projects»); **step 4** — the four actions with **Create an agent** primary, Convert an agent, Open a project, Create a project, «Next: …» with Change, «Decide later»; **step 5** — SCR-77 inside the first run: the coding agents as a radiogroup of native radios (every installed agent that answered pickable whatever its sign-in state; not installed or not answering disabled with why and what to do), the pick saved at Continue as the head of the fallback order, then the two family products and «Set up with <coding agent>»; Back, Skip, Continue on every step — on step 5 Continue reads "Continue without an agent" only when no agent can be picked, and stays usable while the check is pending (REQ-40).
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
-  | first-visit | empty estate, first run not finished | none | step 1 with defaults |
-  | saving | Continue on step 1 | none | Continue busy until the look is saved |
-  | not-saved | look save refused | none | reason and Continue without saving |
-  | checking | version/status observation running | none | busy line; Continue without an agent available |
-  | found | agent answered --version and Fabric reaches its session | none | ready pill and version |
-  | found-unconnected | agent answered, Fabric does not reach its session | none | installed pill and a note that it runs in the folder as itself |
-  | unresponsive | on PATH, no answer | none | needs-setup pill and the run-once advice, no install command |
-  | missing | not on PATH | none | not-installed pill and install command with Copy |
-  | check-failed | detection itself failed | none | reason and Check again |
-  | authenticated | exact supported vendor status reports signed in | none | separate status; no account identity/admission claim |
-  | not-authenticated | exact vendor status reports signed out | none | sign in through the coding agent and check again; continue remains available |
-  | auth-unsupported | current build/runtime has no measured reader | none | explicitly unverified; no guessed status command |
-  | auth-unknown | timeout, refusal, malformed or excessive output | none | cannot confirm; retry or continue, no raw provider output |
-  | choose-path | step 3 | none | the four actions in two pairs — Agent: Create an agent, Adapt an existing agent; Project: Open a project (one folder or a folder of them), Create a project |
-  | skipped | Later on step 3 (Skip on step 1 only moves to step 2) | none | first run marked finished; home, Help reopens it |
-- **Coverage:** apps/desktop/src/renderer/src/start/FirstRun.tsx
-- **Scenarios:** SCN-126
-- **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
-- **Implementation tasks:** P-01
+  | first-visit | empty estate, first run not finished | none | step 1 with the defaults: language from the system, name empty ("Fabric"), the first character |
+  | language-system | the system's preferred language read | none | Russian preselected for `ru*`, otherwise English; changing it re-renders the step at once |
+  | saving | Continue on step 1 | none | Continue busy until name, language and look are saved |
+  | not-saved | saving refused | none | the reason and Continue without saving; the defaults stay |
+  | folder-unset | step 2, no folder chosen yet | none | «Choose folder…» and «I have no projects yet»; «Scan this folder» is not offered until a folder is chosen |
+  | picker-cancel | the picker closed without a folder | none | the step as it was |
+  | folder-chosen | a folder chosen in the picker | none | the full path, «Change…», and «Scan this folder» as the primary; the folder is remembered for the next picker |
+  | no-projects-yet | «I have no projects yet» | none | step 4 says nothing was imported and keeps all four actions |
+  | choose-action | step 4 | none | the four actions, Create an agent primary, «Decide later» |
+  | action-chosen | one action picked | none | «Next: <action>» with Change; Continue goes to step 5 |
+  | choose-agent | step 5 (in the code's current order, step 2), agents read | none | a radiogroup: every installed agent that answered is pickable signed in or not (its sign-in line is its description); not installed or not answering is disabled and says why and what to do; Check again re-reads with the latest-request fence; an untouched default writes nothing at Continue (REQ-40) |
+  | choice-not-saved | saving the pick as the head of the fallback order was refused | none | the reason and Continue without saving; the order stays as it was |
+  | finishing | step 5 left (verified or skipped) | none | Continue busy while the finish is recorded |
+  | finish-failed | the finish could not be recorded | none | "it will open again next time" with Try again; Home is still reached |
+  | resumed | Fabric restarted mid-run | none | the first run reopens at the step it was left on, the folder, the imports and the observations kept |
+  | skipped | the first run ended with nothing chosen | none | first run marked finished; Home; Help → Walk through the first run again reopens it |
+  | long-content | a long name, a long folder path, a long product description | none | the path wraps in full with its last segment visible; the name is cut at 40 characters by the field |
+- **Axes:** viewport: 1024, 1440; theme: light, dark; text: default, 200%; locale: en, ru
+- **Coverage:** apps/desktop/src/renderer/src/start/FirstRun.tsx (the 0.3.x three steps, with the REQ-40 agent choice in region `first-run-agent-choice` and apps/desktop/src/shared/builderChoice.ts; the 0.4.0 order is designed, not built)
+- **Scenarios:** SCN-126, SCN-128, SCN-138, SCN-142
+- **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md), [ADR-0129](../adr/0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md), [ADR-0135](../adr/0135-setup-runs-in-the-persons-coding-agent-and-fabric-shows-what-it-observes.md); the 0.4.0 plan REQ-09…REQ-12, REQ-39, REQ-40.
+- **Implementation tasks:** P-01; 0.4.0 REQ-39 (wave 3)
+- **Amended 2026-10-11 (REQ-39):** redrawn from the 0.3.x three steps (name and look → coding agents → where to start). The coding-agent states of the old step 2 — found, found-unconnected, unresponsive, missing, check-failed and the four sign-in states — now belong to SCR-77 (its agent rows), where the chosen agent runs the setup.
 
 ### SCR-71: Add a project
 - **Used by:** FLW-70
@@ -1740,7 +1761,7 @@ results always pair text with an icon — colour is never the only signal.
 - **Implementation tasks:** P-01
 
 ### SCR-72: Scan a projects folder
-- **Used by:** FLW-71
+- **Used by:** FLW-71; FLW-69 (the first run's step 3)
 - **Purpose:** List every repository in a chosen folder and create one Project per ticked row.
 - **Elements:** Choose a folder to scan; Stop; summary; truncation notice; filter; Tick all shown; Clear; grouped candidate rows; Add N as projects; per-row result.
 - **States:**
@@ -1765,8 +1786,14 @@ results always pair text with an icon — colour is never the only signal.
   | partial | some rows failed | none | added and not-added counts; failed rows keep their reason and stay ticked |
   | imported | all rows added | none | summary and Open the first |
   | failed | the scan itself failed | none | reason and the prompt again |
+  | first-run | shown as the first run's step 3 (SCN-126) | none | inside SCR-70's frame and progress, on the folder step 2 chose; no Choose prompt; after the import the summary offers Continue (to step 4) instead of «Open the first» and «Set up {name} with the agent» |
+  | slow | the walk is still running after 10 s | none | the count keeps moving; one line says the folder is large — keep waiting, or Stop and choose a narrower one |
+  | denied | macOS refused the chosen folder itself | none | "Fabric could not read <folder>: macOS did not allow it", Open System Settings (Privacy & Security → Files and Folders) and Choose another folder; nothing scanned, nothing kept |
+  | no-repositories | folders found, none of them a repository | none | the plain folders, unticked, with "No git repositories here — a folder you tick becomes a project without history Fabric can read" |
+  | plain-folder | a top-level folder that is not a repository, among repositories | none | listed unticked with «not a repository: Fabric reads no history in it»; ticked, it becomes a Project holding a plain folder |
+- **Amended 2026-10-11 (REQ-39):** repositories at the head of a product arrive **ticked** (worktrees and nested repositories stay unticked); the picker opens at the last folder chosen in Fabric and the chosen folder is shown as its path with «Change…».
 - **Coverage:** apps/desktop/src/renderer/src/start/StartPaths.tsx
-- **Scenarios:** SCN-128
+- **Scenarios:** SCN-128, SCN-126
 - **Resources:** [ADR-0100](../adr/0100-first-run-and-start-paths.md).
 - **Implementation tasks:** P-01
 
@@ -1838,8 +1865,8 @@ results always pair text with an icon — colour is never the only signal.
 - **Implementation tasks:** REQ-03, REQ-04
 
 ### SCR-76: Agent access
-- **Used by:** FLW-75, FLW-76
-- **Purpose:** What registered agents on this Mac may do through Fabric, what is waiting for an answer, and which products are connected — opened from Settings ([ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)).
+- **Used by:** FLW-75, FLW-76, FLW-77
+- **Purpose:** What registered agents on this Mac — and coding agents working in a project ([ADR-0134](../adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)) — may do through Fabric, what is waiting for an answer, and which products are connected — opened from Settings ([ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)).
 - **Elements:** where agents reach Fabric, or why they cannot; Products — one card each, the text first and Connect (or Reconnect and Disconnect once connected) on their own line under it, and the last connect outcome; waiting requests, one card each headed by the agent's name — who installed it and where it came from, what it asks in plain words, its reason as its claim, the same-user floor, whether it adds to existing access, that access lasts a year unless revoked, when the request expires, Deny and Allow (or "Allow and connect <product>"); agents with access, one card each, each grant in plain words with its expiry (a date in the operator's locale) and Revoke, and Revoke all; denied requests with Clear the denial. Every button names whose it is to a screen reader — an agent's buttons in their own label, a product's buttons through the group they sit in, which carries the product's name (2026-10-05, release review I3 U-4); the accessible Allow name includes the visible connect action. Long resources wrap in full, controls wrap at narrow widths, and completion moves keyboard focus to the affected section. Machine diagnostics are a secondary line below the localised reason. Every word is in the operator's language.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
@@ -1853,14 +1880,134 @@ results always pair text with an icon — colour is never the only signal.
   | declined | the operator denied in the product | none | says it was declined |
   | failed | the product reported a failure; the vault refused or was too slow; no answer within 10 minutes; a Reconnect whose new key was withdrawn | none | the reason in warning ink, separated from the connected line; Try again when not connected; a withdrawn Reconnect says the product is not connected now |
 - **Coverage:** apps/desktop/src/renderer/src/AgentAccessPanel.tsx
-- **Scenarios:** SCN-132, SCN-133
-- **Resources:** [ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md).
+- **Scenarios:** SCN-132, SCN-133, SCN-137 (an enrollment is said as "<coding agent> asks to work in <project>", its grant as "works in <project> — until <date>", with the folder Fabric resolved and the same-user floor; never "connect")
+- **Resources:** [ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md), [ADR-0134](../adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md).
 - **Implementation tasks:** AR-3.1, AR-3.4
 
-### SCR-77: Project comms
-- **Used by:** FLW-77
+## Agents first — the operator's evening additions · 2026-10-11 (0.4.0 plan REQ-38, REQ-39, REQ-41, REQ-42)
+
+Four new screens, and new states on SCR-25, SCR-30, SCR-31, SCR-70 and SCR-72 (marked «Amended 2026-10-11» in
+their entries). Status and text-only frames as every 0.4.0 screen until the design track (REQ-43) links its Figma
+frames; the visual layer is the recorded style pack's tokens.
+
+### SCR-77: Setup: coding agents and products
+- **Used by:** FLW-78, FLW-79; FLW-69 (the first run's step 5)
+- **Purpose:** One place to see the coding agents on this Mac and the family's products, start their setup in the person's coding agent, and read what Fabric observed — never the agent's claims (ADR-0135 §4).
+- **Elements:** **Coding agents** — one row each: name, one state line (installed with version · signed in or "sign in, then check again" · adapter skills · connected to Fabric), a radio when it can run setup, the reason in one line when it cannot, the vendor's install command with Copy when not installed; Check again. **First, the family's own agents** — Project Observatory and the Fabric Dashboards agent, each with what it gives and its state line; «Set up with <coding agent>» (the primary); «Skip for now» with its reason choice and what-is-lost line. **Products** (outside the first run) — a table, one row per family product from `products.md`, one column per coding agent, each cell an icon with text (verified with when · registered, not verified · not registered · not installed · not offered for this system); the row's one action «Set up with <coding agent>» and its … menu (Add to another agent, Remove, Copy receipt). **The live checklist** while a setup runs: each step, observed or reported, with its time; Continue setup; Try again; Use another coding agent; Continue with Fabric Dashboards. **The receipt panel** of a cell: product and version, coding agent and version, the register command (no secret), the proving call and its answer as reported, Fabric's observations with times, the system; Copy receipt; File a task in <project>.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | first-run | shown as the first run's step 5 | none | inside SCR-70's frame: the coding agents and the two family products only; Continue when both are verified or skipped |
+  | loading | observations being read | none | the rows keep their places with "checking"; no state is guessed |
+  | checking | Check again pressed | none | a busy line; the previous observations stay greyed with their age |
+  | agents-read | the coding agents observed | none | one honest line per agent as a radio; the preselected row (the head of the fallback order when pickable) and the hint naming the rule that chose it; the pick is saved at Continue as the head of the fallback order, an untouched default writes nothing (REQ-40) |
+  | agent-disabled | an agent is not installed or did not answer | none | its row stays visible and disabled with why and what to do in one line (not installed + install command and Copy; did not answer `--version` — run it once, then Check again) |
+  | not-signed-in | the picked agent's sign-in status says signed out | none | the row stays pickable; «Set up with <agent>» says "Sign in to <agent> in its own window, then Check again" instead of starting — the console never starts on it (ADR-0135 §5) |
+  | choice-not-saved | saving the pick as the head of the fallback order was refused | none | the reason and Continue without saving |
+  | no-agent | no coding agent can run setup | none | "Setup runs in a coding agent, and none on this Mac can start", each agent with its reason; Skip for now |
+  | check-failed | detection itself failed | none | the reason and Check again; never "not installed" |
+  | ready | an agent chosen | none | «Set up with <agent>» enabled as the one primary |
+  | console-open | the Setup console runs (SCR-25 setup) | none | the checklist live beside it; «Set up» replaced by «Bring the console forward» |
+  | step-observed | Fabric observed a step | none | the line ticked with what was observed and when |
+  | step-reported | the agent reported a step Fabric cannot observe directly (the proving call's answer) | none | marked «reported», with the answer quoted as the agent's |
+  | not-confirmed | the agent says done, Fabric does not observe it | none | "not confirmed", naming what Fabric looked for; Check again |
+  | refused-unverified | a download failed its signature or checksum | none | "Download not verified — refused", nothing installed, the agent's reason quoted; Try again |
+  | failed | an install, a registration or a proving call failed | none | "stopped at <step>" with the agent's reason as its report; Try again, Use another coding agent, Skip with a reason (and Continue with Fabric Dashboards when Observatory failed) |
+  | verified | installed, registered, answering, and the proving call reported | none | "verified" with when; the receipt one press away |
+  | console-closed | the console closed mid-way | none | what was observed stays; «Continue setup» reopens at the first unobserved step |
+  | skip-asked | «Skip for now» pressed | none | the reason choice (later · set up another way · not now · own words) and what is lost per product; Skip and Cancel |
+  | skipped | skipped with a reason | none | the reason recorded; in the first run, Continue; Home shows «Finish setting up» |
+  | already-verified | everything already verified | none | each line verified with its time; Continue / Done only |
+  | read | the products table read (outside the first run) | none | one row per product, one cell per coding agent |
+  | unreadable | the products table cannot be read | none | the reason and Check again; never an empty table |
+  | not-installed | the product's bundle is not on this Mac | none | the cell "not installed"; the row's action sets it up |
+  | installed | bundle found, signature valid | none | the cell "installed" with the version |
+  | registered | the product's server in the agent's own MCP list | none | the cell "registered" |
+  | answering | the product answered Fabric's probe | none | the cell "answering" |
+  | unsupported-os | the product is not offered for this system | none | the cell says so; no action |
+  | setup-running | a console already runs for this product | none | a second setup refused with "already running in <agent>" and Bring it forward |
+  | removing | Remove chosen; the console removes | none | the cell shows each removal as observed |
+  | removed | the server (and, if asked, the product) observed gone | none | the cell back to "not registered" / "not installed" |
+  | long-content | many products and agents | none | the table scrolls inside its own frame with the product column fixed; no page-wide horizontal scroll |
+- **Axes:** viewport: 1024, 1440; theme: light, dark; text: default, 200%; locale: en, ru
+- **Coverage:** none yet
+- **Scenarios:** SCN-138, SCN-139, SCN-126
+- **Resources:** [ADR-0135](../adr/0135-setup-runs-in-the-persons-coding-agent-and-fabric-shows-what-it-observes.md); the knowledge base's `agents-first.md` (the order) and `products.md` (install, MCP line, proving call per product), pinned with the release; the planned `setupFacts` observation module and the `setup-machine` session preset (plan C5).
+- **Status:** designed
+- **Implementation tasks:** 0.4.0 REQ-10, REQ-11, REQ-39, REQ-40, REQ-41 (wave 3)
+
+### SCR-78: Where work is
+- **Used by:** FLW-81, FLW-80
+- **Purpose:** The manager's estate view: per project, the live sessions, the claimed tasks, the review queue and the last sign of life — and, always, the sessions no project owns (plan C8, REQ-17).
+- **Elements:** one row per project with work in flight — live sessions (coding agent, how it came in: launched, enrolled from a terminal, handed off from Dashboards or Switchboard), claimed tasks (agent, task, since, «related»), review count, last sign of life; one counted line for the projects with nothing in flight; the last row «Sessions with no project», always shown — each session's coding agent, folder and since, with «Log under a project…»; the consent sheet (log under the matched project, named with how it matched / a new project / don't log here; Allow, Cancel); the reading time.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | loading | first read | none | the rows' places with "reading"; no count shown before it is read |
+  | read | projections read | none | the project rows, the idle line, the last row |
+  | nothing-in-flight | no project has work in flight | none | one line saying so, the idle projects counted, and the last row |
+  | unreadable | the estate cannot be read | none | the reason and Try again; never "no work" |
+  | partial | one projection cannot be read | none | that column says so on every row; the rest stays readable |
+  | stale | a sign of life older than its window | none | "no sign for <minutes>", never "running" |
+  | related | two claims in a project overlap | none | the pair shown together with what overlaps |
+  | no-project-sessions | sessions report from folders no project holds | none | the last row lists them with «Log under a project…» |
+  | none-unowned | no such session | none | the last row says "none" — it is never hidden |
+  | admitting | Allow pressed in the consent sheet | none | the session's row busy |
+  | admitted | the folder admitted | none | the session moves to its project's row |
+  | refused-broad | the folder is too broad to admit | none | the reason (the home folder, a volume's root); the session stays on the last row |
+  | not-logged | «Don't log here» chosen | none | the session stays as «not logged here»; that folder is not asked about again |
+  | long-content | many projects or long folder paths | none | rows wrap; paths keep their last segment visible |
+- **Axes:** viewport: 1024, 1440; theme: light, dark; text: default, 200%; locale: en, ru
+- **Coverage:** none yet
+- **Scenarios:** SCN-141, SCN-140
+- **Resources:** the journal's projections (sessions, `work.claimed@1` claims, tasks in review, heartbeats); [ADR-0136](../adr/0136-a-folder-joins-a-project-by-a-pick-or-by-consent.md) §2 for the admission; the viewer tool `fabric.work.overview` of [ADR-0139](../adr/0139-fabric-is-a-service-its-descriptor-its-well-known-document-and-a-read-only-viewer.md) reads the same facts.
+- **Status:** designed
+- **Implementation tasks:** 0.4.0 REQ-17, REQ-38 (waves 2 and 5)
+
+### SCR-79: Fabric button in a product
+- **Used by:** FLW-82
+- **Purpose:** Fabric's floating button on every page of Fabric Dashboards and of each family product's dashboard — one component of the contract's service kit — that opens the manager session in that product's project (REQ-42). Rendered by the products; drawn and owned here.
+- **Elements:** a round button in the page's bottom corner with Fabric's face; its accessible name and tooltip «Ask <Fabric's name> about <project>» (or «Ask <name>» with no project); a one-line busy label «Opening <name>…»; a one-line failure label with its hint. One action; no menu, no chat.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | idle | the page shows, Fabric's descriptor is registered on this Mac | none | the face only; it never covers the page's own primary action (the kit keeps it clear of the page's bottom bar) |
+  | focus | hover or keyboard focus | none | the label «Ask <name> about <project>» beside the face; Enter or Space presses it |
+  | opening | pressed | none | «Opening <name>…»; a second press does nothing until it settles |
+  | not-opened | Fabric did not come forward within 15 s | none | "<name> did not open — open it from Applications"; back to idle after it is read; nothing retried by itself |
+  | absent | Fabric is not installed on this Mac (no descriptor) | none | the button is not rendered at all |
+- **Axes:** viewport: 1024, 1440; theme: light, dark (the host page's); text: default, 200%; locale: en, ru (the host page's)
+- **Coverage:** none yet
+- **Scenarios:** SCN-142
+- **Resources:** the contract decision REQ-42 asks for (the button in the service kit; deep links `fabric://chat?service=…&project=…` and `fabric://session/new?project=…`); [ADR-0123](../adr/0123-the-conversation-is-the-runtimes-console-and-the-ceo-is-a-session.md); [ADR-0139](../adr/0139-fabric-is-a-service-its-descriptor-its-well-known-document-and-a-read-only-viewer.md) (the descriptor that tells the kit Fabric is here).
+- **Status:** blocked — the button's component, its placement rules and the two deep links are a decision of the contract repository (`fabric-agent-contract`, owner: its maintainers with Fabric Dashboards), not yet written (REQ-42's check names it)
+- **Implementation tasks:** 0.4.0 REQ-42 (wave 5)
+
+### SCR-80: Start a working session
+- **Used by:** FLW-82
+- **Purpose:** Start (or bring forward) a working session in a project from the manager session's «Open in a coding agent», with the folder and isolation chosen in the same sheet (the operator's interface rule of 2026-10-09).
+- **Elements:** the project's name; the folder — its full path with «Change…» (the system picker, limited to the folders the project holds, opening at the last one chosen); «Isolated session» checkbox (a worktree of its own), with its one-line reason when locked; the coding agent choice (the fallback order's choice preselected, its hint naming why); what the session is handed (the conversation so far, as `session-handoff/1`); Start (primary), Cancel.
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | default | opened from the manager session | none | the project's primary folder, Isolated session unticked, the coding agent preselected |
+  | folder-changed | another folder of the project chosen | none | the new path; the picker remembers it |
+  | isolation-locked | another agent holds a claim on the chosen folder (SCN-140) | none | Isolated session ticked and disabled, "another agent is working in this folder" |
+  | attach-open | the fallback order says to use an open session and an idle one of this project exists | none | Start reads «Bring forward <agent>'s session»; nothing new is started |
+  | starting | Start pressed | none | Start busy; the choices locked |
+  | failed | the session could not start | none | the reason; the choices kept; Try again; the manager session stays |
+  | no-agent | no coding agent can start | none | each with its reason (as SCN-135) and «Set up a coding agent» (SCR-77) |
+- **Axes:** viewport: 1024, 1440; theme: light, dark; text: default, 200%; locale: en, ru
+- **Coverage:** none yet
+- **Scenarios:** SCN-142
+- **Resources:** [ADR-0125](../adr/0125-an-agent-launch-may-follow-the-operators-fallback-order.md) (the fallback order), [ADR-0140](../adr/0140-a-session-is-handed-its-context-in-one-format-session-handoff-1.md) (the handed context); the 0.4.0 plan REQ-33 (no two agents in one folder after an unknown outcome).
+- **Status:** designed
+- **Implementation tasks:** 0.4.0 REQ-42, REQ-16 (wave 5)
+
+### SCR-81: Project comms
+- **Used by:** FLW-83
 - **Purpose:** The project board's threads and messages, read by the operator — what projects tell each other, with each request's state and effect as two separate facts ([ADR-0117](../adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) D3: the local operator's read is sanctioned; COM-06/COM-07).
-- **Elements:** the thread list — subject or first words, participant projects by name, message count, when the last message was written; the thread view — messages oldest first, each with sender project, principal and its provenance (trusted or asserted), a request carrying state and effect as two labels, a reply naming the message it answers, a redacted message keeping id and digest with its removal said; Earlier for one page further back; Try again on failure; when the shown page was last confirmed. No write control — the operator reads (SCN-137).
+- **Elements:** the thread list — subject or first words, participant projects by name, message count, when the last message was written; the thread view — messages oldest first, each with sender project, principal and its provenance (trusted or asserted), a request carrying state and effect as two labels, a reply naming the message it answers, a redacted message keeping id and digest with its removal said; Earlier for one page further back; Try again on failure; when the shown page was last confirmed. No write control — the operator reads (SCN-143).
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |---|---|---|---|
@@ -1870,7 +2017,7 @@ results always pair text with an icon — colour is never the only signal.
   | unavailable | the board/RPC did not answer | none | says the board is unavailable with Try again; NEVER an empty list |
   | not-found | a thread outside this estate | none | said as not found, not as empty |
   | failed | one poll or one history page failed | none | the last confirmed page stays, saying when it was confirmed; the next success resumes from the cursor |
-- **Coverage:** `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/index.ts`; tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx` and `apps/desktop/test/comms-operator-read.test.mjs`
-- **Scenarios:** SCN-137
+- **Coverage:** `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/api.ts`, the channel grants in `apps/desktop/src/shared/ipcWindowPolicy.ts`; tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx` and `apps/desktop/test/comms-operator-read.test.mjs`
+- **Scenarios:** SCN-143
 - **Resources:** [ADR-0117](../adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md), [the comms plan](../evidence/plans/2026-10-04-project-communications.md).
 - **Implementation tasks:** COM-07

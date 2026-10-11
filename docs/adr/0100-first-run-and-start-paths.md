@@ -126,3 +126,9 @@ and adapting an agent built elsewhere runs in the chosen coding agent's console
 ([ADR-0129](0129-onboarding-is-four-actions-and-agent-work-runs-in-the-coding-agents-console.md), operator decisions
 D1–D4 of 2026-10-08). §7, the boundary, still holds; ADR-0129 records the one read outside it (the skills check).
 Found by the 0.3.3 verification, iteration 2 (DO-5).
+
+### Amendment 2 — 2026-10-11: §7 gains a second way in, by consent
+
+[ADR-0136](0136-a-folder-joins-a-project-by-a-pick-or-by-consent.md): besides a folder chosen in a picker and the
+scan's own candidates, Fabric reads a folder the operator admitted when an agent first reported from it — asked once,
+admitted exactly as a pick would be. Silence admits nothing. 0.4.0 plan, resolution R-05.

@@ -307,3 +307,29 @@ describe('ER-7 — prototype names are refused as invalid, never looked up', () 
     expect(resourceArguments('read_message', JSON.parse('{"accountId":"news@example.com","x":{"constructor":1}}')).ok).toBe(false)
   })
 })
+
+// ADR-0134: a coding agent asks Fabric itself for one capability on one project.
+describe('normaliseAccessRequest — enrollment of a coding agent (ADR-0134)', () => {
+  const enroll = {
+    agentId: 'claude-code',
+    callee: 'fabric',
+    capabilities: ['session.enroll'],
+    resources: ['project:0b8c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d'],
+    reason: 'Claude Code in ~/DATA/site wants to work in the project site'
+  }
+  it('takes exactly session.enroll on project resources', () => {
+    const r = normaliseAccessRequest(enroll)
+    expect(r.ok).toBe(true)
+    if (r.ok) expect(r.value).toMatchObject({ callee: 'fabric', capabilities: ['session.enroll'], resources: [enroll.resources[0]] })
+  })
+  it('refuses any other capability from Fabric, a resource that is not a project, and two projects at once', () => {
+    expect(normaliseAccessRequest({ ...enroll, capabilities: ['session.enroll', 'agent.call'] }).ok).toBe(false)
+    expect(normaliseAccessRequest({ ...enroll, capabilities: ['tasks.write'] }).ok).toBe(false)
+    expect(normaliseAccessRequest({ ...enroll, resources: ['cloudflare:a@b.co'] }).ok).toBe(false)
+    expect(normaliseAccessRequest({ ...enroll, resources: ['project:not-a-uuid'] }).ok).toBe(false)
+    expect(normaliseAccessRequest({ ...enroll, resources: [enroll.resources[0], 'project:1b8c2a3e-5d6f-4a1b-9c7d-2e3f4a5b6c7d'] }).ok).toBe(false)
+  })
+  it('a product callee still refuses session.enroll', () => {
+    expect(normaliseAccessRequest({ ...enroll, callee: 'fabric-inbox', resources: ['cloudflare:a@b.co'] }).ok).toBe(false)
+  })
+})

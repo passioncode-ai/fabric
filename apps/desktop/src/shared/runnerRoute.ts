@@ -52,6 +52,15 @@ export interface Launch {
   needsSurface?: boolean
 }
 
+// #region launch-needs — docs: docs/adr/0125-an-agent-launch-may-follow-the-operators-fallback-order.md#amendment-1--2026-10-09-a-task-that-records-through-fabrics-tools
+/** Whether a task launch needs Fabric's tools: the setup preset records memory, questions and tasks through them
+ *  (ADR-0125 amendment 1). ONE rule for the launch and for the fallback order's preview of it — CO-234: the preview
+ *  walked the order without it, so «Fallback order → Codex» could show while the launch passed over Codex. */
+export function presetNeedsSurface(preset: string | null | undefined): boolean {
+  return preset === 'setup'
+}
+// #endregion launch-needs
+
 export type Walk =
   | { state: 'selected'; index: number; runner: string; session: 'spawned' | 'attached'; sessionId: string | null; permissionMode: string | null; passedOver: PassedOver[] }
   | { state: 'exhausted'; passedOver: PassedOver[] }

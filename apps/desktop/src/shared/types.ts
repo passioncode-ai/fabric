@@ -406,6 +406,17 @@ export interface AppSettings {
   runnerFallback: RunnerFallback
 }
 
+// #region settings-patch — docs: docs/ux/scenarios.md#scn-026-follow-the-estate-through-the-journal-feed
+/**
+ * What a WINDOW may change in the settings file (audit 2026-10-05 A7-008, A7-025): the preferences it
+ * shows, and nothing main keeps for itself. `tabs` is main's (`tabsWrite`) and `workspace` is set only by
+ * the folder picker or an import, so a window that sends a stale copy of either — "Mark read" used to send
+ * the whole object it loaded at start — can no longer revert the open tabs or point the mirror at a folder
+ * nobody picked. `shared/appSettings.ts#settingsPatch` refuses anything else.
+ */
+export type SettingsPatch = Partial<Pick<AppSettings, 'theme' | 'locale' | 'keepAwake' | 'readThroughSeq' | 'firstRun' | 'runnerFallback'>>
+// #endregion settings-patch
+
 /**
  * The one set of defaults. The renderer used to carry its own three-field copy
  * as a read-failure fallback, which is how the drift above stayed invisible: a
@@ -836,7 +847,14 @@ export interface AnalyticsStatus {
   /** This app already sent counts from this Mac (an install from 0.3.2, which sent from its first start). */
   sentBefore?: boolean
 }
-export interface HistoryRestored { operation_id: string; target_estate_id: string; history_restored: true; access_verified: true; private_history: boolean; opened: false }
+/** `private_history_skipped`: why the archive's private history was NOT imported although it carried one —
+ *  `not_your_history` (another Person's, never sent) or the import's refusal code — else null (A5-011, A5-012). */
+export interface HistoryRestored { operation_id: string; target_estate_id: string; history_restored: true; access_verified: true; private_history: boolean
+  private_history_skipped: string | null; opened: false }
+/** A restore whose result is not known yet, read from main's operation file (A5-014). */
+export interface HistoryPending { operation_id: string; name: string }
+/** An Estate this Mac restored for the held Person, other than the one open (A3-005). */
+export interface HistoryRestoredEstate { target_estate_id: string; name: string; private_history: boolean }
 export type HistoryReply<T> = ({ ok: true } & T) | { ok: false; state: 'refused' | 'result_unknown'; reason_code: string; operation_id?: string }
 
 export interface FabricApi {
@@ -1230,13 +1248,13 @@ export interface FabricApi {
     /** The settings AND whether they reached the disk (S14). A save that
      *  reported success while the write was refused is how a malformed
      *  `settings.json` used to take the operator's workspace path with it. */
-    write(next: Partial<AppSettings>): Promise<SettingsWrite>
+    write(next: SettingsPatch): Promise<SettingsWrite>
   }
   feed: {
     replay(fromSeq: number): Promise<FeedEvent[]>
   }
   /**
-   * SCR-77 — the operator's read onto the project board (SCN-137, ADR-0117 D3).
+   * SCR-81 — the operator's read onto the project board (SCN-143, ADR-0117 D3).
    * READ-ONLY: the board's writes belong to participant Projects and to their own
    * scenarios; nothing here offers one. Every reply is a union, so a board that did
    * not answer can never render as an empty thread list (the migration's error shape
@@ -1299,6 +1317,10 @@ export interface FabricApi {
     choose(): Promise<HistoryReply<HistoryArchiveSummary> | null>
     restore(token: string, name: string): Promise<HistoryReply<HistoryRestored>>
     check(operationId: string): Promise<HistoryReply<HistoryRestored>>
+    /** Restores whose result is not known yet, so Check again survives closing the panel or a restart. */
+    pending(): Promise<HistoryPending[]>
+    /** Estates this Mac restored for you that can still be opened. */
+    restored(): Promise<HistoryRestoredEstate[]>
     /** Record a restored Estate as the one to open, then restart. */
     open(estateId: string): Promise<{ ok: boolean; reason: string | null }>
   }
@@ -1472,7 +1494,8 @@ export interface FabricApi {
   terminal: {
     options(): Promise<LaunchOption[]>
     /** The fallback order's choice right now (ADR-0125): what a launch with `FALLBACK_OPTION` would run. */
-    fallback(projectId: string, kind: 'terminal' | 'task', permissionMode?: string | null): Promise<FallbackPreview>
+    /** `preset`: the task's preset, so the preview takes the launch's needs (CO-234, `runnerRoute.ts#presetNeedsSurface`). */
+    fallback(projectId: string, kind: 'terminal' | 'task', permissionMode?: string | null, preset?: string | null): Promise<FallbackPreview>
     memoryBackends(): Promise<MemoryBackendOption[]>
     /** `permissionMode` is chosen per launch. A blocked mode is REFUSED here,
      *  not merely hidden in the picker — a picker is a suggestion. */
@@ -1548,6 +1571,8 @@ export const IPC = {
   historyRestore: 'history:restore',
   historyCheck: 'history:check',
   historyOpen: 'history:open',
+  historyPending: 'history:pending',
+  historyRestored: 'history:restored',
   projectsList: 'projects:list',
   projectsStats: 'projects:stats',
   transcriptsList: 'transcripts:list',
@@ -1598,6 +1623,8 @@ export const IPC = {
   workspaceImport: 'workspace:import',
   tabsRead: 'tabs:read',
   tabsWrite: 'tabs:write',
+  /** Main→renderer: the menu's Cmd+W, sent to the focused window (M111). */
+  tabsCloseActive: 'tab:closeActive',
   automationsRead: 'automations:read',
   proposalDecide: 'proposal:decide',
   routinesList: 'routines:list',

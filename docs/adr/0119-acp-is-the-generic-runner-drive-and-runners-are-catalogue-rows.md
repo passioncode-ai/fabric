@@ -215,3 +215,11 @@ holds `domains.yaml` and `README.md`, and Kilo, Hermes and Cline are code rows i
 `connectsToSurface` flag. §6's per-runner quota gate is not built (AS-09). The next runners — Kimi Code,
 Goose, Gemini CLI, OpenCode — are CO-220.
 
+### Amendment 5 — 2026-10-11: the consented config write is the coding agent's own act
+
+§2's «separate, consented, reversible act» is how setup now works for every runner, not only those that cannot be
+driven: the coding agent itself registers `fabric-mcp` with its own CLI in the Setup console, on the person's consent,
+and removes it the same way ([ADR-0135](0135-setup-runs-in-the-persons-coding-agent-and-fabric-shows-what-it-observes.md));
+Fabric still writes nothing into an agent's configuration. Runners without a surface adapter (Codex, Cline, Kimi
+Code) reach Fabric through `fabric-mcp` ([ADR-0134](0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)),
+marked connected only by a probe (§4). 0.4.0 plan, decisions D-03 and D-04.

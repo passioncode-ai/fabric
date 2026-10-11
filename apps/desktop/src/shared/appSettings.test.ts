@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { APP_SETTINGS_DEFAULTS, validateSettings } from './appSettings.ts'
+import { APP_SETTINGS_DEFAULTS, settingsPatch, validateSettings } from './appSettings.ts'
 
 describe('validateSettings', () => {
   it('accepts a complete, valid file unchanged', () => {
@@ -121,5 +121,39 @@ describe('a read position is normalised on the way in', () => {
     ] } })
     expect(read?.runnerFallback).toEqual({ order: [{ runner: 'claude-code', session: 'attach-only' }, { runner: 'hermes', session: 'spawn' }] })
     expect(validateSettings({ runnerFallback: 'yes' })?.runnerFallback).toEqual({ order: [] })
+  })
+})
+
+// Audit 2026-10-05 A7-008 / A7-025: a window changes only the preferences it shows.
+describe('settingsPatch', () => {
+  it('accepts each key a window may change, as sent', () => {
+    const patch = {
+      theme: 'light', locale: 'ru', keepAwake: 'always', readThroughSeq: 7,
+      firstRun: { completedAt: '2026-10-11T10:00:00.000Z' },
+      runnerFallback: { order: [{ runner: 'claude-code', session: 'spawn' }] }
+    }
+    expect(settingsPatch(patch)).toEqual({ ok: true, patch })
+  })
+
+  it('refuses the whole settings object — what "Mark read" used to send — naming tabs and workspace', () => {
+    const got = settingsPatch({ ...APP_SETTINGS_DEFAULTS, readThroughSeq: 9 })
+    expect(got.ok).toBe(false)
+    if (!got.ok) expect(got.reason).toMatch(/tabs, workspace/)
+  })
+
+  it('refuses a workspace path from a window: only the folder picker or an import sets it (A7-025)', () => {
+    expect(settingsPatch({ workspace: { path: '/etc', git: 'yes' } }).ok).toBe(false)
+  })
+
+  it('refuses a value the file could not hold, instead of writing a default in its place', () => {
+    expect(settingsPatch({ theme: 42 }).ok).toBe(false)
+    expect(settingsPatch({ readThroughSeq: -1 }).ok).toBe(false)
+    expect(settingsPatch({ locale: 'xx' }).ok).toBe(false)
+    expect(settingsPatch({ firstRun: { completedAt: 'soon' } }).ok).toBe(false)
+  })
+
+  it('refuses what is not an object', () => {
+    expect(settingsPatch(null).ok).toBe(false)
+    expect(settingsPatch([]).ok).toBe(false)
   })
 })

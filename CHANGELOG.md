@@ -6,10 +6,22 @@ that section as the notes of the `vX.Y.Z` release
 ([docs/launch/release-mac.md](docs/launch/release-mac.md), [ADR-0111](docs/adr/0111-fabric-is-released-from-ci.md)).
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
-## Unreleased
 
-### Added
+## 0.4.0 (unreleased)
 
+Fabric on Windows and Linux, the way the other PassionCode.ai apps ship (CO-238), and a coding agent you open
+yourself in a terminal can work in your project through Fabric.
+
+- **A coding agent opened outside Fabric works in your project.** Register Fabric once in Claude Code or Codex —
+  `claude mcp add --scope user fabric -- "<Fabric>/bin/fabric-mcp" --runner claude-code` — with no key in it. The first
+  time the agent starts in a project's folder, Fabric asks you once whether it may work there; after Allow it gets what
+  a session Fabric starts gets in that project, and its work is recorded like any session's. Revoke it in
+  Settings → Agent access ([ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)).
+- **Fixed: agents registered on this Mac could not be connected through Fabric.** Since 0.3.1 the hub's requests,
+  decisions and calls were refused by the app's own journal before they were saved, so an agent's request never reached
+  you (CO-254). They are recorded now, and a test checks every event the app writes against the journal's policy.
+- **The database moves to schema 83** (from 79): four migrations, applied in order. An existing database is upgraded
+  by the [documented procedure](docs/launch/release-mac.md) before 0.4.0 opens it.
 - **Codex and Kimi Code connect to Fabric's surface.** Sessions of both get the project-board tools
   (`com.submit`, `com.list`, `com.get`, `com.read_ack`, `com.status`) like Claude Code, Kilo Code and Hermes
   Agent before them — each through the way its own probe verified ([report](docs/reports/2026-10-11-codex-kimi-surface-probes/README.md)):
@@ -18,13 +30,18 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
   knows. One residue, recorded as CO-247: Codex 0.162.1 has no `--ignore-project-config`, so a project can still
   add MCP servers of its own — as it already could before Codex connected. Cline stays unconnected: its ACP
   `session/new` demands a sign-in no probe has passed.
-- **The project board is visible to the operator: the Comms screen** (SCR-77, SCN-137). The left rail gains
+- **The project board is visible to the operator: the Comms screen** (SCR-81, SCN-143). The left rail gains
   Comms / «Переписка»: the estate's threads and messages read with your own eyes — sender, principal and its
   provenance per message, a request's state and effect as two separate labels, live by cursor polling; a board
   that does not answer says so, never an empty list. Read-only by design; the read goes through two new SQL
-  functions (migration 80 — **schema 79 → 80**; an existing database upgrades once, per the
-  [runbook](docs/launch/release-mac.md#upgrading-an-existing-database)), sanctioned for the
-  local estate by [ADR-0117](docs/adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) (D3).
+  functions, sanctioned for the local estate by [ADR-0117](docs/adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) (D3).
+- **Windows.** A per-user installer for Windows on Intel and AMD (x64) and on Arm (arm64): `Fabric-0.4.0-windows-x64-setup.exe`
+  and `-arm64-setup.exe`. The installers are not signed yet, so Windows SmartScreen asks once before the first start; signing
+  through the organization's Azure account follows. Terminals open PowerShell; the local stack needs Docker Desktop.
+- **Linux.** An AppImage and a `.deb` for x64 and arm64. The local stack needs Docker Engine and the Supabase CLI.
+- **Not yet on Windows and Linux:** whether a coding agent is signed in is not read there (it says so, CO-244), and
+  connecting a cloud product's secret through Project Observatory is macOS and Linux only (CO-245).
+
 
 ## 0.3.4
 

@@ -11,8 +11,17 @@
 // FAIL CLOSED, EVERYWHERE. An unknown agent is refused before any prompt. A read that fails refuses
 // rather than reading as "no grant". A decision on an expired request is refused. A credential is
 // minted on the first status read after an Allow (32 random bytes; Fabric keeps the sha256) and never
-// again — two reads cannot both win, because every write here runs one at a time and the projector
-// refuses a second claim.
+// again — two reads cannot both win, because the agents' reads and asks run one at a time and the
+// projector refuses a second claim.
+//
+// TWO LANES, NOT ONE CHAIN (CO-206). The agents' asks and status reads run one at a time on one lane, the
+// operator's acts (decide, revoke, clear, and the start-up priming of the verifier hints) one at a time on
+// another. What the agent lane's order guards is in this process only: the dedupe of an identical ask and
+// the pending caps are a read followed by an append. What the operator lane's order guards: two answers to
+// one request, an extension racing a revocation of the same grant, and a priming read putting back a
+// verifier a revocation just dropped. Across the lanes the projector is the guard (migration 80): a claim on
+// a revoked binding, a decision on a decided request, a grant to a revoked binding all raise. So an agent
+// request the database stops answering no longer holds the operator's revocation behind it.
 //
 // WHO MAY READ A REQUEST (ER-2, verification iteration 1 for 0.3.1 — RFC 8628's device_code). The door
 // token is shared by every agent on this Mac, so holding it proves nothing about WHICH request is
@@ -24,11 +33,14 @@
 // by its own credential, which already proves who it is.
 
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto'
+import path from 'node:path'
 import {
   ACCESS_REQUEST_TTL_MS,
   CREDENTIAL_CLAIM_WINDOW_MS,
+  FABRIC_SELF,
   GRANT_TTL_MS,
   normaliseAccessRequest,
+  projectOfResource,
   requestSignature,
   type AccessAsk
 } from '../shared/access.ts'
@@ -75,7 +87,36 @@ export interface AccessServiceDeps {
   /** Bounds on waiting requests, so an agent in a loop cannot bury the operator in prompts. */
   maxPendingPerAgent?: number
   maxPending?: number
+  /** ADR-0134: who may ask Fabric itself for `session.enroll` — a coding agent of the runner catalogue — and which
+   *  projects exist. Absent, Fabric refuses every enrollment ask. */
+  enrollment?: {
+    runner(agentId: string): { key: string; name: string; summary: string | null } | null
+    /** Whether the runner's program is found on this computer (`pty.ts#launchOption`'s availability). Absent, a
+     *  catalogue row is enough. */
+    available?(runnerKey: string): Promise<boolean>
+    project(projectId: string): Promise<{ id: string; name: string } | null>
+    /** The folder the agent names, resolved by Fabric itself (`sessionEnroll.ts#resolveAgentFolder`). Absent, a
+     *  named folder is refused: Fabric does not show a folder it did not resolve. */
+    resolve?(folder: string): Promise<EnrollFolder>
+  }
 }
+
+/** What Fabric resolved an asker's folder to (ADR-0134 amendment 2): the project, the admitted folder (real path) and
+ *  how it matched — or why it could not. */
+export type EnrollFolder =
+  | { ok: true; projectId: string; root: string; how: 'exact' | 'ancestor' | 'worktree' }
+  | { ok: false; message: string }
+
+/** The `registry.project` an enrollment ask journals: Fabric's facts, never the agent's. `root`/`how` are null when
+ *  the asker named no folder. */
+export interface EnrollProjectFact {
+  id: string
+  name: string
+  root: string | null
+  how: 'exact' | 'ancestor' | 'worktree' | null
+}
+
+const FOLDER_MAX = 4096
 
 const HUB_ACTOR: AccessActor = { kind: 'system', id: 'fabric-hub' }
 const CREDENTIAL = /^[A-Za-z0-9_-]{43}$/
@@ -98,9 +139,12 @@ export class AccessService {
   private deps: AccessServiceDeps
   private now: () => number
   private random: (bytes: number) => Buffer
-  private chain: Promise<unknown> = Promise.resolve()
+  private lanes: Record<'agent' | 'operator', Promise<unknown>> = { agent: Promise.resolve(), operator: Promise.resolve() }
   private credentialVerifiers = new Set<string>()
+  /** Bindings revoked by this process: a claim answered after its revocation must not add its verifier back. */
+  private revokedBindings = new Set<string>()
   private revokedListeners = new Set<(bindingId: string) => void>()
+  private grantRevokedListeners = new Set<(grantId: string, bindingId: string) => void>()
 
   // Assigned in the body: Node's type-stripping loader rejects parameter properties.
   constructor(deps: AccessServiceDeps) {
@@ -115,17 +159,33 @@ export class AccessService {
     return () => this.revokedListeners.delete(listener)
   }
 
-  /** Every write runs one at a time: two answers to one request cannot both land. */
-  private serial<T>(fn: () => Promise<T>): Promise<T> {
-    const run = this.chain.then(fn, fn)
-    this.chain = run.catch(() => undefined) // the caller sees the failure; the chain must not stop on it
+  /** Told once a grant is revoked (after the revocation is journalled): what was admitted under it ends (ADR-0134 §3,
+   *  the enrolled sessions minted under it). */
+  onGrantRevoked(listener: (grantId: string, bindingId: string) => void): () => void {
+    this.grantRevokedListeners.add(listener)
+    return () => this.grantRevokedListeners.delete(listener)
+  }
+
+  /** Whether a binding and one of its grants are both live now, read from the store — never from a hint. A failed
+   *  read throws. Used after an enrolled session is minted, to close the read-then-mint race (ADR-0134 §3). */
+  async enrollmentLive(bindingId: string, grantId: string): Promise<boolean> {
+    const [b, g] = await Promise.all([this.deps.store.binding(bindingId), this.deps.store.grant(grantId)])
+    return !!b && b.revoked_at === null && !!g && g.binding_id === bindingId && g.revoked_at === null && Date.parse(g.expires_at) > this.now()
+  }
+
+  // #region hub-access-lanes — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#3-grants-are-standing-narrow-and-revocable
+  /** One at a time within a lane (CO-206): the agents' asks and reads on one, the operator's acts on the other. */
+  private serial<T>(lane: 'agent' | 'operator', fn: () => Promise<T>): Promise<T> {
+    const run = this.lanes[lane].then(fn, fn)
+    this.lanes[lane] = run.catch(() => undefined) // the caller sees the failure; the lane must not stop on it
     return run
   }
+  // #endregion hub-access-lanes
 
   /** Prime rate-limit hints once at hub start. These are never authority: authenticate still reads live state. */
   async primeCredentialVerifiers(): Promise<void> {
-    // Serialize with claims/revocations so a startup read cannot put a just-revoked verifier back.
-    return this.serial(async () => {
+    // On the operator lane, with the revocations, so a startup read cannot put a just-revoked verifier back.
+    return this.serial('operator', async () => {
       this.credentialVerifiers = new Set((await this.deps.store.liveBindings()).flatMap((b) => b.verifier ? [b.verifier] : []))
     })
   }
@@ -149,19 +209,69 @@ export class AccessService {
 
   /** `fabric.access.request`. Unknown agents are refused before any prompt. */
   request(principal: HubPrincipal, raw: Record<string, unknown>): Promise<RequestAnswer> {
-    return this.serial(async () => {
+    return this.serial('agent', async () => {
       const receipt = (code: string, agentId?: string): void => {
         ops.record({ op: 'hub.access.refused', outcome: 'ok', level: 'warn', detail: { code, ...(agentId ? { agent_id: agentId } : {}) }, ctx: { correlationId: ops.correlate() } })
       }
       const asked = normaliseAccessRequest(raw)
       if (!asked.ok) return { ok: false, refused: asked.reason }
-      this.deps.registry.refresh()
-      const resolved = this.deps.registry.resolve(asked.value.agentId)
-      if (!resolved.ok) {
-        ops.record({ op: 'hub.access.refused', outcome: 'ok', level: 'warn', detail: { agent_id: asked.value.agentId, reason: resolved.reason }, ctx: { correlationId: ops.correlate() } })
-        return { ok: false, refused: `${resolved.reason}. Nothing was shown to the operator.` }
+      // #region session-enroll-request — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+      // Fabric itself as the callee: the asker is a coding agent of the runner catalogue, never a registry entry,
+      // and the one resource is a project that exists. Every other callee goes through the registry as before.
+      let entry: { key: string; kind: string; name: string; installedBy: string; repository: string | null; summary: string | null }
+      let enrolling: EnrollProjectFact | null = null
+      if (asked.value.callee === FABRIC_SELF) {
+        const enrollment = this.deps.enrollment
+        const runner = enrollment?.runner(asked.value.agentId) ?? null
+        if (!runner) {
+          receipt('not-a-coding-agent', asked.value.agentId)
+          return { ok: false, refused: `${asked.value.agentId} is not a coding agent Fabric knows on this computer. Nothing was shown to the operator.` }
+        }
+        // The catalogue row is not enough: its program must be on this computer (pty.ts#createRunnerAvailability).
+        if (enrollment!.available && !(await enrollment!.available(runner.key))) {
+          receipt('runner-not-installed', runner.key)
+          return { ok: false, refused: `${runner.name} is not installed on this computer as Fabric sees it (its program is not on Fabric's PATH). Nothing was shown to the operator.` }
+        }
+        const projectId = projectOfResource(asked.value.resources[0]) as string
+        const project = await enrollment!.project(projectId)
+        if (!project) {
+          receipt('unknown-project', runner.key)
+          return { ok: false, refused: 'that project is not one of this Fabric. Nothing was shown to the operator.' }
+        }
+        // The folder the prompt shows is Fabric's fact: resolved here, and it must belong to the project asked for.
+        let place: { root: string | null; how: EnrollProjectFact['how'] } = { root: null, how: null }
+        if (raw.folder !== undefined) {
+          if (typeof raw.folder !== 'string' || raw.folder.length > FOLDER_MAX || !path.isAbsolute(raw.folder)) {
+            receipt('bad-folder', runner.key)
+            return { ok: false, refused: 'folder must be the absolute folder the agent runs in. Nothing was shown to the operator.' }
+          }
+          if (!enrollment!.resolve) {
+            receipt('folder-unresolved', runner.key)
+            return { ok: false, refused: 'this Fabric cannot resolve a folder for an enrollment. Nothing was shown to the operator.' }
+          }
+          const resolved = await enrollment!.resolve(raw.folder)
+          if (!resolved.ok) {
+            receipt('folder-not-a-project', runner.key)
+            return { ok: false, refused: `${resolved.message} Nothing was shown to the operator.` }
+          }
+          if (resolved.projectId !== project.id) {
+            receipt('folder-of-another-project', runner.key)
+            return { ok: false, refused: `that folder belongs to another project in Fabric, not to ${project.name}; ask for the project fabric.session.enroll names for this folder. Nothing was shown to the operator.` }
+          }
+          place = { root: resolved.root, how: resolved.how }
+        }
+        entry = { key: runner.key, kind: 'runner', name: runner.name, installedBy: 'a coding agent on this computer', repository: null, summary: runner.summary }
+        enrolling = { id: project.id, name: project.name, ...place }
+      } else {
+        this.deps.registry.refresh()
+        const resolved = this.deps.registry.resolve(asked.value.agentId)
+        if (!resolved.ok) {
+          ops.record({ op: 'hub.access.refused', outcome: 'ok', level: 'warn', detail: { agent_id: asked.value.agentId, reason: resolved.reason }, ctx: { correlationId: ops.correlate() } })
+          return { ok: false, refused: `${resolved.reason}. Nothing was shown to the operator.` }
+        }
+        entry = resolved.entry
       }
-      const entry = resolved.entry
+      // #endregion session-enroll-request
       const ask: AccessAsk = { ...asked.value, agentId: entry.key }
       const bindingId = principal.kind === 'binding' ? principal.binding.id : null
       if (principal.kind === 'binding' && principal.binding.agent_id !== entry.key)
@@ -202,12 +312,12 @@ export class AccessService {
       await this.deps.store.append('access.requested@1', HUB_ACTOR, {
         id, agent_id: entry.key, callee: ask.callee, capabilities: ask.capabilities, resources: ask.resources,
         reason: ask.reason, binding_id: bindingId, expires_at: expiresAt, poll_verifier: verifierOf(pollSecret),
-        registry: { key: entry.key, kind: entry.kind, name: entry.name, installed_by: entry.installedBy, repository: entry.repository, summary: entry.summary }
+        registry: { key: entry.key, kind: entry.kind, name: entry.name, installed_by: entry.installedBy, repository: entry.repository, summary: entry.summary, ...(enrolling ? { project: enrolling } : {}) }
       })
       const row = await this.deps.store.request(id)
       if (!row) throw new Error('the access request was written and could not be read back')
-      let connected = false
-      try {
+      let connected = ask.callee === FABRIC_SELF
+      if (!connected) try {
         connected = await this.deps.connected(ask.callee)
       } catch (e) {
         // Shown as "not connected", which is the safe reading: the prompt then offers to connect, and the
@@ -230,7 +340,7 @@ export class AccessService {
    * an unknown id, so the answer says nothing about another agent's request.
    */
   status(principal: HubPrincipal, requestId: string, pollSecret?: string, signal?: AbortSignal): Promise<StatusAnswer> {
-    return this.serial(async () => {
+    return this.serial('agent', async () => {
       const row = typeof requestId === 'string' && /^[0-9a-f-]{36}$/.test(requestId) ? await this.deps.store.request(requestId) : null
       const mine = row && (principal.kind === 'door'
         ? typeof pollSecret === 'string' && POLL_SECRET.test(pollSecret) && typeof row.poll_verifier === 'string' && sameToken(verifierOf(pollSecret), row.poll_verifier)
@@ -268,8 +378,17 @@ export class AccessService {
       // Shown once: a caller that has gone would spend it unseen (I3 E-5). Nothing is minted; the next read collects it.
       if (signal?.aborted) return { ...base, note: 'Allowed; the read that would have carried the credential was cancelled before it was issued. Read the status again to collect it.' }
       const credential = this.random(32).toString('base64url')
-      await this.deps.store.append('access.credential.claimed@1', HUB_ACTOR, { binding_id: bindingId, request_id: row.id, verifier: verifierOf(credential) })
-      this.credentialVerifiers.add(verifierOf(credential))
+      try {
+        await this.deps.store.append('access.credential.claimed@1', HUB_ACTOR, { binding_id: bindingId, request_id: row.id, verifier: verifierOf(credential) })
+      } catch (e) {
+        // The operator's lane may have revoked the binding since it was read above (CO-206); the projector then
+        // refuses the claim, and that is the answer — anything else is the failure it is.
+        const current = await this.deps.store.binding(bindingId).catch(() => null)
+        if (current?.revoked_at) return { ...base, note: 'Allowed, and since revoked by the operator.' }
+        throw e
+      }
+      // A revocation that read the claimed verifier before this line has already dropped it: never add it back.
+      if (!this.revokedBindings.has(bindingId)) this.credentialVerifiers.add(verifierOf(credential))
       ops.record({ op: 'hub.access.credential-claimed', outcome: 'ok', detail: { request_id: row.id, binding_id: bindingId, agent_id: row.agent_id }, ctx: { correlationId: ops.correlate() } })
       return {
         ...base, credential,
@@ -280,7 +399,7 @@ export class AccessService {
 
   /** The operator's answer. Refused when the request is no longer pending or has expired. */
   decide(requestId: string, decision: 'allowed' | 'denied', actor: AccessActor): Promise<AccessActAnswer> {
-    return this.serial(async () => {
+    return this.serial('operator', async () => {
       const row = await this.deps.store.request(requestId)
       if (!row) return refuse('not-found', 'no such request')
       if (row.status !== 'pending') return refuse('already-decided', `that request was already ${row.status}`)
@@ -324,22 +443,30 @@ export class AccessService {
   }
 
   revokeGrant(grantId: string, actor: AccessActor): Promise<AccessActAnswer> {
-    return this.serial(async () => {
+    return this.serial('operator', async () => {
       // Read by its id (ER-8): never looked for in a page of other grants, where a live one could be missing.
       const g = typeof grantId === 'string' && /^[0-9a-f-]{36}$/.test(grantId) ? await this.deps.store.grant(grantId) : null
       const live = g && g.revoked_at === null ? g : null
       if (!live) return refuse('not-live', 'that grant is not live (already revoked, or no such grant)')
       await this.deps.store.append('access.grant.revoked@1', actor, { grant_id: grantId })
+      for (const listener of this.grantRevokedListeners) {
+        try {
+          listener(grantId, live.binding_id)
+        } catch (e) {
+          ops.failed('hub.access.grant-revoked-listener', e, { grant_id: grantId }) // the revocation stands either way
+        }
+      }
       ops.record({ op: 'hub.access.grant-revoked', outcome: 'ok', detail: { grant_id: grantId, agent_id: live.agent_id }, ctx: { correlationId: ops.correlate() } })
       return { ok: true }
     })
   }
 
   revokeBinding(bindingId: string, actor: AccessActor): Promise<AccessActAnswer> {
-    return this.serial(async () => {
+    return this.serial('operator', async () => {
       const b = await this.deps.store.binding(bindingId)
       if (!b || b.revoked_at) return refuse('not-live', 'that credential is not live (already revoked, or no such credential)')
       await this.deps.store.append('access.binding.revoked@1', actor, { binding_id: bindingId })
+      this.revokedBindings.add(bindingId)
       if (b.verifier) this.credentialVerifiers.delete(b.verifier)
       for (const listener of this.revokedListeners) {
         try {
@@ -354,7 +481,7 @@ export class AccessService {
   }
 
   clearDenial(requestId: string, actor: AccessActor): Promise<AccessActAnswer> {
-    return this.serial(async () => {
+    return this.serial('operator', async () => {
       const r = await this.deps.store.request(requestId)
       if (!r || r.status !== 'denied' || r.denial_cleared_at) return refuse('not-found', 'there is no standing denial with that id')
       await this.deps.store.append('access.denial.cleared@1', actor, { request_id: requestId })
@@ -366,7 +493,7 @@ export class AccessService {
   async overview(): Promise<{
     pending: AccessRequestRow[]
     denials: AccessRequestRow[]
-    bindings: Array<BindingRow & { grants: GrantRow[]; registry: AccessRequestRow['registry'] | null }>
+    bindings: Array<BindingRow & { grants: Array<GrantRow & { registry: AccessRequestRow['registry'] | null }>; registry: AccessRequestRow['registry'] | null }>
   }> {
     const now = this.now()
     const liveAt = new Date(now).toISOString()
@@ -378,9 +505,13 @@ export class AccessService {
       this.deps.store.liveBindings(),
       this.deps.store.grants({ liveAt })
     ])
+    // Every binding's origin request — and every live grant's own request, whose registry names an enrollment's project
+    // (ADR-0134: an incremental grant is on another project than the origin's) — in ONE read (A6-041): one read per
+    // binding was N+1 every 4 s while SCR-76 is open.
+    const byId = new Map((await this.deps.store.requestsByIds([...bindings.map((b) => b.request_id), ...grants.map((g) => g.request_id)])).map((r) => [r.id, r] as const))
     const origins = new Map<string, AccessRequestRow>()
     for (const b of bindings) {
-      const r = await this.deps.store.request(b.request_id)
+      const r = byId.get(b.request_id)
       if (r) origins.set(b.id, r)
     }
     return {
@@ -395,7 +526,11 @@ export class AccessService {
           const decided = origins.get(b.id)?.decided_at
           return decided !== null && decided !== undefined && now - Date.parse(decided) <= CREDENTIAL_CLAIM_WINDOW_MS
         })())
-        .map((b) => ({ ...b, grants: grants.filter((g) => g.binding_id === b.id && Date.parse(g.expires_at) > now), registry: origins.get(b.id)?.registry ?? null }))
+        .map((b) => ({
+          ...b,
+          grants: grants.filter((g) => g.binding_id === b.id && Date.parse(g.expires_at) > now).map((g) => ({ ...g, registry: byId.get(g.request_id)?.registry ?? null })),
+          registry: origins.get(b.id)?.registry ?? null
+        }))
     }
   }
 }

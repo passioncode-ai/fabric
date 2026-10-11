@@ -66,3 +66,12 @@ whether two skills are there and names a file it could not read.
   `apps/desktop/src/main/adapterSkills.ts`, `apps/desktop/src/main/taskRetry.ts`, `apps/desktop/src/shared/builderChoice.ts`.
 - Tests: `apps/desktop/src/renderer/src/start/StartPaths.test.tsx`, `apps/desktop/test/adapter-skills.test.mjs`,
   `apps/desktop/test/task-retry.test.mjs`, `apps/desktop/src/shared/builderChoice.test.ts`.
+
+## Amendments
+
+### Amendment 1 — 2026-10-11: §4 reads «Fabric checks and shows; the coding agent installs, on consent»
+
+[ADR-0135](0135-setup-runs-in-the-persons-coding-agent-and-fabric-shows-what-it-observes.md): the adapter skills,
+Fabric's MCP entry in each coding agent and the family's products are installed by the person's coding agent in a
+Setup console, one consent per step; Fabric still installs nothing itself and shows what it observes. Operator
+decision D-04 of the 0.4.0 plan.

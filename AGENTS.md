@@ -144,6 +144,7 @@ Fabric follows the organization's [lifecycle contract](https://github.com/passio
 | Quota reading | the renderer | every 60 s, served from a 2 min reading; a missing or refused credential is held (10 min, or until the screen is unlocked) | — | the app |
 | The fallback order's preview (ADR-0125) | the renderer, when a launch menu shows «Fallback order → …» | on window focus, at most once per 30 s: each runner in the order asked for its version and sign-in state (`main/runnerFallback.ts`, `FRESH_MS`) | — | the app |
 | Usage analytics ([docs/ANALYTICS.md](docs/ANALYTICS.md)) | the main process, in a release build with an App Key only | nothing at all until the person has answered the switch once, on the first-run notice or in Settings ([ADR-0127](docs/adr/0127-no-usage-count-leaves-before-the-person-has-answered-the-switch.md)); then a send right after each event; an `app_active` check every hour (unref'd); failed sends retry after 60 s, then every 10 min | runs while the main process runs; counts only, at most 200 events in memory, nothing on disk but `analytics-state.json` and the shared `PassionCode/installation.json` | quitting (`quit.onQuit`); the shared switch `analytics: false`, from the first-run notice, Settings or any PassionCode app |
+| `fabric-mcp` (a coding agent's MCP server, [ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)) | the coding agent the person opened, on its own start | while Fabric is not running it looks again every 5 s; while the operator's answer is awaited it asks every 3 s; after a denial every 60 s | it is the coding agent's child, not Fabric's: it keeps nothing running of its own; in Fabric's registry folder it keeps `enrollments/<runner>/<sha8>.credential` per binding and, while a request waits, `enrollments/<runner>.pending.json` (both 0600); a folder that is no project is asked about again after 30 s | the coding agent closing its stdin (it exits at once); revoking the agent in Settings → Agent access ends its sessions |
 | Local Supabase stack (Docker) | the app's first start (`supabase start -x …`) | — | **keeps running** between launches, by design: the operator's data lives in it and a cold start takes minutes. Only the services Fabric calls run (`src/main/stackServices.ts`) | `supabase stop`, by the operator |
 | `ai.passioncode.fabric-workspace-sync` (launchd) | `scripts/install-workspace-sync.sh` | every 2 h, 110 min watchdog (`superviseJob`), machine-wide publication lock; runs with a minimal `PATH` in the shell's order and the shell's `LANG` (PostgreSQL will not start without a locale) | — | `scripts/install-workspace-sync.sh --uninstall [--purge]` |
 
@@ -161,6 +162,19 @@ a connected product's secret goes to Project Observatory's vault, value on stdin
 credential item for the quota once per token lifetime (held in memory until five minutes before it
 expires, or until the provider rejects it), with a 5 s deadline; a refused read waits for a screen unlock. Status of the last sync:
 `~/.cache/fabric-workspace/sync-status.json`; its log is `~/Library/Logs/Fabric/workspace-sync.log` (0600, copy-truncate at 5 MB × 5).
+
+**On Windows and Linux (0.4.0, CO-238; [platforms](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/platforms.md)).**
+The installer is per-user NSIS on Windows (`%LOCALAPPDATA%\Programs\<package name>`, its own uninstaller) and an
+AppImage or a `.deb` on Linux (`/opt/Fabric`, `/usr/bin/passioncode-fabric`). The app's data folder is Electron's
+`userData`: `%APPDATA%\@fabric\desktop` on Windows, `~/.config/@fabric/desktop` on Linux — a deliberate deviation from
+PL-06's `%LOCALAPPDATA%\<id>` / `$XDG_DATA_HOME`, because macOS keeps the same `userData` and moving it would move
+every install's data; the bundled stack lives in its `stack` folder (`apps/desktop/src/shared/stackFolder.ts`). The hub,
+the services and the providers live in `%LOCALAPPDATA%\passioncode-fabric` / `$XDG_DATA_HOME/passioncode-fabric`
+(DEC-0032), and on Windows `hub.json` and the door token carry DEC-0033's protected ACL. The local stack needs Docker
+Desktop (Windows, WSL2) or Docker Engine (Linux) and the Supabase CLI, as on macOS; nothing else runs in the
+background. Sessions start PowerShell on Windows and `$SHELL` (else `/bin/bash`) on Linux; a session's tree is stopped
+with `taskkill /T` on Windows. The workspace-sync launchd job has no Windows or Linux counterpart (it is the operator's,
+on this Mac). **Release deviation from PL-10:** no update-feed check stage until the updater exists (CO-246, P-12).
 
 **Builds clean up after themselves (LC-15).** Outputs: `apps/desktop/out/` (electron-vite, ~30 MB),
 `apps/desktop/dist/` (electron-builder: the DMG and `mac-universal/Fabric.app` (release) or `mac-arm64/` / `mac/` (local `package`, host architecture), ~600 MB; a universal pack also leaves `mac-universal-{x64,arm64}-temp/` only while it runs, and electron-builder removes them). The release is universal from 0.3.4: `scripts/after-pack-universal.mjs` joins node-pty's prebuilds and refuses a thin Mach-O; the runtimes admitted per architecture are in `apps/desktop/src/main/runtimeAdmission.ts` (Intel: Electron main only, CO-237). `scripts/release-mac.mjs`

@@ -11,9 +11,15 @@
 //   5. the call is forwarded narrowed to the granted mailboxes (`X-Fabric-Accounts`), or — a workspace
 //      setup the grant names as its own capability — without the header, carrying only the created
 //      thing's own fields plus each extra (`create_address.forward_to`, …) granted for that address;
-//   6. one journal span per hop (`hub.call.forwarded@1`), a child of the caller's `_meta.traceparent`,
-//      with the caller's binding, the callee and capability, a hash of the arguments (never the
-//      arguments), the grants that allowed it and the outcome — refusals included;
+//   6. one journal span per hop that was forwarded or may have been (`hub.call.forwarded@1`), a child of
+//      the caller's `_meta.traceparent`, with the caller's binding, the callee and capability, a hash of the
+//      arguments (never the arguments), the grants that allowed it and the outcome. A hop Fabric ended
+//      BEFORE forwarding (a refusal, a cancel, a failure that sent nothing) has its span too, but only the
+//      first of its kind — per binding and error code — in a ten-minute window; the window's others are
+//      counted, and the count is one `hub.call.refusals.summarized@1` when the window closes (CO-200:
+//      a looping agent at the credential's budget of 120 calls a minute filled the private export's
+//      65,536-event ceiling in about nine hours, one span per refusal; now its refusals cost at most two
+//      events per binding and code in ten minutes);
 //   7. the answer is the interop result envelope, the product's output inside it.
 //
 // `idempotencyKey`: a retry with the same key and the same arguments returns the first answer and
@@ -76,6 +82,25 @@ export const MAX_KEPT_ANSWER_BYTES = 256 * 1024
 /** Every binding's kept answers together; past it the oldest are reduced to "ran, answer not kept" (DA-3). */
 export const MAX_KEPT_TOTAL_BYTES = 32 * 1024 * 1024
 const SWEEP_EVERY_MS = 60_000
+/** A hop Fabric ended before forwarding is itemised once per binding and error code in this window (CO-200). */
+export const NOT_SENT_WINDOW_MS = 10 * 60 * 1000
+// #region hub-call-not-sent-codes — docs: docs/ux/scenarios.md#scn-132-an-external-agent-asks-for-access-and-the-operator-decides
+/** The error codes a hop Fabric ended before forwarding can carry — the closed set `hub.call.refusals.summarized@1`
+ *  may journal. Migration 82's `v_codes` holds the same list in the database; `hub-call-window.test.mjs` compares them,
+ *  so a code added here and not there (a summary the projector would refuse) fails a test, not the journal. */
+export const NOT_SENT_CODES = [
+  'invalid-arguments', 'unknown-callee', 'access-required', 'product-not-connected',
+  'product-credential-unavailable', 'hub-unavailable', 'cancelled'
+] as const
+export type NotSentCode = (typeof NOT_SENT_CODES)[number]
+// #endregion hub-call-not-sent-codes
+/** Runs `fn` after `ms`; returns how to cancel it. The default is an unref'd timer, so it never keeps Fabric alive. */
+export type Schedule = (fn: () => void, ms: number) => () => void
+const defaultSchedule: Schedule = (fn, ms) => {
+  const t = setTimeout(fn, ms)
+  t.unref?.()
+  return () => clearTimeout(t)
+}
 
 /** What becomes of an idempotency key once its call is answered. */
 type Keep = 'answer' | 'unknown' | 'forget'
@@ -99,6 +124,7 @@ export interface HubCallDeps {
   estateId: string
   now?: () => number
   random?: (n: number) => Buffer
+  schedule?: Schedule
 }
 
 /** Deeper than this, an input is refused before it is hashed or read (the same bound `resourceArguments` holds). */
@@ -217,6 +243,56 @@ export function createAgentCall(deps: HubCallDeps) {
     }
   }
 
+  // #region hub-call-not-sent-window — docs: docs/ux/scenarios.md#scn-132-an-external-agent-asks-for-access-and-the-operator-decides
+  // CO-200. Per binding and error code: the first hop Fabric ended before forwarding opens a window and has its
+  // own span; the window's later ones are counted, and the count is journalled once, when the window closes
+  // (a timer) or when the next one after it arrives, whichever is first, or at quit (`flush`). A count not yet
+  // written when the process dies is lost; its window's first span is not. The codes are Fabric's own (a closed
+  // set), never the caller's strings, so the tallies are bounded by the bindings.
+  const schedule = deps.schedule ?? defaultSchedule
+  interface Tally { opened: number; first: number; last: number; suppressed: number; outcome: string; code: string
+    caller: { binding_id: string; agent_id: string }; cancel: (() => void) | null }
+  const tallies = new Map<string, Tally>()
+  const summarize = async (key: string, t: Tally): Promise<void> => {
+    if (tallies.get(key) === t) tallies.delete(key)
+    t.cancel?.()
+    t.cancel = null
+    if (t.suppressed === 0) return
+    const fields = { caller: t.caller, outcome: t.outcome, error_code: t.code, suppressed: t.suppressed,
+      first_at: new Date(t.first).toISOString(), last_at: new Date(t.last).toISOString(), window_ms: NOT_SENT_WINDOW_MS }
+    t.suppressed = 0
+    try {
+      await deps.store.append('hub.call.refusals.summarized@1', HUB_ACTOR, fields)
+    } catch (e) {
+      // Not silence: the count is in the operations log when the journal would not take it.
+      ops.failed('hub.call.summary', e, { binding: t.caller.binding_id, code: t.code, suppressed: fields.suppressed })
+    }
+  }
+  /** The span of a hop that ended before anything was forwarded: itemised first in its window, then counted. */
+  const notSentSpan = async (fields: Record<string, unknown> & { error_code: NotSentCode }): Promise<boolean> => {
+    const caller = fields.caller as { binding_id: string; agent_id: string }
+    const code = String(fields.error_code)
+    const key = `${caller.binding_id}\u0000${code}`
+    const t = now()
+    const open = tallies.get(key)
+    if (open && t - open.opened < NOT_SENT_WINDOW_MS) {
+      if (open.suppressed === 0) open.first = t
+      open.suppressed++
+      open.last = t
+      if (!open.cancel) open.cancel = schedule(() => { void summarize(key, open) }, Math.max(0, open.opened + NOT_SENT_WINDOW_MS - t))
+      return true   // counted: the window's summary carries it
+    }
+    if (open) await summarize(key, open)
+    tallies.set(key, { opened: t, first: t, last: t, suppressed: 0, outcome: String(fields.outcome), code,
+      caller: { binding_id: caller.binding_id, agent_id: caller.agent_id }, cancel: null })
+    return span(fields)
+  }
+  /** Writes every open window's count now — at quit, and for a binding the operator revoked. */
+  const flush = async (bindingId?: string): Promise<void> => {
+    for (const [key, t] of [...tallies]) if (bindingId === undefined || t.caller.binding_id === bindingId) await summarize(key, t)
+  }
+  // #endregion hub-call-not-sent-window
+
   const envelope = (input: {
     callId: string; outcome: 'succeeded' | 'failed'; binding: BindingRow; callee: string; capability: string
     narrowing: string[] | null; grantIds: string[]; output: unknown; wallMs: number; traceparent: string; spanWritten: boolean
@@ -268,7 +344,7 @@ export function createAgentCall(deps: HubCallDeps) {
     }
     const started = now()
     if (tooDeep) {
-      await span({ ...base, outcome: 'refused', error_code: 'invalid-arguments', grant_ids: [], wall_ms: 0 })
+      await notSentSpan({ ...base, outcome: 'refused', error_code: 'invalid-arguments', grant_ids: [], wall_ms: 0 })
       return before(refusal('invalid-arguments', `the input nests deeper than ${MAX_INPUT_DEPTH} levels; nothing was sent`))
     }
     const effect = { mayHaveRun: false }
@@ -284,14 +360,14 @@ export function createAgentCall(deps: HubCallDeps) {
         await span({ ...base, outcome: 'failed', error_code: 'outcome-unknown', grant_ids: [], wall_ms: now() - started })
         return { answer: outcomeUnknown(args.agentId, args.capability, 'product-error', Boolean(args.idempotencyKey)), keep: 'unknown' }
       }
-      await span({ ...base, outcome: 'failed', error_code: 'hub-unavailable', grant_ids: [], wall_ms: now() - started })
+      await notSentSpan({ ...base, outcome: 'failed', error_code: 'hub-unavailable', grant_ids: [], wall_ms: now() - started })
       return before(refusal('hub-unavailable', 'Fabric could not complete this call just now. Nothing was sent. The operator can see why in Fabric\'s operations log; try again later.'))
     }
   }
 
   /** A caller that hung up before the forward: nothing left Fabric, so the key is forgotten. */
   const cancelledBefore = async (base: Record<string, unknown>, grantIds: string[], started: number): Promise<Outcome> => {
-    await span({ ...base, outcome: 'cancelled', error_code: 'cancelled', grant_ids: grantIds, wall_ms: now() - started })
+    await notSentSpan({ ...base, outcome: 'cancelled', error_code: 'cancelled', grant_ids: grantIds, wall_ms: now() - started })
     return { answer: refusal('cancelled', 'the call was cancelled by its caller before it reached the product; nothing was sent', { mayHaveRun: false }), keep: 'forget' }
   }
 
@@ -303,25 +379,25 @@ export function createAgentCall(deps: HubCallDeps) {
     if (signal?.aborted) return cancelledBefore(base, [], started)
 
     if (!(CONNECTABLE_PRODUCTS as readonly string[]).includes(args.agentId)) {
-      await span({ ...base, outcome: 'refused', error_code: 'unknown-callee', grant_ids: [], wall_ms: 0 })
+      await notSentSpan({ ...base, outcome: 'refused', error_code: 'unknown-callee', grant_ids: [], wall_ms: 0 })
       return before(refusal('unknown-callee', `Fabric routes agent.call to connected products only (${CONNECTABLE_PRODUCTS.join(', ')}); ${args.agentId} is not one`))
     }
     const read = resourceArguments(args.capability, args.input)
     if (!read.ok) {
-      await span({ ...base, outcome: 'refused', error_code: 'invalid-arguments', grant_ids: [], wall_ms: 0 })
+      await notSentSpan({ ...base, outcome: 'refused', error_code: 'invalid-arguments', grant_ids: [], wall_ms: 0 })
       return before(refusal('invalid-arguments', read.reason))
     }
     const grants = await deps.access.liveGrantsOf(binding)
     let cover = coverage({ callee: args.agentId, capability: args.capability, resources: read.resources, workspace: read.workspace, requires: read.requires }, grants, now())
     if (!cover.ok) {
-      await span({ ...base, outcome: 'refused', error_code: 'access-required', grant_ids: [], wall_ms: 0 })
+      await notSentSpan({ ...base, outcome: 'refused', error_code: 'access-required', grant_ids: [], wall_ms: 0 })
       const r = accessRefusal({ agentId: binding.agent_id, callee: args.agentId, capability: args.capability, capabilities: cover.ask, resources: cover.missing, why: cover.reason })
       return before(answer(r, true))
     }
     let connection: ConnectionRow | null
     connection = await deps.store.liveConnection(args.agentId)
     if (!connection) {
-      await span({ ...base, outcome: 'refused', error_code: 'product-not-connected', grant_ids: cover.grantIds, wall_ms: 0 })
+      await notSentSpan({ ...base, outcome: 'refused', error_code: 'product-not-connected', grant_ids: cover.grantIds, wall_ms: 0 })
       return before(refusal('product-not-connected', `${args.agentId} is not connected to Fabric. Ask the operator to connect it (Settings → Agent access → Connect); nothing was sent.`))
     }
     // Still covered and still connected: a remembered answer is given again, and nothing is sent.
@@ -333,7 +409,7 @@ export function createAgentCall(deps: HubCallDeps) {
     const secret = await deps.vault.read(connection.secret_ref, { signal })
     if (!secret.ok) {
       if (signal?.aborted) return cancelledBefore(base, cover.grantIds, started)
-      await span({ ...base, outcome: 'failed', error_code: 'product-credential-unavailable', grant_ids: cover.grantIds, wall_ms: now() - started })
+      await notSentSpan({ ...base, outcome: 'failed', error_code: 'product-credential-unavailable', grant_ids: cover.grantIds, wall_ms: now() - started })
       // The vault's reason can carry its tool's own output — paths, slot names, a traceback. The operator
       // reads it in the operations log; the agent is told only what happened and what to do.
       ops.record({ op: 'hub.call', outcome: 'failed', level: 'warn', detail: { callee: args.agentId, capability: args.capability, code: 'product-credential-unavailable', reason: logLine(secret.reason) }, ctx: { correlationId: ops.correlate() } })
@@ -348,11 +424,11 @@ export function createAgentCall(deps: HubCallDeps) {
     if (retiredBindings.has(binding.id)) return before(refusal('binding-revoked', 'This binding was revoked while Fabric read the product key. Nothing was sent.'))
     cover = coverage({ callee: args.agentId, capability: args.capability, resources: read.resources, workspace: read.workspace, requires: read.requires }, currentGrants, now())
     if (!cover.ok) {
-      await span({ ...base, outcome: 'refused', error_code: 'access-required', grant_ids: [], wall_ms: now() - started })
+      await notSentSpan({ ...base, outcome: 'refused', error_code: 'access-required', grant_ids: [], wall_ms: now() - started })
       return before(answer(accessRefusal({ agentId: binding.agent_id, callee: args.agentId, capability: args.capability, capabilities: cover.ask, resources: cover.missing, why: cover.reason }), true))
     }
     if (!currentConnection || currentConnection.id !== connection.id || currentConnection.mcp_url !== connection.mcp_url || currentConnection.client_id !== connection.client_id || canonical(currentConnection.secret_ref) !== canonical(connection.secret_ref)) {
-      await span({ ...base, outcome: 'refused', error_code: 'product-not-connected', grant_ids: cover.grantIds, wall_ms: now() - started })
+      await notSentSpan({ ...base, outcome: 'refused', error_code: 'product-not-connected', grant_ids: cover.grantIds, wall_ms: now() - started })
       return before(refusal('product-not-connected', 'The product connection changed while Fabric read its key. Nothing was sent; retry against the current connection.'))
     }
     if (signal?.aborted) return cancelledBefore(base, cover.grantIds, started)
@@ -509,6 +585,7 @@ export function createAgentCall(deps: HubCallDeps) {
   /** Called after durable, irreversible binding revocation: release output, never erase effect facts. */
   function forgetBinding(bindingId: string): void {
     retiredBindings.add(bindingId)
+    void flush(bindingId)
     const mine = remembered.get(bindingId)
     if (!mine) return
     for (const e of mine.values()) {
@@ -524,6 +601,6 @@ export function createAgentCall(deps: HubCallDeps) {
     return { keys, bytes: keptBytes, bindings: remembered.size }
   }
 
-  return Object.assign(agentCall, { forgetBinding, memory })
+  return Object.assign(agentCall, { forgetBinding, memory, flush: () => flush() })
 }
 // #endregion hub-call

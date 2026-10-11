@@ -2,30 +2,65 @@
 // handed to the agent, what the next one would be told, how the run stands, and the console.
 // Each read says which of its states it is in; nothing here starts, stops or writes anything.
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { PastContext } from '../../../shared/pastContext.ts'
 import type { ReadEnvelope } from '../../../shared/readEnvelope'
 import type { RunStatusView } from '../../../shared/runStatus.ts'
 import type { PackPreview } from '../../../shared/types'
 import { useLocale, useT } from '../i18n'
 
-/** How a run stands, as words: the agent's claim and Fabric's observation are kept apart (ADR-0008). */
-export function useRunStatus(sessionId: string | null): { view: ReadEnvelope<RunStatusView> | null; failed: string | null } {
+// #region run-status-outcome — docs: docs/ux/scenarios.md#scn-108-a-job-fails-or-its-result-is-unknown
+/** How often a run that has not ended is read again (audit A5-018: it was read once, so it never said how it ended). */
+export const RUN_STATUS_POLL_MS = 5_000
+
+export interface RunStatusRead {
+  view: ReadEnvelope<RunStatusView> | null
+  failed: string | null
+  /** Read the run once more now — the "Check again" of an unknown outcome. */
+  again?: () => void
+}
+
+/** How a run stands, as words: the agent's claim and Fabric's observation are kept apart (ADR-0008).
+ *  Read again every `RUN_STATUS_POLL_MS` until the run is read as ended; a failed read is tried again too. */
+export function useRunStatus(sessionId: string | null): RunStatusRead {
   const [view, setView] = useState<ReadEnvelope<RunStatusView> | null>(null)
   const [failed, setFailed] = useState<string | null>(null)
+  const [tick, setTick] = useState(0)
+  const again = useCallback(() => setTick((n) => n + 1), [])
   useEffect(() => {
     if (!sessionId) { setView(null); setFailed(null); return }
     let alive = true
-    window.fabric.runs.status(sessionId).then(
-      (v) => { if (alive) { setView(v); setFailed(null) } },
-      (e: unknown) => alive && setFailed(e instanceof Error ? e.message : String(e))
-    )
-    return () => { alive = false }
-  }, [sessionId])
-  return { view, failed }
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const read = (): void => {
+      window.fabric.runs.status(sessionId).then(
+        (v) => {
+          if (!alive) return
+          setView(v); setFailed(null)
+          if (v?.data?.runState !== 'ended') timer = setTimeout(read, RUN_STATUS_POLL_MS)
+        },
+        (e: unknown) => {
+          if (!alive) return
+          setFailed(e instanceof Error ? e.message : String(e))
+          timer = setTimeout(read, RUN_STATUS_POLL_MS)
+        }
+      )
+    }
+    read()
+    return () => { alive = false; clearTimeout(timer) }
+  }, [sessionId, tick])
+  return { view, failed, again }
 }
 
-export function RunCallout({ sessionId, status }: { sessionId: string | null; status: ReturnType<typeof useRunStatus> }): React.JSX.Element {
+/** The run's state as a short word for the rail; an ended run is named by its outcome, never the enum. */
+type Translate = ReturnType<typeof useT>
+export function runStateWord(s: Pick<RunStatusView, 'runState' | 'runOutcome'>, t: Translate): string {
+  if (s.runState === null) return '—'
+  if (s.runState === 'ended') return t(`launch.agent.runOutcome.${s.runOutcome ?? 'outcome_unknown'}` as 'launch.agent.runOutcome.completed')
+  return t(`launch.agent.runState.${s.runState}` as 'launch.agent.runState.active')
+}
+// #endregion run-status-outcome
+
+export function RunCallout({ sessionId, status }: { sessionId: string | null; status: RunStatusRead }): React.JSX.Element {
   const t = useT(), locale = useLocale()
   if (!sessionId) return <div className="lp-callout"><b>{t('launch.agent.noRun')}</b><p>{t('launch.agent.noRunBody')}</p></div>
   if (status.failed) return <div className="lp-callout" role="alert"><b>{t('launch.agent.statusUnreadable')}</b><p>{status.failed}</p></div>
@@ -40,6 +75,15 @@ export function RunCallout({ sessionId, status }: { sessionId: string | null; st
         {s.claim.phase ? t('launch.agent.claims', { phase: t(`launch.agent.phase.${s.claim.phase}` as 'launch.agent.phase.working') }) : ''}{' '}
         {t('launch.agent.timeIsNotWork')}
       </p>
+      {s.runState === 'ended' && (
+        <p>
+          {t('launch.agent.runEnded', { outcome: runStateWord(s, t) })}
+          {(s.runOutcome ?? 'outcome_unknown') === 'outcome_unknown' && status.again && (
+            <>{' '}{t('launch.agent.runOutcomeUnknownBody')}{' '}
+              <button type="button" className="lp-button" onClick={status.again}>{t('launch.agent.checkAgain')}</button></>
+          )}
+        </p>
+      )}
     </div>
   )
 }

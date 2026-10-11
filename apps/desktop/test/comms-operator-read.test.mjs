@@ -1,11 +1,11 @@
-// SCR-77 / SCN-137 — the operator's read path onto the project board, without a database: the SQL door is
+// SCR-81 / SCN-143 — the operator's read path onto the project board, without a database: the SQL door is
 // a fake that records every call, so "refused before anything is asked" is observable as "the door was
 // never called" (the same seam as board-service.test.mjs).
 //
 // The two rules under test, both from the scenario's Alt paths: a board that cannot be read answers
 // `unavailable` and NEVER an empty list; the board's own refusals (not_found, invalid_arguments) travel
 // with their codes, because "a thread the estate does not hold" is said as not found, not as empty.
-// #region comms-screen — docs: docs/ux/screens.md#scr-77-project-comms
+// #region comms-screen — docs: docs/ux/screens.md#scr-81-project-comms
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createCommsOperatorRead } from '../src/main/commsOperatorRead.ts'

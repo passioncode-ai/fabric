@@ -1,5 +1,5 @@
-// #region comms-screen — docs: docs/ux/screens.md#scr-77-project-comms
-// Comms (SCR-77 · SCN-137): what projects tell each other, read by the operator with
+// #region comms-screen — docs: docs/ux/screens.md#scr-81-project-comms
+// Comms (SCR-81 · SCN-143): what projects tell each other, read by the operator with
 // their own eyes. The name is Comms, not Board — the kanban owns that word
 // (launch.nav.board), and ADR-0117 amendment 1 kept "board" out of user-facing text
 // until this screen was designed.
@@ -31,7 +31,7 @@ import { FabricStrip } from './FabricStrip'
 const COMMS_POLL_MS = 2500
 /** One page, bounded like the board's own pages (migration 80 caps the RPC at 100). */
 const PAGE = 50
-/** How much of a first message stands in for a missing subject (SCN-137 step 1). */
+/** How much of a first message stands in for a missing subject (SCN-143 step 1). */
 const FIRST_WORDS = 12
 
 const shortId = (id: string): string => (id.length > 12 ? `${id.slice(0, 8)}…` : id)
@@ -88,7 +88,7 @@ export function CommsScreen({ projects, onPulse }: {
       } else if (!confirmed.current) {
         setThreadsError(reply.error)
       } else {
-        // A failed poll keeps the last confirmed list and says when it was confirmed (SCN-137).
+        // A failed poll keeps the last confirmed list and says when it was confirmed (SCN-143).
         setThreadsStale(true)
       }
     }
@@ -202,7 +202,7 @@ function ThreadView({ thread, nameOf, onClose }: {
   /** A thread the estate does not hold stops the poll: it cannot recover by asking again. */
   const gone = useRef(false)
   // The operator lands at the END of the history: the newest page, walked back with
-  // Earlier (SCN-137 steps 4–5). Seqs are the estate's, so the window is approximate
+  // Earlier (SCN-143 steps 4–5). Seqs are the estate's, so the window is approximate
   // and the dedupe below is what keeps it exact.
   const initialAfter = Math.max(0, thread.lastSeq - PAGE)
 
@@ -349,7 +349,7 @@ function MessageRow({ message: m, nameOf, t, locale }: {
       {m.replyTo && <p className="lp-meta">{t('launch.comms.replyTo', { id: shortId(m.replyTo) })}</p>}
       {m.request && (
         <dl className="lp-facts">
-          {/* TWO separate facts, the way the contract keeps them (SCN-137 step 3). */}
+          {/* TWO separate facts, the way the contract keeps them (SCN-143 step 3). */}
           <div><dt>{t('launch.comms.request.state')}</dt><dd><span className="lp-pill">{contractWord(t, 'request.state', m.request.state)}</span></dd></div>
           <div><dt>{t('launch.comms.request.effect')}</dt><dd><span className="lp-pill">{contractWord(t, 'request.effect', m.request.effect)}</span></dd></div>
           <div><dt>{t('launch.comms.request.target')}</dt><dd>{nameOf(m.request.target)} · {m.request.capability}</dd></div>

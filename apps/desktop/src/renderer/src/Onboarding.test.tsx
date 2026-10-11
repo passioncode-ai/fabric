@@ -136,3 +136,51 @@ describe('a new folder for a new project (SCN-129)', () => {
     expect(screen.queryByText('/w/walk-new', { selector: '.mono' })).toBeNull()
   })
 })
+
+// #region new-project-agent-choice-test — docs: docs/ux/scenarios.md#scn-129-create-a-new-project-in-a-new-folder-or-as-an-idea
+describe('the default coding agent of a new project (REQ-40)', () => {
+  // The form started on Claude Code whatever the machine had: on a Mac without it, the chosen option was a greyed-out
+  // one, and the project was created with a default agent its Launch could not start.
+  const option = (id: string, available: boolean) => ({ id, label: id, program: id === 'shell' ? null : id, description: '', available, connectsToSurface: true, permissionModes: [], defaultMode: null })
+  const AgentHost = ({ options, order, onDraft }: { options: unknown[]; order: unknown[] | null; onDraft: (d: typeof EMPTY_DRAFT) => void }): React.JSX.Element => {
+    const [draft, setDraft] = React.useState({ ...EMPTY_DRAFT, projectId: 'p1' })
+    ;(window as unknown as { fabric: unknown }).fabric = {
+      terminal: { memoryBackends: async () => [], options: async () => options },
+      settings: { read: async () => (order === null ? Promise.reject(new Error('unreadable')) : { runnerFallback: { order } }) },
+      repos: { choose: async () => [] },
+      projects: { create: async () => ({}) }
+    }
+    return (
+      <I18nProvider locale="en">
+        <Onboarding draft={draft} onDraftChange={(d) => { onDraft(d); setDraft(d) }} onCreated={() => {}} onCancel={() => {}} onError={() => {}} />
+      </I18nProvider>
+    )
+  }
+  it('starts on an agent this Mac has — the head of the fallback order when it is installed — and says why the others are greyed out', async () => {
+    const onDraft = vi.fn()
+    render(<AgentHost options={[option('claude-code', false), option('codex', true), option('kilo', true), option('shell', true)]} order={[{ runner: 'kilo', session: 'spawn' }]} onDraft={onDraft} />)
+    const select = (await screen.findByRole('combobox')) as HTMLSelectElement
+    await waitFor(() => expect(select.value).toBe('kilo'))
+    expect(onDraft).toHaveBeenLastCalledWith(expect.objectContaining({ agent: 'kilo' }))
+    const greyed = Array.from(select.options).find((o) => o.value === 'claude-code')!
+    expect(greyed.disabled).toBe(true)
+    expect(greyed.textContent, 'the option itself says why').toContain(en['onboarding.unavailable'])
+    const hint = document.getElementById(select.getAttribute('aria-describedby') ?? '')!
+    expect(hint.textContent, 'and what to do').toContain(en['onboarding.unavailableHint'])
+  })
+  it('without a readable order, the first installed one; an installed choice is never replaced', async () => {
+    const onDraft = vi.fn()
+    render(<AgentHost options={[option('claude-code', false), option('codex', true)]} order={null} onDraft={onDraft} />)
+    const select = (await screen.findByRole('combobox')) as HTMLSelectElement
+    await waitFor(() => expect(select.value).toBe('codex'))
+    cleanup()
+    const untouched = vi.fn()
+    render(<AgentHost options={[option('claude-code', true), option('codex', true)]} order={[{ runner: 'codex', session: 'spawn' }]} onDraft={untouched} />)
+    const again = (await screen.findByRole('combobox')) as HTMLSelectElement
+    await new Promise((r) => setTimeout(r, 20))
+    expect(again.value, 'the operator\'s (or the form\'s) installed choice stays').toBe('claude-code')
+    expect(untouched).not.toHaveBeenCalled()
+    expect(document.getElementById(again.getAttribute('aria-describedby') ?? '')!.textContent, 'nothing greyed out, nothing to explain').not.toContain(en['onboarding.unavailableHint'])
+  })
+})
+// #endregion new-project-agent-choice-test

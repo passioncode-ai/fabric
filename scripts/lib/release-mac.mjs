@@ -200,3 +200,62 @@ export function signatureOf(text) {
   return { authority, team, hardenedRuntime: flags.split(',').includes('runtime') }
 }
 // #endregion release-mac-inputs
+
+// #region release-fuses — docs: docs/launch/release-mac.md#how-a-release-is-made
+/**
+ * The Electron fuses a release binary carries (audit 2026-10-05 A7-006), as `apps/desktop/electron-builder.yml`
+ * `electronFuses` declares them. Without them the signed, hardened app kept `NODE_OPTIONS`, `--inspect`, loading
+ * an app from outside the asar and no asar integrity check, so any local process could run Fabric's signed
+ * binary as a Node interpreter carrying Fabric's privacy grants.
+ *
+ * `runAsNode` stays ON: the helpers run as `ELECTRON_RUN_AS_NODE=1` (`apps/desktop/src/main/helperProcess.ts`), and
+ * so does `bin/fabric-mcp`. That leaves the binary a Node interpreter for any local process: measured on the fused
+ * build 2026-10-11, `ELECTRON_RUN_AS_NODE=1 Fabric -e <code>` runs, and `--inspect` opens the inspector in that mode
+ * (enableNodeCliInspectArguments off stops it only for the app). The fuses below close the other doors, not this one.
+ * `grantFileProtocolExtraPrivileges` stays ON: the window loads its page from `file://` (`main/index.ts`
+ * `loadFile`), and its module scripts need the privilege until the page is served by a custom protocol.
+ */
+export const RELEASE_FUSES = Object.freeze({
+  runAsNode: true,
+  enableNodeOptionsEnvironmentVariable: false,
+  enableNodeCliInspectArguments: false,
+  enableEmbeddedAsarIntegrityValidation: true,
+  onlyLoadAppFromAsar: true,
+  grantFileProtocolExtraPrivileges: true
+})
+
+/** @electron/fuses `FuseV1Options` order: the index of each fuse in the binary's wire. */
+const FUSE_INDEX = ['runAsNode', 'enableCookieEncryption', 'enableNodeOptionsEnvironmentVariable', 'enableNodeCliInspectArguments',
+  'enableEmbeddedAsarIntegrityValidation', 'onlyLoadAppFromAsar', 'loadBrowserProcessSpecificV8Snapshot', 'grantFileProtocolExtraPrivileges']
+/** @electron/fuses `FuseState`: the byte each fuse holds. */
+const FUSE_STATE = { 48: 'off', 49: 'on', 114: 'removed', 144: 'inherited' }
+
+/** The `electronFuses:` block of an electron-builder YAML file, as `{ fuse: boolean }` (no YAML library: one flat block). */
+export function fusesDeclared(yml) {
+  const lines = String(yml).split('\n')
+  const at = lines.findIndex((l) => /^electronFuses:\s*(#.*)?$/.test(l))
+  if (at < 0) return {}
+  const out = {}
+  for (const line of lines.slice(at + 1)) {
+    if (/^\s*(#.*)?$/.test(line)) continue
+    const m = /^\s+([A-Za-z]+):\s*(true|false)\s*(#.*)?$/.exec(line)
+    if (!m) break
+    // Not a fuse: how electron-builder re-signs an unsigned (local `pnpm package`) arm64 binary after flipping.
+    if (m[1] === 'resetAdHocDarwinSignature') continue
+    out[m[1]] = m[2] === 'true'
+  }
+  return out
+}
+
+/** What differs between a built binary's fuse wire (`getCurrentFuseWire`) and `RELEASE_FUSES`; empty when none. */
+export function fuseProblems(wire, expected = RELEASE_FUSES) {
+  const problems = []
+  for (const [fuse, want] of Object.entries(expected)) {
+    const index = FUSE_INDEX.indexOf(fuse)
+    const state = index < 0 ? undefined : FUSE_STATE[wire?.[index]]
+    if (state === undefined) problems.push(`${fuse} is not in this binary's fuse wire`)
+    else if (state !== (want ? 'on' : 'off')) problems.push(`${fuse} is ${state}, the release requires ${want ? 'on' : 'off'}`)
+  }
+  return problems
+}
+// #endregion release-fuses

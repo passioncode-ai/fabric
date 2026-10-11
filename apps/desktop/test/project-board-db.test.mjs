@@ -194,10 +194,10 @@ await test('primary rows are immutable; a rebuild replays the projections unchan
   assert.equal(get(A, PA2, requestA).message.request.state, 'queued')
 })
 
-// Migration 80 (suffix 84) — the operator's read path (COM-06/COM-07; ADR-0117 D3 sanctions the LOCAL
+// Migration 83 (suffix 94) — the operator's read path (COM-06/COM-07; ADR-0117 D3 sanctions the LOCAL
 // operator's read): thread summaries and the same paging contract as board_list, without a reader
 // Project, writing nothing. To WATCH these fail, run the runner with
-// FABRIC_SKIP_MIGRATION=20261011000084_project_board_operator_read.sql.
+// FABRIC_SKIP_MIGRATION=20261011000094_project_board_operator_read.sql.
 const threadsOp = (estate) => JSON.parse(sql(`set role service_role; select board_threads_operator('${estate}')`))
 const listOp = (estate, after = 0, limit = 50, thread = null) =>
   JSON.parse(sql(`set role service_role; select board_list_operator('${estate}',${thread ? `'${thread}'` : 'null'},${after},${limit})`))

@@ -2,7 +2,7 @@
   "baseline": "bac1f67f295b1b05a5caf914f59aa63ced94d439",
   "method": "Read-only static source audit. No browser or runtime acceptance. Explicit canonical Scenarios fields parsed only within own heading, not contaminated model unions. Existing model status is descriptive historical evidence; source line receipts identify baseline. Proposed introduction stages are design recommendations, not measured conversion. Root synthesis aligns proposed introduction stages with journey.json S0–S6; raw batch proposal remains in audit/2026-09-17-inventory.md. R0 target routes appended 2026-09-25; old pinned evidence retained, new canonical links explicitly target current documents.",
   "counts": {
-    "views": 112,
+    "views": 116,
     "families": 21,
     "each_view_exactly_once": true
   },
@@ -906,6 +906,33 @@
             {
               "id": "SCN-042",
               "line": 1158,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "where-work",
+          "route": "docs/reports/product.html#view-where-work",
+          "title": "Где идёт работа",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-78",
+              "source": "docs/ux/screens.md:1938",
+              "explicit_scenarios": [
+                "SCN-141"
+              ],
+              "runtime_description": "0.4.0 REQ-38…REQ-42 (operator, 2026-10-11 evening): target design in the prototype; not built in the app yet.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-141",
+              "line": 3498,
               "status": "draft",
               "coverage": "none yet",
               "product": "unobserved"
@@ -1850,6 +1877,33 @@
               "product": "unobserved"
             }
           ]
+        },
+        {
+          "view": "session-start",
+          "route": "docs/reports/product.html#view-session-start",
+          "title": "Начать рабочую сессию",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-80",
+              "source": "docs/ux/screens.md:1985",
+              "explicit_scenarios": [
+                "SCN-140"
+              ],
+              "runtime_description": "0.4.0 REQ-38…REQ-42 (operator, 2026-10-11 evening): target design in the prototype; not built in the app yet.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-140",
+              "line": 3474,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
         }
       ]
     },
@@ -2605,6 +2659,33 @@
               "line": 3236,
               "status": "draft",
               "coverage": "`apps/desktop/src/main/productConnect.ts`, `apps/desktop/test/hub-products.test.mjs`",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "fabric-button",
+          "route": "docs/reports/product.html#view-fabric-button",
+          "title": "Кнопка Fabric в продукте",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-79",
+              "source": "docs/ux/screens.md:1966",
+              "explicit_scenarios": [
+                "SCN-142"
+              ],
+              "runtime_description": "0.4.0 REQ-38…REQ-42 (operator, 2026-10-11 evening): target design in the prototype; not built in the app yet.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-142",
+              "line": 3520,
+              "status": "draft",
+              "coverage": "none yet",
               "product": "unobserved"
             }
           ]
@@ -3824,19 +3905,19 @@
           "task_ids": [],
           "canonical": [
             {
-              "screen": "SCR-77",
-              "source": "docs/ux/screens.md:1860",
+              "screen": "SCR-81",
+              "source": "docs/ux/screens.md:2007",
               "explicit_scenarios": [
-                "SCN-137"
+                "SCN-143"
               ],
-              "runtime_description": "COM-06/07: оператор читает доску проектов глазами (read-only); живой renderer apps/desktop/src/renderer/src/launch/CommsScreen.tsx поверх миграции 80.",
+              "runtime_description": "COM-06/07: оператор читает доску проектов глазами (read-only); живой renderer apps/desktop/src/renderer/src/launch/CommsScreen.tsx поверх миграции 83.",
               "alias_of": null
             }
           ],
           "scenario_verdicts": [
             {
-              "id": "SCN-137",
-              "line": 3365,
+              "id": "SCN-143",
+              "line": 3546,
               "status": "draft",
               "coverage": "apps/desktop/src/renderer/src/launch/CommsScreen.tsx; apps/desktop/src/main/commsOperatorRead.ts; apps/desktop/test/comms-operator-read.test.mjs; apps/desktop/test/project-board-db.test.mjs",
               "product": "unobserved"
@@ -5050,6 +5131,41 @@
             {
               "id": "SCN-131",
               "line": 3182,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            }
+          ]
+        },
+        {
+          "view": "setup-agents",
+          "route": "docs/reports/product.html#view-setup-agents",
+          "title": "Настройка: агенты и продукты",
+          "catalogue_horizon": "near",
+          "task_ids": [],
+          "canonical": [
+            {
+              "screen": "SCR-77",
+              "source": "docs/ux/screens.md:1892",
+              "explicit_scenarios": [
+                "SCN-138",
+                "SCN-139"
+              ],
+              "runtime_description": "0.4.0 REQ-38…REQ-42 (operator, 2026-10-11 evening): target design in the prototype; not built in the app yet.",
+              "alias_of": null
+            }
+          ],
+          "scenario_verdicts": [
+            {
+              "id": "SCN-138",
+              "line": 3429,
+              "status": "draft",
+              "coverage": "none yet",
+              "product": "unobserved"
+            },
+            {
+              "id": "SCN-139",
+              "line": 3452,
               "status": "draft",
               "coverage": "none yet",
               "product": "unobserved"

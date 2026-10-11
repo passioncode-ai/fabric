@@ -25,6 +25,7 @@ import { checkAuthorityTarget, redactAuthorityPayload } from '../shared/authorit
 import { containmentFor } from '../shared/agents.ts'
 import { flooredEffectAllowed } from '../shared/containment.ts'
 import { describeRedactions } from '../shared/redact.ts'
+import { createScopedStore } from './scopedStore.ts'
 
 /**
  * A stable id for one logical attempt, when the caller did not bring one.
@@ -46,6 +47,13 @@ function commandIdFor(request: EffectRequest): string {
 
 /** The three classes of action a person must authorise one at a time. */
 export type FloorClass = 'money' | 'deletion' | 'publication'
+export const FLOOR_CLASSES: readonly FloorClass[] = ['money', 'deletion', 'publication']
+/** A value from outside (a renderer, an agent) is one of the three, or it is not a floor class (A2-015). */
+export const isFloorClass = (v: unknown): v is FloorClass => typeof v === 'string' && (FLOOR_CLASSES as readonly string[]).includes(v)
+/** How many live grants for one act `findGrantFor` reads before it looks for an unheld one. */
+const GRANT_CANDIDATES = 50
+/** A reservation in one of these states holds its grant (A7-016). */
+const HOLDING_STATES = new Set(['reserved', 'consumed', 'revoked'])
 
 export interface EffectRequest {
   estateId: string
@@ -135,14 +143,22 @@ export class Policy {
    * "the operator allowed this" a fact with a time and a subject rather than a
    * configuration someone changed months ago.
    */
+  // #region grants-from-the-journal — docs: docs/adr/0028-one-effects-algebra-and-the-floor-lives-in-the-schema.md#decision
   async issueGrant(input: {
     estateId: string
+    /** The project the grant is confined to; null is estate-wide (a file overwrite is granted outside any project). */
     projectId: string | null
     floorClass: FloorClass
     target: string
     actor: Actor
     ttlMs: number
+    /** The one act it authorises, when the issuer knows it; absent authorises any act of the class on the target. */
+    actionClass?: string | null
   }): Promise<{ grantId: string; seq: number; expiresAt: string }> {
+    // The class is checked before anything is written (A2-015): it arrives from a renderer, and a value the
+    // table would refuse must not reach the journal at all.
+    if (!isFloorClass(input.floorClass))
+      throw new Error(`"${String(input.floorClass)}" is not a floor class (${FLOOR_CLASSES.join(', ')}).`)
     // A TARGET IS REFUSED, NOT SCRUBBED (S03). Every other field can be
     // cleaned and still mean what it meant; the target cannot, because it is
     // what the permission is compared against later. Scrubbing it would issue a
@@ -150,35 +166,29 @@ export class Policy {
     const targetCheck = checkAuthorityTarget(input.target)
     if (!targetCheck.ok) throw new Error(`${targetCheck.says} ${targetCheck.remedy}`)
 
+    // THE GRANT IS THE EVENT (audit A7-014). The id is minted here and carried in grant.issued@1 with the act;
+    // `apply_grants` writes the row inside the same append (migration 91), so the journal never holds a grant
+    // the table does not, a rebuild reproduces the table, and nothing writes the table around the journal.
+    const grantId = randomUUID()
     const expiresAt = new Date(this.now().getTime() + input.ttlMs).toISOString()
     const event = await this.appendAuthority({
       estateId: input.estateId,
       type: 'grant.issued@1',
       actor: input.actor,
+      // The grant's project (A7-015): the projector confines the grant to the event's project.
       projectId: input.projectId ?? undefined,
       payload: {
+        grant_id: grantId,
         floor_class: input.floorClass,
         target: input.target,
         expires_at: expiresAt,
-        issued_by: input.actor.id
+        issued_by: input.actor.id,
+        ...(input.actionClass ? { action_class: input.actionClass } : {})
       }
     })
-    // The projector has not learned this event yet, so the row is written here
-    // and the seq that carries it is returned: when `grant.issued@1` joins the
-    // projector this insert is the line that goes, not the event.
-    const { data, error } = await this.db
-      .from('grants')
-      .insert({
-        estate_id: input.estateId,
-        floor_class: input.floorClass,
-        target: input.target,
-        expires_at: expiresAt
-      })
-      .select('id')
-      .single()
-    if (error) throw new Error(`grant could not be recorded: ${error.message}`)
-    return { grantId: data.id as string, seq: event.seq, expiresAt }
+    return { grantId, seq: event.seq, expiresAt }
   }
+  // #endregion grants-from-the-journal
 
   /**
    * Find an unspent grant the operator already issued for exactly this act
@@ -199,24 +209,40 @@ export class Policy {
     estateId: string
     floorClass: FloorClass
     target: string
+    /** The asking session's project and act: a grant confined to another of either does not serve it (A7-015).
+     *  Left out, that side is not compared here; `reserve_effect` still refuses a grant confined elsewhere. */
+    projectId?: string | null
+    actionClass?: string
   }): Promise<string | null> {
     const { data, error } = await this.db
       .from('grants')
-      .select('id,expires_at')
+      .select('id,project_id,action_class')
       .eq('estate_id', input.estateId)
       .eq('floor_class', input.floorClass)
       .eq('target', input.target)
       .is('consumed_at', null)
+      .is('revoked_at', null)
       .gt('expires_at', this.now().toISOString())
       // The OLDEST usable one. Newest-first would leave an earlier grant to
       // expire unused while the operator believes they authorised the act once.
       .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle()
+      .limit(GRANT_CANDIDATES)
     // A grant that cannot be READ is not a grant that exists — the same rule
     // `evaluate` applies below, and for the same reason.
-    if (error || !data) return null
-    return data.id as string
+    if (error || !data || data.length === 0) return null
+    // The scope is compared here rather than in a filter string: the action class is the agent's own words.
+    const fits = (data as { id: string; project_id: string | null; action_class: string | null }[]).filter((g) =>
+      (input.projectId === undefined || g.project_id === null || g.project_id === input.projectId) &&
+      (g.action_class === null || input.actionClass === undefined || g.action_class === input.actionClass))
+    if (fits.length === 0) return null
+    // A grant another command already holds is not available (A7-016): `reserve_effect` reserves exactly the
+    // grant presented, so presenting a held one would be refused while an unheld one sits beside it.
+    // Read through the scoped store's chunked `selectIn` (the list-read rule): a refused read is no grant, never "none held".
+    const held = await createScopedStore(this.db, { kind: 'estate', estateId: input.estateId })
+      .selectIn('grant_reservations', 'grant_id,state', 'grant_id', fits.map((g) => g.id))
+    if (held.failed) return null
+    const taken = new Set(held.rows.filter((r) => HOLDING_STATES.has(r.state as string)).map((r) => r.grant_id as string))
+    return fits.find((g) => !taken.has(g.id))?.id ?? null
   }
 
   /**
@@ -331,7 +357,7 @@ export class Policy {
 
     const { data: grant, error } = await this.db
       .from('grants')
-      .select('id,estate_id,floor_class,target,expires_at,consumed_at')
+      .select('id,estate_id,floor_class,target,expires_at,consumed_at,revoked_at')
       .eq('id', request.grantId)
       .maybeSingle()
     if (error)
@@ -355,6 +381,9 @@ export class Policy {
       }
     if (grant.consumed_at !== null)
       return { verdict: 'refuse', reason: 'the grant has already been spent', needs: request.floorClass }
+    // A7-016: a withdrawn grant authorises nothing, whatever else is live beside it.
+    if (grant.revoked_at != null)
+      return { verdict: 'refuse', reason: 'the grant was revoked', needs: request.floorClass }
     if (new Date(grant.expires_at as string).getTime() <= this.now().getTime())
       return { verdict: 'refuse', reason: 'the grant has expired', needs: request.floorClass }
 
@@ -371,7 +400,9 @@ export class Policy {
       p_action_class: request.actionClass,
       p_floor_class: request.floorClass,
       p_target: request.target,
-      p_command_id: request.commandId ?? commandIdFor(request)
+      p_command_id: request.commandId ?? commandIdFor(request),
+      // Exactly the grant checked above (A7-016): the decision, its reservation and its spend name one grant.
+      p_grant_id: grant.id as string
     })
     if (reserveError)
       return {
@@ -509,13 +540,8 @@ export class Policy {
    */
   private async spendGrant(request: EffectRequest, decision: Decision): Promise<void> {
     if (decision.verdict !== 'allow' || !decision.grantId) return
-    await this.db
-      .from('grants')
-      .update({ consumed_at: this.now().toISOString() })
-      .eq('id', decision.grantId)
-      // S02.a: a grant id is a uuid from a decision, and `where id = …` alone
-      // would consume another estate's grant if one ever collided.
-      .eq('estate_id', request.estateId)
+    // The spend IS the event (A7-014): `apply_grants` sets `consumed_at` in the same append and in this estate
+    // only, and an append that fails throws here instead of leaving an unspent grant behind an unread error.
     await this.appendAuthority({
       estateId: request.estateId,
       type: 'grant.consumed@1',

@@ -88,19 +88,19 @@ describe('the status bar does not call an unread list idle', () => {
   it('says "no agents running" when the read ANSWERED with none — the fixture is the measured case', () => {
     // Asserted first: without it the case below would pass on a cell that never
     // said anything either way.
-    wrap(<ProjectStatusBar stats={stats} repos={null} quota={null} running={0} />)
+    wrap(<ProjectStatusBar stats={stats} repos={null} quota={{ read: false }} running={0} />)
     expect(screen.getByText(en['status.idleAgents'])).toBeTruthy()
   })
 
   it('but says NOTHING of the kind before anyone has looked', () => {
     // The argument is in this component's own prop list, about the field beside
     // this one: a hardcoded zero renders as a measurement nobody took.
-    wrap(<ProjectStatusBar stats={stats} repos={null} quota={null} running={null} />)
+    wrap(<ProjectStatusBar stats={stats} repos={null} quota={{ read: false }} running={null} />)
     expect(screen.queryByText(en['status.idleAgents'])).toBeNull()
   })
 
   it('and still counts what is running when the read answered with some', () => {
-    wrap(<ProjectStatusBar stats={stats} repos={null} quota={null} running={2} />)
+    wrap(<ProjectStatusBar stats={stats} repos={null} quota={{ read: false }} running={2} />)
     expect(screen.getByText(/2/)).toBeTruthy()
   })
 })

@@ -36,7 +36,6 @@ CoverageRow.obligationId
 CycleRow.cycleKey
 CycleSummary.needsIntervention
 Degradation.completionAssessment
-Delivery.deadlineMs
 Delivery.writtenAt
 Fixture.scenario
 HappenedItem.subjectRef

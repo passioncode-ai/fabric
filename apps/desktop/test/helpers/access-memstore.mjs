@@ -12,6 +12,7 @@ export function memStore({ now = () => Date.now() } = {}) {
     events, maps: { requests, bindings, grants, connections },
     reads: 0,
     async request(id) { this.reads++; return requests.get(id) ?? null },
+    async requestsByIds(ids) { this.reads++; return [...new Set(ids)].flatMap((id) => (requests.has(id) ? [requests.get(id)] : [])) },
     async requests(f) {
       this.reads++
       return [...requests.values()].filter((r) => matches(r, f)).sort((a, b) => Date.parse(b.requested_at) - Date.parse(a.requested_at) || b.id.localeCompare(a.id))

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { NO_MARKS, advance, type FeedMarks } from '../../shared/feedMarks.ts'
 import { APP_SETTINGS_DEFAULTS } from '../../shared/types'
-import type { AppSettings, FeedEvent, ProjectRow, Quota, TerminalSession } from '../../shared/types'
+import type { AppSettings, FeedEvent, ProjectRow, Quota, SettingsPatch, TerminalSession } from '../../shared/types'
 import { restoreTabs, toPersist } from '../../shared/tabs.ts'
 import {
   addressKey,
@@ -134,6 +134,11 @@ function Shell({
   const t = useT()
   const [sessionWindowId, setSessionWindowId] = useState<string | null | undefined>(undefined)
   const [fileWindowPath, setFileWindowPath] = useState<string | null>(null)
+  // #region main-window-boot — docs: docs/adr/0020-provider-views-are-sandboxed-extensions-and-layout-is-host-owned.md#provider-views-are-sandboxed-extensions-workspace-layout-is-host-owned
+  /** Known only once `meta.info` has answered. The drafts and the working set are the main window's
+   *  (CO-091): a detached session or editor window is not given them, so it must not ask. */
+  const isMainWindow = sessionWindowId === null && !fileWindowPath
+  // #endregion main-window-boot
   const [estateName, setEstateName] = useState('')
   /** NULL until the list has been read (M108). `[]` is an answer — "this estate
    *  holds no projects" — and it was the value every launch started with, so the
@@ -241,6 +246,7 @@ function Shell({
    * false, so nothing overwrites a file we could not read.
    */
   useEffect(() => {
+    if (!isMainWindow) return
     let alive = true
     void readInitialDrafts()
       .then((answer) => {
@@ -266,7 +272,7 @@ function Shell({
     return () => {
       alive = false
     }
-  }, [readInitialDrafts])
+  }, [readInitialDrafts, isMainWindow])
 
   /**
    * Persist on change, and say so when it does not land.
@@ -537,7 +543,8 @@ function Shell({
     const tab = tabOf(active)
     if (tab && tab.kind !== 'home') closeTab(tab)
   }
-  useEffect(() => window.fabric.tabs.onCloseActive(() => closeTabRef.current()), [])
+  // Tabs are the main window's alone (CO-091); a detached window's bridge has no `tabs`.
+  useEffect(() => (isMainWindow ? window.fabric.tabs.onCloseActive(() => closeTabRef.current()) : undefined), [isMainWindow])
 
   const current = active.kind === 'project' ? (projects ?? []).find((p) => p.id === active.projectId) : null
   // ONE SOURCE, read here and nowhere else. The route says where the operator
@@ -852,7 +859,13 @@ function Shell({
               // button, and nothing in the arrival path can reach it. That is
               // the invariant `inbox.ts` states and could not enforce while it
               // had no callers at all.
-              const written = await window.fabric.settings.write({ ...settings, readThroughSeq: throughSeq })
+              // The read position ONLY (audit A7-008): this screen's copy of the settings was read at start, and
+              // sending it back reverted the tabs main had saved since and could empty the workspace folder.
+              const written = await window.fabric.settings.write({ readThroughSeq: throughSeq }).catch((e: unknown) => {
+                setError(t('settings.notSaved', { reason: explainError(e, t) }))
+                return null
+              })
+              if (!written) return
               onSettings(written.settings)
               if (!written.saved) setError(t('settings.notSaved', { reason: written.reason ?? '' }))
             }}
@@ -952,7 +965,7 @@ function SettingsBar({
   settings: AppSettings
   onOpenHistory: () => void
   onOpenAccess: () => void
-  onChange: (next: Partial<AppSettings>) => Promise<void> | void
+  onChange: (next: SettingsPatch) => Promise<void> | void
 }): React.JSX.Element {
   const t = useT()
   return (

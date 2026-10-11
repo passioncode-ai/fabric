@@ -448,3 +448,25 @@ These amendments record what the record got wrong and what the code now does.
 36. **ADR-0105's hop is this record's hop (docs D-5).** Observatory as a hub callee will be a connected product in
     this record's sense: a standing connection whose credential Fabric holds and presents, narrowed by a product
     header, not a credential minted per call. ADR-0105 carries the matching amendment.
+
+## Amendments — 0.4.0, agents first (2026-10-11)
+
+37. **A third principal, the enrolled session ([ADR-0134](0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)).**
+    The door gains one tool, `fabric.session.enroll`; on the operator's consent per (runtime, project) it admits a
+    coding agent opened outside Fabric to a session server of its own kind, built from the session tool catalogue and
+    scoped to one Project. §1's rule that only registered agents reach the door's prompt is widened to coding agents
+    that enroll by folder; the door itself still serves no session tool. Operator decision D-03 of the 0.4.0 plan.
+
+38. **A delivery that cannot be the product's answer ends nothing (CO-203, 2026-10-11).** A POST to the connect
+    callback that carries no live state of the product — a wrong content type, a body that is unreadable, too
+    large, not a JSON object, or no or an unknown state — is refused with its reason and leaves the pending attempt
+    waiting, so the genuine delivery that follows still lands (`productConnect.ts#ProductConnector.answer`). A
+    delivery that carries the state but is otherwise invalid still fails its attempt at once. This reverses the
+    settlement of V2 ER-9 for stateless deliveries only.
+39. **Two lanes instead of one serial chain (CO-206, 2026-10-11).** Every hub database call runs under a deadline
+    (`accessStore.ts#HUB_DB_DEADLINE_MS`). The agent lane (`request`, `status`) stays serial — it guards the dedupe of
+    identical asks and the pending caps, which are check-then-append in this process; the operator lane (`decide`,
+    both revokes, `clearDenial`, priming) is serial of its own — it guards two answers to one request and a grant
+    extension racing its revocation (`accessService.ts#AccessService.serial`). A revocation no longer waits behind a
+    stalled agent request; across lanes the projector's guards decide.
+

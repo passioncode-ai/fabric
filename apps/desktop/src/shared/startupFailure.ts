@@ -18,6 +18,8 @@
 // Every string here was measured on 2026-09-05 rather than imagined; the test
 // file carries the shapes as recorded.
 
+import { stackFolderFor } from './stackFolder.ts'
+
 export type StartupCause =
   | 'supabase-cli-missing'
   | 'stack-start-timed-out'
@@ -81,7 +83,12 @@ function wasKilled(e: unknown): boolean {
  * threw a string — turning a diagnosable failure into a silent one, which is
  * the exact defect this module exists to end.
  */
-export function classifyStartupFailure(e: unknown): StartupFailure {
+export function classifyStartupFailure(e: unknown, platform: string = typeof process === 'undefined' ? 'darwin' : process.platform): StartupFailure {
+  const f = classifyCause(e)
+  return { ...f, remedy: f.remedy.replace('{stackFolder}', stackFolderFor(platform)) }
+}
+
+function classifyCause(e: unknown): StartupFailure {
   const detail = textOf(e) || 'No description was attached to the failure.'
   const code = codeOf(e)
 
@@ -163,7 +170,7 @@ export function classifyStartupFailure(e: unknown): StartupFailure {
       cause: 'schema-missing',
       title: 'The database is running, but Fabric’s tables are not there.',
       remedy:
-        'The migrations have never been applied to this database. Run `supabase migration up --local` in Fabric’s stack folder (~/Library/Application Support/@fabric/desktop/stack for the installed app, the repository when running from source), then retry. Saying “the database failed” would send you to the wrong place: it is answering, it is simply empty.',
+        'The migrations have never been applied to this database. Run `supabase migration up --local` in Fabric’s stack folder ({stackFolder} for the installed app, the repository when running from source), then retry. Saying “the database failed” would send you to the wrong place: it is answering, it is simply empty.',
       detail
     }
 
@@ -177,7 +184,7 @@ export function classifyStartupFailure(e: unknown): StartupFailure {
       cause: 'database-unreachable',
       title: 'The database is not answering at the address Fabric was given.',
       remedy:
-        'The local stack is most likely stopped. Run `supabase start` in Fabric’s stack folder (~/Library/Application Support/@fabric/desktop/stack for the installed app, the repository when running from source) and retry. If SUPABASE_URL is set in this environment, check that it points at a stack that is actually running — an explicit address is used as given and is never second-guessed.',
+        'The local stack is most likely stopped. Run `supabase start` in Fabric’s stack folder ({stackFolder} for the installed app, the repository when running from source) and retry. If SUPABASE_URL is set in this environment, check that it points at a stack that is actually running — an explicit address is used as given and is never second-guessed.',
       detail
     }
 
@@ -228,8 +235,9 @@ const ENGLISH: Record<string, string> = {
  */
 export function startupDialog(
   failure: StartupFailure,
-  opts: { retryable: boolean; logPath: string; say?: StartupSay }
+  opts: { retryable: boolean; logPath: string; say?: StartupSay; platform?: string }
 ): StartupDialog {
+  const vars = { stackFolder: stackFolderFor(opts.platform ?? (typeof process === 'undefined' ? 'darwin' : process.platform)) }
   const say = (key: string): string => {
     const said = opts.say?.(key)
     return said !== undefined && said !== key ? said : (ENGLISH[key] ?? key)
@@ -238,7 +246,7 @@ export function startupDialog(
   // details and the log keep the English, which is what a report is read in.
   const own = (part: 'title' | 'remedy'): string => {
     const key = `startup.${failure.cause}.${part}`
-    const said = opts.say?.(key)
+    const said = opts.say?.(key, vars)
     return said !== undefined && said !== key ? said : failure[part]
   }
   const parts = [own('remedy')]

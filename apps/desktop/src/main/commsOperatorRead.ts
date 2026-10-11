@@ -1,15 +1,15 @@
-// #region comms-screen — docs: docs/ux/screens.md#scr-77-project-comms
+// #region comms-screen — docs: docs/ux/screens.md#scr-81-project-comms
 /**
- * The operator's read path onto the project board (SCR-77, SCN-137), between the Comms
- * screen's IPC handlers and migration 80's two security-definer functions
+ * The operator's read path onto the project board (SCR-81, SCN-143), between the Comms
+ * screen's IPC handlers and Migration 83's two security-definer functions
  * (`board_threads_operator`, `board_list_operator`,
- * `supabase/migrations/20261011000084_project_board_operator_read.sql`).
+ * `supabase/migrations/20261011000094_project_board_operator_read.sql`).
  *
  * Two rules, both from the scenario:
  *
  * - UNAVAILABLE IS NOT EMPTY. A PostgREST error, a missing function (the migration not
  *   applied) or a payload that is not the shape the migration promises all answer
- *   `unavailable` — an empty list is something only the board itself may say (SCN-137
+ *   `unavailable` — an empty list is something only the board itself may say (SCN-143
  *   Alt paths: "it NEVER shows an empty list in that case").
  * - THE BOARD'S REFUSALS TRAVEL AS THEY ARE. `not_found` (a thread outside this estate)
  *   and `invalid_arguments` keep their codes and messages; they are the board's answer,
@@ -154,7 +154,7 @@ export function createCommsOperatorRead(deps: CommsOperatorReadDeps) {
 
     /** One page of a thread (or of the estate when threadId is null), after `afterSeq`,
      *  oldest first — the board's own paging contract, so the screen's cursor logic is
-     *  the board's (SCN-137 step 5). */
+     *  the board's (SCN-143 step 5). */
     async list(estateId: string, threadId: string | null, afterSeq: number, limit = 50): Promise<CommsPageReply> {
       if (!Number.isSafeInteger(afterSeq) || afterSeq < 0) return failed('invalid_arguments', 'The page request is not valid.')
       if (threadId !== null && !threadId) return failed('invalid_arguments', 'The page request is not valid.')

@@ -7,7 +7,7 @@ import { mkdtempSync, readFileSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { PassThrough } from 'node:stream'
-import { runAcpShell, surfaceFor, automaticChoice, answeredChoice, describeUpdate, isAuthRequired } from '../src/main/acpShell.ts'
+import { runAcpShell, surfaceFor, automaticChoice, answeredChoice, describeUpdate, isAuthRequired, peer, MethodNotOffered } from '../src/main/acpShell.ts'
 
 const AGENT = path.join(import.meta.dirname, 'fixtures/acp-fake-agent.mjs')
 const TOKEN = 'tok-session-credential'
@@ -356,5 +356,59 @@ test('the small rules: surface choice, automatic choice, answers and what is pri
   assert.equal(answeredChoice('y', [{ optionId: 'always', kind: 'allow_always' }, { optionId: 'no', kind: 'reject_once' }]), 'always')
   assert.equal(answeredChoice('nope', [{ optionId: 'always', kind: 'allow_always' }, { optionId: 'never', kind: 'reject_always' }]), 'never')
   assert.equal(answeredChoice('y', [{ optionId: 'once', kind: 'allow_once' }, { optionId: 'always', kind: 'allow_always' }]), 'once')
+})
+
+// Audit 2026-10-05 A6-030/A7-038: the framing limit drops only the frame over it — complete frames in the same
+// read are handled — and a dropped answer rejects its request at once, named, instead of waiting out a timeout.
+const peerOver = (handlers = {}, limit = 64) => {
+  const stdin = new PassThrough(), stdout = new PassThrough()
+  const sent = []
+  stdin.on('data', (c) => { for (const l of c.toString('utf8').split('\n').filter(Boolean)) sent.push(JSON.parse(l)) })
+  const dropped = []
+  const rpc = peer({ stdin, stdout, stderr: null, kill() {}, alive: () => false, onExit() {} }, 60_000, {
+    request: async () => null, notification() {}, closed() {}, dropped: (f) => dropped.push(f), ...handlers
+  }, limit)
+  return { rpc, stdout, sent, dropped }
+}
+const settle = (p) => p.then((v) => ({ ok: v }), (e) => ({ err: e.message }))
+
+test('a frame over the limit is dropped alone: complete frames in the same read still answer their requests', async () => {
+  const { rpc, stdout, dropped } = peerOver()
+  const a = settle(rpc.request('session/new', {}))
+  const b = settle(rpc.request('session/prompt', {}, null))
+  // One read: id 1's complete answer, then the start of id 2's answer, already over the limit.
+  stdout.write(JSON.stringify({ jsonrpc: '2.0', id: 1, result: { sessionId: 's' } }) + '\n' + '{"jsonrpc":"2.0","id":2,"result":"' + 'x'.repeat(200))
+  assert.deepEqual(await a, { ok: { sessionId: 's' } }, 'the complete frame was not thrown away with the oversized one')
+  const second = await b
+  assert.match(second.err ?? '', /answer to session\/prompt .* frame limit/, 'the dropped answer rejects its request, named')
+  stdout.write('y'.repeat(100) + '"}\n' + JSON.stringify({ jsonrpc: '2.0', method: 'session/update', params: {} }) + '\n')
+  await new Promise((r) => setImmediate(r))
+  assert.equal(dropped.length, 1)
+  assert.equal(dropped[0].answering, 'session/prompt')
+  // After the dropped frame's newline the stream is in step again: a later request is answered.
+  const c = settle(rpc.request('session/new', {}))
+  stdout.write(JSON.stringify({ jsonrpc: '2.0', id: 3, result: 'ok' }) + '\n')
+  assert.deepEqual(await c, { ok: 'ok' })
+})
+
+test('a complete line over the limit is dropped and said; one that names no pending request rejects nothing', async () => {
+  const { rpc, stdout, dropped } = peerOver()
+  const a = settle(rpc.request('session/new', {}))
+  stdout.write(JSON.stringify({ jsonrpc: '2.0', method: 'session/update', params: { big: 'z'.repeat(200) } }) + '\n')
+  await new Promise((r) => setImmediate(r))
+  assert.deepEqual(dropped.map((d) => d.answering), [null])
+  stdout.write(JSON.stringify({ jsonrpc: '2.0', id: 1, result: 1 }) + '\n')
+  assert.deepEqual(await a, { ok: 1 }, 'an unrelated drop leaves the pending request alone')
+})
+
+test('a refusal is -32601 only for a method the client does not offer; any other failure is -32603', async () => {
+  const { stdout, sent } = peerOver({
+    request: async (method) => { if (method === 'fs/read_text_file') throw new MethodNotOffered(method); throw new Error('the person could not be asked') }
+  }, 4096)
+  stdout.write(JSON.stringify({ jsonrpc: '2.0', id: 7, method: 'fs/read_text_file', params: {} }) + '\n')
+  stdout.write(JSON.stringify({ jsonrpc: '2.0', id: 8, method: 'session/request_permission', params: {} }) + '\n')
+  for (let i = 0; i < 20 && sent.length < 2; i++) await new Promise((r) => setImmediate(r))
+  assert.equal(sent.find((m) => m.id === 7).error.code, -32601)
+  assert.equal(sent.find((m) => m.id === 8).error.code, -32603)
 })
 // #endregion acp-shell

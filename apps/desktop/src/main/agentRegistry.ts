@@ -46,6 +46,13 @@ const SECRET_REF = /^secret-ref:[A-Za-z0-9][A-Za-z0-9._/:@-]{0,255}$/
 const ENV_NAME = /^[A-Z_][A-Z0-9_]*$/
 /** A descriptor is a few hundred bytes; anything this large is not one, and is not read. */
 const MAX_FILE_BYTES = 64 * 1024
+/**
+ * At most this many entry files are read from EACH directory (CO-205). The read is synchronous on the
+ * main thread and the consent path asks for it on every request (the door admits 600 a minute): 1000
+ * files measured 29.7 ms per read at 0.3.1. Past the cap the first files by name are read, the rest
+ * resolve to nothing, and the directory is reported `too-many-entries` — never a silent truncation.
+ */
+export const MAX_ENTRIES_PER_DIR = 256
 
 const SERVICE_FIELDS = new Set(['protocol', 'id', 'instance', 'name', 'summary', 'placement', 'origin', 'auth', 'lifecycle', 'paths', 'commands', 'source', 'fabricManifest', 'installedAt', 'installedBy', 'extensions'])
 const PROVIDER_FIELDS = new Set(['protocol', 'id', 'providerId', 'name', 'summary', 'manifest', 'run', 'source', 'installedAt', 'installedBy', 'extensions'])
@@ -73,8 +80,9 @@ export interface RegistryEntry {
   file: string
 }
 
-/** The contract's own problem codes (agent-registry contracts §C5), plus `unreadable` for a file that is not JSON. */
-export type RegistryProblemCode = 'unreadable' | 'manifest-invalid' | 'foreign' | 'id-collision' | 'port-claimed'
+/** The contract's own problem codes (agent-registry contracts §C5), plus `unreadable` for a file that is not JSON
+ *  and `too-many-entries` for a directory past MAX_ENTRIES_PER_DIR (CO-205). */
+export type RegistryProblemCode = 'unreadable' | 'manifest-invalid' | 'foreign' | 'id-collision' | 'port-claimed' | 'too-many-entries'
 
 export interface RegistryProblem {
   file: string
@@ -104,8 +112,8 @@ const isUri = (v: unknown): boolean => {
   }
 }
 
-function expand(p: string, home: string): string {
-  return p.startsWith('~/') ? path.join(home, p.slice(2)) : p
+function expand(p: string, home: string, join: (...parts: string[]) => string = path.join): string {
+  return p.startsWith('~/') || p.startsWith('~\\') ? join(home, p.slice(2)) : p
 }
 
 /** Where the contract says the two directories are: the env overrides, else the platform's root. */
@@ -114,14 +122,18 @@ export function registryDirs(
   platform: NodeJS.Platform = process.platform,
   home: string = os.homedir()
 ): { root: string; services: string; providers: string } {
+  // Windows per DEC-0032 (0.3.5, REQ-15), with Windows separators whatever OS computes it.
+  const join = platform === 'win32' ? path.win32.join : path.posix.join
   const root =
     platform === 'darwin'
-      ? path.join(home, 'Library/Application Support/ai.passioncode.fabric')
-      : path.join(env.XDG_DATA_HOME || path.join(home, '.local/share'), 'passioncode-fabric')
+      ? join(home, 'Library/Application Support/ai.passioncode.fabric')
+      : platform === 'win32'
+        ? join(env.LOCALAPPDATA || join(home, 'AppData', 'Local'), 'passioncode-fabric')
+        : join(env.XDG_DATA_HOME || join(home, '.local/share'), 'passioncode-fabric')
   return {
     root,
-    services: env.FABRIC_SERVICES_DIR ? expand(env.FABRIC_SERVICES_DIR, home) : path.join(root, 'services'),
-    providers: env.FABRIC_PROVIDERS_DIR ? expand(env.FABRIC_PROVIDERS_DIR, home) : path.join(root, 'providers')
+    services: env.FABRIC_SERVICES_DIR ? expand(env.FABRIC_SERVICES_DIR, home, join) : join(root, 'services'),
+    providers: env.FABRIC_PROVIDERS_DIR ? expand(env.FABRIC_PROVIDERS_DIR, home, join) : join(root, 'providers')
   }
 }
 
@@ -273,11 +285,59 @@ interface Candidate {
   port: number | null
 }
 
+// #region registry-gated-refresh — docs: docs/evidence/specs/2026-09-29-agent-registry-design.md#3-registry-req-01-req-02-req-10
+/** What one file read to, remembered under the file's signature (CO-205). */
+type FileOutcome = { candidate: Candidate } | { problem: RegistryProblem }
+interface FileMemo {
+  signature: string
+  outcome: FileOutcome
+}
+
+/**
+ * What the last read saw, so the next one reads only what CHANGED (CO-205). A file is re-read when its
+ * signature — inode, size, mtime and ctime from `lstat`, and its target's for a link — differs from the
+ * remembered one; when no name and no signature changed, the previous snapshot is returned whole. A stat
+ * is what an unchanged file costs per read, never an open, a read and a parse.
+ */
+export interface RegistryCache {
+  files: Map<string, FileMemo>
+  /** Every directory listing and file signature of the last read, as one string. */
+  listing: string | null
+  snapshot: RegistrySnapshot | null
+  /** Files opened and parsed since the cache was made — the measurement the tests read. */
+  filesRead: number
+}
+
+export const newRegistryCache = (): RegistryCache => ({ files: new Map(), listing: null, snapshot: null, filesRead: 0 })
+
+/** inode, size, mtime, ctime — of the link and of what it points to; null when it cannot be stat'ed (read it). */
+function signatureOf(file: string): string | null {
+  try {
+    const l = lstatSync(file)
+    const own = `${l.ino}:${l.size}:${l.mtimeMs}:${l.ctimeMs}`
+    if (!l.isSymbolicLink()) return own
+    const t = statSync(file)
+    return `${own}>${t.ino}:${t.size}:${t.mtimeMs}:${t.ctimeMs}`
+  } catch {
+    return null // a broken link or a file gone since readdir: the read below reports it with its reason
+  }
+}
+
+interface DirRead {
+  candidates: Candidate[]
+  /** Stems of the files past the cap: not read, but the ids they claim still take part in FAC-SEM-013. */
+  unread: string[]
+  /** This directory's names and signatures, for the unchanged-registry check. */
+  listing: string
+}
+
 function readDir(
   dir: string,
   kind: 'service' | 'provider',
-  problems: RegistryProblem[]
-): Candidate[] {
+  problems: RegistryProblem[],
+  cache: RegistryCache,
+  memos: Map<string, FileMemo>
+): DirRead {
   let names: string[]
   try {
     names = readdirSync(dir).filter((n) => n.endsWith('.json') && !n.startsWith('.')).sort()
@@ -285,65 +345,81 @@ function readDir(
     // An absent directory is an empty registry — nothing is installed. Anything else the
     // directory refuses is a problem with its reason, because "nothing is registered" and
     // "the registry could not be read" must never look alike.
-    if ((e as NodeJS.ErrnoException).code === 'ENOENT') return []
+    const code = (e as NodeJS.ErrnoException).code
+    if (code === 'ENOENT') return { candidates: [], unread: [], listing: `${kind}:absent` }
     problems.push({ file: dir, key: null, code: 'unreadable', reason: `the ${kind === 'service' ? 'services' : 'providers'} directory cannot be read: ${(e as Error).message}` })
-    return []
+    return { candidates: [], unread: [], listing: `${kind}:unreadable:${code ?? ''}:${(e as Error).message}` }
+  }
+  const unread = names.slice(MAX_ENTRIES_PER_DIR).map((n) => n.slice(0, -'.json'.length))
+  if (unread.length) {
+    const what = kind === 'service' ? 'services' : 'providers'
+    problems.push({ file: dir, key: null, code: 'too-many-entries', reason: `the ${what} directory holds ${names.length} entry files; Fabric reads the first ${MAX_ENTRIES_PER_DIR} by name, and the other ${unread.length} name no agent until some are removed` })
   }
   const out: Candidate[] = []
-  for (const name of names) {
+  const signatures: string[] = []
+  for (const name of names.slice(0, MAX_ENTRIES_PER_DIR)) {
     const file = path.join(dir, name)
-    const stem = name.slice(0, -'.json'.length)
-    let raw: unknown
-    try {
-      const text = readRegularFile(file)
-      if (!text.ok) {
-        problems.push({ file, key: stem, code: 'unreadable', reason: text.reason === 'too-large' ? `the file is larger than ${MAX_FILE_BYTES} bytes and is not a ${kind} entry` : `${text.reason}; it is not a ${kind} entry` })
-        continue
-      }
-      raw = JSON.parse(text.value)
-    } catch (e) {
-      // Not silence: the problem list IS the report, logged by `refresh` when it changes.
-      problems.push({ file, key: stem, code: 'unreadable', reason: `the file cannot be read as JSON: ${(e as Error).message}` })
-      continue
-    }
-    const reasons = kind === 'service' ? validateServiceDescriptor(raw) : validateProviderEntry(raw)
-    const d = raw as Record<string, unknown>
-    const key = kind === 'service'
-      ? isStr(d?.id) && isStr(d?.instance) ? `${d.id}.${d.instance}` : stem
-      : isStr(d?.id) ? d.id : stem
-    if (!reasons.length && key !== stem) reasons.push(`the file is named ${name} but describes ${key}`)
-    if (reasons.length) {
-      const foreign = isObj(raw) && raw.protocol !== (kind === 'service' ? SERVICE_PROTOCOL : PROVIDER_PROTOCOL)
-      problems.push({ file, key, code: foreign ? 'foreign' : 'manifest-invalid', reason: reasons.join('; ') })
-      continue
-    }
-    const source = isObj(d.source) && isStr(d.source.repository) ? shown(d.source.repository, 300) || null : null
-    if (kind === 'service') {
-      const placement = d.placement === 'remote' ? 'remote' : 'local'
-      const m = LOCAL_ORIGIN.exec(d.origin as string)
-      out.push({
-        entry: {
-          key, kind, id: d.id as string, instance: d.instance as string, name: shown(d.name as string, 80) || (d.id as string),
-          summary: d.summary === undefined ? null : shown(d.summary as string, 200), placement, origin: d.origin as string, mcp: null,
-          installedBy: shown(d.installedBy as string, 200), installedAt: d.installedAt as string, repository: source, file
-        },
-        port: placement === 'local' && m ? Number(m[1]) : null
-      })
-    } else {
-      const run = (d.run as { mcp: { url?: string } }).mcp
-      const url = run.url ?? null
-      out.push({
-        entry: {
-          key, kind, id: d.id as string, instance: null, name: shown(d.name as string, 80) || (d.id as string),
-          summary: d.summary === undefined ? null : shown(d.summary as string, 200), placement: 'local', origin: null,
-          mcp: url ? { transport: 'streamable-http', url, path: '/mcp' } : { transport: 'stdio' },
-          installedBy: shown(d.installedBy as string, 200), installedAt: d.installedAt as string, repository: source, file
-        },
-        port: url ? Number(PROVIDER_URL.exec(url)?.[1]) : null
-      })
-    }
+    const signature = signatureOf(file)
+    signatures.push(`${name}=${signature ?? '?'}`)
+    const memo = signature === null ? undefined : cache.files.get(`${kind}:${file}`)
+    const outcome = memo && memo.signature === signature ? memo.outcome : readEntryFile(file, name, kind, cache)
+    if (signature !== null) memos.set(`${kind}:${file}`, { signature, outcome })
+    if ('problem' in outcome) problems.push(outcome.problem)
+    else out.push(outcome.candidate)
   }
-  return out
+  return { candidates: out, unread, listing: `${kind}:${names.length}:${signatures.join('|')}` }
+}
+// #endregion registry-gated-refresh
+
+/** One file, opened and parsed: an entry, or the problem with its reason. */
+function readEntryFile(file: string, name: string, kind: 'service' | 'provider', cache: RegistryCache): FileOutcome {
+  cache.filesRead++
+  const stem = name.slice(0, -'.json'.length)
+  let raw: unknown
+  try {
+    const text = readRegularFile(file)
+    if (!text.ok)
+      return { problem: { file, key: stem, code: 'unreadable', reason: text.reason === 'too-large' ? `the file is larger than ${MAX_FILE_BYTES} bytes and is not a ${kind} entry` : `${text.reason}; it is not a ${kind} entry` } }
+    raw = JSON.parse(text.value)
+  } catch (e) {
+    // Not silence: the problem list IS the report, logged by `refresh` when it changes.
+    return { problem: { file, key: stem, code: 'unreadable', reason: `the file cannot be read as JSON: ${(e as Error).message}` } }
+  }
+  const reasons = kind === 'service' ? validateServiceDescriptor(raw) : validateProviderEntry(raw)
+  const d = raw as Record<string, unknown>
+  const key = kind === 'service'
+    ? isStr(d?.id) && isStr(d?.instance) ? `${d.id}.${d.instance}` : stem
+    : isStr(d?.id) ? d.id : stem
+  if (!reasons.length && key !== stem) reasons.push(`the file is named ${name} but describes ${key}`)
+  if (reasons.length) {
+    const foreign = isObj(raw) && raw.protocol !== (kind === 'service' ? SERVICE_PROTOCOL : PROVIDER_PROTOCOL)
+    return { problem: { file, key, code: foreign ? 'foreign' : 'manifest-invalid', reason: reasons.join('; ') } }
+  }
+  const source = isObj(d.source) && isStr(d.source.repository) ? shown(d.source.repository, 300) || null : null
+  if (kind === 'service') {
+    const placement = d.placement === 'remote' ? 'remote' : 'local'
+    const m = LOCAL_ORIGIN.exec(d.origin as string)
+    return { candidate: {
+      entry: {
+        key, kind, id: d.id as string, instance: d.instance as string, name: shown(d.name as string, 80) || (d.id as string),
+        summary: d.summary === undefined ? null : shown(d.summary as string, 200), placement, origin: d.origin as string, mcp: null,
+        installedBy: shown(d.installedBy as string, 200), installedAt: d.installedAt as string, repository: source, file
+      },
+      port: placement === 'local' && m ? Number(m[1]) : null
+    } }
+  } else {
+    const run = (d.run as { mcp: { url?: string } }).mcp
+    const url = run.url ?? null
+    return { candidate: {
+      entry: {
+        key, kind, id: d.id as string, instance: null, name: shown(d.name as string, 80) || (d.id as string),
+        summary: d.summary === undefined ? null : shown(d.summary as string, 200), placement: 'local', origin: null,
+        mcp: url ? { transport: 'streamable-http', url, path: '/mcp' } : { transport: 'stdio' },
+        installedBy: shown(d.installedBy as string, 200), installedAt: d.installedAt as string, repository: source, file
+      },
+      port: url ? Number(PROVIDER_URL.exec(url)?.[1]) : null
+    } }
+  }
 }
 
 /**
@@ -352,13 +428,25 @@ function readDir(
  * makes BOTH unresolvable — guessing which one a prompt should name is the one thing this
  * must not do. FAC-SEM-010 (two entries on one port) keeps both listed and reports the port.
  */
-export function readRegistry(dirs: { servicesDir: string; providersDir: string }, now: () => Date = () => new Date()): RegistrySnapshot {
+export function readRegistry(
+  dirs: { servicesDir: string; providersDir: string },
+  now: () => Date = () => new Date(),
+  cache: RegistryCache = newRegistryCache()
+): RegistrySnapshot {
   const problems: RegistryProblem[] = []
-  const services = readDir(dirs.servicesDir, 'service', problems)
-  const providers = readDir(dirs.providersDir, 'provider', problems)
+  const memos = new Map<string, FileMemo>()
+  const s = readDir(dirs.servicesDir, 'service', problems, cache, memos)
+  const p = readDir(dirs.providersDir, 'provider', problems, cache, memos)
+  cache.files = memos // a file no longer listed is forgotten
+  const listing = `${s.listing}\n${p.listing}`
+  if (cache.snapshot && cache.listing === listing) return cache.snapshot
+  const services = s.candidates
+  const providers = p.candidates
 
-  const serviceIds = new Set(services.map((c) => c.entry.id))
-  const providerIds = new Set(providers.map((c) => c.entry.id))
+  // A file past the cap is not read, but the id its name claims still counts here: FAC-SEM-013 must not
+  // let a kept entry resolve while its twin in the other directory merely went unread.
+  const serviceIds = new Set([...services.map((c) => c.entry.id), ...s.unread.map((stem) => stem.split('.')[0])])
+  const providerIds = new Set([...providers.map((c) => c.entry.id), ...p.unread])
   const collided = new Set([...serviceIds].filter((id) => providerIds.has(id)))
   const kept: Candidate[] = []
   for (const c of [...services, ...providers]) {
@@ -376,11 +464,14 @@ export function readRegistry(dirs: { servicesDir: string; providersDir: string }
       for (const c of claimants)
         problems.push({ file: c.entry.file, key: c.entry.key, code: 'port-claimed', reason: `port ${port} is also claimed by ${claimants.filter((o) => o !== c).map((o) => o.entry.key).join(', ')} (FAC-SEM-010)` })
 
-  return {
+  const snapshot: RegistrySnapshot = {
     entries: kept.map((c) => c.entry).sort((a, b) => a.key.localeCompare(b.key)),
     problems,
     readAt: now().toISOString()
   }
+  cache.listing = listing
+  cache.snapshot = snapshot
+  return snapshot
 }
 
 /** The live registry: read on demand, optionally watched, resolved by `agentId`. */
@@ -390,6 +481,7 @@ export class AgentRegistry {
   private pollMs: number
   private current: RegistrySnapshot = { entries: [], problems: [], readAt: new Date(0).toISOString() }
   private lastProblemDigest = ''
+  private cache: RegistryCache = newRegistryCache()
 
   // Assigned in the body: Node's type-stripping loader rejects parameter properties.
   constructor(opts: { servicesDir: string; providersDir: string; debounceMs?: number; pollMs?: number }) {
@@ -398,9 +490,14 @@ export class AgentRegistry {
     this.pollMs = opts.pollMs ?? 30_000
   }
 
-  /** Read the disk now. Cheap (a few small files), so the consent path calls it before resolving. */
+  /**
+   * Bring the registry up to date with the disk. Gated (CO-205): only a file whose signature changed is
+   * opened and parsed, and an unchanged registry returns the same snapshot — so the consent path can call
+   * it before every resolve. At most MAX_ENTRIES_PER_DIR files per directory are ever read.
+   */
   refresh(): RegistrySnapshot {
-    const snap = readRegistry(this.dirs)
+    const snap = readRegistry(this.dirs, () => new Date(), this.cache)
+    if (snap === this.current) return snap
     this.current = snap
     // Problems are logged when they CHANGE, not on every read: a malformed file read on every
     // request would bury the log in one line, and the line that matters is the first one.
@@ -423,6 +520,11 @@ export class AgentRegistry {
 
   snapshot(): RegistrySnapshot {
     return this.current
+  }
+
+  /** Files opened and parsed by this registry so far (CO-205's measurement). */
+  filesRead(): number {
+    return this.cache.filesRead
   }
 
   /**

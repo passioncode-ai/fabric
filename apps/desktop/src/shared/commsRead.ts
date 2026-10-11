@@ -1,13 +1,13 @@
-// #region comms-screen — docs: docs/ux/screens.md#scr-77-project-comms
+// #region comms-screen — docs: docs/ux/screens.md#scr-81-project-comms
 /**
- * The operator's read onto the project board (SCR-77, SCN-137; ADR-0117 D3 sanctions the
+ * The operator's read onto the project board (SCR-81, SCN-143; ADR-0117 D3 sanctions the
  * LOCAL operator's read): the shapes `board_threads_operator` and `board_list_operator`
- * (migration 80, `supabase/migrations/20261011000084_project_board_operator_read.sql`)
+ * (Migration 83, `supabase/migrations/20261011000094_project_board_operator_read.sql`)
  * answer with, carried from the main process to the Comms screen unchanged.
  *
  * One rule the whole path holds: an unread board is `unavailable`, NEVER an empty list —
  * an empty page is a true answer the board gave, a board that did not answer is not
- * (SCN-137 Alt paths). That is why every reply is a union and not an array with a
+ * (SCN-143 Alt paths). That is why every reply is a union and not an array with a
  * problem field beside it.
  */
 
@@ -34,7 +34,7 @@ export interface CommsPrincipal {
   provenance?: 'trusted' | 'asserted' | string
 }
 
-/** A request's lifecycle as TWO separate facts, the way the contract keeps them (SCN-137
+/** A request's lifecycle as TWO separate facts, the way the contract keeps them (SCN-143
  *  step 3): state and effect are never merged into one word. */
 export interface CommsRequest {
   id: string

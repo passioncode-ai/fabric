@@ -12,7 +12,7 @@
 
 import type { StringKey } from '../renderer/src/i18n/en.ts'
 import type { AccessActRefusal } from './accessActs.ts'
-import type { AgentFacts, AskLine, CapabilityRef, ConnectProblem, ResourceRef } from './access.ts'
+import type { AgentFacts, AskLine, CapabilityRef, ConnectProblem, EnrollFacts, FolderHow, ResourceRef } from './access.ts'
 
 export type Say = (key: StringKey, vars?: Record<string, string | number>) => string
 
@@ -33,6 +33,9 @@ export function sayList(t: Say, items: string[]): string {
 }
 
 export function sayAsk(t: Say, line: AskLine): string {
+  // #region enroll-words — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+  if (line.kind === 'enroll') return line.project.name ? t('access.ask.enroll', { project: line.project.name }) : t('access.ask.enrollThis')
+  // #endregion enroll-words
   const resource = sayResource(t, line.resource)
   if (line.kind === 'inside') return t('access.ask.inside', { verbs: sayList(t, line.capabilities.map((c) => sayCapability(t, c))), resource })
   if (line.kind === 'setup-extra') return t('access.ask.setupExtra', { resource, verb: sayCapability(t, line.capability) })
@@ -42,8 +45,24 @@ export function sayAsk(t: Say, line: AskLine): string {
 /** The agent's name as shown: the registry's, or its id — never both when there is no name (UX-11). */
 export const shownName = (agent: AgentFacts): string => agent.name ?? agent.agentId
 
-/** "An agent registered as <id> (installed by …; source …)". */
+/**
+ * A grant in "Agents with access": a product grant as its ask line; an enrollment as "works in <project>". Main
+ * builds a grant's line from the grant alone, so the project is named through `nameOf` — the project list the
+ * screen read: a name, `null` when the list was read and the project is not in it, `undefined` when it was not read.
+ */
+export function sayGrant(t: Say, line: AskLine, nameOf?: (projectId: string) => string | null | undefined): string {
+  // #region enroll-words — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+  if (line.kind !== 'enroll') return sayAsk(t, line)
+  const name = line.project.name ?? nameOf?.(line.project.id)
+  if (name) return t('access.grant.enroll', { project: name })
+  return t(name === null ? 'access.grant.enrollGone' : 'access.grant.enrollUnread')
+  // #endregion enroll-words
+}
+
+/** "An agent registered as <id> (installed by …; source …)" — or, for a coding agent of the runner catalogue
+ *  (ADR-0134), "A coding agent: <name>": its registry id and Fabric's own installed-by words are not its origin. */
 export function sayOrigin(t: Say, agent: AgentFacts): string {
+  if (agent.codingAgent) return t('access.origin.coding', { name: shownName(agent) })
   const id = agent.agentId
   if (agent.installedBy && agent.repository) return t('access.origin.both', { id, by: agent.installedBy, repo: agent.repository })
   if (agent.installedBy) return t('access.origin.by', { id, by: agent.installedBy })
@@ -51,23 +70,77 @@ export function sayOrigin(t: Say, agent: AgentFacts): string {
   return t('access.origin.plain', { id })
 }
 
-/** The same-user floor (ADR-0115 §2), said wherever the operator can answer a request. */
-export const sayFloor = (t: Say): string => t('access.floor')
+/** The same-user floor (ADR-0115 §2), said wherever the operator can answer a request. For an enrollment it is
+ *  said of the name the agent asked under: no registry entry was checked, so nothing is claimed about one. */
+export const sayFloor = (t: Say, x?: { agent: AgentFacts; enroll?: EnrollFacts }): string =>
+  x?.enroll ? t('access.enroll.floor', { name: shownName(x.agent) }) : t('access.floor')
 export const sayIncremental = (t: Say): string => t('access.incremental')
 
-/** The queue row's title: "<name> asks to use <product>". */
-export const sayQueueTitle = (t: Say, x: { agent: AgentFacts; product: string }): string =>
-  t('access.queue.title', { name: shownName(x.agent), product: x.product })
+/** The queue row's title: "<name> asks to use <product>", or for an enrollment (ADR-0134) "<name> asks to work in <project>". */
+export const sayQueueTitle = (t: Say, x: { agent: AgentFacts; product: string; enroll?: { projectName: string } }): string =>
+  x.enroll
+    ? t('access.queue.enrollTitle', { name: shownName(x.agent), project: x.enroll.projectName || t('access.enroll.thisProject') })
+    : t('access.queue.title', { name: shownName(x.agent), product: x.product })
+
+/**
+ * What the operator decided, named (CO-207): "You allowed X to use Y", "You denied X access to Y" — or, for a
+ * coding agent's enrollment (ADR-0134), "You let X work in P". The queue row and SCR-76 say the same sentence.
+ */
+export function sayDecided(t: Say, x: { agent: AgentFacts; product: string; enroll?: { projectName: string } }, decision: 'allowed' | 'denied'): string {
+  const name = shownName(x.agent)
+  if (x.enroll) {
+    const project = x.enroll.projectName || t('access.enroll.thisProject')
+    return t(decision === 'allowed' ? 'access.queue.enrolled' : 'access.queue.enrollDenied', { name, project })
+  }
+  return t(decision === 'allowed' ? 'access.queue.allowed' : 'access.queue.denied', { name, product: x.product })
+}
+
+/** Whether Allow also opens the product's connect flow. Never for an enrollment: Fabric itself is not connected. */
+const opensConnect = (x: { connected: boolean; enroll?: EnrollFacts }): boolean => !x.connected && !x.enroll
 
 /** The Allow button: plain, or "Allow and connect <product>" when Allow also opens the product (UX-4). */
-export const sayAllow = (t: Say, x: { connected: boolean; product: string }): string =>
-  x.connected ? t('access.allow') : t('access.allowConnect', { product: x.product })
+export const sayAllow = (t: Say, x: { connected: boolean; product: string; enroll?: EnrollFacts }): string =>
+  opensConnect(x) ? t('access.allowConnect', { product: x.product }) : t('access.allow')
 
 /** The Allow button's accessible name: its visible words, then whose request it answers — "label in name",
  *  so a screen reader hears that Allow also connects the product and voice control can say what it reads
  *  (verification iteration 2 for 0.3.1, UX-8). */
-export const sayAllowFor = (t: Say, x: { connected: boolean; product: string }, name: string): string =>
-  x.connected ? t('access.allowFor', { name }) : t('access.allowConnectFor', { product: x.product, name })
+export const sayAllowFor = (t: Say, x: { connected: boolean; product: string; enroll?: EnrollFacts }, name: string): string =>
+  opensConnect(x) ? t('access.allowConnectFor', { product: x.product, name }) : t('access.allowFor', { name })
+
+// #region enroll-words — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+const FOLDER_KEY: Record<FolderHow, 'access.enroll.folder' | 'access.enroll.folderInside' | 'access.enroll.folderWorktree'> = {
+  exact: 'access.enroll.folder', ancestor: 'access.enroll.folderInside', worktree: 'access.enroll.folderWorktree'
+}
+/** Fabric's own line about where the agent works: the folder it resolved the project by (never the agent's words). */
+export const sayFolder = (t: Say, folder: NonNullable<EnrollFacts['folder']>): string => t(FOLDER_KEY[folder.how ?? 'exact'], { root: folder.root })
+const projectOf = (t: Say, enroll: EnrollFacts): string => enroll.projectName || t('access.enroll.thisProject')
+// #endregion enroll-words
+
+/**
+ * A waiting request in words, for the two screens that answer it beside the native prompt — the card in Settings →
+ * Agent access (SCR-76) and the row in the attention queue — so both say the prompt's facts, in the same order:
+ * who asks, where (an enrollment's folder, Fabric's own line), what, what it gets, the agent's reason as its claim,
+ * the same-user floor, then what the answer does and how long it lasts.
+ */
+export function sayRequest(t: Say, x: { agent: AgentFacts; ask: AskLine[]; reason: string; incremental: boolean; enroll?: EnrollFacts }): {
+  origin: string; folder: string | null; asks: string[]; what: string | null; reason: string; floor: string; notes: string[]
+} {
+  const enroll = x.enroll
+  return {
+    origin: sayOrigin(t, x.agent),
+    folder: enroll?.folder ? sayFolder(t, enroll.folder) : null,
+    asks: enroll && x.ask.length === 0 ? [t('access.ask.enrollThis')] : x.ask.map((l) => sayAsk(t, l)),
+    what: enroll ? t('access.enroll.what', { project: projectOf(t, enroll) }) : null,
+    reason: t('access.pending.reason', { reason: x.reason }),
+    floor: sayFloor(t, x),
+    notes: [
+      ...(x.incremental ? [sayIncremental(t)] : []),
+      enroll ? t('access.enroll.revoke', { name: shownName(x.agent), project: projectOf(t, enroll) }) : t('access.lasts'),
+      t('access.denyStands')
+    ]
+  }
+}
 
 export function sayActRefusal(t: Say, code: AccessActRefusal): string {
   return t(`access.refused.${code}` as StringKey)
@@ -99,8 +172,38 @@ export function consentPrompt(t: Say, input: {
   reason: string
   connected: boolean
   incremental: boolean
+  enroll?: EnrollFacts
 }): { title: string; message: string; statement: string; detail: string; buttons: [string, string]; defaultId: 0; cancelId: 0 } {
   const name = shownName(input.agent)
+  // ADR-0134: a coding agent asks to work in a project — not a product, not a mailbox.
+  // #region enroll-words — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+  // Who asks and the folder are Fabric's own lines, apart from the agent's quoted reason; the floor is said of the
+  // name it asked under; how long it lasts is said; Deny stays the default and the cancel answer.
+  if (input.enroll) {
+    const project = projectOf(t, input.enroll)
+    const said = sayRequest(t, input)
+    return {
+      title: t('access.enroll.title', { name, project }),
+      message: t('access.enroll.title', { name, project }),
+      statement: t('access.enroll.message', { name, project }),
+      detail: [
+        said.origin,
+        ...(said.folder ? [said.folder] : []),
+        said.what as string,
+        '',
+        t('access.prompt.reasonLead'),
+        t('access.prompt.quoted', { reason: input.reason }),
+        '',
+        said.floor,
+        '',
+        ...said.notes
+      ].join('\n'),
+      buttons: [t('access.deny'), t('access.allow')],
+      defaultId: 0,
+      cancelId: 0
+    }
+  }
+  // #endregion enroll-words
   const product = input.product
   const detail = [
     t('access.prompt.asks', { origin: sayOrigin(t, input.agent) }),

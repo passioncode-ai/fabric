@@ -6,12 +6,17 @@ This vision governs Fabric, the CEO AI agent in development, within the PassionC
 toolkit ([ADR-0070](../adr/0070-passioncode-toolkit-and-product-design-system.md)).
 Switchboard is a separate enabling tool: account management is not presented as delivery
 of the Project operating loop. The anti-vision and alignment test below remain binding
-on Fabric capabilities. This narrative iteration adds no new runtime capability.
+on Fabric capabilities. This narrative iteration adds no new runtime capability. Amended
+2026-10-11 by ADR-0133 (§1, §3, §7): the agent factory and the harness every coding agent reaches.
 
 ## 1. Essence
 
 Fabric is being developed for AI-native teams, to change how builders direct their work:
 from managing agents one by one to operating durable Projects and the teams around them.
+It is where those builders create their agents, compose them into workflows and refine and fix
+them — each agent built as a Project of its own — and it is the harness every coding agent
+reaches, whether Fabric launched it, the person opened it in a terminal, or another
+PassionCode.ai product's console hosts it ([ADR-0133](../adr/0133-agents-are-created-composed-and-fixed-in-fabric-and-fabric-is-the-harness-every-coding-agent-reaches.md)).
 
 ## 2. Core idea
 
@@ -25,7 +30,11 @@ It observes what a Project owns and what is happening; turns signals into accoun
 work; routes that work through people, agents and deterministic processes; keeps authority
 visible; verifies outcomes independently; preserves Evidence and learning; and schedules
 the next observation. It lets the implementation of an Agent change without discarding
-the Project's operating model or history.
+the Project's operating model or history. It gives every coding agent that works in a
+Project the same harness — the Project's context, its tasks, its board and memory, and the
+rules of the session — and records the work, so it always knows where what is being done and
+can coordinate the agents or ask the person what it needs. It hands setup, updates and fixes to
+the person's coding agent with the right context, and shows what it observes as the result.
 
 ## 4. The user's role
 
@@ -66,7 +75,10 @@ Within two to three years, a Project should be able to enter Fabric at any stage
 an idea, a repository, a running service or a cross-project function — and progressively
 make its team, operating loops, evidence and boundaries explicit. People should be able to
 change Agents and providers, collaborate across organisations and improve automation
-without rebuilding how the Project is governed.
+without rebuilding how the Project is governed. An agent built in Fabric should be able to
+grow from a first question in the person's coding agent to an admitted, scheduled member of
+a workflow, refined from its own runs — and any coding agent, wherever it was opened, should
+find its Project and log its work there without a setup of its own.
 
 ## 8. The one sentence
 

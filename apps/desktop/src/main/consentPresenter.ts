@@ -15,7 +15,8 @@
 // ONE PROMPT AT A TIME. Requests that arrive while one is open wait their turn, and a request that
 // expired or was answered elsewhere (the queue, the settings list) is skipped rather than shown.
 
-import { pendingFacts } from '../shared/access.ts'
+import { homedir } from 'node:os'
+import { FABRIC_SELF, pendingFacts } from '../shared/access.ts'
 import type { ConnectProblem } from '../shared/access.ts'
 import type { AccessActRefusal } from '../shared/accessActs.ts'
 import { consentPrompt, sayActRefusal, sayConnectDetail, sayConnectProblem, type Say } from '../shared/accessWords.ts'
@@ -48,6 +49,9 @@ export interface ConsentPresenterDeps {
   say?: () => Say
   /** Is the request still waiting? The queue and the settings list can answer it first. */
   stillPending: (requestId: string) => Promise<boolean>
+  /** Is the product connected NOW (A6-036)? Read when the prompt is made and again before an Allow connects;
+   *  absent, the reading the request arrived with is used. A read that fails throws. */
+  connected?: (product: string) => Promise<boolean>
   /** Told after every decision, so the screens re-read. */
   changed?: () => void
   now?: () => number
@@ -112,9 +116,29 @@ export class ConsentPresenter {
     void this.next()
   }
 
-  private facts(request: ConsentRequest) {
-    return pendingFacts(request.row, request.connected)
+  private facts(request: ConsentRequest, connected = request.connected) {
+    // The home folder lets the prompt shorten an enrollment's folder to ~/… (accessWords).
+    return pendingFacts(request.row, connected, homedir())
   }
+
+  // #region hub-consent-live-connection — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#2-an-agent-is-admitted-by-device-style-consent-not-by-a-pasted-key
+  /**
+   * Whether the callee is connected at THIS moment (A6-036): a request can wait in the queue for ten minutes,
+   * and the reading it arrived with may be stale by the time its prompt is made or its Allow connects. Fabric
+   * itself (an enrollment, ADR-0134) is not a product and is not read. A failed read keeps `fallback`: the
+   * connect flow refuses while a connection lives unless the operator chose Reconnect, so neither reading
+   * can replace a live key.
+   */
+  private async liveConnected(request: ConsentRequest, fallback: boolean): Promise<boolean> {
+    if (request.row.callee === FABRIC_SELF || !this.deps.connected) return fallback
+    try {
+      return await this.deps.connected(request.row.callee)
+    } catch (e) {
+      ops.failed('hub.consent.connection-read', e, { request_id: request.row.id })
+      return fallback
+    }
+  }
+  // #endregion hub-consent-live-connection
 
   private async next(): Promise<void> {
     if (this.showing) return
@@ -137,19 +161,21 @@ export class ConsentPresenter {
         if (pending && Date.parse(request.row.expires_at) > (this.deps.now ?? Date.now)()) break
       }
       if (!request) return
-      // Authority and the parent may change while the read waits. Keep a live request queued
+      // Read before the parent is checked, so no await stands between that check and the sheet (A6-036).
+      const connected = await this.liveConnected(request, request.connected)
+      // Authority and the parent may change while the reads wait. Keep a live request queued
       // if the operator moved away; the next focus/resume event will retry its pending read.
       const parent = this.inFront()
       if (!parent) { this.queue.unshift(request); return }
       const say = this.say()
-      const facts = this.facts(request)
+      const facts = this.facts(request, connected)
       const text = consentPrompt(say, facts)
       const { response } = await this.deps.showMessageBox(parent, { type: 'question', title: text.title, message: text.message, detail: text.detail, buttons: text.buttons, defaultId: text.defaultId, cancelId: text.cancelId, noLink: true })
       const decision = response === 1 ? 'allowed' : 'denied'
       const done = await this.deps.decide(request.row.id, decision)
       if (!done.ok) {
         await this.deps.showMessageBox(parent, { type: 'warning', title: say('access.prompt.notRecordedTitle'), message: say('access.prompt.notRecorded'), detail: done.code ? sayActRefusal(say, done.code) : done.reason, buttons: [say('access.prompt.ok')], defaultId: 0, cancelId: 0, noLink: true })
-      } else if (decision === 'allowed' && !request.connected) {
+      } else if (decision === 'allowed' && !(await this.liveConnected(request, connected))) {
         const started = await this.deps.connect(request.row.callee)
         if (!started.ok) {
           // The Allow stands; the operator is told the product did not open, and where to connect it (UX-5).

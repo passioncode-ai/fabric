@@ -92,20 +92,27 @@ build signed anywhere but the `release` environment is a debug build that is nev
 3. **`preflight`** runs without secrets: `node scripts/release-mac.mjs --check-only --tag vX.Y.Z` refuses
    unless the commit is on `origin/main` (its tip, or a tag on main that main has moved past — ancestry,
    not equality), the tag names the version the commit carries, and the release gate is clear.
-4. **Approval.** The `macos` job waits for the `release` environment. A member of `release-approvers` —
-   whoever pushed the tag included ([ADR-0113](../adr/0113-any-release-approver-may-approve-the-tag-pusher-included.md))
-   — opens the run and approves ("Review deployments"); admins cannot bypass. An agent never approves.
+4. **Approval by checks** ([ADR-0145](../adr/0145-fabric-releases-are-approved-by-checks-and-pushing-the-tag-is-the-decision.md)).
+   The `guard` job (`passioncode-ai/.github/actions/release-guard@v1`) passes the tag only when `main` contains the
+   tagged commit and `ci.yml` passed on that commit — with no run it starts one on the tag and waits; otherwise it
+   refuses with the reason and the run's link. `macos` and `publish` need it; the `release` environment has no
+   reviewers and admins cannot bypass it. Pushing the tag (step 2) is the release decision: only team
+   `release-approvers` may push a `v*` tag (ruleset `release-tags`).
 5. **`macos`** builds on `macos-latest`: `passioncode-ai/.github/actions/apple-signing@v1` makes a throwaway
    keychain with the CI Developer ID and names it; `release-mac.mjs --tag vX.Y.Z` gets that identity in
    `FABRIC_SIGN_IDENTITY` and the keychain in `CSC_KEYCHAIN`, and the App Store Connect key as the
    secrets `ASC_*` (written to a mode-600 temporary file, never printed or put in argv). electron-builder
    signs the app, notarizes and staples it, and builds and signs the DMG; the script notarizes and staples
-   the DMG. It fails unless `codesign --verify --deep --strict` passes on the app and the signer read back
+   the DMG. It fails unless the app's Electron fuses, read back from the built binary, are the ones
+   `apps/desktop/electron-builder.yml` declares (`scripts/lib/release-mac.mjs#RELEASE_FUSES`: run-as-Node on for
+   the helpers; `NODE_OPTIONS`, `--inspect` and loading an app from outside the asar off; asar integrity on), the
+   app's own `bin/fabric-mcp` answers as an MCP server (the check of step 7, made on the built bundle before its
+   signature is verified), `codesign --verify --deep --strict` passes on the app and the signer read back
    from it is a Developer ID Application with the hardened runtime, Gatekeeper accepts the app and the DMG,
    and the stapled tickets of both validate. The DMG and its receipt `fabric-X.Y.Z-mac.json` (size,
    SHA-256, notarization id, signer, team, the checks, the CI run) are uploaded as `release-macos`; the
    keychain is deleted on every path.
-6. **`publish`** waits for a second approval (it holds the GPG key), then attests every file (Sigstore),
+6. **`publish`** (it holds the GPG key) runs once `macos` has passed, then attests every file (Sigstore),
    writes `SHA256SUMS` and `SHA256SUMS.asc`, and publishes the release **in this repository**, marked a
    prerelease while Fabric is an early preview (`prerelease: "true"`, ADR-0111 §1):
    `https://github.com/passioncode-ai/fabric/releases/tag/vX.Y.Z`. Verify a download with
@@ -115,7 +122,26 @@ build signed anywhere but the `release` environment is a debug build that is nev
    fails ("verifying with issuer sigstore.dev"; the shared workflow's own note, measured 2026-10-03).
 7. Smoke the published DMG on this Mac: install it, then `FABRIC_APP_EXECUTABLE=/Applications/Fabric.app/Contents/MacOS/Fabric
    FABRIC_PLAYWRIGHT_MODULE=<playwright> node apps/desktop/test/chat-activation-native.test.mjs` — the packaged
-   app starts from its own stack, the window is named Fabric, the chat saves and survives a cold restart. A release
+   app starts from its own stack, the window is named Fabric, the chat saves and survives a cold restart. The probe
+   starts the binary with `--remote-debugging-port=0` and drives the window over `chromium.connectOverCDP`
+   (`apps/desktop/test/helpers/app-launch.mjs`): Playwright's `_electron.launch` waits for `--inspect`, which the
+   fused binary ignores (`enableNodeCliInspectArguments: false`), so it can no longer start a release build.
+   **The helpers and the MCP entry, from the bundle.** The fuses decide whether the binary still runs as Node on an
+   entry inside `app.asar`, so this is checked on the artifact, never on the sources:
+   - `node scripts/smoke-platform.mjs --exe /Applications/Fabric.app/Contents/MacOS/Fabric --mcp-only` runs the
+     install's `Contents/Resources/bin/fabric-mcp --runner claude-code` (ADR-0134) with a throwaway home, so no hub is
+     found, sends `initialize` and `tools/list`, and passes only when it answers with server `fabric` and exactly its
+     waiting tool `fabric_whoami`, prints nothing on stdout but JSON-RPC, and exits 0 when its stdin ends
+     (`scripts/lib/smoke-platform.mjs#packagedMcpCheck`). `--mcp-only` starts nothing else, so the Mac's live stack is
+     not touched. The same check runs in step 5 (`scripts/release-mac.mjs` refuses the build) and, with `--mcp`, after
+     the SMOKE start of the Windows and Linux installs (`.github/workflows/release.yml`, `platforms.yml`), where its
+     verdict lands in the receipt as `checks['fabric-mcp']`.
+   - `FABRIC_APP_EXECUTABLE=… node --test apps/desktop/test/packaged-helpers.test.mjs` runs the same check, then the
+     stdio MCP bridge (`app.asar/out/main/mcp-bridge.js`) against a bearer-checking fixture surface and the ACP shell
+     (`acp-shell.js`) against a fixture agent, including its reaper (`<binary> -e`, Node mode), which must end the
+     agent when the shell is SIGKILLed. No stack, window or hub is involved.
+
+   A release
    whose verification ledger names more release-close checks lists them in its own *Release close* section (0.3.3:
    the first-run boot on the operator's database, CO-228; the roadmap PR before the tag, CO-196).
 8. Take the site's screenshots from the packaged app on a **fresh English demo estate** —
@@ -135,6 +161,18 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `vX.Y.Z/Fabric-X.Y.Z-universal.dmg`. Download the asset anonymously and check its SHA-256 and
    `spctl -a -t open --context context:primary-signature` before pointing anything at it. This repository does not
    write to the website.
+10. **Publish and pin the workspace from the release commit.** After the tag, from a clean `main`:
+    `node scripts/workspace.mjs publish`, then `node scripts/workspace.mjs check --require-child`; record the
+    source commit, the workspace digest and the parent pin together in the release's verification ledger
+    ([publication contract](../architecture/report-workspace.md)). A hosted identity readback is a separate
+    acceptance. Done for 0.3.4: `check --require-child` PASS at source `22807eb7`, workspace `d132bb1f`
+    (0.3.4 ledger, *Release close — state on 2026-10-10*). This step was CO-197's recurring item until 2026-10-11.
+11. **Keep the knowledge base current.** In `fabric-workspace` (`workspace/knowledge/`): Fabric's row and the
+    released column of the roadmap, `products.md` and `plans.md`, and every RM track the release served — by a
+    fabric-workspace pull request merged **before the tag** when the roadmap names the release as coming, and
+    after publication for the released column. A dated checkpoint in those pages stays as it is. Done for
+    0.3.4: fabric-workspace PR #92 (`8639492c`) before the tag, the pages after publication (0.3.4 ledger
+    *Release close* item 5). This step was CO-196's recurring item until 2026-10-11.
 
 ### Rehearsal
 
@@ -193,6 +231,19 @@ has run. It is the same procedure from either: `supabase migration up` applies e
 order, so a 0.3.0 database goes **75 → 79 in one step** (migrations 76, 77, the file with suffix 80, then 81 —
 the order a fresh install applies them), with no 0.3.1 in between. Once a database is at 79 only 0.3.2 or later
 opens it. Read your schema first (step 2) and use that number wherever `FROM` appears below.
+
+**0.4.0 (in development) admits schema 82** — three migrations past 0.3.4's 79, applied in order:
+`20261011000082_write_rules_at_the_door.sql` moves the hub's write rules out of replay (CO-201) and registers the
+refusal summary (CO-200); `20261011000090_session_enrollment.sql` registers `session.enrolled@1`, the event of a coding
+agent opened outside Fabric joining a project (ADR-0134); `20261011000091_grants_from_the_journal.sql` projects the hub's
+grants from the journal. `schema_version()` counts applied migrations, so 79 + 3 = **82**, whatever the suffixes say. The
+procedure is the same with 82 in place of 79. A
+database at 79 upgrades in order (82 sorts after 81), which `scripts/check-migration-order.mjs` holds for every
+later migration (CO-199): no new filename may sort below the newest one recorded in `supabase/migration-ledger.json`.
+At start, 0.4.0 also retires the old seed's second owner `…0002` from a database the 0.3.4 repair gave the local
+operator — a revoke through the membership door (`desktop-bootstrap:seed-retire`, compare-and-set at the revision read),
+never a delete, and only while that membership is still the seed's own and its person has no sign-in — and the
+profile's "Running for N days" counts from the repair, not from the failed install (CO-242, `seedRepair.ts#retireSeedOwner`).
 
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath

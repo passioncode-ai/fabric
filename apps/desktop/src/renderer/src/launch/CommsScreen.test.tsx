@@ -1,4 +1,4 @@
-// SCR-77 / SCN-137 — the Comms screen against a stubbed bridge.
+// SCR-81 / SCN-143 — the Comms screen against a stubbed bridge.
 //
 // The acceptance the scenario sets, held against the render: threads listed by subject
 // with participant projects BY NAME; an empty estate is said in words (an empty list is

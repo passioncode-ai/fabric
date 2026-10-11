@@ -10,6 +10,7 @@ import { randomUUID } from 'node:crypto'
 import { checkAuthorityTarget } from '../shared/authorityIngress.ts'
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
+import { stat } from 'node:fs/promises'
 import path from 'node:path'
 import type { Journal } from '@fabric/journal'
 import type { LaunchOption, SessionState, TerminalSession } from '../shared/types'
@@ -18,8 +19,11 @@ import { sessionEnvironment } from './sessionEnv.ts'
 import { DeliveryQueue, type DeliveryQueueTiming, type DeliveryWriteOptions, type DeliveryWriteResult } from './deliveryQueue.ts'
 import { LaunchRefusedBeforeSpawn, PtyLaunchFailure } from './launchFailure.ts'
 import { ops } from './opsSink.ts'
+import { causeOf } from '../shared/opsLog.ts'
 import { createBoundedScrollback, type BoundedScrollback } from './scrollback.ts'
 import { createProcessBoundary, type OwnedProcess } from './processBoundary.ts'
+import { defaultShell, launchFor, processTreeStopInvocation } from './platform.ts'
+import { findOnPath } from './executorDetect.ts'
 
 /** How a fallback walk chose the runner a session runs (ADR-0125): the basis is the installation's
  *  order, never a contract route revision (DEC-0029); `passed_over` is every entry above the choice. */
@@ -94,6 +98,21 @@ export class LaunchAuthorityChanged extends LaunchRefusedBeforeSpawn {
   }
 }
 
+// #region launch-place-missing — docs: docs/ux/scenarios.md#scn-025-work-in-a-projects-hosted-terminal
+/** The launch's folder is not there (audit A2-008). No runner can start in it, so this is not a spawn failure of
+ *  one runner: a fallback walk stops here instead of passing over every runner in turn (ADR-0125 §4). */
+export class LaunchPlaceMissing extends Error {
+  readonly cwd: string
+  constructor(cwd: string) {
+    super(`Nothing was started: the folder ${cwd} does not exist or is not a folder. If the repository moved, point the project at its new folder.`)
+    this.name = 'LaunchPlaceMissing'
+    this.cwd = cwd
+  }
+}
+
+const isFolder = (p: string): Promise<boolean> => stat(p).then((s) => s.isDirectory(), () => false)
+// #endregion launch-place-missing
+
 /** A spawn failure the operator can act on: it names what was run and where. */
 export class SpawnFailure extends Error {
   readonly program: string
@@ -163,34 +182,73 @@ export interface PtyEvents {
   onExit(sessionId: string, exitCode: number): void | Promise<void>
 }
 
-function binaryExists(bin: string): boolean {
-  try {
-    // execFile without a shell: no argument concatenation, no injection surface.
-    execFileSync('/usr/bin/env', ['which', bin], { encoding: 'utf8', timeout: 5000 })
-    return true
-  } catch (e) {
-      ops.failed('pty.signal', e)
-    return false
+/** What node-pty starts (0.3.5, REQ-08, REQ-09). On Windows ConPTY's CreateProcess needs a file, not a bare name,
+ *  and cannot start npm's .cmd shims: the name is resolved on PATH in PATHEXT order (the same asynchronous walk the
+ *  launch menu uses, A6-009) and a .cmd runs through cmd.exe. Elsewhere the program and its arguments pass unchanged. */
+async function programForPty(program: string, args: string[]): Promise<{ file: string; args: string[] }> {
+  if (process.platform !== 'win32') return { file: program, args }
+  // Not on PATH: the spawn below fails with node-pty's own error, which the launch reports.
+  const file = /[\\/]/.test(program) ? program : ((await runners.locate(program)) ?? program)
+  return launchFor(file, args, 'win32')
+}
+
+// #region runner-availability — docs: docs/ux/scenarios.md#scn-025-work-in-a-projects-hosted-terminal
+/** How long one reading of where a runner's program is stays good. Audit 2026-10-05 A6-009/A7-011: every
+ *  `terminal.options` call and every launch ran a synchronous `which` per runner (up to 5 s each) on Electron's
+ *  main thread, freezing every window and the quit timers. The reading is now asynchronous and bounded
+ *  (`executorDetect.ts#findOnPath`), shared while it is in flight, and reused for this long on the same PATH; a
+ *  program installed meanwhile shows on the next reading. */
+export const AVAILABILITY_TTL_MS = 30_000
+
+export interface RunnerAvailability {
+  /** Where `program` is on the current PATH, or null when it is not there. */
+  locate(program: string): Promise<string | null>
+}
+
+export function createRunnerAvailability(opts: {
+  find?: (program: string, envPath: string) => Promise<string | null>
+  envPath?: () => string
+  now?: () => number
+  ttlMs?: number
+} = {}): RunnerAvailability {
+  const find = opts.find ?? ((program, envPath) => findOnPath(program, envPath))
+  const envPath = opts.envPath ?? ((): string => process.env.PATH ?? '')
+  const now = opts.now ?? Date.now
+  const ttl = opts.ttlMs ?? AVAILABILITY_TTL_MS
+  const readings = new Map<string, { path: string; at: number; answer: Promise<string | null> }>()
+  return {
+    locate(program) {
+      const path = envPath()
+      const held = readings.get(program)
+      if (held && held.path === path && now() - held.at < ttl) return held.answer
+      const answer = find(program, path).then(
+        (file) => {
+          // Absence is a measurement, not a failure: recorded once per reading, at info.
+          if (!file) ops.record({ op: 'pty.runner-absent', outcome: 'ok', level: 'info', detail: { program }, ctx: { correlationId: ops.correlate() } })
+          return file
+        },
+        (e: unknown) => {
+          // A probe that threw is not a reading: the next ask measures again.
+          readings.delete(program)
+          ops.failed('pty.runner-probe', e, { program })
+          return null
+        }
+      )
+      readings.set(program, { path, at: now(), answer })
+      return answer
+    }
   }
 }
 
-/** The launch menu. In slice 3 this is generated from admitted provider
- *  bindings; today it is the two things a terminal can hold. */
-/**
- * The launchable agents, from the registry plus what this machine actually has.
- *
- * The descriptors are static (`shared/agents.ts`); AVAILABILITY is measured
- * here, because whether `claude` is on the PATH is a fact about the machine and
- * not about the agent. Adding a third agent is one descriptor and no edit to
- * this function.
- */
-export function launchOptions(): LaunchOption[] {
-  return AGENTS.map((agent) => ({
+const runners = createRunnerAvailability()
+
+function optionOf(agent: (typeof AGENTS)[number], available: boolean): LaunchOption {
+  return {
     id: agent.id,
     label: agent.label,
     program: agent.program,
     description: agent.description,
-    available: agent.program === null || binaryExists(agent.program),
+    available,
     connectsToSurface: agent.connectsToSurface,
     permissionModes: agent.permissionModes.map((mode) => ({
       id: mode.id,
@@ -202,8 +260,30 @@ export function launchOptions(): LaunchOption[] {
       warnKey: mode.warnKey ?? null
     })),
     defaultMode: agent.defaultMode
-  }))
+  }
 }
+
+const isAvailable = async (agent: (typeof AGENTS)[number], availability: RunnerAvailability): Promise<boolean> =>
+  agent.program === null || (await availability.locate(agent.program)) !== null
+
+/**
+ * The launchable agents, from the registry plus what this machine actually has.
+ *
+ * The descriptors are static (`shared/agents.ts`); AVAILABILITY is measured
+ * here, because whether `claude` is on the PATH is a fact about the machine and
+ * not about the agent. Adding a third agent is one descriptor and no edit to
+ * this function.
+ */
+export async function launchOptions(availability: RunnerAvailability = runners): Promise<LaunchOption[]> {
+  return Promise.all(AGENTS.map(async (agent) => optionOf(agent, await isAvailable(agent, availability))))
+}
+
+/** One runner's option, measuring only that runner's program — a launch asks about the agent it starts. */
+export async function launchOption(id: string, availability: RunnerAvailability = runners): Promise<LaunchOption | null> {
+  const agent = AGENTS.find((a) => a.id === id)
+  return agent ? optionOf(agent, await isAvailable(agent, availability)) : null
+}
+// #endregion runner-availability
 
 export class PtyManager {
   private sessions = new Map<string, LiveSession>()
@@ -336,7 +416,7 @@ export class PtyManager {
     for (const ref of [cwd, optionId, runnerId])
       if (typeof ref !== 'string' || !ref.trim() || !checkAuthorityTarget(ref).ok)
         throw new Error('Launch reference was refused before preparation.')
-    const option = launchOptions().find((o) => o.id === runnerId)
+    const option = await launchOption(runnerId)
     if (!option) throw new Error(`unknown launch option: ${runnerId}`)
     if (!option.available) throw new RunnerUnavailable(`${option.label} is not available on this machine`)
     // The mode is checked HERE, where the session is actually created, and not
@@ -349,9 +429,12 @@ export class PtyManager {
     // The mode the runner RECEIVES: a runner without modes receives none, whatever was asked for
     // (ADR-0125 §6 — the journal recorded "ask" for Codex, which has no gate, the A6-006 class).
     const mode = descriptor && descriptor.permissionModes.length > 0 ? (permissionMode ?? descriptor.defaultMode) : null
-    const program = option.program ?? process.env.SHELL ?? '/bin/zsh'
+    const program = option.program ?? defaultShell(process.platform, process.env)
     if (!checkAuthorityTarget(program).ok)
       throw new Error('Launch program was refused before preparation.')
+    // Audit 2026-10-05 A2-008: a project whose repository was moved or deleted still launched — the program
+    // started in a folder that is not there. Asked before anything is minted (bundle, credential, journal).
+    if (!(await isFolder(cwd))) throw new LaunchPlaceMissing(cwd)
 
     // Only an agent gets the surface; a plain shell has nothing to say to it.
     // Awaited: the bundle now compiles a context pack, which reads the project's
@@ -387,7 +470,7 @@ export class PtyManager {
     const discardBundle = (): void => {
       if (!bundle) return
       try { this.bundles?.discard(sessionId) }
-      catch { ops.failed('pty.bundle-cleanup', new Error('session credential cleanup failed'), { sessionId }) }
+      catch (e) { ops.failed('pty.bundle-cleanup', new Error('session credential cleanup failed'), { sessionId, cause: causeOf(e) }) }
     }
     if (beforeSpawn) {
       let allowed: boolean
@@ -396,7 +479,8 @@ export class PtyManager {
     }
     let pty: IPty
     try {
-      pty = this.spawn(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args], {
+      const launch = await programForPty(bundle?.command?.program ?? program, bundle?.command ? bundle.command.args : [...(bundle?.args ?? []), ...verdict.args])
+      pty = this.spawn(launch.file, launch.args, {
         name: 'xterm-256color',
         cols: 120,
         rows: 32,
@@ -471,7 +555,7 @@ export class PtyManager {
           await Promise.all([this.ensureClosedReceipt(sessionId), consumer])
           session.exitFinalized = true
         }
-        catch { ops.failed('pty.exit-observer', new Error('session exit observer failed'), { sessionId }) }
+        catch (e) { ops.failed('pty.exit-observer', new Error('session exit observer failed'), { sessionId, cause: causeOf(e) }) }
         this.closing.get(sessionId)?.()
         this.closing.delete(sessionId)
       })
@@ -513,7 +597,7 @@ export class PtyManager {
       session.delivery.close('launch_failed')
       session.inputHalted = true
       try { if (bundle) this.bundles?.discard(sessionId) }
-      catch { ops.failed('pty.bundle-cleanup', new Error('session credential cleanup failed'), { sessionId }) }
+      catch (e) { ops.failed('pty.bundle-cleanup', new Error('session credential cleanup failed'), { sessionId, cause: causeOf(e) }) }
       try { if (session.running) pty.kill('SIGTERM') }
       catch { ops.failed('pty.launch-stop', new Error('session termination could not be requested'), { sessionId }) }
       throw new PtyLaunchFailure(sessionId)
@@ -627,6 +711,15 @@ export class PtyManager {
     const s = this.sessions.get(sessionId)
     if (!s) return
     if (s.process) { await this.processBoundary.signal(s.process, signal, stillAllowed); return }
+    // Windows has no process groups (PL-07): the session's tree is stopped from its root, and only while that root's
+    // exit has not been observed, so the pid is still the session's own (REQ-11).
+    if (process.platform === 'win32' && s.running && stillAllowed()) {
+      try {
+        const how = processTreeStopInvocation(s.pty.pid, signal)
+        execFileSync(how.file, how.args, { timeout: 5000, windowsHide: true, stdio: 'ignore' })
+        return
+      } catch (e) { ops.failed('pty.tree-stop', e) /* Falls back to the PTY's own kill below. */ }
+    }
     // We can still request that the owned PTY stop. Without its captured group
     // identity, observeProcess deliberately cannot prove whole-tree quiescence.
     if (s.running && stillAllowed()) s.pty.kill(signal)
@@ -643,8 +736,8 @@ export class PtyManager {
           projectId: s.projectId, payload: { session_id: sessionId, exit_code: s.exitCode, exit_signal: s.exitSignal, option_id: s.optionId } })
         s.closedRecorded = true
         return true
-      } catch {
-        ops.failed('pty.journal-terminal-closed-failed', new Error('Terminal exit receipt remains unavailable'), { sessionId })
+      } catch (e) {
+        ops.failed('pty.journal-terminal-closed-failed', new Error('Terminal exit receipt remains unavailable'), { sessionId, cause: causeOf(e) })
         return false
       } finally { s.closedPending = undefined }
     })()
@@ -658,8 +751,10 @@ export class PtyManager {
   }
 
   /**
-   * A03: quitting must not lose the closing events. Kills every live session and
-   * resolves once each one's terminal.closed@1 has been appended.
+   * A03: ending every session must not lose the closing events. Kills every live session and
+   * resolves once each one's terminal.closed@1 has been appended. NOT the quit path: quitting
+   * goes through `stopRuntime.shutdown()` (index.ts, the quit coordinator); this is the probes'
+   * teardown (delivery, transcript-live), audit A7-033.
    */
   async closeAll(): Promise<void> {
     const live = [...this.sessions.values()].filter((s) => s.running)
@@ -670,8 +765,8 @@ export class PtyManager {
           new Promise<void>((resolve) => {
             this.closing.set(s.sessionId, resolve)
             this.haltInput(s.sessionId, 'shutdown_requested')
-            void this.signalProcess(s.sessionId, 'SIGTERM').catch(() =>
-              ops.failed('pty.signal', new Error('Shutdown termination request failed'), { sessionId: s.sessionId }))
+            void this.signalProcess(s.sessionId, 'SIGTERM').catch((e: unknown) =>
+              ops.failed('pty.signal', new Error('Shutdown termination request failed'), { sessionId: s.sessionId, cause: causeOf(e) }))
             setTimeout(resolve, 3000) // never hang the quit on a stuck process
           })
       )

@@ -30,6 +30,9 @@ import { closeSync, constants as fsc, fstatSync, fsyncSync, lstatSync, mkdirSync
 import { randomBytes } from 'node:crypto'
 import path from 'node:path'
 import { ops } from './opsSink.ts'
+import { userInfo } from 'node:os'
+import { execFileSync } from 'node:child_process'
+import { protectedAclInvocation } from './platform.ts'
 
 export const HUB_PROTOCOL = 'fabric-hub/0.1'
 /** Chosen to sit apart from the ports agent services on this machine commonly take; `FABRIC_HUB_PORT` overrides. */
@@ -67,7 +70,8 @@ export function hubPaths(root: string): { hubFile: string; doorTokenFile: string
   return { hubFile: path.join(root, 'hub.json'), doorTokenFile: path.join(root, 'hub-door-token') }
 }
 
-function writeAtomic(file: string, contents: string): void {
+/** Write a secret file 0600 atomically (temporary file, fsync, rename; the owner-only ACL on Windows). */
+export function writeAtomic(file: string, contents: string): void {
   const tmp = `${file}.${process.pid}.${randomBytes(6).toString('hex')}.tmp`
   const fd = openSync(tmp, 'wx', 0o600)
   try {
@@ -79,6 +83,15 @@ function writeAtomic(file: string, contents: string): void {
   // The umask cannot widen a file created 0600, but a rename onto an existing file keeps the new
   // inode's mode — stated again so the property does not depend on how the file was first made.
   chmodSync(tmp, 0o600)
+  // Windows ignores modes: the token files get DEC-0033's protected ACL instead, before they are published
+  // (0.3.5, REQ-13). A file whose ACL could not be set is not published.
+  if (process.platform === 'win32') {
+    const how = protectedAclInvocation(tmp, userInfo().username)
+    try { execFileSync(how.file, how.args, { timeout: 15_000, windowsHide: true, stdio: 'ignore' }) } catch (e) {
+      rmSync(tmp, { force: true })
+      throw new Error(`the hub file's ACL could not be set: ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
   renameSync(tmp, file)
 }
 
@@ -112,7 +125,8 @@ export function publishHub(opts: {
 /** hub.json is read at quit, before anything can stop a blocked main thread (I3 E-1): a FIFO, a device or a
  *  symlink planted there must be refused, never opened for a blocking read or followed. Small and bounded. */
 const HUB_DOCUMENT_MAX_BYTES = 64 * 1024
-function readHubDocument(file: string): string | null {
+/** A small regular file, read without following a link or blocking on a FIFO; null when it is not one. */
+export function readHubDocument(file: string): string | null {
   if (!lstatSync(file).isFile()) return null
   const fd = openSync(file, fsc.O_RDONLY | fsc.O_NONBLOCK | (fsc.O_NOFOLLOW ?? 0) | (fsc.O_NOCTTY ?? 0))
   try {
@@ -150,6 +164,75 @@ export function withdrawHub(root: string, pid: number = process.pid): { removed:
   rmSync(doorTokenFile, { force: true })
   return { removed: true }
 }
+// #region hub-locate — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+/** Where a coding agent outside Fabric reaches the hub, or why there is none to reach (ADR-0134 §1). */
+export type HubLocation =
+  | { ok: true; origin: string; mcpUrl: string; doorToken: string; pid: number }
+  | { ok: false; code: 'not-running' | 'not-a-hub'; reason: string }
+
+/** The published origin, exactly: the IPv4 loopback literal and a port — never a name, never another address. */
+const LOOPBACK_ORIGIN = /^http:\/\/127\.0\.0\.1:(\d{4,5})$/
+/** The door token as `publishHub` writes it: 32 random bytes, base64url. */
+const DOOR_TOKEN = /^[A-Za-z0-9_-]{43}$/
+
+/** Whether a process with this id runs AS THIS USER — the only way Fabric's hub runs. EPERM is another user's
+ *  process: something runs under that id, and it is not the Fabric that wrote this user's hub.json (the pid was
+ *  reused), so for the question asked here it counts as not running. */
+export function pidAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch {
+    // The answer to "is this user's Fabric running", not a failure: ESRCH means gone, EPERM another user's process.
+    return false
+  }
+}
+
+/**
+ * Read hub.json and the door token it names, the way an agent must (the contract above): with the same bounded,
+ * no-follow reader the hub itself uses, refusing a foreign protocol, an origin that is not the loopback literal, a
+ * token file outside the registry root and a `pid` that is not running. A refusal is an answer, never a throw.
+ */
+export function locateHub(root: string, deps: { isAlive?: (pid: number) => boolean } = {}): HubLocation {
+  const { hubFile } = hubPaths(root)
+  const notHub = (reason: string): HubLocation => ({ ok: false, code: 'not-a-hub', reason })
+  let text: string | null
+  try {
+    text = readHubDocument(hubFile)
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') return { ok: false, code: 'not-running', reason: 'Fabric is not running: there is no hub.json' }
+    return notHub(`hub.json could not be read (${(e as NodeJS.ErrnoException).code ?? 'error'})`)
+  }
+  if (text === null) return notHub('hub.json is not a regular file')
+  let doc: Partial<HubDocument>
+  try {
+    doc = JSON.parse(text) as Partial<HubDocument>
+  } catch {
+    // Typed refusal: the caller says it (fabric-mcp to the agent); there is nothing more to record.
+    return notHub('hub.json is not JSON')
+  }
+  if (doc.protocol !== HUB_PROTOCOL) return notHub(`hub.json speaks ${JSON.stringify(doc.protocol)}, not ${HUB_PROTOCOL}`)
+  const port = LOOPBACK_ORIGIN.exec(typeof doc.origin === 'string' ? doc.origin : '')
+  if (!port || Number(port[1]) < 1024 || Number(port[1]) > 65535) return notHub('hub.json names an origin that is not the loopback literal')
+  if (doc.mcp !== '/mcp') return notHub('hub.json names another MCP path')
+  if (!Number.isInteger(doc.pid) || (doc.pid as number) <= 0) return notHub('hub.json names no process')
+  const tokenFile = typeof doc.doorTokenFile === 'string' ? doc.doorTokenFile : ''
+  if (!path.isAbsolute(tokenFile) || path.resolve(path.dirname(tokenFile)) !== path.resolve(root))
+    return notHub('hub.json names a door token outside the registry root')
+  const pid = doc.pid as number
+  if (!(deps.isAlive ?? pidAlive)(pid)) return { ok: false, code: 'not-running', reason: `Fabric is not running: hub.json names process ${pid}, which is not running` }
+  let token: string | null
+  try {
+    token = readHubDocument(tokenFile)
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') return { ok: false, code: 'not-running', reason: 'Fabric is starting or stopping: its door token is not there' }
+    return notHub('the door token could not be read')
+  }
+  if (token === null || !DOOR_TOKEN.test(token.trim())) return notHub('the door token is not one Fabric writes')
+  return { ok: true, origin: doc.origin as string, mcpUrl: `${doc.origin as string}/mcp`, doorToken: token.trim(), pid }
+}
+// #endregion hub-locate
+
 /** What `startHub` needs of the surface: listen on a port (a refusal throws), and say where it listens. */
 export interface HubListener {
   start(opts?: { port?: number }): Promise<void>

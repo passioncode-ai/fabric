@@ -29,6 +29,16 @@ export const CAPABILITY_PATTERN = /^[a-z][a-z0-9._-]{1,127}$/
 export const CONNECTABLE_PRODUCTS = ['fabric-inbox'] as const
 export type ConnectableProduct = (typeof CONNECTABLE_PRODUCTS)[number]
 
+// #region session-enroll-ask — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+/** Fabric itself as a callee (ADR-0134): a coding agent asks to work in one project, and for nothing else. */
+export const FABRIC_SELF = 'fabric'
+export const SESSION_ENROLL = 'session.enroll'
+export const PROJECT_RESOURCE = /^project:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+export type AccessCallee = ConnectableProduct | typeof FABRIC_SELF
+/** The project a `project:<uuid>` resource names. */
+export const projectOfResource = (resource: string): string | null => (PROJECT_RESOURCE.test(resource) ? resource.slice('project:'.length) : null)
+// #endregion session-enroll-ask
+
 /**
  * Capabilities that act on the WORKSPACE rather than inside one mailbox. They run without the
  * narrowing header, so they run only when the operator saw them in the prompt as their own line —
@@ -145,7 +155,7 @@ export function oneLine(text: string, max = 300): string {
 
 export interface AccessAsk {
   agentId: string
-  callee: ConnectableProduct
+  callee: AccessCallee
   capabilities: string[]
   resources: string[]
   reason: string
@@ -207,6 +217,9 @@ export function normaliseAccessRequest(input: {
 }): Normalised<AccessAsk> {
   if (typeof input.agentId !== 'string' || !AGENT_ID_PATTERN.test(input.agentId))
     return { ok: false, reason: 'agentId must be your registry id: a provider id, or a service id with an optional .instance' }
+  if (input.callee === FABRIC_SELF) return normaliseEnrollAsk(input)
+  if (Array.isArray(input.capabilities) && input.capabilities.includes(SESSION_ENROLL))
+    return { ok: false, reason: `${SESSION_ENROLL} is asked of Fabric itself (callee ${FABRIC_SELF}), never of a product` }
   if (typeof input.callee !== 'string' || !(CONNECTABLE_PRODUCTS as readonly string[]).includes(input.callee))
     return { ok: false, reason: `no product called ${String(input.callee)} is connectable through Fabric (connectable: ${CONNECTABLE_PRODUCTS.join(', ')})` }
   if (!Array.isArray(input.capabilities) || input.capabilities.length === 0)
@@ -253,6 +266,9 @@ export type ResourceRef = { kind: 'address'; address: string } | { kind: 'gmail'
 export type AskLine =
   | { kind: 'inside'; capabilities: CapabilityRef[]; resource: ResourceRef }
   | { kind: 'setup' | 'setup-extra'; capability: CapabilityRef; resource: ResourceRef }
+  /** ADR-0134: a coding agent asks to work in one project — said as the project, never as `session.enroll` or
+   *  `project:<uuid>`. `name` is null when the facts carry none (a grant's line is built from the grant alone). */
+  | { kind: 'enroll'; project: { id: string; name: string | null } }
 
 export function capabilityRef(id: string): CapabilityRef {
   const known = Object.prototype.hasOwnProperty.call(PLAIN, id) || setupExtra(id) !== null
@@ -265,8 +281,18 @@ export function resourceRef(resource: string): ResourceRef {
   return { kind: 'other', text: oneLine(resource, 400) }
 }
 
-/** What is asked, one line per resource, as facts. A workspace setup is its own line. */
-export function askLines(ask: Pick<AccessAsk, 'capabilities' | 'resources'>): AskLine[] {
+/** What is asked, one line per resource, as facts. A workspace setup is its own line. An enrollment (ADR-0134) is
+ *  one line per project, named from the request's registry snapshot when it carries that project. */
+export function askLines(ask: Pick<AccessAsk, 'capabilities' | 'resources'> & { registry?: RegistrySnapshot | null }): AskLine[] {
+  // #region enroll-words — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+  if (ask.capabilities.includes(SESSION_ENROLL)) {
+    const known = enrollProjectOf(ask.registry)
+    return ask.resources.flatMap((r) => {
+      const id = projectOfResource(r)
+      return id ? [{ kind: 'enroll' as const, project: { id, name: known && (known.id === null || known.id === id) ? known.name : null } }] : []
+    })
+  }
+  // #endregion enroll-words
   const inside = ask.capabilities.filter((c) => !isWorkspaceSetup(c))
   const setup = ask.capabilities.filter(isWorkspaceSetup)
   const lines: AskLine[] = []
@@ -279,6 +305,21 @@ export function askLines(ask: Pick<AccessAsk, 'capabilities' | 'resources'>): As
 }
 
 /** The same request, whatever its order or spelling — the key a standing denial answers. */
+/** ADR-0134: exactly `session.enroll` on exactly one `project:<uuid>`; whether the agentId is a coding agent on
+ *  this Mac is the service's question (the runner catalogue), not this shape check's. */
+function normaliseEnrollAsk(input: { agentId?: unknown; capabilities?: unknown; resources?: unknown; reason?: unknown }): Normalised<AccessAsk> {
+  if (typeof input.agentId !== 'string' || !AGENT_ID_PATTERN.test(input.agentId))
+    return { ok: false, reason: 'agentId must be your coding agent\'s catalogue id, e.g. claude-code' }
+  if (!Array.isArray(input.capabilities) || input.capabilities.length !== 1 || input.capabilities[0] !== SESSION_ENROLL)
+    return { ok: false, reason: `of Fabric itself an agent asks exactly one capability, ${SESSION_ENROLL}` }
+  if (!Array.isArray(input.resources) || input.resources.length !== 1 || typeof input.resources[0] !== 'string' || !PROJECT_RESOURCE.test(input.resources[0]))
+    return { ok: false, reason: 'name exactly one project: project:<id>, as fabric.session.enroll answered it' }
+  const raw = typeof input.reason === 'string' ? input.reason.trim() : ''
+  const reason = raw.length > 1000 ? '' : oneLine(raw, 1000)
+  if (!reason) return { ok: false, reason: 'give a reason of 1 to 1000 characters — the operator reads it, as your claim' }
+  return { ok: true, value: { agentId: input.agentId, callee: FABRIC_SELF, capabilities: [SESSION_ENROLL], resources: [input.resources[0]], reason } }
+}
+
 export function requestSignature(ask: Pick<AccessAsk, 'agentId' | 'callee' | 'capabilities' | 'resources'>): string {
   return JSON.stringify([ask.agentId, ask.callee, [...ask.capabilities].sort(), [...ask.resources].sort()])
 }
@@ -463,10 +504,14 @@ export function versionAtLeast(version: unknown, min: string): boolean {
 }
 export const productName = (id: string): string => PRODUCT_NAMES[id] ?? id
 
-type RegistrySnapshot = { name?: string; installed_by?: string; repository?: string | null }
+/** The request's registry snapshot (accessService writes it). `kind: 'runner'` is a coding agent of the runner
+ *  catalogue (ADR-0134); `project` is the project it asks to work in, as Fabric resolved it — read defensively,
+ *  because its `root` and `how` arrive later than its `id` and `name`. */
+type RegistrySnapshot = { name?: string; installed_by?: string; repository?: string | null; kind?: string; project?: unknown }
 
-/** Who is asking, as the registry knows it — every field from outside Fabric on one line, or null. */
-export interface AgentFacts { agentId: string; name: string | null; installedBy: string | null; repository: string | null }
+/** Who is asking, as the registry knows it — every field from outside Fabric on one line, or null.
+ *  `codingAgent`: a coding agent of the runner catalogue (ADR-0134), said as such — never by its registry id. */
+export interface AgentFacts { agentId: string; name: string | null; installedBy: string | null; repository: string | null; codingAgent?: boolean }
 
 export function agentFacts(agentId: string, registry: RegistrySnapshot | null | undefined): AgentFacts {
   const r = registry ?? {}
@@ -474,9 +519,55 @@ export function agentFacts(agentId: string, registry: RegistrySnapshot | null | 
     agentId,
     name: oneLine(r.name ?? '', 80) || null,
     installedBy: oneLine(r.installed_by ?? '', 200) || null,
-    repository: oneLine(r.repository ?? '', 300) || null
+    repository: oneLine(r.repository ?? '', 300) || null,
+    ...(r.kind === 'runner' ? { codingAgent: true } : {})
   }
 }
+
+// #region enroll-words — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+/** How Fabric matched the agent's folder to the project (`folderResolver.ts`): the admitted folder itself, a folder
+ *  inside it, or a worktree of its repository. */
+export type FolderHow = 'exact' | 'ancestor' | 'worktree'
+const FOLDER_HOWS: readonly string[] = ['exact', 'ancestor', 'worktree']
+
+/** The project an enrollment snapshot names; every value from the snapshot on one line, or null. */
+function enrollProjectOf(registry: RegistrySnapshot | null | undefined): { id: string | null; name: string | null; root: string | null; how: FolderHow | null } | null {
+  const p = registry?.project
+  if (!p || typeof p !== 'object') return null
+  const o = p as Record<string, unknown>
+  const text = (v: unknown, max: number): string | null => (typeof v === 'string' ? oneLine(v, max) || null : null)
+  return {
+    id: typeof o.id === 'string' ? o.id : null,
+    name: text(o.name, 120),
+    root: text(o.root, 1000),
+    how: typeof o.how === 'string' && FOLDER_HOWS.includes(o.how) ? (o.how as FolderHow) : null
+  }
+}
+
+// A person's home folder on macOS, Linux and Windows. Shared code has no `os.homedir()`, and on a Mac that one
+// person uses this is where every project lives; a caller that knows the home passes it instead.
+const HOME = /^(\/Users\/[^/]+|\/home\/[^/]+|[A-Za-z]:\\Users\\[^\\]+)(?=$|[/\\])/
+
+/**
+ * A folder as a person reads it on one line: the home folder as `~`, and a path longer than `max` kept to its
+ * start and its last two folders (`~/…/client/atlas`), so the end — the folder's own name — is never cut off.
+ */
+export function shortFolder(path: string, home?: string, max = 60): string {
+  const flat = oneLine(path, 1000)
+  const at = home && (flat === home || flat.startsWith(`${home}/`) || flat.startsWith(`${home}\\`)) ? home.length : (HOME.exec(flat)?.[0].length ?? -1)
+  const shown = at >= 0 ? `~${flat.slice(at)}` : flat
+  if (shown.length <= max) return shown
+  const sep = shown.includes('\\') && !shown.includes('/') ? '\\' : '/'
+  const parts = shown.split(sep)
+  if (parts.length <= 3) return oneLine(shown, max)
+  const tail = parts.slice(-2).join(sep)
+  return `${parts[0]}${sep}…${sep}${tail}`
+}
+
+/** An enrollment as the operator's screens say it (ADR-0134): the project's name, and — when Fabric resolved it —
+ *  the folder the project was found by, already shortened for a person (`shortFolder`). */
+export interface EnrollFacts { projectName: string; folder?: { root: string; how: FolderHow | null } }
+// #endregion enroll-words
 
 /** The agent's name as shown: the registry's, on one line, or its id. A value, not a sentence. */
 export function agentName(agentId: string, registry: RegistrySnapshot | null | undefined): string {
@@ -503,13 +594,17 @@ export interface PendingRequestFacts {
   callee: string
   /** The product's display name (a proper name, the same in every language). */
   product: string
-  /** Whether the product is connected; when not, Allow also opens its connect flow (UX-4). */
+  /** Whether the product is connected; when not, Allow also opens its connect flow (UX-4). Always true for an
+   *  enrollment: Fabric itself has no connect flow, so its Allow is only Allow (ADR-0134). */
   connected: boolean
   ask: AskLine[]
   /** The agent's own words, one line — shown quoted, as its claim. */
   reason: string
   /** This adds to access the agent already holds. */
   incremental: boolean
+  /** ADR-0134: a coding agent asks Fabric itself to work in this project (the name as Fabric read it, and the
+   *  folder Fabric resolved it by, when the snapshot carries it). */
+  enroll?: EnrollFacts
   requestedAt: string
   expiresAt: string
 }
@@ -528,20 +623,31 @@ export interface RequestRowLike {
   registry: RegistrySnapshot | null
 }
 
-/** One waiting request as facts, for the queue and Settings → Agent access alike (UX-2, UX-4). */
-export function pendingFacts(r: RequestRowLike, connected: boolean): PendingRequestFacts {
+/** One waiting request as facts, for the queue and Settings → Agent access alike (UX-2, UX-4). `home`, when the
+ *  caller knows it, is shown as `~` in an enrollment's folder. */
+export function pendingFacts(r: RequestRowLike, connected: boolean, home?: string): PendingRequestFacts {
   return {
     requestId: r.id,
     agent: agentFacts(r.agent_id, r.registry),
     callee: r.callee,
     product: productName(r.callee),
-    connected,
+    // #region enroll-words — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+    // Fabric itself is never a product to connect: main asks the hub for a connection to every callee, finds none
+    // for 'fabric' and passes false, which offered "Allow and connect Fabric" (blind review, 0.4.0 wave 1).
+    connected: r.callee === FABRIC_SELF ? true : connected,
+    // #endregion enroll-words
     ask: askLines(r),
     reason: oneLine(r.reason, 300),
     incremental: r.asked_by_binding !== null,
+    ...(r.callee === FABRIC_SELF ? { enroll: enrollFacts(r.registry, home) } : {}),
     requestedAt: r.requested_at,
     expiresAt: r.expires_at
   }
+}
+
+function enrollFacts(registry: RegistrySnapshot | null, home: string | undefined): EnrollFacts {
+  const p = enrollProjectOf(registry)
+  return { projectName: p?.name ?? '', ...(p?.root ? { folder: { root: shortFolder(p.root, home), how: p.how } } : {}) }
 }
 
 /** What the operator's Agent access list shows (Settings → Agent access). No sentence crosses IPC. */

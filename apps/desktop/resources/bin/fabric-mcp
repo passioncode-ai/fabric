@@ -1,0 +1,12 @@
+#!/bin/sh
+# Fabric's MCP entry for a coding agent opened outside Fabric (ADR-0134): register it once, with no secret —
+#   claude mcp add --scope user fabric -- "<this file>" --runner claude-code
+# It runs Fabric's own Electron as Node on the bundled proxy, so the machine needs no Node of its own.
+# macOS: <Fabric.app>/Contents/Resources/bin/fabric-mcp · Linux (.deb): <install>/resources/bin/fabric-mcp
+here="$(cd "$(dirname "$0")" && pwd -P)"
+resources="$(dirname "$here")"
+case "$(uname -s)" in
+  Darwin) exe="$(dirname "$resources")/MacOS/Fabric" ;;
+  *) exe="$(dirname "$resources")/passioncode-fabric" ;;
+esac
+ELECTRON_RUN_AS_NODE=1 exec "$exe" "$resources/app.asar/out/main/fabric-mcp.js" "$@"

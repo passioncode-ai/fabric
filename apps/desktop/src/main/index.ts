@@ -14,8 +14,8 @@ import { createHash, randomUUID } from 'node:crypto'
 import { fixPath, resolveSupabaseEnv, stackStatusEnv, startStack, stopStartingStack } from './env'
 import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
 import { applyAppIcon, windowIcon } from './appIcon'
-import { Policy } from './policy'
-import { launchOptions, PtyManager } from './pty'
+import { isFloorClass, Policy } from './policy'
+import { launchOption, launchOptions, PtyManager } from './pty'
 import { classifyFailure } from '../shared/failure.ts'
 import { createManagedLaunch, type LaunchInput } from './managedLaunch.ts'
 import { createNativeStopRuntime } from './nativeStopRuntime.ts'
@@ -28,6 +28,8 @@ import { createAccessStore, type AccessStore } from './accessStore.ts'
 import { AccessService } from './accessService.ts'
 import { startHub, withdrawHub } from './hub.ts'
 import { hubServerFor } from './hubTools.ts'
+import { EnrolledSessions, enrollSession, resolveAgentFolder, type FolderDeps } from './sessionEnroll.ts'
+import { FABRIC_SELF } from '../shared/access.ts'
 import { createAgentCall } from './hubCall.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
 import { FABRIC_INBOX, ProductConnector } from './productConnect.ts'
@@ -39,6 +41,8 @@ import type { StringKey } from '../renderer/src/i18n/en.ts'
 import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
 import { readSessionHistory } from '../shared/sessionHistory.ts'
 import { externalLink, isAppDocument, type AppEntry } from './navigationGuard.ts'
+import { createWindowRegistry, type IpcWindowRefused } from './windowRegistry.ts'
+import { windowKindArg } from '../shared/ipcWindowPolicy.ts'
 import { shouldReload } from './rendererRecovery.ts'
 import { createBundleCompiler } from './sessionBundle'
 import { createTranscriptStore } from './transcripts'
@@ -59,7 +63,6 @@ import { splashProgress } from '../shared/splashProgress'
 import { checkWorkspace, importWorkspace, initRepository, writeWorkspace } from './workspace'
 import {
   IPC,
-  type AppSettings,
   type CreateProjectInput,
   type DiagnosticsView,
   type AnswerReceipt,
@@ -162,7 +165,7 @@ import { declaredCapabilities, isAvailable } from '../shared/capabilityReport.ts
 import { AGENTS } from '../shared/agents.ts'
 import type { RunStatusView } from '../shared/runStatus.ts'
 import { advancesWatermark, runCyclePasses } from '../shared/cyclePort.ts'
-import type { OpsLevel } from '../shared/opsLog'
+import { causeOf, type OpsLevel } from '../shared/opsLog'
 
 /**
  * Every IPC call, timed and recorded, with a correlation id (M81).
@@ -180,6 +183,9 @@ function handle(
   fn: (event: Electron.IpcMainInvokeEvent, ...args: never[]) => unknown
 ): void {
   ipcMain.handle(channel, async (event, ...args) => {
+    // CO-091: the window's kind decides, here and not in the preload. A refusal is a typed rejection.
+    const refused = refusedFor(event, channel, args)
+    if (refused) throw refused
     const done = ops.begin(`ipc.${channel}`, { correlationId: ops.correlate() })
     try {
       // A7-002: the bridge grants file writes and access decisions, so only
@@ -209,6 +215,34 @@ const APP_ENTRY: AppEntry = {
   indexFile: path.join(import.meta.dirname, '../renderer/index.html')
 }
 
+// #region ipc-window-authority — docs: docs/adr/0020-provider-views-are-sandboxed-extensions-and-layout-is-host-owned.md#provider-views-are-sandboxed-extensions-workspace-layout-is-host-owned
+/**
+ * Which window is which, written where each window is built (`createWindow`, `openSessionWindow`,
+ * `openFileWindow`) and removed when it closes (CO-091, REQ-31). The rule per channel is
+ * `shared/ipcWindowPolicy.ts#CHANNEL_RULES`; a window this registry does not know is refused everything.
+ */
+const windowKinds = createWindowRegistry()
+
+/** The refusal for this call, recorded, or null when the sender's kind may make it. */
+function refusedFor(
+  event: Electron.IpcMainInvokeEvent | Electron.IpcMainEvent,
+  channel: string,
+  args: readonly unknown[]
+): IpcWindowRefused | null {
+  const refused = windowKinds.check(event.sender.id, channel, args)
+  if (refused)
+    ops.record({
+      op: 'ipc.window-refused',
+      outcome: 'failed',
+      level: 'warn',
+      // Constants only — the channel, the kind and why. Never the arguments, never the window's subject.
+      detail: refused.detail(),
+      ctx: { correlationId: ops.correlate() }
+    })
+  return refused
+}
+// #endregion ipc-window-authority
+
 function senderAllowed(event: Electron.IpcMainInvokeEvent | Electron.IpcMainEvent): boolean {
   try {
     return isAppDocument(event.senderFrame?.url ?? '', APP_ENTRY)
@@ -228,6 +262,8 @@ function senderAllowed(event: Electron.IpcMainInvokeEvent | Electron.IpcMainEven
  */
 function listen(channel: string, fn: (event: Electron.IpcMainEvent, ...args: never[]) => void, note?: string): void {
   ipcMain.on(channel, (event, ...args) => {
+    // CO-091: a send has no answer to carry the refusal, so the ops record is the whole of it.
+    if (refusedFor(event, channel, args)) return
     if (!senderAllowed(event)) {
       ops.failed(`ipc.${channel}`, new Error(`the sender is not Fabric's renderer (${event.senderFrame?.url ?? 'no frame'})`))
       return
@@ -247,7 +283,7 @@ import { createUnattendedAdmission } from '../shared/unattendedAdmission.ts'
 import { createAdmitExisting } from './admitExisting.ts'
 import { createRunLifecycle, type RunLifecycle } from './runLifecycle.ts'
 import { createIdentity, LOCAL_OPERATOR_PERSON, type Identity } from './identity.ts'
-import { repairSeedOnlyEstate, seedRepairDb } from './seedRepair.ts'
+import { repairSeedOnlyEstate, seedRepairDb, retireSeedOwner, seedRetireDb, operatorStartedAt, LEGACY_SEED_PERSON } from './seedRepair.ts'
 
 /** One shape for a created agent, so the two handlers cannot disagree. */
 /** A launch option is either a runner id (`claude-code`) or a created agent's
@@ -311,7 +347,9 @@ import { persona, savePersona } from './persona.ts'
 import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors } from './executorDetect.ts'
 import { createRunnerFallback, describeExhausted, launchRoute, openWithFallback } from './runnerFallback.ts'
-import { FALLBACK_OPTION } from '../shared/runnerRoute.ts'
+import { FALLBACK_OPTION, presetNeedsSurface } from '../shared/runnerRoute.ts'
+import { settingsPatch } from '../shared/appSettings.ts'
+import { fetchWithDeadline } from './dbDeadline.ts'
 import { RunnerUnavailable, SpawnFailure, type LaunchRoute } from './pty'
 import { keepScan, lastScan } from './startPaths.ts'
 import { createProjectFolder } from './projectFolder.ts'
@@ -412,7 +450,9 @@ function allWindows(): BrowserWindow[] {
 }
 
 function broadcast(channel: string, ...args: unknown[]): void {
-  for (const w of allWindows()) w.webContents.send(channel, ...args)
+  // CO-091: a message goes only to the windows its channel names — a session window hears its own
+  // session's output, never another's, and an editor hears no terminal at all.
+  for (const w of allWindows()) if (windowKinds.receives(w.webContents.id, channel, args)) w.webContents.send(channel, ...args)
 }
 
 /**
@@ -604,7 +644,9 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
   stackApiUrl = env.url
   stackExposureCheck = checkStackExposure(env.url)
   db = createClient(env.url, env.serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false }
+    auth: { persistSession: false, autoRefreshToken: false },
+    // Every request ends by a deadline; a caller's own `.abortSignal(…)` still ends it sooner (audit A7-010).
+    global: { fetch: fetchWithDeadline() }
   })
   return withSchemaReadiness({
     packaged: app.isPackaged,
@@ -666,6 +708,18 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     if (!gate.ok)
       throw new Error(`identity could not be established: ${gate.says}` +
         (seedRepairWhy ? ` — the repair for a database only the old seed touched did not apply: ${seedRepairWhy}` : ''))
+    // CO-242: a repaired estate's old seed owner `…0002` is retired through the membership door — before the hub opens,
+    // on this start or on the first start of a database 0.3.4 repaired. The estate is the operator's either way, so a
+    // failure is logged and the start goes on; a shape the rule leaves alone (every later start) records nothing.
+    if (ACTIVE_ESTATE === DEFAULT_ESTATE) {
+      const retire = await retireSeedOwner(seedRetireDb(db), { estateId: ACTIVE_ESTATE, operator: LOCAL_OPERATOR_PERSON, commandId: randomUUID() })
+      if (retire.retired || !retire.left)
+        ops.record({
+          op: 'identity.seed-retire', outcome: retire.retired ? 'ok' : 'failed', level: retire.retired ? 'warn' : 'error',
+          detail: retire.retired ? { revoked: LEGACY_SEED_PERSON } : { why: retire.why },
+          ctx: { correlationId: ops.correlate(), estateId: ACTIVE_ESTATE }
+        })
+    }
   }
   // #endregion seed-repair-wiring
 
@@ -719,17 +773,60 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     stillPending: async (requestId) => {
       const r = await accessStore.request(requestId)
       return !!r && r.status === 'pending' && Date.parse(r.expires_at) > Date.now()
-    }
+    },
+    // A6-036: read when the prompt is made and before an Allow connects, not only when the request arrived.
+    connected: async (product) => (await accessStore.liveConnection(product)) !== null
   })
+  // #region session-enroll-wiring — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+  // How Fabric reads a folder an agent names — once, for the enrollment and for the ask, so the prompt shows the
+  // same fact the enrollment acts on (ADR-0134 amendment 2). The worktree probe is the resolver's own, asynchronous.
+  const enrollFolders: FolderDeps = {
+    admittedFolders: async () => {
+      const repos = await store.selectAll('project_repos', 'path,project_id', { orderBy: ['project_id', 'path'] })
+      if (repos.failed) throw new Error(`repositories read failed: ${repos.failed}`)
+      return (repos.rows as Array<{ path: string; project_id: string }>).map((r) => ({ projectId: r.project_id, path: r.path }))
+    },
+    realpath: (folder) => {
+      try {
+        return realpathSync.native(folder)
+      } catch {
+        // A folder that does not exist is resolveAgentFolder's typed bad-folder answer, not a failure to record.
+        return null
+      }
+    }
+  }
+  // The enrolled sessions this process minted, by binding and grant: a revocation of either ends them at the surface.
+  const enrolled = new EnrolledSessions({ end: (sessionId) => surface.revokeSession(sessionId), state: (token) => surface.credentialState(token) })
   access = new AccessService({
     store: accessStore,
     registry,
     present: (request) => presenter.present(request),
-    connected: async (product) => (await accessStore.liveConnection(product)) !== null
+    connected: async (product) => (await accessStore.liveConnection(product)) !== null,
+    // Who may ask Fabric itself for a session: a coding agent of the runner catalogue whose program is found on this
+    // computer (pty.ts#launchOption — the shell row has none and asks for nothing); which projects exist: this
+    // estate's; and the folder, resolved by Fabric.
+    enrollment: {
+      runner: (id) => {
+        const a = AGENTS.find((x) => x.id === id && x.program)
+        return a ? { key: a.id, name: a.label, summary: a.description ?? null } : null
+      },
+      available: async (key) => (await launchOption(key))?.available === true,
+      project: async (id) => enrollProject(id),
+      resolve: async (folder) => {
+        const f = await resolveAgentFolder(folder, enrollFolders)
+        return f.ok ? { ok: true, projectId: f.projectId, root: f.root, how: f.how } : { ok: false, message: f.message }
+      }
+    }
   })
+  // #endregion session-enroll-wiring
   const agentCall = createAgentCall({ access, store: accessStore, vault, forward: forwardToProduct, estateId: ACTIVE_ESTATE })
   // A revoked binding never calls again: its idempotency memory goes at once (DA-3, verification 0.3.1).
   access.onBindingRevoked((bindingId) => agentCall.forgetBinding(bindingId))
+  // ADR-0134 §3: a revoked binding or grant ends the coding-agent sessions enrolled under it; the next call is refused.
+  access.onBindingRevoked((bindingId) => { enrolled.endForBinding(bindingId) })
+  access.onGrantRevoked((grantId) => { enrolled.endForGrant(grantId) })
+  // CO-200: the counts of refusals not yet journalled are written as the app quits (best effort, within the drain).
+  quit.onQuit(() => { void agentCall.flush() })
   hub = { registry, access, accessStore, connector, presenter, get doorToken() { return hubState.doorToken }, get down() { return hubState.down }, get downCode() { return hubState.downCode }, get downFact() { return hubState.downFact } }
   const hubAccess = access
   surface = new AgentSurface({
@@ -737,7 +834,20 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     hub: {
       doorToken: () => hubState.doorToken,
       access: hubAccess,
-      tools: (principal) => hubServerFor(principal, { access: hubAccess, call: agentCall }),
+      tools: (principal) => hubServerFor(principal, {
+        access: hubAccess,
+        call: agentCall,
+        enroll: (binding, args) => enrollSession(binding, args, {
+          ...enrollFolders,
+          liveGrants: (b) => hubAccess.liveGrantsOf(b),
+          projectName: async (id) => (await enrollProject(id))?.name ?? null,
+          mint: (projectId, sessionId, taskId) => surface.mint(projectId, sessionId, taskId),
+          sessions: enrolled,
+          stillLive: (bindingId, grantId) => hubAccess.enrollmentLive(bindingId, grantId),
+          journal: (type, projectId, payload) =>
+            journal.append({ estateId: ACTIVE_ESTATE, type, actor: { kind: 'system', id: 'fabric-hub' }, projectId, payload })
+        })
+      }),
       callback: (product, req, res) => connector.callback(product, req, res)
     }
   })
@@ -890,8 +1000,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
       syncPower()
       // Observed local exit revokes Fabric credentials even if Run lookup is
       // unavailable. Repeated revocation in the finalizer is idempotent.
-      try { bundles.discard(sessionId) } catch {
-        ops.failed('session.exit-revoke', new Error('Local credential revocation remains unproved'), { sessionId })
+      try { bundles.discard(sessionId) } catch (e) {
+        ops.failed('session.exit-revoke', new Error('Local credential revocation remains unproved'), { sessionId, cause: causeOf(e) })
       }
       // This joins the same finalizer as operator Stop, launch failure and quit.
       // Its observations await terminal.closed, never this callback itself.
@@ -982,8 +1092,8 @@ async function recordSessionExit(sessionId: string, exitCode: number | null, req
         kind: failure.kind, origin: failure.origin, certainty: failure.certainty,
         retryability: failure.retryability, recovery: failure.recovery,
         abnormal: failure.abnormal, says: failure.says } })
-  } catch {
-    ops.failed('session.exit-diagnostic', new Error('Exit diagnostic remains unavailable'), { sessionId })
+  } catch (e) {
+    ops.failed('session.exit-diagnostic', new Error('Exit diagnostic remains unavailable'), { sessionId, cause: causeOf(e) })
   }
 }
 
@@ -1003,7 +1113,7 @@ function startTranscriptRecovery(): void {
     if (generation !== recoveryGeneration) return
     let delay = 60_000
     try { const result = await recover(); if (result.remaining > 0) delay = 50 }
-    catch { ops.failed('startup.transcript-recovery', new Error('capture_recovery_pending')) }
+    catch (e) { ops.failed('startup.transcript-recovery', new Error('capture_recovery_pending'), { cause: causeOf(e) }) }
     if (generation === recoveryGeneration) {
       recoveryTimer = setTimeout(() => void tick(), delay)
       recoveryTimer.unref()
@@ -1132,6 +1242,13 @@ async function listRepos(projectId: string): Promise<RepoRow[]> {
   return (data ?? []) as RepoRow[]
 }
 
+/** A project of this estate by id, for an enrollment ask (ADR-0134); null when there is none. A failed read throws. */
+async function enrollProject(id: string): Promise<{ id: string; name: string } | null> {
+  const { data, error } = await store.select('projects', 'id,name').eq('id', id).maybeSingle()
+  if (error) throw new Error(`project read failed: ${error.message}`)
+  return (data as { id: string; name: string } | null) ?? null
+}
+
 /** Which projects hold each folder, by real path, every page read (`startChoices.ts#indexImported`). */
 async function readImportedIndex(): Promise<Map<string, { id: string; name: string }[]>> {
   const [repos, projects] = await Promise.all([
@@ -1226,9 +1343,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   const hostWindow = (): HostWindow => ({ watchingSince, suspended: suspendedIntervals, sourceHealthy: true })
 
   handle(IPC.metaInfo, async (e): Promise<Returns<FabricApi['meta']['info']>> => {
-    const win = BrowserWindow.fromWebContents(e.sender)
-    const sessionId = [...sessionWindows.entries()].find(([, w]) => w === win)?.[0] ?? null
-    const filePath = [...fileWindows.entries()].find(([, w]) => w === win)?.[0] ?? null
+    // Which window this is comes from the one record the bridge is authorised by (CO-091), so the
+    // window a renderer draws and the calls it is allowed cannot disagree.
+    const me = windowKinds.entry(e.sender.id)
+    const sessionId = me?.kind === 'session' ? (me.subject ?? null) : null
+    const filePath = me?.kind === 'editor' ? (me.subject ?? null) : null
     const read = installedBuild()
     // The ESTATE's schema version, not this build's. Counting the local
     // migrations directory would answer with the artifact's own number, and
@@ -1656,7 +1775,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     let route: LaunchRoute | null = null
     // The setup preset records through Fabric's tools; main holds the line whatever the window chose — a runner by
     // name, a created agent or the fallback order (0.3.3 verification, iteration 2, UX-2/ER-5/DA-1).
-    const needsSurface = input.preset === 'setup'
+    const needsSurface = presetNeedsSurface(input.preset)
     if (optionId === FALLBACK_OPTION) {
       const walk = await runnerFallback.walk(input.projectId, { kind: 'task', permissionMode: input.permissionMode ?? null, needsSurface })
       if (walk.state === 'exhausted') throw new Error(describeExhausted(walk))
@@ -2680,7 +2799,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         const connected = new Map<string, boolean>()
         for (const callee of new Set(waiting.map((r) => r.callee))) connected.set(callee, (await hub.accessStore.liveConnection(callee)) !== null)
         // FACTS, never sentences: the queue phrases them in the operator's language (UX-2), on the prompt's facts.
-        accessRows = waiting.map((r) => pendingFacts(r, connected.get(r.callee) ?? false))
+        accessRows = waiting.map((r) => pendingFacts(r, connected.get(r.callee) ?? false, homedir()))
       } catch (e) {
         // Not silence: the receipt below names this source as failed, so the queue reads as partial.
         accessError = { message: (e as Error).message }
@@ -3082,8 +3201,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.boardReopen, (_e, input: unknown): Promise<Returns<FabricApi['board']['reopen']>> => commitBoardCommand(boardDeps(), 'reopen', input))
   handle(IPC.boardAddTopic, (_e, input: unknown): Promise<Returns<FabricApi['board']['addTopic']>> => commitBoardCommand(boardDeps(), 'topic', input))
 
-  // #region comms-screen — docs: docs/ux/screens.md#scr-77-project-comms
-  // SCR-77 — the operator's read onto the project board, over the same service-role
+  // #region comms-screen — docs: docs/ux/screens.md#scr-81-project-comms
+  // SCR-81 — the operator's read onto the project board, over the same service-role
   // client the agent surface uses for the board's participant half. The read logic
   // (unavailable is never empty; the board's refusals travel unchanged) lives in
   // `commsOperatorRead.ts`, where the tests can reach it without a database.
@@ -3238,11 +3357,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(
     IPC.attentionGrant,
     async (_e, input: { projectId: string | null; floorClass: string; target: string }): Promise<Returns<FabricApi['attention']['grant']>> => {
+      // The class is the renderer's word, checked before any append (audit A2-015), never cast.
+      if (!isFloorClass(input.floorClass)) throw new Error(`"${String(input.floorClass)}" is not a floor class.`)
       // The answer is returned (A1-001): the act says "allowed until …" instead of offering itself again.
       const { grantId, expiresAt } = await policy.issueGrant({
         estateId: ACTIVE_ESTATE,
         projectId: input.projectId,
-        floorClass: input.floorClass as 'money' | 'deletion' | 'publication',
+        floorClass: input.floorClass,
         target: input.target,
         actor: OPERATOR_ACTOR,
         // An hour. Long enough for an agent to notice and act, short enough
@@ -3295,12 +3416,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return {
       hub: h.doorToken ? { listening: true, origin: surface.origin } : { listening: false, reason: h.down ?? 'the hub is not listening', code: h.downCode, fact: h.downFact },
       products,
-      pending: ov.pending.map((r) => pendingFacts(r, connected.get(r.callee) ?? false)),
+      pending: ov.pending.map((r) => pendingFacts(r, connected.get(r.callee) ?? false, homedir())),
       agents: ov.bindings.map((b) => ({
         bindingId: b.id,
         agent: agentFacts(b.agent_id, b.registry),
         since: b.created_at,
-        grants: b.grants.map((g) => ({ grantId: g.id, callee: g.callee, capability: g.capability, resource: g.resource, line: askLines({ capabilities: [g.capability], resources: [g.resource] })[0], expiresAt: g.expires_at }))
+        grants: b.grants.map((g) => ({ grantId: g.id, callee: g.callee, capability: g.capability, resource: g.resource, line: askLines({ capabilities: [g.capability], resources: [g.resource], registry: g.registry ?? b.registry })[0], expiresAt: g.expires_at }))
       })),
       denials: ov.denials.map((r) => ({ requestId: r.id, agent: agentFacts(r.agent_id, r.registry), callee: r.callee, ask: askLines(r), deniedAt: r.decided_at }))
     }
@@ -3316,7 +3437,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     if (decision !== 'allowed' && decision !== 'denied') return { ok: false, reason: 'a decision is allowed or denied' }
     const row = await h.accessStore.request(String(requestId))
     const done: HubActResult = await h.access.decide(String(requestId), decision, OPERATOR_ACTOR)
-    if (done.ok && decision === 'allowed' && row && !(await h.accessStore.liveConnection(row.callee))) {
+    // Fabric itself (ADR-0134, a coding agent's enrollment) is not a product: there is nothing to connect.
+    if (done.ok && decision === 'allowed' && row && row.callee !== FABRIC_SELF && !(await h.accessStore.liveConnection(row.callee))) {
       // The Allow is recorded either way; a product that could not be opened is said beside it (UX-5).
       const started = await beginConnect(h, row.callee)
       if (!started.ok) return { ok: true, connect: { problem: started.problem } }
@@ -3376,6 +3498,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     if (!privateHistory || typeof operationId !== 'string') return historyUnavailable
     return await privateHistory.check(operationId) as Returns<FabricApi['history']['check']>
   })
+  // A5-014, A3-005: what waits for a result and what can still be opened are main's files, not the panel's state.
+  handle(IPC.historyPending, (): Returns<FabricApi['history']['pending']> => privateHistory?.pending() ?? [])
+  handle(IPC.historyRestored, (): Returns<FabricApi['history']['restored']> => privateHistory?.restoredEstates() ?? [])
   handle(IPC.historyOpen, (_e, estateId: unknown): Returns<FabricApi['history']['open']> => {
     // Only an Estate this machine restored for this Person, never any id the renderer names.
     if (!privateHistory || typeof estateId !== 'string' || !privateHistory.restored().includes(estateId)) return { ok: false, reason: 'not_restored_here' }
@@ -3606,9 +3731,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const r = await run
       return r.error ? null : (r.count ?? 0)
     }
-    const [first, projects, sessions, tasksClosed, facts, decisions, grants, events] =
+    const [first, operatorMembership, projects, sessions, tasksClosed, facts, decisions, grants, events] =
       await Promise.all([
         store.select('journal', 'occurred_at').eq('estate_id', ACTIVE_ESTATE).order('seq').limit(1).maybeSingle(),
+        // CO-242: an estate the seed repair gave the operator started, for them, at the repair.
+        store.select('memberships', 'created_at, changed_by').eq('estate_id', ACTIVE_ESTATE).eq('person_id', LOCAL_OPERATOR_PERSON).maybeSingle(),
         count(store.select('projects', 'id', head).eq('estate_id', ACTIVE_ESTATE)),
         count(store.select('session_transcripts', 'session_id', head).eq('estate_id', ACTIVE_ESTATE)),
         count(store.select('project_tasks', 'id', head).eq('estate_id', ACTIVE_ESTATE).in('status', ['done', 'cancelled'])),
@@ -3618,7 +3745,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         count(store.select('journal', 'seq', head).eq('estate_id', ACTIVE_ESTATE))
       ])
     return {
-      tenure: tenureFrom((first.data?.occurred_at as string | undefined) ?? null, new Date()),
+      tenure: tenureFrom(operatorStartedAt((operatorMembership.data as { created_at?: string; changed_by?: string | null } | null) ?? null)
+        ?? (first.data?.occurred_at as string | undefined) ?? null, new Date()),
       projects,
       sessions,
       tasksClosed,
@@ -4039,7 +4167,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       floorClass: 'deletion',
       target: fileRoots.resolve(file, scope),
       actor: OPERATOR_ACTOR,
-      ttlMs: 60_000
+      ttlMs: 60_000,
+      // The one act the write asks for (filesWrite's request): the grant authorises no other (A7-015).
+      actionClass: 'file.overwrite'
     })
     return { grantId, expiresAt }
   })
@@ -4105,7 +4235,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.filesList, (event, dir: string): Returns<FabricApi['files']['list']> => listDirectory(dir, fileRoots, scopeOf(event)))
 
   handle(IPC.settingsRead, (): Returns<FabricApi['settings']['read']> => readSettings())
-  handle(IPC.settingsWrite, (_e, next: Partial<AppSettings>): Returns<FabricApi['settings']['write']> => {
+  handle(IPC.settingsWrite, (_e, raw: unknown): Returns<FabricApi['settings']['write']> => {
+    // A window changes only the preferences it shows; tabs and the workspace folder are main's (audit A7-008/A7-025).
+    const checked = settingsPatch(raw)
+    if (!checked.ok) return { settings: readSettings(), saved: false, reason: checked.reason }
+    const next = checked.patch
     const written = writeSettings(next)
     // Applied now, not at next launch: a power setting that takes effect
     // tomorrow is a power setting that did not work today. Applied from what was
@@ -4114,7 +4248,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // The menu speaks the language the windows speak, from the moment it is chosen.
     // A menu that fails to rebuild must not fail a write that is already on disk (iteration 2, ER-8).
     if (next.locale !== undefined) {
-      try { installMenu(written.settings.locale) } catch (e) { ops.failed('settings.menu', e) }
+      try { installMenu(written.settings.locale, windowKinds) } catch (e) { ops.failed('settings.menu', e) }
     }
     return written
   })
@@ -4270,10 +4404,15 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return (data ?? []) as MemoryFact[]
   })
 
-  handle(IPC.terminalOptions, (): Returns<FabricApi['terminal']['options']> => launchOptions())
-  handle(IPC.terminalFallback, async (_e, projectId: string, kind: 'terminal' | 'task', permissionMode?: string | null): Promise<Returns<FabricApi['terminal']['fallback']>> =>
+  handle(IPC.terminalOptions, (): Promise<Returns<FabricApi['terminal']['options']>> => launchOptions())
+  // The preview walks the order as the launch will: a task's preset adds the launch's needs (CO-234).
+  handle(IPC.terminalFallback, async (_e, projectId: string, kind: 'terminal' | 'task', permissionMode?: string | null, preset?: string | null): Promise<Returns<FabricApi['terminal']['fallback']>> =>
     runnerFallback.configured()
-      ? { configured: true, walk: await runnerFallback.walk(projectId, { kind: kind === 'task' ? 'task' : 'terminal', permissionMode: permissionMode ?? null }) }
+      ? { configured: true, walk: await runnerFallback.walk(projectId, {
+          kind: kind === 'task' ? 'task' : 'terminal',
+          permissionMode: permissionMode ?? null,
+          needsSurface: kind === 'task' && presetNeedsSurface(typeof preset === 'string' ? preset : null)
+        }) }
       : { configured: false, walk: null })
 
   handle(
@@ -4384,7 +4523,7 @@ function openSessionWindow(sessionId: string): void {
     width: 1000,
     height: 680,
     title: session ? `${session.optionId} · ${session.cwd}` : 'Session',
-    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true }
+    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('session')] }
   })
   const target = rendererTarget(`session=${sessionId}`)
   if (target.url) void w.loadURL(target.url)
@@ -4392,7 +4531,9 @@ function openSessionWindow(sessionId: string): void {
   sessionWindows.set(sessionId, w)
   // Read now: after 'closed' the window's webContents is destroyed and reading it throws.
   const contentsId = w.webContents.id
+  windowKinds.register(contentsId, { kind: 'session', subject: sessionId })
   w.on('closed', () => {
+    windowKinds.forget(contentsId)
     revokeWindowRoots(contentsId)
     sessionWindows.delete(sessionId)
   })
@@ -4416,14 +4557,16 @@ function openFileWindow(requested: string): void {
     width: 1000,
     height: 720,
     title: filePath,
-    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true }
+    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('editor')] }
   })
   const target = rendererTarget(`file=${encodeURIComponent(filePath)}`)
   if (target.url) void w.loadURL(target.url)
   else void w.loadFile(target.file!, { search: target.search })
   fileWindows.set(filePath, w)
   const contentsId = w.webContents.id
+  windowKinds.register(contentsId, { kind: 'editor', subject: filePath })
   w.on('closed', () => {
+    windowKinds.forget(contentsId)
     revokeWindowRoots(contentsId)
     // Only this window's entry: a crashed window being replaced must not remove its replacement.
     if (fileWindows.get(filePath) === w) fileWindows.delete(filePath)
@@ -4437,15 +4580,17 @@ function createWindow(): void {
     width: 1440,
     height: 900,
     title: 'Fabric',
-    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true }
+    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('main')] }
   })
   // Read now, not in 'closed': by then webContents is destroyed, and the TypeError it threw raised
   // Electron's modal error box, so quitting the app hung on it (found in the C5 real-app run).
   const contentsId = mainWindow.webContents.id
+  windowKinds.register(contentsId, { kind: 'main' })
   // A request that waited while Fabric was in the background is shown when the window comes forward (UX-3).
   mainWindow.on('focus', () => hub?.presenter.resume())
   mainWindow.on('show', () => hub?.presenter.resume())
   mainWindow.on('closed', () => {
+    windowKinds.forget(contentsId)
     // A folder this window was allowed to reach does not outlive it (S02.roots).
     revokeWindowRoots(contentsId)
     mainWindow = null
@@ -4509,7 +4654,7 @@ app.whenReady().then(async () => {
   // frame. Built from Electron's roles so copy, paste, quit and the window
   // controls survive: replacing the default with a hand-written minimum takes
   // Cmd+C away from every field in the product.
-  installMenu(readSettings().locale)
+  installMenu(readSettings().locale, windowKinds)
 
   // M116 — before the splash, so the first thing on the dock is already the mark.
   applyAppIcon()
@@ -4536,7 +4681,7 @@ async function startOrExplain(): Promise<void> {
       if (!events.find((e) => e.seq === probeEvent.seq)) throw new Error('smoke replay did not return the probe')
       const { error: memError } = await store.select('memory_facts', 'id').limit(1)
       if (memError) throw new Error(`smoke memory read failed: ${memError.message}`)
-      const opts = launchOptions()
+      const opts = await launchOptions()
       const probe = await fetch(surface.endpoint, {
         method: 'POST',
         headers: { 'content-type': 'application/json', authorization: 'Bearer nonsense' },
