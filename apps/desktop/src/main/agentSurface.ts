@@ -448,6 +448,18 @@ export class AgentSurface {
     }
   }
 
+  // #region session-enroll-credential-state — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
+  /** What this surface holds of a bearer: minted and not yet spent on its one initialize (and still within its
+   *  claim window), spent by an initialised session, or nothing (never minted, revoked, or expired unclaimed). Read
+   *  by the enrollment to hand an unspent bearer out again instead of minting another (`sessionEnroll.ts`). */
+  credentialState(token: string): 'unclaimed' | 'claimed' | null {
+    const st = this.states.get(token)
+    if (!st) return null
+    if (st.claimedAt !== null) return 'claimed'
+    return this.now() - st.mintedAt > this.limits.claimWindowMs ? null : 'unclaimed'
+  }
+  // #endregion session-enroll-credential-state
+
   /** Test seam and honest accounting: what the surface currently holds. */
   credentialCount(): number {
     return this.states.size
