@@ -1461,7 +1461,8 @@ export interface FabricApi {
   terminal: {
     options(): Promise<LaunchOption[]>
     /** The fallback order's choice right now (ADR-0125): what a launch with `FALLBACK_OPTION` would run. */
-    fallback(projectId: string, kind: 'terminal' | 'task', permissionMode?: string | null): Promise<FallbackPreview>
+    /** `preset`: the task's preset, so the preview takes the launch's needs (CO-234, `runnerRoute.ts#presetNeedsSurface`). */
+    fallback(projectId: string, kind: 'terminal' | 'task', permissionMode?: string | null, preset?: string | null): Promise<FallbackPreview>
     memoryBackends(): Promise<MemoryBackendOption[]>
     /** `permissionMode` is chosen per launch. A blocked mode is REFUSED here,
      *  not merely hidden in the picker — a picker is a suggestion. */

@@ -312,7 +312,7 @@ import { persona, savePersona } from './persona.ts'
 import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors } from './executorDetect.ts'
 import { createRunnerFallback, describeExhausted, launchRoute, openWithFallback } from './runnerFallback.ts'
-import { FALLBACK_OPTION } from '../shared/runnerRoute.ts'
+import { FALLBACK_OPTION, presetNeedsSurface } from '../shared/runnerRoute.ts'
 import { RunnerUnavailable, SpawnFailure, type LaunchRoute } from './pty'
 import { keepScan, lastScan } from './startPaths.ts'
 import { createProjectFolder } from './projectFolder.ts'
@@ -1691,7 +1691,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     let route: LaunchRoute | null = null
     // The setup preset records through Fabric's tools; main holds the line whatever the window chose — a runner by
     // name, a created agent or the fallback order (0.3.3 verification, iteration 2, UX-2/ER-5/DA-1).
-    const needsSurface = input.preset === 'setup'
+    const needsSurface = presetNeedsSurface(input.preset)
     if (optionId === FALLBACK_OPTION) {
       const walk = await runnerFallback.walk(input.projectId, { kind: 'task', permissionMode: input.permissionMode ?? null, needsSurface })
       if (walk.state === 'exhausted') throw new Error(describeExhausted(walk))
@@ -4296,9 +4296,14 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   })
 
   handle(IPC.terminalOptions, (): Promise<Returns<FabricApi['terminal']['options']>> => launchOptions())
-  handle(IPC.terminalFallback, async (_e, projectId: string, kind: 'terminal' | 'task', permissionMode?: string | null): Promise<Returns<FabricApi['terminal']['fallback']>> =>
+  // The preview walks the order as the launch will: a task's preset adds the launch's needs (CO-234).
+  handle(IPC.terminalFallback, async (_e, projectId: string, kind: 'terminal' | 'task', permissionMode?: string | null, preset?: string | null): Promise<Returns<FabricApi['terminal']['fallback']>> =>
     runnerFallback.configured()
-      ? { configured: true, walk: await runnerFallback.walk(projectId, { kind: kind === 'task' ? 'task' : 'terminal', permissionMode: permissionMode ?? null }) }
+      ? { configured: true, walk: await runnerFallback.walk(projectId, {
+          kind: kind === 'task' ? 'task' : 'terminal',
+          permissionMode: permissionMode ?? null,
+          needsSurface: kind === 'task' && presetNeedsSurface(typeof preset === 'string' ? preset : null)
+        }) }
       : { configured: false, walk: null })
 
   handle(
