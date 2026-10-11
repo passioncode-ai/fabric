@@ -426,6 +426,19 @@ without an id have ids (CO-248…CO-253 or an existing owner). CO-215 and CO-216
 ids (W1 44, W3 11, W4 38, W5 23, W6 124, W7 10, after 0.4.0 1, settled 1), each to be re-read against the tree
 before it is fixed. Counts per wave after the re-cut: W0 21, W1 26, W2 18, W3 17, W4 34, W5 36, W6 40, W7 5 (197).
 
+**Wave 1, 2026-10-11 — the walking skeleton is proven.** A real MCP client over stdio runs `fabric-mcp` in a
+project's folder against the built app on a disposable stack: one tool and "waiting for the operator" before
+consent; the operator's Allow in Agents & access; the tool list changes and `fabric_whoami` names the project; Fabric
+restarts and the next call works without asking (ADR-0134 amendment 1). On the way the walk found that the desktop
+journal had refused every hub event since 0.3.1 — the ADR-0115 path had never run live (CO-254, fixed, with a gate
+that reads every event type main appends). CO-091 (BLOCKING) is closed and its narrowed bridge verified in a live
+launch for all three window kinds; CO-199, CO-200 (ADR-0142), CO-201 and CO-242 are closed; the port is merged into
+the base. Re-cut: the embedded browser (CO-102, M75, SCN-077, AX15-REQ-004) leaves 0.4.0 — it was in wave 1 only
+because CO-091 gated it, and no request of this release needs it; CO-237 and CO-250/CO-251 ride wave 7; AR-3.2
+closes in wave 3 with the Setup console. Still in wave 1: CO-203, CO-205, CO-206, CO-207, CO-234 and the 44 audit
+findings assigned to it (two agents, then the wave's verification pass). The schema is 81 (migrations 82 and 90),
+a schema step the release notes must say (ADR-0121: self-update never crosses one).
+
 **The rest of the board — the program after 0.4.0.** 504 of the 701 items do not close in 0.4.0: they are umbrella
 milestones, unbuilt scenarios and multi-packet plans (memory and context, MEM-P0…P7; the board's COM-06…14 and
 Telegram; estate domains BL-* and the cost ledger CL-*; the UX28/AX/UXAC cards beyond the clusters above; the agent

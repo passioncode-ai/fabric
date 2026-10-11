@@ -41,6 +41,8 @@ import type { StringKey } from '../renderer/src/i18n/en.ts'
 import { FileRoots, listDirectory, readFile, resolveForOpen, writeFile } from './files'
 import { readSessionHistory } from '../shared/sessionHistory.ts'
 import { externalLink, isAppDocument, type AppEntry } from './navigationGuard.ts'
+import { createWindowRegistry, type IpcWindowRefused } from './windowRegistry.ts'
+import { windowKindArg } from '../shared/ipcWindowPolicy.ts'
 import { shouldReload } from './rendererRecovery.ts'
 import { createBundleCompiler } from './sessionBundle'
 import { createTranscriptStore } from './transcripts'
@@ -180,6 +182,9 @@ function handle(
   fn: (event: Electron.IpcMainInvokeEvent, ...args: never[]) => unknown
 ): void {
   ipcMain.handle(channel, async (event, ...args) => {
+    // CO-091: the window's kind decides, here and not in the preload. A refusal is a typed rejection.
+    const refused = refusedFor(event, channel, args)
+    if (refused) throw refused
     const done = ops.begin(`ipc.${channel}`, { correlationId: ops.correlate() })
     try {
       // A7-002: the bridge grants file writes and access decisions, so only
@@ -209,6 +214,34 @@ const APP_ENTRY: AppEntry = {
   indexFile: path.join(import.meta.dirname, '../renderer/index.html')
 }
 
+// #region ipc-window-authority — docs: docs/adr/0020-provider-views-are-sandboxed-extensions-and-layout-is-host-owned.md#provider-views-are-sandboxed-extensions-workspace-layout-is-host-owned
+/**
+ * Which window is which, written where each window is built (`createWindow`, `openSessionWindow`,
+ * `openFileWindow`) and removed when it closes (CO-091, REQ-31). The rule per channel is
+ * `shared/ipcWindowPolicy.ts#CHANNEL_RULES`; a window this registry does not know is refused everything.
+ */
+const windowKinds = createWindowRegistry()
+
+/** The refusal for this call, recorded, or null when the sender's kind may make it. */
+function refusedFor(
+  event: Electron.IpcMainInvokeEvent | Electron.IpcMainEvent,
+  channel: string,
+  args: readonly unknown[]
+): IpcWindowRefused | null {
+  const refused = windowKinds.check(event.sender.id, channel, args)
+  if (refused)
+    ops.record({
+      op: 'ipc.window-refused',
+      outcome: 'failed',
+      level: 'warn',
+      // Constants only — the channel, the kind and why. Never the arguments, never the window's subject.
+      detail: refused.detail(),
+      ctx: { correlationId: ops.correlate() }
+    })
+  return refused
+}
+// #endregion ipc-window-authority
+
 function senderAllowed(event: Electron.IpcMainInvokeEvent | Electron.IpcMainEvent): boolean {
   try {
     return isAppDocument(event.senderFrame?.url ?? '', APP_ENTRY)
@@ -228,6 +261,8 @@ function senderAllowed(event: Electron.IpcMainInvokeEvent | Electron.IpcMainEven
  */
 function listen(channel: string, fn: (event: Electron.IpcMainEvent, ...args: never[]) => void, note?: string): void {
   ipcMain.on(channel, (event, ...args) => {
+    // CO-091: a send has no answer to carry the refusal, so the ops record is the whole of it.
+    if (refusedFor(event, channel, args)) return
     if (!senderAllowed(event)) {
       ops.failed(`ipc.${channel}`, new Error(`the sender is not Fabric's renderer (${event.senderFrame?.url ?? 'no frame'})`))
       return
@@ -247,7 +282,7 @@ import { createUnattendedAdmission } from '../shared/unattendedAdmission.ts'
 import { createAdmitExisting } from './admitExisting.ts'
 import { createRunLifecycle, type RunLifecycle } from './runLifecycle.ts'
 import { createIdentity, LOCAL_OPERATOR_PERSON, type Identity } from './identity.ts'
-import { repairSeedOnlyEstate, seedRepairDb } from './seedRepair.ts'
+import { repairSeedOnlyEstate, seedRepairDb, retireSeedOwner, seedRetireDb, operatorStartedAt, LEGACY_SEED_PERSON } from './seedRepair.ts'
 
 /** One shape for a created agent, so the two handlers cannot disagree. */
 /** A launch option is either a runner id (`claude-code`) or a created agent's
@@ -414,7 +449,9 @@ function allWindows(): BrowserWindow[] {
 }
 
 function broadcast(channel: string, ...args: unknown[]): void {
-  for (const w of allWindows()) w.webContents.send(channel, ...args)
+  // CO-091: a message goes only to the windows its channel names — a session window hears its own
+  // session's output, never another's, and an editor hears no terminal at all.
+  for (const w of allWindows()) if (windowKinds.receives(w.webContents.id, channel, args)) w.webContents.send(channel, ...args)
 }
 
 /**
@@ -670,6 +707,18 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     if (!gate.ok)
       throw new Error(`identity could not be established: ${gate.says}` +
         (seedRepairWhy ? ` — the repair for a database only the old seed touched did not apply: ${seedRepairWhy}` : ''))
+    // CO-242: a repaired estate's old seed owner `…0002` is retired through the membership door — before the hub opens,
+    // on this start or on the first start of a database 0.3.4 repaired. The estate is the operator's either way, so a
+    // failure is logged and the start goes on; a shape the rule leaves alone (every later start) records nothing.
+    if (ACTIVE_ESTATE === DEFAULT_ESTATE) {
+      const retire = await retireSeedOwner(seedRetireDb(db), { estateId: ACTIVE_ESTATE, operator: LOCAL_OPERATOR_PERSON, commandId: randomUUID() })
+      if (retire.retired || !retire.left)
+        ops.record({
+          op: 'identity.seed-retire', outcome: retire.retired ? 'ok' : 'failed', level: retire.retired ? 'warn' : 'error',
+          detail: retire.retired ? { revoked: LEGACY_SEED_PERSON } : { why: retire.why },
+          ctx: { correlationId: ops.correlate(), estateId: ACTIVE_ESTATE }
+        })
+    }
   }
   // #endregion seed-repair-wiring
 
@@ -745,6 +794,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   const agentCall = createAgentCall({ access, store: accessStore, vault, forward: forwardToProduct, estateId: ACTIVE_ESTATE })
   // A revoked binding never calls again: its idempotency memory goes at once (DA-3, verification 0.3.1).
   access.onBindingRevoked((bindingId) => agentCall.forgetBinding(bindingId))
+  // CO-200: the counts of refusals not yet journalled are written as the app quits (best effort, within the drain).
+  quit.onQuit(() => { void agentCall.flush() })
   hub = { registry, access, accessStore, connector, presenter, get doorToken() { return hubState.doorToken }, get down() { return hubState.down }, get downCode() { return hubState.downCode }, get downFact() { return hubState.downFact } }
   const hubAccess = access
   surface = new AgentSurface({
@@ -1264,9 +1315,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   const hostWindow = (): HostWindow => ({ watchingSince, suspended: suspendedIntervals, sourceHealthy: true })
 
   handle(IPC.metaInfo, async (e): Promise<Returns<FabricApi['meta']['info']>> => {
-    const win = BrowserWindow.fromWebContents(e.sender)
-    const sessionId = [...sessionWindows.entries()].find(([, w]) => w === win)?.[0] ?? null
-    const filePath = [...fileWindows.entries()].find(([, w]) => w === win)?.[0] ?? null
+    // Which window this is comes from the one record the bridge is authorised by (CO-091), so the
+    // window a renderer draws and the calls it is allowed cannot disagree.
+    const me = windowKinds.entry(e.sender.id)
+    const sessionId = me?.kind === 'session' ? (me.subject ?? null) : null
+    const filePath = me?.kind === 'editor' ? (me.subject ?? null) : null
     const read = installedBuild()
     // The ESTATE's schema version, not this build's. Counting the local
     // migrations directory would answer with the artifact's own number, and
@@ -3637,9 +3690,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const r = await run
       return r.error ? null : (r.count ?? 0)
     }
-    const [first, projects, sessions, tasksClosed, facts, decisions, grants, events] =
+    const [first, operatorMembership, projects, sessions, tasksClosed, facts, decisions, grants, events] =
       await Promise.all([
         store.select('journal', 'occurred_at').eq('estate_id', ACTIVE_ESTATE).order('seq').limit(1).maybeSingle(),
+        // CO-242: an estate the seed repair gave the operator started, for them, at the repair.
+        store.select('memberships', 'created_at, changed_by').eq('estate_id', ACTIVE_ESTATE).eq('person_id', LOCAL_OPERATOR_PERSON).maybeSingle(),
         count(store.select('projects', 'id', head).eq('estate_id', ACTIVE_ESTATE)),
         count(store.select('session_transcripts', 'session_id', head).eq('estate_id', ACTIVE_ESTATE)),
         count(store.select('project_tasks', 'id', head).eq('estate_id', ACTIVE_ESTATE).in('status', ['done', 'cancelled'])),
@@ -3649,7 +3704,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         count(store.select('journal', 'seq', head).eq('estate_id', ACTIVE_ESTATE))
       ])
     return {
-      tenure: tenureFrom((first.data?.occurred_at as string | undefined) ?? null, new Date()),
+      tenure: tenureFrom(operatorStartedAt((operatorMembership.data as { created_at?: string; changed_by?: string | null } | null) ?? null)
+        ?? (first.data?.occurred_at as string | undefined) ?? null, new Date()),
       projects,
       sessions,
       tasksClosed,
@@ -4424,7 +4480,7 @@ function openSessionWindow(sessionId: string): void {
     width: 1000,
     height: 680,
     title: session ? `${session.optionId} · ${session.cwd}` : 'Session',
-    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true }
+    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('session')] }
   })
   const target = rendererTarget(`session=${sessionId}`)
   if (target.url) void w.loadURL(target.url)
@@ -4432,7 +4488,9 @@ function openSessionWindow(sessionId: string): void {
   sessionWindows.set(sessionId, w)
   // Read now: after 'closed' the window's webContents is destroyed and reading it throws.
   const contentsId = w.webContents.id
+  windowKinds.register(contentsId, { kind: 'session', subject: sessionId })
   w.on('closed', () => {
+    windowKinds.forget(contentsId)
     revokeWindowRoots(contentsId)
     sessionWindows.delete(sessionId)
   })
@@ -4456,14 +4514,16 @@ function openFileWindow(requested: string): void {
     width: 1000,
     height: 720,
     title: filePath,
-    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true }
+    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('editor')] }
   })
   const target = rendererTarget(`file=${encodeURIComponent(filePath)}`)
   if (target.url) void w.loadURL(target.url)
   else void w.loadFile(target.file!, { search: target.search })
   fileWindows.set(filePath, w)
   const contentsId = w.webContents.id
+  windowKinds.register(contentsId, { kind: 'editor', subject: filePath })
   w.on('closed', () => {
+    windowKinds.forget(contentsId)
     revokeWindowRoots(contentsId)
     // Only this window's entry: a crashed window being replaced must not remove its replacement.
     if (fileWindows.get(filePath) === w) fileWindows.delete(filePath)
@@ -4477,15 +4537,17 @@ function createWindow(): void {
     width: 1440,
     height: 900,
     title: 'Fabric',
-    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true }
+    webPreferences: { preload: path.join(import.meta.dirname, '../preload/index.cjs'), sandbox: true, additionalArguments: [windowKindArg('main')] }
   })
   // Read now, not in 'closed': by then webContents is destroyed, and the TypeError it threw raised
   // Electron's modal error box, so quitting the app hung on it (found in the C5 real-app run).
   const contentsId = mainWindow.webContents.id
+  windowKinds.register(contentsId, { kind: 'main' })
   // A request that waited while Fabric was in the background is shown when the window comes forward (UX-3).
   mainWindow.on('focus', () => hub?.presenter.resume())
   mainWindow.on('show', () => hub?.presenter.resume())
   mainWindow.on('closed', () => {
+    windowKinds.forget(contentsId)
     // A folder this window was allowed to reach does not outlive it (S02.roots).
     revokeWindowRoots(contentsId)
     mainWindow = null

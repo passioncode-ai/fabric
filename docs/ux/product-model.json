@@ -32136,7 +32136,7 @@
       "coverage": "apps/desktop/src/main/accessService.ts, apps/desktop/src/main/consentPresenter.ts, apps/desktop/src/main/hubTools.ts, apps/desktop/src/renderer/src/AgentAccessPanel.tsx, apps/desktop/src/renderer/src/launch/ObligationActs.tsx",
       "registry_status": "draft",
       "product_observation": "unobserved",
-      "expected_result": "The agent works within what was allowed, nothing wider; every decision and every call is in the journal.",
+      "expected_result": "The agent works within what was allowed, nothing wider; every decision and every call that reached (or may have reached) a product is in the journal; a call Fabric stopped before forwarding is journalled once per kind in a ten-minute window and the rest of that window's are counted in one summary (CO-200).",
       "errors_recovery": "An unreadable access list is said in SCR-76 with Try again, never \"no agent has access\", and without the transport's wording. A decision on an expired or already answered request is refused, and the refusal is said in the operator's language. A mailbox with an invisible or look-alike character (not printable ASCII) is refused before any prompt, so what is shown is exactly what is granted. A hub whose port is taken says why in SCR-76; sessions Fabric starts keep working.",
       "source": {
         "file": "docs/ux/scenarios.md",

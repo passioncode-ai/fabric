@@ -331,8 +331,14 @@ test('agent.call outside the grant is access-required with the request arguments
   assert.equal(elsewhere.structuredContent.error.code, 'unknown-callee')
   assert.equal(h.inbox.seen.length, 0)
   assert.equal(h.reads(), 0, 'the secret was read for a call that was refused')
-  assert.deepEqual(h.events.map((e) => e.payload.outcome), ['refused', 'refused', 'refused', 'refused', 'refused'])
+  // CO-200: one span for the first refusal of each code in its window; the binding's two further access-required
+  // refusals are counted and written as one summary (here at flush, as at quit).
+  assert.deepEqual(h.events.map((e) => [e.type, e.payload.error_code]), [['hub.call.forwarded@1', 'access-required'],
+    ['hub.call.forwarded@1', 'invalid-arguments'], ['hub.call.forwarded@1', 'unknown-callee']])
+  assert.deepEqual(h.events.map((e) => e.payload.outcome), ['refused', 'refused', 'refused'])
   assert.equal(h.events[0].payload.trace_incomplete, true)
+  await h.call.flush()
+  assert.deepEqual(h.events.slice(3).map((e) => [e.type, e.payload.error_code, e.payload.suppressed]), [['hub.call.refusals.summarized@1', 'access-required', 2]])
   h.inbox.close()
 })
 

@@ -166,7 +166,7 @@ if (arg('--prepare')) {
     if (!allowed) audit('blocked-network', { scheme: details.url.split(':')[0] })
     callback({ cancel: !allowed })
   })
-  const win = new BrowserWindow({ width: 1280, height: 900, title: 'Fabric · AD02 isolated acceptance', webPreferences: { preload: path.join(desktop, 'out/preload/index.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, session: isolated } })
+  const win = new BrowserWindow({ width: 1280, height: 900, title: 'Fabric · AD02 isolated acceptance', webPreferences: { preload: path.join(desktop, 'out/preload/index.cjs'), additionalArguments: ['--fabric-window-kind=main'] /* the main window's bridge (CO-091) */, contextIsolation: true, sandbox: true, nodeIntegration: false, session: isolated } })
   win.on('page-title-updated', event => event.preventDefault())
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
   win.webContents.on('will-navigate', event => event.preventDefault())

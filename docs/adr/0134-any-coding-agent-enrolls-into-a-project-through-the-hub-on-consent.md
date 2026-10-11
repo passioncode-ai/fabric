@@ -54,3 +54,24 @@ chose (D-03) the full working set in a project, on one consent per agent and pro
 - The harness audit, 2026-10-10 (the plan, F-01; `agentSurface.ts#mint`, `hubTools.ts#HUB_TOOLS`, `hub.ts#publishHub`, `hub.ts#withdrawHub`).
 - CLIs measured 2026-10-11: Claude Code 2.1.296 `claude mcp add --scope user <name> -- <cmd>`; Codex 0.162.1
   `codex mcp add <name> -- <cmd>`.
+
+## Amendments
+
+### Amendment 1 — 2026-10-11: what wave 1 built
+
+- **The binding credential of an enrolled coding agent is a 0600 file, not a vault entry.** `fabric-mcp` keeps it in
+  Fabric's registry root, `enrollments/<runner>.credential`, beside the door token, written atomically with the
+  owner-only ACL on Windows (`hub.ts#writeAtomic`). ADR-0115 §2 stores a product agent's credential in Observatory's
+  vault; a coding agent has no vault of its own and the vault is absent on Windows (CO-245), and the file sits on the
+  same same-user floor as the door token (CO-090). Revoked, it is deleted and the agent asks again.
+- **`fabric.session.enroll` is also a door tool, and there it only names the project.** Through the door it answers
+  `needs-grant` with the folder's project (so the agent can ask for exactly that resource) and never a session; with
+  a binding it mints the session (`sessionEnroll.ts#enrollSession`).
+- **The enrollment ask rides ADR-0115's flow unchanged**: callee `fabric`, capability `session.enroll`, one resource
+  `project:<uuid>`; the asker is a runner of the catalogue, refused before any prompt otherwise
+  (`accessService.ts`, region `session-enroll-request`); the prompt names the agent and the project
+  (`accessWords.ts#consentPrompt`).
+- **Found on the way and fixed:** the desktop journal refused every hub event (CO-254) — see that row.
+- **Proved end to end** with a real MCP client over stdio against the built app on a disposable stack: waiting before
+  consent, the operator's Allow, the session's tools, `fabric_whoami` naming the project, and a restart that keeps
+  working without asking (0.4.0 wave 1 verification).

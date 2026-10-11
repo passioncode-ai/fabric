@@ -209,6 +209,15 @@ order, so a 0.3.0 database goes **75 → 79 in one step** (migrations 76, 77, th
 the order a fresh install applies them), with no 0.3.1 in between. Once a database is at 79 only 0.3.2 or later
 opens it. Read your schema first (step 2) and use that number wherever `FROM` appears below.
 
+**0.4.0 (in development) admits schema 80**: `20261011000082_write_rules_at_the_door.sql` moves the hub's write rules
+out of replay (CO-201) and registers the refusal summary (CO-200). The procedure is the same with 80 in place of 79. A
+database at 79 upgrades in order (82 sorts after 81), which `scripts/check-migration-order.mjs` holds for every
+later migration (CO-199): no new filename may sort below the newest one recorded in `supabase/migration-ledger.json`.
+At start, 0.4.0 also retires the old seed's second owner `…0002` from a database the 0.3.4 repair gave the local
+operator — a revoke through the membership door (`desktop-bootstrap:seed-retire`, compare-and-set at the revision read),
+never a delete, and only while that membership is still the seed's own and its person has no sign-in — and the
+profile's "Running for N days" counts from the repair, not from the failed install (CO-242, `seedRepair.ts#retireSeedOwner`).
+
 1. Stop Fabric and every enrolled writer/adapter. A quiet window does not prove the database has
    no writers: inspect the registered services and database connections. Do not upgrade beneath
    another running session. Keep the installed database at its schema until a verified signed X.Y.Z

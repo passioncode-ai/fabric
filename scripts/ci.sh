@@ -58,6 +58,12 @@ node --test scripts/test/check-regions.test.mjs
 # off macOS (0.3.4 verification, iteration 1, DO-9).
 node --test scripts/test/universal-mac.test.mjs
 node scripts/check-regions.mjs
+# CO-199 (0.4.0 wave 1): migrations apply in the order they were merged. supabase/migration-ledger.json records each
+# applied file with its bytes; a file sorting below the newest recorded one is refused with the number to renumber
+# past, an applied file edited or removed is refused, and against origin/main (when this clone has it) the ledger
+# there is a prefix of this one.
+node --test scripts/test/check-migration-order.test.mjs
+if git rev-parse --verify -q origin/main >/dev/null; then node scripts/check-migration-order.mjs --base origin/main; else node scripts/check-migration-order.mjs; fi
 
 step "probe templates"
 # 2026-10-01. The public re-creation of the history left receipts addressing commits a fresh
@@ -597,14 +603,15 @@ step "owned-cluster suites: each starts its own PostgreSQL and touches no other 
 # which the hosted fast runner does not have, and together they take ~94 s on this Mac
 # (2026-10-03 measured baseline: 3–32 s each, 11 of 11 exit 0). The hub upgrade rehearsal
 # additionally starts from ledger counts 75 and 77, preserves seeded rows, upgrades to count 78
-# (suffix 80) and dump/restores only its owned cluster. In this tier a runner that cannot run (exit 2,
+# (suffix 80) and dump/restores only its owned cluster. The write-rules suite (migration 82, CO-199/CO-201) plants events
+# a count-76/77 database accepted, upgrades it, rebuilds, and compares its schema with a fresh one. In this tier a runner that cannot run (exit 2,
 # NOT_RUN) fails it: the full tier is the one whose job is the database.
 # Every runner runs even when one fails (release review iteration 2): the step fails once, at the end,
 # naming each runner that did not pass.
 owned_failed=()
 for suite in run-board-deferral-db run-ceo-conversation-db run-ceo-host-sql run-ceo-private-archive-db \
   run-command-ingress-db run-dispatch-db run-managed-launch-db run-managed-stop-db run-releases-db \
-  run-restore-authority-db run-transcript-recovery-db run-hub-upgrade-db run-project-board-db; do
+  run-restore-authority-db run-transcript-recovery-db run-hub-upgrade-db run-project-board-db run-write-rules-db; do
   if ! node "apps/desktop/test/$suite.mjs"; then
     echo "FAIL: $suite (exit non-zero; exit 2 is NOT_RUN — set FABRIC_PG_BIN to PostgreSQL 17 binaries)"
     owned_failed+=("$suite")
@@ -651,6 +658,11 @@ step "every probe, including the ones that need the database"
 # stopped it at the first failure, so three failures that day hid ~50 desktop suites. The runner splits
 # the chains, runs every link, and fails at the end listing each failure (scripts/run-test-chains.mjs).
 node scripts/with-timeout.mjs "${FABRIC_FULL_TIMEOUT_S:-2700}" -- node scripts/run-test-chains.mjs
+
+step "fresh and upgraded are one schema (CO-199, CO-201)"
+# A second disposable stack at migration count 76, given an event that door accepted, upgraded with the runbook's
+# `supabase migration up --local`, rebuilt from its journal and compared with this tier's fresh stack.
+node scripts/probe-fresh-vs-upgraded.mjs
 
 step "residue the probes left — in the disposable stack, read-only"
 # Informational: the same report the operator can run against the live database, here showing

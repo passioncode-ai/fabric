@@ -1110,7 +1110,8 @@
   "register": "carry-over",
   "node": "C1",
   "wave": "W1",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave1": "recorded in ADR-0134"
  },
  {
   "id": "CO-091",
@@ -1127,7 +1128,8 @@
   ],
   "node": "C1",
   "wave": "W1",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave1": "ipcWindowPolicy.ts#CHANNEL_RULES, live launch 2026-10-11"
  },
  {
   "id": "CO-092",
@@ -1274,8 +1276,8 @@
    "embedded browser"
   ],
   "node": "C10",
-  "wave": "W1",
-  "release": "0.4.0"
+  "wave": "after-0.4.0",
+  "release": "program"
  },
  {
   "id": "CO-103",
@@ -2699,7 +2701,8 @@
   "register": "carry-over",
   "node": "C2",
   "wave": "W1",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave1": "migration-ledger.json + check-migration-order.mjs (1fe366b5)"
  },
  {
   "id": "CO-200",
@@ -2713,7 +2716,8 @@
   "register": "carry-over",
   "node": "C1",
   "wave": "W1",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave1": "ADR-0142, hubCall.ts#notSentSpan (844edb4a)"
  },
  {
   "id": "CO-201",
@@ -2729,7 +2733,8 @@
   "register": "carry-over",
   "node": "C2",
   "wave": "W1",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave1": "migration 82 refuse_hub_write_rules (0ee7a290)"
  },
  {
   "id": "CO-202",
@@ -3200,7 +3205,7 @@
    "Windows/Linux port"
   ],
   "node": "C11",
-  "wave": "W1",
+  "wave": "W7",
   "release": "0.4.0"
  },
  {
@@ -3218,7 +3223,8 @@
   ],
   "node": "C11",
   "wave": "W1",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave1": "port merged into 0.4.0 (a7c12e19); ships with the release"
  },
  {
   "id": "CO-239",
@@ -3260,7 +3266,8 @@
   "register": "carry-over",
   "node": "C2",
   "wave": "W1",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave1": "seedRepair.ts#retireSeedOwner (c6c146fc)"
  },
  {
   "id": "CO-244",
@@ -5141,8 +5148,8 @@
    "embedded browser"
   ],
   "node": "C10",
-  "wave": "W1",
-  "release": "0.4.0"
+  "wave": "after-0.4.0",
+  "release": "program"
  },
  {
   "id": "M76",
@@ -5906,7 +5913,8 @@
   "register": "AR plan",
   "node": "C1",
   "wave": "W1",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave1": "fabric.session.enroll + fabric-mcp (8376105e); agent.call routing unchanged"
  },
  {
   "id": "AR-3.10",
@@ -5949,7 +5957,7 @@
   "notes": "",
   "register": "AR plan",
   "node": "C1",
-  "wave": "W1",
+  "wave": "W3",
   "release": "0.4.0"
  },
  {
@@ -7537,7 +7545,8 @@
   ],
   "node": "C11",
   "wave": "W1",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave1": "merged a7c12e19"
  },
  {
   "id": "P-16.W2",
@@ -7556,7 +7565,8 @@
   ],
   "node": "C11",
   "wave": "W1",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave1": "merged a7c12e19"
  },
  {
   "id": "P-16.W3",
@@ -7575,7 +7585,8 @@
   ],
   "node": "C11",
   "wave": "W1",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave1": "merged a7c12e19"
  },
  {
   "id": "P-16.W4",
@@ -7614,7 +7625,8 @@
   ],
   "node": "C11",
   "wave": "W1",
-  "release": "0.4.0"
+  "release": "0.4.0",
+  "closedInWave1": "merged a7c12e19"
  },
  {
   "id": "NOID-01",
@@ -7678,7 +7690,7 @@
    "Windows/Linux port"
   ],
   "node": "C11",
-  "wave": "W1",
+  "wave": "W7",
   "release": "0.4.0",
   "newId": "CO-250",
   "newIdNote": "new carry-over row"
@@ -7697,7 +7709,7 @@
    "Windows/Linux port"
   ],
   "node": "C11",
-  "wave": "W1",
+  "wave": "W7",
   "release": "0.4.0",
   "newId": "CO-251",
   "newIdNote": "new carry-over row"
@@ -8901,8 +8913,8 @@
    "embedded browser"
   ],
   "node": "C10",
-  "wave": "W1",
-  "release": "0.4.0"
+  "wave": "after-0.4.0",
+  "release": "program"
  },
  {
   "id": "SCN-078",
@@ -10514,8 +10526,8 @@
    "embedded browser"
   ],
   "node": "C8",
-  "wave": "W1",
-  "release": "0.4.0"
+  "wave": "after-0.4.0",
+  "release": "program"
  },
  {
   "id": "AX15-REQ-005",
