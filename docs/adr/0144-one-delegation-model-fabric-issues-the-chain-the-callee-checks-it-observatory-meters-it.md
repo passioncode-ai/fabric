@@ -204,3 +204,22 @@ Asked by project-observatory-3d while building the meter (OBS-55); decided here 
   `jti`.
 - **The meter's name.** Agent `project-observatory`, capability `grant.check` (effect `none`), declared in its service
   descriptor; the onward token for it has `aud` `project-observatory` and scope `grant.check`.
+
+### Amendment 2 — 2026-10-11: the task window's key; a vault slot released under a grant
+
+Asked by fabric-agent-contract-75 (the review of DEC-0041, PR #32) and by project-observatory-3d (OBS-57).
+
+- **The task window's key, superseding amendment 1's sentence.** The meter keys the `task` window on the token's
+  `task` claim; else on the first `act.session` found walking the chain from the outermost actor of the token presented
+  to it; else on the **grant itself** (`grant:<ref>`), so spend with no task and no session shares one window per grant.
+  Never on the request's `tokenJti`: that field is unsigned, so a callee could open a fresh window with every check and
+  pass the L2 limit. Fail closed: the widest window.
+- **A vault slot is released under a grant that names it (OBS-57).** `use_secret.py run` releases a slot only to a
+  delegation token with `aud` `project-observatory`, scope `secret.use`, effect `none`, whose grant's
+  `spend.credentialSource` is `{kind: project-key, ref: "<project>/<env>/<NAME>"}` for exactly that slot; a `capability`
+  source never releases a slot (the owner's capability is called instead). The value enters only the child process's
+  environment. The token arrives in the environment variable `FABRIC_DELEGATION_TOKEN`, which `use_secret.py` reads
+  and removes before `exec`, never logged and never in argv. The agent using the slot mints that token from the hub
+  under its own grant, or onward from the token of the work it is doing on someone's behalf. Refusals: `no-grant`,
+  `credential-source-refused` (the token's project is not the slot's), `principal-unproven`, `grant-revoked` /
+  `grant-expired` from the projection, `unknown-state` when the projection cannot be read.
