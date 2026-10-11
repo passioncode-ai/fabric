@@ -97,22 +97,24 @@ function shell(agentEnv = {}) {
   })
   let shown = ''
   proc.stdout.on('data', (c) => { shown += c }); proc.stderr.on('data', (c) => { shown += c })
-  const exit = new Promise((resolve) => proc.on('exit', (code, signal) => resolve({ code, signal })))
+  let ended = false
+  const exit = new Promise((resolve) => proc.on('exit', (code, signal) => { ended = true; resolve({ code, signal }) }))
   const agent = () => (existsSync(pidFile) ? Number(readFileSync(pidFile, 'utf8')) : null)
   live.add(() => { try { proc.kill('SIGKILL') } catch { /* gone */ } const p = agent(); if (p) { try { process.kill(p, 'SIGKILL') } catch { /* gone */ } } rmSync(dir, { recursive: true, force: true }) })
-  return { proc, exit, shown: () => shown, agent }
+  return { proc, exit, shown: () => shown, agent, ended: () => ended }
 }
 
 test('acp-shell.js from the bundle drives the agent through its brief turn and exits 0 at the end of input', async () => {
   const sh = shell()
-  assert.ok(await waitFor(() => sh.shown().includes('echo:BRIEF'), 30_000), `no brief turn from the packaged shell:\n${sh.shown()}`)
+  // A shell that exits first (a missing entry, a binary that will not run as Node) fails at once, not at the bound.
+  assert.ok(await waitFor(() => sh.shown().includes('echo:BRIEF') || sh.ended(), 30_000) && sh.shown().includes('echo:BRIEF'), `no brief turn from the packaged shell:\n${sh.shown()}`)
   sh.proc.stdin.end()
   assert.deepEqual(await sh.exit, { code: 0, signal: null }, sh.shown())
 })
 
 test('acp-shell.js from the bundle: its reaper (<binary> -e, Node mode) ends the agent when the shell is SIGKILLed', async () => {
   const sh = shell({ FAKE_ACP_STUBBORN: '1' })
-  assert.ok(await waitFor(() => sh.shown().includes('echo:BRIEF') && sh.agent(), 30_000), `no brief turn from the packaged shell:\n${sh.shown()}`)
+  assert.ok(await waitFor(() => (sh.shown().includes('echo:BRIEF') && sh.agent()) || sh.ended(), 30_000) && sh.agent() && !sh.ended(), `no brief turn from the packaged shell:\n${sh.shown()}`)
   const agent = sh.agent()
   sh.proc.kill('SIGKILL')
   await sh.exit
