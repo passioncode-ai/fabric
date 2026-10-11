@@ -1,6 +1,6 @@
 // A database a fresh install of 0.2.0 or 0.3.0–0.3.3 made is opened, and nothing else is given away (CO-241, ADR-0131).
 import assert from 'node:assert/strict'
-import { EVENT_READ_LIMIT, LEGACY_SEED_PERSON, repairSeedOnlyEstate, seedOnlyProblem, seedRepairDb } from '../src/main/seedRepair.ts'
+import { EVENT_READ_LIMIT, LEGACY_SEED_PERSON, SEED_REPAIR_BY, SEED_RETIRE_BY, operatorStartedAt, repairSeedOnlyEstate, retireSeedOwner, seedOnlyProblem, seedRepairDb, seedRetireDb, seedRetireProblem } from '../src/main/seedRepair.ts'
 import { DEFAULT_ESTATE } from '../src/main/activeEstate.ts'
 import { LOCAL_OPERATOR_PERSON } from '../src/main/identity.ts'
 
@@ -130,5 +130,97 @@ assert.deepEqual(await run(fakeDb({ receipt: { status: 'conflict', says: 'this m
   const maxRows = Number(/^max_rows\s*=\s*(\d+)/m.exec(toml)?.[1])
   assert.ok(Number.isInteger(maxRows), 'supabase/config.toml names max_rows')
   assert.ok(EVENT_READ_LIMIT + 1 <= maxRows, `the repair reads ${EVENT_READ_LIMIT + 1} rows, more than the API returns (${maxRows})`)
+}
+// ── CO-242: the old seed's `…0002` is retired from a repaired estate, through the door ─────────────────────────
+const me = { person_id: LOCAL_OPERATOR_PERSON, role: 'owner', revision: 1, changed_by: SEED_REPAIR_BY, created_at: '2026-10-10T09:00:00Z' }
+const old = { person_id: LEGACY_SEED_PERSON, role: 'owner', revision: 1, changed_by: null, created_at: '2026-10-08T07:00:00Z' }
+const noSignIn = { auth_user: null }
+const retireShape = (members, legacy = noSignIn, estateId = DEFAULT_ESTATE) => seedRetireProblem({ estateId, members, operator: LOCAL_OPERATOR_PERSON, legacy })
+assert.equal(retireShape([me, old]), null, 'the shape the repair leaves: the operator made owner by the repair, beside the seed\'s untouched owner')
+assert.deepEqual(retireShape([me]), { why: 'the old seed\'s person is not a member', left: true }, 'once retired, every later start leaves it')
+assert.match(retireShape([{ ...me, changed_by: 'migration:subject-resolution' }, old]).why, /not given by the seed repair/,
+  'an estate the operator was given another way (migration 58, the bootstrap) keeps its members')
+assert.match(retireShape([{ ...me, role: 'member' }, old]).why, /not an owner/, 'the operator must already own it: a revoke never leaves it ownerless')
+assert.match(retireShape([me, { ...old, revision: 2 }]).why, /changed since the seed wrote it/, 'a membership somebody changed is a decision')
+assert.match(retireShape([me, { ...old, changed_by: 'invite:accepted' }]).why, /changed since the seed wrote it/)
+assert.match(retireShape([me, old], { auth_user: '7000000a-0000-4000-8000-0000000000aa' }).why, /can sign in/, 'a person who signs in is a person, not a seed row')
+assert.match(retireShape([me, old], null).why, /could not be found/)
+assert.match(retireShape([me, old], noSignIn, '7000000a-0000-4000-8000-000000000009').why, /not the default estate/)
+assert.ok([[me], [{ ...me, changed_by: 'x' }, old]].every((m) => retireShape(m).left === true), 'a shape refusal is the rule leaving the estate, not a failure')
+
+const retireDb = ({ members = [me, old], legacy = noSignIn, membersError = null, legacyError = null, receipt = { status: 'committed', action: 'revoke', revision: 1 }, revokeError = null } = {}) => {
+  const calls = []
+  return {
+    calls,
+    async memberDetails(estateId) { calls.push(['memberDetails', estateId]); return { data: membersError ? null : members, error: membersError } },
+    async legacyPerson() { calls.push(['legacyPerson']); return { data: legacyError ? null : legacy, error: legacyError } },
+    async revoke(input) { calls.push(['revoke', input]); return { data: revokeError ? null : receipt, error: revokeError } }
+  }
+}
+const RETIRE = '7c9e6679-7425-40de-944b-e07fc1f90ae7'
+const retire = (db) => retireSeedOwner(db, { estateId: DEFAULT_ESTATE, operator: LOCAL_OPERATOR_PERSON, commandId: RETIRE })
+{
+  const db = retireDb()
+  assert.deepEqual(await retire(db), { retired: true })
+  assert.deepEqual(db.calls.at(-1), ['revoke', { estateId: DEFAULT_ESTATE, personId: LEGACY_SEED_PERSON, commandId: RETIRE, expectedRevision: 1 }],
+    'the revoke names the seed\'s person, at the revision read')
+}
+{
+  const db = retireDb({ members: [{ ...me, changed_by: 'x' }, old] })
+  const out = await retire(db)
+  assert.equal(out.retired, false); assert.equal(out.left, true)
+  assert.ok(!db.calls.some(([k]) => k === 'revoke'), 'nothing is revoked when the shape does not hold')
+}
+assert.deepEqual(await retire(retireDb({ membersError: { message: 'timeout' } })), { retired: false, why: 'the estate\'s members could not be read: timeout' },
+  'a failed read is said, and is not `left`: it is recorded')
+assert.deepEqual(await retire(retireDb({ legacyError: { message: 'permission denied' } })), { retired: false, why: 'the old seed\'s person could not be read: permission denied' })
+assert.deepEqual(await retire(retireDb({ revokeError: { message: 'permission denied' } })), { retired: false, why: 'the membership could not be revoked: permission denied' })
+assert.deepEqual(await retire(retireDb({ receipt: { status: 'conflict', says: 'this membership changed while the decision was being made; read it again' } })),
+  { retired: false, why: 'the membership door said conflict: this membership changed while the decision was being made; read it again' },
+  'a membership that moved between the reading and the revoke is not removed')
+{
+  const db = retireDb()
+  db.memberDetails = async () => { throw new Error('socket hang up') }
+  assert.deepEqual(await retire(db), { retired: false, why: 'the retirement could not run: socket hang up' })
+}
+// The reads and the revoke as they go to the stack: through change_membership, a revoke at the read revision.
+{
+  const log = []
+  const builder = (table) => {
+    const b = { table }
+    for (const m of ['select', 'eq', 'maybeSingle']) b[m] = (...a) => { log.push([table, m, ...a]); return b }
+    b.then = (ok) => ok({ data: [], error: null })
+    return b
+  }
+  const client = { from: (t) => builder(t), rpc: async (name, args) => { log.push(['rpc', name, args]); return { data: { status: 'committed' }, error: null } } }
+  const real = seedRetireDb(client)
+  await real.memberDetails(DEFAULT_ESTATE); await real.legacyPerson()
+  await real.revoke({ estateId: DEFAULT_ESTATE, personId: LEGACY_SEED_PERSON, commandId: RETIRE, expectedRevision: 1 })
+  assert.deepEqual(log, [
+    ['memberships', 'select', 'person_id, role, revision, changed_by, created_at'], ['memberships', 'eq', 'estate_id', DEFAULT_ESTATE],
+    ['persons', 'select', 'auth_user'], ['persons', 'eq', 'id', LEGACY_SEED_PERSON], ['persons', 'maybeSingle'],
+    ['rpc', 'change_membership', { p_command_id: RETIRE, p_estate_id: DEFAULT_ESTATE, p_target_person: LEGACY_SEED_PERSON,
+      p_role: null, p_action: 'revoke', p_expected_revision: 1, p_changed_by: SEED_RETIRE_BY }]
+  ])
+}
+// The operator's tenure: a repaired estate counts from the repair, every other from its first event.
+assert.equal(operatorStartedAt(me), '2026-10-10T09:00:00Z')
+assert.equal(operatorStartedAt({ ...me, changed_by: 'estate.created@1' }), null)
+assert.equal(operatorStartedAt({ ...me, created_at: null }), null)
+assert.equal(operatorStartedAt(null), null)
+// The wiring: after the identity gate admitted the operator, before the retry point and the hub; the estate summary
+// reads the operator's membership for the tenure.
+{
+  const { readFileSync } = await import('node:fs')
+  const src = readFileSync(new URL('../src/main/index.ts', import.meta.url), 'utf8')
+  const at = (needle, from = 0) => { const i = src.indexOf(needle, from); assert.ok(i >= 0, `index.ts no longer has: ${needle}`); return i }
+  const refusalAt = at('throw new Error(`identity could not be established: ${gate.says}`')
+  const retireAt = at('await retireSeedOwner(seedRetireDb(db)')
+  assert.ok(refusalAt < retireAt, 'the retirement runs only once identity is established')
+  assert.ok(retireAt < at('pastRetryPoint = true') && retireAt < at('await startHub('), 'and before the retry point and the hub')
+  assert.ok(at('if (retire.retired || !retire.left)') > retireAt, 'a failure is recorded; a shape the rule leaves is not')
+  const summaryAt = at('handle(IPC.estateSummary')
+  assert.ok(at("store.select('memberships', 'created_at, changed_by')", summaryAt) > summaryAt, 'the summary reads the operator\'s membership')
+  assert.ok(at('tenure: tenureFrom(operatorStartedAt(', summaryAt) > summaryAt, 'and the tenure starts at the repair when there was one')
 }
 console.log('seed-repair: all green')
