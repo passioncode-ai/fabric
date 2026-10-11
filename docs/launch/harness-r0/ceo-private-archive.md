@@ -677,3 +677,12 @@ main-process file handling roundtrips on an owned Unix-only cluster. The exact o
 [the root I3 receipt](../../handoffs/hub-i3-ingress-archive-receipts/archive-green3.log).
 The real running app and the operator database remain NOT_RUN. `ceo-private-archive-codec.test.mjs`
 also preserves 77 acceptance and 79 refusal; removing 78 is caught by a recorded guard-removal patch.
+
+## Schema-80 compatibility qualification — 2026-10-11
+
+Migration `20261011000082_write_rules_at_the_door.sql` is schema count 80 (Fabric 0.4.0 wave 1, CO-200/CO-201). It
+registers `hub.call.refusals.summarized@1`, so a schema-80 journal may carry it and only a schema that registers it
+can restore it. The native allowlist and type in `apps/desktop/src/main/ceoPrivateArchive.ts` symbol
+`PRIVATE_ARCHIVE_LIMITS` now read 66–80, and the SQL import (`ceo_private_archive_canonical`) accepts the same; the
+next unqualified schema 81 refuses before digest admission (`apps/desktop/test/ceo-private-archive-codec.test.mjs`).
+`node apps/desktop/test/run-ceo-private-archive-db.mjs` exit 0 on 2026-10-11 against the 80-migration chain.

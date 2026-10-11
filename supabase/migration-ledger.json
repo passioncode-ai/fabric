@@ -317,6 +317,10 @@
     {
       "file": "20261005000081_project_board.sql",
       "sha256": "3ea445d4bd013c7cab3be963d98cca3e8e9c630761be259bf625a861368766a7"
+    },
+    {
+      "file": "20261011000082_write_rules_at_the_door.sql",
+      "sha256": "f62152279dc748f0a5523880ecfd3639f7ee2555a50a03bd4d45227540b93e6f"
     }
   ]
 }

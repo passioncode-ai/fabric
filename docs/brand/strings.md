@@ -555,6 +555,7 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `access.connect.previousLost` | The previous connection was already replaced, so {name} is not connected now; connect it again. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 
 | `event.hub.call.forwarded@1` | an agent’s call was passed to a product | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
+| `event.hub.call.refusals.summarized@1` | an agent’s repeated calls that never reached a product were counted | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | shipped |
 | `access.saw` | What Fabric saw: {detail} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.allowConnectFor` | Allow and connect {product} for {name} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.allowedConnectHere` | Allowed. Connect it in the products section above. {problem} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |

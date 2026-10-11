@@ -19,6 +19,7 @@ export const en = {
   'event.product.connect.refused@1': 'a product declined or failed to connect to Fabric',
   'event.product.disconnected@1': 'a product was disconnected from Fabric',
   'event.hub.call.forwarded@1': 'an agent’s call was passed to a product',
+  'event.hub.call.refusals.summarized@1': 'an agent’s repeated calls that never reached a product were counted',
   'event.comms.message_submitted@1': 'a project sent a message to other projects',
   'event.comms.read_acked@1': 'a project marked a message from another project as read',
   'digest.kind.capture': 'session captured',
