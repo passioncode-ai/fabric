@@ -45,7 +45,7 @@ Facts from the [audit](2026-10-11-roll-call-audit.md) §1 and §5; "step" refers
 | frame-agent (-84) | per-caller tokens by CLI; calls Copylot and Foundry with their descriptor tokens; global daily cap | accept the token instead of `client add` for estate agents; calls to Copylot/Foundry through minted tokens (no descriptor tokens); forward `traceparent` (it only echoes it); per-caller caps from the grant; BL-057 by the kit's session lifetime | 4, 5 |
 | mobile-publisher-agent (-61) | one agent token; sends Foundry's own service-token file to Foundry; Copylot session token + owner header | stop sending Foundry's token — mint for Foundry and Copylot; accept the token on its own MCP (`auth:"own"` stays for people); plan-hash approval → `approval/1` when the approver is reached from another agent | 4, 5, 6 |
 | sshlg-growth (-79) | a bearer per role; one unscoped revenue token beside per-producer ones | roles become capability sets on the wire; accept the token; retire the unscoped revenue token (per-producer only) | 4 |
-| traffic-growth-agent (-af) | per-client `SurfaceToken` with scopes; shared Prowl token; $50/month global | accept the token, its scopes = capabilities; per-caller limits from the grant; Prowl through Prowl's own per-key model (an outside provider: its key stays, held by the owner) | 4 |
+| traffic-growth-agent (-af) | per-client `SurfaceToken` with scopes; shared Prowl token; $50/month per account (tenant), provider spend only — corrected by its owner, `packages/providers/src/budget.ts` `MONTHLY_CEILING_USD` | accept the token, its scopes = capabilities; per-caller limits from the grant; Prowl through Prowl's own per-key model (an outside provider: its key stays, held by the owner) | 4 |
 | appvillis-dataroom-agent (-b1) | `Principal(consumer, scopes)`; relay with a shared env token | accept the token, scopes = capabilities; relay token per producer | 4 |
 | sshlg-brand-agent (-85, -a8) | `service.token` on the feed only; board without auth (AU1); HMAC grant key shared with webpilot; falls back to webpilot's shared token | board behind the token (AU1); calls to webpilot through minted tokens, no fallback; HMAC grants → `approval/1` (the shared key retired with webpilot) | 4, 5, 6 |
 | sshlg-personal-os (-62) | local-lifecycle: credential hash × tools × targets; communicator: one token; adops-bot confirm-gate | lifecycle accepts the token beside its policy (its `allowedCallers` = the grant's actor); communicator accepts the token; adops-bot confirm-gate → `approval/1` for agent callers | 4, 6 |
@@ -69,3 +69,29 @@ Facts from the [audit](2026-10-11-roll-call-audit.md) §1 and §5; "step" refers
 Each owning session receives its row with a link to ADR-0144 and this page, and the instruction that nothing changes on
 the wire before steps 1–2, except one rule that holds now: **no new code calls a capability with another service's
 descriptor token** — existing calls keep working until that caller's step 5. fabric-workspace-91 records each decision id in `knowledge/authority.md` and RM-03.
+
+## Rows filed by the owners (2026-10-11)
+
+Each owner filed its row on its own board and named it back; the status lives there.
+
+| Agent | Row | Where |
+|---|---|---|
+| copylot-agent | AU-07 (SP-01 refers to it) | ssheleg/copylot-agent `docs/BACKLOG.md`, `abd8e33` |
+| project-observatory | OBS-55, OBS-57, OBS-62 (owner: the -3d session; it also answers the signing key's vault slot) | passioncode-ai/project-observatory-dashboard PR #201 |
+| fabric-dashboards | FD-44 (step 5), FD-45 (Fabric's floating button, REQ-42) | fabric-dashboards `main`, #84 and #85 |
+| fabric-inbox | B-83 | passioncode-ai/fabric-inbox PR #69, `4a06957` |
+| asset-foundry | B-56 | ssheleg/asset-foundry PR #111 |
+| sshlg-growth | RB-33 (the unscoped revenue token's retirement waits on Screen2Shot's own producer token) | `feat/config-foundation`, `94f5875` |
+| traffic-growth-agent | B-001 | PROWL-AI/traffic-growth-agent PR #14, `343b0b0f` |
+| appvillis-dataroom-agent | DR-003 | ssheleg/appvillis-dataroom-agent `docs/backlog.md` |
+| sshlg-brand-agent | AU7 (closes AU1 when done) | `main`, `f6f892b` |
+| sshlg-personal-os | BL-1117 | PR #253, `5c32def8` |
+| nicegramappbot | FD1 | `main`, `98a2785` |
+| sshlg-analytics-agent | W-13 | `docs/plans/WORKPLAN.md`, `2738a16`, `28554f1` |
+| webpilot | BL-015 | branch `claude/fabric-service-20261005`, `1994eeb` |
+| mobile-publisher-agent | BL-360 | PR #41, `6ab0af5` |
+| agent-stack (sshlg-skills) | B-155, the interop doctrine | ssheleg/agent-stack#42 |
+
+**A ruling for step 5, asked by fabric-dashboards:** `POST /fabric/v1/login-code` is the host's operation — the contract
+lists the login code among the descriptor token's host uses (`service.md` §Surfaces) — so a host minting a sign-in for
+the dashboard it shows keeps using the descriptor token; it is not a capability call.
