@@ -1807,15 +1807,15 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
   3. Operator reads the result → three facts are shown separately: *history restored*, *access to the new Estate verified*, *not opened yet*. The restored Estate has no queued work, no running agent and no restored grant.
   4. Operator chooses Open this Estate → Fabric records it as the active Estate and restarts into it; after the restart the Estate is shown as *opened*.
 - **Expected result:** Past work is back as history in its own Estate, owned by the operator who restored it, with nothing restarted or re-sent.
-- **Alt paths:** The operator can stay in the current Estate and open the restored one later. A restore whose reply was lost is looked up by the same operation and returns the same Estate, never a second one. A member who is not the owner of the control Estate cannot restore.
-- **UI elements:** archive picker; verification result with reason; restore confirmation naming the new Estate; three result facts; Open this Estate with restart notice.
+- **Alt paths:** The operator can stay in the current Estate and open the restored one later: every Estate this Mac restored for them, other than the one open, is listed under "Restored Estates you can open". A restore whose reply was lost is looked up by the same operation and returns the same Estate, never a second one; it stays listed under "Restores waiting for a result" with Check again after the panel closes or Fabric restarts. A member who is not the owner of the control Estate cannot restore.
+- **UI elements:** archive picker; verification result with reason; restore confirmation naming the new Estate; three result facts; Open this Estate with restart notice; restores waiting for a result; restored Estates you can open.
 - **States covered:** empty, verifying, refused, restoring, result-unknown, history-restored, access-verified, opening, opened, denied, error
-- **Errors & recovery:** Any failure rolls the whole restore back: no half-created Estate, owner or history. A result that is unknown is checked with the same operation ID. Revoked or changed ownership of the control Estate refuses the restore. The word "backup" is not used until end-to-end restore has been accepted.
+- **Errors & recovery:** Any failure rolls the whole restore back: no half-created Estate, owner or history. A result that is unknown is checked with the same operation ID. Revoked or changed ownership of the control Estate refuses the restore. A call that fails ends in a refusal or a Check again, never on "Restoring…"; an archive file that cannot be read again is refused with its operation, which stays checkable. Fabric keeps its own private copy of the archive from before the first call until the result is known, so moving the original does not lose the restore. A failed Open keeps the restored result, names why and can be tried again. The word "backup" is not used until end-to-end restore has been accepted.
 - **Telemetry:** no new product telemetry; the operation receipt is the record.
 - **Implementation tasks:** A1-3, A1-6 of the [first-slice plan](../evidence/plans/2026-09-27-first-slice-plan.md); S12, S14.
 - **Prototype:** [target prototype](../reports/product.html#screen-SCR-48) — fictional fixture; not product coverage.
 - **Status:** draft
-- **Coverage:** `apps/desktop/src/main/backup.ts` — ordinary archive verification and low-level restore only; no owner wrapper, no UI.
+- **Coverage:** `apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (restore section, pending and restored lists), `apps/desktop/src/main/privateHistory.ts#restore` / `#pending` / `#restoredEstates`, `restore_estate_verified`, `apps/desktop/src/main/activeEstate.ts`. Tests: `PrivateHistoryPanel.test.tsx`, `apps/desktop/test/private-history-service.test.mjs`, `apps/desktop/test/private-history-native-db.test.mjs` (owned cluster), `apps/desktop/test/active-estate.test.mjs`.
 - **Product:** unobserved
 
 ### SCN-066: Return from authentication to the same invitation with current membership
@@ -2532,14 +2532,14 @@ SCN-031/059/094: уход из знакомства не считается вы
   2. After restoring an Estate, operator chooses Import private history and picks the file → Fabric checks that it is this person's history for exactly this restored Estate before writing anything.
   3. Operator confirms → the conversations come back as history: *history restored; nothing will be sent*. No draft, pending send or agent work is revived.
 - **Expected result:** Each person carries their own private history between installations; nobody else's history and no authority travels with it.
-- **Alt paths:** Another person imports their own file into the same restored Estate independently. Cancelling leaves nothing half-written. A result that is unknown is looked up with the same operation, never repeated blindly.
+- **Alt paths:** Another person imports their own file into the same restored Estate independently: an archive whose private history belongs to someone else is still restored, and the result says *private history not imported: it belongs to someone else* (ADR-0079 §4). Cancelling leaves nothing half-written. A result that is unknown is looked up with the same operation, never repeated blindly.
 - **UI elements:** Export private history; Import private history; file picker; verification result with reason; confirmation; result with "nothing will be sent".
 - **States covered:** empty, exporting, exported, export-refused, verifying, refused, importing, result-unknown, imported, denied, error
-- **Errors & recovery:** Refusals name a fixed reason without showing any message text, digest or path: stale (history changed during export), not this person's history, not this Estate, altered, incomplete, too large, unsupported version, already imported. A failed import leaves the restored Estate usable with private history unavailable. The file is kept until the import result is known.
+- **Errors & recovery:** Refusals name a fixed reason without showing any message text, digest or path: stale (history changed during export), not this person's history, not this Estate, altered, incomplete, too large, unsupported version, already imported. A failed import leaves the restored Estate usable with private history unavailable: the result says *restored; private history not imported: <reason>*, and the Estate can be opened. The file is kept until the import result is known — Fabric's own private copy, taken before the first call.
 - **Telemetry:** no new product telemetry; the import receipt is the record.
 - **Implementation tasks:** A1-1, A1-2, A1-4, A1-6 of the [first-slice plan](../evidence/plans/2026-09-27-first-slice-plan.md).
 - **Status:** draft
-- **Coverage:** none yet
+- **Coverage:** import is fused with restore (SCN-065): `apps/desktop/src/main/privateHistory.ts#exportHistory` / `#restore`, `apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx`. Tests: `apps/desktop/test/private-history-service.test.mjs`, `apps/desktop/test/private-history-native-db.test.mjs`, `apps/desktop/test/private-history-db.test.mjs` (owned cluster), `PrivateHistoryPanel.test.tsx`. No separate Import private history action yet.
 - **Product:** unobserved
 
 ### Target refinement · 2026-09-26 · team visibility and one conversation
