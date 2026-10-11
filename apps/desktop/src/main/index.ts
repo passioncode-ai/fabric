@@ -3401,6 +3401,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     if (!privateHistory || typeof operationId !== 'string') return historyUnavailable
     return await privateHistory.check(operationId) as Returns<FabricApi['history']['check']>
   })
+  // A5-014, A3-005: what waits for a result and what can still be opened are main's files, not the panel's state.
+  handle(IPC.historyPending, (): Returns<FabricApi['history']['pending']> => privateHistory?.pending() ?? [])
+  handle(IPC.historyRestored, (): Returns<FabricApi['history']['restored']> => privateHistory?.restoredEstates() ?? [])
   handle(IPC.historyOpen, (_e, estateId: unknown): Returns<FabricApi['history']['open']> => {
     // Only an Estate this machine restored for this Person, never any id the renderer names.
     if (!privateHistory || typeof estateId !== 'string' || !privateHistory.restored().includes(estateId)) return { ok: false, reason: 'not_restored_here' }
