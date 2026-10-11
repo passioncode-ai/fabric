@@ -63,5 +63,10 @@ export const SURFACE_TOOLS: readonly SurfaceTool[] = [
   { name: 'fabric_effect_request', purpose: 'Ask to spend, delete or publish — refused until a person agrees', records: true },
   { name: 'fabric_task_accept', purpose: 'Confirm you hold the instruction that was sent, by its digest (M103)', records: true },
   { name: 'fabric_heartbeat', purpose: 'Say what you are doing, so silence stops being ambiguous (ADR-0040)', records: true },
-  { name: 'fabric_effect_report', purpose: 'Say what happened to a permitted act — a claim, never a receipt (ADR-0050)', records: true }
+  { name: 'fabric_effect_report', purpose: 'Say what happened to a permitted act — a claim, never a receipt (ADR-0050)', records: true },
+  // Claims (REQ-38): who works on what here, before the work starts; a warning for related work, a lock for none.
+  { name: 'fabric_work_list', purpose: 'Who is working on what in this project: claims, sessions, open tasks, agent-sync leases', records: false },
+  { name: 'fabric_work_claim', purpose: 'Claim your task before you start, and hear about related work others hold', records: true },
+  { name: 'fabric_work_release', purpose: 'End a claim — done, handed over or let go — or every claim of this session', records: true },
+  { name: 'fabric_session_observe', purpose: 'A turn’s commit and change counts, or the session’s end — from the session hooks, never content', records: true }
 ]

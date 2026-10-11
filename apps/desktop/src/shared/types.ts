@@ -21,6 +21,12 @@ import type { Digest, DigestBoundary } from './digest.ts'
 import type { SearchGroup } from './search.ts'
 import type { Lineage } from './decisions.ts'
 import type { SurfaceTool } from './surfaceTools.ts'
+import type { ProjectWorkView, WhereWorkView } from './workClaims.ts'
+
+/** What an operator's release of a claim answered. */
+export type OperatorRelease =
+  | { released: true; claimId: string }
+  | { released: false; reason: 'not-found' | 'already-released' | 'unconfirmed' }
 import type { Tenure } from './tenure.ts'
 
 export type { Tenure }
@@ -1480,6 +1486,13 @@ export interface FabricApi {
       category?: string
     ): Promise<MemoryFact[]>
   }
+  /** Claims (REQ-38): who is working on what — a project's (SCR-31) and the estate's (SCR-78 «Where work is»). */
+  work: {
+    project(projectId: string): Promise<ProjectWorkView>
+    estate(): Promise<WhereWorkView>
+    /** The operator ends one claim; the agent is told on its next call. */
+    release(claimId: string): Promise<OperatorRelease>
+  }
   terminal: {
     options(): Promise<LaunchOption[]>
     /** The fallback order's choice right now (ADR-0125): what a launch with `FALLBACK_OPTION` would run. */
@@ -1683,6 +1696,9 @@ export const IPC = {
   terminalOpen: 'terminal:open',
   terminalList: 'terminal:list',
   terminalClaims: 'terminal:claims',
+  workProject: 'work:project',
+  workEstate: 'work:estate',
+  workRelease: 'work:release',
   terminalGet: 'terminal:get',
   terminalScrollback: 'terminal:scrollback',
   terminalWrite: 'terminal:write',
