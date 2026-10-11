@@ -2765,7 +2765,8 @@
   "node": "C1",
   "wave": "W1",
   "release": "0.4.0",
-  "keptInWave0": "not stale — a code fix: productConnect.ts still fails the pending attempt on a state-less POST (invalid() on 415); belongs to wave 1"
+  "keptInWave0": "not stale — a code fix: productConnect.ts still fails the pending attempt on a state-less POST (invalid() on 415); belongs to wave 1",
+  "closedInWave1": "86c5a86c"
  },
  {
   "id": "CO-204",
@@ -2794,7 +2795,8 @@
   "node": "C1",
   "wave": "W1",
   "release": "0.4.0",
-  "keptInWave0": "not stale — a code fix: accessService refreshes the whole registry on every request, agentRegistry.ts readdirSync has no cap; belongs to wave 1 (with AR-2)"
+  "keptInWave0": "not stale — a code fix: accessService refreshes the whole registry on every request, agentRegistry.ts readdirSync has no cap; belongs to wave 1 (with AR-2)",
+  "closedInWave1": "953df64c"
  },
  {
   "id": "CO-206",
@@ -2809,7 +2811,8 @@
   "node": "C1",
   "wave": "W1",
   "release": "0.4.0",
-  "keptInWave0": "not stale — a code fix: accessStore has no AbortSignal deadline; needs the stalled-database probe; wave 1"
+  "keptInWave0": "not stale — a code fix: accessStore has no AbortSignal deadline; needs the stalled-database probe; wave 1",
+  "closedInWave1": "b6f2ece6"
  },
  {
   "id": "CO-207",
@@ -2824,7 +2827,8 @@
   "node": "C1",
   "wave": "W1",
   "release": "0.4.0",
-  "keptInWave0": "not stale — a UX fix: AgentAccessPanel afterAllow returns null for a plain Allow, Deny has none; wave 6"
+  "keptInWave0": "not stale — a UX fix: AgentAccessPanel afterAllow returns null for a plain Allow, Deny has none; wave 6",
+  "closedInWave1": "64038781"
  },
  {
   "id": "CO-210",

@@ -4398,7 +4398,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-113-134.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "closed 2026-10-11, b4937398, consentPresenter.ts#ConsentPresenter.liveConnected"
   },
   {
    "id": "A6-037",
@@ -4438,7 +4439,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-113-134.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "closed 2026-10-11, 86c5a86c, productConnect.ts#PREDECESSOR_REFUSED"
   },
   {
    "id": "A6-039",
@@ -4500,7 +4502,8 @@
    "release": "0.4.0",
    "waveWhy": "node C1",
    "source": "docs/reports/2026-10-05-release-032-audit/raw/2026-10-05-scn-113-134.md",
-   "status": "open"
+   "status": "closed",
+   "receipt": "closed 2026-10-11, 3159c91d, accessStore.ts#requestsByIds"
   },
   {
    "id": "A6-042",
