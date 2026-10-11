@@ -15,6 +15,7 @@
 // ONE PROMPT AT A TIME. Requests that arrive while one is open wait their turn, and a request that
 // expired or was answered elsewhere (the queue, the settings list) is skipped rather than shown.
 
+import { homedir } from 'node:os'
 import { FABRIC_SELF, pendingFacts } from '../shared/access.ts'
 import type { ConnectProblem } from '../shared/access.ts'
 import type { AccessActRefusal } from '../shared/accessActs.ts'
@@ -116,7 +117,8 @@ export class ConsentPresenter {
   }
 
   private facts(request: ConsentRequest, connected = request.connected) {
-    return pendingFacts(request.row, connected)
+    // The home folder lets the prompt shorten an enrollment's folder to ~/… (accessWords).
+    return pendingFacts(request.row, connected, homedir())
   }
 
   // #region hub-consent-live-connection — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#2-an-agent-is-admitted-by-device-style-consent-not-by-a-pasted-key
