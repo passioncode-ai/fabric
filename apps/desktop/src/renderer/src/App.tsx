@@ -21,6 +21,7 @@ import { EditorWindow } from './EditorWindow'
 import { EstateHome } from './EstateHome'
 import { mergeDraft, type TaskDraft } from '../../shared/taskDraft.ts'
 import { BoardScreen } from './launch/BoardScreen'
+import { CommsScreen } from './launch/CommsScreen'
 import { PersonaProvider } from './launch/persona'
 import { PlanScreen } from './launch/PlanScreen'
 import { PulseScreen } from './launch/PulseScreen'
@@ -629,9 +630,10 @@ function Shell({
       <LaunchShell
         estateName={estateName}
         projects={projects}
-        at={showSettings ? { kind: 'settings' } : active.kind === 'board' ? { kind: 'board' } : active.kind === 'plan' ? { kind: 'plan' } : active.kind === 'pulse' || active.kind === 'releases' ? { kind: 'pulse' } : active.kind === 'help' || active.kind === 'guide' ? { kind: 'help' } : active.kind === 'quota' ? { kind: 'quota' } : active.kind === 'project' ? { kind: 'project', projectId: active.projectId, section: projectSection } : active.kind === 'agents' ? { kind: 'agents' } : active.kind === 'draft' ? { kind: 'draft' } : active.kind === 'start' ? { kind: 'start' } : active.kind === 'welcome' ? { kind: 'welcome' } : { kind: 'home' }}
+        at={showSettings ? { kind: 'settings' } : active.kind === 'board' ? { kind: 'board' } : active.kind === 'comms' ? { kind: 'comms' } : active.kind === 'plan' ? { kind: 'plan' } : active.kind === 'pulse' || active.kind === 'releases' ? { kind: 'pulse' } : active.kind === 'help' || active.kind === 'guide' ? { kind: 'help' } : active.kind === 'quota' ? { kind: 'quota' } : active.kind === 'project' ? { kind: 'project', projectId: active.projectId, section: projectSection } : active.kind === 'agents' ? { kind: 'agents' } : active.kind === 'draft' ? { kind: 'draft' } : active.kind === 'start' ? { kind: 'start' } : active.kind === 'welcome' ? { kind: 'welcome' } : { kind: 'home' }}
         onHome={() => { setShowSettings(false); setActive({ kind: 'home' }); setWorkspaceFor(null) }}
         onBoard={() => { setShowSettings(false); setActive({ kind: 'board' }) }}
+        onComms={() => { setShowSettings(false); setActive({ kind: 'comms' }) }}
         onPlan={() => { setShowSettings(false); setActive({ kind: 'plan' }) }}
         onNewProject={() => { setShowSettings(false); goTo({ kind: 'start', path: 'menu' }) }}
         onProject={(projectId: string, section: ProjectSection) => {
@@ -707,6 +709,9 @@ function Shell({
             onError={setError}
             onPulse={() => setActive({ kind: 'pulse', projectId: active.projectId ?? null })}
           />
+        )}
+        {active.kind === 'comms' && (
+          <CommsScreen projects={projects} onPulse={() => setActive({ kind: 'pulse' })} />
         )}
         {active.kind === 'quota' && (
           <div className="lp" data-launch-view="quotas">
@@ -1007,7 +1012,7 @@ function SettingsBar({
 
 /** The route as a tab, where it is one. The agents view and the board are not. */
 function tabOf(route: AppRoute): Tab | null {
-  return route.kind === 'agents' || route.kind === 'board' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'quota' || route.kind === 'welcome' || route.kind === 'start' ? null : route
+  return route.kind === 'agents' || route.kind === 'board' || route.kind === 'comms' || route.kind === 'plan' || route.kind === 'pulse' || route.kind === 'releases' || route.kind === 'persona' || route.kind === 'help' || route.kind === 'guide' || route.kind === 'quota' || route.kind === 'welcome' || route.kind === 'start' ? null : route
 }
 
 function keyOf(tab: Tab): string {

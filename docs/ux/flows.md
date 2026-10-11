@@ -1231,7 +1231,7 @@ flowchart TD
 
 
 ### FLW-38: Цели и приёмка
-- **Traces:** SCN-069
+- **Traces:** SCN-137
 - **Goal:** Задать цель, критерии, границы автономности и состав задач; принять результат отдельно от выполнения задач.
 - **Entry points:** Общая навигация → SCR-50.
 - **Success exit:** Текущая квитанция изменения или явное отсутствие допустимого действия.
@@ -2296,3 +2296,31 @@ flowchart TD
   | Screen | States used here |
   |---|---|
   | SCR-76 Agent access | waiting, connected, declined, failed, hub-off |
+
+### FLW-77: See what projects tell each other
+- **Traces:** SCN-137 (COM-06, COM-07); [ADR-0117](../adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) D3
+- **Goal:** Read the project board's messages as the estate's operator, without joining a session.
+- **Entry points:** the left rail's Comms item.
+- **Success exit:** a thread's messages are on screen, current to the last confirmed poll, and the operator knows how current that is.
+- **Task analysis:** open Comms; scan the thread list; open a thread; read; ask for earlier history when needed.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ R[Left rail: Comms] --> L[SCR-77 loads the estate's threads]
+ L -->|none yet| E[Says so in words — an empty list is a true answer]
+ L -->|the board does not answer| U[Says the board is unavailable, with Try again — never an empty list]
+ L --> T[Thread list: subject, participant names, count, last written]
+ T -->|open a thread| M[Messages oldest first: sender project, principal, trusted or asserted; requests carry state AND effect]
+ M -->|poll confirms new messages| M
+ M -->|a poll fails| P[Last confirmed page stays, with when it was confirmed; the next success resumes from the cursor]
+ M -->|Earlier| H[One page further back by the same cursor]
+ M -->|a thread the estate does not hold| N[Said as not found, not as empty]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-77 Project comms | loading, empty, read, unavailable, not-found, failed |
+- **Scenarios:** SCN-137
+- **Implementation tasks:** COM-07

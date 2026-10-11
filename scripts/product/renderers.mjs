@@ -229,6 +229,23 @@ function renderProductBody(view, state, model, f) {
     case 'restore':
       body=title('Восстановление проекта','Сначала проверка целостности и актуальных прав, затем разрешённое возобновление.',link('К хранению','sync'))+panel('Снимок Atlas · пример',row('Журнал и проекции','Согласованная точка восстановления',badge('Проверено'))+row('Identity и operational','Сопоставление с текущим control plane',badge('Требует проверки'))+row('Артефакты','Хэши и наличие проверены',badge('Проверено'))+row('Исходящие действия','Заблокированы на время восстановления',badge('Quarantine')))+note('Восстановлено для чтения','Старая копия не возвращает отозванные права. Без подтверждения текущей authority generation проект останется доступен только для чтения.',action('Проверить условия возобновления','restore-check',true),'warning')+disclosure('Доставки и незавершённые эффекты','<p>Каждый intent с неизвестным исходом сверяется с квитанцией. Повторная отправка по одному только старому снимку запрещена.</p>')
       break
+    case 'project-comms':
+      // SCR-77 · SCN-137 · FLW-77 (COM-06/07): the operator READS the project board. Read-only by
+      // scenario — no write control is drawn. A request's state and effect are two labels, the way
+      // the contract keeps them; provenance (trusted/asserted) is shown per message.
+      body=title('Переписка проектов','Что проекты пишут друг другу на доске — глазами оператора, read-only (SCN-137).',link('К обзору','estate'),'Подтверждено 09:42 · опрос курсором')
+        +`<div class="two-col main-wide"><div>${panel('Треды',table(['Тред','Участники','Сообщений'],[
+          ['Ретеншен за неделю','Growth ↔ Analytics','4'],
+          ['Сводка для рассылки','Growth → Finance','2'],
+          ['Проверка onboarding-воронки','Analytics ↔ Growth','7']
+        ]))}</div><aside>${panel('Читает оператор','<p>Сообщения хранит доска; экран показывает её ответ, а не свой кэш. При сбое опроса остаётся последняя подтверждённая страница с временем.</p>')}</aside></div>`
+        +panel('Ретеншен за неделю · тред',
+          row('Growth · агент Builder','«Посчитай 7-дневный retention и приложи запрос.» — request · capability analytics.retention',badge('state: accepted')+badge('effect: started'))
+          +row('Analytics · агент Reviewer','«Принял, считаю.» — reply · trusted','')
+          +row('Analytics · агент Reviewer','«7-дневный retention 38%…» — finding · trusted','')
+          +row('0fce…9a2b','Сообщение осталось; тело удалено отдельной командой (redacted)',badge('redacted','warning')))
+        +note('Недоступная доска — не пустой список','Если доска не отвечает, экран говорит unavailable с «Try again»; пустая страница показывается только когда тредов правда нет.',action('Раньше','comms-earlier')+action('Повторить','comms-retry'))
+      break
     default:
       body=renderExtended(view,{...state,verified,stopRequested},model,f,{panel,title,field,select,disclosure,note,table,row,action,link,badge,source,eventRows,projectName})
   }

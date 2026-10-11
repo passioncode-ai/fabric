@@ -1,0 +1,4 @@
+{"ts":"2026-10-11T01:03:04.991Z","rpc":"initialize","id":0,"authHeader":"present","authOk":true,"params":["protocolVersion","capabilities","clientInfo"]}
+{"ts":"2026-10-11T01:03:05.001Z","rpc":"notifications/initialized","id":null,"authHeader":"present","authOk":true,"params":[]}
+{"ts":"2026-10-11T01:03:05.007Z","rpc":"tools/list","id":1,"authHeader":"present","authOk":true,"params":["_meta"]}
+{"ts":"2026-10-11T01:03:15.041Z","rpc":"tools/call","id":2,"authHeader":"present","authOk":true,"params":["_meta","name","arguments"]}

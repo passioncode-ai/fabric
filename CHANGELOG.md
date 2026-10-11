@@ -6,6 +6,26 @@ that section as the notes of the `vX.Y.Z` release
 ([docs/launch/release-mac.md](docs/launch/release-mac.md), [ADR-0111](docs/adr/0111-fabric-is-released-from-ci.md)).
 Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.json`](docs/releases/fabric-0.2.0-mac.json).
 
+## Unreleased
+
+### Added
+
+- **Codex and Kimi Code connect to Fabric's surface.** Sessions of both get the project-board tools
+  (`com.submit`, `com.list`, `com.get`, `com.read_ack`, `com.status`) like Claude Code, Kilo Code and Hermes
+  Agent before them — each through the way its own probe verified ([report](docs/reports/2026-10-11-codex-kimi-surface-probes/README.md)):
+  Kimi Code over ACP with HTTP MCP (no bridge), Codex through an isolated per-session `CODEX_HOME` whose server
+  name and token variable are random per session, because a project `.codex/config.toml` shadows any name it
+  knows. One residue, recorded as CO-247: Codex 0.162.1 has no `--ignore-project-config`, so a project can still
+  add MCP servers of its own — as it already could before Codex connected. Cline stays unconnected: its ACP
+  `session/new` demands a sign-in no probe has passed.
+- **The project board is visible to the operator: the Comms screen** (SCR-77, SCN-137). The left rail gains
+  Comms / «Переписка»: the estate's threads and messages read with your own eyes — sender, principal and its
+  provenance per message, a request's state and effect as two separate labels, live by cursor polling; a board
+  that does not answer says so, never an empty list. Read-only by design; the read goes through two new SQL
+  functions (migration 80 — **schema 79 → 80**; an existing database upgrades once, per the
+  [runbook](docs/launch/release-mac.md#upgrading-an-existing-database)), sanctioned for the
+  local estate by [ADR-0117](docs/adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) (D3).
+
 ## 0.3.4
 
 Fabric starts on a new Mac, and one download now serves Apple silicon and Intel Macs. Every fresh install since 0.2.0

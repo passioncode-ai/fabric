@@ -78,9 +78,10 @@ export interface LaunchShellProps {
   estateName: string
   projects: ProjectRow[] | null
   /** Where the operator is, for the current marker and the breadcrumb. */
-  at: { kind: 'home' } | { kind: 'board' } | { kind: 'plan' } | { kind: 'pulse' } | { kind: 'help' } | { kind: 'quota' } | { kind: 'agents' } | { kind: 'settings' } | { kind: 'draft' } | { kind: 'start' } | { kind: 'welcome' } | { kind: 'project'; projectId: string; section?: ProjectSection }
+  at: { kind: 'home' } | { kind: 'board' } | { kind: 'comms' } | { kind: 'plan' } | { kind: 'pulse' } | { kind: 'help' } | { kind: 'quota' } | { kind: 'agents' } | { kind: 'settings' } | { kind: 'draft' } | { kind: 'start' } | { kind: 'welcome' } | { kind: 'project'; projectId: string; section?: ProjectSection }
   onHome(): void
   onBoard(): void
+  onComms(): void
   onPlan(): void
   onHelp(): void
   onQuota(): void
@@ -130,6 +131,7 @@ export function LaunchShell(props: LaunchShellProps): React.JSX.Element {
           <div className="calm-main-nav">
             <a href="#" {...current(at.kind === 'home')} onClick={e => { e.preventDefault(); props.onHome() }}>{t('launch.nav.fabric')}</a>
             <a href="#" {...current(at.kind === 'board')} onClick={e => { e.preventDefault(); props.onBoard() }}>{t('launch.nav.board')}</a>
+            <a href="#" {...current(at.kind === 'comms')} onClick={e => { e.preventDefault(); props.onComms() }}>{t('launch.nav.comms')}</a>
             <a href="#" {...current(at.kind === 'plan')} onClick={e => { e.preventDefault(); props.onPlan() }}>{t('launch.nav.plan')}</a>
             <a href="#" {...current(at.kind === 'draft' || at.kind === 'start')} onClick={e => { e.preventDefault(); props.onNewProject() }}>{t('launch.nav.newProject')}</a>
           </div>

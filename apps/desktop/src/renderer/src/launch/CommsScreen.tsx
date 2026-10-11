@@ -1,0 +1,366 @@
+// #region comms-screen — docs: docs/ux/screens.md#scr-77-project-comms
+// Comms (SCR-77 · SCN-137): what projects tell each other, read by the operator with
+// their own eyes. The name is Comms, not Board — the kanban owns that word
+// (launch.nav.board), and ADR-0117 amendment 1 kept "board" out of user-facing text
+// until this screen was designed.
+//
+// The rules the scenario sets, held here:
+//
+// - READ-ONLY. No write control: the operator reads; reply/stop/pause arrive with
+//   their own scenarios, and no button here promises a recovery the contract does
+//   not support.
+// - UNAVAILABLE IS NOT EMPTY. A board that did not answer says so with Try again;
+//   an empty thread list is rendered only from the board's own true answer.
+// - THE SCREEN SHOWS THE BOARD'S TRUTH, never a renderer's cache of it: every read
+//   goes to the RPC, polling continues from the cursor, and a failed poll keeps the
+//   last confirmed page on screen WITH the time it was confirmed — the next success
+//   resumes from the cursor, so a dropped read recovers without the operator.
+// - A request's state and effect are TWO labels, the way the contract keeps them;
+//   a principal's provenance (trusted / asserted) is shown as the board holds it.
+
+import { useEffect, useRef, useState } from 'react'
+import type { CommsMessage, CommsReadError, CommsThread } from '../../../shared/commsRead.ts'
+import type { ProjectRow } from '../../../shared/types'
+import { since } from '../duration'
+import { useLocale, useT, type Translate } from '../i18n'
+import { en, type StringKey } from '../i18n/en'
+import { FabricStrip } from './FabricStrip'
+
+// The board is the record; polling is the v1 wake-up, on the feed's own clock (ADR-0027,
+// FEED_POLL_MS in App.tsx).
+const COMMS_POLL_MS = 2500
+/** One page, bounded like the board's own pages (migration 80 caps the RPC at 100). */
+const PAGE = 50
+/** How much of a first message stands in for a missing subject (SCN-137 step 1). */
+const FIRST_WORDS = 12
+
+const shortId = (id: string): string => (id.length > 12 ? `${id.slice(0, 8)}…` : id)
+
+/** A machine word the contract owns (request state/effect, provenance, message kind),
+ *  in the operator's language where this build knows it, raw where it does not — a
+ *  value from a newer schema reads as itself, never as a blank and never as the key. */
+const contractWord = (t: Translate, group: string, value: string): string => {
+  const key = `launch.comms.${group}.${value}`
+  return key in en ? t(key as StringKey) : value
+}
+
+const firstWordsOf = (text: string): string => {
+  const words = text.trim().split(/\s+/).slice(0, FIRST_WORDS).join(' ')
+  return text.trim().split(/\s+/).length > FIRST_WORDS ? `${words}…` : words
+}
+
+export function CommsScreen({ projects, onPulse }: {
+  /** Participant names resolve through this list; null while unread, and an id the
+   *  estate no longer holds renders as its short form rather than as nothing. */
+  projects: ProjectRow[] | null
+  onPulse?: () => void
+}): React.JSX.Element {
+  const t = useT()
+  const locale = useLocale()
+  const nameOf = (id: string): string => (projects ?? []).find((p) => p.id === id)?.name ?? shortId(id)
+
+  const [threads, setThreads] = useState<CommsThread[] | null>(null)
+  const [threadsError, setThreadsError] = useState<CommsReadError | null>(null)
+  const [threadsConfirmedAt, setThreadsConfirmedAt] = useState<string | null>(null)
+  const [threadsStale, setThreadsStale] = useState(false)
+  const [selected, setSelected] = useState<string | null>(null)
+  /** First words of untitled threads, filled lazily one bounded read per thread. */
+  const [firstWords, setFirstWords] = useState<Record<string, string>>({})
+  const confirmed = useRef(false)
+  const [attempt, setAttempt] = useState(0)
+
+  useEffect(() => {
+    let alive = true
+    const load = async (): Promise<void> => {
+      let reply: Awaited<ReturnType<typeof window.fabric.comms.threads>>
+      try {
+        reply = await window.fabric.comms.threads()
+      } catch (e) {
+        reply = { ok: false, error: { code: 'unavailable', message: e instanceof Error ? e.message : String(e) } }
+      }
+      if (!alive) return
+      if (reply.ok) {
+        confirmed.current = true
+        setThreads(reply.threads)
+        setThreadsError(null)
+        setThreadsConfirmedAt(new Date().toISOString())
+        setThreadsStale(false)
+      } else if (!confirmed.current) {
+        setThreadsError(reply.error)
+      } else {
+        // A failed poll keeps the last confirmed list and says when it was confirmed (SCN-137).
+        setThreadsStale(true)
+      }
+    }
+    void load()
+    const timer = setInterval(() => void load(), COMMS_POLL_MS)
+    return () => { alive = false; clearInterval(timer) }
+  }, [attempt])
+
+  // A thread with no subject is named by its first words: one bounded read per such
+  // thread, cached — never a re-read on every poll.
+  useEffect(() => {
+    if (!threads) return
+    let alive = true
+    for (const thread of threads) {
+      if (thread.subject !== null || firstWords[thread.id] !== undefined) continue
+      void window.fabric.comms.list(thread.id, 0, 1).then((reply) => {
+        if (!alive || !reply.ok) return
+        const text = reply.messages[0]?.body?.text
+        if (text) setFirstWords((m) => (m[thread.id] === undefined ? { ...m, [thread.id]: firstWordsOf(text) } : m))
+      }, () => {})
+    }
+    return () => { alive = false }
+  }, [threads, firstWords])
+
+  const titleOf = (thread: CommsThread): string => thread.subject ?? firstWords[thread.id] ?? t('launch.comms.untitled', { id: shortId(thread.id) })
+  const chosen = threads?.find((thread) => thread.id === selected) ?? null
+  const observed = threadsConfirmedAt
+    ? new Date(threadsConfirmedAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    : null
+
+  return (
+    <div className="lp" data-launch-view="comms">
+      <FabricStrip text={observed ? t('launch.comms.observed', { time: observed }) : t('launch.comms.reading')} onPulse={onPulse} />
+      <header className="lp-heading">
+        <div>
+          <p className="lp-kicker">{t('launch.comms.kicker')}</p>
+          <h2 tabIndex={-1}>{t('launch.comms.title')}</h2>
+          <p>{t('launch.comms.lede')}</p>
+        </div>
+      </header>
+      {threadsError && threads === null ? (
+        // UNAVAILABLE, never an empty list: the board did not answer at all.
+        <div className="lp-callout" role="alert">
+          <b>{t('launch.comms.unavailable', { reason: threadsError.message })}</b>
+          <div className="lp-actions">
+            <button type="button" className="lp-button primary" onClick={() => { confirmed.current = false; setAttempt((a) => a + 1) }}>{t('launch.comms.tryAgain')}</button>
+          </div>
+        </div>
+      ) : (
+        <div className="lp-board-layout">
+          <section className="lp-panel" aria-label={t('launch.comms.threads')}>
+            {threadsStale && observed && (
+              <div className="lp-callout" role="status"><b>{t('launch.comms.pollFailed', { time: observed })}</b></div>
+            )}
+            {threads === null && <p className="lp-meta">{t('launch.comms.reading')}</p>}
+            {threads !== null && threads.length === 0 && (
+              <div className="lp-empty">
+                <h3>{t('launch.comms.empty')}</h3>
+                <p>{t('launch.comms.emptyBody')}</p>
+              </div>
+            )}
+            {threads?.map((thread) => (
+              <button key={thread.id} type="button" className="lp-topic" aria-expanded={selected === thread.id}
+                onClick={() => setSelected(selected === thread.id ? null : thread.id)}>
+                <span>
+                  <span className="lp-topic-title">{titleOf(thread)}</span>
+                  <span className="lp-meta">{thread.participants.map(nameOf).join(', ')}</span>
+                </span>
+                <span className="lp-topic-end">
+                  <span className="lp-pill">{t('launch.comms.messageCount', { count: thread.messageCount })}</span>
+                  <small>{thread.lastAt ? since(thread.lastAt, t) : t('launch.comms.noMessages')}</small>
+                </span>
+                <span aria-hidden="true">{t('glyph.open')}</span>
+              </button>
+            ))}
+          </section>
+          {chosen ? (
+            <ThreadView key={chosen.id} thread={chosen} nameOf={nameOf} onClose={() => setSelected(null)} />
+          ) : (
+            <aside className="lp-panel lp-brief">
+              <p className="lp-kicker">{t('launch.comms.kicker')}</p>
+              <h3>{t('launch.comms.aside.title')}</h3>
+              <p>{t('launch.comms.aside.body')}</p>
+            </aside>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ThreadView({ thread, nameOf, onClose }: {
+  thread: CommsThread
+  nameOf: (id: string) => string
+  onClose: () => void
+}): React.JSX.Element {
+  const t = useT()
+  const locale = useLocale()
+  const [messages, setMessages] = useState<CommsMessage[] | null>(null)
+  const [readError, setReadError] = useState<CommsReadError | null>(null)
+  const [confirmedAt, setConfirmedAt] = useState<string | null>(null)
+  const [pollFailed, setPollFailed] = useState(false)
+  const [historyFailed, setHistoryFailed] = useState(false)
+  const [hasEarlier, setHasEarlier] = useState(false)
+  const [historyBusy, setHistoryBusy] = useState(false)
+  const [attempt, setAttempt] = useState(0)
+  const cursor = useRef(0)
+  /** The after_seq the OLDEST confirmed page was read from; Earlier steps back from it. */
+  const earliestAfter = useRef(0)
+  const confirmed = useRef(false)
+  /** A thread the estate does not hold stops the poll: it cannot recover by asking again. */
+  const gone = useRef(false)
+  // The operator lands at the END of the history: the newest page, walked back with
+  // Earlier (SCN-137 steps 4–5). Seqs are the estate's, so the window is approximate
+  // and the dedupe below is what keeps it exact.
+  const initialAfter = Math.max(0, thread.lastSeq - PAGE)
+
+  useEffect(() => {
+    let alive = true
+    const tick = async (): Promise<void> => {
+      if (gone.current) return
+      const initial = !confirmed.current
+      let reply: Awaited<ReturnType<typeof window.fabric.comms.list>>
+      try {
+        reply = await window.fabric.comms.list(thread.id, initial ? initialAfter : cursor.current, 100)
+      } catch (e) {
+        reply = { ok: false, error: { code: 'unavailable', message: e instanceof Error ? e.message : String(e) } }
+      }
+      if (!alive) return
+      if (reply.ok) {
+        confirmed.current = true
+        cursor.current = reply.lastSeq
+        if (initial) {
+          setMessages(reply.messages)
+          setHasEarlier(initialAfter > 0)
+        } else if (reply.messages.length > 0) {
+          setMessages((prev) => {
+            const have = new Set((prev ?? []).map((m) => m.id))
+            return [...(prev ?? []), ...reply.messages.filter((m) => !have.has(m.id))]
+          })
+        }
+        setConfirmedAt(new Date().toISOString())
+        setPollFailed(false)
+      } else if (reply.error.code === 'not_found') {
+        gone.current = true
+        setReadError(reply.error)
+      } else if (initial) {
+        setReadError(reply.error)
+      } else {
+        setPollFailed(true)
+      }
+    }
+    void tick()
+    const timer = setInterval(() => void tick(), COMMS_POLL_MS)
+    return () => { alive = false; clearInterval(timer) }
+  }, [thread.id, attempt, initialAfter])
+
+  /** One page further back by the same cursor contract, bounded like the board's own pages. */
+  const earlier = async (): Promise<void> => {
+    const after = Math.max(0, earliestAfter.current - PAGE)
+    setHistoryBusy(true)
+    try {
+      const reply = await window.fabric.comms.list(thread.id, after, PAGE)
+      if (!reply.ok) {
+        // A read that fails mid-history keeps the pages already read and refuses the older page only.
+        setHistoryFailed(true)
+        return
+      }
+      setHistoryFailed(false)
+      earliestAfter.current = after
+      setMessages((prev) => {
+        const have = new Set((prev ?? []).map((m) => m.id))
+        const older = reply.messages.filter((m) => !have.has(m.id))
+        if (older.length === 0) setHasEarlier(false)
+        return older.length === 0 ? prev : [...older, ...(prev ?? [])]
+      })
+      if (after === 0) setHasEarlier(false)
+    } catch {
+      setHistoryFailed(true)
+    } finally {
+      setHistoryBusy(false)
+    }
+  }
+
+  const confirmedTime = confirmedAt
+    ? new Date(confirmedAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    : null
+
+  if (readError) {
+    return (
+      <section className="lp-detail" aria-label={t('launch.comms.threads')}>
+        <div className="lp-callout" role="alert">
+          <b>{readError.code === 'not_found' ? t('launch.comms.notFound') : t('launch.comms.unavailable', { reason: readError.message })}</b>
+          {readError.code !== 'not_found' && (
+            <div className="lp-actions">
+              <button type="button" className="lp-button primary" onClick={() => { confirmed.current = false; setReadError(null); setAttempt((a) => a + 1) }}>{t('launch.comms.tryAgain')}</button>
+            </div>
+          )}
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="lp-detail" aria-labelledby="comms-thread-title">
+      <div className="lp-panel-head">
+        <p className="lp-kicker">{thread.participants.map(nameOf).join(', ')}</p>
+        <button type="button" className="lp-button" aria-label={t('launch.comms.close')} onClick={onClose}>{t('glyph.close')}</button>
+      </div>
+      <h3 id="comms-thread-title" tabIndex={-1}>{thread.subject ?? t('launch.comms.untitled', { id: shortId(thread.id) })}</h3>
+      {pollFailed && confirmedTime && (
+        <div className="lp-callout" role="status"><b>{t('launch.comms.pollFailed', { time: confirmedTime })}</b></div>
+      )}
+      {messages === null && <p className="lp-meta">{t('launch.comms.reading')}</p>}
+      {messages !== null && messages.length === 0 && <p className="lp-meta">{t('launch.comms.threadEmpty')}</p>}
+      {messages !== null && messages.length > 0 && (
+        <>
+          {hasEarlier ? (
+            <div className="lp-actions">
+              <button type="button" className="lp-button" disabled={historyBusy} onClick={() => void earlier()}>{t('launch.comms.earlier')}</button>
+            </div>
+          ) : (
+            <p className="lp-meta">{t('launch.comms.historyStart')}</p>
+          )}
+          {historyFailed && <div className="lp-callout" role="status"><b>{t('launch.comms.historyFailed')}</b></div>}
+          {messages.map((m) => (
+            <MessageRow key={m.id} message={m} nameOf={nameOf} t={t} locale={locale} />
+          ))}
+          <div className="lp-panel-foot">
+            <span>{confirmedTime ? t('launch.comms.confirmed', { time: confirmedTime }) : t('launch.comms.reading')}</span>
+          </div>
+        </>
+      )}
+    </section>
+  )
+}
+
+function MessageRow({ message: m, nameOf, t, locale }: {
+  message: CommsMessage
+  nameOf: (id: string) => string
+  t: Translate
+  locale: string
+}): React.JSX.Element {
+  const principal = m.sender.principal
+  const principalText = principal ? (principal.label ?? principal.id ?? principal.kind ?? null) : null
+  return (
+    <article className="lp-topic" data-comms-kind={m.kind}>
+      <span>
+        <span className="lp-topic-title">{nameOf(m.sender.project)}</span>
+        <span className="lp-meta">
+          {[principalText, new Date(m.at).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })].filter(Boolean).join(' · ')}
+        </span>
+      </span>
+      <span className="lp-topic-end">
+        {principal?.provenance && <span className="lp-pill">{contractWord(t, 'provenance', principal.provenance)}</span>}
+        {m.kind !== 'message' && <span className="lp-pill">{contractWord(t, 'kind', m.kind)}</span>}
+      </span>
+      {m.replyTo && <p className="lp-meta">{t('launch.comms.replyTo', { id: shortId(m.replyTo) })}</p>}
+      {m.request && (
+        <dl className="lp-facts">
+          {/* TWO separate facts, the way the contract keeps them (SCN-137 step 3). */}
+          <div><dt>{t('launch.comms.request.state')}</dt><dd><span className="lp-pill">{contractWord(t, 'request.state', m.request.state)}</span></dd></div>
+          <div><dt>{t('launch.comms.request.effect')}</dt><dd><span className="lp-pill">{contractWord(t, 'request.effect', m.request.effect)}</span></dd></div>
+          <div><dt>{t('launch.comms.request.target')}</dt><dd>{nameOf(m.request.target)} · {m.request.capability}</dd></div>
+        </dl>
+      )}
+      {m.redacted ? (
+        <p className="lp-meta">{t('launch.comms.redacted')} · {shortId(m.id)} · {m.digest}</p>
+      ) : (
+        m.body && <p>{m.body.text}</p>
+      )}
+    </article>
+  )
+}
+// #endregion comms-screen

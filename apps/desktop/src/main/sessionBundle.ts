@@ -14,8 +14,10 @@
 // revoke, because revocation was wired to an exit event that could not fire for
 // a process that never existed.
 
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
+import { randomBytes } from 'node:crypto'
+import { homedir } from 'node:os'
 import { type SurfaceAdapter, describeAgent, executorReadiness } from '../shared/agents.ts'
 import { sessionConfig } from '../shared/sessionConfig.ts'
 import { helperCommand } from './helperProcess.ts'
@@ -330,6 +332,53 @@ export function createBundleCompiler(deps: BundleCompilerDeps): BundleCompiler {
               env: { ...shell.env, ...(descriptor.acp.env ?? {}), FABRIC_ACP_SESSION: JSON.stringify(spec) }
             }
           }
+          // #region codex-config-home — docs: docs/reports/2026-10-11-codex-kimi-surface-probes/README.md#codex-01621--what-it-takes
+          case 'codex-config-home': {
+            // Probed 2026-10-11 (report docs/reports/2026-10-11-codex-kimi-surface-probes): Codex reads
+            // its MCP servers from `$CODEX_HOME/config.toml`, takes the bearer from a NAMED env var,
+            // and hears instructions from `$CODEX_HOME/AGENTS.md`. The session gets its own CODEX_HOME
+            // inside the bundle directory — the same lifetime rule as mcp.json (0700 dir, 0600 files,
+            // destroyed with the session). The server name and the token env var are RANDOM per
+            // session: a project `.codex/config.toml` shadows the home config for a name it knows
+            // (measured), and it cannot know these. The operator's auth.json is copied so the session
+            // can run its model; with none, Codex asks the person to sign in, and that sign-in dies
+            // with the session — said in the report.
+            const codexHome = path.join(dir, 'codex-home')
+            mkdirSync(codexHome, { recursive: true, mode: 0o700 })
+            const suffix = randomBytes(4).toString('hex')
+            const serverName = `fabric_${suffix}`
+            const tokenEnv = `FABRIC_MCP_TOKEN_${suffix.toUpperCase()}`
+            const grantName = (name: string): string => `${name.replace(/[^a-zA-Z0-9_]/g, '_')}_${suffix}`
+            const lines = [
+              `[mcp_servers.${serverName}]`,
+              `url = ${JSON.stringify(deps.surface.endpoint)}`,
+              `bearer_token_env_var = ${JSON.stringify(tokenEnv)}`
+            ]
+            for (const g of plan.grant) {
+              lines.push(
+                '',
+                `[mcp_servers.${grantName(g.name)}]`,
+                `url = ${JSON.stringify(g.url)}`,
+                `http_headers = { "x-agw-key" = ${JSON.stringify(g.key)} }`
+              )
+            }
+            writeFileSync(path.join(codexHome, 'config.toml'), lines.join('\n') + '\n', { encoding: 'utf8', mode: 0o600 })
+            writeFileSync(path.join(codexHome, 'AGENTS.md'), agent ? `${redact(agent.instructions).text}\n\n${PREAMBLE}` : PREAMBLE, {
+              encoding: 'utf8',
+              mode: 0o600
+            })
+            const operatorAuth = path.join(process.env.CODEX_HOME ?? path.join(homedir(), '.codex'), 'auth.json')
+            if (existsSync(operatorAuth)) {
+              copyFileSync(operatorAuth, path.join(codexHome, 'auth.json'))
+              chmodSync(path.join(codexHome, 'auth.json'), 0o600)
+            }
+            return {
+              dir,
+              args: [],
+              env: { CODEX_HOME: codexHome, [tokenEnv]: scope.token }
+            }
+          }
+          // #endregion codex-config-home
           case 'none':
             // The agent connects to nothing, so it takes no arguments from us —
             // and no preamble either, which is correct rather than a shortfall:

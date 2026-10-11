@@ -369,10 +369,12 @@ export class PtyManager {
       : null
     // Audit 2026-10-05 A6-006: for these adapters the session's permissions travel IN the bundle (Kilo's
     // Ask is a config fragment, and Kilo's own default allows everything; a Hermes session is the ACP
-    // shell itself). With no bundle — the agent surface is not running — the agent would start with
-    // its own defaults while the journal recorded the mode the person chose. Refused, and said why.
+    // shell itself). Codex has no modes, but its CONNECTION is likewise only the bundle: with no bundle —
+    // the agent surface is not running — the agent would start with its own defaults while the journal
+    // recorded the mode the person chose, or start unconnected while its row declares it connected.
+    // Refused, and said why.
     const adapter = descriptor?.surfaceAdapter
-    if (option.connectsToSurface && !bundle && (adapter === 'config-content-env' || adapter === 'acp-session'))
+    if (option.connectsToSurface && !bundle && (adapter === 'config-content-env' || adapter === 'acp-session' || adapter === 'codex-config-home'))
       throw new RunnerUnavailable(
         `${option.label} was not started: Fabric's agent surface is not running, and this agent's permissions ` +
         `and connection are given with it. Start the session again once the surface is up (Settings → Agent access).`

@@ -78,6 +78,7 @@ Target revision authorised by the operator. SCN-095/096 and FLW-55/56 govern the
 | SCN-066 | Return from authentication to the same invitation with current membership | Membership | P-02, P-03 | ST-008, ST-009, FLW-06 | draft | 2026-09-09 FAIL |
 | SCN-067 | Record a first task and distinguish admission from delivery acknowledgement | Task admission | P-01 | ST-023, ST-024, ST-034, ST-037, FLW-32 | draft | 2026-09-09 FAIL |
 | SCN-068 | Маршрут работы | Маршрут работы | P-01 | FLW-37; SCR-49 | draft | unobserved |
+| SCN-137 | See what projects tell each other | Project communications | P-01 | FLW-77, SCR-77 | draft | unobserved |
 | SCN-069 | Цели и приёмка | Цели и приёмка | P-01 | FLW-38; SCR-50 | draft | unobserved |
 | SCN-070 | Квоты и использование | Квоты и использование | P-01 | FLW-39; SCR-51 | draft | unobserved |
 | SCN-071 | Настройки рабочего пространства | Настройки рабочего пространства | P-01 | FLW-40; SCR-52 | draft | unobserved |
@@ -3358,3 +3359,35 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
 - **Coverage:** apps/desktop/src/renderer/src/start/AgentPaths.tsx (`CreateAgent`), apps/desktop/src/main/projectFolder.ts, apps/desktop/src/main/adapterSkills.ts, apps/desktop/src/main/taskRetry.ts, apps/desktop/src/shared/builderChoice.ts; tests apps/desktop/src/renderer/src/start/StartPaths.test.tsx (`create an ecosystem agent`, `0.3.3 verification, iteration 1: the agent paths`), apps/desktop/test/adapter-skills.test.mjs, apps/desktop/test/task-retry.test.mjs; decision ADR-0129
 - **Product:** unobserved
 
+
+## Project communications · 2026-10-11 (COM-06)
+
+### SCN-137: See what projects tell each other
+
+The screen the operator asked for: the project board's messages, read with their own eyes
+([ADR-0117](../adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) D3 sanctions the
+LOCAL operator's read; the enterprise "admin reads content" question stays open there). The name is
+**Comms**, not Board: the kanban owns that word (launch.nav.board), and ADR-0117 amendment 1 kept
+"board" out of user-facing text until these screens were designed — this scenario is that design.
+
+- **Persona:** P-01
+- **Feature:** Project communications
+- **Traces:** FLW-77, SCR-77; COM-06, COM-07 in [the comms plan](../evidence/plans/2026-10-04-project-communications.md)
+- **Entry point:** the left rail's Comms item
+- **Preconditions:** an estate exists; projects have exchanged at least one message for the non-empty path
+- **Steps:**
+  1. Operator opens Comms -> the estate's threads are listed oldest first: subject (or the first words when none), the participant projects BY NAME, how many messages it holds and when the last one was written.
+  2. Operator opens a thread -> its messages read oldest first, each naming the sender project and principal — and whether that principal is trusted or merely asserted, the contract's own distinction.
+  3. A message that is a request shows its lifecycle as TWO separate facts, the way the contract keeps them: state (queued / claimed / accepted / in_progress / completed / failed_known / cancelled / expired / outcome_unknown) and effect (not_started / started / succeeded_observed / failed_observed / unknown). A reply names the message it answers.
+  4. Operator keeps the screen open -> new messages arrive on the poll, appended after the cursor; nothing the operator read is re-ordered or re-fetched away.
+  5. Operator asks for earlier history -> one page further back by the same cursor, bounded like the board's own pages.
+- **Expected result:** the operator watches projects coordinate without joining a session, and every message on screen is one the board holds — the screen shows the board's truth, never a renderer's cache of it.
+- **Alt paths:** the board does not answer -> the screen says the board is unavailable and offers Try again; it NEVER shows an empty list in that case (an empty page is a true answer, an unavailable board is not). A thread the estate does not hold -> said as not found, not as empty. A redacted message keeps its place, id and digest and says its body was removed.
+- **UI elements:** the thread list; the thread view with sender/project/principal/provenance per message; request state and effect as two labels; Earlier for history; Try again on failure. NO write control: the operator reads; reply/stop/pause controls arrive with their own scenarios (COM-07's later slices), and no button here promises a recovery the contract does not support.
+- **States covered:** loading, empty (no threads yet — said in words), success, unavailable (the board/RPC did not answer), not-found (a thread outside this estate), refused (the read itself was refused), error
+- **Errors & recovery:** a failed poll keeps the last confirmed page on screen and says when it was confirmed; the next poll that succeeds resumes from the cursor, so a dropped subscription recovers without the operator. A read that fails mid-history keeps the pages already read and refuses the older page only.
+- **Telemetry:** planned only.
+- **Deferred with their ids, said now rather than discovered later:** operator read marks/unread (read marks belong to participant Projects), pause/stop controls, filters (project/status/time), artifact links, virtualized history, the Telegram mirror (COM-08). CO-212 (a restored estate keeps board events without messages) bounds what a restored estate shows.
+- **Status:** draft
+- **Coverage:** built in this change — `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`, the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` and `apps/desktop/src/shared/commsRead.ts`, the bridge in `apps/desktop/src/preload/index.ts`, the route and navigation in `apps/desktop/src/shared/appRoute.ts` and `apps/desktop/src/renderer/src/launch/LaunchShell.tsx`; migration 80 (`supabase/migrations/20261011000084_project_board_operator_read.sql`, the operator's read path); tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx` and `apps/desktop/test/comms-operator-read.test.mjs`; DB tests in `apps/desktop/test/project-board-db.test.mjs`
+- **Product:** unobserved

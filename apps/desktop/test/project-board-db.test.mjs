@@ -194,6 +194,57 @@ await test('primary rows are immutable; a rebuild replays the projections unchan
   assert.equal(get(A, PA2, requestA).message.request.state, 'queued')
 })
 
+// Migration 80 (suffix 84) — the operator's read path (COM-06/COM-07; ADR-0117 D3 sanctions the LOCAL
+// operator's read): thread summaries and the same paging contract as board_list, without a reader
+// Project, writing nothing. To WATCH these fail, run the runner with
+// FABRIC_SKIP_MIGRATION=20261011000084_project_board_operator_read.sql.
+const threadsOp = (estate) => JSON.parse(sql(`set role service_role; select board_threads_operator('${estate}')`))
+const listOp = (estate, after = 0, limit = 50, thread = null) =>
+  JSON.parse(sql(`set role service_role; select board_list_operator('${estate}',${thread ? `'${thread}'` : 'null'},${after},${limit})`))
+
+await test('operator threads: the estate’s threads with participants, subject, count and cursor; never another estate’s', () => {
+  const a = threadsOp(A)
+  assert.equal(a.ok, true, JSON.stringify(a))
+  const t = a.threads.find((x) => x.id === threadA)
+  assert.ok(t, 'threadA missing from the operator’s thread list')
+  assert.deepEqual([...t.participants].sort(), [PA1, PA2].sort())
+  assert.equal(t.subject, 'Weekly retention')
+  assert.ok(t.messageCount >= 2 && t.lastSeq > 0, JSON.stringify(t))
+  const b = threadsOp(B)
+  assert.equal(b.ok, true)
+  assert.equal(b.threads.some((x) => x.id === threadA), false, 'estate B sees estate A’s thread')
+  assert.equal(threadsOp('00000000-0000-0000-0000-000000000000')?.threads?.length ?? 0, 0)
+})
+
+await test('operator pages equal the participant’s pages message for message, and an estate-wide page spans threads', () => {
+  const mine = listOp(A, 0, 100, threadA)
+  const theirs = list(A, PA2, 0, 100, threadA)
+  assert.equal(mine.ok, true, JSON.stringify(mine))
+  assert.deepEqual(mine.messages, theirs.messages, 'the operator reads a different truth than the participant')
+  assert.equal(mine.messages.some((m) => m.body?.text?.includes('retention')), true)
+  const wide = listOp(A, 0, 100)
+  assert.ok(wide.messages.length >= mine.messages.length)
+  assert.equal(wide.messages.every((m) => typeof m.digest === 'string'), true)
+  const paged = listOp(A, wide.last_seq, 100)
+  assert.equal(paged.messages.length, 0, 'a page after the last seq is empty, not an error')
+  assert.equal(paged.last_seq, wide.last_seq)
+})
+
+await test('operator read refuses what is not there and never writes: no marks, no events, no rows', () => {
+  const foreign = listOp(B, 0, 50, threadA)
+  assert.equal(foreign.error?.code, 'not_found', JSON.stringify(foreign))
+  const bad = JSON.parse(sql(`set role service_role; select board_list_operator(null,null,0,10)`))
+  assert.equal(bad.error?.code, 'invalid_arguments')
+  const marksBefore = Number(sql(`select count(*) from board_read_marks where estate_id='${A}'`))
+  const eventsBefore = events(A, 'comms.read_acked@1') + events(A, 'comms.message_submitted@1')
+  const rowsBefore = sql(`select (select count(*) from board_messages where estate_id='${A}') || '|' || (select count(*) from board_threads where estate_id='${A}')`)
+  listOp(A, 0, 100); threadsOp(A)
+  assert.equal(Number(sql(`select count(*) from board_read_marks where estate_id='${A}'`)), marksBefore, 'the operator’s read created a read mark')
+  assert.equal(events(A, 'comms.read_acked@1') + events(A, 'comms.message_submitted@1'), eventsBefore, 'the operator’s read journaled an event')
+  assert.equal(sql(`select (select count(*) from board_messages where estate_id='${A}') || '|' || (select count(*) from board_threads where estate_id='${A}')`), rowsBefore)
+  refuses(`set role authenticated; select board_list_operator('${A}',null,0,10)`, /permission denied/)
+})
+
 console.log(`${count} passed, ${failed.length} failed`)
 if (failed.length) process.exit(1)
 // #endregion project-board-core

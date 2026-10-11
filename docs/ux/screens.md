@@ -90,6 +90,7 @@ The R0 route family below supersedes earlier mandatory name/purpose/review entry
 | SCR-74 | Create an agent | FLW-73 | none — text spec | built | apps/desktop/src/renderer/src/start/AgentPaths.tsx |
 | SCR-75 | Adapt an existing agent | FLW-74 | none — text spec | built | apps/desktop/src/renderer/src/start/AgentPaths.tsx |
 | SCR-76 | Agent access | FLW-75, FLW-76 | none — text spec | built | apps/desktop/src/renderer/src/AgentAccessPanel.tsx |
+| SCR-77 | Project comms | FLW-77 | none — text spec | built | apps/desktop/src/renderer/src/launch/CommsScreen.tsx |
 
 ## Design system
 
@@ -1094,7 +1095,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Purpose:** Задать цель, критерии, границы автономности и состав задач; принять результат отдельно от выполнения задач.
 - **Elements:** Цель → критерии → задача в плане → результат → явная приёмка. Непривязанные задачи и неготовые критерии остаются видимыми.
 - **Primary action:** Цель
-- **Scenarios:** SCN-069
+- **Scenarios:** SCN-137
 - **Flows:** FLW-38
 - **Implementation tasks:** M144
 - **Prototype:** [Адрес макета](../reports/product.html#view-goals); контракт [mockup-contract.md](mockup-contract.md).
@@ -1855,3 +1856,21 @@ results always pair text with an icon — colour is never the only signal.
 - **Scenarios:** SCN-132, SCN-133
 - **Resources:** [ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md).
 - **Implementation tasks:** AR-3.1, AR-3.4
+
+### SCR-77: Project comms
+- **Used by:** FLW-77
+- **Purpose:** The project board's threads and messages, read by the operator — what projects tell each other, with each request's state and effect as two separate facts ([ADR-0117](../adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md) D3: the local operator's read is sanctioned; COM-06/COM-07).
+- **Elements:** the thread list — subject or first words, participant projects by name, message count, when the last message was written; the thread view — messages oldest first, each with sender project, principal and its provenance (trusted or asserted), a request carrying state and effect as two labels, a reply naming the message it answers, a redacted message keeping id and digest with its removal said; Earlier for one page further back; Try again on failure; when the shown page was last confirmed. No write control — the operator reads (SCN-137).
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |---|---|---|---|
+  | loading | first read | none | busy line |
+  | empty | the estate holds no threads | none | says so in words — an empty list is a true answer |
+  | read | threads or messages read | none | the lists above, with the last-confirmed time |
+  | unavailable | the board/RPC did not answer | none | says the board is unavailable with Try again; NEVER an empty list |
+  | not-found | a thread outside this estate | none | said as not found, not as empty |
+  | failed | one poll or one history page failed | none | the last confirmed page stays, saying when it was confirmed; the next success resumes from the cursor |
+- **Coverage:** `apps/desktop/src/renderer/src/launch/CommsScreen.tsx`; the `comms:threads` / `comms:list` IPC in `apps/desktop/src/main/index.ts` over `apps/desktop/src/main/commsOperatorRead.ts` (the read path: unavailable is never empty, the board's refusals travel unchanged) and `apps/desktop/src/shared/commsRead.ts` (the shapes); the bridge in `apps/desktop/src/preload/index.ts`; tests `apps/desktop/src/renderer/src/launch/CommsScreen.test.tsx` and `apps/desktop/test/comms-operator-read.test.mjs`
+- **Scenarios:** SCN-137
+- **Resources:** [ADR-0117](../adr/0117-fabric-hosts-the-project-board-of-fabric-project-comms.md), [the comms plan](../evidence/plans/2026-10-04-project-communications.md).
+- **Implementation tasks:** COM-07

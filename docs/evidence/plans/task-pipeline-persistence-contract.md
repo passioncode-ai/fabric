@@ -390,3 +390,10 @@ reused. The migration reservations stay at **82/83**. Receipt: `python3 test/aud
 collision rule the reserved ADR moves to **0132**, returned by
 `agent_sync.py reserve ADR --key pipeline-reservation-after-fresh-install-20261010`. 0130 is superseded and never
 reused. The migration reservations stay at **82/83**. Receipt: `python3 test/audit_regressions/fix-pf-06.03.py`.
+
+**2026-10-11 the board's operator read (COM-06/COM-07):** slot 84 is taken by the executed migration
+`20261011000084_project_board_operator_read.sql`, which is migration 80 by count. Under the same ordering
+rule the unexecuted pipeline migration reservations move from 82/83 to **85/86**:
+`20261011000085_pipeline_definitions.sql` and `20261011000086_graph_version_pins.sql`. The reserved ADR
+stays at **0132**. No pipeline file exists at either number. Receipt:
+`python3 test/audit_regressions/fix-pf-06.03.py`.

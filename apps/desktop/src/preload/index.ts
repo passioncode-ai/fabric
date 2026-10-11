@@ -145,6 +145,10 @@ const api: FabricApi = {
   feed: {
     replay: (fromSeq) => ipcRenderer.invoke(IPC.feedReplay, fromSeq)
   },
+  comms: {
+    threads: () => ipcRenderer.invoke(IPC.commsThreads),
+    list: (threadId, afterSeq, limit) => ipcRenderer.invoke(IPC.commsList, threadId, afterSeq, limit)
+  },
   quota: {
     read: () => ipcRenderer.invoke(IPC.quotaRead)
   },
