@@ -1921,7 +1921,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-usage).
 - **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: partly met; owners corrected — M171 added. Its gap as the audit read it: No unified usage/capacity/cost/source detail; unreadable quota can disappear instead of explain. Manager cost is unmeasured, subscription terms remain open.
 - **Status:** draft
-- **Coverage:** none yet
+- **Coverage:** `apps/desktop/src/shared/quotaReading.ts#readQuotaReading`, `apps/desktop/src/renderer/src/ProjectHome.tsx#ProjectStatusBar` (a failed quota read is a muted «quota unreadable: …» cell, never hidden as «no quota»; audit A4-020), `apps/desktop/src/shared/quotaReading.test.ts`, `apps/desktop/src/renderer/src/halfShipped.test.tsx`. The unified usage/capacity/cost view is not built.
 - **Product:** unobserved
 
 
@@ -2778,7 +2778,7 @@ Source: the approved [design](../evidence/specs/2026-09-29-agent-registry-design
 - **Telemetry:** none.
 - **Implementation tasks:** design module AR-3 ([design](../evidence/specs/2026-09-29-agent-registry-design.md#12-modules-stages-310-run-per-module-ids-ar-0ar-11-so-they-never-collide-with-backlog-m-ids)).
 - **Status:** draft
-- **Coverage:** none yet
+- **Coverage:** `apps/desktop/src/renderer/src/launch/AgentWorkspace.tsx#useRunStatus` (read again every 5 s until the run is read as ended), `#RunCallout` (an ended run names its outcome; `outcome_unknown` offers Check again, which reads the run's record again), `apps/desktop/src/renderer/src/TaskPage.tsx` (the rail names the state or outcome in words and says «unreadable» when the status read fails; audit A5-018); `apps/desktop/src/renderer/src/launch/AgentWorkspace.test.tsx`, `apps/desktop/src/renderer/src/TaskPage.test.tsx`. Retry and «choose another agent» from the run are not built.
 - **Product:** unobserved
 
 ### SCN-109: A coding agent calls Fabric within its grant

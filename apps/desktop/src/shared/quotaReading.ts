@@ -29,6 +29,18 @@ export type QuotaReading =
   | { read: true; quota: Quota | null }
   | { read: true; failed: string }
 
+/**
+ * Ask once and keep the answer as a reading: a read that throws is `failed` with its reason, never null
+ * (audit A4-020 — the project status bar caught the throw as null, which renders as "no quota").
+ */
+export async function readQuotaReading(read: () => Promise<Quota | null>): Promise<QuotaReading> {
+  try {
+    return { read: true, quota: await read() }
+  } catch (e) {
+    return { read: true, failed: e instanceof Error ? e.message : String(e) }
+  }
+}
+
 /** Did the read happen and produce an answer this screen can render? */
 export function quotaOf(reading: QuotaReading): Quota | null {
   return reading.read && 'quota' in reading ? reading.quota : null
