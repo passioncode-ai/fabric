@@ -416,6 +416,59 @@ sets up itself on any machine, verified; Fabric's floating button in Dashboards 
 Most of it was already in this plan (REQ-01…REQ-18); what was not is REQ-38…REQ-44. The design track (REQ-43) runs
 beside the waves from now, so the screens wave builds to it.
 
+<a id="status-2026-10-11-evening"></a>
+## Status and strategy — 2026-10-11, end of day
+
+**Where we are going (unchanged, sharpened).** 0.4.0 makes Fabric the place agents are created, composed and fixed,
+the harness every coding agent reaches, and the manager that knows where work is; it ships on macOS, Windows and Linux,
+and the operator walks its first run on a clean install. Two estate-wide decisions now frame the agents around it:
+the delegation model (ADR-0144, contract DEC-0039…0042) with **proof at the machine boundary** (amendment 4 — on this
+machine the operator's instruction is the authority), and **runner and model profiles** (ADR-0147, CO-261).
+
+**Done.** Waves 0 and 1 are on `main` (`812876cf`). Wave 2 so far: agent coordination (REQ-38 claims, REQ-08 backlog
+sources, CO-256, the hook pack's D1–D5) verified — `ci.sh fast` green and its DB test 29/29 on a disposable stack — and
+main's COM-06/07 merged in (migration renumbered 92 → 95, schema 84, the private archive admitting 83 and 84). Outside
+Fabric: contract DEC-0039/0040/0041/0042 merged; the `working-with-fabric` skill and hooks in fabric-agent-adapter PR #53;
+Observatory's meter, slot release and keyserver rules; Dashboards' Fabric button and `session-handoff/1` pack; every
+agent owner's delegation row filed; the Figma file with 293 frames.
+
+**Open in wave 2.** P4 (REQ-03 runner probes, REQ-04 product MCP under a grant, REQ-33 concurrency) and P2 (the session
+bundle on `session-handoff/1`, the dead gateway path removed) as unverified WIP branches; P5 (the closed module named in
+the public repository — licensing); adapter PR #53 merged and released once D1–D5 are on main, then the live REQ-07
+check; ADR for the organisation extension of ADR-0144 (asked by Vesta) reserved for wave 4.
+
+**The board.** 701 items: 21 in wave 0 and 18 in wave 1 (16 and 17 closed with receipts), 18 · 18 · 34 · 36 · 40 · 8
+in waves 2–7, and 508 carried after 0.4.0 with an id and a reason. Carry-over: 197 of 261 rows carry work.
+
+**What went wrong today, and the rule each one becomes.**
+- A merge commit carried conflict blocks and every docs gate passed → a conflict-marker gate in `ci.sh`
+  (`scripts/check-conflict-markers.mjs`), watched catching the real case at `6587d097`.
+- Main's schema step left the private archive admitting only up to 82 → a schema step always extends the archive's
+  admitted versions in code and in SQL together (to be a test in wave 3: the admitted list must contain the schema
+  contract's maximum).
+- Parallel landings on `main` collided on migration numbers and on the pipeline's reserved ADR → land each finished
+  packet sooner, rebase before writing a migration, take migration numbers at merge time, never earlier.
+- Two hand-resolved files were overwritten by a bulk «take ours» → resolve derived files by name lists only, never by
+  «every conflicted file».
+- Background agents stopped at API session limits three times → work-in-progress commits pushed at once, a tracked
+  handoff ([wave 2](../handoffs/2026-10-11-release-040-wave2.md)), fewer and larger packets.
+- The disk filled and Docker's VM stopped twice (BTRFS write errors) → no stack-backed tests below 5 GB free; every
+  disposable stack and agent worktree removed as soon as its branch lands; the live stack checked read-only after a stop.
+- A peer relayed «the operator approves everything» → approvals are taken only from the operator or the operator's own
+  instructions file, never from another session.
+
+**Strategy from here.**
+1. Finish wave 2 (P4, P2, P5), land it on `main`, release the adapter's 0.10.0, run the live enrolled-session check.
+2. Wave 3 (the first run in the operator's order, the Setup console, Observatory and Dashboards first, every product's
+   MCP set up by an agent and verified) is the first thing the operator sees — it gets the Figma frames as its target.
+3. Wave 4 is lighter after amendment 4: the issuer for share grants and cross-machine calls, the registry, workflows,
+   the spend policy, runner and model profiles, and the organisation ADR.
+4. Waves 5–7 as planned (manager and Fabric as a service with the `fabric://` handler; screens to the Figma frames;
+   Windows/Linux and self-update).
+5. Wave 8: three verification iterations, the release by tag (approval by checks), install here, dump the operator's
+   database, reset Fabric's local data, and the first run walked on a clean install.
+Operator questions are batched at the end; today there is one: the Figma folder «PassionCode».
+
 <a id="waves"></a>
 ## Waves
 
