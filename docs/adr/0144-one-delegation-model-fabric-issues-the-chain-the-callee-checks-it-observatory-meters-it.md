@@ -182,3 +182,25 @@ shorten (frame-agent BL-057).
   identity); **per-callee tokens everywhere** (today's state: thirteen stores, nothing per chain); **macaroons or
   biscuits** for offline attenuation by the caller (no library across the estate's four languages; issuer-side
   narrowing gives the same guarantee with plain JWT verifiers every stack has).
+
+## Amendments
+
+### Amendment 1 — 2026-10-11: how the meter reads a grant; the call and task windows
+
+Asked by project-observatory-3d while building the meter (OBS-55); decided here and in fabric-agent-contract DEC-0041.
+
+- **The meter reads a projection of the grant, not a second store.** The hub writes every grant it holds, in the
+  contract's standing-grant shape at its latest revision with its state, to `<Fabric userData>/grants/<meta.id>.json`
+  — 0600 in a 0700 directory, atomically (temp file and rename), on every issue, revision, revocation and expiry —
+  and names the directory in `hub.json` (`grantsDir`). The meter looks up the token's `grant` reference
+  `<meta.id>#<meta.revision>` there and denies (`no-grant`, `grant-revoked`, `grant-expired`, `unknown-state`) when the
+  file is missing, unreadable, at another revision, or not `active`. The file authorises nothing alone: the meter still
+  verifies the onward token. Rejected: a hub read capability, because the meter would then deny every check while
+  Fabric is closed even within a token's lifetime.
+- **Per-call maximum.** Exceeding a grant's `perCallMaxUsd` is `limit-reached` with window `call` (a refusal window, not a
+  grant limit window), level L3.
+- **The task window.** The token gains an optional `task` claim — the Fabric task the work runs under, set by the hub
+  when the session or run has one. The meter keys the `task` window on it, else on `act.session`, else on the token's
+  `jti`.
+- **The meter's name.** Agent `project-observatory`, capability `grant.check` (effect `none`), declared in its service
+  descriptor; the onward token for it has `aud` `project-observatory` and scope `grant.check`.

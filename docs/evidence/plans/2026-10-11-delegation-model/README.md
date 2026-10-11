@@ -37,7 +37,7 @@ Facts from the [audit](2026-10-11-roll-call-audit.md) §1 and §5; "step" refers
 
 | Agent (session) | Today [audit] | Changes | Steps |
 |---|---|---|---|
-| copylot-agent (copylot-agent-e6) | one token for every caller; per-call `maxChargeUsd`; wallet per workspace | accept the token: author of a job = outermost `act` (AU-07), job access by `sub` + caller; charge against the token's grant via Observatory's grant-check (SP-01); revisit DEC-0039 "one token" → descriptor token for the host only; `effect` already declared per tool — keep | 4 |
+| copylot-agent (copylot-agent-e6) | one token for every caller; per-call `maxChargeUsd`; wallet per workspace | accept the token: author of a job = outermost `act` (AU-07), job access by `sub` + caller; charge against the token's grant via Observatory's grant-check (SP-01); revisit copylot DEC-0039 "one token" (Copylot's own decision, not the contract's) → descriptor token for the host only; `effect` already declared per tool — keep | 4 |
 | project-observatory (-85, -3d) | stdio has no caller; HTTP bindings; keyserver's self-named caller header; no `grant check` | be the meter (step 3); keyserver trusts the token, not `X-Observatory-Caller`; stdio MCP stays the operator's local agent; correct `ARCHITECTURE.md:604` (identity is the hub's, the gateway is gone) | 3, 4 |
 | fabric-dashboards (-76) | calls every service with that service's descriptor token, which can mint login codes | read feeds, well-known and usage with the descriptor token as the host (allowed); every capability call (control, `doctor`/`update` that act) through a minted token; FD-40 builds on the grant-check of step 3 | 5 |
 | fabric-inbox (-df) | per-key Cloudflare Access identity; `X-Fabric-Accounts` narrowing; confirm codes | accept `Fabric-Delegation` on hub-forwarded calls and attribute to its chain (not to the `fabric` key alone); keep its keys for people and outside callers; map refusals; confirm codes stay for people, `approval/1` between agents | 4, 6 |
@@ -102,6 +102,6 @@ the dashboard it shows keeps using the descriptor token; it is not a capability 
 `audience` webpilot, `capabilities` the webpilot tools that link allows, `project` the linked project, `effectCeiling` from
 C13's effect classes; the operator's confirmation in C17 is the grant decision (DEC-0039's grant shape).
 
-**Step 1 done, 2026-10-11:** DEC-0039 and DEC-0040 merged in fabric-agent-contract (`8e49fbd`, PR #30) after a blind
+**Step 1 done, 2026-10-11:** fabric-agent-contract DEC-0039 and DEC-0040 merged (`8e49fbd`, PR #30) after a blind
 seam review and its re-check; the meter verifies an onward token minted for it (aud = the meter), presented in
 `Authorization`; follow-ups are CO-260 and two adapter rows in the contract's handoff.
