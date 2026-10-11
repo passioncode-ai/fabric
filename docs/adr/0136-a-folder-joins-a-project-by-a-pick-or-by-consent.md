@@ -40,5 +40,5 @@ refusing it would keep the work invisible.
 
 ## Evidence
 
-- The manager-flow research, 2026-10-11 (the plan, canvas C2: `startChoices.ts:240-255`, `projectDiscovery.ts:181,377`,
+- The manager-flow research, 2026-10-11 (the plan, canvas C2: `startChoices.ts#indexImported`, `projectDiscovery.ts#shownRemote`,
   Observatory `survey.py:39-59`).

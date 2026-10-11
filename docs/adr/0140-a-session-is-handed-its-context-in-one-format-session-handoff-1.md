@@ -35,5 +35,5 @@ manifest, `executionPacket.ts`; task-pipeline's dispatch packet).
 
 ## Evidence
 
-- Fabric `sessionBundle.ts:148-331`, `shared/preamble.ts:19-26`, `executionPacket.ts:17-32`; Dashboards
+- Fabric `sessionBundle.ts#createBundleCompiler`, `shared/preamble.ts#PREAMBLE`, `executionPacket.ts#PACKET_SCHEMA`; Dashboards
   `src/core/handoff.ts`; the joined flag shipped by Switchboard #141 and Dashboards #68 (relayed 2026-10-11).

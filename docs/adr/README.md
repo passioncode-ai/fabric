@@ -37,7 +37,7 @@ An index that lags is an index that lies about what has been decided.
 | [ADR-0015](0015-agent-production-is-a-pipeline-over-an-ordinary-project.md) | Agent production is a pipeline over an ordinary project | Accepted | operator, 2026-08-27 — accepts review Part II |
 | [ADR-0016](0016-the-fabric-is-a-platform-of-estates.md) | The fabric is a platform of estates | Accepted | operator, 2026-08-28 — supersedes ADR-0011 by its own reversal condition; closes CO-058 |
 | [ADR-0017](0017-the-federation-seam-slots-delegation-and-the-artifact-aperture.md) | The federation seam: slots, delegation, and the artifact aperture | Accepted | operator, 2026-08-28 |
-| [ADR-0018](0018-passioncode-is-the-product-fabric-is-the-kernel.md) | PassionCode.ai is the product; Fabric is its technical kernel | Accepted | operator, 2026-08-29 |
+| [ADR-0018](0018-passioncode-is-the-product-fabric-is-the-kernel.md) | PassionCode.ai is the product; Fabric is its technical kernel | Accepted; its product claim superseded by ADR-0090 | operator, 2026-08-29 |
 | [ADR-0019](0019-agent-onboarding-is-a-bootstrap-and-admission-lifecycle.md) | Agent onboarding is a bootstrap-and-admission lifecycle | Accepted | operator, 2026-08-29 |
 | [ADR-0020](0020-provider-views-are-sandboxed-extensions-and-layout-is-host-owned.md) | Provider views are sandboxed extensions; workspace layout is host-owned | Accepted | operator, 2026-08-29 |
 | [ADR-0021](0021-execution-placement-is-declared-per-provider-binding.md) | Execution placement is declared per provider binding | Accepted | operator, 2026-08-29 — resolves CO-068 |

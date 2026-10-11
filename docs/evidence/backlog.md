@@ -12,7 +12,7 @@ These original strategic milestones are retained for traceability. The current e
 
 | ID | Milestone | REQs | Status |
 |---|---|---|---|
-| M0 | Vision, ontology, decisions, the measured registry | REQ-001…005 | **partly shipped** — reconciled 2026-10-11 (release-0.4.0 wave 0, REQ-34): the vision, the ontology and the decisions are written and kept (`docs/vision.md`, `CONTEXT.md`, `docs/adr/`); the measured registry is not — REQ-001…005 of the [run brief](specs/2026-08-16-software-fabric-brief.md) name `pnpm registry:verify` and `pnpm collect:repos`, which no `package.json` in this repository defines (checked 2026-10-11), and REQ-005 waits on a human step. The "in review" it carried since 2026-08-16 had no reviewer and no date |
+| M0 | Vision, ontology, decisions, the measured registry | REQ-001…005 | **partly shipped** — reconciled 2026-10-11 (release-0.4.0 wave 0, REQ-34): the vision, the ontology and the decisions are written and kept (`docs/vision.md`, `CONTEXT.md`, `docs/adr/`); the measured registry is not — REQ-001…005 of the [run brief](specs/2026-08-16-software-fabric-brief.md) name a `registry:verify` and a `collect:repos` package script, which no `package.json` in this repository defines (checked 2026-10-11), and REQ-005 waits on a human step. The "in review" it carried since 2026-08-16 had no reviewer and no date |
 | M1 | Schema and the declared-layer mirror | REQ-006, 007 | open |
 | M2 | The graph: depth, payload edges, versioned rebuilds | REQ-008, 009, 010 | open |
 | M3 | The floor and grants | REQ-011, 012 | open |

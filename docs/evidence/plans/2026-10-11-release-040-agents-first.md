@@ -418,6 +418,14 @@ wave, duplicate clusters follow their member, a closable stale row goes to wave 
 | 7 · Platforms and self-update | REQ-25, REQ-26 | 3 — P-12, CO-245, CO-246 (the port's W4 rides wave 2) | the port merges early (wave 1 base), its per-OS paths and the updater close here |
 | 8 · Release | REQ-27…REQ-30 | — | three iterations over the whole |
 
+**Wave 0 re-cut, 2026-10-11.** Wave 0 closed or narrowed 21 items with receipts (the inventory's `closedInWave0`,
+`narrowedInWave0`); 14 it found still open keep their ids and now ride their node's wave (`keptInWave0`; five were
+code fixes the first cut sent to wave 0: CO-203, CO-205, CO-206, CO-207 → wave 1, CO-234 → wave 1); the 10 items
+without an id have ids (CO-248…CO-253 or an existing owner). CO-215 and CO-216 are narrowed to their expansion,
+[`2026-10-11-release-040-co215-216.json`](2026-10-11-release-040-co215-216.json) — 252 findings under the audit's own
+ids (W1 44, W3 11, W4 38, W5 23, W6 124, W7 10, after 0.4.0 1, settled 1), each to be re-read against the tree
+before it is fixed. Counts per wave after the re-cut: W0 21, W1 26, W2 18, W3 17, W4 34, W5 36, W6 40, W7 5 (197).
+
 **The rest of the board — the program after 0.4.0.** 504 of the 701 items do not close in 0.4.0: they are umbrella
 milestones, unbuilt scenarios and multi-packet plans (memory and context, MEM-P0…P7; the board's COM-06…14 and
 Telegram; estate domains BL-* and the cost ledger CL-*; the UX28/AX/UXAC cards beyond the clusters above; the agent

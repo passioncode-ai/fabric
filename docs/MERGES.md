@@ -6,8 +6,8 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 
 ### 2026-10-11 · `release-040-plan` · agent/release-040-plan → main
 - run: r-249d0762eddd; base: origin/main 403faab9; integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
-- scope: `docs/evidence/plans/2026-10-11-release-040-agents-first.md` (decisions, canvas C1…C12, REQ-01…REQ-36, waves 0–8, questions), its inventory `…-inventory.json` (701 items), `scripts/plan/release-040-waves.py`, P-16 in the plan (lane 2) and the Now line, the SRC-02 re-pin, the regenerated `completeness.html` and `plan.json`, the design map entry, the handoff
-- summary: Fabric 0.4.0 (agents first) planned in wave mode over the whole board; no code changed.
+- scope (base re-measured: origin/main 659ff356, rebased): `docs/evidence/plans/2026-10-11-release-040-agents-first.md` (decisions, canvas C1…C12, REQ-01…REQ-36, waves 0–8, questions), its inventory `…-inventory.json` (701 items), `scripts/plan/release-040-waves.py`, P-16 in the plan (lane 2) and the Now line, the SRC-02 re-pin, the regenerated `completeness.html` and `plan.json`, the design map entry, the handoff
+- summary: Fabric 0.4.0 (agents first) planned in wave mode over the whole board; no code changed. Wave 0 in the same landing: ADR-0133…ADR-0140, amendments to ADR-0100/0115/0119/0121/0123/0129, the pipeline reservation at ADR-0141, the vision §1/§3/§7 and six glossary terms, register hygiene (21 closed or narrowed, CO-248…CO-253, the CO-215/216 expansion), release runbook steps 10–11 (CO-196, CO-197 recorded).
 ### 2026-10-11 · `aptabase-build-mode` · fix/aptabase-build-mode → main (fabric#26)
 - base: origin/main 8bc186a2, merged in (not rebased, so the PR branch is never force-pushed); integration: GitHub merge on the operator's instruction (2026-10-11)
 - scope: `apps/desktop/src/main/analytics.ts#createAnalytics` (`systemProps.isDebug`), `apps/desktop/test/analytics.test.mjs`, `docs/ANALYTICS.md` "What is sent", the design map

@@ -33,4 +33,4 @@ team shares the label «Create an agent». SCN-121…SCN-123 have no coverage.
 
 ## Evidence
 
-- Review F-04; the code study (the plan, canvas C6: `shared/types.ts:189`, `…000021_created_agents.sql`).
+- Review F-04; the code study (the plan, canvas C6: `shared/types.ts#TaskRow`, `…000021_created_agents.sql`).

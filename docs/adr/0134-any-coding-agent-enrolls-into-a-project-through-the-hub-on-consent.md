@@ -51,6 +51,6 @@ chose (D-03) the full working set in a project, on one consent per agent and pro
 
 ## Evidence
 
-- The harness audit, 2026-10-10 (the plan, F-01; `agentSurface.ts:422`, `hubTools.ts:59-62`, `hub.ts:89-151`).
+- The harness audit, 2026-10-10 (the plan, F-01; `agentSurface.ts#mint`, `hubTools.ts#HUB_TOOLS`, `hub.ts#publishHub`, `hub.ts#withdrawHub`).
 - CLIs measured 2026-10-11: Claude Code 2.1.296 `claude mcp add --scope user <name> -- <cmd>`; Codex 0.162.1
   `codex mcp add <name> -- <cmd>`.

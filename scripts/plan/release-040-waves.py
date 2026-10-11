@@ -15,14 +15,18 @@ W = {
 NODE_BY_AREA = {'harness/hub':'C1','sessions/runners':'C1','onboarding/start':'C5','agents/registry':'C6','workflows/routines/chains':'C7',
   'board/communications':'C8','screens/ux':'C10','i18n':'C10','release/platform':'C11','memory/context':'C8','security':'C1','data/schema':'C2',
   'docs/process':'C12','other':'C12'}
+NODE_WAVE = {'C1':'W1','C2':'W1','C5':'W3','C6':'W4','C7':'W4','C8':'W5','C10':'W6','C12':'W6','C11':'W7'}
 def wave_of(i):
     iid = i['id']
+    # Recorded by wave 0 itself: closed or narrowed there with a receipt.
+    if i.get('closedInWave0') or i.get('narrowedInWave0'):
+        return 'W0'
     for w, ids in W.items():
         for x in ids:
             if iid == x or iid.startswith(x + '.') or iid.startswith(x + '-') and not x.startswith('CO-') and not x.startswith('SCN-'):
                 return w
     notes = (i.get('notes') or '') + ' ' + (i.get('closableInOnePass') or '')
-    if re.search(r'STALE|already (done|shipped)|close by|moot|shipped', notes, re.I) and i.get('closableInOnePass','').startswith('yes'):
+    if i.get('keptInWave0') is None and re.search(r'STALE|already (done|shipped)|close by|moot|shipped', notes, re.I) and i.get('closableInOnePass','').startswith('yes'):
         return 'W0'
     return None
 def tags(i):
@@ -37,7 +41,9 @@ for i in b:
     w = direct[i['id']] or next((cluster_wave[t] for t in tags(i) if t in cluster_wave), None)
     i['node'] = NODE_BY_AREA.get(i['area'], 'C12')
     if w: i['wave'] = w; i['release'] = '0.4.0'
-    elif i.get('closableInOnePass','').startswith('yes'): i['wave'] = 'W6' if i['node']=='C10' else 'W0'; i['release'] = '0.4.0'
+    elif i.get('closableInOnePass','').startswith('yes'):
+        # A closable item that is not stale is a fix: it rides its node's wave (wave 0 found five such, 2026-10-11).
+        i['wave'] = NODE_WAVE.get(i['node'], 'W6'); i['release'] = '0.4.0'
     else: i['wave'] = 'after-0.4.0'; i['release'] = 'program'
 json.dump(b, open(out,'w'), indent=1, ensure_ascii=False)
 from collections import Counter
