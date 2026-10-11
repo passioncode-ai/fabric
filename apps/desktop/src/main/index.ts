@@ -313,6 +313,7 @@ import { detectExecutors } from './executorDetect.ts'
 import { createRunnerFallback, describeExhausted, launchRoute, openWithFallback } from './runnerFallback.ts'
 import { FALLBACK_OPTION } from '../shared/runnerRoute.ts'
 import { settingsPatch } from '../shared/appSettings.ts'
+import { fetchWithDeadline } from './dbDeadline.ts'
 import { RunnerUnavailable, SpawnFailure, type LaunchRoute } from './pty'
 import { keepScan, lastScan } from './startPaths.ts'
 import { createProjectFolder } from './projectFolder.ts'
@@ -605,7 +606,9 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
   stackApiUrl = env.url
   stackExposureCheck = checkStackExposure(env.url)
   db = createClient(env.url, env.serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false }
+    auth: { persistSession: false, autoRefreshToken: false },
+    // Every request ends by a deadline; a caller's own `.abortSignal(…)` still ends it sooner (audit A7-010).
+    global: { fetch: fetchWithDeadline() }
   })
   return withSchemaReadiness({
     packaged: app.isPackaged,
