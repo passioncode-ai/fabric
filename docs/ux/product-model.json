@@ -30074,7 +30074,7 @@
         "SCR-03",
         "SCR-25"
       ],
-      "coverage": "`apps/desktop/src/main/pty.ts`, `apps/desktop/src/renderer/src/SessionWindow.tsx`, `apps/desktop/test/pty.test.mjs`",
+      "coverage": "`apps/desktop/src/main/pty.ts`, `apps/desktop/src/renderer/src/SessionWindow.tsx`, `apps/desktop/test/pty-launch-failure.test.mjs` (PtyManager's launch, its refusals and its journalling), `apps/desktop/test/scrollback.test.mjs` (reattach to the retained output); `apps/desktop/test/pty.test.mjs` only echoes through raw node-pty",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the session is the one the agent actually runs in, typeable and reattachable, and its lifecycle exists as journal events with receipts. It lives in its own window so the project panel stays readable behind it.",
@@ -30252,7 +30252,7 @@
       "title": "Read what an agent says it is doing",
       "flow_ids": [],
       "screen_refs": [],
-      "coverage": "`apps/desktop/src/main/agentSurface.ts`, `apps/desktop/src/renderer/src/ProjectHome.tsx`",
+      "coverage": "`apps/desktop/src/main/agentSurface.ts`, `apps/desktop/src/renderer/src/ProjectHome.tsx`, `apps/desktop/src/renderer/src/AgentTile.test.tsx` (the claim's label, age and stale mark)",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the operator can follow progress without reading a transcript, and can never mistake what an agent asserted for what the system measured.",

@@ -732,7 +732,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **Telemetry:** `terminal_session_opened` with project_id, cwd_bound, reattach:boolean — no keystroke content, no transcript body
 - **Amended 2026-10-11 (UXAC04-REQ-008):** while a read refuses, the session window says which of four things it is. Before any answer, a refused read says "This session could not be read: {reason}. That says nothing about the session itself — it is about the read."; with the terminal already on screen, a refused refresh keeps it and says "This reading is not current: {reason}. What is below is the last answer, not the latest one."; a session the estate no longer has says "This session is gone. You can close the window."; the next read that answers clears the caveat, and an answer for another session or a closed window is dropped (`apps/desktop/src/shared/sessionReading.ts#sessionSays`, `apps/desktop/src/renderer/src/SessionWindow.tsx#SessionWindow`, checked by `apps/desktop/src/renderer/src/SessionWindow.test.tsx` and `apps/desktop/src/shared/sessionReading.test.ts`).
 - **Status:** draft
-- **Coverage:** `apps/desktop/src/main/pty.ts`, `apps/desktop/src/renderer/src/SessionWindow.tsx`, `apps/desktop/test/pty.test.mjs`
+- **Coverage:** `apps/desktop/src/main/pty.ts`, `apps/desktop/src/renderer/src/SessionWindow.tsx`, `apps/desktop/test/pty-launch-failure.test.mjs` (PtyManager's launch, its refusals and its journalling), `apps/desktop/test/scrollback.test.mjs` (reattach to the retained output); `apps/desktop/test/pty.test.mjs` only echoes through raw node-pty
 - **Product:** unobserved
 
 ## Monitoring
@@ -1053,7 +1053,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **Errors & recovery:** a claim always carries its age, so a three-hour-old account cannot sit unmarked beside a four-second-old measurement; the surface being down means sessions still run and simply cannot report.
 - **Telemetry:** planned only — see the note at the top of this file; the journal event is the record.
 - **Status:** draft
-- **Coverage:** `apps/desktop/src/main/agentSurface.ts`, `apps/desktop/src/renderer/src/ProjectHome.tsx`
+- **Coverage:** `apps/desktop/src/main/agentSurface.ts`, `apps/desktop/src/renderer/src/ProjectHome.tsx`, `apps/desktop/src/renderer/src/AgentTile.test.tsx` (the claim's label, age and stale mark)
 - **Product:** unobserved
 
 ### SCN-036: Read captured session history, including recovery after a crash
