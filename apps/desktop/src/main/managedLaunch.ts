@@ -7,6 +7,7 @@ import type { ContinuationResult } from './continuationDelivery.ts'
 import { continuationDeliveryId } from './continuationDelivery.ts'
 import { LaunchRefusedBeforeSpawn, ProcessLaunchFailure } from './launchFailure.ts'
 import { ops } from './opsSink.ts'
+import { FOLDER_HELD_SAYS } from './launchFolderLock.ts'
 import { causeOf } from '../shared/opsLog.ts'
 
 export type LaunchResult =
@@ -33,6 +34,9 @@ export interface ManagedLaunchDeps {
   get(sessionId: string): { running: boolean } | null
   stop(sessionId: string): Promise<void>
   dispatch(taskId: string, runId: string, sessionId: string, deliveryId: string, text: string): Promise<ContinuationResult>
+  /** CO-236: the project folder of a launch whose outcome is unknown stays held while its process runs
+   *  (launchFolderLock.ts). `held` is asked before admission, so a refused launch records nothing. */
+  folder?: { held(taskId: string): Promise<boolean>; lock(projectId: string, sessionId: string): void }
 }
 export function createManagedLaunch(deps: ManagedLaunchDeps) {
   return async function launch(input: LaunchInput): Promise<LaunchResult> {
@@ -54,6 +58,9 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
       return data as Record<string, unknown>
     }
     try {
+      // #region launch-folder-held — docs: docs/evidence/plans/2026-10-11-release-040-agents-first.md#c1--harness-one-session-surface-three-ways-in
+      if (deps.folder && await deps.folder.held(input.taskId)) return failure('folder_held', FOLDER_HELD_SAYS)
+      // #endregion launch-folder-held
       const admitted = input.admission ? { admitted: true as const, receipt: input.admission.receipt }
         : await deps.admit(input.taskId, sessionId, input.trigger)
       if (!admitted.admitted) return failure(admitted.reasonCode, admitted.says)
@@ -97,6 +104,8 @@ export function createManagedLaunch(deps: ManagedLaunchDeps) {
         compensated = result.compensated === true
       } catch { /* a lost response never authorises another spawn */ }
       if (!processStarted) deps.untrack(sessionId, input.taskId)
+      // The process may still be running in the project's folder: no second agent starts there until it has ended.
+      if (processStarted && receipt?.project_id) deps.folder?.lock(receipt.project_id, sessionId)
       return failure(processStarted || !compensated ? 'launch_outcome_unknown' : 'launch_failed_before_spawn',
         processStarted ? 'The session started, but launch setup failed. Check its termination before continuing.'
           : compensated ? 'The session did not start. The failed attempt was recorded; review its configuration.'

@@ -349,6 +349,7 @@ import { favourites, moveProject, projectOrder, replaceFavourite, toggleFavourit
 import { persona, savePersona } from './persona.ts'
 import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors } from './executorDetect.ts'
+import { FOLDER_HELD_SAYS, createFolderLocks } from './launchFolderLock.ts'
 import { answerCheck, launcherIn, probeTerminal, rememberedAnswers, type AnswerCheck } from './fabricMcpProbe.ts'
 import { createRunnerFallback, describeExhausted, launchRoute, openWithFallback } from './runnerFallback.ts'
 import { FALLBACK_OPTION, presetNeedsSurface } from '../shared/runnerRoute.ts'
@@ -3052,8 +3053,20 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     surfaceUp: () => surface.endpoint !== '',
     attachable: (projectId, runner, mode, skip) => ptys.attachable(projectId, runner, mode, new Set([...taskBySession.keys(), ...skip]))
   })
+  // CO-236: a folder whose last launch has an unknown outcome is held while that process runs.
+  const folderLocks = createFolderLocks({ running: (sessionId) => ptys.get(sessionId)?.running === true })
   const launchManaged = createManagedLaunch({
     db, estateId: ACTIVE_ESTATE, actor: OPERATOR_ACTOR,
+    folder: {
+      held: async (taskId) => {
+        if (!folderLocks.any()) return false
+        const { data, error } = await store.select('project_tasks', 'project_id').eq('id', taskId).maybeSingle()
+        // An unreadable task cannot be placed in a folder: refused as held rather than started beside an unknown run.
+        if (error) return true
+        return Boolean(data && folderLocks.holder(data.project_id as string))
+      },
+      lock: (projectId, sessionId) => folderLocks.lock(projectId, sessionId)
+    },
     authority: () => identity.held(),
     admit: (taskId, sessionId, trigger) => {
       const held = identity.held()
@@ -4502,6 +4515,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       permissionMode?: string | null
     ): Promise<Returns<FabricApi['terminal']['open']>> => {
       const project = await readProject(projectId)
+      // CO-236: no second coding agent in a folder an unresolved launch may still be writing in (a plain shell is no agent).
+      if (optionId !== 'shell' && folderLocks.holder(projectId)) throw new Error(FOLDER_HELD_SAYS)
       // ONE RULE, and the surface reads the same one (UXA-C04). This choice
       // used to live only here, so the launcher could not say where the agent
       // was about to start — and with no repository attached it starts in the
