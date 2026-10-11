@@ -45,7 +45,19 @@ export interface HubDocument {
   doorTokenFile: string
   pid: number
   startedAt: string
+  /** What this Fabric supports beyond the protocol, for a client to read before it relies on it (D3). */
+  features: readonly string[]
 }
+
+// #region hub-features — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#amendments
+/**
+ * `session-hooks/1` (fabric-agent-adapter#53, D3): the working-with-fabric session hooks may act. It is published only
+ * because all four things they call are served: fabric-mcp enrolls with the runtime session id (D1), joins that
+ * session with `--rejoin-only` (D2), `fabric_session_observe` (D4) and `fabric_work_release {claims: "session"}` (D5).
+ * Without it the hooks read hub.json and return.
+ */
+export const HUB_FEATURES: readonly string[] = Object.freeze(['session-hooks/1'])
+// #endregion hub-features
 
 export type PortChoice = { ok: true; port: number } | { ok: false; reason: string; code: HubDownCode; fact: string }
 
@@ -116,7 +128,8 @@ export function publishHub(opts: {
     mcp: '/mcp',
     doorTokenFile,
     pid: opts.pid ?? process.pid,
-    startedAt: (opts.now ?? (() => new Date()))().toISOString()
+    startedAt: (opts.now ?? (() => new Date()))().toISOString(),
+    features: HUB_FEATURES
   }
   writeAtomic(hubFile, JSON.stringify(document, null, 2) + '\n')
   return { doorToken, document, hubFile, doorTokenFile }
