@@ -4,6 +4,10 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
+### 2026-10-11 · `release-guard` · agent/release-guard → main (fabric#28)
+- base: origin/main 2242628; integration: GitHub merge after the PR's `ci` (`scripts/ci.sh fast`) is green
+- scope: `.github/workflows/release.yml` (the `guard` job, `macos` needs it), the design map entry `#iteration-2026-10-11-release-guard`
+- summary: release approval by checks across PassionCode products (operator 2026-10-11): the release runs only from a tag on main with `ci.yml` green on its commit; the environment's reviewers go once this lands.
 ### 2026-10-11 · `release-040-plan` · agent/release-040-plan → main
 - run: r-249d0762eddd; base: origin/main 403faab9; integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
 - scope (base re-measured: origin/main 659ff356, rebased): `docs/evidence/plans/2026-10-11-release-040-agents-first.md` (decisions, canvas C1…C12, REQ-01…REQ-36, waves 0–8, questions), its inventory `…-inventory.json` (701 items), `scripts/plan/release-040-waves.py`, P-16 in the plan (lane 2) and the Now line, the SRC-02 re-pin, the regenerated `completeness.html` and `plan.json`, the design map entry, the handoff
