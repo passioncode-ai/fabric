@@ -91,6 +91,8 @@ Each owner filed its row on its own board and named it back; the status lives th
 | webpilot | BL-015 | branch `claude/fabric-service-20261005`, `1994eeb` |
 | mobile-publisher-agent | BL-360 | PR #41, `6ab0af5` |
 | agent-stack (sshlg-skills) | B-155, the interop doctrine | ssheleg/agent-stack#42 |
+| frame-agent | BL-059 (folds BL-056, BL-057) | branch `agent/bl-059-delegation`, `93f2772` |
+| nicegram-business | B-765 (deferred until its MCP returns) | nicegram/nicegram-business PR #379, `393ebf4b` |
 
 **A ruling for step 5, asked by fabric-dashboards:** `POST /fabric/v1/login-code` is the host's operation — the contract
 lists the login code among the descriptor token's host uses (`service.md` §Surfaces) — so a host minting a sign-in for
