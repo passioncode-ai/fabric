@@ -98,6 +98,21 @@
 .st-exec-row small { color: var(--app-muted); font-size: var(--app-fs-caption); }
 .st-exec-row code { color: var(--app-muted); }
 .st-exec-row .lp-pill[data-state='ready'] { border-color: var(--state-good); color: var(--app-ink); font-weight: 600; }
+/* REQ-40: the rows are a choice. A native radio per row; the whole name area is its label; a row that cannot be
+   picked keeps its text at full contrast (the reason is the content), only the control is dimmed. */
+.st-builder-fixes li { display: grid; gap: var(--space-1); }
+.st-builder-fixes .lp-actions { margin-top: var(--space-2); }
+.st-exec-choice { border: 0; margin: 0; padding: 0; min-width: 0; }
+.st-exec-choice legend { padding: 0; font-weight: 600; color: var(--app-ink); }
+.st-exec-choice > .lp-meta { margin: var(--space-1) 0 var(--space-2); }
+.st-exec-pick { display: flex; align-items: flex-start; gap: var(--space-2); min-width: 0; cursor: pointer; }
+.st-exec-pick > span { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.st-exec-pick input { margin: 3px 0 0; flex: none; }
+.st-exec-pick:has(input:disabled) { cursor: default; }
+.st-exec-pick input:focus-visible { outline: 2px solid var(--app-ink); outline-offset: 2px; }
+.st-exec-detail { grid-column: 1 / -1; display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; padding-left: calc(var(--space-2) + 16px); }
+.st-exec-detail:empty { display: none; }
+.st-exec-row[data-chosen] .st-exec-pick b { text-decoration: underline; text-underline-offset: 3px; }
 .st-exec-note { grid-column: 1 / -1; margin: 0; color: var(--app-muted); font-size: var(--app-fs-caption); }
 .st-install { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); background: var(--app-panel-quiet); border: 1px solid var(--app-line); border-radius: var(--app-radius-control); padding: var(--space-2) var(--space-3); }
 .st-install code { flex: 1; color: var(--app-ink); }

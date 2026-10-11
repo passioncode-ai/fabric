@@ -1399,7 +1399,9 @@ export function ProjectHeader({
           <select value={agent} onChange={(e) => setAgent(e.target.value)}>
             {agents.map((o) => (
               <option key={o.id} value={o.id} disabled={!o.available}>
+                {/* REQ-40: a greyed-out choice says why, as the launch picker and the new-project form do. */}
                 {runnerLabel(o.id, t)}
+                {o.available ? '' : ` — ${t('onboarding.unavailable')}`}
               </option>
             ))}
           </select>
