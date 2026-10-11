@@ -248,7 +248,7 @@ import { createUnattendedAdmission } from '../shared/unattendedAdmission.ts'
 import { createAdmitExisting } from './admitExisting.ts'
 import { createRunLifecycle, type RunLifecycle } from './runLifecycle.ts'
 import { createIdentity, LOCAL_OPERATOR_PERSON, type Identity } from './identity.ts'
-import { repairSeedOnlyEstate, seedRepairDb } from './seedRepair.ts'
+import { repairSeedOnlyEstate, seedRepairDb, retireSeedOwner, seedRetireDb, operatorStartedAt, LEGACY_SEED_PERSON } from './seedRepair.ts'
 
 /** One shape for a created agent, so the two handlers cannot disagree. */
 /** A launch option is either a runner id (`claude-code`) or a created agent's
@@ -667,6 +667,18 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     if (!gate.ok)
       throw new Error(`identity could not be established: ${gate.says}` +
         (seedRepairWhy ? ` — the repair for a database only the old seed touched did not apply: ${seedRepairWhy}` : ''))
+    // CO-242: a repaired estate's old seed owner `…0002` is retired through the membership door — before the hub opens,
+    // on this start or on the first start of a database 0.3.4 repaired. The estate is the operator's either way, so a
+    // failure is logged and the start goes on; a shape the rule leaves alone (every later start) records nothing.
+    if (ACTIVE_ESTATE === DEFAULT_ESTATE) {
+      const retire = await retireSeedOwner(seedRetireDb(db), { estateId: ACTIVE_ESTATE, operator: LOCAL_OPERATOR_PERSON, commandId: randomUUID() })
+      if (retire.retired || !retire.left)
+        ops.record({
+          op: 'identity.seed-retire', outcome: retire.retired ? 'ok' : 'failed', level: retire.retired ? 'warn' : 'error',
+          detail: retire.retired ? { revoked: LEGACY_SEED_PERSON } : { why: retire.why },
+          ctx: { correlationId: ops.correlate(), estateId: ACTIVE_ESTATE }
+        })
+    }
   }
   // #endregion seed-repair-wiring
 
@@ -742,6 +754,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
   const agentCall = createAgentCall({ access, store: accessStore, vault, forward: forwardToProduct, estateId: ACTIVE_ESTATE })
   // A revoked binding never calls again: its idempotency memory goes at once (DA-3, verification 0.3.1).
   access.onBindingRevoked((bindingId) => agentCall.forgetBinding(bindingId))
+  // CO-200: the counts of refusals not yet journalled are written as the app quits (best effort, within the drain).
+  quit.onQuit(() => { void agentCall.flush() })
   hub = { registry, access, accessStore, connector, presenter, get doorToken() { return hubState.doorToken }, get down() { return hubState.down }, get downCode() { return hubState.downCode }, get downFact() { return hubState.downFact } }
   const hubAccess = access
   surface = new AgentSurface({
@@ -3631,9 +3645,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       const r = await run
       return r.error ? null : (r.count ?? 0)
     }
-    const [first, projects, sessions, tasksClosed, facts, decisions, grants, events] =
+    const [first, operatorMembership, projects, sessions, tasksClosed, facts, decisions, grants, events] =
       await Promise.all([
         store.select('journal', 'occurred_at').eq('estate_id', ACTIVE_ESTATE).order('seq').limit(1).maybeSingle(),
+        // CO-242: an estate the seed repair gave the operator started, for them, at the repair.
+        store.select('memberships', 'created_at, changed_by').eq('estate_id', ACTIVE_ESTATE).eq('person_id', LOCAL_OPERATOR_PERSON).maybeSingle(),
         count(store.select('projects', 'id', head).eq('estate_id', ACTIVE_ESTATE)),
         count(store.select('session_transcripts', 'session_id', head).eq('estate_id', ACTIVE_ESTATE)),
         count(store.select('project_tasks', 'id', head).eq('estate_id', ACTIVE_ESTATE).in('status', ['done', 'cancelled'])),
@@ -3643,7 +3659,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         count(store.select('journal', 'seq', head).eq('estate_id', ACTIVE_ESTATE))
       ])
     return {
-      tenure: tenureFrom((first.data?.occurred_at as string | undefined) ?? null, new Date()),
+      tenure: tenureFrom(operatorStartedAt((operatorMembership.data as { created_at?: string; changed_by?: string | null } | null) ?? null)
+        ?? (first.data?.occurred_at as string | undefined) ?? null, new Date()),
       projects,
       sessions,
       tasksClosed,

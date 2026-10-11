@@ -37,6 +37,7 @@ export const EXTERNAL_INGRESS_OWNERS: Readonly<Record<string, string>> = Object.
   ...Object.fromEntries(['access.requested@1', 'access.decided@1', 'access.credential.claimed@1', 'access.grant.revoked@1',
     'access.binding.revoked@1', 'access.denial.cleared@1'].map((type) => [type, 'AccessService: normaliseAccessRequest and its own decision payloads; the database door checks the keys'])),
   'hub.call.forwarded@1': 'createAgentCall: one hop span of identifiers, a digest of the arguments and the outcome',
+  'hub.call.refusals.summarized@1': 'createAgentCall#notSentSpan: the count of a window\'s refusals per binding and code (CO-200); its shape is checked at the door',
   ...Object.fromEntries(['product.connect.refused@1', 'product.connected@1', 'product.disconnected@1']
     .map((type) => [type, 'ProductConnector: connection metadata only; the secret is in the vault'])),
   'session.enrolled@1': 'enrollSession: identifiers, the resolution kind and a digest of the folder (ADR-0134)'

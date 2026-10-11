@@ -12,4 +12,9 @@ withOwnedPostgres({ name: 'first_install_legacy', port: 58485 }, ({ url, bin }) 
   process.env.FIRST_INSTALL_CASE = 'legacy'
   runAgainst(url, bin, test)
 })
-console.log('PASS full migration chain: a fresh install opens its estate, and a 0.3.3 install\'s database is repaired, on isolated PostgreSQL')
+// CO-242 (0.4.0 wave 1): that database, repaired, has the old seed's second owner retired through the door.
+withOwnedPostgres({ name: 'first_install_retire', port: 58486 }, ({ url, bin }) => {
+  process.env.FIRST_INSTALL_CASE = 'retire'
+  runAgainst(url, bin, test)
+})
+console.log('PASS full migration chain: a fresh install opens its estate, and a 0.3.3 install\'s database is repaired and its old seed owner retired, on isolated PostgreSQL')

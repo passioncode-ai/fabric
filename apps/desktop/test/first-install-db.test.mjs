@@ -19,7 +19,7 @@ import { randomUUID } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { LOCAL_OPERATOR_PERSON } from '../src/main/identity.ts'
 import { DEFAULT_ESTATE } from '../src/main/activeEstate.ts'
-import { EVENT_READ_LIMIT, seedOnlyProblem } from '../src/main/seedRepair.ts'
+import { EVENT_READ_LIMIT, LEGACY_SEED_PERSON, SEED_RETIRE_BY, operatorStartedAt, seedOnlyProblem, seedRetireProblem } from '../src/main/seedRepair.ts'
 
 const url = process.env.FABRIC_DISPATCH_TEST_DATABASE_URL
 if (!url) { console.error('NOT_RUN: use run-first-install-db.mjs'); process.exit(2) }
@@ -122,6 +122,51 @@ if (which === 'fresh') {
     assert.equal(revoked.status, 'committed', JSON.stringify(revoked))
     assert.equal(resolve().reason_code, 'not_a_member')
     assert.match(seedOnlyProblem({ estateId: DEFAULT_ESTATE, ...read(), operator: LOCAL_OPERATOR_PERSON }) ?? '', /membership decision/)
+  })
+} else if (which === 'retire') {
+  // The database a 0.3.3 install made, repaired the way 0.3.4 repairs it (the `legacy` case holds that repair).
+  sql(readFileSync(new URL('./fixtures/legacy-seed-0.3.3.sql', import.meta.url), 'utf8'))
+  const repaired = json(`select change_membership('${randomUUID()}', '${DEFAULT_ESTATE}', '${LOCAL_OPERATOR_PERSON}',
+    'owner', 'grant', 0, 'desktop-bootstrap:seed-repair')`)
+  assert.equal(repaired.status, 'committed', JSON.stringify(repaired))
+
+  // CO-242 (0.4.0 wave 1): the old seed's `…0002` is retired from the repaired estate the way seedRepair.ts#retireSeedOwner
+  // retires it — read as seedRetireDb reads it, decided by seedRetireProblem, revoked through the same door.
+  const details = () => json(`select coalesce(json_agg(m), '[]') from (select person_id, role, revision, changed_by, created_at
+    from memberships where estate_id = '${DEFAULT_ESTATE}') m`)
+  const legacy = () => json(`select row_to_json(p) from (select auth_user from persons where id = '${LEGACY_SEED_PERSON}') p`)
+  const retireShape = () => seedRetireProblem({ estateId: DEFAULT_ESTATE, members: details(), operator: LOCAL_OPERATOR_PERSON, legacy: legacy() })
+
+  test('CO-242: a repaired estate lists the old seed\'s person as a second owner, in the shape the retirement takes', () => {
+    assert.equal(sql(`select string_agg(person_id || ':' || role, ',' order by person_id) from memberships where estate_id = '${DEFAULT_ESTATE}'`),
+      `${LEGACY_SEED_PERSON}:owner,${LOCAL_OPERATOR_PERSON}:owner`)
+    assert.equal(retireShape(), null)
+  })
+
+  test('CO-242: it is revoked through the membership door, at its revision, with a receipt; the operator stays the owner', () => {
+    const commands = Number(sql(`select count(*) from membership_commands where estate_id = '${DEFAULT_ESTATE}'`))
+    const old = details().find((m) => m.person_id === LEGACY_SEED_PERSON)
+    const command = randomUUID()
+    const receipt = json(`select change_membership('${command}', '${DEFAULT_ESTATE}', '${LEGACY_SEED_PERSON}', null, 'revoke', ${old.revision}, '${SEED_RETIRE_BY}')`)
+    assert.equal(receipt.status, 'committed', JSON.stringify(receipt))
+    assert.equal(sql(`select string_agg(person_id || ':' || role, ',') from memberships where estate_id = '${DEFAULT_ESTATE}'`), `${LOCAL_OPERATOR_PERSON}:owner`)
+    assert.equal(Number(sql(`select count(*) from membership_commands where estate_id = '${DEFAULT_ESTATE}'`)), commands + 1, 'the revoke is a decision on record')
+    assert.equal(sql(`select receipt->>'action' from membership_commands where command_id = '${command}'`), 'revoke')
+    const now = resolve()
+    assert.equal(now.ok, true, JSON.stringify(now)); assert.equal(now.role, 'owner')
+    assert.equal(sql(`select count(*) from persons where id = '${LEGACY_SEED_PERSON}'`), '1', 'the person row stays: a membership is revoked, nothing is deleted')
+  })
+
+  test('CO-242: once retired, every later start leaves the estate as it is', () => {
+    assert.deepEqual(retireShape(), { why: 'the old seed\'s person is not a member', left: true })
+  })
+
+  test('CO-242: the operator\'s tenure counts from the repair, not from the failed install\'s creation event', () => {
+    const row = json(`select row_to_json(m) from (select created_at, changed_by from memberships
+      where estate_id = '${DEFAULT_ESTATE}' and person_id = '${LOCAL_OPERATOR_PERSON}') m`)
+    const firstEvent = sql(`select to_json(occurred_at) from journal where estate_id = '${DEFAULT_ESTATE}' order by seq limit 1`)
+    assert.equal(operatorStartedAt(row), row.created_at)
+    assert.ok(Date.parse(row.created_at) > Date.parse(JSON.parse(firstEvent)), 'the repair came after the seed\'s creation event')
   })
 } else {
   console.error(`unknown FIRST_INSTALL_CASE ${which}`)

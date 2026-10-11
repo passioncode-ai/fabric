@@ -61,12 +61,19 @@ export function assertDisposableDir(dir) {
   return meta
 }
 
-function portFree(port) {
+function portFreeOn(port, host) {
   return new Promise(resolve => {
     const s = net.createServer()
     s.once('error', () => resolve(false))
-    s.listen({ port, host: '0.0.0.0', exclusive: true }, () => s.close(() => resolve(true)))
+    s.listen({ port, host, exclusive: true }, () => s.close(() => resolve(true)))
   })
+}
+
+// Both addresses (0.4.0 wave 1, 2026-10-11): a container publishing 127.0.0.1:<port> (another project's database)
+// leaves 0.0.0.0:<port> bindable on macOS, so a check of the wildcard alone chose a block whose DB port Docker
+// then could not bind — "Bind for 127.0.0.1:55432 failed: port is already allocated", twice, and no stack.
+async function portFree(port) {
+  return (await portFreeOn(port, '0.0.0.0')) && (await portFreeOn(port, '127.0.0.1'))
 }
 
 async function blockFree(base) {
