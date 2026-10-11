@@ -102,8 +102,9 @@ build signed anywhere but the `release` environment is a debug build that is nev
    signs the app, notarizes and staples it, and builds and signs the DMG; the script notarizes and staples
    the DMG. It fails unless the app's Electron fuses, read back from the built binary, are the ones
    `apps/desktop/electron-builder.yml` declares (`scripts/lib/release-mac.mjs#RELEASE_FUSES`: run-as-Node on for
-   the helpers; `NODE_OPTIONS`, `--inspect` and loading an app from outside the asar off; asar integrity on),
-   `codesign --verify --deep --strict` passes on the app and the signer read back
+   the helpers; `NODE_OPTIONS`, `--inspect` and loading an app from outside the asar off; asar integrity on), the
+   app's own `bin/fabric-mcp` answers as an MCP server (the check of step 7, made on the built bundle before its
+   signature is verified), `codesign --verify --deep --strict` passes on the app and the signer read back
    from it is a Developer ID Application with the hardened runtime, Gatekeeper accepts the app and the DMG,
    and the stapled tickets of both validate. The DMG and its receipt `fabric-X.Y.Z-mac.json` (size,
    SHA-256, notarization id, signer, team, the checks, the CI run) are uploaded as `release-macos`; the
@@ -118,7 +119,26 @@ build signed anywhere but the `release` environment is a debug build that is nev
    fails ("verifying with issuer sigstore.dev"; the shared workflow's own note, measured 2026-10-03).
 7. Smoke the published DMG on this Mac: install it, then `FABRIC_APP_EXECUTABLE=/Applications/Fabric.app/Contents/MacOS/Fabric
    FABRIC_PLAYWRIGHT_MODULE=<playwright> node apps/desktop/test/chat-activation-native.test.mjs` — the packaged
-   app starts from its own stack, the window is named Fabric, the chat saves and survives a cold restart. A release
+   app starts from its own stack, the window is named Fabric, the chat saves and survives a cold restart. The probe
+   starts the binary with `--remote-debugging-port=0` and drives the window over `chromium.connectOverCDP`
+   (`apps/desktop/test/helpers/app-launch.mjs`): Playwright's `_electron.launch` waits for `--inspect`, which the
+   fused binary ignores (`enableNodeCliInspectArguments: false`), so it can no longer start a release build.
+   **The helpers and the MCP entry, from the bundle.** The fuses decide whether the binary still runs as Node on an
+   entry inside `app.asar`, so this is checked on the artifact, never on the sources:
+   - `node scripts/smoke-platform.mjs --exe /Applications/Fabric.app/Contents/MacOS/Fabric --mcp-only` runs the
+     install's `Contents/Resources/bin/fabric-mcp --runner claude-code` (ADR-0134) with a throwaway home, so no hub is
+     found, sends `initialize` and `tools/list`, and passes only when it answers with server `fabric` and exactly its
+     waiting tool `fabric_whoami`, prints nothing on stdout but JSON-RPC, and exits 0 when its stdin ends
+     (`scripts/lib/smoke-platform.mjs#packagedMcpCheck`). `--mcp-only` starts nothing else, so the Mac's live stack is
+     not touched. The same check runs in step 5 (`scripts/release-mac.mjs` refuses the build) and, with `--mcp`, after
+     the SMOKE start of the Windows and Linux installs (`.github/workflows/release.yml`, `platforms.yml`), where its
+     verdict lands in the receipt as `checks['fabric-mcp']`.
+   - `FABRIC_APP_EXECUTABLE=… node --test apps/desktop/test/packaged-helpers.test.mjs` runs the same check, then the
+     stdio MCP bridge (`app.asar/out/main/mcp-bridge.js`) against a bearer-checking fixture surface and the ACP shell
+     (`acp-shell.js`) against a fixture agent, including its reaper (`<binary> -e`, Node mode), which must end the
+     agent when the shell is SIGKILLed. No stack, window or hub is involved.
+
+   A release
    whose verification ledger names more release-close checks lists them in its own *Release close* section (0.3.3:
    the first-run boot on the operator's database, CO-228; the roadmap PR before the tag, CO-196).
 8. Take the site's screenshots from the packaged app on a **fresh English demo estate** —
