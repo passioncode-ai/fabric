@@ -4,7 +4,7 @@
 // tools, a binding's has four, and neither has any `fabric_*` session tool — so a tool added to the
 // session surface tomorrow is not reachable from outside by accident.
 //
-//   door token  → fabric.access.request, fabric.access.status
+//   door token  → fabric.access.request, fabric.access.status, fabric.session.enroll (names the project only)
 //   binding     → fabric.access.request (more, for its own agent), fabric.access.status,
 //                 fabric.access.grants, agent.call, fabric.session.enroll (ADR-0134)
 //
@@ -55,12 +55,12 @@ export interface HubToolDeps {
   /** `agent.call` itself (S4). Absent, the tool refuses rather than pretending to route. */
   call?: (binding: BindingRow, args: AgentCallArgs, meta: Record<string, unknown> | undefined, signal?: AbortSignal) => Promise<ToolAnswer>
   /** `fabric.session.enroll` (ADR-0134). Absent, the tool refuses: this Fabric admits no coding agent from outside. */
-  enroll?: (binding: BindingRow, args: { cwd: string; runtimeSessionId?: string }) => Promise<EnrollAnswer>
+  enroll?: (binding: BindingRow | null, args: { cwd: string; runtimeSessionId?: string }) => Promise<EnrollAnswer>
 }
 
 /** The tool names each principal is given — written down so a test can compare it with what is served. */
 export const HUB_TOOLS = {
-  door: ['fabric.access.request', 'fabric.access.status'],
+  door: ['fabric.access.request', 'fabric.access.status', 'fabric.session.enroll'],
   binding: ['agent.call', 'fabric.access.grants', 'fabric.access.request', 'fabric.access.status', 'fabric.session.enroll']
 } as const
 
@@ -146,6 +146,24 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
       })
   )
 
+  // #region hub-session-enroll — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+  server.registerTool(
+    'fabric.session.enroll',
+    {
+      title: 'Work in the project of this folder',
+      description:
+        'For a coding agent: name the absolute folder you run in. Through the door this only names the project the folder belongs to (needs-grant) — ask for it with fabric.access.request. With a binding credential: when it holds the operator\'s session.enroll grant on the project that folder belongs to, the answer carries a one-session bearer for that project — use it as a session Fabric started would (Authorization: Bearer, then call fabric_whoami first); it is spent by one MCP initialize. needs-grant names the resource to ask for with fabric.access.request (callee fabric, capability session.enroll); no-project says the folder is not a project in Fabric yet.' + VERIFY_HUB,
+      inputSchema: z.object({ cwd: z.string().min(1).max(4096), runtimeSessionId: z.string().min(1).max(128).optional() }).strict()
+    },
+    async (args) =>
+      guard('session.enroll', async () => {
+        if (!deps.enroll) return refusal('hub-unavailable', 'this Fabric admits no coding agent from outside')
+        const r = await deps.enroll(principal.kind === 'binding' ? principal.binding : null, args as { cwd: string; runtimeSessionId?: string })
+        return r.ok ? answer({ session: r.session }) : refusal(r.code, r.message, r.code === 'needs-grant' ? { projectId: r.projectId, projectName: r.projectName, resource: r.resource } : undefined)
+      })
+  )
+  // #endregion hub-session-enroll
+
   if (principal.kind === 'binding') {
     const binding = principal.binding
     server.registerTool(
@@ -165,23 +183,6 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
         })
     )
 
-    // #region hub-session-enroll — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
-    server.registerTool(
-      'fabric.session.enroll',
-      {
-        title: 'Work in the project of this folder',
-        description:
-          'For a coding agent: name the absolute folder you run in. When your credential holds the operator\'s session.enroll grant on the project that folder belongs to, the answer carries a one-session bearer for that project — use it as a session Fabric started would (Authorization: Bearer, then call fabric_whoami first); it is spent by one MCP initialize. needs-grant names the resource to ask for with fabric.access.request (callee fabric, capability session.enroll); no-project says the folder is not a project in Fabric yet.' + VERIFY_HUB,
-        inputSchema: z.object({ cwd: z.string().min(1).max(4096), runtimeSessionId: z.string().min(1).max(128).optional() }).strict()
-      },
-      async (args) =>
-        guard('session.enroll', async () => {
-          if (!deps.enroll) return refusal('hub-unavailable', 'this Fabric admits no coding agent from outside')
-          const r = await deps.enroll(binding, args as { cwd: string; runtimeSessionId?: string })
-          return r.ok ? answer({ session: r.session }) : refusal(r.code, r.message, r.code === 'needs-grant' ? { projectId: r.projectId, projectName: r.projectName, resource: r.resource } : undefined)
-        })
-    )
-    // #endregion hub-session-enroll
 
     server.registerTool(
       'agent.call',

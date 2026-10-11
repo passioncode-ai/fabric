@@ -61,3 +61,10 @@ test('a relative, missing or non-string folder: bad-folder', async () => {
   for (const cwd of ['relative', 42, undefined]) assert.equal((await enrollSession(binding, { cwd }, deps().d)).code, 'bad-folder')
   assert.equal((await enrollSession(binding, { cwd: '/gone' }, deps({ realpath: () => null }).d)).code, 'bad-folder')
 })
+
+test('through the door (no binding) the folder\'s project is named, never a session', async () => {
+  const h = deps()
+  const r = await enrollSession(null, { cwd: '/Users/me/DATA/site' }, h.d)
+  assert.deepEqual([r.ok, r.code, r.projectName], [false, 'needs-grant', 'site'])
+  assert.equal(h.minted.length, 0)
+})

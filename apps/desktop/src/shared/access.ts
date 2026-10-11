@@ -538,6 +538,8 @@ export interface PendingRequestFacts {
   reason: string
   /** This adds to access the agent already holds. */
   incremental: boolean
+  /** ADR-0134: a coding agent asks Fabric itself to work in this project (the name as Fabric read it). */
+  enroll?: { projectName: string }
   requestedAt: string
   expiresAt: string
 }
@@ -567,6 +569,7 @@ export function pendingFacts(r: RequestRowLike, connected: boolean): PendingRequ
     ask: askLines(r),
     reason: oneLine(r.reason, 300),
     incremental: r.asked_by_binding !== null,
+    ...(r.callee === FABRIC_SELF ? { enroll: { projectName: oneLine(String(((r.registry as { project?: { name?: unknown } } | null)?.project?.name) ?? ''), 120) } } : {}),
     requestedAt: r.requested_at,
     expiresAt: r.expires_at
   }

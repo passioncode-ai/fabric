@@ -99,8 +99,22 @@ export function consentPrompt(t: Say, input: {
   reason: string
   connected: boolean
   incremental: boolean
+  enroll?: { projectName: string }
 }): { title: string; message: string; statement: string; detail: string; buttons: [string, string]; defaultId: 0; cancelId: 0 } {
   const name = shownName(input.agent)
+  // ADR-0134: a coding agent asks to work in a project — not a product, not a mailbox.
+  if (input.enroll) {
+    const project = input.enroll.projectName || t('access.enroll.thisProject')
+    return {
+      title: t('access.enroll.title', { name, project }),
+      message: t('access.enroll.title', { name, project }),
+      statement: t('access.enroll.message', { name, project }),
+      detail: [t('access.enroll.what', { project }), '', t('access.prompt.reasonLead'), t('access.prompt.quoted', { reason: input.reason }), '', t('access.enroll.revoke'), t('access.denyStands')].join('\n'),
+      buttons: [t('access.deny'), t('access.allow')],
+      defaultId: 0,
+      cancelId: 0
+    }
+  }
   const product = input.product
   const detail = [
     t('access.prompt.asks', { origin: sayOrigin(t, input.agent) }),

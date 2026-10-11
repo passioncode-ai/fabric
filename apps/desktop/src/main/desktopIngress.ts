@@ -30,7 +30,16 @@ export const EXTERNAL_INGRESS_OWNERS: Readonly<Record<string, string>> = Object.
   'project.repo.detached@1': 'reposDetach identifier only',
   'routine.updated@1': 'routinesSetEnabled identifier and boolean',
   'task.note.promoted@1': 'notesPromote relationship identifiers',
-  'task.prioritised@1': 'tasksPrioritise relationship identifiers and position'
+  'task.prioritised@1': 'tasksPrioritise relationship identifiers and position',
+  // The hub (ADR-0115): its own service normalises every field before it appends, and the database door checks
+  // the keys again (migrations 77, 80). Absent from this roster, every one was refused in the app from 0.3.1 to
+  // 0.3.4 while the hub's tests, on the raw journal, passed (0.4.0 wave 1; ingress-owners.test.mjs).
+  ...Object.fromEntries(['access.requested@1', 'access.decided@1', 'access.credential.claimed@1', 'access.grant.revoked@1',
+    'access.binding.revoked@1', 'access.denial.cleared@1'].map((type) => [type, 'AccessService: normaliseAccessRequest and its own decision payloads; the database door checks the keys'])),
+  'hub.call.forwarded@1': 'createAgentCall: one hop span of identifiers, a digest of the arguments and the outcome',
+  ...Object.fromEntries(['product.connect.refused@1', 'product.connected@1', 'product.disconnected@1']
+    .map((type) => [type, 'ProductConnector: connection metadata only; the secret is in the vault'])),
+  'session.enrolled@1': 'enrollSession: identifiers, the resolution kind and a digest of the folder (ADR-0134)'
 })
 
 export function createDesktopJournal(journal: Journal): Journal {

@@ -55,7 +55,9 @@ export default defineConfig({
         entry: {
           index: resolve(import.meta.dirname, 'src/main/index.ts'),
           'acp-shell': resolve(import.meta.dirname, 'src/main/acpShellMain.ts'),
-          'mcp-bridge': resolve(import.meta.dirname, 'src/main/mcpStdioBridgeMain.ts')
+          'mcp-bridge': resolve(import.meta.dirname, 'src/main/mcpStdioBridgeMain.ts'),
+          // ADR-0134: the MCP entry a coding agent opened outside Fabric registers (bin/fabric-mcp runs it).
+          'fabric-mcp': resolve(import.meta.dirname, 'src/main/fabricMcpMain.ts')
         }
       }
     }

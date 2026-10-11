@@ -70,7 +70,8 @@ export function hubPaths(root: string): { hubFile: string; doorTokenFile: string
   return { hubFile: path.join(root, 'hub.json'), doorTokenFile: path.join(root, 'hub-door-token') }
 }
 
-function writeAtomic(file: string, contents: string): void {
+/** Write a secret file 0600 atomically (temporary file, fsync, rename; the owner-only ACL on Windows). */
+export function writeAtomic(file: string, contents: string): void {
   const tmp = `${file}.${process.pid}.${randomBytes(6).toString('hex')}.tmp`
   const fd = openSync(tmp, 'wx', 0o600)
   try {
@@ -124,7 +125,8 @@ export function publishHub(opts: {
 /** hub.json is read at quit, before anything can stop a blocked main thread (I3 E-1): a FIFO, a device or a
  *  symlink planted there must be refused, never opened for a blocking read or followed. Small and bounded. */
 const HUB_DOCUMENT_MAX_BYTES = 64 * 1024
-function readHubDocument(file: string): string | null {
+/** A small regular file, read without following a link or blocking on a FIFO; null when it is not one. */
+export function readHubDocument(file: string): string | null {
   if (!lstatSync(file).isFile()) return null
   const fd = openSync(file, fsc.O_RDONLY | fsc.O_NONBLOCK | (fsc.O_NOFOLLOW ?? 0) | (fsc.O_NOCTTY ?? 0))
   try {

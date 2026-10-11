@@ -29,6 +29,7 @@ import { AccessService } from './accessService.ts'
 import { startHub, withdrawHub } from './hub.ts'
 import { hubServerFor } from './hubTools.ts'
 import { enrollSession } from './sessionEnroll.ts'
+import { FABRIC_SELF } from '../shared/access.ts'
 import { createAgentCall } from './hubCall.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
 import { FABRIC_INBOX, ProductConnector } from './productConnect.ts'
@@ -3339,7 +3340,8 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     if (decision !== 'allowed' && decision !== 'denied') return { ok: false, reason: 'a decision is allowed or denied' }
     const row = await h.accessStore.request(String(requestId))
     const done: HubActResult = await h.access.decide(String(requestId), decision, OPERATOR_ACTOR)
-    if (done.ok && decision === 'allowed' && row && !(await h.accessStore.liveConnection(row.callee))) {
+    // Fabric itself (ADR-0134, a coding agent's enrollment) is not a product: there is nothing to connect.
+    if (done.ok && decision === 'allowed' && row && row.callee !== FABRIC_SELF && !(await h.accessStore.liveConnection(row.callee))) {
       // The Allow is recorded either way; a product that could not be opened is said beside it (UX-5).
       const started = await beginConnect(h, row.callee)
       if (!started.ok) return { ok: true, connect: { problem: started.problem } }

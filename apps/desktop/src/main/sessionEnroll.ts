@@ -32,7 +32,8 @@ export interface EnrollDeps {
 
 const RUNTIME_SESSION = /^[A-Za-z0-9._:-]{1,128}$/
 
-export async function enrollSession(binding: BindingRow, args: { cwd: unknown; runtimeSessionId?: unknown }, deps: EnrollDeps): Promise<EnrollAnswer> {
+/** `binding` null: the door asks — the folder is resolved and the project named (`needs-grant`), never a session. */
+export async function enrollSession(binding: BindingRow | null, args: { cwd: unknown; runtimeSessionId?: unknown }, deps: EnrollDeps): Promise<EnrollAnswer> {
   if (typeof args.cwd !== 'string' || !path.isAbsolute(args.cwd)) return { ok: false, code: 'bad-folder', message: 'cwd must be the absolute folder the agent runs in' }
   const real = deps.realpath(args.cwd)
   if (!real) return { ok: false, code: 'bad-folder', message: 'that folder does not exist on this Mac' }
@@ -43,10 +44,10 @@ export async function enrollSession(binding: BindingRow, args: { cwd: unknown; r
   const projectName = (await deps.projectName(match.projectId)) ?? 'this project'
   const resource = `project:${match.projectId}`
   const now = (deps.now ?? Date.now)()
-  const grant = (await deps.liveGrants(binding)).find(
+  const grant = binding === null ? undefined : (await deps.liveGrants(binding)).find(
     (g) => g.callee === FABRIC_SELF && g.capability === SESSION_ENROLL && g.resource === resource && g.revoked_at === null && Date.parse(g.expires_at) > now
   )
-  if (!grant)
+  if (!grant || binding === null)
     return {
       ok: false, code: 'needs-grant', projectId: match.projectId, projectName, resource,
       message: `Ask the operator once with fabric.access.request (callee ${FABRIC_SELF}, capability ${SESSION_ENROLL}, resource ${resource}).`

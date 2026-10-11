@@ -148,3 +148,26 @@ describe('iteration 2 — the words say what is true, in one language at a time'
       expect((ru as Record<string, string>)[key], key).toContain(term)
   })
 })
+
+// ADR-0134: a coding agent's enrollment is asked in the operator's words — the agent, the project, what it gets,
+// how to revoke — and never shows the machine's ids (session.enroll, project:<uuid>).
+describe('the enrollment prompt', () => {
+  const claude = agentFacts('claude-code', { name: 'Claude Code', installed_by: 'a coding agent on this Mac', repository: null })
+  const enroll = { ...base, agent: claude, product: 'Fabric', ask: [], reason: 'This coding agent, opened in the folder site, asks to work in the project site through Fabric.', enroll: { projectName: 'site' } }
+  it('names the agent and the project, in en and ru, with Allow and Deny', () => {
+    const e = consentPrompt(tEn, enroll)
+    expect(e.title).toBe('Let Claude Code work in site?')
+    expect(e.buttons).toEqual(['Deny', 'Allow'])
+    expect(e.detail).toContain('Settings → Agent access')
+    const r = consentPrompt(tRu, enroll)
+    expect(r.title).toBe('Разрешить Claude Code работать в проекте «site»?')
+    expect(r.buttons).toEqual(['Отказать', 'Разрешить'])
+  })
+  it('shows no machine id', () => {
+    for (const t of [tEn, tRu]) {
+      const p = consentPrompt(t, enroll)
+      const all = [p.title, p.message, p.statement, p.detail].join('\n')
+      expect(all).not.toMatch(/session\.enroll|project:[0-9a-f]/)
+    }
+  })
+})

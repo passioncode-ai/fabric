@@ -167,6 +167,7 @@ export class AccessService {
       // Fabric itself as the callee: the asker is a coding agent of the runner catalogue, never a registry entry,
       // and the one resource is a project that exists. Every other callee goes through the registry as before.
       let entry: { key: string; kind: string; name: string; installedBy: string; repository: string | null; summary: string | null }
+      let enrolling: { id: string; name: string } | null = null
       if (asked.value.callee === FABRIC_SELF) {
         const runner = this.deps.enrollment?.runner(asked.value.agentId) ?? null
         if (!runner) {
@@ -180,6 +181,7 @@ export class AccessService {
           return { ok: false, refused: 'that project is not one of this Fabric. Nothing was shown to the operator.' }
         }
         entry = { key: runner.key, kind: 'runner', name: runner.name, installedBy: 'a coding agent on this Mac', repository: null, summary: runner.summary }
+        enrolling = project
       } else {
         this.deps.registry.refresh()
         const resolved = this.deps.registry.resolve(asked.value.agentId)
@@ -230,7 +232,7 @@ export class AccessService {
       await this.deps.store.append('access.requested@1', HUB_ACTOR, {
         id, agent_id: entry.key, callee: ask.callee, capabilities: ask.capabilities, resources: ask.resources,
         reason: ask.reason, binding_id: bindingId, expires_at: expiresAt, poll_verifier: verifierOf(pollSecret),
-        registry: { key: entry.key, kind: entry.kind, name: entry.name, installed_by: entry.installedBy, repository: entry.repository, summary: entry.summary }
+        registry: { key: entry.key, kind: entry.kind, name: entry.name, installed_by: entry.installedBy, repository: entry.repository, summary: entry.summary, ...(enrolling ? { project: { id: enrolling.id, name: enrolling.name } } : {}) }
       })
       const row = await this.deps.store.request(id)
       if (!row) throw new Error('the access request was written and could not be read back')
