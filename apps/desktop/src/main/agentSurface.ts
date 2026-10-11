@@ -2168,7 +2168,10 @@ export class AgentSurface {
         const grantId = await policy.findGrantFor({
           estateId: scope.estateId,
           floorClass,
-          target
+          target,
+          // A grant confined to another project or act does not serve this one (audit A7-015).
+          projectId: scope.projectId,
+          actionClass
         })
         // WHO IS ASKING, and in which mode (FA-09). The floor is voluntary —
         // every runner has native tools Fabric cannot see — so the decision has
