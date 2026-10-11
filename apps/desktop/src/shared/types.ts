@@ -836,7 +836,14 @@ export interface AnalyticsStatus {
   /** This app already sent counts from this Mac (an install from 0.3.2, which sent from its first start). */
   sentBefore?: boolean
 }
-export interface HistoryRestored { operation_id: string; target_estate_id: string; history_restored: true; access_verified: true; private_history: boolean; opened: false }
+/** `private_history_skipped`: why the archive's private history was NOT imported although it carried one —
+ *  `not_your_history` (another Person's, never sent) or the import's refusal code — else null (A5-011, A5-012). */
+export interface HistoryRestored { operation_id: string; target_estate_id: string; history_restored: true; access_verified: true; private_history: boolean
+  private_history_skipped: string | null; opened: false }
+/** A restore whose result is not known yet, read from main's operation file (A5-014). */
+export interface HistoryPending { operation_id: string; name: string }
+/** An Estate this Mac restored for the held Person, other than the one open (A3-005). */
+export interface HistoryRestoredEstate { target_estate_id: string; name: string; private_history: boolean }
 export type HistoryReply<T> = ({ ok: true } & T) | { ok: false; state: 'refused' | 'result_unknown'; reason_code: string; operation_id?: string }
 
 export interface FabricApi {
@@ -1288,6 +1295,10 @@ export interface FabricApi {
     choose(): Promise<HistoryReply<HistoryArchiveSummary> | null>
     restore(token: string, name: string): Promise<HistoryReply<HistoryRestored>>
     check(operationId: string): Promise<HistoryReply<HistoryRestored>>
+    /** Restores whose result is not known yet, so Check again survives closing the panel or a restart. */
+    pending(): Promise<HistoryPending[]>
+    /** Estates this Mac restored for you that can still be opened. */
+    restored(): Promise<HistoryRestoredEstate[]>
     /** Record a restored Estate as the one to open, then restart. */
     open(estateId: string): Promise<{ ok: boolean; reason: string | null }>
   }
@@ -1538,6 +1549,8 @@ export const IPC = {
   historyRestore: 'history:restore',
   historyCheck: 'history:check',
   historyOpen: 'history:open',
+  historyPending: 'history:pending',
+  historyRestored: 'history:restored',
   projectsList: 'projects:list',
   projectsStats: 'projects:stats',
   transcriptsList: 'transcripts:list',

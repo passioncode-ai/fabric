@@ -28,7 +28,9 @@ const api: FabricApi = {
     choose: () => ipcRenderer.invoke(IPC.historyChoose),
     restore: (token, name) => ipcRenderer.invoke(IPC.historyRestore, token, name),
     check: (operationId) => ipcRenderer.invoke(IPC.historyCheck, operationId),
-    open: (estateId) => ipcRenderer.invoke(IPC.historyOpen, estateId)
+    open: (estateId) => ipcRenderer.invoke(IPC.historyOpen, estateId),
+    pending: () => ipcRenderer.invoke(IPC.historyPending),
+    restored: () => ipcRenderer.invoke(IPC.historyRestored)
   },
   ceo: {
     status: () => ipcRenderer.invoke(IPC.ceoStatus),
