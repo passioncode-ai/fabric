@@ -135,6 +135,7 @@ export const en = {
   'onboarding.saving': 'Creating…',
   'onboarding.cancel': 'Cancel',
   'onboarding.unavailable': 'unavailable on this machine',
+  'onboarding.unavailableHint': "A greyed-out coding agent is not installed on this Mac. Install it, then open this again: “Fabric help” → “Walk through the first run again” shows each install command.",
 
   'project.settings': 'Settings',
   'project.save': 'Save revision',
@@ -1919,6 +1920,11 @@ export const en = {
   // #endregion executor-auth-copy
   'first.exec.recheck': "Check again",
   'first.exec.continueWithout': "Continue without an agent",
+  'first.exec.choose': "Which one does your work",
+  'first.exec.chooseHint': "Fabric opens it when you create or adapt an agent. You can pick another one at each launch, and change the order under “Settings”, in the fallback order.",
+  'first.exec.cannotPick.missing': "You can pick it once it is installed: run the command below, then press “Check again”.",
+  'first.exec.cannotPick.unresponsive': "You can pick it once it answers: finish its setup, then press “Check again”.",
+  'first.exec.notSaved': "Your choice was not saved: {reason}",
   'first.start.title': "Where shall {name} start?",
   'first.start.lede': "Pick one. The others stay one click away under + Project in the sidebar.",
   'first.start.later': "Not now, take me home",
@@ -1949,6 +1955,8 @@ export const en = {
   'start.builder.unconnected': "{name} (not connected to Fabric's tools)",
   'start.builder.missing': "{name} — not installed",
   'start.builder.unresponsive': "{name} — did not answer",
+  'start.builder.fixMissing': "{name} is not installed. To pick it, install it with this command, then press “Check agents again”:",
+  'start.builder.recheck': "Check agents again",
   'start.builder.reading': "Reading the coding agents on this Mac…",
   'start.builder.failed': "The coding agents could not be read: {reason}",
   'start.builder.none': "No coding agent is installed on this Mac. Install one — Claude Code, Codex or another — and come back.",

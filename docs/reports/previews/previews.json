@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "source": {
-    "docs/reports/product.html": "35884e7c7f9ec6b4705595387e3177064bf5f41306486c5dc5196e23df891413",
-    "docs/ux/product-model.json": "9a8cd042d44d1ea93e291ec4a60b9f3a58adffcc82fa72eb94dab67681f4c0ba"
+    "docs/reports/product.html": "9d28c9332ff1d0121395e82908d41f45c3065167677116afcaf2a17860676ec6",
+    "docs/ux/product-model.json": "ffe0220ed1013bf725dbcd7f60bbef9b9191b557b0680a774537438b947879d0"
   },
   "views": [
     {
@@ -448,6 +448,22 @@
     {
       "id": "start-convert",
       "file": "start-convert.jpg"
+    },
+    {
+      "id": "setup-agents",
+      "file": "setup-agents.jpg"
+    },
+    {
+      "id": "where-work",
+      "file": "where-work.jpg"
+    },
+    {
+      "id": "fabric-button",
+      "file": "fabric-button.jpg"
+    },
+    {
+      "id": "session-start",
+      "file": "session-start.jpg"
     }
   ]
 }

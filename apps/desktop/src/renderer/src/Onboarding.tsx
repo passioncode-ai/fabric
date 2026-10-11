@@ -2,7 +2,7 @@
 // operator saves: a draft project lives only in this component, so the register
 // never fills with half-projects nobody created.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Draft } from './App'
 import type {
   CreateProjectInput,
@@ -13,6 +13,7 @@ import type {
 } from '../../shared/types'
 import { Button, EmptyState, Field, FieldGroup, Row, StateChip, Toolbar } from './components'
 import { memoryChoice } from '../../shared/memoryChoice.ts'
+import { installedDefault } from '../../shared/builderChoice.ts'
 import { useT } from './i18n'
 import { folderNameProblem, type FolderNameProblem } from '../../shared/startPaths.ts'
 import { runnerLabel } from './runnerLabel'
@@ -38,6 +39,8 @@ export function Onboarding({
   // tabs and coming back finds every field as it was left.
   const { name, purpose, repoPaths, memory, agent } = draft
   const patch = (part: Partial<Draft>): void => onDraftChange({ ...draft, ...part })
+  const latest = useRef(draft)
+  latest.current = draft
   const [agents, setAgents] = useState<LaunchOption[]>([])
   /** NULL until read (M108): an empty array would render "no memory backend"
    *  while the answer is still in flight. */
@@ -46,9 +49,31 @@ export function Onboarding({
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
-    window.fabric.terminal.options().then(setAgents).catch((e) => onError(String(e)))
+    // #region new-project-agent-choice — docs: docs/ux/scenarios.md#scn-129-create-a-new-project-in-a-new-folder-or-as-an-idea
+    // REQ-40: the form started on Claude Code whatever this Mac had, so without it the chosen option was a greyed-out
+    // one and the project got a default its Launch could not start. A default that is not installed moves to the
+    // first installed one in the fallback order (the first run's pick heads it), else the first installed one; an
+    // installed choice is never replaced. The order is read through a resolved promise: unreadable reads as none.
+    let alive = true
+    const order = Promise.resolve().then(() => window.fabric.settings.read()).then((s) => s.runnerFallback ?? null, () => null)
+    window.fabric.terminal.options().then(
+      async (list) => {
+        if (!alive) return
+        setAgents(list)
+        const fallback = await order
+        if (!alive) return
+        // From the draft as it is NOW: a name typed while the reads were on their way is kept.
+        const now = latest.current
+        const pick = installedDefault(list, fallback, now.agent)
+        if (pick && pick !== now.agent) onDraftChange({ ...now, agent: pick })
+      },
+      (e: unknown) => onError(String(e))
+    )
     window.fabric.terminal.memoryBackends().then(setBackends).catch((e) => onError(String(e)))
+    return () => { alive = false }
+    // #endregion new-project-agent-choice
   }, [])
+  const anyUnavailable = agents.some((o) => o.program !== null && !o.available)
 
   const choose = async (): Promise<void> => {
     try {
@@ -240,7 +265,7 @@ export function Onboarding({
           </FieldGroup>
         )}
 
-        <Field label={t('onboarding.defaultAgent')} hint={t('onboarding.defaultAgentHint')}>
+        <Field label={t('onboarding.defaultAgent')} hint={anyUnavailable ? `${t('onboarding.defaultAgentHint')} ${t('onboarding.unavailableHint')}` : t('onboarding.defaultAgentHint')}>
           {(id, describedBy) => (
             <select id={id} aria-describedby={describedBy} value={agent} onChange={(e) => patch({ agent: e.target.value })}>
               {agents.filter((o) => o.program !== null).map((o) => (
