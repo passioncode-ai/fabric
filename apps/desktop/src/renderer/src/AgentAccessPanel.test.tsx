@@ -269,6 +269,47 @@ describe('SCR-76 agent access', () => {
     expect(en['access.allowedConnectHere']).not.toMatch(/in settings/)
   })
 
+  // CO-207: a plain Allow or Deny used to leave no word behind — the card just vanished on the next read.
+  // The panel now says what was decided, with the queue row's own sentence, and keeps it after the re-read.
+  it('CO-207: after a plain Allow or Deny the panel names the result, in the queue\'s words, once the card has gone', async () => {
+    const reads = [overview({ pending: [pending()] }), overview()]
+    const h = stub(reads[0], { overview: vi.fn(async () => reads.length > 1 ? reads.shift()! : reads[0]) })
+    show()
+    fireEvent.click(await screen.findByRole('button', { name: 'Allow Example agent' }))
+    const allowed = fill(en['access.queue.allowed'], { name: 'Example agent', product: 'Fabric Inbox' })
+    expect((await screen.findByText(allowed)).getAttribute('role')).toBe('status')
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Allow Example agent' })).toBeNull())
+    expect(screen.getByText(allowed)).toBeTruthy()
+    expect(h.decide).toHaveBeenCalledWith('r1', 'allowed')
+  })
+
+  it('CO-207: a Deny is named too, and in ru', async () => {
+    const reads = [overview({ pending: [pending()] }), overview()]
+    stub(reads[0], { overview: vi.fn(async () => reads.length > 1 ? reads.shift()! : reads[0]) })
+    show('ru')
+    fireEvent.click(await screen.findByRole('button', { name: fill(ru['access.denyFor']!, { name: 'Example agent' }) }))
+    expect(await screen.findByText(fill(ru['access.queue.denied']!, { name: 'Example agent', product: 'Fabric Inbox' }))).toBeTruthy()
+  })
+
+  it('CO-207 / ADR-0134: an enrollment request is named as work in the project, not as using a product', async () => {
+    const enroll = pending({
+      requestId: 'r-enroll', callee: 'fabric', product: 'Fabric', incremental: false, enroll: { projectName: 'Atlas' },
+      agent: agentFacts('claude', { name: 'Claude Code', installed_by: 'a coding agent on this Mac', repository: null }),
+      ask: askLines({ capabilities: ['session.enroll'], resources: ['project:00000000-0000-4000-8000-0000000000a1'] })
+    })
+    for (const [decision, key] of [['allowed', 'access.queue.enrolled'], ['denied', 'access.queue.enrollDenied']] as const) {
+      const reads = [overview({ pending: [enroll] }), overview()]
+      const h = stub(reads[0], { overview: vi.fn(async () => reads.length > 1 ? reads.shift()! : reads[0]) })
+      show()
+      fireEvent.click(await screen.findByRole('button', { name: decision === 'allowed' ? 'Allow Claude Code' : fill(en['access.denyFor'], { name: 'Claude Code' }) }))
+      expect(await screen.findByText(fill(en[key], { name: 'Claude Code', project: 'Atlas' }))).toBeTruthy()
+      expect(screen.queryByText(/to use Fabric/)).toBeNull()
+      expect(h.decide).toHaveBeenCalledWith('r-enroll', decision)
+      cleanup()
+    }
+    expect(en['access.queue.enrolled']).toBe('You let {name} work in {project}.')
+  })
+
   it('UX-7: after an act, focus lands on the section it changed, not on the document body', async () => {
     stub(overview({ pending: [pending()] }))
     show()

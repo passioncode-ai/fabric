@@ -11,6 +11,7 @@ import {
   sayFloor,
   sayIncremental,
   sayOrigin,
+  sayDecided,
   sayQueueTitle
 } from './accessWords'
 import { ACCESS_ACT_REFUSALS } from './accessActs'
@@ -101,6 +102,11 @@ describe('UX-2 — in ru, nothing the operator consents on is English', () => {
     const p = consentPrompt(tRu, { ...base, ask: asked([...KNOWN_CAPABILITIES, 'purge_everything'], ['cloudflare:news@example.com', 'gmail:abc123']), connected: false, incremental: true })
     texts.push(p.title, p.message, p.statement, p.detail, ...p.buttons)
     texts.push(sayOrigin(tRu, agent), sayOrigin(tRu, agentFacts('example-agent.default', null)), sayFloor(tRu), sayIncremental(tRu), sayQueueTitle(tRu, { agent, product: 'Fabric Inbox' }))
+    // CO-207: the named result of a decision, a product's and a coding agent's enrollment (ADR-0134) alike.
+    const enroll = { agent, product: 'Fabric', enroll: { projectName: 'Atlas' } }
+    for (const decision of ['allowed', 'denied'] as const)
+      texts.push(sayDecided(tRu, { agent, product: 'Fabric Inbox' }, decision), sayDecided(tRu, enroll, decision).replace('Atlas', ' '))
+    texts.push(sayQueueTitle(tRu, enroll).replace('Atlas', ' '), sayDecided(tRu, { ...enroll, enroll: { projectName: '' } }, 'allowed'))
     for (const code of ACCESS_ACT_REFUSALS) texts.push(sayActRefusal(tRu, code))
     for (const code of CONNECT_PROBLEM_CODES) texts.push(sayConnectProblem(tRu, { code }, 'Fabric Inbox'), sayConnectProblem(tRu, { code, previousLost: true }, 'Fabric Inbox'))
     const english = texts.flatMap((x) => latinLeft(x).map((w) => `${w} ← ${x.slice(0, 80)}`))
