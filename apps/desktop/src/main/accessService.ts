@@ -11,8 +11,17 @@
 // FAIL CLOSED, EVERYWHERE. An unknown agent is refused before any prompt. A read that fails refuses
 // rather than reading as "no grant". A decision on an expired request is refused. A credential is
 // minted on the first status read after an Allow (32 random bytes; Fabric keeps the sha256) and never
-// again — two reads cannot both win, because every write here runs one at a time and the projector
-// refuses a second claim.
+// again — two reads cannot both win, because the agents' reads and asks run one at a time and the
+// projector refuses a second claim.
+//
+// TWO LANES, NOT ONE CHAIN (CO-206). The agents' asks and status reads run one at a time on one lane, the
+// operator's acts (decide, revoke, clear, and the start-up priming of the verifier hints) one at a time on
+// another. What the agent lane's order guards is in this process only: the dedupe of an identical ask and
+// the pending caps are a read followed by an append. What the operator lane's order guards: two answers to
+// one request, an extension racing a revocation of the same grant, and a priming read putting back a
+// verifier a revocation just dropped. Across the lanes the projector is the guard (migration 80): a claim on
+// a revoked binding, a decision on a decided request, a grant to a revoked binding all raise. So an agent
+// request the database stops answering no longer holds the operator's revocation behind it.
 //
 // WHO MAY READ A REQUEST (ER-2, verification iteration 1 for 0.3.1 — RFC 8628's device_code). The door
 // token is shared by every agent on this Mac, so holding it proves nothing about WHICH request is
@@ -106,8 +115,10 @@ export class AccessService {
   private deps: AccessServiceDeps
   private now: () => number
   private random: (bytes: number) => Buffer
-  private chain: Promise<unknown> = Promise.resolve()
+  private lanes: Record<'agent' | 'operator', Promise<unknown>> = { agent: Promise.resolve(), operator: Promise.resolve() }
   private credentialVerifiers = new Set<string>()
+  /** Bindings revoked by this process: a claim answered after its revocation must not add its verifier back. */
+  private revokedBindings = new Set<string>()
   private revokedListeners = new Set<(bindingId: string) => void>()
 
   // Assigned in the body: Node's type-stripping loader rejects parameter properties.
@@ -123,17 +134,19 @@ export class AccessService {
     return () => this.revokedListeners.delete(listener)
   }
 
-  /** Every write runs one at a time: two answers to one request cannot both land. */
-  private serial<T>(fn: () => Promise<T>): Promise<T> {
-    const run = this.chain.then(fn, fn)
-    this.chain = run.catch(() => undefined) // the caller sees the failure; the chain must not stop on it
+  // #region hub-access-lanes — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#3-grants-are-standing-narrow-and-revocable
+  /** One at a time within a lane (CO-206): the agents' asks and reads on one, the operator's acts on the other. */
+  private serial<T>(lane: 'agent' | 'operator', fn: () => Promise<T>): Promise<T> {
+    const run = this.lanes[lane].then(fn, fn)
+    this.lanes[lane] = run.catch(() => undefined) // the caller sees the failure; the lane must not stop on it
     return run
   }
+  // #endregion hub-access-lanes
 
   /** Prime rate-limit hints once at hub start. These are never authority: authenticate still reads live state. */
   async primeCredentialVerifiers(): Promise<void> {
-    // Serialize with claims/revocations so a startup read cannot put a just-revoked verifier back.
-    return this.serial(async () => {
+    // On the operator lane, with the revocations, so a startup read cannot put a just-revoked verifier back.
+    return this.serial('operator', async () => {
       this.credentialVerifiers = new Set((await this.deps.store.liveBindings()).flatMap((b) => b.verifier ? [b.verifier] : []))
     })
   }
@@ -157,7 +170,7 @@ export class AccessService {
 
   /** `fabric.access.request`. Unknown agents are refused before any prompt. */
   request(principal: HubPrincipal, raw: Record<string, unknown>): Promise<RequestAnswer> {
-    return this.serial(async () => {
+    return this.serial('agent', async () => {
       const receipt = (code: string, agentId?: string): void => {
         ops.record({ op: 'hub.access.refused', outcome: 'ok', level: 'warn', detail: { code, ...(agentId ? { agent_id: agentId } : {}) }, ctx: { correlationId: ops.correlate() } })
       }
@@ -260,7 +273,7 @@ export class AccessService {
    * an unknown id, so the answer says nothing about another agent's request.
    */
   status(principal: HubPrincipal, requestId: string, pollSecret?: string, signal?: AbortSignal): Promise<StatusAnswer> {
-    return this.serial(async () => {
+    return this.serial('agent', async () => {
       const row = typeof requestId === 'string' && /^[0-9a-f-]{36}$/.test(requestId) ? await this.deps.store.request(requestId) : null
       const mine = row && (principal.kind === 'door'
         ? typeof pollSecret === 'string' && POLL_SECRET.test(pollSecret) && typeof row.poll_verifier === 'string' && sameToken(verifierOf(pollSecret), row.poll_verifier)
@@ -298,8 +311,17 @@ export class AccessService {
       // Shown once: a caller that has gone would spend it unseen (I3 E-5). Nothing is minted; the next read collects it.
       if (signal?.aborted) return { ...base, note: 'Allowed; the read that would have carried the credential was cancelled before it was issued. Read the status again to collect it.' }
       const credential = this.random(32).toString('base64url')
-      await this.deps.store.append('access.credential.claimed@1', HUB_ACTOR, { binding_id: bindingId, request_id: row.id, verifier: verifierOf(credential) })
-      this.credentialVerifiers.add(verifierOf(credential))
+      try {
+        await this.deps.store.append('access.credential.claimed@1', HUB_ACTOR, { binding_id: bindingId, request_id: row.id, verifier: verifierOf(credential) })
+      } catch (e) {
+        // The operator's lane may have revoked the binding since it was read above (CO-206); the projector then
+        // refuses the claim, and that is the answer — anything else is the failure it is.
+        const current = await this.deps.store.binding(bindingId).catch(() => null)
+        if (current?.revoked_at) return { ...base, note: 'Allowed, and since revoked by the operator.' }
+        throw e
+      }
+      // A revocation that read the claimed verifier before this line has already dropped it: never add it back.
+      if (!this.revokedBindings.has(bindingId)) this.credentialVerifiers.add(verifierOf(credential))
       ops.record({ op: 'hub.access.credential-claimed', outcome: 'ok', detail: { request_id: row.id, binding_id: bindingId, agent_id: row.agent_id }, ctx: { correlationId: ops.correlate() } })
       return {
         ...base, credential,
@@ -310,7 +332,7 @@ export class AccessService {
 
   /** The operator's answer. Refused when the request is no longer pending or has expired. */
   decide(requestId: string, decision: 'allowed' | 'denied', actor: AccessActor): Promise<AccessActAnswer> {
-    return this.serial(async () => {
+    return this.serial('operator', async () => {
       const row = await this.deps.store.request(requestId)
       if (!row) return refuse('not-found', 'no such request')
       if (row.status !== 'pending') return refuse('already-decided', `that request was already ${row.status}`)
@@ -354,7 +376,7 @@ export class AccessService {
   }
 
   revokeGrant(grantId: string, actor: AccessActor): Promise<AccessActAnswer> {
-    return this.serial(async () => {
+    return this.serial('operator', async () => {
       // Read by its id (ER-8): never looked for in a page of other grants, where a live one could be missing.
       const g = typeof grantId === 'string' && /^[0-9a-f-]{36}$/.test(grantId) ? await this.deps.store.grant(grantId) : null
       const live = g && g.revoked_at === null ? g : null
@@ -366,10 +388,11 @@ export class AccessService {
   }
 
   revokeBinding(bindingId: string, actor: AccessActor): Promise<AccessActAnswer> {
-    return this.serial(async () => {
+    return this.serial('operator', async () => {
       const b = await this.deps.store.binding(bindingId)
       if (!b || b.revoked_at) return refuse('not-live', 'that credential is not live (already revoked, or no such credential)')
       await this.deps.store.append('access.binding.revoked@1', actor, { binding_id: bindingId })
+      this.revokedBindings.add(bindingId)
       if (b.verifier) this.credentialVerifiers.delete(b.verifier)
       for (const listener of this.revokedListeners) {
         try {
@@ -384,7 +407,7 @@ export class AccessService {
   }
 
   clearDenial(requestId: string, actor: AccessActor): Promise<AccessActAnswer> {
-    return this.serial(async () => {
+    return this.serial('operator', async () => {
       const r = await this.deps.store.request(requestId)
       if (!r || r.status !== 'denied' || r.denial_cleared_at) return refuse('not-found', 'there is no standing denial with that id')
       await this.deps.store.append('access.denial.cleared@1', actor, { request_id: requestId })
@@ -408,9 +431,11 @@ export class AccessService {
       this.deps.store.liveBindings(),
       this.deps.store.grants({ liveAt })
     ])
+    // Every binding's origin request in ONE read (A6-041): one read per binding was N+1 every 4 s while SCR-76 is open.
+    const byId = new Map((await this.deps.store.requestsByIds(bindings.map((b) => b.request_id))).map((r) => [r.id, r] as const))
     const origins = new Map<string, AccessRequestRow>()
     for (const b of bindings) {
-      const r = await this.deps.store.request(b.request_id)
+      const r = byId.get(b.request_id)
       if (r) origins.set(b.id, r)
     }
     return {

@@ -12,7 +12,7 @@ import type { ProposalDecideResult } from '../../../shared/types'
 import type { EntityRef } from '../../../shared/entityRef'
 import { destinationOf } from '../../../shared/entityRef.ts'
 import type { HubActResult, PendingRequestFacts } from '../../../shared/access'
-import { sayActRefusal, sayAllow, sayAllowFor, sayAsk, sayConnectDetail, sayConnectProblem, sayFloor, sayIncremental, sayOrigin, shownName } from '../../../shared/accessWords'
+import { sayActRefusal, sayAllow, sayAllowFor, sayAsk, sayConnectDetail, sayConnectProblem, sayDecided, sayFloor, sayIncremental, sayOrigin, shownName } from '../../../shared/accessWords'
 import { humaniseError } from '../../../shared/errorText'
 import { useLocale, useT } from '../i18n'
 
@@ -185,7 +185,7 @@ function AccessActs({ access, onError, reload, onDecided }: {
         setState(decision)
         onDecided?.(problem
           ? t('access.queue.allowedNotConnected', { name, product: access.product, problem })
-          : t(decision === 'allowed' ? 'access.queue.allowed' : 'access.queue.denied', { name, product: access.product }), detail)
+          : sayDecided(t, access, decision), detail)
       } else {
         setState('open')
         onError(r.code ? sayActRefusal(t, r.code) : r.problem ? sayConnectProblem(t, r.problem, access.product) : humaniseError(r.reason).detail)

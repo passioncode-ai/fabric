@@ -72,7 +72,9 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       columns: Columns,
       column: string,
       values: readonly string[],
-      chunk = 100
+      chunk = 100,
+      /** Aborts every chunk's request (a caller's deadline); a refused chunk is `failed`, as any other. */
+      signal?: AbortSignal
     ): Promise<{ rows: Record<string, unknown>[]; failed: string | null }> {
       const filters = scopeFilters(table, scope)
       if (!values.length) return { rows: [], failed: null }
@@ -80,7 +82,8 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
       for (let i = 0; i < values.length; i += chunk) {
         let q = db.from(table).select(columns)
         for (const [c, value] of filters) q = q.eq(c, value)
-        const { data, error } = await q.in(column, values.slice(i, i + chunk) as string[])
+        const filtered = q.in(column, values.slice(i, i + chunk) as string[])
+        const { data, error } = await (signal ? filtered.abortSignal(signal) : filtered)
         // NOT `?? []`. A read that did not happen is not a read that found
         // nothing, and every caller of this function is deciding whether to act.
         if (error)
@@ -126,6 +129,8 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
          *  returning a partial list — a caller sized for thousands of rows that
          *  is handed millions has a different problem than paging. */
         maxRows?: number
+        /** Aborts every page's request (a caller's deadline): a refused page is `failed`, as any other. */
+        signal?: AbortSignal
       }
     ): Promise<{ rows: Record<string, unknown>[]; failed: string | null }> {
       const pageSize = opts.pageSize ?? 1000
@@ -140,7 +145,8 @@ export function createScopedStore(db: SupabaseClient, scope: Scope) {
         for (const c of opts.isNull ?? []) q = q.is(c, null)
         for (const [c, value] of opts.gt ?? []) q = q.gt(c, value)
         for (const c of opts.orderBy) q = q.order(c, { ascending: true })
-        const { data, error, count } = await q.range(from, from + pageSize - 1)
+        const ranged = q.range(from, from + pageSize - 1)
+        const { data, error, count } = await (opts.signal ? ranged.abortSignal(opts.signal) : ranged)
         if (error)
           return {
             rows: [],

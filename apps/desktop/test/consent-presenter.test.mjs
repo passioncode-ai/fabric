@@ -14,7 +14,7 @@ const row = (id, extra = {}) => ({
   asked_by_binding: null, requested_at: new Date().toISOString(), expires_at: new Date(Date.now() + 600_000).toISOString(), status: 'pending', ...extra
 })
 
-function harness({ visible = true, focused = visible, answers = [1], pending = () => true, connect = { ok: true }, decide = { ok: true }, say } = {}) {
+function harness({ visible = true, focused = visible, answers = [1], pending = () => true, connect = { ok: true }, decide = { ok: true }, say, connected } = {}) {
   const log = []
   const details = []
   let win = { visible, focused, destroyed: false, isVisible: () => win.visible, isMinimized: () => false, isFocused: () => win.focused, isDestroyed: () => win.destroyed, show: () => { win.visible = true; log.push('show') }, focus: () => { win.focused = true; log.push('focus') } }
@@ -27,7 +27,8 @@ function harness({ visible = true, focused = visible, answers = [1], pending = (
     decide: async (id, d) => { log.push(['decide', id, d]); return decide },
     connect: async (product) => { log.push(['connect', product]); return connect },
     stillPending: async (id) => pending(id),
-    ...(say ? { say: () => say } : {})
+    ...(say ? { say: () => say } : {}),
+    ...(connected ? { connected } : {})
   })
   return { p, log, details, get win() { return win } }
 }
@@ -181,3 +182,51 @@ test('I3: a request expiring during a pending read never opens a sheet', async (
   assert.equal(h.log.filter(e=>e[0]==='box').length,0)
   assert.equal(h.p.waiting(),0)
 })
+
+// A6-036 (0.3.2 audit, W1): a request can wait in the queue for up to ten minutes, and the prompt used the
+// product's connected state read when the request ARRIVED. It is read again when the prompt is made, and
+// again before an Allow starts the connect flow.
+// #region hub-consent-live-connection — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#2-an-agent-is-admitted-by-device-style-consent-not-by-a-pasted-key
+function liveHarness(states, opts = {}) {
+  const reads = []
+  const h = harness({ answers: [1], ...opts, connected: async (product) => { reads.push(product); const s = states.shift(); if (s instanceof Error) throw s; return s } })
+  return { ...h, reads }
+}
+
+test('A6-036: a product connected since the request arrived is prompted as connected, and Allow starts no connect', async () => {
+  const h = liveHarness([true, true])
+  h.p.present({ row: row('r1'), connected: false })
+  await settle()
+  assert.equal(h.log[0][2], 'Deny|Allow', 'the prompt offered to connect a product that is connected now')
+  assert.deepEqual(h.log.slice(1), [['decide', 'r1', 'allowed']], 'a connect flow was started for a connected product')
+  assert.deepEqual(h.reads, ['fabric-inbox', 'fabric-inbox'])
+})
+
+test('A6-036: a product disconnected since the request arrived is prompted as Allow and connect, and connects', async () => {
+  const h = liveHarness([false, false])
+  h.p.present({ row: row('r1'), connected: true })
+  await settle()
+  assert.equal(h.log[0][2], 'Deny|Allow and connect Fabric Inbox')
+  assert.deepEqual(h.log.slice(1), [['decide', 'r1', 'allowed'], ['connect', 'fabric-inbox']])
+})
+
+test('A6-036: a product connected while the prompt was open is not connected again after Allow', async () => {
+  const h = liveHarness([false, true])
+  h.p.present({ row: row('r1'), connected: false })
+  await settle()
+  assert.equal(h.log[0][2], 'Deny|Allow and connect Fabric Inbox')
+  assert.deepEqual(h.log.slice(1), [['decide', 'r1', 'allowed']])
+})
+
+test('A6-036: a connection read that fails keeps the request\'s own reading; an enrollment is never read as a product', async () => {
+  const h = liveHarness([new Error('database unavailable'), new Error('database unavailable')])
+  h.p.present({ row: row('r1'), connected: false })
+  await settle()
+  assert.deepEqual(h.log.slice(1), [['decide', 'r1', 'allowed'], ['connect', 'fabric-inbox']])
+  const e = liveHarness([])
+  e.p.present({ row: row('r2', { callee: 'fabric', capabilities: ['session.enroll'], resources: ['project:00000000-0000-4000-8000-0000000000a1'], registry: { name: 'Claude Code', project: { id: '00000000-0000-4000-8000-0000000000a1', name: 'Atlas' } } }), connected: true })
+  await settle()
+  assert.deepEqual(e.reads, [], 'Fabric itself was read as a product connection')
+  assert.deepEqual(e.log.slice(1), [['decide', 'r2', 'allowed']])
+})
+// #endregion hub-consent-live-connection

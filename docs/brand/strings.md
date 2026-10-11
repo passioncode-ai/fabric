@@ -562,6 +562,9 @@ the operator's language (verification of 0.3.1, iteration 1, UX-2).
 | `access.queue.allowed` | You allowed {name} to use {product}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.queue.allowedNotConnected` | You allowed {name} to use {product}. To connect it, open Agent access in settings. It did not connect: {problem} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented; native acceptance pending |
 | `access.queue.denied` | You denied {name} access to {product}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
+| `access.queue.enrolled` | You let {name} work in {project}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented (CO-207) |
+| `access.queue.enrollDenied` | You did not let {name} work in {project}. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented (CO-207) |
+| `access.queue.enrollTitle` | {name} asks to work in {project} | apps/desktop/src/renderer/src/i18n/en.ts | SCN-132 | implemented (CO-207) |
 | `access.products.waitingReconnect` | Waiting for your answer in {name}. Until a new key arrives, Fabric keeps using the current one. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.products.reconnected` | Fabric now uses the new key. The previous key stays valid in {name} → Agent access until you revoke it there. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |
 | `access.products.keptCurrent` | Fabric keeps using the current connection. | apps/desktop/src/renderer/src/i18n/en.ts | SCN-133 | shipped |

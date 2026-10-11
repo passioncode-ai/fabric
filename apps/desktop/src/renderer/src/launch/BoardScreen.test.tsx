@@ -595,6 +595,26 @@ describe('an access request\'s answer belongs to that request (UX-1, iteration 2
     expect(screen.queryByText(en['access.deniedHere'])).toBeNull()
     expect(screen.getByText(en['access.queue.denied'].replace('{name}', 'Research desk').replace('{product}', 'Fabric Inbox'))).toBeTruthy()
   })
+
+  // CO-207 / ADR-0134: a coding agent's enrollment is asked for and answered as work in a project — never as
+  // "asks to use Fabric" / "You allowed Claude Code to use Fabric".
+  it('an enrollment request is titled and answered as work in its project', async () => {
+    const enrolling = attentionOf({ reviews: [], expired: [], refusals: [], proposals: [], names: {}, access: [
+      pendingFacts({ id: 'req-e', agent_id: 'claude', callee: 'fabric', capabilities: ['session.enroll'], resources: ['project:00000000-0000-4000-8000-0000000000a1'],
+        reason: 'work on the release notes', asked_by_binding: null, requested_at: STAMP, expires_at: '2099-01-01T00:00:00Z',
+        registry: { name: 'Claude Code', installed_by: 'a coding agent on this Mac', project: { id: '00000000-0000-4000-8000-0000000000a1', name: 'Atlas' } } } as Parameters<typeof pendingFacts>[0], true)
+    ] } as unknown as Parameters<typeof attentionOf>[0])
+    const decide = vi.fn(async () => ({ ok: true }))
+    vi.stubGlobal('window', Object.assign(globalThis.window ?? {}, {
+      fabric: { board: { query: vi.fn(async () => whole(enrolling)), resolved: vi.fn(async () => noneResolved), deferred: vi.fn(async () => noneResolved) }, hub: { decide }, proposals: { decide: vi.fn() }, attention: { grant: vi.fn() } }
+    }))
+    render_()
+    await openRow(en['access.queue.enrollTitle'].replace('{name}', 'Claude Code').replace('{project}', 'Atlas'))
+    fireEvent.click(await screen.findByRole('button', { name: 'Allow Claude Code' }))
+    await waitFor(() => expect(decide).toHaveBeenCalledWith('req-e', 'allowed'))
+    expect(await screen.findByText('You let Claude Code work in Atlas.')).toBeTruthy()
+    expect(screen.queryByText(/to use Fabric/)).toBeNull()
+  })
 })
 
 // Verification iteration 2 for 0.3.1, UX-4: an unscoped `.lp-facts{display:flex}` added for the access block

@@ -55,9 +55,24 @@ export function sayOrigin(t: Say, agent: AgentFacts): string {
 export const sayFloor = (t: Say): string => t('access.floor')
 export const sayIncremental = (t: Say): string => t('access.incremental')
 
-/** The queue row's title: "<name> asks to use <product>". */
-export const sayQueueTitle = (t: Say, x: { agent: AgentFacts; product: string }): string =>
-  t('access.queue.title', { name: shownName(x.agent), product: x.product })
+/** The queue row's title: "<name> asks to use <product>", or for an enrollment (ADR-0134) "<name> asks to work in <project>". */
+export const sayQueueTitle = (t: Say, x: { agent: AgentFacts; product: string; enroll?: { projectName: string } }): string =>
+  x.enroll
+    ? t('access.queue.enrollTitle', { name: shownName(x.agent), project: x.enroll.projectName || t('access.enroll.thisProject') })
+    : t('access.queue.title', { name: shownName(x.agent), product: x.product })
+
+/**
+ * What the operator decided, named (CO-207): "You allowed X to use Y", "You denied X access to Y" — or, for a
+ * coding agent's enrollment (ADR-0134), "You let X work in P". The queue row and SCR-76 say the same sentence.
+ */
+export function sayDecided(t: Say, x: { agent: AgentFacts; product: string; enroll?: { projectName: string } }, decision: 'allowed' | 'denied'): string {
+  const name = shownName(x.agent)
+  if (x.enroll) {
+    const project = x.enroll.projectName || t('access.enroll.thisProject')
+    return t(decision === 'allowed' ? 'access.queue.enrolled' : 'access.queue.enrollDenied', { name, project })
+  }
+  return t(decision === 'allowed' ? 'access.queue.allowed' : 'access.queue.denied', { name, product: x.product })
+}
 
 /** The Allow button: plain, or "Allow and connect <product>" when Allow also opens the product (UX-4). */
 export const sayAllow = (t: Say, x: { connected: boolean; product: string }): string =>

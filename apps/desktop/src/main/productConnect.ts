@@ -48,6 +48,8 @@ export const CONNECT_STATE_TTL_MS = 10 * 60 * 1000
 export const CALLBACK_DEADLINE_MS = 8000
 const MAX_CALLBACK_BYTES = 64 * 1024
 const FAILURES = new Set(['no_server', 'sign_in_required', 'mint_failed'])
+/** The schema's own refusal when `supersedes` no longer names the live connection (migration 80, `apply_hub_access`). */
+const PREDECESSOR_REFUSED = /supersedes must name the exact live connection/
 
 export interface ProductSpec {
   product: string
@@ -303,36 +305,33 @@ export class ProductConnector {
       write(res, status, { error })
     }
     if (req.headers.origin !== undefined) return fail(403, 'a browser cannot deliver a key')
-    // An Origin is not a product callback and cannot cancel legitimate consent. Malformed delivery on
-    // the app path fails the unique attempt immediately instead of claiming another ten minutes' wait.
-    const invalid = (status: number, error: string): void => {
-      const waiting = [...this.pending.entries()].filter(([, p]) => p.spec.product === product)
-      if (waiting.length === 1 && !this.processing.has(product)) {
-        this.pending.delete(waiting[0][0])
-        this.failed(product, new Date(this.now()).toISOString(), { code: 'invalid-delivery', detail: error }, `${name} delivered an invalid answer`)
-      }
-      fail(status, error)
-    }
-    if (!/^application\/json\b/i.test(req.headers['content-type'] ?? '')) return invalid(415, 'expected application/json')
+    // #region connect-delivery-proof — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#4-a-product-is-connected-once-by-the-products-own-consent
+    // A POST that does not name a live state of this product is NOT the product's answer (CO-203, reversing
+    // V2 ER-9's settlement): any process on this Mac can send one. It is refused with its reason and touches
+    // no pending attempt — a text/plain POST, a body that is not a JSON object, a state that is missing or
+    // unknown. Only a delivery carrying the attempt's own state settles that attempt; an attempt nobody
+    // answers ends at its 10-minute window (UX-6), never at a stranger's POST.
+    if (!/^application\/json\b/i.test(req.headers['content-type'] ?? '')) return fail(415, 'expected application/json')
     const read = await readBounded(req, MAX_CALLBACK_BYTES, Math.min(this.bodyTimeoutMs, this.callbackDeadlineMs))
     if (!read.ok) {
       // The connection is closed after the answer: a sender that is still trickling bytes is not waited on.
       res.once('finish', () => req.destroy())
-      return invalid(read.status, read.error)
+      return fail(read.status, read.error)
     }
     let body: Record<string, unknown>
     try {
       const parsed = JSON.parse(read.raw) as unknown
-      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return invalid(400, 'expected a JSON object')
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return fail(400, 'expected a JSON object')
       body = parsed as Record<string, unknown>
     } catch {
-      return invalid(400, 'the body is not JSON') // a refusal with its reason is the record
+      return fail(400, 'the body is not JSON') // a refusal with its reason is the record
     }
     const state = typeof body.state === 'string' ? body.state : ''
     const pending = /^[A-Za-z0-9_-]{22,128}$/.test(state) ? this.pending.get(state) : undefined
     // SPENT before anything is awaited: a replay of this POST finds nothing.
     if (pending?.spec.product === product) this.pending.delete(state)
     if (!pending || pending.spec.product !== product) return fail(400, 'unknown or already used state')
+    // #endregion connect-delivery-proof
     this.processing.add(product)
     try {
       const at = new Date(this.now()).toISOString()
@@ -432,6 +431,13 @@ export class ProductConnector {
         level: k.level, send: k.send, key_expires_at: k.expiresAt ?? null, secret_ref: slot
       }).then(() => 'recorded' as const, (e: unknown) => ({ error: e as Error }))
       const recorded = await Promise.race([appended, deadline])
+      if (recorded !== 'late' && recorded !== 'recorded' && PREDECESSOR_REFUSED.test(recorded.error.message)) {
+        // A6-038: a Disconnect or another Reconnect landed between the live read above and this append; the
+        // schema's predecessor check refused it — the same changed connection the read would have caught.
+        ops.record({ op: 'connect.callback', outcome: 'ok', level: 'warn', detail: { product, refused: 'connection_changed', stage: 'append', key_id: k.id }, ctx: { correlationId: ops.correlate() } })
+        this.failed(product, at, { code: 'connection-changed' }, 'the connection changed while the product was answering; reconnect from its current state')
+        return write(res, 409, { error: 'connection_changed' })
+      }
       if (recorded !== 'late' && recorded !== 'recorded') {
         ops.failed('connect.record', recorded.error, { product, key_id: k.id })
         this.failed(product, at, { code: 'record-failed', detail: recorded.error.message }, `the connection could not be recorded: ${recorded.error.message}`)

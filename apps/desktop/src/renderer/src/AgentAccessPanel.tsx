@@ -9,7 +9,7 @@
 
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import type { HubActResult, HubOverview, PendingRequestFacts } from '../../shared/access'
-import { sayActRefusal, sayAllow, sayAllowFor, sayAsk, sayConnectDetail, sayConnectProblem, sayFloor, sayIncremental, sayOrigin, shownName, type Say } from '../../shared/accessWords'
+import { sayActRefusal, sayAllow, sayAllowFor, sayAsk, sayConnectDetail, sayConnectProblem, sayDecided, sayFloor, sayIncremental, sayOrigin, shownName, type Say } from '../../shared/accessWords'
 import { humaniseError } from '../../shared/errorText'
 import { Banner, Button, EmptyState, Panel, Row, Toolbar } from './components'
 import { useLocale, useT } from './i18n'
@@ -260,8 +260,15 @@ function PendingCard({ r, t, waiting, act }: {
   const name = shownName(r.agent)
   // Allowed, but the product could not be opened: the Allow stands, and the panel says so — pointing to
   // Products in this panel, not to the screen the operator is already on (UX-5; iteration 2, UX-11).
+  // #region access-decided-named — docs: docs/ux/scenarios.md#scn-132-an-external-agent-asks-for-access-and-the-operator-decides
+  // A plain Allow or Deny is NAMED (CO-207): the card leaves the list on the next read, so the panel keeps the
+  // queue row's own sentence — and for a coding agent's enrollment, "You let X work in P" (ADR-0134).
   const afterAllow = (done: Extract<HubActResult, { ok: true }>): Said =>
-    done.connect ? { tone: 'warn', text: t('access.allowedConnectHere', { problem: sayConnectProblem(t, done.connect.problem, r.product) }), detail: sayConnectDetail(t, done.connect.problem) } : null
+    done.connect
+      ? { tone: 'warn', text: t('access.allowedConnectHere', { problem: sayConnectProblem(t, done.connect.problem, r.product) }), detail: sayConnectDetail(t, done.connect.problem) }
+      : { tone: 'info', text: sayDecided(t, r, 'allowed') }
+  const afterDeny = (): Said => ({ tone: 'info', text: sayDecided(t, r, 'denied') })
+  // #endregion access-decided-named
   return (
     <div className="access-card">
       <h4 className="access-name">{name}</h4>
@@ -274,7 +281,7 @@ function PendingCard({ r, t, waiting, act }: {
       <p className="muted">{t('access.denyStands')}</p>
       <p className="muted">{expiresIn(t, r.expiresAt, Date.now())}</p>
       <div className="access-acts"><Toolbar>
-        <Button tone="ghost" aria-label={t('access.denyFor', { name })} {...waiting} onClick={() => void act(`deny:${r.requestId}`, () => window.fabric.hub.decide(r.requestId, 'denied'), { product: r.product, section: 'pending' })}>{t('access.deny')}</Button>
+        <Button tone="ghost" aria-label={t('access.denyFor', { name })} {...waiting} onClick={() => void act(`deny:${r.requestId}`, () => window.fabric.hub.decide(r.requestId, 'denied'), { product: r.product, after: afterDeny, section: 'pending' })}>{t('access.deny')}</Button>
         <Button aria-label={sayAllowFor(t, r, name)} {...waiting} onClick={() => void act(`allow:${r.requestId}`, () => window.fabric.hub.decide(r.requestId, 'allowed'), { product: r.product, after: afterAllow, section: 'pending' })}>{sayAllow(t, r)}</Button>
       </Toolbar></div>
     </div>

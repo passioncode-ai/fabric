@@ -891,6 +891,36 @@ test('V2 ER-2: disconnect during reconnect refuses with changed-state copy, neve
   } finally { await c.surface.stop() }
 })
 
+// A6-038 (0.3.2 audit): a Disconnect landing between the callback's live read and its append is refused by
+// the schema's predecessor check (migration 80, `apply_hub_access`); that refusal is the same changed
+// connection the read would have caught, so it reads as connection-changed, not as a failed record.
+test('A6-038: a disconnect between the live read and the append is connection-changed, not record-failed', async () => {
+  const store = connectionStore({
+    beforeAppend: (type) => {
+      if (type !== 'product.connected@1') return
+      store.connections.get('old').removed_at = 'disconnected' // another process's disconnect, already committed
+      throw new Error('append_event(product.connected@1) failed: product already connected or changed; supersedes must name the exact live connection (null for first connect)')
+    }
+  })
+  store.connections.set('old', { id: 'old', product: 'fabric-inbox', removed_at: null })
+  const c = await connectorOn({ store, vault: memoryVault() })
+  try {
+    const r = await deliver(c.origin, delivery(await c.stateOf({ reconnect: true })))
+    assert.equal(r.status, 409)
+    assert.deepEqual(await r.json(), { error: 'connection_changed' })
+    assert.equal(c.connector.lastOutcome('fabric-inbox').problem.code, 'connection-changed')
+  } finally { await c.surface.stop() }
+})
+
+test('A6-038: any other failed append is still record-failed', async () => {
+  const store = connectionStore({ beforeAppend: (type) => { if (type === 'product.connected@1') throw new Error('append_event(product.connected@1) failed: permission denied for function append_event') } })
+  const c = await connectorOn({ store, vault: memoryVault() })
+  try {
+    assert.equal((await deliver(c.origin, delivery(await c.stateOf()))).status, 500)
+    assert.equal(c.connector.lastOutcome('fabric-inbox').problem.code, 'record-failed')
+  } finally { await c.surface.stop() }
+})
+
 test('V2 ER-2: successful reconnect journals its approved predecessor id', async () => {
   const store = connectionStore()
   store.connections.set('old', { id: 'old', product: 'fabric-inbox', removed_at: null })
@@ -901,19 +931,26 @@ test('V2 ER-2: successful reconnect journals its approved predecessor id', async
   } finally { await c.surface.stop() }
 })
 
+// CO-203 (reverses V2 ER-9's settlement): a POST that does not carry the attempt's own state is not the
+// product's answer — any process on this Mac can send one — so it is refused and the attempt keeps
+// waiting. Only a delivery that names a live state settles that attempt.
 for (const [label, headers, body] of [
-  ['content type', { 'content-type': 'text/plain' }, 'bad'],
+  ['a text/plain body', { 'content-type': 'text/plain' }, 'bad'],
+  ['no content type', {}, '{}'],
   ['malformed JSON', { 'content-type': 'application/json' }, '{'],
-  ['JSON array', { 'content-type': 'application/json' }, '[]']
-]) test(`V2 ER-9: ${label} settles a single waiting attempt immediately`, async () => {
+  ['a JSON array', { 'content-type': 'application/json' }, '[]'],
+  ['a JSON object with no state', { 'content-type': 'application/json' }, JSON.stringify({ outcome: 'denied' })],
+  ['an unknown state', { 'content-type': 'application/json' }, JSON.stringify({ state: 'x'.repeat(43), outcome: 'denied' })],
+  ['a body too large to be a delivery', { 'content-type': 'application/json' }, JSON.stringify({ pad: 'p'.repeat(70 * 1024) })]
+]) test(`CO-203: ${label} is refused and never ends the operator's pending attempt`, async () => {
   const c = await connectorOn({ store: connectionStore(), vault: memoryVault() })
   try {
     const state = await c.stateOf()
     const r = await fetch(`${c.origin}/fabric/v1/connect/fabric-inbox`, { method: 'POST', headers, body })
-    assert.ok(r.status >= 400)
-    assert.equal(c.connector.lastOutcome('fabric-inbox').outcome, 'failed')
-    assert.equal(c.connector.lastOutcome('fabric-inbox').problem.code, 'invalid-delivery')
-    assert.equal((await deliver(c.origin, delivery(state))).status, 400, 'failed attempt state remains replayable')
+    assert.ok(r.status >= 400, `answered ${r.status}`)
+    assert.equal(c.connector.lastOutcome('fabric-inbox').outcome, 'waiting', 'a delivery that cannot be the answer ended the attempt')
+    assert.equal((await deliver(c.origin, delivery(state))).status, 200, 'the genuine delivery that follows is refused')
+    assert.equal(c.connector.lastOutcome('fabric-inbox').outcome, 'connected')
   } finally { await c.surface.stop() }
 })
 

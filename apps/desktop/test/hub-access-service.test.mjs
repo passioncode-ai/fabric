@@ -146,3 +146,176 @@ test('I3 E-5: a status read whose caller has gone does not spend the one-time cr
   const kept = await access.status(DOOR, r.requestId, r.pollSecret)
   assert.match(kept.credential, /^[A-Za-z0-9_-]{43}$/, 'the next read still collects it')
 })
+
+// CO-206 (release verification of 0.3.1, E-9): every access write shared ONE serial chain, so an agent's
+// request the database never answered held the operator's revocation behind it for as long as the client
+// waited (undici's ~300 s). The operator's acts now run on a lane of their own; the agents' asks and status
+// reads keep theirs, because the dedupe and the pending caps are check-then-append in this process.
+// #region hub-access-lanes — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#3-grants-are-standing-narrow-and-revocable
+const within = (p, ms, what) => {
+  let timer
+  return Promise.race([p, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`${what} did not answer within ${ms} ms`)), ms) })]).finally(() => clearTimeout(timer))
+}
+
+async function allowedAgent(access, extra = {}) {
+  const asked = await access.request(DOOR, ask(extra))
+  await access.decide(asked.requestId, 'allowed', OPERATOR)
+  const claimed = await access.status(DOOR, asked.requestId, asked.pollSecret)
+  return { ...claimed, asked }
+}
+
+test('CO-206: an operator revocation and decision do not wait behind an agent request the database never answers', async () => {
+  const { access, store } = setup()
+  const held = await allowedAgent(access)
+  const waiting = await access.request(DOOR, ask({ resources: ['waiting@example.com'] }))
+  store.requests = () => new Promise(() => {}) // the database stops answering the agent path's reads
+  const stuck = access.request(DOOR, ask({ resources: ['stuck@example.com'] }))
+  let stuckSettled = false
+  stuck.then(() => { stuckSettled = true }, () => { stuckSettled = true })
+  const started = Date.now()
+  assert.deepEqual(await within(access.revokeBinding(held.bindingId, OPERATOR), 1000, 'the revocation'), { ok: true })
+  assert.notEqual(store.maps.bindings.get(held.bindingId).revoked_at, null, 'the binding is not revoked')
+  assert.deepEqual(await within(access.decide(waiting.requestId, 'denied', OPERATOR), 1000, 'the decision'), { ok: true })
+  assert.ok(Date.now() - started < 1000)
+  assert.equal(stuckSettled, false, 'the stalled request was expected still to be waiting')
+})
+
+test('CO-206: agent asks stay one at a time — two identical asks at once open one prompt and hand out one poll secret', async () => {
+  const { access, shown } = setup()
+  const [a, b] = await Promise.all([access.request(DOOR, ask()), access.request(DOOR, ask())])
+  assert.equal(shown.length, 1, 'two prompts for one request')
+  assert.equal(a.requestId, b.requestId)
+  assert.equal([a, b].filter((r) => r.pollSecret).length, 1)
+})
+
+test('CO-206: a revocation landing while a credential is being claimed never leaves the revoked credential known', async () => {
+  const { access, store } = setup()
+  const asked = await access.request(DOOR, ask())
+  await access.decide(asked.requestId, 'allowed', OPERATOR)
+  const append = store.append.bind(store)
+  let release
+  const gate = new Promise((r) => { release = r })
+  let claimLanded
+  const landed = new Promise((r) => { claimLanded = r })
+  // The claim commits, and its answer is slow to come back: the revocation reads the claimed verifier in between.
+  store.append = async (type, actor, p) => {
+    const seq = await append(type, actor, p)
+    if (type === 'access.credential.claimed@1') { claimLanded(); await gate }
+    return seq
+  }
+  const claiming = access.status(DOOR, asked.requestId, asked.pollSecret)
+  await landed
+  const bindingId = [...store.maps.bindings.values()][0].id
+  assert.deepEqual(await within(access.revokeBinding(bindingId, OPERATOR), 1000, 'the revocation'), { ok: true })
+  release()
+  const answer = await claiming
+  assert.equal(access.knownCredential(answer.credential ?? 'x'.repeat(43)), false, 'a revoked credential is still known to the hub')
+  assert.equal(await access.authenticate(answer.credential ?? 'x'.repeat(43)), null)
+})
+
+test('CO-206: a claim the revocation beat is answered "since revoked", not thrown', async () => {
+  const { access, store } = setup()
+  const asked = await access.request(DOOR, ask())
+  await access.decide(asked.requestId, 'allowed', OPERATOR)
+  const append = store.append.bind(store)
+  let release
+  const gate = new Promise((r) => { release = r })
+  let claimAsked
+  const asking = new Promise((r) => { claimAsked = r })
+  // The revocation commits first; the claim's append reaches the store after it and is refused there.
+  store.append = async (type, actor, p) => {
+    if (type === 'access.credential.claimed@1') { claimAsked(); await gate }
+    return append(type, actor, p)
+  }
+  const claiming = access.status(DOOR, asked.requestId, asked.pollSecret)
+  await asking
+  const bindingId = [...store.maps.bindings.values()][0].id
+  assert.deepEqual(await within(access.revokeBinding(bindingId, OPERATOR), 1000, 'the revocation'), { ok: true })
+  release()
+  const answer = await claiming
+  assert.equal(answer.ok, true)
+  assert.equal(answer.credential, undefined)
+  assert.match(answer.note, /since revoked/)
+})
+// #endregion hub-access-lanes
+
+// CO-206: the stalled-database probe. Every call of the hub's store answers within its deadline — or fails
+// saying so — against a database that accepts the request and never answers it, and the signal handed to
+// the client is aborted, so the request itself is let go rather than left open for undici's ~300 s.
+// #region hub-db-deadline — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#3-grants-are-standing-narrow-and-revocable
+const { createAccessStore, HUB_DB_DEADLINE_MS } = await import(path.join(SRC, 'accessStore.ts'))
+const { createJournal } = await import(path.resolve(import.meta.dirname, '../../../packages/journal/src/index.ts'))
+
+/** A PostgREST-shaped client that takes every request and answers none; it records the signals it was given. */
+function stalledDb() {
+  const signals = []
+  const calls = []
+  const pending = () => {
+    const q = {
+      then() { /* never settles */ },
+      abortSignal(s) { signals.push(s); return q }
+    }
+    for (const m of ['select', 'eq', 'is', 'gt', 'in', 'order', 'range', 'limit', 'maybeSingle', 'single']) q[m] = () => q
+    return q
+  }
+  return { signals, calls, from: (t) => { calls.push(t); return pending() }, rpc: (fn) => { calls.push(fn); return pending() } }
+}
+
+test('CO-206: the hub store answers within its deadline against a database that never answers, and lets the request go', async () => {
+  assert.ok(HUB_DB_DEADLINE_MS > 0 && HUB_DB_DEADLINE_MS <= 10_000, `the default deadline is ${HUB_DB_DEADLINE_MS} ms`)
+  const db = stalledDb()
+  const store = createAccessStore({ db, journal: createJournal(db), estateId: '00000000-0000-4000-8000-0000000000e1', deadlineMs: 60 })
+  const id = '00000000-0000-4000-8000-000000000001'
+  const calls = {
+    request: () => store.request(id),
+    requestsByIds: () => store.requestsByIds([id]),
+    requests: () => store.requests({ status: 'pending', liveAt: new Date().toISOString() }),
+    countRequests: () => store.countRequests({ status: 'pending' }),
+    binding: () => store.binding(id),
+    bindingByVerifier: () => store.bindingByVerifier('a'.repeat(64)),
+    liveBindings: () => store.liveBindings(),
+    grants: () => store.grants({ bindingId: id, liveAt: new Date().toISOString() }),
+    grant: () => store.grant(id),
+    liveConnection: () => store.liveConnection('fabric-inbox'),
+    append: () => store.append('access.binding.revoked@1', OPERATOR, { binding_id: id })
+  }
+  for (const [name, call] of Object.entries(calls)) {
+    const before = db.signals.length
+    const started = Date.now()
+    await assert.rejects(within(call(), 1000, `store.${name}`), (e) => {
+      assert.equal(e.name, 'DatabaseDeadline', `store.${name} failed with ${e.message}`)
+      assert.match(e.message, /did not answer within 60 ms/)
+      return true
+    })
+    assert.ok(Date.now() - started < 500, `store.${name} took ${Date.now() - started} ms`)
+    const given = db.signals.slice(before)
+    assert.ok(given.length >= 1, `store.${name} handed the client no signal`)
+    assert.ok(given.every((s) => s.aborted), `store.${name} left its request open`)
+  }
+  assert.match((await store.append('x@1', OPERATOR, {}).catch((e) => e)).message, /may or may not have been recorded/, 'an append past its deadline claims to know its outcome')
+})
+
+test('CO-206: the operator\'s revocation fails within its deadline when the database stops answering, instead of hanging', async () => {
+  const db = stalledDb()
+  const store = createAccessStore({ db, journal: createJournal(db), estateId: '00000000-0000-4000-8000-0000000000e1', deadlineMs: 60 })
+  const access = new AccessService({ store, registry: fakeRegistry(['example-agent']), present: () => {}, connected: async () => true })
+  await assert.rejects(within(access.revokeBinding('00000000-0000-4000-8000-000000000002', OPERATOR), 1000, 'the revocation'), /did not answer within 60 ms/)
+  await assert.rejects(within(access.request(DOOR, ask()), 1000, 'the agent request'), /did not answer within 60 ms/)
+})
+// #endregion hub-db-deadline
+
+// A6-041 (0.3.2 audit, W1): each overview read every live binding's origin request one at a time (N+1),
+// and the open panel re-reads every 4 s. The origins are now one id-filtered read, chunked by the store.
+test('A6-041: the overview reads the origin requests of every live binding in ONE read, not one per binding', async () => {
+  const { access, store } = setup()
+  for (const r of ['a@example.com', 'b@example.com', 'c@example.com', 'd@example.com']) await allowedAgent(access, { resources: [r] })
+  let single = 0, batched = 0
+  const one = store.request.bind(store), many = store.requestsByIds.bind(store)
+  store.request = async (id) => { single++; return one(id) }
+  store.requestsByIds = async (ids) => { batched++; return many(ids) }
+  const o = await access.overview()
+  assert.equal(o.bindings.length, 4)
+  assert.ok(o.bindings.every((b) => b.registry?.name === 'example-agent'), 'a binding lost its origin request')
+  assert.equal(single, 0, `the overview read ${single} origin requests one at a time`)
+  assert.equal(batched, 1)
+})
