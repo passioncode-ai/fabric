@@ -93,6 +93,9 @@ export interface OpenWithFallbackDeps<S> {
   open: (runner: string, route: LaunchRoute) => Promise<S>
   /** The held session the walk chose, or null when it is gone. */
   get: (sessionId: string) => S | null
+  /** Claim the held session for this launch, synchronously (`PtyManager.claimAttach`); false when another launch
+   *  holds it (CO-229). The caller releases it once its first instruction is delivered. */
+  claim: (sessionId: string) => boolean
   /** "Candidate unavailable": the runner could not serve and nothing started (ADR-0125 §4). */
   unavailable: (error: unknown) => boolean
   record?: (op: 'runner.fallback-exhausted' | 'runner.fallback-attached', detail: Record<string, unknown>) => void
@@ -116,7 +119,8 @@ export async function openWithFallback<S>(deps: OpenWithFallbackDeps<S>): Promis
     }
     if (walk.session === 'attached' && walk.sessionId) {
       const held = deps.get(walk.sessionId)
-      if (held) {
+      // Taken between the walk and here by another launch (CO-229): this one moves on, never joins it.
+      if (held && deps.claim(walk.sessionId)) {
         deps.record?.('runner.fallback-attached', { runner: walk.runner, session_id: walk.sessionId })
         return held
       }

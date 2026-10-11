@@ -288,6 +288,9 @@ export async function launchOption(id: string, availability: RunnerAvailability 
 export class PtyManager {
   private sessions = new Map<string, LiveSession>()
   private opening = new Set<string>()
+  /** Sessions a fallback launch has claimed to attach to, until when (CO-229): a second launch walking at the same
+   *  moment finds them taken and moves on, so two first instructions never reach one agent. */
+  private attachClaims = new Map<string, number>()
   private processBoundary = createProcessBoundary()
 
   private journal: Journal
@@ -617,10 +620,37 @@ export class PtyManager {
       // an attached session runs under the derived execution context).
       if (s.optionId !== s.runnerKind || s.permissionMode !== mode) continue
       if (!s.running || s.inputHalted || !s.delivery.open || this.opening.has(s.sessionId) || this.stateOf(s) !== 'idle') continue
+      if (this.attachClaimed(s.sessionId)) continue
       return s.sessionId
     }
     return null
   }
+
+  // #region attach-claim — docs: docs/adr/0125-an-agent-launch-may-follow-the-operators-fallback-order.md#decision
+  /**
+   * One launch per held session (CO-229). The walk that chose a session is asynchronous, so two launches can both see
+   * it idle; the claim is taken SYNCHRONOUSLY when a launch commits to attaching, and only one of them gets it. The
+   * claim lasts until the launch releases it (its first instruction delivered, or nothing to deliver) or, at most,
+   * `ms` — a launch that died without releasing never holds a session for ever.
+   */
+  claimAttach(sessionId: string, ms = 60_000): boolean {
+    if (this.attachClaimed(sessionId) || !this.sessions.has(sessionId)) return false
+    this.attachClaims.set(sessionId, Date.now() + ms)
+    return true
+  }
+
+  releaseAttach(sessionId: string): void {
+    this.attachClaims.delete(sessionId)
+  }
+
+  private attachClaimed(sessionId: string): boolean {
+    const until = this.attachClaims.get(sessionId)
+    if (until === undefined) return false
+    if (until > Date.now()) return true
+    this.attachClaims.delete(sessionId)
+    return false
+  }
+  // #endregion attach-claim
 
   list(projectId?: string): TerminalSession[] {
     return [...this.sessions.values()]

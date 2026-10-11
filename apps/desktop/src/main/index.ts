@@ -4508,11 +4508,14 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       // operator's own home folder, with write tools.
       const place = launchPlace(project.repo_path)
       const cwd = place.place === 'repository' ? place.path : app.getPath('home')
+      // CO-229: the held session this launch attached to is claimed until its first instruction is delivered.
+      let claimed: string | null = null
       const session = optionId === FALLBACK_OPTION
         ? await openWithFallback({
             walk: (failed, skip) => runnerFallback.walk(projectId, { kind: 'terminal', permissionMode: permissionMode ?? null }, failed, skip),
             open: (runner, route) => ptys.open(projectId, cwd, runner, null, permissionMode ?? null, null, undefined, undefined, route),
             get: (sessionId) => ptys.get(sessionId),
+            claim: (sessionId) => { const ok = ptys.claimAttach(sessionId); if (ok) claimed = sessionId; return ok },
             // ADR-0125 §4: nothing started — the walk may move on. Everything else stops it.
             unavailable: (error) => error instanceof SpawnFailure || error instanceof RunnerUnavailable,
             record: (op, detail) => ops.record({ op, outcome: op === 'runner.fallback-attached' ? 'ok' : 'failed',
@@ -4520,12 +4523,15 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
           })
         : await ptys.open(projectId, cwd, optionId, null, permissionMode ?? null)
       syncPower()
+      const release = (): void => { if (claimed) ptys.releaseAttach(claimed) }
       if (firstInstruction?.trim()) {
         // The same delivery as the task path, and it must be: two ways of
         // handing an agent its first instruction is two behaviours to keep
         // matched, and one of them would eventually stop being fixed (M103).
-        ptys.deliverWhenReady(session.sessionId, firstInstruction.trim())
-      }
+        // The claim ends when the instruction is written (or refused): the session is busy from then on.
+        void ptys.deliverWhenReady(session.sessionId, firstInstruction.trim()).finally(release)
+          .catch((e) => ops.failed('terminal.first-instruction', e, { note: 'the first instruction was not delivered' }))
+      } else release()
       return session
     }
   )

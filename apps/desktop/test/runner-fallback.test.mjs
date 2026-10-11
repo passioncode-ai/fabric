@@ -83,6 +83,7 @@ const selected = (runner, index, session = 'spawned', sessionId = null) => ({ st
     walk: async (_f, skip) => { skips.push([...skip]); return skip.has('gone') ? selected('claude-code', 0, 'attached', 'held') : selected('claude-code', 0, 'attached', 'gone') },
     open: async () => { throw Error('must attach, not open') },
     get: (id) => (id === 'held' ? { sessionId: 'held' } : null),
+    claim: () => true,
     unavailable: () => false
   })
   assert.deepEqual(result, { sessionId: 'held' })
@@ -121,3 +122,46 @@ console.log('PASS fallback launch: unavailable moves on, a changed authority sto
   }
 }
 console.log('PASS attachable: idle, same runner, project and mode, accepting input, not a task\'s')
+
+// ── CO-229: two fallback launches at the same moment never attach to one held session ────────────────
+{
+  const fake = () => ({ pid: 4243, resize() {}, kill() {}, write() {}, onData() {}, onExit() {} })
+  const manager = new PtyManager({ append: async () => ({ seq: 1 }) }, randomUUID(), { onData() {}, onExit() {} }, undefined, fake, undefined, () => ({ kind: 'person', id: 'operator' }))
+  const project = randomUUID()
+  const held = await manager.open(project, process.cwd(), 'shell')
+  const real = Date.now
+  try {
+    Date.now = () => real() + 120_000
+    // Both walks look at the machine BEFORE either commits: each sees the same idle session, as two windows did.
+    let arrived = 0
+    let release
+    const gate = new Promise((r) => { release = r })
+    const opened = []
+    const launcher = () => openWithFallback({
+      walk: async (_failed, skip) => {
+        const id = manager.attachable(project, 'shell', null, skip)
+        if (++arrived === 2) release()
+        await gate
+        return id ? selected('shell', 0, 'attached', id) : selected('shell', 0)
+      },
+      open: async (runner) => { opened.push(runner); return { sessionId: 'spawned-' + opened.length } },
+      get: (id) => manager.get(id),
+      claim: (id) => manager.claimAttach(id),
+      unavailable: () => false
+    })
+    const [a, b] = await Promise.all([launcher(), launcher()])
+    const ids = [a.sessionId, b.sessionId]
+    assert.equal(ids.filter((id) => id === held.sessionId).length, 1, `exactly one launch attaches to the held session (got ${ids})`)
+    assert.equal(opened.length, 1, 'the other walks on and spawns its own session')
+    assert.equal(manager.attachable(project, 'shell', null, new Set()), null, 'the claimed session is not offered again while claimed')
+    manager.releaseAttach(held.sessionId)
+    assert.equal(manager.attachable(project, 'shell', null, new Set()), held.sessionId, 'released, it is attachable again')
+    assert.equal(manager.claimAttach(held.sessionId, 1000), true)
+    Date.now = () => real() + 122_000
+    assert.equal(manager.claimAttach(held.sessionId), true, 'a claim nobody released ends at its bound')
+    assert.equal(manager.claimAttach('no-such-session'), false, 'a session that does not exist cannot be claimed')
+  } finally {
+    Date.now = real
+  }
+}
+console.log('PASS CO-229: two launchers walking at once — one attaches, the other spawns; a claim is released or ends at its bound')
