@@ -776,7 +776,7 @@ page's «Who is working on what» (SCR-31: one row per claim, «related» on bot
 row's … menu with its confirmation, agent-sync's leases read-only beneath) and the manager's «Where work is» (SCR-78:
 per project its sessions, claims, review queue and last sign of life; the idle projects counted; the last row,
 «Sessions with no project», always shown). Voice: peer-builder, a state said as a fact — a claim is never "working" past
-its expiry («no sign since <time>») or after its session ended («lapsed — the session ended»); an unread list says it
+its expiry («no sign since <time>») or after its session ended («lapsed: the session ended»); an unread list says it
 could not read, never "nobody". The release confirmation names the agent and the task and what follows (the agent is
 told on its next call); Cancel is focused. Russian: «заявка» for a claim (the CONTEXT.md term «Claim»), «снять» for
 release, «агент для кода», «вы»-neutral forms. The three feed sentences describe the new event types. Humanization: own
@@ -791,8 +791,8 @@ pass (copywriting, interface register: one action one name, no decorative full s
 | `glyph.more` | … | apps/desktop/src/renderer/src/i18n/en.ts:2152 | SCN-140 | proposed |
 | `harness.tool.fabric_work_list` | Who is working on what in this project: claims, sessions, open tasks, agent-sync leases | apps/desktop/src/renderer/src/i18n/en.ts:2153 | SCN-140 | proposed |
 | `harness.tool.fabric_work_claim` | Claim your task before you start, and hear about related work others hold | apps/desktop/src/renderer/src/i18n/en.ts:2154 | SCN-140 | proposed |
-| `harness.tool.fabric_work_release` | End a claim — done, handed over or let go — or every claim of this session | apps/desktop/src/renderer/src/i18n/en.ts:2155 | SCN-140 | proposed |
-| `harness.tool.fabric_session_observe` | A turn’s commit and change counts, or the session’s end — from the session hooks, never content | apps/desktop/src/renderer/src/i18n/en.ts:2156 | SCN-140 (session hooks) | proposed |
+| `harness.tool.fabric_work_release` | End a claim (done, handed over or let go), or every claim of this session | apps/desktop/src/renderer/src/i18n/en.ts:2155 | SCN-140 | proposed |
+| `harness.tool.fabric_session_observe` | A turn’s commit and change counts, or the session’s end, from the session hooks; never content | apps/desktop/src/renderer/src/i18n/en.ts:2156 | SCN-140 (session hooks) | proposed |
 | `work.cameIn.launched` | launched by Fabric | apps/desktop/src/renderer/src/i18n/en.ts:2157 | SCN-140 | proposed |
 | `work.cameIn.enrolled` | enrolled from a terminal | apps/desktop/src/renderer/src/i18n/en.ts:2158 | SCN-140 | proposed |
 | `work.cameIn.handed-off` | handed off from another product | apps/desktop/src/renderer/src/i18n/en.ts:2159 | SCN-140 | proposed |
@@ -807,7 +807,7 @@ pass (copywriting, interface register: one action one name, no decorative full s
 | `work.who.none` | Nobody is working in this project right now. | apps/desktop/src/renderer/src/i18n/en.ts:2168 | SCN-140 | proposed |
 | `work.who.lastSign` | last sign {ago} ago | apps/desktop/src/renderer/src/i18n/en.ts:2169 | SCN-140 | proposed |
 | `work.who.silent` | no sign since {at} | apps/desktop/src/renderer/src/i18n/en.ts:2170 | SCN-140 | proposed |
-| `work.who.lapsed` | lapsed — the session ended | apps/desktop/src/renderer/src/i18n/en.ts:2171 | SCN-140 | proposed |
+| `work.who.lapsed` | lapsed: the session ended | apps/desktop/src/renderer/src/i18n/en.ts:2171 | SCN-140 | proposed |
 | `work.who.open` | Open session | apps/desktop/src/renderer/src/i18n/en.ts:2172 | SCN-140 | proposed |
 | `work.who.more` | More actions for this claim | apps/desktop/src/renderer/src/i18n/en.ts:2173 | SCN-140 | proposed |
 | `work.who.release` | Release… | apps/desktop/src/renderer/src/i18n/en.ts:2174 | SCN-140 | proposed |
@@ -818,7 +818,7 @@ pass (copywriting, interface register: one action one name, no decorative full s
 | `work.who.related` | related | apps/desktop/src/renderer/src/i18n/en.ts:2179 | SCN-140 | proposed |
 | `work.who.relatedTo` | related to {task}: {why} | apps/desktop/src/renderer/src/i18n/en.ts:2180 | SCN-140 | proposed |
 | `work.who.heldChip` | held | apps/desktop/src/renderer/src/i18n/en.ts:2181 | SCN-140 | proposed |
-| `work.who.held` | {task} — held by the session Fabric launched for it | apps/desktop/src/renderer/src/i18n/en.ts:2182 | SCN-140 | proposed |
+| `work.who.held` | {task}: held by the session Fabric launched for it | apps/desktop/src/renderer/src/i18n/en.ts:2182 | SCN-140 | proposed |
 | `work.release.title` | Release this claim? | apps/desktop/src/renderer/src/i18n/en.ts:2183 | SCN-140 | proposed |
 | `work.release.body` | {agent} stops holding {task} now and is told on its next call. | apps/desktop/src/renderer/src/i18n/en.ts:2184 | SCN-140 | proposed |
 | `work.release.confirm` | Release | apps/desktop/src/renderer/src/i18n/en.ts:2185 | SCN-140 | proposed |
@@ -842,7 +842,7 @@ pass (copywriting, interface register: one action one name, no decorative full s
 | `work.where.active` | active | apps/desktop/src/renderer/src/i18n/en.ts:2203 | SCN-141 | proposed |
 | `work.where.quiet` | quiet | apps/desktop/src/renderer/src/i18n/en.ts:2204 | SCN-141 | proposed |
 | `work.where.stale` | no sign for {minutes} min | apps/desktop/src/renderer/src/i18n/en.ts:2205 | SCN-141 | proposed |
-| `work.where.noSession` | held, no session — until {until} | apps/desktop/src/renderer/src/i18n/en.ts:2206 | SCN-141 | proposed |
+| `work.where.noSession` | held, no session, until {until} | apps/desktop/src/renderer/src/i18n/en.ts:2206 | SCN-141 | proposed |
 | `work.where.review` | In review | apps/desktop/src/renderer/src/i18n/en.ts:2207 | SCN-141 | proposed |
 | `work.where.reviewUnread` | not read | apps/desktop/src/renderer/src/i18n/en.ts:2208 | SCN-141 | proposed |
 | `work.where.reviewCount` | {count} in review | apps/desktop/src/renderer/src/i18n/en.ts:2209 | SCN-141 | proposed |

@@ -41,7 +41,7 @@ create table work_claims (
   id                     uuid primary key,
   estate_id              uuid not null,
   project_id             uuid not null,
-  work_id                uuid not null references project_tasks(id),
+  work_id                uuid not null,
   owner_session          uuid not null,
   -- The coding agent (a runner key such as claude-code) or the product, as Fabric knows it; never the caller's word.
   agent                  text,
@@ -62,7 +62,9 @@ create table work_claims (
   handover_note          text,
   claimed_seq            bigint not null,
   released_seq           bigint,
-  check ((released_at is null) = (released_how is null))
+  check ((released_at is null) = (released_how is null)),
+  -- A claim names a task of its own estate (migration 42's composite identity), never another estate's.
+  foreign key (estate_id, work_id) references project_tasks (estate_id, id)
 );
 -- One live claim per task, whoever holds it: the lease decides who; this keeps the account single.
 create unique index work_claims_one_live on work_claims (estate_id, work_id) where released_at is null;
@@ -71,7 +73,7 @@ create index work_claims_project_live on work_claims (project_id) where released
 create index work_claims_owner on work_claims (owner_session);
 
 create table task_sources (
-  task_id     uuid primary key references project_tasks(id),
+  task_id     uuid primary key,
   estate_id   uuid not null,
   project_id  uuid not null,
   -- As the agent named it (a remote URL, owner/name, or a repository folder) — and the project's folder it resolved to.
@@ -81,7 +83,8 @@ create table task_sources (
   row_id      text not null,
   linked_at   timestamptz not null,
   linked_by   jsonb not null,
-  linked_seq  bigint not null
+  linked_seq  bigint not null,
+  foreign key (estate_id, task_id) references project_tasks (estate_id, id)
 );
 create index task_sources_row on task_sources (estate_id, repo_path, path, row_id);
 create index task_sources_project on task_sources (project_id);

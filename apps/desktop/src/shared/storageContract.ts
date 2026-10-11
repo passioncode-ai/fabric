@@ -98,6 +98,8 @@ export const NOT_MIRRORED: Readonly<Record<string, string>> = {
   goals: 'NOT REBUILDABLE from the two mirrored files, and not carried — this is the largest gap in the mirror and the reason it may not be called a backup',
   project_tasks: 'NOT REBUILDABLE from the mirror. Rebuilt from the journal when the journal is present; absent from a workspace-only import',
   task_links: 'the same as the tasks they join',
+  work_claims: 'who is working on what right now, and how earlier claims ended: rebuilt from the journal (work.claimed@1 … work.released@1), and a claim restored into another estate would name a session that is not there',
+  task_sources: 'rebuilt from the journal (task.source.linked@1); an address into the owning repository, which travels with that repository, not with this file',
   task_notes: 'notes hang off a task; a note whose task is absent is a sentence with no subject',
   task_handoffs: 'a handoff names two sessions of a run that is over; outside it, it points at nothing',
   questions: 'NOT REBUILDABLE from the mirror. A question an operator answered is a decision the estate would lose',
