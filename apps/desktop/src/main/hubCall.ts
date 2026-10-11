@@ -84,6 +84,16 @@ export const MAX_KEPT_TOTAL_BYTES = 32 * 1024 * 1024
 const SWEEP_EVERY_MS = 60_000
 /** A hop Fabric ended before forwarding is itemised once per binding and error code in this window (CO-200). */
 export const NOT_SENT_WINDOW_MS = 10 * 60 * 1000
+// #region hub-call-not-sent-codes — docs: docs/ux/scenarios.md#scn-132-an-external-agent-asks-for-access-and-the-operator-decides
+/** The error codes a hop Fabric ended before forwarding can carry — the closed set `hub.call.refusals.summarized@1`
+ *  may journal. Migration 82's `v_codes` holds the same list in the database; `hub-call-window.test.mjs` compares them,
+ *  so a code added here and not there (a summary the projector would refuse) fails a test, not the journal. */
+export const NOT_SENT_CODES = [
+  'invalid-arguments', 'unknown-callee', 'access-required', 'product-not-connected',
+  'product-credential-unavailable', 'hub-unavailable', 'cancelled'
+] as const
+export type NotSentCode = (typeof NOT_SENT_CODES)[number]
+// #endregion hub-call-not-sent-codes
 /** Runs `fn` after `ms`; returns how to cancel it. The default is an unref'd timer, so it never keeps Fabric alive. */
 export type Schedule = (fn: () => void, ms: number) => () => void
 const defaultSchedule: Schedule = (fn, ms) => {
@@ -259,7 +269,7 @@ export function createAgentCall(deps: HubCallDeps) {
     }
   }
   /** The span of a hop that ended before anything was forwarded: itemised first in its window, then counted. */
-  const notSentSpan = async (fields: Record<string, unknown>): Promise<boolean> => {
+  const notSentSpan = async (fields: Record<string, unknown> & { error_code: NotSentCode }): Promise<boolean> => {
     const caller = fields.caller as { binding_id: string; agent_id: string }
     const code = String(fields.error_code)
     const key = `${caller.binding_id}\u0000${code}`

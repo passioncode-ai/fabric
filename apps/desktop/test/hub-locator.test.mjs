@@ -8,7 +8,7 @@ import path from 'node:path'
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-const { publishHub, locateHub, HUB_PROTOCOL } = await import(path.resolve(import.meta.dirname, '../src/main/hub.ts'))
+const { publishHub, locateHub, pidAlive, HUB_PROTOCOL } = await import(path.resolve(import.meta.dirname, '../src/main/hub.ts'))
 
 const fresh = () => mkdtempSync(path.join(tmpdir(), 'fabric-locate-'))
 const alive = () => true
@@ -75,6 +75,13 @@ test('a symlink or a FIFO in place of hub.json is refused without blocking', { s
   const fifoRoot = fresh()
   execFileSync('mkfifo', [path.join(fifoRoot, 'hub.json')])
   assert.deepEqual([locateHub(fifoRoot, { isAlive: alive }).code], ['not-a-hub'])
+})
+
+test('pidAlive: this user\'s process is alive; another user\'s process (EPERM) is not Fabric; a gone pid is not running', { skip: process.platform === 'win32' || process.getuid?.() === 0 }, () => {
+  assert.equal(pidAlive(process.pid), true)
+  // pid 1 (launchd / init) runs as root: signalling it from this user is EPERM — something runs there, not this user's Fabric.
+  assert.equal(pidAlive(1), false)
+  assert.equal(pidAlive(2 ** 22 + 12345), false)
 })
 
 test('a missing door token file while hub.json exists: the hub is starting or stopping', () => {

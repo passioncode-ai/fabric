@@ -175,14 +175,16 @@ const LOOPBACK_ORIGIN = /^http:\/\/127\.0\.0\.1:(\d{4,5})$/
 /** The door token as `publishHub` writes it: 32 random bytes, base64url. */
 const DOOR_TOKEN = /^[A-Za-z0-9_-]{43}$/
 
-/** Whether a process with this id runs (EPERM: it runs as another user, which is still "alive"). */
+/** Whether a process with this id runs AS THIS USER — the only way Fabric's hub runs. EPERM is another user's
+ *  process: something runs under that id, and it is not the Fabric that wrote this user's hub.json (the pid was
+ *  reused), so for the question asked here it counts as not running. */
 export function pidAlive(pid: number): boolean {
   try {
     process.kill(pid, 0)
     return true
-  } catch (e) {
-    // The answer to "is it running", not a failure: ESRCH means gone, EPERM means another user's process.
-    return (e as NodeJS.ErrnoException).code === 'EPERM'
+  } catch {
+    // The answer to "is this user's Fabric running", not a failure: ESRCH means gone, EPERM another user's process.
+    return false
   }
 }
 

@@ -70,7 +70,9 @@ const requestSchema = z
     callee: z.string().min(1).max(63).describe('The product you want to reach through Fabric, e.g. fabric-inbox'),
     capabilities: z.array(z.string().regex(CAPABILITY_PATTERN)).min(1).max(32).describe('The product tools you will call, e.g. read_message'),
     resources: z.array(z.string().min(1).max(400)).min(1).max(64).describe('The mailboxes they are for: cloudflare:<address> or gmail:<id>'),
-    reason: z.string().min(1).max(1000).describe('Why, in a sentence or two. The operator reads it as your claim.')
+    reason: z.string().min(1).max(1000).describe('Why, in a sentence or two. The operator reads it as your claim.'),
+    // ADR-0134 amendment 2: Fabric resolves this folder itself and shows the operator its own reading of it.
+    folder: z.string().min(1).max(4096).optional().describe('For callee fabric (session.enroll) only: the absolute folder you run in. Fabric resolves it itself, refuses it when it belongs to another project than the one you ask for, and shows the operator the project folder it matched.')
   })
   .strict()
 
@@ -152,7 +154,7 @@ export function hubServerFor(principal: HubPrincipal, deps: HubToolDeps): McpSer
     {
       title: 'Work in the project of this folder',
       description:
-        'For a coding agent: name the absolute folder you run in. Through the door this only names the project the folder belongs to (needs-grant) — ask for it with fabric.access.request. With a binding credential: when it holds the operator\'s session.enroll grant on the project that folder belongs to, the answer carries a one-session bearer for that project — use it as a session Fabric started would (Authorization: Bearer, then call fabric_whoami first); it is spent by one MCP initialize. needs-grant names the resource to ask for with fabric.access.request (callee fabric, capability session.enroll); no-project says the folder is not a project in Fabric yet.' + VERIFY_HUB,
+        'For a coding agent: name the absolute folder you run in. Through the door this only names the project the folder belongs to (needs-grant) — ask for it with fabric.access.request. With a binding credential: when it holds the operator\'s session.enroll grant on the project that folder belongs to, the answer carries a one-session bearer for that project — use it as a session Fabric started would (Authorization: Bearer, then call fabric_whoami first); it is spent by one MCP initialize. needs-grant names the resource to ask for with fabric.access.request (callee fabric, capability session.enroll, and this same folder as folder); no-project says the folder is not a project in Fabric yet.' + VERIFY_HUB,
       inputSchema: z.object({ cwd: z.string().min(1).max(4096), runtimeSessionId: z.string().min(1).max(128).optional() }).strict()
     },
     async (args) =>

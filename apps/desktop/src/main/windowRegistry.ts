@@ -66,4 +66,18 @@ export function createWindowRegistry(): WindowRegistry {
     receives: (id, channel, args) => mayReceive(byId.get(id), channel, args)
   }
 }
+
+/** The part of a BrowserWindow a send needs. */
+export interface SendTarget {
+  isDestroyed(): boolean
+  webContents: { id: number; send(channel: string, ...args: unknown[]): void }
+}
+
+/** A message to ONE window (the menu's Cmd+W to the focused one), sent only when the registry says that window may
+ *  receive the channel — the rule `index.ts#broadcast` applies to every window. Returns whether it was sent. */
+export function sendIfReceives(registry: Pick<WindowRegistry, 'receives'>, win: SendTarget | null | undefined, channel: string, ...args: unknown[]): boolean {
+  if (!win || win.isDestroyed() || !registry.receives(win.webContents.id, channel, args)) return false
+  win.webContents.send(channel, ...args)
+  return true
+}
 // #endregion window-registry

@@ -22,7 +22,7 @@ import {
   mayReceive,
   windowKindFromArgv
 } from '../src/shared/ipcWindowPolicy.ts'
-import { IpcWindowRefused, createWindowRegistry } from '../src/main/windowRegistry.ts'
+import { IpcWindowRefused, createWindowRegistry, sendIfReceives } from '../src/main/windowRegistry.ts'
 import { createApi, exposedApi } from '../src/preload/api.ts'
 
 const HERE = path.dirname(new URL(import.meta.url).pathname)
@@ -163,6 +163,21 @@ test('the preload exposes only the subset of the window\'s kind', () => {
   const main = exposedApi('main', recorder())
   assert.deepEqual(Object.keys(main).sort(), Object.keys(createApi(recorder())).sort())
   assert.deepEqual(exposedApi(null, recorder()), {}, 'a window of no known kind gets no bridge')
+})
+
+test('the menu\'s Cmd+W reaches the focused window only through the registry: the main window, never a session, an editor or an unknown one', () => {
+  const windows = createWindowRegistry()
+  windows.register(1, { kind: 'main' })
+  windows.register(2, { kind: 'session', subject: 'sess-a' })
+  windows.register(3, { kind: 'editor', subject: '/a' })
+  const win = (id, destroyed = false) => ({ sent: [], isDestroyed: () => destroyed, webContents: { id, send(ch, ...a) { win.log.push([id, ch, ...a]) } } })
+  win.log = []
+  assert.equal(sendIfReceives(windows, win(1), IPC.tabsCloseActive), true)
+  for (const w of [win(2), win(3), win(9), win(1, true), null, undefined]) assert.equal(sendIfReceives(windows, w, IPC.tabsCloseActive), false)
+  assert.deepEqual(win.log, [[1, IPC.tabsCloseActive]])
+  const menu = readFileSync(path.join(HERE, '..', 'src', 'main', 'menu.ts'), 'utf8')
+  assert.match(menu, /sendIfReceives\(windows, BrowserWindow\.getFocusedWindow\(\), IPC\.tabsCloseActive\)/)
+  assert.doesNotMatch(menu, /getFocusedWindow\(\)\?\.webContents\.send/, 'no send straight to the focused window')
 })
 
 test('every window Fabric gives the preload is created with its kind', () => {

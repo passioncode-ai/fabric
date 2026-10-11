@@ -112,8 +112,9 @@ plan survives as org #1 and builds first.
   (org-index [ONBOARDING §4](https://github.com/passioncode-ai/org-index/blob/main/ONBOARDING.md#4-agent-tooling), visible to members of the passioncode-ai organization).
 - **MCP:** every agent session Fabric starts is given Fabric's agent surface automatically — a
   scoped, single-use `mcp.json` per session ([`agentSurface.ts`](apps/desktop/src/main/agentSurface.ts));
-  nothing is registered by hand. Fabric's own entry for agents outside it — its northbound MCP
-  with `agent.call`, which `claude mcp add` would register — arrives with plan AR-3 ([plans](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/plans.md), members only); until then you work with Fabric in the app, and Fabric
+  nothing is registered by hand. A coding agent you open yourself reaches the same harness through
+  `fabric-mcp`, registered once with no secret (`claude mcp add --scope user fabric -- "<Fabric>/bin/fabric-mcp" --runner claude-code`);
+  Fabric asks you once per agent and project ([ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)). Fabric
   drives the other products over their MCP servers ([products](https://github.com/passioncode-ai/fabric-workspace/blob/main/knowledge/products.md), members only).
 - **Contribute:** read the organization's [CONTRIBUTING.md](https://github.com/passioncode-ai/.github/blob/main/CONTRIBUTING.md)
   and this repository's [AGENTS.md](AGENTS.md); contributions are accepted under [CLA.md](CLA.md).

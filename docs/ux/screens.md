@@ -1837,8 +1837,8 @@ results always pair text with an icon — colour is never the only signal.
 - **Implementation tasks:** REQ-03, REQ-04
 
 ### SCR-76: Agent access
-- **Used by:** FLW-75, FLW-76
-- **Purpose:** What registered agents on this Mac may do through Fabric, what is waiting for an answer, and which products are connected — opened from Settings ([ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)).
+- **Used by:** FLW-75, FLW-76, FLW-77
+- **Purpose:** What registered agents on this Mac — and coding agents working in a project ([ADR-0134](../adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)) — may do through Fabric, what is waiting for an answer, and which products are connected — opened from Settings ([ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)).
 - **Elements:** where agents reach Fabric, or why they cannot; Products — one card each, the text first and Connect (or Reconnect and Disconnect once connected) on their own line under it, and the last connect outcome; waiting requests, one card each headed by the agent's name — who installed it and where it came from, what it asks in plain words, its reason as its claim, the same-user floor, whether it adds to existing access, that access lasts a year unless revoked, when the request expires, Deny and Allow (or "Allow and connect <product>"); agents with access, one card each, each grant in plain words with its expiry (a date in the operator's locale) and Revoke, and Revoke all; denied requests with Clear the denial. Every button names whose it is to a screen reader — an agent's buttons in their own label, a product's buttons through the group they sit in, which carries the product's name (2026-10-05, release review I3 U-4); the accessible Allow name includes the visible connect action. Long resources wrap in full, controls wrap at narrow widths, and completion moves keyboard focus to the affected section. Machine diagnostics are a secondary line below the localised reason. Every word is in the operator's language.
 - **States:**
   | State | Trigger | Figma frame | Behavior |
@@ -1852,6 +1852,6 @@ results always pair text with an icon — colour is never the only signal.
   | declined | the operator denied in the product | none | says it was declined |
   | failed | the product reported a failure; the vault refused or was too slow; no answer within 10 minutes; a Reconnect whose new key was withdrawn | none | the reason in warning ink, separated from the connected line; Try again when not connected; a withdrawn Reconnect says the product is not connected now |
 - **Coverage:** apps/desktop/src/renderer/src/AgentAccessPanel.tsx
-- **Scenarios:** SCN-132, SCN-133
-- **Resources:** [ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md).
+- **Scenarios:** SCN-132, SCN-133, SCN-137 (an enrollment is said as "<coding agent> asks to work in <project>", its grant as "works in <project> — until <date>", with the folder Fabric resolved and the same-user floor; never "connect")
+- **Resources:** [ADR-0115](../adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md), [ADR-0134](../adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md).
 - **Implementation tasks:** AR-3.1, AR-3.4

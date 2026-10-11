@@ -15,7 +15,7 @@ import { fixPath, resolveSupabaseEnv, stackStatusEnv, startStack, stopStartingSt
 import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
 import { applyAppIcon, windowIcon } from './appIcon'
 import { isFloorClass, Policy } from './policy'
-import { launchOptions, PtyManager } from './pty'
+import { launchOption, launchOptions, PtyManager } from './pty'
 import { classifyFailure } from '../shared/failure.ts'
 import { createManagedLaunch, type LaunchInput } from './managedLaunch.ts'
 import { createNativeStopRuntime } from './nativeStopRuntime.ts'
@@ -28,7 +28,7 @@ import { createAccessStore, type AccessStore } from './accessStore.ts'
 import { AccessService } from './accessService.ts'
 import { startHub, withdrawHub } from './hub.ts'
 import { hubServerFor } from './hubTools.ts'
-import { enrollSession } from './sessionEnroll.ts'
+import { EnrolledSessions, enrollSession, resolveAgentFolder, type FolderDeps } from './sessionEnroll.ts'
 import { FABRIC_SELF } from '../shared/access.ts'
 import { createAgentCall } from './hubCall.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
@@ -776,26 +776,54 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     // A6-036: read when the prompt is made and before an Allow connects, not only when the request arrived.
     connected: async (product) => (await accessStore.liveConnection(product)) !== null
   })
+  // #region session-enroll-wiring — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+  // How Fabric reads a folder an agent names — once, for the enrollment and for the ask, so the prompt shows the
+  // same fact the enrollment acts on (ADR-0134 amendment 2). The worktree probe is the resolver's own, asynchronous.
+  const enrollFolders: FolderDeps = {
+    admittedFolders: async () => {
+      const repos = await store.selectAll('project_repos', 'path,project_id', { orderBy: ['project_id', 'path'] })
+      if (repos.failed) throw new Error(`repositories read failed: ${repos.failed}`)
+      return (repos.rows as Array<{ path: string; project_id: string }>).map((r) => ({ projectId: r.project_id, path: r.path }))
+    },
+    realpath: (folder) => {
+      try {
+        return realpathSync.native(folder)
+      } catch {
+        // A folder that does not exist is resolveAgentFolder's typed bad-folder answer, not a failure to record.
+        return null
+      }
+    }
+  }
+  // The enrolled sessions this process minted, by binding and grant: a revocation of either ends them at the surface.
+  const enrolled = new EnrolledSessions({ end: (sessionId) => surface.revokeSession(sessionId), state: (token) => surface.credentialState(token) })
   access = new AccessService({
     store: accessStore,
     registry,
     present: (request) => presenter.present(request),
     connected: async (product) => (await accessStore.liveConnection(product)) !== null,
-    // #region session-enroll-wiring — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
-    // Who may ask Fabric itself for a session: a coding agent of the runner catalogue that has a program on this
-    // Mac's PATH (the shell row has none and asks for nothing); which projects exist: this estate's.
+    // Who may ask Fabric itself for a session: a coding agent of the runner catalogue whose program is found on this
+    // computer (pty.ts#launchOption — the shell row has none and asks for nothing); which projects exist: this
+    // estate's; and the folder, resolved by Fabric.
     enrollment: {
       runner: (id) => {
         const a = AGENTS.find((x) => x.id === id && x.program)
         return a ? { key: a.id, name: a.label, summary: a.description ?? null } : null
       },
-      project: async (id) => enrollProject(id)
+      available: async (key) => (await launchOption(key))?.available === true,
+      project: async (id) => enrollProject(id),
+      resolve: async (folder) => {
+        const f = await resolveAgentFolder(folder, enrollFolders)
+        return f.ok ? { ok: true, projectId: f.projectId, root: f.root, how: f.how } : { ok: false, message: f.message }
+      }
     }
-    // #endregion session-enroll-wiring
   })
+  // #endregion session-enroll-wiring
   const agentCall = createAgentCall({ access, store: accessStore, vault, forward: forwardToProduct, estateId: ACTIVE_ESTATE })
   // A revoked binding never calls again: its idempotency memory goes at once (DA-3, verification 0.3.1).
   access.onBindingRevoked((bindingId) => agentCall.forgetBinding(bindingId))
+  // ADR-0134 §3: a revoked binding or grant ends the coding-agent sessions enrolled under it; the next call is refused.
+  access.onBindingRevoked((bindingId) => { enrolled.endForBinding(bindingId) })
+  access.onGrantRevoked((grantId) => { enrolled.endForGrant(grantId) })
   // CO-200: the counts of refusals not yet journalled are written as the app quits (best effort, within the drain).
   quit.onQuit(() => { void agentCall.flush() })
   hub = { registry, access, accessStore, connector, presenter, get doorToken() { return hubState.doorToken }, get down() { return hubState.down }, get downCode() { return hubState.downCode }, get downFact() { return hubState.downFact } }
@@ -809,22 +837,12 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
         access: hubAccess,
         call: agentCall,
         enroll: (binding, args) => enrollSession(binding, args, {
+          ...enrollFolders,
           liveGrants: (b) => hubAccess.liveGrantsOf(b),
-          admittedFolders: async () => {
-            const repos = await store.selectAll('project_repos', 'path,project_id', { orderBy: ['project_id', 'path'] })
-            if (repos.failed) throw new Error(`repositories read failed: ${repos.failed}`)
-            return (repos.rows as Array<{ path: string; project_id: string }>).map((r) => ({ projectId: r.project_id, path: r.path }))
-          },
           projectName: async (id) => (await enrollProject(id))?.name ?? null,
-          realpath: (folder) => {
-            try {
-              return realpathSync.native(folder)
-            } catch {
-              // A folder that does not exist is enrollSession's typed bad-folder answer, not a failure to record.
-              return null
-            }
-          },
           mint: (projectId, sessionId, taskId) => surface.mint(projectId, sessionId, taskId),
+          sessions: enrolled,
+          stillLive: (bindingId, grantId) => hubAccess.enrollmentLive(bindingId, grantId),
           journal: (type, projectId, payload) =>
             journal.append({ estateId: ACTIVE_ESTATE, type, actor: { kind: 'system', id: 'fabric-hub' }, projectId, payload })
         })
@@ -2780,7 +2798,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
         const connected = new Map<string, boolean>()
         for (const callee of new Set(waiting.map((r) => r.callee))) connected.set(callee, (await hub.accessStore.liveConnection(callee)) !== null)
         // FACTS, never sentences: the queue phrases them in the operator's language (UX-2), on the prompt's facts.
-        accessRows = waiting.map((r) => pendingFacts(r, connected.get(r.callee) ?? false))
+        accessRows = waiting.map((r) => pendingFacts(r, connected.get(r.callee) ?? false, homedir()))
       } catch (e) {
         // Not silence: the receipt below names this source as failed, so the queue reads as partial.
         accessError = { message: (e as Error).message }
@@ -3386,12 +3404,12 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return {
       hub: h.doorToken ? { listening: true, origin: surface.origin } : { listening: false, reason: h.down ?? 'the hub is not listening', code: h.downCode, fact: h.downFact },
       products,
-      pending: ov.pending.map((r) => pendingFacts(r, connected.get(r.callee) ?? false)),
+      pending: ov.pending.map((r) => pendingFacts(r, connected.get(r.callee) ?? false, homedir())),
       agents: ov.bindings.map((b) => ({
         bindingId: b.id,
         agent: agentFacts(b.agent_id, b.registry),
         since: b.created_at,
-        grants: b.grants.map((g) => ({ grantId: g.id, callee: g.callee, capability: g.capability, resource: g.resource, line: askLines({ capabilities: [g.capability], resources: [g.resource] })[0], expiresAt: g.expires_at }))
+        grants: b.grants.map((g) => ({ grantId: g.id, callee: g.callee, capability: g.capability, resource: g.resource, line: askLines({ capabilities: [g.capability], resources: [g.resource], registry: g.registry ?? b.registry })[0], expiresAt: g.expires_at }))
       })),
       denials: ov.denials.map((r) => ({ requestId: r.id, agent: agentFacts(r.agent_id, r.registry), callee: r.callee, ask: askLines(r), deniedAt: r.decided_at }))
     }
@@ -4218,7 +4236,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     // The menu speaks the language the windows speak, from the moment it is chosen.
     // A menu that fails to rebuild must not fail a write that is already on disk (iteration 2, ER-8).
     if (next.locale !== undefined) {
-      try { installMenu(written.settings.locale) } catch (e) { ops.failed('settings.menu', e) }
+      try { installMenu(written.settings.locale, windowKinds) } catch (e) { ops.failed('settings.menu', e) }
     }
     return written
   })
@@ -4624,7 +4642,7 @@ app.whenReady().then(async () => {
   // frame. Built from Electron's roles so copy, paste, quit and the window
   // controls survive: replacing the default with a hand-written minimum takes
   // Cmd+C away from every field in the product.
-  installMenu(readSettings().locale)
+  installMenu(readSettings().locale, windowKinds)
 
   // M116 — before the splash, so the first thing on the dock is already the mark.
   applyAppIcon()

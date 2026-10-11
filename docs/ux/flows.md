@@ -2253,7 +2253,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
- R[Agent asks through the door token] -->|not registered| X[Refused before any prompt]
+ R[Agent asks through the door token] -->|not registered, and not a coding agent asking to work in a project| X[Refused before any prompt]
  R -->|window in front| P[Native prompt over the window, in the operator's language]
  R -->|background, or behind another app| N[Notification; row in SCR-41]
  N -->|clicked, or window comes forward| P
@@ -2296,3 +2296,31 @@ flowchart TD
   | Screen | States used here |
   |---|---|
   | SCR-76 Agent access | waiting, connected, declined, failed, hub-off |
+
+
+### FLW-77: A coding agent opened outside Fabric starts working in a project
+- **Traces:** ST-045; SCN-137 (JTBD-08)
+- **Goal:** Let a coding agent the person opened themselves work in one project after one decision.
+- **Entry points:** the agent's first call to `fabric_whoami` through `fabric-mcp`.
+- **Success exit:** the agent's tools are the project's session tools; later sessions join without asking.
+- **Task analysis:** Open the agent in the project's folder; allow once in Fabric; later, revoke.
+- **Flow:**
+
+```mermaid
+flowchart TD
+ S[Agent starts in a folder; fabric-mcp finds hub.json] -->|no hub.json or a dead pid| W1[fabric_whoami: Fabric is not running, or its hub is closed]
+ S -->|folder in no project| W2[fabric_whoami: open the folder in Fabric first]
+ S -->|standing grant on the folder's project| OK[Session opened; tools change]
+ S -->|no grant yet| Q[Ask once: FLW-75's prompt, queue and SCR-76, worded as an enrollment]
+ Q -->|Allow| OK
+ Q -->|Deny| D[fabric_whoami: denied until cleared in SCR-76]
+ Q -->|10 minutes| E[Expired; asks again at the next start]
+ OK -->|Fabric restarts| R[Reconnects under the grant, no prompt]
+ OK -->|Revoke in SCR-76| V[Open sessions end; the next call is refused; asks again]
+```
+
+- **Screens traversed:**
+  | Screen | States used here |
+  |---|---|
+  | SCR-41 Ranked Board and question detail | access request (enrollment) |
+  | SCR-76 Agent access | waiting, read, revoked |

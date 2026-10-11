@@ -33,6 +33,7 @@
 // by its own credential, which already proves who it is.
 
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto'
+import path from 'node:path'
 import {
   ACCESS_REQUEST_TTL_MS,
   CREDENTIAL_CLAIM_WINDOW_MS,
@@ -90,9 +91,32 @@ export interface AccessServiceDeps {
    *  projects exist. Absent, Fabric refuses every enrollment ask. */
   enrollment?: {
     runner(agentId: string): { key: string; name: string; summary: string | null } | null
+    /** Whether the runner's program is found on this computer (`pty.ts#launchOption`'s availability). Absent, a
+     *  catalogue row is enough. */
+    available?(runnerKey: string): Promise<boolean>
     project(projectId: string): Promise<{ id: string; name: string } | null>
+    /** The folder the agent names, resolved by Fabric itself (`sessionEnroll.ts#resolveAgentFolder`). Absent, a
+     *  named folder is refused: Fabric does not show a folder it did not resolve. */
+    resolve?(folder: string): Promise<EnrollFolder>
   }
 }
+
+/** What Fabric resolved an asker's folder to (ADR-0134 amendment 2): the project, the admitted folder (real path) and
+ *  how it matched — or why it could not. */
+export type EnrollFolder =
+  | { ok: true; projectId: string; root: string; how: 'exact' | 'ancestor' | 'worktree' }
+  | { ok: false; message: string }
+
+/** The `registry.project` an enrollment ask journals: Fabric's facts, never the agent's. `root`/`how` are null when
+ *  the asker named no folder. */
+export interface EnrollProjectFact {
+  id: string
+  name: string
+  root: string | null
+  how: 'exact' | 'ancestor' | 'worktree' | null
+}
+
+const FOLDER_MAX = 4096
 
 const HUB_ACTOR: AccessActor = { kind: 'system', id: 'fabric-hub' }
 const CREDENTIAL = /^[A-Za-z0-9_-]{43}$/
@@ -120,6 +144,7 @@ export class AccessService {
   /** Bindings revoked by this process: a claim answered after its revocation must not add its verifier back. */
   private revokedBindings = new Set<string>()
   private revokedListeners = new Set<(bindingId: string) => void>()
+  private grantRevokedListeners = new Set<(grantId: string, bindingId: string) => void>()
 
   // Assigned in the body: Node's type-stripping loader rejects parameter properties.
   constructor(deps: AccessServiceDeps) {
@@ -132,6 +157,20 @@ export class AccessService {
   onBindingRevoked(listener: (bindingId: string) => void): () => void {
     this.revokedListeners.add(listener)
     return () => this.revokedListeners.delete(listener)
+  }
+
+  /** Told once a grant is revoked (after the revocation is journalled): what was admitted under it ends (ADR-0134 §3,
+   *  the enrolled sessions minted under it). */
+  onGrantRevoked(listener: (grantId: string, bindingId: string) => void): () => void {
+    this.grantRevokedListeners.add(listener)
+    return () => this.grantRevokedListeners.delete(listener)
+  }
+
+  /** Whether a binding and one of its grants are both live now, read from the store — never from a hint. A failed
+   *  read throws. Used after an enrolled session is minted, to close the read-then-mint race (ADR-0134 §3). */
+  async enrollmentLive(bindingId: string, grantId: string): Promise<boolean> {
+    const [b, g] = await Promise.all([this.deps.store.binding(bindingId), this.deps.store.grant(grantId)])
+    return !!b && b.revoked_at === null && !!g && g.binding_id === bindingId && g.revoked_at === null && Date.parse(g.expires_at) > this.now()
   }
 
   // #region hub-access-lanes — docs: docs/adr/0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md#3-grants-are-standing-narrow-and-revocable
@@ -180,21 +219,49 @@ export class AccessService {
       // Fabric itself as the callee: the asker is a coding agent of the runner catalogue, never a registry entry,
       // and the one resource is a project that exists. Every other callee goes through the registry as before.
       let entry: { key: string; kind: string; name: string; installedBy: string; repository: string | null; summary: string | null }
-      let enrolling: { id: string; name: string } | null = null
+      let enrolling: EnrollProjectFact | null = null
       if (asked.value.callee === FABRIC_SELF) {
-        const runner = this.deps.enrollment?.runner(asked.value.agentId) ?? null
+        const enrollment = this.deps.enrollment
+        const runner = enrollment?.runner(asked.value.agentId) ?? null
         if (!runner) {
           receipt('not-a-coding-agent', asked.value.agentId)
-          return { ok: false, refused: `${asked.value.agentId} is not a coding agent Fabric knows on this Mac. Nothing was shown to the operator.` }
+          return { ok: false, refused: `${asked.value.agentId} is not a coding agent Fabric knows on this computer. Nothing was shown to the operator.` }
+        }
+        // The catalogue row is not enough: its program must be on this computer (pty.ts#createRunnerAvailability).
+        if (enrollment!.available && !(await enrollment!.available(runner.key))) {
+          receipt('runner-not-installed', runner.key)
+          return { ok: false, refused: `${runner.name} is not installed on this computer as Fabric sees it (its program is not on Fabric's PATH). Nothing was shown to the operator.` }
         }
         const projectId = projectOfResource(asked.value.resources[0]) as string
-        const project = await this.deps.enrollment!.project(projectId)
+        const project = await enrollment!.project(projectId)
         if (!project) {
           receipt('unknown-project', runner.key)
           return { ok: false, refused: 'that project is not one of this Fabric. Nothing was shown to the operator.' }
         }
-        entry = { key: runner.key, kind: 'runner', name: runner.name, installedBy: 'a coding agent on this Mac', repository: null, summary: runner.summary }
-        enrolling = project
+        // The folder the prompt shows is Fabric's fact: resolved here, and it must belong to the project asked for.
+        let place: { root: string | null; how: EnrollProjectFact['how'] } = { root: null, how: null }
+        if (raw.folder !== undefined) {
+          if (typeof raw.folder !== 'string' || raw.folder.length > FOLDER_MAX || !path.isAbsolute(raw.folder)) {
+            receipt('bad-folder', runner.key)
+            return { ok: false, refused: 'folder must be the absolute folder the agent runs in. Nothing was shown to the operator.' }
+          }
+          if (!enrollment!.resolve) {
+            receipt('folder-unresolved', runner.key)
+            return { ok: false, refused: 'this Fabric cannot resolve a folder for an enrollment. Nothing was shown to the operator.' }
+          }
+          const resolved = await enrollment!.resolve(raw.folder)
+          if (!resolved.ok) {
+            receipt('folder-not-a-project', runner.key)
+            return { ok: false, refused: `${resolved.message} Nothing was shown to the operator.` }
+          }
+          if (resolved.projectId !== project.id) {
+            receipt('folder-of-another-project', runner.key)
+            return { ok: false, refused: `that folder belongs to another project in Fabric, not to ${project.name}; ask for the project fabric.session.enroll names for this folder. Nothing was shown to the operator.` }
+          }
+          place = { root: resolved.root, how: resolved.how }
+        }
+        entry = { key: runner.key, kind: 'runner', name: runner.name, installedBy: 'a coding agent on this computer', repository: null, summary: runner.summary }
+        enrolling = { id: project.id, name: project.name, ...place }
       } else {
         this.deps.registry.refresh()
         const resolved = this.deps.registry.resolve(asked.value.agentId)
@@ -245,7 +312,7 @@ export class AccessService {
       await this.deps.store.append('access.requested@1', HUB_ACTOR, {
         id, agent_id: entry.key, callee: ask.callee, capabilities: ask.capabilities, resources: ask.resources,
         reason: ask.reason, binding_id: bindingId, expires_at: expiresAt, poll_verifier: verifierOf(pollSecret),
-        registry: { key: entry.key, kind: entry.kind, name: entry.name, installed_by: entry.installedBy, repository: entry.repository, summary: entry.summary, ...(enrolling ? { project: { id: enrolling.id, name: enrolling.name } } : {}) }
+        registry: { key: entry.key, kind: entry.kind, name: entry.name, installed_by: entry.installedBy, repository: entry.repository, summary: entry.summary, ...(enrolling ? { project: enrolling } : {}) }
       })
       const row = await this.deps.store.request(id)
       if (!row) throw new Error('the access request was written and could not be read back')
@@ -382,6 +449,13 @@ export class AccessService {
       const live = g && g.revoked_at === null ? g : null
       if (!live) return refuse('not-live', 'that grant is not live (already revoked, or no such grant)')
       await this.deps.store.append('access.grant.revoked@1', actor, { grant_id: grantId })
+      for (const listener of this.grantRevokedListeners) {
+        try {
+          listener(grantId, live.binding_id)
+        } catch (e) {
+          ops.failed('hub.access.grant-revoked-listener', e, { grant_id: grantId }) // the revocation stands either way
+        }
+      }
       ops.record({ op: 'hub.access.grant-revoked', outcome: 'ok', detail: { grant_id: grantId, agent_id: live.agent_id }, ctx: { correlationId: ops.correlate() } })
       return { ok: true }
     })
@@ -419,7 +493,7 @@ export class AccessService {
   async overview(): Promise<{
     pending: AccessRequestRow[]
     denials: AccessRequestRow[]
-    bindings: Array<BindingRow & { grants: GrantRow[]; registry: AccessRequestRow['registry'] | null }>
+    bindings: Array<BindingRow & { grants: Array<GrantRow & { registry: AccessRequestRow['registry'] | null }>; registry: AccessRequestRow['registry'] | null }>
   }> {
     const now = this.now()
     const liveAt = new Date(now).toISOString()
@@ -431,8 +505,10 @@ export class AccessService {
       this.deps.store.liveBindings(),
       this.deps.store.grants({ liveAt })
     ])
-    // Every binding's origin request in ONE read (A6-041): one read per binding was N+1 every 4 s while SCR-76 is open.
-    const byId = new Map((await this.deps.store.requestsByIds(bindings.map((b) => b.request_id))).map((r) => [r.id, r] as const))
+    // Every binding's origin request — and every live grant's own request, whose registry names an enrollment's project
+    // (ADR-0134: an incremental grant is on another project than the origin's) — in ONE read (A6-041): one read per
+    // binding was N+1 every 4 s while SCR-76 is open.
+    const byId = new Map((await this.deps.store.requestsByIds([...bindings.map((b) => b.request_id), ...grants.map((g) => g.request_id)])).map((r) => [r.id, r] as const))
     const origins = new Map<string, AccessRequestRow>()
     for (const b of bindings) {
       const r = byId.get(b.request_id)
@@ -450,7 +526,11 @@ export class AccessService {
           const decided = origins.get(b.id)?.decided_at
           return decided !== null && decided !== undefined && now - Date.parse(decided) <= CREDENTIAL_CLAIM_WINDOW_MS
         })())
-        .map((b) => ({ ...b, grants: grants.filter((g) => g.binding_id === b.id && Date.parse(g.expires_at) > now), registry: origins.get(b.id)?.registry ?? null }))
+        .map((b) => ({
+          ...b,
+          grants: grants.filter((g) => g.binding_id === b.id && Date.parse(g.expires_at) > now).map((g) => ({ ...g, registry: byId.get(g.request_id)?.registry ?? null })),
+          registry: origins.get(b.id)?.registry ?? null
+        }))
     }
   }
 }

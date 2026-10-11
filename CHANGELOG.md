@@ -8,9 +8,20 @@ Earlier versions: 0.2.0 (2026-09-29), receipt [`docs/releases/fabric-0.2.0-mac.j
 
 ## 0.4.0 (unreleased)
 
-Fabric on Windows and Linux, the way the other PassionCode.ai apps ship (CO-238).
+Fabric on Windows and Linux, the way the other PassionCode.ai apps ship (CO-238), and a coding agent you open
+yourself in a terminal can work in your project through Fabric.
 
-- **Windows.** A per-user installer for Windows on Intel and AMD (x64) and on Arm (arm64): `Fabric-0.3.5-windows-x64-setup.exe`
+- **A coding agent opened outside Fabric works in your project.** Register Fabric once in Claude Code or Codex —
+  `claude mcp add --scope user fabric -- "<Fabric>/bin/fabric-mcp" --runner claude-code` — with no key in it. The first
+  time the agent starts in a project's folder, Fabric asks you once whether it may work there; after Allow it gets what
+  a session Fabric starts gets in that project, and its work is recorded like any session's. Revoke it in
+  Settings → Agent access ([ADR-0134](docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md)).
+- **Fixed: agents registered on this Mac could not be connected through Fabric.** Since 0.3.1 the hub's requests,
+  decisions and calls were refused by the app's own journal before they were saved, so an agent's request never reached
+  you (CO-254). They are recorded now, and a test checks every event the app writes against the journal's policy.
+- **The database moves to schema 82** (from 79): three migrations, applied in order. An existing database is upgraded
+  by the [documented procedure](docs/launch/release-mac.md) before 0.4.0 opens it.
+- **Windows.** A per-user installer for Windows on Intel and AMD (x64) and on Arm (arm64): `Fabric-0.4.0-windows-x64-setup.exe`
   and `-arm64-setup.exe`. The installers are not signed yet, so Windows SmartScreen asks once before the first start; signing
   through the organization's Azure account follows. Terminals open PowerShell; the local stack needs Docker Desktop.
 - **Linux.** An AppImage and a `.deb` for x64 and arm64. The local stack needs Docker Engine and the Supabase CLI.
