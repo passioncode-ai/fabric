@@ -41,8 +41,13 @@ assert.equal(liveSessionOf(new Map([['ended', ID]]), () => false, ID), null, 'an
   assert.equal(await queue('c', async () => 'after'), 'after', 'a failed start does not jam the next one')
 }
 { // iteration 2: the setup preset only on a runner that connects to Fabric's tools, whatever the window chose.
+  // 2026-10-11: the probes connected codex and kimi-code (docs/reports/2026-10-11-codex-kimi-surface-probes);
+  // the runners refused here are the ones still without the surface — cline (sign-in blocker), the shell,
+  // an unknown id.
   assert.doesNotThrow(() => refuseSetupWithoutSurface('claude-code'))
-  for (const r of ['codex', 'cline', 'kimi-code', 'shell', 'not-a-runner']) assert.throws(() => refuseSetupWithoutSurface(r), /task-refused:setup-needs-surface/, r)
+  assert.doesNotThrow(() => refuseSetupWithoutSurface('codex'), 'codex connects since the 2026-10-11 probe')
+  assert.doesNotThrow(() => refuseSetupWithoutSurface('kimi-code'), 'kimi-code connects since the 2026-10-11 probe')
+  for (const r of ['cline', 'shell', 'not-a-runner']) assert.throws(() => refuseSetupWithoutSurface(r), /task-refused:setup-needs-surface/, r)
   assert.throws(() => refuseSetupWithoutSurface('claude-code', false), /task-refused:setup-surface-down/, 'iteration 3: the surface not listening')
 }
 { // iteration 3, ER-7/DA-3: the read-back fallback row claims only what was journalled, never "running".

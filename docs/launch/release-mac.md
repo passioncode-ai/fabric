@@ -232,14 +232,14 @@ order, so a 0.3.0 database goes **75 → 79 in one step** (migrations 76, 77, th
 the order a fresh install applies them), with no 0.3.1 in between. Once a database is at 79 only 0.3.2 or later
 opens it. Read your schema first (step 2) and use that number wherever `FROM` appears below.
 
-**0.4.0 (in development) admits schema 83** — four migrations past 0.3.4's 79, applied in order:
+**0.4.0 (in development) admits schema 84** — five migrations past 0.3.4's 79, applied in order:
 `20261011000082_write_rules_at_the_door.sql` moves the hub's write rules out of replay (CO-201) and registers the
 refusal summary (CO-200); `20261011000090_session_enrollment.sql` registers `session.enrolled@1`, the event of a coding
 agent opened outside Fabric joining a project (ADR-0134); `20261011000091_grants_from_the_journal.sql` projects the hub's
-grants from the journal; `20261011000092_work_claims.sql` projects agents' claims (`work_claims`) and the backlog rows
+grants from the journal; `20261011000094_project_board_operator_read.sql` lets the operator read the project board (COM-06/COM-07); `20261011000095_work_claims.sql` projects agents' claims (`work_claims`) and the backlog rows
 tasks link to (`task_sources`), and registers `task.source.linked@1`, `work.handover.requested@1` and
 `session.turn.observed@1` (REQ-38, REQ-08, the session hooks' D4). `schema_version()` counts applied migrations, so
-79 + 4 = **83**, whatever the suffixes say. The procedure is the same with 83 in place of 79. A
+79 + 5 = **84**, whatever the suffixes say. The procedure is the same with 84 in place of 79. A
 database at 79 upgrades in order (82 sorts after 81), which `scripts/check-migration-order.mjs` holds for every
 later migration (CO-199): no new filename may sort below the newest one recorded in `supabase/migration-ledger.json`.
 At start, 0.4.0 also retires the old seed's second owner `…0002` from a database the 0.3.4 repair gave the local

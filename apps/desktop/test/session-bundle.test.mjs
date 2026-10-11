@@ -443,6 +443,55 @@ else {
   granting.discard(sidG)
 }
 
+// Probed 2026-10-11 (docs/reports/2026-10-11-codex-kimi-surface-probes) — Codex takes its MCP servers
+// from an isolated per-session CODEX_HOME: config.toml with a RANDOM server name and token env var
+// (a project .codex/config.toml shadows any name it knows), the preamble in AGENTS.md, the credential
+// only in the environment — never argv.
+{
+  const sidC = randomUUID()
+  const c = await bundles.compile(sidC, randomUUID(), null, 'codex', 'codex-config-home')
+  const home = c?.env?.CODEX_HOME
+  if (home && home.startsWith(path.join(root, 'sessions', sidC))) ok('Codex gets its own CODEX_HOME inside the session directory')
+  else fail('CODEX_HOME is wrong: ' + JSON.stringify(c?.env))
+  const toml = home && existsSync(path.join(home, 'config.toml')) ? readFileSync(path.join(home, 'config.toml'), 'utf8') : null
+  if (!toml) fail('no config.toml in the Codex home')
+  else {
+    if ((statSync(path.join(home, 'config.toml')).mode & 0o777) === 0o600 && (statSync(home).mode & 0o777) === 0o700)
+      ok('the Codex home is 0700 with its config 0600, like every other bundle secret')
+    else fail('the Codex home permissions are wrong')
+    const serverMatch = toml.match(/\\[mcp_servers\\.(fabric_[0-9a-f]{8})\\]\\nurl = "([^"]+)"\\nbearer_token_env_var = "([^"]+)"/)
+    if (serverMatch && serverMatch[2] === surface.endpoint && c.env[serverMatch[3]] === 'tok-' + sidC)
+      ok('the surface is served under a RANDOM per-session name, the bearer in an equally random env var')
+    else fail('the Codex config does not carry the surface as probed: ' + toml)
+    if (!toml.includes('tok-')) ok('and the credential itself is never written to the config file')
+    else fail('the credential reached config.toml')
+  }
+  const guide = home && existsSync(path.join(home, 'AGENTS.md')) ? readFileSync(path.join(home, 'AGENTS.md'), 'utf8') : ''
+  if (guide.includes('fabric_whoami') && (statSync(path.join(home, 'AGENTS.md')).mode & 0o777) === 0o600)
+    ok('and the preamble reaches the model through AGENTS.md, the one channel the probe found')
+  else fail('the preamble is missing from AGENTS.md')
+  if (c && c.args.length === 0 && !JSON.stringify(c.args).includes('tok-')) ok('and nothing goes into the arguments, where any process listing would show it')
+  else fail('the Codex bundle put something in argv: ' + JSON.stringify(c?.args))
+  bundles.discard(sidC)
+  if (revoked.includes(sidC) && !existsSync(path.join(root, 'sessions', sidC))) ok('and discarding it revokes the credential and removes the home with the directory')
+  else fail('discarding the Codex bundle left the credential or the directory')
+
+  // A granted gateway server rides beside Fabric with its role key in an http_headers table.
+  const grantingC = createBundleCompiler({
+    root,
+    surface,
+    declaredServers: async () => [{ name: 'linear', source: 'gateway' }],
+    gateway: () => ({ origin: 'http://127.0.0.1:4000', routes: { linear: '/mcp/linear' }, key: 'role-key' })
+  })
+  const sidL = randomUUID()
+  const l = await grantingC.compile(sidL, randomUUID(), null, 'codex', 'codex-config-home')
+  const tomlL = readFileSync(path.join(l.env.CODEX_HOME, 'config.toml'), 'utf8')
+  if (/\\[mcp_servers\\.linear_[0-9a-f]{8}\\]\\nurl = "http:\\/\\/127\\.0\\.0\\.1:4000\\/mcp\\/linear"\\nhttp_headers = \\{ "x-agw-key" = "role-key" \\}/.test(tomlL))
+    ok('a granted server points at the gateway and carries the ROLE key, never an upstream one')
+  else fail('granted server wrong: ' + tomlL)
+  grantingC.discard(sidL)
+}
+
 // HAR-R0-01 — compilation owns cleanup until it returns a bundle. These
 // faults hit the real filesystem functions, including partial writes, rather
 // than assuming that PtyManager will receive a bundle when compile rejects.

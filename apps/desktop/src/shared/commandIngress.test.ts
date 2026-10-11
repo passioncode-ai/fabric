@@ -33,7 +33,7 @@ const fixtures: Record<string, Record<string, unknown>> = {
   'memory.project.recorded@1': { id, claim: secret, source_ref: 'task:' + other, kind: 'finding',
     supersedes: other, category: 'harness', about: {namespace: 'provider', key: 'Claude-Code'},
     occurrence: {system: 'github', source_id: 'issue-42', episode_key: 'run:42'}, valid_from: '2026-09-27T01:02:03.000Z' },
-  // Claims (migration 92) and the session hooks' turn (D4): addresses, ids and counts; the one free text is scrubbed.
+  // Claims (migration 95) and the session hooks' turn (D4): addresses, ids and counts; the one free text is scrubbed.
   'task.source.linked@1': { task_id: id, repository: 'https://github.com/o/n', repo_path: '/tmp/synthetic-project', path: 'docs/backlog.md', row_id: 'CO-256' },
   'work.renewed@1': { work: id, owner: other, expires_at: '2026-10-11T10:30:00.000Z', claim_id: other },
   'work.handover.requested@1': { claim_id: other, work: id, requested_by: other, note: secret },

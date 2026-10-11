@@ -1,0 +1,3 @@
+{"ts":"2026-10-11T01:00:14.852Z","rpc":"initialize","id":0,"authHeader":"present","authOk":true,"params":["protocolVersion","capabilities","clientInfo"]}
+{"ts":"2026-10-11T01:00:14.888Z","rpc":"notifications/initialized","id":null,"authHeader":"present","authOk":true,"params":[]}
+{"ts":"2026-10-11T01:00:14.903Z","rpc":"tools/list","id":1,"authHeader":"present","authOk":true,"params":["_meta"]}

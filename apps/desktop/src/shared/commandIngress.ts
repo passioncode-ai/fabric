@@ -171,7 +171,7 @@ const EVENT_FIELDS: Record<string, Fields> = {
     kind: optional(enumeration(['note', 'finding', 'decision', 'trap'])), supersedes: optional(nullable(uuid)),
     category: optional(enumeration(INSIGHT_CATEGORIES)), about: optional(nullable(about)),
     occurrence: optional(nullable(occurrence)), valid_from: optional(nullable(timestamp)), ...metadata },
-  // Claims (migration 92, REQ-38/REQ-08; main/workTools.ts). A backlog row's address is references, never text.
+  // Claims (migration 95, REQ-38/REQ-08; main/workTools.ts). A backlog row's address is references, never text.
   'task.source.linked@1': { task_id: required(uuid), repository: required(reference), repo_path: required(reference),
     path: required(reference), row_id: required(reference), ...metadata },
   'work.renewed@1': { work: required(uuid), owner: required(uuid), expires_at: required(timestamp), claim_id: optional(uuid), ...metadata },

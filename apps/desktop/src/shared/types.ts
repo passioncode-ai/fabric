@@ -1260,6 +1260,17 @@ export interface FabricApi {
     replay(fromSeq: number): Promise<FeedEvent[]>
   }
   /**
+   * SCR-81 — the operator's read onto the project board (SCN-143, ADR-0117 D3).
+   * READ-ONLY: the board's writes belong to participant Projects and to their own
+   * scenarios; nothing here offers one. Every reply is a union, so a board that did
+   * not answer can never render as an empty thread list (the migration's error shape
+   * travels through unchanged).
+   */
+  comms: {
+    threads(): Promise<import('./commsRead.ts').CommsThreadsReply>
+    list(threadId: string | null, afterSeq: number, limit?: number): Promise<import('./commsRead.ts').CommsPageReply>
+  }
+  /**
    * The onboarding form's contents, kept where the operator's own state is kept
    * (AX-05).
    *
@@ -1654,6 +1665,8 @@ export const IPC = {
   settingsWrite: 'settings:write',
   terminalMemoryBackends: 'terminal:memory-backends',
   feedReplay: 'feed:replay',
+  commsThreads: 'comms:threads',
+  commsList: 'comms:list',
   attentionGrant: 'attention:grant',
   analyticsStatus: 'analytics:status',
   analyticsSetEnabled: 'analytics:set-enabled',

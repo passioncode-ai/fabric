@@ -143,6 +143,8 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   settingsWrite: MAIN_ONLY,
   terminalMemoryBackends: MAIN_ONLY,
   feedReplay: MAIN_ONLY,
+  commsThreads: MAIN_ONLY,
+  commsList: MAIN_ONLY,
   attentionGrant: MAIN_ONLY,
   analyticsStatus: MAIN_ONLY,
   analyticsSetEnabled: MAIN_ONLY,

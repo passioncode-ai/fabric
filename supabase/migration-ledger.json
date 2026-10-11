@@ -331,8 +331,12 @@
       "sha256": "f25d57a4fe8a8f6b9a18eda70a863dd6d0984c62e556677b72f68767a7a3518b"
     },
     {
-      "file": "20261011000092_work_claims.sql",
-      "sha256": "f4fe3439db9b24f5a2945d46cb43aa129bf68f0ed063a5e007b5a73d1e068883"
+      "file": "20261011000094_project_board_operator_read.sql",
+      "sha256": "7773487f2360fb5b9a13143ddf1f4262048676c7c0bcacfae2b98ac12868d406"
+    },
+    {
+      "file": "20261011000095_work_claims.sql",
+      "sha256": "722f4880e8417ecf468213c4750a5849aec379b3f8af70fb23d0ad5255f15ab2"
     }
   ]
 }

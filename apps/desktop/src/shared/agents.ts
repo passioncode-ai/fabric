@@ -71,7 +71,7 @@ export interface PermissionMode {
  * adapter before anyone has written it, and the launch refuses rather than
  * quietly borrowing the flags of whoever went first.
  */
-export type SurfaceAdapter = 'mcp-config-flag' | 'config-content-env' | 'acp-session' | 'none' | 'unimplemented'
+export type SurfaceAdapter = 'mcp-config-flag' | 'config-content-env' | 'acp-session' | 'codex-config-home' | 'none' | 'unimplemented'
 
 /**
  * `config-content-env` (ADR-0119): the runner reads a whole config document from one
@@ -170,30 +170,32 @@ export const AGENTS: readonly AgentDescriptor[] = [
       }
     ]
   },
+  // #region codex-surface — docs: docs/reports/2026-10-11-codex-kimi-surface-probes/README.md#codex-01621--what-it-takes
   {
-    // A THIRD AGENT, added to test the claim that adding one is a single row.
-    // It is not, and this row says exactly how far it gets: codex runs here as
-    // itself, in the project directory, and sees NO Fabric tools — because
-    // nobody has verified how it is told about an MCP server, and guessing a
-    // flag is how an agent starts with no tools and no complaint.
-    //
-    // Return trigger: someone runs `codex` against a known MCP config and
-    // records what it takes. Then this becomes a real adapter and the row
-    // changes by two fields.
+    // Probed 2026-10-11 on codex-cli 0.162.1 (report
+    // `docs/reports/2026-10-11-codex-kimi-surface-probes`): an HTTP MCP server in an
+    // isolated CODEX_HOME's config.toml with `bearer_token_env_var` connects, and the
+    // bearer verifies server-side on initialize, tools/list and tools/call. Two
+    // measurements shape the adapter: a project `.codex/config.toml` SHADOWS the home
+    // config for the same server name, so the session's server name and token env var
+    // are random per session (a project cannot shadow a name it cannot predict); and
+    // the preamble reaches the model only through `$CODEX_HOME/AGENTS.md`. Residue,
+    // said in the report: 0.162.1 has no `--ignore-project-config`, so a project can
+    // still inject ADDITIONAL servers — as it already could before Codex connected;
+    // the credential sits behind the random name, the one-shot claim and the 120 s
+    // window. In `codex exec` an MCP call is auto-cancelled (openai/codex#24135); in
+    // the TUI Fabric launches, the call asks the person — the runner-gated ask.
     id: 'codex',
     label: 'Codex',
     program: 'codex',
-    description: 'A coding agent in the project directory. Not connected to Fabric: how it learns about MCP servers has not been verified here',
-    connectsToSurface: false,
-    surfaceAdapter: 'none',
-    // No verified surface adapter and no packet transport wired yet, so Codex
-    // is NOT a ready Fabric executor: it runs in the directory but cannot
-    // register claim/handoff/memory. When the packet transport lands, this
-    // becomes 'packet' and the row gains a trusted-transport check — not before.
-    resultChannel: 'none',
+    description: 'An agent session in the project directory, connected to Fabric',
+    connectsToSurface: true,
+    surfaceAdapter: 'codex-config-home',
+    resultChannel: 'surface',
     defaultMode: null,
     permissionModes: []
   },
+  // #endregion codex-surface
   {
     // P-10 / ADR-0119: the first runner connected without Claude Code's flags. Kilo's TUI in
     // the project directory, told about Fabric by a session config in KILO_CONFIG_CONTENT
@@ -277,29 +279,34 @@ export const AGENTS: readonly AgentDescriptor[] = [
       { id: 'bypass', labelKey: 'agent.mode.bypass', args: ['--auto-approve', 'true'], containment: 'none', warnKey: 'agent.mode.bypassWarn' }
     ]
   },
+  // #region kimi-surface — docs: docs/reports/2026-10-11-codex-kimi-surface-probes/README.md#kimi-code-211--acp-with-http-mcp-no-bridge
   {
     // ADR-0125: Kimi Code CLI 2.1.1 (`kimi`, read 2026-10-07 from `kimi --help`), the contract's shared kind
-    // name `kimi-code` (DEC-0029). Its TUI runs as itself in the project directory. It speaks ACP
-    // (`kimi acp`), but no run has opened its ACP session through Fabric's shell yet, so — like Codex and
-    // Cline — it is not connected and cannot return a task's result. Probe first, then connect (ADR-0119).
-    // Its modes, from the same help: default asks before acting; `--plan` starts in plan mode; `--auto`
-    // ("Never Ask") decides everything itself. `--yolo` ("Ask When Needed") lets routine commands run
-    // unasked, so it is no gate either and is not offered.
+    // name `kimi-code` (DEC-0029). Probed 2026-10-11 (report
+    // `docs/reports/2026-10-11-codex-kimi-surface-probes`): `kimi acp` answers ACP initialize with
+    // `mcpCapabilities.http = true`, so the session takes Fabric's surface over HTTP — no stdio bridge —
+    // and the bearer verified server-side on initialize, tools/list and tools/call. The machine was
+    // signed in, so `session/new` opened without `authenticate` (its one auth method is a terminal
+    // login). Its modes, from the same help: default asks before acting; `--plan` starts in plan mode;
+    // `--auto` ("Never Ask") decides everything itself. `--yolo` ("Ask When Needed") lets routine
+    // commands run unasked, so it is no gate either and is not offered. Through the ACP shell the mode
+    // the person picked arrives as `acpMode`, like Hermes.
     id: 'kimi-code',
     label: 'Kimi Code',
     program: 'kimi',
-    description: 'A coding agent in the project directory. Not connected to Fabric yet: its ACP session has not been opened on a probed build',
-    connectsToSurface: false,
-    surfaceAdapter: 'none',
+    description: 'An agent session in the project directory, connected to Fabric',
+    connectsToSurface: true,
+    surfaceAdapter: 'acp-session',
     acp: { args: ['acp'] },
-    resultChannel: 'none',
+    resultChannel: 'surface',
     defaultMode: 'ask',
     permissionModes: [
-      { id: 'plan', labelKey: 'agent.mode.plan', args: ['--plan'], containment: 'runner-gated' },
-      { id: 'ask', labelKey: 'agent.mode.ask', args: [], containment: 'runner-gated' },
-      { id: 'bypass', labelKey: 'agent.mode.bypass', args: ['--auto'], containment: 'none', warnKey: 'agent.mode.bypassWarn' }
+      { id: 'plan', labelKey: 'agent.mode.plan', args: ['--plan'], containment: 'runner-gated', config: { acpMode: 'ask' } },
+      { id: 'ask', labelKey: 'agent.mode.ask', args: [], containment: 'runner-gated', config: { acpMode: 'ask' } },
+      { id: 'bypass', labelKey: 'agent.mode.bypass', args: ['--auto'], containment: 'none', config: { acpMode: 'bypass' }, warnKey: 'agent.mode.bypassWarn' }
     ]
   },
+  // #endregion kimi-surface
   {
     id: 'shell',
     label: 'Terminal',

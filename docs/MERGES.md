@@ -4,265 +4,62 @@
 
 Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; older ones are compacted to one line each on the next write. Read it before starting work: it is the shortest answer to *what landed while I was on my branch*.
 
-### 2026-10-11 · `release-040-wave1` · agent/release-040-wave1 → main
-- run: r-22786ba16 (lease release-040-wave1-hook); base: origin/main 22426281; integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
-- scope: the Windows/Linux port (a7c12e19); the harness — `hub.ts#locateHub`, `folderResolver.ts`, `sessionEnroll.ts`, `fabricMcp.ts`/`fabricMcpMain.ts`, `resources/bin/fabric-mcp(.cmd)`, the enrollment ask in `shared/access.ts`/`accessService.ts`/`hubTools.ts`, its consent words; migrations 82 (write rules at the door), 90 (session enrollment), 91 (grants from the journal) — schema 82, `supabase/migration-ledger.json`; `desktopIngress.ts` owners + `test/ingress-owners.test.mjs`; the per-window IPC policy (`ipcWindowPolicy.ts`, `windowRegistry.ts`, `preload/api.ts`); the hub robustness rows; the wave's audit findings; ADR-0142 and amendments to ADR-0115/0131/0134; the ledger, the plan lanes, the inventory; derived files
-- summary: a coding agent in any console reaches Fabric through fabric-mcp and enrolls into a project on one consent — proven with a real MCP client; the hub path that never ran live (CO-254) is fixed; CO-091 and the data-integrity rows closed. Fix round (runs r-22786ba16, r-249d0762eddd; leases release-040-wave1-hook, release-040-wave1-b4): enrollment revocation, folder fact and bounded loop (ADR-0134 amendment 2); enrollment words; the fused packaged build and the release's fabric-mcp check; the first-run agent choice (REQ-40); the 0.4.0 UX additions (SCN-137…SCN-142, FLW-77…FLW-82, SCR-77…SCR-80); ADR-0144 delegation with its audit and plan; main's fabric#28 (ADR-0145) merged in; CO-256…CO-259 carried.
-
-### 2026-10-11 · `release-guard` · agent/release-guard → main (fabric#28)
-- base: origin/main 2242628; integration: GitHub merge after the PR's `ci` (`scripts/ci.sh fast`) is green
-- scope: `.github/workflows/release.yml` (the `guard` job, `macos` needs it), the design map entries `#iteration-2026-10-11-release-guard` , `#iteration-2026-10-11-release-guard-adr` and `#iteration-2026-10-11-release-guard-reservation`; the pipeline reservation moved to ADR-0146; ADR-0145 (supersedes ADR-0113 in part), runbook steps 4 and 6 (fabric-90)
-- summary: release approval by checks across PassionCode products (operator 2026-10-11): the release runs only from a tag on main with `ci.yml` green on its commit; the environment's reviewers go once this lands.
-### 2026-10-11 · `release-040-plan` · agent/release-040-plan → main
-- run: r-249d0762eddd; base: origin/main 403faab9; integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
-- scope (base re-measured: origin/main 659ff356, rebased): `docs/evidence/plans/2026-10-11-release-040-agents-first.md` (decisions, canvas C1…C12, REQ-01…REQ-36, waves 0–8, questions), its inventory `…-inventory.json` (701 items), `scripts/plan/release-040-waves.py`, P-16 in the plan (lane 2) and the Now line, the SRC-02 re-pin, the regenerated `completeness.html` and `plan.json`, the design map entry, the handoff
-- summary: Fabric 0.4.0 (agents first) planned in wave mode over the whole board; no code changed. Wave 0 in the same landing: ADR-0133…ADR-0140, amendments to ADR-0100/0115/0119/0121/0123/0129, the pipeline reservation at ADR-0141, the vision §1/§3/§7 and six glossary terms, register hygiene (21 closed or narrowed, CO-248…CO-253, the CO-215/216 expansion), release runbook steps 10–11 (CO-196, CO-197 recorded).
-### 2026-10-11 · `aptabase-build-mode` · fix/aptabase-build-mode → main (fabric#26)
-- base: origin/main 8bc186a2, merged in (not rebased, so the PR branch is never force-pushed); integration: GitHub merge on the operator's instruction (2026-10-11)
-- scope: `apps/desktop/src/main/analytics.ts#createAnalytics` (`systemProps.isDebug`), `apps/desktop/test/analytics.test.mjs`, `docs/ANALYTICS.md` "What is sent", the design map
-- summary: Aptabase's `isDebug` follows growth's `environment` (sshlg-analytics client contract, "Build modes"); a pre-release or a development run lands in Debug, not Release.
-
-### 2026-10-10 · `release-034-close` · agent/release-034-close → main
-- run: r-9a7a12bb5; base: origin/main 8cf054db; integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
-- scope: the 0.3.4 ledger's *Release close — state*, P-15 done, CO-241 and CO-243 resolved, ADR-0121's status line, `docs/brand/facts.md`, the overview guides (en, ru), the design map's family section, the handoff
-- summary: v0.3.4 published and closed; the operator's database repaired by the installed app; passioncode.ai serves the universal DMG (site PR #86).
-
-### 2026-10-10 · `fix-fresh-install-034` · agent/fix-fresh-install-034 → main
-- run: r-9a7a12bb5; base: origin/main 9ef939e6 (rebased over fabric#27 before candidate 1), then origin/main merged in (`6fdf8fcc`, not rebased, so the candidates stay one ancestry chain); integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
-- scope: `supabase/seed.sql`; `apps/desktop/src/main/seedRepair.ts` (region `seed-repair`) and `apps/desktop/src/main/index.ts#bootstrapReady` (region `seed-repair-wiring`: the identity gate before the retry point and the hub); `shared/startupFailure.ts` cause `identity-refused` (en/ru, `docs/brand/strings.md`); `shared/stackFolder.ts` (the stack folder every remedy names); `scripts/lib/release-mac.mjs#workspacePinProblem`; `scripts/lib/universal-mac.mjs#thinMachO` (unreadable and 64-bit fat Mach-O); tests `first-install-db`, `seed-repair`, `stack-folder`, `startupFailure`, `universal-mac`, `release-mac` in the fast tier; walk fixture and residue report; ADR-0131, CO-239…CO-242, P-15, CHANGELOG `0.3.4 (unreleased)`, `docs/launch/release-mac.md`, SCN-095/FLW-55/SCR-36, the 0.3.4 ledger, the design map
-- summary: every fresh install since 0.2.0 stopped at "identity could not be established" (CO-241, measured on a disposable stack); the seed now names the app's own person, and a database only the old seed touched is granted to it at start. No schema change (79). The operator's calls 2026-10-10: this is 0.3.4, with universal macOS (fabric#27, landed first); the Windows/Linux port is 0.3.5. Released as 0.3.4: three iterations (candidates `41c2b62c`, `a0ab055c`, `06c5234c`; verified `2e040731`), the release commit carries the gate and fifteen receipts.
-
-### 2026-10-10 · `universal-mac` · agent/platform-matrix-20261009 → main (fabric#27)
-- run: fabric-switchboard-93's; merge commit 9ef939e6 (a GitHub merge, written here afterwards by the 0.3.4 run, iteration 1 DO-5)
-- scope: one universal macOS DMG (`scripts/after-pack-universal.mjs`, `scripts/lib/universal-mac.mjs`, `electron-builder*.yml`, `.github/workflows/release.yml`), x86_64 runtime admission (`apps/desktop/src/main/runtimeAdmission.ts`, `executorAuth.ts`), `docs/launch/release-mac.md#universal-macos`, `docs/launch/harness-r0/checks.md`; CO-237, CO-238
-- summary: Fabric ships for Apple silicon and Intel Macs as one DMG; first released in 0.3.4 (the operator's call 2026-10-10).
-
-### 2026-10-10 · `wiki-do` · agent/wiki-do-20261008 → main
-- run: r-d8d027823; base: origin/main 1404dffe (rebased); integration: fast-forward after `bash scripts/ci.sh fast` (fabric owner's condition)
-- scope: `scripts/workspace-release.mjs` (region `workspace-deploy`: App Platform API probe, Observatory-only credentials), `scripts/workspace.mjs` (no heroku remote/push; credentials checked before the gates; fast-forward when the workspace is behind), `scripts/workspace-snapshot.mjs` (receipt `platform`/`do_app`/`deployment`, Heroku receipt kept as history), `workspace.config.json` (`do_app`), `scripts/install-workspace-sync.sh`, tests, `docs/architecture/report-workspace.md`, DOCMAP, living map; separate commit: `providerCapabilityMatrix.ts` re-pin
-- summary: the workspace publish step deploys through GitHub to DigitalOcean App Platform and verifies the ACTIVE deployment; it works without the Heroku CLI installed. Carries the provider-matrix re-pin to Claude Code 2.1.296 and Codex CLI 0.162.1 (`scripts/repin-provider-builds.mjs`), which the gate required on this machine.
-
-### 2026-10-09 · `release-0.3.3` · agent/release-033-candidate → main
-- run: r-9a7a12bb5; base: origin/main 710c0d38; verified commit `fa9cdf6b`; integration: fast-forward after `bash scripts/ci.sh fast`
-- scope: iteration 3 (V3-1…V3-45, receipts in `docs/evidence/reviews/0.3.3/iteration-3/`, rechecks at `f891954c`, `d2c20705`, `fa9cdf6b`), the release commit: `apps/desktop/package.json` 0.3.3, `## 0.3.3`, `docs/launch/release-gate.json`, the handoff `docs/handoffs/2026-10-09-release-033-handoff.md` and the NB-1 recheck report as release metadata.
-- summary: Fabric 0.3.3, the onboarding release, cleared by three iterations; the tag and the protected approvals follow.
-
-### 2026-10-09 · `release-0.3.3-iteration-2` · agent/release-033-candidate → main
-- run: r-9a7a12bb5; base: origin/main 710c0d38 (candidate 2 `6d6d039d`); integration: fast-forward after `bash scripts/ci.sh fast`
-- scope: iteration 2's 44 findings, ledger rows V2-1…V2-38 and five receipts (`docs/evidence/reviews/0.3.3/iteration-2/`); `shared/runnerRoute.ts` (`needsSurface`), `main/taskRetry.ts` (`refuseSetupWithoutSurface`, running-only bring-forward), `main/index.ts` (setup guard, read-back keeps the session, menu rebuild apart), `main/projectDiscovery.ts` (bounded stripping), `main/adapterSkills.ts` (unreadable settings named), `start/AgentPaths.tsx` (attempt keeps its agent and failure, in-flight folder, abandoned tasks cancelled), `renderer/src/launch/LaunchShell.tsx` (`revealSection`), `FallbackOrderSetting.tsx`, `StackExposureNotice.tsx`, `App.tsx`, CSS, en/ru; ADR-0100, ADR-0127 amendments, ADR-0129 boundary; CO-177/178/196/197/221/225/227/231 updated, CO-232, CO-233; plan header and P-14; ledger *Release close*; CHANGELOG, ANALYTICS, runbook; fabric-workspace PR #81 extended (`ad6c1f7`).
-- summary: iteration 2 closed; the next candidate goes to iteration 3.
-
-### 2026-10-09 · `release-0.3.3-iteration-1` · agent/release-033-candidate → main
-- run: r-9a7a12bb5; base: origin/main 710c0d38 (candidate 1 `ece98797`); integration: fast-forward after `bash scripts/ci.sh fast`
-- scope: iteration 1's 58 findings, ledger rows V1-1…V1-49 and five receipts (`docs/evidence/reviews/0.3.3/iteration-1/`); `main/taskRetry.ts` (`liveSessionOf`, `createKeyedQueue`), `main/pty.ts` (ER-1), `main/projectDiscovery.ts` (bounded head, `summaryFile`), `main/adapterSkills.ts` (regular files, timeouts, `unreadable`, `CLAUDE_CONFIG_DIR`), `main/analytics.ts` (`sentBefore`), `start/AgentPaths.tsx` (kept attempts, another coding agent, blocked reasons), `start/StartPaths.tsx`, `start/startParts.tsx`, `Tasks.tsx` (setup gated by surface), `UsageCountsNotice.tsx`, `FallbackOrderSetting.tsx`, CSS, en/ru; ADR-0129, ADR-0121 and ADR-0123 amendments, CO-218 resolved, CO-227…CO-231; plan lanes; CHANGELOG, README, CONTEXT, AGENTS lifecycle row, runbook; `test/audit_regressions/fix-pf-07.01.py`; `.gitignore`. Completes the four-actions entry below, which did not list `taskRetry.ts`, the PF-07.01 regression or the preload/`shared/types.ts` IPC additions (DO-15).
-- summary: iteration 1 closed; the next candidate goes to iteration 2.
-
-### 2026-10-08 · `release-0.3.3-candidate` · agent/release-033-candidate → main
-- run: r-9a7a12bb5; base: origin/main 710c0d38; integration: fast-forward after `bash scripts/ci.sh fast`
-- scope: `CHANGELOG.md` §0.3.3 (unreleased), plan row P-14 and P-12 moved after 0.3.3 (decision D4), the 0.3.3 ledger `docs/evidence/plans/2026-10-08-release-033-verification.md`, the release runbook's ledger list
-- summary: the onboarding release goes into its three verification iterations; no version bump until iteration 3 closes.
-
-### 2026-10-08 · `onboarding-four-actions` · agent/onboarding-four-actions-20261008 → main
-- run: r-9a7a12bb5; integration: fast-forward after `bash scripts/ci.sh fast`
-- scope: `start/AgentPaths.tsx` (new: Create an agent, Adapt an existing agent), `start/startParts.tsx` (new: shared start pieces), `start/StartPaths.tsx` (the menu in two pairs; the role agent left the menu), `start/start.css`, `main/adapterSkills.ts` + IPC `start.adapterSkills`, `shared/builderChoice.ts`, the seeded estate name shown as «My workspace»; tests; SCN-126/127/128/130/131/136, FLW-73/74, SCR-70/74/75, the prototype's start views, strings, brief `docs/evidence/plans/2026-10-08-onboarding-four-actions.md`
-- summary: Fabric's onboarding is four actions — create an agent, adapt one, open a project, create one — and the agent work runs in the chosen coding agent's own console with the Fabric Agent Adapter skills.
-
-### 2026-10-08 · `analytics-disclosure` · agent/analytics-disclosure-20261008 → main
-- run: this session; base: origin/main; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
-- scope: `apps/desktop/src/main/analytics.ts` + `index.ts` (analytics IPC), `UsageCountsNotice.tsx` (new) + `UsageCountsSetting.tsx` + `App.tsx`, shared `AnalyticsStatus`, EN/RU strings, tests, ADR-0127, ANALYTICS.md, SCN-134, CO-215, P-09, the A7-012 handoff, living map
-- summary: A7-012 resolved on the operator's decision — usage counts stay on by default, but nothing is queued or sent until the person has answered the switch once.
-
-### 2026-10-08 · `contract-repin-623bf61` · agent/contract-repin-623bf61 → main
-- run: this session; base: origin/main; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
-- scope: `apps/desktop/test/fixtures/fabric-agent-contract` (SOURCE.json, current/catalogue.json), `contract-consumer-fixtures.mjs` CURRENT_COMMIT, CO-223 and CO-224 rows, living map
-- summary: Fabric's contract pin moves to 623bf613 (DEC-0030, DEC-0031); the operator's decision to keep hosted NOT_RUN is recorded on CO-224.
-
-### 2026-10-08 · `setup-with-agent` · agent/onboarding-scan-20261008 → main
-- run: r-9a7a12bb5; base: origin/main e13ce7ca, after `onboarding-scan-summary`; integration: fast-forward after `bash scripts/ci.sh fast`
-- scope: the `setup` preset in `renderer/src/Tasks.tsx`, `onSetUp` in `start/StartPaths.tsx` and `App.tsx`, `tasks.presetSetup*` and `start.scan.setUpFirst` in both registries; tests in `Tasks.test.tsx` (every tool the instruction names is a surface tool) and `StartPaths.test.tsx`; SCN-032/128 amendments; plan R3a
-- summary: a project can be set up by its agent from its own console, with tools the session already holds; nothing runs until Run.
-
-### 2026-10-08 · `onboarding-scan-summary` · agent/onboarding-scan-20261008 → main
-- run: r-9a7a12bb5; base: origin/main e13ce7ca; integration: fast-forward after `bash scripts/ci.sh fast`
-- scope: `main/projectDiscovery.ts` (`summaryFrom`, region `repo-summary`), `shared/startPaths.ts` (`summary`), `start/StartPaths.tsx` + `start.css` (the summary under each candidate and in the facts list; it becomes the purpose), `start.facts.summary` in both registries; tests in `test/project-discovery.test.mjs` and `StartPaths.test.tsx`; SCN-127/128 amendments, CO-226, the plan's R1/R2/R3 rows
-- summary: a scanned project arrives saying what it is for; the operator's Fabric was wiped for a fresh onboarding (dump and archive kept, recorded in the plan).
-
-### 2026-10-08 · `launch-chrome-ru` · agent/ui-ux-ru-20261008 → main
-- run: r-9a7a12bb5; base: origin/main 1190e261; integration: fast-forward after `bash scripts/ci.sh fast`
-- scope: `launch/LaunchShell.tsx` (Profile, Discuss), `launch/FabricStrip.tsx` (new) on board, pulse, releases, plan, project, agent; `StackExposureNotice.tsx` (compact, copyable commands); `HarnessSection.tsx`, `shared/startupFailure.ts`, `main/menuTemplate.ts`, `main/menu.ts`, `main/index.ts` (pickers, dialog, menu reinstall) and 122 new registry keys, one retired (`diagnostics.exposure.remedy`), key for key in `en.ts` and `ru.ts`; layout fixes in `styles.css`, `components.css`, `start/start.css`; `docs/ux/screens.md#launch-chrome`, audit `docs/ux/audits/2026-10-08-launch-chrome-ru.md`, CO-225, `docs/brand/strings.md`
-- summary: every launch screen carries the prototype's frame and speaks Russian in a Russian window, and nothing is wider than the window at 1280 or 1440 px; the agent-history graph and a task number stay out (CO-225).
-
-### 2026-10-08 · `hosted-ci-parser` · agent/contract-repin-20261008 → main
-- run: this session; base: origin/main; integration: same pull request as `contract-repin`, merged with `gh pr merge --rebase` after the local fast gate and a hosted fast run
-- scope: `scripts/test/build-unified-plan.test.mjs` (hosted NOT_RUN, local setup error), the unified-recompile handoff's checks, CO-224 resolved and the carry-over count in `docs/evidence/backlog.md`, living map
-- summary: hosted fast runs reach the end again; the 21 compiler tests that need the private workspace submodule report NOT_RUN there and still run locally.
-
-### 2026-10-08 · `contract-repin` · agent/contract-repin-20261008 → main
-- run: this session; base: origin/main; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
-- scope: `apps/desktop/test/fixtures/fabric-agent-contract` (SOURCE.json, current/catalogue.json), `contract-consumer-fixtures.mjs` CURRENT_COMMIT, CO-223 row, living map
-- summary: Fabric's contract pin moves to be71bc93, the contract main carrying DEC-0025, DEC-0026, DEC-0027 and DEC-0029.
-
-### 2026-10-08 · `release-0.3.2-close` · agent/release-032-close-20261008 → main
-- run: r-9a7a12bb5; base: origin/main a208c68b; integration: fast-forward after `bash scripts/ci.sh fast`
-- scope: `docs/handoffs/2026-10-08-release-032-handoff.md` (new), `docs/evidence/backlog.md` (P-09, P-11, the Now line, lane 2), CO-224 in the carry-over ledger, SRC-02 re-pinned (M131 byte-identical at line 749), mockup and plan projections, the design map entry `iteration-2026-10-08-release-032-published`; no code
-- summary: the 0.3.2 release is closed — published by run 37564162445 at `c3543227`, smoked, on the site (passioncode-ai.github.io #66, #67, Worker `ebfe7dcf`) and in the knowledge base (fabric-workspace #72); the operator database's migration to 79 without the runbook's backup is recorded in the handoff.
-
-### 2026-10-08 · `quit-bound-and-licence` · agent/quit-test-flake-20261008 → main
-- run: this session; base: origin/main 277add0c; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
-- scope: `apps/desktop/test/quit.test.mjs` (graceful-exit ceiling of 180 s — the time to become ready does not predict the time to exit under load; planted `dialog-orphan` still fails), `COMMERCIAL-LICENSE.md` and `README.md` (passioncode.ai/business, replacing conflicting PR #13), provider matrix re-pin (Codex 0.161.0, the machine updated itself), living map
-- summary: the real-Electron SIGTERM tests stop failing on a loaded machine without losing the hang they exist to catch.
-
-### 2026-10-07 · `runner-route-host` · agent/runner-route-host-20261007 → main
-- run: r-0c44cb2e5; base: a655b068; integration: pull request #19 merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast` (green with `apps/desktop/test/quit.test.mjs` run apart: its real-Electron SIGTERM test fails 1 of 2 on this branch and on a655b068 alike under load averages 70–285)
-- scope: ADR-0125 (rewritten; supersedes PR #18's proposal), `shared/runnerRoute.ts`, `main/runnerFallback.ts`, `main/pty.ts` (failure types, `attachable`, `route`, applied mode), `main/index.ts`, Settings → Fallback order, the agents and task pickers, `kimi-code` row, SCN-135, SCN-126 amendment, CO-223 row, ADR index (pipeline reservation → 0126), provider matrix re-pin 2.1.293, projections and map
-- summary: a launch may follow the operator's fallback order — "no Claude Code session, Hermes answers" — at both launch entries, with every passed-over agent explained; contract side is fabric-agent-contract DEC-0029.
-
-### 2026-10-04 · `claude-hub-recovery` · codex/claude-recovery-20261004 → main (pending)
-- run: r-r6a4c865e0; base:41f994a7; integration pending exact candidate gates/review, not a landed main change
-- scope: recovered core and surface source packets, ingress/vault/release guards, upgrade procedure, iteration2 archive/status, COM execution source and Telegram research, living map
-- summary: task-owned isolated source converges interrupted Claude work; original dirty worktrees preserved. Full gate, owning-source corrections and independentI3 remain open. Human approvals still gate signed release; no installed/live migration or COM deployment claimed.
-
-### 2026-10-03 · `release-approval-amended` · docs/release-approval-amended → main
-- run: r-cc7db4880; base: 45572b65; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
-- scope: ADR-0113 (amends ADR-0111's approval rule), `docs/launch/release-mac.md` step 4, `.github/workflows/release.yml` comment, P-03 in `docs/evidence/backlog.md`, ADR index, DOCMAP, a note in the 2026-10-03 handoff, the pipeline reservation moves 0112 -> 0114, the mockup receipt for the backlog re-pinned (M131 byte-identical), living map
-- summary: any member of `release-approvers` may approve a Fabric release, the tag's pusher included; an agent never approves.
-
-### 2026-10-03 · `release-in-ci` · feat/release-in-ci → main
-- run: r-baa5dc8b4; base: 15335a0a; integration: pull request merged with `gh pr merge --rebase` after `bash scripts/ci.sh fast`
-- scope: `.github/workflows/release.yml` (preflight, macos in the `release` environment, the shared publish), `scripts/release-mac.mjs` with `scripts/lib/release-mac.mjs` and its test, `electron-builder.release.yml` without an identity, ADR-0111, `docs/launch/release-mac.md`, `CHANGELOG.md`, README, DOCMAP, living map
-- summary: a Fabric release is a `vX.Y.Z` tag on main, approved by release-approvers, signed and notarized in CI, attested, summed and published in this repository; a local build is a debug build.
-
-### 2026-10-03 · `onboarding-and-plan` · claude/onboarding-and-plan → main
-- run: r-516254241; integration: fast-forward after `bash scripts/ci.sh fast` on the branch head (main merged into the branch first: ADR-0105 and the workspace pin)
-- scope: first run and the start paths (ADR-0100), the general development plan (ADR-0101), the write boundary (ADR-0103, migrations 70–75), three verification iterations (P-02), the product lifecycle contract (ADR-0106, CO-191 closed), the agent learning loop and Fix in Fabric designed (ADR-0109), the Fabric app icon, living map
-- summary: Fabric quits on SIGTERM; a scheduled sync can no longer wedge; the next release is P-03 (0.3.0) from this main.
-
-### 2026-10-01 · `organization-quality` · codex/org-quality-2026-10-01 → main
-- run: r-01a0f7454075
-- integration: planned fast-forward after the local fast gate; final commit in task handoff
-- scope: ADR-0098, common backlog source declaration, exporter allow-list, deterministic control-transport fixture and living map
-- summary: source-owned local tasks compose the workspace backlog; root backlog documents now reach the snapshot. No Fabric runtime screen changes.
-
-### 2026-10-03 · `claude-repin-2.1.288` · claude/repin-claude-2.1.288 → main
-- base: 0ca25630; integration: fast-forward after `bash scripts/ci.sh fast`
-- scope: provider capability matrix (Claude Code 2.1.288), `scripts/repin-provider-builds.mjs` with `scripts/lib/repin-provider-builds.mjs` and its test, the gate's message, living map
-- summary: a re-pin of version-only rows is a command now, refused when any current row holds a verdict; landed apart from the onboarding run so the workspace sync can publish (it had stopped on 2.1.287).
-
-### 2026-10-02 · `claude-repin-cla` · claude/cla-no-checkbox → main
-- base: 4dd6f91c; integration: fast-forward after `bash scripts/ci.sh fast`
-- scope: provider capability matrix (Claude Code 2.1.287), CLA.md without the checkbox sentence, living map and source stamp
-- summary: the workspace publication gate refused the 2.1.286 pin after Claude Code updated itself; the pin follows `claude --version`, every current capability row stays unverified. CLA.md matches the knowledge-base template changed the same day: opening a pull request is the agreement, nothing to tick.
-
-### 2026-10-01 · `release-chain-recovery` · codex/provider-cli-0.159.3 → main
-- run: r-01a0f7454075
-- base: f7602c93; integration: fast-forward after `bash scripts/ci.sh fast`
-- scope: provider capability matrix, release-chain handoff, living map and source stamp
-- summary: observed Codex CLI 0.159.3 replaces the 0.157.1 version pin; all current capability rows remain unverified and historical observations stay intact. Unblocks the workspace publication gate without changing its rule or claiming new provider capabilities.
-
-### 2026-10-01T10:14:02Z · `sibling-repin-20261001` · agent/sibling-repin → main · `960f858`
-- run: r-0331edc1c
-- files: 96 (96 files changed, 1011 insertions(+), 167 deletions(-))
+### 2026-10-11T18:53:54Z · `—` · agent/comms-all-agents-board-screen → main · `5223723f`
+- run: r-64b69ed3a
+- files: 149 (149 files changed, 2390 insertions(+), 319 deletions(-))
 - conflicts: none
-- summary: sibling commit links: 109 living links repinned to public fabric-agent-contract b7d7e4c after re-reading; 71 in dated records/ADRs on a closed list; check-sibling-commits gate in ci.sh fast
-
-### 2026-10-01T09:34:07Z · `final-check-20261001` · agent/final-check → main · `8709ef8`
-- run: r-2f6a4491e
-- files: 14 (14 files changed, 96 insertions(+), 39 deletions(-))
-- conflicts: none
-- summary: final check: Fabric is public, README/facts/guides/manifests/AGENTS match ADR-0090/0092/0093; gitleaks allowlist; registry test race
-
-### 2026-10-01T01:47:28Z · `ci-nightly-20261001` · agent/ci-nightly → main · `b4d06ad7`
-- run: r-5bf1fe8a5
-- files: 2 (2 files changed, 30 insertions(+), 3 deletions(-))
-- conflicts: none
-- summary: full CI job in the 23:00 Europe/Warsaw nightly batch and on dispatch; fast job stays per push
-
-### 2026-10-01T01:27:34Z · `sync-leftovers-20261001` · agent/sync-leftovers → main · `43f31208`
-- run: r-5bf1fe8a5
-- files: 7 (7 files changed, 42 insertions(+), 6 deletions(-))
-- conflicts: none
-- summary: sync drops its own unfinished publication; registry test waits for the late capture; R-010 widened
-
-### 2026-10-01T01:15:06Z · `ceo-test-deadline-20261001` · agent/ceo-test-deadline → main · `c7cbe791`
-- run: r-5bf1fe8a5
-- files: 2 (2 files changed, 10 insertions(+), 4 deletions(-))
-- conflicts: none
-- summary: test fixture: product default deadline
-
-### 2026-10-01T00:55:12Z · `repin-public-history-20261001` · agent/repin-public-history → main · `42b6c0c`
-- run: r-94bd37fb1
-- files: 111 (111 files changed, 9337 insertions(+), 3081 deletions(-))
-- conflicts: none
-- summary: receipts repinned or marked stale across the public re-creation of the history; ci.sh fast green on a fresh clone and on Linux
-
-### 2026-09-30T22:29:05Z · `open-source-20261001` · agent/public-followup → main · `5dfcc580`
-- run: r-5bf1fe8a5
-- files: 5 (5 files changed, 38 insertions(+), 6 deletions(-))
-- conflicts: none
-- summary: SECURITY.md; the publisher survives the re-created history
-
-### 2026-09-30T22:03:45Z · `gitleaks-fixtures-20261001` · agent/gitleaks-fixtures → main · `ddff48b4`
-- run: r-5bf1fe8a5
-- files: 2 (2 files changed, 8 insertions(+), 1 deletion(-))
-- conflicts: none
-- summary: gitleaks: the redactor's synthetic keys are named fixtures
-
-### 2026-09-30T21:35:25Z · `public-release-redaction-20260930` · agent/public-redaction → main · `114b1cd9`
-- run: r-b8be41385
-- files: 272 (272 files changed, 1631 insertions(+), 1707 deletions(-))
-- conflicts: none
-- summary: the operator's private data leaves the current tree before the public release (ADR-0096): home paths, addresses, ids, other projects and personal agents, verbatim statements
-
-### 2026-09-30T20:23:54Z · `sync-reset-20260930` · agent/sync-reset → main · `2900e43`
-- run: r-5bf1fe8a5
-- files: 3 (3 files changed, 10 insertions(+), 6 deletions(-))
-- conflicts: none
-- summary: workspace sync starts both checkouts from origin/main (survives a lost push race)
-
-### 2026-09-30T19:30:32Z · `cla-agpl-20260930` · agent/cla-agpl → main · `2ede389`
-- run: r-5bf1fe8a5
-- files: 2 (2 files changed, 3 insertions(+), 2 deletions(-))
-- conflicts: none
-- summary: CLA names the AGPL-3.0 (template 76feac8)
-
-### 2026-09-30T19:23:50Z · `knowledge-base-20260930` · agent/knowledge-base → main · `b4a7204`
-- run: r-5bf1fe8a5
-- files: 25 (25 files changed, 1076 insertions(+), 29 deletions(-))
-- conflicts: none
-- summary: ADR-0092 AGPL-or-commercial, ADR-0093 knowledge base, ADR-0094 MCP-first; Fabric on the repository standard; workspace sync job
-
-### 2026-09-30T18:12:35Z · `agent-registry-wave2-20260930` · agent/wave2-record → main · `798f21b`
-- run: r-5bf1fe8a5
-- files: 3 (3 files changed, 37 insertions(+), 1 deletion(-))
-- conflicts: none
-- summary: Wave 2 record: AR-1, AR-2.2/2.5/2.6 (other halves), AR-11.1 Observatory done in their repositories; retro R-010
-
-### 2026-09-30T08:13:48Z · `agent-registry-closeout-20260930` · agent/closeout-ar0 → main · `d933eb1`
-- run: r-5bf1fe8a5
-- files: 6 (6 files changed, 25 insertions(+), 5 deletions(-))
-- conflicts: none
-- summary: AR-0 close-out: heroku remote preflight in the publisher, AR-0.5 green receipt, retro R-009
-
-### 2026-09-29T21:12:51Z · `repin-claude-20260929` · agent/repin-claude-2.1.285 → main · `baee62d`
-- run: r-5bf1fe8a5
-- files: 3 (3 files changed, 8 insertions(+), 6 deletions(-))
-- conflicts: none
-- summary: Capability matrix pinned to the installed Claude Code 2.1.285 (version-only; rows stay unverified); CO-AR-07 resolved; ci.sh fast green
-
-### 2026-09-29T21:06:35Z · `agent-registry-20260929` · agent/agent-registry-brief → main · `35b7863`
-- run: r-5bf1fe8a5
-- files: 148 (148 files changed, 4515 insertions(+), 332 deletions(-))
-- conflicts: none
-- summary: Agent registry design package (brief, design, contracts, plan, UX SCN-098..125 / SCR-66..69); AR-0 truth layer: ADR-0090 names + narrative gate, code-region gate, Workspace as the wiki of every tool (13 sources, lag); pipeline reservation 0089 -> 0091
-
-### 2026-09-29T14:09:22Z · `ADR-0088` · docs/fabric-surfaces-relay → main · `9fb89fa`
-- run: r-07f5861d6
-- files: 6 (6 files changed, 130 insertions(+), 3 deletions(-))
-- conflicts: none
-- summary: ADR-0088: Fabric reaches the operator on the Mac, the Quest and the phone through one relay and the northbound MCP; CONTEXT terms, platform protocol row, map iteration 2026-09-29-remote-surfaces; pipeline reservation 0087 -> 0089
+- summary: Codex and Kimi Code connect to the surface (probe-backed adapters: codex-config-home with a random per-session server name and token variable, Kimi over ACP with HTTP MCP; probes in docs/reports/2026-10-11-codex-kimi-surface-probes). The Comms screen (SCR-81, SCN-143, FLW-83) lets the operator read the project board — read-only, cursor polling, unavailable is never an empty list; the read path is migration 83 (suffix 94: board_threads_operator/board_list_operator, ADR-0117 D3). Merged over wave 0.4.0; ci.sh fast green. Residue: CO-247.
 
 ## Compacted
 
+- 2026-10-11 · `release-040-wave1` · agent/release-040-wave1 → main · `?` · a coding agent in any console reaches Fabric through fabric-mcp and enrolls into a project on one consent — proven with a real MCP client; the hub path that never ran live (CO-254) is fixed; CO-091 and the data-integrity rows closed. Fix round (runs r-22786ba16, r-249d0762eddd; leases release-040-wave1-hook, release-040-wave1-b4): enrollment revocation, folder fact and bounded loop (ADR-0134 amendment 2); enrollment words; the fused packaged build and the release's fabric-mcp check; the first-run agent choice (REQ-40); the 0.4.0 UX additions (SCN-137…SCN-142, FLW-77…FLW-82, SCR-77…SCR-80); ADR-0144 delegation with its audit and plan; main's fabric#28 (ADR-0145) merged in; CO-256…CO-259 carried.
+- 2026-10-11 · `release-guard` · agent/release-guard → main (fabric#28) · `?` · release approval by checks across PassionCode products (operator 2026-10-11): the release runs only from a tag on main with `ci.yml` green on its commit; the environment's reviewers go once this lands.
+- 2026-10-11 · `release-040-plan` · agent/release-040-plan → main · `?` · Fabric 0.4.0 (agents first) planned in wave mode over the whole board; no code changed. Wave 0 in the same landing: ADR-0133…ADR-0140, amendments to ADR-0100/0115/0119/0121/0123/0129, the pipeline reservation at ADR-0141, the vision §1/§3/§7 and six glossary terms, register hygiene (21 closed or narrowed, CO-248…CO-253, the CO-215/216 expansion), release runbook steps 10–11 (CO-196, CO-197 recorded).
+- 2026-10-11 · `aptabase-build-mode` · fix/aptabase-build-mode → main (fabric#26) · `?` · Aptabase's `isDebug` follows growth's `environment` (sshlg-analytics client contract, "Build modes"); a pre-release or a development run lands in Debug, not Release.
+- 2026-10-10 · `release-034-close` · agent/release-034-close → main · `?` · v0.3.4 published and closed; the operator's database repaired by the installed app; passioncode.ai serves the universal DMG (site PR #86).
+- 2026-10-10 · `fix-fresh-install-034` · agent/fix-fresh-install-034 → main · `?` · every fresh install since 0.2.0 stopped at "identity could not be established" (CO-241, measured on a disposable stack); the seed now names the app's own person, and a database only the old seed touched is granted to it at start. No schema change (79). The operator's calls 2026-10-10: this is 0.3.4, with universal macOS (fabric#27, landed first); the Windows/Linux port is 0.3.5. Released as 0.3.4: three iterations (candidates `41c2b62c`, `a0ab055c`, `06c5234c`; verified `2e040731`), the release commit carries the gate and fifteen receipts.
+- 2026-10-10 · `universal-mac` · agent/platform-matrix-20261009 → main (fabric#27) · `?` · Fabric ships for Apple silicon and Intel Macs as one DMG; first released in 0.3.4 (the operator's call 2026-10-10).
+- 2026-10-10 · `wiki-do` · agent/wiki-do-20261008 → main · `?` · the workspace publish step deploys through GitHub to DigitalOcean App Platform and verifies the ACTIVE deployment; it works without the Heroku CLI installed. Carries the provider-matrix re-pin to Claude Code 2.1.296 and Codex CLI 0.162.1 (`scripts/repin-provider-builds.mjs`), which the gate required on this machine.
+- 2026-10-09 · `release-0.3.3` · agent/release-033-candidate → main · `?` · Fabric 0.3.3, the onboarding release, cleared by three iterations; the tag and the protected approvals follow.
+- 2026-10-09 · `release-0.3.3-iteration-2` · agent/release-033-candidate → main · `?` · iteration 2 closed; the next candidate goes to iteration 3.
+- 2026-10-09 · `release-0.3.3-iteration-1` · agent/release-033-candidate → main · `?` · iteration 1 closed; the next candidate goes to iteration 2.
+- 2026-10-08 · `release-0.3.3-candidate` · agent/release-033-candidate → main · `?` · the onboarding release goes into its three verification iterations; no version bump until iteration 3 closes.
+- 2026-10-08 · `onboarding-four-actions` · agent/onboarding-four-actions-20261008 → main · `?` · Fabric's onboarding is four actions — create an agent, adapt one, open a project, create one — and the agent work runs in the chosen coding agent's own console with the Fabric Agent Adapter skills.
+- 2026-10-08 · `analytics-disclosure` · agent/analytics-disclosure-20261008 → main · `?` · A7-012 resolved on the operator's decision — usage counts stay on by default, but nothing is queued or sent until the person has answered the switch once.
+- 2026-10-08 · `contract-repin-623bf61` · agent/contract-repin-623bf61 → main · `?` · Fabric's contract pin moves to 623bf613 (DEC-0030, DEC-0031); the operator's decision to keep hosted NOT_RUN is recorded on CO-224.
+- 2026-10-08 · `setup-with-agent` · agent/onboarding-scan-20261008 → main · `?` · a project can be set up by its agent from its own console, with tools the session already holds; nothing runs until Run.
+- 2026-10-08 · `onboarding-scan-summary` · agent/onboarding-scan-20261008 → main · `?` · a scanned project arrives saying what it is for; the operator's Fabric was wiped for a fresh onboarding (dump and archive kept, recorded in the plan).
+- 2026-10-08 · `launch-chrome-ru` · agent/ui-ux-ru-20261008 → main · `?` · every launch screen carries the prototype's frame and speaks Russian in a Russian window, and nothing is wider than the window at 1280 or 1440 px; the agent-history graph and a task number stay out (CO-225).
+- 2026-10-08 · `hosted-ci-parser` · agent/contract-repin-20261008 → main · `?` · hosted fast runs reach the end again; the 21 compiler tests that need the private workspace submodule report NOT_RUN there and still run locally.
+- 2026-10-08 · `contract-repin` · agent/contract-repin-20261008 → main · `?` · Fabric's contract pin moves to be71bc93, the contract main carrying DEC-0025, DEC-0026, DEC-0027 and DEC-0029.
+- 2026-10-08 · `release-0.3.2-close` · agent/release-032-close-20261008 → main · `?` · the 0.3.2 release is closed — published by run 37564162445 at `c3543227`, smoked, on the site (passioncode-ai.github.io #66, #67, Worker `ebfe7dcf`) and in the knowledge base (fabric-workspace #72); the operator database's migration to 79 without the runbook's backup is recorded in the handoff.
+- 2026-10-08 · `quit-bound-and-licence` · agent/quit-test-flake-20261008 → main · `?` · the real-Electron SIGTERM tests stop failing on a loaded machine without losing the hang they exist to catch.
+- 2026-10-07 · `runner-route-host` · agent/runner-route-host-20261007 → main · `?` · a launch may follow the operator's fallback order — "no Claude Code session, Hermes answers" — at both launch entries, with every passed-over agent explained; contract side is fabric-agent-contract DEC-0029.
+- 2026-10-04 · `claude-hub-recovery` · codex/claude-recovery-20261004 → main (pending) · `?` · task-owned isolated source converges interrupted Claude work; original dirty worktrees preserved. Full gate, owning-source corrections and independentI3 remain open. Human approvals still gate signed release; no installed/live migration or COM deployment claimed.
+- 2026-10-03 · `release-approval-amended` · docs/release-approval-amended → main · `?` · any member of `release-approvers` may approve a Fabric release, the tag's pusher included; an agent never approves.
+- 2026-10-03 · `release-in-ci` · feat/release-in-ci → main · `?` · a Fabric release is a `vX.Y.Z` tag on main, approved by release-approvers, signed and notarized in CI, attested, summed and published in this repository; a local build is a debug build.
+- 2026-10-03 · `onboarding-and-plan` · claude/onboarding-and-plan → main · `?` · Fabric quits on SIGTERM; a scheduled sync can no longer wedge; the next release is P-03 (0.3.0) from this main.
+- 2026-10-01 · `organization-quality` · codex/org-quality-2026-10-01 → main · `?` · source-owned local tasks compose the workspace backlog; root backlog documents now reach the snapshot. No Fabric runtime screen changes.
+- 2026-10-03 · `claude-repin-2.1.288` · claude/repin-claude-2.1.288 → main · `?` · a re-pin of version-only rows is a command now, refused when any current row holds a verdict; landed apart from the onboarding run so the workspace sync can publish (it had stopped on 2.1.287).
+- 2026-10-02 · `claude-repin-cla` · claude/cla-no-checkbox → main · `?` · the workspace publication gate refused the 2.1.286 pin after Claude Code updated itself; the pin follows `claude --version`, every current capability row stays unverified. CLA.md matches the knowledge-base template changed the same day: opening a pull request is the agreement, nothing to tick.
+- 2026-10-01 · `release-chain-recovery` · codex/provider-cli-0.159.3 → main · `?` · observed Codex CLI 0.159.3 replaces the 0.157.1 version pin; all current capability rows remain unverified and historical observations stay intact. Unblocks the workspace publication gate without changing its rule or claiming new provider capabilities.
+- 2026-10-01 · `sibling-repin-20261001` · agent/sibling-repin → main · `960f858` · sibling commit links: 109 living links repinned to public fabric-agent-contract b7d7e4c after re-reading; 71 in dated records/ADRs on a closed list; check-sibling-commits gate in ci.sh fast
+- 2026-10-01 · `final-check-20261001` · agent/final-check → main · `8709ef8` · final check: Fabric is public, README/facts/guides/manifests/AGENTS match ADR-0090/0092/0093; gitleaks allowlist; registry test race
+- 2026-10-01 · `ci-nightly-20261001` · agent/ci-nightly → main · `b4d06ad7` · full CI job in the 23:00 Europe/Warsaw nightly batch and on dispatch; fast job stays per push
+- 2026-10-01 · `sync-leftovers-20261001` · agent/sync-leftovers → main · `43f31208` · sync drops its own unfinished publication; registry test waits for the late capture; R-010 widened
+- 2026-10-01 · `ceo-test-deadline-20261001` · agent/ceo-test-deadline → main · `c7cbe791` · test fixture: product default deadline
+- 2026-10-01 · `repin-public-history-20261001` · agent/repin-public-history → main · `42b6c0c` · receipts repinned or marked stale across the public re-creation of the history; ci.sh fast green on a fresh clone and on Linux
+- 2026-09-30 · `open-source-20261001` · agent/public-followup → main · `5dfcc580` · SECURITY.md; the publisher survives the re-created history
+- 2026-09-30 · `gitleaks-fixtures-20261001` · agent/gitleaks-fixtures → main · `ddff48b4` · gitleaks: the redactor's synthetic keys are named fixtures
+- 2026-09-30 · `public-release-redaction-20260930` · agent/public-redaction → main · `114b1cd9` · the operator's private data leaves the current tree before the public release (ADR-0096): home paths, addresses, ids, other projects and personal agents, verbatim statements
+- 2026-09-30 · `sync-reset-20260930` · agent/sync-reset → main · `2900e43` · workspace sync starts both checkouts from origin/main (survives a lost push race)
+- 2026-09-30 · `cla-agpl-20260930` · agent/cla-agpl → main · `2ede389` · CLA names the AGPL-3.0 (template 76feac8)
+- 2026-09-30 · `knowledge-base-20260930` · agent/knowledge-base → main · `b4a7204` · ADR-0092 AGPL-or-commercial, ADR-0093 knowledge base, ADR-0094 MCP-first; Fabric on the repository standard; workspace sync job
+- 2026-09-30 · `agent-registry-wave2-20260930` · agent/wave2-record → main · `798f21b` · Wave 2 record: AR-1, AR-2.2/2.5/2.6 (other halves), AR-11.1 Observatory done in their repositories; retro R-010
+- 2026-09-30 · `agent-registry-closeout-20260930` · agent/closeout-ar0 → main · `d933eb1` · AR-0 close-out: heroku remote preflight in the publisher, AR-0.5 green receipt, retro R-009
+- 2026-09-29 · `repin-claude-20260929` · agent/repin-claude-2.1.285 → main · `baee62d` · Capability matrix pinned to the installed Claude Code 2.1.285 (version-only; rows stay unverified); CO-AR-07 resolved; ci.sh fast green
+- 2026-09-29 · `agent-registry-20260929` · agent/agent-registry-brief → main · `35b7863` · Agent registry design package (brief, design, contracts, plan, UX SCN-098..125 / SCR-66..69); AR-0 truth layer: ADR-0090 names + narrative gate, code-region gate, Workspace as the wiki of every tool (13 sources, lag); pipeline reservation 0089 -> 0091
+- 2026-09-29 · `ADR-0088` · docs/fabric-surfaces-relay → main · `9fb89fa` · ADR-0088: Fabric reaches the operator on the Mac, the Quest and the phone through one relay and the northbound MCP; CONTEXT terms, platform protocol row, map iteration 2026-09-29-remote-surfaces; pipeline reservation 0087 -> 0089
 - 2026-09-27 · `HARNESS-CAPTURE-RECOVERY` · ? → ? · `?` ·
 - 2026-09-27 · `HARNESS-CONTEXT-EVIDENCE` · ? → ? · `?` ·
 - 2026-09-27 · `HARNESS-CANONICAL-INGRESS` · ? → ? · `?` ·
@@ -391,143 +188,23 @@ Written by `agent_sync.py merge`. Entries newer than 7 days keep their detail; o
 - 2026-08-25 · `CO-049-plane` · plane-notion → main · `f17b4b7` · fabric's plane is notion
 - 2026-08-25 · `CO-049-close` · co-049-close → main · `c580226` · CO-049 closed: the Notion backend shipped
 - 2026-08-25 · `agent-sync-init` · agent-sync-init → main · `178a9ef` · agent-sync initialised; PostHog recorded as a candidate signal source
-
-2026-10-01 · organization-quality source review: AR-1.5/AR-2.5 and the AR-1
-module summary retain partial status where cited acceptance covers only another
-consumer. Documentation-only follow-up, normal fast-forward after local fast gate;
-map anchor `iteration-2026-10-01-backlog-review`.
-
-### 2026-10-04 · unified-plan-20261004 · agent/unified-plan-20261004
-
-Source integration entry for the dated twelve-lane research, source-pinned dispatch/context checks and independently reviewed negative controls. Landing uses a PR and normal fast-forward after the local fast gate and complete publication pin, preserving the immutable source ancestry. The original research checkpoint branch is retained; the integration branch was rebased before publication, without rewriting the checkpoint remote. Actual integration and publication are verified through Git/PR and the canonical workspace receipt. P-08 product fixes remain in their existing worktrees. Source gate and handoff receipts live in docs/reports/2026-10-04-unified-execution/checks/.
-
-### 2026-10-04 · cleanup-start-20261004 · agent/cleanup-start-20261004
-
-Source iteration prepared in an isolated worktree: measured inactive-cache and merged-worktree cleanup, all twelve lanes source reconciliation, complete manifest coverage guard, current-cut selector and bounded Start correction. Native/provider/release acceptance and active peer work remain separate. Integration uses the existing PR/normal fast-forward policy after reviewed local fast gates; branch availability is not a merge. The map entry and handoff live in docs/reports/2026-10-04-cleanup-start/. Canonical shared rows are not edited while another owner holds their leases. The gate also found that both provider stop controllers answered a repeated, already attempted stop with a fresh `refused/deadline`; stored outcomes now answer before the admission deadline (receipt raw/stop-cache-deadline-fix.json). A third cleanup pass removed stale test temporary data, orphaned fixture processes, 24 idle or merged worktrees and ten merged remote branches.
-
-### 2026-10-04 · p08-convergence · codex/hub-i3-fixes-20261004 + main → agent/p08-converge-20261004
-
-The 0.3.1 verification candidate left by the stopped coordinator (iteration-3 author corrections on top of PR #11's recovery) is merged with main after the Start/cleanup landing. The two parallel unified-plan compilers are joined: source reconstruction (`expectedPlanFromSources`, `--emit-plan`) and owner packets from the candidate; strict argument parsing, symlink and private-literal refusals and the published-workspace parser rule from main. The Start review overlay no longer compares itself with raw compiler output. Generated previews, product report and mockup coverage were rebuilt by their generators; three mockup receipts were re-pinned by `repin-mockup-receipts.mjs` after their cited lines were confirmed unchanged. This is a candidate branch, not a release: `ci.sh full`, fresh independent iteration-3 reviews and the open iteration-2 plan/doc findings remain.
-
-### 2026-10-05 · p08-i3-fixes · agent/p08-i3-fixes-20261005 (from 130b5510)
-
-Iteration 3 of the 0.3.1 verification on the converged candidate `130b5510`: `ci.sh full` exited 0, and five fresh independent reviews found 47 findings, 6 blocking (errors E-1 quit hang on a FIFO at hub.json, E-2 admission slot leak on hang-up; docs D-1 false schema claim, D-2 backup with an older pg_dump; plan P-1 gate not bound to real iteration commits, P-2 incomplete release notes). All six are fixed with tests watched failing on the old code; 31 non-blocking findings are fixed and 10 are ruled into CO-198…CO-207. ADR-0115 amendments 32–36 and an ADR-0105 amendment align the record with the code. Iteration 3 exits only after exact-SHA rechecks of this branch.
-
-The same branch then disposes every iteration-2 row (V2-23…V2-56) against the converged candidate and its fixes, gives iterations 1 and 2 their exit lines, and adds structured review receipts for both under `docs/evidence/reviews/0.3.1/`, assembled from the committed reports and the ledger rows that dispose their findings (no new review).
-
-Round 2 (`agent/p08-i3-round2-20261005`): all five reviewers approved their rechecks at `19e5427a`, where `ci.sh fast` and `ci.sh full` exited 0. Their twelve new non-blocking findings are fixed: ru button names in the standing-denial copy, direct tests for the new strings, the outside quit reaper spawned synchronously, the full `agent.call` answer table and `mayHaveRun` rule, the release-notes process paragraph removed and more unreleased spellings refused, full candidate SHAs in the ledger, the runbook path rule and PostgreSQL 17 client in step 4, spaces in two registers, and the applied migrations 77/80 restored byte-identical.
-
-### 2026-10-05 · release-0.3.1 · agent/release-0.3.1 (on 469b4bc6)
-
-Release commit for Fabric 0.3.1 on the verified candidate `469b4bc6`: the final-recheck sections of the five iteration-3 reports, the fifteen review receipts, the ledger's iteration-3 exit, `docs/launch/release-gate.json` (version 0.3.1, verifiedCommit, reviewReceipts), the desktop package version 0.3.1 and the finalized `## 0.3.1` changelog. Only release metadata changes after the verified commit. Tagging and the human approval follow.
-
-### 2026-10-05 · post-release-0.3.1 · agent/post-release-031 (on 0b6dd1d0)
-
-After the 0.3.1 release commit: `verifiedCandidateProblem` exempts the scheduled workspace pin by its exact shape (`publicationPinProblem`, CO-208; documented in `docs/launch/release-mac.md` step 1) and the release-gate test no longer asserts the hub ledger's state on one day (CO-209); both tests watched failing on a planted defect. Carry-over CO-208/CO-209 closed, CO-179 moved to before 0.3.2, backlog P-08 row, lane 2, Now line and the carry-over count (170 of 209) updated. Landed by fast-forward after the release commit.
-
-### 2026-10-04 · prowl-prerequisites · agent/prowl-prereqs-20261004
-
-Docs-only: the agent registry plan gains proposed rows AR-3.7…AR-3.11 (contract conformance audit, descriptor-service callees through the hub after a new ADR, a capability-queryable registry, remote placements, workflow planning that names missing agents) from the Prowl Agent prerequisites and the operator's direction relayed on 2026-10-04. Their rank against P-08 stays with the operator. Written under the registry-plan lease.
-
-### 2026-10-05 · workspace-dotfiles · agent/workspace-dotfiles-20261005
-
-`node scripts/workspace.mjs publish` threw "Export refuses a path the workspace host cannot serve" on `docs/reports/2026-10-04-ad02-write-authority-review/raw/.gitignore`: 22 git bookkeeping files (`.gitkeep`, `.gitignore`) in dated report folders reached main with the P-08 landing, none of them in the last published source `26df61bc`. The exporter now leaves out exactly `.gitkeep`, `.gitignore` and `.gitattributes` (`gitBookkeeping`), every other dotfile still refuses; the fast tier now builds HEAD's snapshot in memory, watched failing on the old code. (Correction, same day: this entry first said `workspace-snapshot.test.mjs` was in no CI tier; it runs through `pnpm gates:docs`. The gap was that only fixtures were exported, never HEAD; the duplicate test line in `ci.sh` was removed.) `docs/architecture/report-workspace.md` states the rule.
-
-### 2026-10-05 · ci-tmp-and-commands · agent/ci-tmp-root-20261005
-
-`scripts/ci.sh` gives each run one temporary root (`/tmp/fabric-ci.XXXXXX`, exported as TMPDIR) and removes it on every exit path, after the disposable stack's teardown and never while a stack it holds is still up — the suites' mkdtemp fixtures had left 2 926 `fabric-*` folders (532 MB). New gate `scripts/check-pnpm-commands.mjs` (in `check-docs.sh`, tested by `scripts/test/check-pnpm-commands.test.mjs`, watched failing): every backticked `pnpm …` command in a living Markdown file names an existing script; promised scripts (`registry:verify`, `collect:cloudflare`) pass only while M4 is open. It found `test:contract-consumer` missing from `apps/desktop/package.json` (dropped by a conflict resolution, still named by the contract fixture's README) — restored. Branch triage: of 24 remote branches left by 2026-10-04 sessions, 23 were contained in main (checked with `git merge-tree`, plus `git cherry` and a line comparison for the conflicting ones) and deleted, their tips listed in `docs/handoffs/2026-10-05-release-031-handoff.md`; `codex/com01-contract-candidate-20261004` (WIP, broken links) is kept for the COM-01 owner.
-
-### 2026-10-05 · workspace-publish-race · agent/workspace-publish-race-20261005
-
-`workspace.mjs publish` fetched the workspace at its start and pushed after the gates. Twice on 2026-10-05 another session's `knowledge/` commit (`0f21ff8`, then `4dcf3ee`) made the push fail after a full run. Right before the push the publisher now fetches again. A remote that moved only outside `content/` gets the publication re-applied on top, `verifyCommittedSnapshot`, `npm test` and `verify:content` run again, and the push is retried up to three times. A remote change inside `content/` is refused as another publication. `workspace-release.test.mjs` reproduces both cases end to end with a second clone, and the test fails on the old publisher. `docs/architecture/report-workspace.md#publication-races` documents the behaviour.
-
-### 2026-10-05 · flake-and-com01 · agent/com01-accepted-20261005
-
-`native-view-lifecycle.test.mjs` hung 2 runs in 20 at load ~100 ("unsettled top-level await" in `ci.sh full` at `5a3f4715`). A late open's cleanup gets its own budget, the fixture's `timeoutMs`, and the groups that needed a timeout used 5 ms. A scheduler stall past that made the product correctly give up on the cleanup (`view_cleanup_unconfirmed`), while the test awaited it with no bound. Budgets are now 300 ms where a timeout must happen and 1000 ms elsewhere, and every awaited cleanup is bounded by `within(…)` and names itself. The test still catches a removed late-open compensation ("the scoped disposal of a late open did not happen within 10 s"), and 30 consecutive runs under load passed. CO-210 records the real-Electron dialog quit that outlived its 45 s bound at load 103. COM-01's contract half is accepted as DEC-0022 (fabric-agent-contract `d4c8831`). The plan, lane 13 and the Now line name its Fabric half and COM-02 next.
-
-### 2026-10-05 · com01-adr-0117 · agent/com01-fabric-half-20261005
-
-COM-01's Fabric half. ADR-0117 adopts `fabric-project-comms/0.1` (DEC-0022, fabric-agent-contract `d4c8831`):
 - the journal is the board's only truth, and mirrors are projections;
 - board enrollment is a grant separate from ADR-0115 product bindings;
 - leases and fences use database time, with the recheck inside the committing statement;
 - restore keeps history only;
 - names are reserved: `comms.*` events, `board_*` tables, a migration suffix above `…080`.
-
-The vendored contract fixture is repinned from `df55c8c` by the new `scripts/repin-agent-contract.mjs`, which copies exactly `expectedPaths` from the commit's Git objects. It adds the 8 comms schemas, the contract's `catalogue.json` and its 7 positive and 10 negative comms fixtures; `service-well-known.schema.json` gained 19 additive lines. The consumer test checks every graded comms verdict and fails when a planted schema lets a forged sender through. CONTEXT gains Board, Board request and Responder slot. COM-01 is closed; COM-02 is next.
-
-### 2026-10-05 · roadmap-and-bounded-psql · agent/com01-fabric-half-20261005
-
-**The organization roadmap.** It now lives in fabric-workspace `knowledge/roadmap.md` (PR #37). It covers RM-01…RM-13 from the operator's note of 2026-10-05 and the survey of all 15 repositories. Fabric's `AGENTS.md` lists it first in "Read first", and the general development plan says which lanes serve which tracks.
-
-**The bounded psql helper.** `ci.sh full` at `9ddc74f0` hung for ten minutes in `ceo-conversation-db.test.mjs`: a concurrent psql never saw EOF. That did not reproduce in five isolated runs, and CO-211 holds the open cause. All ten async psql helpers in the DB suites now use `apps/desktop/test/bounded-psql.mjs`, which kills psql at 120 s and names what was stuck. `bounded-psql.test.mjs` is in the desktop test chain; a planted helper without a deadline is caught. `bounded-run.test.mjs` reported two lock winners at load ~100 ("WON,LOST,WON,LOST"). Its racers exited after a fixed 400 ms, so a racer that started later found a dead winner and legitimately took the lock over. Racers now hold their result until all have answered (`raceAll`). A planted takeover without its claim is still caught. `with-timeout.test.mjs` checked a SIGKILLed grandchild at once, but at load ~100 its pid still answered `kill(0)` until it was delivered and reaped. The test now waits up to 5 s; a survivor still fails it. ADR-0117 was written past the unexecuted pipeline reservation 0116, so under that document's collision rule the reservation moves to ADR-0118 (`agent_sync.py reserve ADR --key pipeline-reservation-after-project-board-20261005`). `test/audit_regressions/fix-pf-06.03.py` is green again.
-
-### 2026-10-05 · com02-board-core · agent/com02-board-sql-20261005
-
-COM-02.1, the project board's durable core, under ADR-0117. `supabase/migrations/20261005000081_project_board.sql` is migration 79 by count; its suffix sorts above `…080` (CO-199). The schema contract now admits 79, and the private archive exports 79 and imports 66–79.
-
 - **Storage.** `board_submit` writes the primary rows (thread, message, body, idempotency receipt) beside `comms.message_submitted@1`, whose payload carries ids and the digest, never the body, so a body stays redactable. `board_requests` and `board_read_marks` are replay-safe projections, and `append_event` refuses `comms.*` from anything but the board's own commands.
 - **Reads and refusals.** `board_list` pages by journal seq for one reader. Refusals are returned in the contract's shape, and absent, foreign and not-a-participant targets read alike.
 - **Tests.** `apps/desktop/test/project-board-db.test.mjs` passes 12/12 on an owned cluster and fails without the migration. `hub-upgrade-db` stays the 0.3.1 rehearsal (count 78) and now also migrates 78→79 preserving every row.
 - **Records.** The pipeline migration reservation moves to 82/83. Amendment 1 to ADR-0117 makes the glossary term "Project board", because the app already calls its task board «Доска»; the feed sentences speak of messages between projects. CO-212: a restored estate keeps board events without messages. The runbook says `main` needs 79. README lists 17 owned-cluster runners.
-
-### 2026-10-05 · com02-participant-tools · agent/com02-board-tools-20261005
-
-COM-02.2. A session's surface registers `com.submit`, `com.list`, `com.get`, `com.read_ack` and `com.status` through `apps/desktop/src/main/boardTools.ts`, served by `apps/desktop/src/main/boardService.ts`.
-
 - **Contract behaviour:**
-  - identity is taken from the scope;
-  - the input schema is open, so a forged field is refused in the contract's form rather than stripped;
-  - the digest is the contract's canonical form;
-  - the cursor is an `opaqueId` holding the seq plus an HMAC bound to estate, reader, filter and run;
-  - a read failure answers `not_available`, never an empty page.
 - **Tests and gates.** `board-service.test.mjs` passes 8 tests, including Fabric's schema against the contract catalogue's comms-submit verdicts. `agent-surface.test.mjs` runs the flow end to end on the disposable stack. `check-surface-tools.mjs` now reads `boardTools.ts` and `com.*` names (27 tools). `operating-surfaces.md` §10.
 - **Fixes in COM-02.1's migration, before landing:**
-  - `board_bodies` references `board_messages` by `(message_id, estate_id)` (found by `check-references.mjs`);
-  - capability names follow the contract's `capabilityName`;
-  - `replyTo` is allowed on any kind and required of a reply, as the contract says.
-
-### 2026-10-05 · usage-analytics · agent/analytics-20261005
-
-passioncode-ai/fabric#12, P-09, roadmap RM-13. `apps/desktop/src/main/analytics.ts`:
 - the shared `PassionCode/installation.json` is created once by hard-link, never repaired, and keeps unknown fields;
 - the shared switch;
 - `app_installed`, `app_started` and `app_active` carry counts only, through `cleanProps` with a fixed list of known kinds;
 - delivery follows the Aptabase ingestion contract (batches of 25, retry 60 s then 10 min on transport/429/5xx, drop on 400/404, at most 200 waiting, dropped at 23 h), with an `analytics.flush` line per send.
-
-Wiring:
 - main counts projects, connected products and agents with access, and leaves an unreadable count out;
 - `analytics:status` and `analytics:set-enabled` IPC;
 - `UsageCountsSetting` on SCR-52, with en/ru strings;
 - the App Key comes only from `FABRIC_ANALYTICS_APP_KEY` at build time (`electron.vite.config.ts` `define`). `release.yml` passes the `release` environment secret, which was set from the vault (`sshlg-analytics/prod/APTABASE_APP_KEY_FABRIC`) without printing it.
-
-Tests: `test/analytics.test.mjs` (11, a synthetic server: no planted identifier leaves, a 6-process creation race, fail-closed file, opt-out, delivery rules, once-only events) and `UsageCountsSetting.test.tsx` (4).
-
-Docs: `docs/ANALYTICS.md`, the README section, the AGENTS.md lifecycle row and SCN-134 (scenarios → product model → product report). Ships with 0.3.2.
-
-### 2026-10-05 · board-storage-contract · agent/analytics-20261005
-
-`ci.sh full` at `dddf0128` failed `apps/desktop/src/shared/storageContract.test.ts`: the seven `board_*` tables were absent from the mirror's storage contract. Each is now excluded with its reason, since the mirror must not carry board messages to another estate (CO-212 decides board history). The whole vitest suite passes (148 files, 1697 tests). The same run's node chain failed `ceo-private-archive-codec.test.mjs`: it still called 79 an unqualified later source schema. 79 is now qualified, and 80 is the refused one. COM-02.1 and COM-02.2 alone keep these two red tests, and this commit closes them before landing. The 111 mockup previews are rebuilt by `scripts/build-mockup-previews.mjs`, because `product.html` changed with SCN-134. `hub-upgrade-db.test.mjs` pins the 0.3.1 rehearsal to migrations 76–78 (`files.slice(75, 78)`) now that a 79th file exists.
-
-### 2026-10-06 · release-0.3.2 · agent/release-032-work
-
-Fabric 0.3.2, the full-audit fix release, lands on `main`. The audit of the 0.3.2 candidate `e19e1b9e` found 278
-findings; every P0 and P1 is fixed or carried to a named row (A7-001 as CO-219, with a warning above every screen).
-Three independent verification iterations (`35b884c8`, `8d002f4d`, `e483fbdc`), five reviewers each, found 163
-findings, 11 blocking; each blocking finding was fixed with a test watched failing on the old behaviour and
-rechecked by its reviewer at the final candidate. `bash scripts/ci.sh full` exited 0 at `e483fbdc`. Also on this
-branch: ADR-0121 (proposed, P-12: Fabric updates itself, 0.3.3), ADR-0123 (accepted, P-13: the conversation is the
-runtime's console, the CEO is a session), the workspace sync's content/ leftover fix, and `passioncode-platform` as a
-workspace source (fabric#14, from the fabric-workspace session). Ledger:
-[2026-10-06-release-032-verification.md](evidence/plans/2026-10-06-release-032-verification.md); gate:
-`docs/launch/release-gate.json` (verified commit `e483fbdc`, fifteen receipts).
-
-### 2026-10-07 · release-0.3.2 (re-cut) · agent/release-032-work
-
-The first 0.3.2 release run (37511843198, at `6d02b0b6`) failed in its macos job before publishing anything:
-`out/main/index.js` was empty, because since `489082c3` the main build named its entries through
-`rollupOptions.input` (V3-26). Fixed in `25513347` (entries through `build.lib.entry`, and
-`test/main-bundle.test.mjs` reads the built bundle), rechecked by the errors reviewer; the capability matrix was
-re-pinned to Claude Code 2.1.292 (`61dfff1d`). `bash scripts/ci.sh full` exited 0 at `61dfff1d`, the new verified
-commit in `docs/launch/release-gate.json`; the unpublished tag `v0.3.2` moves to this release commit (operator
-decision 2026-10-07).

@@ -1,0 +1,6 @@
+[mcp_servers.probe]
+url = "http://127.0.0.1:47331/mcp"
+bearer_token_env_var = "FABRIC_PROBE_TOKEN"
+
+[projects."/private/tmp/fabric-probes/codex-work"]
+trust_level = "trusted"
