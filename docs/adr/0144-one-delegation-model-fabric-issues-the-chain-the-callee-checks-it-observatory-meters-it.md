@@ -5,7 +5,7 @@
 the agents' delegation and access is Fabric's main task, Fabric decides and tells each agent what to change
 (CO-258, release 0.4.0 REQ-37). **Inputs:** the roll call of 25 sessions
 ([copylot-agent `9f729f4`](https://github.com/ssheleg/copylot-agent/blob/9f729f4/docs/handoffs/2026-10-11-delegation-rollcall.md))
-and its audit against every owner's default branch ([audit](../evidence/plans/2026-10-11-delegation-model/audit.md),
+and its audit against every owner's default branch ([audit](../evidence/plans/2026-10-11-delegation-model/2026-10-11-roll-call-audit.md),
 `[audit §n]` below). **Amends** [ADR-0115](0115-a-local-agent-reaches-a-cloud-product-through-fabric-on-consent.md)
 (the hub's grant gains the contract's shape and becomes the estate's one grant store),
 [ADR-0026](0026-fabric-exposes-a-project-scoped-policy-enforced-mcp-control-surface.md) (the binding is the hub's), the contract's interop C3.5 (the

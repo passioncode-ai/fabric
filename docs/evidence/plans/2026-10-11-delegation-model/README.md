@@ -3,7 +3,7 @@
 The decision is [ADR-0144](../../../adr/0144-one-delegation-model-fabric-issues-the-chain-the-callee-checks-it-observatory-meters-it.md)
 (CO-258, release 0.4.0 REQ-37). Its inputs: the roll call of 25 sessions
 ([copylot-agent `9f729f4`](https://github.com/ssheleg/copylot-agent/blob/9f729f4/docs/handoffs/2026-10-11-delegation-rollcall.md))
-and the [audit](audit.md) of every claim against the owner's default branch. This page is a dated record: the
+and the [audit](2026-10-11-roll-call-audit.md) of every claim against the owner's default branch. This page is a dated record: the
 per-agent rows say what each owning session changes, and their status lives on that agent's own board, not here.
 
 ## In one paragraph
@@ -33,7 +33,7 @@ Steps 4–6 per agent may run in any order once 1–3 exist; an agent that only 
 
 ## Per agent — what to change
 
-Facts from the [audit](audit.md) §1 and §5; "step" refers to the order above.
+Facts from the [audit](2026-10-11-roll-call-audit.md) §1 and §5; "step" refers to the order above.
 
 | Agent (session) | Today [audit] | Changes | Steps |
 |---|---|---|---|
