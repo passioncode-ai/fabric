@@ -16,8 +16,17 @@ NODE_BY_AREA = {'harness/hub':'C1','sessions/runners':'C1','onboarding/start':'C
   'board/communications':'C8','screens/ux':'C10','i18n':'C10','release/platform':'C11','memory/context':'C8','security':'C1','data/schema':'C2',
   'docs/process':'C12','other':'C12'}
 NODE_WAVE = {'C1':'W1','C2':'W1','C5':'W3','C6':'W4','C7':'W4','C8':'W5','C10':'W6','C12':'W6','C11':'W7'}
+# Re-cut after wave 1 (2026-10-11): the embedded browser was in wave 1 only because CO-091 gated it; no request of
+# 0.4.0 needs it, and its gate is closed — it joins the program. The per-OS runtime rows ride the platform wave, and
+# AR-3.2 (Fabric's entry in each runner's config) closes with the Setup console, where the agent registers fabric-mcp.
+PROGRAM = {'CO-102', 'M75', 'SCN-077', 'AX15-REQ-004'}
+MOVED = {'CO-237': 'W7', 'NOID-04': 'W7', 'NOID-05': 'W7', 'AR-3.2': 'W3'}
 def wave_of(i):
     iid = i['id']
+    if i.get('closedInWave1'):
+        return 'W1'
+    if iid in MOVED:
+        return MOVED[iid]
     # Recorded by wave 0 itself: closed or narrowed there with a receipt.
     if i.get('closedInWave0') or i.get('narrowedInWave0'):
         return 'W0'
@@ -38,6 +47,8 @@ for i in b:
     if direct[i['id']] and direct[i['id']] != 'W0':
         for t in tags(i): cluster_wave.setdefault(t, direct[i['id']])
 for i in b:
+    if i['id'] in PROGRAM:
+        i['node'] = NODE_BY_AREA.get(i['area'], 'C12'); i['wave'] = 'after-0.4.0'; i['release'] = 'program'; continue
     w = direct[i['id']] or next((cluster_wave[t] for t in tags(i) if t in cluster_wave), None)
     i['node'] = NODE_BY_AREA.get(i['area'], 'C12')
     if w: i['wave'] = w; i['release'] = '0.4.0'
