@@ -203,13 +203,23 @@ describe('private content and restore authority require an authorized port', () 
       for (const table of tables) {
         expect(() => scopeOwnership(table, scope)).toThrow('private_table_requires_authorized_port')
         expect(() => store.select(table, '*')).toThrow('private_table_requires_authorized_port')
-        expect(() => store.insert(table, {})).toThrow('private_table_requires_authorized_port')
-        expect(() => store.update(table, {})).toThrow('private_table_requires_authorized_port')
-        expect(() => store.delete(table)).toThrow('private_table_requires_authorized_port')
         await expect(store.selectIn(table, '*', 'id', [])).rejects.toThrow('private_table_requires_authorized_port')
         await expect(store.selectIn(table, '*', 'id', ['known-id'])).rejects.toThrow('private_table_requires_authorized_port')
       }
     }
     expect(from).not.toHaveBeenCalled()
+  })
+})
+
+// Audit 2026-10-05 A7-023: the scoped store had insert/update/delete with no caller — an API that invites a
+// write around the journal, where every register is a projection (ADR-0014). A write goes through append_event
+// or a named host command; the store only reads.
+describe('the scoped store reads and never writes', () => {
+  it('offers no insert, update or delete', () => {
+    const db = { from: vi.fn() } as unknown as Parameters<typeof createScopedStore>[0]
+    for (const scope of [ESTATE, PROJECT]) {
+      const store = createScopedStore(db, scope) as Record<string, unknown>
+      for (const write of ['insert', 'update', 'upsert', 'delete']) expect(store[write], write).toBeUndefined()
+    }
   })
 })

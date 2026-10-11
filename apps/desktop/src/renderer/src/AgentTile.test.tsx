@@ -176,3 +176,41 @@ describe('a reading that rests on nothing observed is not a confident state', ()
     expect(chip?.className, 'an unobserved reading was painted as a confident state').not.toMatch(/danger|warn/)
   })
 })
+
+// SCN-035 (audit 2026-10-05 A2-045): the claim says it is the agent speaking, says how long ago, and is marked
+// when it falls more than two minutes behind the last thing Fabric observed (`ProjectHome.tsx#claimIsBehind`).
+describe('what the agent says, beside what Fabric saw', () => {
+  const claimAt = (reportedAt: string) => ({ sessionId: 's-1', stage: 'running tests', step: 2, ofSteps: 5, note: null, reportedAt })
+  const tile = (s: TerminalSession, reportedAt: string | null) =>
+    render(
+      <I18nProvider locale="en">
+        <AgentTile session={s} claim={reportedAt ? claimAt(reportedAt) : null} onSessionsChanged={async () => {}} onError={vi.fn()} />
+      </I18nProvider>
+    )
+
+  it('names the agent as the source and carries the age', async () => {
+    stub([view('working')])
+    const now = Date.now()
+    const { container } = tile(session({ lastActivityAt: new Date(now).toISOString() }), new Date(now - 30_000).toISOString())
+    const claim = container.querySelector('.claim')
+    expect(claim?.querySelector('.claim-label')?.textContent).toBe('the agent says')
+    expect(claim?.querySelector('.claim-stage')?.textContent).toBe('running tests · step 2 of 5')
+    expect(claim?.querySelector('.claim-age')?.textContent, 'a claim without its age reads as current').toBe(' · said 30s ago')
+    expect(claim?.className, 'a thirty-second-old account was marked stale').toBe('claim')
+  })
+
+  it('marks an account more than two minutes behind the last observed output', async () => {
+    stub([view('working')])
+    const now = Date.now()
+    const { container } = tile(session({ lastActivityAt: new Date(now).toISOString() }), new Date(now - 180_000).toISOString())
+    const claim = container.querySelector('.claim')
+    expect(claim?.className, 'an agent that stopped narrating was not marked').toBe('claim claim-stale')
+    expect(claim?.querySelector('.claim-age')?.getAttribute('title')).toBe('this account is older than the last thing Fabric saw')
+  })
+
+  it('and a session nothing reported for shows no claim at all', async () => {
+    stub([view('working')])
+    const { container } = tile(session({ optionId: 'shell' }), null)
+    expect(container.querySelector('.claim')).toBeNull()
+  })
+})

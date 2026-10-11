@@ -20,6 +20,7 @@ import type { Journal } from '@fabric/journal'
 import type { NativeProcessObservation, NativeStopSession } from './nativeStopRuntime.ts'
 import type { OwnedBackendHandle, createOwnedBackendProcessRegistry } from './ownedBackendProcessRegistry.ts'
 import { ops } from './opsSink.ts'
+import { causeOf } from '../shared/opsLog.ts'
 
 type Registry = Pick<ReturnType<typeof createOwnedBackendProcessRegistry>, 'snapshot' | 'inspect' | 'signalOwned'>
 export interface BackendStopSessionInput { sessionId: string; optionId: string; startedAt: string; projectId: string | null; handle: OwnedBackendHandle }
@@ -56,7 +57,7 @@ export function createBackendStopPort(deps: BackendStopPortDeps) {
     e.openedPending = (async () => {
       const id = identity(e); if (!id) return false
       try { await append(e, 'backend.opened@1', id); e.opened = true; return true }
-      catch { ops.failed('backend.journal-opened-failed', new Error('Backend open receipt remains unavailable'), { sessionId }); return false }
+      catch (err) { ops.failed('backend.journal-opened-failed', new Error('Backend open receipt remains unavailable'), { sessionId, cause: causeOf(err) }); return false }
       finally { e.openedPending = undefined }
     })()
     return e.openedPending
@@ -110,7 +111,7 @@ export function createBackendStopPort(deps: BackendStopPortDeps) {
             await append(e, 'backend.exited@1', { ...id, exit_code: s.exitCode, exit_signal: signalNumber(s.exitSignal), process_group: group })
             e.exitedGroup = group
             return true
-          } catch { ops.failed('backend.journal-exited-failed', new Error('Backend exit receipt remains unavailable'), { sessionId }); return false }
+          } catch (err) { ops.failed('backend.journal-exited-failed', new Error('Backend exit receipt remains unavailable'), { sessionId, cause: causeOf(err) }); return false }
           finally { e.exitPending = undefined }
         })()
         return e.exitPending

@@ -94,7 +94,8 @@ export function Tasks({
   const [options, setOptions] = useState<LaunchOption[]>([])
   // ADR-0125: offered when this computer has a fallback order, and chosen by default then — the
   // operator set the order to be used. A coding agent picked by name still runs exactly that agent.
-  const fallback = useFallbackChoice(project.id, 'task')
+  // The preview walks the order with this launch's needs: the setup preset passes over agents without Fabric's tools (CO-234).
+  const fallback = useFallbackChoice(project.id, 'task', preset)
   const fallbackDefaulted = useRef(false)
   /** The person chose in this picker: from then on nothing chooses for them (ADR-0125 §2). */
   const touched = useRef(false)
@@ -201,7 +202,8 @@ export function Tasks({
 
   // The setup preset records through Fabric's tools (memory, questions, tasks); an agent that does not connect to
   // the surface could record nothing of it, so it is not offered to one, and a loaded setup does not run on one
-  // (0.3.3 verification DA-3). The fallback order is resolved at launch and is not judged here.
+  // (0.3.3 verification DA-3). The fallback order is resolved at launch; its label previews that walk with the
+  // preset's needs (CO-234).
   const noSurface = chosen !== undefined && !chosen.connectsToSurface
   const setupBlocked = preset === 'setup' && noSurface
   const run = async (): Promise<void> => {

@@ -18,6 +18,12 @@ export interface BridgeEnds {
   surface: Transport
 }
 
+/** The HTTP status a transport error carries (the SDK's `StreamableHTTPError.code`), or null. */
+const statusOf = (error: unknown): number | null => {
+  const code = (error as { code?: unknown } | null)?.code
+  return typeof code === 'number' ? code : null
+}
+
 /** Pipes both ends into each other; resolves when either closes, after closing the other. */
 export async function relay({ agent, surface }: BridgeEnds, log: (line: string) => void = () => {}): Promise<void> {
   let done!: () => void
@@ -32,23 +38,36 @@ export async function relay({ agent, surface }: BridgeEnds, log: (line: string) 
   // A failed relay is answered to the agent as that request's error and the bridge goes on: one
   // transient 5xx used to close it, ending Fabric's tools for the rest of the session (audit
   // 2026-10-05 A6-007). Only a refused credential (401/403) ends it, since nothing later can succeed.
+  // Audit 2026-10-05 A7-037: the refusal that ends the bridge answers its request first, and every failure
+  // names its HTTP status, so a revoked credential, a 5xx and a refused connection no longer read the same.
+  const answer = (message: unknown, text: string): Promise<void> => {
+    const id = (message as { id?: unknown }).id
+    return typeof id === 'string' || typeof id === 'number'
+      ? agent.send({ jsonrpc: '2.0', id, error: { code: -32603, message: text } })
+      : Promise.resolve()
+  }
   agent.onmessage = (message) => {
     surface.send(message).catch((error: unknown) => {
-      const status = (error as { code?: unknown } | null)?.code
-      if (status === 401 || status === 403) return closeBoth(`the surface refused the session credential (HTTP ${status})`)
-      const id = (message as { id?: unknown }).id
+      const status = statusOf(error)
+      if (status === 401 || status === 403) {
+        const why = `the surface refused the session credential (HTTP ${status})`
+        // Answered, then closed — whether or not the answer could still be written.
+        return void answer(message, `Fabric's surface did not take this request: ${why}`).catch(() => {}).finally(() => closeBoth(why))
+      }
       const reason = error instanceof Error && error.message ? error.message : 'no answer'
-      log(`fabric-bridge: a message did not reach the surface: ${reason}`)
-      if (typeof id === 'string' || typeof id === 'number')
-        agent.send({ jsonrpc: '2.0', id, error: { code: -32603, message: `Fabric's surface did not take this request: ${reason}` } })
-          .catch(() => closeBoth('the agent side is gone'))
+      log(`fabric-bridge: a message did not reach the surface${status === null ? '' : ` (HTTP ${status})`}: ${reason}`)
+      answer(message, `Fabric's surface did not take this request: ${reason}`).catch(() => closeBoth('the agent side is gone'))
     })
   }
   surface.onmessage = (message) => { agent.send(message).catch(() => closeBoth('the agent side is gone')) }
   agent.onclose = () => closeBoth('the agent closed the bridge')
   surface.onclose = () => closeBoth('the surface closed the session')
   agent.onerror = () => { /* stdio errors end in onclose */ }
-  surface.onerror = () => { /* an HTTP error is answered to the agent by the surface, or ends in onclose */ }
+  // An HTTP error is answered to the agent by the surface, or ends in onclose; it is still said, with its status.
+  surface.onerror = (error: unknown) => {
+    const status = statusOf(error)
+    log(`fabric-bridge: the surface transport reported an error${status === null ? '' : ` (HTTP ${status})`}: ${error instanceof Error && error.message ? error.message : 'no detail'}`)
+  }
   await surface.start()
   await agent.start()
   return finished

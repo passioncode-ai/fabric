@@ -107,12 +107,13 @@ for (const [name, request, expect] of cases) {
 
 // Expiry, against the database's clock. Advancing the injected one no longer
 // expires anything, which is exactly the property S03.boundary added: the check
-// moved out of the caller. So the grant is issued already past its life.
-const shortLived = await policy.issueGrant({
+// moved out of the caller. So the grant is issued already past its life — by a
+// policy whose clock stood an hour ago, since nothing may write the grants table but the
+// journal's projector now (audit A7-014; this line used to update the row).
+const pastPolicy = new Policy({ db, journal, now: () => new Date(Date.now() - 3_600_000) })
+const shortLived = await pastPolicy.issueGrant({
   estateId: ESTATE, projectId, floorClass: 'deletion', target, actor: ACTOR, ttlMs: 1000
 })
-await db.from('grants').update({ expires_at: new Date(Date.now() - 60_000).toISOString() })
-  .eq('id', shortLived.grantId)
 const stale = await policy.decide(req({ grantId: shortLived.grantId }))
 stale.verdict === 'refuse' && /expired|no live grant/.test(stale.reason)
   ? ok('refused — an expired grant, by the database clock rather than the one the caller injects')
@@ -343,6 +344,60 @@ floorError
   operator.verdict === 'allow'
     ? ok('a person acting with their own hands is not bypassing a floor — they are the floor')
     : fail('the operator was refused for containment: ' + JSON.stringify(operator))
+}
+
+// ── the 0.3.2 audit's grant plane (A7-014, A7-015, A7-016, A2-015) ──────────
+{
+  // A7-014: the grant is the event. The row exists because grant.issued@1 projected it, carrying its id.
+  const t1 = 'project:' + randomUUID()
+  const g = await policy.issueGrant({ estateId: ESTATE, projectId, floorClass: 'deletion', target: t1, actor: ACTOR, ttlMs: 600000 })
+  const { data: ev } = await db.from('journal').select('payload,project_id').eq('estate_id', ESTATE).eq('seq', g.seq).maybeSingle()
+  const { data: row } = await db.from('grants').select('id,project_id').eq('id', g.grantId).maybeSingle()
+  ev?.payload?.grant_id === g.grantId && row?.project_id === projectId
+    ? ok('A7-014/A7-015 grant.issued@1 names the grant, and the projected row carries the project it was given for')
+    : fail('the grant is not the event: ' + JSON.stringify({ ev, row }))
+
+  // A7-015: a grant given for one project does not authorise the act in another.
+  const elsewhere = randomUUID()
+  const other = await policy.decide(req({ grantId: g.grantId, target: t1, projectId: elsewhere }))
+  other.verdict === 'refuse' && /another project|no live grant/.test(other.reason)
+    ? ok('A7-015 a grant for one project is refused in another')
+    : fail('a project-confined grant authorised another project: ' + JSON.stringify(other))
+
+  // A7-016: two live grants for one act; the one presented is the one reserved.
+  const t2 = 'project:' + randomUUID()
+  const older = await policy.issueGrant({ estateId: ESTATE, projectId, floorClass: 'deletion', target: t2, actor: ACTOR, ttlMs: 600000 })
+  const newer = await policy.issueGrant({ estateId: ESTATE, projectId, floorClass: 'deletion', target: t2, actor: ACTOR, ttlMs: 600000 })
+  const d = await policy.decide(req({ grantId: newer.grantId, target: t2 }))
+  const { data: held } = await db.from('grant_reservations').select('grant_id').eq('estate_id', ESTATE)
+    .eq('reservation_id', d.verdict === 'allow' ? d.reservationId : '00000000-0000-0000-0000-000000000000').maybeSingle()
+  d.verdict === 'allow' && d.grantId === newer.grantId && held?.grant_id === newer.grantId
+    ? ok('A7-016 the reservation holds exactly the grant the decision checked, not the oldest live one')
+    : fail('the decision and its reservation name different grants: ' + JSON.stringify({ d, held }))
+  // …and the surface's lookup passes over held grants (the OLDEST held too) to the one still free.
+  const second = await policy.decide(req({ grantId: older.grantId, target: t2 }))
+  const third = await policy.issueGrant({ estateId: ESTATE, projectId, floorClass: 'deletion', target: t2, actor: ACTOR, ttlMs: 600000 })
+  const free = await policy.findGrantFor({ estateId: ESTATE, floorClass: 'deletion', target: t2, projectId, actionClass: 'project.delete' })
+  second.verdict === 'allow' && free === third.grantId
+    ? ok('A7-016 findGrantFor offers a grant no other command holds')
+    : fail('findGrantFor offered a held grant: ' + free)
+  const confined = await policy.findGrantFor({ estateId: ESTATE, floorClass: 'deletion', target: t2, projectId: elsewhere })
+  confined === null ? ok('A7-015 findGrantFor finds nothing for another project') : fail('findGrantFor crossed projects')
+
+  // A2-015: an unknown class is refused before anything is journalled.
+  const { count: before } = await db.from('journal').select('seq', { count: 'exact', head: true }).eq('estate_id', ESTATE)
+  let threw = false
+  try { await policy.issueGrant({ estateId: ESTATE, projectId, floorClass: 'everything', target: t1, actor: ACTOR, ttlMs: 1000 }) } catch { threw = true }
+  const { count: after } = await db.from('journal').select('seq', { count: 'exact', head: true }).eq('estate_id', ESTATE)
+  threw && before === after
+    ? ok('A2-015 a grant for an unknown floor class is refused and journals nothing')
+    : fail('an unknown floor class reached the journal: ' + JSON.stringify({ threw, before, after }))
+
+  // The table has one writer.
+  const direct = await db.from('grants').insert({ estate_id: ESTATE, floor_class: 'deletion', target: t1, expires_at: new Date(Date.now() + 60000).toISOString() })
+  direct.error && /permission denied/.test(direct.error.message)
+    ? ok('A7-014 the service role cannot write a grant around the journal')
+    : fail('a grant was written directly: ' + JSON.stringify(direct.error))
 }
 
 if (failures > 0) { console.log('\\n' + failures + ' policy failure(s)'); process.exit(1) }

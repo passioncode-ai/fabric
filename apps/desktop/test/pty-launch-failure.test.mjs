@@ -1,14 +1,16 @@
 // Drive the real manager across failures after native spawn. No real agent runs.
 import assert from 'node:assert/strict'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createTranscriptStore } from '../src/main/transcripts.ts'
 import { createTranscriptReceipt } from '../src/main/transcriptReceipt.ts'
-import { PtyManager } from '../src/main/pty.ts'
+import { createRunnerAvailability, launchOption, launchOptions, LaunchPlaceMissing, PtyManager, SpawnFailure } from '../src/main/pty.ts'
 import { AGENTS } from '../src/shared/agents.ts'
 import { randomUUID } from 'node:crypto'
 import { PtyLaunchFailure, retainFailedLaunch } from '../src/main/launchFailure.ts'
+import { createOps } from '../src/main/ops.ts'
+import { useOps } from '../src/main/opsSink.ts'
 AGENTS.push({ ...AGENTS.find(a => a.id === 'shell'), id: 'launch-fixture', connectsToSurface: true, surfaceAdapter: 'mcp-config-flag', resultChannel: 'surface' })
 for (const adapter of ['config-content-env', 'acp-session'])
   AGENTS.push({ ...AGENTS.find(a => a.id === 'shell'), id: `bundle-only-${adapter}`, label: `Fixture ${adapter}`, connectsToSurface: true, surfaceAdapter: adapter, resultChannel: 'surface' })
@@ -133,6 +135,8 @@ console.log('PASS launch failure: journal/spool/kill/revoke faults retain exact 
   }, ()=>{spawns++;throw Error('unexpected native spawn')}, undefined, ()=>({kind:'person',id:'operator'}))
   const first=manager.open(randomUUID(),process.cwd(),'launch-fixture',null,null,null,sessionId,async()=>false)
   await assert.rejects(manager.open(randomUUID(),process.cwd(),'launch-fixture',null,null,null,sessionId),/identity already used/)
+  // The launch reads the folder before it compiles (A2-008), so the compile is reached a few turns later.
+  while(!finishCompile)await new Promise(r=>setImmediate(r))
   finishCompile()
   await assert.rejects(first,/authority changed/)
   assert.equal(spawns,0);assert.deepEqual(revoked,[sessionId]);assert.equal(manager.list().length,0)
@@ -203,3 +207,94 @@ console.log('PASS exit dismissal: await receipt and finalizer; failure retains m
   } finally {rmSync(root,{recursive:true,force:true})}
 }
 console.log('PASS recovery exclusion: exited runtime generation keeps its pending capture until own receipt')
+
+// Audit 2026-10-05 A2-008: a project whose repository was moved or deleted still launched. The folder is asked
+// about before anything is minted — no bundle, no credential, no spawn, no journal — and the refusal is not a
+// spawn failure, so a fallback walk does not pass over every runner blaming each.
+{
+  let effects = 0
+  const hit = () => { effects++; throw Error('must not reach any launch effect') }
+  const manager = new PtyManager({ append: hit }, randomUUID(), { onData() {}, onExit() {} },
+    { compile: hit, discard: hit }, hit, { open: hit, write: hit }, () => ({ kind: 'person', id: 'operator' }))
+  const root = mkdtempSync(join(tmpdir(), 'fabric-launch-place-'))
+  const gone = join(root, 'moved-away')
+  const file = join(root, 'a-file')
+  writeFileSync(file, 'not a folder')
+  try {
+    for (const cwd of [gone, file]) {
+      const failure = await manager.open(randomUUID(), cwd, 'launch-fixture').then(() => null, (e) => e)
+      assert.ok(failure instanceof LaunchPlaceMissing, `${cwd}: refused as a missing launch place`)
+      assert.equal(failure instanceof SpawnFailure, false, 'not a runner\'s spawn failure: the walk must not move on')
+      assert.equal(failure.cwd, cwd)
+    }
+    assert.equal(effects, 0, 'nothing minted, spawned or journalled')
+    assert.equal(manager.list().length, 0)
+  } finally { rmSync(root, { recursive: true, force: true }) }
+}
+console.log('PASS launch place: a missing or non-folder cwd is refused before any launch effect')
+
+// Audit 2026-10-05 A6-009/A7-011: availability is an asynchronous, bounded PATH reading, shared while in flight,
+// reused on the same PATH for the TTL, measured again when PATH changes or the TTL passes, and a launch measures
+// only the runner it starts.
+{
+  let clock = 0, PATH = '/one'
+  const asked = []
+  const availability = createRunnerAvailability({
+    find: async (program, envPath) => { asked.push(`${program}@${envPath}`); await new Promise((r) => setImmediate(r)); return program === 'claude' ? `${envPath}/claude` : null },
+    envPath: () => PATH, now: () => clock, ttlMs: 1000
+  })
+  const programs = new Set(AGENTS.filter((x) => x.program !== null).map((x) => x.program)).size
+  const [a, b] = await Promise.all([launchOptions(availability), launchOptions(availability)])
+  assert.equal(asked.length, programs, 'one reading per program, shared by concurrent callers')
+  assert.deepEqual(a, b)
+  assert.equal(a.find((o) => o.id === 'claude-code').available, true)
+  assert.equal(a.find((o) => o.id === 'codex').available, false)
+  assert.equal(a.find((o) => o.id === 'shell').available, true, 'the shell needs no reading')
+  clock = 999; await launchOptions(availability)
+  assert.equal(asked.length, programs, 'reused within the TTL')
+  clock = 1000; await launchOptions(availability)
+  assert.equal(asked.length, 2 * programs, 'measured again once the TTL has passed')
+  PATH = '/two'; asked.length = 0
+  await launchOption('codex', availability)
+  assert.deepEqual(asked, ['codex@/two'], 'a changed PATH is a new reading, and one launch asks about one runner')
+  assert.equal(await launchOption('no-such-runner', availability), null)
+  // A probe that throws is not a reading: the next ask measures again.
+  let throws = 1, calls = 0
+  const flaky = createRunnerAvailability({ find: async () => { calls++; if (throws-- > 0) throw Error('probe failed'); return '/x/codex' }, envPath: () => '/p', now: () => 0 })
+  assert.equal(await flaky.locate('codex'), null)
+  assert.equal(await flaky.locate('codex'), '/x/codex')
+  assert.equal(calls, 2)
+}
+console.log('PASS runner availability: async, shared, cached per PATH for its TTL, one runner per launch')
+
+// Audit 2026-10-05 A6-031 (fixed with ADR-0125, pinned here): a runner without modes receives none, whatever was
+// asked for, and the session and its opening receipt record none — never a `bypass` that does not exist.
+{
+  const events = []
+  const native = { pid: 4321, resize() {}, write() {}, kill() {}, onData() {}, onExit() {} }
+  const manager = new PtyManager({ append: async (e) => { events.push(e); return { seq: events.length } } }, randomUUID(),
+    { onData() {}, onExit() {} }, undefined, () => native, undefined, () => ({ kind: 'person', id: 'operator' }))
+  const s = await manager.open(randomUUID(), process.cwd(), 'shell', null, 'bypass')
+  assert.equal(manager.get(s.sessionId).permissionMode, null)
+  const opened = events.find((e) => e.type === 'terminal.opened@1')
+  assert.ok(opened)
+  assert.equal(opened.payload.permission_mode, null, 'the journal records no mode for a runner without modes')
+}
+console.log('PASS a runner without modes records none')
+
+// Audit 2026-10-05 A7-036: a catch that records a synthetic error keeps the real one's kind — its name and code
+// (a SQLSTATE here) — and never its message, which may carry what a dependency put in it.
+{
+  const dir = mkdtempSync(join(tmpdir(), 'fabric-ops-cause-'))
+  try {
+    const log = createOps({ dir })
+    useOps(log)
+    const stalled = Object.assign(new Error('canceling statement due to statement timeout; password=hunter2'), { code: '57014' })
+    await retainFailedLaunch(new PtyLaunchFailure('cause-session'), { track() {}, get: () => ({ running: false, exitCode: 1 }), close: async () => { throw stalled } })
+    const row = log.read({ limit: 50 }).find((r) => r.op === 'launch.exit-reconcile')
+    assert.ok(row, 'the failure was recorded')
+    assert.deepEqual(row.detail.cause, { name: 'Error', code: '57014' }, 'a stalled database reads as one')
+    assert.equal(JSON.stringify(row).includes('hunter2'), false, 'the dependency\'s message stays out')
+  } finally { rmSync(dir, { recursive: true, force: true }) }
+}
+console.log('PASS a recorded failure keeps the kind of the real error, not its text')

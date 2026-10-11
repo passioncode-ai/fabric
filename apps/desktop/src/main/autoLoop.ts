@@ -73,6 +73,8 @@ export interface AutoLoopDeps {
   survey: (conversationId: string) => Omit<DecideInput, 'policy' | 'switchesThisHour' | 'lastSwitchAt' | 'enrolled' | 'now'>
   /** M199.resume's coordinator. The loop does not switch credentials itself. */
   beginSwitch: (input: { conversationId: string; to: string; idempotencyKey: string }) => { ok: boolean; reason: string }
+  /** The coordinator's cancel (audit A4-009): withdrawing cancels the switch an intent began, if nothing stopped yet. */
+  cancelSwitch?: (idempotencyKey: string, why: string) => { ok: boolean; reason: string }
   now?: () => number
   /** Whether the application is running at all. App-off stops the loop. */
   running?: () => boolean
@@ -114,18 +116,28 @@ export function createAutoLoop(deps: AutoLoopDeps) {
     withdraw(conversationId: string): { ok: boolean; reason: string } {
       const state = read()
       const queuedFor = { ...state.queuedFor }
-      const had = queuedFor[conversationId] !== undefined
+      const observation = queuedFor[conversationId]
+      const had = observation !== undefined
       delete queuedFor[conversationId]
       const ok = save({
         ...state,
         enrolled: state.enrolled.filter((c) => c !== conversationId),
         queuedFor
       })
+      // #region switch-cancel — docs: docs/ux/scenarios.md#scn-089-остановить-автосмену-и-пережить-отсутствие-кандидата
+      // The intent's operation is cancelled too (audit A4-009), by the same key `tick` began it with. Past the
+      // stop the coordinator refuses, and the refusal is said: only recovery is left then.
+      const cancel = ok && had && deps.cancelSwitch
+        ? deps.cancelSwitch(`auto:${conversationId}:${observation}`, 'the conversation was withdrawn from auto-switching')
+        : null
+      // #endregion switch-cancel
       return {
         ok,
         reason: ok
           ? had
-            ? 'withdrawn, and the queued intent is dropped'
+            ? cancel && !cancel.ok
+              ? `withdrawn, and the queued intent is dropped; the switch it began was not cancelled: ${cancel.reason}`
+              : 'withdrawn, and the queued intent is dropped'
             : 'withdrawn; nothing was queued'
           : 'the withdrawal could not be saved'
       }

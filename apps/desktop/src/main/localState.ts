@@ -32,7 +32,6 @@ import {
   readdirSync,
   renameSync,
   statSync,
-  unlinkSync,
   writeFileSync
 } from 'node:fs'
 import { createHash } from 'node:crypto'
@@ -279,16 +278,4 @@ export function updateLocal<T>(spec: LocalFile<T>, change: (current: T) => T): L
     return { status: 'failed', reason: 'local_state_update_failed' }
   }
   return writeLocal(spec, next, current.revision)
-}
-
-/** Remove a temp file an interrupted write left behind. Never called on the
- *  read path: a leftover temp is already ignored there, and deleting during a
- *  read would race a write that is still in progress. */
-export function sweepTemp<T>(spec: LocalFile<T>): void {
-  for (const f of [temp(spec), `${temp(spec)}.last-good`])
-    try {
-      if (existsSync(f)) unlinkSync(f)
-    } catch {
-      // A temp file we cannot remove is litter, not a fault.
-    }
 }

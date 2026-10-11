@@ -319,3 +319,37 @@ describe('a note says who wrote it and when (UX28-06)', () => {
     expect(lead.textContent).toMatch(/3h|3 h|hour/i)
   })
 })
+
+// Audit A5-018: the rail printed the raw `runState` enum (`ended`) in both locales, and said "reading"
+// forever when the status read failed.
+describe('the run rail says how the run stands, in words (A5-018)', () => {
+  const mountRun = (status: () => Promise<unknown>): void => {
+    vi.stubGlobal('window', window)
+    ;(window as unknown as { fabric: unknown }).fabric = {
+      tasks: { detail: vi.fn().mockResolvedValue(detail({ session_id: 's1' })) },
+      runs: { status: vi.fn(status) },
+      transcripts: { context: vi.fn(async () => ({ held: false, why: 'no_packet', says: '' })) },
+      memory: { preview: vi.fn(async () => null) }
+    }
+    render(<TaskPage project={project} taskId="t1" onBack={() => {}} onChanged={async () => {}} onError={() => {}} />)
+  }
+  const view = (runState: string, runOutcome: string | null) => async () => ({
+    data: { ordinal: 2, runState, runOutcome, observation: { liveness: 'gone', lastOutputAt: null }, claim: { phase: null } }
+  })
+
+  it('an ended run names its outcome, not the machine word', async () => {
+    mountRun(view('ended', 'failed_known'))
+    await waitFor(() => expect(screen.getByText('2 · failed')).toBeTruthy())
+    expect(screen.queryByText(/2 · ended$/)).toBeNull()
+  })
+
+  it('a running run says running', async () => {
+    mountRun(view('active', null))
+    await waitFor(() => expect(screen.getByText('2 · running')).toBeTruthy())
+  })
+
+  it('a status that could not be read says so instead of "reading"', async () => {
+    mountRun(async () => { throw new Error('timeout') })
+    await waitFor(() => expect(screen.getByText('unreadable')).toBeTruthy())
+  })
+})

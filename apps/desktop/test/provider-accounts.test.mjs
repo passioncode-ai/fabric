@@ -284,6 +284,29 @@ const identity = (over = {}) => ({
     : fail('the redacted view leaked: ' + viewLeaks(accountView(raw, false)).join('; '))
 }
 
+// ── audit A4-013: a staged login expires ─────────────────────────────────────
+{
+  let clock = 1_757_000_000_000
+  const s = store({ now: () => clock })
+  const stale = s.beginLogin({ provider: 'codex-cli', runtime: RUNTIME, principal: PRINCIPAL })
+  clock += 10 * 60_000 + 1
+  const late = s.completeLogin({ attemptId: stale.attemptId, identity: identity(), label: 'work' })
+  late.ok === false && /expired/.test(late.reason)
+    ? ok('a login staged more than ten minutes ago is refused as expired')
+    : fail('a stale staged login completed: ' + JSON.stringify(late))
+  eq(s.listAccounts().length, 0, 'and no account was added from it')
+  eq(s.stagingCount(), 0, 'and the expired attempt is deleted')
+
+  const old = s.beginLogin({ provider: 'codex-cli', runtime: RUNTIME, principal: PRINCIPAL })
+  clock += 10 * 60_000 + 1
+  const fresh = s.beginLogin({ provider: 'codex-cli', runtime: RUNTIME, principal: PRINCIPAL })
+  eq(s.stagingCount(), 1, 'beginLogin sweeps expired attempts, keeping only the fresh one')
+  eq(s.completeLogin({ attemptId: old.attemptId, identity: identity(), label: 'x' }).ok, false, 'the swept attempt cannot complete')
+  clock += 10 * 60_000 - 1
+  const inTime = s.completeLogin({ attemptId: fresh.attemptId, identity: identity(), label: 'work' })
+  inTime.ok ? ok('an attempt inside its ten minutes still completes') : fail('a fresh attempt was refused: ' + JSON.stringify(inTime))
+}
+
 if (failures) {
   console.log('\n' + failures + ' failure(s)')
   process.exit(1)

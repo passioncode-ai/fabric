@@ -72,6 +72,8 @@ export const CHANNEL_RULES: { readonly [K in IpcKey]: ChannelRule } = {
   historyRestore: MAIN_ONLY,
   historyCheck: MAIN_ONLY,
   historyOpen: MAIN_ONLY,
+  historyPending: MAIN_ONLY,
+  historyRestored: MAIN_ONLY,
   projectsList: MAIN_ONLY,
   projectsStats: MAIN_ONLY,
   transcriptsList: MAIN_ONLY,

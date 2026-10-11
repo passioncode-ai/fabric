@@ -325,6 +325,10 @@
     {
       "file": "20261011000090_session_enrollment.sql",
       "sha256": "162921d91757a207207a3205296a1ef3ac5ee7f19bb47ff4930a3469162886d7"
+    },
+    {
+      "file": "20261011000091_grants_from_the_journal.sql",
+      "sha256": "f25d57a4fe8a8f6b9a18eda70a863dd6d0984c62e556677b72f68767a7a3518b"
     }
   ]
 }

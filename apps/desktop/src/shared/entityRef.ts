@@ -186,13 +186,6 @@ export function obligationRef(kind: string, subject: EntityRef): string {
   return `${kind}/${formatRef(subject)}`
 }
 
-export function parseObligationRef(text: string): { kind: string; subject: EntityRef } | null {
-  const at = text.indexOf('/')
-  if (at <= 0) return null
-  const subject = parseRef(text.slice(at + 1))
-  return subject ? { kind: text.slice(0, at), subject } : null
-}
-
 /** The task a ref is about, when it is about one. Replaces four hand-written
  *  `startsWith`/`slice` pairs, each of which knew a different subset. */
 export function taskOf(ref: EntityRef): string | null {

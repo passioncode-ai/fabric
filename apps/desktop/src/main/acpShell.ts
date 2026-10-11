@@ -145,17 +145,55 @@ export function isAuthRequired(error: unknown): boolean {
   return e?.code === -32000 || /auth(entication|enticate)? required|call authenticate/i.test(String(e?.message ?? ''))
 }
 
-/** A minimal JSON-RPC 2.0 peer over newline-delimited JSON, bounded per frame. */
-function peer(proc: AgentProcess, defaultTimeoutMs: number, handlers: {
+/** Thrown by a request handler for a method this client does not offer: answered `-32601 Method not found`.
+ *  Any other failure of a method it does offer is `-32603 Internal error` (audit 2026-10-05 A7-038). */
+export class MethodNotOffered extends Error {
+  constructor(method: string) {
+    super(`${method} is not offered by this client`)
+    this.name = 'MethodNotOffered'
+  }
+}
+
+// #region acp-frame-limit — docs: docs/adr/0119-acp-is-the-generic-runner-drive-and-runners-are-catalogue-rows.md#amendment-4--2026-10-06-what-the-032-verification-changed-and-what-is-not-built-yet
+/** A frame the peer dropped for its size: the request it answered when its head names one, so the caller is
+ *  told at once instead of waiting out a timeout (audit 2026-10-05 A6-030/A7-038). */
+export interface DroppedFrame { bytes: number; answering: string | null }
+
+/** The id a response frame names in its first bytes (`{"jsonrpc":"2.0","id":7,…` or `{"id":7,…`), or null —
+ *  a request or notification from the agent (`"method"` in the head), or an id the head does not show. */
+function respondedId(head: string): number | null {
+  if (/"method"\s*:/.test(head)) return null
+  const m = /^\s*\{\s*(?:"jsonrpc"\s*:\s*"2\.0"\s*,\s*)?"id"\s*:\s*(\d+)\s*[,}]/.exec(head)
+  return m ? Number(m[1]) : null
+}
+// #endregion acp-frame-limit
+
+/** A minimal JSON-RPC 2.0 peer over newline-delimited JSON, bounded per frame. Exported for its test. */
+export function peer(proc: AgentProcess, defaultTimeoutMs: number, handlers: {
   request(method: string, params: unknown): Promise<unknown>
   notification(method: string, params: unknown): void
   closed(): void
-}) {
+  /** A frame over the limit was dropped; already rejected when it answered a pending request. */
+  dropped?(frame: DroppedFrame): void
+}, frameLimit = FRAME_LIMIT) {
   let serial = 0
   let buffer = ''
   let outputGone = false
   let inputGone = false
-  const pending = new Map<number, { resolve(v: unknown): void; reject(e: Error): void; timer: ReturnType<typeof setTimeout> | undefined }>()
+  /** The frame being dropped, until its newline arrives: the request it answers and its size so far. */
+  let dropping: { answering: string | null; bytes: number } | null = null
+  const pending = new Map<number, { method: string; resolve(v: unknown): void; reject(e: Error): void; timer: ReturnType<typeof setTimeout> | undefined }>()
+  /** A frame is over the limit: the request its head names is rejected NOW, not when the frame ends. */
+  const beginDrop = (head: string): string | null => {
+    const id = respondedId(head)
+    const p = id === null ? undefined : pending.get(id)
+    if (!p || id === null) return null
+    pending.delete(id)
+    clearTimeout(p.timer)
+    p.reject(new Error(`the agent's answer to ${p.method} was over the ${frameLimit}-byte frame limit and was dropped`))
+    return p.method
+  }
+  const endDrop = (frame: DroppedFrame): void => { handlers.dropped?.(frame) }
   // A write to an agent that stopped reading fails with EPIPE, emitted on its input — unhandled, that
   // crashed the shell with a raw stack (audit 2026-10-06 ER-3). Nothing is lost by ignoring it here:
   // the agent's output closing (below) and its exit report that end to the person.
@@ -166,12 +204,25 @@ function peer(proc: AgentProcess, defaultTimeoutMs: number, handlers: {
   }
   proc.stdout.setEncoding('utf8')
   proc.stdout.on('data', (chunk: string) => {
-    buffer += chunk
-    if (buffer.length > FRAME_LIMIT) { buffer = ''; return }
+    // Audit 2026-10-05 A7-038: one read that pushed the buffer past the limit dropped EVERYTHING in it,
+    // complete frames included, and a dropped response then waited out its timeout. Frames are split on
+    // newlines first; only a frame over the limit is dropped — said, and its request rejected (A6-030).
+    let rest = chunk
+    if (dropping) {
+      const end = rest.indexOf('\n')
+      if (end < 0) { dropping.bytes += rest.length; return }
+      const done = dropping
+      dropping = null
+      endDrop({ answering: done.answering, bytes: done.bytes + end })
+      rest = rest.slice(end + 1)
+    }
+    buffer += rest
     let newline: number
     while ((newline = buffer.indexOf('\n')) >= 0) {
-      const line = buffer.slice(0, newline).trim()
+      const raw = buffer.slice(0, newline)
       buffer = buffer.slice(newline + 1)
+      if (raw.length > frameLimit) { endDrop({ answering: beginDrop(raw.slice(0, 256)), bytes: raw.length }); continue }
+      const line = raw.trim()
       if (!line) continue
       let message: unknown
       try { message = JSON.parse(line) } catch { continue /* A non-JSON line from the agent is not protocol. */ }
@@ -180,7 +231,7 @@ function peer(proc: AgentProcess, defaultTimeoutMs: number, handlers: {
         const id = message.id
         handlers.request(message.method, message.params).then(
           (result) => send({ id, result }),
-          (error: unknown) => send({ id, error: { code: -32601, message: error instanceof Error ? error.message : 'refused' } })
+          (error: unknown) => send({ id, error: { code: error instanceof MethodNotOffered ? -32601 : -32603, message: error instanceof Error ? error.message : 'refused' } })
         )
       } else if (typeof message.method === 'string') handlers.notification(message.method, message.params)
       else if (typeof message.id === 'number' && pending.has(message.id)) {
@@ -195,8 +246,13 @@ function peer(proc: AgentProcess, defaultTimeoutMs: number, handlers: {
         } else p.resolve(message.result)
       }
     }
+    // Only the trailing partial frame is limited: everything complete in this read was handled above.
+    if (buffer.length > frameLimit) { dropping = { answering: beginDrop(buffer.slice(0, 256)), bytes: buffer.length }; buffer = '' }
   })
   proc.stdout.on('close', () => {
+    // A frame still over the limit when the output closed was dropped too; the trailing partial frame is
+    // limited the same way, and a partial frame under it is not protocol.
+    if (dropping) { const done = dropping; dropping = null; endDrop(done) }
     outputGone = true
     for (const p of pending.values()) { clearTimeout(p.timer); p.reject(new Error('the agent closed its output')) }
     pending.clear()
@@ -212,7 +268,7 @@ function peer(proc: AgentProcess, defaultTimeoutMs: number, handlers: {
       return new Promise((resolve, reject) => {
         const timer = timeoutMs === null ? undefined
           : setTimeout(() => { pending.delete(id); reject(new Error(`${method} did not answer`)) }, timeoutMs)
-        pending.set(id, { resolve, reject, timer })
+        pending.set(id, { method, resolve, reject, timer })
         send({ id, method, params })
       })
     },
@@ -279,14 +335,19 @@ export async function runAcpShell(spec: AcpSessionSpec, io: AcpShellIo): Promise
         return chosen ? { outcome: { outcome: 'selected', optionId: chosen } } : { outcome: { outcome: 'cancelled' } }
       }
       // The shell declared no file system and no terminal capability: the agent uses its own.
-      throw new Error(`${method} is not offered by this client`)
+      throw new MethodNotOffered(method)
     },
     notification(method, params) {
       if (method !== 'session/update' || !record(params)) return
       const text = describeUpdate(params.update)
       if (text) out(text)
     },
-    closed() { /* The exit listener reports the end. */ }
+    closed() { /* The exit listener reports the end. */ },
+    // One dim line naming what was dropped (audit A6-030); the request it answered has already been rejected.
+    dropped({ bytes, answering }) {
+      const size = `${(bytes / (1024 * 1024)).toFixed(1)} MiB`
+      out(`\n\x1b[2m${answering ? `The agent's answer to ${answering}` : 'A message from the agent'} (${size}) was over the ${FRAME_LIMIT / (1024 * 1024)} MiB frame limit and was dropped.\x1b[22m\n`)
+    }
   })
 
   // The end of a session: cancel it on the agent's side, close the agent's input (an ACP agent ends

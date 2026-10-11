@@ -14,7 +14,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { fixPath, resolveSupabaseEnv, stackStatusEnv, startStack, stopStartingStack } from './env'
 import { exposureNeedsCheck, stackExposure, stackPorts, type StackExposure } from './stackExposure.ts'
 import { applyAppIcon, windowIcon } from './appIcon'
-import { Policy } from './policy'
+import { isFloorClass, Policy } from './policy'
 import { launchOptions, PtyManager } from './pty'
 import { classifyFailure } from '../shared/failure.ts'
 import { createManagedLaunch, type LaunchInput } from './managedLaunch.ts'
@@ -63,7 +63,6 @@ import { splashProgress } from '../shared/splashProgress'
 import { checkWorkspace, importWorkspace, initRepository, writeWorkspace } from './workspace'
 import {
   IPC,
-  type AppSettings,
   type CreateProjectInput,
   type DiagnosticsView,
   type AnswerReceipt,
@@ -165,7 +164,7 @@ import { declaredCapabilities, isAvailable } from '../shared/capabilityReport.ts
 import { AGENTS } from '../shared/agents.ts'
 import type { RunStatusView } from '../shared/runStatus.ts'
 import { advancesWatermark, runCyclePasses } from '../shared/cyclePort.ts'
-import type { OpsLevel } from '../shared/opsLog'
+import { causeOf, type OpsLevel } from '../shared/opsLog'
 
 /**
  * Every IPC call, timed and recorded, with a correlation id (M81).
@@ -347,7 +346,9 @@ import { persona, savePersona } from './persona.ts'
 import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.ts'
 import { detectExecutors } from './executorDetect.ts'
 import { createRunnerFallback, describeExhausted, launchRoute, openWithFallback } from './runnerFallback.ts'
-import { FALLBACK_OPTION } from '../shared/runnerRoute.ts'
+import { FALLBACK_OPTION, presetNeedsSurface } from '../shared/runnerRoute.ts'
+import { settingsPatch } from '../shared/appSettings.ts'
+import { fetchWithDeadline } from './dbDeadline.ts'
 import { RunnerUnavailable, SpawnFailure, type LaunchRoute } from './pty'
 import { keepScan, lastScan } from './startPaths.ts'
 import { createProjectFolder } from './projectFolder.ts'
@@ -642,7 +643,9 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
   stackApiUrl = env.url
   stackExposureCheck = checkStackExposure(env.url)
   db = createClient(env.url, env.serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false }
+    auth: { persistSession: false, autoRefreshToken: false },
+    // Every request ends by a deadline; a caller's own `.abortSignal(…)` still ends it sooner (audit A7-010).
+    global: { fetch: fetchWithDeadline() }
   })
   return withSchemaReadiness({
     packaged: app.isPackaged,
@@ -971,8 +974,8 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
       syncPower()
       // Observed local exit revokes Fabric credentials even if Run lookup is
       // unavailable. Repeated revocation in the finalizer is idempotent.
-      try { bundles.discard(sessionId) } catch {
-        ops.failed('session.exit-revoke', new Error('Local credential revocation remains unproved'), { sessionId })
+      try { bundles.discard(sessionId) } catch (e) {
+        ops.failed('session.exit-revoke', new Error('Local credential revocation remains unproved'), { sessionId, cause: causeOf(e) })
       }
       // This joins the same finalizer as operator Stop, launch failure and quit.
       // Its observations await terminal.closed, never this callback itself.
@@ -1063,8 +1066,8 @@ async function recordSessionExit(sessionId: string, exitCode: number | null, req
         kind: failure.kind, origin: failure.origin, certainty: failure.certainty,
         retryability: failure.retryability, recovery: failure.recovery,
         abnormal: failure.abnormal, says: failure.says } })
-  } catch {
-    ops.failed('session.exit-diagnostic', new Error('Exit diagnostic remains unavailable'), { sessionId })
+  } catch (e) {
+    ops.failed('session.exit-diagnostic', new Error('Exit diagnostic remains unavailable'), { sessionId, cause: causeOf(e) })
   }
 }
 
@@ -1084,7 +1087,7 @@ function startTranscriptRecovery(): void {
     if (generation !== recoveryGeneration) return
     let delay = 60_000
     try { const result = await recover(); if (result.remaining > 0) delay = 50 }
-    catch { ops.failed('startup.transcript-recovery', new Error('capture_recovery_pending')) }
+    catch (e) { ops.failed('startup.transcript-recovery', new Error('capture_recovery_pending'), { cause: causeOf(e) }) }
     if (generation === recoveryGeneration) {
       recoveryTimer = setTimeout(() => void tick(), delay)
       recoveryTimer.unref()
@@ -1746,7 +1749,7 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     let route: LaunchRoute | null = null
     // The setup preset records through Fabric's tools; main holds the line whatever the window chose — a runner by
     // name, a created agent or the fallback order (0.3.3 verification, iteration 2, UX-2/ER-5/DA-1).
-    const needsSurface = input.preset === 'setup'
+    const needsSurface = presetNeedsSurface(input.preset)
     if (optionId === FALLBACK_OPTION) {
       const walk = await runnerFallback.walk(input.projectId, { kind: 'task', permissionMode: input.permissionMode ?? null, needsSurface })
       if (walk.state === 'exhausted') throw new Error(describeExhausted(walk))
@@ -3317,11 +3320,13 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(
     IPC.attentionGrant,
     async (_e, input: { projectId: string | null; floorClass: string; target: string }): Promise<Returns<FabricApi['attention']['grant']>> => {
+      // The class is the renderer's word, checked before any append (audit A2-015), never cast.
+      if (!isFloorClass(input.floorClass)) throw new Error(`"${String(input.floorClass)}" is not a floor class.`)
       // The answer is returned (A1-001): the act says "allowed until …" instead of offering itself again.
       const { grantId, expiresAt } = await policy.issueGrant({
         estateId: ACTIVE_ESTATE,
         projectId: input.projectId,
-        floorClass: input.floorClass as 'money' | 'deletion' | 'publication',
+        floorClass: input.floorClass,
         target: input.target,
         actor: OPERATOR_ACTOR,
         // An hour. Long enough for an agent to notice and act, short enough
@@ -3456,6 +3461,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     if (!privateHistory || typeof operationId !== 'string') return historyUnavailable
     return await privateHistory.check(operationId) as Returns<FabricApi['history']['check']>
   })
+  // A5-014, A3-005: what waits for a result and what can still be opened are main's files, not the panel's state.
+  handle(IPC.historyPending, (): Returns<FabricApi['history']['pending']> => privateHistory?.pending() ?? [])
+  handle(IPC.historyRestored, (): Returns<FabricApi['history']['restored']> => privateHistory?.restoredEstates() ?? [])
   handle(IPC.historyOpen, (_e, estateId: unknown): Returns<FabricApi['history']['open']> => {
     // Only an Estate this machine restored for this Person, never any id the renderer names.
     if (!privateHistory || typeof estateId !== 'string' || !privateHistory.restored().includes(estateId)) return { ok: false, reason: 'not_restored_here' }
@@ -4122,7 +4130,9 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
       floorClass: 'deletion',
       target: fileRoots.resolve(file, scope),
       actor: OPERATOR_ACTOR,
-      ttlMs: 60_000
+      ttlMs: 60_000,
+      // The one act the write asks for (filesWrite's request): the grant authorises no other (A7-015).
+      actionClass: 'file.overwrite'
     })
     return { grantId, expiresAt }
   })
@@ -4188,7 +4198,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.filesList, (event, dir: string): Returns<FabricApi['files']['list']> => listDirectory(dir, fileRoots, scopeOf(event)))
 
   handle(IPC.settingsRead, (): Returns<FabricApi['settings']['read']> => readSettings())
-  handle(IPC.settingsWrite, (_e, next: Partial<AppSettings>): Returns<FabricApi['settings']['write']> => {
+  handle(IPC.settingsWrite, (_e, raw: unknown): Returns<FabricApi['settings']['write']> => {
+    // A window changes only the preferences it shows; tabs and the workspace folder are main's (audit A7-008/A7-025).
+    const checked = settingsPatch(raw)
+    if (!checked.ok) return { settings: readSettings(), saved: false, reason: checked.reason }
+    const next = checked.patch
     const written = writeSettings(next)
     // Applied now, not at next launch: a power setting that takes effect
     // tomorrow is a power setting that did not work today. Applied from what was
@@ -4353,10 +4367,15 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
     return (data ?? []) as MemoryFact[]
   })
 
-  handle(IPC.terminalOptions, (): Returns<FabricApi['terminal']['options']> => launchOptions())
-  handle(IPC.terminalFallback, async (_e, projectId: string, kind: 'terminal' | 'task', permissionMode?: string | null): Promise<Returns<FabricApi['terminal']['fallback']>> =>
+  handle(IPC.terminalOptions, (): Promise<Returns<FabricApi['terminal']['options']>> => launchOptions())
+  // The preview walks the order as the launch will: a task's preset adds the launch's needs (CO-234).
+  handle(IPC.terminalFallback, async (_e, projectId: string, kind: 'terminal' | 'task', permissionMode?: string | null, preset?: string | null): Promise<Returns<FabricApi['terminal']['fallback']>> =>
     runnerFallback.configured()
-      ? { configured: true, walk: await runnerFallback.walk(projectId, { kind: kind === 'task' ? 'task' : 'terminal', permissionMode: permissionMode ?? null }) }
+      ? { configured: true, walk: await runnerFallback.walk(projectId, {
+          kind: kind === 'task' ? 'task' : 'terminal',
+          permissionMode: permissionMode ?? null,
+          needsSurface: kind === 'task' && presetNeedsSurface(typeof preset === 'string' ? preset : null)
+        }) }
       : { configured: false, walk: null })
 
   handle(
@@ -4625,7 +4644,7 @@ async function startOrExplain(): Promise<void> {
       if (!events.find((e) => e.seq === probeEvent.seq)) throw new Error('smoke replay did not return the probe')
       const { error: memError } = await store.select('memory_facts', 'id').limit(1)
       if (memError) throw new Error(`smoke memory read failed: ${memError.message}`)
-      const opts = launchOptions()
+      const opts = await launchOptions()
       const probe = await fetch(surface.endpoint, {
         method: 'POST',
         headers: { 'content-type': 'application/json', authorization: 'Bearer nonsense' },

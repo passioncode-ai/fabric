@@ -19,8 +19,9 @@
 //
 // It reads files. It runs nothing and needs no network.
 
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
+import { toolCountsInProse } from './lib/tool-counts.mjs'
 
 const root = new URL('..', import.meta.url).pathname
 const read = (p) => readFileSync(path.join(root, p), 'utf8')
@@ -93,7 +94,6 @@ for (const [where, list] of [
 // drift rather than reprinting it — the third time in this codebase that a
 // check has had to be taught not to flag its own documentation, and the first
 // where the right answer was to change the documentation instead.
-const WORDS = /\b(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b\s+tools?\b/i
 // LINE BY LINE, and only the lines that ship to a screen. Two things went wrong
 // when this scanned whole files: "one of them" matched an unrelated string
 // elsewhere in the registry, and the gate flagged THIS FILE'S OWN comment,
@@ -103,26 +103,21 @@ const WORDS = /\b(two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thi
 // the screen spec as well as in the shipped string, and correcting one and not
 // the other is how a document and a product start disagreeing about a number
 // neither of them computes.
+// The architecture documents are scanned too (audit 2026-10-05 A7-040): three of them wrote counts this gate
+// never read, while it measured more. The matching — in words and in numerals — is
+// scripts/lib/tool-counts.mjs, tested there.
 const SCANNED = [
   'apps/desktop/src/renderer/src/i18n/en.ts',
   'apps/desktop/src/renderer/src/HarnessSection.tsx',
-  'docs/ux/screens.md'
+  'docs/ux/screens.md',
+  ...readdirSync(path.join(root, 'docs/architecture')).filter((f) => f.endsWith('.md')).sort().map((f) => `docs/architecture/${f}`)
 ]
-for (const file of SCANNED) {
-  read(file)
-    .split('\n')
-    .forEach((raw, i) => {
-      if (/^\s*(\/\/|\*|\/\*)/.test(raw)) return
-      const line = raw.replace(/\/\/.*$/, '')
-      if (!/harness\.|harness|tool/i.test(line)) return
-      const m = line.match(WORDS)
-      if (m)
-        problems.push(
-          `${file}:${i + 1} writes a tool count in words ("${m[0]}"). It cannot be recomputed, and the last ` +
-            `one was wrong by six for as long as nobody read it. Render the figure from the list.`
-        )
-    })
-}
+for (const file of SCANNED)
+  for (const { line, count } of toolCountsInProse(read(file)))
+    problems.push(
+      `${file}:${line} writes a tool count in prose ("${count}"). It cannot be recomputed, and the last ` +
+        `one was wrong by six for as long as nobody read it. Render the figure from the list, or name surfaceTools.ts.`
+    )
 
 const recording = [...declaredSource.matchAll(/records:\s*(true|false)/g)].map((m) => m[1] === 'true')
 notes.push(

@@ -173,6 +173,9 @@ if (process.platform === 'darwin') {
   spawnFailed.outcome === 'unreadable' && notJson.outcome === 'unreadable'
     ? ok('a spawn error or an item that is not JSON is unreadable, not a refusal')
     : fail(`spawn/parse outcomes: ${spawnFailed.outcome} ${notJson.outcome}`)
+  let ran = null
+  await readKeychainToken(async (file) => { ran = file; return { stdout: '{}' } })
+  ran === '/usr/bin/security' ? ok('the Keychain is read through /usr/bin/security, never a PATH lookup (A7-027)') : fail(`the Keychain read ran ${ran}`)
   const secs = await readKeychainToken(async () => ({ stdout: JSON.stringify({ claudeAiOauth: { accessToken: 't', expiresAt: 1_900_000_000 } }) }))
   secs.expiresAt === 1_900_000_000_000 ? ok('an expiry in seconds is read as seconds') : fail(`expiresAt in seconds read as ${secs.expiresAt}`)
 }

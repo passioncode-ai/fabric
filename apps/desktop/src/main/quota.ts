@@ -193,6 +193,10 @@ type KeychainOutcome = 'found' | 'absent' | 'denied' | 'timeout' | 'unreadable'
 
 type Exec = (file: string, args: string[], opts: { timeout: number; killSignal: NodeJS.Signals }) => Promise<{ stdout: string }>
 
+/** The system's own `security`, by absolute path: a PATH lookup let a `security` earlier on the session PATH
+ *  answer for the Keychain (audit 2026-10-05 A7-027). */
+export const SECURITY_BIN = '/usr/bin/security'
+
 /** Bounded: a `security` call that waits on a dialog or a locked keychain is ended, not awaited. */
 const KEYCHAIN_TIMEOUT_MS = 5_000
 
@@ -205,7 +209,7 @@ const KEYCHAIN_TIMEOUT_MS = 5_000
  */
 async function readKeychainToken(exec: Exec = run as unknown as Exec): Promise<{ token: string | null; outcome: KeychainOutcome; expiresAt?: number }> {
   try {
-    const { stdout } = await exec('security', ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-w'], {
+    const { stdout } = await exec(SECURITY_BIN, ['find-generic-password', '-s', KEYCHAIN_SERVICE, '-w'], {
       timeout: KEYCHAIN_TIMEOUT_MS,
       killSignal: 'SIGKILL'
     })

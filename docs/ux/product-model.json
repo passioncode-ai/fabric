@@ -30074,7 +30074,7 @@
         "SCR-03",
         "SCR-25"
       ],
-      "coverage": "`apps/desktop/src/main/pty.ts`, `apps/desktop/src/renderer/src/SessionWindow.tsx`, `apps/desktop/test/pty.test.mjs`",
+      "coverage": "`apps/desktop/src/main/pty.ts`, `apps/desktop/src/renderer/src/SessionWindow.tsx`, `apps/desktop/test/pty-launch-failure.test.mjs` (PtyManager's launch, its refusals and its journalling), `apps/desktop/test/scrollback.test.mjs` (reattach to the retained output); `apps/desktop/test/pty.test.mjs` only echoes through raw node-pty",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the session is the one the agent actually runs in, typeable and reattachable, and its lifecycle exists as journal events with receipts. It lives in its own window so the project panel stays readable behind it.",
@@ -30252,7 +30252,7 @@
       "title": "Read what an agent says it is doing",
       "flow_ids": [],
       "screen_refs": [],
-      "coverage": "`apps/desktop/src/main/agentSurface.ts`, `apps/desktop/src/renderer/src/ProjectHome.tsx`",
+      "coverage": "`apps/desktop/src/main/agentSurface.ts`, `apps/desktop/src/renderer/src/ProjectHome.tsx`, `apps/desktop/src/renderer/src/AgentTile.test.tsx` (the claim's label, age and stale mark)",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "the operator can follow progress without reading a transcript, and can never mistake what an agent asserted for what the system measured.",
@@ -30835,11 +30835,11 @@
         "SCR-47",
         "SCR-65"
       ],
-      "coverage": "`apps/desktop/src/main/backup.ts` — ordinary archive verification and low-level restore only; no owner wrapper, no UI.",
+      "coverage": "`apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (restore section, pending and restored lists), `apps/desktop/src/main/privateHistory.ts#restore` / `#pending` / `#restoredEstates`, `restore_estate_verified`, `apps/desktop/src/main/activeEstate.ts`. Tests: `PrivateHistoryPanel.test.tsx`, `apps/desktop/test/private-history-service.test.mjs`, `apps/desktop/test/private-history-native-db.test.mjs` (owned cluster), `apps/desktop/test/active-estate.test.mjs`.",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "Past work is back as history in its own Estate, owned by the operator who restored it, with nothing restarted or re-sent.",
-      "errors_recovery": "Any failure rolls the whole restore back: no half-created Estate, owner or history. A result that is unknown is checked with the same operation ID. Revoked or changed ownership of the control Estate refuses the restore. The word \"backup\" is not used until end-to-end restore has been accepted.",
+      "errors_recovery": "Any failure rolls the whole restore back: no half-created Estate, owner or history. A result that is unknown is checked with the same operation ID. Revoked or changed ownership of the control Estate refuses the restore. A call that fails ends in a refusal or a Check again, never on \"Restoring…\"; an archive file that cannot be read again is refused with its operation, which stays checkable. Fabric keeps its own private copy of the archive from before the first call until the result is known, so moving the original does not lose the restore. A failed Open keeps the restored result, names why and can be tried again. The word \"backup\" is not used until end-to-end restore has been accepted.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 1798
@@ -30932,7 +30932,7 @@
       "screen_refs": [
         "SCR-51"
       ],
-      "coverage": "none yet",
+      "coverage": "`apps/desktop/src/shared/quotaReading.ts#readQuotaReading`, `apps/desktop/src/renderer/src/ProjectHome.tsx#ProjectStatusBar` (a failed quota read is a muted «quota unreadable: …» cell, never hidden as «no quota»; audit A4-020), `apps/desktop/src/shared/quotaReading.test.ts`, `apps/desktop/src/renderer/src/halfShipped.test.tsx`. The unified usage/capacity/cost view is not built.",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "Различать доступную квоту провайдера, ёмкость автоматизаций, записанные расходы и подписку Estate.",
@@ -31458,11 +31458,11 @@
         "SCR-52",
         "SCR-65"
       ],
-      "coverage": "none yet",
+      "coverage": "import is fused with restore (SCN-065): `apps/desktop/src/main/privateHistory.ts#exportHistory` / `#restore`, `apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx`. Tests: `apps/desktop/test/private-history-service.test.mjs`, `apps/desktop/test/private-history-native-db.test.mjs`, `apps/desktop/test/private-history-db.test.mjs` (owned cluster), `PrivateHistoryPanel.test.tsx`. No separate Import private history action yet.",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "Each person carries their own private history between installations; nobody else's history and no authority travels with it.",
-      "errors_recovery": "Refusals name a fixed reason without showing any message text, digest or path: stale (history changed during export), not this person's history, not this Estate, altered, incomplete, too large, unsupported version, already imported. A failed import leaves the restored Estate usable with private history unavailable. The file is kept until the import result is known.",
+      "errors_recovery": "Refusals name a fixed reason without showing any message text, digest or path: stale (history changed during export), not this person's history, not this Estate, altered, incomplete, too large, unsupported version, already imported. A failed import leaves the restored Estate usable with private history unavailable: the result says *restored; private history not imported: <reason>*, and the Estate can be opened. The file is kept until the import result is known — Fabric's own private copy, taken before the first call.",
       "source": {
         "file": "docs/ux/scenarios.md",
         "line": 2524
@@ -31671,7 +31671,7 @@
         "SCR-09",
         "SCR-64"
       ],
-      "coverage": "none yet",
+      "coverage": "`apps/desktop/src/renderer/src/launch/AgentWorkspace.tsx#useRunStatus` (read again every 5 s until the run is read as ended), `#RunCallout` (an ended run names its outcome; `outcome_unknown` offers Check again, which reads the run's record again), `apps/desktop/src/renderer/src/TaskPage.tsx` (the rail names the state or outcome in words and says «unreadable» when the status read fails; audit A5-018); `apps/desktop/src/renderer/src/launch/AgentWorkspace.test.tsx`, `apps/desktop/src/renderer/src/TaskPage.test.tsx`. Retry and «choose another agent» from the run are not built.",
       "registry_status": "draft",
       "product_observation": "unobserved",
       "expected_result": "Failures are named and recoverable; unknown outcomes are resolved, not duplicated.",
@@ -32136,7 +32136,7 @@
       "coverage": "apps/desktop/src/main/accessService.ts, apps/desktop/src/main/consentPresenter.ts, apps/desktop/src/main/hubTools.ts, apps/desktop/src/renderer/src/AgentAccessPanel.tsx, apps/desktop/src/renderer/src/launch/ObligationActs.tsx",
       "registry_status": "draft",
       "product_observation": "unobserved",
-      "expected_result": "The agent works within what was allowed, nothing wider; every decision and every call is in the journal.",
+      "expected_result": "The agent works within what was allowed, nothing wider; every decision and every call that reached (or may have reached) a product is in the journal; a call Fabric stopped before forwarding is journalled once per kind in a ten-minute window and the rest of that window's are counted in one summary (CO-200).",
       "errors_recovery": "An unreadable access list is said in SCR-76 with Try again, never \"no agent has access\", and without the transport's wording. A decision on an expired or already answered request is refused, and the refusal is said in the operator's language. A mailbox with an invisible or look-alike character (not printable ASCII) is refused before any prompt, so what is shown is exactly what is granted. A hub whose port is taken says why in SCR-76; sessions Fabric starts keep working.",
       "source": {
         "file": "docs/ux/scenarios.md",

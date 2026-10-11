@@ -12,11 +12,34 @@
 // Returning `null` is what makes a file UNREADABLE, which is what makes it
 // quarantined instead of overwritten (`main/localState.ts`).
 
-import { APP_SETTINGS_DEFAULTS, type AppSettings, type KeepAwake } from './types'
+import { APP_SETTINGS_DEFAULTS, type AppSettings, type KeepAwake, type SettingsPatch } from './types'
 import type { TabRef } from './tabs.ts'
 import { cleanOrder, type FallbackEntry } from './runnerRoute.ts'
 
 export { APP_SETTINGS_DEFAULTS }
+
+// #region settings-patch — docs: docs/ux/scenarios.md#scn-026-follow-the-estate-through-the-journal-feed
+/** The keys `settings.write` takes from a window (`types.ts#SettingsPatch`); main keeps the rest. */
+const PATCH_KEYS: readonly (keyof SettingsPatch)[] = ['theme', 'locale', 'keepAwake', 'readThroughSeq', 'firstRun', 'runnerFallback']
+
+/**
+ * A window's settings write, checked before anything is merged (audit 2026-10-05 A7-008, A7-025). A key a
+ * window may not change — `tabs`, `workspace`, anything unknown — refuses the whole write, and so does a
+ * value the file could not hold: merged as it was, `theme: 42` would have been written and read back as
+ * the default, a change nobody asked for.
+ */
+export function settingsPatch(raw: unknown): { ok: true; patch: SettingsPatch } | { ok: false; reason: string } {
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return { ok: false, reason: 'a settings write is an object of changes' }
+  const given = raw as Record<string, unknown>
+  const foreign = Object.keys(given).filter((k) => !(PATCH_KEYS as readonly string[]).includes(k)).sort()
+  if (foreign.length > 0) return { ok: false, reason: `a window may not write ${foreign.join(', ')}` }
+  // Each value as the file would read it back; one that would not survive the read is refused, not replaced.
+  const read = validateSettings({ ...APP_SETTINGS_DEFAULTS, ...given })
+  const changed = Object.keys(given).filter((k) => JSON.stringify(read?.[k as keyof AppSettings]) !== JSON.stringify(given[k]))
+  if (!read || changed.length > 0) return { ok: false, reason: `not a value the settings file can hold: ${changed.join(', ')}` }
+  return { ok: true, patch: given as SettingsPatch }
+}
+// #endregion settings-patch
 
 export function validateSettings(parsed: unknown): AppSettings | null {
   if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return null

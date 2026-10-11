@@ -732,7 +732,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **Telemetry:** `terminal_session_opened` with project_id, cwd_bound, reattach:boolean — no keystroke content, no transcript body
 - **Amended 2026-10-11 (UXAC04-REQ-008):** while a read refuses, the session window says which of four things it is. Before any answer, a refused read says "This session could not be read: {reason}. That says nothing about the session itself — it is about the read."; with the terminal already on screen, a refused refresh keeps it and says "This reading is not current: {reason}. What is below is the last answer, not the latest one."; a session the estate no longer has says "This session is gone. You can close the window."; the next read that answers clears the caveat, and an answer for another session or a closed window is dropped (`apps/desktop/src/shared/sessionReading.ts#sessionSays`, `apps/desktop/src/renderer/src/SessionWindow.tsx#SessionWindow`, checked by `apps/desktop/src/renderer/src/SessionWindow.test.tsx` and `apps/desktop/src/shared/sessionReading.test.ts`).
 - **Status:** draft
-- **Coverage:** `apps/desktop/src/main/pty.ts`, `apps/desktop/src/renderer/src/SessionWindow.tsx`, `apps/desktop/test/pty.test.mjs`
+- **Coverage:** `apps/desktop/src/main/pty.ts`, `apps/desktop/src/renderer/src/SessionWindow.tsx`, `apps/desktop/test/pty-launch-failure.test.mjs` (PtyManager's launch, its refusals and its journalling), `apps/desktop/test/scrollback.test.mjs` (reattach to the retained output); `apps/desktop/test/pty.test.mjs` only echoes through raw node-pty
 - **Product:** unobserved
 
 ## Monitoring
@@ -1053,7 +1053,7 @@ P-02 Organization owner/team admin, P-03 Member/specialist and P-04 Provider bui
 - **Errors & recovery:** a claim always carries its age, so a three-hour-old account cannot sit unmarked beside a four-second-old measurement; the surface being down means sessions still run and simply cannot report.
 - **Telemetry:** planned only — see the note at the top of this file; the journal event is the record.
 - **Status:** draft
-- **Coverage:** `apps/desktop/src/main/agentSurface.ts`, `apps/desktop/src/renderer/src/ProjectHome.tsx`
+- **Coverage:** `apps/desktop/src/main/agentSurface.ts`, `apps/desktop/src/renderer/src/ProjectHome.tsx`, `apps/desktop/src/renderer/src/AgentTile.test.tsx` (the claim's label, age and stale mark)
 - **Product:** unobserved
 
 ### SCN-036: Read captured session history, including recovery after a crash
@@ -1807,15 +1807,15 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
   3. Operator reads the result → three facts are shown separately: *history restored*, *access to the new Estate verified*, *not opened yet*. The restored Estate has no queued work, no running agent and no restored grant.
   4. Operator chooses Open this Estate → Fabric records it as the active Estate and restarts into it; after the restart the Estate is shown as *opened*.
 - **Expected result:** Past work is back as history in its own Estate, owned by the operator who restored it, with nothing restarted or re-sent.
-- **Alt paths:** The operator can stay in the current Estate and open the restored one later. A restore whose reply was lost is looked up by the same operation and returns the same Estate, never a second one. A member who is not the owner of the control Estate cannot restore.
-- **UI elements:** archive picker; verification result with reason; restore confirmation naming the new Estate; three result facts; Open this Estate with restart notice.
+- **Alt paths:** The operator can stay in the current Estate and open the restored one later: every Estate this Mac restored for them, other than the one open, is listed under "Restored Estates you can open". A restore whose reply was lost is looked up by the same operation and returns the same Estate, never a second one; it stays listed under "Restores waiting for a result" with Check again after the panel closes or Fabric restarts. A member who is not the owner of the control Estate cannot restore.
+- **UI elements:** archive picker; verification result with reason; restore confirmation naming the new Estate; three result facts; Open this Estate with restart notice; restores waiting for a result; restored Estates you can open.
 - **States covered:** empty, verifying, refused, restoring, result-unknown, history-restored, access-verified, opening, opened, denied, error
-- **Errors & recovery:** Any failure rolls the whole restore back: no half-created Estate, owner or history. A result that is unknown is checked with the same operation ID. Revoked or changed ownership of the control Estate refuses the restore. The word "backup" is not used until end-to-end restore has been accepted.
+- **Errors & recovery:** Any failure rolls the whole restore back: no half-created Estate, owner or history. A result that is unknown is checked with the same operation ID. Revoked or changed ownership of the control Estate refuses the restore. A call that fails ends in a refusal or a Check again, never on "Restoring…"; an archive file that cannot be read again is refused with its operation, which stays checkable. Fabric keeps its own private copy of the archive from before the first call until the result is known, so moving the original does not lose the restore. A failed Open keeps the restored result, names why and can be tried again. The word "backup" is not used until end-to-end restore has been accepted.
 - **Telemetry:** no new product telemetry; the operation receipt is the record.
 - **Implementation tasks:** A1-3, A1-6 of the [first-slice plan](../evidence/plans/2026-09-27-first-slice-plan.md); S12, S14.
 - **Prototype:** [target prototype](../reports/product.html#screen-SCR-48) — fictional fixture; not product coverage.
 - **Status:** draft
-- **Coverage:** `apps/desktop/src/main/backup.ts` — ordinary archive verification and low-level restore only; no owner wrapper, no UI.
+- **Coverage:** `apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx` (restore section, pending and restored lists), `apps/desktop/src/main/privateHistory.ts#restore` / `#pending` / `#restoredEstates`, `restore_estate_verified`, `apps/desktop/src/main/activeEstate.ts`. Tests: `PrivateHistoryPanel.test.tsx`, `apps/desktop/test/private-history-service.test.mjs`, `apps/desktop/test/private-history-native-db.test.mjs` (owned cluster), `apps/desktop/test/active-estate.test.mjs`.
 - **Product:** unobserved
 
 ### SCN-066: Return from authentication to the same invitation with current membership
@@ -1921,7 +1921,7 @@ Target design only; [shared contract](../architecture/system-contract.md) and pr
 - **Prototype:** [Интерактивный путь](../reports/product.html#view-usage).
 - **Amended 2026-10-11 (AX17-REQ-004):** verdict and owners from the 2026-09-09 audit's per-scenario record (`docs/audit/2026-09-09-final/scenarios-050-078.json`, static source trace, not re-audited since), which this scenario never received because it had no index row then: partly met; owners corrected — M171 added. Its gap as the audit read it: No unified usage/capacity/cost/source detail; unreadable quota can disappear instead of explain. Manager cost is unmeasured, subscription terms remain open.
 - **Status:** draft
-- **Coverage:** none yet
+- **Coverage:** `apps/desktop/src/shared/quotaReading.ts#readQuotaReading`, `apps/desktop/src/renderer/src/ProjectHome.tsx#ProjectStatusBar` (a failed quota read is a muted «quota unreadable: …» cell, never hidden as «no quota»; audit A4-020), `apps/desktop/src/shared/quotaReading.test.ts`, `apps/desktop/src/renderer/src/halfShipped.test.tsx`. The unified usage/capacity/cost view is not built.
 - **Product:** unobserved
 
 
@@ -2532,14 +2532,14 @@ SCN-031/059/094: уход из знакомства не считается вы
   2. After restoring an Estate, operator chooses Import private history and picks the file → Fabric checks that it is this person's history for exactly this restored Estate before writing anything.
   3. Operator confirms → the conversations come back as history: *history restored; nothing will be sent*. No draft, pending send or agent work is revived.
 - **Expected result:** Each person carries their own private history between installations; nobody else's history and no authority travels with it.
-- **Alt paths:** Another person imports their own file into the same restored Estate independently. Cancelling leaves nothing half-written. A result that is unknown is looked up with the same operation, never repeated blindly.
+- **Alt paths:** Another person imports their own file into the same restored Estate independently: an archive whose private history belongs to someone else is still restored, and the result says *private history not imported: it belongs to someone else* (ADR-0079 §4). Cancelling leaves nothing half-written. A result that is unknown is looked up with the same operation, never repeated blindly.
 - **UI elements:** Export private history; Import private history; file picker; verification result with reason; confirmation; result with "nothing will be sent".
 - **States covered:** empty, exporting, exported, export-refused, verifying, refused, importing, result-unknown, imported, denied, error
-- **Errors & recovery:** Refusals name a fixed reason without showing any message text, digest or path: stale (history changed during export), not this person's history, not this Estate, altered, incomplete, too large, unsupported version, already imported. A failed import leaves the restored Estate usable with private history unavailable. The file is kept until the import result is known.
+- **Errors & recovery:** Refusals name a fixed reason without showing any message text, digest or path: stale (history changed during export), not this person's history, not this Estate, altered, incomplete, too large, unsupported version, already imported. A failed import leaves the restored Estate usable with private history unavailable: the result says *restored; private history not imported: <reason>*, and the Estate can be opened. The file is kept until the import result is known — Fabric's own private copy, taken before the first call.
 - **Telemetry:** no new product telemetry; the import receipt is the record.
 - **Implementation tasks:** A1-1, A1-2, A1-4, A1-6 of the [first-slice plan](../evidence/plans/2026-09-27-first-slice-plan.md).
 - **Status:** draft
-- **Coverage:** none yet
+- **Coverage:** import is fused with restore (SCN-065): `apps/desktop/src/main/privateHistory.ts#exportHistory` / `#restore`, `apps/desktop/src/renderer/src/PrivateHistoryPanel.tsx`. Tests: `apps/desktop/test/private-history-service.test.mjs`, `apps/desktop/test/private-history-native-db.test.mjs`, `apps/desktop/test/private-history-db.test.mjs` (owned cluster), `PrivateHistoryPanel.test.tsx`. No separate Import private history action yet.
 - **Product:** unobserved
 
 ### Target refinement · 2026-09-26 · team visibility and one conversation
@@ -2778,7 +2778,7 @@ Source: the approved [design](../evidence/specs/2026-09-29-agent-registry-design
 - **Telemetry:** none.
 - **Implementation tasks:** design module AR-3 ([design](../evidence/specs/2026-09-29-agent-registry-design.md#12-modules-stages-310-run-per-module-ids-ar-0ar-11-so-they-never-collide-with-backlog-m-ids)).
 - **Status:** draft
-- **Coverage:** none yet
+- **Coverage:** `apps/desktop/src/renderer/src/launch/AgentWorkspace.tsx#useRunStatus` (read again every 5 s until the run is read as ended), `#RunCallout` (an ended run names its outcome; `outcome_unknown` offers Check again, which reads the run's record again), `apps/desktop/src/renderer/src/TaskPage.tsx` (the rail names the state or outcome in words and says «unreadable» when the status read fails; audit A5-018); `apps/desktop/src/renderer/src/launch/AgentWorkspace.test.tsx`, `apps/desktop/src/renderer/src/TaskPage.test.tsx`. Retry and «choose another agent» from the run are not built.
 - **Product:** unobserved
 
 ### SCN-109: A coding agent calls Fabric within its grant
@@ -3343,7 +3343,7 @@ personalisation form" line (the operator chose name and look first, 2026-10-03).
   2. Every launcher now offers *Fallback order → <coding agent>* and chooses it by default; the name after the arrow is the coding agent the order resolves to right now.
   3. The person launches with it → Fabric walks the order from the top: an open, idle Claude Code session of this project, in the same permission mode, is brought forward; with none, Hermes Agent starts and answers.
 - **Expected result:** The launch is served by the first coding agent in the order that can serve it, and the session record says which one and why the ones above it were passed over (`terminal.opened@1` `route`).
-- **Alt paths:** The person picks a coding agent by name → exactly that agent runs, or the launch fails as before; the order is not consulted. A task never uses an open session: it always starts its own. A coding agent that would run with a weaker gate than the first one under the chosen permission mode, or a task's agent that cannot return its result the same way, is passed over. The order is empty → no *Fallback order* choice is offered and nothing changes. A task that records through Fabric's tools (the setup preset) is never given to a coding agent without them: the walk passes over such agents, and over all of them while the agent surface is not listening (ADR-0125 amendment 1).
+- **Alt paths:** The person picks a coding agent by name → exactly that agent runs, or the launch fails as before; the order is not consulted. A task never uses an open session: it always starts its own. A coding agent that would run with a weaker gate than the first one under the chosen permission mode, or a task's agent that cannot return its result the same way, is passed over. The order is empty → no *Fallback order* choice is offered and nothing changes. A task that records through Fabric's tools (the setup preset) is never given to a coding agent without them: the walk passes over such agents, and over all of them while the agent surface is not listening (ADR-0125 amendment 1); with the setup preset loaded, the task panel's *Fallback order → …* names the agent that walk chooses, not the one a launch without the preset would get (CO-234).
 - **UI elements:** the *Fallback order* list in Settings with Up, Down, Remove and Add; the *Fallback order → …* choice in the launchers.
 - **States covered:** empty order, order set, resolved, exhausted
 - **Errors & recovery:** No coding agent in the order can start → nothing starts, and the person reads each agent with the reason it was passed over (not installed, did not answer, signed out, no open session, cannot run this launch, could not be started, not known to this version); installing, signing in or editing the order fixes it. From the agents panel, a coding agent whose start fails is passed over and the next one is tried; a task fails instead, because it was created for the agent the order chose. A launch whose authority changed is stopped and never retried on another agent.

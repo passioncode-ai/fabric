@@ -367,6 +367,7 @@ const decision = (over = {}) =>
 {
   const dir = mkdtempSync(path.join(tmpdir(), 'fabric-auto-'))
   const asked = []
+  const cancelled = []
   let up = true
   const loop = createAutoLoop({
     dir,
@@ -374,6 +375,10 @@ const decision = (over = {}) =>
     beginSwitch: (i) => {
       asked.push(i)
       return { ok: true, reason: 'queued' }
+    },
+    cancelSwitch: (key, why) => {
+      cancelled.push({ key, why })
+      return { ok: true, reason: 'cancelled before anything stopped' }
     },
     now: () => NOW,
     running: () => up
@@ -386,6 +391,12 @@ const decision = (over = {}) =>
     ? ok('withdrawing before the stop drops the queued intent')
     : fail('withdrawal: ' + JSON.stringify(withdrawn))
   eq(loop.state().enrolled.length, 0, 'and the conversation is no longer enrolled')
+  // Audit A4-009: the queued operation itself is cancelled, not only forgotten by the loop.
+  cancelled.length === 1 && cancelled[0].key === asked[0].idempotencyKey
+    ? ok('and the coordinator is asked to cancel exactly the switch the intent began')
+    : fail('withdraw did not cancel the switch: ' + JSON.stringify(cancelled))
+  eq(loop.withdraw('conv-A').reason, 'withdrawn; nothing was queued', 'a second withdrawal has nothing to cancel')
+  eq(cancelled.length, 1, 'and asks the coordinator for nothing')
 
   up = false
   const off = loop.tick({ policy: policy(), conversationId: 'conv-A' })

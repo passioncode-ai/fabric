@@ -78,12 +78,16 @@ test('a surface error answers that request and keeps the bridge; a 401 closes it
   const agent = end(), surface = end()
   let failWith = { code: 500, message: 'Streamable HTTP error: 500' }
   surface.t.send = async (m) => { if (failWith) throw Object.assign(new Error(failWith.message), { code: failWith.code }); surface.sent.push(m) }
-  const finished = relay({ agent: agent.t, surface: surface.t })
+  const logged = []
+  const finished = relay({ agent: agent.t, surface: surface.t }, (l) => logged.push(l))
   await new Promise((r) => setTimeout(r, 10))
   agent.t.onmessage({ jsonrpc: '2.0', id: 7, method: 'tools/list' })
   await new Promise((r) => setTimeout(r, 10))
   assert.deepEqual(agent.sent, [{ jsonrpc: '2.0', id: 7, error: { code: -32603, message: "Fabric's surface did not take this request: Streamable HTTP error: 500" } }])
   assert.equal(agent.closed(), false, 'one 5xx does not end the bridge')
+  assert.ok(logged.some((l) => l.includes('(HTTP 500)')), 'the failure is logged with its status (A7-037)')
+  surface.t.onerror(Object.assign(new Error('SSE stream disconnected'), { code: 502 }))
+  assert.ok(logged.some((l) => l.includes('transport reported an error (HTTP 502)')), 'a transport error is logged, not swallowed')
   failWith = null
   agent.t.onmessage({ jsonrpc: '2.0', id: 8, method: 'tools/list' })
   await new Promise((r) => setTimeout(r, 10))
@@ -92,6 +96,9 @@ test('a surface error answers that request and keeps the bridge; a 401 closes it
   agent.t.onmessage({ jsonrpc: '2.0', id: 9, method: 'tools/list' })
   await finished
   assert.equal(agent.closed() && surface.closed(), true, 'a refused credential ends both sides')
+  assert.deepEqual(agent.sent.at(-1), { jsonrpc: '2.0', id: 9, error: { code: -32603, message: "Fabric's surface did not take this request: the surface refused the session credential (HTTP 401)" } },
+    'the request that met the refusal is answered before the bridge closes (A7-037)')
+  assert.ok(logged.some((l) => l.includes('refused the session credential (HTTP 401)')))
 })
 
 // Audit 2026-10-06 DA-2: an agent without HTTP MCP reaches the project's granted servers through a bridge

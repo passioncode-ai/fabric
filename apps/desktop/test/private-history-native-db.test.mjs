@@ -131,9 +131,11 @@ try {
     const c = freshDatabase(cluster, 'native_target_refusals')
     c.sql(`insert into persons(id,display_name) values(${uuid(U)},'owner'),(${uuid(V)},'member');insert into estates(id,name) values(${uuid(CB)},'control');
      insert into memberships(person_id,estate_id,role) values(${uuid(U)},${uuid(CB)},'owner'),(${uuid(V)},${uuid(CB)},'member');`)
+    // A member who is not the control Estate's owner cannot restore (SCN-065); the database refuses it.
     const asV = service(c, { estateId: CB, personId: V, revision: 1, actor: actor(V) })
-    assert.equal((await asV.history.restore(exported.dir, 'x')).reason_code, 'unavailable', "another Person's history is never imported")
-    assert.deepEqual(asV.calls, [], 'refused before any database call')
+    const refusedV = await asV.history.restore(exported.dir, 'x')
+    assert.deepEqual([refusedV.ok, refusedV.state], [false, 'refused'], JSON.stringify(refusedV))
+    assert.deepEqual(asV.calls, ['restore_estate_verified'], "another Person's companion is never sent to import")
     const onC = service(c, who)
     assert.equal((await onC.history.restore(path.join(exported.dir, 'missing'), 'x')).reason_code, 'not_found')
     assert.equal((await onC.history.check(id(999))).reason_code, 'not_found', 'an unknown operation is not a new one')
@@ -143,7 +145,26 @@ try {
     const noone = service(c, null)
     assert.equal((await noone.history.restore(exported.dir, 'x')).reason_code, 'unavailable')
   }
-  pass("another Person's archive, a missing directory, an unknown operation and no held identity: refused, zero rows")
+  pass("a non-owner, a missing directory, an unknown operation and no held identity: refused, zero rows")
+
+  // ── 4. Another Person's companion (audit 2026-10-05 A5-011, ADR-0079 §4): the owner of a control Estate restores
+  //       the ordinary archive; the companion stays its Person's to import, and nothing of it is written. ─────────
+  {
+    const c = freshDatabase(cluster, 'native_target_not_mine')
+    const CV = id(21)
+    c.sql(`insert into persons(id,display_name) values(${uuid(V)},'member');insert into estates(id,name) values(${uuid(CV)},'control');
+     insert into memberships(person_id,estate_id,role) values(${uuid(V)},${uuid(CV)},'owner');`)
+    const asV = service(c, { estateId: CV, personId: V, revision: 1, actor: actor(V) })
+    const r = await asV.history.restore(exported.dir, 'Atlas, without U')
+    assert.equal(r.ok, true, JSON.stringify(r))
+    assert.deepEqual([r.private_history, r.private_history_skipped], [false, 'not_your_history'])
+    assert.deepEqual(asV.calls, ['restore_estate_verified'], 'only the ordinary restore is sent')
+    assert.equal(count(c, 'estate_restore_boundaries'), 1)
+    assert.equal(count(c, 'ceo_messages', r.target_estate_id), 0, "U's messages are not in V's restored Estate")
+    assert.equal(count(c, 'ceo_private_import_receipts'), 0)
+    assert.deepEqual(asV.history.restored(), [r.target_estate_id])
+  }
+  pass("an archive carrying another Person's private history restores for the control owner; the companion is not imported")
 
   console.log(`PASS private history in main: ${groups} groups on an owned cluster; the running app NOT_RUN (N1)`)
 } finally { for (const r of roots) rmSync(r, { recursive: true, force: true }) }

@@ -69,6 +69,11 @@ interface Staging {
   startedAt: number
 }
 
+// #region login-staging-ttl — docs: docs/ux/scenarios.md#scn-081-добавить-аккаунт-провайдера
+/** How long a staged login may wait for the provider's identity (SCN-081 alt path, audit A4-013). */
+export const STAGING_TTL_MS = 10 * 60_000
+// #endregion login-staging-ttl
+
 export interface LoginBegun {
   ok: true
   attemptId: string
@@ -149,6 +154,10 @@ export function createProviderAccounts(deps: AccountsDeps) {
       const verdict = mayStageLogin(deps.matrix, input.provider, build, existing)
       if (!verdict.allowed) return { ok: false, reason: verdict.reason }
 
+      // #region login-staging-ttl — docs: docs/ux/scenarios.md#scn-081-добавить-аккаунт-провайдера
+      // Expired attempts are swept here, so the map never holds a login nobody can finish any more.
+      for (const [id, s] of staging) if (now() - s.startedAt > STAGING_TTL_MS) staging.delete(id)
+      // #endregion login-staging-ttl
       const attemptId = randomUUID()
       const ref = stagingRef(input.provider, attemptId)
       staging.set(attemptId, {
@@ -207,6 +216,12 @@ export function createProviderAccounts(deps: AccountsDeps) {
           return { ok: true, existing: true, account: accountView(already, file.defaults[already.identity.provider] === already.accountId) }
         return { ok: false, reason: 'no staged login for that attempt: it was cancelled, expired, or never begun' }
       }
+      // #region login-staging-ttl — docs: docs/ux/scenarios.md#scn-081-добавить-аккаунт-провайдера
+      if (now() - attempt.startedAt > STAGING_TTL_MS) {
+        staging.delete(input.attemptId)
+        return { ok: false, reason: 'the staged login expired before the provider confirmed who it is; begin the login again' }
+      }
+      // #endregion login-staging-ttl
       if (attempt.provider !== input.identity.provider)
         return { ok: false, reason: `the attempt was staged for ${attempt.provider} and the identity is for ${input.identity.provider}` }
 

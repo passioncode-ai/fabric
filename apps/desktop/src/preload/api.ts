@@ -43,7 +43,9 @@ export function createApi(ipc: BridgeIpc): FabricApi {
       choose: () => ipc.invoke(IPC.historyChoose),
       restore: (token, name) => ipc.invoke(IPC.historyRestore, token, name),
       check: (operationId) => ipc.invoke(IPC.historyCheck, operationId),
-      open: (estateId) => ipc.invoke(IPC.historyOpen, estateId)
+      open: (estateId) => ipc.invoke(IPC.historyOpen, estateId),
+      pending: () => ipc.invoke(IPC.historyPending),
+      restored: () => ipc.invoke(IPC.historyRestored)
     },
     ceo: {
       status: () => ipc.invoke(IPC.ceoStatus),
@@ -229,7 +231,7 @@ export function createApi(ipc: BridgeIpc): FabricApi {
     },
     terminal: {
       options: () => ipc.invoke(IPC.terminalOptions),
-      fallback: (projectId, kind, permissionMode) => ipc.invoke(IPC.terminalFallback, projectId, kind, permissionMode),
+      fallback: (projectId, kind, permissionMode, preset) => ipc.invoke(IPC.terminalFallback, projectId, kind, permissionMode, preset),
       memoryBackends: () => ipc.invoke(IPC.terminalMemoryBackends),
       open: (projectId, optionId, firstInstruction, permissionMode) =>
         ipc.invoke(IPC.terminalOpen, projectId, optionId, firstInstruction, permissionMode),

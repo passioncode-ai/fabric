@@ -14,10 +14,15 @@ export { FALLBACK_OPTION }
 /** Dispatched on `window` after the order is saved, so open launchers read it again. */
 export const FALLBACK_CHANGED = 'fabric:fallback-order-changed'
 
-export function useFallbackChoice(projectId: string, kind: 'terminal' | 'task'): { configured: boolean; label: string } {
+/** `preset`: the task's preset. The label names the agent the LAUNCH would choose, and a preset that needs Fabric's
+ *  tools passes over the agents that do not connect to them (CO-234, ADR-0125 amendment 1). */
+export function useFallbackChoice(projectId: string, kind: 'terminal' | 'task', preset: string | null = null): { configured: boolean; label: string } {
   const t = useT()
   const [configured, setConfigured] = useState(false)
-  const [preview, setPreview] = useState<FallbackPreview | null>(null)
+  // Held with the launch it previews: a reading for another preset is not shown for this one (CO-234), while a
+  // re-read of the same launch (focus, an edited order) keeps the last label until the new one arrives.
+  const launch = `${projectId}\u0000${kind}\u0000${preset ?? ''}`
+  const [preview, setPreview] = useState<{ launch: string; preview: FallbackPreview } | null>(null)
   const [tick, setTick] = useState(0)
   useEffect(() => {
     const again = () => setTick((n) => n + 1)
@@ -30,11 +35,11 @@ export function useFallbackChoice(projectId: string, kind: 'terminal' | 'task'):
     // Through resolved promises, so a main process that cannot answer reads as "no order", never a crash.
     Promise.resolve().then(() => window.fabric.settings.read())
       .then((s) => { if (live) setConfigured((s.runnerFallback?.order.length ?? 0) > 0) }, () => { if (live) setConfigured(false) })
-    Promise.resolve().then(() => window.fabric.terminal.fallback(projectId, kind, null))
-      .then((p) => { if (live) setPreview(p) }, () => { if (live) setPreview(null) })
+    Promise.resolve().then(() => window.fabric.terminal.fallback(projectId, kind, null, preset))
+      .then((p) => { if (live) setPreview({ launch, preview: p }) }, () => { if (live) setPreview(null) })
     return () => { live = false }
-  }, [projectId, kind, tick])
-  const walk = preview?.walk
+  }, [projectId, kind, preset, tick])
+  const walk = preview?.launch === launch ? preview.preview.walk : null
   return {
     configured,
     label: !walk ? t('agents.fallback.optionPending')

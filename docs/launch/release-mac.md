@@ -100,7 +100,10 @@ build signed anywhere but the `release` environment is a debug build that is nev
    `FABRIC_SIGN_IDENTITY` and the keychain in `CSC_KEYCHAIN`, and the App Store Connect key as the
    secrets `ASC_*` (written to a mode-600 temporary file, never printed or put in argv). electron-builder
    signs the app, notarizes and staples it, and builds and signs the DMG; the script notarizes and staples
-   the DMG. It fails unless `codesign --verify --deep --strict` passes on the app and the signer read back
+   the DMG. It fails unless the app's Electron fuses, read back from the built binary, are the ones
+   `apps/desktop/electron-builder.yml` declares (`scripts/lib/release-mac.mjs#RELEASE_FUSES`: run-as-Node on for
+   the helpers; `NODE_OPTIONS`, `--inspect` and loading an app from outside the asar off; asar integrity on),
+   `codesign --verify --deep --strict` passes on the app and the signer read back
    from it is a Developer ID Application with the hardened runtime, Gatekeeper accepts the app and the DMG,
    and the stapled tickets of both validate. The DMG and its receipt `fabric-X.Y.Z-mac.json` (size,
    SHA-256, notarization id, signer, team, the checks, the CI run) are uploaded as `release-macos`; the
