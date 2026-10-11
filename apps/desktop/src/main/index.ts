@@ -720,7 +720,9 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     stillPending: async (requestId) => {
       const r = await accessStore.request(requestId)
       return !!r && r.status === 'pending' && Date.parse(r.expires_at) > Date.now()
-    }
+    },
+    // A6-036: read when the prompt is made and before an Allow connects, not only when the request arrived.
+    connected: async (product) => (await accessStore.liveConnection(product)) !== null
   })
   access = new AccessService({
     store: accessStore,
