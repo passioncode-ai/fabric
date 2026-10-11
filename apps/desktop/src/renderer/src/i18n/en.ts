@@ -1181,6 +1181,7 @@ export const en = {
   'event.agent.stage.reported@1': 'an agent reported its stage: its own claim',
   'event.session.oriented@1': 'a session read the rules it works under',
   'event.terminal.opened@1': 'a session was opened',
+  'event.session.enrolled@1': 'a coding agent opened outside Fabric joined the project',
   'event.terminal.closed@1': 'a session ended',
   'event.transcript.captured@1': 'a session’s output was recorded',
   'event.context.compiled@1': 'a context pack was compiled for a session',

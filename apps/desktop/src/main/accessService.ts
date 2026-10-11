@@ -27,8 +27,10 @@ import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypt
 import {
   ACCESS_REQUEST_TTL_MS,
   CREDENTIAL_CLAIM_WINDOW_MS,
+  FABRIC_SELF,
   GRANT_TTL_MS,
   normaliseAccessRequest,
+  projectOfResource,
   requestSignature,
   type AccessAsk
 } from '../shared/access.ts'
@@ -75,6 +77,12 @@ export interface AccessServiceDeps {
   /** Bounds on waiting requests, so an agent in a loop cannot bury the operator in prompts. */
   maxPendingPerAgent?: number
   maxPending?: number
+  /** ADR-0134: who may ask Fabric itself for `session.enroll` — a coding agent of the runner catalogue — and which
+   *  projects exist. Absent, Fabric refuses every enrollment ask. */
+  enrollment?: {
+    runner(agentId: string): { key: string; name: string; summary: string | null } | null
+    project(projectId: string): Promise<{ id: string; name: string } | null>
+  }
 }
 
 const HUB_ACTOR: AccessActor = { kind: 'system', id: 'fabric-hub' }
@@ -155,13 +163,33 @@ export class AccessService {
       }
       const asked = normaliseAccessRequest(raw)
       if (!asked.ok) return { ok: false, refused: asked.reason }
-      this.deps.registry.refresh()
-      const resolved = this.deps.registry.resolve(asked.value.agentId)
-      if (!resolved.ok) {
-        ops.record({ op: 'hub.access.refused', outcome: 'ok', level: 'warn', detail: { agent_id: asked.value.agentId, reason: resolved.reason }, ctx: { correlationId: ops.correlate() } })
-        return { ok: false, refused: `${resolved.reason}. Nothing was shown to the operator.` }
+      // #region session-enroll-request — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+      // Fabric itself as the callee: the asker is a coding agent of the runner catalogue, never a registry entry,
+      // and the one resource is a project that exists. Every other callee goes through the registry as before.
+      let entry: { key: string; kind: string; name: string; installedBy: string; repository: string | null; summary: string | null }
+      if (asked.value.callee === FABRIC_SELF) {
+        const runner = this.deps.enrollment?.runner(asked.value.agentId) ?? null
+        if (!runner) {
+          receipt('not-a-coding-agent', asked.value.agentId)
+          return { ok: false, refused: `${asked.value.agentId} is not a coding agent Fabric knows on this Mac. Nothing was shown to the operator.` }
+        }
+        const projectId = projectOfResource(asked.value.resources[0]) as string
+        const project = await this.deps.enrollment!.project(projectId)
+        if (!project) {
+          receipt('unknown-project', runner.key)
+          return { ok: false, refused: 'that project is not one of this Fabric. Nothing was shown to the operator.' }
+        }
+        entry = { key: runner.key, kind: 'runner', name: runner.name, installedBy: 'a coding agent on this Mac', repository: null, summary: runner.summary }
+      } else {
+        this.deps.registry.refresh()
+        const resolved = this.deps.registry.resolve(asked.value.agentId)
+        if (!resolved.ok) {
+          ops.record({ op: 'hub.access.refused', outcome: 'ok', level: 'warn', detail: { agent_id: asked.value.agentId, reason: resolved.reason }, ctx: { correlationId: ops.correlate() } })
+          return { ok: false, refused: `${resolved.reason}. Nothing was shown to the operator.` }
+        }
+        entry = resolved.entry
       }
-      const entry = resolved.entry
+      // #endregion session-enroll-request
       const ask: AccessAsk = { ...asked.value, agentId: entry.key }
       const bindingId = principal.kind === 'binding' ? principal.binding.id : null
       if (principal.kind === 'binding' && principal.binding.agent_id !== entry.key)
@@ -206,8 +234,8 @@ export class AccessService {
       })
       const row = await this.deps.store.request(id)
       if (!row) throw new Error('the access request was written and could not be read back')
-      let connected = false
-      try {
+      let connected = ask.callee === FABRIC_SELF
+      if (!connected) try {
         connected = await this.deps.connected(ask.callee)
       } catch (e) {
         // Shown as "not connected", which is the safe reading: the prompt then offers to connect, and the

@@ -28,6 +28,7 @@ import { createAccessStore, type AccessStore } from './accessStore.ts'
 import { AccessService } from './accessService.ts'
 import { startHub, withdrawHub } from './hub.ts'
 import { hubServerFor } from './hubTools.ts'
+import { enrollSession } from './sessionEnroll.ts'
 import { createAgentCall } from './hubCall.ts'
 import { createObservatoryVault } from './observatoryVault.ts'
 import { FABRIC_INBOX, ProductConnector } from './productConnect.ts'
@@ -724,7 +725,18 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     store: accessStore,
     registry,
     present: (request) => presenter.present(request),
-    connected: async (product) => (await accessStore.liveConnection(product)) !== null
+    connected: async (product) => (await accessStore.liveConnection(product)) !== null,
+    // #region session-enroll-wiring — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+    // Who may ask Fabric itself for a session: a coding agent of the runner catalogue that has a program on this
+    // Mac's PATH (the shell row has none and asks for nothing); which projects exist: this estate's.
+    enrollment: {
+      runner: (id) => {
+        const a = AGENTS.find((x) => x.id === id && x.program)
+        return a ? { key: a.id, name: a.label, summary: a.description ?? null } : null
+      },
+      project: async (id) => enrollProject(id)
+    }
+    // #endregion session-enroll-wiring
   })
   const agentCall = createAgentCall({ access, store: accessStore, vault, forward: forwardToProduct, estateId: ACTIVE_ESTATE })
   // A revoked binding never calls again: its idempotency memory goes at once (DA-3, verification 0.3.1).
@@ -736,7 +748,23 @@ async function bootstrapReady(): Promise<{ estateId: string; estateName: string 
     hub: {
       doorToken: () => hubState.doorToken,
       access: hubAccess,
-      tools: (principal) => hubServerFor(principal, { access: hubAccess, call: agentCall }),
+      tools: (principal) => hubServerFor(principal, {
+        access: hubAccess,
+        call: agentCall,
+        enroll: (binding, args) => enrollSession(binding, args, {
+          liveGrants: (b) => hubAccess.liveGrantsOf(b),
+          admittedFolders: async () => {
+            const repos = await store.selectAll('project_repos', 'path,project_id', { orderBy: ['project_id', 'path'] })
+            if (repos.failed) throw new Error(`repositories read failed: ${repos.failed}`)
+            return (repos.rows as Array<{ path: string; project_id: string }>).map((r) => ({ projectId: r.project_id, path: r.path }))
+          },
+          projectName: async (id) => (await enrollProject(id))?.name ?? null,
+          realpath: (folder) => { try { return realpathSync.native(folder) } catch { return null } },
+          mint: (projectId, sessionId, taskId) => surface.mint(projectId, sessionId, taskId),
+          journal: (type, projectId, payload) =>
+            journal.append({ estateId: ACTIVE_ESTATE, type, actor: { kind: 'system', id: 'fabric-hub' }, projectId, payload })
+        })
+      }),
       callback: (product, req, res) => connector.callback(product, req, res)
     }
   })
@@ -1129,6 +1157,13 @@ async function listRepos(projectId: string): Promise<RepoRow[]> {
     .order('attached_at', { ascending: true })
   if (error) throw new Error(`repositories read failed: ${error.message}`)
   return (data ?? []) as RepoRow[]
+}
+
+/** A project of this estate by id, for an enrollment ask (ADR-0134); null when there is none. A failed read throws. */
+async function enrollProject(id: string): Promise<{ id: string; name: string } | null> {
+  const { data, error } = await store.select('projects', 'id,name').eq('id', id).maybeSingle()
+  if (error) throw new Error(`project read failed: ${error.message}`)
+  return (data as { id: string; name: string } | null) ?? null
 }
 
 /** Which projects hold each folder, by real path, every page read (`startChoices.ts#indexImported`). */

@@ -162,6 +162,71 @@ export function withdrawHub(root: string, pid: number = process.pid): { removed:
   rmSync(doorTokenFile, { force: true })
   return { removed: true }
 }
+// #region hub-locate — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+/** Where a coding agent outside Fabric reaches the hub, or why there is none to reach (ADR-0134 §1). */
+export type HubLocation =
+  | { ok: true; origin: string; mcpUrl: string; doorToken: string; pid: number }
+  | { ok: false; code: 'not-running' | 'not-a-hub'; reason: string }
+
+/** The published origin, exactly: the IPv4 loopback literal and a port — never a name, never another address. */
+const LOOPBACK_ORIGIN = /^http:\/\/127\.0\.0\.1:(\d{4,5})$/
+/** The door token as `publishHub` writes it: 32 random bytes, base64url. */
+const DOOR_TOKEN = /^[A-Za-z0-9_-]{43}$/
+
+/** Whether a process with this id runs (EPERM: it runs as another user, which is still "alive"). */
+export function pidAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (e) {
+    return (e as NodeJS.ErrnoException).code === 'EPERM'
+  }
+}
+
+/**
+ * Read hub.json and the door token it names, the way an agent must (the contract above): with the same bounded,
+ * no-follow reader the hub itself uses, refusing a foreign protocol, an origin that is not the loopback literal, a
+ * token file outside the registry root and a `pid` that is not running. A refusal is an answer, never a throw.
+ */
+export function locateHub(root: string, deps: { isAlive?: (pid: number) => boolean } = {}): HubLocation {
+  const { hubFile } = hubPaths(root)
+  const notHub = (reason: string): HubLocation => ({ ok: false, code: 'not-a-hub', reason })
+  let text: string | null
+  try {
+    text = readHubDocument(hubFile)
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') return { ok: false, code: 'not-running', reason: 'Fabric is not running: there is no hub.json' }
+    return notHub(`hub.json could not be read (${(e as NodeJS.ErrnoException).code ?? 'error'})`)
+  }
+  if (text === null) return notHub('hub.json is not a regular file')
+  let doc: Partial<HubDocument>
+  try {
+    doc = JSON.parse(text) as Partial<HubDocument>
+  } catch {
+    return notHub('hub.json is not JSON')
+  }
+  if (doc.protocol !== HUB_PROTOCOL) return notHub(`hub.json speaks ${JSON.stringify(doc.protocol)}, not ${HUB_PROTOCOL}`)
+  const port = LOOPBACK_ORIGIN.exec(typeof doc.origin === 'string' ? doc.origin : '')
+  if (!port || Number(port[1]) < 1024 || Number(port[1]) > 65535) return notHub('hub.json names an origin that is not the loopback literal')
+  if (doc.mcp !== '/mcp') return notHub('hub.json names another MCP path')
+  if (!Number.isInteger(doc.pid) || (doc.pid as number) <= 0) return notHub('hub.json names no process')
+  const tokenFile = typeof doc.doorTokenFile === 'string' ? doc.doorTokenFile : ''
+  if (!path.isAbsolute(tokenFile) || path.resolve(path.dirname(tokenFile)) !== path.resolve(root))
+    return notHub('hub.json names a door token outside the registry root')
+  const pid = doc.pid as number
+  if (!(deps.isAlive ?? pidAlive)(pid)) return { ok: false, code: 'not-running', reason: `Fabric is not running: hub.json names process ${pid}, which is not running` }
+  let token: string | null
+  try {
+    token = readHubDocument(tokenFile)
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === 'ENOENT') return { ok: false, code: 'not-running', reason: 'Fabric is starting or stopping: its door token is not there' }
+    return notHub('the door token could not be read')
+  }
+  if (token === null || !DOOR_TOKEN.test(token.trim())) return notHub('the door token is not one Fabric writes')
+  return { ok: true, origin: doc.origin as string, mcpUrl: `${doc.origin as string}/mcp`, doorToken: token.trim(), pid }
+}
+// #endregion hub-locate
+
 /** What `startHub` needs of the surface: listen on a port (a refusal throws), and say where it listens. */
 export interface HubListener {
   start(opts?: { port?: number }): Promise<void>

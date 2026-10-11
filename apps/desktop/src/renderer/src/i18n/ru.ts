@@ -1677,6 +1677,7 @@ export const ru: Partial<Record<StringKey, string>> = {
   'event.agent.stage.reported@1': "агент сообщил о своём этапе: это его собственное утверждение",
   'event.session.oriented@1': "сессия прочитала правила, по которым работает",
   'event.terminal.opened@1': "сессия открыта",
+  'event.session.enrolled@1': "агент для кода, открытый вне Fabric, подключился к проекту",
   'event.terminal.closed@1': "сессия завершилась",
   'event.transcript.captured@1': "вывод сессии записан",
   'event.context.compiled@1': "для сессии собран пакет контекста",

@@ -29,6 +29,16 @@ export const CAPABILITY_PATTERN = /^[a-z][a-z0-9._-]{1,127}$/
 export const CONNECTABLE_PRODUCTS = ['fabric-inbox'] as const
 export type ConnectableProduct = (typeof CONNECTABLE_PRODUCTS)[number]
 
+// #region session-enroll-ask — docs: docs/adr/0134-any-coding-agent-enrolls-into-a-project-through-the-hub-on-consent.md#decision
+/** Fabric itself as a callee (ADR-0134): a coding agent asks to work in one project, and for nothing else. */
+export const FABRIC_SELF = 'fabric'
+export const SESSION_ENROLL = 'session.enroll'
+export const PROJECT_RESOURCE = /^project:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+export type AccessCallee = ConnectableProduct | typeof FABRIC_SELF
+/** The project a `project:<uuid>` resource names. */
+export const projectOfResource = (resource: string): string | null => (PROJECT_RESOURCE.test(resource) ? resource.slice('project:'.length) : null)
+// #endregion session-enroll-ask
+
 /**
  * Capabilities that act on the WORKSPACE rather than inside one mailbox. They run without the
  * narrowing header, so they run only when the operator saw them in the prompt as their own line —
@@ -145,7 +155,7 @@ export function oneLine(text: string, max = 300): string {
 
 export interface AccessAsk {
   agentId: string
-  callee: ConnectableProduct
+  callee: AccessCallee
   capabilities: string[]
   resources: string[]
   reason: string
@@ -207,6 +217,9 @@ export function normaliseAccessRequest(input: {
 }): Normalised<AccessAsk> {
   if (typeof input.agentId !== 'string' || !AGENT_ID_PATTERN.test(input.agentId))
     return { ok: false, reason: 'agentId must be your registry id: a provider id, or a service id with an optional .instance' }
+  if (input.callee === FABRIC_SELF) return normaliseEnrollAsk(input)
+  if (Array.isArray(input.capabilities) && input.capabilities.includes(SESSION_ENROLL))
+    return { ok: false, reason: `${SESSION_ENROLL} is asked of Fabric itself (callee ${FABRIC_SELF}), never of a product` }
   if (typeof input.callee !== 'string' || !(CONNECTABLE_PRODUCTS as readonly string[]).includes(input.callee))
     return { ok: false, reason: `no product called ${String(input.callee)} is connectable through Fabric (connectable: ${CONNECTABLE_PRODUCTS.join(', ')})` }
   if (!Array.isArray(input.capabilities) || input.capabilities.length === 0)
@@ -279,6 +292,21 @@ export function askLines(ask: Pick<AccessAsk, 'capabilities' | 'resources'>): As
 }
 
 /** The same request, whatever its order or spelling — the key a standing denial answers. */
+/** ADR-0134: exactly `session.enroll` on exactly one `project:<uuid>`; whether the agentId is a coding agent on
+ *  this Mac is the service's question (the runner catalogue), not this shape check's. */
+function normaliseEnrollAsk(input: { agentId?: unknown; capabilities?: unknown; resources?: unknown; reason?: unknown }): Normalised<AccessAsk> {
+  if (typeof input.agentId !== 'string' || !AGENT_ID_PATTERN.test(input.agentId))
+    return { ok: false, reason: 'agentId must be your coding agent\'s catalogue id, e.g. claude-code' }
+  if (!Array.isArray(input.capabilities) || input.capabilities.length !== 1 || input.capabilities[0] !== SESSION_ENROLL)
+    return { ok: false, reason: `of Fabric itself an agent asks exactly one capability, ${SESSION_ENROLL}` }
+  if (!Array.isArray(input.resources) || input.resources.length !== 1 || typeof input.resources[0] !== 'string' || !PROJECT_RESOURCE.test(input.resources[0]))
+    return { ok: false, reason: 'name exactly one project: project:<id>, as fabric.session.enroll answered it' }
+  const raw = typeof input.reason === 'string' ? input.reason.trim() : ''
+  const reason = raw.length > 1000 ? '' : oneLine(raw, 1000)
+  if (!reason) return { ok: false, reason: 'give a reason of 1 to 1000 characters — the operator reads it, as your claim' }
+  return { ok: true, value: { agentId: input.agentId, callee: FABRIC_SELF, capabilities: [SESSION_ENROLL], resources: [input.resources[0]], reason } }
+}
+
 export function requestSignature(ask: Pick<AccessAsk, 'agentId' | 'callee' | 'capabilities' | 'resources'>): string {
   return JSON.stringify([ask.agentId, ask.callee, [...ask.capabilities].sort(), [...ask.resources].sort()])
 }
