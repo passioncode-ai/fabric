@@ -6,6 +6,7 @@
 import { BrowserWindow, Menu, shell } from 'electron'
 import { translator, type Locale } from '../renderer/src/i18n/translate.ts'
 import { menuTemplate } from './menuTemplate.ts'
+import { IPC } from '../shared/types.ts'
 
 export function installMenu(locale: Locale): void {
   const say = translator(locale)
@@ -13,7 +14,7 @@ export function installMenu(locale: Locale): void {
     Menu.buildFromTemplate(
       menuTemplate({
         closeActiveTab: () =>
-          BrowserWindow.getFocusedWindow()?.webContents.send('tab:closeActive'),
+          BrowserWindow.getFocusedWindow()?.webContents.send(IPC.tabsCloseActive),
         openExternal: (url) => void shell.openExternal(url),
         label: (key) => say(key)
       })

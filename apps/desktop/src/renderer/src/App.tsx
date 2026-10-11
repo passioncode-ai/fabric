@@ -133,6 +133,11 @@ function Shell({
   const t = useT()
   const [sessionWindowId, setSessionWindowId] = useState<string | null | undefined>(undefined)
   const [fileWindowPath, setFileWindowPath] = useState<string | null>(null)
+  // #region main-window-boot — docs: docs/adr/0020-provider-views-are-sandboxed-extensions-and-layout-is-host-owned.md#provider-views-are-sandboxed-extensions-workspace-layout-is-host-owned
+  /** Known only once `meta.info` has answered. The drafts and the working set are the main window's
+   *  (CO-091): a detached session or editor window is not given them, so it must not ask. */
+  const isMainWindow = sessionWindowId === null && !fileWindowPath
+  // #endregion main-window-boot
   const [estateName, setEstateName] = useState('')
   /** NULL until the list has been read (M108). `[]` is an answer — "this estate
    *  holds no projects" — and it was the value every launch started with, so the
@@ -240,6 +245,7 @@ function Shell({
    * false, so nothing overwrites a file we could not read.
    */
   useEffect(() => {
+    if (!isMainWindow) return
     let alive = true
     void readInitialDrafts()
       .then((answer) => {
@@ -265,7 +271,7 @@ function Shell({
     return () => {
       alive = false
     }
-  }, [readInitialDrafts])
+  }, [readInitialDrafts, isMainWindow])
 
   /**
    * Persist on change, and say so when it does not land.
@@ -536,7 +542,8 @@ function Shell({
     const tab = tabOf(active)
     if (tab && tab.kind !== 'home') closeTab(tab)
   }
-  useEffect(() => window.fabric.tabs.onCloseActive(() => closeTabRef.current()), [])
+  // Tabs are the main window's alone (CO-091); a detached window's bridge has no `tabs`.
+  useEffect(() => (isMainWindow ? window.fabric.tabs.onCloseActive(() => closeTabRef.current()) : undefined), [isMainWindow])
 
   const current = active.kind === 'project' ? (projects ?? []).find((p) => p.id === active.projectId) : null
   // ONE SOURCE, read here and nowhere else. The route says where the operator

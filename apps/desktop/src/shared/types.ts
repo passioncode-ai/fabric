@@ -1587,6 +1587,8 @@ export const IPC = {
   workspaceImport: 'workspace:import',
   tabsRead: 'tabs:read',
   tabsWrite: 'tabs:write',
+  /** Main→renderer: the menu's Cmd+W, sent to the focused window (M111). */
+  tabsCloseActive: 'tab:closeActive',
   automationsRead: 'automations:read',
   proposalDecide: 'proposal:decide',
   routinesList: 'routines:list',
