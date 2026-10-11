@@ -61,7 +61,6 @@ import { splashProgress } from '../shared/splashProgress'
 import { checkWorkspace, importWorkspace, initRepository, writeWorkspace } from './workspace'
 import {
   IPC,
-  type AppSettings,
   type CreateProjectInput,
   type DiagnosticsView,
   type AnswerReceipt,
@@ -313,6 +312,8 @@ import { asFolderRefusal, inspectFolder, scanFolder } from './projectDiscovery.t
 import { detectExecutors } from './executorDetect.ts'
 import { createRunnerFallback, describeExhausted, launchRoute, openWithFallback } from './runnerFallback.ts'
 import { FALLBACK_OPTION, presetNeedsSurface } from '../shared/runnerRoute.ts'
+import { settingsPatch } from '../shared/appSettings.ts'
+import { fetchWithDeadline } from './dbDeadline.ts'
 import { RunnerUnavailable, SpawnFailure, type LaunchRoute } from './pty'
 import { keepScan, lastScan } from './startPaths.ts'
 import { createProjectFolder } from './projectFolder.ts'
@@ -605,7 +606,9 @@ async function bootstrap(): Promise<{ estateId: string; estateName: string }> {
   stackApiUrl = env.url
   stackExposureCheck = checkStackExposure(env.url)
   db = createClient(env.url, env.serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false }
+    auth: { persistSession: false, autoRefreshToken: false },
+    // Every request ends by a deadline; a caller's own `.abortSignal(…)` still ends it sooner (audit A7-010).
+    global: { fetch: fetchWithDeadline() }
   })
   return withSchemaReadiness({
     packaged: app.isPackaged,
@@ -4133,7 +4136,11 @@ function registerIpc(meta: { estateId: string; estateName: string }): void {
   handle(IPC.filesList, (event, dir: string): Returns<FabricApi['files']['list']> => listDirectory(dir, fileRoots, scopeOf(event)))
 
   handle(IPC.settingsRead, (): Returns<FabricApi['settings']['read']> => readSettings())
-  handle(IPC.settingsWrite, (_e, next: Partial<AppSettings>): Returns<FabricApi['settings']['write']> => {
+  handle(IPC.settingsWrite, (_e, raw: unknown): Returns<FabricApi['settings']['write']> => {
+    // A window changes only the preferences it shows; tabs and the workspace folder are main's (audit A7-008/A7-025).
+    const checked = settingsPatch(raw)
+    if (!checked.ok) return { settings: readSettings(), saved: false, reason: checked.reason }
+    const next = checked.patch
     const written = writeSettings(next)
     // Applied now, not at next launch: a power setting that takes effect
     // tomorrow is a power setting that did not work today. Applied from what was

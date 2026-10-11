@@ -41,6 +41,19 @@ extraResources:
       - seed.sql
       - migrations/*.sql
 npmRebuild: false
+# Audit 2026-10-05 A7-006: the binary's Electron fuses, read back from the built app by scripts/release-mac.mjs
+# (scripts/lib/release-mac.mjs#RELEASE_FUSES says why each is set). runAsNode stays on — the helpers run as
+# ELECTRON_RUN_AS_NODE=1 (src/main/helperProcess.ts); grantFileProtocolExtraPrivileges stays on while the window
+# loads its page from file://. Everything else a local process could use to run Fabric's signed binary as Node is off.
+electronFuses:
+  runAsNode: true
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+  grantFileProtocolExtraPrivileges: true
+  # An unsigned local build (identity: null) is re-signed ad hoc after the flip, or arm64 macOS refuses to run it.
+  resetAdHocDarwinSignature: true
 # Universal macOS (operator decision 2026-10-09): node-pty's thin per-arch prebuilds become one
 # universal file in both folders, other platforms' prebuilds are dropped, and the joined app is
 # refused if any Mach-O lacks a slice (scripts/lib/universal-mac.mjs).

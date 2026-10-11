@@ -14,8 +14,6 @@ import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { isRefusal, type Board, type BoardCaller } from './boardService.ts'
 
-export const BOARD_TOOLS = ['com.submit', 'com.list', 'com.get', 'com.read_ack', 'com.status'] as const
-
 const open = z.looseObject({})
 const reply = (value: unknown) => ({
   content: [{ type: 'text' as const, text: JSON.stringify(value) }],

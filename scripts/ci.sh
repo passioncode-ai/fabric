@@ -545,6 +545,8 @@ node scripts/check-feed-marks.mjs
 # live divergence. The prose beside them had already drifted — the panel's own
 # string said "Sixteen tools exist and eleven write to the journal" while the
 # figures were 22, 17 and 5, and the panel now renders them from the list.
+# The prose rule reads counts in words and numerals, the architecture documents included (audit A7-040).
+node --test scripts/test/tool-counts.test.mjs
 node scripts/check-surface-tools.mjs
 
 # "Nobody counted" is not "nothing was cut". `coverageOfList` answers a capped
