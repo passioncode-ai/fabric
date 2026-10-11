@@ -93,6 +93,7 @@ Each owner filed its row on its own board and named it back; the status lives th
 | agent-stack (sshlg-skills) | B-155, the interop doctrine | ssheleg/agent-stack#42 |
 | frame-agent | BL-059 (folds BL-056, BL-057) | branch `agent/bl-059-delegation`, `93f2772` |
 | nicegram-business | B-765 (deferred until its MCP returns) | nicegram/nicegram-business PR #379, `393ebf4b` |
+| prowl-research.default (PROWL-AI/research-agent, a local HTTP MCP — not ssheleg/research-agent, not prowl.chat) | B-020 (step 4, callee side; its contract pin moves to the merged DEC-0039/0041) | its own board |
 
 **A ruling for step 5, asked by fabric-dashboards:** `POST /fabric/v1/login-code` is the host's operation — the contract
 lists the login code among the descriptor token's host uses (`service.md` §Surfaces) — so a host minting a sign-in for

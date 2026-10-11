@@ -82,3 +82,10 @@ Corrected by frame-agent-84 the same day: sshlg-analytics-agent's OpenRouter key
 and only frame-agent's key is refused «blocked for a previous policy violation». The Context's sentence and T17's first
 item are therefore a key matter — frame-agent's BL-063 (a new key through Observatory's door, a re-probe, the old key
 revoked), waiting for the operator's yes — not the account's standing. The plaintext keys of BL-060 stay as stated.
+
+### Amendment 2 — 2026-10-11: provider routing per model
+
+Asked by frame-agent-84: a catalogue entry may carry an optional `provider` routing object (`ignore`, `order`,
+`allow_fallbacks`, in the shape of OpenRouter's provider routing), which the key route's proxy applies — so a model
+refused by one upstream (OpenAI's own endpoint for frame-agent's key) is still reached through another (Azure). It
+changes the route, never the model; the profile's allow-list is unchanged. Passed to the contract decision (T2/CT-05).
