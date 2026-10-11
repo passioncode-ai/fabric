@@ -73,3 +73,12 @@ matter).
 - **Two things only the operator can do** (T17): the OpenRouter account's standing with OpenAI, and moving the
   plaintext keys in `~/.hermes/.env` and opencode's `auth.json` into Observatory (BL-060). They join the operator's
   question batch.
+
+## Amendments
+
+### Amendment 1 — 2026-10-11: the OpenAI refusal is one key's, not the account's
+
+Corrected by frame-agent-84 the same day: sshlg-analytics-agent's OpenRouter key reaches `openai/gpt-6-luna` (HTTP 200),
+and only frame-agent's key is refused «blocked for a previous policy violation». The Context's sentence and T17's first
+item are therefore a key matter — frame-agent's BL-063 (a new key through Observatory's door, a re-probe, the old key
+revoked), waiting for the operator's yes — not the account's standing. The plaintext keys of BL-060 stay as stated.
